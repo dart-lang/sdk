@@ -2548,12 +2548,6 @@ void main() {
     expectIdentifierType('c;', 'C<List<int>>');
   }
 
-  /**
-   * See https://github.com/dart-lang/sdk/issues/27725
-   *
-   * TypeParameterMember.== is not implemented
-   */
-  @failingTest
   test_instantiateToBounds_method_ok_referenceOther_before() async {
     String code = r'''
 class C<T> {

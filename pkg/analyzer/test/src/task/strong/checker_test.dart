@@ -2105,6 +2105,41 @@ class DerivedFuture4<A> extends Future<A> {
 ''');
   }
 
+  void test_genericMethodSuper() {
+    checkFile(r'''
+class A<T> {
+  A<S> create<S extends T>() => new A<S>();
+}
+class B extends A {
+  A<S> create<S>() => super.create<S>();
+}
+class C extends A {
+  A<S> create<S>() => super.create();
+}
+class D extends A<num> {
+  A<S> create<S extends num>() => super.create<S>();
+}
+class E extends A<num> {
+  A<S> create<S extends num>() => /*error:RETURN_OF_INVALID_TYPE*/super.create<int>();
+}
+class F extends A<num> {
+  create2<S>() => super.create</*error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS*/S>();
+}
+    ''');
+  }
+
+  void test_genericMethodSuperSubstitute() {
+    checkFile(r'''
+class Clonable<T> {}
+class G<T> {
+  create<A extends Clonable<T>, B extends Iterable<A>>() => null;
+}
+class H extends G<num> {
+  create2() => super.create<Clonable<int>, List<Clonable<int>>>();
+}
+    ''');
+  }
+
   void test_getterGetterOverride() {
     checkFile('''
 class A {}

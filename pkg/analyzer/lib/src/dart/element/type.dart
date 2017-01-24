@@ -602,13 +602,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
     // Create type formals with specialized bounds.
     // For example `<U extends T>` where T comes from an outer scope.
-    List<TypeParameterElement> result =
-        new List<TypeParameterElement>(formalCount);
-
-    for (int i = 0; i < formalCount; i++) {
-      result[i] = TypeParameterMember.from(baseTypeFormals[i], this);
-    }
-    return result;
+    return TypeParameterMember.from(baseTypeFormals, this);
   }
 
   @override

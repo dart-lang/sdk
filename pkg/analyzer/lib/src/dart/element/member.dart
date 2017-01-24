@@ -908,13 +908,11 @@ class PropertyAccessorMember extends ExecutableMember
  * [FunctionType.returnType], and [ParameterMember].
  */
 class TypeParameterMember extends Member implements TypeParameterElement {
-  @override
-  final DartType bound;
-
+  DartType _bound;
   DartType _type;
 
   TypeParameterMember(
-      TypeParameterElement baseElement, DartType definingType, this.bound)
+      TypeParameterElement baseElement, DartType definingType, this._bound)
       : super(baseElement, definingType) {
     _type = new TypeParameterTypeImpl(this);
   }
@@ -922,6 +920,9 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   @override
   TypeParameterElement get baseElement =>
       super.baseElement as TypeParameterElement;
+
+  @override
+  DartType get bound => _bound;
 
   @override
   Element get enclosingElement => baseElement.enclosingElement;
@@ -943,19 +944,41 @@ class TypeParameterMember extends Member implements TypeParameterElement {
    * the given parameter. Return the member that was created, or the base
    * parameter if no member was created.
    */
-  static TypeParameterElement from(
-      TypeParameterElement parameter, ParameterizedType definingType) {
-    if (parameter?.bound == null || definingType.typeArguments.isEmpty) {
-      return parameter;
-    }
-
-    DartType bound = parameter.bound;
+  static List<TypeParameterElement> from(
+      List<TypeParameterElement> formals, FunctionType definingType) {
     List<DartType> argumentTypes = definingType.typeArguments;
+    if (argumentTypes.isEmpty) {
+      return formals;
+    }
     List<DartType> parameterTypes =
         TypeParameterTypeImpl.getTypes(definingType.typeParameters);
-    DartType substitutedBound =
-        bound.substitute2(argumentTypes, parameterTypes);
-    return new TypeParameterMember(parameter, definingType, substitutedBound);
+
+    // Create type formals with specialized bounds.
+    // For example `<U extends T>` where T comes from an outer scope.
+    var results = formals.toList(growable: false);
+    for (int i = 0; i < results.length; i++) {
+      var formal = results[i];
+      DartType bound = formal?.bound;
+      if (bound != null) {
+        // substitute type arguments from the function.
+        bound = bound.substitute2(argumentTypes, parameterTypes);
+        results[i] = new TypeParameterMember(formal, definingType, bound);
+      }
+    }
+    List<TypeParameterType> formalTypes =
+        TypeParameterTypeImpl.getTypes(formals);
+    for (var formal in results) {
+      if (formal is TypeParameterMember) {
+        // Recursive bounds are allowed too, so make sure these are updated
+        // to refer to any new TypeParameterMember we just made, rather than
+        // the original type parameter
+        // TODO(jmesserly): this is required so substituting for the
+        // type formal will work. Investigate if there's a better solution.
+        formal._bound = formal.bound
+            .substitute2(TypeParameterTypeImpl.getTypes(results), formalTypes);
+      }
+    }
+    return results;
   }
 }
 
