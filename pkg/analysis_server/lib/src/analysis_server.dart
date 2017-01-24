@@ -1818,24 +1818,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   nd.AnalysisDriver addAnalysisDriver(Folder folder, AnalysisOptions options) {
-    SourceFactory sourceFactory;
-    AnalysisOptions analysisOptions;
-    {
-      ContextBuilder builder = createContextBuilder(folder, options);
-      AnalysisContext context = builder.buildContext(folder.path);
-      sourceFactory = context.sourceFactory;
-      analysisOptions = context.analysisOptions;
-      context.dispose();
-    }
-    nd.AnalysisDriver analysisDriver = new nd.AnalysisDriver(
-        analysisServer.analysisDriverScheduler,
-        analysisServer._analysisPerformanceLogger,
-        resourceProvider,
-        analysisServer.byteStore,
-        analysisServer.fileContentOverlay,
-        folder.path,
-        sourceFactory,
-        analysisOptions);
+    ContextBuilder builder = createContextBuilder(folder, options);
+    nd.AnalysisDriver analysisDriver = builder.buildDriver(folder.path);
     analysisDriver.status.listen((status) {
       // TODO(scheglov) send server status
     });
@@ -1973,6 +1957,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         options: builderOptions);
     builder.fileResolverProvider = analysisServer.fileResolverProvider;
     builder.packageResolverProvider = analysisServer.packageResolverProvider;
+    builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
+    builder.performanceLog = analysisServer._analysisPerformanceLogger;
+    builder.byteStore = analysisServer.byteStore;
+    builder.fileContentOverlay = analysisServer.fileContentOverlay;
     return builder;
   }
 
