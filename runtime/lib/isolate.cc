@@ -239,18 +239,29 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
       // Get the parent function so that we get the right function name.
       func = func.parent_function();
 
+      bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
+      Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
+      Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
+
+      // We first try to serialize the message.  In case the message is not
+      // serializable this will throw an exception.
+      SerializedObjectBuffer message_buffer;
+      {
+        MessageWriter writer(message_buffer.data_buffer(), &malloc_allocator,
+                             &malloc_deallocator,
+                             /* can_send_any_object = */ true,
+                             message_buffer.data_length());
+        writer.WriteMessage(message);
+      }
+
       const char* utf8_package_root =
           packageRoot.IsNull() ? NULL : String2UTF8(packageRoot);
       const char* utf8_package_config =
           packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
 
-      bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
-      Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
-      Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
-
       IsolateSpawnState* state = new IsolateSpawnState(
           port.Id(), isolate->origin_id(), isolate->init_callback_data(),
-          String2UTF8(script_uri), func, message,
+          String2UTF8(script_uri), func, &message_buffer,
           isolate->spawn_count_monitor(), isolate->spawn_count(),
           utf8_package_root, utf8_package_config, paused.value(), fatal_errors,
           on_exit_port, on_error_port);
@@ -350,6 +361,27 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
     UNREACHABLE();
   }
 
+  bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
+  Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
+  Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
+
+  // We first try to serialize the arguments and the message.  In case the
+  // arguments or the message are not serializable this will throw an exception.
+  SerializedObjectBuffer arguments_buffer;
+  SerializedObjectBuffer message_buffer;
+  {
+    MessageWriter writer(
+        arguments_buffer.data_buffer(), &malloc_allocator, &malloc_deallocator,
+        /* can_send_any_object = */ false, arguments_buffer.data_length());
+    writer.WriteMessage(args);
+  }
+  {
+    MessageWriter writer(
+        message_buffer.data_buffer(), &malloc_allocator, &malloc_deallocator,
+        /* can_send_any_object = */ false, arguments_buffer.data_length());
+    writer.WriteMessage(message);
+  }
+
   // Canonicalize the uri with respect to the current isolate.
   const Library& root_lib =
       Library::Handle(isolate->object_store()->root_library());
@@ -365,15 +397,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   const char* utf8_package_config =
       packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
 
-  bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
-  Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
-  Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
-
   IsolateSpawnState* state = new IsolateSpawnState(
       port.Id(), isolate->init_callback_data(), canonical_uri,
-      utf8_package_root, utf8_package_config, args, message,
-      isolate->spawn_count_monitor(), isolate->spawn_count(), paused.value(),
-      fatal_errors, on_exit_port, on_error_port);
+      utf8_package_root, utf8_package_config, &arguments_buffer,
+      &message_buffer, isolate->spawn_count_monitor(), isolate->spawn_count(),
+      paused.value(), fatal_errors, on_exit_port, on_error_port);
 
   // If we were passed a value then override the default flags state for
   // checked mode.
