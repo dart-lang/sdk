@@ -465,32 +465,42 @@ class _HttpHeaders implements HttpHeaders {
     _mutable = false;
   }
 
-  void _build(BytesBuilder builder) {
+  int _write(Uint8List buffer, int offset) {
+    void write(List<int> bytes) {
+      int len = bytes.length;
+      for (int i = 0; i < len; i++) {
+        buffer[offset + i] = bytes[i];
+      }
+      offset += len;
+    }
+
+    // Format headers.
     for (String name in _headers.keys) {
       List<String> values = _headers[name];
       bool fold = _foldHeader(name);
       var nameData = name.codeUnits;
-      builder.add(nameData);
-      builder.addByte(_CharCode.COLON);
-      builder.addByte(_CharCode.SP);
+      write(nameData);
+      buffer[offset++] = _CharCode.COLON;
+      buffer[offset++] = _CharCode.SP;
       for (int i = 0; i < values.length; i++) {
         if (i > 0) {
           if (fold) {
-            builder.addByte(_CharCode.COMMA);
-            builder.addByte(_CharCode.SP);
+            buffer[offset++] = _CharCode.COMMA;
+            buffer[offset++] = _CharCode.SP;
           } else {
-            builder.addByte(_CharCode.CR);
-            builder.addByte(_CharCode.LF);
-            builder.add(nameData);
-            builder.addByte(_CharCode.COLON);
-            builder.addByte(_CharCode.SP);
+            buffer[offset++] = _CharCode.CR;
+            buffer[offset++] = _CharCode.LF;
+            write(nameData);
+            buffer[offset++] = _CharCode.COLON;
+            buffer[offset++] = _CharCode.SP;
           }
         }
-        builder.add(values[i].codeUnits);
+        write(values[i].codeUnits);
       }
-      builder.addByte(_CharCode.CR);
-      builder.addByte(_CharCode.LF);
+      buffer[offset++] = _CharCode.CR;
+      buffer[offset++] = _CharCode.LF;
     }
+    return offset;
   }
 
   String toString() {
