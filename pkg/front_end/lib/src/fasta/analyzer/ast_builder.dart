@@ -294,8 +294,8 @@ class AstBuilder extends ScopeListener {
     popList(count);
   }
 
-  void endInitializer(Token assignmentOperator) {
-    debugEvent("Initializer");
+  void endVariableInitializer(Token assignmentOperator) {
+    debugEvent("VariableInitializer");
     assert(assignmentOperator.stringValue == "=");
     Expression initializer = pop();
     Identifier identifier = pop();

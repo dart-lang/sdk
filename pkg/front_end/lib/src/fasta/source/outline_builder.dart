@@ -203,8 +203,8 @@ class OutlineBuilder extends UnhandledListener {
     push(MethodBody.Abstract);
   }
 
-  void skippedFunctionBody(Token token) {
-    debugEvent("skippedFunctionBody");
+  void handleFunctionBodySkipped(Token token) {
+    debugEvent("handleFunctionBodySkipped");
     push(MethodBody.Regular);
   }
 
@@ -297,7 +297,7 @@ class OutlineBuilder extends UnhandledListener {
     // Ignored for now.
   }
 
-  void handleFunctionTypedFormalParameter(Token token) {
+  void endFunctionTypedFormalParameter(Token token) {
     debugEvent("FunctionTypedFormalParameter");
     pop(); // Function type parameters.
     pop(); // Type variables.
@@ -432,10 +432,9 @@ class OutlineBuilder extends UnhandledListener {
     push(MethodBody.RedirectingFactoryBody);
   }
 
-  void endInitializer(Token assignmentOperator) {
-    debugEvent("Initializer");
-    // This is a variable initializer and it's ignored for now. May also be
-    // constructor initializer.
+  void endFieldInitializer(Token assignmentOperator) {
+    debugEvent("FieldInitializer");
+    // Ignoring field initializers for now.
   }
 
   void endInitializers(int count, Token beginToken, Token endToken) {

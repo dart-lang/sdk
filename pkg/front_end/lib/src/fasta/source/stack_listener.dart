@@ -7,10 +7,10 @@ library fasta.stack_listener;
 import 'dart:collection' show
     Queue;
 
-import 'package:front_end/src/fasta/parser/listener.dart' show
+import 'package:front_end/src/fasta/parser.dart' show
     Listener;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show
+import 'package:front_end/src/fasta/scanner.dart' show
     BeginGroupToken,
     Token;
 
@@ -109,18 +109,21 @@ abstract class StackListener extends Listener {
     print(name);
   }
 
+  @override
   void logEvent(String name) {
     print("  ${stack.join('\n  ')}");
     internalError("Unhandled event: $name in $runtimeType $uri.");
   }
 
+  @override
   void handleIdentifier(Token token) {
     debugEvent("handleIdentifier");
     push(token.value);
   }
 
-  void endConstructorInitializer(Token token) {
-    debugEvent("ConstructorInitializer");
+  @override
+  void endInitializer(Token token) {
+    debugEvent("Initializer");
   }
 
   void checkEmpty() {
@@ -135,60 +138,72 @@ abstract class StackListener extends Listener {
     }
   }
 
+  @override
   void endTopLevelDeclaration(Token token) {
     debugEvent("TopLevelDeclaration");
     checkEmpty();
   }
 
+  @override
   void endCompilationUnit(int count, Token token) {
     debugEvent("CompilationUnit");
     checkEmpty();
   }
 
+  @override
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
     push(NullValue.TypeArguments);
   }
 
+  @override
   void handleNoTypeVariables(Token token) {
     debugEvent("NoTypeVariables");
     push(NullValue.TypeVariables);
   }
 
+  @override
   void handleNoType(Token token) {
     debugEvent("NoType");
     push(NullValue.Type);
   }
 
+  @override
   void handleNoFormalParameters(Token token) {
     debugEvent("NoFormalParameters");
     push(NullValue.FormalParameters);
   }
 
+  @override
   void handleNoArguments(Token token) {
     debugEvent("NoArguments");
     push(NullValue.Arguments);
   }
 
+  @override
   void handleNoFunctionBody(Token token) {
     debugEvent("NoFunctionBody");
     push(NullValue.FunctionBody);
   }
 
+  @override
   void handleNoInitializers() {
     debugEvent("NoInitializers");
     push(NullValue.Initializers);
   }
 
+  @override
   void handleParenthesizedExpression(BeginGroupToken token) {
     debugEvent("ParenthesizedExpression");
   }
 
+  @override
   void beginLiteralString(Token token) {
     debugEvent("beginLiteralString");
     push(token);
   }
 
+  @override
   void endLiteralString(int interpolationCount) {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
@@ -199,15 +214,18 @@ abstract class StackListener extends Listener {
     }
   }
 
+  @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
     push(popList(literalCount).join(""));
   }
 
+  @override
   void endCatchClause(Token token) {
     debugEvent("CatchClause");
   }
 
+  @override
   void error(String message, Token token) {
     inputError(uri, token.charOffset, message);
   }

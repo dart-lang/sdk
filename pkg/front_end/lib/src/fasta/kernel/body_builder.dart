@@ -380,14 +380,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void beginConstructorInitializer(Token token) {
-    debugEvent("beginConstructorInitializer");
+  void beginInitializer(Token token) {
+    debugEvent("beginInitializer");
     inInitializer = true;
   }
 
   @override
-  void endConstructorInitializer(Token token) {
-    debugEvent("endConstructorInitializer");
+  void endInitializer(Token token) {
+    debugEvent("endInitializer");
     assert(!inInitializer);
     final member = this.member;
     var node = pop();
@@ -863,8 +863,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endInitializer(Token assignmentOperator) {
-    debugEvent("Initializer");
+  void endVariableInitializer(Token assignmentOperator) {
+    debugEvent("VariableInitializer");
     assert(assignmentOperator.stringValue == "=");
     Expression initializer = popForValue();
     Identifier identifier = pop();
@@ -1297,7 +1297,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleFunctionTypedFormalParameter(Token token) {
+  void endFunctionTypedFormalParameter(Token token) {
     debugEvent("FunctionTypedFormalParameter");
     if (inCatchClause || functionNestingLevel != 0) {
       exitLocalScope();

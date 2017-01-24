@@ -127,8 +127,8 @@ class DietListener extends StackListener {
     debugEvent("TypeArguments");
   }
 
-  void endInitializer(Token assignmentOperator) {
-    debugEvent("Initializer");
+  void endFieldInitializer(Token assignmentOperator) {
+    debugEvent("FieldInitializer");
   }
 
   void handleNoTypeVariables(Token token) {

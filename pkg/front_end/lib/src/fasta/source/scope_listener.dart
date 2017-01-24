@@ -52,6 +52,7 @@ abstract class ScopeListener<J> extends UnhandledListener {
     scope = newScope ?? scope.createNestedScope();
   }
 
+  @override
   void exitLocalScope() {
     scope = pop();
     assert(scope != null);
@@ -84,43 +85,51 @@ abstract class ScopeListener<J> extends UnhandledListener {
     enterContinueTarget();
   }
 
+  @override
   void beginFunctionBody(Token begin) {
     debugEvent("beginFunctionBody");
     enterLocalScope();
   }
 
+  @override
   void beginForStatement(Token token) {
     debugEvent("beginForStatement");
     enterLoop();
     enterLocalScope();
   }
 
+  @override
   void beginBlock(Token token) {
     debugEvent("beginBlock");
     enterLocalScope();
   }
 
+  @override
   void beginSwitchBlock(Token token) {
     debugEvent("beginSwitchBlock");
     enterLocalScope();
     enterBreakTarget();
   }
 
+  @override
   void beginDoWhileStatement(Token token) {
     debugEvent("beginDoWhileStatement");
     enterLoop();
   }
 
+  @override
   void beginWhileStatement(Token token) {
     debugEvent("beginWhileStatement");
     enterLoop();
   }
 
+  @override
   void beginDoWhileStatementBody(Token token) {
     debugEvent("beginDoWhileStatementBody");
     enterLocalScope();
   }
 
+  @override
   void endDoWhileStatementBody(Token token) {
     debugEvent("endDoWhileStatementBody");
     var body = pop();
@@ -128,11 +137,13 @@ abstract class ScopeListener<J> extends UnhandledListener {
     push(body);
   }
 
+  @override
   void beginWhileStatementBody(Token token) {
     debugEvent("beginWhileStatementBody");
     enterLocalScope();
   }
 
+  @override
   void endWhileStatementBody(Token token) {
     debugEvent("endWhileStatementBody");
     var body = pop();
@@ -140,11 +151,13 @@ abstract class ScopeListener<J> extends UnhandledListener {
     push(body);
   }
 
+  @override
   void beginForStatementBody(Token token) {
     debugEvent("beginForStatementBody");
     enterLocalScope();
   }
 
+  @override
   void endForStatementBody(Token token) {
     debugEvent("endForStatementBody");
     var body = pop();
@@ -152,11 +165,13 @@ abstract class ScopeListener<J> extends UnhandledListener {
     push(body);
   }
 
+  @override
   void beginForInBody(Token token) {
     debugEvent("beginForInBody");
     enterLocalScope();
   }
 
+  @override
   void endForInBody(Token token) {
     debugEvent("endForInBody");
     var body = pop();
@@ -164,11 +179,13 @@ abstract class ScopeListener<J> extends UnhandledListener {
     push(body);
   }
 
+  @override
   void beginThenStatement(Token token) {
     debugEvent("beginThenStatement");
     enterLocalScope();
   }
 
+  @override
   void endThenStatement(Token token) {
     debugEvent("endThenStatement");
     var body = pop();
@@ -176,11 +193,13 @@ abstract class ScopeListener<J> extends UnhandledListener {
     push(body);
   }
 
+  @override
   void beginElseStatement(Token token) {
     debugEvent("beginElseStatement");
     enterLocalScope();
   }
 
+  @override
   void endElseStatement(Token token) {
     debugEvent("endElseStatement");
     var body = pop();
@@ -188,6 +207,7 @@ abstract class ScopeListener<J> extends UnhandledListener {
     push(body);
   }
 
+  @override
   void reportErrorHelper(Token token, ErrorKind kind, Map arguments) {
     super.reportErrorHelper(token, kind, arguments);
     debugEvent("error: ${recoverableErrors.last}");
