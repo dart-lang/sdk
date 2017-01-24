@@ -422,7 +422,7 @@ class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
 
   _FileBasedSummaryResynthesizer(AnalysisContext context,
       SourceFactory sourceFactory, bool strongMode, this._dataStore)
-      : super(null, context, sourceFactory, strongMode);
+      : super(context, sourceFactory, strongMode);
 
   @override
   LinkedLibrary getLinkedSummary(String uri) {
