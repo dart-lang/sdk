@@ -5232,15 +5232,19 @@ class SsaBuilder extends ast.Visitor
       instruction = setRtiIfNeeded(instruction, node);
     }
 
-    TypeMask type = _inferredTypeOfNewList(node);
+    TypeMask type = _inferredTypeOfListLiteral(node);
     if (!type.containsAll(closedWorld)) {
       instruction.instructionType = type;
     }
     stack.add(instruction);
   }
 
-  _inferredTypeOfNewList(ast.Node node) =>
+  _inferredTypeOfNewList(ast.Send node) =>
       _resultOf(sourceElement).typeOfNewList(node) ?? commonMasks.dynamicType;
+
+  _inferredTypeOfListLiteral(ast.LiteralList node) =>
+      _resultOf(sourceElement).typeOfListLiteral(node) ??
+      commonMasks.dynamicType;
 
   visitConditional(ast.Conditional node) {
     SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);

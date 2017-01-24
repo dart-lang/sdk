@@ -268,7 +268,7 @@ class KernelAstAdapter {
       assertNodeIsSynthetic(listLiteral);
       return closedWorld.commonMasks.growableListType;
     }
-    return _resultOf(owner).typeOfNewList(getNode(listLiteral)) ??
+    return _resultOf(owner).typeOfListLiteral(getNode(listLiteral)) ??
         closedWorld.commonMasks.dynamicType;
   }
 
