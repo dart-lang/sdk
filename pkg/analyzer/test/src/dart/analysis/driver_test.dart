@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:convert/convert.dart';
@@ -28,8 +29,8 @@ import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../context/mock_sdk.dart';
 import 'base.dart';
-import 'physical_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -55,6 +56,7 @@ Future pumpEventQueue([int times = 5000]) {
 @reflectiveTest
 class AnalysisDriverSchedulerTest {
   final MemoryResourceProvider provider = new MemoryResourceProvider();
+  DartSdk sdk;
   final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
 
@@ -83,6 +85,7 @@ class AnalysisDriverSchedulerTest {
   }
 
   void setUp() {
+    sdk = new MockSdk(resourceProvider: provider);
     logger = new PerformanceLog(logBuffer);
     scheduler = new AnalysisDriverScheduler(logger);
     scheduler.start();

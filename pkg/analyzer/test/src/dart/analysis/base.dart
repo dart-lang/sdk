@@ -12,10 +12,11 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
-import 'physical_sdk.dart';
+import '../../context/mock_sdk.dart';
 
 /**
  * Finds an [Element] with the given [name].
@@ -43,6 +44,7 @@ typedef void _ElementVisitorFunction(Element element);
 
 class BaseAnalysisDriverTest {
   final MemoryResourceProvider provider = new MemoryResourceProvider();
+  DartSdk sdk;
   final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
 
@@ -97,6 +99,7 @@ class BaseAnalysisDriverTest {
   }
 
   void setUp() {
+    sdk = new MockSdk(resourceProvider: provider);
     testProject = _p('/test/lib');
     testFile = _p('/test/lib/test.dart');
     logger = new PerformanceLog(logBuffer);

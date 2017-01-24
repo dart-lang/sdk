@@ -68,7 +68,23 @@ abstract class Completer<T> {
 part of dart.async;
 abstract class Stream<T> {
   Future<T> get first;
+  StreamSubscription<T> listen(void onData(T event),
+                               { Function onError,
+                                 void onDone(),
+                                 bool cancelOnError});
 }
+
+abstract class StreamSubscription<T> {
+  Future cancel();
+  void onData(void handleData(T data));
+  void onError(Function handleError);
+  void onDone(void handleDone());
+  void pause([Future resumeSignal]);
+  void resume();
+  bool get isPaused;
+  Future<E> asFuture<E>([E futureValue]);
+}
+
 abstract class StreamTransformer<S, T> {}
 '''
     });
@@ -106,11 +122,19 @@ class Object {
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
   int get hashCode => 0;
+  Type get runtimeType => null;
+  dynamic noSuchMethod(Invocation invocation) => null;
 }
 
 class Function {}
 class StackTrace {}
-class Symbol {}
+
+class Symbol {
+  const factory Symbol(String name) {
+    return null;
+  }
+}
+
 class Type {}
 
 abstract class Comparable<T> {
@@ -126,6 +150,7 @@ abstract class String implements Comparable<String>, Pattern {
   bool get isNotEmpty => false;
   int get length => 0;
   String substring(int len) => null;
+  String toLowerCase();
   String toUpperCase();
   List<int> get codeUnits;
 }
@@ -133,7 +158,13 @@ abstract class RegExp implements Pattern {
   external factory RegExp(String source);
 }
 
-class bool extends Object {}
+class bool extends Object {
+  external const factory bool.fromEnvironment(String name,
+                                              {bool defaultValue: false});
+}
+
+abstract class Invocation {}
+
 abstract class num implements Comparable<num> {
   bool operator <(num other);
   bool operator <=(num other);
@@ -144,21 +175,33 @@ abstract class num implements Comparable<num> {
   num operator *(num other);
   num operator /(num other);
   int operator ^(int other);
-  int operator &(int other);
   int operator |(int other);
   int operator <<(int other);
   int operator >>(int other);
   int operator ~/(num other);
   num operator %(num other);
   int operator ~();
+  num operator -();
   int toInt();
   double toDouble();
   num abs();
   int round();
 }
 abstract class int extends num {
+  external const factory int.fromEnvironment(String name, {int defaultValue});
+
+  bool get isNegative;
   bool get isEven => false;
+
+  int operator &(int other);
+  int operator |(int other);
+  int operator ^(int other);
+  int operator ~();
+  int operator <<(int shiftAmount);
+  int operator >>(int shiftAmount);
+
   int operator -();
+
   external static int parse(String source,
                             { int radix,
                               int onError(String source) });
@@ -194,7 +237,12 @@ abstract class double extends num {
 }
 
 class DateTime extends Object {}
-class Null extends Object {}
+
+class Null extends Object {
+  factory Null._uninstantiable() {
+    throw new UnsupportedError('class Null cannot be instantiated');
+  }
+}
 
 class Deprecated extends Object {
   final String expires;
@@ -233,6 +281,7 @@ class List<E> implements Iterable<E> {
 
   bool get isEmpty => false;
   E get first => null;
+  E get last => null;
 
   Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e)) => null;
 
@@ -242,9 +291,11 @@ class List<E> implements Iterable<E> {
 }
 
 class Map<K, V> extends Object {
-  Iterable<K> get keys => null;
   V operator [](K key) => null;
   void operator []=(K key, V value) {}
+  Iterable<K> get keys => null;
+  int get length;
+  Iterable<V> get values;
 }
 
 external bool identical(Object a, Object b);
@@ -282,7 +333,22 @@ const _MockSdkLibrary _LIB_HTML_DARTIUM = const _MockSdkLibrary(
     '$sdkRoot/lib/html/dartium/html_dartium.dart',
     '''
 library dart.html;
-class HtmlElement {}
+
+abstract class HtmlElement {}
+
+abstract class CanvasElement extends HtmlElement {
+  Object getContext(String contextId, [Map attributes]);
+  CanvasRenderingContext2D get context2D;
+}
+
+abstract class class CanvasRenderingContext2D {}
+''');
+
+const _MockSdkLibrary _LIB_INTERCEPTORS = const _MockSdkLibrary(
+    'dart:_interceptors',
+    '$sdkRoot/lib/_internal/js_runtime/lib/interceptors.dart',
+    '''
+library dart._interceptors;
 ''');
 
 const _MockSdkLibrary _LIB_MATH = const _MockSdkLibrary(
@@ -317,6 +383,7 @@ const List<SdkLibrary> _LIBRARIES = const [
   _LIB_MATH,
   _LIB_HTML_DART2JS,
   _LIB_HTML_DARTIUM,
+  _LIB_INTERCEPTORS,
 ];
 
 class MockSdk implements DartSdk {
@@ -328,6 +395,8 @@ class MockSdk implements DartSdk {
     "dart:collection": "$sdkRoot/lib/collection/collection.dart",
     "dart:convert": "$sdkRoot/lib/convert/convert.dart",
     "dart:_foreign_helper": "$sdkRoot/lib/_foreign_helper/_foreign_helper.dart",
+    "dart:_interceptors":
+        "$sdkRoot/lib/_internal/js_runtime/lib/interceptors.dart",
     "dart:math": "$sdkRoot/lib/math/math.dart"
   };
 

@@ -30,7 +30,7 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 
-import '../src/dart/analysis/physical_sdk.dart' as physical_sdk;
+import '../src/context/mock_sdk.dart';
 import 'analysis_context_factory.dart';
 import 'test_support.dart';
 
@@ -655,8 +655,8 @@ class ResolverTestCase extends EngineTestCase {
     }
     if (enableNewAnalysisDriver) {
       options ??= new AnalysisOptionsImpl();
-      DartSdk sdk =
-          options.strongMode ? physical_sdk.strongSdk : physical_sdk.sdk;
+      DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
+        ..context.analysisOptions = options;
 
       List<UriResolver> resolvers = <UriResolver>[
         new DartUriResolver(sdk),
@@ -795,6 +795,7 @@ class ResolverTestCase extends EngineTestCase {
   @override
   void tearDown() {
     analysisContext2 = null;
+    AnalysisEngine.instance.clearCaches();
     super.tearDown();
   }
 
