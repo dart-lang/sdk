@@ -21,6 +21,7 @@ import 'dart:_js_helper'
         StrongModeErrorImplementation,
         StrongModeTypeError,
         SyncIterable;
+import 'dart:_internal' as _internal;
 
 part 'classes.dart';
 part 'rtti.dart';

@@ -1167,8 +1167,19 @@ class CodeGenerator extends GeneralizingAstVisitor
     var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
         _emitClassHeritage(element), [constructor, toStringF]);
     var id = _emitTopLevelName(element);
+
+    // Emit metadata for synthetic enum index member.
+    // TODO(jacobr): make field readonly when that is supported.
+    var tInstanceFields = <JS.Property>[
+      new JS.Property(
+          _emitMemberName('index'), _emitAnnotatedType(intClass.type, null))
+    ];
+    var sigFields = <JS.Property>[_buildSignatureField('fields', tInstanceFields)];
+    var sig = new JS.ObjectInitializer(sigFields);
+
     var result = [
-      js.statement('# = #', [id, classExpr])
+      js.statement('# = #', [id, classExpr]),
+      _callHelperStatement('setSignature(#, #);', [id, sig])
     ];
 
     // defineEnumValues internally depends on dart.constList which uses
@@ -1507,7 +1518,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     var fnBody = js.call('this.noSuchMethod(new #.InvocationImpl(#, #, #))', [
       _runtimeModule,
-      _declareMemberName(method),
+      _declareMemberName(method, useDisplayName: true),
       positionalArgs,
       new JS.ObjectInitializer(invocationProps)
     ]);
@@ -1772,6 +1783,14 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
   }
 
+  JS.Property _buildSignatureField(String name, List<JS.Property> elements) {
+    var o =
+        new JS.ObjectInitializer(elements, multiline: elements.length > 1);
+    // TODO(vsm): Remove
+    var e = js.call('() => #', o);
+    return new JS.Property(_propertyName(name), e);
+  }
+
   /// Emit the signature on the class recording the runtime type information
   void _emitClassSignature(
       List<MethodDeclaration> methods,
@@ -1883,45 +1902,37 @@ class CodeGenerator extends GeneralizingAstVisitor
       tCtors.add(property);
     }
 
-    JS.Property build(String name, List<JS.Property> elements) {
-      var o =
-          new JS.ObjectInitializer(elements, multiline: elements.length > 1);
-      // TODO(vsm): Remove
-      var e = js.call('() => #', o);
-      return new JS.Property(_propertyName(name), e);
-    }
-
     var sigFields = <JS.Property>[];
     if (!tCtors.isEmpty) {
-      sigFields.add(build('constructors', tCtors));
+      sigFields.add(_buildSignatureField('constructors', tCtors));
     }
     if (!tInstanceFields.isEmpty) {
-      sigFields.add(build('fields', tInstanceFields));
+      sigFields.add(_buildSignatureField('fields', tInstanceFields));
     }
     if (!tInstanceGetters.isEmpty) {
-      sigFields.add(build('getters', tInstanceGetters));
+      sigFields.add(_buildSignatureField('getters', tInstanceGetters));
     }
     if (!tInstanceSetters.isEmpty) {
-      sigFields.add(build('setters', tInstanceSetters));
+      sigFields.add(_buildSignatureField('setters', tInstanceSetters));
     }
     if (!tInstanceMethods.isEmpty) {
-      sigFields.add(build('methods', tInstanceMethods));
+      sigFields.add(_buildSignatureField('methods', tInstanceMethods));
     }
     if (!tStaticFields.isEmpty) {
-      sigFields.add(build('sfields', tStaticFields));
+      sigFields.add(_buildSignatureField('sfields', tStaticFields));
     }
     if (!tStaticGetters.isEmpty) {
-      sigFields.add(build('sgetters', tStaticGetters));
+      sigFields.add(_buildSignatureField('sgetters', tStaticGetters));
     }
     if (!tStaticSetters.isEmpty) {
-      sigFields.add(build('ssetters', tStaticSetters));
+      sigFields.add(_buildSignatureField('ssetters', tStaticSetters));
     }
     if (!tStaticMethods.isEmpty) {
       assert(!sNames.isEmpty);
       // TODO(vsm): Why do we need this names field?
       var aNames = new JS.Property(
           _propertyName('names'), new JS.ArrayInitializer(sNames));
-      sigFields.add(build('statics', tStaticMethods));
+      sigFields.add(_buildSignatureField('statics', tStaticMethods));
       sigFields.add(aNames);
     }
     if (!sigFields.isEmpty || extensions.isNotEmpty) {
@@ -1969,14 +1980,14 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   List<ExecutableElement> _extensionsToImplement(ClassElement element) {
-    var members = <ExecutableElement>[];
-    if (_extensionTypes.isNativeClass(element)) return members;
+    if (_extensionTypes.isNativeClass(element)) return [];
 
     // Collect all extension types we implement.
     var type = element.type;
     var types = _extensionTypes.collectNativeInterfaces(element);
-    if (types.isEmpty) return members;
+    if (types.isEmpty) return [];
 
+    var members = new Set<ExecutableElement>();
     // Collect all possible extension method names.
     var extensionMembers = new HashSet<String>();
     for (var t in types) {
@@ -1991,7 +2002,9 @@ class CodeGenerator extends GeneralizingAstVisitor
         members.add(m);
       }
     }
-    return members;
+    members.addAll(_collectMockMethods(type)
+        .where((m) => extensionMembers.contains(m.name)));
+    return members.toList();
   }
 
   /// Generates the implicit default constructor for class C of the form
@@ -5501,17 +5514,14 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
-  JS.Expression _declareMemberName(ExecutableElement e, {bool useExtension}) {
-    String name;
-    if (e is PropertyAccessorElement) {
-      name = e.variable.name;
-    } else {
-      name = e.name;
-    }
+  JS.Expression _declareMemberName(ExecutableElement e,
+      {bool useExtension, useDisplayName = false}) {
+    var name = (e is PropertyAccessorElement) ? e.variable.name : e.name;
     return _emitMemberName(name,
         isStatic: e.isStatic,
         useExtension:
-            useExtension ?? _extensionTypes.isNativeClass(e.enclosingElement));
+            useExtension ?? _extensionTypes.isNativeClass(e.enclosingElement),
+        useDisplayName: useDisplayName);
   }
 
   /// This handles member renaming for private names and operators.
@@ -5558,6 +5568,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       {DartType type,
       bool isStatic: false,
       bool useExtension,
+      bool useDisplayName: false,
       Element element}) {
     // Static members skip the rename steps and may require JS interop renames.
     if (isStatic) {
@@ -5570,20 +5581,22 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // When generating synthetic names, we use _ as the prefix, since Dart names
     // won't have this (eliminated above), nor will static names reach here.
-    switch (name) {
-      case '[]':
-        name = '_get';
-        break;
-      case '[]=':
-        name = '_set';
-        break;
-      case 'unary-':
-        name = '_negate';
-        break;
-      case 'constructor':
-      case 'prototype':
-        name = '_$name';
-        break;
+    if (!useDisplayName) {
+      switch (name) {
+        case '[]':
+          name = '_get';
+          break;
+        case '[]=':
+          name = '_set';
+          break;
+        case 'unary-':
+          name = '_negate';
+          break;
+        case 'constructor':
+        case 'prototype':
+          name = '_$name';
+          break;
+      }
     }
 
     var result = _propertyName(name);

@@ -22,7 +22,7 @@ main() {
   C oc = new C();
   D od = new D();
 
-  (oc as dynamic).bar;  /// 01: runtime error
+  Expect.throws(() => (oc as dynamic).bar, (e) => e is NoSuchMethodError);
 
   // Casts should always evaluate the left-hand side, if only for its effects.
   oc.inc() as dynamic;

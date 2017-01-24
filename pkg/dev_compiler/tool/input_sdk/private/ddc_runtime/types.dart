@@ -182,56 +182,61 @@ class WrappedType extends Type {
   toString() => typeName(_wrappedType);
 }
 
-final AbstractFunctionType = JS(
-    '',
-    '''
-  class AbstractFunctionType extends $TypeRep {
-    constructor() {
-      super();
-      this._stringValue = null;
+abstract class AbstractFunctionType extends TypeRep {
+  String _stringValue = null;
+  get args;
+  get optionals;
+  get metadata;
+  get named;
+  get returnType;
+
+  AbstractFunctionType() {}
+
+  toString() {
+    return name;
+  }
+
+  get name {
+    if (_stringValue != null) return _stringValue;
+
+    var buffer = '(';
+    for (var i = 0; JS('bool', '# < #.length', i, args); ++i) {
+      if (i > 0) {
+        buffer += ', ';
+      }
+      buffer += typeName(JS('', '#[#]', args, i));
     }
-
-    toString() { return this.name; }
-
-    get name() {
-      if (this._stringValue) return this._stringValue;
-
-      let buffer = '(';
-      for (let i = 0; i < this.args.length; ++i) {
+    if (JS('bool', '#.length > 0', optionals)) {
+      if (JS('bool', '#.length > 0', args)) buffer += ', ';
+      buffer += '[';
+      for (var i = 0; JS('bool', '# < #.length', i, optionals); ++i) {
         if (i > 0) {
           buffer += ', ';
         }
-        buffer += $typeName(this.args[i]);
+        buffer += typeName(JS('', '#[#]', optionals, i));
       }
-      if (this.optionals.length > 0) {
-        if (this.args.length > 0) buffer += ', ';
-        buffer += '[';
-        for (let i = 0; i < this.optionals.length; ++i) {
-          if (i > 0) {
-            buffer += ', ';
-          }
-          buffer += $typeName(this.optionals[i]);
+      buffer += ']';
+    } else if (JS('bool', 'Object.keys(#).length > 0', named)) {
+      if (JS('bool', '#.length > 0', args)) buffer += ', ';
+      buffer += '{';
+      var names = getOwnPropertyNames(named);
+      JS('', '#.sort()', names);
+      for (var i = 0; JS('', '# < #.length', i, names); ++i) {
+        if (i > 0) {
+          buffer += ', ';
         }
-        buffer += ']';
-      } else if (Object.keys(this.named).length > 0) {
-        if (this.args.length > 0) buffer += ', ';
-        buffer += '{';
-        let names = $getOwnPropertyNames(this.named).sort();
-        for (let i = 0; i < names.length; ++i) {
-          if (i > 0) {
-            buffer += ', ';
-          }
-          buffer += names[i] + ': ' + $typeName(this.named[names[i]]);
-        }
-        buffer += '}';
+        var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
+        buffer += '${JS('', '#[#]', names, i)}: $typeNameString';
       }
-
-      buffer += ') -> ' + $typeName(this.returnType);
-      this._stringValue = buffer;
-      return buffer;
+      buffer += '}';
     }
+
+    var returnTypeName = typeName(returnType);
+    buffer += ') -> $returnTypeName';
+    _stringValue = buffer;
+    return buffer;
   }
-''');
+}
 
 /// Memo table for named argument groups. A named argument packet
 /// {name1 : type1, ..., namen : typen} corresponds to the path
@@ -260,207 +265,215 @@ final _fnTypeTypeMap = JS('', 'new Map()');
 /// of required arguments yields a map which is indexed by the
 /// argument types themselves.  The element reached via this
 /// index path (if present) is the canonical function type.
-final _fnTypeSmallMap = JS('', '[new Map(), new Map(), new Map()]');
+final List _fnTypeSmallMap = JS('', '[new Map(), new Map(), new Map()]');
 
-final FunctionType = JS(
+_memoizeArray(map, arr, create) => JS(
     '',
-    '''
-  class FunctionType extends $AbstractFunctionType {
-    static _memoizeArray(map, arr, create) {
-      let len = arr.length;
-      map = FunctionType._lookupNonTerminal(map, len);
-      for (var i = 0; i < len-1; ++i) {
-        map = FunctionType._lookupNonTerminal(map, arr[i]);
-      }
-      let result = map.get(arr[len-1]);
-      if (result !== void 0) return result;
-      map.set(arr[len-1], result = create());
-      return result;
-    }
+    '''(() => {
+  let len = $arr.length;
+  $map = $_lookupNonTerminal($map, len);
+  for (var i = 0; i < len-1; ++i) {
+    $map = $_lookupNonTerminal($map, $arr[i]);
+  }
+  let result = $map.get($arr[len-1]);
+  if (result !== void 0) return result;
+  $map.set($arr[len-1], result = $create());
+  return result;
+})()''');
 
-    // Map dynamic to bottom. If meta-data is present,
-    // we slice off the remaining meta-data and make
-    // it the second element of a packet for processing
-    // later on in the constructor.
-    static _normalizeParameter(a) {
-      if (a instanceof Array) {
-        let result = [];
-        result.push((a[0] == $dynamic) ? $bottom : a[0]);
-        result.push(a.slice(1));
-        return result;
-      }
-      return (a == $dynamic) ? $bottom : a;
-    }
+// Map dynamic to bottom. If meta-data is present,
+// we slice off the remaining meta-data and make
+// it the second element of a packet for processing
+// later on in the constructor.
+_normalizeParameter(a) => JS(
+    '',
+    '''(() => {
+  if ($a instanceof Array) {
+    let result = [];
+    result.push(($a[0] == $dynamic) ? $bottom : $a[0]);
+    result.push($a.slice(1));
+    return result;
+  }
+  return ($a == $dynamic) ? $bottom : $a;
+})()''');
 
-    static _canonicalizeArray(definite, array, map) {
-      let arr = (definite)
-         ? array
-         : array.map(FunctionType._normalizeParameter);
-      return FunctionType._memoizeArray(map, arr, () => arr);
-    }
+_canonicalizeArray(definite, array, map) => JS(
+    '',
+    '''(() => {
+  let arr = ($definite)
+     ? $array
+     : $array.map($_normalizeParameter);
+  return $_memoizeArray($map, arr, () => arr);
+})()''');
 
-    // TODO(leafp): This only canonicalizes of the names are
-    // emitted in a consistent order.
-    static _canonicalizeNamed(definite, named, map) {
-      let key = [];
-      let names = $getOwnPropertyNames(named);
-      let r = {};
-      for (var i = 0; i < names.length; ++i) {
-        let name = names[i];
-        let type = named[name];
-        if (!definite) r[name] = type = FunctionType._normalizeParameter(type);
-        key.push(name);
-        key.push(type);
-      }
-      if (!definite) named = r;
-      return FunctionType._memoizeArray(map, key, () => named);
-    }
+// TODO(leafp): This only canonicalizes of the names are
+// emitted in a consistent order.
+_canonicalizeNamed(definite, named, map) => JS(
+    '',
+    '''(() => {
+  let key = [];
+  let names = $getOwnPropertyNames($named);
+  let r = {};
+  for (var i = 0; i < names.length; ++i) {
+    let name = names[i];
+    let type = $named[name];
+    if (!definite) r[name] = type = $_normalizeParameter(type);
+    key.push(name);
+    key.push(type);
+  }
+  if (!$definite) $named = r;
+  return $_memoizeArray($map, key, () => $named);
+})()''');
 
-    static _lookupNonTerminal(map, key) {
-      let result = map.get(key);
-      if (result !== void 0) return result;
-      map.set(key, result = new Map());
-      return result;
-    }
+_lookupNonTerminal(map, key) => JS(
+    '',
+    '''(() => {
+  let result = $map.get($key);
+  if (result !== void 0) return result;
+  $map.set($key, result = new Map());
+  return result;
+})()''');
 
-    // TODO(leafp): This handles some low hanging fruit, but
-    // really we should make all of this faster, and also
-    // handle more cases here.
-    static _createSmall(count, definite, returnType, required) {
-      let map = $_fnTypeSmallMap[count];
-      let args = (definite) ? required
-        : required.map(FunctionType._normalizeParameter);
-      for (var i = 0; i < count; ++i) {
-        map = FunctionType._lookupNonTerminal(map, args[i]);
-     }
-     let result = map.get(returnType);
-     if (result !== void 0) return result;
-     result = new FunctionType(returnType, args, [], {});
-     map.set(returnType, result);
-     return result;
+// TODO(leafp): This handles some low hanging fruit, but
+// really we should make all of this faster, and also
+// handle more cases here.
+_createSmall(count, definite, returnType, required) => JS(
+    '',
+    '''(() => {
+  let map = $_fnTypeSmallMap[$count];
+  let args = ($definite) ? $required
+    : $required.map($_normalizeParameter);
+  for (var i = 0; i < $count; ++i) {
+    map = $_lookupNonTerminal(map, args[i]);
+ }
+ let result = map.get($returnType);
+ if (result !== void 0) return result;
+ result = new $FunctionType($returnType, args, [], {});
+ map.set($returnType, result);
+ return result;
+})()''');
+
+class FunctionType extends AbstractFunctionType {
+  final returnType;
+  dynamic args;
+  dynamic optionals;
+  final named;
+  dynamic metadata;
+
+  /**
+   * Construct a function type. There are two arrow constructors,
+   * distinguished by the "definite" flag.
+   *
+   * The fuzzy arrow (definite is false) treats any arguments
+   * of type dynamic as having type bottom, and will always be
+   * called with a dynamic invoke.
+   *
+   * The definite arrow (definite is true) leaves arguments unchanged.
+   *
+   * We eagerly normalize the argument types to avoid having to deal with
+   * this logic in multiple places.
+   *
+   * This code does best effort canonicalization.  It does not guarantee
+   * that all instances will share.
+   *
+   */
+  static create(definite, returnType, args, extra) {
+    // Note that if extra is ever passed as an empty array
+    // or an empty map, we can end up with semantically
+    // identical function types that don't canonicalize
+    // to the same object since we won't fall into this
+    // fast path.
+    if (JS('bool', '# === void 0', extra) && JS('', '#.length < 3', args)) {
+      return _createSmall(JS('', '#.length', args), definite, returnType, args);
     }
-    /**
-     * Construct a function type. There are two arrow constructors,
-     * distinguished by the "definite" flag.
-     *
-     * The fuzzy arrow (definite is false) treats any arguments
-     * of type dynamic as having type bottom, and will always be
-     * called with a dynamic invoke.
-     *
-     * The definite arrow (definite is true) leaves arguments unchanged.
-     *
-     * We eagerly normalize the argument types to avoid having to deal with
-     * this logic in multiple places.
-     *
-     * This code does best effort canonicalization.  It does not guarantee
-     * that all instances will share.
-     *
-     */
-    static create(definite, returnType, args, extra) {
-      // Note that if extra is ever passed as an empty array
-      // or an empty map, we can end up with semantically
-      // identical function types that don't canonicalize
-      // to the same object since we won't fall into this
-      // fast path.
-      if (extra === void 0 && args.length < 3) {
-        return FunctionType._createSmall(
-          args.length, definite, returnType, args);
-      }
-      args = FunctionType._canonicalizeArray(
-        definite, args, $_fnTypeArrayArgMap);
-      let keys;
-      let create;
-      if (extra === void 0) {
-        keys = [returnType, args];
-        create = () => new FunctionType(returnType, args, [], {});
-      } else if (extra instanceof Array) {
-        let optionals =
-          FunctionType._canonicalizeArray(definite, extra, $_fnTypeArrayArgMap);
-        keys = [returnType, args, optionals];
-        create =
-          () => new FunctionType(returnType, args, optionals, {});
+    args = _canonicalizeArray(definite, args, _fnTypeArrayArgMap);
+    var keys;
+    var create;
+    if (JS('bool', '# === void 0', extra)) {
+      keys = [returnType, args];
+      create = () => new FunctionType(returnType, args, [], JS('', '{}'));
+    } else if (JS('bool', '# instanceof Array', extra)) {
+      var optionals = _canonicalizeArray(definite, extra, _fnTypeArrayArgMap);
+      keys = [returnType, args, optionals];
+      create =
+          () => new FunctionType(returnType, args, optionals, JS('', '{}'));
+    } else {
+      var named = _canonicalizeNamed(definite, extra, _fnTypeNamedArgMap);
+      keys = [returnType, args, named];
+      create = () => new FunctionType(returnType, args, [], named);
+    }
+    return _memoizeArray(_fnTypeTypeMap, keys, create);
+  }
+
+  _process(array, metadata) {
+    var result = [];
+    for (var i = 0; JS('bool', '# < #.length', i, array); ++i) {
+      var arg = JS('', '#[#]', array, i);
+      if (JS('bool', '# instanceof Array', arg)) {
+        metadata.add(JS('', '#.slice(1)', arg));
+        result.add(JS('', '#[0]', arg));
       } else {
-        let named =
-          FunctionType._canonicalizeNamed(definite, extra, $_fnTypeNamedArgMap);
-        keys = [returnType, args, named];
-        create = () => new FunctionType(returnType, args, [], named);
+        JS('', '#.push([])', metadata);
+        JS('', '#.push(#)', result, arg);
       }
-      return FunctionType._memoizeArray($_fnTypeTypeMap, keys, create);
     }
-
-    constructor(returnType, args, optionals, named) {
-      super();
-      this.returnType = returnType;
-      this.args = args;
-      this.optionals = optionals;
-      this.named = named;
-
-      // TODO(vsm): This is just parameter metadata for now.
-      this.metadata = [];
-      function process(array, metadata) {
-        var result = [];
-        for (var i = 0; i < array.length; ++i) {
-          var arg = array[i];
-          if (arg instanceof Array) {
-            metadata.push(arg.slice(1));
-            result.push(arg[0]);
-          } else {
-            metadata.push([]);
-            result.push(arg);
-          }
-        }
-        return result;
-      }
-      this.args = process(this.args, this.metadata);
-      this.optionals = process(this.optionals, this.metadata);
-      // TODO(vsm): Add named arguments.
-    }
+    return result;
   }
-''');
 
-final Typedef = JS(
-    '',
-    '''
-  class Typedef extends $AbstractFunctionType {
-    constructor(name, closure) {
-      super();
-      this._name = name;
-      this._closure = closure;
-      this._functionType = null;
-    }
-
-    get name() {
-      return this._name;
-    }
-
-    get functionType() {
-      if (!this._functionType) {
-        this._functionType = this._closure();
-      }
-      return this._functionType;
-    }
-
-    get returnType() {
-      return this.functionType.returnType;
-    }
-
-    get args() {
-      return this.functionType.args;
-    }
-
-    get optionals() {
-      return this.functionType.optionals;
-    }
-
-    get named() {
-      return this.functionType.named;
-    }
-
-    get metadata() {
-      return this.functionType.metadata;
-    }
+  FunctionType(this.returnType, this.args, this.optionals, this.named) {
+    // TODO(vsm): This is just parameter metadata for now.
+    metadata = [];
+    this.args = _process(this.args, metadata);
+    this.optionals = _process(this.optionals, metadata);
+    // TODO(vsm): Add named arguments.
   }
-''');
+}
+
+// TODO(jacobr): we can't define this typedef due to execution order issues.
+//typedef AbstractFunctionType FunctionTypeClosure();
+
+class Typedef extends AbstractFunctionType {
+  dynamic _name;
+  dynamic /*FunctionTypeClosure*/ _closure;
+  AbstractFunctionType _functionType;
+
+  Typedef(this._name, this._closure) {}
+
+  get name {
+    return _name;
+  }
+
+  AbstractFunctionType get functionType {
+    if (_functionType == null) {
+      _functionType = JS('', '#()', _closure);
+    }
+    return _functionType;
+  }
+
+  get returnType {
+    return functionType.returnType;
+  }
+
+  List get args {
+    return functionType.args;
+  }
+
+  List get optionals {
+    return functionType.optionals;
+  }
+
+  get named {
+    return functionType.named;
+  }
+
+  List get metadata {
+    return functionType.metadata;
+  }
+}
+
+typedef(name, /*FunctionTypeClosure*/ closure) {
+  return new Typedef(name, closure);
+}
 
 final _typeFormalCount = JS('', 'Symbol("_typeFormalCount")');
 
@@ -500,9 +513,7 @@ functionType(returnType, args, extra) =>
 definiteFunctionType(returnType, args, extra) =>
     _functionType(true, returnType, args, extra);
 
-typedef(name, closure) => JS('', 'new #(#, #)', Typedef, name, closure);
-
-typeName(type) => JS(
+String typeName(type) => JS(
     '',
     '''(() => {
   if ($type === void 0) return "undefined type";
@@ -554,7 +565,7 @@ typeName(type) => JS(
 /// for a class type.
 getImplicitFunctionType(type) {
   if (isFunctionType(type)) return type;
-  return getMethodTypeFromType(type, 'call');
+  return getMethodType(type, 'call');
 }
 
 bool isFunctionType(type) => JS('bool', '# instanceof # || # === #', type,
