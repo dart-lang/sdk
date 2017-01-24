@@ -333,7 +333,7 @@ void MessageHandler::TaskCallback() {
   bool run_end_callback = false;
   bool delete_me = false;
   EndCallback end_callback = NULL;
-  CallbackData callback_data = NULL;
+  CallbackData callback_data = 0;
   {
     // We will occasionally release and reacquire this monitor in this
     // function. Whenever we reacquire the monitor we *must* process
