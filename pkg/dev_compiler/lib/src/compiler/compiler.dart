@@ -5,14 +5,16 @@
 import 'dart:collection' show HashSet, Queue;
 import 'dart:convert' show BASE64, JSON, UTF8;
 import 'dart:io' show File;
-import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+
 import 'package:analyzer/analyzer.dart'
     show AnalysisError, CompilationUnit, ErrorSeverity;
+import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/src/context/builder.dart' show ContextBuilder;
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
+import 'package:analyzer/src/error/codes.dart' show StaticTypeWarningCode;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
@@ -22,7 +24,6 @@ import 'package:analyzer/src/generated/source_io.dart'
     show Source, SourceKind, UriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummarySource, InputPackagesResultProvider, SummaryDataStore;
-import 'package:analyzer/src/error/codes.dart' show StaticTypeWarningCode;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/src/usage_exception.dart' show UsageException;
 import 'package:func/func.dart' show Func1;
@@ -86,6 +87,10 @@ class ModuleCompiler {
     // Read the summaries.
     var summaryData =
         new SummaryDataStore(options.summaryPaths, recordDependencyInfo: true);
+    var sdkSummaryBundle = sdk.getLinkedBundle();
+    if (sdkSummaryBundle != null) {
+      summaryData.addBundle(null, sdkSummaryBundle);
+    }
 
     var srcFactory = createSourceFactory(options,
         sdkResolver: sdkResolver,
@@ -97,9 +102,10 @@ class ModuleCompiler {
         AnalysisEngine.instance.createAnalysisContext() as AnalysisContextImpl;
     context.analysisOptions = analysisOptions;
     context.sourceFactory = srcFactory;
-    context.typeProvider = sdkResolver.dartSdk.context.typeProvider;
-    context.resultProvider =
-        new InputPackagesResultProvider(context, summaryData);
+    if (sdkSummaryBundle != null) {
+      context.resultProvider =
+          new InputPackagesResultProvider(context, summaryData);
+    }
     options.declaredVariables.forEach(context.declaredVariables.define);
     context.declaredVariables.define('dart.isVM', 'false');
 

@@ -32,6 +32,7 @@ import 'package:analyzer/src/generated/utilities_general.dart'
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
@@ -516,6 +517,11 @@ class Driver implements CommandLineStarter {
     // Once options and embedders are processed, setup the SDK.
     _setupSdk(options, useSummaries);
 
+    PackageBundle sdkBundle = sdk.getLinkedBundle();
+    if (sdkBundle != null) {
+      summaryDataStore.addBundle(null, sdkBundle);
+    }
+
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
     SourceFactory sourceFactory = _chooseUriResolutionPolicy(
@@ -530,8 +536,10 @@ class Driver implements CommandLineStarter {
     });
 
     _context.sourceFactory = sourceFactory;
-    _context.resultProvider =
-        new InputPackagesResultProvider(_context, summaryDataStore);
+    if (sdkBundle != null) {
+      _context.resultProvider =
+          new InputPackagesResultProvider(_context, summaryDataStore);
+    }
   }
 
   /// Return discovered packagespec, or `null` if none is found.

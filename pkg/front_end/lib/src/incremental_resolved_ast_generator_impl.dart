@@ -13,8 +13,8 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:front_end/incremental_resolved_ast_generator.dart';
 import 'package:front_end/src/base/file_repository.dart';
@@ -123,9 +123,6 @@ class IncrementalResolvedAstGeneratorImpl
         await _options.getSdkSummary(), sdkContext, _fileRepository);
     sdkContext.sourceFactory =
         new SourceFactory([new DartUriResolver(dartSdk)]);
-    bool strongMode = true; // TODO(paulberry): support strong mode flag.
-    sdkContext.resultProvider = new SdkSummaryResultProvider(
-        sdkContext, await _options.getSdkSummary(), strongMode);
 
     var sourceFactory = new _SourceFactoryProxy(dartSdk, _fileRepository);
     var analysisOptions = new AnalysisOptionsImpl();
@@ -270,6 +267,10 @@ class _SourceFactoryProxy implements SourceFactory {
   @override
   Source forUri(String absoluteUri) {
     Uri uri = Uri.parse(absoluteUri);
+    if (uri.scheme == 'dart') {
+      return new _SourceProxy(
+          uri, _fileRepository.pathForUri(uri, allocate: true));
+    }
     return new _SourceProxy(uri, _fileRepository.pathForUri(uri));
   }
 
@@ -278,9 +279,9 @@ class _SourceFactoryProxy implements SourceFactory {
   Source resolveUri(Source containingSource, String containedUri) {
     // TODO(paulberry): re-use code from dependency_grapher_impl, and support
     // SDK URI resolution logic.
-    var absoluteUri = containingSource == null
-        ? containedUri
-        : containingSource.uri.resolve(containedUri).toString();
+    String absoluteUri =
+        resolveRelativeUri(containingSource?.uri, Uri.parse(containedUri))
+            .toString();
     return forUri(absoluteUri);
   }
 
