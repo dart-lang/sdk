@@ -61,7 +61,6 @@ class RawUserTag;
 class SafepointHandler;
 class SampleBuffer;
 class SendPort;
-class SerializedObjectBuffer;
 class ServiceIdZone;
 class Simulator;
 class StackResource;
@@ -922,7 +921,7 @@ class IsolateSpawnState {
                     void* init_data,
                     const char* script_url,
                     const Function& func,
-                    SerializedObjectBuffer* message_buffer,
+                    const Instance& message,
                     Monitor* spawn_count_monitor,
                     intptr_t* spawn_count,
                     const char* package_root,
@@ -936,8 +935,8 @@ class IsolateSpawnState {
                     const char* script_url,
                     const char* package_root,
                     const char* package_config,
-                    SerializedObjectBuffer* args_buffer,
-                    SerializedObjectBuffer* message_buffer,
+                    const Instance& args,
+                    const Instance& message,
                     Monitor* spawn_count_monitor,
                     intptr_t* spawn_count,
                     bool paused,
