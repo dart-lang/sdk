@@ -8880,6 +8880,11 @@ D d;''');
     checkTypeRef(findVariable('d').type, absUri('/a.dart'), 'a.dart', 'D');
   }
 
+  test_localNameShadowsImportPrefix() {
+    serializeLibraryText('import "dart:async" as a; class a {}; a x;');
+    checkTypeRef(findVariable('x').type, null, null, 'a');
+  }
+
   test_metadata_classDeclaration() {
     checkAnnotationA(
         serializeClassText('const a = null; @a class C {}').annotations);

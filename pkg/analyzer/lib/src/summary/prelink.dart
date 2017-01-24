@@ -351,6 +351,11 @@ class _Prelinker {
   void filterExportNamespace(String relativeUri,
       List<UnlinkedCombinator> combinators, Map<String, _Meaning> result) {
     Map<String, _Meaning> exportNamespace = computeExportNamespace(relativeUri);
+    if (result == null) {
+      // This can happen if the import prefix was shadowed by a local name, so
+      // the imported symbols are inaccessible.
+      return;
+    }
     NameFilter filter = new NameFilter.forUnlinkedCombinators(combinators);
     exportNamespace.forEach((String name, _Meaning meaning) {
       if (filter.accepts(name) && !result.containsKey(name)) {

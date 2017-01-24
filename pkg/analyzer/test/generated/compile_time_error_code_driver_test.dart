@@ -32,30 +32,6 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
 
   @failingTest
   @override
-  test_prefixCollidesWithTopLevelMembers_functionTypeAlias() {
-    return super.test_prefixCollidesWithTopLevelMembers_functionTypeAlias();
-  }
-
-  @failingTest
-  @override
-  test_prefixCollidesWithTopLevelMembers_topLevelFunction() {
-    return super.test_prefixCollidesWithTopLevelMembers_topLevelFunction();
-  }
-
-  @failingTest
-  @override
-  test_prefixCollidesWithTopLevelMembers_topLevelVariable() {
-    return super.test_prefixCollidesWithTopLevelMembers_topLevelVariable();
-  }
-
-  @failingTest
-  @override
-  test_prefixCollidesWithTopLevelMembers_type() {
-    return super.test_prefixCollidesWithTopLevelMembers_type();
-  }
-
-  @failingTest
-  @override
   test_typeAliasCannotReferenceItself_typeVariableBounds() {
     return super.test_typeAliasCannotReferenceItself_typeVariableBounds();
   }
