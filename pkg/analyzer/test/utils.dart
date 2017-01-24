@@ -234,6 +234,11 @@ class TypeAssertions {
   Asserter<DartType> get isNum => isType(_typeProvider.numType);
 
   /**
+   * Primitive assertion for the Object type
+   */
+  Asserter<DartType> get isObject => isType(_typeProvider.objectType);
+
+  /**
    * Primitive assertion for the string type
    */
   Asserter<DartType> get isString => isType(_typeProvider.stringType);

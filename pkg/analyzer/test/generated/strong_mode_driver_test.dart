@@ -8,15 +8,15 @@ import 'strong_mode_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(StrongModeDownwardsInferenceTest_Driver);
+    defineReflectiveTests(StrongModeLocalInferenceTest_Driver);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test_Driver);
     defineReflectiveTests(StrongModeTypePropagationTest_Driver);
   });
 }
 
 @reflectiveTest
-class StrongModeDownwardsInferenceTest_Driver
-    extends StrongModeDownwardsInferenceTest {
+class StrongModeLocalInferenceTest_Driver
+    extends StrongModeLocalInferenceTest {
   @override
   bool get enableNewAnalysisDriver => true;
 
