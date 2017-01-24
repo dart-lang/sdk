@@ -660,7 +660,10 @@ class BaseWriter : public StackResource {
     data[Snapshot::kSnapshotFlagIndex] = kind;
   }
 
-  void FreeBuffer() { dealloc_(stream_.buffer()); }
+  void FreeBuffer() {
+    dealloc_(stream_.buffer());
+    stream_.set_buffer(NULL);
+  }
 
  private:
   WriteStream stream_;
@@ -976,19 +979,47 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 };
 
 
+class SerializedObjectBuffer : public StackResource {
+ public:
+  SerializedObjectBuffer()
+      : StackResource(Thread::Current()),
+        object_data_(NULL),
+        object_length_(0) {}
+
+  virtual ~SerializedObjectBuffer() { free(object_data_); }
+
+  void StealBuffer(uint8_t** out_data, intptr_t* out_length) {
+    *out_data = object_data_;
+    *out_length = object_length_;
+
+    object_data_ = NULL;
+    object_length_ = 0;
+  }
+
+  uint8_t** data_buffer() { return &object_data_; }
+  intptr_t* data_length() { return &object_length_; }
+
+ private:
+  uint8_t* object_data_;
+  intptr_t object_length_;
+};
+
+
 class MessageWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 512;
   MessageWriter(uint8_t** buffer,
                 ReAlloc alloc,
                 DeAlloc dealloc,
-                bool can_send_any_object);
+                bool can_send_any_object,
+                intptr_t* buffer_len = NULL);
   ~MessageWriter() {}
 
   void WriteMessage(const Object& obj);
 
  private:
   ForwardList forward_list_;
+  intptr_t* buffer_len_;
 
   DISALLOW_COPY_AND_ASSIGN(MessageWriter);
 };

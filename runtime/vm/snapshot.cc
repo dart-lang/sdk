@@ -1908,7 +1908,8 @@ void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
 MessageWriter::MessageWriter(uint8_t** buffer,
                              ReAlloc alloc,
                              DeAlloc dealloc,
-                             bool can_send_any_object)
+                             bool can_send_any_object,
+                             intptr_t* buffer_len)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kMessage,
                      buffer,
@@ -1917,7 +1918,8 @@ MessageWriter::MessageWriter(uint8_t** buffer,
                      kInitialSize,
                      &forward_list_,
                      can_send_any_object),
-      forward_list_(thread(), kMaxPredefinedObjectIds) {
+      forward_list_(thread(), kMaxPredefinedObjectIds),
+      buffer_len_(buffer_len) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
 }
@@ -1933,6 +1935,9 @@ void MessageWriter::WriteMessage(const Object& obj) {
   if (setjmp(*jump.Set()) == 0) {
     NoSafepointScope no_safepoint;
     WriteObject(obj.raw());
+    if (buffer_len_ != NULL) {
+      *buffer_len_ = BytesWritten();
+    }
   } else {
     FreeBuffer();
     ThrowException(exception_type(), exception_msg());

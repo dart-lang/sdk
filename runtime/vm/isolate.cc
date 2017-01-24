@@ -2776,7 +2776,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      void* init_data,
                                      const char* script_url,
                                      const Function& func,
-                                     const Instance& message,
+                                     SerializedObjectBuffer* message_buffer,
                                      Monitor* spawn_count_monitor,
                                      intptr_t* spawn_count,
                                      const char* package_root,
@@ -2818,9 +2818,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
     const String& class_name = String::Handle(cls.Name());
     class_name_ = NewConstChar(class_name.ToCString());
   }
-  bool can_send_any_object = true;
-  SerializeObject(message, &serialized_message_, &serialized_message_len_,
-                  can_send_any_object);
+  message_buffer->StealBuffer(&serialized_message_, &serialized_message_len_);
+
   // Inherit flags from spawning isolate.
   Isolate::Current()->FlagsCopyTo(isolate_flags());
 }
@@ -2831,8 +2830,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* script_url,
                                      const char* package_root,
                                      const char* package_config,
-                                     const Instance& args,
-                                     const Instance& message,
+                                     SerializedObjectBuffer* args_buffer,
+                                     SerializedObjectBuffer* message_buffer,
                                      Monitor* spawn_count_monitor,
                                      intptr_t* spawn_count,
                                      bool paused,
@@ -2861,11 +2860,9 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
   function_name_ = NewConstChar("main");
-  bool can_send_any_object = false;
-  SerializeObject(args, &serialized_args_, &serialized_args_len_,
-                  can_send_any_object);
-  SerializeObject(message, &serialized_message_, &serialized_message_len_,
-                  can_send_any_object);
+  args_buffer->StealBuffer(&serialized_args_, &serialized_args_len_);
+  message_buffer->StealBuffer(&serialized_message_, &serialized_message_len_);
+
   // By default inherit flags from spawning isolate. These can be overridden
   // from the calling code.
   Isolate::Current()->FlagsCopyTo(isolate_flags());
