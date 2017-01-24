@@ -24,9 +24,12 @@ import 'dart:async';
 import 'dart:_internal';
 
 class Object {
+  const Object() {}
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
   int get hashCode => 0;
+  Type get runtimeType => null;
+  dynamic noSuchMethod(Invocation invocation) => null;
 }
 
 class Function {}
@@ -130,13 +133,24 @@ abstract class Iterable<E> {
   Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
 }
 
-abstract class List<E> implements Iterable<E> {
-  void add(E value);
+class List<E> implements Iterable<E> {
+  List();
+  void add(E value) {}
   void addAll(Iterable<E> iterable) {}
-  E operator [](int index);
-  void operator []=(int index, E value);
+  E operator [](int index) => null;
+  void operator []=(int index, E value) {}
   Iterator<E> get iterator => null;
-  void clear();
+  void clear() {}
+
+  bool get isEmpty => false;
+  E get first => null;
+  E get last => null;
+
+  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e)) => null;
+
+  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
+      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
+
 }
 
 abstract class Map<K, V> extends Object {
@@ -208,8 +222,8 @@ library dart.math;
 const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
 const double LN10 =  2.302585092994046;
-num min(num a, num b) => 0;
-num max(num a, num b) => 0;
+T min<T extends num>(T a, T b) => null;
+T max<T extends num>(T a, T b) => null;
 external double cos(num x);
 external num pow(num x, num exponent);
 external double sin(num x);

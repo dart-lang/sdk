@@ -119,6 +119,7 @@ library dart.core;
 import 'dart:async';
 
 class Object {
+  const Object() {}
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
   int get hashCode => 0;
@@ -361,8 +362,8 @@ const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
 const double LN10 =  2.302585092994046;
 
-num/*=T*/ min/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
-num/*=T*/ max/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
+T min<T extends num>(T a, T b) => null;
+T max<T extends num>(T a, T b) => null;
 
 external double cos(num x);
 external double sin(num x);
