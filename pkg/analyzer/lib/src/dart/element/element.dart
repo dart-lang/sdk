@@ -1764,7 +1764,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(accessors, visitor);
-    safelyVisitChildren(_enums, visitor);
+    safelyVisitChildren(enums, visitor);
     safelyVisitChildren(functions, visitor);
     safelyVisitChildren(functionTypeAliases, visitor);
     safelyVisitChildren(types, visitor);
@@ -4861,7 +4861,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(parameters, visitor);
-    safelyVisitChildren(_typeParameters, visitor);
+    safelyVisitChildren(typeParameters, visitor);
   }
 }
 

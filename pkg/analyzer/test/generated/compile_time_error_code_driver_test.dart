@@ -16,10 +16,4 @@ main() {
 class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_typeAliasCannotReferenceItself_typeVariableBounds() {
-    return super.test_typeAliasCannotReferenceItself_typeVariableBounds();
-  }
 }
