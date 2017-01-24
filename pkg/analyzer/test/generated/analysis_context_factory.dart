@@ -238,6 +238,7 @@ class AnalysisContextFactory {
     // Stream
     ClassElementImpl streamElement =
         ElementFactory.classElement2("Stream", ["T"]);
+    streamElement.abstract = true;
     streamElement.constructors = <ConstructorElement>[
       ElementFactory.constructorElement2(streamElement, null)
     ];

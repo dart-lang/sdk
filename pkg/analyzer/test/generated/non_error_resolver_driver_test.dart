@@ -26,12 +26,6 @@ class NonErrorResolverTest_Driver extends NonErrorResolverTest {
 
   @failingTest
   @override
-  test_issue_24191() {
-    return super.test_issue_24191();
-  }
-
-  @failingTest
-  @override
   test_nativeConstConstructor() {
     return super.test_nativeConstConstructor();
   }

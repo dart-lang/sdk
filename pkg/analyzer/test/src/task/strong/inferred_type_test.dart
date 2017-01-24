@@ -923,9 +923,14 @@ Future test() async {
   void test_downwardsInferenceForEach() {
     checkFile('''
 import 'dart:async';
+
+abstract class MyStream<T> extends Stream<T> {
+  factory MyStream() => null;
+}
+
 Future main() async {
   for(int x in /*info:INFERRED_TYPE_LITERAL*/[1, 2, 3]) {}
-  await for(int x in /*info:INFERRED_TYPE_ALLOCATION*/new Stream()) {}
+  await for(int x in /*info:INFERRED_TYPE_ALLOCATION*/new MyStream()) {}
 }
 ''');
   }
@@ -1564,11 +1569,16 @@ void main() {
   void test_downwardsInferenceYieldYieldStar() {
     checkFile('''
 import 'dart:async';
+
+abstract class MyStream<T> extends Stream<T> {
+  factory MyStream() => null;
+}
+
 Stream<List<int>> foo() async* {
   yield /*info:INFERRED_TYPE_LITERAL*/[];
-  yield /*error:YIELD_OF_INVALID_TYPE*/new Stream();
+  yield /*error:YIELD_OF_INVALID_TYPE*/new MyStream();
   yield* /*error:YIELD_OF_INVALID_TYPE*/[];
-  yield* /*info:INFERRED_TYPE_ALLOCATION*/new Stream();
+  yield* /*info:INFERRED_TYPE_ALLOCATION*/new MyStream();
 }
 
 Iterable<Map<int, int>> bar() sync* {

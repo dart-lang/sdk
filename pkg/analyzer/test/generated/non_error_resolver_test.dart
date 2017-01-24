@@ -3375,7 +3375,7 @@ main() {
     Source source = addSource('''
 import 'dart:async';
 
-class S extends Stream {}
+abstract class S extends Stream {}
 f(S s) async {
   await for (var v in s) {
     print(v);

@@ -40,21 +40,26 @@ class CheckerTest {
   void test_awaitForInCastsStreamElementToVariable() {
     checkFile('''
 import 'dart:async';
+
+abstract class MyStream<T> extends Stream<T> {
+  factory MyStream() => null;
+}
+
 main() async {
   // Don't choke if sequence is not stream.
   await for (var i in /*error:FOR_IN_OF_INVALID_TYPE*/1234) {}
 
   // Dynamic cast.
-  await for (String /*info:DYNAMIC_CAST*/s in new Stream<dynamic>()) {}
+  await for (String /*info:DYNAMIC_CAST*/s in new MyStream<dynamic>()) {}
 
   // Identity cast.
-  await for (String s in new Stream<String>()) {}
+  await for (String s in new MyStream<String>()) {}
 
   // Untyped.
-  await for (var s in new Stream<String>()) {}
+  await for (var s in new MyStream<String>()) {}
 
   // Downcast.
-  await for (int /*info:DOWN_CAST_IMPLICIT*/i in new Stream<num>()) {}
+  await for (int /*info:DOWN_CAST_IMPLICIT*/i in new MyStream<num>()) {}
 }
 ''');
   }
@@ -981,16 +986,22 @@ import 'dart:async';
 
 dynamic x;
 
+Stream<int> intStream;
+
+abstract class MyStream<T> extends Stream<T> {
+  factory MyStream() => null;
+}
+
 bar1() async* { yield x; }
 Stream bar2() async* { yield x; }
 Stream<int> bar3() async* { yield /*info:DYNAMIC_CAST*/x; }
-Stream<int> bar4() async* { yield /*error:YIELD_OF_INVALID_TYPE*/new Stream<int>(); }
+Stream<int> bar4() async* { yield /*error:YIELD_OF_INVALID_TYPE*/intStream; }
 
 baz1() async* { yield* /*info:DYNAMIC_CAST*/x; }
 Stream baz2() async* { yield* /*info:DYNAMIC_CAST*/x; }
 Stream<int> baz3() async* { yield* /*info:DYNAMIC_CAST*/x; }
-Stream<int> baz4() async* { yield* new Stream<int>(); }
-Stream<int> baz5() async* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new Stream(); }
+Stream<int> baz4() async* { yield* intStream; }
+Stream<int> baz5() async* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new MyStream(); }
 ''');
   }
 

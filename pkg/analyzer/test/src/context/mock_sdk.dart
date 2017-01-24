@@ -66,7 +66,7 @@ abstract class Completer<T> {
     const <String, String>{
       '$sdkRoot/lib/async/stream.dart': r'''
 part of dart.async;
-class Stream<T> {
+abstract class Stream<T> {
   Future<T> get first;
 }
 abstract class StreamTransformer<S, T> {}
