@@ -1252,8 +1252,6 @@ WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTr
 WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: Skip # Issue 20540.
 
 [ $compiler == none && $runtime == dartium && $checked ]
-LayoutTests/fast/parser/pre-first-line-break_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/xpath/ambiguous-operators_t01: RuntimeError # co19-roll r761: Please triage this failure.
 Language/Errors_and_Warnings/static_warning_t02: RuntimeError # Please triage this failure.
 Language/Errors_and_Warnings/static_warning_t03: RuntimeError # Please triage this failure.
 Language/Errors_and_Warnings/static_warning_t04: RuntimeError # Please triage this failure.
@@ -1303,6 +1301,7 @@ LayoutTests/fast/lists/list-style-position-inside_t01: RuntimeError # co19-roll 
 LayoutTests/fast/lists/marker-preferred-margins_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/fixed-column-percent-logical-height-orthogonal-writing-mode_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/vertical-lr/image-inside-nested-blocks-with-border_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/parser/pre-first-line-break_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/available-height-for-content_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
@@ -1311,8 +1310,8 @@ LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-
 LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/table/absolute-table-percent-lengths_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/table/css-table-width_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/css-table-width-with-border-padding_t01: RuntimeError # Please triage this failure.
+LayoutTests/fast/table/css-table-width_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/fixed-table-layout-width-change_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/html-table-width-max-width-constrained_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/table/margins-flipped-text-direction_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -1327,6 +1326,8 @@ LayoutTests/fast/table/table-width-exceeding-max-width_t01: RuntimeError # co19-
 LayoutTests/fast/text/line-break-after-inline-latin1_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/trivial-segments_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/trivial_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/writing-mode/auto-sizing-orthogonal-flows_t01: RuntimeError # Please triage this failure.
+LayoutTests/fast/xpath/ambiguous-operators_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xpath/xpath-result-eventlistener-crash_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LibTest/html/Node/ownerDocument_A01_t01: RuntimeError # co19-roll r722: Issue 18251
 WebPlatformTest/DOMEvents/approved/Propagation.path.target.removed_t01: RuntimeError # co19-roll r738: Please triage this failure.

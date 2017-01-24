@@ -7645,6 +7645,7 @@ LayoutTests/fast/html/details-add-details-child-2_t01: RuntimeError # Please tri
 LayoutTests/fast/html/details-click-controls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/details-mouse-click_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/disable-style-element_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/html/draggable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/figcaption-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/figure-element_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/html/footer-element_t01: RuntimeError # Please triage this failure
