@@ -1261,8 +1261,9 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     // List of "direct" JS superclasses
-    var baseclasses =
-        basetypes.map((t) => _emitType(t, nameType: false)).toList();
+    var baseclasses = basetypes
+        .map((t) => _emitConstructorAccess(t, nameType: false))
+        .toList();
     assert(baseclasses.isNotEmpty);
     var heritage = (baseclasses.length == 1)
         ? baseclasses.first
