@@ -246,6 +246,9 @@ cc/RegExp_ExternalTwoByteString: Skip
 cc/RegExp_OneByteString: Skip
 cc/RegExp_TwoByteString: Skip
 
+[ $arch == simdbc64 && $mode == release ]
+cc/UseDartApi: Pass,Crash # Issue 28499
+
 # TODO(vegorov) Field guards are disabled for SIMDBC
 cc/GuardFieldConstructor2Test: Skip
 cc/GuardFieldConstructorTest: Skip
