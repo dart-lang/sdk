@@ -247,7 +247,7 @@ EntityRefBuilder _createLinkedType(
 }
 
 DartType _dynamicIfNull(DartType type) {
-  if (type == null || type.isBottom || type.isDartCoreNull || type.isVoid) {
+  if (type == null || type.isBottom || type.isDartCoreNull) {
     return DynamicTypeImpl.instance;
   }
   return type;

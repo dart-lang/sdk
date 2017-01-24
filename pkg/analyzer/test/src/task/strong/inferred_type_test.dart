@@ -4243,6 +4243,16 @@ test() {
 ''');
   }
 
+  void test_inferVariableVoid() {
+    var mainUnit = checkFile('''
+void f() {}
+var x = /*info:USE_OF_VOID_RESULT*/f();
+    ''');
+    var x = mainUnit.topLevelVariables[0];
+    expect(x.name, 'x');
+    expect(x.type.toString(), 'void');
+  }
+
   void test_instanceField_basedOnInstanceField_betweenCycles() {
     // Verify that all instance fields in one library cycle are inferred before
     // an instance fields in a dependent library cycle.
