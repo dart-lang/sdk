@@ -91,17 +91,17 @@ main(List<String> arguments) async {
       dartSdk: createDartSdk(options.sdk, strongMode: options.strongMode));
   Target target = getTarget(
       "vm", new TargetFlags(strongMode: options.strongMode));
-  Library dummyLibrary = repository.getLibraryReference(Uri.parse("dummy:"))
-      ..isExternal = false;
-  Program program =
-      loader.loadProgram(dummyLibrary.importUri, target: target);
+  Program program = loader.loadProgram(
+      Uri.base.resolve("pkg/fasta/test/platform.dart"), target: target);
+  if (loader.errors.isNotEmpty) {
+    inputError(null, null, loader.errors.join("\n"));
+  }
+  Library mainLibrary = program.mainMethod.enclosingLibrary;
+  program.uriToSource.remove(mainLibrary.fileUri);
   program = new Program(
       program.libraries.where(
           (Library l) => l.importUri.scheme == "dart").toList(),
       program.uriToSource);
-  if (loader.errors.isNotEmpty) {
-    inputError(null, null, loader.errors.join("\n"));
-  }
   target.transformProgram(program);
   for (LibraryElement analyzerLibrary in loader.libraryElements) {
     Library library = loader.getLibraryReference(analyzerLibrary);
