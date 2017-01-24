@@ -22,10 +22,4 @@ class CompileTimeErrorCodeTest_Driver extends CompileTimeErrorCodeTest {
   test_typeAliasCannotReferenceItself_typeVariableBounds() {
     return super.test_typeAliasCannotReferenceItself_typeVariableBounds();
   }
-
-  @failingTest
-  @override
-  test_uriDoesNotExist_import_appears_after_deleting_target() {
-    return super.test_uriDoesNotExist_import_appears_after_deleting_target();
-  }
 }
