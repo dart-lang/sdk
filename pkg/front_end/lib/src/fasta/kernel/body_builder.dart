@@ -27,7 +27,6 @@ import 'package:kernel/core_types.dart' show
 
 import 'package:front_end/src/fasta/scanner/token.dart' show
     BeginGroupToken,
-    ErrorToken,
     Token,
     isBinaryOperator,
     isMinusOperator;
@@ -2121,8 +2120,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void reportErrorHelper(Token token, ErrorKind kind, Map arguments) {
-    super.reportErrorHelper(token, kind, arguments);
+  void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
+    super.handleRecoverableError(token, kind, arguments);
     if (!hasParserError) {
       print("$uri:${recoverableErrors.last}");
     }
@@ -2130,39 +2129,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Token expectedExpression(Token token) {
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-      push(new Throw(new StringLiteral("${recoverableErrors.last}")));
-      do {
-        token = token.next;
-      } while (token is ErrorToken);
-      return token;
-    } else {
-      push(new InvalidExpression());
-      return super.expectedExpression(token);
-    }
-  }
-
-  @override
-  Token expected(String string, Token token) {
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-      do {
-        token = token.next;
-      } while (token is ErrorToken);
-      return token;
-    }
-    const List<String> trailing = const <String>[")", "}", ";", ","];
-    if (trailing.contains(token.stringValue) && trailing.contains(string)) {
-      // We're just trying to get out an error.
-      if (recoverableErrors.isNotEmpty) {
-        reportError(token, ErrorKind.Unspecified,
-            {"text": "Expected: '$string', but got '${token.value}'"});
+  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
+    if (kind == ErrorKind.UnexpectedToken) {
+      String expected = arguments["expected"];
+      const List<String> trailing = const <String>[")", "}", ";", ","];
+      if (trailing.contains(token.stringValue) && trailing.contains(expected)) {
+        arguments.putIfAbsent("actual", () => token.value);
+        handleRecoverableError(token, ErrorKind.ExpectedButGot, arguments);
       }
       return token;
     }
-    return super.expected(string, token);
+    return super.handleUnrecoverableError(token, kind, arguments);
   }
 
   void warning(error, [int charOffset = -1]) {

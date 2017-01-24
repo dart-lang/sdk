@@ -8,6 +8,7 @@ import 'dart:collection' show
     Queue;
 
 import 'package:front_end/src/fasta/parser.dart' show
+    ErrorKind,
     Listener;
 
 import 'package:front_end/src/fasta/scanner.dart' show
@@ -226,7 +227,8 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void error(String message, Token token) {
-    inputError(uri, token.charOffset, message);
+  void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
+    super.handleRecoverableError(token, kind, arguments);
+    debugEvent("Error: ${recoverableErrors.last}");
   }
 }

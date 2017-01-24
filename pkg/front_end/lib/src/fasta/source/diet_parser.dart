@@ -31,10 +31,10 @@ class DietParser extends ClassMemberParser {
     listener.beginOptionalFormalParameters(token);
     if (!optional('(', token)) {
       if (optional(';', token)) {
-        listener.reportError(token, ErrorKind.ExpectedOpenParens);
+        reportRecoverableError(token, ErrorKind.ExpectedOpenParens, {});
         return token;
       }
-      return listener.unexpected(token);
+      return reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
     }
     BeginGroupToken beginGroupToken = token;
     Token endToken = beginGroupToken.endGroup;
