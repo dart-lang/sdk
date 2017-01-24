@@ -915,7 +915,7 @@ import 'dart:async';
 Future test() async {
   dynamic d;
   List<int> l0 = await /*info:INFERRED_TYPE_LITERAL,error:COULD_NOT_INFER*/[/*info:DYNAMIC_CAST*/d];
-  List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(/*info:INFERRED_TYPE_LITERAL,error:COULD_NOT_INFER*/[/*info:DYNAMIC_CAST*/d]);
+  List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value([d]);
 }
 ''');
   }
@@ -1897,7 +1897,7 @@ main() {
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
-  MyFuture.value(T x) {}
+  MyFuture.value(x) {}
   dynamic noSuchMethod(invocation);
   MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
 }
@@ -1907,7 +1907,7 @@ $downwards<int> g1(bool x) async {
 $downwards<int> g2(bool x) async =>
   x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
 $downwards<int> g3(bool x) async {
-  var y = x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
+  var y = x ? 42 : new $upwards.value(42);
   return y;
 }
     ''';
@@ -1920,7 +1920,7 @@ $downwards<int> g3(bool x) async {
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
-  MyFuture.value(T x) {}
+  MyFuture.value(x) {}
   dynamic noSuchMethod(invocation);
   MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
 }
@@ -1930,7 +1930,7 @@ $downwards<int> g1(bool x) async {
 $downwards<int> g2(bool x) async =>
   x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
 $downwards<int> g3(bool x) async {
-  var y = x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
+  var y = x ? 42 : new $upwards.value(42);
   return y;
 }
     ''';
@@ -1949,7 +1949,7 @@ $downwards<int> g3(bool x) async {
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
-  MyFuture.value([T x]) {}
+  MyFuture.value([x]) {}
   dynamic noSuchMethod(invocation);
   MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
 }
@@ -1957,8 +1957,7 @@ class MyFuture<T> implements Future<T> {
 $declared f;
 // Instantiates Future<int>
 $downwards<int> t1 = f.then((_) =>
-   ${allocInfo}new /*error:COULD_NOT_INFER*/$upwards.value(
-     /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'));
+   ${allocInfo}new $upwards.value('hi'));
 
 // Instantiates List<int>
 $downwards<List<int>> t2 = f.then((_) => /*info:INFERRED_TYPE_LITERAL*/[3]);
@@ -1991,7 +1990,7 @@ $downwards<List<int>> g3() async {
 import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
-  MyFuture.value([T x]) {}
+  MyFuture.value([x]) {}
   dynamic noSuchMethod(invocation);
   MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
 }
@@ -1999,8 +1998,7 @@ class MyFuture<T> implements Future<T> {
 $declared f;
 // Instantiates Future<int>
 $downwards<int> t1 = f.then((_) =>
-   ${allocInfo}new /*error:COULD_NOT_INFER*/$upwards.value(
-     /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'));
+   ${allocInfo}new $upwards.value('hi'));
 
 // Instantiates List<int>
 $downwards<List<int>> t2 = f.then((_) => /*info:INFERRED_TYPE_LITERAL*/[3]);
@@ -2613,7 +2611,7 @@ main() {
     // TODO(jmesserly): we should change how this inference works.
     // For now this test will cover what we use.
     checkFile('''
-import 'dart:_foreign_helper' show JS;
+/*error:IMPORT_INTERNAL_LIBRARY*/import 'dart:_foreign_helper' show JS;
 main() {
   String x = /*error:INVALID_ASSIGNMENT*/JS('int', '42');
   var y = JS('String', '"hello"');

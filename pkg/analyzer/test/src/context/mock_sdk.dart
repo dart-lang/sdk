@@ -43,7 +43,7 @@ part 'stream.dart';
 class Future<T> {
   factory Future(computation()) => null;
   factory Future.delayed(Duration duration, [T computation()]) => null;
-  factory Future.value([T value]) => null;
+  factory Future.value([value]) => null;
 
   static Future<List/*<T>*/> wait/*<T>*/(
       Iterable<Future/*<T>*/> futures) => null;
@@ -448,9 +448,11 @@ class MockSdk implements DartSdk {
 
   @override
   SdkLibrary getSdkLibrary(String dartUri) {
-    // getSdkLibrary() is only used to determine whether a library is internal
-    // to the SDK.  The mock SDK doesn't have any internals, so it's safe to
-    // return null.
+    for (SdkLibrary library in _LIBRARIES) {
+      if (library.shortName == dartUri) {
+        return library;
+      }
+    }
     return null;
   }
 
@@ -516,7 +518,7 @@ class _MockSdkLibrary implements SdkLibrary {
   bool get isImplementation => throw new UnimplementedError();
 
   @override
-  bool get isInternal => throw new UnimplementedError();
+  bool get isInternal => shortName.startsWith('dart:_');
 
   @override
   bool get isShared => throw new UnimplementedError();
