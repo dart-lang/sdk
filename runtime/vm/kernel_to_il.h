@@ -75,6 +75,10 @@ class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
       return pair->value;
     }
   }
+
+  inline Pair* LookupPair(const Key& key) {
+    return DirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(key);
+  }
 };
 
 class BreakableBlock;

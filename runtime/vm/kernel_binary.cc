@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#include <map>
-#include <vector>
-
 #include "platform/globals.h"
 #include "vm/flags.h"
+#include "vm/growable_array.h"
 #include "vm/kernel.h"
+#include "vm/kernel_to_il.h"
 #include "vm/os.h"
 
 #if defined(DEBUG)
@@ -153,47 +152,47 @@ class BlockStack {
   BlockStack() : current_count_(0) {}
 
   void EnterScope() {
-    variable_count_.push_back(current_count_);
+    variable_count_.Add(current_count_);
     current_count_ = 0;
   }
 
   void LeaveScope() {
-    variables_.resize(variables_.size() - current_count_);
-    current_count_ = variable_count_[variable_count_.size() - 1];
-    variable_count_.pop_back();
+    variables_.TruncateTo(variables_.length() - current_count_);
+    current_count_ = variable_count_[variable_count_.length() - 1];
+    variable_count_.RemoveLast();
   }
 
   T* Lookup(int index) {
-    ASSERT(static_cast<unsigned>(index) < variables_.size());
+    ASSERT(index < variables_.length());
     return variables_[index];
   }
 
   void Push(T* v) {
-    variables_.push_back(v);
+    variables_.Add(v);
     current_count_++;
   }
 
   void Push(List<T>* decl) {
     for (int i = 0; i < decl->length(); i++) {
-      variables_.push_back(decl[i]);
+      variables_.Add(decl[i]);
       current_count_++;
     }
   }
 
   void Pop(T* decl) {
-    variables_.resize(variables_.size() - 1);
+    variables_.RemoveLast();
     current_count_--;
   }
 
   void Pop(List<T>* decl) {
-    variables_.resize(variables_.size() - decl->length());
+    variables_.TruncateTo(variables_.length() - decl->length());
     current_count_ -= decl->length();
   }
 
  private:
   int current_count_;
-  std::vector<T*> variables_;
-  std::vector<int> variable_count_;
+  GrowableArray<T*> variables_;
+  GrowableArray<int> variable_count_;
 };
 
 
@@ -203,29 +202,35 @@ class BlockMap {
   BlockMap() : current_count_(0), stack_height_(0) {}
 
   void EnterScope() {
-    variable_count_.push_back(current_count_);
+    variable_count_.Add(current_count_);
     current_count_ = 0;
   }
 
   void LeaveScope() {
     stack_height_ -= current_count_;
-    current_count_ = variable_count_[variable_count_.size() - 1];
-    variable_count_.pop_back();
+    current_count_ = variable_count_[variable_count_.length() - 1];
+    variable_count_.RemoveLast();
   }
 
   int Lookup(T* object) {
-    ASSERT(variables_.find(object) != variables_.end());
-    if (variables_.find(object) == variables_.end()) FATAL("lookup failure");
-    return variables_[object];
+    typename Map<T, int>::Pair* result = variables_.LookupPair(object);
+    ASSERT(result != NULL);
+    if (result == NULL) FATAL("lookup failure");
+    return RawPointerKeyValueTrait<T, int>::ValueOf(*result);
   }
 
   void Push(T* v) {
+    ASSERT(variables_.LookupPair(v) == NULL);
     int index = stack_height_++;
-    variables_[v] = index;
+    variables_.Insert(v, index);
     current_count_++;
   }
 
-  void Set(T* v, int index) { variables_[v] = index; }
+  void Set(T* v, int index) {
+    typename Map<T, int>::Pair* entry = variables_.LookupPair(v);
+    ASSERT(entry != NULL);
+    entry->value = index;
+  }
 
   void Push(List<T>* decl) {
     for (int i = 0; i < decl->length(); i++) {
@@ -241,8 +246,8 @@ class BlockMap {
  private:
   int current_count_;
   int stack_height_;
-  std::map<T*, int> variables_;
-  std::vector<int> variable_count_;
+  Map<T, int> variables_;
+  GrowableArray<int> variable_count_;
 };
 
 
