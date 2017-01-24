@@ -388,12 +388,4 @@ io/socket_info_ipv6_test: SkipByDesign
 
 [ $builder_tag == asan && $arch == x64 ]
 io/process_detached_test: Pass, Slow
-
-io/stdout_bad_argument_test: Fail # Issue 28353
-io/file_blocking_lock_test: Fail # Issue 28353
-
-io/process_sync_test: RuntimeError
-io/signals_test: RuntimeError
-io/regress_7191_test: RuntimeError
 io/named_pipe_script_test: RuntimeError
-io/http_server_close_response_after_error_test: RuntimeError

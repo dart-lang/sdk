@@ -18,8 +18,8 @@ cc/Fail0: Fail
 cc/Fail1: Fail
 cc/Fail2: Fail
 
-cc/Dart2JSCompileAll: Crash # Issue 27369
-cc/Dart2JSCompilerStats: Crash # Issue 27369
+cc/Dart2JSCompileAll: Fail, Crash # Issue 27369
+cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
 
 cc/SNPrint_BadArgs: Skip
 

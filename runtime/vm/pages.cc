@@ -4,6 +4,7 @@
 
 #include "vm/pages.h"
 
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
 #include "vm/compiler_stats.h"
 #include "vm/gc_marker.h"
@@ -69,6 +70,9 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   result->memory_ = memory;
   result->next_ = NULL;
   result->type_ = type;
+
+  LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
+
   return result;
 }
 
@@ -89,9 +93,14 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
 
 
 void HeapPage::Deallocate() {
+  bool is_embedder_allocated = embedder_allocated();
+
+  if (!is_embedder_allocated) {
+    LSAN_UNREGISTER_ROOT_REGION(this, sizeof(*this));
+  }
+
   // For a regular heap pages, the memory for this object will become
   // unavailable after the delete below.
-  bool is_embedder_allocated = embedder_allocated();
   delete memory_;
 
   // For a heap page from a snapshot, the HeapPage object lives in the malloc
