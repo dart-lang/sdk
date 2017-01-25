@@ -689,7 +689,7 @@ set _V3(_) {}
   }
 
   List<T> _excludeSdk<T>(Iterable<T> files) {
-    return files.where((T file) {
+    return files.where((Object file) {
       if (file is FileState) {
         return file.uri.scheme != 'dart';
       } else {
