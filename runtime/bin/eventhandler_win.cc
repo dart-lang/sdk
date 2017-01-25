@@ -149,7 +149,7 @@ void Handle::Close() {
     // If the handle uses synchronous I/O (e.g. stdin), cancel any pending
     // operation before closing the handle, so the read thread is not blocked.
     BOOL result = CancelIoEx(handle_, NULL);
-    ASSERT(result);
+    ASSERT(result || (GetLastError() == ERROR_NOT_FOUND));
   }
   MonitorLocker ml(monitor_);
   if (!IsClosing()) {
