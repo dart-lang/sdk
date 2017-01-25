@@ -15,16 +15,9 @@ main() {
 }
 
 @reflectiveTest
-class StrongModeLocalInferenceTest_Driver
-    extends StrongModeLocalInferenceTest {
+class StrongModeLocalInferenceTest_Driver extends StrongModeLocalInferenceTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_inference_hints() {
-    return super.test_inference_hints();
-  }
 }
 
 @reflectiveTest

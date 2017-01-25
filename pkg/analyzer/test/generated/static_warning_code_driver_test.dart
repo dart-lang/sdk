@@ -16,10 +16,4 @@ main() {
 class StaticWarningCodeTest_Driver extends StaticWarningCodeTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_argumentTypeNotAssignable_ambiguousClassName() {
-    return super.test_argumentTypeNotAssignable_ambiguousClassName();
-  }
 }

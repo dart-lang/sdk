@@ -2427,10 +2427,10 @@ main() {
   f/*<int>*/();
 }
 ''');
-    await computeAnalysisResult(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertErrors(
         source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD]);
-    for (AnalysisError error in analysisContext2.computeErrors(source)) {
+    for (AnalysisError error in analysisResult.errors) {
       if (error.errorCode ==
           StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS) {
         expect(error.message,

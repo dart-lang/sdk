@@ -930,7 +930,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         List<int> l0 = [];
      }
    ''');
-    resolve2(source);
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
