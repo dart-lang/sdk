@@ -276,6 +276,10 @@ class LocalsHandler {
           new HParameterValue(parameter, new TypeMask.exact(cls, closedWorld));
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
+      if (builder.lastAddedParameter == null) {
+        // If this is the first parameter inserted, make sure it stays first.
+        builder.lastAddedParameter = value;
+      }
     }
   }
 
