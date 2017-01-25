@@ -31,7 +31,7 @@ class GnPackageUriResolverTest extends _BaseTest {
     ]);
     provider.newFile(
         _p('/workspace/out/debug-x87_128/gen/dart.sources/flutter'),
-        '/workspace/a/source');
+        _p('/workspace/a/source'));
     _setUp();
     _assertResolve(
         'package:flutter/code.dart', '/workspace/a/source/code.dart');
@@ -46,7 +46,7 @@ class GnPackageUriResolverTest extends _BaseTest {
     ]);
     provider.newFile(
         _p('/workspace/out/debug-x87_128/gen/dart.sources/flutter'),
-        '/workspace/a/source');
+        _p('/workspace/a/source'));
     _setUp();
     expect(
         resolver.resolveAbsolute(Uri.parse('package:bogus/code.dart')), null);
