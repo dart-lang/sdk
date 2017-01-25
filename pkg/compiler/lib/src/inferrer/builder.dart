@@ -2886,7 +2886,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ast.Node identifier = node.declaredIdentifier;
     Element element = elements.getForInVariable(node);
     Selector selector = elements.getSelector(identifier);
-    TypeMask mask = inTreeData.typeOfSend(identifier);
+    TypeMask mask = inTreeData.typeOfSend(identifier.asSend());
 
     TypeInformation receiverType;
     if (element != null && element.isInstanceMember) {

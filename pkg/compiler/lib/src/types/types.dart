@@ -128,11 +128,11 @@ class GlobalTypeInferenceElementData {
     _typeMasks[node] = mask;
   }
 
-  TypeMask typeOfSend(Node node) => _get(node);
+  TypeMask typeOfSend(Send node) => _get(node);
   TypeMask typeOfGetter(SendSet node) => _get(node.selector);
   TypeMask typeOfOperator(SendSet node) => _get(node.assignmentOperator);
 
-  void setTypeMask(Node node, TypeMask mask) {
+  void setTypeMask(Send node, TypeMask mask) {
     _set(node, mask);
   }
 
