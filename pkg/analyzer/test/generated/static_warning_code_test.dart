@@ -796,6 +796,16 @@ f() {
     verify([source]);
   }
 
+  test_assignmentToFinal_parameter() async {
+    Source source = addSource(r'''
+f(final x) {
+  x = 1;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    verify([source]);
+  }
+
   test_assignmentToFinal_postfixMinusMinus() async {
     Source source = addSource(r'''
 f() {

@@ -2568,6 +2568,12 @@ abstract class UnlinkedParam extends base.SummaryClass {
   bool get isExplicitlyCovariant;
 
   /**
+   * Indicates whether the parameter is declared using the `final` keyword.
+   */
+  @Id(16)
+  bool get isFinal;
+
+  /**
    * Indicates whether this is a function-typed parameter.
    */
   @Id(5)

@@ -7163,7 +7163,7 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   bool get isFinal {
     if (_unlinkedParam != null) {
-      return false;
+      return _unlinkedParam.isFinal;
     }
     return super.isFinal;
   }

@@ -3215,6 +3215,10 @@ f() {}''');
     checkLibrary('external f();');
   }
 
+  test_function_parameter_final() {
+    checkLibrary('f(final x) {}');
+  }
+
   test_function_parameter_kind_named() {
     checkLibrary('f({x}) {}');
   }

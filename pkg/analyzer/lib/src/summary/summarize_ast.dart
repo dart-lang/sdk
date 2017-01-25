@@ -808,6 +808,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
     b.isExplicitlyCovariant = node.covariantKeyword != null;
+    b.isFinal = node.isFinal;
     if (_parametersMayInheritCovariance) {
       b.inheritsCovariantSlot = assignSlot();
     }

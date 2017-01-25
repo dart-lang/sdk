@@ -7926,6 +7926,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   int _inheritsCovariantSlot;
   UnlinkedExecutableBuilder _initializer;
   bool _isExplicitlyCovariant;
+  bool _isFinal;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
   idl.UnlinkedParamKind _kind;
@@ -8024,6 +8025,16 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   }
 
   @override
+  bool get isFinal => _isFinal ??= false;
+
+  /**
+   * Indicates whether the parameter is declared using the `final` keyword.
+   */
+  void set isFinal(bool value) {
+    this._isFinal = value;
+  }
+
+  @override
   bool get isFunctionTyped => _isFunctionTyped ??= false;
 
   /**
@@ -8119,7 +8130,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     this._visibleOffset = value;
   }
 
-  UnlinkedParamBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, String defaultValueCode, int inferredTypeSlot, int inheritsCovariantSlot, UnlinkedExecutableBuilder initializer, bool isExplicitlyCovariant, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedParamBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, String defaultValueCode, int inferredTypeSlot, int inheritsCovariantSlot, UnlinkedExecutableBuilder initializer, bool isExplicitlyCovariant, bool isFinal, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _codeRange = codeRange,
       _defaultValueCode = defaultValueCode,
@@ -8127,6 +8138,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
       _inheritsCovariantSlot = inheritsCovariantSlot,
       _initializer = initializer,
       _isExplicitlyCovariant = isExplicitlyCovariant,
+      _isFinal = isFinal,
       _isFunctionTyped = isFunctionTyped,
       _isInitializingFormal = isInitializingFormal,
       _kind = kind,
@@ -8183,6 +8195,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     this._initializer?.collectApiSignature(signature);
     signature.addInt(this._inheritsCovariantSlot ?? 0);
     signature.addBool(this._isExplicitlyCovariant == true);
+    signature.addBool(this._isFinal == true);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -8236,6 +8249,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     if (_isExplicitlyCovariant == true) {
       fbBuilder.addBool(15, true);
     }
+    if (_isFinal == true) {
+      fbBuilder.addBool(16, true);
+    }
     if (_isFunctionTyped == true) {
       fbBuilder.addBool(5, true);
     }
@@ -8287,6 +8303,7 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   int _inheritsCovariantSlot;
   idl.UnlinkedExecutable _initializer;
   bool _isExplicitlyCovariant;
+  bool _isFinal;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
   idl.UnlinkedParamKind _kind;
@@ -8337,6 +8354,12 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   bool get isExplicitlyCovariant {
     _isExplicitlyCovariant ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 15, false);
     return _isExplicitlyCovariant;
+  }
+
+  @override
+  bool get isFinal {
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 16, false);
+    return _isFinal;
   }
 
   @override
@@ -8405,6 +8428,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     if (inheritsCovariantSlot != 0) _result["inheritsCovariantSlot"] = inheritsCovariantSlot;
     if (initializer != null) _result["initializer"] = initializer.toJson();
     if (isExplicitlyCovariant != false) _result["isExplicitlyCovariant"] = isExplicitlyCovariant;
+    if (isFinal != false) _result["isFinal"] = isFinal;
     if (isFunctionTyped != false) _result["isFunctionTyped"] = isFunctionTyped;
     if (isInitializingFormal != false) _result["isInitializingFormal"] = isInitializingFormal;
     if (kind != idl.UnlinkedParamKind.required) _result["kind"] = kind.toString().split('.')[1];
@@ -8426,6 +8450,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     "inheritsCovariantSlot": inheritsCovariantSlot,
     "initializer": initializer,
     "isExplicitlyCovariant": isExplicitlyCovariant,
+    "isFinal": isFinal,
     "isFunctionTyped": isFunctionTyped,
     "isInitializingFormal": isInitializingFormal,
     "kind": kind,

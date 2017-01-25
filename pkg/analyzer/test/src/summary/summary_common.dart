@@ -6021,6 +6021,16 @@ int foo(int a, String b) => 0;
     }
   }
 
+  test_executable_param_isFinal() {
+    String text = 'f(x, final y) {}';
+    UnlinkedExecutable executable = serializeExecutableText(text);
+    expect(executable.parameters, hasLength(2));
+    expect(executable.parameters[0].name, 'x');
+    expect(executable.parameters[0].isFinal, isFalse);
+    expect(executable.parameters[1].name, 'y');
+    expect(executable.parameters[1].isFinal, isTrue);
+  }
+
   test_executable_param_no_flags() {
     UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
     expect(executable.parameters[0].isFunctionTyped, isFalse);

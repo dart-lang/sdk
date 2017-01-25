@@ -2277,6 +2277,11 @@ table UnlinkedParam {
   isExplicitlyCovariant:bool (id: 15);
 
   /**
+   * Indicates whether the parameter is declared using the `final` keyword.
+   */
+  isFinal:bool (id: 16);
+
+  /**
    * Indicates whether this is a function-typed parameter.
    */
   isFunctionTyped:bool (id: 5);
