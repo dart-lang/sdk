@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library json_tests;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'dart:convert';
 
 main() {

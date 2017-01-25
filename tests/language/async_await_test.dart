@@ -4,9 +4,7 @@
 
 library async_await_test;
 
-// Use of package:unittest and package:test is deprecated in sdk/tests.
-// Do not add any more uses of this package.
-import "package:unittest/unittest.dart";
+import "package:test/test.dart";
 import "dart:async";
 
 main() {

@@ -5,8 +5,7 @@
 library run_async_test;
 
 import 'dart:async';
-import 'package:expect/expect.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 main() {
   test("run async timer after async test", () {
@@ -16,7 +15,7 @@ main() {
     Timer.run(expectAsync(() { timerCallbackExecuted = true; }));
 
     scheduleMicrotask(expectAsync(() {
-      Expect.isFalse(timerCallbackExecuted);
+      expect(timerCallbackExecuted, isFalse);
     }));
 
     scheduleMicrotask(expectAsync(() {
@@ -28,12 +27,12 @@ main() {
       }
       if (sum == 0) throw "bad";  // Just to use the result.
       scheduleMicrotask(expectAsync(() {
-        Expect.isFalse(timerCallbackExecuted);
+        expect(timerCallbackExecuted, isFalse);
       }));
     }));
 
     scheduleMicrotask(expectAsync(() {
-      Expect.isFalse(timerCallbackExecuted);
+      expect(timerCallbackExecuted, isFalse);
     }));
   });
 }

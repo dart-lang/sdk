@@ -5,9 +5,8 @@
 // Test merging streams.
 library dart.test.stream_from_iterable;
 
-import "package:expect/expect.dart";
 import "dart:async";
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'event_helper.dart';
 
 class IterableTest<T> {
@@ -20,7 +19,7 @@ class IterableTest<T> {
       Stream<T> stream = new Stream<T>.fromIterable(iterable);
       Events actual = new Events.capture(stream);
       actual.onDone(expectAsync(() {
-        Expect.listEquals(expected.events, actual.events);
+        expect(expected.events, equals(actual.events));
       }));
     });
   }
@@ -41,8 +40,8 @@ main() {
   test("iterable-toList", () {
     new Stream.fromIterable(iter).toList().then(expectAsync((actual) {
       List expected = iter.toList();
-      Expect.equals(25, expected.length);
-      Expect.listEquals(expected, actual);
+      expect(25, equals(expected.length));
+      expect(expected, equals(actual));
     }));
   });
 
@@ -52,7 +51,7 @@ main() {
       .toList()
       .then(expectAsync((actual) {
          List expected = iter.map((i) => i * 3).toList();
-         Expect.listEquals(expected, actual);
+         expect(expected, equals(actual));
       }));
   });
 
@@ -70,15 +69,15 @@ main() {
     }, onDone: expectAsync(() {
       actual.close();
       Events expected = new Events.fromIterable(iter);
-      Expect.listEquals(expected.events, actual.events);
+      expect(expected.events, equals(actual.events));
     }));
   });
 
   test("iterable-single-subscription", () {
     Stream stream = new Stream.fromIterable(iter);
     stream.listen((x){});
-    Expect.throws(() { stream.listen((x){}); },
-                  (e) => e is StateError);
+    expect(() { stream.listen((x){}); },
+           throwsA(predicate((e) => e is StateError)));
   });
 
   test("regression-14332", () {
@@ -99,7 +98,7 @@ main() {
     });
 
     c.stream.toList().then((x) {
-      Expect.listEquals([1,2,3,4,5], x);
+      expect([1,2,3,4,5], equals(x));
       done();
     });
   });
@@ -117,8 +116,8 @@ main() {
 
     var data = [], errors = [];
     c.stream.listen(data.add, onError: errors.add, onDone: () {
-      Expect.listEquals([1], data);
-      Expect.listEquals([2], errors);
+      expect([1], equals(data));
+      expect([2], equals(errors));
       done();
     });
     sink.addStream(from).then((_) {
@@ -139,8 +138,8 @@ main() {
 
     var data = [], errors = [];
     c.stream.listen(data.add, onError: errors.add, onDone: () {
-      Expect.listEquals([1, 3, 5], data);
-      Expect.listEquals([2, 4], errors);
+      expect([1, 3, 5], equals(data));
+      expect([2, 4], equals(errors));
       done();
     });
     c.addStream(from, cancelOnError: false).then((_) {

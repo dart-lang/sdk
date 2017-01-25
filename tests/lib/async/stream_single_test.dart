@@ -5,30 +5,29 @@
 // Test the Stream.single method.
 library stream_single_test;
 
-import "package:expect/expect.dart";
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'event_helper.dart';
 
 main() {
   test("single", () {
     StreamController c = new StreamController(sync: true);
     Future f = c.stream.single;
-    f.then(expectAsync((v) { Expect.equals(42, v);}));
+    f.then(expectAsync((v) { expect(42, equals(v));}));
     new Events.fromIterable([42]).replay(c);
   });
 
   test("single empty", () {
     StreamController c = new StreamController(sync: true);
     Future f = c.stream.single;
-    f.catchError(expectAsync((error) { Expect.isTrue(error is StateError); }));
+    f.catchError(expectAsync((error) { expect(error is StateError, isTrue); }));
     new Events.fromIterable([]).replay(c);
   });
 
   test("single error", () {
     StreamController c = new StreamController(sync: true);
     Future f = c.stream.single;
-    f.catchError(expectAsync((error) { Expect.equals("error", error); }));
+    f.catchError(expectAsync((error) { expect("error", equals(error)); }));
     Events errorEvents = new Events()..error("error")..close();
     errorEvents.replay(c);
   });
@@ -36,7 +35,7 @@ main() {
   test("single error 2", () {
     StreamController c = new StreamController(sync: true);
     Future f = c.stream.single;
-    f.catchError(expectAsync((error) { Expect.equals("error", error); }));
+    f.catchError(expectAsync((error) { expect("error", equals(error)); }));
     Events errorEvents = new Events()..error("error")..error("error2")..close();
     errorEvents.replay(c);
   });
@@ -44,7 +43,7 @@ main() {
   test("single error 3", () {
     StreamController c = new StreamController(sync: true);
     Future f = c.stream.single;
-    f.catchError(expectAsync((error) { Expect.equals("error", error); }));
+    f.catchError(expectAsync((error) { expect("error", equals(error)); }));
     Events errorEvents = new Events()..add(499)..error("error")..close();
     errorEvents.replay(c);
   });

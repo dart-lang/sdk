@@ -6,7 +6,7 @@
 
 library first_regression_test;
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 class DoubleTransformer<T> implements StreamTransformer<T, T> {
   Stream<T> bind(Stream<T> stream) {

@@ -4,9 +4,8 @@
 
 library stream_transform_test;
 
-import "package:expect/expect.dart";
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'event_helper.dart';
 
 
@@ -28,7 +27,7 @@ main() {
     Events actual = new Events.capture(
         c.stream.map((x) => x * 2).where((x) => x > 5).skip(2).take(2));
     actual.onDone(expectAsync(() {
-      Expect.listEquals(expected.events, actual.events);
+      expect(expected.events, equals(actual.events));
     }));
     input.replay(c);
   });
@@ -40,7 +39,7 @@ main() {
     Events actual = new Events.capture(
         c.stream.map((x) => x * 2).where((x) => x > 5).skip(2).take(2));
     actual.onDone(expectAsync(() {
-      Expect.listEquals(expected.events, actual.events);
+      expect(expected.events, equals(actual.events));
     }));
     actual.pause();
     input.replay(c);

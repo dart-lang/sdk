@@ -4,7 +4,7 @@
 
 library async_star_pause_test;
 
-import "package:unittest/unittest.dart";
+import "package:test/test.dart";
 import "dart:async";
 
 main() {

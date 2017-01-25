@@ -7,8 +7,7 @@ library stream_join_test;
 
 import 'dart:async';
 import 'event_helper.dart';
-import 'package:unittest/unittest.dart';
-import "package:expect/expect.dart";
+import 'package:test/test.dart';
 
 main() {
   test("join-empty", () {
