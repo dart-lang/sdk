@@ -4,6 +4,7 @@
 
 [ $use_public_packages ]
 pkg/compiler: SkipByDesign # js_ast is not published
+third_party/pkg/linter: Skip # Issue 27937
 
 [ ($use_repository_packages || $use_public_packages) ]
 pkg/dev_compiler: SkipByDesign # we have relative paths to analyzer
