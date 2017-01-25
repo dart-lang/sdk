@@ -2862,6 +2862,9 @@ class FunctionElementForLink_Initializer extends Object
   String get identifier => '';
 
   @override
+  bool get isAsynchronous => _unlinkedExecutable.isAsynchronous;
+
+  @override
   DartType get returnType {
     // If this is a variable whose type needs inferring, infer it.
     if (_variable.hasImplicitType) {
@@ -2995,6 +2998,9 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
     }
     return identifier;
   }
+
+  @override
+  bool get isAsynchronous => _unlinkedExecutable.isAsynchronous;
 
   @override
   bool get _hasTypeBeenInferred => _inferredReturnType != null;
@@ -4649,8 +4655,15 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
     if (inCycle) {
       functionElement._setInferredType(DynamicTypeImpl.instance);
     } else {
-      functionElement
-          ._setInferredType(new ExprTypeComputer(functionElement).compute());
+      var bodyType = new ExprTypeComputer(functionElement).compute();
+      if (functionElement.isAsynchronous) {
+        var linker = functionElement.compilationUnit.library._linker;
+        var typeProvider = linker.typeProvider;
+        var typeSystem = linker.typeSystem;
+        bodyType = typeProvider.futureType
+            .instantiate([bodyType.flattenFutures(typeSystem)]);
+      }
+      functionElement._setInferredType(bodyType);
     }
   }
 

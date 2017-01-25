@@ -36,6 +36,31 @@ abstract class InferredTypeMixin {
    */
   CompilationUnitElement checkFile(String content);
 
+  void test_asyncClosureReturnType_flatten() {
+    var mainUnit = checkFile('''
+import 'dart:async';
+Future<int> futureInt = null;
+var f = () => futureInt;
+var g = () async => futureInt;
+''');
+    var futureInt = mainUnit.topLevelVariables[0];
+    expect(futureInt.name, 'futureInt');
+    expect(futureInt.type.toString(), 'Future<int>');
+    var f = mainUnit.topLevelVariables[1];
+    expect(f.name, 'f');
+    expect(f.type.toString(), '() → Future<int>');
+    var g = mainUnit.topLevelVariables[2];
+    expect(g.name, 'g');
+    expect(g.type.toString(), '() → Future<int>');
+  }
+
+  void test_asyncClosureReturnType_future() {
+    var mainUnit = checkFile('var f = () async => 0;');
+    var f = mainUnit.topLevelVariables[0];
+    expect(f.name, 'f');
+    expect(f.type.toString(), '() → Future<int>');
+  }
+
   void test_blockBodiedLambdas_async_allReturnsAreFutures() {
     if (!mayCheckTypesOfLocals) {
       return;
