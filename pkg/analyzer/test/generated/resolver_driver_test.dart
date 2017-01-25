@@ -23,10 +23,4 @@ class StrictModeTest_Driver extends StrictModeTest {
 class TypePropagationTest_Driver extends TypePropagationTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_query() {
-    return super.test_query();
-  }
 }

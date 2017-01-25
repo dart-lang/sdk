@@ -333,9 +333,25 @@ const _MockSdkLibrary _LIB_HTML_DARTIUM = const _MockSdkLibrary(
     'dart:html',
     '$sdkRoot/lib/html/dartium/html_dartium.dart',
     '''
-library dart.html;
+library dart.dom.html;
 
-abstract class HtmlElement {}
+final HtmlDocument document;
+
+abstract class Element {}
+
+abstract class HtmlDocument {
+  Element query(String relativeSelectors) => null;
+}
+
+abstract class HtmlElement extends Element {}
+
+abstract class AnchorElement extends HtmlElement {}
+abstract class BodyElement extends HtmlElement {}
+abstract class ButtonElement extends HtmlElement {}
+abstract class DivElement extends HtmlElement {}
+abstract class InputElement extends HtmlElement {}
+abstract class SelectElement extends HtmlElement {}
+
 
 abstract class CanvasElement extends HtmlElement {
   Object getContext(String contextId, [Map attributes]);
@@ -343,6 +359,8 @@ abstract class CanvasElement extends HtmlElement {
 }
 
 abstract class class CanvasRenderingContext2D {}
+
+Element query(String relativeSelectors) => null;
 ''');
 
 const _MockSdkLibrary _LIB_INTERCEPTORS = const _MockSdkLibrary(
