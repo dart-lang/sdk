@@ -268,11 +268,8 @@ class _SourceFactoryProxy implements SourceFactory {
   @override
   Source forUri(String absoluteUri) {
     Uri uri = Uri.parse(absoluteUri);
-    if (uri.scheme == 'dart') {
-      return new _SourceProxy(
-          uri, _fileRepository.pathForUri(uri, allocate: true));
-    }
-    return new _SourceProxy(uri, _fileRepository.pathForUri(uri));
+    return new _SourceProxy(
+        uri, _fileRepository.pathForUri(uri, allocate: true));
   }
 
   noSuchMethod(Invocation invocation) => unimplemented();
