@@ -11,6 +11,7 @@ pkg/dev_compiler: SkipByDesign # we have relative paths to analyzer
 pkg/analyzer: Fail # Issue 27654
 pkg/front_end: Fail # Issue 27655
 pkg/kernel: SkipByDesign # Issue 27937
+third_party/pkg/linter: SkipByDesign # Issue 27937
 
 [ $use_repository_packages ]
 third_party/pkg_tested/dart_style: Fail # Issue https://github.com/dart-lang/dart_style/issues/562
