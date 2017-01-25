@@ -167,6 +167,48 @@ class C {
     ]);
   }
 
+  test_searchReferences_ClassElement_definedInSdk_declarationSite() async {
+    await _resolveTestUnit('''
+import 'dart:math';
+Random v1;
+Random v2;
+''');
+
+    // Find the Random class element in the SDK source.
+    // IDEA performs search always at declaration, never at reference.
+    ClassElement randomElement;
+    {
+      String randomPath = sdk.mapDartUri('dart:math').fullName;
+      AnalysisResult result = await driver.getResult(randomPath);
+      randomElement = result.unit.element.getType('Random');
+    }
+
+    Element v1 = _findElement('v1');
+    Element v2 = _findElement('v2');
+    var expected = [
+      _expectId(v1, SearchResultKind.REFERENCE, 'Random v1;'),
+      _expectId(v2, SearchResultKind.REFERENCE, 'Random v2;'),
+    ];
+    await _verifyReferences(randomElement, expected);
+  }
+
+  test_searchReferences_ClassElement_definedInSdk_useSite() async {
+    await _resolveTestUnit('''
+import 'dart:math';
+Random v1;
+Random v2;
+''');
+
+    var v1 = _findElement('v1') as VariableElement;
+    var v2 = _findElement('v2') as VariableElement;
+    var randomElement = v1.type.element as ClassElement;
+    var expected = [
+      _expectId(v1, SearchResultKind.REFERENCE, 'Random v1;'),
+      _expectId(v2, SearchResultKind.REFERENCE, 'Random v2;'),
+    ];
+    await _verifyReferences(randomElement, expected);
+  }
+
   test_searchReferences_ClassElement_definedInside() async {
     await _resolveTestUnit('''
 class A {};
