@@ -12,8 +12,9 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../elements/entities.dart' show MemberEntity;
+import '../elements/entities.dart';
 import '../elements/modelx.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart';
@@ -33,10 +34,92 @@ import 'jump_handler.dart' show SwitchCaseJumpHandler;
 import 'locals_handler.dart';
 import 'types.dart';
 
+/// Interface that translates between Kernel IR nodes and entities.
+abstract class KernelWorldBuilder {
+  /// Returns the [DartType] corresponding to [type].
+  DartType getDartType(ir.DartType type);
+
+  /// Returns the list of [DartType]s corresponding to [types].
+  List<DartType> getDartTypes(List<ir.DartType> types);
+
+  /// Returns the [InterfaceType] corresponding to [type].
+  InterfaceType getInterfaceType(ir.InterfaceType type);
+
+  /// Return the [InterfaceType] corresponding to the [cls] with the given
+  /// [typeArguments].
+  InterfaceType createInterfaceType(
+      ir.Class cls, List<ir.DartType> typeArguments);
+
+  /// Returns the [CallStructure] corresponding to the [arguments].
+  CallStructure getCallStructure(ir.Arguments arguments);
+
+  /// Returns the [Selector] corresponding to the invocation or getter/setter
+  /// access of [node].
+  Selector getSelector(ir.Expression node);
+
+  /// Returns the [FunctionEntity] corresponding to the generative or factory
+  /// constructor [node].
+  FunctionEntity getConstructor(ir.Member node);
+
+  /// Returns the [MemberEntity] corresponding to the member [node].
+  MemberEntity getMember(ir.Member node);
+
+  /// Returns the [FunctionEntity] corresponding to the procedure [node].
+  FunctionEntity getMethod(ir.Procedure node);
+
+  /// Returns the [FieldEntity] corresponding to the field [node].
+  FieldEntity getField(ir.Field node);
+
+  /// Returns the [ClassEntity] corresponding to the class [node].
+  ClassEntity getClass(ir.Class node);
+
+  /// Returns the [Local] corresponding to the [node]. The node must be either
+  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
+  Local getLocalFunction(ir.Node node);
+
+  /// Returns the [Name] corresponding to [name].
+  Name getName(ir.Name name);
+
+  /// Returns `true` is [node] has a `@Native(...)` annotation.
+  bool isNativeClass(ir.Class node);
+
+  /// Return `true` if [node] is the `dart:_foreign_helper` library.
+  bool isForeignLibrary(ir.Library node);
+
+  /// Computes the native behavior for reading the native [field].
+  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field);
+
+  /// Computes the native behavior for writing to the native [field].
+  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
+
+  /// Computes the native behavior for calling [procedure].
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure);
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
+  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// function.
+  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
+      ir.StaticInvocation node);
+
+  /// Computes the [native.NativeBehavior] for a call to the
+  /// [JS_EMBEDDED_GLOBAL] function.
+  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+      ir.StaticInvocation node);
+
+  /// Compute the kind of foreign helper function called by [node], if any.
+  ForeignKind getForeignKind(ir.StaticInvocation node);
+
+  /// Computes the [InterfaceType] referenced by a call to the
+  /// [JS_INTERCEPTOR_CONSTANT] function, if any.
+  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node);
+}
+
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
-class KernelAstAdapter {
+class KernelAstAdapter implements KernelWorldBuilder {
   final Kernel kernel;
   final JavaScriptBackend _backend;
   final Map<ir.Node, ast.Node> _nodeToAst;
@@ -127,16 +210,18 @@ class KernelAstAdapter {
     return result;
   }
 
-  ConstructorElement getConstructor(ir.Node node) =>
+  ConstructorElement getConstructor(ir.Member node) =>
       getElement(node).declaration;
 
-  MemberElement getMember(ir.Node node) => getElement(node).declaration;
+  MemberElement getMember(ir.Member node) => getElement(node).declaration;
 
-  MethodElement getMethod(ir.Node node) => getElement(node).declaration;
+  MethodElement getMethod(ir.Procedure node) => getElement(node).declaration;
 
-  FieldElement getField(ir.Node node) => getElement(node).declaration;
+  FieldElement getField(ir.Field node) => getElement(node).declaration;
 
-  ClassElement getClass(ir.Node node) => getElement(node).declaration;
+  ClassElement getClass(ir.Class node) => getElement(node).declaration;
+
+  LocalFunctionElement getLocalFunction(ir.Node node) => getElement(node);
 
   ast.Node getNode(ir.Node node) {
     ast.Node result = _nodeToAst[node];
@@ -597,12 +682,13 @@ class KernelAstAdapter {
         optionalParameterTypes, namedParameters, namedParameterTypes);
   }
 
-  ResolutionInterfaceType getInterfaceType(ir.DartType type) =>
+  ResolutionInterfaceType getInterfaceType(ir.InterfaceType type) =>
       getDartType(type);
 
   ResolutionInterfaceType createInterfaceType(
-      ClassElement cls, List<ResolutionDartType> typeArguments) {
-    return new ResolutionInterfaceType(cls, typeArguments);
+      ir.Class cls, List<ir.DartType> typeArguments) {
+    return new ResolutionInterfaceType(
+        getClass(cls), getDartTypes(typeArguments));
   }
 
   /// Converts [annotations] into a list of [ConstantExpression]s.
@@ -773,9 +859,24 @@ class KernelAstAdapter {
         _compiler.commonElements);
   }
 
+  /// Computes the [InterfaceType] referenced by a call to the
+  /// [JS_INTERCEPTOR_CONSTANT] function, if any.
+  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
+    if (node.arguments.positional.length != 1 ||
+        node.arguments.named.isNotEmpty) {
+      reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
+          MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+    }
+    ir.Node argument = node.arguments.positional.first;
+    if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
+      return getInterfaceType(argument.type);
+    }
+    return null;
+  }
+
   /// Returns `true` is [node] has a `@Native(...)` annotation.
   // TODO(johnniwinther): Cache this for later use.
-  bool isNative(ir.Class node) {
+  bool isNativeClass(ir.Class node) {
     for (ir.Expression annotation in node.annotations) {
       if (annotation is ir.ConstructorInvocation) {
         ConstructorElement target = getElement(annotation.target).declaration;

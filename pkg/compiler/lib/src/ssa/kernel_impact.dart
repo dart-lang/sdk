@@ -68,7 +68,7 @@ class KernelImpactBuilder extends ir.Visitor {
   JavaScriptBackend get backend => compiler.backend;
 
   ResolutionWorldImpactBuilder impactBuilder;
-  KernelAstAdapter astAdapter;
+  KernelWorldBuilder astAdapter;
 
   KernelImpactBuilder(this.resolvedAst, this.compiler, Kernel kernel) {
     this.impactBuilder =
@@ -113,7 +113,8 @@ class KernelImpactBuilder extends ir.Visitor {
         impactBuilder.registerFeature(Feature.LAZY_FIELD);
       }
     }
-    if (field.isInstanceMember && astAdapter.isNative(field.enclosingClass)) {
+    if (field.isInstanceMember &&
+        astAdapter.isNativeClass(field.enclosingClass)) {
       impactBuilder
           .registerNativeData(astAdapter.getNativeBehaviorForFieldLoad(field));
       impactBuilder
@@ -257,16 +258,14 @@ class KernelImpactBuilder extends ir.Visitor {
       {bool isConst: false}) {
     _visitArguments(node.arguments);
     FunctionEntity constructor = astAdapter.getConstructor(target);
-    ClassEntity cls = astAdapter.getClass(target.enclosingClass);
-    List<DartType> typeArguments =
-        astAdapter.getDartTypes(node.arguments.types);
-    InterfaceType type = astAdapter.createInterfaceType(cls, typeArguments);
+    InterfaceType type = astAdapter.createInterfaceType(
+        target.enclosingClass, node.arguments.types);
     CallStructure callStructure = astAdapter.getCallStructure(node.arguments);
     impactBuilder.registerStaticUse(isConst
         ? new StaticUse.constConstructorInvoke(constructor, callStructure, type)
         : new StaticUse.typedConstructorInvoke(
             constructor, callStructure, type));
-    if (typeArguments.any((DartType type) => !type.isDynamic)) {
+    if (type.typeArguments.any((DartType type) => !type.isDynamic)) {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
     }
   }
@@ -325,14 +324,9 @@ class KernelImpactBuilder extends ir.Visitor {
             astAdapter.getNativeBehaviorForJsEmbeddedGlobalCall(node));
         break;
       case ForeignKind.JS_INTERCEPTOR_CONSTANT:
-        if (node.arguments.positional.length != 1 ||
-            node.arguments.named.isNotEmpty) {
-          astAdapter.reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
-              MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-        }
-        ir.Node argument = node.arguments.positional.first;
-        if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
-          InterfaceType type = astAdapter.getInterfaceType(argument.type);
+        InterfaceType type =
+            astAdapter.getInterfaceTypeForJsInterceptorCall(node);
+        if (type != null) {
           impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
         }
         break;
@@ -467,16 +461,16 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    impactBuilder
-        .registerStaticUse(new StaticUse.closure(astAdapter.getElement(node)));
+    impactBuilder.registerStaticUse(
+        new StaticUse.closure(astAdapter.getLocalFunction(node)));
     handleSignature(node.function);
     visitNode(node.function.body);
   }
 
   @override
   void visitFunctionExpression(ir.FunctionExpression node) {
-    impactBuilder
-        .registerStaticUse(new StaticUse.closure(astAdapter.getElement(node)));
+    impactBuilder.registerStaticUse(
+        new StaticUse.closure(astAdapter.getLocalFunction(node)));
     handleSignature(node.function);
     visitNode(node.function.body);
   }

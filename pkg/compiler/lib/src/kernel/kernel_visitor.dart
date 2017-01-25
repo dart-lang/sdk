@@ -1109,9 +1109,7 @@ class KernelVisitor extends Object
     ir.Statement body =
         buildContinueTarget(buildStatementInBlock(node.body), node, jumpTarget);
     return buildBreakTarget(
-        new ir.WhileStatement(condition, body),
-        node,
-        jumpTarget);
+        new ir.WhileStatement(condition, body), node, jumpTarget);
   }
 
   @override

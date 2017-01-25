@@ -1847,7 +1847,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     staticSet.value.accept(this);
     HInstruction value = pop();
 
-    var staticTarget = staticSet.target;
+    ir.Member staticTarget = staticSet.target;
     if (staticTarget is ir.Procedure) {
       // Invoke the setter
       _pushStaticInvocation(staticTarget, <HInstruction>[value],
@@ -2491,7 +2491,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   void _pushStaticInvocation(
-      ir.Node target, List<HInstruction> arguments, TypeMask typeMask) {
+      ir.Member target, List<HInstruction> arguments, TypeMask typeMask) {
     HInvokeStatic instruction = new HInvokeStatic(
         astAdapter.getMember(target), arguments, typeMask,
         targetCanThrow: astAdapter.getCanThrow(target, closedWorld));
