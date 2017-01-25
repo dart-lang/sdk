@@ -2522,9 +2522,10 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
       _directives.accept(visitor);
       _declarations.accept(visitor);
     } else {
-      int length = sortedDirectivesAndDeclarations.length;
+      List<AstNode> sortedMembers = sortedDirectivesAndDeclarations;
+      int length = sortedMembers.length;
       for (int i = 0; i < length; i++) {
-        AstNode child = sortedDirectivesAndDeclarations[i];
+        AstNode child = sortedMembers[i];
         child.accept(visitor);
       }
     }
