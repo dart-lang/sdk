@@ -306,7 +306,33 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       List<HInstruction> bodyCallInputs = <HInstruction>[];
       bodyCallInputs.add(newObject);
 
-      // TODO(sra): Pass arguments, boxes and type parameters.
+      // Pass uncaptured arguments first, captured arguments in a box, then type
+      // arguments.
+
+      ConstructorElement constructorElement = astAdapter.getElement(body);
+      ClosureClassMap parameterClosureData = compiler.closureToClassMapper
+          .getClosureToClassMapping(constructorElement.resolvedAst);
+
+      var functionSignature = astAdapter.getFunctionSignature(body.function);
+      // Provide the parameters to the generative constructor body.
+      functionSignature.orderedForEachParameter((ParameterElement parameter) {
+        // If [parameter] is boxed, it will be a field in the box passed as the
+        // last parameter. So no need to directly pass it.
+        if (!localsHandler.isBoxed(parameter)) {
+          bodyCallInputs.add(localsHandler.readLocal(parameter));
+        }
+      });
+
+      // If there are locals that escape (i.e. mutated in closures), we pass the
+      // box to the constructor.
+      ClosureScope scopeData = parameterClosureData
+          .capturingScopes[constructorElement.resolvedAst.node];
+      if (scopeData != null) {
+        bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
+      }
+
+      // TODO(sra): Pass type arguments.
+
       _invokeConstructorBody(body, bodyCallInputs);
     }
 
