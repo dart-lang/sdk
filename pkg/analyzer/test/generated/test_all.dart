@@ -21,6 +21,7 @@ import 'element_resolver_test.dart' as element_resolver_test;
 import 'engine_test.dart' as engine_test;
 import 'error_suppression_driver_test.dart' as error_suppression_driver_test;
 import 'error_suppression_test.dart' as error_suppression_test;
+import 'gn_test.dart' as gn_test;
 import 'hint_code_driver_test.dart' as hint_code_driver_test;
 import 'hint_code_test.dart' as hint_code_test;
 import 'incremental_resolver_test.dart' as incremental_resolver_test;
@@ -68,6 +69,7 @@ main() {
     engine_test.main();
     error_suppression_driver_test.main();
     error_suppression_test.main();
+    gn_test.main();
     hint_code_driver_test.main();
     hint_code_test.main();
     incremental_resolver_test.main();

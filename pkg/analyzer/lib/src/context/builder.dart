@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -251,6 +252,17 @@ class ContextBuilder {
         new DartUriResolver(findSdk(null, options)),
         new BazelPackageUriResolver(bazelWorkspace),
         new BazelFileUriResolver(bazelWorkspace)
+      ];
+      return new SourceFactory(resolvers, null, resourceProvider);
+    }
+
+    GnWorkspace gnWorkspace = GnWorkspace.find(resourceProvider, rootPath);
+    if (gnWorkspace != null) {
+      DartSdk sdk = findSdk(gnWorkspace.packageMap, options);
+      List<UriResolver> resolvers = <UriResolver>[
+        new DartUriResolver(sdk),
+        new GnPackageUriResolver(gnWorkspace),
+        new GnFileUriResolver(gnWorkspace)
       ];
       return new SourceFactory(resolvers, null, resourceProvider);
     }
