@@ -1308,8 +1308,12 @@ static void EmitFastSmiOp(Assembler* assembler,
 
   if (FLAG_optimization_counter_threshold >= 0) {
     const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-    // Update counter, ignore overflow.
-    __ addq(Address(R13, count_offset), Immediate(Smi::RawValue(1)));
+    // Update counter.
+    __ movq(R8, Address(R13, count_offset));
+    __ addq(R8, Immediate(Smi::RawValue(1)));
+    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R9, R8);
+    __ StoreIntoSmiField(Address(R13, count_offset), R9);
   }
 
   __ ret();
@@ -1332,7 +1336,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
     bool optimized) {
-  ASSERT(num_args == 1 || num_args == 2);
+  ASSERT(num_args > 0);
 #if defined(DEBUG)
   {
     Label ok;
@@ -1367,61 +1371,58 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Load arguments descriptor into R10.
   __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
-  Label loop, found, miss;
+  Label loop, update, test, found;
   // RBX: IC data object (preserved).
   __ movq(R13, FieldAddress(RBX, ICData::ic_data_offset()));
   // R13: ic_data_array with check entries: classes and target functions.
   __ leaq(R13, FieldAddress(R13, Array::data_offset()));
   // R13: points directly to the first ic data array element.
 
-  // Get argument descriptor into RCX.
-  __ movq(RCX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  // Load first argument into R9.
-  __ movq(R9, Address(RSP, RCX, TIMES_4, 0));
+  // Get the receiver's class ID (first read number of arguments from
+  // arguments descriptor array and then access the receiver from the stack).
+  __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  __ movq(R9, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
   __ LoadTaggedClassIdMayBeSmi(RAX, R9);
-  // RAX: first argument class ID as Smi.
-  if (num_args == 2) {
-    // Load second argument into R9.
-    __ movq(R9, Address(RSP, RCX, TIMES_4, -kWordSize));
-    __ LoadTaggedClassIdMayBeSmi(RCX, R9);
-    // RCX: second argument class ID (smi).
-  }
+  // RAX: receiver's class ID as smi.
+  __ movq(R9, Address(R13, 0));  // First class ID (Smi) to check.
+  __ jmp(&test);
 
   __ Comment("ICData loop");
-
-  // We unroll the generic one that is generated once more than the others.
-  bool optimize = kind == Token::kILLEGAL;
-  const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
-  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-
   __ Bind(&loop);
-  for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {
-    Label update;
-    __ movq(R9, Address(R13, 0));
-    __ cmpq(RAX, R9);  // Class id match?
-    if (num_args == 2) {
-      __ j(NOT_EQUAL, &update);  // Continue.
-      __ movq(R9, Address(R13, kWordSize));
+  for (int i = 0; i < num_args; i++) {
+    if (i > 0) {
+      // If not the first, load the next argument's class ID.
+      __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+      __ movq(R9, Address(RSP, RAX, TIMES_4, -i * kWordSize));
+      __ LoadTaggedClassIdMayBeSmi(RAX, R9);
+      // RAX: next argument class ID (smi).
+      __ movq(R9, Address(R13, i * kWordSize));
       // R9: next class ID to check (smi).
-      __ cmpq(RCX, R9);  // Class id match?
     }
-    __ j(EQUAL, &found);  // Break.
-
-    __ Bind(&update);
-
-    const intptr_t entry_size =
-        ICData::TestEntryLengthFor(num_args) * kWordSize;
-    __ addq(R13, Immediate(entry_size));  // Next entry.
-
-    __ cmpq(R9, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
-    if (unroll == 0) {
-      __ j(NOT_EQUAL, &loop);
+    __ cmpq(RAX, R9);  // Class id match?
+    if (i < (num_args - 1)) {
+      __ j(NOT_EQUAL, &update);  // Continue.
     } else {
-      __ j(EQUAL, &miss);
+      // Last check, all checks before matched.
+      __ j(EQUAL, &found);  // Break.
     }
   }
+  __ Bind(&update);
+  // Reload receiver class ID.  It has not been destroyed when num_args == 1.
+  if (num_args > 1) {
+    __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+    __ movq(R9, Address(RSP, RAX, TIMES_4, 0));
+    __ LoadTaggedClassIdMayBeSmi(RAX, R9);
+  }
 
-  __ Bind(&miss);
+  const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
+  __ addq(R13, Immediate(entry_size));  // Next entry.
+  __ movq(R9, Address(R13, 0));         // Next class ID.
+
+  __ Bind(&test);
+  __ cmpq(R9, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+
   __ Comment("IC miss");
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
@@ -1456,17 +1457,24 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Bind(&found);
   // R13: Pointer to an IC data check group.
+  const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
+  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ movq(RAX, Address(R13, target_offset));
 
   if (FLAG_optimization_counter_threshold >= 0) {
+    // Update counter.
     __ Comment("Update caller's counter");
-    // Ignore overflow.
-    __ addq(Address(R13, count_offset), Immediate(Smi::RawValue(1)));
+    __ movq(R8, Address(R13, count_offset));
+    __ addq(R8, Immediate(Smi::RawValue(1)));
+    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R9, R8);
+    __ StoreIntoSmiField(Address(R13, count_offset), R9);
   }
 
   __ Comment("Call target");
   __ Bind(&call_target_function);
   // RAX: Target function.
+  Label is_compiled;
   __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
   __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RCX);
@@ -1603,8 +1611,12 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Increment count for this call, ignore overflow.
-    __ addq(Address(R12, count_offset), Immediate(Smi::RawValue(1)));
+    // Increment count for this call.
+    __ movq(R8, Address(R12, count_offset));
+    __ addq(R8, Immediate(Smi::RawValue(1)));
+    __ movq(R13, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R13, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R13);
   }
 
   // Load arguments descriptor into R10.
