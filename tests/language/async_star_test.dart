@@ -4,7 +4,7 @@
 
 library async_star_test;
 
-import "package:test/test.dart";
+import "package:unittest/unittest.dart";
 import "dart:async";
 
 main() {

@@ -6,7 +6,8 @@
 library stream_controller_async_test;
 
 import 'dart:async';
-import 'package:test/test.dart';
+import "package:expect/expect.dart";
+import 'package:unittest/unittest.dart';
 import 'event_helper.dart';
 import 'stream_state_helper.dart';
 
@@ -19,7 +20,7 @@ testController() {
     Stream stream = c.stream.asBroadcastStream(onCancel: cancelSub);
     stream.fold(0, (a,b) => a + b)
      .then(expectAsync((int v) {
-        expect(42, equals(v));
+        Expect.equals(42, v);
     }));
     c.add(10);
     c.add(32);
@@ -30,7 +31,7 @@ testController() {
     StreamController c = new StreamController();
     Stream stream = c.stream.asBroadcastStream(onCancel: cancelSub);
     stream.fold(0, (a,b) { throw "Fnyf!"; })
-     .catchError(expectAsync((error) { expect("Fnyf!", equals(error)); }));
+     .catchError(expectAsync((error) { Expect.equals("Fnyf!", error); }));
     c.add(42);
   });
 }
@@ -40,7 +41,7 @@ testSingleController() {
     StreamController c = new StreamController();
     Stream stream = c.stream;
     stream.fold(0, (a,b) => a + b)
-    .then(expectAsync((int v) { expect(42, equals(v)); }));
+    .then(expectAsync((int v) { Expect.equals(42, v); }));
     c.add(10);
     c.add(32);
     c.close();
@@ -50,7 +51,7 @@ testSingleController() {
     StreamController c = new StreamController();
     Stream stream = c.stream;
     stream.fold(0, (a,b) { throw "Fnyf!"; })
-            .catchError(expectAsync((e) { expect("Fnyf!", equals(e)); }));
+            .catchError(expectAsync((e) { Expect.equals("Fnyf!", e); }));
     c.add(42);
   });
 
@@ -69,7 +70,7 @@ testSingleController() {
         counter += data;
       },
       onDone: expectAsync(() {
-        expect(3, equals(counter));
+        Expect.equals(3, counter);
       }));
   });
 }
@@ -83,7 +84,7 @@ testExtraMethods() {
     Future f = c.stream.forEach(actualEvents.add);
     f.then(expectAsync((_) {
       actualEvents.close();
-      expect(sentEvents.events, equals(actualEvents.events));
+      Expect.listEquals(sentEvents.events, actualEvents.events);
     }));
     sentEvents.replay(c);
   });
@@ -94,8 +95,8 @@ testExtraMethods() {
     Events actualEvents = new Events();
     Future f = c.stream.forEach(actualEvents.add);
     f.catchError(expectAsync((error) {
-      expect("bad", equals(error));
-      expect((new Events()..add(7)).events, equals(actualEvents.events));
+      Expect.equals("bad", error);
+      Expect.listEquals((new Events()..add(7)).events, actualEvents.events);
     }));
     sentEvents.replay(c);
   });
@@ -109,8 +110,8 @@ testExtraMethods() {
       actualEvents.add(x);
     });
     f.catchError(expectAsync((error) {
-      expect("bad", equals(error));
-      expect((new Events()..add(7)).events, equals(actualEvents.events));
+      Expect.equals("bad", error);
+      Expect.listEquals((new Events()..add(7)).events, actualEvents.events);
     }));
     sentEvents.replay(c);
   });
@@ -118,7 +119,7 @@ testExtraMethods() {
   test("firstWhere", () {
     StreamController c = new StreamController();
     Future f = c.stream.firstWhere((x) => (x % 3) == 0);
-    f.then(expectAsync((v) { expect(9, equals(v)); }));
+    f.then(expectAsync((v) { Expect.equals(9, v); }));
     sentEvents.replay(c);
   });
 
@@ -132,7 +133,7 @@ testExtraMethods() {
   test("firstWhere 3", () {
     StreamController c = new StreamController();
     Future f = c.stream.firstWhere((x) => (x % 4) == 0, defaultValue: () => 999);
-    f.then(expectAsync((v) { expect(999, equals(v)); }));
+    f.then(expectAsync((v) { Expect.equals(999, v); }));
     sentEvents.replay(c);
   });
 
@@ -140,7 +141,7 @@ testExtraMethods() {
   test("lastWhere", () {
     StreamController c = new StreamController();
     Future f = c.stream.lastWhere((x) => (x % 3) == 0);
-    f.then(expectAsync((v) { expect(87, equals(v)); }));
+    f.then(expectAsync((v) { Expect.equals(87, v); }));
     sentEvents.replay(c);
   });
 
@@ -154,35 +155,35 @@ testExtraMethods() {
   test("lastWhere 3", () {
     StreamController c = new StreamController();
     Future f = c.stream.lastWhere((x) => (x % 4) == 0, defaultValue: () => 999);
-    f.then(expectAsync((v) { expect(999, equals(v)); }));
+    f.then(expectAsync((v) { Expect.equals(999, v); }));
     sentEvents.replay(c);
   });
 
   test("singleWhere", () {
     StreamController c = new StreamController();
     Future f = c.stream.singleWhere((x) => (x % 9) == 0);
-    f.then(expectAsync((v) { expect(9, equals(v)); }));
+    f.then(expectAsync((v) { Expect.equals(9, v); }));
     sentEvents.replay(c);
   });
 
   test("singleWhere 2", () {
     StreamController c = new StreamController();
     Future f = c.stream.singleWhere((x) => (x % 3) == 0);  // Matches 9 and 87..
-    f.catchError(expectAsync((error) { expect(error is StateError, isTrue); }));
+    f.catchError(expectAsync((error) { Expect.isTrue(error is StateError); }));
     sentEvents.replay(c);
   });
 
   test("first", () {
     StreamController c = new StreamController();
     Future f = c.stream.first;
-    f.then(expectAsync((v) { expect(7, equals(v)); }));
+    f.then(expectAsync((v) { Expect.equals(7, v);}));
     sentEvents.replay(c);
   });
 
   test("first empty", () {
     StreamController c = new StreamController();
     Future f = c.stream.first;
-    f.catchError(expectAsync((error) { expect(error is StateError, isTrue); }));
+    f.catchError(expectAsync((error) { Expect.isTrue(error is StateError); }));
     Events emptyEvents = new Events()..close();
     emptyEvents.replay(c);
   });
@@ -190,7 +191,7 @@ testExtraMethods() {
   test("first error", () {
     StreamController c = new StreamController();
     Future f = c.stream.first;
-    f.catchError(expectAsync((error) { expect("error", equals(error)); }));
+    f.catchError(expectAsync((error) { Expect.equals("error", error); }));
     Events errorEvents = new Events()..error("error")..close();
     errorEvents.replay(c);
   });
@@ -198,7 +199,7 @@ testExtraMethods() {
   test("first error 2", () {
     StreamController c = new StreamController();
     Future f = c.stream.first;
-    f.catchError(expectAsync((error) { expect("error", equals(error)); }));
+    f.catchError(expectAsync((error) { Expect.equals("error", error); }));
     Events errorEvents = new Events()..error("error")..error("error2")..close();
     errorEvents.replay(c);
   });
@@ -206,14 +207,14 @@ testExtraMethods() {
   test("last", () {
     StreamController c = new StreamController();
     Future f = c.stream.last;
-    f.then(expectAsync((v) { expect(87, equals(v)); }));
+    f.then(expectAsync((v) { Expect.equals(87, v);}));
     sentEvents.replay(c);
   });
 
   test("last empty", () {
     StreamController c = new StreamController();
     Future f = c.stream.last;
-    f.catchError(expectAsync((error) { expect(error is StateError, isTrue); }));
+    f.catchError(expectAsync((error) { Expect.isTrue(error is StateError); }));
     Events emptyEvents = new Events()..close();
     emptyEvents.replay(c);
   });
@@ -221,7 +222,7 @@ testExtraMethods() {
   test("last error", () {
     StreamController c = new StreamController();
     Future f = c.stream.last;
-    f.catchError(expectAsync((error) { expect("error", equals(error)); }));
+    f.catchError(expectAsync((error) { Expect.equals("error", error); }));
     Events errorEvents = new Events()..error("error")..close();
     errorEvents.replay(c);
   });
@@ -229,7 +230,7 @@ testExtraMethods() {
   test("last error 2", () {
     StreamController c = new StreamController();
     Future f = c.stream.last;
-    f.catchError(expectAsync((error) { expect("error", equals(error)); }));
+    f.catchError(expectAsync((error) { Expect.equals("error", error); }));
     Events errorEvents = new Events()..error("error")..error("error2")..close();
     errorEvents.replay(c);
   });
@@ -237,28 +238,28 @@ testExtraMethods() {
   test("elementAt", () {
     StreamController c = new StreamController();
     Future f = c.stream.elementAt(2);
-    f.then(expectAsync((v) { expect(13, equals(v)); }));
+    f.then(expectAsync((v) { Expect.equals(13, v);}));
     sentEvents.replay(c);
   });
 
   test("elementAt 2", () {
     StreamController c = new StreamController();
     Future f = c.stream.elementAt(20);
-    f.catchError(expectAsync((error) { expect(error is RangeError, isTrue); }));
+    f.catchError(expectAsync((error) { Expect.isTrue(error is RangeError); }));
     sentEvents.replay(c);
   });
 
   test("drain", () {
     StreamController c = new StreamController();
     Future f = c.stream.drain();
-    f.then(expectAsync((v) { expect(null, equals(v)); }));
+    f.then(expectAsync((v) { Expect.equals(null, v);}));
     sentEvents.replay(c);
   });
 
   test("drain error", () {
     StreamController c = new StreamController();
     Future f = c.stream.drain();
-    f.catchError(expectAsync((error) { expect("error", equals(error)); }));
+    f.catchError(expectAsync((error) { Expect.equals("error", error); }));
     Events errorEvents = new Events()..error("error")..error("error2")..close();
     errorEvents.replay(c);
   });
@@ -365,8 +366,8 @@ testRethrow() {
     test("rethrow-$name-value", () {
       StreamController c = new StreamController();
       Stream s = streamValueTransform(c.stream, (v) { throw error; });
-      s.listen((_) { fail("unexpected value"); }, onError: expectAsync(
-          (e) { expect(error, same(e)); }));
+      s.listen((_) { Expect.fail("unexpected value"); }, onError: expectAsync(
+          (e) { Expect.identical(error, e); }));
       c.add(null);
       c.close();
     });
@@ -376,8 +377,8 @@ testRethrow() {
     test("rethrow-$name-error", () {
       StreamController c = new StreamController();
       Stream s = streamErrorTransform(c.stream, (e) { throw error; });
-      s.listen((_) { fail("unexpected value"); }, onError: expectAsync(
-          (e) { expect(error, same(e)); }));
+      s.listen((_) { Expect.fail("unexpected value"); }, onError: expectAsync(
+          (e) { Expect.identical(error, e); }));
       c.addError("SOME ERROR");
       c.close();
     });
@@ -387,8 +388,8 @@ testRethrow() {
     test("rethrow-$name-value", () {
       StreamController c = new StreamController();
       Future f = streamValueTransform(c.stream, (v) { throw error; });
-      f.then((v) { fail("unreachable"); },
-             onError: expectAsync((e) { expect(error, same(e)); }));
+      f.then((v) { Expect.fail("unreachable"); },
+             onError: expectAsync((e) { Expect.identical(error, e); }));
       // Need two values to trigger compare for reduce.
       c.add(0);
       c.add(1);
@@ -586,7 +587,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
           return sink.close();
         })
         .then((_) {
-          expect(expected.events, equals(actual.events));
+          Expect.listEquals(expected.events, actual.events);
           done();
         });
   });
@@ -611,7 +612,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
     sink.addError("error");
     sink.addStream(new Stream.fromIterable([1, 2, 3, 4, 5]))
         .then((_) {
-          expect(expected.events, equals(actual.events));
+          Expect.listEquals(expected.events, actual.events);
           // Close controller as well. It has no listener. If it is a broadcast
           // stream, it will still be open, and we read the "done" future before
           // closing. A normal stream is already done when its listener cancels.
@@ -621,7 +622,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
         })
         .then((_) {
           // No change in events.
-          expect(expected.events, equals(actual.events));
+          Expect.listEquals(expected.events, actual.events);
           done();
         });
   });
@@ -664,11 +665,11 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
             // Wait for the done event to be *delivered* before testing the
             // events.
             actual.onDone(() {
-              expect(expected.events, equals(actual.events));
+              Expect.listEquals(expected.events, actual.events);
               done();
             });
           } else {
-            expect(expected.events, equals(actual.events));
+            Expect.listEquals(expected.events, actual.events);
             done();
           }
         });
@@ -690,7 +691,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
     StreamController sourceController = new StreamController();
     c.addStream(sourceController.stream).then((_) {
       c.close().then((_) {
-        expect(expected.events, equals(actual.events));
+        Expect.listEquals(expected.events, actual.events);
         done();
       });
     });
@@ -714,7 +715,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
     StreamController sourceController = new StreamController();
     c.addStream(sourceController.stream, cancelOnError: false).then((_) {
       c.close().then((_) {
-        expect(source.events, equals(actual.events));
+        Expect.listEquals(source.events, actual.events);
         done();
       });
     });
@@ -745,7 +746,7 @@ void testSink({bool sync, bool broadcast, bool asBroadcast}) {
     c.addStream(s1).then((_) {
       c.addStream(s2, cancelOnError: false).then((_) {
         c.close().then((_) {
-          expect(expected.events, equals(actual.events));
+          Expect.listEquals(expected.events, actual.events);
           done();
         });
       });

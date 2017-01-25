@@ -5,7 +5,7 @@
 library rect_test;
 
 import 'dart:math';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   Rectangle createRectangle(List<num> a) {

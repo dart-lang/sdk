@@ -5,7 +5,7 @@
 library future_timeout_test;
 
 import 'dart:async';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   test("timeoutNoComplete", () {

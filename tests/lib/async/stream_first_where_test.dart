@@ -4,8 +4,9 @@
 
 library stream_controller_async_test;
 
+import "package:expect/expect.dart";
 import 'dart:async';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 import 'event_helper.dart';
 import 'stream_state_helper.dart';
 
@@ -20,7 +21,7 @@ main() {
   test("firstWhere with super class", () {
     StreamController c = new StreamController<B>();
     Future f = c.stream.firstWhere((x) => false, defaultValue: () => const A());
-    f.then(expectAsync((v) { expect(const A(), equals(v)); }));
+    f.then(expectAsync((v) { Expect.equals(const A(), v); }));
     sentEvents.replay(c);
   });
 }

@@ -4,7 +4,7 @@
 
 library stream_state_helper;
 
-import "package:test/test.dart";
+import "package:unittest/unittest.dart";
 import "dart:async";
 import "dart:collection";
 

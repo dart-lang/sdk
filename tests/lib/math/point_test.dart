@@ -5,7 +5,7 @@
 library point_test;
 
 import 'dart:math';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   test('constructor', () {

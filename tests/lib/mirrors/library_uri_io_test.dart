@@ -8,7 +8,7 @@ library MirrorsTest;
 
 import 'dart:mirrors';
 import 'dart:io';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 class Class {
 }

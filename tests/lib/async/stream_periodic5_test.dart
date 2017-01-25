@@ -6,7 +6,7 @@
 library dart.test.stream_from_iterable;
 
 import "dart:async";
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 watchMs(Stopwatch watch) {
   int microsecs = watch.elapsedMicroseconds;
@@ -38,7 +38,7 @@ main() {
           watch.start();
           subscription.resume();
         });
-      }
+      } 
     }, onDone: expectAsync(() { }));
   });
 }

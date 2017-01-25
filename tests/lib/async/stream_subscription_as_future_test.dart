@@ -5,8 +5,9 @@
 // Test the Stream.single method.
 library stream_single_test;
 
+import "package:expect/expect.dart";
 import 'dart:async';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 main() {
   test("subscription.asFuture success", () {
@@ -14,7 +15,7 @@ main() {
     var output = [];
     var subscription = stream.listen((x) { output.add(x); });
     subscription.asFuture(output).then(expectAsync((o) {
-      expect([1, 2, 3], equals(o));
+      Expect.listEquals([1, 2, 3], o);
     }));
   });
 
@@ -26,7 +27,7 @@ main() {
     var output = [];
     var subscription = stream.listen((x) { output.add(x); });
     subscription.asFuture(output).then(expectAsync((o) {
-      expect([1, 2, 3], equals(o));
+      Expect.listEquals([1, 2, 3], o);
     }));
   });
 
@@ -35,7 +36,7 @@ main() {
     var output = [];
     var subscription = stream.listen((x) { output.add(x); });
     subscription.asFuture(output).then(expectAsync((o) {
-      expect([1, 2, 3], equals(o));
+      Expect.listEquals([1, 2, 3], o);
     }));
   });
 
@@ -45,8 +46,8 @@ main() {
     var output = [];
     var subscription = stream.listen((x) { output.add(x); });
     subscription.asFuture("string").then((String o) {
-      expect([1, 2, 3], equals(output));
-      expect("string", equals(o));
+      Expect.listEquals([1, 2, 3], output);
+      Expect.equals("string", o);
       asyncCallback();
     });
   });
@@ -60,7 +61,7 @@ main() {
     var output = [];
     var subscription = stream.listen((x) { output.add(x); });
     subscription.asFuture(output).catchError(expectAsync((error) {
-      expect(error, equals("foo"));
+      Expect.equals(error, "foo");
     }));
   });
 
@@ -73,7 +74,7 @@ main() {
     var output = [];
     var subscription = stream.listen((x) { output.add(x); });
     subscription.asFuture(output).catchError(expectAsync((error) {
-      expect(error, equals("foo"));
+      Expect.equals(error, "foo");
     }));
   });
 
@@ -89,11 +90,11 @@ main() {
     var subscription = stream.listen((x) { output.add(x); });
     bool catchErrorHasRun = false;
     subscription.asFuture(output).catchError(expectAsync((error) {
-      expect(error, equals("foo"));
+      Expect.equals(error, "foo");
       catchErrorHasRun = true;
     }));
     Timer.run(expectAsync(() {
-      expect(catchErrorHasRun, isFalse);
+      Expect.isFalse(catchErrorHasRun);
       completer.complete();
     }));
   });
@@ -111,15 +112,15 @@ main() {
       var subscription = stream.listen((x) { output.add(x); });
       bool catchErrorHasRun = false;
       subscription.asFuture(output).catchError(expectAsync((error) {
-        expect(error, equals("foo"));
+        Expect.equals(error, "foo");
         catchErrorHasRun = true;
       }));
       Timer.run(expectAsync(() {
-        expect(catchErrorHasRun, isFalse);
+        Expect.isFalse(catchErrorHasRun);
         completer.completeError(499);
       }));
     }, onError: expectAsync((e) {
-      expect(499, equals(e));
+      Expect.equals(499, e);
     }));
   });
 }
