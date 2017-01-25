@@ -98,8 +98,8 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
   _fetch(key) => jsPropertyAccess(_jsObject, key);
 
   void forEach(void f(K key, V value)) {
-    // Use a JS 'cast' to get efficient loop.  Type inferrence doesn't get this
-    // since constant map representation is chosen after type inferrence and the
+    // Use a JS 'cast' to get efficient loop.  Type inference doesn't get this
+    // since constant map representation is chosen after type inference and the
     // instantiation is shortcut by the compiler.
     var keys = _keysArray;
     for (int i = 0; i < keys.length; i++) {

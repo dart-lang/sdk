@@ -15,7 +15,7 @@ class Stopwatch {
 
   // The _start and _stop fields capture the time when [start] and [stop]
   // are called respectively.
-  // If _stop is null, the stopwatched is running.
+  // If _stop is null, the stopwatch is running.
   int _start = 0;
   int _stop = 0;
 

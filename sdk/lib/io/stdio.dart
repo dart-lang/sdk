@@ -51,7 +51,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    *
    * If end-of-file is reached after any bytes have been read from stdin,
    * that data is returned.
-   * Returns `null` if no bytes preceeded the end of input.
+   * Returns `null` if no bytes preceded the end of input.
    */
   String readLineSync({Encoding encoding: SYSTEM_ENCODING,
                        bool retainNewlines: false}) {
@@ -86,7 +86,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
         line.add(byte);
       }
     } else {
-      // Case having to hande CR LF as a single unretained line terminator.
+      // Case having to handel CR LF as a single unretained line terminator.
       outer: while (true) {
         int byte = readByteSync();
         if (byte == LF) break;

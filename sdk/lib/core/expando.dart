@@ -10,7 +10,7 @@ part of dart.core;
  * Does not work on numbers, strings, booleans or null.
  *
  * An `Expando` does not hold on to the added property value after an object
- * becomes inacessible.
+ * becomes inaccessible.
  *
  * Since you can always create a new number that is identical to an existing
  * number, it means that an expando property on a number could never be

@@ -34,7 +34,7 @@ part of dart.core;
  * For convenience and readability,
  * the DateTime class provides a constant for each day and month
  * name&mdash;for example, [AUGUST] and [FRIDAY].
- * You can use these constants to improve code readibility:
+ * You can use these constants to improve code readability:
  *
  *     DateTime berlinWallFell = new DateTime(1989, DateTime.NOVEMBER, 9);
  *     assert(berlinWallFell.weekday == DateTime.THURSDAY);
@@ -218,7 +218,7 @@ class DateTime implements Comparable<DateTime> {
    *   The time zone is either 'z' or 'Z', or it is a signed two digit hour
    *   part and an optional two digit minute part. The sign must be either
    *   "+" or "-", and can not be omitted.
-   *   The minutes may be separted from the hours by a ':'.
+   *   The minutes may be separated from the hours by a ':'.
    *   Examples: "Z", "-10", "01:30", "1130".
    *
    * This includes the output of both [toString] and [toIso8601String], which

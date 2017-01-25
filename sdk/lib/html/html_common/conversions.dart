@@ -223,7 +223,7 @@ abstract class _AcceptStructuredClone {
 
     if (isJavaScriptSimpleObject(e)) {
       // TODO(sra): If mustCopy is false, swizzle the prototype for one of a Map
-      // implementation that uses the properies as storage.
+      // implementation that uses the properties as storage.
       var slot = findSlot(e);
       var copy = readSlot(slot);
       if (copy != null) return copy;

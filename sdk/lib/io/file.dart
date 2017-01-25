@@ -114,7 +114,7 @@ enum FileLock {
  * data into the required format or to prepare it for output.
  *
  * You might want to use a stream to read large files,
- * to manipulate the data with tranformers,
+ * to manipulate the data with transformers,
  * or for compatibility with another API, such as [WebSocket]s.
  *
  *     import 'dart:io';
@@ -586,7 +586,7 @@ abstract class RandomAccessFile {
    * the bytes will be filled into [buffer] from at index [start], otherwise
    * index 0. If [end] is present, the [end] - [start] bytes will be read into
    * [buffer], otherwise up to [buffer.length]. If [end] == [start] nothing
-   * happends.
+   * happens.
    *
    * Returns a [:Future<int>:] that completes with the number of bytes read.
    */
@@ -597,7 +597,7 @@ abstract class RandomAccessFile {
    * is present, the bytes will be filled into [buffer] from at index [start],
    * otherwise index 0.  If [end] is present, the [end] - [start] bytes will be
    * read into [buffer], otherwise up to [buffer.length]. If [end] == [start]
-   * nothing happends.
+   * nothing happens.
    *
    * Throws a [FileSystemException] if the operation fails.
    */

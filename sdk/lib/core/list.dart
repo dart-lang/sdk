@@ -329,7 +329,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   void setAll(int index, Iterable<E> iterable);
 
   /**
-   * Removes the first occurence of [value] from this list.
+   * Removes the first occurrence of [value] from this list.
    *
    * Returns true if [value] was in the list, false otherwise.
    *

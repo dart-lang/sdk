@@ -9,7 +9,7 @@ const int _LF = 10;
 const int _CR = 13;
 
 /**
- * A [StreamTranformer] that splits a [String] into individual lines.
+ * A [StreamTransformer] that splits a [String] into individual lines.
  *
  * A line is terminated by either a CR (U+000D), a LF (U+000A), a
  * CR+LF sequence (DOS line ending),

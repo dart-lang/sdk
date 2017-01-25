@@ -890,7 +890,7 @@ abstract class Stream<T> {
 
   /**
    * Discards all data on the stream, but signals when it's done or an error
-   * occured.
+   * occurred.
    *
    * When subscribing using [drain], cancelOnError will be true. This means
    * that the future will complete with the first error on the stream and then
@@ -1623,7 +1623,7 @@ abstract class StreamSink<S> implements EventSink<S>, StreamConsumer<S> {
    * Returns the same future as [done].
    *
    * The stream sink may close before the [close] method is called, either due
-   * to an error or because it is itself provding events to someone who has
+   * to an error or because it is itself providing events to someone who has
    * stopped listening. In that case, the [done] future is completed first,
    * and the `close` method will return the `done` future when called.
    *

@@ -61,7 +61,7 @@ abstract class num implements Comparable<num> {
    * Returns a negative number if `this` is less than `other`, zero if they are
    * equal, and a positive number if `this` is greater than `other`.
    *
-   * The orderding represented by this method is a total ordering of [num]
+   * The ordering represented by this method is a total ordering of [num]
    * values. All distinct doubles are non-equal, as are all distinct integers,
    * but integers are equal to doubles if they have the same numerical
    * value.

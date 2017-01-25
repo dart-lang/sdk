@@ -22,7 +22,7 @@ class _Platform {
    * a non-empty name and a value separated by a '=' character.
    * The name does not contain a '=' character,
    * so the name is everything up to the first '=' character.
-   * Values are everything after the first '=' charcacter.
+   * Values are everything after the first '=' character.
    * A value may contain further '=' characters, and it may be empty.
    *
    * Returns an [OSError] if retrieving the environment fails.
@@ -38,7 +38,7 @@ class _Platform {
   static String packageRoot = _packageRoot();
   static String packageConfig = _packageConfig();
 
-  // Cache the OS environemnt. This can be an OSError instance if
+  // Cache the OS environment. This can be an OSError instance if
   // retrieving the environment failed.
   static var/*OSError|Map<String,String>*/ _environmentCache;
 

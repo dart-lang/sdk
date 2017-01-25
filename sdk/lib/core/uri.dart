@@ -75,7 +75,7 @@ abstract class Uri {
    * default port.
    *
    * If any of `userInfo`, `host` or `port` are provided,
-   * the URI has an autority according to [hasAuthority].
+   * the URI has an authority according to [hasAuthority].
    *
    * The path component is set through either [path] or
    * [pathSegments].
@@ -613,7 +613,7 @@ abstract class Uri {
    * value from this `Uri` instead.
    *
    * This method is different from [Uri.resolve] which overrides in a
-   * hierarchial manner,
+   * hierarchical manner,
    * and can instead replace each part of a `Uri` individually.
    *
    * Example:
@@ -1060,7 +1060,7 @@ abstract class Uri {
    *
    * Note that decoding a URI component might change its meaning as
    * some of the decoded characters could be characters with are
-   * delimiters for a given URI componene type. Always split a URI
+   * delimiters for a given URI component type. Always split a URI
    * component using the delimiters for the component before decoding
    * the individual parts.
    *
@@ -1361,7 +1361,7 @@ class _Uri implements Uri {
   final String _fragment;
 
   /**
-   * Cache the computed return value of [pathSegements].
+   * Cache the computed return value of [pathSegments].
    */
   List<String> _pathSegments;
 
@@ -2742,7 +2742,7 @@ class _Uri implements Uri {
    * If [plusToSpace] is `true`, plus characters will be converted to spaces.
    *
    * The decoder will create a byte-list of the percent-encoded parts, and then
-   * decode the byte-list using [encoding]. The default encodingis UTF-8.
+   * decode the byte-list using [encoding]. The default encodings UTF-8.
    */
   static String _uriDecode(String text,
                            int start,
