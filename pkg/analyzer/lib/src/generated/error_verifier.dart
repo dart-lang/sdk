@@ -2573,39 +2573,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verifies that the class is not named `Function` and that it doesn't
-   * extends/implements/mixes in `Function`.
-   */
-  void _checkForBadFunctionUse(ClassDeclaration node) {
-    ExtendsClause extendsClause = node.extendsClause;
-    WithClause withClause = node.withClause;
-
-    if (node.name.name == "Function") {
-      _errorReporter.reportErrorForNode(
-          HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION, node.name);
-    }
-
-    if (extendsClause != null) {
-      InterfaceType superclassType = _enclosingClass.supertype;
-      ClassElement superclassElement = superclassType?.element;
-      if (superclassElement != null && superclassElement.name == "Function") {
-        _errorReporter.reportErrorForNode(
-            HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
-      }
-    }
-
-    if (withClause != null) {
-      for (TypeName type in withClause.mixinTypes) {
-        Element mixinElement = type.name.staticElement;
-        if (mixinElement != null && mixinElement.name == "Function") {
-          _errorReporter.reportErrorForNode(
-              HintCode.DEPRECATED_MIXIN_FUNCTION, type);
-        }
-      }
-    }
-  }
-
-  /**
    * Verify that the given [identifier] is not a keyword, and generates the
    * given [errorCode] on the identifier if it is a keyword.
    *
@@ -2970,6 +2937,40 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           } else {
             memberHashMap[name.name] = member;
           }
+        }
+      }
+    }
+  }
+
+  /**
+   * Verifies that the class is not named `Function` and that it doesn't
+   * extends/implements/mixes in `Function`.
+   */
+  void _checkForBadFunctionUse(ClassDeclaration node) {
+    ExtendsClause extendsClause = node.extendsClause;
+    ImplementsClause implementsClause = node.implementsClause;
+    WithClause withClause = node.withClause;
+
+    if (node.name.name == "Function") {
+      _errorReporter.reportErrorForNode(
+          HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION, node.name);
+    }
+
+    if (extendsClause != null) {
+      InterfaceType superclassType = _enclosingClass.supertype;
+      ClassElement superclassElement = superclassType?.element;
+      if (superclassElement != null && superclassElement.name == "Function") {
+        _errorReporter.reportErrorForNode(
+            HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
+      }
+    }
+
+    if (withClause != null) {
+      for (TypeName type in withClause.mixinTypes) {
+        Element mixinElement = type.name.staticElement;
+        if (mixinElement != null && mixinElement.name == "Function") {
+          _errorReporter.reportErrorForNode(
+              HintCode.DEPRECATED_MIXIN_FUNCTION, type);
         }
       }
     }
