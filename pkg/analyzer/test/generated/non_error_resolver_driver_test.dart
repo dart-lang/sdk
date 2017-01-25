@@ -16,16 +16,4 @@ main() {
 class NonErrorResolverTest_Driver extends NonErrorResolverTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_nativeConstConstructor() {
-    return super.test_nativeConstConstructor();
-  }
-
-  @failingTest
-  @override
-  test_nativeFunctionBodyInNonSDKCode_function() {
-    return super.test_nativeFunctionBodyInNonSDKCode_function();
-  }
 }

@@ -5536,7 +5536,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  bool get hasExtUri => hasModifier(Modifier.HAS_EXT_URI);
+  bool get hasExtUri {
+    if (_unlinkedDefiningUnit != null) {
+      List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
+      for (UnlinkedImport import in unlinkedImports) {
+        if (DartUriResolver.isDartExtUri(import.uri)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return hasModifier(Modifier.HAS_EXT_URI);
+  }
 
   /**
    * Set whether this library has an import of a "dart-ext" URI.
