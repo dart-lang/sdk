@@ -1381,6 +1381,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartAsyncFutureOr {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "FutureOr" && element.library.isDartAsync;
+  }
+
+  @override
   bool get isDartCoreFunction {
     ClassElement element = this.element;
     if (element == null) {
@@ -2375,6 +2384,9 @@ abstract class TypeImpl implements DartType {
 
   @override
   bool get isDartAsyncFuture => false;
+
+  @override
+  bool get isDartAsyncFutureOr => false;
 
   @override
   bool get isDartCoreFunction => false;

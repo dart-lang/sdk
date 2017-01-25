@@ -141,9 +141,9 @@ class AnalysisContextFactory {
       provider.typeType.element
     ];
     coreUnit.functions = <FunctionElement>[
-      ElementFactory.functionElement3("identical", provider.boolType.element,
+      ElementFactory.functionElement3("identical", provider.boolType,
           <ClassElement>[objectClassElement, objectClassElement], null),
-      ElementFactory.functionElement3("print", VoidTypeImpl.instance.element,
+      ElementFactory.functionElement3("print", VoidTypeImpl.instance,
           <ClassElement>[objectClassElement], null)
     ];
     TopLevelVariableElement proxyTopLevelVariableElt = ElementFactory
@@ -190,9 +190,12 @@ class AnalysisContextFactory {
     coreContext.setContents(asyncSource, "");
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
     asyncLibrary.definingCompilationUnit = asyncUnit;
-    // Future
+    // Future<T>
     ClassElementImpl futureElement =
         ElementFactory.classElement2("Future", ["T"]);
+    // FutureOr<T>
+    ClassElementImpl futureOrElement =
+      ElementFactory.classElement2("FutureOr", ["T"]);
     futureElement.enclosingElement = asyncUnit;
     //   factory Future.value([value])
     ConstructorElementImpl futureConstructor =
@@ -202,13 +205,15 @@ class AnalysisContextFactory {
     ];
     futureConstructor.factory = true;
     futureElement.constructors = <ConstructorElement>[futureConstructor];
-    //   Future then(onValue(T value), { Function onError });
+    //   Future<R> then<R>(FutureOr<R> onValue(T value), { Function onError });
     TypeDefiningElement futureThenR = DynamicElementImpl.instance;
+    DartType onValueReturnType = DynamicTypeImpl.instance;
     if (context.analysisOptions.strongMode) {
       futureThenR = ElementFactory.typeParameterWithType('R');
+      onValueReturnType = futureOrElement.type.instantiate([futureThenR.type]);
     }
     FunctionElementImpl thenOnValue = ElementFactory.functionElement3('onValue',
-        DynamicElementImpl.instance, [futureElement.typeParameters[0]], null);
+        onValueReturnType, [futureElement.typeParameters[0]], null);
     thenOnValue.isSynthetic = true;
 
     DartType futureRType = futureElement.type.instantiate([futureThenR.type]);
@@ -246,7 +251,7 @@ class AnalysisContextFactory {
         .instantiate(streamElement.type.typeArguments);
     FunctionElementImpl listenOnData = ElementFactory.functionElement3(
         'onData',
-        VoidTypeImpl.instance.element,
+        VoidTypeImpl.instance,
         <TypeDefiningElement>[streamElement.typeParameters[0]],
         null);
     listenOnData.isSynthetic = true;
@@ -268,6 +273,7 @@ class AnalysisContextFactory {
     asyncUnit.types = <ClassElement>[
       completerElement,
       futureElement,
+      futureOrElement,
       streamElement,
       streamSubscriptionElement
     ];
@@ -321,7 +327,7 @@ class AnalysisContextFactory {
       ElementFactory.classElement("SelectElement", elementType)
     ];
     htmlUnit.functions = <FunctionElement>[
-      ElementFactory.functionElement3("query", elementElement,
+      ElementFactory.functionElement3("query", elementElement.type,
           <ClassElement>[provider.stringType.element], ClassElement.EMPTY_LIST)
     ];
     TopLevelVariableElementImpl document =
@@ -342,7 +348,7 @@ class AnalysisContextFactory {
     mathUnit.librarySource = mathUnit.source = mathSource;
     FunctionElement cosElement = ElementFactory.functionElement3(
         "cos",
-        provider.doubleType.element,
+        provider.doubleType,
         <ClassElement>[provider.numType.element],
         ClassElement.EMPTY_LIST);
     TopLevelVariableElement ln10Element = ElementFactory
@@ -350,7 +356,7 @@ class AnalysisContextFactory {
     TypeParameterElement maxT =
         ElementFactory.typeParameterWithType('T', provider.numType);
     FunctionElementImpl maxElement = ElementFactory.functionElement3(
-        "max", maxT, [maxT, maxT], ClassElement.EMPTY_LIST);
+        "max", maxT.type, [maxT, maxT], ClassElement.EMPTY_LIST);
     maxElement.typeParameters = [maxT];
     maxElement.type = new FunctionTypeImpl(maxElement);
     TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3(
@@ -367,12 +373,12 @@ class AnalysisContextFactory {
     randomElement.constructors = <ConstructorElement>[randomConstructor];
     FunctionElement sinElement = ElementFactory.functionElement3(
         "sin",
-        provider.doubleType.element,
+        provider.doubleType,
         <ClassElement>[provider.numType.element],
         ClassElement.EMPTY_LIST);
     FunctionElement sqrtElement = ElementFactory.functionElement3(
         "sqrt",
-        provider.doubleType.element,
+        provider.doubleType,
         <ClassElement>[provider.numType.element],
         ClassElement.EMPTY_LIST);
     mathUnit.accessors = <PropertyAccessorElement>[

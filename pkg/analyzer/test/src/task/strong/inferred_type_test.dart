@@ -249,7 +249,7 @@ main() async {
   void test_blockBodiedLambdas_doesNotInferBottom_async_topLevel() {
     var mainUnit = checkFile(r'''
 import 'dart:async';
-var f = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() async { return null; };
+var f = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE,info:INFERRED_TYPE_CLOSURE*/() async { return null; };
 ''');
     var f = mainUnit.topLevelVariables[0];
     expect(f.type.toString(), '() → Future<dynamic>');
@@ -1672,7 +1672,7 @@ class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
   dynamic noSuchMethod(invocation);
-  MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
+  MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
 void main() {
@@ -1752,7 +1752,7 @@ class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
   dynamic noSuchMethod(invocation);
-  MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
+  MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
 void main() {
@@ -1761,46 +1761,10 @@ void main() {
       (x) async => x ? 2 : await new $upwards<int>.value(3));
   $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) async { // TODO(leafp): Why the duplicate here?
     return await x ? 2 : new $upwards<int>.value(3);});
-  $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
+  $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE,error:INVALID_CAST_FUNCTION_EXPR*/
       (x) => x ? 2 : new $upwards<int>.value(3));
   $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
-      (x) {return x ? 2 : new $upwards<int>.value(3);});
-}
-''';
-    checkFile(
-        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    checkFile(
-        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
-    checkFile(
-        build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"));
-    checkFile(build(
-        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
-    checkFile(
-        build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
-    checkFile(
-        build(declared: "Future", downwards: "Future", upwards: "Future"));
-  }
-
-  void test_futureThen_conditional_comment() {
-    String build({String declared, String downwards, String upwards}) => '''
-import 'dart:async';
-class MyFuture<T> implements Future<T> {
-  MyFuture() {}
-  MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
-  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
-}
-
-void main() {
-  $declared<bool> f;
-  $downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
-      (x) async => x ? 2 : await new $upwards<int>.value(3));
-  $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) async { // TODO(leafp): Why the duplicate here?
-    return await x ? 2 : new $upwards<int>.value(3);});
-  $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
-      (x) => x ? 2 : new $upwards<int>.value(3));
-  $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
-      (x) {return x ? 2 : new $upwards<int>.value(3);});
+      (x) {return /*warning:DOWN_CAST_COMPOSITE*/x ? 2 : new $upwards<int>.value(3);});
 }
 ''';
     checkFile(
@@ -1834,20 +1798,14 @@ main() {
   void test_futureThen_explicitFuture() {
     checkFile(r'''
 import "dart:async";
-main() {
+m1() {
   Future<int> f;
-  var x = f.then<Future<List<int>>>(/*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
+  var x = f.then<Future<List<int>>>(/*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(x) => []);
   Future<List<int>> y = x;
 }
-    ''');
-  }
-
-  void test_futureThen_explicitFuture_comment() {
-    checkFile(r'''
-import "dart:async";
-main() {
+m2() {
   Future<int> f;
-  var x = f.then/*<Future<List<int>>>*/(/*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
+  var x = f.then<List<int>>(/*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
   Future<List<int>> y = x;
 }
     ''');
@@ -1861,37 +1819,7 @@ class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
   dynamic noSuchMethod(invocation);
-  MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
-}
-
-void main() {
-  var f = foo().then((_) => 2.3);
-  $downwards<int> f2 = /*error:INVALID_ASSIGNMENT*/f;
-
-  // The unnecessary cast is to illustrate that we inferred <double> for
-  // the generic type args, even though we had a return type context.
-  $downwards<num> f3 = /*info:UNNECESSARY_CAST*/foo().then(
-      (_) => 2.3) as $upwards<double>;
-}
-$declared foo() => new $declared<int>.value(1);
-    ''';
-    checkFile(
-        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    checkFile(build(
-        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
-    checkFile(
-        build(declared: "Future", downwards: "Future", upwards: "Future"));
-  }
-
-  void test_futureThen_upwards_comment() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/27088.
-    String build({String declared, String downwards, String upwards}) => '''
-import 'dart:async';
-class MyFuture<T> implements Future<T> {
-  MyFuture() {}
-  MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
-  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
+  MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
 void main() {
@@ -1927,6 +1855,19 @@ main() {
     ''');
   }
 
+  void test_futureOr_subtyping() {
+    checkFile(r'''
+import 'dart:async';
+void add(int x) {}
+add2(int y) {}
+main() {
+  Future<int> f;
+  var a = f.then(add);
+  var b = f.then(add2);
+}
+    ''');
+  }
+
   void test_futureUnion_asyncConditional() {
     String build({String declared, String downwards, String upwards}) => '''
 import 'dart:async';
@@ -1934,7 +1875,7 @@ class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(x) {}
   dynamic noSuchMethod(invocation);
-  MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
+  MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
 $downwards<int> g1(bool x) async {
@@ -1986,7 +1927,7 @@ class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value([x]) {}
   dynamic noSuchMethod(invocation);
-  MyFuture<S> then<S>(dynamic f(T x), {Function onError}) => null;
+  MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
 $declared f;
@@ -2003,48 +1944,6 @@ $downwards<List<int>> g3() async {
 ''';
     }
 
-    ;
-    checkFile(
-        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    checkFile(
-        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
-    checkFile(
-        build(declared: "Future", downwards: "Future", upwards: "Future"));
-    checkFile(
-        build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
-  }
-
-  void test_futureUnion_downwards_comment() {
-    String build({String declared, String downwards, String upwards}) {
-      // TODO(leafp): The use of matchTypes in visitInstanceCreationExpression
-      // in the resolver visitor isn't powerful enough to catch this for the
-      // subclass.  See the TODO there.
-      var allocInfo =
-          (upwards == "Future") ? "/*info:INFERRED_TYPE_ALLOCATION*/" : "";
-      return '''
-import 'dart:async';
-class MyFuture<T> implements Future<T> {
-  MyFuture() {}
-  MyFuture.value([x]) {}
-  dynamic noSuchMethod(invocation);
-  MyFuture/*<S>*/ then/*<S>*/(dynamic f(T x), {Function onError}) => null;
-}
-
-$declared f;
-// Instantiates Future<int>
-$downwards<int> t1 = f.then((_) =>
-   ${allocInfo}new $upwards.value('hi'));
-
-// Instantiates List<int>
-$downwards<List<int>> t2 = f.then((_) => /*info:INFERRED_TYPE_LITERAL*/[3]);
-$downwards<List<int>> g2() async { return /*info:INFERRED_TYPE_LITERAL*/[3]; }
-$downwards<List<int>> g3() async {
-  return /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(
-      /*info:INFERRED_TYPE_LITERAL*/[3]); }
-''';
-    }
-
-    ;
     checkFile(
         build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
     checkFile(
@@ -2666,7 +2565,10 @@ main() {
   Iterable<Future<int>> list = <int>[1, 2, 3].map(make);
   Future<List<int>> results = Future.wait(list);
   Future<String> results2 = results.then((List<int> list)
-    => list.fold('', /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y.toString()));
+    => list.fold('', /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/x /*error:UNDEFINED_OPERATOR*/+ y.toString()));
+
+  Future<String> results3 = results.then((List<int> list)
+    => list.fold('', /*info:INFERRED_TYPE_CLOSURE*/(String x, y) => x + y.toString()));
 }
 ''');
   }
@@ -5421,54 +5323,23 @@ T run<T>(T f()) {
 
 void printRunning() { print("running"); }
 var x = run<dynamic>(printRunning);
-var y = run(printRunning);
+var y = /*info:USE_OF_VOID_RESULT*/run(printRunning);
 
 main() {
   void printRunning() { print("running"); }
   var x = run<dynamic>(printRunning);
-  var y = run(printRunning);
+  var y = /*info:USE_OF_VOID_RESULT*/run(printRunning);
   x = 123;
   x = 'hi';
-  y = 123;
-  y = 'hi';
+  y = /*error:INVALID_ASSIGNMENT*/123;
+  y = /*error:INVALID_ASSIGNMENT*/'hi';
 }
     ''');
 
     var x = unit.topLevelVariables[0];
     var y = unit.topLevelVariables[1];
     expect(x.type.toString(), 'dynamic');
-    expect(y.type.toString(), 'dynamic');
-  }
-
-  void test_voidReturnTypeSubtypesDynamic_comment() {
-    var unit = checkFile(r'''
-/*=T*/ run/*<T>*/(/*=T*/ f()) {
-  print("running");
-  var t = f();
-  print("done running");
-  return t;
-}
-
-
-void printRunning() { print("running"); }
-var x = run/*<dynamic>*/(printRunning);
-var y = run(printRunning);
-
-main() {
-  void printRunning() { print("running"); }
-  var x = run/*<dynamic>*/(printRunning);
-  var y = run(printRunning);
-  x = 123;
-  x = 'hi';
-  y = 123;
-  y = 'hi';
-}
-    ''');
-
-    var x = unit.topLevelVariables[0];
-    var y = unit.topLevelVariables[1];
-    expect(x.type.toString(), 'dynamic');
-    expect(y.type.toString(), 'dynamic');
+    expect(y.type.toString(), 'void');
   }
 }
 

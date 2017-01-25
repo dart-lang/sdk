@@ -7886,6 +7886,8 @@ abstract class PropertyInducingElementImpl
  * The context in which elements are resynthesized.
  */
 abstract class ResynthesizerContext {
+  bool get isStrongMode;
+
   /**
    * Build [ElementAnnotationImpl] for the given [UnlinkedExpr].
    */

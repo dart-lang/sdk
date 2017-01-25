@@ -130,6 +130,50 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     _isInt(call.staticType);
   }
 
+  fail_futureOr_downwards7() async {
+    // Test that downwards inference incorporates bounds correctly
+    // when instantiating type variables.
+    // TODO(leafp): I think this should pass once the inference changes
+    // that jmesserly is adding are landed.
+    String code = r'''
+    import "dart:async";
+    T mk<T extends int>(T x) => null;
+    FutureOr<int> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+    _isFutureOfInt(invoke.argumentList.arguments[0].staticType);
+  }
+
+  fail_futureOr_downwards8() async {
+    // Test that downwards inference incorporates bounds correctly
+    // when instantiating type variables.
+    // TODO(leafp): I think this should pass once the inference changes
+    // that jmesserly is adding are landed.
+    String code = r'''
+    import "dart:async";
+    T mk<T extends Future<Object>>(T x) => null;
+    FutureOr<int> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+    _isFutureOfInt(invoke.argumentList.arguments[0].staticType);
+  }
+
   fail_pinning_multipleConstraints1() async {
     // Test that downwards inference with two different downwards covariant
     // constraints on the same parameter correctly fails to infer when
@@ -921,6 +965,250 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     expect(functionReturnValue(2).staticType, typeProvider.intType);
     expect(functionReturnValue(3).staticType, typeProvider.dynamicType);
     expect(functionReturnValue(4).staticType, typeProvider.stringType);
+  }
+
+  test_futureOr_downwards1() async {
+    // Test that downwards inference interacts correctly with FutureOr
+    // parameters.
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    Future<int> test() => mk(new Future<int>.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+  }
+
+  test_futureOr_downwards2() async {
+    // Test that downwards inference interacts correctly with FutureOr
+    // parameters when the downwards context is FutureOr
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    FutureOr<int> test() => mk(new Future<int>.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+  }
+
+  test_futureOr_downwards3() async {
+    // Test that downwards inference correctly propogates into
+    // arguments.
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    Future<int> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+    _isFutureOfInt(invoke.argumentList.arguments[0].staticType);
+  }
+
+  test_futureOr_downwards4() async {
+    // Test that downwards inference interacts correctly with FutureOr
+    // parameters when the downwards context is FutureOr
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    FutureOr<int> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+    _isFutureOfInt(invoke.argumentList.arguments[0].staticType);
+  }
+
+  test_futureOr_downwards5() async {
+    // Test that downwards inference correctly pins the type when it
+    // comes from a FutureOr
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    FutureOr<num> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOf([_isNum])(invoke.staticType);
+    _isFutureOf([_isNum])(invoke.argumentList.arguments[0].staticType);
+  }
+
+  test_futureOr_downwards6() async {
+    // Test that downwards inference doesn't decompose FutureOr
+    // when instantiating type variables.
+    String code = r'''
+    import "dart:async";
+    T mk<T>(T x) => null;
+    FutureOr<int> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+    _isFutureOfInt(invoke.argumentList.arguments[0].staticType);
+  }
+
+  test_futureOr_downwards9() async {
+    // Test that downwards inference decomposes correctly with
+    // other composite types
+    String code = r'''
+    import "dart:async";
+    List<T> mk<T>(T x) => null;
+    FutureOr<List<int>> test() => mk(3);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isListOf(_isInt)(invoke.staticType);
+    _isInt(invoke.argumentList.arguments[0].staticType);
+  }
+
+  test_futureOr_methods1() async {
+    // Test that FutureOr has the Object methods
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<int> x) => x.toString();
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isString(invoke.staticType);
+  }
+
+  test_futureOr_methods2() async {
+    // Test that FutureOr does not have the constituent type methods
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<int> x) => x.abs();
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isDynamic(invoke.staticType);
+  }
+
+  test_futureOr_methods3() async {
+    // Test that FutureOr does not have the Future type methods
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<int> x) => x.then((x) => x);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isDynamic(invoke.staticType);
+  }
+
+  test_futureOr_methods4() async {
+    // Test that FutureOr<dynamic> does not have all methods
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<dynamic> x) => x.abs();
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isDynamic(invoke.staticType);
+  }
+
+  test_futureOr_upwards1() async {
+    // Test that upwards inference correctly prefers to instantiate type
+    // variables with the "smaller" solution when both are possible.
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    dynamic test() => mk(new Future<int>.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+  }
+
+  test_futureOr_upwards2() async {
+    // Test that upwards inference fails when the solution doesn't
+    // match the bound.
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T extends Future<Object>>(FutureOr<T> x) => null;
+    dynamic test() => mk(new Future<int>.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOf([_isObject])(invoke.staticType);
   }
 
   test_inference_hints() async {
@@ -1797,6 +2085,19 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
     expect(invocation.staticInvokeType.toString(), type);
   }
 
+  fail_futureOr_promotion4() async {
+    // Test that promotion from FutureOr<T> to T works for type
+    // parameters T
+    // TODO(leafp): When the restriction on is checks for generic methods
+    // goes away this should pass.
+    String code = r'''
+    import "dart:async";
+    dynamic test<T extends num>(FutureOr<T> x) => (x is T) &&
+                                                  (x.abs() == 0);
+   ''';
+    await resolveTestUnit(code);
+  }
+
   fail_genericMethod_tearoff_instantiated() async {
     await resolveTestUnit(r'''
 class C<E> {
@@ -1855,6 +2156,37 @@ main() {
 ''';
     await resolveTestUnit(code);
     expectInitializerType('foo', 'String', isNull);
+  }
+
+  test_futureOr_promotion1() async {
+    // Test that promotion from FutureOr<T> to T works for concrete types
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<int> x) => (x is int) && (x.abs() == 0);
+   ''';
+    await resolveTestUnit(code);
+  }
+
+  test_futureOr_promotion2() async {
+    // Test that promotion from FutureOr<T> to Future<T> works for concrete
+    // types
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<int> x) => (x is Future<int>) &&
+                                     (x.then((x) => x) == null);
+   ''';
+    await resolveTestUnit(code);
+  }
+
+  test_futureOr_promotion4() async {
+    // Test that promotion from FutureOr<T> to Future<T> works for type
+    // parameters T
+    String code = r'''
+    import "dart:async";
+    dynamic test<T extends num>(FutureOr<T> x) => (x is Future<T>) &&
+                                                  (x.then((x) => x) == null);
+   ''';
+    await resolveTestUnit(code);
   }
 
   test_genericFunction() async {
@@ -2400,6 +2732,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
+
     expectInitializerType('foo', 'Future<String>', isNull);
   }
 

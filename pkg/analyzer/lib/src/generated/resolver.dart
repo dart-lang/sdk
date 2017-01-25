@@ -4193,13 +4193,7 @@ class InferenceContext {
         return;
       }
 
-      if (context is FutureUnionType) {
-        // Try and match the Future type first.
-        if (_typeSystem.isSubtypeOf(inferred, context.futureOfType) ||
-            _typeSystem.isSubtypeOf(inferred, context.type)) {
-          setType(node, inferred);
-        }
-      } else if (_typeSystem.isSubtypeOf(inferred, context)) {
+      if (_typeSystem.isSubtypeOf(inferred, context)) {
         setType(node, inferred);
       }
     } else {
@@ -4362,17 +4356,17 @@ class InferenceContext {
   static DartType getContext(AstNode node) => node?.getProperty(_typeProperty);
 
   /**
-   * Look for a single contextual type attached to [node], and returns the type
-   * if found, otherwise null.
-   *
-   * If [node] has a contextual union type like `T | Future<T>` this will
-   * simplify it to only return `T`. If the caller can handle a union type,
-   * [getContext] should be used instead.
-   */
+    * Look for a single contextual type attached to [node], and returns the type
+    * if found, otherwise null.
+    *
+    * If [node] has a contextual union type like `T | Future<T>` this will
+    * simplify it to only return `T`. If the caller can handle a union type,
+    * [getContext] should be used instead.
+    */
   static DartType getType(AstNode node) {
     DartType t = getContext(node);
-    if (t is FutureUnionType) {
-      return t.type;
+    if (t is InterfaceType && t.isDartAsyncFutureOr) {
+      return t.typeArguments[0]; // The T in FutureOr<T>
     }
     return t;
   }
@@ -4380,15 +4374,19 @@ class InferenceContext {
   /**
    * Like [getContext] but expands a union type into a list of types.
    */
-  static Iterable<DartType> getTypes(AstNode node) {
+  Iterable<DartType> getTypes(AstNode node) {
     DartType t = getContext(node);
     if (t == null) {
       return DartType.EMPTY_LIST;
     }
-    if (t is FutureUnionType) {
-      return t.types;
+    if (t is InterfaceType && t.isDartAsyncFutureOr) {
+      var tArg = t.typeArguments[0]; // The T in FutureOr<T>
+      return [
+        _typeProvider.futureType.instantiate([tArg]),
+        tArg
+      ];
     }
-    return <DartType>[t];
+    return [t];
   }
 
   /**
@@ -5219,22 +5217,6 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Returns true if this method is `Future.then` or an override thereof.
-   *
-   * If so we will apply special typing rules in strong mode, to handle the
-   * implicit union of `S | Future<S>`
-   */
-  bool isFutureThen(Element element) {
-    // If we are a method named then
-    if (element is MethodElement && element.name == 'then') {
-      DartType type = element.enclosingElement.type;
-      // On Future or a subtype, then we're good.
-      return (type.isDartAsyncFuture || isSubtypeOfFuture(type));
-    }
-    return false;
-  }
-
-  /**
    * Returns true if this type is any subtype of the built in Future type.
    */
   bool isSubtypeOfFuture(DartType type) =>
@@ -5536,8 +5518,7 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitAwaitExpression(AwaitExpression node) {
     DartType contextType = InferenceContext.getContext(node);
     if (contextType != null) {
-      var futureUnion =
-          FutureUnionType.from(contextType, typeProvider, typeSystem);
+      var futureUnion = _createFutureOr(contextType);
       InferenceContext.setType(node.expression, futureUnion);
     }
     return super.visitAwaitExpression(node);
@@ -6078,29 +6059,8 @@ class ResolverVisitor extends ScopedVisitor {
               matchFunctionTypeParameters(node.typeParameters, functionType);
           if (functionType is FunctionType) {
             _inferFormalParameterList(node.parameters, functionType);
-
-            DartType returnType;
-            ParameterElement parameterElement =
-                resolutionMap.staticParameterElementForExpression(node);
-            if (isFutureThen(parameterElement?.enclosingElement)) {
-              var futureThenType =
-                  InferenceContext.getContext(node.parent) as FunctionType;
-
-              // Pretend the return type of Future<T>.then<S> first parameter is
-              //
-              //     T -> (S | Future<S>)
-              //
-              // We can't represent this in Dart so we populate it here during
-              // inference.
-              var typeParamS =
-                  futureThenType.returnType.flattenFutures(typeSystem);
-              returnType =
-                  FutureUnionType.from(typeParamS, typeProvider, typeSystem);
-            } else {
-              returnType = _computeReturnOrYieldType(functionType.returnType);
-            }
-
-            InferenceContext.setType(node.body, returnType);
+            InferenceContext.setType(
+                node.body, _computeReturnOrYieldType(functionType.returnType));
           }
         }
         super.visitFunctionExpression(node);
@@ -6229,7 +6189,7 @@ class ResolverVisitor extends ScopedVisitor {
       // TODO(jmesserly): if we support union types for real, `new C<Ti | Tj>`
       // will become a valid possibility. Right now the only allowed union is
       // `T | Future<T>` so we can take a simple approach.
-      for (var contextType in InferenceContext.getTypes(node)) {
+      for (var contextType in inferenceContext.getTypes(node)) {
         if (contextType is InterfaceType &&
             contextType.typeArguments != null &&
             contextType.typeArguments.isNotEmpty) {
@@ -6665,9 +6625,20 @@ class ResolverVisitor extends ScopedVisitor {
       }
       // async functions expect `Future<T> | T`
       var futureTypeParam = declaredType.flattenFutures(typeSystem);
-      return FutureUnionType.from(futureTypeParam, typeProvider, typeSystem);
+      return _createFutureOr(futureTypeParam);
     }
     return declaredType;
+  }
+
+  /**
+   * Creates a union of `T | Future<T>`, unless `T` is already a
+   * future-union, in which case it simply returns `T`.
+   */
+  DartType _createFutureOr(DartType type) {
+    if (type.isDartAsyncFutureOr) {
+      return type;
+    }
+    return typeProvider.futureOrType.instantiate([type]);
   }
 
   /**
@@ -8295,8 +8266,23 @@ class TypeNameResolver {
     }
     DartType type = null;
     if (element is ClassElement) {
-      _setElement(typeName, element);
       type = element.type;
+      // In non-strong mode `FutureOr<T>` is treated as `dynamic`
+      if (!typeSystem.isStrong && type.isDartAsyncFutureOr) {
+        type = dynamicType;
+        _setElement(typeName, type.element);
+        typeName.staticType = type;
+        node.type = type;
+        if (argumentList != null) {
+          NodeList<TypeAnnotation> arguments = argumentList.arguments;
+          if (arguments.length != 1) {
+            reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
+                [typeName.name, 1, arguments.length]);
+          }
+        }
+        return;
+      }
+      _setElement(typeName, element);
     } else if (element is FunctionTypeAliasElement) {
       _setElement(typeName, element);
       type = element.type;

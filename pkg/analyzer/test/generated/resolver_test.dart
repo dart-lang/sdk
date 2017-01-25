@@ -2425,6 +2425,7 @@ class TypeProviderImplTest extends EngineTestCase {
     InterfaceType doubleType = _classElement("double", numType).type;
     InterfaceType functionType = _classElement("Function", objectType).type;
     InterfaceType futureType = _classElement("Future", objectType, ["T"]).type;
+    InterfaceType futureOrType = _classElement("FutureOr", objectType, ["T"]).type;
     InterfaceType intType = _classElement("int", numType).type;
     InterfaceType iterableType =
         _classElement("Iterable", objectType, ["T"]).type;
@@ -2453,7 +2454,7 @@ class TypeProviderImplTest extends EngineTestCase {
     ];
     CompilationUnitElementImpl asyncUnit =
         new CompilationUnitElementImpl("async.dart");
-    asyncUnit.types = <ClassElement>[futureType.element, streamType.element];
+    asyncUnit.types = <ClassElement>[futureType.element, futureOrType.element, streamType.element];
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
         context, AstTestFactory.libraryIdentifier2(["dart.core"]));
@@ -2471,6 +2472,7 @@ class TypeProviderImplTest extends EngineTestCase {
     expect(provider.dynamicType, isNotNull);
     expect(provider.functionType, same(functionType));
     expect(provider.futureType, same(futureType));
+    expect(provider.futureOrType, same(futureOrType));
     expect(provider.intType, same(intType));
     expect(provider.listType, same(listType));
     expect(provider.mapType, same(mapType));

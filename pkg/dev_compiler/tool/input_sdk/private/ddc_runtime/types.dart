@@ -660,7 +660,11 @@ isFunctionSubtype(ft1, ft2, isCovariant) => JS(
   if (ret2 === $_void) return true;
   // Dart allows void functions to subtype dynamic functions, but not
   // other functions.
-  if (ret1 === $_void) return (ret2 === $dynamic);
+  // TODO(jmesserly): this check does not match our compile time subtype
+  // implementation. Reconcile.
+  if (ret1 === $_void) {
+    return ret2 === $dynamic || ret2 === $FutureOr;
+  }
   if (!$_isSubtype(ret1, ret2, $isCovariant)) return null;
   return true;
 })()''');
@@ -696,7 +700,12 @@ final isSubtype = JS(
 
 _isBottom(type) => JS('bool', '# == #', type, bottom);
 
-_isTop(type) => JS('bool', '# == # || # == #', type, Object, type, dynamic);
+_isTop(type) {
+  if (JS('bool', '# === #', getGenericClass(type), getGenericClass(FutureOr))) {
+    return _isTop(JS('', '#[0]', getGenericArgs(type)));
+  }
+  return JS('bool', '# == # || # == #', type, Object, type, dynamic);
+}
 
 _isSubtype(t1, t2, isCovariant) => JS(
     '',
@@ -782,6 +791,22 @@ isClassSubType(t1, t2, isCovariant) => JS(
       }
     }
     return true;
+  }
+
+  // Handle FutureOr<T>.
+  // It's not really a class type, but it's convenient to handle here.
+  if (raw1 === ${getGenericClass(FutureOr)}) {
+    // given t1 is Future<A> | A, then:
+    // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
+    let t1TypeArg = $getGenericArgs($t1)[0];
+    let t1Future = ${getGenericClass(Future)}(t1TypeArg);
+    return $isSubtype(t1Future, $t2) && $isSubtype(t1TypeArg, $t2);
+  } else if (raw2 === ${getGenericClass(FutureOr)}) {
+    // given t2 is Future<A> | A, then:
+    // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
+    let t2TypeArg = $getGenericArgs($t2)[0];
+    let t2Future = ${getGenericClass(Future)}(t2TypeArg);
+    return $isSubtype($t1, t2Future) || $isSubtype($t1, t2TypeArg);
   }
 
   let indefinite = false;

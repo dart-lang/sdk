@@ -3277,6 +3277,52 @@ f() {}''');
     checkLibrary('f() {} g() {}');
   }
 
+  test_futureOr() {
+    var library = checkLibrary('import "dart:async"; FutureOr<int> x;');
+    var variables = library.definingCompilationUnit.topLevelVariables;
+    expect(variables, hasLength(1));
+    if (createOptions().strongMode) {
+      expect(variables[0].type.toString(), 'FutureOr<int>');
+    } else {
+      expect(variables[0].type.toString(), 'dynamic');
+    }
+  }
+
+  test_futureOr_const() {
+    var library = checkLibrary('import "dart:async"; const x = FutureOr;');
+    var variables = library.definingCompilationUnit.topLevelVariables;
+    expect(variables, hasLength(1));
+    var x = variables[0] as ConstTopLevelVariableElementImpl;
+    if (createOptions().strongMode) {
+      expect(x.type.toString(), 'Type');
+    } else {
+      expect(x.type.toString(), 'dynamic');
+    }
+    expect(x.constantInitializer.toString(), 'FutureOr');
+  }
+
+  test_futureOr_inferred() {
+    var library = checkLibrary('''
+import "dart:async";
+FutureOr<int> f() => null;
+var x = f();
+var y = x.then((z) => z.asDouble());
+''');
+    var variables = library.definingCompilationUnit.topLevelVariables;
+    expect(variables, hasLength(2));
+    var x = variables[0];
+    expect(x.name, 'x');
+    var y = variables[1];
+    expect(y.name, 'y');
+    if (createOptions().strongMode) {
+      expect(x.type.toString(), 'FutureOr<int>');
+      expect(y.type.toString(), 'dynamic');
+    } else {
+      expect(x.type.toString(), 'dynamic');
+      expect(y.type.toString(), 'dynamic');
+    }
+  }
+
   test_generic_gClass_gMethodStatic() {
     prepareAnalysisContext(createOptions());
     checkLibrary('''

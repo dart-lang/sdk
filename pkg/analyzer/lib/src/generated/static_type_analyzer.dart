@@ -811,7 +811,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       Expression target = node.realTarget;
       if (target != null) {
         DartType targetType = target.bestType;
-        if (_isAsyncFutureType(targetType)) {
+        if (targetType.isDartAsyncFuture) {
           // Future.then(closure) return type is:
           // 1) the returned Future type, if the closure returns a Future;
           // 2) Future<valueType>, if the closure returns a value.
@@ -1418,11 +1418,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // TODO(brianwilkerson) Determine whether this can still happen.
       staticType2 = _dynamicType;
     }
+
     DartType staticType =
-        _typeSystem.getLeastUpperBound(staticType1, staticType2);
-    if (staticType == null) {
-      staticType = _dynamicType;
-    }
+        _typeSystem.getLeastUpperBound(staticType1, staticType2) ??
+            _dynamicType;
+
     _recordStaticType(node, staticType);
     DartType propagatedType1 = expr1.propagatedType;
     DartType propagatedType2 = expr2.propagatedType;
@@ -1519,6 +1519,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           : _typeProvider.iterableType;
       return genericType.instantiate(<DartType>[type]);
     } else if (body.isAsynchronous) {
+      if (type.isDartAsyncFutureOr) {
+        type = (type as InterfaceType).typeArguments[0];
+      }
       return _typeProvider.futureType
           .instantiate(<DartType>[type.flattenFutures(_typeSystem)]);
     } else {
@@ -1961,44 +1964,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           argTypes.add(argumentList.arguments[i].staticType);
         }
       }
-
-      // Special case Future<T>.then upwards inference. It has signature:
-      //
-      //     <S>(T -> (S | Future<S>)) -> Future<S>
-      //
-      // Based on the first argument type, we'll pick one of these signatures:
-      //
-      //     <S>(T -> S) -> Future<S>
-      //     <S>(T -> Future<S>) -> Future<S>
-      //
-      // ... and finish the inference using that.
-      if (argTypes.isNotEmpty && _resolver.isFutureThen(fnType.element)) {
-        var firstArgType = argTypes[0];
-        var firstParamType = paramTypes[0] as FunctionType;
-        if (firstArgType is FunctionType) {
-          var argReturnType = firstArgType.returnType;
-          // Skip the inference if we have the top type. It can only lead to
-          // worse inference. For example, this happens when the lambda returns
-          // S or Future<S> in a conditional.
-          if (!argReturnType.isObject && !argReturnType.isDynamic) {
-            DartType paramReturnType = fnType.typeFormals[0].type;
-            if (_resolver.isSubtypeOfFuture(argReturnType)) {
-              // Given an argument of (T) -> Future<S>, instantiate with <S>
-              paramReturnType =
-                  _typeProvider.futureType.instantiate([paramReturnType]);
-            }
-
-            // Adjust the expected parameter type to have this return type.
-            var function = new FunctionElementImpl(firstParamType.name, -1)
-              ..isSynthetic = true
-              ..shareParameters(firstParamType.parameters)
-              ..returnType = paramReturnType;
-            function.type = new FunctionTypeImpl(function);
-            // Use this as the expected 1st parameter type.
-            paramTypes[0] = function.type;
-          }
-        }
-      }
       return ts.inferGenericFunctionCall(fnType, paramTypes, argTypes,
           fnType.returnType, InferenceContext.getContext(node),
           errorReporter: _resolver.errorReporter, errorNode: errorNode);
@@ -2081,12 +2046,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (_strongMode &&
         (computedType.isDartCoreNull || computedType.isDynamic)) {
       DartType contextType = InferenceContext.getContext(body);
-      if (contextType is FutureUnionType) {
-        // TODO(jmesserly): can we do something better here?
-        computedType = body.isAsynchronous ? contextType.type : _dynamicType;
-      } else {
-        computedType = contextType ?? _dynamicType;
-      }
+      computedType = contextType ?? _dynamicType;
       recordInference = !computedType.isDynamic;
     }
 
@@ -2222,23 +2182,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     return false;
   }
-
-  /**
-   * Return `true` if the given [Type] is the `Future` form the 'dart:async'
-   * library.
-   */
-  bool _isAsyncFutureType(DartType type) =>
-      type is InterfaceType &&
-      type.name == "Future" &&
-      _isAsyncLibrary(type.element.library);
-
-  /**
-   * Return `true` if the given library is the 'dart:async' library.
-   *
-   * @param library the library being tested
-   * @return `true` if the library is 'dart:async'
-   */
-  bool _isAsyncLibrary(LibraryElement library) => library.name == "dart.async";
 
   /**
    * Return `true` if the given library is the 'dart:html' library.

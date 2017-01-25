@@ -1820,8 +1820,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     // () -> B <: () -> A
     ClassElement a = ElementFactory.classElement2("A");
     ClassElement b = ElementFactory.classElement("B", a.type);
-    FunctionType t = ElementFactory.functionElement2("t", a).type;
-    FunctionType s = ElementFactory.functionElement2("s", b).type;
+    FunctionType t = ElementFactory.functionElement2("t", a.type).type;
+    FunctionType s = ElementFactory.functionElement2("s", b.type).type;
     expect(t.isSubtypeOf(s), isTrue);
     expect(s.isSubtypeOf(t), isTrue);
   }
@@ -1829,10 +1829,10 @@ class FunctionTypeImplTest extends EngineTestCase {
   void test_isSubtypeOf_returnType_tNotAssignableToS() {
     // ! () -> A <: () -> B
     FunctionType t = ElementFactory
-        .functionElement2("t", ElementFactory.classElement2("A"))
+        .functionElement2("t", ElementFactory.classElement2("A").type)
         .type;
     FunctionType s = ElementFactory
-        .functionElement2("s", ElementFactory.classElement2("B"))
+        .functionElement2("s", ElementFactory.classElement2("B").type)
         .type;
     expect(t.isSubtypeOf(s), isFalse);
   }

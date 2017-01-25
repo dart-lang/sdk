@@ -64,6 +64,12 @@ abstract class DartType implements ResolutionType {
   bool get isDartAsyncFuture;
 
   /**
+   * Return `true` if this type represents the type 'FutureOr<T>' defined in the
+   * dart:async library.
+   */
+  bool get isDartAsyncFutureOr;
+
+  /**
    * Return `true` if this type represents the type 'Function' defined in the
    * dart:core library.
    */

@@ -1174,7 +1174,9 @@ class CodeGenerator extends GeneralizingAstVisitor
       new JS.Property(
           _emitMemberName('index'), _emitAnnotatedType(intClass.type, null))
     ];
-    var sigFields = <JS.Property>[_buildSignatureField('fields', tInstanceFields)];
+    var sigFields = <JS.Property>[
+      _buildSignatureField('fields', tInstanceFields)
+    ];
     var sig = new JS.ObjectInitializer(sigFields);
 
     var result = [
@@ -1784,8 +1786,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   JS.Property _buildSignatureField(String name, List<JS.Property> elements) {
-    var o =
-        new JS.ObjectInitializer(elements, multiline: elements.length > 1);
+    var o = new JS.ObjectInitializer(elements, multiline: elements.length > 1);
     // TODO(vsm): Remove
     var e = js.call('() => #', o);
     return new JS.Property(_propertyName(name), e);

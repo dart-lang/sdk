@@ -1360,6 +1360,9 @@ class _ResynthesizerContext implements ResynthesizerContext {
   _ResynthesizerContext(this._unitResynthesizer);
 
   @override
+  bool get isStrongMode => _unitResynthesizer.summaryResynthesizer.strongMode;
+
+  @override
   ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedExpr uc) {
     return _unitResynthesizer.buildAnnotation(context, uc);
   }
@@ -1736,6 +1739,13 @@ class _UnitResynthesizer {
           locationComponents =
               libraryResynthesizer.getReferencedLocationComponents(
                   linkedReference.dependency, linkedReference.unit, identifier);
+        }
+        if (!_resynthesizerContext.isStrongMode &&
+            locationComponents.length == 3 &&
+            locationComponents[0] == 'dart:async' &&
+            locationComponents[2] == 'FutureOr') {
+          type = typeProvider.dynamicType;
+          numTypeParameters = 0;
         }
         ElementLocation location =
             new ElementLocationImpl.con3(locationComponents);
