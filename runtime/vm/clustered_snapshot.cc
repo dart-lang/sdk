@@ -5479,10 +5479,10 @@ RawApiError* FullSnapshotReader::ReadVMSnapshot() {
     return error;
   }
 
-  if (instructions_buffer_ != NULL) {
+  if (Snapshot::IncludesCode(kind_)) {
+    ASSERT(instructions_buffer_ != NULL);
     thread_->isolate()->SetupInstructionsSnapshotPage(instructions_buffer_);
-  }
-  if (data_buffer_ != NULL) {
+    ASSERT(data_buffer_ != NULL);
     thread_->isolate()->SetupDataSnapshotPage(data_buffer_);
   }
 
@@ -5501,10 +5501,10 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
     return error;
   }
 
-  if (instructions_buffer_ != NULL) {
+  if (Snapshot::IncludesCode(kind_)) {
+    ASSERT(instructions_buffer_ != NULL);
     thread_->isolate()->SetupInstructionsSnapshotPage(instructions_buffer_);
-  }
-  if (data_buffer_ != NULL) {
+    ASSERT(data_buffer_ != NULL);
     thread_->isolate()->SetupDataSnapshotPage(data_buffer_);
   }
 
