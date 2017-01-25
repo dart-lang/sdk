@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,9 +28,8 @@ main() {
 
 @reflectiveTest
 class SearchEngineImpl2Test {
-  static final MockSdk sdk = new MockSdk();
-
   final MemoryResourceProvider provider = new MemoryResourceProvider();
+  DartSdk sdk;
   final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
 
@@ -39,6 +39,7 @@ class SearchEngineImpl2Test {
   AnalysisDriverScheduler scheduler;
 
   void setUp() {
+    sdk = new MockSdk(resourceProvider: provider);
     logger = new PerformanceLog(logBuffer);
     scheduler = new AnalysisDriverScheduler(logger);
     scheduler.start();
@@ -262,7 +263,8 @@ get b => 42;
     var searchEngine = new SearchEngineImpl2([driver1, driver2]);
     List<SearchMatch> matches =
         await searchEngine.searchTopLevelDeclarations('.*');
-    expect(matches, hasLength(4));
+    expect(
+        matches.where((match) => !match.libraryElement.isInSdk), hasLength(4));
 
     void assertHasElement(String name) {
       expect(

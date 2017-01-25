@@ -1048,15 +1048,15 @@ class A {} // A
 class B = Object with A;
 typedef C();
 D() {}
-var E = null;
+var e = null;
 class NoMatchABCDE {}
 ''');
     Element a = _findElement('A');
     Element b = _findElement('B');
     Element c = _findElement('C');
     Element d = _findElement('D');
-    Element e = _findElement('E');
-    RegExp regExp = new RegExp(r'^[A-E]$');
+    Element e = _findElement('e');
+    RegExp regExp = new RegExp(r'^[ABCDe]$');
     expect(await driver.search.topLevelElements(regExp),
         unorderedEquals([a, b, c, d, e]));
   }

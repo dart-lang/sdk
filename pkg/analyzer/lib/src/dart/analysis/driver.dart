@@ -74,7 +74,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 11;
+  static const int DATA_VERSION = 12;
 
   /**
    * The name of the driver, e.g. the name of the folder.
@@ -116,6 +116,11 @@ class AnalysisDriver {
   AnalysisOptions _analysisOptions;
 
   /**
+   * The optional SDK bundle, used when the client cannot read SDK files.
+   */
+  final PackageBundle _sdkBundle;
+
+  /**
    * The [SourceFactory] is used to resolve URIs to paths and restore URIs
    * from file paths.
    */
@@ -135,12 +140,6 @@ class AnalysisDriver {
    * The current file system state.
    */
   FileSystemState _fsState;
-
-  /**
-   * The combined unlinked and linked package for the SDK, extracted from
-   * the given [sourceFactory].
-   */
-  PackageBundle _sdkBundle;
 
   /**
    * The set of added files.
@@ -247,26 +246,14 @@ class AnalysisDriver {
       this._contentOverlay,
       this.name,
       SourceFactory sourceFactory,
-      this._analysisOptions)
-      : _sourceFactory = sourceFactory.clone() {
+      this._analysisOptions,
+      {PackageBundle sdkBundle})
+      : _sourceFactory = sourceFactory.clone(),
+        _sdkBundle = sdkBundle {
     _testView = new AnalysisDriverTestView(this);
     _fillSalt();
-    _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
-    if (_sdkBundle == null) {
-      Type sdkType = sourceFactory.dartSdk.runtimeType;
-      String message = 'DartSdk ($sdkType) for $name does not have summary.';
-      AnalysisEngine.instance.logger.logError(message);
-      throw new StateError(message);
-    }
-    _fsState = new FileSystemState(
-        _logger,
-        _byteStore,
-        _contentOverlay,
-        _resourceProvider,
-        sourceFactory,
-        _analysisOptions,
-        _salt,
-        _sdkBundle.apiSignature);
+    _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
+        _resourceProvider, sourceFactory, _analysisOptions, _salt);
     _scheduler._add(this);
     _search = new Search(this);
   }
@@ -480,18 +467,10 @@ class AnalysisDriver {
     }
     if (sourceFactory != null) {
       _sourceFactory = sourceFactory;
-      _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
     }
     _fillSalt();
-    _fsState = new FileSystemState(
-        _logger,
-        _byteStore,
-        _contentOverlay,
-        _resourceProvider,
-        _sourceFactory,
-        _analysisOptions,
-        _salt,
-        _sdkBundle.apiSignature);
+    _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
+        _resourceProvider, _sourceFactory, _analysisOptions, _salt);
     _filesToAnalyze.addAll(_addedFiles);
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
@@ -780,15 +759,18 @@ class AnalysisDriver {
     return _logger.run('Create library context', () {
       Map<String, FileState> libraries = <String, FileState>{};
       SummaryDataStore store = new SummaryDataStore(const <String>[]);
-      store.addBundle(null, _sdkBundle);
+
+      if (_sdkBundle != null) {
+        store.addBundle(null, _sdkBundle);
+      }
 
       void appendLibraryFiles(FileState library) {
-        // URIs with the 'dart:' scheme are served from the SDK bundle.
-        if (library.uri.scheme == 'dart') {
-          return null;
-        }
-
         if (!libraries.containsKey(library.uriStr)) {
+          // Serve 'dart:' URIs from the SDK bundle.
+          if (_sdkBundle != null && library.uri.scheme == 'dart') {
+            return;
+          }
+
           libraries[library.uriStr] = library;
 
           // Append the defining unit.

@@ -119,8 +119,8 @@ class IncrementalResolvedAstGeneratorImpl
     // TODO(paulberry): can we just use null?
     var fileContentOverlay = new FileContentOverlay();
     var sdkContext = new AnalysisContextImpl();
-    var dartSdk = new _DartSdkProxy(
-        await _options.getSdkSummary(), sdkContext, _fileRepository);
+    var sdkBundle = await _options.getSdkSummary();
+    var dartSdk = new _DartSdkProxy(sdkBundle, sdkContext, _fileRepository);
     sdkContext.sourceFactory =
         new SourceFactory([new DartUriResolver(dartSdk)]);
 
@@ -134,7 +134,8 @@ class IncrementalResolvedAstGeneratorImpl
         fileContentOverlay,
         'front_end',
         sourceFactory,
-        analysisOptions);
+        analysisOptions,
+        sdkBundle: sdkBundle);
     _isInitialized = true;
   }
 

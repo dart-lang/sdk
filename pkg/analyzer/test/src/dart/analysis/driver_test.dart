@@ -68,6 +68,7 @@ class AnalysisDriverSchedulerTest {
   List<AnalysisResult> allResults = [];
 
   AnalysisDriver newDriver() {
+    sdk = new MockSdk(resourceProvider: provider);
     AnalysisDriver driver = new AnalysisDriver(
         scheduler,
         logger,
@@ -1245,13 +1246,17 @@ import 'b.dart';
     driver.addFile(c);
     await driver.waitForIdle();
 
-    expect(driver.knownFiles, unorderedEquals([a, b, c]));
+    expect(driver.knownFiles, contains(a));
+    expect(driver.knownFiles, contains(b));
+    expect(driver.knownFiles, contains(c));
 
     // Remove a.dart and analyze.
     // Both a.dart and b.dart are not known now.
     driver.removeFile(a);
     await driver.waitForIdle();
-    expect(driver.knownFiles, unorderedEquals([c]));
+    expect(driver.knownFiles, isNot(contains(a)));
+    expect(driver.knownFiles, isNot(contains(b)));
+    expect(driver.knownFiles, contains(c));
   }
 
   test_knownFiles_beforeAnalysis() async {
@@ -1279,7 +1284,7 @@ import 'b.dart';
 
     ParseResult parseResult = await driver.parseFile(p);
     expect(parseResult, isNotNull);
-    expect(driver.knownFiles, [p]);
+    expect(driver.knownFiles, contains(p));
   }
 
   test_parseFile_shouldRefresh() async {
