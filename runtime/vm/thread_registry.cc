@@ -195,16 +195,4 @@ void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   free_list_ = thread;
 }
 
-
-uintptr_t ThreadRegistry::ThreadHighWatermarksTotalLocked() const {
-  ASSERT(threads_lock()->IsOwnedByCurrentThread());
-  uintptr_t memory_high_watermarks_total = 0;
-  Thread* current = active_list_;
-  while (current != NULL) {
-    memory_high_watermarks_total += current->memory_high_watermark();
-    current = current->next_;
-  }
-  return memory_high_watermarks_total;
-}
-
 }  // namespace dart
