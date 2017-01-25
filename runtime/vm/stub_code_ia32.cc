@@ -1259,13 +1259,9 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ Bind(&ok);
 #endif
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Update counter.
     const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-    __ movl(ECX, Address(EBX, count_offset));
-    __ addl(ECX, Immediate(Smi::RawValue(1)));
-    __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ cmovno(EDI, ECX);
-    __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+    // Update counter, ignore overflow.
+    __ addl(Address(EBX, count_offset), Immediate(Smi::RawValue(1)));
   }
   __ ret();
 }
@@ -1287,7 +1283,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
     bool optimized) {
-  ASSERT(num_args > 0);
+  ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
     Label ok;
@@ -1322,60 +1318,74 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
+  Label loop, found, miss;
   // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
   // EBX: ic_data_array with check entries: classes and target functions.
   __ leal(EBX, FieldAddress(EBX, Array::data_offset()));
   // EBX: points directly to the first ic data array element.
 
-  // Get the receiver's class ID (first read number of arguments from
-  // arguments descriptor array and then access the receiver from the stack).
+  // Get argument descriptor into EAX.  In the 1-argument case this is the
+  // last time we need the argument descriptor, and we reuse EAX for the
+  // class IDs from the IC descriptor.  In the 2-argument case we preserve
+  // the argument descriptor in EAX.
   __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-  __ movl(EDI, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is smi.
-  __ LoadTaggedClassIdMayBeSmi(EAX, EDI);
-
-  // EAX: receiver's class ID (smi).
-  __ movl(EDI, Address(EBX, 0));  // First class id (smi) to check.
-  Label loop, update, test, found;
-  __ jmp(&test);
+  if (num_args == 1) {
+    // Load first argument into EDI.
+    __ movl(EDI,
+            Address(ESP, EAX, TIMES_2, 0));  // EAX (argument count) is Smi.
+    __ LoadTaggedClassIdMayBeSmi(EAX, EDI);
+    // EAX: first argument class ID as Smi.
+    __ movl(EDI, Address(EBX, 0));
+  }
 
   __ Comment("ICData loop");
+
+  // We unroll the generic one that is generated once more than the others.
+  bool optimize = kind == Token::kILLEGAL;
+  const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
+  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+
   __ Bind(&loop);
-  for (int i = 0; i < num_args; i++) {
-    if (i > 0) {
-      // If not the first, load the next argument's class ID.
-      __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-      __ movl(EDI, Address(ESP, EAX, TIMES_2, -i * kWordSize));
-      __ LoadTaggedClassIdMayBeSmi(EAX, EDI);
-
-      // EAX: next argument class ID (smi).
-      __ movl(EDI, Address(EBX, i * kWordSize));
-      // EDI: next class ID to check (smi).
+  for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {
+    Label update;
+    for (int i = 0; i < num_args; i++) {
+      if (num_args == 2) {
+        // Load ith argument into EDI.
+        __ movl(EDI, Address(ESP, EAX, TIMES_2, -kWordSize * i));
+        __ LoadTaggedClassIdMayBeSmi(EDI, EDI);
+        // EDI: ith argument class ID (smi).
+        __ cmpl(EDI, Address(EBX, kWordSize * i));  // Class id match?
+      } else {
+        __ cmpl(EDI, EAX);  // Class id match?
+      }
+      if (i < (num_args - 1)) {
+        __ j(NOT_EQUAL, &update);  // Continue.
+      } else {
+        // Last check, all checks before matched.
+        __ j(EQUAL, &found);  // Break.
+      }
     }
-    __ cmpl(EAX, EDI);  // Class id match?
-    if (i < (num_args - 1)) {
-      __ j(NOT_EQUAL, &update);  // Continue.
+    __ Bind(&update);
+
+    const intptr_t entry_size =
+        ICData::TestEntryLengthFor(num_args) * kWordSize;
+    __ addl(EBX, Immediate(entry_size));  // Next entry.
+    if (num_args == 2) {
+      __ cmpl(Address(EBX, -entry_size),
+              Immediate(Smi::RawValue(kIllegalCid)));  // Done?
     } else {
-      // Last check, all checks before matched.
-      __ j(EQUAL, &found);  // Break.
+      __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
+      __ movl(EDI, Address(EBX, 0));
+    }
+    if (unroll == 0) {
+      __ j(NOT_EQUAL, &loop);
+    } else {
+      __ j(EQUAL, &miss);
     }
   }
-  __ Bind(&update);
-  // Reload receiver class ID.  It has not been destroyed when num_args == 1.
-  if (num_args > 1) {
-    __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-    __ movl(EDI, Address(ESP, EAX, TIMES_2, 0));
-    __ LoadTaggedClassIdMayBeSmi(EAX, EDI);
-  }
 
-  const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
-  __ addl(EBX, Immediate(entry_size));  // Next entry.
-  __ movl(EDI, Address(EBX, 0));        // Next class ID.
-
-  __ Bind(&test);
-  __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
-  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-
+  __ Bind(&miss);
   __ Comment("IC miss");
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
@@ -1412,15 +1422,10 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&found);
 
   // EBX: Pointer to an IC data check group.
-  const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
-  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   if (FLAG_optimization_counter_threshold >= 0) {
     __ Comment("Update caller's counter");
-    __ movl(EAX, Address(EBX, count_offset));
-    __ addl(EAX, Immediate(Smi::RawValue(1)));
-    __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ cmovno(EDI, EAX);
-    __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+    // Ignore overflow.
+    __ addl(Address(EBX, count_offset), Immediate(Smi::RawValue(1)));
   }
 
   __ movl(EAX, Address(EBX, target_offset));
@@ -1555,12 +1560,8 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Increment count for this call.
-    __ movl(EAX, Address(EBX, count_offset));
-    __ addl(EAX, Immediate(Smi::RawValue(1)));
-    __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ cmovno(EDI, EAX);
-    __ StoreIntoSmiField(Address(EBX, count_offset), EDI);
+    // Increment count for this call, ignore overflow.
+    __ addl(Address(EBX, count_offset), Immediate(Smi::RawValue(1)));
   }
 
   // Load arguments descriptor into EDX.

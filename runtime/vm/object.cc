@@ -13465,7 +13465,13 @@ intptr_t ICData::GetCountAt(intptr_t index) const {
   const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos =
       index * TestEntryLength() + CountIndexFor(NumArgsTested());
-  return Smi::Value(Smi::RawCast(data.At(data_pos)));
+  intptr_t value = Smi::Value(Smi::RawCast(data.At(data_pos)));
+  if (value >= 0) return value;
+
+  // The counter very rarely overflows to a negative value, but if it does, we
+  // would rather just reset it to zero.
+  SetCountAt(index, 0);
+  return 0;
 }
 
 
