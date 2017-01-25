@@ -77,35 +77,6 @@ class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
   }
 };
 
-template <typename K, typename V>
-class MallocMap
-    : public MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
- public:
-  typedef typename RawPointerKeyValueTrait<K, V>::Key Key;
-  typedef typename RawPointerKeyValueTrait<K, V>::Value Value;
-  typedef typename RawPointerKeyValueTrait<K, V>::Pair Pair;
-
-  inline void Insert(const Key& key, const Value& value) {
-    Pair pair(key, value);
-    MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Insert(pair);
-  }
-
-  inline V Lookup(const Key& key) {
-    Pair* pair =
-        MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(key);
-    if (pair == NULL) {
-      return V();
-    } else {
-      return pair->value;
-    }
-  }
-
-  inline Pair* LookupPair(const Key& key) {
-    return MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(
-        key);
-  }
-};
-
 class BreakableBlock;
 class CatchBlock;
 class FlowGraphBuilder;

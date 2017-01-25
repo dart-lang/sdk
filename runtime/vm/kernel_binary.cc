@@ -192,8 +192,8 @@ class BlockStack {
 
  private:
   int current_count_;
-  MallocGrowableArray<T*> variables_;
-  MallocGrowableArray<int> variable_count_;
+  std::vector<T*> variables_;
+  std::vector<int> variable_count_;
 };
 
 
@@ -214,10 +214,9 @@ class BlockMap {
   }
 
   int Lookup(T* object) {
-    typename MallocMap<T, int>::Pair* result = variables_.LookupPair(object);
-    ASSERT(result != NULL);
-    if (result == NULL) FATAL("lookup failure");
-    return RawPointerKeyValueTrait<T, int>::ValueOf(*result);
+    ASSERT(variables_.find(object) != variables_.end());
+    if (variables_.find(object) == variables_.end()) FATAL("lookup failure");
+    return variables_[object];
   }
 
   void Push(T* v) {
@@ -226,11 +225,7 @@ class BlockMap {
     current_count_++;
   }
 
-  void Set(T* v, int index) {
-    typename MallocMap<T, int>::Pair* entry = variables_.LookupPair(v);
-    ASSERT(entry != NULL);
-    entry->value = index;
-  }
+  void Set(T* v, int index) { variables_[v] = index; }
 
   void Push(List<T>* decl) {
     for (int i = 0; i < decl->length(); i++) {
@@ -246,8 +241,8 @@ class BlockMap {
  private:
   int current_count_;
   int stack_height_;
-  MallocMap<T, int> variables_;
-  MallocGrowableArray<int> variable_count_;
+  std::map<T*, int> variables_;
+  std::vector<int> variable_count_;
 };
 
 
