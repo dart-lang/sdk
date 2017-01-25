@@ -16,7 +16,7 @@
 
 namespace dart {
 
-static const char* test_output_;
+static const char* test_output_ = NULL;
 static void TestPrinter(const char* format, ...) {
   // Measure.
   va_list args;
@@ -31,7 +31,10 @@ static void TestPrinter(const char* format, ...) {
   OS::VSNPrint(buffer, (len + 1), format, args2);
   va_end(args2);
 
-  // Leaks buffer.
+  if (test_output_ != NULL) {
+    free(const_cast<char*>(test_output_));
+    test_output_ = NULL;
+  }
   test_output_ = buffer;
 }
 
@@ -41,6 +44,13 @@ class LogTestHelper : public AllStatic {
     ASSERT(log != NULL);
     ASSERT(printer != NULL);
     log->printer_ = printer;
+  }
+
+  static void FreeTestOutput() {
+    if (test_output_ != NULL) {
+      free(const_cast<char*>(test_output_));
+      test_output_ = NULL;
+    }
   }
 };
 
@@ -54,6 +64,7 @@ TEST_CASE(Log_Macro) {
   EXPECT_STREQ("Hello World", test_output_);
   THR_Print("SingleArgument");
   EXPECT_STREQ("SingleArgument", test_output_);
+  LogTestHelper::FreeTestOutput();
 }
 
 
@@ -64,6 +75,9 @@ TEST_CASE(Log_Basic) {
   EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
   log->Print("Hello %s", "World");
   EXPECT_STREQ("Hello World", test_output_);
+
+  delete log;
+  LogTestHelper::FreeTestOutput();
 }
 
 
@@ -84,6 +98,8 @@ TEST_CASE(Log_Block) {
     EXPECT_STREQ("BANANA", test_output_);
   }
   EXPECT_STREQ("APPLE", test_output_);
+  delete log;
+  LogTestHelper::FreeTestOutput();
 }
 
 }  // namespace dart
