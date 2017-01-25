@@ -178,6 +178,60 @@ class MyAnnotation {
 ''');
   }
 
+  @failingTest
+  test_OK_genericFunctionTypeInComments() async {
+    addFile(
+        projectPath + '/analysis_options.yaml',
+        '''
+analyzer:
+  strong-mode: true
+''');
+    addTestFile('''
+class C {
+  void caller() {
+    Super s = new Super();
+    takesSub(s); // <- No warning
+  }
+
+  void takesSub(Sub s) {}
+}
+
+class Sub extends Super {}
+
+class Super {}
+
+typedef dynamic Func(String x, String y);
+
+Function/*=F*/ allowInterop/*<F extends Function>*/(Function/*=F*/ f) => null;
+
+Func bar(Func f) {
+  return allowInterop(f);
+}
+''');
+    return _assertSorted('''
+Function/*=F*/ allowInterop/*<F extends Function>*/(Function/*=F*/ f) => null;
+
+Func bar(Func f) {
+  return allowInterop(f);
+}
+
+typedef dynamic Func(String x, String y);
+
+class C {
+  void caller() {
+    Super s = new Super();
+    takesSub(s); // <- No warning
+  }
+
+  void takesSub(Sub s) {}
+}
+
+class Sub extends Super {}
+
+class Super {}
+''');
+  }
+
   test_OK_unitMembers_class() async {
     addTestFile('''
 class C {}
