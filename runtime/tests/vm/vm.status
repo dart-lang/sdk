@@ -186,6 +186,7 @@ cc/Dart2JSCompileAll: SkipSlow  # Timeout.
 [ $builder_tag == asan ]
 cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
+[ $builder_tag == asan && $arch == x64 ]
 cc/Debug_DeleteBreakpoint: Fail # Issue 28348
 
 cc/IsolateReload_ChangeInstanceFormat7: Fail # Issue 28349
