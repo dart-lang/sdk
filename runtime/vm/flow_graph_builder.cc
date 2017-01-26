@@ -2104,6 +2104,11 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
 
 void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
+  if (FLAG_support_debugger && owner()->function().is_debuggable()) {
+    AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
+                                               RawPcDescriptors::kRuntimeCall));
+  }
+
   NestedContextAdjustment context_adjustment(owner(), owner()->context_level());
 
   for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
