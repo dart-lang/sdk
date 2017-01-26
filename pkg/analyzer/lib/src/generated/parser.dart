@@ -4152,11 +4152,6 @@ class Parser {
           _tokenMatchesIdentifier(next)) {
         covariantKeyword = getAndAdvance();
       }
-      while (_matchesKeyword(Keyword.COVARIANT)) {
-        _reportErrorForCurrentToken(
-            ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
-        _advance();
-      }
     }
     FinalConstVarOrType holder = parseFinalConstVarOrType(!inFunctionType,
         inFunctionType: inFunctionType);

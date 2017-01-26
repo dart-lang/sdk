@@ -987,14 +987,6 @@ class ErrorParserTest extends ParserTestCase {
     listener.assertErrorsWithCodes([ParserErrorCode.DUPLICATED_MODIFIER]);
   }
 
-  void test_duplicatedModifier_covariant() {
-    createParser('covariant covariant m;');
-    FormalParameter parameter =
-        parser.parseFormalParameter(ParameterKind.REQUIRED);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertErrorsWithCodes([ParserErrorCode.DUPLICATED_MODIFIER]);
-  }
-
   void test_duplicatedModifier_external() {
     createParser('external external f();');
     ClassMember member = parser.parseClassMember('C');
