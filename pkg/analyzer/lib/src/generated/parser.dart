@@ -3848,7 +3848,7 @@ class Parser {
           modifiers.constKeyword = getAndAdvance();
         }
       } else if (keyword == Keyword.COVARIANT) {
-        if (modifiers.constKeyword != null) {
+        if (modifiers.covariantKeyword != null) {
           _reportErrorForCurrentToken(
               ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
           _advance();
@@ -4151,6 +4151,11 @@ class Parser {
           _tokenMatchesKeyword(next, Keyword.THIS) ||
           _tokenMatchesIdentifier(next)) {
         covariantKeyword = getAndAdvance();
+      }
+      while (_matchesKeyword(Keyword.COVARIANT)) {
+        _reportErrorForCurrentToken(
+            ParserErrorCode.DUPLICATED_MODIFIER, [_currentToken.lexeme]);
+        _advance();
       }
     }
     FinalConstVarOrType holder = parseFinalConstVarOrType(!inFunctionType,
