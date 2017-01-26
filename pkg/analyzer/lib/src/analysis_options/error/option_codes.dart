@@ -57,6 +57,19 @@ class AnalysisOptionsErrorCode extends ErrorCode {
  */
 class AnalysisOptionsWarningCode extends ErrorCode {
   /**
+   * An error code indicating the analysis options file name is deprecated
+   * and the file should be renamed.
+   *
+   * Parameters:
+   * 0: the uri of the file which should be renamed
+   */
+  static const ErrorCode DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME =
+      const AnalysisOptionsWarningCode(
+          'DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME',
+          "The name of the analysis options file {0} is deprecated."
+          " Consider renaming the file to analysis_options.yaml");
+
+  /**
    * An error code indicating a specified include file could not be found.
    *
    * Parameters:
