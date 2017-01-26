@@ -117,6 +117,19 @@ test() {
   '''
 import 'package:expect/expect.dart';
 main() {
+  @{1:main}test(new Class());
+}
+@NoInline()
+test(c) {
+  @{2:test}c.field.method();
+}
+class Class {
+  var field;
+}
+''',
+  '''
+import 'package:expect/expect.dart';
+main() {
   // This call is no longer on the stack when the error is thrown.
   @{:main}test();
 }
@@ -277,15 +290,9 @@ Future runTest(int index, Test test,
   }
   List<String> lines = out.split(new RegExp(r'(\r|\n|\r\n)'));
   List<StackTraceLine> jsStackTrace = <StackTraceLine>[];
-  bool seenMarker = false;
   for (String line in lines) {
-    if (seenMarker) {
-      line = line.trim();
-      if (line.startsWith('at ')) {
-        jsStackTrace.add(new StackTraceLine.fromText(line));
-      }
-    } else if (line == EXCEPTION_MARKER) {
-      seenMarker = true;
+    if (line.startsWith('    at ')) {
+      jsStackTrace.add(new StackTraceLine.fromText(line));
     }
   }
 
@@ -293,15 +300,15 @@ Future runTest(int index, Test test,
   for (StackTraceLine line in jsStackTrace) {
     TargetEntry targetEntry = _findColumn(line.lineNo - 1, line.columnNo - 1,
         _findLine(sourceMap, line.lineNo - 1));
-    if (targetEntry == null) {
+    if (targetEntry == null || targetEntry.sourceUrlId == null) {
       dartStackTrace.add(line);
     } else {
       String methodName;
-      if (targetEntry.sourceNameId != 0) {
+      if (targetEntry.sourceNameId != null) {
         methodName = sourceMap.names[targetEntry.sourceNameId];
       }
       String fileName;
-      if (targetEntry.sourceUrlId != 0) {
+      if (targetEntry.sourceUrlId != null) {
         fileName = sourceMap.urls[targetEntry.sourceUrlId];
       }
       dartStackTrace.add(new StackTraceLine(methodName, fileName,

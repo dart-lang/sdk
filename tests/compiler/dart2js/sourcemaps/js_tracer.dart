@@ -82,6 +82,8 @@ class StepTraceListener extends TraceListener
         js.Switch switchNode = node;
         text = ['switch(', switchNode.key, ') ...'];
         break;
+      case StepKind.NO_INFO:
+        break;
     }
     createTraceStep(kind, node,
         offset: offset,

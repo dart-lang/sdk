@@ -74,17 +74,19 @@ String convertToHumanReadableSourceMap(SingleMapping sourceMap) {
       } else {
         position = '$line,$columnStart-';
       }
-      if (entry.sourceUrlId != null) {
-        int sourceUrlId = entry.sourceUrlId;
-        int sourceLine = entry.sourceLine + 1;
-        int sourceColumn = entry.sourceColumn + 1;
+      if (entry.sourceUrlId != null || columnEnd == null) {
         if (needsComma) {
           sb.write(',\n');
         }
         sb.write('    {"target": "$position"');
-        sb.write(', "source": "$sourceUrlId:$sourceLine,$sourceColumn"');
-        if (entry.sourceNameId != null) {
-          sb.write(', "name": "${sourceMap.names[entry.sourceNameId]}"');
+        if (entry.sourceUrlId != null) {
+          int sourceUrlId = entry.sourceUrlId;
+          int sourceLine = entry.sourceLine + 1;
+          int sourceColumn = entry.sourceColumn + 1;
+          sb.write(', "source": "$sourceUrlId:$sourceLine,$sourceColumn"');
+          if (entry.sourceNameId != null) {
+            sb.write(', "name": "${sourceMap.names[entry.sourceNameId]}"');
+          }
         }
         sb.write('}');
         needsComma = true;
