@@ -228,4 +228,20 @@ UNIT_TEST_CASE(PrintZoneMemoryInfoToJSON) {
 }
 #endif
 
+
+UNIT_TEST_CASE(NativeScopeZoneAllocation) {
+  ASSERT(ApiNativeScope::Current() == NULL);
+  ASSERT(Thread::Current() == NULL);
+  EXPECT_EQ(0, ApiNativeScope::current_memory_usage());
+  {
+    ApiNativeScope scope;
+    EXPECT_EQ(scope.zone()->CapacityInBytes(),
+              ApiNativeScope::current_memory_usage());
+    (void)Dart_ScopeAllocate(2048);
+    EXPECT_EQ(scope.zone()->CapacityInBytes(),
+              ApiNativeScope::current_memory_usage());
+  }
+  EXPECT_EQ(0, ApiNativeScope::current_memory_usage());
+}
+
 }  // namespace dart
