@@ -100,8 +100,10 @@ class ClosureTracerVisitor extends TracerVisitor {
   bool _checkIfCurrentUser(element) =>
       inferrer.types.getInferredTypeOf(element) == currentUser;
 
-  bool _checkIfFunctionApply(element) =>
-      compiler.commonElements.isFunctionApplyMethod(element);
+  bool _checkIfFunctionApply(Element element) {
+    return element is MemberElement &&
+        compiler.commonElements.isFunctionApplyMethod(element);
+  }
 
   @override
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
