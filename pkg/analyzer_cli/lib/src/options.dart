@@ -33,6 +33,8 @@ typedef void ExitHandler(int code);
 
 /// Analyzer commandline configuration options.
 class CommandLineOptions {
+  final bool enableNewAnalysisDriver = false;
+
   /// The path to output analysis results when in build mode.
   final String buildAnalysisOutput;
 
@@ -198,12 +200,12 @@ class CommandLineOptions {
   bool get enableSuperMixins =>
       contextBuilderOptions.defaultOptions.enableSuperMixins;
 
+  /// The path to a `.packages` configuration file
+  String get packageConfigPath => contextBuilderOptions.defaultPackageFilePath;
+
   /// The path to the package root
   String get packageRootPath =>
       contextBuilderOptions.defaultPackagesDirectoryPath;
-
-  /// The path to a `.packages` configuration file
-  String get packageConfigPath => contextBuilderOptions.defaultPackageFilePath;
 
   /// Parse [args] into [CommandLineOptions] describing the specified
   /// analyzer options. In case of a format error, calls [printAndFail], which

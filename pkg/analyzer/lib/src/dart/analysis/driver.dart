@@ -1483,11 +1483,13 @@ class PerformanceLog {
   }
 
   /**
-   * Write a new line into the log
+   * Write a new line into the log.
    */
   void writeln(String msg) {
-    String indent = '\t' * _level;
-    sink.writeln('$indent$msg');
+    if (sink != null) {
+      String indent = '\t' * _level;
+      sink.writeln('$indent$msg');
+    }
   }
 }
 
