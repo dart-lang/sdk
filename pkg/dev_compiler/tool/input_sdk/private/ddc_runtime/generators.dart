@@ -47,7 +47,7 @@ async_(gen, T, @rest args) => JS('', '''(() => {
     // Chain the Future so `await` receives the Future's value.
     return future.then($dynamic)(onValue, {onError: onError});
   }
-  return ${getGenericClass(Future)}($T).new(function() {
+  return ${getGenericClass(Future)}($T).microtask(function() {
     iter = $gen.apply(null, $args)[Symbol.iterator]();
     return onValue();
   });
