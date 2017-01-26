@@ -143,23 +143,18 @@ analyzer:
 
 @reflectiveTest
 class GenerateNewOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
-  bool get isOptionsFileDeprecated => false;
   String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
 }
 
 @reflectiveTest
 class GenerateOldOptionsErrorsTaskTest extends GenerateOptionsErrorsTaskTest {
-  bool get isOptionsFileDeprecated => true;
   String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
 }
 
 abstract class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
   Source source;
 
-  bool get isOptionsFileDeprecated;
-
   String get optionsFilePath;
-
   LineInfo lineInfo(String source) =>
       GenerateOptionsErrorsTask.computeLineInfo(source);
 
@@ -214,29 +209,6 @@ abstract class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
   test_descriptor() {
     TaskDescriptor descriptor = GenerateOptionsErrorsTask.DESCRIPTOR;
     expect(descriptor, isNotNull);
-  }
-
-  @override
-  void computeResult(AnalysisTarget target, ResultDescriptor result,
-      {isInstanceOf matcher: null}) {
-    super.computeResult(target, result, matcher: matcher);
-    if (isOptionsFileDeprecated) {
-      bool found = false;
-      var errors = outputs[ANALYSIS_OPTIONS_ERRORS] as List<dynamic>;
-      for (var error in errors) {
-        if (error is AnalysisError &&
-            error.errorCode ==
-                AnalysisOptionsWarningCode
-                    .DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME) {
-          errors.remove(error);
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        fail('Expected deprecated analysis options file name warning');
-      }
-    }
   }
 
   test_perform_bad_yaml() {

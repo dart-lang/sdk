@@ -238,18 +238,6 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
     Source initialSource = source;
     SourceSpan initialIncludeSpan;
 
-    // Suggest user rename deprecated .analysis_options file
-    String fullName = target?.source?.fullName;
-    if (fullName != null &&
-        fullName.endsWith(AnalysisEngine.ANALYSIS_OPTIONS_FILE)) {
-      errors.add(new AnalysisError(
-          source,
-          0, // offset
-          1, // length
-          AnalysisOptionsWarningCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
-          [fullName]));
-    }
-
     // Validate the specified options and any included option files
     void validate(Source source, Map<String, YamlNode> options) {
       List<AnalysisError> validationErrors =
