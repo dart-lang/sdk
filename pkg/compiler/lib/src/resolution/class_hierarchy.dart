@@ -41,7 +41,7 @@ class TypeDefinitionVisitor extends MappingVisitor<ResolutionDartType> {
 
   CommonElements get commonElements => resolution.commonElements;
 
-  ResolutionDartType get objectType => commonElements.objectType;
+  ResolutionInterfaceType get objectType => commonElements.objectType;
 
   void resolveTypeVariableBounds(NodeList node) {
     if (node == null) return;

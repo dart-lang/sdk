@@ -184,20 +184,22 @@ class ResolverTask extends CompilerTask {
                 {'modifier': element.asyncMarker});
           }
         }
+        ClassElement cls;
         switch (element.asyncMarker) {
           case AsyncMarker.ASYNC:
             registry.registerFeature(Feature.ASYNC);
-            commonElements.futureClass.ensureResolved(resolution);
+            cls = commonElements.futureClass;
             break;
           case AsyncMarker.ASYNC_STAR:
             registry.registerFeature(Feature.ASYNC_STAR);
-            commonElements.streamClass.ensureResolved(resolution);
+            cls = commonElements.streamClass;
             break;
           case AsyncMarker.SYNC_STAR:
             registry.registerFeature(Feature.SYNC_STAR);
-            commonElements.iterableClass.ensureResolved(resolution);
+            cls = commonElements.iterableClass;
             break;
         }
+        cls?.ensureResolved(resolution);
       }
     }
   }
@@ -541,8 +543,8 @@ class ResolverTask extends CompilerTask {
             from, MessageKind.CYCLIC_CLASS_HIERARCHY, {'className': cls.name});
         cls.supertypeLoadState = STATE_DONE;
         cls.hasIncompleteHierarchy = true;
-        cls.allSupertypesAndSelf = commonElements
-            .objectClass.allSupertypesAndSelf
+        ClassElement objectClass = commonElements.objectClass;
+        cls.allSupertypesAndSelf = objectClass.allSupertypesAndSelf
             .extendClass(cls.computeType(resolution));
         cls.supertype = cls.allSupertypes.head;
         assert(invariant(from, cls.supertype != null,

@@ -390,13 +390,19 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
           returnType = visitor.resolveReturnType(returnNode);
           break;
         case AsyncMarker.SYNC_STAR:
-          returnType = resolution.commonElements.iterableType();
+          ResolutionInterfaceType iterableType =
+              resolution.commonElements.iterableType();
+          returnType = iterableType;
           break;
         case AsyncMarker.ASYNC:
-          returnType = resolution.commonElements.futureType();
+          ResolutionInterfaceType futureType =
+              resolution.commonElements.futureType();
+          returnType = futureType;
           break;
         case AsyncMarker.ASYNC_STAR:
-          returnType = resolution.commonElements.streamType();
+          ResolutionInterfaceType streamType =
+              resolution.commonElements.streamType();
+          returnType = streamType;
           break;
       }
     }

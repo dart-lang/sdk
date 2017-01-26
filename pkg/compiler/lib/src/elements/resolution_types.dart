@@ -1667,7 +1667,8 @@ class Types implements DartTypes {
   ResolutionDartType computeLeastUpperBoundFunctionTypes(
       ResolutionFunctionType a, ResolutionFunctionType b) {
     if (a.parameterTypes.length != b.parameterTypes.length) {
-      return commonElements.functionType;
+      ResolutionInterfaceType functionType = commonElements.functionType;
+      return functionType;
     }
     ResolutionDartType returnType =
         computeLeastUpperBound(a.returnType, b.returnType);
@@ -1749,10 +1750,12 @@ class Types implements DartTypes {
     }
 
     if (a.isFunctionType) {
-      a = commonElements.functionType;
+      ResolutionInterfaceType functionType = commonElements.functionType;
+      a = functionType;
     }
     if (b.isFunctionType) {
-      b = commonElements.functionType;
+      ResolutionInterfaceType functionType = commonElements.functionType;
+      b = functionType;
     }
 
     if (a.isInterfaceType && b.isInterfaceType) {
@@ -1795,7 +1798,9 @@ class Types implements DartTypes {
       ResolutionTypeVariableType variable = type;
       type = variable.element.bound;
       if (type == originalType) {
-        type = resolution.commonElements.objectType;
+        ResolutionInterfaceType objectType =
+            resolution.commonElements.objectType;
+        type = objectType;
       }
     }
     if (type.isMalformed) {
@@ -1839,7 +1844,9 @@ class Types implements DartTypes {
       return null;
     }
     if (type.isFunctionType) {
-      type = resolution.commonElements.functionType;
+      ResolutionInterfaceType functionType =
+          resolution.commonElements.functionType;
+      type = functionType;
     }
     assert(invariant(NO_LOCATION_SPANNABLE, type.isInterfaceType,
         message: "unexpected type kind ${type.kind}."));

@@ -981,7 +981,8 @@ class JavaScriptBackend extends Backend {
       ClassElement interceptorClass) {
     if (interceptorClass == null) return;
     interceptorClass.ensureResolved(resolution);
-    commonElements.objectClass.forEachMember((_, Element member) {
+    ClassElement objectClass = commonElements.objectClass;
+    objectClass.forEachMember((_, Element member) {
       if (member.isGenerativeConstructor) return;
       Element interceptorMember = interceptorClass.lookupMember(member.name);
       // Interceptors must override all Object methods due to calling convention

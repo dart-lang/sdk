@@ -636,11 +636,14 @@ class Namer {
       case JsGetName.IS_INDEXABLE_FIELD_NAME:
         return operatorIs(helpers.jsIndexingBehaviorInterface);
       case JsGetName.NULL_CLASS_TYPE_NAME:
-        return runtimeTypeName(commonElements.nullClass);
+        ClassElement nullClass = commonElements.nullClass;
+        return runtimeTypeName(nullClass);
       case JsGetName.OBJECT_CLASS_TYPE_NAME:
-        return runtimeTypeName(commonElements.objectClass);
+        ClassElement objectClass = commonElements.objectClass;
+        return runtimeTypeName(objectClass);
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
-        return runtimeTypeName(commonElements.functionClass);
+        ClassElement functionClass = commonElements.functionClass;
+        return runtimeTypeName(functionClass);
       default:
         reporter.reportErrorMessage(node, MessageKind.GENERIC,
             {'text': 'Error: Namer has no name for "$name".'});

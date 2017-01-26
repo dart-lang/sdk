@@ -228,8 +228,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   HInstruction popBoolified() {
     HInstruction value = pop();
     if (typeBuilder.checkOrTrustTypes) {
-      return typeBuilder.potentiallyCheckOrTrustType(
-          value, compiler.commonElements.boolType,
+      ResolutionInterfaceType type = compiler.commonElements.boolType;
+      return typeBuilder.potentiallyCheckOrTrustType(value, type,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value, commonMasks.boolType);

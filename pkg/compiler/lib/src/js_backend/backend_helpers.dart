@@ -217,8 +217,10 @@ class BackendHelpers {
     return element;
   }
 
-  Element findCoreHelper(String name) =>
-      compiler.commonElements.coreLibrary.implementation.localLookup(name);
+  Element findCoreHelper(String name) {
+    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
+    return coreLibrary.implementation.localLookup(name);
+  }
 
   ConstructorElement _findConstructor(ClassElement cls, String name) {
     cls.ensureResolved(resolution);
@@ -356,7 +358,8 @@ class BackendHelpers {
 
     // [LinkedHashMap] is reexported from dart:collection and can therefore not
     // be loaded from dart:core in [onLibraryScanned].
-    mapLiteralClass = compiler.commonElements.coreLibrary.find('LinkedHashMap');
+    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
+    mapLiteralClass = coreLibrary.find('LinkedHashMap');
     assert(invariant(
         compiler.commonElements.coreLibrary, mapLiteralClass != null,
         message: "Element 'LinkedHashMap' not found in 'dart:core'."));
@@ -395,7 +398,8 @@ class BackendHelpers {
     jsStringOperatorAdd = compiler.lookupElementIn(jsStringClass, '+');
     jsStringToString = compiler.lookupElementIn(jsStringClass, 'toString');
 
-    objectEquals = compiler.lookupElementIn(commonElements.objectClass, '==');
+    ClassElement objectClass = commonElements.objectClass;
+    objectEquals = compiler.lookupElementIn(objectClass, '==');
   }
 
   ConstructorElement _mapLiteralConstructor;
@@ -847,8 +851,9 @@ class BackendHelpers {
 
   MethodElement get objectNoSuchMethod {
     if (_objectNoSuchMethod == null) {
-      _objectNoSuchMethod = commonElements.objectClass
-          .lookupLocalMember(Identifiers.noSuchMethod_);
+      ClassElement objectClass = commonElements.objectClass;
+      _objectNoSuchMethod =
+          objectClass.lookupLocalMember(Identifiers.noSuchMethod_);
     }
     return _objectNoSuchMethod;
   }

@@ -44,12 +44,10 @@ analyze(String code,
       compiler.resolution.wasProxyConstantComputedTestingOnly,
       "Unexpected computation of proxy constant.");
 
+  LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
   checkInstantiated(
-      compiler,
-      compiler.commonElements.coreLibrary.find('_Proxy'),
-      proxyConstantComputed);
-  checkInstantiated(compiler,
-      compiler.commonElements.coreLibrary.find('Deprecated'), deprecatedClass);
+      compiler, coreLibrary.find('_Proxy'), proxyConstantComputed);
+  checkInstantiated(compiler, coreLibrary.find('Deprecated'), deprecatedClass);
 
   LibraryElement jsHelperLibrary =
       compiler.libraryLoader.lookupLibrary(BackendHelpers.DART_JS_HELPER);

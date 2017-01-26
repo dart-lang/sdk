@@ -11,7 +11,7 @@ import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
-    show ClassElement, Element, FieldElement, MethodElement;
+    show ClassElement, Element, Entity, FieldElement, MethodElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 import '../../world.dart' show ClosedWorld;
@@ -132,7 +132,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.Expression typeAccess(Element element) {
+  js.Expression typeAccess(Entity element) {
     // TODO(floitsch): minify 'ensureResolved'.
     // TODO(floitsch): don't emit `ensureResolved` for eager classes.
     return js.js('#.ensureResolved()', _globalPropertyAccess(element));

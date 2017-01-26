@@ -134,8 +134,8 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
     'hasRetainedMetadata': backend.hasRetainedMetadata,
     'types': typesAccess,
-    'objectClassName': js
-        .quoteName(namer.runtimeTypeName(compiler.commonElements.objectClass)),
+    'objectClassName': js.quoteName(
+        namer.runtimeTypeName(compiler.commonElements.objectClass as Entity)),
     'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
     'usesMangledNames': compiler.commonElements.mirrorsLibrary != null ||
         backend.hasFunctionApplySupport,

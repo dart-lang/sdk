@@ -638,14 +638,14 @@ class KernelAstAdapter implements KernelWorldBuilder {
     return types.map(getDartType).toList();
   }
 
-  ResolutionDartType getDartTypeOfListLiteral(ir.ListLiteral list) {
+  ResolutionInterfaceType getDartTypeOfListLiteral(ir.ListLiteral list) {
     ast.Node node = getNodeOrNull(list);
     if (node != null) return elements.getType(node);
     assertNodeIsSynthetic(list);
     return _compiler.commonElements.listType(getDartType(list.typeArgument));
   }
 
-  ResolutionDartType getDartTypeOfMapLiteral(ir.MapLiteral literal) {
+  ResolutionInterfaceType getDartTypeOfMapLiteral(ir.MapLiteral literal) {
     ast.Node node = getNodeOrNull(literal);
     if (node != null) return elements.getType(node);
     assertNodeIsSynthetic(literal);

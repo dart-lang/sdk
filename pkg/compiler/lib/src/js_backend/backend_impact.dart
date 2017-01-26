@@ -176,7 +176,7 @@ class BackendImpacts {
                 helpers.unresolvedTopLevelMethodError,
                 helpers.unresolvedTopLevelGetterError,
                 helpers.unresolvedTopLevelSetterError,
-                commonElements.symbolConstructor.declaration,
+                commonElements.symbolConstructor,
               ]
             : [
                 helpers.throwNoSuchMethod,
@@ -295,7 +295,7 @@ class BackendImpacts {
   BackendImpact get constSymbol {
     return _constSymbol ??= new BackendImpact(
         instantiatedClasses: [commonElements.symbolClass],
-        staticUses: [commonElements.symbolConstructor.declaration]);
+        staticUses: [commonElements.symbolConstructor]);
   }
 
   /// Helper for registering that `int` is needed.

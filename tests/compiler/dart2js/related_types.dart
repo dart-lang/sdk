@@ -262,7 +262,7 @@ class RelatedTypesChecker
   }
 
   @override
-  ResolutionDartType visitEquals(Send node, Node left, Node right, _) {
+  ResolutionInterfaceType visitEquals(Send node, Node left, Node right, _) {
     ResolutionDartType leftType = apply(left);
     ResolutionDartType rightType = apply(right);
     checkRelated(node, leftType, rightType);
@@ -270,7 +270,7 @@ class RelatedTypesChecker
   }
 
   @override
-  ResolutionDartType visitNotEquals(Send node, Node left, Node right, _) {
+  ResolutionInterfaceType visitNotEquals(Send node, Node left, Node right, _) {
     ResolutionDartType leftType = apply(left);
     ResolutionDartType rightType = apply(right);
     checkRelated(node, leftType, rightType);
@@ -289,17 +289,17 @@ class RelatedTypesChecker
   }
 
   @override
-  ResolutionDartType visitLiteralInt(LiteralInt node) {
+  ResolutionInterfaceType visitLiteralInt(LiteralInt node) {
     return commonElements.intType;
   }
 
   @override
-  ResolutionDartType visitLiteralString(LiteralString node) {
+  ResolutionInterfaceType visitLiteralString(LiteralString node) {
     return commonElements.stringType;
   }
 
   @override
-  ResolutionDartType visitLiteralBool(LiteralBool node) {
+  ResolutionInterfaceType visitLiteralBool(LiteralBool node) {
     return commonElements.boolType;
   }
 

@@ -1517,8 +1517,8 @@ class SsaBuilder extends ast.Visitor
   HInstruction popBoolified() {
     HInstruction value = pop();
     if (typeBuilder.checkOrTrustTypes) {
-      return typeBuilder.potentiallyCheckOrTrustType(
-          value, compiler.commonElements.boolType,
+      ResolutionInterfaceType boolType = compiler.commonElements.boolType;
+      return typeBuilder.potentiallyCheckOrTrustType(value, boolType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value, commonMasks.boolType);
@@ -3022,8 +3022,8 @@ class SsaBuilder extends ast.Visitor
     ClassElement cls = currentNonClosureClass;
     MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
     if (!Selectors.noSuchMethod_.signatureApplies(element)) {
-      element =
-          commonElements.objectClass.lookupMember(Identifiers.noSuchMethod_);
+      ClassElement objectClass = commonElements.objectClass;
+      element = objectClass.lookupMember(Identifiers.noSuchMethod_);
     }
     if (backend.hasInvokeOnSupport && !element.enclosingClass.isObject) {
       // Register the call as dynamic if [noSuchMethod] on the super

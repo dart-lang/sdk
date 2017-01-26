@@ -22,6 +22,7 @@ import '../../elements/elements.dart'
         ClassElement,
         Element,
         Elements,
+        Entity,
         FieldElement,
         FunctionElement,
         FunctionSignature,
@@ -358,7 +359,7 @@ class Emitter implements js_emitter.Emitter {
   }
 
   @override
-  jsAst.PropertyAccess typeAccess(Element element) {
+  jsAst.PropertyAccess typeAccess(Entity element) {
     return globalPropertyAccess(element);
   }
 

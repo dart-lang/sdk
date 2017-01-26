@@ -336,7 +336,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (Elements.isUnresolved(element) && name == 'dynamic') {
         // TODO(johnniwinther): Remove this hack when we can return more complex
         // objects than [Element] from this method.
-        element = commonElements.typeClass;
+        ClassElement typeClass = commonElements.typeClass;
+        element = typeClass;
         // Set the type to be `dynamic` to mark that this is a type literal.
         registry.setType(node, const ResolutionDynamicType());
       }
@@ -2085,8 +2086,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // directly on the constant expressions.
         node.isCall ? commonElements.typeType : type);
     AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
-    return handleConstantTypeLiteralAccess(node, const PublicName('dynamic'),
-        commonElements.typeClass, type, semantics);
+    ClassElement typeClass = commonElements.typeClass;
+    return handleConstantTypeLiteralAccess(
+        node, const PublicName('dynamic'), typeClass, type, semantics);
   }
 
   /// Handle update to a type literal of the type 'dynamic'. Like `dynamic++` or
@@ -2096,8 +2098,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstantExpression constant =
         new TypeConstantExpression(const ResolutionDynamicType());
     AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
-    return handleConstantTypeLiteralUpdate(node, const PublicName('dynamic'),
-        commonElements.typeClass, type, semantics);
+    ClassElement typeClass = commonElements.typeClass;
+    return handleConstantTypeLiteralUpdate(
+        node, const PublicName('dynamic'), typeClass, type, semantics);
   }
 
   /// Handle access to a type literal of a class. Like `C` or
@@ -3615,11 +3618,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (!currentAsyncMarker.isYielding) {
         reporter.reportErrorMessage(node, MessageKind.INVALID_YIELD);
       }
+      ClassElement cls;
       if (currentAsyncMarker.isAsync) {
-        commonElements.streamClass.ensureResolved(resolution);
+        cls = commonElements.streamClass;
       } else {
-        commonElements.iterableClass.ensureResolved(resolution);
+        cls = commonElements.iterableClass;
       }
+      cls.ensureResolved(resolution);
     }
     visit(node.expression);
     return const NoneResult();
@@ -3754,7 +3759,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (!currentAsyncMarker.isAsync) {
         reporter.reportErrorMessage(node, MessageKind.INVALID_AWAIT);
       }
-      commonElements.futureClass.ensureResolved(resolution);
+      ClassElement futureClass = commonElements.futureClass;
+      futureClass.ensureResolved(resolution);
     }
     visit(node.expression);
     return const NoneResult();
@@ -4135,7 +4141,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         }
       }
     }
-    ResolutionDartType listType;
+    ResolutionInterfaceType listType;
     if (typeArgument != null) {
       if (node.isConst && typeArgument.containsTypeVariables) {
         reporter.reportErrorMessage(
@@ -4438,7 +4444,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         }
       }
     }
-    ResolutionDartType mapType;
+    ResolutionInterfaceType mapType;
     if (valueTypeArgument != null) {
       mapType = commonElements.mapType(keyTypeArgument, valueTypeArgument);
     } else {
@@ -4493,7 +4499,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return visit(node.expression);
   }
 
-  ResolutionDartType typeOfConstant(ConstantValue constant) {
+  ResolutionInterfaceType typeOfConstant(ConstantValue constant) {
     if (constant.isInt) return commonElements.intType;
     if (constant.isBool) return commonElements.boolType;
     if (constant.isDouble) return commonElements.doubleType;

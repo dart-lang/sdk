@@ -29,6 +29,7 @@ import '../../elements/elements.dart'
         ParameterElement,
         TypedefElement,
         VariableElement;
+import '../../elements/types.dart' show DartType;
 import '../../js/js.dart' as js;
 import '../../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../../js_backend/js_backend.dart'
@@ -396,8 +397,8 @@ class ProgramBuilder {
                 if (returnType.isFunctionType) {
                   functionType = returnType;
                 } else if (returnType.treatAsDynamic ||
-                    _compiler.types.isSubtype(
-                        returnType, backend.commonElements.functionType)) {
+                    _compiler.types.isSubtype(returnType,
+                        backend.commonElements.functionType as DartType)) {
                   if (returnType.isTypedef) {
                     ResolutionTypedefType typedef = returnType;
                     // TODO(jacobr): can we just use typdef.unaliased instead?
