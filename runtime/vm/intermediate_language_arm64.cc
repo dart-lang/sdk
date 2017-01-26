@@ -5379,9 +5379,6 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&done);
     return;
   }
-  if (kind() == MergedMathInstr::kSinCos) {
-    UNIMPLEMENTED();
-  }
   UNIMPLEMENTED();
 }
 

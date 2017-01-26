@@ -292,7 +292,6 @@ class FlowGraphCompiler : public ValueObject {
 
   static bool SupportsUnboxedDoubles();
   static bool SupportsUnboxedMints();
-  static bool SupportsSinCos();
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
   static bool CanConvertUnboxedMintToDouble();

@@ -6233,9 +6233,6 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     return;
   }
-  if (kind() == MergedMathInstr::kSinCos) {
-    UNIMPLEMENTED();
-  }
   UNIMPLEMENTED();
 }
 
