@@ -171,7 +171,7 @@ VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
 
 
 VirtualMemory::~VirtualMemory() {
-  if (!embedder_allocated()) {
+  if (vm_owns_region()) {
     mx_handle_t vmar = static_cast<mx_handle_t>(handle());
     mx_status_t status = mx_vmar_destroy(vmar);
     if (status != NO_ERROR) {

@@ -1051,8 +1051,9 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
     WritableVMIsolateScope scope(Thread::Current());
     PremarkingVisitor premarker;
     ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
-    isolate->heap()->IterateOldObjectsNoExternalPages(&premarker);
+    isolate->heap()->IterateOldObjectsNoImagePages(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
+    // Note objects in image pages are already pre-marked.
   }
 }
 

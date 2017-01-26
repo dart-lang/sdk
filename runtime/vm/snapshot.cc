@@ -679,8 +679,8 @@ RawObject* SnapshotReader::NewInteger(int64_t value) {
 }
 
 
-int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions,
-                                         RawCode* code) {
+int32_t ImageWriter::GetOffsetFor(RawInstructions* instructions,
+                                  RawCode* code) {
 #if defined(PRODUCT)
   // Instructions are only dedup in product mode because it obfuscates profiler
   // results.
@@ -700,7 +700,7 @@ int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions,
 }
 
 
-int32_t InstructionsWriter::GetObjectOffsetFor(RawObject* raw_object) {
+int32_t ImageWriter::GetObjectOffsetFor(RawObject* raw_object) {
   intptr_t heap_size = raw_object->Size();
   intptr_t offset = next_object_offset_;
   next_object_offset_ += heap_size;
@@ -709,7 +709,7 @@ int32_t InstructionsWriter::GetObjectOffsetFor(RawObject* raw_object) {
 }
 
 
-void InstructionsWriter::Write(WriteStream* clustered_stream, bool vm) {
+void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
@@ -735,7 +735,7 @@ void InstructionsWriter::Write(WriteStream* clustered_stream, bool vm) {
 }
 
 
-void InstructionsWriter::WriteROData(WriteStream* stream) {
+void ImageWriter::WriteROData(WriteStream* stream) {
   stream->Align(OS::kMaxPreferredCodeAlignment);
 
   // Heap page starts here.
@@ -778,8 +778,7 @@ static void EnsureIdentifier(char* label) {
 }
 
 
-void AssemblyInstructionsWriter::WriteText(WriteStream* clustered_stream,
-                                           bool vm) {
+void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   Zone* zone = Thread::Current()->zone();
 
   const char* instructions_symbol =
@@ -795,7 +794,7 @@ void AssemblyInstructionsWriter::WriteText(WriteStream* clustered_stream,
   // look like a HeapPage.
   intptr_t instructions_length = next_offset_;
   WriteWordLiteralText(instructions_length);
-  intptr_t header_words = InstructionsSnapshot::kHeaderSize / sizeof(uword);
+  intptr_t header_words = Image::kHeaderSize / sizeof(uword);
   for (intptr_t i = 1; i < header_words; i++) {
     WriteWordLiteralText(0);
   }
@@ -896,12 +895,12 @@ void AssemblyInstructionsWriter::WriteText(WriteStream* clustered_stream,
 }
 
 
-void BlobInstructionsWriter::WriteText(WriteStream* clustered_stream, bool vm) {
+void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   // This header provides the gap to make the instructions snapshot look like a
   // HeapPage.
   intptr_t instructions_length = next_offset_;
   instructions_blob_stream_.WriteWord(instructions_length);
-  intptr_t header_words = InstructionsSnapshot::kHeaderSize / sizeof(uword);
+  intptr_t header_words = Image::kHeaderSize / sizeof(uword);
   for (intptr_t i = 1; i < header_words; i++) {
     instructions_blob_stream_.WriteWord(0);
   }

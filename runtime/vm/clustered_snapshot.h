@@ -119,7 +119,7 @@ class Serializer : public StackResource {
              uint8_t** buffer,
              ReAlloc alloc,
              intptr_t initial_size,
-             InstructionsWriter* instructions_writer_);
+             ImageWriter* image_writer_);
   ~Serializer();
 
   intptr_t WriteVMSnapshot(const Array& symbols, const Array& scripts);
@@ -259,11 +259,11 @@ class Serializer : public StackResource {
   }
 
   int32_t GetTextOffset(RawInstructions* instr, RawCode* code) {
-    return instructions_writer_->GetOffsetFor(instr, code);
+    return image_writer_->GetOffsetFor(instr, code);
   }
 
   int32_t GetRODataOffset(RawObject* object) {
-    return instructions_writer_->GetObjectOffsetFor(object);
+    return image_writer_->GetObjectOffsetFor(object);
   }
 
   Snapshot::Kind kind() const { return kind_; }
@@ -273,7 +273,7 @@ class Serializer : public StackResource {
   Zone* zone_;
   Snapshot::Kind kind_;
   WriteStream stream_;
-  InstructionsWriter* instructions_writer_;
+  ImageWriter* image_writer_;
   SerializationCluster** clusters_by_cid_;
   GrowableArray<RawObject*> stack_;
   intptr_t num_cids_;
@@ -392,8 +392,8 @@ class FullSnapshotWriter {
                      uint8_t** vm_snapshot_data_buffer,
                      uint8_t** isolate_snapshot_data_buffer,
                      ReAlloc alloc,
-                     InstructionsWriter* vm_instructions_writer,
-                     InstructionsWriter* iso_instructions_writer);
+                     ImageWriter* vm_image_writer,
+                     ImageWriter* iso_image_writer);
   ~FullSnapshotWriter();
 
   uint8_t** vm_snapshot_data_buffer() const { return vm_snapshot_data_buffer_; }
@@ -428,8 +428,8 @@ class FullSnapshotWriter {
   intptr_t vm_isolate_snapshot_size_;
   intptr_t isolate_snapshot_size_;
   ForwardList* forward_list_;
-  InstructionsWriter* vm_instructions_writer_;
-  InstructionsWriter* isolate_instructions_writer_;
+  ImageWriter* vm_image_writer_;
+  ImageWriter* isolate_image_writer_;
   Array& token_streams_;
   Array& saved_symbol_table_;
   Array& new_vm_symbol_table_;

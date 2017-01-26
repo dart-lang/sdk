@@ -211,19 +211,18 @@ class Snapshot {
 };
 
 
-class InstructionsSnapshot : ValueObject {
+class Image : ValueObject {
  public:
-  explicit InstructionsSnapshot(const void* raw_memory)
-      : raw_memory_(raw_memory) {
+  explicit Image(const void* raw_memory) : raw_memory_(raw_memory) {
     ASSERT(Utils::IsAligned(raw_memory, OS::kMaxPreferredCodeAlignment));
   }
 
-  void* instructions_start() {
+  void* object_start() {
     return reinterpret_cast<void*>(reinterpret_cast<uword>(raw_memory_) +
                                    kHeaderSize);
   }
 
-  uword instructions_size() {
+  uword object_size() {
     uword snapshot_size = *reinterpret_cast<const uword*>(raw_memory_);
     return snapshot_size - kHeaderSize;
   }
@@ -233,34 +232,7 @@ class InstructionsSnapshot : ValueObject {
  private:
   const void* raw_memory_;  // The symbol kInstructionsSnapshot.
 
-  DISALLOW_COPY_AND_ASSIGN(InstructionsSnapshot);
-};
-
-
-class DataSnapshot : ValueObject {
- public:
-  explicit DataSnapshot(const void* raw_memory) : raw_memory_(raw_memory) {
-    ASSERT(Utils::IsAligned(raw_memory, 2 * kWordSize));  // kObjectAlignment
-  }
-
-  void* data_start() {
-    return reinterpret_cast<void*>(reinterpret_cast<uword>(raw_memory_) +
-                                   kHeaderSize);
-  }
-
-  uword data_size() {
-    uword snapshot_size = *reinterpret_cast<const uword*>(raw_memory_);
-    return snapshot_size - kHeaderSize;
-  }
-
-  // Header: data length and padding for alignment. We use the same alignment
-  // as for code for now.
-  static const intptr_t kHeaderSize = OS::kMaxPreferredCodeAlignment;
-
- private:
-  const void* raw_memory_;  // The symbol kDataSnapshot.
-
-  DISALLOW_COPY_AND_ASSIGN(DataSnapshot);
+  DISALLOW_COPY_AND_ASSIGN(Image);
 };
 
 
@@ -728,17 +700,17 @@ class ForwardList {
 };
 
 
-class InstructionsWriter : public ZoneAllocated {
+class ImageWriter : public ZoneAllocated {
  public:
-  InstructionsWriter()
+  ImageWriter()
       : next_offset_(0), next_object_offset_(0), instructions_(), objects_() {
     ResetOffsets();
   }
-  virtual ~InstructionsWriter() {}
+  virtual ~ImageWriter() {}
 
   void ResetOffsets() {
-    next_offset_ = InstructionsSnapshot::kHeaderSize;
-    next_object_offset_ = DataSnapshot::kHeaderSize;
+    next_offset_ = Image::kHeaderSize;
+    next_object_offset_ = Image::kHeaderSize;
     instructions_.Clear();
     objects_.Clear();
   }
@@ -785,16 +757,16 @@ class InstructionsWriter : public ZoneAllocated {
   GrowableArray<ObjectData> objects_;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(InstructionsWriter);
+  DISALLOW_COPY_AND_ASSIGN(ImageWriter);
 };
 
 
-class AssemblyInstructionsWriter : public InstructionsWriter {
+class AssemblyImageWriter : public ImageWriter {
  public:
-  AssemblyInstructionsWriter(uint8_t** assembly_buffer,
-                             ReAlloc alloc,
-                             intptr_t initial_size)
-      : InstructionsWriter(),
+  AssemblyImageWriter(uint8_t** assembly_buffer,
+                      ReAlloc alloc,
+                      intptr_t initial_size)
+      : ImageWriter(),
         assembly_stream_(assembly_buffer, alloc, initial_size),
         text_size_(0) {}
 
@@ -817,16 +789,16 @@ class AssemblyInstructionsWriter : public InstructionsWriter {
   WriteStream assembly_stream_;
   intptr_t text_size_;
 
-  DISALLOW_COPY_AND_ASSIGN(AssemblyInstructionsWriter);
+  DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
 };
 
 
-class BlobInstructionsWriter : public InstructionsWriter {
+class BlobImageWriter : public ImageWriter {
  public:
-  BlobInstructionsWriter(uint8_t** instructions_blob_buffer,
-                         ReAlloc alloc,
-                         intptr_t initial_size)
-      : InstructionsWriter(),
+  BlobImageWriter(uint8_t** instructions_blob_buffer,
+                  ReAlloc alloc,
+                  intptr_t initial_size)
+      : ImageWriter(),
         instructions_blob_stream_(instructions_blob_buffer,
                                   alloc,
                                   initial_size) {}
@@ -841,7 +813,7 @@ class BlobInstructionsWriter : public InstructionsWriter {
  private:
   WriteStream instructions_blob_stream_;
 
-  DISALLOW_COPY_AND_ASSIGN(BlobInstructionsWriter);
+  DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
 };
 
 

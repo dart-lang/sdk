@@ -521,7 +521,7 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   // Write snapshot with object content.
   FullSnapshotWriter writer(Snapshot::kCore, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, &malloc_allocator,
-                            NULL, NULL /* instructions_writer */);
+                            NULL, NULL /* image_writer */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot =
       Snapshot::SetupFromBuffer(isolate_snapshot_data_buffer);
@@ -559,7 +559,7 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   // Write snapshot with object content.
   FullSnapshotWriter writer(Snapshot::kCore, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, &malloc_allocator,
-                            NULL, NULL /* instructions_writer */);
+                            NULL, NULL /* image_writer */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot =
       Snapshot::SetupFromBuffer(isolate_snapshot_data_buffer);

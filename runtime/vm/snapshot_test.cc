@@ -1186,7 +1186,7 @@ UNIT_TEST_CASE(FullSnapshot) {
     {
       FullSnapshotWriter writer(
           Snapshot::kCore, NULL, &isolate_snapshot_data_buffer,
-          &malloc_allocator, NULL, NULL /* instructions_writer */);
+          &malloc_allocator, NULL, NULL /* image_writer */);
       writer.WriteFullSnapshot();
     }
   }
@@ -1243,7 +1243,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
     {
       FullSnapshotWriter writer(
           Snapshot::kCore, NULL, &isolate_snapshot_data_buffer,
-          &malloc_allocator, NULL, NULL /* instructions_writer */);
+          &malloc_allocator, NULL, NULL /* image_writer */);
       writer.WriteFullSnapshot();
     }
 

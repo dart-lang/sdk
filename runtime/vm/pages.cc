@@ -93,9 +93,9 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
 
 
 void HeapPage::Deallocate() {
-  bool is_embedder_allocated = embedder_allocated();
+  bool image_page = is_image_page();
 
-  if (!is_embedder_allocated) {
+  if (!image_page) {
     LSAN_UNREGISTER_ROOT_REGION(this, sizeof(*this));
   }
 
@@ -105,7 +105,7 @@ void HeapPage::Deallocate() {
 
   // For a heap page from a snapshot, the HeapPage object lives in the malloc
   // heap rather than the page itself.
-  if (is_embedder_allocated) {
+  if (image_page) {
     free(this);
   }
 }
@@ -156,7 +156,7 @@ RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
 
 
 void HeapPage::WriteProtect(bool read_only) {
-  ASSERT(!embedder_allocated());
+  ASSERT(!is_image_page());
 
   VirtualMemory::Protection prot;
   if (read_only) {
@@ -251,11 +251,11 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
     } else {
-      if (FLAG_write_protect_code && !exec_pages_tail_->embedder_allocated()) {
+      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
         exec_pages_tail_->WriteProtect(false);
       }
       exec_pages_tail_->set_next(page);
-      if (FLAG_write_protect_code && !exec_pages_tail_->embedder_allocated()) {
+      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
         exec_pages_tail_->WriteProtect(true);
       }
     }
@@ -643,18 +643,18 @@ void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
-void PageSpace::VisitObjectsNoExternalPages(ObjectVisitor* visitor) const {
+void PageSpace::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if (!it.page()->embedder_allocated()) {
+    if (!it.page()->is_image_page()) {
       it.page()->VisitObjects(visitor);
     }
   }
 }
 
 
-void PageSpace::VisitObjectsExternalPages(ObjectVisitor* visitor) const {
+void PageSpace::VisitObjectsImagePages(ObjectVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if (it.page()->embedder_allocated()) {
+    if (it.page()->is_image_page()) {
       it.page()->VisitObjects(visitor);
     }
   }
@@ -708,7 +708,7 @@ void PageSpace::WriteProtect(bool read_only) {
     AbandonBumpAllocation();
   }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if (!it.page()->embedder_allocated()) {
+    if (!it.page()->is_image_page()) {
       it.page()->WriteProtect(read_only);
     }
   }
@@ -828,15 +828,14 @@ void PageSpace::WriteProtectCode(bool read_only) {
     HeapPage* page = exec_pages_;
     while (page != NULL) {
       ASSERT(page->type() == HeapPage::kExecutable);
-      if (!page->embedder_allocated()) {
+      if (!page->is_image_page()) {
         page->WriteProtect(read_only);
       }
       page = page->next();
     }
     page = large_pages_;
     while (page != NULL) {
-      if (page->type() == HeapPage::kExecutable &&
-          !page->embedder_allocated()) {
+      if (page->type() == HeapPage::kExecutable && !page->is_image_page()) {
         page->WriteProtect(read_only);
       }
       page = page->next();
@@ -1098,9 +1097,7 @@ uword PageSpace::TryAllocatePromoLocked(intptr_t size,
 }
 
 
-void PageSpace::SetupExternalPage(void* pointer,
-                                  uword size,
-                                  bool is_executable) {
+void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   // Setup a HeapPage so precompiled Instructions can be traversed.
   // Instructions are contiguous at [pointer, pointer + size). HeapPage
   // expects to find objects at [memory->start() + ObjectStartOffset,
@@ -1109,7 +1106,7 @@ void PageSpace::SetupExternalPage(void* pointer,
   pointer = reinterpret_cast<void*>(reinterpret_cast<uword>(pointer) - offset);
   size += offset;
 
-  VirtualMemory* memory = VirtualMemory::ForExternalPage(pointer, size);
+  VirtualMemory* memory = VirtualMemory::ForImagePage(pointer, size);
   ASSERT(memory != NULL);
   HeapPage* page = reinterpret_cast<HeapPage*>(malloc(sizeof(HeapPage)));
   page->memory_ = memory;
@@ -1131,13 +1128,11 @@ void PageSpace::SetupExternalPage(void* pointer,
   if (*first == NULL) {
     *first = page;
   } else {
-    if (is_executable && FLAG_write_protect_code &&
-        !(*tail)->embedder_allocated()) {
+    if (is_executable && FLAG_write_protect_code && !(*tail)->is_image_page()) {
       (*tail)->WriteProtect(false);
     }
     (*tail)->set_next(page);
-    if (is_executable && FLAG_write_protect_code &&
-        !(*tail)->embedder_allocated()) {
+    if (is_executable && FLAG_write_protect_code && !(*tail)->is_image_page()) {
       (*tail)->WriteProtect(true);
     }
   }

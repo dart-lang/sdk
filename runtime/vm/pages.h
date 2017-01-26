@@ -40,7 +40,7 @@ class HeapPage {
 
   PageType type() const { return type_; }
 
-  bool embedder_allocated() const { return memory_->embedder_allocated(); }
+  bool is_image_page() const { return !memory_->vm_owns_region(); }
 
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
@@ -231,8 +231,8 @@ class PageSpace {
   bool IsValidAddress(uword addr) const { return Contains(addr); }
 
   void VisitObjects(ObjectVisitor* visitor) const;
-  void VisitObjectsNoExternalPages(ObjectVisitor* visitor) const;
-  void VisitObjectsExternalPages(ObjectVisitor* visitor) const;
+  void VisitObjectsNoImagePages(ObjectVisitor* visitor) const;
+  void VisitObjectsImagePages(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   RawObject* FindObject(FindObjectVisitor* visitor,
@@ -318,7 +318,7 @@ class PageSpace {
   static intptr_t top_offset() { return OFFSET_OF(PageSpace, bump_top_); }
   static intptr_t end_offset() { return OFFSET_OF(PageSpace, bump_end_); }
 
-  void SetupExternalPage(void* pointer, uword size, bool is_executable);
+  void SetupImagePage(void* pointer, uword size, bool is_executable);
 
  private:
   // Ids for time and data records in Heap::GCStats.

@@ -16,7 +16,7 @@
 namespace dart {
 
 bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
-  if (page->embedder_allocated()) {
+  if (page->is_image_page()) {
     // Don't clear mark bits.
     return true;
   }

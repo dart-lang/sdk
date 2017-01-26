@@ -92,7 +92,7 @@ class Heap {
 
   void IterateObjects(ObjectVisitor* visitor) const;
   void IterateOldObjects(ObjectVisitor* visitor) const;
-  void IterateOldObjectsNoExternalPages(ObjectVisitor* visitor) const;
+  void IterateOldObjectsNoImagePages(ObjectVisitor* visitor) const;
   void IterateObjectPointers(ObjectVisitor* visitor) const;
 
   // Find an object by visiting all pointers in the specified heap space,
@@ -245,8 +245,8 @@ class Heap {
   Monitor* barrier() const { return barrier_; }
   Monitor* barrier_done() const { return barrier_done_; }
 
-  void SetupExternalPage(void* pointer, uword size, bool is_executable) {
-    old_space_.SetupExternalPage(pointer, size, is_executable);
+  void SetupImagePage(void* pointer, uword size, bool is_executable) {
+    old_space_.SetupImagePage(pointer, size, is_executable);
   }
 
  private:
@@ -296,8 +296,8 @@ class Heap {
   // Visit all objects, including FreeListElement "objects". Caller must ensure
   // concurrent sweeper is not running, and the visitor must not allocate.
   void VisitObjects(ObjectVisitor* visitor) const;
-  void VisitObjectsNoExternalPages(ObjectVisitor* visitor) const;
-  void VisitObjectsExternalPages(ObjectVisitor* visitor) const;
+  void VisitObjectsNoImagePages(ObjectVisitor* visitor) const;
+  void VisitObjectsImagePages(ObjectVisitor* visitor) const;
 
   // Like Verify, but does not wait for concurrent sweeper, so caller must
   // ensure thread-safety.

@@ -998,35 +998,10 @@ Thread* Isolate::mutator_thread() const {
 }
 
 
-void Isolate::SetupInstructionsSnapshotPage(
-    const uint8_t* instructions_snapshot_buffer) {
-  InstructionsSnapshot snapshot(instructions_snapshot_buffer);
-#if defined(DEBUG)
-  if (FLAG_trace_isolates) {
-    OS::Print("Precompiled instructions are at [0x%" Px ", 0x%" Px ")\n",
-              reinterpret_cast<uword>(snapshot.instructions_start()),
-              reinterpret_cast<uword>(snapshot.instructions_start()) +
-                  snapshot.instructions_size());
-  }
-#endif
-  heap_->SetupExternalPage(snapshot.instructions_start(),
-                           snapshot.instructions_size(),
-                           /* is_executable = */ true);
-}
-
-
-void Isolate::SetupDataSnapshotPage(const uint8_t* data_snapshot_buffer) {
-  DataSnapshot snapshot(data_snapshot_buffer);
-#if defined(DEBUG)
-  if (FLAG_trace_isolates) {
-    OS::Print(
-        "Precompiled rodata are at [0x%" Px ", 0x%" Px ")\n",
-        reinterpret_cast<uword>(snapshot.data_start()),
-        reinterpret_cast<uword>(snapshot.data_start()) + snapshot.data_size());
-  }
-#endif
-  heap_->SetupExternalPage(snapshot.data_start(), snapshot.data_size(),
-                           /* is_executable = */ false);
+void Isolate::SetupImagePage(const uint8_t* image_buffer, bool is_executable) {
+  Image image(image_buffer);
+  heap_->SetupImagePage(image.object_start(), image.object_size(),
+                        is_executable);
 }
 
 

@@ -189,14 +189,14 @@ void Heap::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
-void Heap::VisitObjectsNoExternalPages(ObjectVisitor* visitor) const {
+void Heap::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
   new_space_.VisitObjects(visitor);
-  old_space_.VisitObjectsNoExternalPages(visitor);
+  old_space_.VisitObjectsNoImagePages(visitor);
 }
 
 
-void Heap::VisitObjectsExternalPages(ObjectVisitor* visitor) const {
-  old_space_.VisitObjectsExternalPages(visitor);
+void Heap::VisitObjectsImagePages(ObjectVisitor* visitor) const {
+  old_space_.VisitObjectsImagePages(visitor);
 }
 
 
@@ -258,9 +258,9 @@ void Heap::IterateOldObjects(ObjectVisitor* visitor) const {
 }
 
 
-void Heap::IterateOldObjectsNoExternalPages(ObjectVisitor* visitor) const {
+void Heap::IterateOldObjectsNoImagePages(ObjectVisitor* visitor) const {
   HeapIterationScope heap_iteration_scope;
-  old_space_.VisitObjectsNoExternalPages(visitor);
+  old_space_.VisitObjectsNoImagePages(visitor);
 }
 
 
@@ -531,12 +531,12 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
   {
     VerifyObjectVisitor object_visitor(isolate(), allocated_set,
                                        mark_expectation);
-    this->VisitObjectsNoExternalPages(&object_visitor);
+    this->VisitObjectsNoImagePages(&object_visitor);
   }
   {
     VerifyObjectVisitor object_visitor(isolate(), allocated_set,
                                        kRequireMarked);
-    this->VisitObjectsExternalPages(&object_visitor);
+    this->VisitObjectsImagePages(&object_visitor);
   }
 
   Isolate* vm_isolate = Dart::vm_isolate();

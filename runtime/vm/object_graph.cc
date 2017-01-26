@@ -149,7 +149,7 @@ class Unmarker : public ObjectVisitor {
 
   static void UnmarkAll(Isolate* isolate) {
     Unmarker unmarker;
-    isolate->heap()->VisitObjectsNoExternalPages(&unmarker);
+    isolate->heap()->VisitObjectsNoImagePages(&unmarker);
   }
 
  private:
@@ -213,7 +213,7 @@ void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
   Stack stack(isolate());
 
   InstanceAccumulator accumulator(&stack, class_id);
-  isolate()->heap()->VisitObjectsNoExternalPages(&accumulator);
+  isolate()->heap()->VisitObjectsNoImagePages(&accumulator);
 
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());

@@ -254,9 +254,7 @@ class Isolate : public BaseIsolate {
     library_tag_handler_ = value;
   }
 
-  void SetupInstructionsSnapshotPage(
-      const uint8_t* instructions_snapshot_buffer);
-  void SetupDataSnapshotPage(const uint8_t* instructions_snapshot_buffer);
+  void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
 
   void ScheduleMessageInterrupts();
 

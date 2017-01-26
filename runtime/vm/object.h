@@ -4219,8 +4219,8 @@ class Instructions : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
   friend class Code;
-  friend class AssemblyInstructionsWriter;
-  friend class BlobInstructionsWriter;
+  friend class AssemblyImageWriter;
+  friend class BlobImageWriter;
 };
 
 
