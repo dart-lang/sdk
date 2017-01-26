@@ -2526,7 +2526,56 @@ dart.export = function(to, from, name) {
 dart.copyProperties = function(to, from) {
   return dart.copyTheseProperties(to, from, dart.getOwnNamesAndSymbols(from));
 };
-dart.global = typeof window == "undefined" ? global : window;
+dart.global = (function() {
+  if (typeof NodeList !== "undefined") {
+    NodeList.prototype.get = function(i) {
+      return this[i];
+    };
+    NamedNodeMap.prototype.get = function(i) {
+      return this[i];
+    };
+    DOMTokenList.prototype.get = function(i) {
+      return this[i];
+    };
+    HTMLCollection.prototype.get = function(i) {
+      return this[i];
+    };
+    if (typeof PannerNode == "undefined") {
+      let audioContext;
+      if (typeof AudioContext == "undefined" && typeof webkitAudioContext != "undefined") {
+        audioContext = new webkitAudioContext();
+      } else {
+        audioContext = new AudioContext();
+        window.StereoPannerNode = audioContext.createStereoPanner().constructor;
+      }
+      window.PannerNode = audioContext.createPanner().constructor;
+    }
+    if (typeof AudioSourceNode == "undefined") {
+      window.AudioSourceNode = MediaElementAudioSourceNode.__proto__;
+    }
+    if (typeof FontFaceSet == "undefined") {
+      window.FontFaceSet = document.fonts.__proto__.constructor;
+    }
+    if (typeof MemoryInfo == "undefined") {
+      if (typeof window.performance.memory != "undefined") {
+        window.MemoryInfo = window.performance.memory.constructor;
+      }
+    }
+    if (typeof Geolocation == "undefined") {
+      navigator.geolocation.constructor;
+    }
+    if (typeof Animation == "undefined") {
+      let d = document.createElement('div');
+      if (typeof d.animate != "undefined") {
+        window.Animation = d.animate(d).constructor;
+      }
+    }
+    if (typeof SourceBufferList == "undefined") {
+      window.SourceBufferList = new MediaSource().sourceBuffers.constructor;
+    }
+  }
+  return typeof window == "undefined" ? global : window;
+})();
 dart.JsSymbol = Symbol;
 dart._mixins = Symbol("mixins");
 dart.implements = Symbol("implements");
