@@ -20,6 +20,7 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:typed_mock/typed_mock.dart';
 
 import '../../context/mock_sdk.dart';
 
@@ -38,6 +39,7 @@ class FileSystemStateTest {
   final FileContentOverlay contentOverlay = new FileContentOverlay();
 
   final StringBuffer logBuffer = new StringBuffer();
+  final UriResolver generatedUriResolver = new _GeneratedUriResolverMock();
   SourceFactory sourceFactory;
   PerformanceLog logger;
 
@@ -48,6 +50,7 @@ class FileSystemStateTest {
     sdk = new MockSdk(resourceProvider: provider);
     sourceFactory = new SourceFactory([
       new DartUriResolver(sdk),
+      generatedUriResolver,
       new PackageMapUriResolver(provider, <String, List<Folder>>{
         'aaa': [provider.getFolder(_p('/aaa/lib'))],
         'bbb': [provider.getFolder(_p('/bbb/lib'))],
@@ -270,6 +273,29 @@ class A2 {}
     expect(file.library, isNull);
     expect(file.unlinked, isNotNull);
     expect(file.unlinked.classes, isEmpty);
+  }
+
+  test_getFileForPath_generatedFile() {
+    Uri uri = Uri.parse('package:aaa/foo.dart');
+    String templatePath = _p('/aaa/lib/foo.dart');
+    String generatedPath = _p('/generated/aaa/lib/foo.dart');
+
+    Source generatedSource = new _SourceMock();
+    when(generatedSource.fullName).thenReturn(generatedPath);
+    when(generatedSource.uri).thenReturn(uri);
+
+    when(generatedUriResolver.resolveAbsolute(uri, uri))
+        .thenReturn(generatedSource);
+
+    FileState generatedFile = fileSystemState.getFileForUri(uri);
+    expect(generatedFile.path, generatedPath);
+    expect(generatedFile.uri, uri);
+
+    FileState templateFile = fileSystemState.getFileForPath(templatePath);
+    expect(templateFile.path, templatePath);
+    expect(templateFile.uri, uri);
+
+    expect(fileSystemState.getFilesForPath(templatePath), [templateFile]);
   }
 
   test_getFileForPath_library() {
@@ -704,3 +730,7 @@ set _V3(_) {}
     return hex.encode(md5.convert(UTF8.encode(content)).bytes);
   }
 }
+
+class _GeneratedUriResolverMock extends TypedMock implements UriResolver {}
+
+class _SourceMock extends TypedMock implements Source {}

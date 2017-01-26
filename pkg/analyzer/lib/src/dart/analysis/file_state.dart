@@ -592,7 +592,7 @@ class FileSystemState {
       // Try to get the existing instance.
       file = _uriToFile[uri];
       // If we have a file, call it the canonical one and return it.
-      if (file != null) {
+      if (file != null && file.path == path) {
         _pathToCanonicalFile[path] = file;
         return file;
       }
