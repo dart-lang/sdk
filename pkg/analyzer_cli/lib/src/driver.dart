@@ -68,7 +68,7 @@ bool containsLintRuleEntry(Map<String, YamlNode> options) {
   return linterNode is YamlMap && linterNode.containsKey('rules');
 }
 
-typedef ErrorSeverity _BatchRunnerHandler(List<String> args);
+typedef Future<ErrorSeverity> _BatchRunnerHandler(List<String> args);
 
 class Driver implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
@@ -114,7 +114,7 @@ class Driver implements CommandLineStarter {
   }
 
   @override
-  void start(List<String> args) {
+  Future<Null> start(List<String> args) async {
     if (_context != null) {
       throw new StateError("start() can only be called once");
     }
@@ -140,7 +140,7 @@ class Driver implements CommandLineStarter {
         return _analyzeAll(options);
       });
     } else {
-      ErrorSeverity severity = _analyzeAll(options);
+      ErrorSeverity severity = await _analyzeAll(options);
       // In case of error propagate exit code.
       if (severity == ErrorSeverity.ERROR) {
         io.exitCode = severity.ordinal;
@@ -158,14 +158,17 @@ class Driver implements CommandLineStarter {
     }
   }
 
-  ErrorSeverity _analyzeAll(CommandLineOptions options) {
-    return _analyzeAllTag.makeCurrentWhile(() {
-      return _analyzeAllImpl(options);
-    });
+  Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
+    PerformanceTag previous = _analyzeAllTag.makeCurrent();
+    try {
+      return await _analyzeAllImpl(options);
+    } finally {
+      previous.makeCurrent();
+    }
   }
 
   /// Perform analysis according to the given [options].
-  ErrorSeverity _analyzeAllImpl(CommandLineOptions options) {
+  Future<ErrorSeverity> _analyzeAllImpl(CommandLineOptions options) async {
     if (!options.machineFormat) {
       outSink.writeln("Analyzing ${options.sourceFiles}...");
     }
@@ -217,7 +220,7 @@ class Driver implements CommandLineStarter {
         parts.add(source);
         continue;
       }
-      ErrorSeverity status = _runAnalyzer(source, options);
+      ErrorSeverity status = await _runAnalyzer(source, options);
       allResult = allResult.max(status);
       libUris.add(source.uri);
     }
@@ -536,6 +539,7 @@ class Driver implements CommandLineStarter {
     });
 
     _context.sourceFactory = sourceFactory;
+
     if (sdkBundle != null) {
       _context.resultProvider =
           new InputPackagesResultProvider(_context, summaryDataStore);
@@ -633,11 +637,12 @@ class Driver implements CommandLineStarter {
   }
 
   /// Analyze a single source.
-  ErrorSeverity _runAnalyzer(Source source, CommandLineOptions options) {
+  Future<ErrorSeverity> _runAnalyzer(
+      Source source, CommandLineOptions options) async {
     int startTime = currentTimeMillis();
-    AnalyzerImpl analyzer =
-        new AnalyzerImpl(_context, source, options, stats, startTime);
-    var errorSeverity = analyzer.analyzeSync();
+    AnalyzerImpl analyzer = new AnalyzerImpl(
+        _context.analysisOptions, _context, source, options, stats, startTime);
+    ErrorSeverity errorSeverity = await analyzer.analyze();
     if (errorSeverity == ErrorSeverity.ERROR) {
       io.exitCode = errorSeverity.ordinal;
     }
@@ -809,7 +814,7 @@ class _BatchRunner {
     // Read line from stdin.
     Stream cmdLine =
         io.stdin.transform(UTF8.decoder).transform(new LineSplitter());
-    cmdLine.listen((String line) {
+    cmdLine.listen((String line) async {
       // Maybe finish.
       if (line.isEmpty) {
         var time = stopwatch.elapsedMilliseconds;
@@ -827,7 +832,7 @@ class _BatchRunner {
       // Analyze single set of arguments.
       try {
         totalTests++;
-        ErrorSeverity result = handler(args);
+        ErrorSeverity result = await handler(args);
         bool resultPass = result != ErrorSeverity.ERROR;
         if (!resultPass) {
           testsFailed++;
