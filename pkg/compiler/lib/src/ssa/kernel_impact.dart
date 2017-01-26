@@ -8,6 +8,7 @@ import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
+import '../core_types.dart';
 import '../elements/types.dart';
 import '../elements/elements.dart' show AstElement, ResolvedAst;
 import '../elements/entities.dart';
@@ -29,8 +30,10 @@ ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
   return compiler.reporter.withCurrentElement(element.implementation, () {
     JavaScriptBackend backend = compiler.backend;
     Kernel kernel = backend.kernelTask.kernel;
-    KernelImpactBuilder builder =
-        new KernelImpactBuilder(resolvedAst, compiler, kernel);
+    KernelAstAdapter astAdapter = new KernelAstAdapter(kernel, compiler.backend,
+        resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
+    KernelImpactBuilder builder = new KernelImpactBuilder(
+        '${resolvedAst.element}', astAdapter, compiler.commonElements);
     if (element.isFunction ||
         element.isGetter ||
         element.isSetter ||
@@ -62,20 +65,12 @@ ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
 }
 
 class KernelImpactBuilder extends ir.Visitor {
-  final ResolvedAst resolvedAst;
-  final Compiler compiler;
+  final ResolutionWorldImpactBuilder impactBuilder;
+  final KernelWorldBuilder astAdapter;
+  final CommonElements commonElements;
 
-  JavaScriptBackend get backend => compiler.backend;
-
-  ResolutionWorldImpactBuilder impactBuilder;
-  KernelWorldBuilder astAdapter;
-
-  KernelImpactBuilder(this.resolvedAst, this.compiler, Kernel kernel) {
-    this.impactBuilder =
-        new ResolutionWorldImpactBuilder('${resolvedAst.element}');
-    this.astAdapter = new KernelAstAdapter(kernel, compiler.backend,
-        resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
-  }
+  KernelImpactBuilder(String name, this.astAdapter, this.commonElements)
+      : this.impactBuilder = new ResolutionWorldImpactBuilder(name);
 
   /// Add a checked-mode type use of [type] if it is not `dynamic`.
   DartType checkType(ir.DartType irType) {
@@ -146,7 +141,7 @@ class KernelImpactBuilder extends ir.Visitor {
         impactBuilder.registerFeature(Feature.ASYNC_STAR);
         break;
       case ir.AsyncMarker.SyncYielding:
-        compiler.reporter.internalError(resolvedAst.element,
+        throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
             "Unexpected async marker: ${procedure.function.asyncMarker}");
     }
     if (procedure.isExternal &&
@@ -223,7 +218,7 @@ class KernelImpactBuilder extends ir.Visitor {
     DartType elementType = checkType(literal.typeArgument);
 
     impactBuilder.registerListLiteral(new ListLiteralUse(
-        compiler.commonElements.listType(elementType),
+        commonElements.listType(elementType),
         isConstant: literal.isConst,
         isEmpty: literal.expressions.isEmpty));
   }
@@ -234,7 +229,7 @@ class KernelImpactBuilder extends ir.Visitor {
     DartType keyType = checkType(literal.keyType);
     DartType valueType = checkType(literal.valueType);
     impactBuilder.registerMapLiteral(new MapLiteralUse(
-        compiler.commonElements.mapType(keyType, valueType),
+        commonElements.mapType(keyType, valueType),
         isConstant: literal.isConst,
         isEmpty: literal.entries.isEmpty));
   }
@@ -384,7 +379,7 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   @override
-  void visitDirectGet(ir.StaticGet node) {
+  void visitDirectPropertyGet(ir.DirectPropertyGet node) {
     handleSuperGet(node.target);
   }
 
