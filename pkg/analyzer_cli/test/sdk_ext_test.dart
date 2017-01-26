@@ -40,12 +40,12 @@ main() {
 
     test('.packages file specified', () async {
       String testDir = path.join(testDirectory, 'data', 'packages_file');
-      Driver driver = new Driver()
-        ..start([
-          '--packages',
-          path.join(testDir, '_packages'),
-          path.join(testDir, 'sdk_ext_user.dart')
-        ]);
+      Driver driver = new Driver();
+      await driver.start([
+        '--packages',
+        path.join(testDir, '_packages'),
+        path.join(testDir, 'sdk_ext_user.dart')
+      ]);
 
       DartSdk sdk = driver.sdk;
       expect(sdk, new isInstanceOf<FolderBasedDartSdk>());

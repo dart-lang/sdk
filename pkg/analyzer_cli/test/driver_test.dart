@@ -4,6 +4,7 @@
 
 library analyzer_cli.test.driver;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/error/error.dart';
@@ -51,65 +52,65 @@ main() {
 
   group('Driver', () {
     group('options', () {
-      test('todos', () {
-        drive('data/file_with_todo.dart');
+      test('todos', () async {
+        await drive('data/file_with_todo.dart');
         expect(outSink.toString().contains('[info]'), isFalse);
       });
     });
 
     group('exit codes', () {
-      test('fatal hints', () {
-        drive('data/file_with_hint.dart', args: ['--fatal-hints']);
+      test('fatal hints', () async {
+        await drive('data/file_with_hint.dart', args: ['--fatal-hints']);
         expect(exitCode, 3);
       });
 
-      test('not fatal hints', () {
-        drive('data/file_with_hint.dart');
+      test('not fatal hints', () async {
+        await drive('data/file_with_hint.dart');
         expect(exitCode, 0);
       });
 
-      test('fatal errors', () {
-        drive('data/file_with_error.dart');
+      test('fatal errors', () async {
+        await drive('data/file_with_error.dart');
         expect(exitCode, 3);
       });
 
-      test('not fatal warnings', () {
-        drive('data/file_with_warning.dart');
+      test('not fatal warnings', () async {
+        await drive('data/file_with_warning.dart');
         expect(exitCode, 0);
       });
 
-      test('fatal warnings', () {
-        drive('data/file_with_warning.dart', args: ['--fatal-warnings']);
+      test('fatal warnings', () async {
+        await drive('data/file_with_warning.dart', args: ['--fatal-warnings']);
         expect(exitCode, 3);
       });
 
-      test('missing options file', () {
-        drive('data/test_file.dart', options: 'data/NO_OPTIONS_HERE');
+      test('missing options file', () async {
+        await drive('data/test_file.dart', options: 'data/NO_OPTIONS_HERE');
         expect(exitCode, 3);
       });
 
-      test('missing dart file', () {
-        drive('data/NO_DART_FILE_HERE.dart');
+      test('missing dart file', () async {
+        await drive('data/NO_DART_FILE_HERE.dart');
         expect(exitCode, 3);
       });
 
-      test('part file', () {
-        drive('data/library_and_parts/part2.dart');
+      test('part file', () async {
+        await drive('data/library_and_parts/part2.dart');
         expect(exitCode, 3);
       });
 
-      test('non-dangling part file', () {
+      test('non-dangling part file', () async {
         Driver driver = new Driver();
-        driver.start([
+        await driver.start([
           path.join(testDirectory, 'data/library_and_parts/lib.dart'),
           path.join(testDirectory, 'data/library_and_parts/part1.dart')
         ]);
         expect(exitCode, 0);
       });
 
-      test('extra part file', () {
+      test('extra part file', () async {
         Driver driver = new Driver();
-        driver.start([
+        await driver.start([
           path.join(testDirectory, 'data/library_and_parts/lib.dart'),
           path.join(testDirectory, 'data/library_and_parts/part1.dart'),
           path.join(testDirectory, 'data/library_and_parts/part2.dart')
@@ -122,12 +123,14 @@ main() {
       void createTests(String designator, String optionsFileName) {
         group('lints in options - $designator', () {
           // Shared lint command.
-          void runLinter() => drive('data/linter_project/test_file.dart',
-              options: 'data/linter_project/$optionsFileName',
-              args: ['--lints']);
+          Future<Null> runLinter() async {
+            return await drive('data/linter_project/test_file.dart',
+                options: 'data/linter_project/$optionsFileName',
+                args: ['--lints']);
+          }
 
-          test('gets analysis options', () {
-            runLinter();
+          test('gets analysis options', () async {
+            await runLinter();
 
             /// Lints should be enabled.
             expect(driver.context.analysisOptions.lint, isTrue);
@@ -137,8 +140,8 @@ main() {
             expect(lintNames, orderedEquals(['camel_case_types']));
           });
 
-          test('generates lints', () {
-            runLinter();
+          test('generates lints', () async {
+            await runLinter();
             expect(outSink.toString(),
                 contains('[lint] Name types using UpperCamelCase.'));
           });
@@ -146,12 +149,14 @@ main() {
 
         group('default lints - $designator', () {
           // Shared lint command.
-          void runLinter() => drive('data/linter_project/test_file.dart',
-              options: 'data/linter_project/$optionsFileName',
-              args: ['--lints']);
+          Future<Null> runLinter() async {
+            return await drive('data/linter_project/test_file.dart',
+                options: 'data/linter_project/$optionsFileName',
+                args: ['--lints']);
+          }
 
-          test('gets default lints', () {
-            runLinter();
+          test('gets default lints', () async {
+            await runLinter();
 
             /// Lints should be enabled.
             expect(driver.context.analysisOptions.lint, isTrue);
@@ -161,8 +166,8 @@ main() {
             expect(lintNames, contains('camel_case_types'));
           });
 
-          test('generates lints', () {
-            runLinter();
+          test('generates lints', () async {
+            await runLinter();
             expect(outSink.toString(),
                 contains('[lint] Name types using UpperCamelCase.'));
           });
@@ -170,21 +175,23 @@ main() {
 
         group('no `--lints` flag (none in options) - $designator', () {
           // Shared lint command.
-          void runLinter() => drive('data/no_lints_project/test_file.dart',
-              options: 'data/no_lints_project/$optionsFileName');
+          Future<Null> runLinter() async {
+            return await drive('data/no_lints_project/test_file.dart',
+                options: 'data/no_lints_project/$optionsFileName');
+          }
 
-          test('lints disabled', () {
-            runLinter();
+          test('lints disabled', () async {
+            await runLinter();
             expect(driver.context.analysisOptions.lint, isFalse);
           });
 
-          test('no registered lints', () {
-            runLinter();
+          test('no registered lints', () async {
+            await runLinter();
             expect(getLints(driver.context), isEmpty);
           });
 
-          test('no generated warnings', () {
-            runLinter();
+          test('no generated warnings', () async {
+            await runLinter();
             expect(outSink.toString(), contains('No issues found'));
           });
         });
@@ -223,11 +230,13 @@ linter:
       void createTests(String designator, String optionsFileName) {
         group('basic config - $designator', () {
           // Shared driver command.
-          void doDrive() => drive('data/options_tests_project/test_file.dart',
-              options: 'data/options_tests_project/$optionsFileName');
+          Future<Null> doDrive() async {
+            await drive('data/options_tests_project/test_file.dart',
+                options: 'data/options_tests_project/$optionsFileName');
+          }
 
-          test('filters', () {
-            doDrive();
+          test('filters', () async {
+            await doDrive();
             expect(processors, hasLength(3));
 
             // unused_local_variable: ignore
@@ -251,13 +260,13 @@ linter:
                 outSink.toString(), contains("1 error and 1 warning found."));
           });
 
-          test('language', () {
-            doDrive();
+          test('language', () async {
+            await doDrive();
             expect(driver.context.analysisOptions.enableSuperMixins, isTrue);
           });
 
-          test('strongMode', () {
-            doDrive();
+          test('strongMode', () async {
+            await doDrive();
             expect(driver.context.analysisOptions.strongMode, isTrue);
             //https://github.com/dart-lang/sdk/issues/26129
             AnalysisContext sdkContext =
@@ -268,12 +277,14 @@ linter:
 
         group('with flags - $designator', () {
           // Shared driver command.
-          void doDrive() => drive('data/options_tests_project/test_file.dart',
-              args: ['--fatal-warnings'],
-              options: 'data/options_tests_project/$optionsFileName');
+          Future<Null> doDrive() async {
+            await drive('data/options_tests_project/test_file.dart',
+                args: ['--fatal-warnings'],
+                options: 'data/options_tests_project/$optionsFileName');
+          }
 
-          test('override fatal warning', () {
-            doDrive();
+          test('override fatal warning', () async {
+            await doDrive();
             // missing_return: error
             var undefined_function = new AnalysisError(new TestSource(), 0, 1,
                 StaticTypeWarningCode.UNDEFINED_FUNCTION, [
@@ -293,10 +304,10 @@ linter:
       createTests('old', AnalysisEngine.ANALYSIS_OPTIONS_FILE);
       createTests('new', AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
 
-      test('include directive', () {
+      test('include directive', () async {
         String testDir = path.join(
             testDirectory, 'data', 'options_include_directive_tests_project');
-        drive(
+        await drive(
           path.join(testDir, 'lib', 'test_file.dart'),
           args: [
             '--fatal-warnings',
@@ -316,8 +327,9 @@ linter:
     void createTests(String designator, String optionsFileName) {
       group('build-mode - $designator', () {
         // Shared driver command.
-        void doDrive(String filePath, {List<String> additionalArgs: const []}) {
-          drive('file:///test_file.dart|$filePath',
+        Future<Null> doDrive(String filePath,
+            {List<String> additionalArgs: const []}) async {
+          await drive('file:///test_file.dart|$filePath',
               args: [
                 '--dart-sdk',
                 findSdkDirForSummaries(),
@@ -327,8 +339,8 @@ linter:
               options: 'data/options_tests_project/$optionsFileName');
         }
 
-        test('no stats', () {
-          doDrive('data/test_file.dart');
+        test('no stats', () async {
+          await doDrive('data/test_file.dart');
           // Should not print stat summary.
           expect(outSink.toString(), isEmpty);
           expect(errorSink.toString(), isEmpty);
@@ -337,21 +349,21 @@ linter:
 
         test(
             'Fails if file not found, even when --build-suppress-exit-code is given',
-            () {
-          doDrive('data/non_existent_file.dart',
+            () async {
+          await doDrive('data/non_existent_file.dart',
               additionalArgs: ['--build-suppress-exit-code']);
           expect(exitCode, isNot(0));
         });
 
-        test('Fails if there are errors', () {
-          doDrive('data/file_with_error.dart');
+        test('Fails if there are errors', () async {
+          await doDrive('data/file_with_error.dart');
           expect(exitCode, isNot(0));
         });
 
         test(
             'Succeeds if there are errors, when --build-suppress-exit-code is given',
-            () {
-          doDrive('data/file_with_error.dart',
+            () async {
+          await doDrive('data/file_with_error.dart',
               additionalArgs: ['--build-suppress-exit-code']);
           expect(exitCode, 0);
         });
@@ -446,15 +458,16 @@ String adjustFileSpec(String fileSpec) {
 /// [args] and an [options] file path.  The value of [options] defaults to
 /// an empty options file to avoid unwanted configuration from an otherwise
 /// discovered options file.
-void drive(String source,
-    {String options: emptyOptionsFile, List<String> args: const <String>[]}) {
+Future<Null> drive(String source,
+    {String options: emptyOptionsFile,
+    List<String> args: const <String>[]}) async {
   driver = new Driver();
   var cmd = [
     '--options',
     path.join(testDirectory, options),
     adjustFileSpec(source)
   ]..addAll(args);
-  driver.start(cmd);
+  await driver.start(cmd);
 }
 
 /// Try to find a appropriate directory to pass to "--dart-sdk" that will
