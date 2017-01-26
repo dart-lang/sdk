@@ -57,12 +57,13 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         _options = options;
 
   @override
-  Future<DeltaProgram> computeDelta() async {
+  Future<DeltaProgram> computeDelta(
+      {Future<Null> watch(Uri uri, bool used)}) async {
     var deltaLibraries = await _resolvedAstGenerator.computeDelta();
     var kernelOptions = _convertOptions(_options);
     var packages = null; // TODO(paulberry)
     var kernels = <Uri, Program>{};
-    deltaLibraries.newState.forEach((uri, resolvedLibrary) {
+    for (Uri uri in deltaLibraries.newState.keys) {
       // The kernel generation code doesn't currently support building a kernel
       // directly from resolved ASTs--it wants to query an analysis context.  So
       // we provide it with a proxy analysis context that feeds it the resolved
@@ -76,7 +77,11 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           new DartLoader(repository, kernelOptions, packages, context: context);
       loader.loadLibrary(uri);
       kernels[uri] = new Program(repository.libraries);
-    });
+      // TODO(paulberry) rework watch invocation to eliminate race condition,
+      // include part source files, and prevent watch from being a bottleneck
+      if (watch != null) await watch(uri, true);
+    }
+    // TODO(paulberry) invoke watch with used=false for each unused source
     return new DeltaProgram(kernels);
   }
 
