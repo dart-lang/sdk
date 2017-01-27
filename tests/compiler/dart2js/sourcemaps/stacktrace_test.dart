@@ -69,8 +69,8 @@ main() {
 }
 class Class {
   @NoInline()
-  Class() {
-    @{2:Class}throw '$EXCEPTION_MARKER';
+  @{2:Class}Class() {
+    @{3:Class}throw '$EXCEPTION_MARKER';
   }
 }
 ''',
@@ -129,6 +129,22 @@ class Class {
 ''',
   '''
 import 'package:expect/expect.dart';
+class MyType {
+  get length => 3; // ensures we build an interceptor for `.length`
+}
+
+main() {
+  confuse('').trim(); // includes some code above the interceptors
+  confuse([]).length;
+  confuse(new MyType()).length;
+  // TODO(johnniwinther): Intercepted access should point to 'length':
+  @{1:main}confuse(null).length; // called through the interceptor
+}
+
+@NoInline()
+confuse(x) => x;''',
+  '''
+import 'package:expect/expect.dart';
 main() {
   // This call is no longer on the stack when the error is thrown.
   @{:main}test();
@@ -178,8 +194,8 @@ test() async {
 }
 class Class {
   @NoInline()
-  Class() {
-    @{2:Class}throw '$EXCEPTION_MARKER';
+  @{2:Class}Class() {
+    @{3:Class}throw '$EXCEPTION_MARKER';
   }
 }
 ''',
@@ -225,12 +241,15 @@ Test processTestCode(String code) {
 void main(List<String> arguments) {
   bool verbose = false;
   bool printJs = false;
+  bool writeJs = false;
   List<int> indices;
   for (String arg in arguments) {
     if (arg == '-v') {
       verbose = true;
     } else if (arg == '--print-js') {
       printJs = true;
+    } else if (arg == '--write-js') {
+      writeJs = true;
     } else {
       int index = int.parse(arg, onError: (_) => null);
       if (index != null) {
@@ -249,13 +268,13 @@ void main(List<String> arguments) {
   asyncTest(() async {
     for (int index in indices) {
       await runTest(index, processTestCode(TESTS[index]),
-          printJs: printJs, verbose: verbose);
+          printJs: printJs, writeJs: writeJs, verbose: verbose);
     }
   });
 }
 
 Future runTest(int index, Test test,
-    {bool printJs: false, bool verbose: false}) async {
+    {bool printJs: false, bool writeJs, bool verbose: false}) async {
   Directory tmpDir = await createTempDir();
   String input = '${tmpDir.path}/$INPUT_FILE_NAME';
   new File(input).writeAsStringSync(test.code);
@@ -272,13 +291,16 @@ Future runTest(int index, Test test,
   CompilationResult compilationResult = await entry.internalMain(arguments);
   Expect.isTrue(compilationResult.isSuccess,
       "Unsuccessful compilation of test:\n${test.code}");
-  CompilerImpl compiler = compilationResult.compiler;
-  SingleMapping sourceMap = new SingleMapping.fromJson(
-      JSON.decode(new File('$output.map').readAsStringSync()));
+  String sourceMapText = new File('$output.map').readAsStringSync();
+  SingleMapping sourceMap = parse(sourceMapText);
 
   if (printJs) {
     print('JavaScript output:');
     print(new File(output).readAsStringSync());
+  }
+  if (writeJs) {
+    new File('out.js').writeAsStringSync(new File(output).readAsStringSync());
+    new File('out.js.map').writeAsStringSync(sourceMapText);
   }
   print("Running d8 $output");
   ProcessResult runResult = Process.runSync(d8executable,
@@ -312,18 +334,23 @@ Future runTest(int index, Test test,
         fileName = sourceMap.urls[targetEntry.sourceUrlId];
       }
       dartStackTrace.add(new StackTraceLine(methodName, fileName,
-          targetEntry.sourceLine + 1, targetEntry.sourceColumn + 1));
+          targetEntry.sourceLine + 1, targetEntry.sourceColumn + 1,
+          isMapped: true));
     }
   }
 
   int expectedIndex = 0;
   List<StackTraceLine> unexpectedLines = <StackTraceLine>[];
+  List<StackTraceLine> unexpectedBeforeLines = <StackTraceLine>[];
+  List<StackTraceLine> unexpectedAfterLines = <StackTraceLine>[];
   for (StackTraceLine line in dartStackTrace) {
+    bool found = false;
     if (expectedIndex < test.expectedLines.length) {
       StackTraceLine expectedLine = test.expectedLines[expectedIndex];
       if (line.methodName == expectedLine.methodName &&
           line.lineNo == expectedLine.lineNo &&
           line.columnNo == expectedLine.columnNo) {
+        found = true;
         expectedIndex++;
       }
     }
@@ -332,6 +359,23 @@ Future runTest(int index, Test test,
           line.lineNo == unexpectedLine.lineNo &&
           line.columnNo == unexpectedLine.columnNo) {
         unexpectedLines.add(line);
+      }
+    }
+    if (line.isMapped && !found) {
+      List<LineException> exceptions =
+          expectedIndex == 0 ? beforeExceptions : afterExceptions;
+      for (LineException exception in exceptions) {
+        if (line.methodName == exception.methodName &&
+            line.fileName.endsWith(exception.fileName)) {
+          found = true;
+        }
+      }
+      if (!found) {
+        if (expectedIndex == 0) {
+          unexpectedBeforeLines.add(line);
+        } else {
+          unexpectedAfterLines.add(line);
+        }
       }
     }
   }
@@ -352,6 +396,12 @@ Future runTest(int index, Test test,
       "Unexpected stack trace lines for test:\n${test.code}\n"
       "Actual:\n${dartStackTrace.join('\n')}\n"
       "Unexpected:\n${test.unexpectedLines.join('\n')}\n");
+  Expect.isTrue(
+      unexpectedBeforeLines.isEmpty && unexpectedAfterLines.isEmpty,
+      "Unexpected stack trace lines:\n${test.code}\n"
+      "Actual:\n${dartStackTrace.join('\n')}\n"
+      "Unexpected before:\n${unexpectedBeforeLines.join('\n')}\n"
+      "Unexpected after:\n${unexpectedAfterLines.join('\n')}\n");
 
   print("Deleting '${tmpDir.path}'.");
   tmpDir.deleteSync(recursive: true);
@@ -362,8 +412,10 @@ class StackTraceLine {
   String fileName;
   int lineNo;
   int columnNo;
+  bool isMapped;
 
-  StackTraceLine(this.methodName, this.fileName, this.lineNo, this.columnNo);
+  StackTraceLine(this.methodName, this.fileName, this.lineNo, this.columnNo,
+      {this.isMapped: false});
 
   /// Creates a [StackTraceLine] by parsing a d8 stack trace line [text]. The
   /// expected formats are
@@ -478,3 +530,34 @@ String get d8executable {
   }
   throw new UnsupportedError('Unsupported platform.');
 }
+
+/// A line allowed in the mapped stack trace.
+class LineException {
+  final String methodName;
+  final String fileName;
+
+  const LineException(this.methodName, this.fileName);
+}
+
+/// Lines allowed before the intended stack trace. Typically from helper
+/// methods.
+const List<LineException> beforeExceptions = const [
+  const LineException('wrapException', 'js_helper.dart'),
+];
+
+/// Lines allowed after the intended stack trace. Typically from the event
+/// queue.
+const List<LineException> afterExceptions = const [
+  const LineException('_wrapJsFunctionForAsync', 'async_patch.dart'),
+  const LineException(
+      '_wrapJsFunctionForAsync.<anonymous function>', 'async_patch.dart'),
+  const LineException(
+      '_awaitOnObject.<anonymous function>', 'async_patch.dart'),
+  const LineException('_RootZone.runUnary', 'zone.dart'),
+  const LineException('_FutureListener.handleValue', 'future_impl.dart'),
+  const LineException(
+      '_Future._propagateToListeners.handleValueCallback', 'future_impl.dart'),
+  const LineException('_Future._propagateToListeners', 'future_impl.dart'),
+  const LineException(
+      '_Future._addListener.<anonymous function>', 'future_impl.dart'),
+];
