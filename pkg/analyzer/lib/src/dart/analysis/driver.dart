@@ -487,6 +487,36 @@ class AnalysisDriver {
   }
 
   /**
+   * Return a [Future] that completes with the [ErrorsResult] for the Dart
+   * file with the given [path]. If the file is not a Dart file or cannot
+   * be analyzed, the [Future] completes with `null`.
+   *
+   * The [path] must be absolute and normalized.
+   *
+   * This method does not use analysis priorities, and must not be used in
+   * interactive analysis, such as Analysis Server or its plugins.
+   */
+  Future<ErrorsResult> getErrors(String path) async {
+    // Ask the analysis result without unit, so return cached errors.
+    // If no cached analysis result, it will be computed.
+    AnalysisResult analysisResult = _computeAnalysisResult(path);
+
+    // If not computed yet, because a part file without a known library,
+    // we have to compute the full analysis result, with the unit.
+    analysisResult ??= await getResult(path);
+    if (analysisResult == null) {
+      return null;
+    }
+
+    return new ErrorsResult(
+        path,
+        analysisResult.uri,
+        analysisResult.contentHash,
+        analysisResult.lineInfo,
+        analysisResult.errors);
+  }
+
+  /**
    * Return a [Future] that completes with the list of added files that
    * reference the given external [name].
    */
@@ -1387,6 +1417,43 @@ class AnalysisResult {
       this.unit,
       this.errors,
       this._index);
+}
+
+/**
+ * The errors in a single file.
+ *
+ * These results are self-consistent, i.e. [content], [contentHash], [errors]
+ * correspond to each other. But none of the results is guaranteed to be
+ * consistent with the state of the files.
+ */
+class ErrorsResult {
+  /**
+   * The path of the parsed file, absolute and normalized.
+   */
+  final String path;
+
+  /**
+   * The URI of the file that corresponded to the [path].
+   */
+  final Uri uri;
+
+  /**
+   * The MD5 hash of the [content].
+   */
+  final String contentHash;
+
+  /**
+   * Information about lines in the [content].
+   */
+  final LineInfo lineInfo;
+
+  /**
+   * The full list of computed analysis errors, both syntactic and semantic.
+   */
+  final List<AnalysisError> errors;
+
+  ErrorsResult(
+      this.path, this.uri, this.contentHash, this.lineInfo, this.errors);
 }
 
 /**

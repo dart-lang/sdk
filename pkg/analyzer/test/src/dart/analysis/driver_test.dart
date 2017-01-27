@@ -694,6 +694,17 @@ bbb() {}
     expect(driver.knownFiles, isNot(contains(templatePath)));
   }
 
+  test_getErrors() async {
+    String content = 'int f() => 42 + bar();';
+    addTestFile(content, priority: true);
+
+    ErrorsResult result = await driver.getErrors(testFile);
+    expect(result.path, testFile);
+    expect(result.uri.toString(), 'package:test/test.dart');
+    expect(result.contentHash, _md5(content));
+    expect(result.errors, hasLength(1));
+  }
+
   test_getFilesReferencingName() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');
@@ -1363,6 +1374,80 @@ import 'b.dart';
     ParseResult parseResult = await driver.parseFile(p);
     var clazz = parseResult.unit.declarations[0] as ClassDeclaration;
     expect(clazz.name.name, 'A2');
+  }
+
+  test_part_getErrors_afterLibrary() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(
+        a,
+        r'''
+library a;
+import 'b.dart';
+part 'c.dart';
+class A {}
+var c = new C();
+''');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(
+        c,
+        r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+
+    // Process a.dart so that we know that it's a library for c.dart later.
+    {
+      ErrorsResult result = await driver.getErrors(a);
+      expect(result.errors, isEmpty);
+    }
+
+    // c.dart does not have errors in the context of a.dart
+    {
+      ErrorsResult result = await driver.getErrors(c);
+      expect(result.errors, isEmpty);
+    }
+  }
+
+  test_part_getErrors_beforeLibrary() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(
+        a,
+        r'''
+library a;
+import 'b.dart';
+part 'c.dart';
+class A {}
+var c = new C();
+''');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(
+        c,
+        r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+
+    // c.dart is resolve in the context of a.dart, so have no errors
+    {
+      ErrorsResult result = await driver.getErrors(c);
+      expect(result.errors, isEmpty);
+    }
   }
 
   test_part_getResult_afterLibrary() async {

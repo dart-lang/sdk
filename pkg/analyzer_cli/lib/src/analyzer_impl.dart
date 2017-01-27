@@ -132,9 +132,9 @@ class AnalyzerImpl {
       for (Source source in sources) {
         if (analysisDriver != null) {
           String path = source.fullName;
-          AnalysisResult analysisResult = await analysisDriver.getResult(path);
+          ErrorsResult errorsResult = await analysisDriver.getErrors(path);
           errorInfos.add(new AnalysisErrorInfoImpl(
-              analysisResult.errors, analysisResult.lineInfo));
+              errorsResult.errors, errorsResult.lineInfo));
         } else {
           context.computeErrors(source);
           errorInfos.add(context.getErrors(source));
