@@ -400,12 +400,16 @@ class KernelVisitor extends Object
     return continueSwitchTargets[target];
   }
 
+  /// The optional positional parameter isBreakTarget can be added in cases
+  /// where a break statement was added but the element model and underlying
+  /// JumpTargets don't know about it.
   ir.Statement buildBreakTarget(
-      ir.Statement statement, Node node, JumpTarget jumpTarget) {
+      ir.Statement statement, Node node, JumpTarget jumpTarget,
+      [bool isBreakTarget]) {
     assert(node.isValidBreakTarget());
     assert(jumpTarget == elements.getTargetDefinition(node));
     associateNode(statement, node);
-    if (jumpTarget != null && jumpTarget.isBreakTarget) {
+    if (jumpTarget != null && (jumpTarget.isBreakTarget || isBreakTarget)) {
       ir.LabeledStatement breakTarget = getBreakTarget(jumpTarget);
       breakTarget.body = statement;
       statement.parent = breakTarget;
@@ -1011,6 +1015,7 @@ class KernelVisitor extends Object
   ir.Statement visitSwitchStatement(SwitchStatement node) {
     ir.Expression expression = visitForValue(node.expression);
     List<ir.SwitchCase> cases = <ir.SwitchCase>[];
+    bool switchIsBreakTarget = elements.getTargetDefinition(node).isBreakTarget;
     for (SwitchCase caseNode in node.cases.nodes) {
       cases.add(caseNode.accept(this));
       JumpTarget jumpTarget = elements.getTargetDefinition(caseNode);
@@ -1043,6 +1048,10 @@ class KernelVisitor extends Object
           if (!caseNode.isDefaultCase) {
             statements.add(new ir.BreakStatement(
                 getBreakTarget(elements.getTargetDefinition(node))));
+            // Because we "helpfully" add a break here, in the underlying
+            // element model the jump target doesn't actually know it's a break
+            // target, so we have to pass that information.
+            switchIsBreakTarget = true;
           }
         } else {
           statements.add(new ir.ExpressionStatement(new ir.Throw(
@@ -1058,7 +1067,7 @@ class KernelVisitor extends Object
     assert(!casesIterator.moveNext());
 
     return buildBreakTarget(new ir.SwitchStatement(expression, cases), node,
-        elements.getTargetDefinition(node));
+        elements.getTargetDefinition(node), switchIsBreakTarget);
   }
 
   @override
