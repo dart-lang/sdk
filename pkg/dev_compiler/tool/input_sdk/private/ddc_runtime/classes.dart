@@ -217,7 +217,9 @@ getFieldType(type, name) => JS(
     '''(() => {
   let sigObj = $type[$_fieldSig];
   if (sigObj === void 0) return void 0;
-  return sigObj[$name];
+  let fieldType = sigObj[$name];
+  // workaround to handle metadata.
+  return (fieldType instanceof Array) ? fieldType[0] : fieldType;
 })()''');
 
 getSetterType(type, name) => JS(
