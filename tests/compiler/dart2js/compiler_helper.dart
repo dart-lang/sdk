@@ -259,3 +259,40 @@ Future compileAndMatchFuzzyHelper(
     }
   });
 }
+
+
+/// Returns a 'check' function that uses comments in [test] to drive checking.
+///
+/// The comments contains one or more 'present:' or 'absent:' tags, each
+/// followed by a quoted string. For example, the returned checker for the
+/// following text will ensure that the argument contains the three characters
+/// 'foo' and does not contain the two characters '""':
+///
+///    // present: "foo"
+///    // absent:  '""'
+checkerForAbsentPresent(String test) {
+  var matches = _directivePattern.allMatches(test).toList();
+  checker(String generated) {
+    if (matches.isEmpty) {
+      Expect.fail("No 'absent:' or 'present:' directives in '$test'");
+    }
+    for (Match match in matches) {
+      String directive = match.group(1);
+      String pattern = match.groups([2, 3]).where((s) => s != null).single;
+      if (directive == 'present') {
+        Expect.isTrue(generated.contains(pattern),
+                      "Cannot find '$pattern' in:\n$generated");
+      } else {
+        assert(directive == 'absent');
+        Expect.isFalse(generated.contains(pattern),
+                       "Must not find '$pattern' in:\n$generated");
+      }
+    }
+  }
+  return checker;
+}
+
+RegExp _directivePattern = new RegExp(
+    //      \1                     \2        \3
+    r'''// *(present|absent): *(?:"([^"]*)"|'([^'']*)')''',
+    multiLine: true);
