@@ -42,7 +42,7 @@
 
   @patch static int parse(String source,
                           { int radix,
-                            int onError(String str) }) {
+                            int onError(String source) }) {
     if (source == null) throw new ArgumentError("The source must not be null");
     if (source.isEmpty) return _throwFormatException(onError, source, 0, radix);
     if (radix == null || radix == 10) {
