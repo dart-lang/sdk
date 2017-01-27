@@ -164,10 +164,13 @@ class AnalyzerImpl {
 
   Future<ErrorSeverity> _analyze(int printMode) async {
     // Don't try to analyze parts.
-    if (context.computeKindOf(librarySource) == SourceKind.PART) {
+    String path = librarySource.fullName;
+    SourceKind librarySourceKind = analysisDriver != null
+        ? await analysisDriver.getSourceKind(path)
+        : context.computeKindOf(librarySource);
+    if (librarySourceKind == SourceKind.PART) {
       stderr.writeln("Only libraries can be analyzed.");
-      stderr.writeln(
-          "${librarySource.fullName} is a part and can not be analyzed.");
+      stderr.writeln("${path} is a part and can not be analyzed.");
       return ErrorSeverity.ERROR;
     }
 

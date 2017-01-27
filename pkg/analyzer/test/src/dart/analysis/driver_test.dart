@@ -1117,6 +1117,24 @@ var A2 = B1;
     expect(result1.unit, isNotNull);
   }
 
+  test_getSourceKind_library() async {
+    var path = _p('/test/lib/test.dart');
+    provider.newFile(path, 'class A {}');
+    expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
+  }
+
+  test_getSourceKind_notDartFile() async {
+    var path = _p('/test/lib/test.txt');
+    provider.newFile(path, 'class A {}');
+    expect(await driver.getSourceKind(path), isNull);
+  }
+
+  test_getSourceKind_part() async {
+    var path = _p('/test/lib/test.dart');
+    provider.newFile(path, 'part of lib; class A {}');
+    expect(await driver.getSourceKind(path), SourceKind.PART);
+  }
+
   test_getTopLevelNameDeclarations() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');

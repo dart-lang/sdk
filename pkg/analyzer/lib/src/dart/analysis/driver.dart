@@ -587,6 +587,21 @@ class AnalysisDriver {
   }
 
   /**
+   * Return a [Future] that completes with the [SourceKind] for the Dart
+   * file with the given [path]. If the file is not a Dart file or cannot
+   * be analyzed, the [Future] completes with `null`.
+   *
+   * The [path] must be absolute and normalized.
+   */
+  Future<SourceKind> getSourceKind(String path) async {
+    if (AnalysisEngine.isDartFileName(path)) {
+      FileState file = _fsState.getFileForPath(path);
+      return file.isPart ? SourceKind.PART : SourceKind.LIBRARY;
+    }
+    return null;
+  }
+
+  /**
    * Return a [Future] that completes with top-level declarations with the
    * given [name] in all known libraries.
    */
