@@ -5158,7 +5158,7 @@ RawString* TypeArguments::EnumerateURIs() const {
 
 const char* TypeArguments::ToCString() const {
   if (IsNull()) {
-    return "NULL TypeArguments";
+    return "TypeArguments: null";
   }
   Zone* zone = Thread::Current()->zone();
   const char* prev_cstr = OS::SCreate(zone, "TypeArguments: (%" Pd ")",
@@ -5559,16 +5559,25 @@ RawType* Function::SignatureType() const {
     // class, then the signature type is not parameterized, although the owner
     // class may be. In this case, the scope class of the function type is reset
     // to _Closure class as well as the owner of the signature function.
+    // With the introduction of generic functions, we may reach here before the
+    // function type parameters have been resolved. Therefore, we cannot yet
+    // check whether the function type has an instantiated signature.
+    // We will do it later when resolving the type.
     Class& scope_class = Class::Handle(Owner());
     if (!scope_class.IsTypedefClass() &&
-        (is_static() || !scope_class.IsGeneric() ||
-         HasInstantiatedSignature())) {
+        (is_static() || !scope_class.IsGeneric())) {
       scope_class = Isolate::Current()->object_store()->closure_class();
       if (IsSignatureFunction()) {
         set_owner(scope_class);
         set_token_pos(TokenPosition::kNoSource);
       }
     }
+    // TODO(regis): With generic functions, this type is not only parameterized
+    // with the type parameters of the scope class, but also with those of all
+    // enclosing generic functions, which may not even have been parsed at this
+    // point. What actually matters is that a signature type can be expressed in
+    // a right-hand side type test by name. This is only possible with a typedef
+    // and the free variables are only the type parameters of the typedef.
     const TypeArguments& signature_type_arguments =
         TypeArguments::Handle(scope_class.type_parameters());
     // Return the still unfinalized signature type.
@@ -5812,6 +5821,13 @@ void Function::set_native_name(const String& value) const {
 void Function::set_result_type(const AbstractType& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->result_type_, value.raw());
+  if (value.IsFunctionType() && !value.IsResolved()) {
+    // The unresolved function result type may refer to this
+    // function's type parameters. Change its parent function.
+    const Function& result_signature_function =
+        Function::Handle(Type::Cast(value).signature());
+    result_signature_function.set_parent_function(*this);
+  }
 }
 
 
@@ -7227,6 +7243,9 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
 
 
 const char* Function::ToCString() const {
+  if (IsNull()) {
+    return "Function: null";
+  }
   const char* static_str = is_static() ? " static" : "";
   const char* abstract_str = is_abstract() ? " abstract" : "";
   const char* kind_str = NULL;
@@ -12392,7 +12411,7 @@ static int PrintVarInfo(char* buffer,
 
 const char* LocalVarDescriptors::ToCString() const {
   if (IsNull()) {
-    return "LocalVarDescriptors(NULL)";
+    return "LocalVarDescriptors: null";
   }
   if (Length() == 0) {
     return "empty LocalVarDescriptors";
@@ -14807,7 +14826,7 @@ RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
 
 const char* Context::ToCString() const {
   if (IsNull()) {
-    return "Context (Null)";
+    return "Context: null";
   }
   Zone* zone = Thread::Current()->zone();
   const Context& parent_ctx = Context::Handle(parent());
@@ -15220,12 +15239,18 @@ const char* SubtypeTestCache::ToCString() const {
 
 
 const char* Error::ToErrorCString() const {
+  if (IsNull()) {
+    return "Error: null";
+  }
   UNREACHABLE();
-  return "Internal Error";
+  return "Error";
 }
 
 
 const char* Error::ToCString() const {
+  if (IsNull()) {
+    return "Error: null";
+  }
   // Error is an abstract class.  We should never reach here.
   UNREACHABLE();
   return "Error";
@@ -16721,6 +16746,9 @@ intptr_t AbstractType::Hash() const {
 
 
 const char* AbstractType::ToCString() const {
+  if (IsNull()) {
+    return "AbstractType: null";
+  }
   // AbstractType is an abstract class.
   UNREACHABLE();
   return "AbstractType";
@@ -16980,9 +17008,6 @@ bool Type::IsInstantiated(TrailPtr trail) const {
   // arguments and not just at the type parameters.
   if (HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type_class());
-    len = cls.NumTypeArguments();
-    ASSERT(num_type_args >= len);  // The vector may be longer than necessary.
-    num_type_args = len;
     len = cls.NumTypeParameters();  // Check the type parameters only.
   }
   return (len == 0) || args.IsSubvectorInstantiated(num_type_args - len, len);
@@ -17631,6 +17656,9 @@ void Type::set_type_state(int8_t state) const {
 
 
 const char* Type::ToCString() const {
+  if (IsNull()) {
+    return "Type: null";
+  }
   Zone* zone = Thread::Current()->zone();
   const char* unresolved = IsResolved() ? "" : "Unresolved ";
   const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
@@ -21917,7 +21945,7 @@ RawGrowableObjectArray* GrowableObjectArray::New(const Array& array,
 
 const char* GrowableObjectArray::ToCString() const {
   if (IsNull()) {
-    return "_GrowableList NULL";
+    return "_GrowableList: null";
   }
   return OS::SCreate(Thread::Current()->zone(),
                      "Instance(length:%" Pd ") of '_GrowableList'", Length());

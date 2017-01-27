@@ -63,7 +63,6 @@ DEFINE_FLAG(bool,
             warn_super,
             false,
             "Warning if super initializer not last in initializer list.");
-DEFINE_FLAG(bool, warn_patch, false, "Warn on old-style patch syntax.");
 DEFINE_FLAG(
     bool,
     await_is_keyword,
@@ -995,8 +994,13 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
         new ParsedFunction(thread, Function::ZoneHandle(zone, func.raw()));
     Parser parser(script, parsed_function, func.token_pos());
     parser.SkipFunctionPreamble();
+    const bool use_function_type_syntax = false;
+    const bool allow_explicit_default_values = true;
+    const bool evaluate_metadata = true;
     ParamList params;
-    parser.ParseFormalParameterList(true, true, &params);
+    parser.ParseFormalParameterList(use_function_type_syntax,
+                                    allow_explicit_default_values,
+                                    evaluate_metadata, &params);
     ParamDesc* param = params.parameters->data();
     const int param_cnt =
         params.num_fixed_parameters + params.num_optional_parameters;
@@ -1051,7 +1055,12 @@ bool Parser::ParseFormalParameters(const Function& func, ParamList* params) {
         new ParsedFunction(Thread::Current(), Function::ZoneHandle(func.raw()));
     Parser parser(script, parsed_function, func.token_pos());
     parser.SkipFunctionPreamble();
-    parser.ParseFormalParameterList(true, true, params);
+    const bool use_function_type_syntax = false;
+    const bool allow_explicit_default_values = true;
+    const bool evaluate_metadata = true;
+    parser.ParseFormalParameterList(use_function_type_syntax,
+                                    allow_explicit_default_values,
+                                    evaluate_metadata, params);
     return true;
   } else {
     Thread::Current()->clear_sticky_error();
@@ -1358,15 +1367,10 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
 
 SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
   TRACE_PARSER("ParseStaticFinalGetter");
-  ParamList params;
   ASSERT(func.num_fixed_parameters() == 0);  // static.
   ASSERT(!func.HasOptionalParameters());
   ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
-
-  // Build local scope for function and populate with the formal parameters.
   OpenFunctionBlock(func);
-  AddFormalParamsToScope(&params, current_block_->scope);
-
   TokenPosition ident_pos = TokenPos();
   const String& field_name = *ExpectIdentifier("field name expected");
   const Class& field_class = Class::Handle(Z, func.Owner());
@@ -1560,9 +1564,14 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
   } else if (!parent.IsGetterFunction() && !parent.IsImplicitGetterFunction()) {
     // NOTE: For the `kernel -> flowgraph` we don't use the parser.
     if (parent.kernel_function() == NULL) {
-      const bool allow_explicit_default_values = true;
       SkipFunctionPreamble();
-      ParseFormalParameterList(allow_explicit_default_values, false, &params);
+      const bool use_function_type_syntax = false;
+      const bool allow_explicit_default_values = true;
+      const bool evaluate_metadata = false;
+      ParseFormalParameterList(use_function_type_syntax,
+                               allow_explicit_default_values, evaluate_metadata,
+                               &params);
+      FinalizeFormalParameterTypes(&params);
       SetupDefaultsForOptionalParams(params);
     }
   }
@@ -1937,6 +1946,78 @@ void Parser::SkipToMatchingParenthesis() {
 }
 
 
+// Parses a parameter type as defined by the 'parameterTypeList' production.
+void Parser::ParseParameterType(ParamList* params) {
+  TRACE_PARSER("ParseParameterType");
+  ParamDesc parameter;
+
+  parameter.has_explicit_type = true;  // The type is required by the syntax.
+  // It is too early to resolve the type here, since it can be a result type
+  // referring to a not yet declared function type parameter.
+  parameter.type = &AbstractType::ZoneHandle(
+      Z, ParseTypeOrFunctionType(false, ClassFinalizer::kDoNotResolve));
+
+  // At this point, we must see an identifier for the parameter name, unless
+  // we are using the function type syntax (in which case the name is optional,
+  // unless we expect optional named parameters).
+  if (IsIdentifier()) {
+    parameter.name_pos = TokenPos();
+    parameter.name = CurrentLiteral();
+    ConsumeToken();
+
+    if (params->has_optional_named_parameters &&
+        (parameter.name->CharAt(0) == Library::kPrivateIdentifierStart)) {
+      ReportError(parameter.name_pos, "named parameter must not be private");
+    }
+
+    // Check for duplicate formal parameters.
+    const intptr_t num_existing_parameters =
+        params->num_fixed_parameters + params->num_optional_parameters;
+    for (intptr_t i = 0; i < num_existing_parameters; i++) {
+      ParamDesc& existing_parameter = (*params->parameters)[i];
+      if (existing_parameter.name->Equals(*parameter.name)) {
+        ReportError(parameter.name_pos, "duplicate formal parameter '%s'",
+                    parameter.name->ToCString());
+      }
+    }
+  } else if (params->has_optional_named_parameters) {
+    ExpectIdentifier("parameter name expected");
+  } else {
+    parameter.name_pos = TokenPos();
+    parameter.name = &Symbols::NotNamed();
+  }
+
+  // The function type syntax does not allow the signature type syntax.
+  // No need to check for IsParameterPart().
+
+  if ((CurrentToken() == Token::kASSIGN) || (CurrentToken() == Token::kCOLON)) {
+    ReportError("parameter must not specify a default value");
+  } else {
+    if (params->has_optional_positional_parameters ||
+        params->has_optional_named_parameters) {
+      // Implicit default value is null.
+      params->num_optional_parameters++;
+      parameter.default_value = &Object::null_instance();
+    } else {
+      params->num_fixed_parameters++;
+      ASSERT(params->num_optional_parameters == 0);
+    }
+  }
+  if (parameter.type->IsVoidType()) {
+    ReportError("parameter '%s' may not be 'void'",
+                parameter.name->ToCString());
+  }
+  if (params->implicitly_final) {
+    parameter.is_final = true;
+  }
+  params->parameters->Add(parameter);
+  if (parameter.is_covariant) {
+    params->has_covariant = true;
+  }
+}
+
+
+// Parses a formal parameter as defined by the 'formalParameterList' production.
 void Parser::ParseFormalParameter(bool allow_explicit_default_value,
                                   bool evaluate_metadata,
                                   ParamList* params) {
@@ -1988,7 +2069,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   }
   if (parameter.type == NULL) {
     // At this point, we must see an identifier for the type or the
-    // function parameter.
+    // function parameter. The identifier may be 'Function'.
     if (!IsIdentifier()) {
       ReportError("parameter name or type expected");
     }
@@ -1998,7 +2079,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     bool found_type = false;
     {
       TokenPosScope saved_pos(this);
-      if (TryParseReturnType()) {
+      if (TryParseType(true)) {
         if (IsIdentifier() || (CurrentToken() == Token::kTHIS)) {
           found_type = true;
         }
@@ -2009,13 +2090,13 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       // mode, because they are part of the function type of closurized
       // functions appearing in type tests with typedefs.
       parameter.has_explicit_type = true;
-      // It is too early to resolve the type here, since it can be a result type
-      // referring to a not yet declared function type parameter.
+      // It is too early to resolve the type here, since it can be a result
+      // type referring to a not yet declared function type parameter.
       parameter.type = &AbstractType::ZoneHandle(
-          Z, ParseType(ClassFinalizer::kDoNotResolve));
+          Z, ParseTypeOrFunctionType(true, ClassFinalizer::kDoNotResolve));
     } else {
-      // If this is an initializing formal, its type will be set to the type of
-      // the respective field when the constructor is fully parsed.
+      // If this is an initializing formal, its type will be set to the type
+      // of the respective field when the constructor is fully parsed.
       parameter.type = &Object::dynamic_type();
     }
   }
@@ -2084,11 +2165,6 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
         ParseTypeParameters(false);  // Not parameterizing class, but function.
       }
 
-      // Now that type parameters are declared, the result type can be resolved.
-      ResolveType(is_top_level_ ? ClassFinalizer::kResolveTypeParameters
-                                : ClassFinalizer::kCanonicalize,
-                  &result_type);
-
       ASSERT(CurrentToken() == Token::kLPAREN);
       ParamList func_params;
 
@@ -2096,8 +2172,12 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       func_params.AddFinalParameter(TokenPos(), &Symbols::ClosureParameter(),
                                     &Object::dynamic_type());
 
-      const bool no_explicit_default_values = false;
-      ParseFormalParameterList(no_explicit_default_values, false, &func_params);
+      const bool use_function_type_syntax = false;
+      const bool allow_explicit_default_values = false;
+      const bool evaluate_metadata = false;
+      ParseFormalParameterList(use_function_type_syntax,
+                               allow_explicit_default_values, evaluate_metadata,
+                               &func_params);
 
       signature_function.set_result_type(result_type);
       AddFormalParamsToFunction(&func_params, signature_function);
@@ -2107,32 +2187,13 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
       Type& signature_type =
           Type::ZoneHandle(Z, signature_function.SignatureType());
-      if (!is_top_level_) {
-        signature_type ^= ClassFinalizer::FinalizeType(
-            current_class(), signature_type, ClassFinalizer::kCanonicalize);
-        // Do not refer to signature_function anymore, since it may have been
-        // replaced during canonicalization.
-        signature_function = Function::null();
-      }
-      ASSERT(is_top_level_ || signature_type.IsFinalized());
+
       // A signature type itself cannot be malformed or malbounded, only its
       // signature function's result type or parameter types may be.
       ASSERT(!signature_type.IsMalformed());
       ASSERT(!signature_type.IsMalbounded());
       // The type of the parameter is now the signature type.
       parameter.type = &signature_type;
-    }
-  } else {
-    if (!parameter.type->IsFinalized()) {
-      AbstractType& type = AbstractType::ZoneHandle(Z, parameter.type->raw());
-      if (is_top_level_) {
-        ResolveType(ClassFinalizer::kResolveTypeParameters, &type);
-      } else {
-        ResolveType(ClassFinalizer::kCanonicalize, &type);
-        type = ClassFinalizer::FinalizeType(current_class(), type,
-                                            ClassFinalizer::kCanonicalize);
-      }
-      parameter.type = &type;
     }
   }
 
@@ -2182,7 +2243,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
 
 // Parses a sequence of normal or optional formal parameters.
-void Parser::ParseFormalParameters(bool allow_explicit_default_values,
+void Parser::ParseFormalParameters(bool use_function_type_syntax,
+                                   bool allow_explicit_default_values,
                                    bool evaluate_metadata,
                                    ParamList* params) {
   TRACE_PARSER("ParseFormalParameters");
@@ -2214,14 +2276,20 @@ void Parser::ParseFormalParameters(bool allow_explicit_default_values,
       // Allow a trailing comma.
       break;
     }
-    ParseFormalParameter(allow_explicit_default_values, evaluate_metadata,
-                         params);
+    if (use_function_type_syntax) {
+      ASSERT(!allow_explicit_default_values && !evaluate_metadata);
+      ParseParameterType(params);
+    } else {
+      ParseFormalParameter(allow_explicit_default_values, evaluate_metadata,
+                           params);
+    }
     has_seen_parameter = true;
   } while (CurrentToken() == Token::kCOMMA);
 }
 
 
-void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
+void Parser::ParseFormalParameterList(bool use_function_type_syntax,
+                                      bool allow_explicit_default_values,
                                       bool evaluate_metadata,
                                       ParamList* params) {
   TRACE_PARSER("ParseFormalParameterList");
@@ -2229,12 +2297,14 @@ void Parser::ParseFormalParameterList(bool allow_explicit_default_values,
 
   if (LookaheadToken(1) != Token::kRPAREN) {
     // Parse fixed parameters.
-    ParseFormalParameters(allow_explicit_default_values, evaluate_metadata,
+    ParseFormalParameters(use_function_type_syntax,
+                          allow_explicit_default_values, evaluate_metadata,
                           params);
     if (params->has_optional_positional_parameters ||
         params->has_optional_named_parameters) {
       // Parse optional parameters.
-      ParseFormalParameters(allow_explicit_default_values, evaluate_metadata,
+      ParseFormalParameters(use_function_type_syntax,
+                            allow_explicit_default_values, evaluate_metadata,
                             params);
       if (params->has_optional_positional_parameters) {
         CheckToken(Token::kRBRACK, "',' or ']' expected");
@@ -3190,7 +3260,6 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
 
   OpenFunctionBlock(func);
   ParamList params;
-  const bool allow_explicit_default_values = true;
   ASSERT(CurrentToken() == Token::kLPAREN);
 
   // Add implicit receiver parameter which is passed the allocated
@@ -3201,11 +3270,16 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
   if (func.is_const()) {
     params.SetImplicitlyFinal();
   }
-  ParseFormalParameterList(allow_explicit_default_values, false, &params);
+  const bool use_function_type_syntax = false;
+  const bool allow_explicit_default_values = true;
+  const bool evaluate_metadata = false;
+  ParseFormalParameterList(use_function_type_syntax,
+                           allow_explicit_default_values, evaluate_metadata,
+                           &params);
+  FinalizeFormalParameterTypes(&params);
 
   SetupDefaultsForOptionalParams(params);
   ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
-  ASSERT(func.NumParameters() == params.parameters->length());
 
   // Now populate function scope with the formal parameters.
   AddFormalParamsToScope(&params, current_block_->scope);
@@ -3383,7 +3457,6 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
   ASSERT((CurrentToken() == Token::kLPAREN) || func.IsGetterFunction() ||
          (func.is_generated_body() &&
           Function::Handle(func.parent_function()).IsGetterFunction()));
-  const bool allow_explicit_default_values = true;
   if (func.IsGetterFunction()) {
     // Populate function scope with the formal parameters. Since in this case
     // we are compiling a getter this will at most populate the receiver.
@@ -3424,7 +3497,15 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
       SkipToMatchingParenthesis();
     }
   } else {
-    ParseFormalParameterList(allow_explicit_default_values, false, &params);
+    const bool use_function_type_syntax = false;
+    const bool allow_explicit_default_values = true;
+    const bool evaluate_metadata = false;
+    ParseFormalParameterList(use_function_type_syntax,
+                             allow_explicit_default_values, evaluate_metadata,
+                             &params);
+    if (!is_top_level_) {
+      FinalizeFormalParameterTypes(&params);
+    }
 
     // The number of parameters and their type are not yet set in local
     // functions, since they are not 'top-level' parsed.
@@ -3433,9 +3514,12 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     if (func.parameter_types() == Object::empty_array().raw()) {
       AddFormalParamsToFunction(&params, func);
     }
+    ResolveSignature(ClassFinalizer::kResolveTypeParameters, func);
+    if (!is_top_level_) {
+      ClassFinalizer::FinalizeSignature(current_class(), func);
+    }
     SetupDefaultsForOptionalParams(params);
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
-    ASSERT(func.NumParameters() == params.parameters->length());
 
     // Populate function scope with the formal parameters.
     AddFormalParamsToScope(&params, current_block_->scope);
@@ -3740,16 +3824,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     ParseTypeParameters(false);  // Not parameterizing class, but function.
   }
 
-  // Now that type parameters are declared, the result type can be resolved.
-  if (!method->type->IsResolved()) {
-    AbstractType& type = AbstractType::ZoneHandle(Z, method->type->raw());
-    ResolveType(ClassFinalizer::kResolveTypeParameters, &type);
-    method->type = &type;
-  }
-
   // Parse the formal parameters.
-  const bool are_implicitly_final = method->has_const;
-  const bool allow_explicit_default_values = true;
   const TokenPosition formal_param_pos = TokenPos();
   method->params.Clear();
   // Static functions do not have a receiver.
@@ -3762,11 +3837,15 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                                      &Symbols::TypeArgumentsParameter(),
                                      &Object::dynamic_type());
   }
-  if (are_implicitly_final) {
+  if (method->has_const) {
     method->params.SetImplicitlyFinal();
   }
   if (!method->IsGetter()) {
-    ParseFormalParameterList(allow_explicit_default_values, false,
+    const bool use_function_type_syntax = false;
+    const bool allow_explicit_default_values = true;
+    const bool evaluate_metadata = false;
+    ParseFormalParameterList(use_function_type_syntax,
+                             allow_explicit_default_values, evaluate_metadata,
                              &method->params);
   }
 
@@ -4010,7 +4089,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   func.set_name(*method->name);
   func.set_is_abstract(method->has_abstract);
   func.set_is_native(method->has_native);
-  func.set_result_type(*method->type);
+  func.set_result_type(*method->type);  // May set parent_function in type.
   func.set_end_token_pos(method_end_pos);
   func.set_is_redirecting(is_redirecting);
   func.set_modifier(async_modifier);
@@ -4039,11 +4118,11 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     }
   }
 
-  // No need to resolve parameter types yet, or add parameters to local scope.
   ASSERT(is_top_level_);
   AddFormalParamsToFunction(&method->params, func);
   ASSERT(innermost_function().raw() == func.raw());
   innermost_function_ = Function::null();
+  ResolveSignature(ClassFinalizer::kResolveTypeParameters, func);
   members->AddFunction(func);
 }
 
@@ -4183,6 +4262,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       getter.set_result_type(*field->type);
       getter.set_is_debuggable(false);
       AddFormalParamsToFunction(&params, getter);
+      ResolveSignature(ClassFinalizer::kResolveTypeParameters, getter);
       members->AddFunction(getter);
       if (!field->has_final) {
         // Build a setter accessor for non-const fields.
@@ -4204,6 +4284,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
           setter.set_is_reflectable(false);
         }
         AddFormalParamsToFunction(&params, setter);
+        ResolveSignature(ClassFinalizer::kResolveTypeParameters, setter);
         members->AddFunction(setter);
       }
     }
@@ -4324,7 +4405,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     {
       // Lookahead to determine whether the next tokens are a return type.
       TokenPosScope saved_pos(this);
-      if (TryParseReturnType()) {
+      if (TryParseType(true)) {
         if (IsIdentifier() || (CurrentToken() == Token::kGET) ||
             (CurrentToken() == Token::kSET) ||
             (CurrentToken() == Token::kOPERATOR)) {
@@ -4336,7 +4417,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
       // It is too early to resolve the type here, since it can be a result type
       // referring to a not yet declared function type parameter.
       member.type = &AbstractType::ZoneHandle(
-          Z, ParseType(ClassFinalizer::kDoNotResolve));
+          Z, ParseTypeOrFunctionType(false, ClassFinalizer::kDoNotResolve));
     }
   }
 
@@ -4449,7 +4530,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
       member.type = &Object::dynamic_type();
     }
     ASSERT(member.IsFactory() == member.has_factory);
-    // Note that member.type may still be unresolved.
+    // Note that member.type may still be unresolved and may refer to not yet
+    // parsed function type parameters.
     ParseMethodOrConstructor(members, &member);
   } else if (CurrentToken() == Token::kSEMICOLON ||
              CurrentToken() == Token::kCOMMA ||
@@ -4828,6 +4910,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   ParamList params;
   params.AddReceiver(&Object::dynamic_type(), cls.token_pos());
   AddFormalParamsToFunction(&params, getter);
+  ResolveSignature(ClassFinalizer::kResolveTypeParameters, getter);
   enum_members.AddFunction(getter);
 
   ASSERT(IsIdentifier());
@@ -4956,6 +5039,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   ParamList name_params;
   name_params.AddReceiver(&Object::dynamic_type(), cls.token_pos());
   AddFormalParamsToFunction(&name_params, name_getter);
+  ResolveSignature(ClassFinalizer::kResolveTypeParameters, name_getter);
   enum_members.AddFunction(name_getter);
 
   // Clone the toString() function from the helper class.
@@ -5005,6 +5089,8 @@ void Parser::AddImplicitConstructor(const Class& cls) {
   params.AddReceiver(receiver_type, cls.token_pos());
 
   AddFormalParamsToFunction(&params, ctor);
+  ctor.set_result_type(Object::dynamic_type());
+  ResolveSignature(ClassFinalizer::kResolveTypeParameters, ctor);
   // The body of the constructor cannot modify the type of the constructed
   // instance, which is passed in as the receiver.
   ctor.set_result_type(*receiver_type);
@@ -5101,21 +5187,30 @@ void Parser::ParseMixinAppAlias(const GrowableObjectArray& pending_classes,
 }
 
 
-// Look ahead to detect if we are seeing ident [ TypeParameters ] "(".
+// Look ahead to detect if we are seeing ident [ TypeParameters ] ("(" | "=").
 // We need this lookahead to distinguish between the optional return type
 // and the alias name of a function type alias.
 // Token position remains unchanged.
-bool Parser::IsFunctionTypeAliasName() {
-  if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
-    return true;
+bool Parser::IsFunctionTypeAliasName(bool* use_function_type_syntax) {
+  if (IsIdentifier()) {
+    const Token::Kind ahead = LookaheadToken(1);
+    if ((ahead == Token::kLPAREN) || (ahead == Token::kASSIGN)) {
+      *use_function_type_syntax = (ahead == Token::kASSIGN);
+      return true;
+    }
   }
   const TokenPosScope saved_pos(this);
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLT)) {
     ConsumeToken();
-    if (TryParseTypeParameters() && (CurrentToken() == Token::kLPAREN)) {
-      return true;
+    if (TryParseTypeParameters()) {
+      const Token::Kind current = CurrentToken();
+      if ((current == Token::kLPAREN) || (current == Token::kASSIGN)) {
+        *use_function_type_syntax = (current == Token::kASSIGN);
+        return true;
+      }
     }
   }
+  *use_function_type_syntax = false;
   return false;
 }
 
@@ -5128,15 +5223,23 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
       metadata_pos.IsReal() ? metadata_pos : TokenPos();
   ExpectToken(Token::kTYPEDEF);
 
-  // Parse the result type of the function type.
-  AbstractType& result_type = Type::Handle(Z, Type::DynamicType());
+  // Distinguish between two possible typedef forms:
+  // 1) returnType? identifier typeParameters? formalParameterList ’;’
+  // 2) identifier typeParameters? '=' functionType ’;’
+
+  bool use_function_type_syntax;  // Set to false for form 1, true for form 2.
+
+  // If present, parse the result type of the function type.
+  AbstractType& result_type = Type::Handle(Z);
   if (CurrentToken() == Token::kVOID) {
     ConsumeToken();
     result_type = Type::VoidType();
-  } else if (!IsFunctionTypeAliasName()) {
+    use_function_type_syntax = false;
+  } else if (!IsFunctionTypeAliasName(&use_function_type_syntax)) {
     // Type annotations in typedef are never ignored, even in production mode.
     // Wait until we have an owner class before resolving the result type.
     result_type = ParseType(ClassFinalizer::kDoNotResolve);
+    ASSERT(!use_function_type_syntax);
   }
 
   const TokenPosition alias_name_pos = TokenPos();
@@ -5162,41 +5265,59 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   function_type_alias.set_is_abstract();
   function_type_alias.set_is_prefinalized();
   library_.AddClass(function_type_alias);
+  ASSERT(current_class().IsTopLevel());
   set_current_class(function_type_alias);
   // Parse the type parameters of the typedef class.
   ParseTypeParameters(true);  // Parameterizing current class.
-  // At this point, the type parameters have been parsed, so we can resolve the
-  // result type.
-  if (!result_type.IsNull()) {
-    ResolveType(ClassFinalizer::kResolveTypeParameters, &result_type);
-  }
-  // Parse the formal parameters of the function type.
-  CheckToken(Token::kLPAREN, "formal parameter list expected");
-  ParamList func_params;
-
-  // Add implicit closure object parameter.
-  func_params.AddFinalParameter(TokenPos(), &Symbols::ClosureParameter(),
-                                &Object::dynamic_type());
-
-  // Mark the current class as a typedef class (by setting its signature
-  // function field to a non-null function) before parsing its formal parameters
-  // so that parsed function types are aware that their owner class is a
-  // typedef class.
-  Function& signature_function = Function::Handle(
-      Z, Function::NewSignatureFunction(function_type_alias, alias_name_pos));
+  Function& signature_function = Function::Handle(Z);
   ASSERT(innermost_function().IsNull());
-  innermost_function_ = signature_function.raw();
+  if (use_function_type_syntax) {
+    ExpectToken(Token::kASSIGN);
+    ASSERT(result_type.IsNull());  // Not parsed yet.
+    // Do not resolve types before the function type alias can be recognized as
+    // a typedef class, so that correct promotion of function types can occur.
+    const Type& function_type = Type::Handle(
+        Z, ParseFunctionType(result_type, ClassFinalizer::kDoNotResolve));
+    signature_function = function_type.signature();
+  } else {
+    signature_function =
+        Function::NewSignatureFunction(function_type_alias, alias_name_pos);
+    innermost_function_ = signature_function.raw();
+    ParamList params;
+    // Parse the formal parameters of the function type.
+    CheckToken(Token::kLPAREN, "formal parameter list expected");
+    // Add implicit closure object parameter.
+    params.AddFinalParameter(TokenPos(), &Symbols::ClosureParameter(),
+                             &Object::dynamic_type());
+    const bool allow_explicit_default_values = false;
+    const bool evaluate_metadata = false;
+    ParseFormalParameterList(use_function_type_syntax,
+                             allow_explicit_default_values, evaluate_metadata,
+                             &params);
+    if (result_type.IsNull()) {
+      result_type = Type::DynamicType();
+    }
+    signature_function.set_result_type(result_type);
+    AddFormalParamsToFunction(&params, signature_function);
+    ASSERT(innermost_function().raw() == signature_function.raw());
+    innermost_function_ = Function::null();
+  }
+  ExpectSemicolon();
+  ASSERT(innermost_function().IsNull());
+
   // Set the signature function in the function type alias class.
   function_type_alias.set_signature_function(signature_function);
 
-  const bool no_explicit_default_values = false;
-  ParseFormalParameterList(no_explicit_default_values, false, &func_params);
-  ExpectSemicolon();
-  signature_function.set_result_type(result_type);
-  AddFormalParamsToFunction(&func_params, signature_function);
-
-  ASSERT(innermost_function().raw() == signature_function.raw());
-  innermost_function_ = Function::null();
+  // At this point, all function type parameters have been parsed and the class
+  // function_type_alias is recognized as a typedef, so we can resolve all type
+  // parameters in the signature type defined by the typedef.
+  AbstractType& function_type =
+      Type::Handle(Z, signature_function.SignatureType());
+  ASSERT(current_class().raw() == function_type_alias.raw());
+  ResolveType(ClassFinalizer::kResolveTypeParameters, &function_type);
+  // Resolving does not replace type or signature.
+  ASSERT(function_type_alias.signature_function() ==
+         Type::Cast(function_type).signature());
 
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing function type alias '%s'\n",
@@ -5266,7 +5387,7 @@ void Parser::SkipTypeArguments() {
   if (CurrentToken() == Token::kLT) {
     do {
       ConsumeToken();
-      SkipType(false);
+      SkipTypeOrFunctionType(false);
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
     if ((token == Token::kGT) || (token == Token::kSHR)) {
@@ -5291,6 +5412,30 @@ void Parser::SkipType(bool allow_void) {
       ExpectIdentifier("name expected");
     }
     SkipTypeArguments();
+  }
+}
+
+
+void Parser::SkipTypeOrFunctionType(bool allow_void) {
+  if (CurrentToken() == Token::kVOID) {
+    TokenPosition void_pos = TokenPos();
+    ConsumeToken();
+    // 'void' is always allowed as result type of a function type.
+    if (!allow_void && !IsFunctionTypeSymbol()) {
+      ReportError(void_pos, "'void' not allowed here");
+    }
+  } else if (!IsFunctionTypeSymbol()) {
+    // Including 'Function' not followed by '(' or '<'.
+    SkipType(false);
+  }
+  while (IsSymbol(Symbols::Function())) {
+    ConsumeToken();
+    SkipTypeArguments();
+    if (CurrentToken() == Token::kLPAREN) {
+      SkipToMatchingParenthesis();
+    } else {
+      ReportError("'(' expected");
+    }
   }
 }
 
@@ -5390,7 +5535,7 @@ RawTypeArguments* Parser::ParseTypeArguments(
     AbstractType& type = AbstractType::Handle(Z);
     do {
       ConsumeToken();
-      type = ParseType(finalization);
+      type = ParseTypeOrFunctionType(false, finalization);
       // Map a malformed type argument to dynamic.
       if (type.IsMalformed()) {
         type = Type::DynamicType();
@@ -5596,16 +5741,11 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     ConsumeToken();
     is_external = true;
   }
-  if (CurrentToken() == Token::kVOID) {
-    ConsumeToken();
-    result_type = Type::VoidType();
-  } else {
-    // Parse optional type.
-    if (IsFunctionReturnType()) {
-      // It is too early to resolve the type here, since it can be a result type
-      // referring to a not yet declared function type parameter.
-      result_type = ParseType(ClassFinalizer::kDoNotResolve);
-    }
+  // Parse optional result type.
+  if (IsFunctionReturnType()) {
+    // It is too early to resolve the type here, since it can be a result type
+    // referring to a not yet declared function type parameter.
+    result_type = ParseTypeOrFunctionType(true, ClassFinalizer::kDoNotResolve);
   }
   const TokenPosition name_pos = TokenPos();
   const String& func_name = *ExpectIdentifier("function name expected");
@@ -5642,17 +5782,16 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     }
     ParseTypeParameters(false);  // Not parameterizing class, but function.
   }
-  // At this point, the type parameters have been parsed, so we can resolve the
-  // result type.
-  if (!result_type.IsNull()) {
-    ResolveType(ClassFinalizer::kResolveTypeParameters, &result_type);
-  }
 
   CheckToken(Token::kLPAREN);
   const TokenPosition function_pos = TokenPos();
   ParamList params;
+  const bool use_function_type_syntax = false;
   const bool allow_explicit_default_values = true;
-  ParseFormalParameterList(allow_explicit_default_values, false, &params);
+  const bool evaluate_metadata = false;
+  ParseFormalParameterList(use_function_type_syntax,
+                           allow_explicit_default_values, evaluate_metadata,
+                           &params);
 
   const TokenPosition modifier_pos = TokenPos();
   RawFunction::AsyncModifier func_modifier = ParseFunctionModifier();
@@ -5699,6 +5838,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   AddFormalParamsToFunction(&params, func);
   ASSERT(innermost_function().raw() == func.raw());
   innermost_function_ = Function::null();
+  ResolveSignature(ClassFinalizer::kResolveTypeParameters, func);
   top_level->AddFunction(func);
   if (!is_patch) {
     library_.AddObject(func, func_name);
@@ -5738,12 +5878,8 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     ConsumeToken();
     result_type = Type::DynamicType();
   } else {
-    if (CurrentToken() == Token::kVOID) {
-      ConsumeToken();
-      result_type = Type::VoidType();
-    } else {
-      result_type = ParseType(ClassFinalizer::kResolveTypeParameters);
-    }
+    result_type =
+        ParseTypeOrFunctionType(true, ClassFinalizer::kResolveTypeParameters);
     is_getter = (CurrentToken() == Token::kGET);
     if (CurrentToken() == Token::kGET || CurrentToken() == Token::kSET) {
       ConsumeToken();
@@ -5758,8 +5894,12 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   ParamList params;
 
   if (!is_getter) {
+    const bool use_function_type_syntax = false;
     const bool allow_explicit_default_values = true;
-    ParseFormalParameterList(allow_explicit_default_values, false, &params);
+    const bool evaluate_metadata = false;
+    ParseFormalParameterList(use_function_type_syntax,
+                             allow_explicit_default_values, evaluate_metadata,
+                             &params);
   }
   String& accessor_name = String::ZoneHandle(Z);
   int expected_num_parameters = -1;
@@ -5853,6 +5993,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     func.set_is_reflectable(false);
   }
   AddFormalParamsToFunction(&params, func);
+  ResolveSignature(ClassFinalizer::kResolveTypeParameters, func);
   top_level->AddFunction(func);
   if (!is_patch) {
     library_.AddObject(func, accessor_name);
@@ -6703,7 +6844,7 @@ RawFunction* Parser::OpenSyncGeneratorFunction(TokenPosition func_pos) {
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, body);
-
+    ResolveSignature(ClassFinalizer::kResolveTypeParameters, body);
     // Finalize function type.
     Type& signature_type = Type::Handle(Z, body.SignatureType());
     signature_type ^= ClassFinalizer::FinalizeType(
@@ -6831,6 +6972,7 @@ RawFunction* Parser::OpenAsyncFunction(TokenPosition async_func_pos) {
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, closure);
+    ResolveSignature(ClassFinalizer::kResolveTypeParameters, closure);
 
     // Finalize function type.
     Type& signature_type = Type::Handle(Z, closure.SignatureType());
@@ -6960,6 +7102,7 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(TokenPosition async_func_pos) {
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, closure);
+    ResolveSignature(ClassFinalizer::kResolveTypeParameters, closure);
 
     // Finalize function type.
     Type& signature_type = Type::Handle(Z, closure.SignatureType());
@@ -7322,6 +7465,23 @@ void Parser::SetupDefaultsForOptionalParams(const ParamList& params) {
 }
 
 
+void Parser::FinalizeFormalParameterTypes(const ParamList* params) {
+  ASSERT((params != NULL) && (params->parameters != NULL));
+  const int num_parameters = params->parameters->length();
+  AbstractType& type = AbstractType::Handle(Z);
+  for (int i = 0; i < num_parameters; i++) {
+    ParamDesc& param_desc = (*params->parameters)[i];
+    type = param_desc.type->raw();
+    ResolveType(ClassFinalizer::kCanonicalize, &type);
+    type = ClassFinalizer::FinalizeType(current_class(), type,
+                                        ClassFinalizer::kCanonicalize);
+    if (type.raw() != param_desc.type->raw()) {
+      param_desc.type = &AbstractType::ZoneHandle(Z, type.raw());
+    }
+  }
+}
+
+
 // Populate the parameter type array and parameter name array of the function
 // with the formal parameter types and names.
 void Parser::AddFormalParamsToFunction(const ParamList* params,
@@ -7376,7 +7536,6 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
   const int num_parameters = params->parameters->length();
   for (int i = 0; i < num_parameters; i++) {
     ParamDesc& param_desc = (*params->parameters)[i];
-    ASSERT(!is_top_level_ || param_desc.type->IsResolved());
     const String* name = param_desc.name;
     LocalVariable* parameter = new (Z) LocalVariable(
         param_desc.name_pos, param_desc.name_pos, *name, *param_desc.type);
@@ -7555,6 +7714,9 @@ RawAbstractType* Parser::ParseConstFinalVarOrType(
     ConsumeToken();
     type_is_optional = true;
   }
+  if ((CurrentToken() == Token::kVOID) || IsFunctionTypeSymbol()) {
+    return ParseFunctionType(AbstractType::Handle(Z), finalization);
+  }
   if (CurrentToken() != Token::kIDENT) {
     if (type_is_optional) {
       return Type::DynamicType();
@@ -7573,7 +7735,7 @@ RawAbstractType* Parser::ParseConstFinalVarOrType(
       return Type::DynamicType();
     }
   }
-  return ParseType(finalization);
+  return ParseTypeOrFunctionType(false, finalization);
 }
 
 
@@ -7625,11 +7787,8 @@ AstNode* Parser::ParseVariableDeclarationList() {
 
 AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   TRACE_PARSER("ParseFunctionStatement");
-  AbstractType& result_type = AbstractType::Handle(Z);
+  AbstractType& result_type = AbstractType::Handle(Z, Type::DynamicType());
   const String* function_name = NULL;
-
-  result_type = Type::DynamicType();
-
   const TokenPosition function_pos = TokenPos();
   TokenPosition function_name_pos = TokenPosition::kNoSource;
   TokenPosition metadata_pos = TokenPosition::kNoSource;
@@ -7638,13 +7797,12 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     function_name = &Symbols::AnonymousClosure();
   } else {
     metadata_pos = SkipMetadata();
-    if (CurrentToken() == Token::kVOID) {
-      ConsumeToken();
-      result_type = Type::VoidType();
-    } else if (IsFunctionReturnType()) {
+    // Parse optional result type.
+    if (IsFunctionReturnType()) {
       // It is too early to resolve the type here, since it can be a result type
       // referring to a not yet declared function type parameter.
-      result_type = ParseType(ClassFinalizer::kDoNotResolve);
+      result_type =
+          ParseTypeOrFunctionType(true, ClassFinalizer::kDoNotResolve);
     }
     function_name_pos = TokenPos();
     function_name = ExpectIdentifier("function name expected");
@@ -8014,6 +8172,15 @@ bool Parser::IsSymbol(const String& symbol) {
 }
 
 
+// Returns true if the current token is 'Function' followed by '<' or '('.
+// 'Function' not followed by '<' or '(' denotes the Function class.
+bool Parser::IsFunctionTypeSymbol() {
+  return IsSymbol(Symbols::Function()) &&
+         ((LookaheadToken(1) == Token::kLPAREN) ||
+          (LookaheadToken(1) == Token::kLT));
+}
+
+
 // Returns true if the next tokens can be parsed as a an optionally
 // qualified identifier: [ident '.'] ident.
 // Current token position is not restored.
@@ -8035,30 +8202,41 @@ bool Parser::TryParseQualIdent() {
 
 // Returns true if the next tokens can be parsed as a type with optional
 // type parameters. Current token position is not restored.
-bool Parser::TryParseOptionalType() {
-  if (CurrentToken() == Token::kIDENT) {
+// Allow 'void' as type if 'allow_void' is true.
+// Note that 'void Function()' is always allowed, since it is a function type
+// and not the void type.
+bool Parser::TryParseType(bool allow_void) {
+  bool found = false;
+  if (CurrentToken() == Token::kVOID) {
+    ConsumeToken();
+    if (allow_void) {
+      found = true;
+    } else if (!IsFunctionTypeSymbol()) {
+      return false;
+    }
+  } else if ((CurrentToken() == Token::kIDENT) && !IsFunctionTypeSymbol()) {
+    // 'Function' not followed by '(' or '<' means the Function class.
     if (!TryParseQualIdent()) {
       return false;
     }
     if ((CurrentToken() == Token::kLT) && !TryParseTypeParameters()) {
       return false;
     }
+    found = true;
   }
-  return true;
-}
-
-
-// Returns true if the next tokens can be parsed as a type with optional
-// type parameters, or keyword "void".
-// Current token position is not restored.
-bool Parser::TryParseReturnType() {
-  if (CurrentToken() == Token::kVOID) {
+  while (IsSymbol(Symbols::Function())) {
     ConsumeToken();
-    return true;
-  } else if (CurrentToken() == Token::kIDENT) {
-    return TryParseOptionalType();
+    if ((CurrentToken() == Token::kLT) && !TryParseTypeParameters()) {
+      return false;
+    }
+    if (CurrentToken() == Token::kLPAREN) {
+      SkipToMatchingParenthesis();
+    } else {
+      return false;
+    }
+    found = true;
   }
-  return false;
+  return found;
 }
 
 
@@ -8082,8 +8260,10 @@ bool Parser::IsVariableDeclaration() {
     SetPosition(saved_pos);
     return is_var_decl;
   }
-  if ((CurrentToken() != Token::kIDENT) && (CurrentToken() != Token::kCONST)) {
-    // Not a legal type identifier or const keyword or metadata.
+  if ((CurrentToken() != Token::kIDENT) && (CurrentToken() != Token::kVOID) &&
+      (CurrentToken() != Token::kCONST)) {
+    // Not a legal type identifier or void (result type of function type)
+    // or const keyword or metadata.
     return false;
   }
   const TokenPosition saved_pos = TokenPos();
@@ -8091,28 +8271,32 @@ bool Parser::IsVariableDeclaration() {
   bool have_type = false;
   if (CurrentToken() == Token::kCONST) {
     ConsumeToken();
-    have_type = true;  // Type is dynamic.
+    have_type = true;  // Type is dynamic if 'const' is not followed by a type.
   }
-  if (IsIdentifier()) {  // Type or variable name.
+  if ((CurrentToken() == Token::kVOID) || IsFunctionTypeSymbol()) {
+    if (TryParseType(false)) {
+      have_type = true;
+    }
+  } else if (IsIdentifier()) {  // Type or variable name.
     Token::Kind follower = LookaheadToken(1);
     if ((follower == Token::kLT) ||       // Parameterized type.
         (follower == Token::kPERIOD) ||   // Qualified class name of type.
         Token::IsIdentifier(follower)) {  // Variable name following a type.
       // We see the beginning of something that could be a type.
       const TokenPosition type_pos = TokenPos();
-      if (TryParseOptionalType()) {
+      if (TryParseType(false)) {
         have_type = true;
       } else {
         SetPosition(type_pos);
       }
     }
-    if (have_type && IsIdentifier()) {
-      ConsumeToken();
-      if ((CurrentToken() == Token::kSEMICOLON) ||
-          (CurrentToken() == Token::kCOMMA) ||
-          (CurrentToken() == Token::kASSIGN)) {
-        is_var_decl = true;
-      }
+  }
+  if (have_type && IsIdentifier()) {
+    ConsumeToken();
+    if ((CurrentToken() == Token::kSEMICOLON) ||
+        (CurrentToken() == Token::kCOMMA) ||
+        (CurrentToken() == Token::kASSIGN)) {
+      is_var_decl = true;
     }
   }
   SetPosition(saved_pos);
@@ -8124,7 +8308,7 @@ bool Parser::IsVariableDeclaration() {
 // by an identifier.
 bool Parser::IsFunctionReturnType() {
   TokenPosScope decl_pos(this);
-  if (TryParseReturnType()) {
+  if (TryParseType(true)) {
     if (IsIdentifier()) {
       // Return type followed by function name.
       return true;
@@ -8146,7 +8330,7 @@ bool Parser::IsFunctionDeclaration() {
     ConsumeToken();
   }
   const TokenPosition type_or_name_pos = TokenPos();
-  if (TryParseReturnType()) {
+  if (TryParseType(true)) {
     if (!IsIdentifier()) {
       SetPosition(type_or_name_pos);
     }
@@ -8186,7 +8370,7 @@ bool Parser::IsTopLevelAccessor() {
   if ((CurrentToken() == Token::kGET) || (CurrentToken() == Token::kSET)) {
     return true;
   }
-  if (TryParseReturnType()) {
+  if (TryParseType(true)) {
     if ((CurrentToken() == Token::kGET) || (CurrentToken() == Token::kSET)) {
       if (Token::IsIdentifier(LookaheadToken(1))) {  // Accessor name.
         return true;
@@ -8235,7 +8419,7 @@ bool Parser::IsForInStatement() {
   if (IsIdentifier()) {
     if (LookaheadToken(1) == Token::kIN) {
       return true;
-    } else if (TryParseOptionalType()) {
+    } else if (TryParseType(false)) {
       if (IsIdentifier()) {
         ConsumeToken();
       }
@@ -9534,7 +9718,7 @@ SequenceNode* Parser::ParseCatchClauses(
     if (IsSymbol(Symbols::On())) {
       ConsumeToken();
       exception_param.type = &AbstractType::ZoneHandle(
-          Z, ParseType(ClassFinalizer::kCanonicalize));
+          Z, ParseTypeOrFunctionType(false, ClassFinalizer::kCanonicalize));
     } else {
       exception_param.type = &Object::dynamic_type();
     }
@@ -10640,7 +10824,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         }
         const TokenPosition type_pos = TokenPos();
         const AbstractType& type = AbstractType::ZoneHandle(
-            Z, ParseType(ClassFinalizer::kCanonicalize));
+            Z, ParseTypeOrFunctionType(false, ClassFinalizer::kCanonicalize));
         if (!type.IsInstantiated() && (FunctionLevel() > 0)) {
           // Make sure that the instantiator is captured.
           CaptureInstantiator();
@@ -11969,6 +12153,32 @@ AstNode* Parser::ParsePostfixExpr() {
 }
 
 
+// Resolve the types of the given signature from the current class according to
+// the given type finalization mode.
+// Not all involved type classes may get resolved yet, but at least type
+// parameters will get resolved, thereby relieving the class
+// finalizer from resolving type parameters out of context.
+// TODO(regis): Refactor this code which is partially duplicated in the class
+// finalizer, paying attention to type parameter resolution and mixin library.
+void Parser::ResolveSignature(ClassFinalizer::FinalizationKind finalization,
+                              const Function& signature) {
+  const Function& saved_innermost_function =
+      Function::Handle(Z, innermost_function().raw());
+  innermost_function_ = signature.raw();
+  // TODO(regis): Resolve upper bounds of function type parameters.
+  AbstractType& type = AbstractType::Handle(signature.result_type());
+  ResolveType(finalization, &type);
+  signature.set_result_type(type);
+  const intptr_t num_parameters = signature.NumParameters();
+  for (intptr_t i = 0; i < num_parameters; i++) {
+    type = signature.ParameterTypeAt(i);
+    ResolveType(finalization, &type);
+    signature.SetParameterTypeAt(i, type);
+  }
+  innermost_function_ = saved_innermost_function.raw();
+}
+
+
 // Resolve the given type and its type arguments from the current function and
 // current class according to the given type finalization mode.
 // Not all involved type classes may get resolved yet, but at least type
@@ -12096,15 +12306,7 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
     if (signature_type.raw() != type->raw()) {
       ResolveType(finalization, &signature_type);
     } else {
-      AbstractType& type = AbstractType::Handle(signature.result_type());
-      ResolveType(finalization, &type);
-      signature.set_result_type(type);
-      const intptr_t num_parameters = signature.NumParameters();
-      for (intptr_t i = 0; i < num_parameters; i++) {
-        type = signature.ParameterTypeAt(i);
-        ResolveType(finalization, &type);
-        signature.SetParameterTypeAt(i, type);
-      }
+      ResolveSignature(finalization, signature);
       if (signature.IsSignatureFunction()) {
         // Drop fields that are not necessary anymore after resolution.
         // The parent function, owner, and token position of a shared
@@ -12118,11 +12320,23 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
         // preventing sharing of canonical function types between typedefs.
         // Not being shared, these fields are therefore always meaningful for
         // typedefs.
-        if (type.HasResolvedTypeClass()) {
-          const Class& scope_class = Class::Handle(Z, type.type_class());
-          if (!scope_class.IsTypedefClass()) {
+      }
+      if (type->HasResolvedTypeClass()) {
+        const Class& scope_class = Class::Handle(Z, type->type_class());
+        if (!scope_class.IsTypedefClass()) {
+          if (signature.IsSignatureFunction()) {
             signature.set_owner(Object::Handle(Z));
             signature.set_token_pos(TokenPosition::kNoSource);
+          }
+          if ((type->arguments() != TypeArguments::null()) &&
+              signature.HasInstantiatedSignature()) {
+            ASSERT(scope_class.IsGeneric());
+            // Although the scope class of this function type is generic,
+            // the signature of this function type does not refer to any
+            // of its type parameters. Reset its scope class to _Closure.
+            Type::Cast(*type).set_type_class(Class::Handle(
+                Z, Isolate::Current()->object_store()->closure_class()));
+            type->set_arguments(Object::null_type_arguments());
           }
         }
       }
@@ -12735,8 +12949,123 @@ RawAbstractType* Parser::ParseType(
                    &prefix);
 }
 
+
+// Parses and returns a type or a function type.
+RawAbstractType* Parser::ParseTypeOrFunctionType(
+    bool allow_void,
+    ClassFinalizer::FinalizationKind finalization) {
+  TRACE_PARSER("ParseTypeOrFunctionType");
+  AbstractType& type = AbstractType::Handle(Z);
+  if (CurrentToken() == Token::kVOID) {
+    TokenPosition void_pos = TokenPos();
+    type = Type::VoidType();
+    ConsumeToken();
+    // 'void' is always allowed as result type of a function type.
+    if (!allow_void && !IsFunctionTypeSymbol()) {
+      ReportError(void_pos, "'void' not allowed here");
+    }
+  } else if (!IsFunctionTypeSymbol()) {
+    // Including 'Function' not followed by '(' or '<'.
+    // It is too early to resolve the type here, since it can
+    // refer to a not yet declared function type parameter.
+    type = ParseType(ClassFinalizer::kDoNotResolve);
+  }
+  while (IsSymbol(Symbols::Function())) {
+    if (type.IsNull()) {
+      type = Type::DynamicType();
+    }
+    // 'type' is the result type of the function type.
+    type = ParseFunctionType(type, ClassFinalizer::kDoNotResolve);
+  }
+  // At this point, all type parameters have been parsed, resolve the type.
+  if (finalization == ClassFinalizer::kIgnore) {
+    return Type::DynamicType();
+  }
+  if (finalization >= ClassFinalizer::kResolveTypeParameters) {
+    ResolveType(finalization, &type);
+    if (finalization >= ClassFinalizer::kCanonicalize) {
+      type ^= ClassFinalizer::FinalizeType(current_class(), type, finalization);
+    }
+  }
+  return type.raw();
+}
+
+
+// Parses and returns a function type.
+// If 'result_type' is not null, parsing of the result type is skipped.
+RawType* Parser::ParseFunctionType(
+    const AbstractType& result_type,
+    ClassFinalizer::FinalizationKind finalization) {
+  TRACE_PARSER("ParseFunctionType");
+  AbstractType& type = AbstractType::Handle(Z, result_type.raw());
+  if (type.IsNull()) {
+    if (CurrentToken() == Token::kVOID) {
+      ConsumeToken();
+      type = Type::VoidType();
+    } else if (IsFunctionTypeSymbol()) {
+      type = Type::DynamicType();
+    } else {
+      // Including 'Function' not followed by '(' or '<'.
+      // It is too early to resolve the type here, since it can
+      // refer to a not yet declared function type parameter.
+      type = ParseType(ClassFinalizer::kDoNotResolve);
+    }
+  }
+  if (!IsSymbol(Symbols::Function())) {
+    ReportError("'Function' expected");
+  }
+  do {
+    ConsumeToken();
+    const Function& signature_function =
+        Function::Handle(Z, Function::NewSignatureFunction(
+                                current_class(), TokenPosition::kNoSource));
+    signature_function.set_parent_function(innermost_function());
+    innermost_function_ = signature_function.raw();
+    signature_function.set_result_type(type);
+    // Parse optional type parameters.
+    if (CurrentToken() == Token::kLT) {
+      if (!FLAG_generic_method_syntax) {
+        ReportError("generic type arguments not supported.");
+      }
+      ParseTypeParameters(false);  // Not parameterizing class, but function.
+    }
+    ParamList params;
+    // We do not yet allow Function of any arity, so expect parameter list.
+    CheckToken(Token::kLPAREN, "formal parameter list expected");
+
+    // Add implicit closure object parameter. Do not specify a token position,
+    // since it would make no sense after function type canonicalization.
+    params.AddFinalParameter(TokenPosition::kNoSource,
+                             &Symbols::ClosureParameter(),
+                             &Object::dynamic_type());
+
+    const bool use_function_type_syntax = true;
+    const bool allow_explicit_default_values = false;
+    const bool evaluate_metadata = false;
+    ParseFormalParameterList(use_function_type_syntax,
+                             allow_explicit_default_values, evaluate_metadata,
+                             &params);
+    AddFormalParamsToFunction(&params, signature_function);
+    innermost_function_ = innermost_function_.parent_function();
+    type = signature_function.SignatureType();
+  } while (IsSymbol(Symbols::Function()));
+  // At this point, all type parameters have been parsed, resolve the type.
+  if (finalization == ClassFinalizer::kIgnore) {
+    return Type::DynamicType();
+  }
+  if (finalization >= ClassFinalizer::kResolveTypeParameters) {
+    ResolveType(finalization, &type);
+    if (finalization >= ClassFinalizer::kCanonicalize) {
+      type ^= ClassFinalizer::FinalizeType(current_class(), type, finalization);
+    }
+  }
+  return Type::RawCast(type.raw());
+}
+
+
 // Parses type = [ident "."] ident ["<" type { "," type } ">"], then resolve and
-// finalize it according to the given type finalization mode. Returns prefix.
+// finalize it according to the given type finalization mode.
+// Returns type and sets prefix.
 RawAbstractType* Parser::ParseType(
     ClassFinalizer::FinalizationKind finalization,
     bool allow_deferred_type,
@@ -13386,6 +13715,7 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
   closure.set_is_visible(false);
   closure.set_result_type(Object::dynamic_type());
   AddFormalParamsToFunction(&params, closure);
+  ResolveSignature(ClassFinalizer::kResolveTypeParameters, closure);
 
   // Finalize function type.
   Type& signature_type = Type::Handle(Z, closure.SignatureType());
@@ -14230,7 +14560,7 @@ const Instance& Parser::EvaluateConstExpr(TokenPosition expr_pos,
 void Parser::SkipFunctionLiteral() {
   if (IsIdentifier()) {
     if (LookaheadToken(1) != Token::kLPAREN) {
-      SkipType(true);
+      SkipTypeOrFunctionType(true);
     }
     ExpectIdentifier("function name expected");
   }
@@ -14256,6 +14586,12 @@ void Parser::SkipFunctionLiteral() {
 void Parser::SkipFunctionPreamble() {
   while (true) {
     const Token::Kind token = CurrentToken();
+    if (IsFunctionTypeSymbol()) {
+      ConsumeToken();
+      SkipTypeArguments();
+      SkipToMatchingParenthesis();
+      continue;
+    }
     if (token == Token::kLPAREN) {
       return;
     }
@@ -14530,10 +14866,10 @@ void Parser::SkipBinaryExpr() {
       if (CurrentToken() == Token::kNOT) {
         ConsumeToken();
       }
-      SkipType(false);
+      SkipTypeOrFunctionType(false);
     } else if (CurrentToken() == Token::kAS) {
       ConsumeToken();
-      SkipType(false);
+      SkipTypeOrFunctionType(false);
     } else {
       ConsumeToken();
       SkipUnaryExpr();

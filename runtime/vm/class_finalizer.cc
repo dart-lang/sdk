@@ -565,6 +565,16 @@ void ClassFinalizer::ResolveType(const Class& cls, const AbstractType& type) {
         ResolveSignature(scope_class, signature);
       } else {
         ResolveSignature(cls, signature);
+        if ((type.arguments() != TypeArguments::null()) &&
+            signature.HasInstantiatedSignature()) {
+          ASSERT(scope_class.IsGeneric());
+          // Although the scope class of this function type is generic,
+          // the signature of this function type does not refer to any
+          // of its type parameters. Reset its scope class to _Closure.
+          Type::Cast(type).set_type_class(Class::Handle(
+              Isolate::Current()->object_store()->closure_class()));
+          type.set_arguments(Object::null_type_arguments());
+        }
       }
       if (signature.IsSignatureFunction()) {
         // Drop fields that are not necessary anymore after resolution.
@@ -706,7 +716,7 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
 
   // If we are not reifying types, drop type arguments.
   if (!FLAG_reify) {
-    type.set_arguments(TypeArguments::Handle(zone, TypeArguments::null()));
+    type.set_arguments(Object::null_type_arguments());
   }
 
   // Initialize the type argument vector.
