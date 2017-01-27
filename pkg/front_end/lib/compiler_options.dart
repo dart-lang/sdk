@@ -85,14 +85,6 @@ class CompilerOptions {
   /// generated files.
   List<Uri> multiRoots = [];
 
-  /// Sets the platform bit, which determines which patch files should be
-  /// applied to the SDK.
-  ///
-  /// The value should be a power of two, and should match the `PLATFORM` bit
-  /// flags in sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart.  If
-  /// zero, no patch files will be applied.
-  int platformBit;
-
   /// The declared variables for use by configurable imports and constant
   /// evaluation.
   Map<String, String> declaredVariables;
@@ -122,4 +114,17 @@ class CompilerOptions {
 
   /// Whether to intepret Dart sources in strong-mode.
   bool strongMode = true;
+
+  // All options below are target-specific options.
+  //
+  // TODO(sigmund): revisit the right layout for these options. We might want to
+  // split them out into a separate bag of options or provide factories for
+  // common combinations of these options.
+
+  /// Patch files to apply on the core libraries for a specific target platform.
+  ///
+  /// Keys on this map are expected to be `dart:*` URIs. The values can be
+  /// either absolute or relative URIs. Absolute URIs are read directly, while
+  /// relative URIs are resolved from the [sdkRoot].
+  Map<Uri, List<Uri>> targetPatches = {};
 }

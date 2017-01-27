@@ -37,6 +37,17 @@ import 'package:source_span/source_span.dart' show SourceSpan;
 /// needed to access the contents of method bodies).
 Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
   var loader = await _createLoader(options, entry: source);
+  // TODO(sigmund): delete this. At this time we have no need to explicitly list
+  // VM libraries, since they are normally found by chasing dependencies.
+  // `dart:_builtin` is an exception because it is used by the kernel
+  // transformers to inform the VM about where the main entrypoint is. This is
+  // expected to change, and we should be able to remove these lines at that
+  // point. We check for the presense of `dart:developer` in the targetPatches
+  // to ensure we only load this library while running on the VM.
+  if (options.compileSdk &&
+      options.targetPatches.containsKey(Uri.parse('dart:developer'))) {
+    loader.loadLibrary(Uri.parse('dart:_builtin'));
+  }
   // TODO(sigmund): merge what we have in loadEverything and the logic below in
   // kernelForBuildUnit so there is a single place where we crawl for
   // dependencies.
@@ -131,8 +142,20 @@ Future<DartLoader> _createLoader(CompilerOptions options,
   var packages = await createPackages(
       _uriToPath(options.packagesFileUri, options),
       discoveryPath: entry?.path);
-  return new DartLoader(
+  var loader = new DartLoader(
       repository ?? new Repository(), kernelOptions, packages);
+  var patchPaths = {};
+
+  // TODO(sigmund,paulberry): use ProcessedOptions so that we can resolve the
+  // URIs correctly even if sdkRoot is inferred and not specified explicitly.
+  String resolve(Uri patch) =>
+    options.fileSystem.context.fromUri(options.sdkRoot.resolveUri(patch));
+
+  options.targetPatches.forEach((uri, patches) {
+    patchPaths['$uri'] = patches.map(resolve).toList();
+  });
+  loader.context.analysisOptions.patchPaths = patchPaths;
+  return loader;
 }
 
 DartOptions _convertOptions(CompilerOptions options) {
@@ -144,6 +167,7 @@ DartOptions _convertOptions(CompilerOptions options) {
       sdkSummary:
           options.compileSdk ? null : _uriToPath(options.sdkSummary, options),
       packagePath: _uriToPath(options.packagesFileUri, options),
+      customUriMappings: options.uriOverride,
       declaredVariables: options.declaredVariables);
 }
 
