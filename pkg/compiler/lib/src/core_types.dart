@@ -90,6 +90,7 @@ abstract class CommonElements {
 
   /// Whether [element] is the same as [symbolConstructor]. Used to check
   /// for the constructor without computing it until it is likely to be seen.
+  // TODO(johnniwinther): Change type of [e] to [MemberEntity].
   bool isSymbolConstructor(Entity e);
 
   /// The `MirrorSystem` class in dart:mirrors.
@@ -206,4 +207,264 @@ abstract class CommonElements {
 
   /// Returns `true` if [element] is a superclass of `List`.
   bool isListSupertype(ClassEntity element);
+}
+
+abstract class CommonElementsMixin implements CommonElements {
+  /// Lookup the class [name] in [library], fail if the class is missing and
+  /// [required].
+  ClassEntity findClass(LibraryEntity library, String name,
+      {bool required: true});
+
+  /// Lookup the member [name] in [library], fail if the class is missing and
+  /// [required].
+  MemberEntity findLibraryMember(LibraryEntity library, String name,
+      {bool required: true});
+
+  /// Lookup the member [name] in [cls], fail if the class is missing and
+  /// [required].
+  MemberEntity findClassMember(ClassEntity cls, String name,
+      {bool required: true});
+
+  /// Lookup the constructor [name] in [cls], fail if the class is missing and
+  /// [required].
+  FunctionEntity findConstructor(ClassEntity cls, String name,
+      {bool required: true});
+
+  /// Return the raw type of [cls].
+  InterfaceType getRawType(ClassEntity cls);
+
+  /// Create the instantiation of [cls] with the given [typeArguments].
+  InterfaceType createInterfaceType(
+      ClassEntity cls, List<DartType> typeArguments);
+
+  // From dart:core
+
+  ClassEntity _objectClass;
+  ClassEntity get objectClass =>
+      _objectClass ??= findClass(coreLibrary, 'Object');
+
+  ClassEntity _boolClass;
+  ClassEntity get boolClass => _boolClass ??= findClass(coreLibrary, 'bool');
+
+  ClassEntity _numClass;
+  ClassEntity get numClass => _numClass ??= findClass(coreLibrary, 'num');
+
+  ClassEntity _intClass;
+  ClassEntity get intClass => _intClass ??= findClass(coreLibrary, 'int');
+
+  ClassEntity _doubleClass;
+  ClassEntity get doubleClass =>
+      _doubleClass ??= findClass(coreLibrary, 'double');
+
+  ClassEntity _stringClass;
+  ClassEntity get stringClass =>
+      _stringClass ??= findClass(coreLibrary, 'String');
+
+  ClassEntity _functionClass;
+  ClassEntity get functionClass =>
+      _functionClass ??= findClass(coreLibrary, 'Function');
+
+  FunctionEntity _functionApplyMethod;
+  FunctionEntity get functionApplyMethod =>
+      _functionApplyMethod ??= findClassMember(functionClass, 'apply');
+
+  bool isFunctionApplyMethod(MemberEntity element) =>
+      element.name == 'apply' && element.enclosingClass == functionClass;
+
+  ClassEntity _nullClass;
+  ClassEntity get nullClass => _nullClass ??= findClass(coreLibrary, 'Null');
+
+  ClassEntity _listClass;
+  ClassEntity get listClass => _listClass ??= findClass(coreLibrary, 'List');
+
+  ClassEntity _typeClass;
+  ClassEntity get typeClass => _typeClass ??= findClass(coreLibrary, 'Type');
+
+  ClassEntity _mapClass;
+  ClassEntity get mapClass => _mapClass ??= findClass(coreLibrary, 'Map');
+
+  ClassEntity _symbolClass;
+  ClassEntity get symbolClass =>
+      _symbolClass ??= findClass(coreLibrary, 'Symbol');
+
+  FunctionEntity _symbolConstructor;
+  FunctionEntity get symbolConstructor =>
+    _symbolConstructor ??= findConstructor(symbolClass, '');
+
+  bool isSymbolConstructor(Entity e) => e == symbolConstructor;
+
+  ClassEntity _stackTraceClass;
+  ClassEntity get stackTraceClass =>
+      _stackTraceClass ??= findClass(coreLibrary, 'StackTrace');
+
+  ClassEntity _iterableClass;
+  ClassEntity get iterableClass =>
+      _iterableClass ??= findClass(coreLibrary, 'Iterable');
+
+  ClassEntity _resourceClass;
+  ClassEntity get resourceClass =>
+      _resourceClass ??= findClass(coreLibrary, 'Resource');
+
+  FunctionEntity _identicalFunction;
+  FunctionEntity get identicalFunction =>
+      _identicalFunction ??= findLibraryMember(coreLibrary, 'identical');
+
+  // From dart:async
+
+  ClassEntity _futureClass;
+  ClassEntity get futureClass =>
+      _futureClass ??= findClass(asyncLibrary, 'Future');
+
+  ClassEntity _streamClass;
+  ClassEntity get streamClass =>
+      _streamClass ??= findClass(asyncLibrary, 'Stream');
+
+  ClassEntity _deferredLibraryClass;
+  ClassEntity get deferredLibraryClass =>
+      _deferredLibraryClass ??= findClass(asyncLibrary, "DeferredLibrary");
+
+  // From dart:mirrors
+
+  ClassEntity _mirrorSystemClass;
+  ClassEntity get mirrorSystemClass => _mirrorSystemClass ??=
+      findClass(mirrorsLibrary, 'MirrorSystem', required: false);
+
+  FunctionEntity _mirrorSystemGetNameFunction;
+  bool isMirrorSystemGetNameFunction(MemberEntity element) {
+    if (_mirrorSystemGetNameFunction == null) {
+      if (!element.isFunction || mirrorsLibrary == null) return false;
+      ClassEntity cls = mirrorSystemClass;
+      if (element.enclosingClass != cls) return false;
+      if (cls != null) {
+        _mirrorSystemGetNameFunction =
+            findClassMember(cls, 'getName', required: false);
+      }
+    }
+    return element == _mirrorSystemGetNameFunction;
+  }
+
+  ClassEntity _mirrorsUsedClass;
+  ClassEntity get mirrorsUsedClass => _mirrorsUsedClass ??=
+      findClass(mirrorsLibrary, 'MirrorsUsed', required: false);
+
+  bool isMirrorsUsedConstructor(FunctionEntity element) =>
+      mirrorsLibrary != null && mirrorsUsedClass == element.enclosingClass;
+
+  FunctionEntity _mirrorsUsedConstructor;
+  @override
+  FunctionEntity get mirrorsUsedConstructor {
+    if (_mirrorsUsedConstructor == null) {
+      ClassEntity cls = mirrorsUsedClass;
+      if (cls != null) {
+        _mirrorsUsedConstructor = findConstructor(cls, '');
+      }
+    }
+    return _mirrorsUsedConstructor;
+  }
+
+  // From dart:typed_data
+
+  ClassEntity _typedDataClass;
+  ClassEntity get typedDataClass =>
+      _typedDataClass ??= findClass(typedDataLibrary, 'NativeTypedData');
+
+  FunctionEntity _unnamedListConstructor;
+  FunctionEntity get unnamedListConstructor =>
+      _unnamedListConstructor ??= findConstructor(listClass, '');
+
+  FunctionEntity _filledListConstructor;
+  FunctionEntity get filledListConstructor =>
+      _filledListConstructor ??= findConstructor(listClass, 'filled');
+
+  // TODO(johnniwinther): Change types to `ClassEntity` when these are not
+  // called with unrelated elements.
+  bool isNumberOrStringSupertype(/*Class*/ Entity element) {
+    return element == findClass(coreLibrary, 'Comparable', required: false);
+  }
+
+  bool isStringOnlySupertype(/*Class*/ Entity element) {
+    return element == findClass(coreLibrary, 'Pattern', required: false);
+  }
+
+  bool isListSupertype(/*Class*/ Entity element) => element == iterableClass;
+
+  @override
+  InterfaceType get objectType => getRawType(objectClass);
+
+  @override
+  InterfaceType get boolType => getRawType(boolClass);
+
+  @override
+  InterfaceType get doubleType => getRawType(doubleClass);
+
+  @override
+  InterfaceType get functionType => getRawType(functionClass);
+
+  @override
+  InterfaceType get intType => getRawType(intClass);
+
+  @override
+  InterfaceType get resourceType => getRawType(resourceClass);
+
+  @override
+  InterfaceType listType([DartType elementType]) {
+    if (elementType == null) {
+      return getRawType(listClass);
+    }
+    return createInterfaceType(listClass, [elementType]);
+  }
+
+  @override
+  InterfaceType mapType([DartType keyType, DartType valueType]) {
+    if (keyType == null && valueType == null) {
+      return getRawType(mapClass);
+    } else if (keyType == null) {
+      keyType = dynamicType;
+    } else if (valueType == null) {
+      valueType = dynamicType;
+    }
+    return createInterfaceType(mapClass, [keyType, valueType]);
+  }
+
+  @override
+  InterfaceType get nullType => getRawType(nullClass);
+
+  @override
+  InterfaceType get numType => getRawType(numClass);
+
+  @override
+  InterfaceType get stringType => getRawType(stringClass);
+
+  @override
+  InterfaceType get symbolType => getRawType(symbolClass);
+
+  @override
+  InterfaceType get typeType => getRawType(typeClass);
+
+  @override
+  InterfaceType get stackTraceType => getRawType(stackTraceClass);
+
+  @override
+  InterfaceType iterableType([DartType elementType]) {
+    if (elementType == null) {
+      return getRawType(iterableClass);
+    }
+    return createInterfaceType(iterableClass, [elementType]);
+  }
+
+  @override
+  InterfaceType futureType([DartType elementType]) {
+    if (elementType == null) {
+      return getRawType(futureClass);
+    }
+    return createInterfaceType(futureClass, [elementType]);
+  }
+
+  @override
+  InterfaceType streamType([DartType elementType]) {
+    if (elementType == null) {
+      return getRawType(streamClass);
+    }
+    return createInterfaceType(streamClass, [elementType]);
+  }
 }

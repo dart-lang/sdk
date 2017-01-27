@@ -24,7 +24,7 @@ import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
-import 'core_types.dart' show CommonElements;
+import 'core_types.dart' show CommonElements, CommonElementsMixin;
 import 'elements/resolution_types.dart'
     show
         ResolutionDartType,
@@ -1123,7 +1123,7 @@ class SuppressionInfo {
   int hints = 0;
 }
 
-class _CompilerCommonElements implements CommonElements {
+class _CompilerCommonElements extends CommonElementsMixin {
   final Resolution resolution;
   final DiagnosticReporter reporter;
 
@@ -1142,157 +1142,6 @@ class _CompilerCommonElements implements CommonElements {
 
   _CompilerCommonElements(this.resolution, this.reporter);
 
-  // From dart:core
-
-  ClassElement _objectClass;
-  ClassElement get objectClass =>
-      _objectClass ??= _findRequired(coreLibrary, 'Object');
-
-  ClassElement _boolClass;
-  ClassElement get boolClass =>
-      _boolClass ??= _findRequired(coreLibrary, 'bool');
-
-  ClassElement _numClass;
-  ClassElement get numClass => _numClass ??= _findRequired(coreLibrary, 'num');
-
-  ClassElement _intClass;
-  ClassElement get intClass => _intClass ??= _findRequired(coreLibrary, 'int');
-
-  ClassElement _doubleClass;
-  ClassElement get doubleClass =>
-      _doubleClass ??= _findRequired(coreLibrary, 'double');
-
-  ClassElement _stringClass;
-  ClassElement get stringClass =>
-      _stringClass ??= _findRequired(coreLibrary, 'String');
-
-  ClassElement _functionClass;
-  ClassElement get functionClass =>
-      _functionClass ??= _findRequired(coreLibrary, 'Function');
-
-  MethodElement _functionApplyMethod;
-  MethodElement get functionApplyMethod {
-    if (_functionApplyMethod == null) {
-      functionClass.ensureResolved(resolution);
-      _functionApplyMethod = functionClass.lookupLocalMember('apply');
-      assert(invariant(functionClass, _functionApplyMethod != null,
-          message: "Member `apply` not found in ${functionClass}."));
-    }
-    return _functionApplyMethod;
-  }
-
-  bool isFunctionApplyMethod(MemberElement element) =>
-      element.name == 'apply' && element.enclosingClass == functionClass;
-
-  ClassElement _nullClass;
-  ClassElement get nullClass =>
-      _nullClass ??= _findRequired(coreLibrary, 'Null');
-
-  ClassElement _listClass;
-  ClassElement get listClass =>
-      _listClass ??= _findRequired(coreLibrary, 'List');
-
-  ClassElement _typeClass;
-  ClassElement get typeClass =>
-      _typeClass ??= _findRequired(coreLibrary, 'Type');
-
-  ClassElement _mapClass;
-  ClassElement get mapClass => _mapClass ??= _findRequired(coreLibrary, 'Map');
-
-  ClassElement _symbolClass;
-  ClassElement get symbolClass =>
-      _symbolClass ??= _findRequired(coreLibrary, 'Symbol');
-
-  ConstructorElement _symbolConstructor;
-  ConstructorElement get symbolConstructor {
-    if (_symbolConstructor == null) {
-      symbolClass.ensureResolved(resolution);
-      _symbolConstructor = symbolClass.lookupConstructor('');
-      assert(invariant(symbolClass, _symbolConstructor != null,
-          message: "Default constructor not found ${symbolClass}."));
-    }
-    return _symbolConstructor;
-  }
-
-  bool isSymbolConstructor(Element e) =>
-      e.enclosingClass == symbolClass && e == symbolConstructor;
-
-  ClassElement _stackTraceClass;
-  ClassElement get stackTraceClass =>
-      _stackTraceClass ??= _findRequired(coreLibrary, 'StackTrace');
-
-  ClassElement _iterableClass;
-  ClassElement get iterableClass =>
-      _iterableClass ??= _findRequired(coreLibrary, 'Iterable');
-
-  ClassElement _resourceClass;
-  ClassElement get resourceClass =>
-      _resourceClass ??= _findRequired(coreLibrary, 'Resource');
-
-  MethodElement _identicalFunction;
-  MethodElement get identicalFunction =>
-      _identicalFunction ??= coreLibrary.find('identical');
-
-  // From dart:async
-
-  ClassElement _futureClass;
-  ClassElement get futureClass =>
-      _futureClass ??= _findRequired(asyncLibrary, 'Future');
-
-  ClassElement _streamClass;
-  ClassElement get streamClass =>
-      _streamClass ??= _findRequired(asyncLibrary, 'Stream');
-
-  ClassElement _deferredLibraryClass;
-  ClassElement get deferredLibraryClass =>
-      _deferredLibraryClass ??= _findRequired(asyncLibrary, "DeferredLibrary");
-
-  // From dart:mirrors
-
-  ClassElement _mirrorSystemClass;
-  ClassElement get mirrorSystemClass =>
-      _mirrorSystemClass ??= _findRequired(mirrorsLibrary, 'MirrorSystem');
-
-  FunctionElement _mirrorSystemGetNameFunction;
-  bool isMirrorSystemGetNameFunction(MemberElement element) {
-    if (_mirrorSystemGetNameFunction == null) {
-      if (!element.isFunction || mirrorsLibrary == null) return false;
-      ClassElement cls = mirrorSystemClass;
-      if (element.enclosingClass != cls) return false;
-      if (cls != null) {
-        cls.ensureResolved(resolution);
-        _mirrorSystemGetNameFunction = cls.lookupLocalMember('getName');
-      }
-    }
-    return element == _mirrorSystemGetNameFunction;
-  }
-
-  ClassElement _mirrorsUsedClass;
-  ClassElement get mirrorsUsedClass =>
-      _mirrorsUsedClass ??= _findRequired(mirrorsLibrary, 'MirrorsUsed');
-
-  bool isMirrorsUsedConstructor(ConstructorElement element) =>
-      mirrorsLibrary != null && mirrorsUsedClass == element.enclosingClass;
-
-  ConstructorElement _mirrorsUsedConstructor;
-  @override
-  ConstructorElement get mirrorsUsedConstructor {
-    if (_mirrorsUsedConstructor == null) {
-      ClassElement cls = mirrorsUsedClass;
-      if (cls != null) {
-        cls.ensureResolved(resolution);
-        _mirrorsUsedConstructor = cls.constructors.head;
-      }
-    }
-    return _mirrorsUsedConstructor;
-  }
-
-  // From dart:typed_data
-
-  ClassElement _typedDataClass;
-  ClassElement get typedDataClass =>
-      _typedDataClass ??= _findRequired(typedDataLibrary, 'NativeTypedData');
-
   // From dart:_js_helper
   // TODO(sigmund,johnniwinther): refactor needed: either these move to a
   // backend-specific collection of helpers, or the helper code moves to a
@@ -1300,141 +1149,14 @@ class _CompilerCommonElements implements CommonElements {
 
   ClassElement _patchAnnotationClass;
   ClassElement get patchAnnotationClass =>
-      _patchAnnotationClass ??= _findRequired(jsHelperLibrary, '_Patch');
+      _patchAnnotationClass ??= _findLibraryMember(jsHelperLibrary, '_Patch');
 
   ClassElement _nativeAnnotationClass;
   ClassElement get nativeAnnotationClass =>
-      _nativeAnnotationClass ??= _findRequired(jsHelperLibrary, 'Native');
+      _nativeAnnotationClass ??= _findLibraryMember(jsHelperLibrary, 'Native');
 
   @override
   ResolutionDynamicType get dynamicType => const ResolutionDynamicType();
-
-  @override
-  ResolutionInterfaceType get objectType {
-    objectClass.ensureResolved(resolution);
-    return objectClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType get boolType {
-    boolClass.ensureResolved(resolution);
-    return boolClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType get doubleType {
-    doubleClass.ensureResolved(resolution);
-    return doubleClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType get functionType {
-    functionClass.ensureResolved(resolution);
-    return functionClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType get intType {
-    intClass.ensureResolved(resolution);
-    return intClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType get resourceType {
-    resourceClass.ensureResolved(resolution);
-    return resourceClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType listType([ResolutionDartType elementType]) {
-    listClass.ensureResolved(resolution);
-    ResolutionInterfaceType type = listClass.rawType;
-    if (elementType == null) {
-      return type;
-    }
-    return type.createInstantiation([elementType]);
-  }
-
-  @override
-  ResolutionInterfaceType mapType(
-      [ResolutionDartType keyType, ResolutionDartType valueType]) {
-    mapClass.ensureResolved(resolution);
-    ResolutionInterfaceType type = mapClass.rawType;
-    if (keyType == null && valueType == null) {
-      return type;
-    } else if (keyType == null) {
-      keyType = const ResolutionDynamicType();
-    } else if (valueType == null) {
-      valueType = const ResolutionDynamicType();
-    }
-    return type.createInstantiation([keyType, valueType]);
-  }
-
-  @override
-  ResolutionInterfaceType get nullType {
-    nullClass.ensureResolved(resolution);
-    return nullClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType get numType {
-    numClass.ensureResolved(resolution);
-    return numClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType get stringType {
-    stringClass.ensureResolved(resolution);
-    return stringClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType get symbolType {
-    symbolClass.ensureResolved(resolution);
-    return symbolClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType get typeType {
-    typeClass.ensureResolved(resolution);
-    return typeClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType get stackTraceType {
-    stackTraceClass.ensureResolved(resolution);
-    return stackTraceClass.rawType;
-  }
-
-  @override
-  ResolutionInterfaceType iterableType([ResolutionDartType elementType]) {
-    iterableClass.ensureResolved(resolution);
-    ResolutionInterfaceType type = iterableClass.rawType;
-    if (elementType == null) {
-      return type;
-    }
-    return type.createInstantiation([elementType]);
-  }
-
-  @override
-  ResolutionInterfaceType futureType([ResolutionDartType elementType]) {
-    futureClass.ensureResolved(resolution);
-    ResolutionInterfaceType type = futureClass.rawType;
-    if (elementType == null) {
-      return type;
-    }
-    return type.createInstantiation([elementType]);
-  }
-
-  @override
-  ResolutionInterfaceType streamType([ResolutionDartType elementType]) {
-    streamClass.ensureResolved(resolution);
-    ResolutionInterfaceType type = streamClass.rawType;
-    if (elementType == null) {
-      return type;
-    }
-    return type.createInstantiation([elementType]);
-  }
 
   void onLibraryCreated(LibraryElement library) {
     Uri uri = library.canonicalUri;
@@ -1451,7 +1173,50 @@ class _CompilerCommonElements implements CommonElements {
     }
   }
 
-  Element _findRequired(LibraryElement library, String name) {
+  @override
+  MemberElement findLibraryMember(LibraryElement library, String name,
+      {bool required: true}) {
+    return _findLibraryMember(library, name, required: required);
+  }
+
+  @override
+  MemberElement findClassMember(ClassElement cls, String name,
+      {bool required: true}) {
+    cls.ensureResolved(resolution);
+    MemberElement member = cls.lookupLocalMember(name);
+    if (member == null && required) {
+      reporter.internalError(
+          cls,
+          "The class '${cls}' in '${cls.library.canonicalUri}' does not "
+              "contain required member: '$name'.");
+    }
+    return member;
+  }
+
+  @override
+  ConstructorElement findConstructor(ClassElement cls, String name,
+      {bool required: true}) {
+    cls.ensureResolved(resolution);
+    ConstructorElement constructor = cls.lookupConstructor(name);
+    if (constructor == null && required) {
+      reporter.internalError(
+          cls,
+          "The class '${cls}' in '${cls.library.canonicalUri}' does not "
+              "contain required constructor: '$name'.");
+    }
+    return constructor;
+  }
+
+  @override
+  ClassElement findClass(LibraryElement library, String name,
+      {bool required: true}) {
+    return _findLibraryMember(library, name, required: required);
+  }
+
+  Element _findRequired(LibraryElement library, String name) => _findLibraryMember(library, name);
+
+  Element _findLibraryMember(LibraryElement library, String name,
+      {bool required: true}) {
     // If the script of the library is synthesized, the library does not exist
     // and we do not try to load the helpers.
     //
@@ -1459,8 +1224,8 @@ class _CompilerCommonElements implements CommonElements {
     // should not try to find the given element.
     if (library == null || library.isSynthesized) return null;
 
-    var element = library.find(name);
-    if (element == null) {
+    Element element = library.find(name);
+    if (element == null && required) {
       reporter.internalError(
           library,
           "The library '${library.canonicalUri}' does not contain required "
@@ -1469,25 +1234,18 @@ class _CompilerCommonElements implements CommonElements {
     return element;
   }
 
-  ConstructorElement _unnamedListConstructor;
-  ConstructorElement get unnamedListConstructor =>
-      _unnamedListConstructor ??= listClass.lookupDefaultConstructor();
-
-  ConstructorElement _filledListConstructor;
-  ConstructorElement get filledListConstructor =>
-      _filledListConstructor ??= listClass.lookupConstructor("filled");
-
-  // TODO(johnniwinther): Change types to `ClassElement` when these are not
-  // called with unrelated elements.
-  bool isNumberOrStringSupertype(/*Class*/ Entity element) {
-    return element == coreLibrary.find('Comparable');
+  @override
+  ResolutionInterfaceType createInterfaceType(
+      ClassElement cls, List<ResolutionDartType> typeArguments) {
+    cls.ensureResolved(resolution);
+    return new ResolutionInterfaceType(cls, typeArguments);
   }
 
-  bool isStringOnlySupertype(/*Class*/ Entity element) {
-    return element == coreLibrary.find('Pattern');
+  @override
+  ResolutionInterfaceType getRawType(ClassElement cls) {
+    cls.ensureResolved(resolution);
+    return cls.rawType;
   }
-
-  bool isListSupertype(/*Class*/ Entity element) => element == iterableClass;
 }
 
 class CompilerDiagnosticReporter extends DiagnosticReporter {
