@@ -4542,7 +4542,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode UNDEFINED_IDENTIFIER_AWAIT =
       const StaticWarningCode(
           'UNDEFINED_IDENTIFIER_AWAIT',
-          "Undefined name 'await'.",
+          "Undefined name 'await' in function body not marked with 'async'.",
           "Try correcting the name to one that is defined, "
           "defining the name, or "
           "adding 'async' to the enclosing function body.");
