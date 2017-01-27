@@ -226,7 +226,9 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   _PhysicalFolder(io.Directory directory) : super(directory);
 
   @override
-  Stream<WatchEvent> get changes => new DirectoryWatcher(_entry.path).events;
+  Stream<WatchEvent> get changes => new DirectoryWatcher(_entry.path)
+      .events
+      .handleError(() {}, test: (error) => error is io.FileSystemException);
 
   /**
    * Return the underlying file being represented by this wrapper.
