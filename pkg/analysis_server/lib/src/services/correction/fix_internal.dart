@@ -487,13 +487,13 @@ class FixProcessor {
           AstNode targetNode = targetElement.computeNode();
           if (targetNode is FunctionDeclaration) {
             FunctionExpression function = targetNode.functionExpression;
-            Token paren = function.parameters.leftParenthesis;
+            Token paren = function.parameters?.leftParenthesis;
             if (paren == null) {
               return;
             }
             targetOffset = paren.end;
           } else if (targetNode is MethodDeclaration) {
-            Token paren = targetNode.parameters.leftParenthesis;
+            Token paren = targetNode.parameters?.leftParenthesis;
             if (paren == null) {
               return;
             }
