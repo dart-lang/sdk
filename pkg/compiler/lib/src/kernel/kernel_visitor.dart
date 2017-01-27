@@ -405,7 +405,7 @@ class KernelVisitor extends Object
   /// JumpTargets don't know about it.
   ir.Statement buildBreakTarget(
       ir.Statement statement, Node node, JumpTarget jumpTarget,
-      [bool isBreakTarget]) {
+      [bool isBreakTarget = false]) {
     assert(node.isValidBreakTarget());
     assert(jumpTarget == elements.getTargetDefinition(node));
     associateNode(statement, node);
