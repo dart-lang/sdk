@@ -575,8 +575,8 @@ class FileSystemState {
   /**
    * Return the known files.
    */
-  Iterable<FileState> get knownFiles =>
-      _pathToFiles.values.map((files) => files.first);
+  List<FileState> get knownFiles =>
+      _pathToFiles.values.map((files) => files.first).toList();
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
