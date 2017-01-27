@@ -10,6 +10,7 @@ import 'compiler_options.dart';
 import 'dart:async';
 
 import 'package:analyzer/src/generated/source.dart' show SourceKind;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummarySource;
 // TODO(sigmund): move loader logic under front_end/lib/src/kernel/
@@ -144,7 +145,7 @@ Future<DartLoader> _createLoader(CompilerOptions options,
       discoveryPath: entry?.path);
   var loader = new DartLoader(
       repository ?? new Repository(), kernelOptions, packages);
-  var patchPaths = {};
+  var patchPaths = <String, List<String>>{};
 
   // TODO(sigmund,paulberry): use ProcessedOptions so that we can resolve the
   // URIs correctly even if sdkRoot is inferred and not specified explicitly.
@@ -154,7 +155,8 @@ Future<DartLoader> _createLoader(CompilerOptions options,
   options.targetPatches.forEach((uri, patches) {
     patchPaths['$uri'] = patches.map(resolve).toList();
   });
-  loader.context.analysisOptions.patchPaths = patchPaths;
+  AnalysisOptionsImpl analysisOptions = loader.context.analysisOptions;
+  analysisOptions.patchPaths = patchPaths;
   return loader;
 }
 
