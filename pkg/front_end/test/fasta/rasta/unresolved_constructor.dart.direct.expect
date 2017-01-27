@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •(dynamic x, dynamic y) → dynamic
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  invalid-expression;
+  throw core::_unresolvedConstructorError(self::Foo, #Foo.notHere, <dynamic>[], <dynamic, dynamic>{}, null);
+}

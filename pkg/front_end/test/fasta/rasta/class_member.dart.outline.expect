@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field dynamic field1;
+  field dynamic field2;
+  field dynamic field3;
+  constructor constructor1() → dynamic
+    : super core::Object::•()
+    ;
+  constructor constructor2() → dynamic
+    : super core::Object::•()
+    ;
+  constructor constructor3() → dynamic
+    : super core::Object::•()
+    ;
+  method a() → dynamic {}
+  method b() → dynamic {}
+  method c() → dynamic {}
+}

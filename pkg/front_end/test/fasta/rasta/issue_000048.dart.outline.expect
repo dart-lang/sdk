@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::bool v1;
+  field core::num v2;
+  constructor •(core::bool v1, core::num v2) → dynamic
+    : self::A::v1 = v1, self::A::v2 = v2, super core::Object::•()
+    ;
+}
+class M1 extends core::Object {
+  field core::num v2;
+  constructor •() → self::M1
+    : self::M1::v2 = 0, super core::Object::•();
+}
+class C extends self::A+M1#0 {
+  constructor •(core::bool v1, core::num v2) → dynamic
+    : super self::A+M1#0::•(v1, v2);
+}
+abstract class A+M1#0 extends self::A implements self::M1 {
+  field core::num v2;
+  constructor •(core::bool v1, core::num v2) → dynamic
+    : self::A+M1#0::v2 = 0, super self::A::•(v1, v2);
+}
+static method main() → dynamic {
+  self::C c = new self::C::•(true, 2);
+}

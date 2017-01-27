@@ -1,0 +1,12 @@
+library;
+import self as self;
+
+static method main() → dynamic {
+  #L1:
+  try {
+    break #L1;
+  }
+  finally {
+    invalid-statement;
+  }
+}

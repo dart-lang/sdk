@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  const constructor constant() → dynamic
+    : super core::Object::•()
+    ;
+  constructor missingFactoryKeyword() → dynamic
+    : super core::Object::•()
+    invalid-statement;
+  static factory good() → self::C
+    invalid-statement;
+  method notEvenAConstructor(dynamic a) → self::C
+    invalid-statement;
+}
+static method b() → dynamic
+  invalid-statement;
+static method main() → dynamic {
+  self::C c = null;
+  core::print(const self::C::constant());
+  core::print(invalid-expression);
+  core::print(const self::C::constant());
+  core::print(new self::C::constant().notEvenAConstructor(null));
+}
