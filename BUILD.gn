@@ -42,10 +42,13 @@ group("runtime") {
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
     "runtime/vm:patched_sdk",
-
-    # TODO(rmacnak): Link this into 'dart'
-    "utils/kernel-service:kernel-service",
   ]
+
+  # TODO(28532): Enable on Windows.
+  # TODO(rmacnak): Link this into 'dart'
+  if (target_os != "windows") {
+    deps += [ "utils/kernel-service:kernel-service" ]
+  }
 }
 
 group("runtime_precompiled") {
