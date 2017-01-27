@@ -92,26 +92,4 @@ Future _processLoadRequest(request) async {
   port.send([tag, inputFileUrl, inputFileUrl, null, result]);
 }
 
-// This entry point is used when running in the kernel isolate.
-start() => new RawReceivePort()..handler = _processLoadRequest;
-
-// This entry point is used when creating an app snapshot. The argument provides
-// a script to compile to warm-up generated code.
-main(args) {
-  var tag = 1;
-  var scriptUri = args[0];
-  var responsePort = new RawReceivePort();
-  responsePort.handler = (response) {
-    if (response[0] == tag) {
-      // Success.
-      responsePort.close();
-    } else if (response[0] == -tag) {
-      // Compilation error.
-      throw response[4];
-    } else {
-      throw "Unexpected response: $response";
-    }
-  };
-  var request = [tag, responsePort.sendPort, scriptUri];
-  _processLoadRequest(request);
-}
+main() => new RawReceivePort()..handler = _processLoadRequest;

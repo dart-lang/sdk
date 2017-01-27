@@ -462,7 +462,6 @@ const int kDoubleSize = sizeof(double);  // NOLINT
 const int kFloatSize = sizeof(float);    // NOLINT
 const int kQuadSize = 4 * kFloatSize;
 const int kSimd128Size = sizeof(simd128_value_t);  // NOLINT
-const int kInt64Size = sizeof(int64_t);            // NOLINT
 const int kInt32Size = sizeof(int32_t);            // NOLINT
 const int kInt16Size = sizeof(int16_t);            // NOLINT
 #ifdef ARCH_IS_32_BIT
