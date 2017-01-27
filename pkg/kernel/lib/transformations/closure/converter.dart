@@ -147,7 +147,7 @@ class ClosureConverter extends Transformer {
     if (currentMember is Constructor) return currentClass.fileUri;
     if (currentMember is Field) return (currentMember as Field).fileUri;
     if (currentMember is Procedure) return (currentMember as Procedure).fileUri;
-    throw "No file uri";
+    throw "No file uri for ${currentMember.runtimeType}";
   }
 
   void insert(Statement statement) {
@@ -171,6 +171,7 @@ class ClosureConverter extends Transformer {
   TreeNode visitLibrary(Library node) {
     assert(newLibraryMembers.isEmpty);
     if (node == contextClass.enclosingLibrary) return node;
+
     currentLibrary = node;
     node = super.visitLibrary(node);
     for (TreeNode member in newLibraryMembers) {
@@ -196,7 +197,22 @@ class ClosureConverter extends Transformer {
   }
 
   TreeNode visitConstructor(Constructor node) {
-    // TODO(ahe): Convert closures in constructors as well.
+    assert(isEmptyContext);
+
+    currentMember = node;
+
+    FunctionNode function = node.function;
+    if (function.body != null && function.body is! EmptyStatement) {
+      setupContextForFunctionBody(function);
+      VariableDeclaration self = thisAccess[currentMemberFunction];
+      // TODO(karlklose): transform initializers
+      if (self != null) {
+        context.extend(self, new ThisExpression());
+      }
+      node.function.accept(this);
+      resetContext();
+    }
+
     return node;
   }
 
@@ -341,12 +357,9 @@ class ClosureConverter extends Transformer {
   }
 
   TreeNode visitProcedure(Procedure node) {
-    currentMember = node;
-    assert(_currentBlock == null);
-    assert(_insertionIndex == 0);
-    assert(context == null);
+    assert(isEmptyContext);
 
-    Statement body = node.function.body;
+    currentMember = node;
 
     if (node.isInstanceMember) {
       Name tearOffName = tearOffGetterNames[node.name];
@@ -362,36 +375,47 @@ class ClosureConverter extends Transformer {
       }
     }
 
-    if (body == null) return node;
+    FunctionNode function = node.function;
+    if (function.body != null) {
+      setupContextForFunctionBody(function);
+      VariableDeclaration self = thisAccess[currentMemberFunction];
+      if (self != null) {
+        context.extend(self, new ThisExpression());
+      }
+      node.transformChildren(this);
+      resetContext();
+    }
 
-    currentMemberFunction = node.function;
+    return node;
+  }
 
+  void setupContextForFunctionBody(FunctionNode function) {
+    Statement body = function.body;
+    assert(body != null);
+    currentMemberFunction = function;
     // Ensure that the body is a block which becomes the current block.
     if (body is Block) {
       _currentBlock = body;
     } else {
       _currentBlock = new Block(<Statement>[body]);
-      node.function.body = body.parent = _currentBlock;
+      function.body = body.parent = _currentBlock;
     }
     _insertionIndex = 0;
-
     // Start with no context.  This happens after setting up _currentBlock
     // so statements can be emitted into _currentBlock if necessary.
     context = new NoContext(this);
+  }
 
-    VariableDeclaration self = thisAccess[currentMemberFunction];
-    if (self != null) {
-      context.extend(self, new ThisExpression());
-    }
-
-    node.transformChildren(this);
-
+  void resetContext() {
     _currentBlock = null;
     _insertionIndex = 0;
     context = null;
     currentMemberFunction = null;
     currentMember = null;
-    return node;
+  }
+
+  bool get isEmptyContext {
+    return _currentBlock == null && _insertionIndex == 0 && context == null;
   }
 
   TreeNode visitLocalInitializer(LocalInitializer node) {
@@ -418,28 +442,30 @@ class ClosureConverter extends Transformer {
     return node;
   }
 
-  TreeNode visitBlock(Block node) => saveContext(() {
-        if (_currentBlock != node) {
-          _currentBlock = node;
-          _insertionIndex = 0;
+  TreeNode visitBlock(Block node) {
+    return saveContext(() {
+      if (_currentBlock != node) {
+        _currentBlock = node;
+        _insertionIndex = 0;
+      }
+
+      while (_insertionIndex < _currentBlock.statements.length) {
+        assert(_currentBlock == node);
+
+        var original = _currentBlock.statements[_insertionIndex];
+        var transformed = original.accept(this);
+        assert(_currentBlock.statements[_insertionIndex] == original);
+        if (transformed == null) {
+          _currentBlock.statements.removeAt(_insertionIndex);
+        } else {
+          _currentBlock.statements[_insertionIndex++] = transformed;
+          transformed.parent = _currentBlock;
         }
+      }
 
-        while (_insertionIndex < _currentBlock.statements.length) {
-          assert(_currentBlock == node);
-
-          var original = _currentBlock.statements[_insertionIndex];
-          var transformed = original.accept(this);
-          assert(_currentBlock.statements[_insertionIndex] == original);
-          if (transformed == null) {
-            _currentBlock.statements.removeAt(_insertionIndex);
-          } else {
-            _currentBlock.statements[_insertionIndex++] = transformed;
-            transformed.parent = _currentBlock;
-          }
-        }
-
-        return node;
-      });
+      return node;
+    });
+  }
 
   TreeNode visitVariableDeclaration(VariableDeclaration node) {
     node.transformChildren(this);
@@ -447,14 +473,14 @@ class ClosureConverter extends Transformer {
     if (!capturedVariables.contains(node)) return node;
     context.extend(node, node.initializer ?? new NullLiteral());
 
-    if (node.parent == currentFunction) return node;
-    if (node.parent is Block) {
+    if (node.parent == currentFunction) {
+      return node;
+    } else {
+      assert(node.parent is Block);
       // When returning null, the parent block will remove this node from its
       // list of statements.
-      // TODO(ahe): I'd like to avoid testing on the parent pointer.
       return null;
     }
-    throw "Unexpected parent for $node: ${node.parent.parent}";
   }
 
   TreeNode visitVariableGet(VariableGet node) {

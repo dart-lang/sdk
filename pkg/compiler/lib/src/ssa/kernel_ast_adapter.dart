@@ -12,7 +12,9 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../elements/modelx.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart';
@@ -27,14 +29,97 @@ import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
+import 'graph_builder.dart';
 import 'jump_handler.dart' show SwitchCaseJumpHandler;
 import 'locals_handler.dart';
 import 'types.dart';
 
+/// Interface that translates between Kernel IR nodes and entities.
+abstract class KernelWorldBuilder {
+  /// Returns the [DartType] corresponding to [type].
+  DartType getDartType(ir.DartType type);
+
+  /// Returns the list of [DartType]s corresponding to [types].
+  List<DartType> getDartTypes(List<ir.DartType> types);
+
+  /// Returns the [InterfaceType] corresponding to [type].
+  InterfaceType getInterfaceType(ir.InterfaceType type);
+
+  /// Return the [InterfaceType] corresponding to the [cls] with the given
+  /// [typeArguments].
+  InterfaceType createInterfaceType(
+      ir.Class cls, List<ir.DartType> typeArguments);
+
+  /// Returns the [CallStructure] corresponding to the [arguments].
+  CallStructure getCallStructure(ir.Arguments arguments);
+
+  /// Returns the [Selector] corresponding to the invocation or getter/setter
+  /// access of [node].
+  Selector getSelector(ir.Expression node);
+
+  /// Returns the [FunctionEntity] corresponding to the generative or factory
+  /// constructor [node].
+  FunctionEntity getConstructor(ir.Member node);
+
+  /// Returns the [MemberEntity] corresponding to the member [node].
+  MemberEntity getMember(ir.Member node);
+
+  /// Returns the [FunctionEntity] corresponding to the procedure [node].
+  FunctionEntity getMethod(ir.Procedure node);
+
+  /// Returns the [FieldEntity] corresponding to the field [node].
+  FieldEntity getField(ir.Field node);
+
+  /// Returns the [ClassEntity] corresponding to the class [node].
+  ClassEntity getClass(ir.Class node);
+
+  /// Returns the [Local] corresponding to the [node]. The node must be either
+  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
+  Local getLocalFunction(ir.Node node);
+
+  /// Returns the [Name] corresponding to [name].
+  Name getName(ir.Name name);
+
+  /// Returns `true` is [node] has a `@Native(...)` annotation.
+  bool isNativeClass(ir.Class node);
+
+  /// Return `true` if [node] is the `dart:_foreign_helper` library.
+  bool isForeignLibrary(ir.Library node);
+
+  /// Computes the native behavior for reading the native [field].
+  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field);
+
+  /// Computes the native behavior for writing to the native [field].
+  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
+
+  /// Computes the native behavior for calling [procedure].
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure);
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
+  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
+
+  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
+  /// function.
+  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
+      ir.StaticInvocation node);
+
+  /// Computes the [native.NativeBehavior] for a call to the
+  /// [JS_EMBEDDED_GLOBAL] function.
+  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+      ir.StaticInvocation node);
+
+  /// Compute the kind of foreign helper function called by [node], if any.
+  ForeignKind getForeignKind(ir.StaticInvocation node);
+
+  /// Computes the [InterfaceType] referenced by a call to the
+  /// [JS_INTERCEPTOR_CONSTANT] function, if any.
+  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node);
+}
+
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
-class KernelAstAdapter {
+class KernelAstAdapter implements KernelWorldBuilder {
   final Kernel kernel;
   final JavaScriptBackend _backend;
   final Map<ir.Node, ast.Node> _nodeToAst;
@@ -102,7 +187,8 @@ class KernelAstAdapter {
       _compiler.globalInference.results;
 
   GlobalTypeInferenceElementResult _resultOf(Element e) =>
-      _globalInferenceResults.resultOf(e);
+      _globalInferenceResults
+          .resultOf(e is ConstructorBodyElementX ? e.constructor : e);
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     if (kernel.syntheticNodes.contains(node)) {
@@ -124,13 +210,18 @@ class KernelAstAdapter {
     return result;
   }
 
-  MemberElement getMember(ir.Node node) => getElement(node).declaration;
+  ConstructorElement getConstructor(ir.Member node) =>
+      getElement(node).declaration;
 
-  MethodElement getMethod(ir.Node node) => getElement(node).declaration;
+  MemberElement getMember(ir.Member node) => getElement(node).declaration;
 
-  FieldElement getField(ir.Node node) => getElement(node).declaration;
+  MethodElement getMethod(ir.Procedure node) => getElement(node).declaration;
 
-  ClassElement getClass(ir.Node node) => getElement(node).declaration;
+  FieldElement getField(ir.Field node) => getElement(node).declaration;
+
+  ClassElement getClass(ir.Class node) => getElement(node).declaration;
+
+  LocalFunctionElement getLocalFunction(ir.Node node) => getElement(node);
 
   ast.Node getNode(ir.Node node) {
     ast.Node result = _nodeToAst[node];
@@ -262,7 +353,7 @@ class KernelAstAdapter {
       assertNodeIsSynthetic(listLiteral);
       return closedWorld.commonMasks.growableListType;
     }
-    return _resultOf(owner).typeOfNewList(getNode(listLiteral)) ??
+    return _resultOf(owner).typeOfListLiteral(getNode(listLiteral)) ??
         closedWorld.commonMasks.dynamicType;
   }
 
@@ -372,17 +463,17 @@ class KernelAstAdapter {
 
   LibraryElement get jsHelperLibrary => _backend.helpers.jsHelperLibrary;
 
-  KernelJumpTarget getJumpTarget(ir.TreeNode node) =>
-      _jumpTargets.putIfAbsent(node, () {
-        if (node is ir.LabeledStatement &&
-            _jumpTargets.containsKey((node as ir.LabeledStatement).body)) {
-          return _jumpTargets[(node as ir.LabeledStatement).body];
-        }
-        return new KernelJumpTarget(node);
-      });
-
-  LabelDefinition getTargetLabel(ir.Node node) =>
-      elements.getTargetLabel(getNode(node));
+  KernelJumpTarget getJumpTarget(ir.TreeNode node,
+      {bool isContinueTarget: false}) {
+    return _jumpTargets.putIfAbsent(node, () {
+      if (node is ir.LabeledStatement &&
+          _jumpTargets.containsKey((node as ir.LabeledStatement).body)) {
+        return _jumpTargets[(node as ir.LabeledStatement).body];
+      }
+      return new KernelJumpTarget(node, this,
+          makeContinueLabel: isContinueTarget);
+    });
+  }
 
   ir.Class get mapLiteralClass =>
       kernel.classes[_backend.helpers.mapLiteralClass];
@@ -416,6 +507,7 @@ class KernelAstAdapter {
   TypeMask get streamIteratorConstructorType =>
       TypeMaskFactory.inferredReturnTypeForElement(
           _backend.helpers.streamIteratorConstructor, _globalInferenceResults);
+
   ir.Procedure get fallThroughError =>
       kernel.functions[_backend.helpers.fallThroughError];
 
@@ -546,14 +638,14 @@ class KernelAstAdapter {
     return types.map(getDartType).toList();
   }
 
-  ResolutionDartType getDartTypeOfListLiteral(ir.ListLiteral list) {
+  ResolutionInterfaceType getDartTypeOfListLiteral(ir.ListLiteral list) {
     ast.Node node = getNodeOrNull(list);
     if (node != null) return elements.getType(node);
     assertNodeIsSynthetic(list);
     return _compiler.commonElements.listType(getDartType(list.typeArgument));
   }
 
-  ResolutionDartType getDartTypeOfMapLiteral(ir.MapLiteral literal) {
+  ResolutionInterfaceType getDartTypeOfMapLiteral(ir.MapLiteral literal) {
     ast.Node node = getNodeOrNull(literal);
     if (node != null) return elements.getType(node);
     assertNodeIsSynthetic(literal);
@@ -588,6 +680,15 @@ class KernelAstAdapter {
     }
     return new ResolutionFunctionType.synthesized(returnType, parameterTypes,
         optionalParameterTypes, namedParameters, namedParameterTypes);
+  }
+
+  ResolutionInterfaceType getInterfaceType(ir.InterfaceType type) =>
+      getDartType(type);
+
+  ResolutionInterfaceType createInterfaceType(
+      ir.Class cls, List<ir.DartType> typeArguments) {
+    return new ResolutionInterfaceType(
+        getClass(cls), getDartTypes(typeArguments));
   }
 
   /// Converts [annotations] into a list of [ConstantExpression]s.
@@ -758,9 +859,24 @@ class KernelAstAdapter {
         _compiler.commonElements);
   }
 
+  /// Computes the [InterfaceType] referenced by a call to the
+  /// [JS_INTERCEPTOR_CONSTANT] function, if any.
+  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
+    if (node.arguments.positional.length != 1 ||
+        node.arguments.named.isNotEmpty) {
+      reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
+          MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+    }
+    ir.Node argument = node.arguments.positional.first;
+    if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
+      return getInterfaceType(argument.type);
+    }
+    return null;
+  }
+
   /// Returns `true` is [node] has a `@Native(...)` annotation.
   // TODO(johnniwinther): Cache this for later use.
-  bool isNative(ir.Class node) {
+  bool isNativeClass(ir.Class node) {
     for (ir.Expression annotation in node.annotations) {
       if (annotation is ir.ConstructorInvocation) {
         ConstructorElement target = getElement(annotation.target).declaration;
@@ -798,6 +914,14 @@ class KernelAstAdapter {
     return native.NativeBehavior.ofMethod(CURRENT_ELEMENT_SPANNABLE, type,
         metadata, _typeLookup(resolveAsRaw: false), _compiler,
         isJsInterop: false);
+  }
+
+  MemberEntity getConstructorBodyEntity(ir.Constructor constructor) {
+    AstElement element = getElement(constructor);
+    MemberEntity constructorBody =
+        ConstructorBodyElementX.createFromResolvedAst(element.resolvedAst);
+    assert(constructorBody != null);
+    return constructorBody;
   }
 }
 
@@ -992,14 +1116,34 @@ class KernelJumpTarget extends JumpTarget {
   @override
   bool isContinueTarget = false;
 
-  KernelJumpTarget(this.targetStatement) {
-    labels = <LabelDefinition>[];
+  KernelJumpTarget(this.targetStatement, KernelAstAdapter adapter,
+      {bool makeContinueLabel = false}) {
     originalStatement = targetStatement;
-    if (targetStatement is ir.LabeledStatement) {
+    this.labels = <LabelDefinition>[];
+    if (targetStatement is ir.WhileStatement ||
+        targetStatement is ir.DoStatement ||
+        targetStatement is ir.ForStatement ||
+        targetStatement is ir.ForInStatement) {
+      // Currently these labels are set at resolution on the element itself.
+      // Once that gets updated, this logic can change downstream.
+      JumpTarget target = adapter.elements
+          .getTargetDefinition(adapter.getNode(targetStatement));
+      if (target != null) {
+        labels.addAll(target.labels);
+        isBreakTarget = target.isBreakTarget;
+        isContinueTarget = target.isContinueTarget;
+      }
+    } else if (targetStatement is ir.LabeledStatement) {
       targetStatement = (targetStatement as ir.LabeledStatement).body;
       labels.add(
           new LabelDefinitionX(null, 'L${index++}', this)..setBreakTarget());
       isBreakTarget = true;
+    }
+
+    if (makeContinueLabel) {
+      labels.add(
+          new LabelDefinitionX(null, 'L${index++}', this)..setContinueTarget());
+      isContinueTarget = true;
     }
   }
 
@@ -1023,13 +1167,42 @@ class KernelJumpTarget extends JumpTarget {
   List<LabelDefinition> labels;
 
   @override
-  String get name => null;
+  String get name => 'target';
 
+  // TODO(efortuna): In the original version, this nesting level is specified at
+  // jump target construction time, by the resolver. Because these are
+  // instantiated later, we don't have that information. When we move fully over
+  // to the kernel model, we can pass the nesting level in KernelJumpTarget's
+  // constructor.
   @override
-  int get nestingLevel => 1;
+  int get nestingLevel => 0;
 
   @override
   ast.Node get statement => null;
 
   String toString() => 'Target:$targetStatement';
+}
+
+/// Special [JumpHandler] implementation used to handle continue statements
+/// targeting switch cases.
+class KernelSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
+  KernelSwitchCaseJumpHandler(GraphBuilder builder, JumpTarget target,
+      ir.SwitchStatement switchStatement, KernelAstAdapter astAdapter)
+      : super(builder, target) {
+    // The switch case indices must match those computed in
+    // [KernelSsaBuilder.buildSwitchCaseConstants].
+    // Switch indices are 1-based so we can bypass the synthetic loop when no
+    // cases match simply by branching on the index (which defaults to null).
+    // TODO
+    int switchIndex = 1;
+    for (ir.SwitchCase switchCase in switchStatement.cases) {
+      JumpTarget continueTarget =
+          astAdapter.getJumpTarget(switchCase, isContinueTarget: true);
+      assert(continueTarget is KernelJumpTarget);
+      targetIndexMap[continueTarget] = switchIndex;
+      assert(builder.jumpTargets[continueTarget] == null);
+      builder.jumpTargets[continueTarget] = this;
+      switchIndex++;
+    }
+  }
 }

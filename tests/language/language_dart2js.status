@@ -4,6 +4,7 @@
 
 [ $compiler == dart2js ]
 enum_test: Fail # Issue 28340
+regress_28341_test: Fail # Issue 28340
 deferred_not_loaded_check_test: Fail # Issue 27577
 getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574

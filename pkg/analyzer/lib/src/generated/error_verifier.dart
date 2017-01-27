@@ -492,6 +492,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForFinalNotInitializedInClass(node);
       _checkForDuplicateDefinitionInheritance();
       _checkForConflictingInstanceMethodSetter(node);
+      _checkForBadFunctionUse(node);
       return super.visitClassDeclaration(node);
     } finally {
       _isInNativeClass = false;
@@ -739,6 +740,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitFormalParameterList(FormalParameterList node) {
     _checkDuplicateDefinitionInParameterList(node);
+    _checkUseOfCovariantInParameters(node);
     return super.visitFormalParameterList(node);
   }
 
@@ -819,7 +821,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
           functionExpression);
     } else if (expressionType is FunctionType) {
-      _checkTypeArguments(expressionType.element, node.typeArguments);
+      _checkTypeArguments(node);
     }
     _checkForImplicitDynamicInvoke(node);
     return super.visitFunctionExpressionInvocation(node);
@@ -1030,8 +1032,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
     }
-    _checkTypeArguments(
-        node.methodName.staticElement, node.typeArguments, target?.staticType);
+    _checkTypeArguments(node);
     _checkForImplicitDynamicInvoke(node);
     return super.visitMethodInvocation(node);
   }
@@ -1222,6 +1223,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _checkForTypeParameterSupertypeOfItsBound(node);
     _checkForTypeAnnotationDeferredClass(node.bound);
     _checkForImplicitDynamicType(node.bound);
+    _checkForNotInstantiatedBound(node.bound);
     return super.visitTypeParameter(node);
   }
 
@@ -2719,8 +2721,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (constructorName != null &&
         constructorElement != null &&
         !constructorName.isSynthetic) {
-      if (classElement.getField(name) != null) {
-        // fields
+      FieldElement field = classElement.getField(name);
+      if (field != null && field.getter != null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD,
             constructor,
@@ -2935,6 +2937,40 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           } else {
             memberHashMap[name.name] = member;
           }
+        }
+      }
+    }
+  }
+
+  /**
+   * Verifies that the class is not named `Function` and that it doesn't
+   * extends/implements/mixes in `Function`.
+   */
+  void _checkForBadFunctionUse(ClassDeclaration node) {
+    ExtendsClause extendsClause = node.extendsClause;
+    ImplementsClause implementsClause = node.implementsClause;
+    WithClause withClause = node.withClause;
+
+    if (node.name.name == "Function") {
+      _errorReporter.reportErrorForNode(
+          HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION, node.name);
+    }
+
+    if (extendsClause != null) {
+      InterfaceType superclassType = _enclosingClass.supertype;
+      ClassElement superclassElement = superclassType?.element;
+      if (superclassElement != null && superclassElement.name == "Function") {
+        _errorReporter.reportErrorForNode(
+            HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
+      }
+    }
+
+    if (withClause != null) {
+      for (TypeName type in withClause.mixinTypes) {
+        Element mixinElement = type.name.staticElement;
+        if (mixinElement != null && mixinElement.name == "Function") {
+          _errorReporter.reportErrorForNode(
+              HintCode.DEPRECATED_MIXIN_FUNCTION, type);
         }
       }
     }
@@ -5195,6 +5231,26 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  void _checkForNotInstantiatedBound(TypeAnnotation node) {
+    if (!_options.strongMode || node == null) {
+      return;
+    }
+
+    if (node is TypeName) {
+      if (node.typeArguments == null) {
+        DartType type = node.type;
+        if (type is InterfaceType && type.element.typeParameters.isNotEmpty) {
+          _errorReporter.reportErrorForNode(
+              StrongModeCode.NOT_INSTANTIATED_BOUND, node, [type]);
+        }
+      } else {
+        node.typeArguments.arguments.forEach(_checkForNotInstantiatedBound);
+      }
+    } else {
+      throw new UnimplementedError('${node.runtimeType}');
+    }
+  }
+
   /**
    * Verify the given operator-method [declaration], does not have an optional
    * parameter. This method assumes that the method declaration was tested to be
@@ -6099,73 +6155,56 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
-  void _checkTypeArguments(Element element, TypeArgumentList typeArguments,
-      [DartType targetType]) {
-    if (element == null || typeArguments == null) {
+  void _checkTypeArguments(InvocationExpression node) {
+    NodeList<TypeAnnotation> typeArgumentList = node.typeArguments?.arguments;
+    if (typeArgumentList == null) {
       return;
     }
-    void reportError(TypeAnnotation argument, DartType argumentType,
-        DartType parameterType) {
-      _errorReporter.reportTypeErrorForNode(
-          StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          argument,
-          [argumentType, parameterType]);
-    }
 
-    if (element is FunctionTypedElement) {
-      _checkTypeArgumentsAgainstBounds(
-          element.typeParameters, typeArguments, targetType, reportError);
-    } else if (element is ClassElement) {
-      _checkTypeArgumentsAgainstBounds(
-          element.typeParameters, typeArguments, targetType, reportError);
-    } else if (element is ParameterElement || element is LocalVariableElement) {
-      // TODO(brianwilkerson) Implement this case
-    } else {
-      print('Unhandled element type: ${element.runtimeType}');
+    var genericType = node.function.staticType;
+    var instantiatedType = node.staticInvokeType;
+    if (genericType is FunctionType && instantiatedType is FunctionType) {
+      var fnTypeParams =
+          TypeParameterTypeImpl.getTypes(genericType.typeFormals);
+      var typeArgs = typeArgumentList.map((t) => t.type).toList();
+
+      for (int i = 0, len = math.min(typeArgs.length, fnTypeParams.length);
+          i < len;
+          i++) {
+        // Check the `extends` clause for the type parameter, if any.
+        //
+        // Also substitute to handle cases like this:
+        //
+        //     <TFrom, TTo extends TFrom>
+        //     <TFrom, TTo extends Iterable<TFrom>>
+        //     <T extends Clonable<T>>
+        //
+        DartType argType = typeArgs[i];
+        DartType bound =
+            fnTypeParams[i].bound.substitute2(typeArgs, fnTypeParams);
+        if (!_typeSystem.isSubtypeOf(argType, bound)) {
+          _errorReporter.reportTypeErrorForNode(
+              StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              typeArgumentList[i],
+              [argType, bound]);
+        }
+      }
     }
   }
 
-  void _checkTypeArgumentsAgainstBounds(
-      List<TypeParameterElement> typeParameters,
-      TypeArgumentList typeArgumentList,
-      DartType targetType,
-      void reportError(TypeAnnotation argument, DartType argumentType,
-          DartType parameterType)) {
-    NodeList<TypeAnnotation> typeArguments = typeArgumentList.arguments;
-    int argumentsLength = typeArguments.length;
-    int maxIndex = math.min(typeParameters.length, argumentsLength);
-
-    bool shouldSubstitute =
-        argumentsLength != 0 && argumentsLength == typeParameters.length;
-    List<DartType> argumentTypes = shouldSubstitute
-        ? typeArguments.map((TypeAnnotation type) => type.type).toList()
-        : null;
-    List<DartType> parameterTypes = shouldSubstitute
-        ? typeParameters
-            .map((TypeParameterElement element) => element.type)
-            .toList()
-        : null;
-    List<DartType> targetTypeParameterTypes = null;
-    for (int i = 0; i < maxIndex; i++) {
-      TypeAnnotation argument = typeArguments[i];
-      DartType argType = argument.type;
-      DartType boundType = typeParameters[i].bound;
-      if (argType != null && boundType != null) {
-        if (targetType is ParameterizedType) {
-          if (targetTypeParameterTypes == null) {
-            targetTypeParameterTypes = targetType.typeParameters
-                .map((TypeParameterElement element) => element.type)
-                .toList();
-          }
-          boundType = boundType.substitute2(
-              targetType.typeArguments, targetTypeParameterTypes);
-        }
-        if (shouldSubstitute) {
-          boundType = boundType.substitute2(argumentTypes, parameterTypes);
-        }
-        if (!_typeSystem.isSubtypeOf(argType, boundType)) {
-          reportError(argument, argType, boundType);
-        }
+  void _checkUseOfCovariantInParameters(FormalParameterList node) {
+    AstNode parent = node.parent;
+    if (parent is MethodDeclaration && !parent.isStatic) {
+      return;
+    }
+    NodeList<FormalParameter> parameters = node.parameters;
+    int length = parameters.length;
+    for (int i = 0; i < length; i++) {
+      FormalParameter parameter = parameters[i];
+      Token keyword = parameter.covariantKeyword;
+      if (keyword != null) {
+        _errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, keyword);
       }
     }
   }

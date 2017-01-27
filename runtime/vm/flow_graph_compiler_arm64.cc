@@ -51,11 +51,6 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
 }
 
 
-bool FlowGraphCompiler::SupportsSinCos() {
-  return false;
-}
-
-
 bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
   // ARM does not have a short instruction sequence for converting int64 to
   // double.

@@ -8,13 +8,15 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../abstract_context.dart';
+import '../../../mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -27,6 +29,9 @@ class OpTypeTest {
   OpType visitor;
 
   void addTestSource(String content, {bool resolved: false}) {
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+
     int offset = content.indexOf('^');
     expect(offset, isNot(equals(-1)), reason: 'missing ^');
     int nextOffset = content.indexOf('^', offset + 1);
@@ -34,8 +39,7 @@ class OpTypeTest {
     content = content.substring(0, offset) + content.substring(offset + 1);
     Source source = new _TestSource('/completionTest.dart');
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    context.sourceFactory =
-        new SourceFactory([AbstractContextTest.SDK_RESOLVER]);
+    context.sourceFactory = new SourceFactory([new DartUriResolver(sdk)]);
     context.setContents(source, content);
     CompilationUnit unit = resolved
         ? context.resolveCompilationUnit2(source, source)
@@ -83,11 +87,6 @@ class OpTypeTest {
 
   void setUp() {
     processRequiredPlugins();
-  }
-
-  test_Block_final_final2() {
-    addTestSource('main() {final S^ final S x;}');
-    assertOpType(typeNames: true);
   }
 
   test_Annotation() {
@@ -327,6 +326,11 @@ class OpTypeTest {
 
   test_Block_final_final() {
     addTestSource('main() {final ^ final S x;}');
+    assertOpType(typeNames: true);
+  }
+
+  test_Block_final_final2() {
+    addTestSource('main() {final S^ final S x;}');
     assertOpType(typeNames: true);
   }
 
@@ -1565,9 +1569,6 @@ class _TestSource implements Source {
 
   @override
   bool get isInSystemLibrary => false;
-
-  @override
-  Source get librarySource => null;
 
   @override
   String get shortName => fullName;

@@ -8,12 +8,59 @@
 \usepackage[T1]{fontenc}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification  \\
-{4th edition draft}\\
+{5th edition draft}\\
 {\large Version 1.15.0}}
 
 % For information about Location Markers (and in particular the
 % commands \LMHash and \LMLabel), see the long comment at the
 % end of this file.
+
+% CHANGES
+% =======
+% Significant changes to the specification.
+%
+% 1.15
+% - Change how language specification describes control flow.
+% - Object initialization now specifies initialization order correctly.
+% - Specifies that leaving an await-for loop must wait for the subscription
+%   to be canceled.
+% - An await-for loop only pauses the subscription if it does something async.
+% - Assert statements may now also include a "message" operand.
+% - The Null type is now considered a subtype of all types in most cases.
+%
+% 1.14
+% - The call "C()" where "C" is a class name, is a now compile-time error.
+% - Changed description of rewrites that depended on a function literal.
+%   In many cases, the rewrite wasn't safe for asynchronous code.
+% - Removed generalized tear-offs.
+% - Allow "rethrow" to also end a switch case. Allow braces around switch cases.
+% - Allow using '=' as default-value separator for named parameters.
+% - Make it a compile-time error if a library includes the same part twice.
+% - Now more specific about the return types of sync*/async/async* functions
+%   in relation to return statements.
+% - Allow Unicode surrogate values in String literals.
+% - Make an initializing formal's value accessible in the initializer list.
+% - Allow any expression in assert statements (was only conditionalExpression).
+% - Allow trailing commas in argument and parameter lists.
+%
+% 1.11 - ECMA 408 - 4th Edition
+% - Specify that potentially constant expressions must be valid expressions
+%   if the parameters are non-constant.
+% - Make "??" a compile-time constant operator.
+% - Having multiple unnamed libraries no longer causes warnings.
+% - Specify null-aware operators for static methods.
+%
+% 1.10
+% - Allow mixins to have super-classes and super-calls.
+% - Specify static type checking for the implicit for-in iterator variable.
+% - Specify static types for a number of expressions where it was missing.
+% - Make calls on the exact type "Function" not cause warnings.
+% - Specify null-aware behavior of "e?.v++" and similar expressions.
+% - Specify that `package:` URIs are treated in an implementation dependent way.
+% - Require warning if for-in is used on object with no "iterator" member.
+%
+% 1.9 - ECMA-408 - 3rd Edition
+%
 
 \begin{document}
 \maketitle
@@ -2337,12 +2384,12 @@ The normative versions of these  are given in the appropriate sections of this s
 
 %\begin{grammar}
 %classInterfaceInjection:
-      %class qualified typeParameters? interfaces '{\escapegrammar ;}'
+      %class qualified typeParameters? interfaces `{\escapegrammar ;}'
       %  .
 
 
 %interfaceInterfaceInjection:
-      %interface qualified typeParameters? superinterfaces '{\escapegrammar ;}'
+      %interface qualified typeParameters? superinterfaces `{\escapegrammar ;}'
     %.
 %\end{grammar}
 
@@ -2631,7 +2678,7 @@ The reserved word \NULL{} evaluates to the {\em null object}.
 
 \LMHash{}
 The null object is the sole instance of the built-in class \code{Null}. Attempting to instantiate \code{Null} causes a run-time error. It is a compile-time error for a class to extend, mix in or implement \code{Null}.
-The \code{Null} class declares no methods except those also declared by \code{Object}.
+The \code{Null} class extends the \code{Object} class and declares no methods except those also declared by \code{Object}.
 
 \LMHash{}
 The static type of \NULL{} is the \code{Null} type.
@@ -5610,7 +5657,7 @@ A {\em variable declaration statement }declares a new local variable.
 
  \begin{grammar}
 {\bf localVariableDeclaration:}
-    initializedVariableDeclaration {\escapegrammar';'}
+    initializedVariableDeclaration `{\escapegrammar ;}'
   .
  \end{grammar}
 
@@ -7358,7 +7405,7 @@ A {\em type alias} declares a name for a type expression.
 	.
 
 {\bf functionTypeAlias:}
-       functionPrefix  typeParameters? formalParameterList '{\escapegrammar ;}'
+       functionPrefix  typeParameters? formalParameterList `{\escapegrammar ;}'
     .
 
     {\bf functionPrefix:}
@@ -7404,7 +7451,7 @@ A type $T$ is more specific than a type $S$, written $T << S$,  if one of the fo
 \begin{itemize}
 \item $T$ is $S$.
 \item $T$ is $\bot$.
-\item $T$ is \NULL{} and $S$ is not $\bot$.
+\item $T$ is \code{Null} and $S$ is not $\bot$.
 \item $S$ is \DYNAMIC{}.
 \item $S$ is a direct supertype of $T$.
 \item $T$ is a type parameter and $S$ is the upper bound of $T$.
@@ -7426,13 +7473,20 @@ $List <: List<String>$ and $List<int> <: List$, but $List<int>$ is not a subtype
 Although $<:$ is not a partial order on types, it does contain a partial order, namely $<<$. This means that, barring raw types, intuition about classical subtype rules does apply.
 }
 
+\commentary{
+The \code{Null} type is more specific than all non-$\bot$ types, even though
+it doesn't actually extend or implement those types.
+The other types are effectively treated as if they are {\em nullable},
+which makes \NULL{} assignable to them.
+}
+
 \LMHash{}
 $S$ is a supertype of $T$, written $S :> T$, iff $T$ is a subtype of $S$.
 
 \commentary{The supertypes of an interface are its direct supertypes and their supertypes. }
 
 \LMHash{}
-An interface type $T$ may be assigned to a type $S$, written  $T \Longleftrightarrow S$, iff either $T <: S$, $S <: T$, or either $T$ or $S$ is the \code{Null} type.
+An interface type $T$ may be assigned to a type $S$, written  $T \Longleftrightarrow S$, iff either $T <: S$, $S <: T$.
 
 \rationale{This rule may surprise readers accustomed to conventional typechecking. The intent of the $\Longleftrightarrow$ relation is not to ensure that an assignment is correct. Instead, it aims to only flag assignments that are almost certain to be erroneous, without precluding assignments that may work.
 

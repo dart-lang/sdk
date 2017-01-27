@@ -13,9 +13,10 @@ import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../core_types.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../universe/class_set.dart';
 import '../universe/function_set.dart' show FunctionSetBuilder;
 import '../util/enumset.dart';
@@ -1113,6 +1114,11 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   void forEachInstanceField(
       ClassEntity cls, void f(ClassEntity declarer, FieldEntity field));
 
+  /// Calls [f] for each parameter of [function] providing the type and name of
+  /// the parameter.
+  void forEachParameter(
+      FunctionEntity function, void f(DartType type, String name));
+
   void forEachInvokedName(
       f(String name, Map<Selector, SelectorConstraints> selectors));
 
@@ -1232,6 +1238,15 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       ClassElement cls, void f(ClassEntity declarer, FieldEntity field)) {
     cls.implementation
         .forEachInstanceField(f, includeSuperAndInjectedMembers: true);
+  }
+
+  @override
+  void forEachParameter(
+      MethodElement function, void f(DartType type, String name)) {
+    FunctionSignature parameters = function.functionSignature;
+    parameters.forEachParameter((ParameterElement parameter) {
+      f(parameter.type, parameter.name);
+    });
   }
 
   Iterable<ClassElement> get processedClasses => _processedClasses.keys

@@ -91,6 +91,124 @@ class B {
         unorderedEquals([a.methods[0], b.fields[0]]));
   }
 
+  test_classMembers_importNotDart() async {
+    await _resolveTestUnit('''
+import 'not-dart.txt';
+''');
+    RegExp regExp = new RegExp(r'^test$');
+    expect(await driver.search.classMembers(regExp), isEmpty);
+  }
+
+  test_searchMemberReferences_qualified_resolved() async {
+    await _resolveTestUnit('''
+class C {
+  var test;
+}
+main(C c) {
+  print(c.test);
+  c.test = 1;
+  c.test += 2;
+  c.test();
+}
+''');
+    await _verifyNameReferences('test', []);
+  }
+
+  test_searchMemberReferences_qualified_unresolved() async {
+    await _resolveTestUnit('''
+main(p) {
+  print(p.test);
+  p.test = 1;
+  p.test += 2;
+  p.test();
+}
+''');
+    Element main = _findElement('main');
+    await _verifyNameReferences('test', <ExpectedResult>[
+      _expectIdQU(main, SearchResultKind.READ, 'test);'),
+      _expectIdQU(main, SearchResultKind.WRITE, 'test = 1;'),
+      _expectIdQU(main, SearchResultKind.READ_WRITE, 'test += 2;'),
+      _expectIdQU(main, SearchResultKind.INVOCATION, 'test();'),
+    ]);
+  }
+
+  test_searchMemberReferences_unqualified_resolved() async {
+    await _resolveTestUnit('''
+class C {
+  var test;
+  main() {
+    print(test);
+    test = 1;
+    test += 2;
+    test();
+  }
+}
+''');
+    await _verifyNameReferences('test', []);
+  }
+
+  test_searchMemberReferences_unqualified_unresolved() async {
+    await _resolveTestUnit('''
+class C {
+  main() {
+    print(test);
+    test = 1;
+    test += 2;
+    test();
+  }
+}
+''');
+    Element main = _findElement('main');
+    await _verifyNameReferences('test', <ExpectedResult>[
+      _expectIdU(main, SearchResultKind.READ, 'test);'),
+      _expectIdU(main, SearchResultKind.WRITE, 'test = 1;'),
+      _expectIdU(main, SearchResultKind.READ_WRITE, 'test += 2;'),
+      _expectIdU(main, SearchResultKind.INVOCATION, 'test();'),
+    ]);
+  }
+
+  test_searchReferences_ClassElement_definedInSdk_declarationSite() async {
+    await _resolveTestUnit('''
+import 'dart:math';
+Random v1;
+Random v2;
+''');
+
+    // Find the Random class element in the SDK source.
+    // IDEA performs search always at declaration, never at reference.
+    ClassElement randomElement;
+    {
+      String randomPath = sdk.mapDartUri('dart:math').fullName;
+      AnalysisResult result = await driver.getResult(randomPath);
+      randomElement = result.unit.element.getType('Random');
+    }
+
+    Element v1 = _findElement('v1');
+    Element v2 = _findElement('v2');
+    var expected = [
+      _expectId(v1, SearchResultKind.REFERENCE, 'Random v1;'),
+      _expectId(v2, SearchResultKind.REFERENCE, 'Random v2;'),
+    ];
+    await _verifyReferences(randomElement, expected);
+  }
+
+  test_searchReferences_ClassElement_definedInSdk_useSite() async {
+    await _resolveTestUnit('''
+import 'dart:math';
+Random v1;
+Random v2;
+''');
+
+    var v1 = _findElement('v1') as VariableElement;
+    var v2 = _findElement('v2') as VariableElement;
+    var randomElement = v1.type.element as ClassElement;
+    var expected = [
+      _expectId(v1, SearchResultKind.REFERENCE, 'Random v1;'),
+      _expectId(v2, SearchResultKind.REFERENCE, 'Random v2;'),
+    ];
+    await _verifyReferences(randomElement, expected);
+  }
+
   test_searchReferences_ClassElement_definedInside() async {
     await _resolveTestUnit('''
 class A {};
@@ -972,15 +1090,15 @@ class A {} // A
 class B = Object with A;
 typedef C();
 D() {}
-var E = null;
+var e = null;
 class NoMatchABCDE {}
 ''');
     Element a = _findElement('A');
     Element b = _findElement('B');
     Element c = _findElement('C');
     Element d = _findElement('D');
-    Element e = _findElement('E');
-    RegExp regExp = new RegExp(r'^[A-E]$');
+    Element e = _findElement('e');
+    RegExp regExp = new RegExp(r'^[ABCDe]$');
     expect(await driver.search.topLevelElements(regExp),
         unorderedEquals([a, b, c, d, e]));
   }
@@ -1005,6 +1123,26 @@ class NoMatchABCDE {}
     return _expectId(element, kind, search, isQualified: true, length: length);
   }
 
+  /**
+   * Create [ExpectedResult] for a qualified and unresolved match.
+   */
+  ExpectedResult _expectIdQU(
+      Element element, SearchResultKind kind, String search,
+      {int length}) {
+    return _expectId(element, kind, search,
+        isQualified: true, isResolved: false, length: length);
+  }
+
+  /**
+   * Create [ExpectedResult] for a unqualified and unresolved match.
+   */
+  ExpectedResult _expectIdU(
+      Element element, SearchResultKind kind, String search,
+      {int length}) {
+    return _expectId(element, kind, search,
+        isQualified: false, isResolved: false, length: length);
+  }
+
   Element _findElement(String name, [ElementKind kind]) {
     return findChildElement(testUnit.element, name, kind);
   }
@@ -1025,6 +1163,14 @@ class NoMatchABCDE {}
       testUnitElement = testUnit.element;
       testLibraryElement = testUnitElement.library;
     }
+  }
+
+  Future<Null> _verifyNameReferences(
+      String name, List<ExpectedResult> expectedMatches) async {
+    List<SearchResult> results =
+        await driver.search.unresolvedMemberReferences(name);
+    _assertResults(results, expectedMatches);
+    expect(results, hasLength(expectedMatches.length));
   }
 
   Future _verifyReferences(

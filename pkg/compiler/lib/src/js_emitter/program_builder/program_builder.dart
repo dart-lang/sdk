@@ -24,10 +24,12 @@ import '../../elements/elements.dart'
         FunctionSignature,
         GetterElement,
         LibraryElement,
+        MemberElement,
         MethodElement,
         ParameterElement,
         TypedefElement,
         VariableElement;
+import '../../elements/types.dart' show DartType;
 import '../../js/js.dart' as js;
 import '../../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../../js_backend/js_backend.dart'
@@ -230,9 +232,10 @@ class ProgramBuilder {
   js.Statement _buildInvokeMain() {
     if (_compiler.isMockCompilation) return js.js.comment("Mock compilation");
 
-    MainCallStubGenerator generator =
-        new MainCallStubGenerator(_compiler, backend, backend.emitter);
-    return generator.generateInvokeMain();
+    MainCallStubGenerator generator = new MainCallStubGenerator(
+        backend, backend.emitter,
+        hasIncrementalSupport: _compiler.options.hasIncrementalSupport);
+    return generator.generateInvokeMain(_compiler.mainFunction);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
@@ -289,7 +292,7 @@ class ProgramBuilder {
       LibrariesMap librariesMap) {
     JavaScriptConstantCompiler handler = backend.constants;
     DeferredLoadTask loadTask = _compiler.deferredLoadTask;
-    Iterable<VariableElement> lazyFields = handler
+    Iterable<FieldElement> lazyFields = handler
         .getLazilyInitializedFieldsForEmission()
         .where((element) =>
             loadTask.outputUnitForElement(element) == librariesMap.outputUnit);
@@ -300,7 +303,7 @@ class ProgramBuilder {
         .toList(growable: false);
   }
 
-  StaticField _buildLazyField(Element element) {
+  StaticField _buildLazyField(FieldElement element) {
     js.Expression code = backend.generatedCode[element];
     // The code is null if we ended up not needing the lazily
     // initialized field after all because of constant folding
@@ -394,8 +397,8 @@ class ProgramBuilder {
                 if (returnType.isFunctionType) {
                   functionType = returnType;
                 } else if (returnType.treatAsDynamic ||
-                    _compiler.types.isSubtype(
-                        returnType, backend.commonElements.functionType)) {
+                    _compiler.types.isSubtype(returnType,
+                        backend.commonElements.functionType as DartType)) {
                   if (returnType.isTypedef) {
                     ResolutionTypedefType typedef = returnType;
                     // TODO(jacobr): can we just use typdef.unaliased instead?
@@ -524,7 +527,7 @@ class ProgramBuilder {
     RuntimeTypeGenerator runtimeTypeGenerator =
         new RuntimeTypeGenerator(_compiler, _task, namer);
 
-    void visitMember(ClassElement enclosing, Element member) {
+    void visitMember(ClassElement enclosing, MemberElement member) {
       assert(invariant(element, member.isDeclaration));
       assert(invariant(element, element == enclosing));
 
@@ -602,7 +605,7 @@ class ProgramBuilder {
       for (Field field in instanceFields) {
         if (field.needsCheckedSetter) {
           assert(!field.needsUncheckedSetter);
-          Element element = field.element;
+          FieldElement element = field.element;
           js.Expression code = backend.generatedCode[element];
           assert(code != null);
           js.Name name = namer.deriveSetterName(field.accessorName);
@@ -712,6 +715,7 @@ class ProgramBuilder {
   }
 
   DartMethod _buildMethod(MethodElement element) {
+    assert(element.isDeclaration);
     js.Name name = namer.methodPropertyName(element);
     js.Expression code = backend.generatedCode[element];
 
@@ -823,7 +827,8 @@ class ProgramBuilder {
   ///
   /// Stub methods may have an element that can be used for code-size
   /// attribution.
-  Method _buildStubMethod(js.Name name, js.Expression code, {Element element}) {
+  Method _buildStubMethod(js.Name name, js.Expression code,
+      {MemberElement element}) {
     return new StubMethod(name, code, element: element);
   }
 
@@ -863,7 +868,7 @@ class ProgramBuilder {
   List<Field> _buildFields(Element holder, bool visitStatics) {
     List<Field> fields = <Field>[];
     new FieldVisitor(_compiler, namer, closedWorld)
-        .visitFields(holder, visitStatics, (VariableElement field,
+        .visitFields(holder, visitStatics, (FieldElement field,
             js.Name name,
             js.Name accessorName,
             bool needsGetter,
@@ -921,7 +926,7 @@ class ProgramBuilder {
     });
   }
 
-  StaticDartMethod _buildStaticMethod(FunctionElement element) {
+  StaticDartMethod _buildStaticMethod(MethodElement element) {
     js.Name name = namer.methodPropertyName(element);
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];

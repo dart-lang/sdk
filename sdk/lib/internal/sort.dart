@@ -107,7 +107,7 @@ class Sort {
     var pivot2 = el4;
 
     // el2 and el4 have been saved in the pivot variables. They will be written
-    // back, once the partioning is finished.
+    // back, once the partitioning is finished.
     a[index1] = el1;
     a[index3] = el3;
     a[index5] = el5;
@@ -121,7 +121,7 @@ class Sort {
     bool pivots_are_equal = (compare(pivot1, pivot2) == 0);
     if (pivots_are_equal) {
       var pivot = pivot1;
-      // Degenerated case where the partioning becomes a dutch national flag
+      // Degenerated case where the partitioning becomes a dutch national flag
       // problem.
       //
       // [ |  < pivot  | == pivot | unpartitioned | > pivot  | ]

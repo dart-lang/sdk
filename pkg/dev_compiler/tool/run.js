@@ -45,6 +45,7 @@ var sdk = requirejs('dart_sdk');
 var module = requirejs(test);
 var lib = test.split('/').slice(-1)[0];
 try {
+  sdk._isolate_helper.startRootIsolate(() => {}, []);
   module[lib].main();
   console.log('Test ' + test + ' passed.');
 } catch (e) {

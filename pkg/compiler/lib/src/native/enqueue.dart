@@ -10,9 +10,10 @@ import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../elements/modelx.dart' show FunctionElementX;
+import '../elements/resolution_types.dart';
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
@@ -635,9 +636,9 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     // be instantiated (abstract or simply unused).
     _addSubtypes(cls.superclass, emitter);
 
-    for (ResolutionDartType type in cls.allSupertypes) {
-      List<Element> subtypes =
-          emitter.subtypes.putIfAbsent(type.element, () => <ClassElement>[]);
+    for (ResolutionInterfaceType type in cls.allSupertypes) {
+      List<ClassEntity> subtypes =
+          emitter.subtypes.putIfAbsent(type.element, () => <ClassEntity>[]);
       subtypes.add(cls);
     }
 
@@ -650,8 +651,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
       superclass = superclass.superclass;
     }
 
-    List<Element> directSubtypes =
-        emitter.directSubtypes.putIfAbsent(superclass, () => <ClassElement>[]);
+    List<ClassEntity> directSubtypes =
+        emitter.directSubtypes.putIfAbsent(superclass, () => <ClassEntity>[]);
     directSubtypes.add(cls);
   }
 

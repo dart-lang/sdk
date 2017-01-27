@@ -44,12 +44,14 @@ abstract class GlobalTypeInferenceElementResult {
   /// The inferred return type when this result belongs to a function element.
   TypeMask get returnType;
 
-  /// Returns the type of a list allocation [node] (which can be a list
-  /// literal or a list new expression).
-  TypeMask typeOfNewList(Node node);
+  /// Returns the type of a list new expression [node].
+  TypeMask typeOfNewList(Send node);
+
+  /// Returns the type of a list literal [node].
+  TypeMask typeOfListLiteral(LiteralList node);
 
   /// Returns the type of a send [node].
-  TypeMask typeOfSend(Node node);
+  TypeMask typeOfSend(Send node);
 
   /// Returns the type of the operator of a complex send-set [node], for
   /// example, the type of `+` in `a += b`.
@@ -99,10 +101,13 @@ class GlobalTypeInferenceElementResultImpl
     return mask != null && mask.isEmpty;
   }
 
-  TypeMask typeOfNewList(Node node) =>
+  TypeMask typeOfNewList(Send node) =>
       _inferrer.getTypeForNewList(_owner, node);
 
-  TypeMask typeOfSend(Node node) => _data?.typeOfSend(node);
+  TypeMask typeOfListLiteral(LiteralList node) =>
+      _inferrer.getTypeForNewList(_owner, node);
+
+  TypeMask typeOfSend(Send node) => _data?.typeOfSend(node);
   TypeMask typeOfGetter(SendSet node) => _data?.typeOfGetter(node);
   TypeMask typeOfOperator(SendSet node) => _data?.typeOfOperator(node);
   TypeMask typeOfIterator(ForIn node) => _data?.typeOfIterator(node);
@@ -123,11 +128,11 @@ class GlobalTypeInferenceElementData {
     _typeMasks[node] = mask;
   }
 
-  TypeMask typeOfSend(Node node) => _get(node);
+  TypeMask typeOfSend(Send node) => _get(node);
   TypeMask typeOfGetter(SendSet node) => _get(node.selector);
   TypeMask typeOfOperator(SendSet node) => _get(node.assignmentOperator);
 
-  void setTypeMask(Node node, TypeMask mask) {
+  void setTypeMask(Send node, TypeMask mask) {
     _set(node, mask);
   }
 

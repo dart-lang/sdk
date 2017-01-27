@@ -1,0 +1,67 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class UsedAsBaseClass extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method usedInSubclass() → void;
+  method calledFromB() → void {
+    this.{self::UsedAsBaseClass::calledFromSubclass}();
+  }
+  abstract method calledFromSubclass() → void;
+}
+abstract class UsedAsInterface extends core::Object {
+  abstract method usedInSubclass() → void;
+}
+class InstantiatedButMethodsUnused extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method usedInSubclass() → void
+    throw "Method removed by tree-shaking";
+}
+class ClassA extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
+  constructor •() → void
+    : super self::UsedAsBaseClass::•()
+    ;
+  method usedInSubclass() → void {
+    core::print("A");
+  }
+}
+class ClassB extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
+  constructor •() → void
+    : super self::UsedAsBaseClass::•()
+    ;
+  method usedInSubclass() → void {
+    core::print("B");
+    this.{self::UsedAsBaseClass::calledFromB}();
+  }
+  method calledFromSubclass() → void {}
+}
+static method baseClassCall(self::UsedAsBaseClass object) → void {
+  object.{self::UsedAsBaseClass::usedInSubclass}();
+}
+static method interfaceCall(self::UsedAsInterface object) → void {
+  object.{self::UsedAsInterface::usedInSubclass}();
+}
+static method exactCallA(self::ClassA object) → void {
+  object.{self::ClassA::usedInSubclass}();
+}
+static method exactCallB(self::ClassB object) → void {
+  object.{self::ClassB::usedInSubclass}();
+}
+static method usedTopLevel() → dynamic {}
+static method main() → dynamic {
+  self::usedTopLevel();
+  self::ClassA a = new self::ClassA::•();
+  self::exactCallA(a);
+  self::baseClassCall(a);
+  self::interfaceCall(a);
+  self::ClassB b = new self::ClassB::•();
+  self::exactCallB(b);
+  self::baseClassCall(b);
+  self::interfaceCall(b);
+  new self::InstantiatedButMethodsUnused::•();
+}

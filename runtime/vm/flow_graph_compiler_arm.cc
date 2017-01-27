@@ -53,11 +53,6 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
 }
 
 
-bool FlowGraphCompiler::SupportsSinCos() {
-  return false;
-}
-
-
 bool FlowGraphCompiler::SupportsHardwareDivision() {
   return TargetCPUFeatures::can_divide();
 }

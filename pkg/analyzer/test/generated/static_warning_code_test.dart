@@ -374,7 +374,8 @@ g(h(_A a)) {}''');
     // The name _A is private to the library it's defined in, so this is a type
     // mismatch. Furthermore, the error message should mention both _A and the
     // filenames so the user can figure out what's going on.
-    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    List<AnalysisError> errors = analysisResult.errors;
     expect(errors, hasLength(1));
     AnalysisError error = errors[0];
     expect(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, error.errorCode);
@@ -789,6 +790,16 @@ f() {
 f() {
   final x = 0;
   x += 1;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);
+    verify([source]);
+  }
+
+  test_assignmentToFinal_parameter() async {
+    Source source = addSource(r'''
+f(final x) {
+  x = 1;
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.ASSIGNMENT_TO_FINAL]);

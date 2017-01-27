@@ -3327,6 +3327,11 @@ Environment* Environment::From(Zone* zone,
 }
 
 
+void Environment::PushValue(Value* value) {
+  values_.Add(value);
+}
+
+
 Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
   ASSERT(length <= values_.length());
   Environment* copy = new (zone)

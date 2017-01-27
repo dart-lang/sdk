@@ -236,6 +236,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           new FieldFormalParameterElementImpl.forNode(parameterName);
       _setCodeRange(parameter, node);
       parameter.isConst = node.isConst;
+      parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
       parameter.parameterKind = node.kind;
       if (field != null) {
@@ -621,6 +622,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         field = new FieldElementImpl.forNode(fieldName);
       }
       element = field;
+      field.isCovariant = fieldNode.covariantKeyword != null;
       field.isStatic = fieldNode.isStatic;
       _setCodeRange(element, node);
       setElementDocumentationComment(element, fieldNode);
@@ -653,6 +655,10 @@ class ApiElementBuilder extends _BaseElementBuilder {
       if (!isConst && !isFinal) {
         PropertyAccessorElementImpl_ImplicitSetter setter =
             new PropertyAccessorElementImpl_ImplicitSetter(element);
+        if (fieldNode != null) {
+          (setter.parameters[0] as ParameterElementImpl).isExplicitlyCovariant =
+              fieldNode.covariantKeyword != null;
+        }
         _currentHolder.addAccessor(setter);
       }
     }
@@ -1389,6 +1395,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     }
     _setCodeRange(parameter, node);
     parameter.isConst = node.isConst;
+    parameter.isExplicitlyCovariant = node.parameter.covariantKeyword != null;
     parameter.isFinal = node.isFinal;
     parameter.parameterKind = node.kind;
     // visible range
@@ -1410,6 +1417,9 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       ParameterElementImpl parameter =
           new ParameterElementImpl.forNode(parameterName);
       _setCodeRange(parameter, node);
+      parameter.isConst = node.isConst;
+      parameter.isExplicitlyCovariant = node.covariantKeyword != null;
+      parameter.isFinal = node.isFinal;
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       _currentHolder.addParameter(parameter);
@@ -1437,6 +1447,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
           new ParameterElementImpl.forNode(parameterName);
       _setCodeRange(parameter, node);
       parameter.isConst = node.isConst;
+      parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);

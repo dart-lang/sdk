@@ -71,7 +71,7 @@ main() {
 }
 
 testSimpleTypes(MockCompiler compiler) {
-  checkType(ResolutionDartType type, String code) {
+  checkType(ResolutionInterfaceType type, String code) {
     Expect.equals(type, analyzeType(compiler, code));
   }
 

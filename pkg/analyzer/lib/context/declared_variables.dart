@@ -28,6 +28,13 @@ class DeclaredVariables {
   Iterable<String> get variableNames => _declaredVariables.keys;
 
   /**
+   * Add all variables of [other] to this object.
+   */
+  void addAll(DeclaredVariables other) {
+    _declaredVariables.addAll(other._declaredVariables);
+  }
+
+  /**
    * Define a variable with the given [name] to have the given [value].
    */
   void define(String name, String value) {

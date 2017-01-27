@@ -156,16 +156,21 @@ main(List<String> arguments) {
         compiler = new ModuleCompiler(analyzerOptions);
       }
       JSModuleFile module = null;
+      var error, trace;
       try {
         module = compiler.compile(unit, options);
-      } catch (e) {}
+      } catch (e, t) {
+        error = e;
+        trace = t;
+      }
 
       bool notStrong = notYetStrongTests.contains(name);
       bool crashing = _crashingTests.contains(name);
 
       if (module == null) {
         expect(crashing, isTrue,
-            reason: "test $name crashes during compilation.");
+            reason: "test $name crashes during compilation.\n\n"
+                "Exception: $error\n\nStack trace:\n\n$trace");
       } else if (module.isValid) {
         _writeModule(
             path.join(codegenOutputDir, name),

@@ -53,7 +53,7 @@ static void unmap(void* address, intptr_t size) {
 
 
 VirtualMemory::~VirtualMemory() {
-  if (!embedder_allocated()) {
+  if (vm_owns_region()) {
     unmap(address(), reserved_size_);
   }
 }

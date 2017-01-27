@@ -4868,6 +4868,9 @@ void Parser::ParseEnumDefinition(const Class& cls) {
     declared_names.Add(enum_ident);
 
     // Create the static const field for the enumeration value.
+    // Note that we do not set the field type to E, because we temporarily store
+    // a Smi in the field. The class finalizer would detect the bad type and
+    // reset the value to sentinel.
     enum_value = Field::New(*enum_ident,
                             /* is_static = */ true,
                             /* is_final = */ true,
@@ -4890,18 +4893,28 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   }
   ExpectToken(Token::kRBRACE);
 
-  const Type& array_type = Type::Handle(Z, Type::ArrayType());
-  // Add static field 'const List values'.
+  const Class& array_class = Class::Handle(Z, I->object_store()->array_class());
+  TypeArguments& values_type_args =
+      TypeArguments::ZoneHandle(Z, TypeArguments::New(1));
+  const Type& enum_type = Type::Handle(Type::NewNonParameterizedType(cls));
+  values_type_args.SetTypeAt(0, enum_type);
+  Type& values_type = Type::ZoneHandle(
+      Z, Type::New(array_class, values_type_args, cls.token_pos(), Heap::kOld));
+  values_type ^= ClassFinalizer::FinalizeType(cls, values_type,
+                                              ClassFinalizer::kCanonicalize);
+  values_type_args = values_type.arguments();  // Get canonical type arguments.
+  // Add static field 'const List<E> values'.
   Field& values_field = Field::ZoneHandle(Z);
-  values_field =
-      Field::New(Symbols::Values(),
-                 /* is_static = */ true,
-                 /* is_final = */ true,
-                 /* is_const = */ true,
-                 /* is_reflectable = */ true, cls, array_type, cls.token_pos());
+  values_field = Field::New(Symbols::Values(),
+                            /* is_static = */ true,
+                            /* is_final = */ true,
+                            /* is_const = */ true,
+                            /* is_reflectable = */ true, cls, values_type,
+                            cls.token_pos());
   enum_members.AddField(values_field);
 
   // Add static field 'const _deleted_enum_sentinel'.
+  // This field does not need to be of type E.
   Field& deleted_enum_sentinel = Field::ZoneHandle(Z);
   deleted_enum_sentinel = Field::New(Symbols::_DeletedEnumSentinel(),
                                      /* is_static = */ true,
@@ -4914,6 +4927,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   // Allocate the immutable array containing the enumeration values.
   // The actual enum instance values will be patched in later.
   const Array& values_array = Array::Handle(Z, Array::New(i, Heap::kOld));
+  values_array.SetTypeArguments(values_type_args);
   values_field.SetStaticValue(values_array, true);
   values_field.RecordStore(values_array);
 

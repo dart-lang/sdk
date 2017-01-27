@@ -10,8 +10,9 @@ import 'package:js_runtime/shared/embedded_names.dart'
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue;
+import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
-    show ClassElement, Element, FieldElement, FunctionElement;
+    show ClassElement, Element, FieldElement, MethodElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 import '../../world.dart' show ClosedWorld;
@@ -102,7 +103,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.Expression isolateStaticClosureAccess(FunctionElement element) {
+  js.Expression isolateStaticClosureAccess(MethodElement element) {
     return _emitter.generateStaticClosureAccess(element);
   }
 
@@ -112,7 +113,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.PropertyAccess staticFunctionAccess(FunctionElement element) {
+  js.PropertyAccess staticFunctionAccess(MethodElement element) {
     return _globalPropertyAccess(element);
   }
 
@@ -145,8 +146,8 @@ class Emitter implements emitterTask.Emitter {
 
     switch (builtin) {
       case JsBuiltin.dartObjectConstructor:
-        return js.js.expressionTemplateYielding(
-            typeAccess(_compiler.commonElements.objectClass));
+        ClassElement objectClass = _compiler.commonElements.objectClass;
+        return js.js.expressionTemplateYielding(typeAccess(objectClass));
 
       case JsBuiltin.isCheckPropertyToJsConstructorName:
         int isPrefixLength = namer.operatorIsPrefix.length;
@@ -192,6 +193,13 @@ class Emitter implements emitterTask.Emitter {
             NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
         return null;
     }
+  }
+
+  @override
+  int generatedSize(OutputUnit unit) {
+    Fragment key = _emitter.outputBuffers.keys
+        .firstWhere((Fragment fragment) => fragment.outputUnit == unit);
+    return _emitter.outputBuffers[key].length;
   }
 
   @override

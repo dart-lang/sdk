@@ -3497,7 +3497,8 @@ UNIT_TEST_CASE(CurrentIsolateData) {
   intptr_t mydata = 12345;
   char* err;
   Dart_Isolate isolate =
-      Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_buffer, NULL,
+      Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
+                         bin::core_isolate_snapshot_instructions, NULL,
                          reinterpret_cast<void*>(mydata), &err);
   EXPECT(isolate != NULL);
   EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_CurrentIsolateData()));
@@ -3528,7 +3529,8 @@ UNIT_TEST_CASE(IsolateSetCheckedMode) {
 
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::core_isolate_snapshot_buffer, &api_flags, NULL, &err);
+      NULL, NULL, bin::core_isolate_snapshot_data,
+      bin::core_isolate_snapshot_instructions, &api_flags, NULL, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);
@@ -7573,7 +7575,8 @@ void BusyLoop_start(uword unused) {
     MonitorLocker ml(sync);
     char* error = NULL;
     shared_isolate = Dart_CreateIsolate(
-        NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL, &error);
+        NULL, NULL, bin::core_isolate_snapshot_data,
+        bin::core_isolate_snapshot_instructions, NULL, NULL, &error);
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
     Dart_Handle url = NewString(TestCase::url());
@@ -7624,7 +7627,8 @@ UNIT_TEST_CASE(IsolateShutdown) {
   // Create an isolate.
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, my_data, &err);
+      NULL, NULL, bin::core_isolate_snapshot_data,
+      bin::core_isolate_snapshot_instructions, NULL, my_data, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);
@@ -7673,7 +7677,8 @@ UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
   // Create an isolate.
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::core_isolate_snapshot_buffer, NULL, NULL, &err);
+      NULL, NULL, bin::core_isolate_snapshot_data,
+      bin::core_isolate_snapshot_instructions, NULL, NULL, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);

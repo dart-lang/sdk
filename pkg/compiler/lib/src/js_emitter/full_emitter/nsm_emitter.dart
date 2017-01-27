@@ -2,7 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter.full_emitter;
+library dart2js.js_emitter.full_emitter.nsm_emitter;
+
+import '../../elements/entities.dart';
+import '../../js/js.dart' as jsAst;
+import '../../js/js.dart' show js;
+import '../../js_backend/js_backend.dart' show GetterName, SetterName;
+import '../../universe/selector.dart' show Selector;
+import '../../util/characters.dart' show $$, $A, $HASH, $Z, $a, $z;
+import '../../world.dart' show ClosedWorld;
+import '../js_emitter.dart' hide Emitter, EmitterFactory;
+import '../model.dart';
+import 'emitter.dart';
 
 class NsmEmitter extends CodeEmitterHelper {
   final ClosedWorld closedWorld;
@@ -61,7 +72,7 @@ class NsmEmitter extends CodeEmitterHelper {
         if (reflectionName != null) {
           bool accessible = closedWorld.allFunctions
               .filter(selector, null)
-              .any((MemberElement e) => backend.isAccessibleByReflection(e));
+              .any(backend.isMemberAccessibleByReflection);
           addProperty(
               namer.asName('+$reflectionName'), js(accessible ? '2' : '0'));
         }
@@ -162,7 +173,7 @@ class NsmEmitter extends CodeEmitterHelper {
     }
     // Startup code that loops over the method names and puts handlers on the
     // Object class to catch noSuchMethod invocations.
-    ClassElement objectClass = compiler.commonElements.objectClass;
+    ClassEntity objectClass = compiler.commonElements.objectClass;
     jsAst.Expression createInvocationMirror = backend.emitter
         .staticFunctionAccess(backend.helpers.createInvocationMirror);
     if (useDiffEncoding) {

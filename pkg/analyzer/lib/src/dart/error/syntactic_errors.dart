@@ -82,6 +82,11 @@ class ParserErrorCode extends ErrorCode {
       "For-in loops use 'in' rather than a colon.",
       "Try replacing the colon with the keyword 'in'.");
 
+  static const ParserErrorCode CONST_AND_COVARIANT = const ParserErrorCode(
+      'CONST_AND_COVARIANT',
+      "Members can't be declared to be both 'const' and 'covariant'.",
+      "Try removing either the 'const' or 'covariant' keyword.");
+
   static const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
       'CONST_AND_FINAL',
       "Members can't be declared to be both 'const' and 'final'.",
@@ -141,6 +146,32 @@ class ParserErrorCode extends ErrorCode {
       'CONTINUE_WITHOUT_LABEL_IN_CASE',
       "A continue statement in a switch statement must have a label as a target.",
       "Try adding a label associated with one of the case clauses to the continue statement.");
+
+  static const ParserErrorCode COVARIANT_AFTER_VAR = const ParserErrorCode(
+      'COVARIANT_AFTER_VAR',
+      "The modifier 'covariant' should be before the modifier 'var'.",
+      "Try re-ordering the modifiers.");
+
+  static const ParserErrorCode COVARIANT_AND_STATIC = const ParserErrorCode(
+      'COVARIANT_AND_STATIC',
+      "Members can't be declared to be both 'covariant' and 'static'.",
+      "Try removing either the 'covariant' or 'static' keyword.");
+
+  static const ParserErrorCode COVARIANT_MEMBER = const ParserErrorCode(
+      'COVARIANT_MEMBER',
+      "Getters, setters and methods can't be declared to be 'covariant'.",
+      "Try removing the 'covariant' keyword.");
+
+  static const ParserErrorCode COVARIANT_TOP_LEVEL_DECLARATION =
+      const ParserErrorCode(
+          'COVARIANT_TOP_LEVEL_DECLARATION',
+          "Top-level declarations can't be declared to be covariant.",
+          "Try removing the keyword 'covariant'.");
+
+  static const ParserErrorCode COVARIANT_CONSTRUCTOR = const ParserErrorCode(
+      'COVARIANT_CONSTRUCTOR',
+      "A constructor can't be declared to be 'covariant'.",
+      "Try removing the keyword 'covariant'.");
 
   static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE =
       const ParserErrorCode(
@@ -321,6 +352,11 @@ class ParserErrorCode extends ErrorCode {
           'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
           "Field formal parameters can only be used in a constructor.",
           "Try replacing the field formal parameter with a normal parameter.");
+
+  static const ParserErrorCode FINAL_AND_COVARIANT = const ParserErrorCode(
+      'FINAL_AND_COVARIANT',
+      "Members can't be declared to be both 'final' and 'covariant'.",
+      "Try removing either the 'final' or 'covariant' keyword.");
 
   static const ParserErrorCode FINAL_AND_VAR = const ParserErrorCode(
       'FINAL_AND_VAR',

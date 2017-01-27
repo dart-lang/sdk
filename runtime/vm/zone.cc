@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/handles_impl.h"
 #include "vm/heap.h"
@@ -46,9 +47,10 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
   Thread* current_thread = Thread::Current();
   while (current != NULL) {
     if (current_thread != NULL) {
-      // TODO(bkonyi) Handle special case of segment deletion within native
-      // isolate.
       current_thread->DecrementMemoryUsage(current->size());
+    } else if (ApiNativeScope::Current() != NULL) {
+      // If there is no current thread, we might be inside of a native scope.
+      ApiNativeScope::DecrementNativeScopeMemoryUsage(current->size());
     }
     Segment* next = current->next();
 #ifdef DEBUG
@@ -74,15 +76,19 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
 #endif
   result->next_ = next;
   result->size_ = size;
-  if (Thread::Current() != NULL) {
-    // TODO(bkonyi) Handle special case of segment creation within native
-    // isolate.
-    Thread::Current()->IncrementMemoryUsage(size);
+  Thread* current = Thread::Current();
+  if (current != NULL) {
+    current->IncrementMemoryUsage(size);
+  } else if (ApiNativeScope::Current() != NULL) {
+    // If there is no current thread, we might be inside of a native scope.
+    ApiNativeScope::IncrementNativeScopeMemoryUsage(size);
   }
   return result;
 }
 
-
+// TODO(bkonyi): We need to account for the initial chunk size when a new zone
+// is created within a new thread or ApiNativeScope when calculating high
+// watermarks or memory consumption.
 Zone::Zone()
     : initial_buffer_(buffer_, kInitialChunkSize),
       position_(initial_buffer_.start()),
@@ -117,7 +123,6 @@ void Zone::DeleteAll() {
   if (large_segments_ != NULL) {
     Segment::DeleteSegmentList(large_segments_);
   }
-
 // Reset zone state.
 #ifdef DEBUG
   memset(initial_buffer_.pointer(), kZapDeletedByte, initial_buffer_.size());

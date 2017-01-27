@@ -754,11 +754,14 @@ class ExpressionScope extends TypeScope {
     return new ast.Throw(new ast.StringLiteral(message));
   }
 
+  ast.Expression buildThrowCompileTimeErrorFromCode(ErrorCode code,
+      [List arguments]) {
+    return buildThrowCompileTimeError(makeErrorMessage(code, arguments));
+  }
+
   static final RegExp _errorMessagePattern = new RegExp(r'\{(\d+)\}');
 
-  /// Throws an exception that will be caught at the function level, to replace
-  /// the entire function with a throw.
-  emitCompileTimeError(ErrorCode error, [List arguments]) {
+  String makeErrorMessage(ErrorCode error, [List arguments]) {
     String message = error.message;
     if (arguments != null) {
       message = message.replaceAllMapped(_errorMessagePattern, (m) {
@@ -767,7 +770,13 @@ class ExpressionScope extends TypeScope {
         return arguments[index];
       });
     }
-    throw new _CompilationError(message);
+    return message;
+  }
+
+  /// Throws an exception that will be caught at the function level, to replace
+  /// the entire function with a throw.
+  emitCompileTimeError(ErrorCode error, [List arguments]) {
+    throw new _CompilationError(makeErrorMessage(error, arguments));
   }
 
   ast.Expression buildThrowAbstractClassInstantiationError(String name) {
@@ -1692,6 +1701,9 @@ class ExpressionBuilder
         FunctionElement function = element;
         if (isTopLevelFunction(function)) {
           return scope.staticAccess(node.name, function);
+        }
+        if (function == function.library.loadLibraryFunction) {
+          return scope.unsupportedFeature('Deferred loading');
         }
         return new VariableAccessor(scope.getVariableReference(function));
 
@@ -2726,6 +2738,10 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   void buildGenerativeConstructor(ConstructorDeclaration node) {
+    if (currentMember is! ast.Constructor) {
+      buildBrokenMember();
+      return;
+    }
     addAnnotations(node.metadata);
     ast.Constructor constructor = currentMember;
     constructor.function = scope.buildFunctionNode(node.parameters, node.body,
@@ -2737,9 +2753,18 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     }
     for (var parameter in node.parameters.parameterElements) {
       if (parameter is FieldFormalParameterElement) {
-        var initializer = new ast.FieldInitializer(
-            scope.getMemberReference(parameter.field),
-            new ast.VariableGet(scope.getVariableReference(parameter)));
+        ast.Initializer initializer;
+        if (parameter.field == null) {
+          initializer = new ast.LocalInitializer(
+              new ast.VariableDeclaration.forValue(scope
+                  .buildThrowCompileTimeErrorFromCode(
+                      CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
+                      [parameter.name])));
+        } else {
+          initializer = new ast.FieldInitializer(
+              scope.getMemberReference(parameter.field),
+              new ast.VariableGet(scope.getVariableReference(parameter)));
+        }
         constructor.initializers.add(initializer..parent = constructor);
       }
     }
@@ -2769,6 +2794,10 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   void buildFactoryConstructor(ConstructorDeclaration node) {
+    if (currentMember is! ast.Procedure) {
+      buildBrokenMember();
+      return;
+    }
     addAnnotations(node.metadata);
     ast.Procedure procedure = currentMember;
     ClassElement classElement = resolutionMap

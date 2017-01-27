@@ -21,6 +21,7 @@ import 'dart:_js_helper'
         StrongModeErrorImplementation,
         StrongModeTypeError,
         SyncIterable;
+import 'dart:_internal' as _internal;
 
 part 'classes.dart';
 part 'rtti.dart';
@@ -30,6 +31,59 @@ part 'generators.dart';
 part 'operations.dart';
 part 'utils.dart';
 
+// TODO(vsm): Move polyfill code to dart:html.
+// Note, native extensions are registered onto types in dart.global.
+// This polyfill needs to run before the corresponding dart:html code is run.
 @JSExportName('global')
-final global_ = JS('', 'typeof window == "undefined" ? global : window');
+final global_ = JS('', '''
+  function () {
+    if (typeof NodeList !== "undefined") {
+      // TODO(vsm): Do we still need these?
+      NodeList.prototype.get = function(i) { return this[i]; };
+      NamedNodeMap.prototype.get = function(i) { return this[i]; };
+      DOMTokenList.prototype.get = function(i) { return this[i]; };
+      HTMLCollection.prototype.get = function(i) { return this[i]; };
+
+      // Expose constructors for DOM types dart:html needs to assume are
+      // available on window.
+      if (typeof PannerNode == "undefined") {
+        let audioContext;
+        if (typeof AudioContext == "undefined" &&
+            (typeof webkitAudioContext != "undefined")) {
+          audioContext = new webkitAudioContext();
+        } else {
+          audioContext = new AudioContext();
+          window.StereoPannerNode =
+              audioContext.createStereoPanner().constructor;
+        }
+        window.PannerNode = audioContext.createPanner().constructor;
+      }
+      if (typeof AudioSourceNode == "undefined") {
+        window.AudioSourceNode = MediaElementAudioSourceNode.__proto__;
+      }
+      if (typeof FontFaceSet == "undefined") {
+        window.FontFaceSet = document.fonts.__proto__.constructor;
+      }
+      if (typeof MemoryInfo == "undefined") {
+        if (typeof window.performance.memory != "undefined") {
+          window.MemoryInfo = window.performance.memory.constructor;
+        }
+      }
+      if (typeof Geolocation == "undefined") {
+        navigator.geolocation.constructor;
+      }
+      if (typeof Animation == "undefined") {
+        let d = document.createElement('div');
+        if (typeof d.animate != "undefined") {
+          window.Animation = d.animate(d).constructor;
+        }
+      }
+      if (typeof SourceBufferList == "undefined") {
+        window.SourceBufferList = new MediaSource().sourceBuffers.constructor;
+      }
+    }
+    return typeof window == "undefined" ? global : window;
+  }()
+''');
+
 final JsSymbol = JS('', 'Symbol');

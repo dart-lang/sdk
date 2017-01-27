@@ -134,7 +134,7 @@ abstract class Compiler implements LibraryLoaderListener {
   ResolvedUriTranslator get resolvedUriTranslator;
 
   LibraryElement mainApp;
-  FunctionElement mainFunction;
+  MethodElement mainFunction;
 
   DiagnosticReporter get reporter => _reporter;
   CommonElements get commonElements => _commonElements;
@@ -229,11 +229,6 @@ abstract class Compiler implements LibraryLoaderListener {
       backend = createBackend();
     }
     enqueuer = backend.makeEnqueuer();
-
-    if (options.dumpInfo && options.useStartupEmitter) {
-      throw new ArgumentError(
-          '--dump-info is not supported with the fast startup emitter');
-    }
 
     tasks = [
       dietParser = new DietParserTask(idGenerator, backend, reporter, measurer),
@@ -1175,8 +1170,8 @@ class _CompilerCommonElements implements CommonElements {
   ClassElement get functionClass =>
       _functionClass ??= _findRequired(coreLibrary, 'Function');
 
-  Element _functionApplyMethod;
-  Element get functionApplyMethod {
+  MethodElement _functionApplyMethod;
+  MethodElement get functionApplyMethod {
     if (_functionApplyMethod == null) {
       functionClass.ensureResolved(resolution);
       _functionApplyMethod = functionClass.lookupLocalMember('apply');
@@ -1186,7 +1181,7 @@ class _CompilerCommonElements implements CommonElements {
     return _functionApplyMethod;
   }
 
-  bool isFunctionApplyMethod(Element element) =>
+  bool isFunctionApplyMethod(MemberElement element) =>
       element.name == 'apply' && element.enclosingClass == functionClass;
 
   ClassElement _nullClass;
@@ -1234,8 +1229,8 @@ class _CompilerCommonElements implements CommonElements {
   ClassElement get resourceClass =>
       _resourceClass ??= _findRequired(coreLibrary, 'Resource');
 
-  Element _identicalFunction;
-  Element get identicalFunction =>
+  MethodElement _identicalFunction;
+  MethodElement get identicalFunction =>
       _identicalFunction ??= coreLibrary.find('identical');
 
   // From dart:async
@@ -1259,7 +1254,7 @@ class _CompilerCommonElements implements CommonElements {
       _mirrorSystemClass ??= _findRequired(mirrorsLibrary, 'MirrorSystem');
 
   FunctionElement _mirrorSystemGetNameFunction;
-  bool isMirrorSystemGetNameFunction(Element element) {
+  bool isMirrorSystemGetNameFunction(MemberElement element) {
     if (_mirrorSystemGetNameFunction == null) {
       if (!element.isFunction || mirrorsLibrary == null) return false;
       ClassElement cls = mirrorSystemClass;
@@ -1484,15 +1479,15 @@ class _CompilerCommonElements implements CommonElements {
 
   // TODO(johnniwinther): Change types to `ClassElement` when these are not
   // called with unrelated elements.
-  bool isNumberOrStringSupertype(/*Class*/ Element element) {
+  bool isNumberOrStringSupertype(/*Class*/ Entity element) {
     return element == coreLibrary.find('Comparable');
   }
 
-  bool isStringOnlySupertype(/*Class*/ Element element) {
+  bool isStringOnlySupertype(/*Class*/ Entity element) {
     return element == coreLibrary.find('Pattern');
   }
 
-  bool isListSupertype(/*Class*/ Element element) => element == iterableClass;
+  bool isListSupertype(/*Class*/ Entity element) => element == iterableClass;
 }
 
 class CompilerDiagnosticReporter extends DiagnosticReporter {

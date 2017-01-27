@@ -95,9 +95,11 @@ void Benchmark::RunAll(const char* executable) {
 }
 
 
-Dart_Isolate Benchmark::CreateIsolate(const uint8_t* buffer) {
+Dart_Isolate Benchmark::CreateIsolate(const uint8_t* snapshot_data,
+                                      const uint8_t* snapshot_instructions) {
   char* err = NULL;
-  isolate_ = Dart_CreateIsolate(NULL, NULL, buffer, NULL, NULL, &err);
+  isolate_ = Dart_CreateIsolate(NULL, NULL, snapshot_data,
+                                snapshot_instructions, NULL, NULL, &err);
   EXPECT(isolate_ != NULL);
   free(err);
   return isolate_;
@@ -509,24 +511,25 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
       "\n";
 
   // Start an Isolate, load a script and create a full snapshot.
-  uint8_t* vm_isolate_snapshot_buffer;
-  uint8_t* isolate_snapshot_buffer;
+  uint8_t* vm_snapshot_data_buffer;
+  uint8_t* isolate_snapshot_data_buffer;
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(Snapshot::kCore, &vm_isolate_snapshot_buffer,
-                            &isolate_snapshot_buffer, &malloc_allocator,
-                            NULL /* instructions_writer */);
+  FullSnapshotWriter writer(Snapshot::kCore, &vm_snapshot_data_buffer,
+                            &isolate_snapshot_data_buffer, &malloc_allocator,
+                            NULL, NULL /* image_writer */);
   writer.WriteFullSnapshot();
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
+  const Snapshot* snapshot =
+      Snapshot::SetupFromBuffer(isolate_snapshot_data_buffer);
   ASSERT(snapshot->kind() == Snapshot::kCore);
   benchmark->set_score(snapshot->length());
 
-  free(vm_isolate_snapshot_buffer);
-  free(isolate_snapshot_buffer);
+  free(vm_snapshot_data_buffer);
+  free(isolate_snapshot_data_buffer);
 }
 
 
@@ -546,24 +549,25 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
       "\n";
 
   // Start an Isolate, load a script and create a full snapshot.
-  uint8_t* vm_isolate_snapshot_buffer;
-  uint8_t* isolate_snapshot_buffer;
+  uint8_t* vm_snapshot_data_buffer;
+  uint8_t* isolate_snapshot_data_buffer;
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(Snapshot::kCore, &vm_isolate_snapshot_buffer,
-                            &isolate_snapshot_buffer, &malloc_allocator,
-                            NULL /* instructions_writer */);
+  FullSnapshotWriter writer(Snapshot::kCore, &vm_snapshot_data_buffer,
+                            &isolate_snapshot_data_buffer, &malloc_allocator,
+                            NULL, NULL /* image_writer */);
   writer.WriteFullSnapshot();
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
+  const Snapshot* snapshot =
+      Snapshot::SetupFromBuffer(isolate_snapshot_data_buffer);
   ASSERT(snapshot->kind() == Snapshot::kCore);
   benchmark->set_score(snapshot->length());
 
-  free(vm_isolate_snapshot_buffer);
-  free(isolate_snapshot_buffer);
+  free(vm_snapshot_data_buffer);
+  free(isolate_snapshot_data_buffer);
 }
 
 

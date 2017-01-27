@@ -15,7 +15,7 @@ part of dart.math;
  *
  * The rectangle is the set of points with representable coordinates greater
  * than or equal to left/top, and with distance to left/top no greater than
- * width/height (to the limit of the precission of the coordinates).
+ * width/height (to the limit of the precision of the coordinates).
  */
 abstract class _RectangleBase<T extends num> {
   const _RectangleBase();

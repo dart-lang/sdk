@@ -11,12 +11,13 @@ import 'package:kernel/core_types.dart';
 import 'package:args/args.dart';
 import 'dart:io';
 
-ArgParser argParser = new ArgParser()
+ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('count',
-      abbr: 'c', help: 'Build N copies of the tree shaker', defaultsTo: '100');
+      abbr: 'c', help: 'Build N copies of the tree shaker', defaultsTo: '100')
+  ..addFlag('strong', help: 'Run the tree shaker in strong mode');
 
 String usage = """
-Usage: treeshaker_membench [options] FILE.dart
+Usage: treeshaker_membench [options] FILE.dill
 
 Options:
 ${argParser.usage}
@@ -35,6 +36,7 @@ main(List<String> args) {
     exit(1);
   }
   String filename = options.rest.single;
+  bool strongMode = options['strong'];
 
   Program program = loadProgramFromBinary(filename);
   ClassHierarchy hierarchy = new ClassHierarchy(program);
@@ -43,7 +45,8 @@ main(List<String> args) {
   int copyCount = int.parse(options['count']);
 
   TreeShaker buildTreeShaker() {
-    return new TreeShaker(program, hierarchy: hierarchy, coreTypes: coreTypes);
+    return new TreeShaker(program,
+        hierarchy: hierarchy, coreTypes: coreTypes, strongMode: strongMode);
   }
 
   List<TreeShaker> keepAlive = <TreeShaker>[];

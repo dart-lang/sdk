@@ -19,9 +19,10 @@ namespace dart {
 // Defined in vm/os_thread_win.cc
 extern bool private_flag_windows_run_tls_destructors;
 
-// vm_isolate_snapshot_buffer points to a snapshot for the vm isolate if we
+// vm_snapshot_data_buffer points to a snapshot for the vm isolate if we
 // link in a snapshot otherwise it is initialized to NULL.
-extern const uint8_t* bin::vm_isolate_snapshot_buffer;
+extern const uint8_t* bin::vm_snapshot_data;
+extern const uint8_t* bin::vm_snapshot_instructions;
 
 // Only run tests that match the filter string. The default does not match any
 // tests.
@@ -108,10 +109,10 @@ static int Main(int argc, const char** argv) {
       Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
   ASSERT(set_vm_flags_success);
   const char* err_msg = Dart::InitOnce(
-      dart::bin::vm_isolate_snapshot_buffer, NULL, NULL, NULL, NULL, NULL,
-      dart::bin::DartUtils::OpenFile, dart::bin::DartUtils::ReadFile,
-      dart::bin::DartUtils::WriteFile, dart::bin::DartUtils::CloseFile, NULL,
-      NULL);
+      dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions, NULL,
+      NULL, NULL, dart::bin::DartUtils::OpenFile,
+      dart::bin::DartUtils::ReadFile, dart::bin::DartUtils::WriteFile,
+      dart::bin::DartUtils::CloseFile, NULL, NULL);
   ASSERT(err_msg == NULL);
   // Apply the filter to all registered tests.
   TestCaseBase::RunAll();

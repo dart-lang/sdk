@@ -128,14 +128,14 @@ class _FutureListener<S, T> {
   }
 
   dynamic/*T|Future<T>*/ handleValue(S sourceResult) {
-    return _zone.runUnary/*<dynamic/*T|Future<T>*/, S>*/(
+    return _zone.runUnary<dynamic/*T|Future<T>*/, S>(
         _onValue, sourceResult);
   }
 
   bool matchesErrorTest(AsyncError asyncError) {
     if (!hasErrorTest) return true;
     _FutureErrorTest test = _errorTest;
-    return _zone.runUnary/*<bool, dynamic>*/(_errorTest, asyncError.error);
+    return _zone.runUnary<bool, dynamic>(_errorTest, asyncError.error);
   }
 
   dynamic/*T|Future<T>*/ handleError(AsyncError asyncError) {
@@ -147,7 +147,7 @@ class _FutureListener<S, T> {
           asyncError.error,
           asyncError.stackTrace);
     } else {
-      return _zone.runUnary/*<dynamic/*T|Future<T>*/, dynamic>*/(
+      return _zone.runUnary<dynamic/*T|Future<T>*/, dynamic>(
           errorCallback, asyncError.error);
     }
   }
@@ -230,33 +230,33 @@ class _Future<T> implements Future<T> {
     _resultOrListeners = source;
   }
 
-  Future/*<E>*/ then/*<E>*/(
-      /*=dynamic/*E|Future<E>*/*/ f(T value), { Function onError }) {
+  Future<E> then<E>(
+      FutureOr<E> f(T value), { Function onError }) {
     Zone currentZone = Zone.current;
     ZoneUnaryCallback registered;
     if (!identical(currentZone, _ROOT_ZONE)) {
-      f = currentZone.registerUnaryCallback/*<dynamic, T>*/(f);
+      f = currentZone.registerUnaryCallback<FutureOr<E>, T>(f);
       if (onError != null) {
-        onError = _registerErrorHandler/*<T>*/(onError, currentZone);
+        onError = _registerErrorHandler<T>(onError, currentZone);
       }
     }
-    return _thenNoZoneRegistration/*<E>*/(f, onError);
+    return _thenNoZoneRegistration<E>(f, onError);
   }
 
   // This method is used by async/await.
-  Future/*<E>*/ _thenNoZoneRegistration/*<E>*/(f(T value), Function onError) {
-    _Future/*<E>*/ result = new _Future/*<E>*/();
-    _addListener(new _FutureListener/*<T, E>*/.then(result, f, onError));
+  Future<E> _thenNoZoneRegistration<E>(f(T value), Function onError) {
+    _Future<E> result = new _Future<E>();
+    _addListener(new _FutureListener<T, E>.then(result, f, onError));
     return result;
   }
 
-  Future/*<T>*/ catchError(Function onError, { bool test(error) }) {
-    _Future/*<T>*/ result = new _Future/*<T>*/();
+  Future<T> catchError(Function onError, { bool test(error) }) {
+    _Future<T> result = new _Future<T>();
     if (!identical(result._zone, _ROOT_ZONE)) {
-      onError = _registerErrorHandler/*<T>*/(onError, result._zone);
+      onError = _registerErrorHandler<T>(onError, result._zone);
       if (test != null) test = result._zone.registerUnaryCallback(test);
     }
-    _addListener(new _FutureListener/*<T, T>*/.catchError(
+    _addListener(new _FutureListener<T, T>.catchError(
         result, onError, test));
     return result;
   }
@@ -264,9 +264,9 @@ class _Future<T> implements Future<T> {
   Future<T> whenComplete(action()) {
     _Future<T> result = new _Future<T>();
     if (!identical(result._zone, _ROOT_ZONE)) {
-      action = result._zone.registerCallback/*<dynamic>*/(action);
+      action = result._zone.registerCallback<dynamic>(action);
     }
-    _addListener(new _FutureListener/*<T, T>*/.whenComplete(result, action));
+    _addListener(new _FutureListener<T, T>.whenComplete(result, action));
     return result;
   }
 
@@ -275,6 +275,11 @@ class _Future<T> implements Future<T> {
   void _setPendingComplete() {
     assert(_mayComplete);
     _state = _PENDING_COMPLETE;
+  }
+
+  void _clearPendingComplete() {
+    assert(_isPendingComplete);
+    _state = _INCOMPLETE;
   }
 
   AsyncError get _error {
@@ -405,7 +410,11 @@ class _Future<T> implements Future<T> {
     try {
       source.then((value) {
           assert(target._isPendingComplete);
-          target._completeWithValue(value);
+          // The "value" may be another future if the foreign future
+          // implementation is mis-behaving,
+          // so use _complete instead of _completeWithValue.
+          target._clearPendingComplete();  // Clear this first, it's set again.
+          target._complete(value);
         },
         // TODO(floitsch): eventually we would like to make this non-optional
         // and dependent on the listeners of the target future. If none of
@@ -650,7 +659,7 @@ class _Future<T> implements Future<T> {
           }
         }
 
- 
+
         if (listener.handlesComplete) {
           handleWhenCompleteCallback();
         } else if (!hasError) {
@@ -662,7 +671,7 @@ class _Future<T> implements Future<T> {
             handleError();
           }
         }
-        
+
         // If we changed zone, oldZone will not be null.
         if (oldZone != null) Zone._leave(oldZone);
 

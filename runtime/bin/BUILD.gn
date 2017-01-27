@@ -821,6 +821,9 @@ shared_library("test_extension") {
     # The only effect of DART_SHARED_LIB is to export the Dart API.
     "DART_SHARED_LIB",
   ]
+  if (is_linux || is_android) {
+    cflags = [ "-fPIC" ]
+  }
   if (is_win) {
     libs = [ "dart.lib" ]
     abs_root_out_dir = rebase_path(root_out_dir)
@@ -841,6 +844,9 @@ shared_library("sample_extension") {
     # The only effect of DART_SHARED_LIB is to export the Dart API.
     "DART_SHARED_LIB",
   ]
+  if (is_linux || is_android) {
+    cflags = [ "-fPIC" ]
+  }
   if (is_win) {
     libs = [ "dart.lib" ]
     abs_root_out_dir = rebase_path(root_out_dir)

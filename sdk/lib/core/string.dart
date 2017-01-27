@@ -413,7 +413,7 @@ abstract class String implements Comparable<String>, Pattern {
   bool contains(Pattern other, [int startIndex = 0]);
 
   /**
-   * Returns a new string in which the first occurence of [from] in this string
+   * Returns a new string in which the first occurrence of [from] in this string
    * is replaced with [to], starting from [startIndex]:
    *
    *     '0.0001'.replaceFirst(new RegExp(r'0'), ''); // '.0001'
@@ -422,7 +422,7 @@ abstract class String implements Comparable<String>, Pattern {
   String replaceFirst(Pattern from, String to, [int startIndex = 0]);
 
   /**
-   * Replace the first occurence of [from] in this string.
+   * Replace the first occurrence of [from] in this string.
    *
    * Returns a new string, which is this string
    * except that the first match of [pattern], starting from [startIndex],

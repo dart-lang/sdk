@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_context.dart';
 import 'abstract_refactoring.dart';
 
 main() {
@@ -114,7 +113,7 @@ import '22/new_name.dart';
       'my_pkg': <Folder>[provider.getResource('/packages/my_pkg/lib')]
     };
     context.sourceFactory = new SourceFactory([
-      AbstractContextTest.SDK_RESOLVER,
+      new DartUriResolver(sdk),
       new PackageMapUriResolver(provider, packageMap),
       resourceResolver
     ]);
@@ -241,7 +240,7 @@ export 'package:testName/myLib.dart';
 ''');
     // configure Uri resolves
     context.sourceFactory = new SourceFactory([
-      AbstractContextTest.SDK_RESOLVER,
+      new DartUriResolver(sdk),
       new PackageMapUriResolver(provider, <String, List<Folder>>{
         'testName': <Folder>[provider.getResource('/testName/lib')]
       }),

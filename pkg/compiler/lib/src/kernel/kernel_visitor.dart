@@ -909,8 +909,8 @@ class KernelVisitor extends Object
   @override
   ir.Expression visitLiteralString(LiteralString node) {
     if (node.dartString == null) return new ir.InvalidExpression();
-    return associateNode(new ir.StringLiteral(node.dartString.slowToString()),
-        node);
+    return associateNode(
+        new ir.StringLiteral(node.dartString.slowToString()), node);
   }
 
   @override
@@ -1109,9 +1109,7 @@ class KernelVisitor extends Object
     ir.Statement body =
         buildContinueTarget(buildStatementInBlock(node.body), node, jumpTarget);
     return buildBreakTarget(
-        associateNode(new ir.WhileStatement(condition, body), node),
-        node,
-        jumpTarget);
+        new ir.WhileStatement(condition, body), node, jumpTarget);
   }
 
   @override

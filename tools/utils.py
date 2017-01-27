@@ -7,14 +7,31 @@
 
 import commands
 import datetime
+import glob
+import imp
 import json
 import os
 import platform
 import re
 import shutil
 import subprocess
-import tempfile
 import sys
+import tarfile
+import tempfile
+import uuid
+
+try:
+  # Not available on Windows.
+  import resource
+except:
+  pass
+
+DART_DIR = os.path.abspath(
+    os.path.normpath(os.path.join(__file__, '..', '..')))
+
+def GetBotUtils():
+  '''Dynamically load the tools/bots/bot_utils.py python module.'''
+  return imp.load_source('bot_utils', os.path.join(DART_DIR, 'tools', 'bots', 'bot_utils.py'))
 
 class Version(object):
   def __init__(self, channel, major, minor, patch, prerelease,
@@ -657,6 +674,152 @@ class ChangedWorkingDirectory(object):
     print "Enter directory = ", self._old_cwd
     os.chdir(self._old_cwd)
 
+class CoreDump(object):
+  def __init__(self, test, core, binary):
+    self.test = test
+    self.core = core
+    self.binary = binary
+
+  def __str__(self):
+    return "%s: %s %s" % (self.test, self.binary, self.core)
+
+class CoreDumpArchiver(object):
+  """This class reads coredumps file written by UnexpectedCrashDumpArchiver
+  into the current working directory and uploads all cores and binaries
+  listed in it into Cloud Storage (see tools/testing/dart/test_progress.dart).
+  """
+
+  def __init__(self, args):
+    self._enabled = '--copy-coredumps' in args and GuessOS() == 'linux'
+    self._search_dir = os.getcwd()
+    self._bucket = 'dart-temp-crash-archive'
+    self._old_limits = None
+
+  def __enter__(self):
+    if not self._enabled:
+      return
+
+    # Cleanup any stale coredumps
+    if self._cleanup():
+      print "WARNING: Found and removed stale coredumps"
+
+    self._old_limits = resource.getrlimit(resource.RLIMIT_CORE)
+
+    # Bump core limits to unlimited if core_pattern is correctly configured.
+    if self._check_core_dump_pattern(fatal=False):
+      resource.setrlimit(resource.RLIMIT_CORE, (-1, -1))
+
+  def __exit__(self, *_):
+    if not self._enabled:
+      return
+
+    try:
+      # Restore old core limit.
+      resource.setrlimit(resource.RLIMIT_CORE, self._old_limits)
+
+      # Check that kernel was correctly configured to use core.%p
+      # core_pattern.
+      self._check_core_dump_pattern(fatal=True)
+
+      coredumps = self._find_coredumps()
+      if coredumps:
+        # If we get a ton of crashes, only archive 10 dumps.
+        archive_coredumps = coredumps[:10]
+        print 'Archiving coredumps:'
+        for core in archive_coredumps:
+          print '----> %s' % core
+
+        sys.stdout.flush()
+        self._archive(archive_coredumps)
+
+    finally:
+      self._cleanup()
+
+  def _cleanup(self):
+    found = False
+    for core in glob.glob(os.path.join(self._search_dir, 'core.*')):
+      found = True
+      os.unlink(core)
+    for binary in glob.glob(os.path.join(self._search_dir, 'binary.*')):
+      found = True
+      os.unlink(binary)
+    try:
+      os.unlink(os.path.join(self._search_dir, 'coredumps'))
+      found = True
+    except:
+      pass
+
+    return found
+
+  def _find_coredumps(self):
+    """Load coredumps file. Each line has the following format:
+
+              test-name,core-file,binary-file
+    """
+    try:
+      with open('coredumps') as f:
+        return [CoreDump(*ln.strip('\n').split(',')) for ln in f.readlines()]
+    except:
+      return []
+
+  def _archive(self, coredumps):
+    files = set()
+    for core in coredumps:
+      files.add(core.core)
+      files.add(core.binary)
+    self._upload(files)
+
+  def _upload(self, files):
+    bot_utils = GetBotUtils()
+    gsutil = bot_utils.GSUtil()
+    storage_path = '%s/%s/' % (self._bucket, uuid.uuid4())
+    gs_prefix = 'gs://%s' % storage_path
+    http_prefix = 'https://storage.cloud.google.com/%s' % storage_path
+
+    print '\n--- Uploading into %s (%s) ---' % (gs_prefix, http_prefix)
+    for file in files:
+      # Sanitize the name: actual cores follow 'core.%d' pattern, crashed
+      # binaries are copied next to cores and named 'binary.<binary_name>'.
+      name = os.path.basename(file)
+      (prefix, suffix) = name.split('.', 1)
+      if prefix == 'binary':
+        name = suffix
+
+      tarname = '%s.tar.gz' % name
+
+      # Compress the file.
+      tar = tarfile.open(tarname, mode='w:gz')
+      tar.add(file, arcname=name)
+      tar.close()
+
+      # Remove / from absolute path to not have // in gs path.
+      gs_url = '%s%s' % (gs_prefix, tarname)
+      http_url = '%s%s' % (http_prefix, tarname)
+
+      try:
+        gsutil.upload(tarname, gs_url)
+        print '+++ Uploaded %s (%s)' % (gs_url, http_url)
+      except Exception as error:
+        print '!!! Failed to upload %s, error: %s' % (tarname, error)
+
+      os.unlink(tarname)
+    print '--- Done ---\n'
+
+  def _check_core_dump_pattern(self, fatal=False):
+    core_pattern_file = '/proc/sys/kernel/core_pattern'
+    core_pattern = open(core_pattern_file).read()
+
+    expected_core_pattern = 'core.%p'
+    if core_pattern.strip() != expected_core_pattern:
+      if fatal:
+        message = ('Invalid core_pattern configuration. '
+            'The configuration of core dump handling is *not* correct for '
+            'a buildbot. The content of {0} must be "{1}" instead of "{2}".'
+            .format(core_pattern_file, expected_core_pattern, core_pattern))
+        raise Exception(message)
+      else:
+        return False
+    return True
 
 if __name__ == "__main__":
   import sys

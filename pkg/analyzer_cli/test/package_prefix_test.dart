@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show exitCode;
 
 import 'package:analyzer_cli/src/driver.dart' show Driver, outSink, errorSink;
@@ -20,8 +21,8 @@ main() {
       runner = null;
     });
 
-    test('shows only the hint whose package matches the prefix', () {
-      runner.run([
+    test('shows only the hint whose package matches the prefix', () async {
+      await runner.run2([
         "--packages",
         join(testDirectory, 'data', 'package_prefix', 'packagelist'),
         "--x-package-warnings-prefix=f",
@@ -58,8 +59,9 @@ class _Runner {
   String get stderr => _stderr.toString();
 
   String get stdout => _stdout.toString();
-  void run(List<String> args) {
-    new Driver().start(args);
+
+  Future<Null> run2(List<String> args) async {
+    await new Driver().start(args);
     if (stderr.isNotEmpty) {
       fail("Unexpected output to stderr:\n$stderr");
     }

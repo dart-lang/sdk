@@ -2,7 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.interceptor_stub_generator;
+
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../elements/entities.dart';
+import '../elements/types.dart' show InterfaceType;
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../js_backend/backend_helpers.dart' show BackendHelpers;
+import '../js_backend/js_backend.dart'
+    show
+        CustomElementsAnalysis,
+        JavaScriptBackend,
+        JavaScriptConstantCompiler,
+        Namer;
+import '../universe/selector.dart' show Selector;
+import '../world.dart' show ClosedWorld;
+
+import 'code_emitter_task.dart' show Emitter;
 
 class InterceptorStubGenerator {
   final Compiler compiler;
@@ -17,8 +35,8 @@ class InterceptorStubGenerator {
 
   BackendHelpers get helpers => backend.helpers;
 
-  jsAst.Expression generateGetInterceptorMethod(Set<ClassElement> classes) {
-    jsAst.Expression interceptorFor(ClassElement cls) {
+  jsAst.Expression generateGetInterceptorMethod(Set<ClassEntity> classes) {
+    jsAst.Expression interceptorFor(ClassEntity cls) {
       return backend.emitter.interceptorPrototypeAccess(cls);
     }
 
@@ -26,7 +44,7 @@ class InterceptorStubGenerator {
      * Build a JavaScrit AST node for doing a type check on
      * [cls]. [cls] must be a non-native interceptor class.
      */
-    jsAst.Statement buildInterceptorCheck(ClassElement cls) {
+    jsAst.Statement buildInterceptorCheck(ClassEntity cls) {
       jsAst.Expression condition;
       assert(backend.isInterceptorClass(cls));
       if (cls == helpers.jsBoolClass) {
@@ -61,7 +79,7 @@ class InterceptorStubGenerator {
     bool anyNativeClasses =
         compiler.enqueuer.codegen.nativeEnqueuer.hasInstantiatedNativeClasses;
 
-    for (ClassElement cls in classes) {
+    for (ClassEntity cls in classes) {
       if (cls == helpers.jsArrayClass ||
           cls == helpers.jsMutableArrayClass ||
           cls == helpers.jsFixedArrayClass ||
@@ -168,7 +186,7 @@ class InterceptorStubGenerator {
                 .staticFunctionAccess(helpers.getNativeInterceptorMethod)
           ]));
     } else {
-      ClassElement jsUnknown = helpers.jsUnknownJavaScriptObjectClass;
+      ClassEntity jsUnknown = helpers.jsUnknownJavaScriptObjectClass;
       if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
           .contains(jsUnknown)) {
         statements.add(js.statement('if (!(receiver instanceof #)) return #;', [
@@ -188,7 +206,7 @@ class InterceptorStubGenerator {
   // common case for a one-shot interceptor, or null if there is no
   // fast path.
   jsAst.Statement _fastPathForOneShotInterceptor(
-      Selector selector, Set<ClassElement> classes) {
+      Selector selector, Set<ClassEntity> classes) {
     if (selector.isOperator) {
       String name = selector.name;
       if (name == '==') {
@@ -320,7 +338,7 @@ class InterceptorStubGenerator {
 
   jsAst.Expression generateOneShotInterceptor(jsAst.Name name) {
     Selector selector = backend.oneShotInterceptors[name];
-    Set<ClassElement> classes = backend.getInterceptedClassesOn(selector.name);
+    Set<ClassEntity> classes = backend.getInterceptedClassesOn(selector.name);
     jsAst.Name getInterceptorName = namer.nameForGetInterceptor(classes);
 
     List<String> parameterNames = <String>[];
@@ -362,40 +380,37 @@ class InterceptorStubGenerator {
         handler.getConstantsForEmission(emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (constant is TypeConstantValue &&
-          constant.representedType is ResolutionInterfaceType) {
-        ResolutionInterfaceType type = constant.representedType;
-        Element element = type.element;
-        if (element is ClassElement) {
-          ClassElement classElement = element;
-          if (!analysis.needsClass(classElement)) continue;
+          constant.representedType is InterfaceType) {
+        InterfaceType type = constant.representedType;
+        ClassEntity classElement = type.element;
+        if (!analysis.needsClass(classElement)) continue;
 
-          elements.add(emitter.constantReference(constant));
-          elements.add(backend.emitter.interceptorClassAccess(classElement));
+        elements.add(emitter.constantReference(constant));
+        elements.add(backend.emitter.interceptorClassAccess(classElement));
 
-          // Create JavaScript Object map for by-name lookup of generative
-          // constructors.  For example, the class A has three generative
-          // constructors
-          //
-          //     class A {
-          //       A() {}
-          //       A.foo() {}
-          //       A.bar() {}
-          //     }
-          //
-          // Which are described by the map
-          //
-          //     {"": A.A$, "foo": A.A$foo, "bar": A.A$bar}
-          //
-          // We expect most of the time the map will be a singleton.
-          var properties = [];
-          for (Element member in analysis.constructors(classElement)) {
-            properties.add(new jsAst.Property(js.string(member.name),
-                backend.emitter.staticFunctionAccess(member)));
-          }
-
-          var map = new jsAst.ObjectInitializer(properties);
-          elements.add(map);
+        // Create JavaScript Object map for by-name lookup of generative
+        // constructors.  For example, the class A has three generative
+        // constructors
+        //
+        //     class A {
+        //       A() {}
+        //       A.foo() {}
+        //       A.bar() {}
+        //     }
+        //
+        // Which are described by the map
+        //
+        //     {"": A.A$, "foo": A.A$foo, "bar": A.A$bar}
+        //
+        // We expect most of the time the map will be a singleton.
+        var properties = [];
+        for (FunctionEntity member in analysis.constructors(classElement)) {
+          properties.add(new jsAst.Property(js.string(member.name),
+              backend.emitter.staticFunctionAccess(member)));
         }
+
+        var map = new jsAst.ObjectInitializer(properties);
+        elements.add(map);
       }
     }
 

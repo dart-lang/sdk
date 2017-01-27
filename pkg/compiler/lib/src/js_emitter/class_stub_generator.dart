@@ -2,7 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.class_stub_generator;
+
+import '../common/names.dart' show Identifiers;
+import '../compiler.dart' show Compiler;
+import '../elements/entities.dart';
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../universe/selector.dart' show Selector;
+import '../universe/world_builder.dart'
+    show CodegenWorldBuilder, SelectorConstraints;
+import '../world.dart' show ClosedWorld;
+
+import 'model.dart';
 
 class ClassStubGenerator {
   final Namer namer;
@@ -15,8 +28,8 @@ class ClassStubGenerator {
       this.namer, this.backend, this.worldBuilder, this.closedWorld,
       {this.enableMinification});
 
-  jsAst.Expression generateClassConstructor(ClassElement classElement,
-      Iterable<jsAst.Name> fields, bool hasRtiField) {
+  jsAst.Expression generateClassConstructor(
+      ClassEntity classElement, Iterable<jsAst.Name> fields, bool hasRtiField) {
     // TODO(sra): Implement placeholders in VariableDeclaration position:
     //
     //     String constructorName = namer.getNameOfClass(classElement);
@@ -40,15 +53,15 @@ class ClassStubGenerator {
     ]);
   }
 
-  jsAst.Expression generateGetter(Element member, jsAst.Name fieldName) {
-    ClassElement cls = member.enclosingClass;
+  jsAst.Expression generateGetter(MemberEntity member, jsAst.Name fieldName) {
+    ClassEntity cls = member.enclosingClass;
     String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
     List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
     return js('function(#) { return #.# }', [args, receiver, fieldName]);
   }
 
-  jsAst.Expression generateSetter(Element member, jsAst.Name fieldName) {
-    ClassElement cls = member.enclosingClass;
+  jsAst.Expression generateSetter(MemberEntity member, jsAst.Name fieldName) {
+    ClassEntity cls = member.enclosingClass;
     String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
     List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
     // TODO(floitsch): remove 'return'?
@@ -62,9 +75,7 @@ class ClassStubGenerator {
    * Invariant: [member] must be a declaration element.
    */
   Map<jsAst.Name, jsAst.Expression> generateCallStubsForGetter(
-      Element member, Map<Selector, SelectorConstraints> selectors) {
-    assert(invariant(member, member.isDeclaration));
-
+      MemberEntity member, Map<Selector, SelectorConstraints> selectors) {
     // If the method is intercepted, the stub gets the
     // receiver explicitely and we need to pass it to the getter call.
     bool isInterceptedMethod = backend.isInterceptedMethod(member);
@@ -217,7 +228,7 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
 
-  Element closureFromTearOff = backend.helpers.closureFromTearOff;
+  FunctionEntity closureFromTearOff = backend.helpers.closureFromTearOff;
   jsAst.Expression tearOffAccessExpression;
   jsAst.Expression tearOffGlobalObjectString;
   jsAst.Expression tearOffGlobalObject;
@@ -225,9 +236,9 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
     tearOffAccessExpression =
         backend.emitter.staticFunctionAccess(closureFromTearOff);
     tearOffGlobalObject =
-        js.stringPart(namer.globalObjectFor(closureFromTearOff));
+        js.stringPart(namer.globalObjectForMethod(closureFromTearOff));
     tearOffGlobalObjectString =
-        js.string(namer.globalObjectFor(closureFromTearOff));
+        js.string(namer.globalObjectForMethod(closureFromTearOff));
   } else {
     // Default values for mocked-up test libraries.
     tearOffAccessExpression =

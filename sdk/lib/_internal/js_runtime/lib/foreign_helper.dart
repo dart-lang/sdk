@@ -7,7 +7,7 @@ library _foreign_helper;
 import 'dart:_js_embedded_names' show JsGetName, JsBuiltin;
 
 /**
- * Emits a JavaScript code fragment parameterized by arguments.
+ * Emits a JavaScript code fragment parametrized by arguments.
  *
  * Hash characters `#` in the [codeTemplate] are replaced in left-to-right order
  * with expressions that contain the values of, or evaluate to, the arguments.

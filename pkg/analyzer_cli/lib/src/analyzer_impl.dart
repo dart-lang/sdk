@@ -4,6 +4,7 @@
 
 library analyzer_cli.src.analyzer_impl;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
@@ -11,8 +12,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -37,7 +39,9 @@ class AnalyzerImpl {
   final CommandLineOptions options;
   final int startTime;
 
+  final AnalysisOptions analysisOptions;
   final AnalysisContext context;
+  final AnalysisDriver analysisDriver;
 
   /// Accumulated analysis statistics.
   final AnalysisStats stats;
@@ -61,8 +65,8 @@ class AnalyzerImpl {
   /// specified the "--package-warnings" option.
   String _selfPackageName;
 
-  AnalyzerImpl(this.context, this.librarySource, this.options, this.stats,
-      this.startTime);
+  AnalyzerImpl(this.analysisOptions, this.context, this.analysisDriver,
+      this.librarySource, this.options, this.stats, this.startTime);
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.
   ErrorSeverity get maxErrorSeverity {
@@ -111,24 +115,34 @@ class AnalyzerImpl {
     }
   }
 
-  /// Treats the [sourcePath] as the top level library and analyzes it using a
-  /// synchronous algorithm over the analysis engine. If [printMode] is `0`,
-  /// then no error or performance information is printed. If [printMode] is `1`,
-  /// then both will be printed. If [printMode] is `2`, then only performance
-  /// information will be printed, and it will be marked as being for a cold VM.
-  ErrorSeverity analyzeSync({int printMode: 1}) {
+  /// Treats the [sourcePath] as the top level library and analyzes it using
+  /// the analysis engine. If [printMode] is `0`, then no error or performance
+  /// information is printed. If [printMode] is `1`, then both will be printed.
+  /// If [printMode] is `2`, then only performance information will be printed,
+  /// and it will be marked as being for a cold VM.
+  Future<ErrorSeverity> analyze({int printMode: 1}) async {
     setupForAnalysis();
-    return _analyzeSync(printMode);
+    return await _analyze(printMode);
   }
 
   /// Fills [errorInfos] using [sources].
-  void prepareErrors() {
-    return _prepareErrorsTag.makeCurrentWhile(() {
+  Future<Null> prepareErrors() async {
+    PerformanceTag previous = _prepareErrorsTag.makeCurrent();
+    try {
       for (Source source in sources) {
-        context.computeErrors(source);
-        errorInfos.add(context.getErrors(source));
+        if (analysisDriver != null) {
+          String path = source.fullName;
+          AnalysisResult analysisResult = await analysisDriver.getResult(path);
+          errorInfos.add(new AnalysisErrorInfoImpl(
+              analysisResult.errors, analysisResult.lineInfo));
+        } else {
+          context.computeErrors(source);
+          errorInfos.add(context.getErrors(source));
+        }
       }
-    });
+    } finally {
+      previous.makeCurrent();
+    }
   }
 
   /// Fills [sources].
@@ -148,8 +162,7 @@ class AnalyzerImpl {
     }
   }
 
-  /// The sync version of analysis.
-  ErrorSeverity _analyzeSync(int printMode) {
+  Future<ErrorSeverity> _analyze(int printMode) async {
     // Don't try to analyze parts.
     if (context.computeKindOf(librarySource) == SourceKind.PART) {
       stderr.writeln("Only libraries can be analyzed.");
@@ -157,9 +170,10 @@ class AnalyzerImpl {
           "${librarySource.fullName} is a part and can not be analyzed.");
       return ErrorSeverity.ERROR;
     }
-    var libraryElement = _resolveLibrary();
+
+    LibraryElement libraryElement = await _resolveLibrary();
     prepareSources(libraryElement);
-    prepareErrors();
+    await prepareErrors();
 
     // Print errors and performance numbers.
     if (printMode == 1) {
@@ -240,12 +254,22 @@ class AnalyzerImpl {
   }
 
   ProcessedSeverity _processError(AnalysisError error) =>
-      processError(error, options, context);
+      processError(error, options, analysisOptions);
 
-  LibraryElement _resolveLibrary() {
-    return _resolveLibraryTag.makeCurrentWhile(() {
-      return context.computeLibraryElement(librarySource);
-    });
+  Future<LibraryElement> _resolveLibrary() async {
+    PerformanceTag previous = _resolveLibraryTag.makeCurrent();
+    try {
+      if (analysisDriver != null) {
+        String path = librarySource.fullName;
+        analysisDriver.priorityFiles = [path];
+        AnalysisResult analysisResult = await analysisDriver.getResult(path);
+        return analysisResult.unit.element.library;
+      } else {
+        return context.computeLibraryElement(librarySource);
+      }
+    } finally {
+      previous.makeCurrent();
+    }
   }
 
   /// Compute the severity of the error; however:
@@ -255,10 +279,10 @@ class AnalyzerImpl {
   ///   * if [options.lintsAreFatal] is true, escalate lints to errors.
   static ErrorSeverity computeSeverity(
       AnalysisError error, CommandLineOptions options,
-      [AnalysisContext context]) {
-    if (context != null) {
+      [AnalysisOptions analysisOptions]) {
+    if (analysisOptions != null) {
       ErrorProcessor processor =
-          ErrorProcessor.getProcessor(context.analysisOptions, error);
+          ErrorProcessor.getProcessor(analysisOptions, error);
       // If there is a processor for this error, defer to it.
       if (processor != null) {
         return processor.severity;
@@ -296,8 +320,8 @@ class AnalyzerImpl {
   /// Check various configuration options to get a desired severity for this
   /// [error] (or `null` if it's to be suppressed).
   static ProcessedSeverity processError(AnalysisError error,
-      CommandLineOptions options, AnalysisContext context) {
-    ErrorSeverity severity = computeSeverity(error, options, context);
+      CommandLineOptions options, AnalysisOptions analysisOptions) {
+    ErrorSeverity severity = computeSeverity(error, options, analysisOptions);
     bool isOverridden = false;
 
     // Skip TODOs categorically (unless escalated to ERROR or HINT.)

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -12,10 +13,11 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:front_end/incremental_resolved_ast_generator.dart';
+import 'package:front_end/src/base/file_repository.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/dependency_grapher_impl.dart';
@@ -43,15 +45,14 @@ dynamic unimplemented() {
 class IncrementalResolvedAstGeneratorImpl
     implements IncrementalResolvedAstGenerator {
   driver.AnalysisDriverScheduler _scheduler;
-  final _pathToUriMap = <String, Uri>{};
-  final _uriToPathMap = <Uri, String>{};
-  final _fileContents = <String, String>{};
+  final _fileRepository = new FileRepository();
   _ResourceProviderProxy _resourceProvider;
   driver.AnalysisDriver _driver;
   bool _isInitialized = false;
   final ProcessedOptions _options;
   final Uri _source;
   bool _schedulerStarted = false;
+  final _fileState = <Uri, String>{};
 
   IncrementalResolvedAstGeneratorImpl(this._source, this._options);
 
@@ -64,30 +65,45 @@ class IncrementalResolvedAstGeneratorImpl
     // so we have to find all the files first to read their contents.
     // TODO(paulberry): this is an unnecessary source of duplicate work and
     // should be eliminated ASAP.
-    var graph = await graphForProgram([_source], _options);
+    var graph =
+        await graphForProgram([_source], _options, fileReader: _fileReader);
+    // TODO(paulberry): collect no-longer-referenced files from _fileState and
+    // _fileRepository.
     var libraries = <Uri, ResolvedLibrary>{};
-    // TODO(paulberry): it should be possible to seed the driver using a URI,
-    // not a file path.
     if (!_schedulerStarted) {
       _scheduler.start();
       _schedulerStarted = true;
     }
-    _driver.addFile(_source.path);
     for (var libraryCycle in graph.topologicallySortedCycles) {
-      for (var uri in libraryCycle.libraries.keys) {
-        var contents =
-            await _options.fileSystem.entityForUri(uri).readAsString();
-        _storeVirtualFile(uri, uri.path, contents);
+      for (var libraryUri in libraryCycle.libraries.keys) {
+        var libraryNode = libraryCycle.libraries[libraryUri];
+        for (var partUri in libraryNode.parts) {
+          // TODO(paulberry): resolve the part URI.
+          _fileReader(partUri, partUri);
+        }
       }
-      // The driver will request files from dart:, even though it actually uses
-      // the data from the summary.  TODO(paulberry): fix this.
-      _storeVirtualFile(_DartSdkProxy._dartCoreSource.uri, 'core.dart', '');
-      for (var uri in libraryCycle.libraries.keys) {
-        var result = await _driver.getResult(uri.path);
+      for (var libraryUri in libraryCycle.libraries.keys) {
+        var libraryNode = libraryCycle.libraries[libraryUri];
+        var result =
+            await _driver.getResult(_fileRepository.pathForUri(libraryUri));
         // TODO(paulberry): handle errors.
-        libraries[uri] = new ResolvedLibrary(result.unit);
+        var definingCompilationUnit = result.unit;
+        var partUnits = <Uri, CompilationUnit>{};
+        for (var partUri in libraryNode.parts) {
+          // Really we ought to have a driver API that lets us request a
+          // specific part of a given library.  Otherwise we will run into
+          // problems if a part is included in multiple libraries.
+          // TODO(paulberry): address this.
+          var partResult =
+              await _driver.getResult(_fileRepository.pathForUri(partUri));
+          // TODO(paulberry): handle errors.
+          partUnits[partUri] = partResult.unit;
+        }
+        libraries[libraryUri] =
+            new ResolvedLibrary(definingCompilationUnit, partUnits);
       }
     }
+    _driver.addFile(_fileRepository.pathForUri(_source));
     // TODO(paulberry): stop the scheduler
     return new DeltaLibraries(libraries);
   }
@@ -96,23 +112,19 @@ class IncrementalResolvedAstGeneratorImpl
     // TODO(paulberry): can we just use null?
     var performanceLog = new driver.PerformanceLog(new _NullStringSink());
     _scheduler = new driver.AnalysisDriverScheduler(performanceLog);
-    _resourceProvider =
-        new _ResourceProviderProxy(_fileContents, _pathToUriMap);
+    _resourceProvider = new _ResourceProviderProxy(_fileRepository);
     // TODO(paulberry): MemoryByteStore leaks memory (it never discards data).
     // Do something better here.
     var byteStore = new MemoryByteStore();
     // TODO(paulberry): can we just use null?
     var fileContentOverlay = new FileContentOverlay();
     var sdkContext = new AnalysisContextImpl();
-    var dartSdk = new _DartSdkProxy(await _options.getSdkSummary(), sdkContext);
+    var sdkBundle = await _options.getSdkSummary();
+    var dartSdk = new _DartSdkProxy(sdkBundle, sdkContext, _fileRepository);
     sdkContext.sourceFactory =
         new SourceFactory([new DartUriResolver(dartSdk)]);
-    bool strongMode = true; // TODO(paulberry): support strong mode flag.
-    sdkContext.resultProvider = new SdkSummaryResultProvider(
-        sdkContext, await _options.getSdkSummary(), strongMode);
 
-    var sourceFactory =
-        new _SourceFactoryProxy(dartSdk, _pathToUriMap, _uriToPathMap);
+    var sourceFactory = new _SourceFactoryProxy(dartSdk, _fileRepository);
     var analysisOptions = new AnalysisOptionsImpl();
     _driver = new driver.AnalysisDriver(
         _scheduler,
@@ -122,7 +134,8 @@ class IncrementalResolvedAstGeneratorImpl
         fileContentOverlay,
         'front_end',
         sourceFactory,
-        analysisOptions);
+        analysisOptions,
+        sdkBundle: sdkBundle);
     _isInitialized = true;
   }
 
@@ -133,6 +146,8 @@ class IncrementalResolvedAstGeneratorImpl
 
   @override
   void invalidateAll() {
+    _fileState.clear();
+    _fileRepository.clearContents();
     // TODO(paulberry): verify that this has an effect (requires a multi-file
     // test).
     if (_isInitialized) {
@@ -140,30 +155,31 @@ class IncrementalResolvedAstGeneratorImpl
     }
   }
 
-  void _storeVirtualFile(Uri uri, String path, String contents) {
-    _pathToUriMap[path] = uri;
-    _uriToPathMap[uri] = path;
-    _fileContents[path] = contents;
+  Future<String> _fileReader(Uri originalUri, Uri resolvedUri) async {
+    String contents = _fileState[resolvedUri] ??=
+        await _options.fileSystem.entityForUri(resolvedUri).readAsString();
+    _fileRepository.store(originalUri, contents);
+    return contents;
   }
 }
 
 class _DartSdkProxy implements DartSdk {
-  static final _dartCoreSource =
-      new _SourceProxy(Uri.parse('dart:core'), 'core.dart');
-
   final PackageBundle summary;
 
   final AnalysisContext context;
 
-  _DartSdkProxy(this.summary, this.context);
+  final FileRepository _fileRepository;
+
+  _DartSdkProxy(this.summary, this.context, this._fileRepository);
 
   @override
   PackageBundle getLinkedBundle() => summary;
 
   @override
-  Source mapDartUri(String uri) {
-    // TODO(paulberry): this seems hacky.
-    return new _SourceProxy(Uri.parse(uri), '$uri.dart');
+  Source mapDartUri(String uriString) {
+    var uri = Uri.parse(uriString);
+    return new _SourceProxy(
+        uri, _fileRepository.pathForUri(uri, allocate: true));
   }
 
   noSuchMethod(Invocation invocation) => unimplemented();
@@ -192,8 +208,7 @@ class _FileProxy implements File {
 
   @override
   String readAsStringSync() {
-    assert(_resourceProvider.fileContents.containsKey(path));
-    return _resourceProvider.fileContents[path];
+    return _resourceProvider._fileRepository.contentsForPath(path);
   }
 }
 
@@ -206,10 +221,9 @@ class _NullStringSink implements StringSink {
 }
 
 class _ResourceProviderProxy implements ResourceProvider {
-  final Map<String, String> fileContents;
-  final Map<String, Uri> pathToUriMap;
+  final FileRepository _fileRepository;
 
-  _ResourceProviderProxy(this.fileContents, this.pathToUriMap);
+  _ResourceProviderProxy(this._fileRepository);
 
   @override
   AbsolutePathContext get absolutePathContext => throw new UnimplementedError();
@@ -219,9 +233,8 @@ class _ResourceProviderProxy implements ResourceProvider {
 
   @override
   File getFile(String path) {
-    assert(fileContents.containsKey(path));
-    assert(pathToUriMap.containsKey(path));
-    return new _FileProxy(new _SourceProxy(pathToUriMap[path], path), this);
+    return new _FileProxy(
+        new _SourceProxy(_fileRepository.uriForPath(path), path), this);
   }
 
   @override
@@ -242,25 +255,21 @@ class _SourceFactoryProxy implements SourceFactory {
   @override
   final DartSdk dartSdk;
 
-  final Map<String, Uri> pathToUriMap;
-
-  final Map<Uri, String> uriToPathMap;
+  final FileRepository _fileRepository;
 
   @override
   AnalysisContext context;
 
-  _SourceFactoryProxy(this.dartSdk, this.pathToUriMap, this.uriToPathMap);
+  _SourceFactoryProxy(this.dartSdk, this._fileRepository);
 
   @override
-  SourceFactory clone() =>
-      new _SourceFactoryProxy(dartSdk, pathToUriMap, uriToPathMap);
+  SourceFactory clone() => new _SourceFactoryProxy(dartSdk, _fileRepository);
 
   @override
   Source forUri(String absoluteUri) {
-    if (absoluteUri == 'dart:core') return _DartSdkProxy._dartCoreSource;
     Uri uri = Uri.parse(absoluteUri);
-    assert(uriToPathMap.containsKey(uri));
-    return new _SourceProxy(uri, uriToPathMap[uri]);
+    return new _SourceProxy(
+        uri, _fileRepository.pathForUri(uri, allocate: true));
   }
 
   noSuchMethod(Invocation invocation) => unimplemented();
@@ -268,8 +277,10 @@ class _SourceFactoryProxy implements SourceFactory {
   Source resolveUri(Source containingSource, String containedUri) {
     // TODO(paulberry): re-use code from dependency_grapher_impl, and support
     // SDK URI resolution logic.
-    var absoluteUri = containingSource.uri.resolve(containedUri);
-    return forUri(absoluteUri.toString());
+    String absoluteUri =
+        resolveRelativeUri(containingSource?.uri, Uri.parse(containedUri))
+            .toString();
+    return forUri(absoluteUri);
   }
 
   @override

@@ -30,7 +30,7 @@ vars = {
   "github_testing": "https://github.com/peter-ahe-google/testing.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@f05d5aee5930bfd487aedf832fbd7b832f502b15",
+  "co19_rev": "@cf831f58ac65f68f14824c0b1515f6b7814d94b8",
 
   # Revisions of GN related dependencies.
   "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",
@@ -45,7 +45,7 @@ vars = {
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
   "barback_tag" : "@0.15.2+9",
-  "bazel_worker_tag": "@0.1.1",
+  "bazel_worker_tag": "@0.1.2",
   "boolean_selector_tag" : "@1.0.2",
   "boringssl_gen_rev": "@1a810313a0290e1caace9da73fa3ab89995ad2c7",
   "boringssl_rev" : "@d519bf6be0b447fb80fbc539d4bff4479b5482a2",
@@ -59,7 +59,7 @@ vars = {
   "csslib_tag" : "@0.13.2",
   "dart2js_info_tag" : "@0.5.0",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@0.2.14",
+  "dart_style_tag": "@0.2.15",
   "dartdoc_tag" : "@v0.9.8+1",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@0.1.0",

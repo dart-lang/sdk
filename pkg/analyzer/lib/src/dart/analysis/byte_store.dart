@@ -98,3 +98,14 @@ class MemoryCachingByteStore implements ByteStore {
     }
   }
 }
+
+/**
+ * [ByteStore] which does not store any data.
+ */
+class NullByteStore implements ByteStore {
+  @override
+  List<int> get(String key) => null;
+
+  @override
+  void put(String key, List<int> bytes) {}
+}

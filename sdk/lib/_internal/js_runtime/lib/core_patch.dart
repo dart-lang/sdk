@@ -500,6 +500,7 @@ class RegExp {
 }
 
 // Patch for 'identical' function.
+@NoInline() // No inlining since we recognize the call in optimizer.
 @patch
 bool identical(Object a, Object b) {
   return JS('bool', '(# == null ? # == null : # === #)', a, b, a, b);

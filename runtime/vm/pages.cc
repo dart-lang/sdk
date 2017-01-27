@@ -4,6 +4,7 @@
 
 #include "vm/pages.h"
 
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
 #include "vm/compiler_stats.h"
 #include "vm/gc_marker.h"
@@ -69,6 +70,9 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   result->memory_ = memory;
   result->next_ = NULL;
   result->type_ = type;
+
+  LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
+
   return result;
 }
 
@@ -89,8 +93,21 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
 
 
 void HeapPage::Deallocate() {
-  // The memory for this object will become unavailable after the delete below.
+  bool image_page = is_image_page();
+
+  if (!image_page) {
+    LSAN_UNREGISTER_ROOT_REGION(this, sizeof(*this));
+  }
+
+  // For a regular heap pages, the memory for this object will become
+  // unavailable after the delete below.
   delete memory_;
+
+  // For a heap page from a snapshot, the HeapPage object lives in the malloc
+  // heap rather than the page itself.
+  if (image_page) {
+    free(this);
+  }
 }
 
 
@@ -139,7 +156,7 @@ RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
 
 
 void HeapPage::WriteProtect(bool read_only) {
-  ASSERT(!embedder_allocated());
+  ASSERT(!is_image_page());
 
   VirtualMemory::Protection prot;
   if (read_only) {
@@ -229,16 +246,16 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   } else {
     // Should not allocate executable pages when running from a precompiled
     // snapshot.
-    ASSERT(Dart::snapshot_kind() != Snapshot::kAppAOT);
+    ASSERT(Dart::vm_snapshot_kind() != Snapshot::kAppAOT);
 
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
     } else {
-      if (FLAG_write_protect_code) {
+      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
         exec_pages_tail_->WriteProtect(false);
       }
       exec_pages_tail_->set_next(page);
-      if (FLAG_write_protect_code) {
+      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
         exec_pages_tail_->WriteProtect(true);
       }
     }
@@ -626,9 +643,18 @@ void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
-void PageSpace::VisitObjectsNoEmbedderPages(ObjectVisitor* visitor) const {
+void PageSpace::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if (!it.page()->embedder_allocated()) {
+    if (!it.page()->is_image_page()) {
+      it.page()->VisitObjects(visitor);
+    }
+  }
+}
+
+
+void PageSpace::VisitObjectsImagePages(ObjectVisitor* visitor) const {
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if (it.page()->is_image_page()) {
       it.page()->VisitObjects(visitor);
     }
   }
@@ -682,7 +708,7 @@ void PageSpace::WriteProtect(bool read_only) {
     AbandonBumpAllocation();
   }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if (!it.page()->embedder_allocated()) {
+    if (!it.page()->is_image_page()) {
       it.page()->WriteProtect(read_only);
     }
   }
@@ -802,12 +828,14 @@ void PageSpace::WriteProtectCode(bool read_only) {
     HeapPage* page = exec_pages_;
     while (page != NULL) {
       ASSERT(page->type() == HeapPage::kExecutable);
-      page->WriteProtect(read_only);
+      if (!page->is_image_page()) {
+        page->WriteProtect(read_only);
+      }
       page = page->next();
     }
     page = large_pages_;
     while (page != NULL) {
-      if (page->type() == HeapPage::kExecutable) {
+      if (page->type() == HeapPage::kExecutable && !page->is_image_page()) {
         page->WriteProtect(read_only);
       }
       page = page->next();
@@ -1069,9 +1097,7 @@ uword PageSpace::TryAllocatePromoLocked(intptr_t size,
 }
 
 
-void PageSpace::SetupExternalPage(void* pointer,
-                                  uword size,
-                                  bool is_executable) {
+void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   // Setup a HeapPage so precompiled Instructions can be traversed.
   // Instructions are contiguous at [pointer, pointer + size). HeapPage
   // expects to find objects at [memory->start() + ObjectStartOffset,
@@ -1080,7 +1106,7 @@ void PageSpace::SetupExternalPage(void* pointer,
   pointer = reinterpret_cast<void*>(reinterpret_cast<uword>(pointer) - offset);
   size += offset;
 
-  VirtualMemory* memory = VirtualMemory::ForExternalPage(pointer, size);
+  VirtualMemory* memory = VirtualMemory::ForImagePage(pointer, size);
   ASSERT(memory != NULL);
   HeapPage* page = reinterpret_cast<HeapPage*>(malloc(sizeof(HeapPage)));
   page->memory_ = memory;
@@ -1095,18 +1121,18 @@ void PageSpace::SetupExternalPage(void* pointer,
     first = &exec_pages_;
     tail = &exec_pages_tail_;
   } else {
-    page->type_ = HeapPage::kReadOnlyData;
+    page->type_ = HeapPage::kData;
     first = &pages_;
     tail = &pages_tail_;
   }
   if (*first == NULL) {
     *first = page;
   } else {
-    if (is_executable && FLAG_write_protect_code) {
+    if (is_executable && FLAG_write_protect_code && !(*tail)->is_image_page()) {
       (*tail)->WriteProtect(false);
     }
     (*tail)->set_next(page);
-    if (is_executable && FLAG_write_protect_code) {
+    if (is_executable && FLAG_write_protect_code && !(*tail)->is_image_page()) {
       (*tail)->WriteProtect(true);
     }
   }

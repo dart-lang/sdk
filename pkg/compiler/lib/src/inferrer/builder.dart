@@ -11,7 +11,8 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart' show ConstantValue, IntConstantValue;
-import '../elements/resolution_types.dart' show ResolutionDartType;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart';
 import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart' as js;
@@ -403,7 +404,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           }
         } else {
           // Narrow the elements to a non-null type.
-          ResolutionDartType objectType = closedWorld.commonElements.objectType;
+          ResolutionInterfaceType objectType =
+              closedWorld.commonElements.objectType;
           if (Elements.isLocal(receiverElement)) {
             narrow(receiverElement, objectType, node);
           }
@@ -2031,8 +2033,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ClassElement cls = outermostElement.enclosingClass;
     MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
     if (!Selectors.noSuchMethod_.signatureApplies(element)) {
-      element = compiler.commonElements.objectClass
-          .lookupMember(Identifiers.noSuchMethod_);
+      ClassElement objectClass = compiler.commonElements.objectClass;
+      element = objectClass.lookupMember(Identifiers.noSuchMethod_);
     }
     return handleStaticSend(node, selector, mask, element, arguments);
   }
@@ -2886,7 +2888,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ast.Node identifier = node.declaredIdentifier;
     Element element = elements.getForInVariable(node);
     Selector selector = elements.getSelector(identifier);
-    TypeMask mask = inTreeData.typeOfSend(identifier);
+    TypeMask mask = inTreeData.typeOfSend(identifier.asSend());
 
     TypeInformation receiverType;
     if (element != null && element.isInstanceMember) {

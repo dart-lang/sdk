@@ -301,7 +301,6 @@ class FileState {
     if (_transitiveSignature == null) {
       ApiSignature signature = new ApiSignature();
       signature.addUint32List(_fsState._salt);
-      signature.addString(_fsState._sdkApiSignature);
       signature.addInt(transitiveFiles.length);
       transitiveFiles
           .map((file) => file.apiSignature)
@@ -436,37 +435,29 @@ class FileState {
     _partedFiles = <FileState>[];
     _exportFilters = <NameFilter>[];
     for (UnlinkedImport import in _unlinked.imports) {
-      if (!import.isImplicit) {
-        String uri = import.uri;
-        if (_isDartFileUri(uri)) {
-          FileState file = _fileForRelativeUri(uri);
-          if (file != null) {
-            _importedFiles.add(file);
-          }
-        }
+      String uri = import.isImplicit ? 'dart:core' : import.uri;
+      FileState file = _fileForRelativeUri(uri);
+      if (file != null) {
+        _importedFiles.add(file);
       }
     }
     for (UnlinkedExportPublic export in _unlinked.publicNamespace.exports) {
       String uri = export.uri;
-      if (_isDartFileUri(uri)) {
-        FileState file = _fileForRelativeUri(uri);
-        if (file != null) {
-          _exportedFiles.add(file);
-          _exportFilters
-              .add(new NameFilter.forUnlinkedCombinators(export.combinators));
-        }
+      FileState file = _fileForRelativeUri(uri);
+      if (file != null) {
+        _exportedFiles.add(file);
+        _exportFilters
+            .add(new NameFilter.forUnlinkedCombinators(export.combinators));
       }
     }
     for (String uri in _unlinked.publicNamespace.parts) {
-      if (_isDartFileUri(uri)) {
-        FileState file = _fileForRelativeUri(uri);
-        if (file != null) {
-          _partedFiles.add(file);
-          // TODO(scheglov) Sort for stable results?
-          _fsState._partToLibraries
-              .putIfAbsent(file, () => <FileState>[])
-              .add(this);
-        }
+      FileState file = _fileForRelativeUri(uri);
+      if (file != null) {
+        _partedFiles.add(file);
+        // TODO(scheglov) Sort for stable results?
+        _fsState._partToLibraries
+            .putIfAbsent(file, () => <FileState>[])
+            .add(this);
       }
     }
 
@@ -524,10 +515,6 @@ class FileState {
     }
     return true;
   }
-
-  static bool _isDartFileUri(String uri) {
-    return !uri.startsWith('dart:') && AnalysisEngine.isDartFileName(uri);
-  }
 }
 
 /**
@@ -541,7 +528,6 @@ class FileSystemState {
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
   final Uint32List _salt;
-  final String _sdkApiSignature;
 
   /**
    * Mapping from a URI to the corresponding [FileState].
@@ -577,8 +563,7 @@ class FileSystemState {
       this._resourceProvider,
       this._sourceFactory,
       this._analysisOptions,
-      this._salt,
-      this._sdkApiSignature) {
+      this._salt) {
     _testView = new FileSystemStateTestView(this);
   }
 
@@ -607,7 +592,7 @@ class FileSystemState {
       // Try to get the existing instance.
       file = _uriToFile[uri];
       // If we have a file, call it the canonical one and return it.
-      if (file != null) {
+      if (file != null && file.path == path) {
         _pathToCanonicalFile[path] = file;
         return file;
       }

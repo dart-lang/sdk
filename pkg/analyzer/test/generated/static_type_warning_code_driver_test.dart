@@ -24,10 +24,4 @@ class StrongModeStaticTypeWarningCodeTest_Driver
     extends StrongModeStaticTypeWarningCodeTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_genericMethodWrongNumberOfTypeArguments() {
-    return super.test_genericMethodWrongNumberOfTypeArguments();
-  }
 }

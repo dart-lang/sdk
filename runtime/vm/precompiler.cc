@@ -106,30 +106,38 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
           StoreInstanceFieldInstr* store = it.Current()->AsStoreInstanceField();
           if (store != NULL) {
             if (!store->field().IsNull() && store->field().is_final()) {
+#ifndef PRODUCT
               if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                 THR_Print("Found store to %s <- %s\n",
                           store->field().ToCString(),
                           store->value()->Type()->ToCString());
               }
+#endif  // !PRODUCT
               FieldTypePair* entry = field_map_->Lookup(&store->field());
               if (entry == NULL) {
                 field_map_->Insert(FieldTypePair(
                     &Field::Handle(zone_, store->field().raw()),  // Re-wrap.
                     store->value()->Type()->ToCid()));
+#ifndef PRODUCT
                 if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                   THR_Print(" initial type = %s\n",
                             store->value()->Type()->ToCString());
                 }
+#endif  // !PRODUCT
                 continue;
               }
               CompileType type = CompileType::FromCid(entry->cid_);
+#ifndef PRODUCT
               if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                 THR_Print(" old type = %s\n", type.ToCString());
               }
+#endif  // !PRODUCT
               type.Union(store->value()->Type());
+#ifndef PRODUCT
               if (FLAG_trace_precompiler && FLAG_support_il_printer) {
                 THR_Print(" new type = %s\n", type.ToCString());
               }
+#endif  // !PRODUCT
               entry->cid_ = type.ToCid();
             }
           }
@@ -1187,7 +1195,7 @@ void Precompiler::AddField(const Field& field) {
         if (FLAG_trace_precompiler) {
           THR_Print("Precompiling initializer for %s\n", field.ToCString());
         }
-        ASSERT(Dart::snapshot_kind() != Snapshot::kAppAOT);
+        ASSERT(Dart::vm_snapshot_kind() != Snapshot::kAppAOT);
         const Function& initializer = Function::Handle(
             Z, CompileStaticInitializer(field, /* compute_type = */ true));
         ASSERT(!initializer.IsNull());
@@ -1226,10 +1234,12 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   if (compute_type && field.is_final()) {
     intptr_t result_cid = pipeline.result_type().ToCid();
     if (result_cid != kDynamicCid) {
+#ifndef PRODUCT
       if (FLAG_trace_precompiler && FLAG_support_il_printer) {
         THR_Print("Setting guarded_cid of %s to %s\n", field.ToCString(),
                   pipeline.result_type().ToCString());
       }
+#endif  // !PRODUCT
       field.set_guarded_cid(result_cid);
     }
   }
@@ -2543,6 +2553,7 @@ void Precompiler::SortClasses() {
 
   RemapClassIds(old_to_new_cid);
   delete[] old_to_new_cid;
+  RehashTypes();  // Types use cid's as part of their hashes.
 }
 
 
@@ -2614,6 +2625,101 @@ void Precompiler::RemapClassIds(intptr_t* old_to_new_cid) {
   I->class_table()->Validate();
   I->heap()->Verify();
 #endif
+}
+
+
+class ClearTypeHashVisitor : public ObjectVisitor {
+ public:
+  explicit ClearTypeHashVisitor(Zone* zone)
+      : type_param_(TypeParameter::Handle(zone)),
+        type_(Type::Handle(zone)),
+        type_args_(TypeArguments::Handle(zone)),
+        bounded_type_(BoundedType::Handle(zone)) {}
+
+  void VisitObject(RawObject* obj) {
+    if (obj->IsTypeParameter()) {
+      type_param_ ^= obj;
+      type_param_.SetHash(0);
+    } else if (obj->IsType()) {
+      type_ ^= obj;
+      type_.SetHash(0);
+    } else if (obj->IsBoundedType()) {
+      bounded_type_ ^= obj;
+      bounded_type_.SetHash(0);
+    } else if (obj->IsTypeArguments()) {
+      type_args_ ^= obj;
+      type_args_.SetHash(0);
+    }
+  }
+
+ private:
+  TypeParameter& type_param_;
+  Type& type_;
+  TypeArguments& type_args_;
+  BoundedType& bounded_type_;
+};
+
+
+void Precompiler::RehashTypes() {
+  // Clear all cached hash values.
+  {
+    HeapIterationScope his;
+    ClearTypeHashVisitor visitor(Z);
+    I->heap()->VisitObjects(&visitor);
+  }
+
+  // Rehash the canonical Types table.
+  ObjectStore* object_store = I->object_store();
+  GrowableObjectArray& types =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Array& types_array = Array::Handle(Z);
+  Type& type = Type::Handle(Z);
+  {
+    CanonicalTypeSet types_table(Z, object_store->canonical_types());
+    types_array = HashTables::ToArray(types_table, false);
+    for (intptr_t i = 0; i < (types_array.Length() - 1); i++) {
+      type ^= types_array.At(i);
+      types.Add(type);
+    }
+    types_table.Release();
+  }
+
+  intptr_t dict_size = Utils::RoundUpToPowerOfTwo(types.Length() * 4 / 3);
+  types_array = HashTables::New<CanonicalTypeSet>(dict_size, Heap::kOld);
+  CanonicalTypeSet types_table(Z, types_array.raw());
+  for (intptr_t i = 0; i < types.Length(); i++) {
+    type ^= types.At(i);
+    bool present = types_table.Insert(type);
+    ASSERT(!present);
+  }
+  object_store->set_canonical_types(types_table.Release());
+
+  // Rehash the canonical TypeArguments table.
+  Array& typeargs_array = Array::Handle(Z);
+  GrowableObjectArray& typeargs =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  TypeArguments& typearg = TypeArguments::Handle(Z);
+  {
+    CanonicalTypeArgumentsSet typeargs_table(
+        Z, object_store->canonical_type_arguments());
+    typeargs_array = HashTables::ToArray(typeargs_table, false);
+    for (intptr_t i = 0; i < (typeargs_array.Length() - 1); i++) {
+      typearg ^= typeargs_array.At(i);
+      typeargs.Add(typearg);
+    }
+    typeargs_table.Release();
+  }
+
+  dict_size = Utils::RoundUpToPowerOfTwo(typeargs.Length() * 4 / 3);
+  typeargs_array =
+      HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld);
+  CanonicalTypeArgumentsSet typeargs_table(Z, typeargs_array.raw());
+  for (intptr_t i = 0; i < typeargs.Length(); i++) {
+    typearg ^= typeargs.At(i);
+    bool present = typeargs_table.Insert(typearg);
+    ASSERT(!present);
+  }
+  object_store->set_canonical_type_arguments(typeargs_table.Release());
 }
 
 

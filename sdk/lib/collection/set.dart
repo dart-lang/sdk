@@ -27,7 +27,7 @@ part of dart.collection;
 abstract class SetMixin<E> implements Set<E> {
   // This class reimplements all of [IterableMixin].
   // If/when Dart mixins get more powerful, we should just create a single
-  // Mixin class from IterableMixin and the new methods of thisclass.
+  // Mixin class from IterableMixin and the new methods of this class.
 
   bool add(E element);
 

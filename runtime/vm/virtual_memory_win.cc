@@ -35,7 +35,7 @@ VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
 
 
 VirtualMemory::~VirtualMemory() {
-  if (embedder_allocated() || (reserved_size_ == 0)) {
+  if (!vm_owns_region() || (reserved_size_ == 0)) {
     return;
   }
   if (VirtualFree(address(), 0, MEM_RELEASE) == 0) {

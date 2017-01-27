@@ -49,8 +49,13 @@ class SearchEngineImpl2 implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchMemberReferences(String name) async {
-    // TODO(scheglov) implement
-    return [];
+    List<SearchResult> allResults = [];
+    for (AnalysisDriver driver in _drivers) {
+      List<SearchResult> results =
+          await driver.search.unresolvedMemberReferences(name);
+      allResults.addAll(results);
+    }
+    return allResults.map(_SearchMatch.forSearchResult).toList();
   }
 
   @override

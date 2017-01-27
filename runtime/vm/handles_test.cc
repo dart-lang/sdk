@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
+#include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/handles.h"
 #include "vm/heap.h"
@@ -75,6 +76,59 @@ TEST_CASE(AllocateScopeHandle) {
               VMHandles::ScopedHandleCount());
   }
   EXPECT_EQ(handle_count, VMHandles::ScopedHandleCount());
+}
+
+
+static void NoopCallback(void* isolate_callback_data,
+                         Dart_WeakPersistentHandle handle,
+                         void* peer) {}
+
+
+// Unit test for handle validity checks.
+TEST_CASE(CheckHandleValidity) {
+#if defined(DEBUG)
+  FLAG_trace_handles = true;
+#endif
+  Thread* current = Thread::Current();
+  Dart_Handle handle = NULL;
+  // Check validity using zone handles.
+  {
+    StackZone sz(current);
+    handle = reinterpret_cast<Dart_Handle>(&Smi::ZoneHandle(Smi::New(1)));
+    EXPECT_VALID(handle);
+  }
+  EXPECT(!Api::IsValid(handle));
+
+  // Check validity using scoped handles.
+  {
+    HANDLESCOPE(current);
+    Dart_EnterScope();
+    handle = reinterpret_cast<Dart_Handle>(&Smi::Handle(Smi::New(1)));
+    EXPECT_VALID(handle);
+    Dart_ExitScope();
+  }
+  EXPECT(!Api::IsValid(handle));
+
+  // Check validity using persistent handle.
+  Isolate* isolate = Isolate::Current();
+  Dart_PersistentHandle persistent_handle =
+      Dart_NewPersistentHandle(Api::NewHandle(thread, Smi::New(1)));
+  EXPECT_VALID(persistent_handle);
+
+  Dart_DeletePersistentHandle(persistent_handle);
+  EXPECT(!Api::IsValid(persistent_handle));
+
+  // Check validity using weak persistent handle.
+  handle = reinterpret_cast<Dart_Handle>(Dart_NewWeakPersistentHandle(
+      Dart_NewStringFromCString("foo"), NULL, 0, NoopCallback));
+
+  EXPECT_NOTNULL(handle);
+  EXPECT_VALID(handle);
+
+  Dart_DeleteWeakPersistentHandle(
+      reinterpret_cast<Dart_Isolate>(isolate),
+      reinterpret_cast<Dart_WeakPersistentHandle>(handle));
+  EXPECT(!Api::IsValid(handle));
 }
 
 }  // namespace dart

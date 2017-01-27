@@ -31,21 +31,6 @@ class AbstractContextManagerTest_Driver extends AbstractContextManagerTest {
     //return super.test_embedder_added();
     fail('NoSuchMethodError');
   }
-
-  @failingTest
-  test_embedder_packagespec() async {
-    // NoSuchMethodError: The getter 'apiSignature' was called on null.
-    // Receiver: null
-    // Tried calling: apiSignature
-    // dart:core                                                          Object.noSuchMethod
-    // package:analyzer/src/dart/analysis/driver.dart 248:20              AnalysisDriver.AnalysisDriver
-    // test/context_manager_test.dart 2698:25                             TestContextManagerCallbacks.addAnalysisDriver
-    // package:analysis_server/src/context_manager.dart 1186:39           ContextManagerImpl._createContext
-    // package:analysis_server/src/context_manager.dart 1247:16           ContextManagerImpl._createContexts
-    // package:analysis_server/src/context_manager.dart 886:9             ContextManagerImpl.setRoots
-    // test/context_manager_test.dart 154:13                              AbstractContextManagerTest.test_embedder_packagespec.<async>
-    return super.test_embedder_packagespec();
-  }
 }
 
 @reflectiveTest

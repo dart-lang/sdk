@@ -30,7 +30,7 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 
-import '../src/dart/analysis/physical_sdk.dart' as physical_sdk;
+import '../src/context/mock_sdk.dart';
 import 'analysis_context_factory.dart';
 import 'test_support.dart';
 
@@ -350,7 +350,10 @@ class ResolverTestCase extends EngineTestCase {
    */
   TypeProvider get typeProvider {
     if (enableNewAnalysisDriver) {
-      return driver.sourceFactory.dartSdk.context.typeProvider;
+      if (analysisResults.isEmpty) {
+        fail('typeProvider can be called after computing an analysis result.');
+      }
+      return analysisResults.values.first.unit.element.context.typeProvider;
     } else {
       return analysisContext2.typeProvider;
     }
@@ -472,22 +475,22 @@ class ResolverTestCase extends EngineTestCase {
    * @param code the code that assigns the value to the variable "v", no matter how. We check that
    *          "v" has expected static and propagated type.
    */
-  Future<Null> assertPropagatedAssignedType(String code,
-      DartType expectedStaticType, DartType expectedPropagatedType) async {
-    SimpleIdentifier identifier = await findMarkedIdentifier(code, "v = ");
-    expect(identifier.staticType, same(expectedStaticType));
-    expect(identifier.propagatedType, same(expectedPropagatedType));
+  void assertPropagatedAssignedType(String code, CompilationUnit unit,
+      DartType expectedStaticType, DartType expectedPropagatedType) {
+    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v = ");
+    expect(identifier.staticType, expectedStaticType);
+    expect(identifier.propagatedType, expectedPropagatedType);
   }
 
   /**
    * @param code the code that iterates using variable "v". We check that
    *          "v" has expected static and propagated type.
    */
-  Future<Null> assertPropagatedIterationType(String code,
-      DartType expectedStaticType, DartType expectedPropagatedType) async {
-    SimpleIdentifier identifier = await findMarkedIdentifier(code, "v in ");
-    expect(identifier.staticType, same(expectedStaticType));
-    expect(identifier.propagatedType, same(expectedPropagatedType));
+  void assertPropagatedIterationType(String code, CompilationUnit unit,
+      DartType expectedStaticType, DartType expectedPropagatedType) {
+    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v in ");
+    expect(identifier.staticType, expectedStaticType);
+    expect(identifier.propagatedType, expectedPropagatedType);
   }
 
   /**
@@ -498,10 +501,10 @@ class ResolverTestCase extends EngineTestCase {
    * @param expectedPropagatedType if non-null, check actual static type is equal to this.
    * @throws Exception
    */
-  Future<Null> assertTypeOfMarkedExpression(String code,
-      DartType expectedStaticType, DartType expectedPropagatedType) async {
+  void assertTypeOfMarkedExpression(String code, CompilationUnit unit,
+      DartType expectedStaticType, DartType expectedPropagatedType) {
     SimpleIdentifier identifier =
-        await findMarkedIdentifier(code, "; // marker");
+        findMarkedIdentifier(code, unit, "; // marker");
     if (expectedStaticType != null) {
       expect(identifier.staticType, expectedStaticType);
     }
@@ -536,6 +539,14 @@ class ResolverTestCase extends EngineTestCase {
     }
     analysisResults[source] = analysisResult;
     return analysisResult;
+  }
+
+  /**
+   * Compute the analysis result to the given [code] in '/test.dart'.
+   */
+  Future<TestAnalysisResult> computeTestAnalysisResult(String code) async {
+    Source source = addSource(code);
+    return await computeAnalysisResult(source);
   }
 
   /**
@@ -600,32 +611,13 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * Return the `SimpleIdentifier` marked by `marker`. The source code must have no
-   * errors and be verifiable.
-   *
-   * @param code source code to analyze.
-   * @param marker marker identifying sought after expression in source code.
-   * @return expression marked by the marker.
-   * @throws Exception
+   * Return the [SimpleIdentifier] from [unit] marked by [marker] in [code].
+   * The source code must have no errors and be verifiable.
    */
-  Future<SimpleIdentifier> findMarkedIdentifier(
-      String code, String marker) async {
-    try {
-      Source source = addSource(code);
-      await computeAnalysisResult(source);
-      assertNoErrors(source);
-      verify([source]);
-      CompilationUnit unit = analysisResults[source].unit;
-      return EngineTestCase.findNode(
-          unit, code, marker, (node) => node is SimpleIdentifier);
-    } catch (exception) {
-      // Is there a better exception to throw here? The point is that an
-      // assertion failure here should be a failure, in both "test_*" and
-      // "fail_*" tests. However, an assertion failure is success for the
-      // purpose of "fail_*" tests, so without catching them here "fail_*" tests
-      // can succeed by failing for the wrong reason.
-      throw new StateError("Unexpected assertion failure: $exception");
-    }
+  SimpleIdentifier findMarkedIdentifier(
+      String code, CompilationUnit unit, String marker) {
+    return EngineTestCase.findNode(
+        unit, code, marker, (node) => node is SimpleIdentifier);
   }
 
   Expression findTopLevelConstantExpression(
@@ -663,8 +655,8 @@ class ResolverTestCase extends EngineTestCase {
     }
     if (enableNewAnalysisDriver) {
       options ??= new AnalysisOptionsImpl();
-      DartSdk sdk =
-          options.strongMode ? physical_sdk.strongSdk : physical_sdk.sdk;
+      DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
+        ..context.analysisOptions = options;
 
       List<UriResolver> resolvers = <UriResolver>[
         new DartUriResolver(sdk),
@@ -803,6 +795,7 @@ class ResolverTestCase extends EngineTestCase {
   @override
   void tearDown() {
     analysisContext2 = null;
+    AnalysisEngine.instance.clearCaches();
     super.tearDown();
   }
 
@@ -911,11 +904,13 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
     return identifier;
   }
 
-  Future<Null> resolveTestUnit(String code) async {
+  Future<Null> resolveTestUnit(String code, {bool noErrors: true}) async {
     testCode = code;
     testSource = addSource(testCode);
     TestAnalysisResult analysisResult = await computeAnalysisResult(testSource);
-    assertNoErrors(testSource);
+    if (noErrors) {
+      assertNoErrors(testSource);
+    }
     verify([testSource]);
     testUnit = analysisResult.unit;
   }

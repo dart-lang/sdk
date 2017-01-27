@@ -105,6 +105,19 @@ void ThreadRegistry::PrintJSON(JSONStream* stream) const {
 #endif
 
 
+bool ThreadRegistry::IsValidHandle(Dart_Handle handle) const {
+  MonitorLocker ml(threads_lock());
+  Thread* current = active_list_;
+  while (current != NULL) {
+    if (current->IsValidHandle(handle)) {
+      return true;
+    }
+    current = current->next_;
+  }
+  return false;
+}
+
+
 intptr_t ThreadRegistry::CountZoneHandles() const {
   MonitorLocker ml(threads_lock());
   intptr_t count = 0;
@@ -180,18 +193,6 @@ void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   // Add thread to the free list.
   thread->next_ = free_list_;
   free_list_ = thread;
-}
-
-
-uintptr_t ThreadRegistry::ThreadHighWatermarksTotalLocked() const {
-  ASSERT(threads_lock()->IsOwnedByCurrentThread());
-  uintptr_t memory_high_watermarks_total = 0;
-  Thread* current = active_list_;
-  while (current != NULL) {
-    memory_high_watermarks_total += current->memory_high_watermark();
-    current = current->next_;
-  }
-  return memory_high_watermarks_total;
 }
 
 }  // namespace dart

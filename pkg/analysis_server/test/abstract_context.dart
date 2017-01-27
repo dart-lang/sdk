@@ -12,16 +12,16 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+
+import 'mock_sdk.dart';
 
 /**
  * Finds an [Element] with the given [name].
@@ -46,13 +46,8 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
 typedef void _ElementVisitorFunction(Element element);
 
 class AbstractContextTest {
-  static final DartSdk SDK = new FolderBasedDartSdk(
-      PhysicalResourceProvider.INSTANCE,
-      FolderBasedDartSdk.defaultSdkDirectory(PhysicalResourceProvider.INSTANCE))
-    ..useSummary = true;
-  static final UriResolver SDK_RESOLVER = new DartUriResolver(SDK);
-
   MemoryResourceProvider provider;
+  DartSdk sdk;
   Map<String, List<Folder>> packageMap;
   UriResolver resourceResolver;
 
@@ -139,12 +134,13 @@ class AbstractContextTest {
   void setUp() {
     processRequiredPlugins();
     setupResourceProvider();
+    sdk = new MockSdk(resourceProvider: provider);
     resourceResolver = new ResourceUriResolver(provider);
     packageMap = new Map<String, List<Folder>>();
     PackageMapUriResolver packageResolver =
         new PackageMapUriResolver(provider, packageMap);
-    SourceFactory sourceFactory =
-        new SourceFactory([SDK_RESOLVER, packageResolver, resourceResolver]);
+    SourceFactory sourceFactory = new SourceFactory(
+        [new DartUriResolver(sdk), packageResolver, resourceResolver]);
     if (enableNewAnalysisDriver) {
       PerformanceLog log = new PerformanceLog(_logBuffer);
       AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);

@@ -107,12 +107,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_async_topLevel() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_async_topLevel();
-  }
-
-  @override
-  @failingTest
   void test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel() {
     super.test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel();
   }
@@ -701,6 +695,7 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
         .test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment();
   }
 
+  @override
   LibraryElementImpl _checkSource(
       SummaryResynthesizer resynthesizer, Source source) {
     LibraryElementImpl resynthesized =
@@ -726,9 +721,8 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
 
   @override
   @failingTest
-  test_instantiateToBounds_boundRefersToLaterTypeArgument() {
-    // TODO(paulberry): this is failing due to dartbug.com/27072.
-    super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
+  test_instantiateToBounds_boundRefersToItself() {
+    super.test_instantiateToBounds_boundRefersToItself();
   }
 
   @override
@@ -820,7 +814,6 @@ abstract class _AstResynthesizeTestMixin
         context.analysisOptions.strongMode);
 
     return new TestSummaryResynthesizer(
-        null,
         context,
         new Map<String, UnlinkedUnit>()
           ..addAll(SerializedMockSdk.instance.uriToUnlinkedUnit)

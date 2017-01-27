@@ -201,7 +201,7 @@ class EnumMapTraits {
 //   This case is handled automatically.
 // 2) Enum values are reordered.
 //   We pair old and new enums and the old enums 'become' the new ones so
-//   the ordering is always correct (i.e. enum indicies match slots in values
+//   the ordering is always correct (i.e. enum indices match slots in values
 //   array)
 // 3) An existing enum value is removed.
 //   Each enum class has a canonical 'deleted' enum sentinel instance.
@@ -326,7 +326,7 @@ void Class::ReplaceEnum(const Class& old_enum) const {
                                        deleted_enum_sentinel);
 
   if (enums_deleted) {
-    // Map all deleted enums to the deleted enum senintel value.
+    // Map all deleted enums to the deleted enum sentinel value.
     // TODO(johnmccutchan): Add this to the reload 'notices' list.
     VTIR_Print(
         "The following enum values were deleted from %s and will become the "

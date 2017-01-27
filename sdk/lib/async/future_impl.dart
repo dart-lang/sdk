@@ -231,11 +231,11 @@ class _Future<T> implements Future<T> {
   }
 
   Future<E> then<E>(
-      dynamic/*E|Future<E>*/ f(T value), { Function onError }) {
+      FutureOr<E> f(T value), { Function onError }) {
     Zone currentZone = Zone.current;
     ZoneUnaryCallback registered;
     if (!identical(currentZone, _ROOT_ZONE)) {
-      f = currentZone.registerUnaryCallback<dynamic, T>(f);
+      f = currentZone.registerUnaryCallback<FutureOr<E>, T>(f);
       if (onError != null) {
         onError = _registerErrorHandler<T>(onError, currentZone);
       }

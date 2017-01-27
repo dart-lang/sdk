@@ -1167,8 +1167,21 @@ class CodeGenerator extends GeneralizingAstVisitor
     var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
         _emitClassHeritage(element), [constructor, toStringF]);
     var id = _emitTopLevelName(element);
+
+    // Emit metadata for synthetic enum index member.
+    // TODO(jacobr): make field readonly when that is supported.
+    var tInstanceFields = <JS.Property>[
+      new JS.Property(
+          _emitMemberName('index'), _emitAnnotatedType(intClass.type, null))
+    ];
+    var sigFields = <JS.Property>[
+      _buildSignatureField('fields', tInstanceFields)
+    ];
+    var sig = new JS.ObjectInitializer(sigFields);
+
     var result = [
-      js.statement('# = #', [id, classExpr])
+      js.statement('# = #', [id, classExpr]),
+      _callHelperStatement('setSignature(#, #);', [id, sig])
     ];
 
     // defineEnumValues internally depends on dart.constList which uses
@@ -1261,8 +1274,9 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     // List of "direct" JS superclasses
-    var baseclasses =
-        basetypes.map((t) => _emitType(t, nameType: false)).toList();
+    var baseclasses = basetypes
+        .map((t) => _emitConstructorAccess(t, nameType: false))
+        .toList();
     assert(baseclasses.isNotEmpty);
     var heritage = (baseclasses.length == 1)
         ? baseclasses.first
@@ -1506,7 +1520,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     var fnBody = js.call('this.noSuchMethod(new #.InvocationImpl(#, #, #))', [
       _runtimeModule,
-      _declareMemberName(method),
+      _declareMemberName(method, useDisplayName: true),
       positionalArgs,
       new JS.ObjectInitializer(invocationProps)
     ]);
@@ -1771,6 +1785,13 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
   }
 
+  JS.Property _buildSignatureField(String name, List<JS.Property> elements) {
+    var o = new JS.ObjectInitializer(elements, multiline: elements.length > 1);
+    // TODO(vsm): Remove
+    var e = js.call('() => #', o);
+    return new JS.Property(_propertyName(name), e);
+  }
+
   /// Emit the signature on the class recording the runtime type information
   void _emitClassSignature(
       List<MethodDeclaration> methods,
@@ -1804,25 +1825,32 @@ class CodeGenerator extends GeneralizingAstVisitor
         continue;
       }
 
-      Function lookup;
       List<JS.Property> tMember;
+      Function getOverride;
+      Function lookup;
+      Function elementToType;
       if (node.isGetter) {
-        lookup = classElem.lookUpInheritedConcreteGetter;
+        elementToType = (ExecutableElement element) => element.type;
+        getOverride = classElem.lookUpInheritedConcreteGetter;
+        lookup = classElem.type.lookUpInheritedGetter;
         tMember = node.isStatic ? tStaticGetters : tInstanceGetters;
       } else if (node.isSetter) {
-        lookup = classElem.lookUpInheritedConcreteSetter;
+        elementToType = (ExecutableElement element) => element.type;
+        getOverride = classElem.lookUpInheritedConcreteSetter;
+        lookup = classElem.type.lookUpInheritedSetter;
         tMember = node.isStatic ? tStaticSetters : tInstanceSetters;
       } else {
         // Method
-        lookup = classElem.lookUpInheritedConcreteMethod;
+        // Swap in "Object" for parameter types that are covariant overrides.
+        var objectType = context.typeProvider.objectType;
+        elementToType =
+            (MethodElement element) => element.getReifiedType(objectType);
+        getOverride = classElem.lookUpInheritedConcreteMethod;
+        lookup = classElem.type.lookUpInheritedMethod;
         tMember = node.isStatic ? tStaticMethods : tInstanceMethods;
       }
 
-      // Swap in "Object" for parameter types that are covariant overrides.
-      var objectType = context.typeProvider.objectType;
-      var reifiedType = element is MethodElement
-          ? element.getReifiedType(objectType)
-          : element.type;
+      DartType reifiedType = elementToType(element);
       var type = _emitAnnotatedFunctionType(reifiedType, node.metadata,
           parameters: node.parameters?.parameters,
           nameType: options.hoistSignatureTypes,
@@ -1830,17 +1858,14 @@ class CodeGenerator extends GeneralizingAstVisitor
           definite: true);
 
       // Don't add redundant signatures for inherited methods whose signature
-      // did not change.
-      var needsSignature = true;
-      var inheritedElement = lookup(name, currentLibrary);
-      if (inheritedElement != null) {
-        if (inheritedElement is MethodElement) {
-          needsSignature =
-              inheritedElement.getReifiedType(objectType) != reifiedType;
-        } else {
-          needsSignature = inheritedElement.type != reifiedType;
-        }
-      }
+      // did not change.  If we are not overriding, or if the thing we are
+      // overriding has a different reified type from ourselves, we must
+      // emit a signature on this class.  Otherwise we will inherit the
+      // signature from the superclass.
+      var needsSignature = getOverride(name, currentLibrary) == null ||
+          elementToType(
+                  lookup(name, library: currentLibrary, thisType: false)) !=
+              reifiedType;
 
       if (needsSignature) {
         var memberName = _declareMemberName(element);
@@ -1878,45 +1903,37 @@ class CodeGenerator extends GeneralizingAstVisitor
       tCtors.add(property);
     }
 
-    JS.Property build(String name, List<JS.Property> elements) {
-      var o =
-          new JS.ObjectInitializer(elements, multiline: elements.length > 1);
-      // TODO(vsm): Remove
-      var e = js.call('() => #', o);
-      return new JS.Property(_propertyName(name), e);
-    }
-
     var sigFields = <JS.Property>[];
     if (!tCtors.isEmpty) {
-      sigFields.add(build('constructors', tCtors));
+      sigFields.add(_buildSignatureField('constructors', tCtors));
     }
     if (!tInstanceFields.isEmpty) {
-      sigFields.add(build('fields', tInstanceFields));
+      sigFields.add(_buildSignatureField('fields', tInstanceFields));
     }
     if (!tInstanceGetters.isEmpty) {
-      sigFields.add(build('getters', tInstanceGetters));
+      sigFields.add(_buildSignatureField('getters', tInstanceGetters));
     }
     if (!tInstanceSetters.isEmpty) {
-      sigFields.add(build('setters', tInstanceSetters));
+      sigFields.add(_buildSignatureField('setters', tInstanceSetters));
     }
     if (!tInstanceMethods.isEmpty) {
-      sigFields.add(build('methods', tInstanceMethods));
+      sigFields.add(_buildSignatureField('methods', tInstanceMethods));
     }
     if (!tStaticFields.isEmpty) {
-      sigFields.add(build('sfields', tStaticFields));
+      sigFields.add(_buildSignatureField('sfields', tStaticFields));
     }
     if (!tStaticGetters.isEmpty) {
-      sigFields.add(build('sgetters', tStaticGetters));
+      sigFields.add(_buildSignatureField('sgetters', tStaticGetters));
     }
     if (!tStaticSetters.isEmpty) {
-      sigFields.add(build('ssetters', tStaticSetters));
+      sigFields.add(_buildSignatureField('ssetters', tStaticSetters));
     }
     if (!tStaticMethods.isEmpty) {
       assert(!sNames.isEmpty);
       // TODO(vsm): Why do we need this names field?
       var aNames = new JS.Property(
           _propertyName('names'), new JS.ArrayInitializer(sNames));
-      sigFields.add(build('statics', tStaticMethods));
+      sigFields.add(_buildSignatureField('statics', tStaticMethods));
       sigFields.add(aNames);
     }
     if (!sigFields.isEmpty || extensions.isNotEmpty) {
@@ -1964,14 +1981,14 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   List<ExecutableElement> _extensionsToImplement(ClassElement element) {
-    var members = <ExecutableElement>[];
-    if (_extensionTypes.isNativeClass(element)) return members;
+    if (_extensionTypes.isNativeClass(element)) return [];
 
     // Collect all extension types we implement.
     var type = element.type;
     var types = _extensionTypes.collectNativeInterfaces(element);
-    if (types.isEmpty) return members;
+    if (types.isEmpty) return [];
 
+    var members = new Set<ExecutableElement>();
     // Collect all possible extension method names.
     var extensionMembers = new HashSet<String>();
     for (var t in types) {
@@ -1986,7 +2003,9 @@ class CodeGenerator extends GeneralizingAstVisitor
         members.add(m);
       }
     }
-    return members;
+    members.addAll(_collectMockMethods(type)
+        .where((m) => extensionMembers.contains(m.name)));
+    return members.toList();
   }
 
   /// Generates the implicit default constructor for class C of the form
@@ -5496,17 +5515,14 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
-  JS.Expression _declareMemberName(ExecutableElement e, {bool useExtension}) {
-    String name;
-    if (e is PropertyAccessorElement) {
-      name = e.variable.name;
-    } else {
-      name = e.name;
-    }
+  JS.Expression _declareMemberName(ExecutableElement e,
+      {bool useExtension, useDisplayName = false}) {
+    var name = (e is PropertyAccessorElement) ? e.variable.name : e.name;
     return _emitMemberName(name,
         isStatic: e.isStatic,
         useExtension:
-            useExtension ?? _extensionTypes.isNativeClass(e.enclosingElement));
+            useExtension ?? _extensionTypes.isNativeClass(e.enclosingElement),
+        useDisplayName: useDisplayName);
   }
 
   /// This handles member renaming for private names and operators.
@@ -5553,6 +5569,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       {DartType type,
       bool isStatic: false,
       bool useExtension,
+      bool useDisplayName: false,
       Element element}) {
     // Static members skip the rename steps and may require JS interop renames.
     if (isStatic) {
@@ -5565,20 +5582,22 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // When generating synthetic names, we use _ as the prefix, since Dart names
     // won't have this (eliminated above), nor will static names reach here.
-    switch (name) {
-      case '[]':
-        name = '_get';
-        break;
-      case '[]=':
-        name = '_set';
-        break;
-      case 'unary-':
-        name = '_negate';
-        break;
-      case 'constructor':
-      case 'prototype':
-        name = '_$name';
-        break;
+    if (!useDisplayName) {
+      switch (name) {
+        case '[]':
+          name = '_get';
+          break;
+        case '[]=':
+          name = '_set';
+          break;
+        case 'unary-':
+          name = '_negate';
+          break;
+        case 'constructor':
+        case 'prototype':
+          name = '_$name';
+          break;
+      }
     }
 
     var result = _propertyName(name);

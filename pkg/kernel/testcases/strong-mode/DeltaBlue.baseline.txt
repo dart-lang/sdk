@@ -29,9 +29,6 @@ class Strength extends core::Object {
   static method weakest(self::Strength s1, self::Strength s2) → self::Strength {
     return self::Strength::weaker(s1, s2) ? s1 : s2;
   }
-  static method strongest(self::Strength s1, self::Strength s2) → self::Strength {
-    return self::Strength::stronger(s1, s2) ? s1 : s2;
-  }
 }
 abstract class Constraint extends core::Object {
   final field self::Strength strength;
@@ -360,8 +357,6 @@ class Plan extends core::Object {
   method addConstraint(self::Constraint c) → void {
     this.{self::Plan::list}.{core::List::add$cc}(c);
   }
-  method size() → core::int
-    return this.{self::Plan::list}.{core::List::length};
   method execute() → void {
     for (core::int i = 0; i.{core::num::<}(this.{self::Plan::list}.{core::List::length}); i = i.{core::num::+}(1)) {
       this.{self::Plan::list}.{core::List::[]}(i).{self::Constraint::execute}();

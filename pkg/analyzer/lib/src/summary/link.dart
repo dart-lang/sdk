@@ -247,7 +247,7 @@ EntityRefBuilder _createLinkedType(
 }
 
 DartType _dynamicIfNull(DartType type) {
-  if (type == null || type.isBottom || type.isDartCoreNull || type.isVoid) {
+  if (type == null || type.isBottom || type.isDartCoreNull) {
     return DynamicTypeImpl.instance;
   }
   return type;
@@ -2274,6 +2274,9 @@ class ExprTypeComputer {
 
   void _doExtractProperty() {
     DartType target = stack.removeLast();
+    if (target.isDynamic) {
+      target = typeProvider.objectType;
+    }
     String propertyName = _getNextString();
     stack.add(() {
       if (target is InterfaceType) {
@@ -2336,6 +2339,9 @@ class ExprTypeComputer {
     String methodName = _getNextString();
     List<DartType> typeArguments = _getTypeArguments();
     DartType target = stack.removeLast();
+    if (target.isDynamic) {
+      target = typeProvider.objectType;
+    }
     stack.add(() {
       if (target is InterfaceType) {
         MethodElement method =
@@ -2856,6 +2862,9 @@ class FunctionElementForLink_Initializer extends Object
   String get identifier => '';
 
   @override
+  bool get isAsynchronous => _unlinkedExecutable.isAsynchronous;
+
+  @override
   DartType get returnType {
     // If this is a variable whose type needs inferring, infer it.
     if (_variable.hasImplicitType) {
@@ -2989,6 +2998,9 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
     }
     return identifier;
   }
+
+  @override
+  bool get isAsynchronous => _unlinkedExecutable.isAsynchronous;
 
   @override
   bool get _hasTypeBeenInferred => _inferredReturnType != null;
@@ -3763,6 +3775,9 @@ class NonstaticMemberElementForLink extends Object
   DartType get asStaticType {
     if (_library._linker.strongMode) {
       DartType targetType = _target.asStaticType;
+      if (targetType.isDynamic) {
+        targetType = _library._linker.typeProvider.objectType;
+      }
       if (targetType is InterfaceType) {
         ExecutableElement element =
             targetType.lookUpInheritedGetterOrMethod(_name, library: _library);
@@ -3859,7 +3874,7 @@ class ParameterElementForLink implements ParameterElementImpl {
 
   @override
   bool get isCovariant {
-    if (inheritsCovariant) {
+    if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
     for (UnlinkedExpr annotation in _unlinkedParam.annotations) {
@@ -3876,6 +3891,9 @@ class ParameterElementForLink implements ParameterElementImpl {
     }
     return false;
   }
+
+  @override
+  bool get isExplicitlyCovariant => _unlinkedParam.isExplicitlyCovariant;
 
   @override
   String get name => _unlinkedParam.name;
@@ -3955,7 +3973,10 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   ParameterElementForLink_VariableSetter(this.enclosingElement);
 
   @override
-  bool get isCovariant => false;
+  bool get isCovariant => isExplicitlyCovariant || inheritsCovariant;
+
+  @override
+  bool get isExplicitlyCovariant => enclosingElement.variable.isCovariant;
 
   @override
   bool get isSynthetic => true;
@@ -4634,8 +4655,15 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
     if (inCycle) {
       functionElement._setInferredType(DynamicTypeImpl.instance);
     } else {
-      functionElement
-          ._setInferredType(new ExprTypeComputer(functionElement).compute());
+      var bodyType = new ExprTypeComputer(functionElement).compute();
+      if (functionElement.isAsynchronous) {
+        var linker = functionElement.compilationUnit.library._linker;
+        var typeProvider = linker.typeProvider;
+        var typeSystem = linker.typeSystem;
+        bodyType = typeProvider.futureType
+            .instantiate([bodyType.flattenFutures(typeSystem)]);
+      }
+      functionElement._setInferredType(bodyType);
     }
   }
 
@@ -4908,6 +4936,12 @@ abstract class VariableElementForLink
 
   @override
   bool get isConst => unlinkedVariable.isConst;
+
+  /**
+   * Return `true` if this variable is a field that was explicitly marked as
+   * being covariant (in the setter's parameter).
+   */
+  bool get isCovariant => unlinkedVariable.isCovariant;
 
   @override
   bool get isFinal => unlinkedVariable.isFinal;

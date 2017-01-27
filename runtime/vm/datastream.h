@@ -310,9 +310,16 @@ class WriteStream : public ValueObject {
   }
 
   uint8_t* buffer() const { return *buffer_; }
+  void set_buffer(uint8_t* value) { *buffer_ = value; }
   intptr_t bytes_written() const { return current_ - *buffer_; }
 
   void set_current(uint8_t* value) { current_ = value; }
+
+  void Align(intptr_t alignment) {
+    intptr_t position = current_ - *buffer_;
+    position = Utils::RoundUp(position, alignment);
+    current_ = *buffer_ + position;
+  }
 
   template <int N, typename T>
   class Raw {};

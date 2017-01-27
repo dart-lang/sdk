@@ -44,28 +44,37 @@ import "dart:html";''');
     Source lib3 = addSource('/lib3.dart', 'import "lib4.dart";');
     addSource('/lib4.dart', 'import "lib3.dart";');
 
-    {
-      Map<String, List<String>> imports = importsFor(lib1);
-      expect(imports.keys, contains('file:///lib1.dart'));
-      expect(imports.keys, contains('file:///lib2.dart'));
-      expect(imports.keys, contains('dart:core'));
-      expect(imports.keys, contains('dart:html'));
-      expect(imports.keys, contains('dart:math'));
-      expect(imports.keys, isNot(contains('file:///lib3.dart')));
-      expect(imports['file:///lib1.dart'],
-          unorderedEquals(['dart:core', 'dart:html', 'file:///lib2.dart']));
-    }
+    Map<String, List<String>> imports = importsFor(lib1);
+
+    // Verify keys.
+    expect(
+        imports.keys,
+        unorderedEquals([
+          'dart:_internal',
+          'dart:async',
+          'dart:core',
+          'dart:html',
+          'dart:math',
+          'file:///lib1.dart',
+          'file:///lib2.dart',
+        ]));
+    // Values.
+    expect(imports['file:///lib1.dart'],
+        unorderedEquals(['dart:core', 'dart:html', 'file:///lib2.dart']));
 
     // Check transitivity.
     expect(importsFor(lib2).keys, contains('dart:html'));
 
     // Cycles should be OK.
-    {
-      Map<String, List<String>> imports = importsFor(lib3);
-      expect(imports.keys, contains('file:///lib3.dart'));
-      expect(imports.keys, contains('file:///lib4.dart'));
-      expect(imports.keys, contains('dart:core'));
-      expect(imports.keys, contains('dart:math'));
-    }
+    expect(
+        importsFor(lib3).keys,
+        unorderedEquals([
+          'dart:_internal',
+          'dart:async',
+          'dart:core',
+          'dart:math',
+          'file:///lib3.dart',
+          'file:///lib4.dart'
+        ]));
   }
 }

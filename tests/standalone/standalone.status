@@ -63,8 +63,10 @@ io/raw_server_socket_cancel_test: Skip # Issue 28182
 io/http_proxy_test: Skip
 io/secure_builtin_roots_test: Skip
 
-# This test might be slow on an opt counter threshold bot.
-io/http_basic_test: Pass, Slow
+# These tests might be slow on an opt counter threshold bot.
+# They also time out on the bot occasionally => flaky test issue 28046
+io/http_basic_test: Pass, Slow, Timeout  # Issue 28046
+io/http_launch_test: Pass, Slow, Timeout  # Issue 28046
 
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
@@ -287,6 +289,9 @@ io/directory_list_sync_test: Timeout, Skip # Expects to find the test directory 
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
 io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
 
+[ $runtime == vm && $system == linux && $mode == release && $arch == ia32 && $builder_tag == asan ]
+io/socket_close_test: Pass, Timeout # Issue 28502: timeout.
+
 [ $runtime == dart_precompiled || $mode == product ]
 io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
 io/test_harness_analyzer_test: CompileTimeError # Imports dart:mirrors
@@ -386,15 +391,4 @@ io/socket_info_ipv6_test: SkipByDesign
 
 [ $builder_tag == asan && $arch == x64 ]
 io/process_detached_test: Pass, Slow
-
-io/directory_error_test: Fail # Issue 28350
-io/directory_fuzz_test: Fail # Issue 28350
-io/directory_list_nonexistent_test: Fail # Issue 28350
-io/stdout_bad_argument_test: Fail # Issue 28353
-io/file_blocking_lock_test: Fail # Issue 28353
-
-io/process_sync_test: RuntimeError
-io/signals_test: RuntimeError
-io/regress_7191_test: RuntimeError
 io/named_pipe_script_test: RuntimeError
-io/http_server_close_response_after_error_test: RuntimeError

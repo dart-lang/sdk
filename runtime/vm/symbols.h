@@ -573,10 +573,8 @@ class Symbols : public AllStatic {
 
   static RawArray* UnifiedSymbolTable();
 
-#if defined(DART_PRECOMPILER)
   // Treat the symbol table as weak and collect garbage.
   static void Compact(Isolate* isolate);
-#endif
 
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
@@ -639,7 +637,7 @@ class Symbols : public AllStatic {
     return reinterpret_cast<RawString**>(&predefined_);
   }
 
-  static void DumpStats();
+  static void DumpStats(Isolate* isolate);
 
   // Returns Symbol::Null if no symbol is found.
   template <typename StringType>

@@ -15,9 +15,6 @@ class Foo extends core::Object {
   }
 }
 abstract class External extends core::Object {
-  constructor •() → void
-    : super core::Object::•()
-    ;
   abstract method externalMethod(core::int x, [core::int y, core::int z]) → core::String;
   abstract method listen(self::Listener listener) → void;
 }
@@ -43,7 +40,6 @@ class InvalidListener extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  method event(dynamic input, [dynamic x]) → void {}
 }
 external static method createExternal() → self::External;
 static method main() → dynamic {

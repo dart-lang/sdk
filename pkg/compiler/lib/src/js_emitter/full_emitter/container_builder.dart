@@ -2,7 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter.full_emitter;
+library dart2js.js_emitter.full_emitter.container_builder;
+
+import '../../constants/values.dart';
+import '../../elements/elements.dart'
+    show
+        Element,
+        Elements,
+        FunctionSignature,
+        MetadataAnnotation,
+        MethodElement;
+import '../../js/js.dart' as jsAst;
+import '../../js/js.dart' show js;
+import '../js_emitter.dart' hide Emitter, EmitterFactory;
+import '../model.dart';
+import 'emitter.dart';
 
 /// This class should morph into something that makes it easy to build
 /// JavaScript representations of libraries, class-sides, and instance-sides.

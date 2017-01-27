@@ -8,7 +8,6 @@ import 'error_suppression_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ErrorSuppressionTest);
     defineReflectiveTests(ErrorSuppressionTest_Driver);
   });
 }

@@ -40,6 +40,7 @@ class ThreadRegistry {
   // Calculates the sum of the max memory usage in bytes of each thread.
   uintptr_t ThreadHighWatermarksTotalLocked() const;
 
+  bool IsValidHandle(Dart_Handle handle) const;
   intptr_t CountZoneHandles() const;
   intptr_t CountScopedHandles() const;
 

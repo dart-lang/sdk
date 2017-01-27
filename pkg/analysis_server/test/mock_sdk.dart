@@ -24,9 +24,12 @@ import 'dart:async';
 import 'dart:_internal';
 
 class Object {
+  const Object() {}
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
   int get hashCode => 0;
+  Type get runtimeType => null;
+  dynamic noSuchMethod(Invocation invocation) => null;
 }
 
 class Function {}
@@ -130,13 +133,24 @@ abstract class Iterable<E> {
   Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
 }
 
-abstract class List<E> implements Iterable<E> {
-  void add(E value);
+class List<E> implements Iterable<E> {
+  List();
+  void add(E value) {}
   void addAll(Iterable<E> iterable) {}
-  E operator [](int index);
-  void operator []=(int index, E value);
+  E operator [](int index) => null;
+  void operator []=(int index, E value) {}
   Iterator<E> get iterator => null;
-  void clear();
+  void clear() {}
+
+  bool get isEmpty => false;
+  E get first => null;
+  E get last => null;
+
+  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e)) => null;
+
+  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
+      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
+
 }
 
 abstract class Map<K, V> extends Object {
@@ -208,8 +222,8 @@ library dart.math;
 const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
 const double LN10 =  2.302585092994046;
-num min(num a, num b) => 0;
-num max(num a, num b) => 0;
+T min<T extends num>(T a, T b) => null;
+T max<T extends num>(T a, T b) => null;
 external double cos(num x);
 external num pow(num x, num exponent);
 external double sin(num x);
@@ -320,28 +334,26 @@ const Map<String, LibraryInfo> libraries = const {
 
   @override
   Source fromFileUri(Uri uri) {
-    String filePath = uri.path;
-    String libPath = '/lib';
-    if (!filePath.startsWith("$libPath/")) {
-      return null;
-    }
-    for (SdkLibrary library in LIBRARIES) {
-      String libraryPath = library.path;
-      if (filePath.replaceAll('\\', '/') == libraryPath) {
+    String filePath = provider.pathContext.fromUri(uri);
+    for (SdkLibrary library in sdkLibraries) {
+      String libraryPath = provider.convertPath(library.path);
+      if (filePath == libraryPath) {
         try {
-          resource.File file = provider.getResource(uri.path);
+          resource.File file = provider.getResource(filePath);
           Uri dartUri = Uri.parse(library.shortName);
           return file.createSource(dartUri);
         } catch (exception) {
           return null;
         }
       }
-      if (filePath.startsWith("$libraryPath/")) {
-        String pathInLibrary = filePath.substring(libraryPath.length + 1);
-        String path = '${library.shortName}/$pathInLibrary';
+      String libraryRootPath = provider.pathContext.dirname(libraryPath) +
+          provider.pathContext.separator;
+      if (filePath.startsWith(libraryRootPath)) {
+        String pathInLibrary = filePath.substring(libraryRootPath.length);
+        String uriStr = '${library.shortName}/$pathInLibrary';
         try {
-          resource.File file = provider.getResource(uri.path);
-          Uri dartUri = new Uri(scheme: 'dart', path: path);
+          resource.File file = provider.getResource(filePath);
+          Uri dartUri = Uri.parse(uriStr);
           return file.createSource(dartUri);
         } catch (exception) {
           return null;

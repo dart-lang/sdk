@@ -14,9 +14,14 @@ import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/command_line/arguments.dart'
     show applyAnalysisOptionFlags;
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart'
+    show AnalysisDriver, AnalysisDriverScheduler, PerformanceLog;
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -66,7 +71,8 @@ class ContextBuilder {
   final DartSdkManager sdkManager;
 
   /**
-   * The cache containing the contents of overlaid files.
+   * The cache containing the contents of overlaid files. If this builder will
+   * be used to build analysis drivers, set the [fileContentOverlay] instead.
    */
   final ContentCache contentCache;
 
@@ -86,6 +92,28 @@ class ContextBuilder {
    * the normal file URI resolver is to be used.
    */
   ResolverProvider fileResolverProvider;
+
+  /**
+   * The scheduler used by any analysis drivers created through this interface.
+   */
+  AnalysisDriverScheduler analysisDriverScheduler;
+
+  /**
+   * The performance log used by any analysis drivers created through this
+   * interface.
+   */
+  PerformanceLog performanceLog;
+
+  /**
+   * The byte store used by any analysis drivers created through this interface.
+   */
+  ByteStore byteStore;
+
+  /**
+   * The file content overlay used by analysis drivers. If this builder will be
+   * used to build analysis contexts, set the [contentCache] instead.
+   */
+  FileContentOverlay fileContentOverlay;
 
   /**
    * Initialize a newly created builder to be ready to build a context rooted in
@@ -113,6 +141,26 @@ class ContextBuilder {
     declareVariables(context);
     configureSummaries(context);
     return context;
+  }
+
+  /**
+   * Return an analysis driver that is configured correctly to analyze code in
+   * the directory with the given [path].
+   */
+  AnalysisDriver buildDriver(String path) {
+    AnalysisOptions options = getAnalysisOptions(path);
+    //_processAnalysisOptions(context, optionMap);
+    AnalysisDriver driver = new AnalysisDriver(
+        analysisDriverScheduler,
+        performanceLog,
+        resourceProvider,
+        byteStore,
+        fileContentOverlay,
+        path,
+        createSourceFactory(path, options),
+        options);
+    declareVariablesInDriver(driver);
+    return driver;
   }
 
   /**
@@ -208,6 +256,17 @@ class ContextBuilder {
       return new SourceFactory(resolvers, null, resourceProvider);
     }
 
+    GnWorkspace gnWorkspace = GnWorkspace.find(resourceProvider, rootPath);
+    if (gnWorkspace != null) {
+      DartSdk sdk = findSdk(gnWorkspace.packageMap, options);
+      List<UriResolver> resolvers = <UriResolver>[
+        new DartUriResolver(sdk),
+        new GnPackageUriResolver(gnWorkspace),
+        new GnFileUriResolver(gnWorkspace)
+      ];
+      return new SourceFactory(resolvers, null, resourceProvider);
+    }
+
     Packages packages = createPackageMap(rootPath);
     Map<String, List<Folder>> packageMap = convertPackagesToMap(packages);
     List<UriResolver> resolvers = <UriResolver>[
@@ -226,6 +285,20 @@ class ContextBuilder {
     Map<String, String> variables = builderOptions.declaredVariables;
     if (variables != null && variables.isNotEmpty) {
       DeclaredVariables contextVariables = context.declaredVariables;
+      variables.forEach((String variableName, String value) {
+        contextVariables.define(variableName, value);
+      });
+    }
+  }
+
+  /**
+   * Add any [declaredVariables] to the list of declared variables used by the
+   * given analysis [driver].
+   */
+  void declareVariablesInDriver(AnalysisDriver driver) {
+    Map<String, String> variables = builderOptions.declaredVariables;
+    if (variables != null && variables.isNotEmpty) {
+      DeclaredVariables contextVariables = driver.declaredVariables;
       variables.forEach((String variableName, String value) {
         contextVariables.define(variableName, value);
       });

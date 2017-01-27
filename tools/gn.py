@@ -140,14 +140,17 @@ def to_gn_args(args, mode, arch, target_os):
                                   and not args.msan
                                   and not args.tsan)
 
-  # Force -mfloat-abi=hard and -mfpu=neon on Linux as we're specifying
-  # a gnueabihf compiler in //build/toolchain/linux BUILD.gn.
-  # TODO(zra): This will likely need some adjustment to build for armv6 etc.
-  hard_float = (gn_args['target_cpu'].startswith('arm') and
-                (gn_args['target_os'] == 'linux'))
-  if hard_float:
-    gn_args['arm_float_abi'] = 'hard'
-    gn_args['arm_use_neon'] = True
+  if gn_args['target_os'] == 'linux':
+    if gn_args['target_cpu'] == 'arm':
+      # Force -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're
+      # specifying a gnueabihf compiler in //build/toolchain/linux BUILD.gn.
+      gn_args['arm_arch'] = 'armv7'
+      gn_args['arm_float_abi'] = 'hard'
+      gn_args['arm_use_neon'] = True
+    elif gn_args['target_cpu'] == 'armv6':
+      raise Exception("GN support for armv6 unimplemented")
+    elif gn_args['target_cpu'] == 'armv5te':
+      raise Exception("GN support for armv5te unimplemented")
 
   gn_args['is_debug'] = mode == 'debug'
   gn_args['is_release'] = mode == 'release'
@@ -201,6 +204,10 @@ def to_gn_args(args, mode, arch, target_os):
   else:
     gn_args['use_goma'] = False
     gn_args['goma_dir'] = None
+
+  if args.debug_opt_level:
+    gn_args['dart_debug_optimization_level'] = args.debug_opt_level
+    gn_args['debug_optimization_level'] = args.debug_opt_level
 
   return gn_args
 
@@ -310,6 +317,10 @@ def parse_args(args):
       help='Disable Clang',
       dest='clang',
       action='store_false')
+  other_group.add_argument('--debug-opt-level',
+      '-d',
+      help='The optimization level to use for debug builds',
+      type=str)
   other_group.add_argument('--goma',
       help='Use goma',
       default=True,

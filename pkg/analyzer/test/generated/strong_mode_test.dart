@@ -22,17 +22,17 @@ import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(StrongModeDownwardsInferenceTest);
+    defineReflectiveTests(StrongModeLocalInferenceTest);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
     defineReflectiveTests(StrongModeTypePropagationTest);
   });
 }
 
 /**
- * Strong mode static analyzer downwards inference tests
+ * Strong mode static analyzer local type inference tests
  */
 @reflectiveTest
-class StrongModeDownwardsInferenceTest extends ResolverTestCase {
+class StrongModeLocalInferenceTest extends ResolverTestCase {
   TypeAssertions _assertions;
 
   Asserter<DartType> _isDynamic;
@@ -40,6 +40,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
   Asserter<InterfaceType> _isFutureOfInt;
   Asserter<DartType> _isInt;
   Asserter<DartType> _isNum;
+  Asserter<DartType> _isObject;
   Asserter<DartType> _isString;
 
   AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, DartType>
@@ -57,27 +58,250 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
   AsserterBuilder<DartType, DartType> _hasElementOf;
 
   @override
+  Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
+    TestAnalysisResult result = await super.computeAnalysisResult(source);
+    if (_assertions == null) {
+      _assertions = new TypeAssertions(typeProvider);
+      _isType = _assertions.isType;
+      _hasElement = _assertions.hasElement;
+      _isInstantiationOf = _assertions.isInstantiationOf;
+      _isInt = _assertions.isInt;
+      _isNum = _assertions.isNum;
+      _isObject = _assertions.isObject;
+      _isString = _assertions.isString;
+      _isDynamic = _assertions.isDynamic;
+      _isListOf = _assertions.isListOf;
+      _isMapOf = _assertions.isMapOf;
+      _isFunction2Of = _assertions.isFunction2Of;
+      _hasElementOf = _assertions.hasElementOf;
+      _isFutureOf = _isInstantiationOf(_hasElementOf(typeProvider.futureType));
+      _isFutureOfDynamic = _isFutureOf([_isDynamic]);
+      _isFutureOfInt = _isFutureOf([_isInt]);
+      _isStreamOf = _isInstantiationOf(_hasElementOf(typeProvider.streamType));
+    }
+    return result;
+  }
+
+  fail_constrainedByBounds3() async {
+    // Test that upwards inference with two type variables does
+    // not propogate from the constrained variable to the unconstrained
+    // variable if they are ordered right to left, and that if the result
+    // is not a valid instantiation an error is issued
+    String code = r'''
+    T f<T extends S, S extends int>(S x) => null;
+    void test() { var x = f(3); }
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(
+        source, [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
+    VariableDeclarationStatement stmt = statements[0];
+    VariableDeclaration decl = stmt.variables.variables[0];
+    Expression call = decl.initializer;
+    _isDynamic(call.staticType);
+  }
+
+  fail_constrainedByBounds5() async {
+    // Test that upwards inference with two type variables does not
+    // propogate from the constrained variable to the unconstrained
+    // variable if they are ordered right to left, when the variable
+    // appears co and contra variantly, and that an error is issued
+    // for the non-matching bound.
+    String code = r'''
+    typedef To Func1<From, To>(From x);
+    T f<T extends Func1<S, S>, S>(S x) => null;
+    void test() { var x = f(3)(4); }
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(
+        source, [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
+    VariableDeclarationStatement stmt = statements[0];
+    VariableDeclaration decl = stmt.variables.variables[0];
+    Expression call = decl.initializer;
+    _isInt(call.staticType);
+  }
+
+  fail_futureOr_downwards7() async {
+    // Test that downwards inference incorporates bounds correctly
+    // when instantiating type variables.
+    // TODO(leafp): I think this should pass once the inference changes
+    // that jmesserly is adding are landed.
+    String code = r'''
+    import "dart:async";
+    T mk<T extends int>(T x) => null;
+    FutureOr<int> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+    _isFutureOfInt(invoke.argumentList.arguments[0].staticType);
+  }
+
+  fail_futureOr_downwards8() async {
+    // Test that downwards inference incorporates bounds correctly
+    // when instantiating type variables.
+    // TODO(leafp): I think this should pass once the inference changes
+    // that jmesserly is adding are landed.
+    String code = r'''
+    import "dart:async";
+    T mk<T extends Future<Object>>(T x) => null;
+    FutureOr<int> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+    _isFutureOfInt(invoke.argumentList.arguments[0].staticType);
+  }
+
+  fail_pinning_multipleConstraints1() async {
+    // Test that downwards inference with two different downwards covariant
+    // constraints on the same parameter correctly fails to infer when
+    // the types do not share a common subtype
+    String code = r'''
+    class A<S, T> {
+      S s;
+      T t;
+    }
+    class B<S> extends A<S, S> { B(S s); }
+    A<int, String> test() => new B(3);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    DartType type = body.expression.staticType;
+
+    Element elementB = AstFinder.getClass(unit, "B").element;
+
+    _isInstantiationOf(_hasElement(elementB))([_isDynamic])(type);
+  }
+
+  fail_pinning_multipleConstraints2() async {
+    // Test that downwards inference with two identical downwards covariant
+    // constraints on the same parameter correctly infers and pins the type
+    String code = r'''
+    class A<S, T> {
+      S s;
+      T t;
+    }
+    class B<S> extends A<S, S> { B(S s); }
+    A<num, num> test() => new B(3);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    DartType type = body.expression.staticType;
+
+    Element elementB = AstFinder.getClass(unit, "B").element;
+
+    _isInstantiationOf(_hasElement(elementB))([_isNum])(type);
+  }
+
+  fail_pinning_multipleConstraints3() async {
+    // Test that downwards inference with two different downwards covariant
+    // constraints on the same parameter correctly fails to infer when
+    // the types do not share a common subtype, but do share a common supertype
+    String code = r'''
+    class A<S, T> {
+      S s;
+      T t;
+    }
+    class B<S> extends A<S, S> { B(S s); }
+    A<int, double> test() => new B(3);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [
+      StrongModeCode.COULD_NOT_INFER,
+      StaticTypeWarningCode.RETURN_OF_INVALID_TYPE
+    ]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    DartType type = body.expression.staticType;
+
+    Element elementB = AstFinder.getClass(unit, "B").element;
+
+    _isInstantiationOf(_hasElement(elementB))([_isDynamic])(type);
+  }
+
+  fail_returnType_variance2() async {
+    // Check that downwards inference correctly pins a type parameter
+    // when the parameter is constrained in a covariant position
+    String code = r'''
+    typedef To Func1<From, To>(From x);
+    Func1<String, T> f<T>(T x) => null;
+    Func1<String, num> test() => f(42);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFunction2Of(_isNum, _isFunction2Of(_isString, _isNum))(
+        invoke.staticInvokeType);
+  }
+
+  fail_returnType_variance6() async {
+    // Check that pinning works correctly with a partial type
+    // when the return type uses the variable in a covariant position
+    String code = r'''
+    typedef To Func1<From, To>(From x);
+    Func1<String, T> f<T>(T x) => null;
+    T g<T, S>(Func1<S, T> f) => null;
+    num test() => g(f(3));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation call = body.expression;
+    _isNum(call.staticType);
+    _isFunction2Of(_isFunction2Of(_isString, _isNum), _isNum)(
+        call.staticInvokeType);
+  }
+
+  @override
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
     resetWith(options: options);
-    _assertions = new TypeAssertions(typeProvider);
-    _isType = _assertions.isType;
-    _hasElement = _assertions.hasElement;
-    _isInstantiationOf = _assertions.isInstantiationOf;
-    _isInt = _assertions.isInt;
-    _isNum = _assertions.isNum;
-    _isString = _assertions.isString;
-    _isDynamic = _assertions.isDynamic;
-    _isListOf = _assertions.isListOf;
-    _isMapOf = _assertions.isMapOf;
-    _isFunction2Of = _assertions.isFunction2Of;
-    _hasElementOf = _assertions.hasElementOf;
-    _isFutureOf = _isInstantiationOf(_hasElementOf(typeProvider.futureType));
-    _isFutureOfDynamic = _isFutureOf([_isDynamic]);
-    _isFutureOfInt = _isFutureOf([_isInt]);
-    _isStreamOf = _isInstantiationOf(_hasElementOf(typeProvider.streamType));
   }
 
   test_async_method_propagation() async {
@@ -277,6 +501,71 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     ExecutableElement f0 = function.element;
     _isListOf(_isInt)(f0.type.returnType);
     expect(f0.type.normalParameterTypes[0], typeProvider.intType);
+  }
+
+  test_constrainedByBounds1() async {
+    // Test that upwards inference with two type variables correctly
+    // propogates from the constrained variable to the unconstrained
+    // variable if they are ordered left to right.
+    String code = r'''
+    T f<S, T extends S>(S x) => null;
+    void test() { var x = f(3); }
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
+    VariableDeclarationStatement stmt = statements[0];
+    VariableDeclaration decl = stmt.variables.variables[0];
+    Expression call = decl.initializer;
+    _isInt(call.staticType);
+  }
+
+  test_constrainedByBounds2() async {
+    // Test that upwards inference with two type variables does
+    // not propogate from the constrained variable to the unconstrained
+    // variable if they are ordered right to left.
+    String code = r'''
+    T f<T extends S, S>(S x) => null;
+    void test() { var x = f(3); }
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
+    VariableDeclarationStatement stmt = statements[0];
+    VariableDeclaration decl = stmt.variables.variables[0];
+    Expression call = decl.initializer;
+    _isDynamic(call.staticType);
+  }
+
+  test_constrainedByBounds4() async {
+    // Test that upwards inference with two type variables correctly
+    // propogates from the constrained variable to the unconstrained
+    // variable if they are ordered left to right, when the variable
+    // appears co and contra variantly
+    String code = r'''
+    typedef To Func1<From, To>(From x);
+    T f<S, T extends Func1<S, S>>(S x) => null;
+    void test() { var x = f(3)(4); }
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
+    VariableDeclarationStatement stmt = statements[0];
+    VariableDeclaration decl = stmt.variables.variables[0];
+    Expression call = decl.initializer;
+    _isInt(call.staticType);
   }
 
   test_constructorInitializer_propagation() async {
@@ -678,6 +967,250 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     expect(functionReturnValue(4).staticType, typeProvider.stringType);
   }
 
+  test_futureOr_downwards1() async {
+    // Test that downwards inference interacts correctly with FutureOr
+    // parameters.
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    Future<int> test() => mk(new Future<int>.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+  }
+
+  test_futureOr_downwards2() async {
+    // Test that downwards inference interacts correctly with FutureOr
+    // parameters when the downwards context is FutureOr
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    FutureOr<int> test() => mk(new Future<int>.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+  }
+
+  test_futureOr_downwards3() async {
+    // Test that downwards inference correctly propogates into
+    // arguments.
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    Future<int> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+    _isFutureOfInt(invoke.argumentList.arguments[0].staticType);
+  }
+
+  test_futureOr_downwards4() async {
+    // Test that downwards inference interacts correctly with FutureOr
+    // parameters when the downwards context is FutureOr
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    FutureOr<int> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+    _isFutureOfInt(invoke.argumentList.arguments[0].staticType);
+  }
+
+  test_futureOr_downwards5() async {
+    // Test that downwards inference correctly pins the type when it
+    // comes from a FutureOr
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    FutureOr<num> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOf([_isNum])(invoke.staticType);
+    _isFutureOf([_isNum])(invoke.argumentList.arguments[0].staticType);
+  }
+
+  test_futureOr_downwards6() async {
+    // Test that downwards inference doesn't decompose FutureOr
+    // when instantiating type variables.
+    String code = r'''
+    import "dart:async";
+    T mk<T>(T x) => null;
+    FutureOr<int> test() => mk(new Future.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+    _isFutureOfInt(invoke.argumentList.arguments[0].staticType);
+  }
+
+  test_futureOr_downwards9() async {
+    // Test that downwards inference decomposes correctly with
+    // other composite types
+    String code = r'''
+    import "dart:async";
+    List<T> mk<T>(T x) => null;
+    FutureOr<List<int>> test() => mk(3);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isListOf(_isInt)(invoke.staticType);
+    _isInt(invoke.argumentList.arguments[0].staticType);
+  }
+
+  test_futureOr_methods1() async {
+    // Test that FutureOr has the Object methods
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<int> x) => x.toString();
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isString(invoke.staticType);
+  }
+
+  test_futureOr_methods2() async {
+    // Test that FutureOr does not have the constituent type methods
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<int> x) => x.abs();
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isDynamic(invoke.staticType);
+  }
+
+  test_futureOr_methods3() async {
+    // Test that FutureOr does not have the Future type methods
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<int> x) => x.then((x) => x);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isDynamic(invoke.staticType);
+  }
+
+  test_futureOr_methods4() async {
+    // Test that FutureOr<dynamic> does not have all methods
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<dynamic> x) => x.abs();
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isDynamic(invoke.staticType);
+  }
+
+  test_futureOr_upwards1() async {
+    // Test that upwards inference correctly prefers to instantiate type
+    // variables with the "smaller" solution when both are possible.
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T>(FutureOr<T> x) => null;
+    dynamic test() => mk(new Future<int>.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOfInt(invoke.staticType);
+  }
+
+  test_futureOr_upwards2() async {
+    // Test that upwards inference fails when the solution doesn't
+    // match the bound.
+    String code = r'''
+    import "dart:async";
+    Future<T> mk<T extends Future<Object>>(FutureOr<T> x) => null;
+    dynamic test() => mk(new Future<int>.value(42));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFutureOf([_isObject])(invoke.staticType);
+  }
+
   test_inference_hints() async {
     Source source = addSource(r'''
       void main () {
@@ -685,7 +1218,6 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
         List<int> l0 = [];
      }
    ''');
-    resolve2(source);
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
@@ -1204,6 +1736,171 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     assertListOfString(methodReturnValue("m1").staticType);
   }
 
+  test_partialTypes1() async {
+    // Test that downwards inference with a partial type
+    // correctly uses the partial information to fill in subterm
+    // types
+    String code = r'''
+    typedef To Func1<From, To>(From x);
+    S f<S, T>(Func1<S, T> g) => null;
+    String test() => f((l) => l.length);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    _isString(body.expression.staticType);
+    MethodInvocation invoke = body.expression;
+    FunctionExpression function = invoke.argumentList.arguments[0];
+    ExecutableElement f0 = function.element;
+    FunctionType type = f0.type;
+    _isFunction2Of(_isString, _isInt)(type);
+  }
+
+  test_pinning_multipleConstraints4() async {
+    // Test that downwards inference with two subtype related downwards
+    // covariant constraints on the same parameter correctly infers and pins
+    // the type
+    String code = r'''
+    class A<S, T> {
+      S s;
+      T t;
+    }
+    class B<S> extends A<S, S> {}
+    A<int, num> test() => new B();
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    DartType type = body.expression.staticType;
+
+    Element elementB = AstFinder.getClass(unit, "B").element;
+
+    _isInstantiationOf(_hasElement(elementB))([_isInt])(type);
+  }
+
+  test_pinning_multipleConstraints_contravariant1() async {
+    // Test that downwards inference with two different downwards contravariant
+    // constraints on the same parameter chooses the upper bound
+    // when the only supertype is Object
+    String code = r'''
+    class A<S, T> {
+      S s;
+      T t;
+    }
+    class B<S> extends A<S, S> {}
+    typedef void Contra1<T>(T x);
+    Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
+    Contra1<A<int, String>> test() => mkA();
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    FunctionType functionType = body.expression.staticType;
+    DartType type = functionType.normalParameterTypes[0];
+
+    Element elementA = AstFinder.getClass(unit, "A").element;
+
+    _isInstantiationOf(_hasElement(elementA))([_isObject, _isObject])(type);
+  }
+
+  test_pinning_multipleConstraints_contravariant2() async {
+    // Test that downwards inference with two identical downwards contravariant
+    // constraints on the same parameter correctly pins the type
+    String code = r'''
+    class A<S, T> {
+      S s;
+      T t;
+    }
+    class B<S> extends A<S, S> {}
+    typedef void Contra1<T>(T x);
+    Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
+    Contra1<A<num, num>> test() => mkA();
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    FunctionType functionType = body.expression.staticType;
+    DartType type = functionType.normalParameterTypes[0];
+
+    Element elementA = AstFinder.getClass(unit, "A").element;
+
+    _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
+  }
+
+  test_pinning_multipleConstraints_contravariant3() async {
+    // Test that downwards inference with two different downwards contravariant
+    // constraints on the same parameter correctly choose the least upper bound
+    // when they share a common supertype
+    String code = r'''
+    class A<S, T> {
+      S s;
+      T t;
+    }
+    class B<S> extends A<S, S> {}
+    typedef void Contra1<T>(T x);
+    Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
+    Contra1<A<int, double>> test() => mkA();
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    FunctionType functionType = body.expression.staticType;
+    DartType type = functionType.normalParameterTypes[0];
+
+    Element elementA = AstFinder.getClass(unit, "A").element;
+
+    _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
+  }
+
+  test_pinning_multipleConstraints_contravariant4() async {
+    // Test that downwards inference with two different downwards contravariant
+    // constraints on the same parameter correctly choose the least upper bound
+    // when one is a subtype of the other
+    String code = r'''
+    class A<S, T> {
+      S s;
+      T t;
+    }
+    class B<S> extends A<S, S> {}
+    typedef void Contra1<T>(T x);
+    Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
+    Contra1<A<int, num>> test() => mkA();
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    FunctionType functionType = body.expression.staticType;
+    DartType type = functionType.normalParameterTypes[0];
+
+    Element elementA = AstFinder.getClass(unit, "A").element;
+
+    _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
+  }
+
   test_redirectingConstructor_propagation() async {
     String code = r'''
       class A {
@@ -1218,6 +1915,90 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     RedirectingConstructorInvocation invocation = constructor.initializers[0];
     Expression exp = invocation.argumentList.arguments[0];
     _isListOf(_isString)(exp.staticType);
+  }
+
+  test_returnType_variance1() async {
+    // Check that downwards inference correctly pins a type parameter
+    // when the parameter is constrained in a contravariant position
+    String code = r'''
+    typedef To Func1<From, To>(From x);
+    Func1<T, String> f<T>(T x) => null;
+    Func1<num, String> test() => f(42);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation invoke = body.expression;
+    _isFunction2Of(_isNum, _isFunction2Of(_isNum, _isString))(
+        invoke.staticInvokeType);
+  }
+
+  test_returnType_variance3() async {
+    // Check that the variance heuristic chooses the less precise type
+    // when the return type uses the variable in a contravariant position
+    // and there is no downwards constraint.
+    String code = r'''
+    typedef To Func1<From, To>(From x);
+    Func1<T, String> f<T>(T x, g(T x)) => null;
+    dynamic test() => f(42, (num x) => x);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    FunctionType functionType = body.expression.staticType;
+    DartType type = functionType.normalParameterTypes[0];
+    _isNum(type);
+  }
+
+  test_returnType_variance4() async {
+    // Check that the variance heuristic chooses the more precise type
+    // when the return type uses the variable in a covariant position
+    // and there is no downwards constraint
+    String code = r'''
+    typedef To Func1<From, To>(From x);
+    Func1<String, T> f<T>(T x, g(T x)) => null;
+    dynamic test() => f(42, (num x) => x);
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    FunctionType functionType = body.expression.staticType;
+    DartType type = functionType.returnType;
+    _isInt(type);
+  }
+
+  test_returnType_variance5() async {
+    // Check that pinning works correctly with a partial type
+    // when the return type uses the variable in a contravariant position
+    String code = r'''
+    typedef To Func1<From, To>(From x);
+    Func1<T, String> f<T>(T x) => null;
+    T g<T, S>(Func1<T, S> f) => null;
+    num test() => g(f(3));
+   ''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
+    ExpressionFunctionBody body = test.functionExpression.body;
+    MethodInvocation call = body.expression;
+    _isNum(call.staticType);
+    _isFunction2Of(_isFunction2Of(_isNum, _isString), _isNum)(
+        call.staticInvokeType);
   }
 
   test_superConstructorInvocation_propagation() async {
@@ -1299,6 +2080,24 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
  */
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
+  void expectStaticInvokeType(String search, String type) {
+    var invocation = findIdentifier(search).parent as MethodInvocation;
+    expect(invocation.staticInvokeType.toString(), type);
+  }
+
+  fail_futureOr_promotion4() async {
+    // Test that promotion from FutureOr<T> to T works for type
+    // parameters T
+    // TODO(leafp): When the restriction on is checks for generic methods
+    // goes away this should pass.
+    String code = r'''
+    import "dart:async";
+    dynamic test<T extends num>(FutureOr<T> x) => (x is T) &&
+                                                  (x.abs() == 0);
+   ''';
+    await resolveTestUnit(code);
+  }
+
   fail_genericMethod_tearoff_instantiated() async {
     await resolveTestUnit(r'''
 class C<E> {
@@ -1357,6 +2156,37 @@ main() {
 ''';
     await resolveTestUnit(code);
     expectInitializerType('foo', 'String', isNull);
+  }
+
+  test_futureOr_promotion1() async {
+    // Test that promotion from FutureOr<T> to T works for concrete types
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<int> x) => (x is int) && (x.abs() == 0);
+   ''';
+    await resolveTestUnit(code);
+  }
+
+  test_futureOr_promotion2() async {
+    // Test that promotion from FutureOr<T> to Future<T> works for concrete
+    // types
+    String code = r'''
+    import "dart:async";
+    dynamic test(FutureOr<int> x) => (x is Future<int>) &&
+                                     (x.then((x) => x) == null);
+   ''';
+    await resolveTestUnit(code);
+  }
+
+  test_futureOr_promotion4() async {
+    // Test that promotion from FutureOr<T> to Future<T> works for type
+    // parameters T
+    String code = r'''
+    import "dart:async";
+    dynamic test<T extends num>(FutureOr<T> x) => (x is Future<T>) &&
+                                                  (x.then((x) => x) == null);
+   ''';
+    await resolveTestUnit(code);
   }
 
   test_genericFunction() async {
@@ -1902,6 +2732,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
+
     expectInitializerType('foo', 'Future<String>', isNull);
   }
 
@@ -1950,13 +2781,165 @@ void test() {
   var cc = new C();
 }
 ''';
-    await resolveTestUnit(code);
+    await resolveTestUnit(code, noErrors: false);
     expectIdentifierType('ai', "A<dynamic>");
     expectIdentifierType('bi', "B<num>");
     expectIdentifierType('ci', "C<int, B<int>, B<dynamic>>");
     expectIdentifierType('aa', "A<dynamic>");
     expectIdentifierType('bb', "B<num>");
     expectIdentifierType('cc', "C<int, B<int>, B<dynamic>>");
+  }
+
+  test_instantiateToBounds_class_error_recursion() async {
+    String code = r'''
+class C<T0 extends List<T1>, T1 extends List<T0>> {}
+C c;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
+    expectIdentifierType('c;', 'C<dynamic, dynamic>');
+  }
+
+  test_instantiateToBounds_class_error_recursion_self() async {
+    String code = r'''
+class C<T extends C<T>> {}
+C c;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
+    expectIdentifierType('c;', 'C<dynamic>');
+  }
+
+  test_instantiateToBounds_class_error_recursion_self2() async {
+    String code = r'''
+class A<E> {}
+class C<T extends A<T>> {}
+C c;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
+    expectIdentifierType('c;', 'C<dynamic>');
+  }
+
+  test_instantiateToBounds_class_ok_referenceOther_after() async {
+    String code = r'''
+class C<T0 extends T1, T1 extends int> {}
+C c;
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<int, int>');
+  }
+
+  test_instantiateToBounds_class_ok_referenceOther_after2() async {
+    String code = r'''
+class C<T0 extends Map<T1, T1>, T1 extends int> {}
+C c;
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<Map<int, int>, int>');
+  }
+
+  test_instantiateToBounds_class_ok_referenceOther_before() async {
+    String code = r'''
+class C<T0 extends int, T1 extends T0> {}
+C c;
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<int, int>');
+  }
+
+  test_instantiateToBounds_class_ok_referenceOther_multi() async {
+    String code = r'''
+class C<T0 extends Map<T1, T2>, T1 extends List<T2>, T2 extends int> {}
+C c;
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<Map<List<int>, int>, List<int>, int>');
+  }
+
+  test_instantiateToBounds_class_ok_simpleBounds() async {
+    String code = r'''
+class A<T> {}
+class B<T extends num> {}
+class C<T extends List<int>> {}
+
+void main() {
+  A a;
+  B b;
+  C c;
+}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectIdentifierType('a;', 'A<dynamic>');
+    expectIdentifierType('b;', 'B<num>');
+    expectIdentifierType('c;', 'C<List<int>>');
+  }
+
+  test_instantiateToBounds_method_ok_referenceOther_before() async {
+    String code = r'''
+class C<T> {
+  void m<S0 extends T, S1 extends List<S0>>(S0 p0, S1 p1) {}
+
+  void main() {
+    m(null, null);
+  }
+}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectStaticInvokeType('m(null', '(T, List<T>) → void');
+  }
+
+  test_instantiateToBounds_method_ok_simpleBounds() async {
+    String code = r'''
+class C<T> {
+  void m<S extends T>(S p0) {}
+
+  void main() {
+    m(null);
+  }
+}
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectStaticInvokeType('m(null)', '(T) → void');
+  }
+
+  test_notInstantiatedBound_direct() async {
+    String code = r'''
+class A<T> {}
+class C<T extends A> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_indirect() async {
+    String code = r'''
+class A<T> {}
+class B<T> {}
+class C<T extends A<B>> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_indirect2() async {
+    String code = r'''
+class A<K, V> {}
+class B<T> {}
+class C<T extends A<B, B>> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [
+      StrongModeCode.NOT_INSTANTIATED_BOUND,
+      StrongModeCode.NOT_INSTANTIATED_BOUND
+    ]);
   }
 
   test_objectMethodOnFunctions_Anonymous() async {
@@ -2190,8 +3173,9 @@ main() {
     v; // marker
   }
 }''';
-    await assertPropagatedIterationType(code, typeProvider.dynamicType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedIterationType(code, unit, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
   }
 
   test_foreachInference_reusedVar_disabled() async {
@@ -2203,8 +3187,9 @@ main() {
     v; // marker
   }
 }''';
-    await assertPropagatedIterationType(code, typeProvider.dynamicType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedIterationType(code, unit, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
   }
 
   test_foreachInference_var() async {
@@ -2215,8 +3200,9 @@ main() {
     v; // marker
   }
 }''';
-    await assertPropagatedIterationType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedIterationType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_foreachInference_var_iterable() async {
@@ -2227,8 +3213,9 @@ main() {
     v; // marker
   }
 }''';
-    await assertPropagatedIterationType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedIterationType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_foreachInference_var_stream() async {
@@ -2240,8 +3227,9 @@ main() async {
     v; // marker
   }
 }''';
-    await assertPropagatedIterationType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedIterationType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_bottom_disabled() async {
@@ -2250,8 +3238,9 @@ main() {
   var v = null;
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
   }
 
   test_localVariableInference_constant() async {
@@ -2260,8 +3249,9 @@ main() {
   var v = 3;
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_declaredType_disabled() async {
@@ -2270,8 +3260,9 @@ main() {
   dynamic v = 3;
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
   }
 
   test_localVariableInference_noInitializer_disabled() async {
@@ -2281,8 +3272,9 @@ main() {
   v = 3;
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType, null);
   }
 
   test_localVariableInference_transitive_field_inferred_lexical() async {
@@ -2297,8 +3289,9 @@ class A {
 main() {
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_field_inferred_reversed() async {
@@ -2313,8 +3306,9 @@ class A {
 main() {
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_field_lexical() async {
@@ -2329,8 +3323,9 @@ class A {
 main() {
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_field_reversed() async {
@@ -2345,8 +3340,9 @@ class A {
 main() {
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_list_local() async {
@@ -2356,8 +3352,9 @@ main() {
   var v = x[0];
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_local() async {
@@ -2367,8 +3364,9 @@ main() {
   var v = x;
   v; // marker
 }''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_toplevel_inferred_lexical() async {
@@ -2379,8 +3377,9 @@ main() {
   v; // marker
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_toplevel_inferred_reversed() async {
@@ -2391,8 +3390,9 @@ main() {
 }
 final x = 3;
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_toplevel_lexical() async {
@@ -2403,8 +3403,9 @@ main() {
   v; // marker
 }
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 
   test_localVariableInference_transitive_toplevel_reversed() async {
@@ -2415,7 +3416,8 @@ main() {
 }
 int x = 3;
 ''';
-    await assertPropagatedAssignedType(code, typeProvider.intType, null);
-    await assertTypeOfMarkedExpression(code, typeProvider.intType, null);
+    CompilationUnit unit = await resolveSource(code);
+    assertPropagatedAssignedType(code, unit, typeProvider.intType, null);
+    assertTypeOfMarkedExpression(code, unit, typeProvider.intType, null);
   }
 }

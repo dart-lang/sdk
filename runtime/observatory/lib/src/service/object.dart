@@ -1508,7 +1508,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   final List<Thread> _threads = new List<Thread>();
 
   int get memoryHighWatermark => _memoryHighWatermark;
-  int _memoryHighWatermark;
+  int _memoryHighWatermark = 0;
 
   int get numZoneHandles => _numZoneHandles;
   int _numZoneHandles;
@@ -1645,10 +1645,13 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       threads.addAll(map['_threads']);
     }
 
-    _memoryHighWatermark = int.parse(map['_memoryHighWatermark']);
+    int currentMemoryHighWatermark = 0;
+    for (var i = 0; i < threads.length; i++) {
+      currentMemoryHighWatermark += threads[i].memoryHighWatermark;
+    }
 
-    if (map['threads'] != null) {
-      threads.addAll(map['threads']);
+    if (currentMemoryHighWatermark > _memoryHighWatermark) {
+      _memoryHighWatermark = currentMemoryHighWatermark;
     }
 
     _numZoneHandles = map['_numZoneHandles'];

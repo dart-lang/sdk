@@ -426,7 +426,7 @@ class BootstrapNatives : public AllStatic {
   static void DN_##name(Dart_NativeArguments args);
 
   BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   MIRRORS_BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
 #endif
 

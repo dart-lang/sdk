@@ -549,6 +549,9 @@ void ServiceIsolate::BootVmServiceLibrary() {
   const Object& result = Object::Handle(
       DartEntry::InvokeFunction(boot_function, Object::empty_array()));
   ASSERT(!result.IsNull());
+  if (result.IsUnwindError() || result.IsUnhandledException()) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
   Dart_Port port = ILLEGAL_PORT;
   if (result.IsReceivePort()) {
     port = ReceivePort::Cast(result).Id();

@@ -118,7 +118,7 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
 
   // TODO(johnniwinther): Move this to the backend constant handler.
   /** Caches the statics where the initial value cannot be eagerly compiled. */
-  final Set<VariableElement> lazyStatics = new Set<VariableElement>();
+  final Set<FieldElement> lazyStatics = new Set<FieldElement>();
 
   // Constants computed for constant expressions.
   final Map<Node, ConstantExpression> nodeConstantMap =
@@ -157,8 +157,8 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     compiledConstants.add(constant);
   }
 
-  List<VariableElement> getLazilyInitializedFieldsForEmission() {
-    return new List<VariableElement>.from(lazyStatics);
+  List<FieldElement> getLazilyInitializedFieldsForEmission() {
+    return new List<FieldElement>.from(lazyStatics);
   }
 
   /**

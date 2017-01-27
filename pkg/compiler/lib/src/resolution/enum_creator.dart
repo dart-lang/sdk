@@ -282,7 +282,8 @@ class EnumCreator {
 
     VariableList valuesVariableList =
         new VariableList(builder.modifiers(isStatic: true, isConst: true));
-    valuesVariableList.type = commonElements.listType(enumType);
+    ResolutionInterfaceType valuesType = commonElements.listType(enumType);
+    valuesVariableList.type = valuesType;
 
     Identifier valuesIdentifier = builder.identifier('values');
     // TODO(johnniwinther): Add type argument.

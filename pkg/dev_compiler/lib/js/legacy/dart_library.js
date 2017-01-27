@@ -140,54 +140,6 @@ dart_library =
     // Force import of core.
     var dart_sdk = import_('dart_sdk');
 
-    // TODO(vsm): Move this to a shared location:
-    // https://github.com/dart-lang/sdk/issues/27605
-    if (typeof NodeList !== "undefined") {
-      // TODO(vsm): Do we still need these?
-      NodeList.prototype.get = function(i) { return this[i]; };
-      NamedNodeMap.prototype.get = function(i) { return this[i]; };
-      DOMTokenList.prototype.get = function(i) { return this[i]; };
-      HTMLCollection.prototype.get = function(i) { return this[i]; };
-
-      // Expose constructors for DOM types dart:html needs to assume are
-      // available on window.
-      if (typeof PannerNode == "undefined") {
-        let audioContext;
-        if (typeof AudioContext == "undefined" &&
-            (typeof webkitAudioContext != "undefined")) {
-          audioContext = new webkitAudioContext();
-        } else {
-          audioContext = new AudioContext();
-          window.StereoPannerNode =
-              audioContext.createStereoPanner().constructor;
-        }
-        window.PannerNode = audioContext.createPanner().constructor;
-      }
-      if (typeof AudioSourceNode == "undefined") {
-        window.AudioSourceNode = MediaElementAudioSourceNode.constructor;
-      }
-      if (typeof FontFaceSet == "undefined") {
-        window.FontFaceSet = document.fonts.__proto__.constructor;
-      }
-      if (typeof MemoryInfo == "undefined") {
-        if (typeof window.performance.memory != "undefined") {
-          window.MemoryInfo = window.performance.memory.constructor;
-        }
-      }
-      if (typeof Geolocation == "undefined") {
-        navigator.geolocation.constructor;
-      }
-      if (typeof Animation == "undefined") {
-        let d = document.createElement('div');
-        if (typeof d.animate != "undefined") {
-          window.Animation = d.animate(d).constructor;
-        }
-      }
-      if (typeof SourceBufferList == "undefined") {
-        window.SourceBufferList = new MediaSource().sourceBuffers.constructor;
-      }
-    }
-
     // This import is only needed for chrome debugging. We should provide an
     // option to compile without it.
     dart_sdk._debugger.registerDevtoolsFormatter();

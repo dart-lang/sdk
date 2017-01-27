@@ -32,7 +32,6 @@ enum Representation {
   kUnboxedInt32x4,
   kUnboxedFloat64x2,
   kPairOfTagged,
-  kPairOfUnboxedDouble,
   kNumRepresentations
 };
 

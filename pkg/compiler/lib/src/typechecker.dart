@@ -111,8 +111,9 @@ abstract class ElementAccess {
         return false;
       }
     }
-    return compiler.types.isAssignable(
-        computeType(compiler.resolution), compiler.commonElements.functionType);
+    ResolutionInterfaceType functionType = compiler.commonElements.functionType;
+    return compiler.types
+        .isAssignable(computeType(compiler.resolution), functionType);
   }
 }
 
@@ -230,7 +231,7 @@ class TypeLiteralAccess extends ElementAccess {
 
   String get name => type.name;
 
-  ResolutionDartType computeType(Resolution resolution) =>
+  ResolutionInterfaceType computeType(Resolution resolution) =>
       resolution.commonElements.typeType;
 
   String toString() => 'TypeLiteralAccess($type)';
@@ -756,7 +757,8 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
           // This is an access the implicit 'call' method of a function type.
           return new FunctionCallAccess(receiverElement, unaliasedBound);
         }
-        if (types.isSubtype(interface, commonElements.functionType)) {
+        ResolutionInterfaceType functionType = commonElements.functionType;
+        if (types.isSubtype(interface, functionType)) {
           // This is an access of the special 'call' method implicitly defined
           // on 'Function'. This method can be called with any arguments, which
           // we ensure by giving it the type 'dynamic'.
@@ -1612,7 +1614,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
     return const ResolutionDynamicType();
   }
 
-  ResolutionDartType visitLiteralSymbol(LiteralSymbol node) {
+  ResolutionInterfaceType visitLiteralSymbol(LiteralSymbol node) {
     return commonElements.symbolType;
   }
 
@@ -1700,8 +1702,9 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
         // The resolver already emitted an error for this expression.
       } else {
         if (currentAsyncMarker == AsyncMarker.ASYNC) {
-          expressionType =
+          ResolutionInterfaceType futureOfFlattenedType =
               commonElements.futureType(types.flatten(expressionType));
+          expressionType = futureOfFlattenedType;
         }
         if (expectedReturnType.isVoid &&
             !types.isAssignable(expressionType, const ResolutionVoidType())) {
@@ -1739,21 +1742,27 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
     }
   }
 
-  ResolutionDartType visitYield(Yield node) {
+  visitYield(Yield node) {
     ResolutionDartType resultType = analyze(node.expression);
     if (!node.hasStar) {
       if (currentAsyncMarker.isAsync) {
-        resultType = commonElements.streamType(resultType);
+        ResolutionInterfaceType streamOfResultType =
+            commonElements.streamType(resultType);
+        resultType = streamOfResultType;
       } else {
-        resultType = commonElements.iterableType(resultType);
+        ResolutionInterfaceType iterableOfResultType =
+            commonElements.iterableType(resultType);
+        resultType = iterableOfResultType;
       }
     } else {
       if (currentAsyncMarker.isAsync) {
         // The static type of expression must be assignable to Stream.
-        checkAssignable(node, resultType, commonElements.streamType());
+        ResolutionInterfaceType streamType = commonElements.streamType();
+        checkAssignable(node, resultType, streamType);
       } else {
         // The static type of expression must be assignable to Iterable.
-        checkAssignable(node, resultType, commonElements.iterableType());
+        ResolutionInterfaceType iterableType = commonElements.iterableType();
+        checkAssignable(node, resultType, iterableType);
       }
     }
     // The static type of the result must be assignable to the declared type.
@@ -1874,7 +1883,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
     ResolutionDartType elementType = computeForInElementType(node);
     ResolutionDartType expressionType = analyze(node.expression);
     if (resolution.target.supportsAsyncAwait) {
-      ResolutionDartType streamOfDynamic = commonElements.streamType();
+      ResolutionInterfaceType streamOfDynamic = commonElements.streamType();
       if (!types.isAssignable(expressionType, streamOfDynamic)) {
         reportMessage(node.expression, MessageKind.NOT_ASSIGNABLE,
             {'fromType': expressionType, 'toType': streamOfDynamic},

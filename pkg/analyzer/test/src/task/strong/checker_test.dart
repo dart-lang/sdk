@@ -40,21 +40,26 @@ class CheckerTest {
   void test_awaitForInCastsStreamElementToVariable() {
     checkFile('''
 import 'dart:async';
+
+abstract class MyStream<T> extends Stream<T> {
+  factory MyStream() => null;
+}
+
 main() async {
   // Don't choke if sequence is not stream.
   await for (var i in /*error:FOR_IN_OF_INVALID_TYPE*/1234) {}
 
   // Dynamic cast.
-  await for (String /*info:DYNAMIC_CAST*/s in new Stream<dynamic>()) {}
+  await for (String /*info:DYNAMIC_CAST*/s in new MyStream<dynamic>()) {}
 
   // Identity cast.
-  await for (String s in new Stream<String>()) {}
+  await for (String s in new MyStream<String>()) {}
 
   // Untyped.
-  await for (var s in new Stream<String>()) {}
+  await for (var s in new MyStream<String>()) {}
 
   // Downcast.
-  await for (int /*info:DOWN_CAST_IMPLICIT*/i in new Stream<num>()) {}
+  await for (int /*info:DOWN_CAST_IMPLICIT*/i in new MyStream<num>()) {}
 }
 ''');
   }
@@ -937,16 +942,16 @@ dynamic x;
 foo1() async => x;
 Future foo2() async => x;
 Future<int> foo3() async => x;
-Future<int> foo4() async => new Future<int>.value(/*info:DYNAMIC_CAST*/x);
+Future<int> foo4() async => new Future<int>.value(x);
 Future<int> foo5() async =>
-    /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(/*info:DYNAMIC_CAST*/x);
+    /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(x);
 
 bar1() async { return x; }
 Future bar2() async { return x; }
 Future<int> bar3() async { return x; }
-Future<int> bar4() async { return new Future<int>.value(/*info:DYNAMIC_CAST*/x); }
+Future<int> bar4() async { return new Future<int>.value(x); }
 Future<int> bar5() async {
-  return /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(/*info:DYNAMIC_CAST*/x);
+  return /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(x);
 }
 
 int y;
@@ -981,16 +986,22 @@ import 'dart:async';
 
 dynamic x;
 
+Stream<int> intStream;
+
+abstract class MyStream<T> extends Stream<T> {
+  factory MyStream() => null;
+}
+
 bar1() async* { yield x; }
 Stream bar2() async* { yield x; }
 Stream<int> bar3() async* { yield /*info:DYNAMIC_CAST*/x; }
-Stream<int> bar4() async* { yield /*error:YIELD_OF_INVALID_TYPE*/new Stream<int>(); }
+Stream<int> bar4() async* { yield /*error:YIELD_OF_INVALID_TYPE*/intStream; }
 
 baz1() async* { yield* /*info:DYNAMIC_CAST*/x; }
 Stream baz2() async* { yield* /*info:DYNAMIC_CAST*/x; }
 Stream<int> baz3() async* { yield* /*info:DYNAMIC_CAST*/x; }
-Stream<int> baz4() async* { yield* new Stream<int>(); }
-Stream<int> baz5() async* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new Stream(); }
+Stream<int> baz4() async* { yield* intStream; }
+Stream<int> baz5() async* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new MyStream(); }
 ''');
   }
 
@@ -2094,6 +2105,41 @@ class DerivedFuture4<A> extends Future<A> {
 ''');
   }
 
+  void test_genericMethodSuper() {
+    checkFile(r'''
+class A<T> {
+  A<S> create<S extends T>() => new A<S>();
+}
+class B extends A {
+  A<S> create<S>() => super.create<S>();
+}
+class C extends A {
+  A<S> create<S>() => super.create();
+}
+class D extends A<num> {
+  A<S> create<S extends num>() => super.create<S>();
+}
+class E extends A<num> {
+  A<S> create<S extends num>() => /*error:RETURN_OF_INVALID_TYPE*/super.create<int>();
+}
+class F extends A<num> {
+  create2<S>() => super.create</*error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS*/S>();
+}
+    ''');
+  }
+
+  void test_genericMethodSuperSubstitute() {
+    checkFile(r'''
+class Clonable<T> {}
+class G<T> {
+  create<A extends Clonable<T>, B extends Iterable<A>>() => null;
+}
+class H extends G<num> {
+  create2() => super.create<Clonable<int>, List<Clonable<int>>>();
+}
+    ''');
+  }
+
   void test_getterGetterOverride() {
     checkFile('''
 class A {}
@@ -2381,7 +2427,7 @@ var fe1 = (int x) => x;
   void test_implicitDynamic_type() {
     addFile(r'''
 class C<T> {}
-class M1<T extends /*error:IMPLICIT_DYNAMIC_TYPE*/List> {}
+class M1<T extends /*error:IMPLICIT_DYNAMIC_TYPE*//*error:NOT_INSTANTIATED_BOUND*/List> {}
 class M2<T> {}
 class I<T> {}
 class D<T, S> extends /*error:IMPLICIT_DYNAMIC_TYPE*/C

@@ -786,6 +786,12 @@ class JavaScriptBackend extends Backend {
   @override
   bool isJsInterop(Element element) => nativeData.isJsInterop(element);
 
+  /// Returns `true` if [element] is a JsInterop class.
+  bool isJsInteropClass(ClassElement element) => isJsInterop(element);
+
+  /// Returns `true` if [element] is a JsInterop method.
+  bool isJsInteropMethod(MethodElement element) => isJsInterop(element);
+
   /// Whether [element] corresponds to a native JavaScript construct either
   /// through the native mechanism (`@Native(...)` or the `native` pseudo
   /// keyword) which is only allowed for internal libraries or via the typed
@@ -852,7 +858,7 @@ class JavaScriptBackend extends Backend {
     return isNativeOrExtendsNative(element.superclass);
   }
 
-  bool isInterceptedMethod(Element element) {
+  bool isInterceptedMethod(MemberElement element) {
     if (!element.isInstanceMember) return false;
     if (element.isGenerativeConstructorBody) {
       return isNativeOrExtendsNative(element.enclosingClass);
@@ -975,7 +981,8 @@ class JavaScriptBackend extends Backend {
       ClassElement interceptorClass) {
     if (interceptorClass == null) return;
     interceptorClass.ensureResolved(resolution);
-    commonElements.objectClass.forEachMember((_, Element member) {
+    ClassElement objectClass = commonElements.objectClass;
+    objectClass.forEachMember((_, Element member) {
       if (member.isGenerativeConstructor) return;
       Element interceptorMember = interceptorClass.lookupMember(member.name);
       // Interceptors must override all Object methods due to calling convention
@@ -1629,7 +1636,24 @@ class JavaScriptBackend extends Backend {
       // type so we only need one check method.
       return 'checkMalformedType';
     }
-    Element element = type.element;
+
+    if (type.isVoid) {
+      assert(!typeCast); // Cannot cast to void.
+      if (nativeCheckOnly) return null;
+      return 'voidTypeCheck';
+    }
+
+    if (type.isTypeVariable) {
+      return typeCast
+          ? 'subtypeOfRuntimeTypeCast'
+          : 'assertSubtypeOfRuntimeType';
+    }
+
+    if (type.isFunctionType) return null;
+
+    assert(invariant(NO_LOCATION_SPANNABLE, type.isInterfaceType,
+        message: "Unexpected type: $type (${type.kind})"));
+    ClassElement element = type.element;
     bool nativeCheck =
         nativeCheckOnly || emitter.nativeEmitter.requiresNativeIsCheck(element);
 
@@ -1638,84 +1662,70 @@ class JavaScriptBackend extends Backend {
     // that it can be optimized by standard interceptor optimizations.
     nativeCheck = true;
 
-    if (type.isVoid) {
-      assert(!typeCast); // Cannot cast to void.
-      if (nativeCheckOnly) return null;
-      return 'voidTypeCheck';
-    } else if (element == helpers.jsStringClass ||
+    var suffix = typeCast ? 'TypeCast' : 'TypeCheck';
+    if (element == helpers.jsStringClass ||
         element == commonElements.stringClass) {
       if (nativeCheckOnly) return null;
-      return typeCast ? 'stringTypeCast' : 'stringTypeCheck';
-    } else if (element == helpers.jsDoubleClass ||
+      return 'string$suffix';
+    }
+
+    if (element == helpers.jsDoubleClass ||
         element == commonElements.doubleClass) {
       if (nativeCheckOnly) return null;
-      return typeCast ? 'doubleTypeCast' : 'doubleTypeCheck';
-    } else if (element == helpers.jsNumberClass ||
+      return 'double$suffix';
+    }
+
+    if (element == helpers.jsNumberClass ||
         element == commonElements.numClass) {
       if (nativeCheckOnly) return null;
-      return typeCast ? 'numTypeCast' : 'numTypeCheck';
-    } else if (element == helpers.jsBoolClass ||
-        element == commonElements.boolClass) {
+      return 'num$suffix';
+    }
+
+    if (element == helpers.jsBoolClass || element == commonElements.boolClass) {
       if (nativeCheckOnly) return null;
-      return typeCast ? 'boolTypeCast' : 'boolTypeCheck';
-    } else if (element == helpers.jsIntClass ||
+      return 'bool$suffix';
+    }
+
+    if (element == helpers.jsIntClass ||
         element == commonElements.intClass ||
         element == helpers.jsUInt32Class ||
         element == helpers.jsUInt31Class ||
         element == helpers.jsPositiveIntClass) {
       if (nativeCheckOnly) return null;
-      return typeCast ? 'intTypeCast' : 'intTypeCheck';
-    } else if (commonElements.isNumberOrStringSupertype(element)) {
-      if (nativeCheck) {
-        return typeCast
-            ? 'numberOrStringSuperNativeTypeCast'
-            : 'numberOrStringSuperNativeTypeCheck';
-      } else {
-        return typeCast
-            ? 'numberOrStringSuperTypeCast'
-            : 'numberOrStringSuperTypeCheck';
-      }
-    } else if (commonElements.isStringOnlySupertype(element)) {
-      if (nativeCheck) {
-        return typeCast
-            ? 'stringSuperNativeTypeCast'
-            : 'stringSuperNativeTypeCheck';
-      } else {
-        return typeCast ? 'stringSuperTypeCast' : 'stringSuperTypeCheck';
-      }
-    } else if ((element == commonElements.listClass ||
+      return 'int$suffix';
+    }
+
+    if (commonElements.isNumberOrStringSupertype(element)) {
+      return nativeCheck
+          ? 'numberOrStringSuperNative$suffix'
+          : 'numberOrStringSuper$suffix';
+    }
+
+    if (commonElements.isStringOnlySupertype(element)) {
+      return nativeCheck ? 'stringSuperNative$suffix' : 'stringSuper$suffix';
+    }
+
+    if ((element == commonElements.listClass ||
             element == helpers.jsArrayClass) &&
         type.treatAsRaw) {
       if (nativeCheckOnly) return null;
-      return typeCast ? 'listTypeCast' : 'listTypeCheck';
+      return 'list$suffix';
+    }
+
+    if (commonElements.isListSupertype(element)) {
+      return nativeCheck ? 'listSuperNative$suffix' : 'listSuper$suffix';
+    }
+
+    if (type.isInterfaceType && !type.treatAsRaw) {
+      return typeCast ? 'subtypeCast' : 'assertSubtype';
+    }
+
+    if (nativeCheck) {
+      // TODO(karlklose): can we get rid of this branch when we use
+      // interceptors?
+      return 'intercepted$suffix';
     } else {
-      if (commonElements.isListSupertype(element)) {
-        if (nativeCheck) {
-          return typeCast
-              ? 'listSuperNativeTypeCast'
-              : 'listSuperNativeTypeCheck';
-        } else {
-          return typeCast ? 'listSuperTypeCast' : 'listSuperTypeCheck';
-        }
-      } else {
-        if (type.isInterfaceType && !type.treatAsRaw) {
-          return typeCast ? 'subtypeCast' : 'assertSubtype';
-        } else if (type.isTypeVariable) {
-          return typeCast
-              ? 'subtypeOfRuntimeTypeCast'
-              : 'assertSubtypeOfRuntimeType';
-        } else if (type.isFunctionType) {
-          return null;
-        } else {
-          if (nativeCheck) {
-            // TODO(karlklose): can we get rid of this branch when we use
-            // interceptors?
-            return typeCast ? 'interceptedTypeCast' : 'interceptedTypeCheck';
-          } else {
-            return typeCast ? 'propertyTypeCast' : 'propertyTypeCheck';
-          }
-        }
-      }
+      return 'property$suffix';
     }
   }
 
@@ -1982,6 +1992,10 @@ class JavaScriptBackend extends Backend {
     return membersNeededForReflection.contains(element);
   }
 
+  bool isMemberAccessibleByReflection(MemberElement element) {
+    return membersNeededForReflection.contains(element);
+  }
+
   /**
    * Returns true if the element has to be resolved due to a mirrorsUsed
    * annotation. If we have insufficient mirrors used annotations, we only
@@ -2199,7 +2213,7 @@ class JavaScriptBackend extends Backend {
         new jsAst.PropertyAccess(use2, dispatchProperty);
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[use1, record];
-    FunctionElement helper = helpers.isJsIndexable;
+    MethodElement helper = helpers.isJsIndexable;
     jsAst.Expression helperExpression = emitter.staticFunctionAccess(helper);
     return new jsAst.Call(helperExpression, arguments);
   }
@@ -3062,6 +3076,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
   void onIsCheckForCodegen(
       ResolutionDartType type, TransformedWorldImpact transformed) {
+    if (type.isDynamic) return;
     type = type.unaliased;
     registerBackendImpact(transformed, impacts.typeCheck);
 

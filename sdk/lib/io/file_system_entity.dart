@@ -816,7 +816,7 @@ class FileSystemDeleteEvent extends FileSystemEvent {
  */
 class FileSystemMoveEvent extends FileSystemEvent {
   /**
-   * If the underlaying implementation is able to identify the destination of
+   * If the underlying implementation is able to identify the destination of
    * the moved file, [destination] will be set. Otherwise, it will be `null`.
    */
   final String destination;

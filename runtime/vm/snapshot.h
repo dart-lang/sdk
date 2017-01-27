@@ -190,7 +190,7 @@ class Snapshot {
     return (kind == kAppJIT) || (kind == kAppAOT);
   }
 
-  uint8_t* Addr() { return reinterpret_cast<uint8_t*>(this); }
+  const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
 
   static intptr_t length_offset() {
     return OFFSET_OF(Snapshot, unaligned_length_);
@@ -211,19 +211,18 @@ class Snapshot {
 };
 
 
-class InstructionsSnapshot : ValueObject {
+class Image : ValueObject {
  public:
-  explicit InstructionsSnapshot(const void* raw_memory)
-      : raw_memory_(raw_memory) {
+  explicit Image(const void* raw_memory) : raw_memory_(raw_memory) {
     ASSERT(Utils::IsAligned(raw_memory, OS::kMaxPreferredCodeAlignment));
   }
 
-  void* instructions_start() {
+  void* object_start() {
     return reinterpret_cast<void*>(reinterpret_cast<uword>(raw_memory_) +
                                    kHeaderSize);
   }
 
-  uword instructions_size() {
+  uword object_size() {
     uword snapshot_size = *reinterpret_cast<const uword*>(raw_memory_);
     return snapshot_size - kHeaderSize;
   }
@@ -233,34 +232,7 @@ class InstructionsSnapshot : ValueObject {
  private:
   const void* raw_memory_;  // The symbol kInstructionsSnapshot.
 
-  DISALLOW_COPY_AND_ASSIGN(InstructionsSnapshot);
-};
-
-
-class DataSnapshot : ValueObject {
- public:
-  explicit DataSnapshot(const void* raw_memory) : raw_memory_(raw_memory) {
-    ASSERT(Utils::IsAligned(raw_memory, 2 * kWordSize));  // kObjectAlignment
-  }
-
-  void* data_start() {
-    return reinterpret_cast<void*>(reinterpret_cast<uword>(raw_memory_) +
-                                   kHeaderSize);
-  }
-
-  uword data_size() {
-    uword snapshot_size = *reinterpret_cast<const uword*>(raw_memory_);
-    return snapshot_size - kHeaderSize;
-  }
-
-  // Header: data length and padding for alignment. We use the same alignment
-  // as for code for now.
-  static const intptr_t kHeaderSize = OS::kMaxPreferredCodeAlignment;
-
- private:
-  const void* raw_memory_;  // The symbol kDataSnapshot.
-
-  DISALLOW_COPY_AND_ASSIGN(DataSnapshot);
+  DISALLOW_COPY_AND_ASSIGN(Image);
 };
 
 
@@ -375,7 +347,7 @@ class InstructionsReader : public ZoneAllocated {
                             OS::PreferredCodeAlignment()));
   }
 
-  uword GetInstructionsAt(int32_t offset);
+  RawInstructions* GetInstructionsAt(int32_t offset);
   RawObject* GetObjectAt(int32_t offset);
 
  private:
@@ -660,7 +632,10 @@ class BaseWriter : public StackResource {
     data[Snapshot::kSnapshotFlagIndex] = kind;
   }
 
-  void FreeBuffer() { dealloc_(stream_.buffer()); }
+  void FreeBuffer() {
+    dealloc_(stream_.buffer());
+    stream_.set_buffer(NULL);
+  }
 
  private:
   WriteStream stream_;
@@ -725,27 +700,31 @@ class ForwardList {
 };
 
 
-class InstructionsWriter : public ZoneAllocated {
+class ImageWriter : public ZoneAllocated {
  public:
-  InstructionsWriter()
-      : next_offset_(InstructionsSnapshot::kHeaderSize),
-        next_object_offset_(DataSnapshot::kHeaderSize),
-        instructions_(),
-        objects_() {}
-  virtual ~InstructionsWriter() {}
+  ImageWriter()
+      : next_offset_(0), next_object_offset_(0), instructions_(), objects_() {
+    ResetOffsets();
+  }
+  virtual ~ImageWriter() {}
 
+  void ResetOffsets() {
+    next_offset_ = Image::kHeaderSize;
+    next_object_offset_ = Image::kHeaderSize;
+    instructions_.Clear();
+    objects_.Clear();
+  }
   int32_t GetOffsetFor(RawInstructions* instructions, RawCode* code);
-
   int32_t GetObjectOffsetFor(RawObject* raw_object);
 
-  virtual void Write(uint8_t* vmisolate_buffer,
-                     intptr_t vmisolate_length,
-                     uint8_t* isolate_buffer,
-                     intptr_t isolate_length) = 0;
+  void Write(WriteStream* clustered_stream, bool vm);
   virtual intptr_t text_size() = 0;
-  virtual intptr_t data_size() = 0;
+  intptr_t data_size() { return next_object_offset_; }
 
  protected:
+  void WriteROData(WriteStream* stream);
+  virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;
+
   struct InstructionsData {
     explicit InstructionsData(RawInstructions* insns,
                               RawCode* code,
@@ -778,26 +757,21 @@ class InstructionsWriter : public ZoneAllocated {
   GrowableArray<ObjectData> objects_;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(InstructionsWriter);
+  DISALLOW_COPY_AND_ASSIGN(ImageWriter);
 };
 
 
-class AssemblyInstructionsWriter : public InstructionsWriter {
+class AssemblyImageWriter : public ImageWriter {
  public:
-  AssemblyInstructionsWriter(uint8_t** assembly_buffer,
-                             ReAlloc alloc,
-                             intptr_t initial_size)
-      : InstructionsWriter(),
+  AssemblyImageWriter(uint8_t** assembly_buffer,
+                      ReAlloc alloc,
+                      intptr_t initial_size)
+      : ImageWriter(),
         assembly_stream_(assembly_buffer, alloc, initial_size),
-        text_size_(0),
-        data_size_(0) {}
+        text_size_(0) {}
 
-  virtual void Write(uint8_t* vmisolate_buffer,
-                     intptr_t vmisolate_length,
-                     uint8_t* isolate_buffer,
-                     intptr_t isolate_length);
+  virtual void WriteText(WriteStream* clustered_stream, bool vm);
   virtual intptr_t text_size() { return text_size_; }
-  virtual intptr_t data_size() { return data_size_; }
 
   intptr_t AssemblySize() const { return assembly_stream_.bytes_written(); }
 
@@ -812,55 +786,34 @@ class AssemblyInstructionsWriter : public InstructionsWriter {
     text_size_ += sizeof(value);
   }
 
-  void WriteWordLiteralData(uword value) {
-// Padding is helpful for comparing the .S with --disassemble.
-#if defined(ARCH_IS_64_BIT)
-    assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
-#else
-    assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
-#endif
-    data_size_ += sizeof(value);
-  }
-
   WriteStream assembly_stream_;
   intptr_t text_size_;
-  intptr_t data_size_;
 
-  DISALLOW_COPY_AND_ASSIGN(AssemblyInstructionsWriter);
+  DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
 };
 
 
-class BlobInstructionsWriter : public InstructionsWriter {
+class BlobImageWriter : public ImageWriter {
  public:
-  BlobInstructionsWriter(uint8_t** instructions_blob_buffer,
-                         uint8_t** rodata_blob_buffer,
-                         ReAlloc alloc,
-                         intptr_t initial_size)
-      : InstructionsWriter(),
+  BlobImageWriter(uint8_t** instructions_blob_buffer,
+                  ReAlloc alloc,
+                  intptr_t initial_size)
+      : ImageWriter(),
         instructions_blob_stream_(instructions_blob_buffer,
                                   alloc,
-                                  initial_size),
-        rodata_blob_stream_(rodata_blob_buffer, alloc, initial_size) {}
+                                  initial_size) {}
 
-  virtual void Write(uint8_t* vmisolate_buffer,
-                     intptr_t vmisolate_length,
-                     uint8_t* isolate_buffer,
-                     intptr_t isolate_length);
+  virtual void WriteText(WriteStream* clustered_stream, bool vm);
   virtual intptr_t text_size() { return InstructionsBlobSize(); }
-  virtual intptr_t data_size() { return RodataBlobSize(); }
 
   intptr_t InstructionsBlobSize() const {
     return instructions_blob_stream_.bytes_written();
   }
-  intptr_t RodataBlobSize() const {
-    return rodata_blob_stream_.bytes_written();
-  }
 
  private:
   WriteStream instructions_blob_stream_;
-  WriteStream rodata_blob_stream_;
 
-  DISALLOW_COPY_AND_ASSIGN(BlobInstructionsWriter);
+  DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
 };
 
 
@@ -998,19 +951,47 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 };
 
 
+class SerializedObjectBuffer : public StackResource {
+ public:
+  SerializedObjectBuffer()
+      : StackResource(Thread::Current()),
+        object_data_(NULL),
+        object_length_(0) {}
+
+  virtual ~SerializedObjectBuffer() { free(object_data_); }
+
+  void StealBuffer(uint8_t** out_data, intptr_t* out_length) {
+    *out_data = object_data_;
+    *out_length = object_length_;
+
+    object_data_ = NULL;
+    object_length_ = 0;
+  }
+
+  uint8_t** data_buffer() { return &object_data_; }
+  intptr_t* data_length() { return &object_length_; }
+
+ private:
+  uint8_t* object_data_;
+  intptr_t object_length_;
+};
+
+
 class MessageWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 512;
   MessageWriter(uint8_t** buffer,
                 ReAlloc alloc,
                 DeAlloc dealloc,
-                bool can_send_any_object);
+                bool can_send_any_object,
+                intptr_t* buffer_len = NULL);
   ~MessageWriter() {}
 
   void WriteMessage(const Object& obj);
 
  private:
   ForwardList forward_list_;
+  intptr_t* buffer_len_;
 
   DISALLOW_COPY_AND_ASSIGN(MessageWriter);
 };

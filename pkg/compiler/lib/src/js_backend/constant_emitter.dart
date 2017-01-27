@@ -263,7 +263,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
 
   JavaScriptBackend get backend => compiler.backend;
 
-  jsAst.PropertyAccess getHelperProperty(Element helper) {
+  jsAst.PropertyAccess getHelperProperty(MethodElement helper) {
     return backend.emitter.staticFunctionAccess(helper);
   }
 

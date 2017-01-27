@@ -12,6 +12,7 @@ import 'closure/converter.dart' show ClosureConverter;
 
 import 'closure/info.dart' show ClosureInfo;
 
+import 'closure/invalidate_closures.dart';
 import 'closure/mock.dart' show mockUpContext;
 
 Program transformProgram(Program program) {
@@ -21,5 +22,6 @@ Program transformProgram(Program program) {
   CoreTypes coreTypes = new CoreTypes(program);
   Class contextClass = mockUpContext(coreTypes, program);
   var convert = new ClosureConverter(coreTypes, info, contextClass);
-  return convert.visitProgram(program);
+  program = convert.visitProgram(program);
+  return new InvalidateClosures().visitProgram(program);
 }

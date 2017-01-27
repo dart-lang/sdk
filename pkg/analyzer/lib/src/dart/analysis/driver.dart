@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
+import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show CompilationUnitElement;
 import 'package:analyzer/error/error.dart';
@@ -73,7 +74,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 11;
+  static const int DATA_VERSION = 13;
 
   /**
    * The name of the driver, e.g. the name of the folder.
@@ -115,10 +116,20 @@ class AnalysisDriver {
   AnalysisOptions _analysisOptions;
 
   /**
+   * The optional SDK bundle, used when the client cannot read SDK files.
+   */
+  final PackageBundle _sdkBundle;
+
+  /**
    * The [SourceFactory] is used to resolve URIs to paths and restore URIs
    * from file paths.
    */
   SourceFactory _sourceFactory;
+
+  /**
+   * The declared environment variables.
+   */
+  final DeclaredVariables declaredVariables = new DeclaredVariables();
 
   /**
    * The salt to mix into all hashes used as keys for serialized data.
@@ -129,12 +140,6 @@ class AnalysisDriver {
    * The current file system state.
    */
   FileSystemState _fsState;
-
-  /**
-   * The combined unlinked and linked package for the SDK, extracted from
-   * the given [sourceFactory].
-   */
-  PackageBundle _sdkBundle;
 
   /**
    * The set of added files.
@@ -241,26 +246,14 @@ class AnalysisDriver {
       this._contentOverlay,
       this.name,
       SourceFactory sourceFactory,
-      this._analysisOptions)
-      : _sourceFactory = sourceFactory.clone() {
+      this._analysisOptions,
+      {PackageBundle sdkBundle})
+      : _sourceFactory = sourceFactory.clone(),
+        _sdkBundle = sdkBundle {
     _testView = new AnalysisDriverTestView(this);
     _fillSalt();
-    _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
-    if (_sdkBundle == null) {
-      Type sdkType = sourceFactory.dartSdk.runtimeType;
-      String message = 'DartSdk ($sdkType) for $name does not have summary.';
-      AnalysisEngine.instance.logger.logError(message);
-      throw new StateError(message);
-    }
-    _fsState = new FileSystemState(
-        _logger,
-        _byteStore,
-        _contentOverlay,
-        _resourceProvider,
-        sourceFactory,
-        _analysisOptions,
-        _salt,
-        _sdkBundle.apiSignature);
+    _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
+        _resourceProvider, sourceFactory, _analysisOptions, _salt);
     _scheduler._add(this);
     _search = new Search(this);
   }
@@ -451,13 +444,11 @@ class AnalysisDriver {
    * [changeFile] invocation.
    */
   void changeFile(String path) {
-    if (AnalysisEngine.isDartFileName(path)) {
-      _changedFiles.add(path);
-      if (_addedFiles.contains(path)) {
-        _filesToAnalyze.add(path);
-      }
-      _priorityResults.clear();
+    _changedFiles.add(path);
+    if (_addedFiles.contains(path)) {
+      _filesToAnalyze.add(path);
     }
+    _priorityResults.clear();
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
@@ -476,18 +467,10 @@ class AnalysisDriver {
     }
     if (sourceFactory != null) {
       _sourceFactory = sourceFactory;
-      _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
     }
     _fillSalt();
-    _fsState = new FileSystemState(
-        _logger,
-        _byteStore,
-        _contentOverlay,
-        _resourceProvider,
-        _sourceFactory,
-        _analysisOptions,
-        _salt,
-        _sdkBundle.apiSignature);
+    _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
+        _resourceProvider, _sourceFactory, _analysisOptions, _salt);
     _filesToAnalyze.addAll(_addedFiles);
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
@@ -517,9 +500,6 @@ class AnalysisDriver {
    * the file with the given [path].
    */
   Future<AnalysisDriverUnitIndex> getIndex(String path) {
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return new Future.value();
-    }
     var completer = new Completer<AnalysisDriverUnitIndex>();
     _indexRequestedFiles
         .putIfAbsent(path, () => <Completer<AnalysisDriverUnitIndex>>[])
@@ -547,10 +527,6 @@ class AnalysisDriver {
    * state transitions to "idle".
    */
   Future<AnalysisResult> getResult(String path) {
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return new Future.value();
-    }
-
     // Return the cached result.
     {
       AnalysisResult result = _priorityResults[path];
@@ -587,9 +563,6 @@ class AnalysisDriver {
    * file with the given [path].
    */
   Future<CompilationUnitElement> getUnitElement(String path) {
-    if (!AnalysisEngine.isDartFileName(path)) {
-      return new Future.value();
-    }
     var completer = new Completer<CompilationUnitElement>();
     _unitElementRequestedFiles
         .putIfAbsent(path, () => <Completer<CompilationUnitElement>>[])
@@ -637,6 +610,14 @@ class AnalysisDriver {
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
+
+  /**
+   * Return a future that will be completed the next time the status is idle.
+   *
+   * If the status is currently idle, the returned future will be signaled
+   * immediately.
+   */
+  Future<Null> waitForIdle() => _statusSupport.waitForIdle();
 
   /**
    * Return the cached or newly computed analysis result of the file with the
@@ -761,7 +742,9 @@ class AnalysisDriver {
   AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
+    analysisContext.useSdkCachePartition = false;
     analysisContext.analysisOptions = _analysisOptions;
+    analysisContext.declaredVariables.addAll(declaredVariables);
     analysisContext.sourceFactory = _sourceFactory.clone();
     analysisContext.contentCache = new _ContentCacheWrapper(_fsState);
     analysisContext.resultProvider =
@@ -776,15 +759,18 @@ class AnalysisDriver {
     return _logger.run('Create library context', () {
       Map<String, FileState> libraries = <String, FileState>{};
       SummaryDataStore store = new SummaryDataStore(const <String>[]);
-      store.addBundle(null, _sdkBundle);
+
+      if (_sdkBundle != null) {
+        store.addBundle(null, _sdkBundle);
+      }
 
       void appendLibraryFiles(FileState library) {
-        // URIs with the 'dart:' scheme are served from the SDK bundle.
-        if (library.uri.scheme == 'dart') {
-          return null;
-        }
-
         if (!libraries.containsKey(library.uriStr)) {
+          // Serve 'dart:' URIs from the SDK bundle.
+          if (_sdkBundle != null && library.uri.scheme == 'dart') {
+            return;
+          }
+
           libraries[library.uriStr] = library;
 
           // Append the defining unit.
@@ -1497,11 +1483,13 @@ class PerformanceLog {
   }
 
   /**
-   * Write a new line into the log
+   * Write a new line into the log.
    */
   void writeln(String msg) {
-    String indent = '\t' * _level;
-    sink.writeln('$indent$msg');
+    if (sink != null) {
+      String indent = '\t' * _level;
+      sink.writeln('$indent$msg');
+    }
   }
 }
 
@@ -1549,11 +1537,17 @@ class _ContentCacheWrapper implements ContentCache {
 
   @override
   bool getExists(Source source) {
+    if (source.isInSystemLibrary) {
+      return true;
+    }
     return _getFileForSource(source).exists;
   }
 
   @override
   int getModificationStamp(Source source) {
+    if (source.isInSystemLibrary) {
+      return 0;
+    }
     return _getFileForSource(source).exists ? 0 : -1;
   }
 

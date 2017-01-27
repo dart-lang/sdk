@@ -10,7 +10,12 @@ import 'package:typed_mock/typed_mock.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MemoryCachingByteStoreTest);
+    defineReflectiveTests(NullByteStoreTest);
   });
+}
+
+List<int> _b(int length) {
+  return new List<int>(length);
 }
 
 @reflectiveTest
@@ -99,9 +104,17 @@ class MemoryCachingByteStoreTest {
     expect(cachingStore.get('2'), isNull);
     expect(cachingStore.get('3'), hasLength(30));
   }
+}
 
-  static List<int> _b(int length) {
-    return new List<int>(length);
+@reflectiveTest
+class NullByteStoreTest {
+  test_get() {
+    var store = new NullByteStore();
+
+    expect(store.get('1'), isNull);
+
+    store.put('1', _b(10));
+    expect(store.get('1'), isNull);
   }
 }
 

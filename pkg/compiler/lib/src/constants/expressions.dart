@@ -236,7 +236,7 @@ class BoolConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.boolType;
 }
 
@@ -272,7 +272,7 @@ class IntConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.intType;
 }
 
@@ -308,7 +308,7 @@ class DoubleConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.doubleType;
 }
 
@@ -344,7 +344,7 @@ class StringConstantExpression extends PrimitiveConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.stringType;
 }
 
@@ -378,7 +378,7 @@ class NullConstantExpression extends PrimitiveConstantExpression {
   bool _equals(NullConstantExpression other) => true;
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.nullType;
 }
 
@@ -695,7 +695,7 @@ class ConcatenateConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.stringType;
 
   @override
@@ -736,7 +736,7 @@ class SymbolConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.symbolType;
 }
 
@@ -775,7 +775,7 @@ class TypeConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.typeType;
 }
 
@@ -843,7 +843,7 @@ class FunctionConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.functionType;
 }
 
@@ -894,7 +894,7 @@ class BinaryConstantExpression extends ConstantExpression {
         left.apply(arguments), operator, right.apply(arguments));
   }
 
-  ResolutionDartType getKnownType(CommonElements commonElements) {
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) {
     ResolutionDartType knownLeftType = left.getKnownType(commonElements);
     ResolutionDartType knownRightType = right.getKnownType(commonElements);
     switch (operator.kind) {
@@ -1036,7 +1036,7 @@ class IdenticalConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.boolType;
 
   @override
@@ -1155,7 +1155,7 @@ class StringLengthConstantExpression extends ConstantExpression {
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.intType;
 
   @override
@@ -1408,7 +1408,7 @@ class BoolFromEnvironmentConstantExpression
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.boolType;
 }
 
@@ -1474,7 +1474,7 @@ class IntFromEnvironmentConstantExpression
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.intType;
 }
 
@@ -1536,7 +1536,7 @@ class StringFromEnvironmentConstantExpression
   }
 
   @override
-  ResolutionDartType getKnownType(CommonElements commonElements) =>
+  ResolutionInterfaceType getKnownType(CommonElements commonElements) =>
       commonElements.stringType;
 }
 

@@ -24,15 +24,16 @@ main() {
       outSink = new StringBuffer();
       errorSink = new StringBuffer();
     });
+
     tearDown(() {
       outSink = savedOutSink;
       errorSink = savedErrorSink;
       exitCode = savedExitCode;
     });
 
-    test('resolution', wrap(() {
+    test('resolution', wrap(() async {
       var testDir = path.join(testDirectory, 'data', 'embedder_client');
-      new Driver().start([
+      await new Driver().start([
         '--packages',
         path.join(testDir, '_packages'),
         path.join(testDir, 'embedder_yaml_user.dart')
@@ -42,10 +43,10 @@ main() {
       expect(outSink.toString(), contains('No issues found'));
     }));
 
-    test('sdk setup', wrap(() {
+    test('sdk setup', wrap(() async {
       var testDir = path.join(testDirectory, 'data', 'embedder_client');
       Driver driver = new Driver();
-      driver.start([
+      await driver.start([
         '--packages',
         path.join(testDir, '_packages'),
         path.join(testDir, 'embedder_yaml_user.dart')
@@ -60,9 +61,9 @@ main() {
 
 /// Wrap a function call to dump stdout and stderr in case of an exception.
 Function wrap(Function f) {
-  return () {
+  return () async {
     try {
-      f();
+      await f();
     } catch (e) {
       if (outSink.toString().isNotEmpty) {
         print('stdout:');

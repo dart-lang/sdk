@@ -768,7 +768,8 @@ void main() {
 
     // Grab hold of a supertype for String so we can produce potential
     // string types.
-    patternClass = closedWorld.commonElements.coreLibrary.find('Pattern');
+    LibraryElement coreLibrary = closedWorld.commonElements.coreLibrary;
+    patternClass = coreLibrary.find('Pattern');
 
     nonPrimitive1 = new TypeMask.nonNullSubtype(
         closedWorld.commonElements.mapClass, closedWorld);

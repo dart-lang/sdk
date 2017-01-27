@@ -11,6 +11,7 @@
 
 #include "vm/ast.h"
 #include "vm/dart.h"
+#include "vm/dart_api_state.h"
 #include "vm/globals.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
@@ -241,13 +242,11 @@ class VirtualMemory;
 
 
 namespace bin {
-// vm_isolate_snapshot_buffer points to a snapshot for the vm isolate if we
-// link in a snapshot otherwise it is initialized to NULL.
-extern const uint8_t* vm_isolate_snapshot_buffer;
-
-// isolate_snapshot_buffer points to a snapshot for an isolate if we link in a
-// snapshot otherwise it is initialized to NULL.
-extern const uint8_t* core_isolate_snapshot_buffer;
+// Snapshot pieces if we link in a snapshot, otherwise initialized to NULL.
+extern const uint8_t* vm_snapshot_data;
+extern const uint8_t* vm_snapshot_instructions;
+extern const uint8_t* core_isolate_snapshot_data;
+extern const uint8_t* core_isolate_snapshot_instructions;
 }
 
 
@@ -295,7 +294,7 @@ class TestCase : TestCaseBase {
     return CreateIsolate(buffer, name);
   }
   static Dart_Isolate CreateTestIsolate(const char* name = NULL) {
-    return CreateIsolate(bin::core_isolate_snapshot_buffer, name);
+    return CreateIsolate(bin::core_isolate_snapshot_data, name);
   }
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
@@ -539,6 +538,13 @@ class CompilerTest : public AllStatic {
 #define EXPECT_VALID(handle)                                                   \
   do {                                                                         \
     Dart_Handle tmp_handle = (handle);                                         \
+    if (!Api::IsValid(tmp_handle)) {                                           \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail(                                                               \
+              "expected '%s' to be a valid handle but '%s' has already been "  \
+              "freed\n",                                                       \
+              #handle, #handle);                                               \
+    }                                                                          \
     if (Dart_IsError(tmp_handle)) {                                            \
       dart::Expect(__FILE__, __LINE__)                                         \
           .Fail(                                                               \

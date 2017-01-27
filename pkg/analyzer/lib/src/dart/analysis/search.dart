@@ -142,6 +142,37 @@ class Search {
     return elements;
   }
 
+  /**
+   * Returns unresolved references to the given [name].
+   */
+  Future<List<SearchResult>> unresolvedMemberReferences(String name) async {
+    if (name == null) {
+      return const <SearchResult>[];
+    }
+
+    // Prepare the list of files that reference the name.
+    List<String> files = await _driver.getFilesReferencingName(name);
+
+    // Check the index of every file that references the element name.
+    List<SearchResult> results = [];
+    for (String file in files) {
+      AnalysisDriverUnitIndex index = await _driver.getIndex(file);
+      _IndexRequest request = new _IndexRequest(index);
+      var fileResults = await request.getUnresolvedMemberReferences(
+          name,
+          const {
+            IndexRelationKind.IS_READ_BY: SearchResultKind.READ,
+            IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
+            IndexRelationKind.IS_READ_WRITTEN_BY: SearchResultKind.READ_WRITE,
+            IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
+          },
+          () => _driver.getUnitElement(file));
+      results.addAll(fileResults);
+    }
+
+    return results;
+  }
+
   Future<Null> _addResults(List<SearchResult> results, Element element,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind) async {
     // Prepare the element name.
@@ -701,6 +732,45 @@ class _IndexRequest {
       }
     }
     return -1;
+  }
+
+  /**
+   * Return a list of results where a class members with the given [name] is
+   * referenced with a qualifier, but is not resolved.
+   */
+  Future<List<SearchResult>> getUnresolvedMemberReferences(
+      String name,
+      Map<IndexRelationKind, SearchResultKind> relationToResultKind,
+      Future<CompilationUnitElement> getEnclosingUnitElement()) async {
+    // Find the name identifier.
+    int nameId = getStringId(name);
+    if (nameId == -1) {
+      return const <SearchResult>[];
+    }
+
+    // Find the first usage of the name.
+    int i = _findFirstOccurrence(index.usedNames, nameId);
+    if (i == -1) {
+      return const <SearchResult>[];
+    }
+
+    // Create results for every usage of the name.
+    List<SearchResult> results = <SearchResult>[];
+    CompilationUnitElement enclosingUnitElement = null;
+    for (; i < index.usedNames.length && index.usedNames[i] == nameId; i++) {
+      IndexRelationKind relationKind = index.usedNameKinds[i];
+      SearchResultKind resultKind = relationToResultKind[relationKind];
+      if (resultKind != null) {
+        int offset = index.usedNameOffsets[i];
+        enclosingUnitElement ??= await getEnclosingUnitElement();
+        Element enclosingElement =
+            _getEnclosingElement(enclosingUnitElement, offset);
+        results.add(new SearchResult._(enclosingElement, resultKind, offset,
+            name.length, false, index.usedNameIsQualifiedFlags[i]));
+      }
+    }
+
+    return results;
   }
 
   /**

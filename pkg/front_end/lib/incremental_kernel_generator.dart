@@ -66,6 +66,16 @@ abstract class IncrementalKernelGenerator {
   /// from disk; they are assumed to be unchanged regardless of the state of the
   /// filesystem.
   ///
+  /// If [watch] is not `null`, then when a source file is first used
+  /// by [computeDelta], [watch] is called with the Uri of that source
+  /// file and `used` == `true` indicating that the source file is being
+  /// used when compiling the program. The content of the file is not read
+  /// until the Future returned by [watch] completes. If during a subsequent
+  /// call to [computeDelta], a source file that was being used is no longer
+  /// used, then [watch] is called with the Uri of that source file and
+  /// `used` == `false` indicating that the source file is no longer needed.
+  /// Multiple invocations of [watch] may be running concurrently.
+  ///
   /// If the future completes successfully, the previous file state is updated
   /// and the set of valid sources is set to the set of all sources in the
   /// program.
@@ -74,7 +84,7 @@ abstract class IncrementalKernelGenerator {
   /// source code), the caller may consider the previous file state and the set
   /// of valid sources to be unchanged; this means that once the user fixes the
   /// errors, it is safe to call [computeDelta] again.
-  Future<DeltaProgram> computeDelta();
+  Future<DeltaProgram> computeDelta({Future<Null> watch(Uri uri, bool used)});
 
   /// Remove any source file(s) associated with the given file path from the set
   /// of valid sources.  This guarantees that those files will be re-read on the

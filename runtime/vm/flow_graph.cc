@@ -2052,7 +2052,6 @@ void FlowGraph::TryOptimizePatterns() {
       }
     }
     TryMergeTruncDivMod(&div_mod_merge);
-    TryMergeMathUnary(&sin_cos_merge);
   }
 }
 
@@ -2218,63 +2217,6 @@ void FlowGraph::TryMergeTruncDivMod(
         // Only one merge possible. Because canonicalization happens later,
         // more candidates are possible.
         // TODO(srdjan): Allow merging of trunc-div/mod into truncDivMod.
-        break;
-      }
-    }
-  }
-}
-
-
-// Tries to merge MathUnary operations, in this case sine and cosine.
-void FlowGraph::TryMergeMathUnary(
-    GrowableArray<InvokeMathCFunctionInstr*>* merge_candidates) {
-  if (!FlowGraphCompiler::SupportsSinCos() || !CanUnboxDouble() ||
-      !FLAG_merge_sin_cos) {
-    return;
-  }
-  if (merge_candidates->length() < 2) {
-    // Need at least a SIN and a COS.
-    return;
-  }
-  for (intptr_t i = 0; i < merge_candidates->length(); i++) {
-    InvokeMathCFunctionInstr* curr_instr = (*merge_candidates)[i];
-    if (curr_instr == NULL) {
-      // Instruction was merged already.
-      continue;
-    }
-    const MethodRecognizer::Kind kind = curr_instr->recognized_kind();
-    ASSERT((kind == MethodRecognizer::kMathSin) ||
-           (kind == MethodRecognizer::kMathCos));
-    // Check if there is sin/cos binop with same inputs.
-    const MethodRecognizer::Kind other_kind =
-        (kind == MethodRecognizer::kMathSin) ? MethodRecognizer::kMathCos
-                                             : MethodRecognizer::kMathSin;
-    Definition* def = curr_instr->InputAt(0)->definition();
-    for (intptr_t k = i + 1; k < merge_candidates->length(); k++) {
-      InvokeMathCFunctionInstr* other_op = (*merge_candidates)[k];
-      // 'other_op' can be NULL if it was already merged.
-      if ((other_op != NULL) && (other_op->recognized_kind() == other_kind) &&
-          (other_op->InputAt(0)->definition() == def)) {
-        (*merge_candidates)[k] = NULL;  // Clear it.
-        ASSERT(curr_instr->HasUses());
-        AppendExtractNthOutputForMerged(curr_instr,
-                                        MergedMathInstr::OutputIndexOf(kind),
-                                        kUnboxedDouble, kDoubleCid);
-        ASSERT(other_op->HasUses());
-        AppendExtractNthOutputForMerged(
-            other_op, MergedMathInstr::OutputIndexOf(other_kind),
-            kUnboxedDouble, kDoubleCid);
-        ZoneGrowableArray<Value*>* args = new (Z) ZoneGrowableArray<Value*>(1);
-        args->Add(new (Z) Value(curr_instr->InputAt(0)->definition()));
-        // Replace with SinCos.
-        MergedMathInstr* sin_cos = new (Z) MergedMathInstr(
-            args, curr_instr->DeoptimizationTarget(), MergedMathInstr::kSinCos);
-        curr_instr->ReplaceWith(sin_cos, NULL);
-        other_op->ReplaceUsesWith(sin_cos);
-        other_op->RemoveFromGraph();
-        // Only one merge possible. Because canonicalization happens later,
-        // more candidates are possible.
-        // TODO(srdjan): Allow merging of sin/cos into sincos.
         break;
       }
     }

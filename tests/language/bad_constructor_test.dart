@@ -13,9 +13,9 @@ class A {
   var m;
   A.m() { m = 0; }  /// 04: compile-time error
 
-  set q(var value) { m = q; }  // No name conflict with q=.
-  // The runtime error occurs because main calls new A() instead of new A.q().
-  A.q();   /// 05: runtime error
+  set q(var value) { m = 0; }  // No name conflict with q=.
+  A.q();   /// 05: ok
+  A();     /// 05: ok
 
   A.foo() : m = 0;  /// 06: compile-time error
   int foo(int a, int b) => a + b * m;

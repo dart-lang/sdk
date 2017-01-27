@@ -924,22 +924,4 @@ class RenameClassMemberTest_Driver extends RenameClassMemberTest {
   test_checkFinalConditions_shadowed_byLocalVariable_inSubClass() {
     return super.test_checkFinalConditions_shadowed_byLocalVariable_inSubClass();
   }
-
-  @failingTest
-  @override
-  test_createChange_MethodElement_potential() {
-    return super.test_createChange_MethodElement_potential();
-  }
-
-  @failingTest
-  @override
-  test_createChange_MethodElement_potential_inPubCache() {
-    return super.test_createChange_MethodElement_potential_inPubCache();
-  }
-
-  @failingTest
-  @override
-  test_createChange_MethodElement_potential_private_otherLibrary() {
-    return super.test_createChange_MethodElement_potential_private_otherLibrary();
-  }
 }

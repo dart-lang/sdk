@@ -28,7 +28,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       ParameterElement parameter, ResolutionFunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
     ConstantValue arityConstant =
-        builder.constantSystem.createInt(type.computeArity());
+        builder.constantSystem.createInt(type.parameterTypes.length);
     HInstruction arity =
         builder.graph.addConstant(arityConstant, builder.closedWorld);
     // TODO(ngeoffray): For static methods, we could pass a method with a

@@ -636,11 +636,14 @@ class Namer {
       case JsGetName.IS_INDEXABLE_FIELD_NAME:
         return operatorIs(helpers.jsIndexingBehaviorInterface);
       case JsGetName.NULL_CLASS_TYPE_NAME:
-        return runtimeTypeName(commonElements.nullClass);
+        ClassElement nullClass = commonElements.nullClass;
+        return runtimeTypeName(nullClass);
       case JsGetName.OBJECT_CLASS_TYPE_NAME:
-        return runtimeTypeName(commonElements.objectClass);
+        ClassElement objectClass = commonElements.objectClass;
+        return runtimeTypeName(objectClass);
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
-        return runtimeTypeName(commonElements.functionClass);
+        ClassElement functionClass = commonElements.functionClass;
+        return runtimeTypeName(functionClass);
       default:
         reporter.reportErrorMessage(node, MessageKind.GENERIC,
             {'text': 'Error: Namer has no name for "$name".'});
@@ -776,10 +779,14 @@ class Namer {
   /// For example: fixedBackendPath for the static method createMap in the
   /// Map class of the goog.map JavaScript library would have path
   /// "goog.maps.Map".
-  String fixedBackendPath(Element element) {
+  String fixedBackendMethodPath(MethodElement element) {
+    return _fixedBackendPath(element);
+  }
+
+  String _fixedBackendPath(Element element) {
     if (!backend.isJsInterop(element)) return null;
     if (element.isInstanceMember) return 'this';
-    if (element.isConstructor) return fixedBackendPath(element.enclosingClass);
+    if (element.isConstructor) return _fixedBackendPath(element.enclosingClass);
     if (element.isLibrary) return 'self';
     var sb = new StringBuffer();
     sb..write(_jsNameHelper(element.library));
@@ -1497,9 +1504,19 @@ class Namer {
   }
 
   /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
+  // TODO(johnniwinther): Verify that the implementation can be changed to
+  // `globalObjectForLibrary(element.library)`.
+  String globalObjectForMethod(MethodElement element) =>
+      globalObjectFor(element);
+
+  /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
   String globalObjectFor(Element element) {
     if (_isPropertyOfStaticStateHolder(element)) return staticStateHolder;
-    LibraryElement library = element.library;
+    return globalObjectForLibrary(element.library);
+  }
+
+  /// Returns the [reservedGlobalObjectNames] for [library].
+  String globalObjectForLibrary(LibraryElement library) {
     if (library == helpers.interceptorsLibrary) return 'J';
     if (library.isInternalLibrary) return 'H';
     if (library.isPlatformLibrary) {

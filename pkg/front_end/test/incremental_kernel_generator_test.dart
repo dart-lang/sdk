@@ -32,8 +32,6 @@ List<int> _readSdkSummary() {
   return resourceProvider.getFile(path).readAsBytesSync();
 }
 
-typedef void LibraryChecker(Library lib);
-
 @reflectiveTest
 class IncrementalKernelGeneratorTest {
   static final sdkSummaryUri = Uri.parse('special:sdk_summary');
@@ -43,17 +41,6 @@ class IncrementalKernelGeneratorTest {
 
   /// The object under test.
   IncrementalKernelGenerator incrementalKernelGenerator;
-
-  void checkLibraries(
-      List<Library> libraries, Map<Uri, LibraryChecker> expected) {
-    expect(
-        libraries.map((lib) => lib.importUri), unorderedEquals(expected.keys));
-    var librariesMap = <Uri, Library>{};
-    for (var lib in libraries) {
-      librariesMap[lib.importUri] = lib;
-    }
-    expected.forEach((uri, checker) => checker(librariesMap[uri]));
-  }
 
   Future<Map<Uri, Program>> getInitialState(Uri startingUri) async {
     fileSystem.entityForUri(sdkSummaryUri).writeAsBytesSync(_sdkSummary);
@@ -68,51 +55,51 @@ class IncrementalKernelGeneratorTest {
   }
 
   test_incrementalUpdate_referenceToCore() async {
-    // TODO(paulberry): test parts.
     writeFiles({'/foo.dart': 'main() { print(1); }'});
-    var fileUri = Uri.parse('file:///foo.dart');
-    var initialState = await getInitialState(fileUri);
-    expect(initialState.keys, unorderedEquals([fileUri]));
-    void _checkMain(List<Library> libraries, int expectedArgument) {
-      checkLibraries(libraries, {
-        fileUri: (library) {
-          expect(library.importUri, fileUri);
-          expect(library.classes, isEmpty);
-          expect(library.procedures, hasLength(1));
-          expect(library.procedures[0].name.name, 'main');
-          var body = library.procedures[0].function.body;
-          expect(body, new isInstanceOf<Block>());
-          var block = body as Block;
-          expect(block.statements, hasLength(1));
-          expect(block.statements[0], new isInstanceOf<ExpressionStatement>());
-          var expressionStatement = block.statements[0] as ExpressionStatement;
-          expect(expressionStatement.expression,
-              new isInstanceOf<StaticInvocation>());
-          var staticInvocation =
-              expressionStatement.expression as StaticInvocation;
-          expect(staticInvocation.target.name.name, 'print');
-          expect(staticInvocation.arguments.positional, hasLength(1));
-          expect(staticInvocation.arguments.positional[0],
-              new isInstanceOf<IntLiteral>());
-          var intLiteral =
-              staticInvocation.arguments.positional[0] as IntLiteral;
-          expect(intLiteral.value, expectedArgument);
-        },
-        Uri.parse('dart:core'): (library) {
-          // Should contain the procedure "print" but not its definition.
-          expect(library.procedures, hasLength(1));
-          expect(library.procedures[0].name.name, 'print');
-          expect(library.procedures[0].function.body, isNull);
-        }
-      });
+    var fooUri = Uri.parse('file:///foo.dart');
+    var coreUri = Uri.parse('dart:core');
+    var initialState = await getInitialState(fooUri);
+    expect(initialState.keys, unorderedEquals([fooUri]));
+
+    void _checkMain(Program program, int expectedArgument) {
+      expect(_getLibraryUris(program), unorderedEquals([fooUri, coreUri]));
+      var mainStatements = _getProcedureStatements(
+          _getProcedure(_getLibrary(program, fooUri), 'main'));
+      expect(mainStatements, hasLength(1));
+      _checkPrintLiteralInt(mainStatements[0], expectedArgument);
+      var coreLibrary = _getLibrary(program, coreUri);
+      expect(coreLibrary.procedures, hasLength(1));
+      expect(coreLibrary.procedures[0].name.name, 'print');
+      expect(coreLibrary.procedures[0].function.body, isNull);
     }
 
-    _checkMain(initialState[fileUri].libraries, 1);
+    _checkMain(initialState[fooUri], 1);
     writeFiles({'/foo.dart': 'main() { print(2); }'});
     incrementalKernelGenerator.invalidateAll();
     var deltaProgram = await incrementalKernelGenerator.computeDelta();
-    expect(deltaProgram.newState.keys, unorderedEquals([fileUri]));
-    _checkMain(deltaProgram.newState[fileUri].libraries, 2);
+    expect(deltaProgram.newState.keys, unorderedEquals([fooUri]));
+    _checkMain(deltaProgram.newState[fooUri], 2);
+  }
+
+  test_part() async {
+    writeFiles({
+      '/foo.dart': 'library foo; part "bar.dart"; main() { print(1); f(); }',
+      '/bar.dart': 'part of foo; f() { print(2); }'
+    });
+    var fooUri = Uri.parse('file:///foo.dart');
+    var initialState = await getInitialState(fooUri);
+    expect(initialState.keys, unorderedEquals([fooUri]));
+    var library = _getLibrary(initialState[fooUri], fooUri);
+    var mainStatements =
+        _getProcedureStatements(_getProcedure(library, 'main'));
+    var fProcedure = _getProcedure(library, 'f');
+    var fStatements = _getProcedureStatements(fProcedure);
+    expect(mainStatements, hasLength(2));
+    _checkPrintLiteralInt(mainStatements[0], 1);
+    _checkFunctionCall(mainStatements[1], fProcedure);
+    expect(fStatements, hasLength(1));
+    _checkPrintLiteralInt(fStatements[0], 2);
+    // TODO(paulberry): now test incremental updates
   }
 
   /// Write the given file contents to the virtual filesystem.
@@ -122,5 +109,51 @@ class IncrementalKernelGeneratorTest {
           .entityForUri(Uri.parse('file://$path'))
           .writeAsStringSync(text);
     });
+  }
+
+  void _checkFunctionCall(Statement statement, Procedure expectedTarget) {
+    expect(statement, new isInstanceOf<ExpressionStatement>());
+    var expressionStatement = statement as ExpressionStatement;
+    expect(
+        expressionStatement.expression, new isInstanceOf<StaticInvocation>());
+    var staticInvocation = expressionStatement.expression as StaticInvocation;
+    expect(staticInvocation.target, same(expectedTarget));
+  }
+
+  void _checkPrintLiteralInt(Statement statement, int expectedArgument) {
+    expect(statement, new isInstanceOf<ExpressionStatement>());
+    var expressionStatement = statement as ExpressionStatement;
+    expect(
+        expressionStatement.expression, new isInstanceOf<StaticInvocation>());
+    var staticInvocation = expressionStatement.expression as StaticInvocation;
+    expect(staticInvocation.target.name.name, 'print');
+    expect(staticInvocation.arguments.positional, hasLength(1));
+    expect(staticInvocation.arguments.positional[0],
+        new isInstanceOf<IntLiteral>());
+    var intLiteral = staticInvocation.arguments.positional[0] as IntLiteral;
+    expect(intLiteral.value, expectedArgument);
+  }
+
+  Library _getLibrary(Program program, Uri uri) {
+    for (var library in program.libraries) {
+      if (library.importUri == uri) return library;
+    }
+    throw fail('No library found with URI "$uri"');
+  }
+
+  List<Uri> _getLibraryUris(Program program) =>
+      program.libraries.map((library) => library.importUri).toList();
+
+  Procedure _getProcedure(Library library, String name) {
+    for (var procedure in library.procedures) {
+      if (procedure.name.name == name) return procedure;
+    }
+    throw fail('No function declaration found with name "$name"');
+  }
+
+  List<Statement> _getProcedureStatements(Procedure procedure) {
+    var body = procedure.function.body;
+    expect(body, new isInstanceOf<Block>());
+    return (body as Block).statements;
   }
 }

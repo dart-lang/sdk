@@ -36,12 +36,6 @@ Language/Functions/Formal_Parameters/Optional_Formals/syntax_t14: Pass
 ###############################################################################
 
 [ $compiler == dartk || $compiler == dartkp ]
-Language/Classes/Constructors/Generative_Constructors/formal_parameter_t01: DartkCrash
-Language/Classes/Constructors/Generative_Constructors/formal_parameter_t03: DartkCrash
-Language/Classes/Constructors/Generative_Constructors/formal_parameter_t04: DartkCrash
-Language/Classes/Constructors/Generative_Constructors/formal_parameter_t05: DartkCrash
-Language/Classes/Constructors/Generative_Constructors/formal_parameter_t06: DartkCrash
-Language/Classes/Constructors/Generative_Constructors/initializing_this_t02: DartkCrash
 Language/Classes/Getters/static_getter_t02: DartkCompileTimeError
 Language/Enums/syntax_t08: MissingCompileTimeError
 Language/Enums/syntax_t09: MissingCompileTimeError
@@ -68,8 +62,6 @@ Language/Libraries_and_Scripts/Exports/syntax_t04: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t05: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t06: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: DartkCompileTimeError
-Language/Libraries_and_Scripts/Scripts/top_level_main_t01: DartkCrash
-Language/Libraries_and_Scripts/Scripts/top_level_main_t02: DartkCrash
 Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError
@@ -91,6 +83,7 @@ Language/Libraries_and_Scripts/definition_syntax_t25: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t26: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t27: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t29: MissingCompileTimeError
+Language/Libraries_and_Scripts/Scripts/top_level_main_t05: RuntimeError # 'main' getter not supported
 Language/Libraries_and_Scripts/top_level_syntax_t02: MissingCompileTimeError
 Language/Libraries_and_Scripts/top_level_syntax_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/top_level_syntax_t04: MissingCompileTimeError
@@ -120,14 +113,14 @@ Language/Variables/final_t04: MissingCompileTimeError
 Language/Variables/final_t05: MissingCompileTimeError
 Language/Variables/final_t06: MissingCompileTimeError
 Language/Variables/final_t07: MissingCompileTimeError
+Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError # Missing compile-time error from analyzer
+Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
 Language/Expressions/Constants/exception_t01: MissingCompileTimeError
 Language/Expressions/Constants/exception_t02: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/evaluation_type_parameter_t02: MissingCompileTimeError
-Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError
-Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t16: DartkCrash
 
 # dartk: precompilation failures
@@ -158,15 +151,8 @@ Language/Expressions/Lookup/Method_Lookup/superclass_t08: RuntimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/accessible_instance_member_t05: RuntimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t07: RuntimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t18: RuntimeError
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t01: Pass
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t02: Pass
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t03: Pass
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t04: Pass
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t05: Pass
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t06: Pass
 Language/Expressions/Type_Test/evaluation_t10: RuntimeError
 Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError
-Language/Functions/Formal_Parameters/syntax_t05: RuntimeError
 Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Pass
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError
@@ -198,7 +184,6 @@ Language/Libraries_and_Scripts/Imports/static_type_t01/07: Pass
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash  # !main_obj.IsNull()
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
@@ -207,4 +192,3 @@ Language/Expressions/Constants/exception_t02: Crash
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash  # !main_obj.IsNull()

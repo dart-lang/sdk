@@ -609,8 +609,9 @@ class RawObject {
   friend class RetainingPathVisitor;       // GetClassId
   friend class SkippedCodeFunctions;       // StorePointer
   friend class InstructionsReader;         // tags_ check
-  friend class AssemblyInstructionsWriter;
-  friend class BlobInstructionsWriter;
+  friend class ImageWriter;
+  friend class AssemblyImageWriter;
+  friend class BlobImageWriter;
   friend class SnapshotReader;
   friend class Deserializer;
   friend class SnapshotWriter;
@@ -1213,7 +1214,7 @@ class RawInstructions : public RawObject {
   friend class SkippedCodeFunctions;
   friend class Function;
   friend class InstructionsReader;
-  friend class InstructionsWriter;
+  friend class ImageWriter;
 };
 
 
@@ -1761,7 +1762,6 @@ class RawMixinAppType : public RawAbstractType {
     return reinterpret_cast<RawObject**>(&ptr()->super_type_);
   }
   RawAbstractType* super_type_;
-  RawSmi* hash_;
   RawArray* mixin_types_;  // Array of AbstractType.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->mixin_types_);

@@ -45,7 +45,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
   // The number of expected unittest errors should be zero but unfortunately
   // there are a lot of broken html unittests.
-  let num_expected_unittest_fails = 3;
+  let num_expected_unittest_fails = 4;
   let num_expected_unittest_errors = 0;
 
   // TODO(jmesserly): separate StrongModeError from other errors.
@@ -74,7 +74,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'async_star_test_05_multi': async_unittest,
 
       'async_switch_test': fail,
-      'asyncstar_throw_in_catch_test': fail,
+      'asyncstar_throw_in_catch_test': ['skip', 'fail'],
       'await_future_test': skip_timeout,
       'bit_operations_test_none_multi': fail,  // DDC/dart2js canonicalize bitop results to unsigned
       'branch_canonicalization_test': fail,  // JS bit operations truncate to 32 bits.
@@ -88,6 +88,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'cast_test_02_multi': fail,
       'cast_test_03_multi': fail,
       'cast_test_07_multi': fail,
+      'cast_test_08_multi': fail, // (oc as dynamic).bar;  /// 08: runtime error
       'cast_test_10_multi': fail,
       'cast_test_12_multi': fail,
       'cast_test_13_multi': fail,
@@ -133,9 +134,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'f_bounded_quantification3_test': fail,
       'field_increment_bailout_test': fail,
       'field_optimization3_test': fail,
+      'field_type_check2_test_01_multi': fail, // 01: dynamic type error
       'final_syntax_test_08_multi': fail,
       'first_class_types_test': fail,
-      'for_variable_capture_test': chrome_fail,
+      'for_variable_capture_test': is.firefox('<=50') ? pass : fail,
       'function_subtype0_test': fail,
       'function_subtype1_test': fail,
       'function_subtype2_test': fail,
@@ -194,7 +196,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'instanceof4_test_none_multi': fail,
       'instanceof_optimized_test': fail,
       'integer_division_by_zero_test': fail,
-      'is_nan_test': fail,
       'issue_22780_test_01_multi': fail,
       'lazy_static3_test': fail,
       'least_upper_bound_expansive_test_none_multi': fail,
@@ -222,7 +223,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'mixin_regress_13688_test': fail,
       'modulo_test': fail,
       'named_parameter_clash_test': fail,
-      'named_parameters_passing_falsy_test': firefox_fail,
+      'named_parameters_passing_falsy_test': is.firefox('<=50') ? fail : pass,
       'nan_identical_test': fail,
       'nested_switch_label_test': fail,
       'number_identifier_test_05_multi': fail,
@@ -294,7 +295,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'double_parse_test_02_multi': firefox_fail,
       'error_stack_trace1_test': fail,
       'error_stack_trace2_test': fail,
-      'for_in_test': firefox_fail,
+      'for_in_test': is.firefox('<=50') ? fail : pass,
       'hash_map2_test': skip_timeout,
       'hash_set_test_01_multi': fail,
       'hidden_library2_test_01_multi': fail,
@@ -316,14 +317,14 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'main_test': fail,
       'map_keys2_test': fail,
       'map_to_string_test': fail,
-      'map_from_iterable_test': firefox_fail,
+      'map_from_iterable_test': is.firefox('<=50') ? fail : pass,
       'nan_infinity_test_01_multi': fail,
       'null_nosuchmethod_test': fail,
       'null_test': fail,
       'num_sign_test': fail,
       'regress_r21715_test': fail,
       'throw_half_surrogate_pair_test_02_multi': fail,
-      'splay_tree_from_iterable_test': firefox_fail,
+      'splay_tree_from_iterable_test': is.firefox('<=50') ? fail : pass,
       'string_case_test_01_multi': firefox_fail,
       'string_fromcharcodes_test': skip_timeout,
       'string_operations_with_null_test': fail,
@@ -332,11 +333,11 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'symbol_reserved_word_test_12_multi': fail,
       'throw_half_surrogate_pair_test_01_multi': fail,
       'unicode_test': firefox_fail,
-      'uri_parameters_all_test': firefox_fail,
+      'uri_parameters_all_test': is.firefox('<=50') ? fail : pass,
       // TODO(rnystrom): Times out because it tests a huge number of
       // combinations of URLs (4 * 5 * 5 * 8 * 6 * 6 * 4 = 115200).
       'uri_parse_test': skip_timeout,
-      'uri_test': firefox_fail,
+      'uri_test': is.firefox('<=50') ? fail : pass,
 
       'list_insert_test': fail,
       'list_removeat_test': fail,
@@ -390,7 +391,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       // was https://github.com/dart-lang/sdk/issues/27578, needs triage
       'dom_constructors_test': 'fail',
 
-      'element_animate_test': async_unittest,
+      'element_animate_test': 'unittest',
 
       // https://github.com/dart-lang/sdk/issues/27579.
       'element_classes_test': 'fail',
@@ -442,9 +443,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'mediasource_test': 'fail',
       'media_stream_test': 'fail',
       'messageevent_test': 'fail',
-
-      // Should throw but does not.
-      'mirrors_js_typed_interop_test': 'fail',
 
       'mutationobserver_test': async_unittest,
       'native_gc_test': async_unittest,

@@ -1624,11 +1624,9 @@ class Definition : public Instruction {
   void ClearSSATempIndex() { ssa_temp_index_ = -1; }
   bool HasPairRepresentation() const {
 #if defined(TARGET_ARCH_X64)
-    return (representation() == kPairOfTagged) ||
-           (representation() == kPairOfUnboxedDouble);
+    return representation() == kPairOfTagged;
 #else
     return (representation() == kPairOfTagged) ||
-           (representation() == kPairOfUnboxedDouble) ||
            (representation() == kUnboxedMint);
 #endif
   }
@@ -7392,8 +7390,6 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
     ASSERT(idx == 0);
     if (representation() == kTagged) {
       return kPairOfTagged;
-    } else if (representation() == kUnboxedDouble) {
-      return kPairOfUnboxedDouble;
     }
     UNREACHABLE();
     return definition_rep_;
@@ -7419,7 +7415,6 @@ class MergedMathInstr : public PureDefinition {
  public:
   enum Kind {
     kTruncDivMod,
-    kSinCos,
   };
 
   MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
@@ -7429,8 +7424,6 @@ class MergedMathInstr : public PureDefinition {
   static intptr_t InputCountFor(MergedMathInstr::Kind kind) {
     if (kind == kTruncDivMod) {
       return 2;
-    } else if (kind == kSinCos) {
-      return 1;
     } else {
       UNIMPLEMENTED();
       return -1;
@@ -7451,8 +7444,6 @@ class MergedMathInstr : public PureDefinition {
   virtual bool CanDeoptimize() const {
     if (kind_ == kTruncDivMod) {
       return true;
-    } else if (kind_ == kSinCos) {
-      return false;
     } else {
       UNIMPLEMENTED();
       return false;
@@ -7462,8 +7453,6 @@ class MergedMathInstr : public PureDefinition {
   virtual Representation representation() const {
     if (kind_ == kTruncDivMod) {
       return kPairOfTagged;
-    } else if (kind_ == kSinCos) {
-      return kPairOfUnboxedDouble;
     } else {
       UNIMPLEMENTED();
       return kTagged;
@@ -7474,8 +7463,6 @@ class MergedMathInstr : public PureDefinition {
     ASSERT((0 <= idx) && (idx < InputCount()));
     if (kind_ == kTruncDivMod) {
       return kTagged;
-    } else if (kind_ == kSinCos) {
-      return kUnboxedDouble;
     } else {
       UNIMPLEMENTED();
       return kTagged;
@@ -7495,7 +7482,6 @@ class MergedMathInstr : public PureDefinition {
 
   static const char* KindToCString(MergedMathInstr::Kind kind) {
     if (kind == kTruncDivMod) return "TruncDivMod";
-    if (kind == kSinCos) return "SinCos";
     UNIMPLEMENTED();
     return "";
   }
@@ -7907,6 +7893,8 @@ class Environment : public ZoneAllocated {
   }
 
   Value* ValueAt(intptr_t ix) const { return values_[ix]; }
+
+  void PushValue(Value* value);
 
   intptr_t Length() const { return values_.length(); }
 

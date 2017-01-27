@@ -315,11 +315,6 @@ mirrors/null_test: Fail # Issue 16831
 async/schedule_microtask_test: Fail  # Preamble file does not correctly implement scheduleImmediate.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-async/future_or_bad_type_test/00: MissingStaticWarning # Issue 28008
-async/future_or_bad_type_test/implements: MissingCompileTimeError # Issue 28008
-async/future_or_non_strong_test: StaticWarning # Issue 28008
-async/future_or_strong_test: StaticWarning # Issue 28008
-
 mirrors/generic_f_bounded_mixin_application_test: StaticWarning # Test Issue
 
 mirrors/redirecting_factory_test/01: StaticWarning # test issue X, The return type 'Class<T2, T1>' of the redirected constructor is not assignable to 'Class<T1, T2>'

@@ -22,19 +22,13 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 
 /**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
  * model from summaries.
  */
 abstract class SummaryResynthesizer extends ElementResynthesizer {
-  /**
-   * The parent [SummaryResynthesizer] which is asked to resynthesize elements
-   * and get summaries before this resynthesizer attempts to do this.
-   * Can be `null`.
-   */
-  final SummaryResynthesizer parent;
-
   /**
    * Source factory used to convert URIs to [Source] objects.
    */
@@ -46,10 +40,9 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, Source> _sources = <String, Source>{};
 
   /**
-   * The [TypeProvider] used to obtain core types (such as Object, int, List,
-   * and dynamic) during resynthesis.
+   * The [TypeProvider] used to obtain SDK types during resynthesis.
    */
-  final TypeProvider typeProvider;
+  TypeProvider _typeProvider;
 
   /**
    * Indicates whether the summary should be resynthesized assuming strong mode
@@ -80,9 +73,11 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(this.parent, AnalysisContext context, this.typeProvider,
-      this.sourceFactory, this.strongMode)
-      : super(context);
+  SummaryResynthesizer(
+      AnalysisContext context, this.sourceFactory, this.strongMode)
+      : super(context) {
+    _buildTypeProvider();
+  }
 
   /**
    * Number of libraries that have been resynthesized so far.
@@ -90,23 +85,14 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   int get resynthesisCount => _resynthesizedLibraries.length;
 
   /**
-   * Perform delayed finalization of the `dart:core` and `dart:async` libraries.
+   * The [TypeProvider] used to obtain SDK types during resynthesis.
    */
-  void finalizeCoreAsyncLibraries() {
-    (_resynthesizedLibraries['dart:core'] as LibraryElementImpl)
-        .createLoadLibraryFunction(typeProvider);
-    (_resynthesizedLibraries['dart:async'] as LibraryElementImpl)
-        .createLoadLibraryFunction(typeProvider);
-  }
+  TypeProvider get typeProvider => _typeProvider;
 
   @override
   Element getElement(ElementLocation location) {
     List<String> components = location.components;
     String libraryUri = components[0];
-    // Ask the parent resynthesizer.
-    if (parent != null && parent._hasLibrarySummary(libraryUri)) {
-      return parent.getElement(location);
-    }
     // Resynthesize locally.
     if (components.length == 1) {
       return getLibraryElement(libraryUri);
@@ -203,11 +189,8 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    * hasn't been resynthesized already.
    */
   LibraryElement getLibraryElement(String uri) {
-    if (parent != null && parent._hasLibrarySummary(uri)) {
-      return parent.getLibraryElement(uri);
-    }
     return _resynthesizedLibraries.putIfAbsent(uri, () {
-      LinkedLibrary serializedLibrary = _getLinkedSummaryOrNull(uri);
+      LinkedLibrary serializedLibrary = getLinkedSummary(uri);
       Source librarySource = _getSource(uri);
       if (serializedLibrary == null) {
         LibraryElementImpl libraryElement =
@@ -223,7 +206,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
         libraryElement.exportNamespace = new Namespace({});
         return libraryElement;
       }
-      UnlinkedUnit unlinkedSummary = _getUnlinkedSummaryOrNull(uri);
+      UnlinkedUnit unlinkedSummary = getUnlinkedSummary(uri);
       if (unlinkedSummary == null) {
         throw new StateError('Unable to find unlinked summary: $uri');
       }
@@ -234,7 +217,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
           serializedUnits.add(null);
         } else {
           String partAbsUri = partSource.uri.toString();
-          serializedUnits.add(_getUnlinkedSummaryOrNull(partAbsUri) ??
+          serializedUnits.add(getUnlinkedSummary(partAbsUri) ??
               new UnlinkedUnitBuilder(codeRange: new CodeRangeBuilder()));
         }
       }
@@ -267,15 +250,15 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    */
   bool hasLibrarySummary(String uri);
 
-  /**
-   * Return the [LinkedLibrary] for the given [uri] or return `null` if it
-   * could not be found.
-   */
-  LinkedLibrary _getLinkedSummaryOrNull(String uri) {
-    if (parent != null && parent._hasLibrarySummary(uri)) {
-      return parent._getLinkedSummaryOrNull(uri);
-    }
-    return getLinkedSummary(uri);
+  void _buildTypeProvider() {
+    var coreLibrary = getLibraryElement('dart:core') as LibraryElementImpl;
+    var asyncLibrary = getLibraryElement('dart:async') as LibraryElementImpl;
+    SummaryTypeProvider summaryTypeProvider = new SummaryTypeProvider();
+    summaryTypeProvider.initializeCore(coreLibrary);
+    summaryTypeProvider.initializeAsync(asyncLibrary);
+    coreLibrary.createLoadLibraryFunction(summaryTypeProvider);
+    asyncLibrary.createLoadLibraryFunction(summaryTypeProvider);
+    _typeProvider = summaryTypeProvider;
   }
 
   /**
@@ -283,28 +266,6 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    */
   Source _getSource(String uri) {
     return _sources.putIfAbsent(uri, () => sourceFactory.forUri(uri));
-  }
-
-  /**
-   * Return the [UnlinkedUnit] for the given [uri] or return `null` if it
-   * could not be found.
-   */
-  UnlinkedUnit _getUnlinkedSummaryOrNull(String uri) {
-    if (parent != null && parent._hasLibrarySummary(uri)) {
-      return parent._getUnlinkedSummaryOrNull(uri);
-    }
-    return getUnlinkedSummary(uri);
-  }
-
-  /**
-   * Return `true` if this resynthesizer can provide summaries of the libraries
-   * with the given [uri].
-   */
-  bool _hasLibrarySummary(String uri) {
-    if (parent != null && parent._hasLibrarySummary(uri)) {
-      return true;
-    }
-    return hasLibrarySummary(uri);
   }
 }
 
@@ -1297,7 +1258,7 @@ class _ReferenceInfo {
   /**
    * If this reference refers to a type, build a [DartType].  Otherwise return
    * `null`.  If [numTypeArguments] is the same as the [numTypeParameters],
-   * the type in instantiated with type arguments returned by [getTypeArgument],
+   * the type is instantiated with type arguments returned by [getTypeArgument],
    * otherwise it is instantiated with type parameter bounds (if strong mode),
    * or with `dynamic` type arguments.
    *
@@ -1324,22 +1285,14 @@ class _ReferenceInfo {
       InterfaceTypeImpl type =
           new InterfaceTypeImpl.elementWithNameAndArgs(element, name, () {
         if (typeArguments == null) {
-          typeArguments = element.typeParameters
-              .map/*<DartType>*/((_) => DynamicTypeImpl.instance)
-              .toList();
+          typeArguments = new List<DartType>.filled(
+              element.typeParameters.length, DynamicTypeImpl.instance);
           if (libraryResynthesizer.summaryResynthesizer.strongMode &&
               instantiateToBoundsAllowed) {
-            List<DartType> typeParameterTypes;
-            for (int i = 0; i < typeArguments.length; i++) {
-              DartType bound = element.typeParameters[i].bound;
-              if (bound != null) {
-                typeParameterTypes ??= element.typeParameters
-                    .map/*<DartType>*/((TypeParameterElement e) => e.type)
-                    .toList();
-                typeArguments[i] =
-                    bound.substitute2(typeArguments, typeParameterTypes);
-              }
-            }
+            InterfaceType instantiatedToBounds = libraryResynthesizer
+                .summaryResynthesizer.context.typeSystem
+                .instantiateToBounds(element.type) as InterfaceType;
+            return instantiatedToBounds.typeArguments;
           }
         }
         return typeArguments;
@@ -1405,6 +1358,9 @@ class _ResynthesizerContext implements ResynthesizerContext {
   final _UnitResynthesizer _unitResynthesizer;
 
   _ResynthesizerContext(this._unitResynthesizer);
+
+  @override
+  bool get isStrongMode => _unitResynthesizer.summaryResynthesizer.strongMode;
 
   @override
   ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedExpr uc) {
@@ -1568,6 +1524,15 @@ class _UnitResynthesizer {
       elementAnnotation.annotationAst = AstTestFactory.annotation2(
           typeName, constructorName, constExpr.argumentList)
         ..element = constExpr.staticElement;
+    } else if (constExpr is PropertyAccess) {
+      var target = constExpr.target as Identifier;
+      var propertyName = constExpr.propertyName;
+      ArgumentList arguments =
+          constExpr.getProperty(_ConstExprBuilder.ARGUMENT_LIST);
+      elementAnnotation.element = propertyName.staticElement;
+      elementAnnotation.annotationAst = AstTestFactory.annotation2(
+          target, propertyName, arguments)
+        ..element = propertyName.staticElement;
     } else {
       throw new StateError(
           'Unexpected annotation type: ${constExpr.runtimeType}');
@@ -1774,6 +1739,13 @@ class _UnitResynthesizer {
           locationComponents =
               libraryResynthesizer.getReferencedLocationComponents(
                   linkedReference.dependency, linkedReference.unit, identifier);
+        }
+        if (!_resynthesizerContext.isStrongMode &&
+            locationComponents.length == 3 &&
+            locationComponents[0] == 'dart:async' &&
+            locationComponents[2] == 'FutureOr') {
+          type = typeProvider.dynamicType;
+          numTypeParameters = 0;
         }
         ElementLocation location =
             new ElementLocationImpl.con3(locationComponents);

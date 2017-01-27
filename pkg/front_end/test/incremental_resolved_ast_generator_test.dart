@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:front_end/compiler_options.dart';
@@ -56,47 +57,26 @@ class IncrementalResolvedAstGeneratorTest {
   }
 
   test_incrementalUpdate_referenceToCore() async {
-    // TODO(paulberry): test parts.
     writeFiles({'/foo.dart': 'main() { print(1); }'});
     var fooUri = Uri.parse('file:///foo.dart');
     var initialProgram = await getInitialProgram(fooUri);
     expect(initialProgram.keys, unorderedEquals([fooUri]));
 
     void _checkMain(CompilationUnit unit, int expectedArgument) {
-      expect(unit.declarations, hasLength(1));
-      expect(unit.declarations[0], new isInstanceOf<FunctionDeclaration>());
-      var main = unit.declarations[0] as FunctionDeclaration;
-      expect(main.name.name, 'main');
-      expect(
-          main.functionExpression.body, new isInstanceOf<BlockFunctionBody>());
-      var blockFunctionBody = main.functionExpression.body as BlockFunctionBody;
-      expect(blockFunctionBody.block.statements, hasLength(1));
-      expect(blockFunctionBody.block.statements[0],
-          new isInstanceOf<ExpressionStatement>());
-      var expressionStatement =
-          blockFunctionBody.block.statements[0] as ExpressionStatement;
-      expect(
-          expressionStatement.expression, new isInstanceOf<MethodInvocation>());
-      var methodInvocation = expressionStatement.expression as MethodInvocation;
-      expect(methodInvocation.methodName.name, 'print');
-      var printElement =
-          resolutionMap.staticElementForIdentifier(methodInvocation.methodName);
-      expect(printElement, isNotNull);
-      expect(printElement.library.source.uri, Uri.parse('dart:core'));
-      expect(methodInvocation.argumentList.arguments, hasLength(1));
-      expect(methodInvocation.argumentList.arguments[0],
-          new isInstanceOf<IntegerLiteral>());
-      var integerLiteral =
-          methodInvocation.argumentList.arguments[0] as IntegerLiteral;
-      expect(integerLiteral.value, expectedArgument);
+      var mainStatements = _getFunctionStatements(_getFunction(unit, 'main'));
+      expect(mainStatements, hasLength(1));
+      _checkPrintLiteralInt(mainStatements[0], expectedArgument);
     }
 
     _checkMain(initialProgram[fooUri].definingCompilationUnit, 1);
     writeFiles({'/foo.dart': 'main() { print(2); }'});
-    // TODO(paulberry): verify that the file isn't actually reread until
-    // invalidate is called.
-    // var deltaProgram1 = await incrementalResolvedAstGenerator.computeDelta();
+    // Verify that the file isn't actually reread until invalidate is called.
+    var deltaProgram1 = await incrementalResolvedAstGenerator.computeDelta();
+    // TODO(paulberry): since there is no delta, computeDelta should return an
+    // empty map.
     // expect(deltaProgram1.newState, isEmpty);
+    expect(deltaProgram1.newState.keys, unorderedEquals([fooUri]));
+    _checkMain(deltaProgram1.newState[fooUri].definingCompilationUnit, 1);
     incrementalResolvedAstGenerator.invalidateAll();
     var deltaProgram2 = await incrementalResolvedAstGenerator.computeDelta();
     expect(deltaProgram2.newState.keys, unorderedEquals([fooUri]));
@@ -113,6 +93,30 @@ class IncrementalResolvedAstGeneratorTest {
     incrementalResolvedAstGenerator.invalidateAll();
   }
 
+  test_part() async {
+    writeFiles({
+      '/foo.dart': 'library foo; part "bar.dart"; main() { print(1); f(); }',
+      '/bar.dart': 'part of foo; f() { print(2); }'
+    });
+    var fooUri = Uri.parse('file:///foo.dart');
+    var barUri = Uri.parse('file:///bar.dart');
+    var initialProgram = await getInitialProgram(fooUri);
+    expect(initialProgram.keys, unorderedEquals([fooUri]));
+    expect(initialProgram[fooUri].partUnits.keys, unorderedEquals([barUri]));
+    var mainStatements = _getFunctionStatements(
+        _getFunction(initialProgram[fooUri].definingCompilationUnit, 'main'));
+    var fDeclaration =
+        _getFunction(initialProgram[fooUri].partUnits[barUri], 'f');
+    var fStatements = _getFunctionStatements(fDeclaration);
+    expect(mainStatements, hasLength(2));
+    _checkPrintLiteralInt(mainStatements[0], 1);
+    _checkFunctionCall(mainStatements[1],
+        resolutionMap.elementDeclaredByFunctionDeclaration(fDeclaration));
+    expect(fStatements, hasLength(1));
+    _checkPrintLiteralInt(fStatements[0], 2);
+    // TODO(paulberry): now test incremental updates
+  }
+
   /// Write the given file contents to the virtual filesystem.
   void writeFiles(Map<String, String> contents) {
     contents.forEach((path, text) {
@@ -120,5 +124,50 @@ class IncrementalResolvedAstGeneratorTest {
           .entityForUri(Uri.parse('file://$path'))
           .writeAsStringSync(text);
     });
+  }
+
+  void _checkFunctionCall(Statement statement, Element expectedTarget) {
+    expect(statement, new isInstanceOf<ExpressionStatement>());
+    var expressionStatement = statement as ExpressionStatement;
+    expect(
+        expressionStatement.expression, new isInstanceOf<MethodInvocation>());
+    var methodInvocation = expressionStatement.expression as MethodInvocation;
+    expect(
+        resolutionMap.staticElementForIdentifier(methodInvocation.methodName),
+        expectedTarget);
+  }
+
+  void _checkPrintLiteralInt(Statement statement, int expectedArgument) {
+    expect(statement, new isInstanceOf<ExpressionStatement>());
+    var expressionStatement = statement as ExpressionStatement;
+    expect(
+        expressionStatement.expression, new isInstanceOf<MethodInvocation>());
+    var methodInvocation = expressionStatement.expression as MethodInvocation;
+    expect(methodInvocation.methodName.name, 'print');
+    var printElement =
+        resolutionMap.staticElementForIdentifier(methodInvocation.methodName);
+    expect(printElement, isNotNull);
+    expect(printElement.library.source.uri, Uri.parse('dart:core'));
+    expect(methodInvocation.argumentList.arguments, hasLength(1));
+    expect(methodInvocation.argumentList.arguments[0],
+        new isInstanceOf<IntegerLiteral>());
+    var integerLiteral =
+        methodInvocation.argumentList.arguments[0] as IntegerLiteral;
+    expect(integerLiteral.value, expectedArgument);
+  }
+
+  FunctionDeclaration _getFunction(CompilationUnit unit, String name) {
+    for (var declaration in unit.declarations) {
+      if (declaration is FunctionDeclaration && declaration.name.name == name) {
+        return declaration;
+      }
+    }
+    throw fail('No function declaration found with name "$name"');
+  }
+
+  NodeList<Statement> _getFunctionStatements(FunctionDeclaration function) {
+    var body = function.functionExpression.body;
+    expect(body, new isInstanceOf<BlockFunctionBody>());
+    return (body as BlockFunctionBody).block.statements;
   }
 }

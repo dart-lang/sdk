@@ -798,53 +798,6 @@ class SsaBuilder extends ast.Visitor
   }
 
   /**
-   * Returns the constructor body associated with the given constructor or
-   * creates a new constructor body, if none can be found.
-   *
-   * Returns [:null:] if the constructor does not have a body.
-   */
-  ConstructorBodyElement getConstructorBody(
-      ResolvedAst constructorResolvedAst) {
-    ConstructorElement constructor =
-        constructorResolvedAst.element.implementation;
-    assert(constructor.isGenerativeConstructor);
-    if (constructorResolvedAst.kind != ResolvedAstKind.PARSED) return null;
-
-    ast.FunctionExpression node = constructorResolvedAst.node;
-    // If we know the body doesn't have any code, we don't generate it.
-    if (!node.hasBody) return null;
-    if (node.hasEmptyBody) return null;
-    ClassElement classElement = constructor.enclosingClass;
-    ConstructorBodyElement bodyElement;
-    classElement.forEachBackendMember((Element backendMember) {
-      if (backendMember.isGenerativeConstructorBody) {
-        ConstructorBodyElement body = backendMember;
-        if (body.constructor == constructor) {
-          // TODO(kasperl): Find a way of stopping the iteration
-          // through the backend members.
-          bodyElement = backendMember;
-        }
-      }
-    });
-    if (bodyElement == null) {
-      bodyElement =
-          new ConstructorBodyElementX(constructorResolvedAst, constructor);
-      classElement.addBackendMember(bodyElement);
-
-      if (constructor.isPatch) {
-        // Create origin body element for patched constructors.
-        ConstructorBodyElementX patch = bodyElement;
-        ConstructorBodyElementX origin = new ConstructorBodyElementX(
-            constructorResolvedAst, constructor.origin);
-        origin.applyPatch(patch);
-        classElement.origin.addBackendMember(bodyElement.origin);
-      }
-    }
-    assert(bodyElement.isGenerativeConstructorBody);
-    return bodyElement;
-  }
-
-  /**
    * This method sets up the local state of the builder for inlining [function].
    * The arguments of the function are inserted into the [localsHandler].
    *
@@ -1351,7 +1304,8 @@ class SsaBuilder extends ast.Visitor
     HInstruction interceptor = null;
     for (int index = constructorResolvedAsts.length - 1; index >= 0; index--) {
       ResolvedAst constructorResolvedAst = constructorResolvedAsts[index];
-      ConstructorBodyElement body = getConstructorBody(constructorResolvedAst);
+      ConstructorBodyElement body =
+          ConstructorBodyElementX.createFromResolvedAst(constructorResolvedAst);
       if (body == null) continue;
 
       List bodyCallInputs = <HInstruction>[];
@@ -1563,8 +1517,8 @@ class SsaBuilder extends ast.Visitor
   HInstruction popBoolified() {
     HInstruction value = pop();
     if (typeBuilder.checkOrTrustTypes) {
-      return typeBuilder.potentiallyCheckOrTrustType(
-          value, compiler.commonElements.boolType,
+      ResolutionInterfaceType boolType = compiler.commonElements.boolType;
+      return typeBuilder.potentiallyCheckOrTrustType(value, boolType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value, commonMasks.boolType);
@@ -2959,7 +2913,7 @@ class SsaBuilder extends ast.Visitor
       reporter.internalError(
           closure, '"$name" requires a static or top-level method.');
     }
-    FunctionElement function = element;
+    MethodElement function = element;
     // TODO(johnniwinther): Try to eliminate the need to distinguish declaration
     // and implementation signatures. Currently it is need because the
     // signatures have different elements for parameters.
@@ -3068,8 +3022,8 @@ class SsaBuilder extends ast.Visitor
     ClassElement cls = currentNonClosureClass;
     MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
     if (!Selectors.noSuchMethod_.signatureApplies(element)) {
-      element =
-          commonElements.objectClass.lookupMember(Identifiers.noSuchMethod_);
+      ClassElement objectClass = commonElements.objectClass;
+      element = objectClass.lookupMember(Identifiers.noSuchMethod_);
     }
     if (backend.hasInvokeOnSupport && !element.enclosingClass.isObject) {
       // Register the call as dynamic if [noSuchMethod] on the super
@@ -3623,16 +3577,9 @@ class SsaBuilder extends ast.Visitor
     List<HInstruction> inputs = makeStaticArgumentList(
         callStructure, node.arguments, function.implementation);
 
-    if (function == compiler.commonElements.identicalFunction) {
-      pushWithPosition(
-          new HIdentity(inputs[0], inputs[1], null, commonMasks.boolType),
-          node);
-      return;
-    } else {
-      pushInvokeStatic(node, function, inputs,
-          sourceInformation:
-              sourceInformationBuilder.buildCall(node, node.selector));
-    }
+    pushInvokeStatic(node, function, inputs,
+        sourceInformation:
+            sourceInformationBuilder.buildCall(node, node.selector));
   }
 
   /// Generate an invocation to a static or top level function with the wrong
@@ -4061,7 +4008,7 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  HForeignCode invokeJsInteropFunction(FunctionElement element,
+  HForeignCode invokeJsInteropFunction(MethodElement element,
       List<HInstruction> arguments, SourceInformation sourceInformation) {
     assert(backend.isJsInterop(element));
     nativeEmitter.nativeMethods.add(element);
@@ -4104,7 +4051,7 @@ class SsaBuilder extends ast.Visitor
         ..sourceInformation = sourceInformation;
     }
     var target = new HForeignCode(
-        js.js.parseForeignJS("${backend.namer.fixedBackendPath(element)}."
+        js.js.parseForeignJS("${backend.namer.fixedBackendMethodPath(element)}."
             "${backend.nativeData.getFixedBackendName(element)}"),
         commonMasks.dynamicType,
         <HInstruction>[]);
@@ -5285,15 +5232,19 @@ class SsaBuilder extends ast.Visitor
       instruction = setRtiIfNeeded(instruction, node);
     }
 
-    TypeMask type = _inferredTypeOfNewList(node);
+    TypeMask type = _inferredTypeOfListLiteral(node);
     if (!type.containsAll(closedWorld)) {
       instruction.instructionType = type;
     }
     stack.add(instruction);
   }
 
-  _inferredTypeOfNewList(ast.Node node) =>
+  _inferredTypeOfNewList(ast.Send node) =>
       _resultOf(sourceElement).typeOfNewList(node) ?? commonMasks.dynamicType;
+
+  _inferredTypeOfListLiteral(ast.LiteralList node) =>
+      _resultOf(sourceElement).typeOfListLiteral(node) ??
+      commonMasks.dynamicType;
 
   visitConditional(ast.Conditional node) {
     SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);
@@ -5369,7 +5320,7 @@ class SsaBuilder extends ast.Visitor
     if (isLoopJump && node is ast.SwitchStatement) {
       // Create a special jump handler for loops created for switch statements
       // with continue statements.
-      return new SwitchCaseJumpHandler(this, element, node);
+      return new AstSwitchCaseJumpHandler(this, element, node);
     }
     return new JumpHandler(this, element);
   }

@@ -18,6 +18,7 @@ import '../constants/values.dart'
         TypeConstantValue;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart' show MemberEntity;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
@@ -91,6 +92,7 @@ class SsaKernelBuilderTask extends CompilerTask {
 
 class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   ir.Node target;
+  bool _targetIsConstructorBody = false;
   final AstElement targetElement;
   final ResolvedAst resolvedAst;
   final ClosedWorld closedWorld;
@@ -156,11 +158,17 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       originTarget = originTarget.origin;
     }
     if (originTarget is FunctionElement) {
+      if (originTarget is ConstructorBodyElement) {
+        ConstructorBodyElement body = originTarget;
+        _targetIsConstructorBody = true;
+        originTarget = body.constructor;
+      }
       target = kernel.functions[originTarget];
       // Closures require a lookup one level deeper in the closure class mapper.
       if (target == null) {
+        FunctionElement originTargetFunction = originTarget;
         ClosureClassMap classMap = compiler.closureToClassMapper
-            .getClosureToClassMapping(originTarget.resolvedAst);
+            .getClosureToClassMapping(originTargetFunction.resolvedAst);
         if (classMap.closureElement != null) {
           target = kernel.localFunctions[classMap.closureElement];
         }
@@ -179,7 +187,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     } else if (target is ir.Field) {
       buildField(target);
     } else if (target is ir.Constructor) {
-      buildConstructor(target);
+      if (_targetIsConstructorBody) {
+        buildConstructorBody(target);
+      } else {
+        buildConstructor(target);
+      }
     } else if (target is ir.FunctionExpression) {
       _targetFunction = (target as ir.FunctionExpression).function;
       buildFunctionNode(_targetFunction);
@@ -187,7 +199,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       _targetFunction = (target as ir.FunctionDeclaration).function;
       buildFunctionNode(_targetFunction);
     } else {
-      throw 'No case implemented to handle $target';
+      throw 'No case implemented to handle target: $target';
     }
     assert(graph.isValid());
     return graph;
@@ -216,8 +228,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   HInstruction popBoolified() {
     HInstruction value = pop();
     if (typeBuilder.checkOrTrustTypes) {
-      return typeBuilder.potentiallyCheckOrTrustType(
-          value, compiler.commonElements.boolType,
+      ResolutionInterfaceType type = compiler.commonElements.boolType;
+      return typeBuilder.potentiallyCheckOrTrustType(value, type,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value, commonMasks.boolType);
@@ -261,8 +273,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     //            initializer list? If so then this is unnecessary...
     Map<ir.Field, HInstruction> fieldValues =
         _collectFieldValues(constructor.enclosingClass);
+    List<ir.Constructor> constructorChain = <ir.Constructor>[];
 
-    _buildInitializers(constructor, fieldValues);
+    _buildInitializers(constructor, constructorChain, fieldValues);
 
     final constructorArguments = <HInstruction>[];
     astAdapter.getClass(constructor.enclosingClass).forEachInstanceField(
@@ -273,7 +286,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     // TODO(het): If the class needs runtime type information, add it as a
     // constructor argument.
-    HInstruction create = new HCreate(
+    HInstruction newObject = new HCreate(
         astAdapter.getClass(constructor.enclosingClass),
         constructorArguments,
         new TypeMask.nonNullExact(
@@ -283,12 +296,64 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         ],
         hasRtiInput: false);
 
-    add(create);
+    add(newObject);
 
     // Generate calls to the constructor bodies.
 
-    closeAndGotoExit(new HReturn(create, null));
+    for (ir.Constructor body in constructorChain.reversed) {
+      if (_isEmptyStatement(body.function.body)) continue;
+
+      List<HInstruction> bodyCallInputs = <HInstruction>[];
+      bodyCallInputs.add(newObject);
+
+      // Pass uncaptured arguments first, captured arguments in a box, then type
+      // arguments.
+
+      ConstructorElement constructorElement = astAdapter.getElement(body);
+      ClosureClassMap parameterClosureData = compiler.closureToClassMapper
+          .getClosureToClassMapping(constructorElement.resolvedAst);
+
+      var functionSignature = astAdapter.getFunctionSignature(body.function);
+      // Provide the parameters to the generative constructor body.
+      functionSignature.orderedForEachParameter((ParameterElement parameter) {
+        // If [parameter] is boxed, it will be a field in the box passed as the
+        // last parameter. So no need to directly pass it.
+        if (!localsHandler.isBoxed(parameter)) {
+          bodyCallInputs.add(localsHandler.readLocal(parameter));
+        }
+      });
+
+      // If there are locals that escape (i.e. mutated in closures), we pass the
+      // box to the constructor.
+      ClosureScope scopeData = parameterClosureData
+          .capturingScopes[constructorElement.resolvedAst.node];
+      if (scopeData != null) {
+        bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
+      }
+
+      // TODO(sra): Pass type arguments.
+
+      _invokeConstructorBody(body, bodyCallInputs);
+    }
+
+    closeAndGotoExit(new HReturn(newObject, null));
     closeFunction();
+  }
+
+  static bool _isEmptyStatement(ir.Statement body) {
+    if (body is ir.EmptyStatement) return true;
+    if (body is ir.Block) return body.statements.every(_isEmptyStatement);
+    return false;
+  }
+
+  void _invokeConstructorBody(
+      ir.Constructor constructor, List<HInstruction> inputs) {
+    // TODO(sra): Inline the constructor body.
+    MemberEntity constructorBody =
+        astAdapter.getConstructorBodyEntity(constructor);
+    HInvokeConstructorBody invoke = new HInvokeConstructorBody(
+        constructorBody, inputs, commonMasks.nonNullType);
+    add(invoke);
   }
 
   /// Maps the instance fields of a class to their SSA values.
@@ -315,7 +380,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   /// Collects field initializers all the way up the inheritance chain.
   void _buildInitializers(
-      ir.Constructor constructor, Map<ir.Field, HInstruction> fieldValues) {
+      ir.Constructor constructor,
+      List<ir.Constructor> constructorChain,
+      Map<ir.Field, HInstruction> fieldValues) {
+    constructorChain.add(constructor);
     var foundSuperOrRedirectCall = false;
     for (var initializer in constructor.initializers) {
       if (initializer is ir.SuperInitializer ||
@@ -324,29 +392,17 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         var superOrRedirectConstructor = initializer.target;
         var arguments = _normalizeAndBuildArguments(
             superOrRedirectConstructor.function, initializer.arguments);
-        _buildInlinedInitializers(
-            superOrRedirectConstructor, arguments, fieldValues);
+        _buildInlinedInitializers(superOrRedirectConstructor, arguments,
+            constructorChain, fieldValues);
       } else if (initializer is ir.FieldInitializer) {
         initializer.value.accept(this);
         fieldValues[initializer.field] = pop();
       }
     }
 
-    // Kernel always set the super initializer at the end, so if there was no
-    // super-call initializer, then the default constructor is called in the
-    // superclass.
     if (!foundSuperOrRedirectCall) {
-      if (constructor.enclosingClass != astAdapter.objectClass) {
-        var superclass = constructor.enclosingClass.superclass;
-        var defaultConstructor = superclass.constructors
-            .firstWhere((c) => c.name.name == '', orElse: () => null);
-        if (defaultConstructor == null) {
-          compiler.reporter.internalError(
-              NO_LOCATION_SPANNABLE, 'Could not find default constructor.');
-        }
-        _buildInlinedInitializers(
-            defaultConstructor, <HInstruction>[], fieldValues);
-      }
+      assert(constructor.enclosingClass == astAdapter.objectClass,
+          'All constructors have super-constructor initializers, except Object()');
     }
   }
 
@@ -396,8 +452,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   /// Inlines the given super [constructor]'s initializers by collecting its
   /// field values and building its constructor initializers. We visit super
   /// constructors all the way up to the [Object] constructor.
-  void _buildInlinedInitializers(ir.Constructor constructor,
-      List<HInstruction> arguments, Map<ir.Field, HInstruction> fieldValues) {
+  void _buildInlinedInitializers(
+      ir.Constructor constructor,
+      List<HInstruction> arguments,
+      List<ir.Constructor> constructorChain,
+      Map<ir.Field, HInstruction> fieldValues) {
     // TODO(het): Handle RTI if class needs it
     fieldValues.addAll(_collectFieldValues(constructor.enclosingClass));
 
@@ -414,7 +473,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     // TODO(het): set the locals handler state as if we were inlining the
     // constructor.
-    _buildInitializers(constructor, fieldValues);
+    _buildInitializers(constructor, constructorChain, fieldValues);
   }
 
   HTypeConversion buildFunctionTypeConversion(
@@ -422,6 +481,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction reifiedType = buildFunctionType(type);
     return new HTypeConversion.viaMethodOnType(
         type, kind, original.instructionType, reifiedType, original);
+  }
+
+  /// Builds generative constructor body.
+  void buildConstructorBody(ir.Constructor constructor) {
+    openFunction();
+    constructor.function.body.accept(this);
+    closeFunction();
   }
 
   /// Builds a SSA graph for FunctionNodes, found in FunctionExpressions and
@@ -1143,7 +1209,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       return new NullJumpHandler(compiler.reporter);
     }
     if (isLoopJump && node is ir.SwitchStatement) {
-      throw 'Kernel Switch Statement handler not yet implemented.';
+      return new KernelSwitchCaseJumpHandler(this, target, node, astAdapter);
     }
 
     return new JumpHandler(this, target);
@@ -1236,9 +1302,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitSwitchStatement(ir.SwitchStatement switchStatement) {
-    Map<ir.Expression, ConstantValue> constants =
-        _buildSwitchCaseConstants(switchStatement);
-
     // The switch case indices must match those computed in
     // [KernelSwitchCaseJumpHandler].
     bool hasContinue = false;
@@ -1260,9 +1323,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (!hasContinue) {
       // If the switch statement has no switch cases targeted by continue
       // statements we encode the switch statement directly.
-      _buildSimpleSwitchStatement(switchStatement, jumpHandler, constants);
+      _buildSimpleSwitchStatement(switchStatement, jumpHandler);
     } else {
-      throw 'Complex switch statement with continue label not implemented yet.';
+      _buildComplexSwitchStatement(
+          switchStatement, jumpHandler, caseIndex, hasDefault);
     }
   }
 
@@ -1270,43 +1334,192 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   static bool _isDefaultCase(ir.SwitchCase switchCase) =>
       switchCase == null || switchCase.isDefault;
 
+  /// Helper for building switch statements.
+  HInstruction _buildExpression(ir.SwitchStatement switchStatement) {
+    switchStatement.expression.accept(this);
+    return pop();
+  }
+
+  /// Helper method for creating the list of constants that make up the
+  /// switch case branches.
+  List<ConstantValue> _getSwitchConstants(
+      ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase) {
+    Map<ir.Expression, ConstantValue> constantsLookup =
+        _buildSwitchCaseConstants(parentSwitch);
+    List<ConstantValue> constantList = <ConstantValue>[];
+    if (switchCase != null) {
+      for (var expression in switchCase.expressions) {
+        constantList.add(constantsLookup[expression]);
+      }
+    }
+    return constantList;
+  }
+
   /// Builds a simple switch statement which does not handle uses of continue
   /// statements to labeled switch cases.
-  void _buildSimpleSwitchStatement(ir.SwitchStatement switchStatement,
-      JumpHandler jumpHandler, Map<ir.Expression, ConstantValue> constants) {
+  void _buildSimpleSwitchStatement(
+      ir.SwitchStatement switchStatement, JumpHandler jumpHandler) {
     void buildSwitchCase(ir.SwitchCase switchCase) {
       switchCase.body.accept(this);
     }
 
-    handleSwitch(switchStatement, jumpHandler, switchStatement.cases,
-        _isDefaultCase, buildSwitchCase, constants);
+    _handleSwitch(
+        switchStatement,
+        jumpHandler,
+        _buildExpression,
+        switchStatement.cases,
+        _getSwitchConstants,
+        _isDefaultCase,
+        buildSwitchCase);
     jumpHandler.close();
+  }
+
+  /// Builds a switch statement that can handle arbitrary uses of continue
+  /// statements to labeled switch cases.
+  void _buildComplexSwitchStatement(
+      ir.SwitchStatement switchStatement,
+      JumpHandler jumpHandler,
+      Map<ir.SwitchCase, int> caseIndex,
+      bool hasDefault) {
+    // If the switch statement has switch cases targeted by continue
+    // statements we create the following encoding:
+    //
+    //   switch (e) {
+    //     l_1: case e0: s_1; break;
+    //     l_2: case e1: s_2; continue l_i;
+    //     ...
+    //     l_n: default: s_n; continue l_j;
+    //   }
+    //
+    // is encoded as
+    //
+    //   var target;
+    //   switch (e) {
+    //     case e1: target = 1; break;
+    //     case e2: target = 2; break;
+    //     ...
+    //     default: target = n; break;
+    //   }
+    //   l: while (true) {
+    //    switch (target) {
+    //       case 1: s_1; break l;
+    //       case 2: s_2; target = i; continue l;
+    //       ...
+    //       case n: s_n; target = j; continue l;
+    //     }
+    //   }
+    //
+    // This is because JS does not have this same "continue label" semantics so
+    // we encode it in the form of a state machine.
+
+    JumpTarget switchTarget = astAdapter.getJumpTarget(switchStatement.parent);
+    localsHandler.updateLocal(switchTarget, graph.addConstantNull(closedWorld));
+
+    var switchCases = switchStatement.cases;
+    if (!hasDefault) {
+      // Use null as the marker for a synthetic default clause.
+      // The synthetic default is added because otherwise there would be no
+      // good place to give a default value to the local.
+      switchCases = new List<ir.SwitchCase>.from(switchCases);
+      switchCases.add(null);
+    }
+
+    void buildSwitchCase(ir.SwitchCase switchCase) {
+      if (switchCase != null) {
+        // Generate 'target = i; break;' for switch case i.
+        int index = caseIndex[switchCase];
+        HInstruction value = graph.addConstantInt(index, closedWorld);
+        localsHandler.updateLocal(switchTarget, value);
+      } else {
+        // Generate synthetic default case 'target = null; break;'.
+        HInstruction nullValue = graph.addConstantNull(closedWorld);
+        localsHandler.updateLocal(switchTarget, nullValue);
+      }
+      jumpTargets[switchTarget].generateBreak();
+    }
+
+    _handleSwitch(switchStatement, jumpHandler, _buildExpression, switchCases,
+        _getSwitchConstants, _isDefaultCase, buildSwitchCase);
+    jumpHandler.close();
+
+    HInstruction buildCondition() => graph.addConstantBool(true, closedWorld);
+
+    void buildSwitch() {
+      HInstruction buildExpression(ir.SwitchStatement notUsed) {
+        return localsHandler.readLocal(switchTarget);
+      }
+
+      List<ConstantValue> getConstants(
+          ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase) {
+        return <ConstantValue>[
+          backend.constantSystem.createInt(caseIndex[switchCase])
+        ];
+      }
+
+      void buildSwitchCase(ir.SwitchCase switchCase) {
+        switchCase.body.accept(this);
+        if (!isAborted()) {
+          // Ensure that we break the loop if the case falls through. (This
+          // is only possible for the last case.)
+          jumpTargets[switchTarget].generateBreak();
+        }
+      }
+
+      // Pass a [NullJumpHandler] because the target for the contained break
+      // is not the generated switch statement but instead the loop generated
+      // in the call to [handleLoop] below.
+      _handleSwitch(
+          switchStatement, // nor is buildExpression.
+          new NullJumpHandler(compiler.reporter),
+          buildExpression,
+          switchStatement.cases,
+          getConstants,
+          (_) => false, // No case is default.
+          buildSwitchCase);
+    }
+
+    void buildLoop() {
+      loopHandler.handleLoop(
+          switchStatement, () {}, buildCondition, () {}, buildSwitch);
+    }
+
+    if (hasDefault) {
+      buildLoop();
+    } else {
+      // If the switch statement has no default case, surround the loop with
+      // a test of the target. So:
+      // `if (target) while (true) ...` If there's no default case, target is
+      // null, so we don't drop into the while loop.
+      void buildCondition() {
+        js.Template code = js.js.parseForeignJS('#');
+        push(new HForeignCode(
+            code, commonMasks.boolType, [localsHandler.readLocal(switchTarget)],
+            nativeBehavior: native.NativeBehavior.PURE));
+      }
+
+      handleIf(
+          node: switchStatement,
+          visitCondition: buildCondition,
+          visitThen: buildLoop,
+          visitElse: () => {});
+    }
   }
 
   /// Creates a switch statement.
   ///
   /// [jumpHandler] is the [JumpHandler] for the created switch statement.
   /// [buildSwitchCase] creates the statements for the switch case.
-  void handleSwitch(
+  void _handleSwitch(
       ir.SwitchStatement switchStatement,
       JumpHandler jumpHandler,
+      HInstruction buildExpression(ir.SwitchStatement statement),
       List<ir.SwitchCase> switchCases,
+      List<ConstantValue> getConstants(
+          ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase),
       bool isDefaultCase(ir.SwitchCase switchCase),
-      void buildSwitchCase(ir.SwitchCase switchCase),
-      Map<ir.Expression, ConstantValue> constantsLookup) {
+      void buildSwitchCase(ir.SwitchCase switchCase)) {
     HBasicBlock expressionStart = openNewBlock();
-    switchStatement.expression.accept(this);
-    HInstruction expression = pop();
-
-    List<ConstantValue> getConstants(ir.SwitchCase switchCase) {
-      List<ConstantValue> constantList = <ConstantValue>[];
-      if (switchCase != null) {
-        for (var expression in switchCase.expressions) {
-          constantList.add(constantsLookup[expression]);
-        }
-      }
-      return constantList;
-    }
+    HInstruction expression = buildExpression(switchStatement);
 
     if (switchCases.isEmpty) {
       return;
@@ -1320,7 +1533,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     bool hasDefault = false;
     for (ir.SwitchCase switchCase in switchCases) {
       HBasicBlock block = graph.addNewBlock();
-      for (ConstantValue constant in getConstants(switchCase)) {
+      for (ConstantValue constant
+          in getConstants(switchStatement, switchCase)) {
         HConstant hConstant = graph.addConstant(constant, closedWorld);
         switchInstruction.inputs.add(hConstant);
         hConstant.usedBy.add(switchInstruction);
@@ -1586,22 +1800,19 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       stack.add(graph.addConstant(constant, closedWorld));
       return;
     }
-    if (type is ir.TypeParameterType) {
-      // TODO(sra): Convert the type logic here to use ir.DartType.
-      ResolutionDartType dartType = astAdapter.getDartType(type);
-      dartType = localsHandler.substInContext(dartType);
-      HInstruction value = typeBuilder.analyzeTypeArgument(
-          dartType, sourceElement,
-          sourceInformation: null);
-      _pushStaticInvocation(astAdapter.runtimeTypeToString,
-          <HInstruction>[value], commonMasks.stringType);
-      _pushStaticInvocation(astAdapter.createRuntimeType, <HInstruction>[pop()],
-          astAdapter.createRuntimeTypeReturnType);
-      return;
-    }
-    // TODO(27394): Function types observed. Where are they from?
-    defaultExpression(typeLiteral);
-    return;
+    // For other types (e.g. TypeParameterType, function types from expanded
+    // typedefs), look-up or construct a reified type representation and convert
+    // to a RuntimeType.
+
+    // TODO(sra): Convert the type logic here to use ir.DartType.
+    ResolutionDartType dartType = astAdapter.getDartType(type);
+    dartType = localsHandler.substInContext(dartType);
+    HInstruction value = typeBuilder
+        .analyzeTypeArgument(dartType, sourceElement, sourceInformation: null);
+    _pushStaticInvocation(astAdapter.runtimeTypeToString, <HInstruction>[value],
+        commonMasks.stringType);
+    _pushStaticInvocation(astAdapter.createRuntimeType, <HInstruction>[pop()],
+        astAdapter.createRuntimeTypeReturnType);
   }
 
   @override
@@ -1636,7 +1847,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     staticSet.value.accept(this);
     HInstruction value = pop();
 
-    var staticTarget = staticSet.target;
+    ir.Member staticTarget = staticSet.target;
     if (staticTarget is ir.Procedure) {
       // Invoke the setter
       _pushStaticInvocation(staticTarget, <HInstruction>[value],
@@ -2029,10 +2240,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
                   function.positionalParameters.length &&
               function.namedParameters.isEmpty) {
             registry?.registerStaticUse(
-                new StaticUse.foreignUse(astAdapter.getMember(staticTarget)));
+                new StaticUse.foreignUse(astAdapter.getMethod(staticTarget)));
             push(new HForeignCode(
                 js.js.expressionTemplateYielding(backend.emitter
-                    .staticFunctionAccess(astAdapter.getMember(staticTarget))),
+                    .staticFunctionAccess(astAdapter.getMethod(staticTarget))),
                 commonMasks.dynamicType,
                 <HInstruction>[],
                 nativeBehavior: native.NativeBehavior.PURE));
@@ -2280,7 +2491,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   void _pushStaticInvocation(
-      ir.Node target, List<HInstruction> arguments, TypeMask typeMask) {
+      ir.Member target, List<HInstruction> arguments, TypeMask typeMask) {
     HInvokeStatic instruction = new HInvokeStatic(
         astAdapter.getMember(target), arguments, typeMask,
         targetCanThrow: astAdapter.getCanThrow(target, closedWorld));

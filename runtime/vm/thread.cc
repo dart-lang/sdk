@@ -746,6 +746,12 @@ intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
 }
 
 
+bool Thread::IsValidHandle(Dart_Handle object) const {
+  return IsValidLocalHandle(object) || IsValidZoneHandle(object) ||
+         IsValidScopedHandle(object);
+}
+
+
 bool Thread::IsValidLocalHandle(Dart_Handle object) const {
   ApiLocalScope* scope = api_top_scope_;
   while (scope != NULL) {
@@ -769,6 +775,18 @@ intptr_t Thread::CountLocalHandles() const {
 }
 
 
+bool Thread::IsValidZoneHandle(Dart_Handle object) const {
+  Zone* zone = zone_;
+  while (zone != NULL) {
+    if (zone->handles()->IsValidZoneHandle(reinterpret_cast<uword>(object))) {
+      return true;
+    }
+    zone = zone->previous();
+  }
+  return false;
+}
+
+
 intptr_t Thread::CountZoneHandles() const {
   intptr_t count = 0;
   Zone* zone = zone_;
@@ -778,6 +796,18 @@ intptr_t Thread::CountZoneHandles() const {
   }
   ASSERT(count >= 0);
   return count;
+}
+
+
+bool Thread::IsValidScopedHandle(Dart_Handle object) const {
+  Zone* zone = zone_;
+  while (zone != NULL) {
+    if (zone->handles()->IsValidScopedHandle(reinterpret_cast<uword>(object))) {
+      return true;
+    }
+    zone = zone->previous();
+  }
+  return false;
 }
 
 

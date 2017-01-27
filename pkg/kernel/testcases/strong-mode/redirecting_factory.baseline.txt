@@ -14,32 +14,21 @@ class Bar<Sb extends core::Object, Tb extends core::Object> extends core::Object
     core::print("Bar<${self::Bar::Sb},${self::Bar::Tb}>");
   }
 }
-class Builder<X extends core::Object> extends core::Object {
-  constructor •() → void
-    : super core::Object::•()
-    ;
-  method method() → dynamic {
-    return new self::Bar::•<core::String, self::Builder::X>(4);
-  }
+abstract class SimpleCase<A extends core::Object, B extends core::Object> extends core::Object {
 }
-class SimpleCase<A extends core::Object, B extends core::Object> extends core::Object {
-}
-class SimpleCaseImpl<Ai extends core::Object, Bi extends core::Object> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai, self::SimpleCaseImpl::Bi> {
+abstract class SimpleCaseImpl<Ai extends core::Object, Bi extends core::Object> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai, self::SimpleCaseImpl::Bi> {
 }
 class SimpleCaseImpl2<Ai2 extends core::Object, Bi2 extends core::Object> extends core::Object implements self::SimpleCaseImpl<self::SimpleCaseImpl2::Ai2, self::SimpleCaseImpl2::Bi2> {
   constructor •() → void
     : super core::Object::•()
     ;
 }
-class Base<M extends core::Object> extends core::Object {
+abstract class Base<M extends core::Object> extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
 }
-class Mixin<M extends core::Object> extends core::Object {
-  constructor •() → void
-    : super core::Object::•()
-    ;
+abstract class Mixin<M extends core::Object> extends core::Object {
 }
 class Mix<M extends core::Object> extends self::Base<self::Mix::M> implements self::Mixin<self::Mix::M> {
   constructor •() → void

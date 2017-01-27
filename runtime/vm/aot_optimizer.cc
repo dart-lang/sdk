@@ -1572,7 +1572,14 @@ void AotOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
           new (Z) StaticCallInstr(call->token_pos(), target,
                                   Object::null_array(),  // argument_names
                                   args, call->deopt_id());
+      Environment* copy = call->env()->DeepCopy(
+          Z, call->env()->Length() - call->ArgumentCount());
+      for (intptr_t i = 0; i < args->length(); ++i) {
+        copy->PushValue(new (Z) Value((*args)[i]->value()->definition()));
+      }
+      call->RemoveEnvironment();
       ReplaceCall(call, new_call);
+      copy->DeepCopyTo(Z, new_call);
       return;
     }
   }

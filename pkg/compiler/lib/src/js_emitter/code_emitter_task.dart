@@ -2,7 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.code_emitter_task;
+
+import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
+
+import '../common.dart';
+import '../common/tasks.dart' show CompilerTask;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../deferred_load.dart' show OutputUnit;
+import '../elements/elements.dart' show Entity;
+import '../elements/entities.dart';
+import '../js/js.dart' as jsAst;
+import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../world.dart' show ClosedWorld;
+import 'full_emitter/emitter.dart' as full_js_emitter;
+import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
+import 'program_builder/program_builder.dart';
+import 'startup_emitter/emitter.dart' as startup_js_emitter;
+
+import 'metadata_collector.dart' show MetadataCollector;
+import 'native_emitter.dart' show NativeEmitter;
+import 'type_test_registry.dart' show TypeTestRegistry;
 
 const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
 
@@ -21,8 +42,8 @@ class CodeEmitterTask extends CompilerTask {
   final Compiler compiler;
 
   /// Records if a type variable is read dynamically for type tests.
-  final Set<TypeVariableElement> readTypeVariables =
-      new Set<TypeVariableElement>();
+  final Set<TypeVariableEntity> readTypeVariables =
+      new Set<TypeVariableEntity>();
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -31,7 +52,7 @@ class CodeEmitterTask extends CompilerTask {
   // tests.
   // The field is set after the program has been emitted.
   /// Contains a list of all classes that are emitted.
-  Set<ClassElement> neededClasses;
+  Set<ClassEntity> neededClasses;
 
   CodeEmitterTask(
       Compiler compiler, bool generateSourceMap, bool useStartupEmitter)
@@ -65,13 +86,13 @@ class CodeEmitterTask extends CompilerTask {
   bool get supportsReflection => _emitterFactory.supportsReflection;
 
   /// Returns the closure expression of a static function.
-  jsAst.Expression isolateStaticClosureAccess(MethodElement element) {
+  jsAst.Expression isolateStaticClosureAccess(FunctionEntity element) {
     return emitter.isolateStaticClosureAccess(element);
   }
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.
-  jsAst.Expression isolateLazyInitializerAccess(FieldElement element) {
+  jsAst.Expression isolateLazyInitializerAccess(FieldEntity element) {
     return emitter.isolateLazyInitializerAccess(element);
   }
 
@@ -85,37 +106,37 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.constantReference(constant);
   }
 
-  jsAst.Expression staticFieldAccess(FieldElement e) {
+  jsAst.Expression staticFieldAccess(FieldEntity e) {
     return emitter.staticFieldAccess(e);
   }
 
   /// Returns the JS function representing the given function.
   ///
   /// The function must be invoked and can not be used as closure.
-  jsAst.Expression staticFunctionAccess(MethodElement e) {
+  jsAst.Expression staticFunctionAccess(FunctionEntity e) {
     return emitter.staticFunctionAccess(e);
   }
 
   /// Returns the JS constructor of the given element.
   ///
   /// The returned expression must only be used in a JS `new` expression.
-  jsAst.Expression constructorAccess(ClassElement e) {
+  jsAst.Expression constructorAccess(ClassEntity e) {
     return emitter.constructorAccess(e);
   }
 
   /// Returns the JS prototype of the given class [e].
-  jsAst.Expression prototypeAccess(ClassElement e,
+  jsAst.Expression prototypeAccess(ClassEntity e,
       {bool hasBeenInstantiated: false}) {
     return emitter.prototypeAccess(e, hasBeenInstantiated);
   }
 
   /// Returns the JS prototype of the given interceptor class [e].
-  jsAst.Expression interceptorPrototypeAccess(ClassElement e) {
+  jsAst.Expression interceptorPrototypeAccess(ClassEntity e) {
     return jsAst.js('#.prototype', interceptorClassAccess(e));
   }
 
   /// Returns the JS constructor of the given interceptor class [e].
-  jsAst.Expression interceptorClassAccess(ClassElement e) {
+  jsAst.Expression interceptorClassAccess(ClassEntity e) {
     return emitter.interceptorClassAccess(e);
   }
 
@@ -131,11 +152,11 @@ class CodeEmitterTask extends CompilerTask {
     return emitter.templateForBuiltin(builtin);
   }
 
-  void registerReadTypeVariable(TypeVariableElement element) {
+  void registerReadTypeVariable(TypeVariableEntity element) {
     readTypeVariables.add(element);
   }
 
-  Set<ClassElement> _finalizeRti() {
+  Set<ClassEntity> _finalizeRti() {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
     typeTestRegistry.computeRequiredTypeChecks();
@@ -156,7 +177,7 @@ class CodeEmitterTask extends CompilerTask {
     return measure(() {
       emitter.invalidateCaches();
 
-      Set<ClassElement> rtiNeededClasses = _finalizeRti();
+      Set<ClassEntity> rtiNeededClasses = _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
           compiler, namer, this, emitter, closedWorld, rtiNeededClasses);
       int size = emitter.emitProgram(programBuilder);
@@ -187,10 +208,10 @@ abstract class Emitter {
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.
-  jsAst.Expression isolateLazyInitializerAccess(FieldElement element);
+  jsAst.Expression isolateLazyInitializerAccess(FieldEntity element);
 
   /// Returns the closure expression of a static function.
-  jsAst.Expression isolateStaticClosureAccess(FunctionElement element);
+  jsAst.Expression isolateStaticClosureAccess(FunctionEntity element);
 
   /// Returns the JS code for accessing the embedded [global].
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
@@ -198,20 +219,20 @@ abstract class Emitter {
   /// Returns the JS function representing the given function.
   ///
   /// The function must be invoked and can not be used as closure.
-  jsAst.Expression staticFunctionAccess(FunctionElement element);
+  jsAst.Expression staticFunctionAccess(FunctionEntity element);
 
-  jsAst.Expression staticFieldAccess(FieldElement element);
+  jsAst.Expression staticFieldAccess(FieldEntity element);
 
   /// Returns the JS constructor of the given element.
   ///
   /// The returned expression must only be used in a JS `new` expression.
-  jsAst.Expression constructorAccess(ClassElement e);
+  jsAst.Expression constructorAccess(ClassEntity e);
 
   /// Returns the JS prototype of the given class [e].
-  jsAst.Expression prototypeAccess(ClassElement e, bool hasBeenInstantiated);
+  jsAst.Expression prototypeAccess(ClassEntity e, bool hasBeenInstantiated);
 
   /// Returns the JS constructor of the given interceptor class [e].
-  jsAst.Expression interceptorClassAccess(ClassElement e);
+  jsAst.Expression interceptorClassAccess(ClassEntity e);
 
   /// Returns the JS expression representing the type [e].
   jsAst.Expression typeAccess(Entity e);
@@ -227,6 +248,9 @@ abstract class Emitter {
 
   /// Returns the JS template for the given [builtin].
   jsAst.Template templateForBuiltin(JsBuiltin builtin);
+
+  /// Returns the size of the code generated for a given output [unit].
+  int generatedSize(OutputUnit unit);
 
   void invalidateCaches();
 }

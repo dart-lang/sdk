@@ -614,6 +614,7 @@ typedef X GenericTypedef<X, Y>(Y y);
 };
 
 main(List<String> args) {
+  bool fullTest = args.contains('--full');
   asyncTest(() async {
     enableDebugMode();
     Uri entryPoint = Uri.parse('memory:main.dart');
@@ -621,17 +622,20 @@ main(List<String> args) {
         entryPoint: entryPoint,
         memorySourceFiles: SOURCE,
         options: [
-          Flags.analyzeAll,
+          fullTest ? Flags.analyzeAll : Flags.analyzeOnly,
           Flags.useKernel,
           Flags.enableAssertMessage
         ]);
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    checkLibrary(compiler, compiler.mainApp, fullTest: args.contains('--full'));
-    compiler.libraryLoader.libraries.forEach((LibraryElement library) {
-      if (library == compiler.mainApp) return;
-      checkLibrary(compiler, library, fullTest: args.contains('--full'));
-    });
+    checkLibrary(compiler, compiler.mainApp, fullTest: fullTest);
+    if (fullTest) {
+      // TODO(johnniwinther): Handle all libraries for `!fullTest`.
+      compiler.libraryLoader.libraries.forEach((LibraryElement library) {
+        if (library == compiler.mainApp) return;
+        checkLibrary(compiler, library, fullTest: fullTest);
+      });
+    }
   });
 }
 
@@ -655,6 +659,7 @@ void checkElement(Compiler compiler, AstElement element,
     {bool fullTest: false}) {
   if (!fullTest) {
     if (element.library.isPlatformLibrary) {
+      // TODO(johnniwinther): Enqueue these elements for `!fullTest`.
       // Test only selected elements in web-related platform libraries since
       // this unittest otherwise takes too long to run.
       switch (element.library.canonicalUri.path) {
@@ -667,9 +672,9 @@ void checkElement(Compiler compiler, AstElement element,
         case 'web_gl':
           if ('$element' ==
               'function(RenderingContext#getFramebufferAttachmentParameter)') {
-            return;
+            break;
           }
-          break;
+          return;
         case 'indexed_db':
           if ('$element' == 'field(ObjectStore#keyPath)') {
             break;
@@ -686,6 +691,9 @@ void checkElement(Compiler compiler, AstElement element,
       // Skip redirecting constructors for now; they might not be supported.
       return;
     }
+  }
+  if (!fullTest && !compiler.resolution.hasResolutionImpact(element)) {
+    return;
   }
   ResolutionImpact astImpact = compiler.resolution.getResolutionImpact(element);
   astImpact = laxImpact(compiler, element, astImpact);
@@ -709,12 +717,14 @@ ResolutionImpact laxImpact(
         ConstructorElement effectiveTarget = constructor.effectiveTarget;
         ResolutionDartType effectiveTargetType =
             constructor.computeEffectiveTargetType(staticUse.type);
+        ConstructorElement effectiveTargetDeclaration =
+            effectiveTarget.declaration;
         builder.registerStaticUse(
             staticUse.kind == StaticUseKind.CONST_CONSTRUCTOR_INVOKE
                 ? new StaticUse.constConstructorInvoke(
-                    effectiveTarget.declaration, null, effectiveTargetType)
+                    effectiveTargetDeclaration, null, effectiveTargetType)
                 : new StaticUse.typedConstructorInvoke(
-                    effectiveTarget.declaration, null, effectiveTargetType));
+                    effectiveTargetDeclaration, null, effectiveTargetType));
         break;
       default:
         builder.registerStaticUse(staticUse);

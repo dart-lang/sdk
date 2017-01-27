@@ -1457,6 +1457,16 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try replacing the type parameter with a different type.");
 
   /**
+   * The 'covariant' keyword was found in an inappropriate location.
+   */
+  static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT =
+      const CompileTimeErrorCode(
+          'INVALID_USE_OF_COVARIANT',
+          "The 'covariant' keyword can only be used for parameters in instance "
+          "methods or before non-final instance fields.",
+          "Try removing the 'covariant' keyword.");
+
+  /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
    * the specified URI is not a library declaration.
    *
@@ -4887,6 +4897,18 @@ class StrongModeCode extends ErrorCode {
       'IMPLICIT_DYNAMIC_INVOKE',
       "Missing type arguments for calling generic function type '{0}'.",
       _implicitDynamicCorrection);
+
+  static const StrongModeCode NO_DEFAULT_BOUNDS = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'NO_DEFAULT_BOUNDS',
+      "Type has no default bounds",
+      "Try adding explicit type arguments to type");
+
+  static const StrongModeCode NOT_INSTANTIATED_BOUND = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'NOT_INSTANTIATED_BOUND',
+      "Type parameter bound types must be instantiated.",
+      "Try adding type arguments.");
 
   static const StrongModeCode UNSAFE_BLOCK_CLOSURE_INFERENCE = const StrongModeCode(
       ErrorType.STATIC_WARNING,

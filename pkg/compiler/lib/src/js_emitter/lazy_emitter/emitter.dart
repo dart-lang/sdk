@@ -9,8 +9,9 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue;
+import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
-    show ClassElement, Element, FieldElement, FunctionElement;
+    show ClassElement, Element, Entity, FieldElement, MethodElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
 import '../../world.dart' show ClosedWorld;
@@ -96,7 +97,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.Expression isolateStaticClosureAccess(FunctionElement element) {
+  js.Expression isolateStaticClosureAccess(MethodElement element) {
     return _emitter.generateStaticClosureAccess(element);
   }
 
@@ -106,7 +107,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.PropertyAccess staticFunctionAccess(FunctionElement element) {
+  js.PropertyAccess staticFunctionAccess(MethodElement element) {
     return _globalPropertyAccess(element);
   }
 
@@ -131,7 +132,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.Expression typeAccess(Element element) {
+  js.Expression typeAccess(Entity element) {
     // TODO(floitsch): minify 'ensureResolved'.
     // TODO(floitsch): don't emit `ensureResolved` for eager classes.
     return js.js('#.ensureResolved()', _globalPropertyAccess(element));
@@ -186,6 +187,10 @@ class Emitter implements emitterTask.Emitter {
         return null;
     }
   }
+
+  @override
+  // TODO(het): Generate this correctly
+  int generatedSize(OutputUnit unit) => 0;
 
   @override
   void invalidateCaches() {}

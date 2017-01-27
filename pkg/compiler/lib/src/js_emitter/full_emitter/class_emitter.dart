@@ -2,7 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter.full_emitter;
+library dart2js.js_emitter.full_emitter.class_emitter;
+
+import '../../common.dart';
+import '../../common/names.dart' show Names;
+import '../../elements/resolution_types.dart' show ResolutionDartType;
+import '../../deferred_load.dart' show OutputUnit;
+import '../../elements/elements.dart'
+    show ClassElement, Element, FieldElement, MemberElement, Name;
+import '../../js/js.dart' as jsAst;
+import '../../js/js.dart' show js;
+import '../../js_backend/js_backend.dart' show CompoundName, Namer;
+import '../../universe/selector.dart' show Selector;
+import '../../util/util.dart' show equalElements;
+import '../../world.dart' show ClosedWorld;
+import '../js_emitter.dart' hide Emitter, EmitterFactory;
+import '../model.dart';
+import 'emitter.dart';
 
 class ClassEmitter extends CodeEmitterHelper {
   final ClosedWorld closedWorld;
@@ -199,7 +215,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (cls.onlyForRti) return;
 
     for (StubMethod method in cls.checkedSetters) {
-      Element member = method.element;
+      MemberElement member = method.element;
       assert(member != null);
       jsAst.Expression code = method.code;
       jsAst.Name setterName = method.name;
@@ -215,7 +231,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (!compiler.options.useContentSecurityPolicy || cls.onlyForRti) return;
 
     for (Field field in cls.fields) {
-      Element member = field.element;
+      FieldElement member = field.element;
       reporter.withCurrentElement(member, () {
         if (field.needsGetter) {
           emitGetterForCSP(member, field.name, field.accessorName, builder);
@@ -251,7 +267,6 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     for (Method method in cls.methods) {
-      assert(invariant(classElement, method.element.isDeclaration));
       assert(invariant(classElement, method.element.isInstanceMember));
       emitter.containerBuilder.addMemberMethod(method, builder);
     }
@@ -374,7 +389,7 @@ class ClassEmitter extends CodeEmitterHelper {
         message: '$previousName != ${memberName}'));
   }
 
-  void emitGetterForCSP(Element member, jsAst.Name fieldName,
+  void emitGetterForCSP(FieldElement member, jsAst.Name fieldName,
       jsAst.Name accessorName, ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateGetter(member, fieldName);
@@ -394,7 +409,7 @@ class ClassEmitter extends CodeEmitterHelper {
     }
   }
 
-  void emitSetterForCSP(Element member, jsAst.Name fieldName,
+  void emitSetterForCSP(FieldElement member, jsAst.Name fieldName,
       jsAst.Name accessorName, ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateSetter(member, fieldName);

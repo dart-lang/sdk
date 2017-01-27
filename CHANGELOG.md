@@ -29,6 +29,20 @@
     #2      main (file:///Users/mit/tmp/tool/bin/main.dart:9:10)
     ```
 
+  * The `Null` type has been moved to the bottom of the type hierarchy. As such,
+    it is considered a subtype of every other type.
+
+    Examples:
+    ```
+    Null foo() => null;
+    int x = foo();
+    String x = foo();
+
+    List<Null> bar() => <Null>[];
+    List<int> = bar();
+    List<String> = bar();
+    ```
+
 ### Tool changes
 
 * Dart2Js
@@ -56,6 +70,17 @@
 
   * Make `pub run` run executables in spawned isolates. This lets them handle
     signals and use standard IO reliably.
+
+### Infrastructure changes
+
+  * The SDK now uses GN rather than gyp to generate its build files, which will
+    now be exclusively ninja flavored. Documentation can be found on our
+    [wiki](https://github.com/dart-lang/sdk/wiki/Building-with-GN). Also see the
+    help message of `tools/gn.py`. This change is in response to the deprecation
+    of gyp. Build file generation with gyp will continue to be available in this
+    release by setting the environment variable `DART_USE_GYP` before running
+    `gclient sync` or `gclient runhooks`, but this will be removed in a future
+    release.
 
 ## 1.21.0 - 2016-12-07
 

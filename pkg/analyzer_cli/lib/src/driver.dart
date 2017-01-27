@@ -19,6 +19,9 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -32,6 +35,7 @@ import 'package:analyzer/src/generated/utilities_general.dart'
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
@@ -67,11 +71,13 @@ bool containsLintRuleEntry(Map<String, YamlNode> options) {
   return linterNode is YamlMap && linterNode.containsKey('rules');
 }
 
-typedef ErrorSeverity _BatchRunnerHandler(List<String> args);
+typedef Future<ErrorSeverity> _BatchRunnerHandler(List<String> args);
 
 class Driver implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
       new PerformanceTag("Driver._analyzeAll");
+
+  static ByteStore analysisDriverByteStore = new MemoryByteStore();
 
   /// The plugins that are defined outside the `analyzer_cli` package.
   List<Plugin> _userDefinedPlugins = <Plugin>[];
@@ -79,6 +85,8 @@ class Driver implements CommandLineStarter {
   /// The context that was most recently created by a call to [_analyzeAll], or
   /// `null` if [_analyzeAll] hasn't been called yet.
   InternalAnalysisContext _context;
+
+  AnalysisDriver analysisDriver;
 
   /// The total number of source files loaded by an AnalysisContext.
   int _analyzedFileCount = 0;
@@ -113,7 +121,7 @@ class Driver implements CommandLineStarter {
   }
 
   @override
-  void start(List<String> args) {
+  Future<Null> start(List<String> args) async {
     if (_context != null) {
       throw new StateError("start() can only be called once");
     }
@@ -134,12 +142,12 @@ class Driver implements CommandLineStarter {
         io.exitCode = severity.ordinal;
       }
     } else if (options.shouldBatch) {
-      _BatchRunner.runAsBatch(args, (List<String> args) {
+      _BatchRunner.runAsBatch(args, (List<String> args) async {
         CommandLineOptions options = CommandLineOptions.parse(args);
-        return _analyzeAll(options);
+        return await _analyzeAll(options);
       });
     } else {
-      ErrorSeverity severity = _analyzeAll(options);
+      ErrorSeverity severity = await _analyzeAll(options);
       // In case of error propagate exit code.
       if (severity == ErrorSeverity.ERROR) {
         io.exitCode = severity.ordinal;
@@ -157,14 +165,17 @@ class Driver implements CommandLineStarter {
     }
   }
 
-  ErrorSeverity _analyzeAll(CommandLineOptions options) {
-    return _analyzeAllTag.makeCurrentWhile(() {
-      return _analyzeAllImpl(options);
-    });
+  Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
+    PerformanceTag previous = _analyzeAllTag.makeCurrent();
+    try {
+      return await _analyzeAllImpl(options);
+    } finally {
+      previous.makeCurrent();
+    }
   }
 
   /// Perform analysis according to the given [options].
-  ErrorSeverity _analyzeAllImpl(CommandLineOptions options) {
+  Future<ErrorSeverity> _analyzeAllImpl(CommandLineOptions options) async {
     if (!options.machineFormat) {
       outSink.writeln("Analyzing ${options.sourceFiles}...");
     }
@@ -204,8 +215,15 @@ class Driver implements CommandLineStarter {
         }
         sourcesToAnalyze.add(source);
       }
+
+      if (analysisDriver != null) {
+        files.forEach((file) {
+          analysisDriver.addFile(file.path);
+        });
+      } else {
+        context.applyChanges(changeSet);
+      }
     }
-    context.applyChanges(changeSet);
 
     // Analyze the libraries.
     ErrorSeverity allResult = ErrorSeverity.NONE;
@@ -216,7 +234,7 @@ class Driver implements CommandLineStarter {
         parts.add(source);
         continue;
       }
-      ErrorSeverity status = _runAnalyzer(source, options);
+      ErrorSeverity status = await _runAnalyzer(source, options);
       allResult = allResult.max(status);
       libUris.add(source.uri);
     }
@@ -516,6 +534,11 @@ class Driver implements CommandLineStarter {
     // Once options and embedders are processed, setup the SDK.
     _setupSdk(options, useSummaries);
 
+    PackageBundle sdkBundle = sdk.getLinkedBundle();
+    if (sdkBundle != null) {
+      summaryDataStore.addBundle(null, sdkBundle);
+    }
+
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
     SourceFactory sourceFactory = _chooseUriResolutionPolicy(
@@ -530,8 +553,28 @@ class Driver implements CommandLineStarter {
     });
 
     _context.sourceFactory = sourceFactory;
-    _context.resultProvider =
-        new InputPackagesResultProvider(_context, summaryDataStore);
+
+    if (options.enableNewAnalysisDriver) {
+      PerformanceLog log = new PerformanceLog(null);
+      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+      analysisDriver = new AnalysisDriver(
+          scheduler,
+          log,
+          resourceProvider,
+          analysisDriverByteStore,
+          new FileContentOverlay(),
+          'test',
+          context.sourceFactory,
+          context.analysisOptions);
+      analysisDriver.results.listen((_) {});
+      analysisDriver.exceptions.listen((_) {});
+      scheduler.start();
+    } else {
+      if (sdkBundle != null) {
+        _context.resultProvider =
+            new InputPackagesResultProvider(_context, summaryDataStore);
+      }
+    }
   }
 
   /// Return discovered packagespec, or `null` if none is found.
@@ -625,11 +668,12 @@ class Driver implements CommandLineStarter {
   }
 
   /// Analyze a single source.
-  ErrorSeverity _runAnalyzer(Source source, CommandLineOptions options) {
+  Future<ErrorSeverity> _runAnalyzer(
+      Source source, CommandLineOptions options) async {
     int startTime = currentTimeMillis();
-    AnalyzerImpl analyzer =
-        new AnalyzerImpl(_context, source, options, stats, startTime);
-    var errorSeverity = analyzer.analyzeSync();
+    AnalyzerImpl analyzer = new AnalyzerImpl(_context.analysisOptions, _context,
+        analysisDriver, source, options, stats, startTime);
+    ErrorSeverity errorSeverity = await analyzer.analyze();
     if (errorSeverity == ErrorSeverity.ERROR) {
       io.exitCode = errorSeverity.ordinal;
     }
@@ -801,7 +845,7 @@ class _BatchRunner {
     // Read line from stdin.
     Stream cmdLine =
         io.stdin.transform(UTF8.decoder).transform(new LineSplitter());
-    cmdLine.listen((String line) {
+    cmdLine.listen((String line) async {
       // Maybe finish.
       if (line.isEmpty) {
         var time = stopwatch.elapsedMilliseconds;
@@ -819,7 +863,7 @@ class _BatchRunner {
       // Analyze single set of arguments.
       try {
         totalTests++;
-        ErrorSeverity result = handler(args);
+        ErrorSeverity result = await handler(args);
         bool resultPass = result != ErrorSeverity.ERROR;
         if (!resultPass) {
           testsFailed++;

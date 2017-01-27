@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,9 +28,8 @@ main() {
 
 @reflectiveTest
 class SearchEngineImpl2Test {
-  static final MockSdk sdk = new MockSdk();
-
   final MemoryResourceProvider provider = new MemoryResourceProvider();
+  DartSdk sdk;
   final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
 
@@ -39,6 +39,7 @@ class SearchEngineImpl2Test {
   AnalysisDriverScheduler scheduler;
 
   void setUp() {
+    sdk = new MockSdk(resourceProvider: provider);
     logger = new PerformanceLog(logBuffer);
     scheduler = new AnalysisDriverScheduler(logger);
     scheduler.start();
@@ -154,6 +155,49 @@ int test;
     assertHasElement('test', codeB.indexOf('test() {} // 2'));
   }
 
+  test_searchMemberReferences() async {
+    var a = _p('/test/a.dart');
+    var b = _p('/test/b.dart');
+
+    provider.newFile(
+        a,
+        '''
+class A {
+  int test;
+}
+foo(p) {
+  p.test;
+}
+''');
+    provider.newFile(
+        b,
+        '''
+import 'a.dart';
+bar(p) {
+  p.test = 1;
+}
+''');
+
+    var driver1 = _newDriver();
+    var driver2 = _newDriver();
+
+    driver1.addFile(a);
+    driver2.addFile(b);
+
+    var searchEngine = new SearchEngineImpl2([driver1, driver2]);
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberReferences('test');
+    expect(matches, hasLength(2));
+    expect(
+        matches,
+        contains(predicate((SearchMatch m) =>
+            m.element.name == 'foo' || m.kind == MatchKind.READ)));
+    expect(
+        matches,
+        contains(predicate((SearchMatch m) =>
+            m.element.name == 'bar' || m.kind == MatchKind.WRITE)));
+  }
+
   test_searchReferences() async {
     var a = _p('/test/a.dart');
     var b = _p('/test/b.dart');
@@ -219,7 +263,8 @@ get b => 42;
     var searchEngine = new SearchEngineImpl2([driver1, driver2]);
     List<SearchMatch> matches =
         await searchEngine.searchTopLevelDeclarations('.*');
-    expect(matches, hasLength(4));
+    expect(
+        matches.where((match) => !match.libraryElement.isInSdk), hasLength(4));
 
     void assertHasElement(String name) {
       expect(

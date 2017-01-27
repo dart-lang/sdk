@@ -53,19 +53,19 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   @override
   void serializeAnnotation(Annotation annotation) {
-    if (annotation.arguments == null) {
-      assert(annotation.constructorName == null);
-      serialize(annotation.name);
+    Identifier name = annotation.name;
+    EntityRefBuilder constructor;
+    if (name is PrefixedIdentifier && annotation.constructorName == null) {
+      constructor =
+          serializeConstructorRef(null, name.prefix, null, name.identifier);
     } else {
-      Identifier name = annotation.name;
-      EntityRefBuilder constructor;
-      if (name is PrefixedIdentifier && annotation.constructorName == null) {
-        constructor =
-            serializeConstructorRef(null, name.prefix, null, name.identifier);
-      } else {
-        constructor = serializeConstructorRef(
-            null, annotation.name, null, annotation.constructorName);
-      }
+      constructor = serializeConstructorRef(
+          null, annotation.name, null, annotation.constructorName);
+    }
+    if (annotation.arguments == null) {
+      references.add(constructor);
+      operations.add(UnlinkedExprOperation.pushReference);
+    } else {
       serializeInstanceCreation(constructor, annotation.arguments);
     }
   }
@@ -807,6 +807,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.identifier.offset;
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
+    b.isExplicitlyCovariant = node.covariantKeyword != null;
+    b.isFinal = node.isFinal;
     if (_parametersMayInheritCovariance) {
       b.inheritsCovariantSlot = assignSlot();
     }
@@ -971,10 +973,14 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       Comment documentationComment,
       NodeList<Annotation> annotations,
       bool isField) {
+    bool isCovariant = isField
+        ? (variables.parent as FieldDeclaration).covariantKeyword != null
+        : false;
     for (VariableDeclaration variable in variables.variables) {
       UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
-      b.isFinal = variables.isFinal;
       b.isConst = variables.isConst;
+      b.isCovariant = isCovariant;
+      b.isFinal = variables.isFinal;
       b.isStatic = isDeclaredStatic;
       b.name = variable.name.name;
       b.nameOffset = variable.name.offset;

@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -2005,6 +2006,14 @@ class ToSourceVisitor2Test extends EngineTestCase {
             null, AstTestFactory.typeName4("A"), "a"));
   }
 
+  void test_visitFieldFormalParameter_type_covariant() {
+    FieldFormalParameterImpl expected = AstTestFactory.fieldFormalParameter(
+        null, AstTestFactory.typeName4("A"), "a");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant A this.a", expected);
+  }
+
   void test_visitForEachStatement_declared() {
     _assertSource(
         "for (var a in b) {}",
@@ -2485,6 +2494,14 @@ class ToSourceVisitor2Test extends EngineTestCase {
         "T f()",
         AstTestFactory.functionTypedFormalParameter(
             AstTestFactory.typeName4("T"), "f"));
+  }
+
+  void test_visitFunctionTypedFormalParameter_type_covariant() {
+    FunctionTypedFormalParameterImpl expected = AstTestFactory
+        .functionTypedFormalParameter(AstTestFactory.typeName4("T"), "f");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant T f()", expected);
   }
 
   void test_visitFunctionTypedFormalParameter_typeParameters() {
@@ -3127,6 +3144,14 @@ class ToSourceVisitor2Test extends EngineTestCase {
         "A a",
         AstTestFactory.simpleFormalParameter4(
             AstTestFactory.typeName4("A"), "a"));
+  }
+
+  void test_visitSimpleFormalParameter_type_covariant() {
+    SimpleFormalParameterImpl expected = AstTestFactory.simpleFormalParameter4(
+        AstTestFactory.typeName4("A"), "a");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant A a", expected);
   }
 
   void test_visitSimpleIdentifier() {
@@ -4335,6 +4360,14 @@ class ToSourceVisitorTest extends EngineTestCase {
             null, AstTestFactory.typeName4("A"), "a"));
   }
 
+  void test_visitFieldFormalParameter_type_covariant() {
+    FieldFormalParameterImpl expected = AstTestFactory.fieldFormalParameter(
+        null, AstTestFactory.typeName4("A"), "a");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant A this.a", expected);
+  }
+
   void test_visitForEachStatement_declared() {
     _assertSource(
         "for (var a in b) {}",
@@ -4815,6 +4848,14 @@ class ToSourceVisitorTest extends EngineTestCase {
         "T f()",
         AstTestFactory.functionTypedFormalParameter(
             AstTestFactory.typeName4("T"), "f"));
+  }
+
+  void test_visitFunctionTypedFormalParameter_type_covariant() {
+    FunctionTypedFormalParameterImpl expected = AstTestFactory
+        .functionTypedFormalParameter(AstTestFactory.typeName4("T"), "f");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant T f()", expected);
   }
 
   void test_visitFunctionTypedFormalParameter_typeParameters() {
@@ -5457,6 +5498,14 @@ class ToSourceVisitorTest extends EngineTestCase {
         "A a",
         AstTestFactory.simpleFormalParameter4(
             AstTestFactory.typeName4("A"), "a"));
+  }
+
+  void test_visitSimpleFormalParameter_type_covariant() {
+    SimpleFormalParameterImpl expected = AstTestFactory.simpleFormalParameter4(
+        AstTestFactory.typeName4("A"), "a");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant A a", expected);
   }
 
   void test_visitSimpleIdentifier() {

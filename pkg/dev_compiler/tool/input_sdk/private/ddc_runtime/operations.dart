@@ -14,7 +14,7 @@ class InvocationImpl extends Invocation {
   final bool isGetter;
   final bool isSetter;
 
-  InvocationImpl(String memberName, this.positionalArguments,
+  InvocationImpl(memberName, this.positionalArguments,
       {namedArguments,
       this.isMethod: false,
       this.isGetter: false,
@@ -29,12 +29,18 @@ class InvocationImpl extends Invocation {
   }
 }
 
+// Warning: dload, dput, and dsend assume they are never called on methods
+// implemented by the Object base class as those methods can always be
+// statically resolved.
 dload(obj, field) {
   var f = _canonicalMember(obj, field);
+
   _trackCall(obj);
   if (f != null) {
-    if (hasMethod(obj, f)) return bind(obj, f, JS('', 'void 0'));
-    return JS('', '#[#]', obj, f);
+    var type = getType(obj);
+
+    if (hasField(type, f) || hasGetter(type, f)) return JS('', '#[#]', obj, f);
+    if (hasMethod(type, f)) return bind(obj, f, JS('', 'void 0'));
   }
   return noSuchMethod(
       obj, new InvocationImpl(field, JS('', '[]'), isGetter: true));
@@ -44,7 +50,26 @@ dput(obj, field, value) {
   var f = _canonicalMember(obj, field);
   _trackCall(obj);
   if (f != null) {
-    return JS('', '#[#] = #', obj, f, value);
+    var objType = getType(obj);
+    var setterType = getSetterType(objType, f);
+    if (JS('bool', '# != void 0', setterType)) {
+      // TODO(jacobr): throw a type error instead of a NoSuchMethodError if
+      // the type of the setter doesn't match.
+      if (instanceOfOrNull(value, JS('', '#.args[0]', setterType))) {
+        return JS('', '#[#] = #', obj, f, value);
+      }
+    } else {
+      var fieldType = getFieldType(objType, f);
+      // TODO(jacobr): add metadata tracking which fields are final and throw
+      // if a setter is called on a final field.
+      if (JS('bool', '# != void 0', fieldType)) {
+        // TODO(jacobr): throw a type error instead of a NoSuchMethodError if
+        // the type of the field doesn't match.
+        if (instanceOfOrNull(value, fieldType)) {
+          return JS('', '#[#] = #', obj, f, value);
+        }
+      }
+    }
   }
   return noSuchMethod(
       obj, new InvocationImpl(field, JS('', '[#]', value), isSetter: true));
@@ -89,8 +114,42 @@ _checkApply(type, actuals) => JS(
   return true;
 })()''');
 
-Symbol _dartSymbol(name) =>
-    JS('', '#(#.new(#.toString()))', const_, Symbol, name);
+_toSymbolName(symbol) => JS(
+    '',
+    '''(() => {
+        let str = $symbol.toString();
+        // Strip leading 'Symbol(' and trailing ')'
+        return str.substring(7, str.length-1);
+    })()''');
+
+_toDisplayName(name) => JS(
+    '',
+    '''(() => {
+      // Names starting with _ are escaped names used to disambiguate Dart and
+      // JS names.
+      if ($name[0] === '_') {
+        // Inverse of 
+        switch($name) {
+          case '_get':
+            return '[]';
+          case '_set':
+            return '[]=';
+          case '_negate':
+            return 'unary-';
+          case '_constructor':
+          case '_prototype':
+            return $name.substring(1);
+        }
+      }
+      return $name;
+  })()''');
+
+Symbol _dartSymbol(name) {
+  return (JS('bool', 'typeof # === "symbol"', name))
+      ? JS('', '#(new #.es6(#, #))', const_, _internal.Symbol,
+          _toSymbolName(name), name)
+      : JS('', '#(#.new(#))', const_, Symbol, _toDisplayName(name));
+}
 
 /// Extracts the named argument array from a list of arguments, and returns it.
 // TODO(jmesserly): we need to handle named arguments better.
@@ -121,7 +180,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
     // We're not a function (and hence not a method either)
     // Grab the `call` method if it's not a function.
     if ($f != null) {
-      $ftype = $getMethodType($f, 'call');
+      $ftype = $getMethodType($getType($f), 'call');
       $f = $f.call;
     }
     if (!($f instanceof Function)) {
@@ -303,7 +362,9 @@ _callMethod(obj, name, typeArgs, args, displayName) {
         obj, new InvocationImpl(displayName, args, isMethod: true));
   }
   var f = obj != null ? JS('', '#[#]', obj, symbol) : null;
-  var ftype = getMethodType(obj, symbol);
+  var type = getType(obj);
+  var ftype = getMethodType(type, symbol);
+  // No such method if dart object and ftype is missing.
   return _checkAndCall(f, ftype, obj, typeArgs, args, displayName);
 }
 

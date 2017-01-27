@@ -20,7 +20,7 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #define PROPAGATE_IF_MALFORMED(type)                                           \
   if (type.IsMalformed()) {                                                    \
@@ -678,7 +678,7 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
       return field.StaticValue();
     }
     // An uninitialized field was found.  Check for a getter in the field's
-    // owner classs.
+    // owner class.
     const Class& klass = Class::Handle(field.Owner());
     const String& internal_getter_name =
         String::Handle(Field::GetterName(getter_name));
@@ -2092,6 +2092,6 @@ DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 2) {
   return Bool::Get(a.IsSubtypeOf(b, NULL, NULL, Heap::kNew)).raw();
 }
 
-#endif  // !PRODUCT
+#endif  // !PRODUCT && !DART_PRECOMPILED_RUNTIME
 
 }  // namespace dart

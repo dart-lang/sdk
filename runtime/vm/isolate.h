@@ -61,6 +61,7 @@ class RawUserTag;
 class SafepointHandler;
 class SampleBuffer;
 class SendPort;
+class SerializedObjectBuffer;
 class ServiceIdZone;
 class Simulator;
 class StackResource;
@@ -178,7 +179,6 @@ class Isolate : public BaseIsolate {
 
   ThreadRegistry* thread_registry() const { return thread_registry_; }
   SafepointHandler* safepoint_handler() const { return safepoint_handler_; }
-  uintptr_t memory_high_watermark() const { return memory_high_watermark_; }
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
@@ -254,9 +254,7 @@ class Isolate : public BaseIsolate {
     library_tag_handler_ = value;
   }
 
-  void SetupInstructionsSnapshotPage(
-      const uint8_t* instructions_snapshot_buffer);
-  void SetupDataSnapshotPage(const uint8_t* instructions_snapshot_buffer);
+  void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
 
   void ScheduleMessageInterrupts();
 
@@ -691,10 +689,6 @@ class Isolate : public BaseIsolate {
                         bool is_mutator,
                         bool bypass_safepoint = false);
 
-  // Updates the maximum memory usage in bytes of all zones in all threads of
-  // the current isolate.
-  void UpdateMemoryHighWatermark();
-
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).
   Zone* current_zone() const {
@@ -715,7 +709,6 @@ class Isolate : public BaseIsolate {
 
   ThreadRegistry* thread_registry_;
   SafepointHandler* safepoint_handler_;
-  uintptr_t memory_high_watermark_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   char* debugger_name_;
@@ -921,7 +914,7 @@ class IsolateSpawnState {
                     void* init_data,
                     const char* script_url,
                     const Function& func,
-                    const Instance& message,
+                    SerializedObjectBuffer* message_buffer,
                     Monitor* spawn_count_monitor,
                     intptr_t* spawn_count,
                     const char* package_root,
@@ -935,8 +928,8 @@ class IsolateSpawnState {
                     const char* script_url,
                     const char* package_root,
                     const char* package_config,
-                    const Instance& args,
-                    const Instance& message,
+                    SerializedObjectBuffer* args_buffer,
+                    SerializedObjectBuffer* message_buffer,
                     Monitor* spawn_count_monitor,
                     intptr_t* spawn_count,
                     bool paused,

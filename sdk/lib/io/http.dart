@@ -1174,7 +1174,7 @@ abstract class HttpResponse implements IOSink {
    * specified using the [status] argument.
    *
    * This method will also call `close`, and the returned future is
-   * the furure returned by `close`.
+   * the future returned by `close`.
    */
   Future redirect(Uri location, {int status: HttpStatus.MOVED_TEMPORARILY});
 
@@ -1729,7 +1729,7 @@ abstract class HttpClientRequest implements IOSink {
    * [:HttpStatus.MOVED_TEMPORARILY:] (302, alias for
    * [:HttpStatus.FOUND:]), [:HttpStatus.SEE_OTHER:] (303) and
    * [:HttpStatus.TEMPORARY_REDIRECT:] (307). For
-   * [:HttpStatus.SEE_OTHER:] (303) autmatic redirect will also happen
+   * [:HttpStatus.SEE_OTHER:] (303) automatic redirect will also happen
    * for "POST" requests with the method changed to "GET" when
    * following the redirect.
    *

@@ -1096,8 +1096,6 @@ static const char* RepresentationToCString(Representation rep) {
       return "float64x2";
     case kPairOfTagged:
       return "tagged-pair";
-    case kPairOfUnboxedDouble:
-      return "double-pair";
     case kNoRepresentation:
       return "none";
     case kNumRepresentations:

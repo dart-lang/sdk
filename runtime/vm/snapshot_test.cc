@@ -1164,7 +1164,7 @@ UNIT_TEST_CASE(FullSnapshot) {
       "}\n";
   Dart_Handle result;
 
-  uint8_t* isolate_snapshot_buffer;
+  uint8_t* isolate_snapshot_data_buffer;
 
   // Start an Isolate, load a script and create a full snapshot.
   Timer timer1(true, "Snapshot_test");
@@ -1184,9 +1184,9 @@ UNIT_TEST_CASE(FullSnapshot) {
 
     // Write snapshot with object content.
     {
-      FullSnapshotWriter writer(Snapshot::kCore, NULL, &isolate_snapshot_buffer,
-                                &malloc_allocator,
-                                NULL /* instructions_writer */);
+      FullSnapshotWriter writer(
+          Snapshot::kCore, NULL, &isolate_snapshot_data_buffer,
+          &malloc_allocator, NULL, NULL /* image_writer */);
       writer.WriteFullSnapshot();
     }
   }
@@ -1195,7 +1195,7 @@ UNIT_TEST_CASE(FullSnapshot) {
   // from the script.
   Timer timer2(true, "Snapshot_test");
   timer2.Start();
-  TestCase::CreateTestIsolateFromSnapshot(isolate_snapshot_buffer);
+  TestCase::CreateTestIsolateFromSnapshot(isolate_snapshot_data_buffer);
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     timer2.Stop();
@@ -1208,7 +1208,7 @@ UNIT_TEST_CASE(FullSnapshot) {
     Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
-  free(isolate_snapshot_buffer);
+  free(isolate_snapshot_data_buffer);
 }
 
 
@@ -1221,7 +1221,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
   };
   const char* kScriptChars = kFullSnapshotScriptChars;
 
-  uint8_t* isolate_snapshot_buffer;
+  uint8_t* isolate_snapshot_data_buffer;
 
   // Start an Isolate, load a script and create a full snapshot.
   Timer timer1(true, "Snapshot_test");
@@ -1241,9 +1241,9 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
     // Write snapshot with object content.
     {
-      FullSnapshotWriter writer(Snapshot::kCore, NULL, &isolate_snapshot_buffer,
-                                &malloc_allocator,
-                                NULL /* instructions_writer */);
+      FullSnapshotWriter writer(
+          Snapshot::kCore, NULL, &isolate_snapshot_data_buffer,
+          &malloc_allocator, NULL, NULL /* image_writer */);
       writer.WriteFullSnapshot();
     }
 
@@ -1257,7 +1257,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
   // from the script.
   Timer timer2(true, "Snapshot_test");
   timer2.Start();
-  TestCase::CreateTestIsolateFromSnapshot(isolate_snapshot_buffer);
+  TestCase::CreateTestIsolateFromSnapshot(isolate_snapshot_data_buffer);
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     timer2.Stop();
@@ -1274,7 +1274,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
     Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
-  free(isolate_snapshot_buffer);
+  free(isolate_snapshot_data_buffer);
 }
 
 
@@ -1661,10 +1661,13 @@ UNIT_TEST_CASE(MismatchedSnapshotKinds) {
     // Use a script snapshot where a full snapshot is expected.
     char* error = NULL;
     Dart_Isolate isolate = Dart_CreateIsolate(
-        "script-uri", "main", script_snapshot, NULL, NULL, &error);
+        "script-uri", "main", script_snapshot, NULL, NULL, NULL, &error);
     EXPECT(isolate == NULL);
     EXPECT(error != NULL);
-    EXPECT_SUBSTRING("got 'script', expected 'core'", error);
+    EXPECT_SUBSTRING(
+        "Incompatible snapshot kinds:"
+        " vm 'core', isolate 'script'",
+        error);
     free(error);
   }
 

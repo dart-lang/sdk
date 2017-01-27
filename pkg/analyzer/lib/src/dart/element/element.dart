@@ -1764,7 +1764,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(accessors, visitor);
-    safelyVisitChildren(_enums, visitor);
+    safelyVisitChildren(enums, visitor);
     safelyVisitChildren(functions, visitor);
     safelyVisitChildren(functionTypeAliases, visitor);
     safelyVisitChildren(types, visitor);
@@ -4218,6 +4218,24 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
+  /**
+   * Return `true` if this field was explicitly marked as being covariant.
+   */
+  bool get isCovariant {
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.isCovariant;
+    }
+    return hasModifier(Modifier.COVARIANT);
+  }
+
+  /**
+   * Set whether this field is explicitly marked as being covariant.
+   */
+  void set isCovariant(bool isCovariant) {
+    _assertNotResynthesized(_unlinkedVariable);
+    setModifier(Modifier.COVARIANT, isCovariant);
+  }
+
   @override
   bool get isEnumConstant =>
       enclosingElement != null ? enclosingElement.isEnum : false;
@@ -4299,9 +4317,14 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   @override
   FieldElement get field {
     if (_unlinkedParam != null && _field == null) {
-      Element enclosingClass = enclosingElement?.enclosingElement;
-      if (enclosingClass is ClassElement) {
-        _field = enclosingClass.getField(_unlinkedParam.name);
+      Element enclosing = enclosingElement?.enclosingElement;
+      while (enclosing != null) {
+        if (enclosing is ClassElement) {
+          _field = enclosing.getField(_unlinkedParam.name);
+          break;
+        } else {
+          enclosing = enclosing.enclosingElement;
+        }
       }
     }
     return _field;
@@ -4838,7 +4861,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(parameters, visitor);
-    safelyVisitChildren(_typeParameters, visitor);
+    safelyVisitChildren(typeParameters, visitor);
   }
 }
 
@@ -5513,7 +5536,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  bool get hasExtUri => hasModifier(Modifier.HAS_EXT_URI);
+  bool get hasExtUri {
+    if (_unlinkedDefiningUnit != null) {
+      List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
+      for (UnlinkedImport import in unlinkedImports) {
+        if (DartUriResolver.isDartExtUri(import.uri)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return hasModifier(Modifier.HAS_EXT_URI);
+  }
 
   /**
    * Set whether this library has an import of a "dart-ext" URI.
@@ -6291,76 +6325,81 @@ class Modifier implements Comparable<Modifier> {
   static const Modifier CONST = const Modifier('CONST', 2);
 
   /**
+   * Indicates that the modifier 'covariant' was applied to the element.
+   */
+  static const Modifier COVARIANT = const Modifier('COVARIANT', 3);
+
+  /**
    * Indicates that the import element represents a deferred library.
    */
-  static const Modifier DEFERRED = const Modifier('DEFERRED', 3);
+  static const Modifier DEFERRED = const Modifier('DEFERRED', 4);
 
   /**
    * Indicates that a class element was defined by an enum declaration.
    */
-  static const Modifier ENUM = const Modifier('ENUM', 4);
+  static const Modifier ENUM = const Modifier('ENUM', 5);
 
   /**
    * Indicates that a class element was defined by an enum declaration.
    */
-  static const Modifier EXTERNAL = const Modifier('EXTERNAL', 5);
+  static const Modifier EXTERNAL = const Modifier('EXTERNAL', 6);
 
   /**
    * Indicates that the modifier 'factory' was applied to the element.
    */
-  static const Modifier FACTORY = const Modifier('FACTORY', 6);
+  static const Modifier FACTORY = const Modifier('FACTORY', 7);
 
   /**
    * Indicates that the modifier 'final' was applied to the element.
    */
-  static const Modifier FINAL = const Modifier('FINAL', 7);
+  static const Modifier FINAL = const Modifier('FINAL', 8);
 
   /**
    * Indicates that an executable element has a body marked as being a
    * generator.
    */
-  static const Modifier GENERATOR = const Modifier('GENERATOR', 8);
+  static const Modifier GENERATOR = const Modifier('GENERATOR', 9);
 
   /**
    * Indicates that the pseudo-modifier 'get' was applied to the element.
    */
-  static const Modifier GETTER = const Modifier('GETTER', 9);
+  static const Modifier GETTER = const Modifier('GETTER', 10);
 
   /**
    * A flag used for libraries indicating that the defining compilation unit
    * contains at least one import directive whose URI uses the "dart-ext"
    * scheme.
    */
-  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 10);
+  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 11);
 
   /**
    * Indicates that the associated element did not have an explicit type
    * associated with it. If the element is an [ExecutableElement], then the
    * type being referred to is the return type.
    */
-  static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 11);
+  static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 12);
 
   /**
    * Indicates that a class is a mixin application.
    */
   static const Modifier MIXIN_APPLICATION =
-      const Modifier('MIXIN_APPLICATION', 12);
+      const Modifier('MIXIN_APPLICATION', 13);
 
   /**
    * Indicates that a class contains an explicit reference to 'super'.
    */
   static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 13);
+      const Modifier('REFERENCES_SUPER', 14);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 14);
+  static const Modifier SETTER = const Modifier('SETTER', 15);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 15);
+  static const Modifier STATIC = const Modifier('STATIC', 16);
 
   /**
    * Indicates that the element does not appear in the source code but was
@@ -6368,12 +6407,13 @@ class Modifier implements Comparable<Modifier> {
    * constructors, an implicit zero-argument constructor will be created and it
    * will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 17);
 
   static const List<Modifier> values = const [
     ABSTRACT,
     ASYNCHRONOUS,
     CONST,
+    COVARIANT,
     DEFERRED,
     ENUM,
     EXTERNAL,
@@ -7091,7 +7131,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   bool get isCovariant {
-    if (inheritsCovariant) {
+    if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
     for (ElementAnnotationImpl annotation in metadata) {
@@ -7102,10 +7142,28 @@ class ParameterElementImpl extends VariableElementImpl
     return false;
   }
 
+  /**
+   * Return true if this parameter is explicitly marked as being covariant.
+   */
+  bool get isExplicitlyCovariant {
+    if (_unlinkedParam != null) {
+      return _unlinkedParam.isExplicitlyCovariant;
+    }
+    return hasModifier(Modifier.COVARIANT);
+  }
+
+  /**
+   * Set whether this variable parameter is explicitly marked as being covariant.
+   */
+  void set isExplicitlyCovariant(bool isCovariant) {
+    _assertNotResynthesized(_unlinkedParam);
+    setModifier(Modifier.COVARIANT, isCovariant);
+  }
+
   @override
   bool get isFinal {
     if (_unlinkedParam != null) {
-      return false;
+      return _unlinkedParam.isFinal;
     }
     return super.isFinal;
   }
@@ -7368,13 +7426,22 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
   @override
   bool get isCovariant {
-    if (inheritsCovariant) {
+    if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
     for (ElementAnnotationImpl annotation in setter.variable.metadata) {
       if (annotation.isCovariant) {
         return true;
       }
+    }
+    return false;
+  }
+
+  @override
+  bool get isExplicitlyCovariant {
+    PropertyInducingElement variable = setter.variable;
+    if (variable is FieldElementImpl) {
+      return variable.isCovariant;
     }
     return false;
   }
@@ -7819,6 +7886,8 @@ abstract class PropertyInducingElementImpl
  * The context in which elements are resynthesized.
  */
 abstract class ResynthesizerContext {
+  bool get isStrongMode;
+
   /**
    * Build [ElementAnnotationImpl] for the given [UnlinkedExpr].
    */

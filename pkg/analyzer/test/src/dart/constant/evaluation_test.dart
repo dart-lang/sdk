@@ -1265,7 +1265,12 @@ const A a = const A();
     String envVarName = "x";
     String varName = "foo";
     if (valueInEnvironment != null) {
-      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
+      if (enableNewAnalysisDriver) {
+        driver.declaredVariables.define(envVarName, valueInEnvironment);
+      } else {
+        analysisContext2.declaredVariables
+            .define(envVarName, valueInEnvironment);
+      }
     }
     String defaultArg =
         defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
@@ -1279,7 +1284,12 @@ const A a = const A();
     String envVarName = "x";
     String varName = "foo";
     if (valueInEnvironment != null) {
-      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
+      if (enableNewAnalysisDriver) {
+        driver.declaredVariables.define(envVarName, valueInEnvironment);
+      } else {
+        analysisContext2.declaredVariables
+            .define(envVarName, valueInEnvironment);
+      }
     }
     String defaultArg =
         defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
@@ -1293,7 +1303,12 @@ const A a = const A();
     String envVarName = "x";
     String varName = "foo";
     if (valueInEnvironment != null) {
-      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
+      if (enableNewAnalysisDriver) {
+        driver.declaredVariables.define(envVarName, valueInEnvironment);
+      } else {
+        analysisContext2.declaredVariables
+            .define(envVarName, valueInEnvironment);
+      }
     }
     String defaultArg =
         defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
