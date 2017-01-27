@@ -3366,7 +3366,6 @@ LayoutTests/fast/forms/input-file-set-value_t01: RuntimeError # Please triage th
 LayoutTests/fast/forms/input-implicit-length-limit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-maxlength-unsupported_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/input-setvalue-selection_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-text-paste-maxlength_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-value-sanitization_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-width-height-attributes_t01: RuntimeError # Please triage this failure
@@ -4023,19 +4022,25 @@ WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to
 WebPlatformTest/html/dom/elements/global-attributes/dataset-enumeration_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
-Language/Classes/Getters/type_object_t02: RuntimeError, Slow # Issue 25940
 Language/Classes/Abstract_Instance_Members/override_no_named_parameters_t06: Pass, Slow # Issue 25940
 Language/Classes/Constructors/Factories/return_type_t03: Pass, Slow # Issue 25940
-Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issue 25940
 Language/Classes/Constructors/Factories/return_type_t05: Pass, Slow # Issue 25940
+Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issue 25940
+Language/Classes/Getters/type_object_t02: RuntimeError, Slow # Issue 25940
 LayoutTests/fast/canvas/canvas-blending-text_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/error-reporting_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/gl-object-get-calls_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-pathname_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/syntax/parsing/math-parse_t03: RuntimeError # Issue 22564
 
 [ $compiler == dart2js && $runtime == ff && $system != windows ]
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/input-setvalue-selection_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 
