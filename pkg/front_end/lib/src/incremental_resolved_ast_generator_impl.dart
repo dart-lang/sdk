@@ -268,8 +268,13 @@ class _SourceFactoryProxy implements SourceFactory {
   @override
   Source forUri(String absoluteUri) {
     Uri uri = Uri.parse(absoluteUri);
+    return forUri2(uri);
+  }
+
+  @override
+  Source forUri2(Uri absoluteUri) {
     return new _SourceProxy(
-        uri, _fileRepository.pathForUri(uri, allocate: true));
+        absoluteUri, _fileRepository.pathForUri(absoluteUri, allocate: true));
   }
 
   noSuchMethod(Invocation invocation) => unimplemented();
