@@ -505,7 +505,7 @@ class AnalysisDriver {
    */
   Future<AnalysisDriverUnitIndex> getIndex(String path) {
     if (!_fsState.hasUri(path)) {
-      return null;
+      return new Future.value();
     }
     var completer = new Completer<AnalysisDriverUnitIndex>();
     _indexRequestedFiles
@@ -535,7 +535,7 @@ class AnalysisDriver {
    */
   Future<AnalysisResult> getResult(String path) {
     if (!_fsState.hasUri(path)) {
-      return null;
+      return new Future.value();
     }
 
     // Return the cached result.
@@ -575,7 +575,7 @@ class AnalysisDriver {
    */
   Future<CompilationUnitElement> getUnitElement(String path) {
     if (!_fsState.hasUri(path)) {
-      return null;
+      return new Future.value();
     }
     var completer = new Completer<CompilationUnitElement>();
     _unitElementRequestedFiles
