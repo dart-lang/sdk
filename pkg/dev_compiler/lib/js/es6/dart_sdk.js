@@ -55632,10 +55632,10 @@ html.Event = class Event extends _interceptors.Interceptor {
     return html.Event._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new Event(type, eventInitDict);
+    return new self.Event(type, eventInitDict);
   }
   static _create_2(type) {
-    return new Event(type);
+    return new self.Event(type);
   }
   get [dartx.bubbles]() {
     return this.bubbles;
@@ -58342,10 +58342,10 @@ html.AnimationEvent = class AnimationEvent extends html.Event {
     return html.AnimationEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new AnimationEvent(type, eventInitDict);
+    return new self.AnimationEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new AnimationEvent(type);
+    return new self.AnimationEvent(type);
   }
   get [dartx.animationName]() {
     return this.animationName;
@@ -58387,10 +58387,10 @@ html.AnimationPlayerEvent = class AnimationPlayerEvent extends html.Event {
     return html.AnimationPlayerEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new AnimationPlayerEvent(type, eventInitDict);
+    return new self.AnimationPlayerEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new AnimationPlayerEvent(type);
+    return new self.AnimationPlayerEvent(type);
   }
   get [dartx.currentTime]() {
     return this.currentTime;
@@ -58627,10 +58627,10 @@ html.ApplicationCacheErrorEvent = class ApplicationCacheErrorEvent extends html.
     return html.ApplicationCacheErrorEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new ApplicationCacheErrorEvent(type, eventInitDict);
+    return new self.ApplicationCacheErrorEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new ApplicationCacheErrorEvent(type);
+    return new self.ApplicationCacheErrorEvent(type);
   }
   get [dartx.message]() {
     return this.message;
@@ -59331,10 +59331,10 @@ html.AutocompleteErrorEvent = class AutocompleteErrorEvent extends html.Event {
     return html.AutocompleteErrorEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new AutocompleteErrorEvent(type, eventInitDict);
+    return new self.AutocompleteErrorEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new AutocompleteErrorEvent(type);
+    return new self.AutocompleteErrorEvent(type);
   }
   get [dartx.reason]() {
     return this.reason;
@@ -59482,10 +59482,10 @@ html.BeforeInstallPromptEvent = class BeforeInstallPromptEvent extends html.Even
     return html.BeforeInstallPromptEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new BeforeInstallPromptEvent(type, eventInitDict);
+    return new self.BeforeInstallPromptEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new BeforeInstallPromptEvent(type);
+    return new self.BeforeInstallPromptEvent(type);
   }
   get [dartx.platforms]() {
     return this.platforms;
@@ -61056,7 +61056,7 @@ html.CircularGeofencingRegion = class CircularGeofencingRegion extends html.Geof
     return html.CircularGeofencingRegion._create_1(init_1);
   }
   static _create_1(init) {
-    return new CircularGeofencingRegion(init);
+    return new self.CircularGeofencingRegion(init);
   }
   get [dartx.latitude]() {
     return this.latitude;
@@ -61218,10 +61218,10 @@ html.CloseEvent = class CloseEvent extends html.Event {
     return html.CloseEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new CloseEvent(type, eventInitDict);
+    return new self.CloseEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new CloseEvent(type);
+    return new self.CloseEvent(type);
   }
   get [dartx.code]() {
     return this.code;
@@ -61302,10 +61302,10 @@ html.UIEvent = class UIEvent extends html.Event {
     return html.UIEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new UIEvent(type, eventInitDict);
+    return new self.UIEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new UIEvent(type);
+    return new self.UIEvent(type);
   }
   get [_charCode]() {
     return this.charCode;
@@ -61384,10 +61384,10 @@ html.CompositionEvent = class CompositionEvent extends html.UIEvent {
     return html.CompositionEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new CompositionEvent(type, eventInitDict);
+    return new self.CompositionEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new CompositionEvent(type);
+    return new self.CompositionEvent(type);
   }
   get [dartx.data]() {
     return this.data;
@@ -61426,7 +61426,7 @@ html.CompositorProxy = class CompositorProxy extends _interceptors.Interceptor {
     return html.CompositorProxy._create_1(element, attributeArray);
   }
   static _create_1(element, attributeArray) {
-    return new CompositorProxy(element, attributeArray);
+    return new self.CompositorProxy(element, attributeArray);
   }
   get [dartx.opacity]() {
     return this.opacity;
@@ -61492,7 +61492,7 @@ html.CompositorWorker = class CompositorWorker extends html.EventTarget {
     return html.CompositorWorker._create_1(scriptUrl);
   }
   static _create_1(scriptUrl) {
-    return new CompositorWorker(scriptUrl);
+    return new self.CompositorWorker(scriptUrl);
   }
   [dartx.postMessage](message, transfer) {
     if (transfer === void 0) transfer = null;
@@ -69116,10 +69116,10 @@ html.CustomEvent = class CustomEvent extends html.Event {
     return html.CustomEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new CustomEvent(type, eventInitDict);
+    return new self.CustomEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new CustomEvent(type);
+    return new self.CustomEvent(type);
   }
   get [_detail]() {
     return html_common.convertNativeToDart_SerializedScriptValue(this[_get__detail]);
@@ -69434,10 +69434,10 @@ html.DefaultSessionStartEvent = class DefaultSessionStartEvent extends html.Even
     return html.DefaultSessionStartEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new DefaultSessionStartEvent(type, eventInitDict);
+    return new self.DefaultSessionStartEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new DefaultSessionStartEvent(type);
+    return new self.DefaultSessionStartEvent(type);
   }
   get [dartx.session]() {
     return this.session;
@@ -69587,10 +69587,10 @@ html.DeviceLightEvent = class DeviceLightEvent extends html.Event {
     return html.DeviceLightEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new DeviceLightEvent(type, eventInitDict);
+    return new self.DeviceLightEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new DeviceLightEvent(type);
+    return new self.DeviceLightEvent(type);
   }
   get [dartx.value]() {
     return this.value;
@@ -73004,10 +73004,10 @@ html.ErrorEvent = class ErrorEvent extends html.Event {
     return html.ErrorEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new ErrorEvent(type, eventInitDict);
+    return new self.ErrorEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new ErrorEvent(type);
+    return new self.ErrorEvent(type);
   }
   get [dartx.colno]() {
     return this.colno;
@@ -73071,10 +73071,10 @@ html.EventSource = class EventSource extends html.EventTarget {
     return html.EventSource._create_2(url);
   }
   static _create_1(url, eventSourceInitDict) {
-    return new EventSource(url, eventSourceInitDict);
+    return new self.EventSource(url, eventSourceInitDict);
   }
   static _create_2(url) {
-    return new EventSource(url);
+    return new self.EventSource(url);
   }
   get [dartx.readyState]() {
     return this.readyState;
@@ -73196,10 +73196,10 @@ html.ExtendableEvent = class ExtendableEvent extends html.Event {
     return html.ExtendableEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new ExtendableEvent(type, eventInitDict);
+    return new self.ExtendableEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new ExtendableEvent(type);
+    return new self.ExtendableEvent(type);
   }
   [dartx.waitUntil](...args) {
     return this.waitUntil.apply(this, args);
@@ -73231,7 +73231,7 @@ html.FederatedCredential = class FederatedCredential extends html.Credential {
     return html.FederatedCredential._create_1(data_1);
   }
   static _create_1(data) {
-    return new FederatedCredential(data);
+    return new self.FederatedCredential(data);
   }
   get [dartx.protocol]() {
     return this.protocol;
@@ -73271,10 +73271,10 @@ html.FetchEvent = class FetchEvent extends html.ExtendableEvent {
     return html.FetchEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new FetchEvent(type, eventInitDict);
+    return new self.FetchEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new FetchEvent(type);
+    return new self.FetchEvent(type);
   }
   get [dartx.isReload]() {
     return this.isReload;
@@ -73418,10 +73418,10 @@ html.File = class File extends html.Blob {
     return html.File._create_2(fileBits, fileName);
   }
   static _create_1(fileBits, fileName, options) {
-    return new File(fileBits, fileName, options);
+    return new self.File(fileBits, fileName, options);
   }
   static _create_2(fileBits, fileName) {
-    return new File(fileBits, fileName);
+    return new self.File(fileBits, fileName);
   }
   get [dartx.lastModified]() {
     return this.lastModified;
@@ -73645,7 +73645,7 @@ html.FileReader = class FileReader extends html.EventTarget {
     return html.FileReader._create_1();
   }
   static _create_1() {
-    return new FileReader();
+    return new self.FileReader();
   }
   get [dartx.error]() {
     return this.error;
@@ -73929,10 +73929,10 @@ html.FocusEvent = class FocusEvent extends html.UIEvent {
     return html.FocusEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new FocusEvent(type, eventInitDict);
+    return new self.FocusEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new FocusEvent(type);
+    return new self.FocusEvent(type);
   }
   get [dartx.relatedTarget]() {
     return html._convertNativeToDart_EventTarget(this[_get_relatedTarget]);
@@ -73980,10 +73980,10 @@ html.FontFace = class FontFace extends _interceptors.Interceptor {
     return html.FontFace._create_2(family, source);
   }
   static _create_1(family, source, descriptors) {
-    return new FontFace(family, source, descriptors);
+    return new self.FontFace(family, source, descriptors);
   }
   static _create_2(family, source) {
-    return new FontFace(family, source);
+    return new self.FontFace(family, source);
   }
   get [dartx.family]() {
     return this.family;
@@ -74154,10 +74154,10 @@ html.FormData = class FormData extends _interceptors.Interceptor {
     return html.FormData._create_2();
   }
   static _create_1(form) {
-    return new FormData(form);
+    return new self.FormData(form);
   }
   static _create_2() {
-    return new FormData();
+    return new self.FormData();
   }
   static get supported() {
     return !!window.FormData;
@@ -74448,10 +74448,10 @@ html.GamepadEvent = class GamepadEvent extends html.Event {
     return html.GamepadEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new GamepadEvent(type, eventInitDict);
+    return new self.GamepadEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new GamepadEvent(type);
+    return new self.GamepadEvent(type);
   }
   get [dartx.gamepad]() {
     return this.gamepad;
@@ -75298,7 +75298,7 @@ html.HashChangeEvent = class HashChangeEvent extends html.Event {
     let oldUrl = opts && 'oldUrl' in opts ? opts.oldUrl : null;
     let newUrl = opts && 'newUrl' in opts ? opts.newUrl : null;
     let options = dart.map({canBubble: canBubble, cancelable: cancelable, oldURL: oldUrl, newURL: newUrl}, core.String, core.Object);
-    return new HashChangeEvent(type, html_common.convertDartToNative_Dictionary(options));
+    return new self.HashChangeEvent(type, html_common.convertDartToNative_Dictionary(options));
   }
   static _(type, eventInitDict) {
     if (eventInitDict === void 0) eventInitDict = null;
@@ -75309,10 +75309,10 @@ html.HashChangeEvent = class HashChangeEvent extends html.Event {
     return html.HashChangeEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new HashChangeEvent(type, eventInitDict);
+    return new self.HashChangeEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new HashChangeEvent(type);
+    return new self.HashChangeEvent(type);
   }
   static get supported() {
     return html_common.Device.isEventTypeSupported('HashChangeEvent');
@@ -75387,16 +75387,16 @@ html.Headers = class Headers extends _interceptors.Interceptor {
     dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
   }
   static _create_1() {
-    return new Headers();
+    return new self.Headers();
   }
   static _create_2(input) {
-    return new Headers(input);
+    return new self.Headers(input);
   }
   static _create_3(input) {
-    return new Headers(input);
+    return new self.Headers(input);
   }
   static _create_4(input) {
-    return new Headers(input);
+    return new self.Headers(input);
   }
 };
 dart.setSignature(html.Headers, {
@@ -76417,13 +76417,13 @@ html.ImageData = class ImageData extends _interceptors.Interceptor {
     dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
   }
   static _create_1(data_OR_sw, sh_OR_sw) {
-    return new ImageData(data_OR_sw, sh_OR_sw);
+    return new self.ImageData(data_OR_sw, sh_OR_sw);
   }
   static _create_2(data_OR_sw, sh_OR_sw) {
-    return new ImageData(data_OR_sw, sh_OR_sw);
+    return new self.ImageData(data_OR_sw, sh_OR_sw);
   }
   static _create_3(data_OR_sw, sh_OR_sw, sh) {
-    return new ImageData(data_OR_sw, sh_OR_sw, sh);
+    return new self.ImageData(data_OR_sw, sh_OR_sw, sh);
   }
   get [dartx.data]() {
     return this.data;
@@ -76622,10 +76622,10 @@ html.InputDevice = class InputDevice extends _interceptors.Interceptor {
     return html.InputDevice._create_2();
   }
   static _create_1(deviceInitDict) {
-    return new InputDevice(deviceInitDict);
+    return new self.InputDevice(deviceInitDict);
   }
   static _create_2() {
-    return new InputDevice();
+    return new self.InputDevice();
   }
   get [dartx.firesTouchEvents]() {
     return this.firesTouchEvents;
@@ -78343,10 +78343,10 @@ html.KeyboardEvent = class KeyboardEvent extends html.UIEvent {
     return html.KeyboardEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new KeyboardEvent(type, eventInitDict);
+    return new self.KeyboardEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new KeyboardEvent(type);
+    return new self.KeyboardEvent(type);
   }
   get [dartx.altKey]() {
     return this.altKey;
@@ -78444,13 +78444,13 @@ html.KeyframeEffect = class KeyframeEffect extends html.AnimationEffectReadOnly 
     dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
   }
   static _create_1(target, keyframes) {
-    return new KeyframeEffect(target, keyframes);
+    return new self.KeyframeEffect(target, keyframes);
   }
   static _create_2(target, keyframes, timing) {
-    return new KeyframeEffect(target, keyframes, timing);
+    return new self.KeyframeEffect(target, keyframes, timing);
   }
   static _create_3(target, keyframes, timing) {
-    return new KeyframeEffect(target, keyframes, timing);
+    return new self.KeyframeEffect(target, keyframes, timing);
   }
 };
 dart.setSignature(html.KeyframeEffect, {
@@ -78990,7 +78990,7 @@ html.MediaController = class MediaController extends html.EventTarget {
     return html.MediaController._create_1();
   }
   static _create_1() {
-    return new MediaController();
+    return new self.MediaController();
   }
   get [dartx.buffered]() {
     return this.buffered;
@@ -79156,10 +79156,10 @@ html.MediaEncryptedEvent = class MediaEncryptedEvent extends html.Event {
     return html.MediaEncryptedEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new MediaEncryptedEvent(type, eventInitDict);
+    return new self.MediaEncryptedEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new MediaEncryptedEvent(type);
+    return new self.MediaEncryptedEvent(type);
   }
   get [dartx.initData]() {
     return this.initData;
@@ -79269,10 +79269,10 @@ html.MediaKeyEvent = class MediaKeyEvent extends html.Event {
     return html.MediaKeyEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new MediaKeyEvent(type, eventInitDict);
+    return new self.MediaKeyEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new MediaKeyEvent(type);
+    return new self.MediaKeyEvent(type);
   }
   get [dartx.defaultUrl]() {
     return this.defaultURL;
@@ -79334,10 +79334,10 @@ html.MediaKeyMessageEvent = class MediaKeyMessageEvent extends html.Event {
     return html.MediaKeyMessageEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new MediaKeyMessageEvent(type, eventInitDict);
+    return new self.MediaKeyMessageEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new MediaKeyMessageEvent(type);
+    return new self.MediaKeyMessageEvent(type);
   }
   get [dartx.message]() {
     return this.message;
@@ -79600,10 +79600,10 @@ html.MediaQueryListEvent = class MediaQueryListEvent extends html.Event {
     return html.MediaQueryListEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new MediaQueryListEvent(type, eventInitDict);
+    return new self.MediaQueryListEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new MediaQueryListEvent(type);
+    return new self.MediaQueryListEvent(type);
   }
   get [dartx.matches]() {
     return this.matches;
@@ -79640,7 +79640,7 @@ html.MediaSession = class MediaSession extends _interceptors.Interceptor {
     return html.MediaSession._create_1();
   }
   static _create_1() {
-    return new MediaSession();
+    return new self.MediaSession();
   }
   [dartx.activate](...args) {
     return this.activate.apply(this, args);
@@ -79679,7 +79679,7 @@ html.MediaSource = class MediaSource extends html.EventTarget {
     return html.MediaSource._create_1();
   }
   static _create_1() {
-    return new MediaSource();
+    return new self.MediaSource();
   }
   static get supported() {
     return !!window.MediaSource;
@@ -79768,13 +79768,13 @@ html.MediaStream = class MediaStream extends html.EventTarget {
     dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
   }
   static _create_1() {
-    return new MediaStream();
+    return new self.MediaStream();
   }
   static _create_2(stream_OR_tracks) {
-    return new MediaStream(stream_OR_tracks);
+    return new self.MediaStream(stream_OR_tracks);
   }
   static _create_3(stream_OR_tracks) {
-    return new MediaStream(stream_OR_tracks);
+    return new self.MediaStream(stream_OR_tracks);
   }
   get [dartx.active]() {
     return this.active;
@@ -79892,10 +79892,10 @@ html.MediaStreamEvent = class MediaStreamEvent extends html.Event {
     return html.MediaStreamEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new MediaStreamEvent(type, eventInitDict);
+    return new self.MediaStreamEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new MediaStreamEvent(type);
+    return new self.MediaStreamEvent(type);
   }
   static get supported() {
     return html_common.Device.isEventTypeSupported('MediaStreamEvent');
@@ -80240,7 +80240,7 @@ html.MessageEvent = class MessageEvent extends html.Event {
       source = html.window;
     }
     if (!dart.test(html_common.Device.isIE)) {
-      return new MessageEvent(type, {bubbles: canBubble, cancelable: cancelable, data: data, origin: origin, lastEventId: lastEventId, source: source, ports: messagePorts});
+      return new self.MessageEvent(type, {bubbles: canBubble, cancelable: cancelable, data: data, origin: origin, lastEventId: lastEventId, source: source, ports: messagePorts});
     }
     let event = html.MessageEvent._check(html.document[_createEvent]("MessageEvent"));
     event[_initMessageEvent](type, canBubble, cancelable, data, origin, lastEventId, source, messagePorts);
@@ -80261,10 +80261,10 @@ html.MessageEvent = class MessageEvent extends html.Event {
     return html.MessageEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new MessageEvent(type, eventInitDict);
+    return new self.MessageEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new MessageEvent(type);
+    return new self.MessageEvent(type);
   }
   get [dartx.lastEventId]() {
     return this.lastEventId;
@@ -80979,10 +80979,10 @@ html.MouseEvent = class MouseEvent extends html.UIEvent {
     return html.MouseEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new MouseEvent(type, eventInitDict);
+    return new self.MouseEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new MouseEvent(type);
+    return new self.MouseEvent(type);
   }
   get [dartx.altKey]() {
     return this.altKey;
@@ -82179,10 +82179,10 @@ html.Notification = class Notification extends html.EventTarget {
     return html.Notification._create_2(title);
   }
   static _create_1(title, options) {
-    return new Notification(title, options);
+    return new self.Notification(title, options);
   }
   static _create_2(title) {
-    return new Notification(title);
+    return new self.Notification(title);
   }
   static get supported() {
     return !!window.Notification;
@@ -82311,10 +82311,10 @@ html.NotificationEvent = class NotificationEvent extends html.ExtendableEvent {
     return html.NotificationEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new NotificationEvent(type, eventInitDict);
+    return new self.NotificationEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new NotificationEvent(type);
+    return new self.NotificationEvent(type);
   }
   get [dartx.notification]() {
     return this.notification;
@@ -82811,10 +82811,10 @@ html.PageTransitionEvent = class PageTransitionEvent extends html.Event {
     return html.PageTransitionEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new PageTransitionEvent(type, eventInitDict);
+    return new self.PageTransitionEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new PageTransitionEvent(type);
+    return new self.PageTransitionEvent(type);
   }
   get [dartx.persisted]() {
     return this.persisted;
@@ -82929,13 +82929,13 @@ html.PasswordCredential = class PasswordCredential extends html.Credential {
     return html.PasswordCredential._create_3(id, password);
   }
   static _create_1(id, password, name, iconURL) {
-    return new PasswordCredential(id, password, name, iconURL);
+    return new self.PasswordCredential(id, password, name, iconURL);
   }
   static _create_2(id, password, name) {
-    return new PasswordCredential(id, password, name);
+    return new self.PasswordCredential(id, password, name);
   }
   static _create_3(id, password) {
-    return new PasswordCredential(id, password);
+    return new self.PasswordCredential(id, password);
   }
   get [dartx.formData]() {
     return this.formData;
@@ -83485,7 +83485,7 @@ html.PeriodicSyncEvent = class PeriodicSyncEvent extends html.ExtendableEvent {
     return html.PeriodicSyncEvent._create_1(type, init_1);
   }
   static _create_1(type, init) {
-    return new PeriodicSyncEvent(type, init);
+    return new self.PeriodicSyncEvent(type, init);
   }
   get [dartx.registration]() {
     return this.registration;
@@ -83848,10 +83848,10 @@ html.PointerEvent = class PointerEvent extends html.MouseEvent {
     return html.PointerEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new PointerEvent(type, eventInitDict);
+    return new self.PointerEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new PointerEvent(type);
+    return new self.PointerEvent(type);
   }
   get [dartx.height]() {
     return this.height;
@@ -83916,10 +83916,10 @@ html.PopStateEvent = class PopStateEvent extends html.Event {
     return html.PopStateEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new PopStateEvent(type, eventInitDict);
+    return new self.PopStateEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new PopStateEvent(type);
+    return new self.PopStateEvent(type);
   }
   get [dartx.state]() {
     return html_common.convertNativeToDart_SerializedScriptValue(this[_get_state]);
@@ -84236,10 +84236,10 @@ html.ProgressEvent = class ProgressEvent extends html.Event {
     return html.ProgressEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new ProgressEvent(type, eventInitDict);
+    return new self.ProgressEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new ProgressEvent(type);
+    return new self.ProgressEvent(type);
   }
   get [dartx.lengthComputable]() {
     return this.lengthComputable;
@@ -84285,10 +84285,10 @@ html.PromiseRejectionEvent = class PromiseRejectionEvent extends html.Event {
     return html.PromiseRejectionEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new PromiseRejectionEvent(type, eventInitDict);
+    return new self.PromiseRejectionEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new PromiseRejectionEvent(type);
+    return new self.PromiseRejectionEvent(type);
   }
   get [dartx.promise]() {
     return this.promise;
@@ -84329,10 +84329,10 @@ html.PushEvent = class PushEvent extends html.ExtendableEvent {
     return html.PushEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new PushEvent(type, eventInitDict);
+    return new self.PushEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new PushEvent(type);
+    return new self.PushEvent(type);
   }
   get [dartx.data]() {
     return this.data;
@@ -84423,7 +84423,7 @@ html.PushMessageData = class PushMessageData extends _interceptors.Interceptor {
     return html.PushMessageData._create_1(message);
   }
   static _create_1(message) {
-    return new PushMessageData(message);
+    return new self.PushMessageData(message);
   }
   [dartx.arrayBuffer](...args) {
     return this.arrayBuffer.apply(this, args);
@@ -84820,10 +84820,10 @@ html.RelatedEvent = class RelatedEvent extends html.Event {
     return html.RelatedEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new RelatedEvent(type, eventInitDict);
+    return new self.RelatedEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new RelatedEvent(type);
+    return new self.RelatedEvent(type);
   }
   get [dartx.relatedTarget]() {
     return html._convertNativeToDart_EventTarget(this[_get_relatedTarget]);
@@ -85892,31 +85892,31 @@ html.ScrollState = class ScrollState extends _interceptors.Interceptor {
     return html.ScrollState._create_9();
   }
   static _create_1(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding) {
-    return new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding);
+    return new self.ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding);
   }
   static _create_2(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning) {
-    return new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning);
+    return new self.ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning);
   }
   static _create_3(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase) {
-    return new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase);
+    return new self.ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase);
   }
   static _create_4(deltaX, deltaY, deltaGranularity, velocityX, velocityY) {
-    return new ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY);
+    return new self.ScrollState(deltaX, deltaY, deltaGranularity, velocityX, velocityY);
   }
   static _create_5(deltaX, deltaY, deltaGranularity, velocityX) {
-    return new ScrollState(deltaX, deltaY, deltaGranularity, velocityX);
+    return new self.ScrollState(deltaX, deltaY, deltaGranularity, velocityX);
   }
   static _create_6(deltaX, deltaY, deltaGranularity) {
-    return new ScrollState(deltaX, deltaY, deltaGranularity);
+    return new self.ScrollState(deltaX, deltaY, deltaGranularity);
   }
   static _create_7(deltaX, deltaY) {
-    return new ScrollState(deltaX, deltaY);
+    return new self.ScrollState(deltaX, deltaY);
   }
   static _create_8(deltaX) {
-    return new ScrollState(deltaX);
+    return new self.ScrollState(deltaX);
   }
   static _create_9() {
-    return new ScrollState();
+    return new self.ScrollState();
   }
   get [dartx.deltaGranularity]() {
     return this.deltaGranularity;
@@ -86009,10 +86009,10 @@ html.SecurityPolicyViolationEvent = class SecurityPolicyViolationEvent extends h
     return html.SecurityPolicyViolationEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new SecurityPolicyViolationEvent(type, eventInitDict);
+    return new self.SecurityPolicyViolationEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new SecurityPolicyViolationEvent(type);
+    return new self.SecurityPolicyViolationEvent(type);
   }
   get [dartx.blockedUri]() {
     return this.blockedURI;
@@ -86550,10 +86550,10 @@ html.ServicePortConnectEvent = class ServicePortConnectEvent extends html.Extend
     return html.ServicePortConnectEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new ServicePortConnectEvent(type, eventInitDict);
+    return new self.ServicePortConnectEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new ServicePortConnectEvent(type);
+    return new self.ServicePortConnectEvent(type);
   }
   get [dartx.origin]() {
     return this.origin;
@@ -86716,10 +86716,10 @@ html.ServiceWorkerMessageEvent = class ServiceWorkerMessageEvent extends html.Ev
     return html.ServiceWorkerMessageEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new ServiceWorkerMessageEvent(type, eventInitDict);
+    return new self.ServiceWorkerMessageEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new ServiceWorkerMessageEvent(type);
+    return new self.ServiceWorkerMessageEvent(type);
   }
   get [dartx.lastEventId]() {
     return this.lastEventId;
@@ -87031,10 +87031,10 @@ html.SharedWorker = class SharedWorker extends html.EventTarget {
     return html.SharedWorker._create_2(scriptURL);
   }
   static _create_1(scriptURL, name) {
-    return new SharedWorker(scriptURL, name);
+    return new self.SharedWorker(scriptURL, name);
   }
   static _create_2(scriptURL) {
-    return new SharedWorker(scriptURL);
+    return new self.SharedWorker(scriptURL);
   }
   get [dartx.port]() {
     return this.port;
@@ -87390,7 +87390,7 @@ html.SpeechGrammar = class SpeechGrammar extends _interceptors.Interceptor {
     return html.SpeechGrammar._create_1();
   }
   static _create_1() {
-    return new SpeechGrammar();
+    return new self.SpeechGrammar();
   }
   get [dartx.src]() {
     return this.src;
@@ -87439,7 +87439,7 @@ html.SpeechGrammarList = class SpeechGrammarList extends dart.mixin(_interceptor
     return html.SpeechGrammarList._create_1();
   }
   static _create_1() {
-    return new SpeechGrammarList();
+    return new self.SpeechGrammarList();
   }
   get [dartx.length]() {
     return this.length;
@@ -87749,10 +87749,10 @@ html.SpeechRecognitionError = class SpeechRecognitionError extends html.Event {
     return html.SpeechRecognitionError._create_2(type);
   }
   static _create_1(type, initDict) {
-    return new SpeechRecognitionError(type, initDict);
+    return new self.SpeechRecognitionError(type, initDict);
   }
   static _create_2(type) {
-    return new SpeechRecognitionError(type);
+    return new self.SpeechRecognitionError(type);
   }
   get [dartx.error]() {
     return this.error;
@@ -87796,10 +87796,10 @@ html.SpeechRecognitionEvent = class SpeechRecognitionEvent extends html.Event {
     return html.SpeechRecognitionEvent._create_2(type);
   }
   static _create_1(type, initDict) {
-    return new SpeechRecognitionEvent(type, initDict);
+    return new self.SpeechRecognitionEvent(type, initDict);
   }
   static _create_2(type) {
-    return new SpeechRecognitionEvent(type);
+    return new self.SpeechRecognitionEvent(type);
   }
   get [dartx.emma]() {
     return this.emma;
@@ -87975,10 +87975,10 @@ html.SpeechSynthesisUtterance = class SpeechSynthesisUtterance extends html.Even
     return html.SpeechSynthesisUtterance._create_2();
   }
   static _create_1(text) {
-    return new SpeechSynthesisUtterance(text);
+    return new self.SpeechSynthesisUtterance(text);
   }
   static _create_2() {
-    return new SpeechSynthesisUtterance();
+    return new self.SpeechSynthesisUtterance();
   }
   get [dartx.lang]() {
     return this.lang;
@@ -88353,10 +88353,10 @@ html.StorageEvent = class StorageEvent extends html.Event {
     return html.StorageEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new StorageEvent(type, eventInitDict);
+    return new self.StorageEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new StorageEvent(type);
+    return new self.StorageEvent(type);
   }
   get [dartx.key]() {
     return this.key;
@@ -88541,7 +88541,7 @@ html.SyncEvent = class SyncEvent extends html.ExtendableEvent {
     return html.SyncEvent._create_1(type, init_1);
   }
   static _create_1(type, init) {
-    return new SyncEvent(type, init);
+    return new self.SyncEvent(type, init);
   }
   get [dartx.registration]() {
     return this.registration;
@@ -90169,10 +90169,10 @@ html.TrackDefault = class TrackDefault extends _interceptors.Interceptor {
     return html.TrackDefault._create_2(type, language, label, kinds_1);
   }
   static _create_1(type, language, label, kinds, byteStreamTrackID) {
-    return new TrackDefault(type, language, label, kinds, byteStreamTrackID);
+    return new self.TrackDefault(type, language, label, kinds, byteStreamTrackID);
   }
   static _create_2(type, language, label, kinds) {
-    return new TrackDefault(type, language, label, kinds);
+    return new self.TrackDefault(type, language, label, kinds);
   }
   get [dartx.byteStreamTrackID]() {
     return this.byteStreamTrackID;
@@ -90225,10 +90225,10 @@ html.TrackDefaultList = class TrackDefaultList extends _interceptors.Interceptor
     return html.TrackDefaultList._create_2();
   }
   static _create_1(trackDefaults) {
-    return new TrackDefaultList(trackDefaults);
+    return new self.TrackDefaultList(trackDefaults);
   }
   static _create_2() {
-    return new TrackDefaultList();
+    return new self.TrackDefaultList();
   }
   get [dartx.length]() {
     return this.length;
@@ -90362,10 +90362,10 @@ html.TrackEvent = class TrackEvent extends html.Event {
     return html.TrackEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new TrackEvent(type, eventInitDict);
+    return new self.TrackEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new TrackEvent(type);
+    return new self.TrackEvent(type);
   }
   get [dartx.track]() {
     return this.track;
@@ -90402,10 +90402,10 @@ html.TransitionEvent = class TransitionEvent extends html.Event {
     return html.TransitionEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new TransitionEvent(type, eventInitDict);
+    return new self.TransitionEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new TransitionEvent(type);
+    return new self.TransitionEvent(type);
   }
   get [dartx.elapsedTime]() {
     return this.elapsedTime;
@@ -90976,10 +90976,10 @@ html.VRFieldOfView = class VRFieldOfView extends _interceptors.Interceptor {
     return html.VRFieldOfView._create_2();
   }
   static _create_1(fov) {
-    return new VRFieldOfView(fov);
+    return new self.VRFieldOfView(fov);
   }
   static _create_2() {
-    return new VRFieldOfView();
+    return new self.VRFieldOfView();
   }
   get [dartx.downDegrees]() {
     return this.downDegrees;
@@ -91597,10 +91597,10 @@ html.WebSocket = class WebSocket extends html.EventTarget {
     return html.WebSocket._create_2(url);
   }
   static _create_1(url, protocols) {
-    return new WebSocket(url, protocols);
+    return new self.WebSocket(url, protocols);
   }
   static _create_2(url) {
-    return new WebSocket(url);
+    return new self.WebSocket(url);
   }
   static get supported() {
     return typeof window.WebSocket != "undefined";
@@ -91758,7 +91758,7 @@ html.WheelEvent = class WheelEvent extends html.MouseEvent {
     if (view == null) {
       view = html.window;
     }
-    return new WheelEvent(type, html_common.convertDartToNative_Dictionary(options));
+    return new self.WheelEvent(type, html_common.convertDartToNative_Dictionary(options));
   }
   static _(type, eventInitDict) {
     if (eventInitDict === void 0) eventInitDict = null;
@@ -91769,10 +91769,10 @@ html.WheelEvent = class WheelEvent extends html.MouseEvent {
     return html.WheelEvent._create_2(type);
   }
   static _create_1(type, eventInitDict) {
-    return new WheelEvent(type, eventInitDict);
+    return new self.WheelEvent(type, eventInitDict);
   }
   static _create_2(type) {
-    return new WheelEvent(type);
+    return new self.WheelEvent(type);
   }
   get [_deltaX]() {
     return this.deltaX;
@@ -93365,7 +93365,7 @@ html.Worker = class Worker extends html.EventTarget {
     return html.Worker._create_1(scriptUrl);
   }
   static _create_1(scriptUrl) {
-    return new Worker(scriptUrl);
+    return new self.Worker(scriptUrl);
   }
   static get supported() {
     return typeof window.Worker != "undefined";
@@ -93520,7 +93520,7 @@ html.XPathEvaluator = class XPathEvaluator extends _interceptors.Interceptor {
     return html.XPathEvaluator._create_1();
   }
   static _create_1() {
-    return new XPathEvaluator();
+    return new self.XPathEvaluator();
   }
   [dartx.createExpression](...args) {
     return this.createExpression.apply(this, args);
@@ -107792,7 +107792,7 @@ web_audio.OfflineAudioContext = class OfflineAudioContext extends web_audio.Audi
     return web_audio.OfflineAudioContext._create_1(numberOfChannels, numberOfFrames, sampleRate);
   }
   static _create_1(numberOfChannels, numberOfFrames, sampleRate) {
-    return new OfflineAudioContext(numberOfChannels, numberOfFrames, sampleRate);
+    return new self.OfflineAudioContext(numberOfChannels, numberOfFrames, sampleRate);
   }
 };
 dart.setSignature(web_audio.OfflineAudioContext, {

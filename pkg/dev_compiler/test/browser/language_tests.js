@@ -387,10 +387,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'custom_element_name_clash_test': async_unittest,
       'custom_elements_23127_test': async_unittest,
       'custom_elements_test': async_unittest,
-
-      // was https://github.com/dart-lang/sdk/issues/27578, needs triage
-      'dom_constructors_test': 'fail',
-
       'element_animate_test': 'unittest',
 
       // https://github.com/dart-lang/sdk/issues/27579.
@@ -404,18 +400,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'element_types_test': firefox_fail,
       'event_customevent_test': async_unittest,
       'events_test': async_unittest,
-
-      // Failure: "Failed to execute 'dispatchEvent' on 'EventTarget': parameter
-      // 1 is not of type 'Event'."
-      'event_test': 'fail',
-
       'fileapi_test': async_unittest,
       'filereader_test': async_unittest,
       'fontface_loaded_test': async_unittest,
-
-      // Failed because it's expecting "Ahem" but getting null. Maybe sdk#27579?
-      'fontface_test': 'fail',
-
+      'fontface_test': firefox_fail,
       'form_data_test': async_unittest,
       'history_test': async_unittest,
       'indexeddb_1_test': async_unittest,
@@ -442,14 +430,9 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       // was https://github.com/dart-lang/sdk/issues/27578, needs triage
       'mediasource_test': 'fail',
       'media_stream_test': 'fail',
-      'messageevent_test': 'fail',
 
       'mutationobserver_test': async_unittest,
       'native_gc_test': async_unittest,
-
-      // was https://github.com/dart-lang/sdk/issues/27578, needs triage
-      'notification_test': 'fail',
-
       'postmessage_structured_test': async_unittest,
       'queryall_test': ['slow'], // see sdk #27794
       'request_animation_frame_test': async_unittest,
@@ -457,10 +440,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
 
       // was https://github.com/dart-lang/sdk/issues/27578, needs triage
       'rtc_test': is.chrome('<=55') ? fail : pass,
-
-      // Expected 1, got null.
-      'serialized_script_value_test': 'fail',
-
       'shadow_dom_test': firefox_fail,
 
       // was https://github.com/dart-lang/sdk/issues/27578, needs triage
