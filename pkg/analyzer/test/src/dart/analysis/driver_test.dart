@@ -28,6 +28,7 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:typed_mock/typed_mock.dart';
 
 import '../../context/mock_sdk.dart';
 import 'base.dart';
@@ -631,6 +632,66 @@ part 'foo.dart';
     List<AnalysisError> errors = result.errors;
     expect(errors, hasLength(1));
     expect(errors[0].errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST);
+  }
+
+  test_generatedFile() async {
+    Uri uri = Uri.parse('package:aaa/foo.dart');
+    String templatePath = _p('/aaa/lib/foo.dart');
+    String generatedPath = _p('/generated/aaa/lib/foo.dart');
+
+    provider.newFile(
+        templatePath,
+        r'''
+a() {}
+b() {}
+''');
+
+    provider.newFile(
+        generatedPath,
+        r'''
+aaa() {}
+bbb() {}
+''');
+
+    Source generatedSource = new _SourceMock();
+    when(generatedSource.uri).thenReturn(uri);
+    when(generatedSource.fullName).thenReturn(generatedPath);
+
+    when(generatedUriResolver.resolveAbsolute(uri, uri))
+        .thenReturn(generatedSource);
+    when(generatedUriResolver.restoreAbsolute(anyObject))
+        .thenInvoke((Source source) {
+      String path = source.fullName;
+      if (path == templatePath || path == generatedPath) {
+        return uri;
+      } else {
+        return null;
+      }
+    });
+
+    driver.addFile(templatePath);
+
+    await driver.waitForIdle();
+    expect(allExceptions, isEmpty);
+    expect(allResults, isEmpty);
+
+    var result = await driver.getResult(templatePath);
+    expect(result, isNull);
+    expect(allExceptions, isEmpty);
+    expect(allResults, isEmpty);
+
+    var element = await driver.getUnitElement(templatePath);
+    expect(element, isNull);
+    expect(allExceptions, isEmpty);
+    expect(allResults, isEmpty);
+
+    driver.priorityFiles = [templatePath];
+    driver.changeFile(templatePath);
+    await driver.waitForIdle();
+    expect(allExceptions, isEmpty);
+    expect(allResults, isEmpty);
+
+    expect(driver.knownFiles, isNot(contains(templatePath)));
   }
 
   test_getFilesReferencingName() async {
@@ -1836,3 +1897,5 @@ var A = B;
     return hex.encode(md5.convert(UTF8.encode(content)).bytes);
   }
 }
+
+class _SourceMock extends TypedMock implements Source {}

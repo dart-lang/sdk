@@ -275,29 +275,6 @@ class A2 {}
     expect(file.unlinked.classes, isEmpty);
   }
 
-  test_getFileForPath_generatedFile() {
-    Uri uri = Uri.parse('package:aaa/foo.dart');
-    String templatePath = _p('/aaa/lib/foo.dart');
-    String generatedPath = _p('/generated/aaa/lib/foo.dart');
-
-    Source generatedSource = new _SourceMock();
-    when(generatedSource.fullName).thenReturn(generatedPath);
-    when(generatedSource.uri).thenReturn(uri);
-
-    when(generatedUriResolver.resolveAbsolute(uri, uri))
-        .thenReturn(generatedSource);
-
-    FileState generatedFile = fileSystemState.getFileForUri(uri);
-    expect(generatedFile.path, generatedPath);
-    expect(generatedFile.uri, uri);
-
-    FileState templateFile = fileSystemState.getFileForPath(templatePath);
-    expect(templateFile.path, templatePath);
-    expect(templateFile.uri, uri);
-
-    expect(fileSystemState.getFilesForPath(templatePath), [templateFile]);
-  }
-
   test_getFileForPath_library() {
     String a1 = _p('/aaa/lib/a1.dart');
     String a2 = _p('/aaa/lib/a2.dart');
@@ -462,6 +439,22 @@ part 'not-a2.dart';
     // The file with the `package:` style URI is canonical, and is the first.
     var files = fileSystemState.getFilesForPath(path);
     expect(files, [filePackageUri, fileFileUri]);
+  }
+
+  test_hasUri() {
+    Uri uri = Uri.parse('package:aaa/foo.dart');
+    String templatePath = _p('/aaa/lib/foo.dart');
+    String generatedPath = _p('/generated/aaa/lib/foo.dart');
+
+    Source generatedSource = new _SourceMock();
+    when(generatedSource.fullName).thenReturn(generatedPath);
+    when(generatedSource.uri).thenReturn(uri);
+
+    when(generatedUriResolver.resolveAbsolute(uri, uri))
+        .thenReturn(generatedSource);
+
+    expect(fileSystemState.hasUri(templatePath), isFalse);
+    expect(fileSystemState.hasUri(generatedPath), isTrue);
   }
 
   test_referencedNames() {

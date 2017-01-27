@@ -540,6 +540,11 @@ class FileSystemState {
   final Set<String> knownFilePaths = new Set<String>();
 
   /**
+   * Mapping from a path to the flag whether there is a URI for the path.
+   */
+  final Map<String, bool> _hasUriForPath = {};
+
+  /**
    * Mapping from a path to the corresponding [FileState]s, canonical or not.
    */
   final Map<String, List<FileState>> _pathToFiles = {};
@@ -592,7 +597,7 @@ class FileSystemState {
       // Try to get the existing instance.
       file = _uriToFile[uri];
       // If we have a file, call it the canonical one and return it.
-      if (file != null && file.path == path) {
+      if (file != null) {
         _pathToCanonicalFile[path] = file;
         return file;
       }
@@ -645,6 +650,26 @@ class FileSystemState {
     return allFiles
       ..remove(canonicalFile)
       ..insert(0, canonicalFile);
+  }
+
+  /**
+   * Return `true` if there is a URI that can be resolved to the [path].
+   *
+   * When a file exists, but for the URI that corresponds to the file is
+   * resolved to another file, e.g. a generated one in Bazel, Gn, etc, we
+   * cannot analyze the original file.
+   */
+  bool hasUri(String path) {
+    bool flag = _hasUriForPath[path];
+    if (flag == null) {
+      File resource = _resourceProvider.getFile(path);
+      Source fileSource = resource.createSource();
+      Uri uri = _sourceFactory.restoreUri(fileSource);
+      Source uriSource = _sourceFactory.forUri2(uri);
+      flag = uriSource.fullName == path;
+      _hasUriForPath[path] = flag;
+    }
+    return flag;
   }
 
   /**

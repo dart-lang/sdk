@@ -74,7 +74,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 13;
+  static const int DATA_VERSION = 14;
 
   /**
    * The name of the driver, e.g. the name of the folder.
@@ -416,6 +416,9 @@ class AnalysisDriver {
    * The results of analysis are eventually produced by the [results] stream.
    */
   void addFile(String path) {
+    if (!_fsState.hasUri(path)) {
+      return;
+    }
     if (AnalysisEngine.isDartFileName(path)) {
       _addedFiles.add(path);
       _filesToAnalyze.add(path);
@@ -497,9 +500,13 @@ class AnalysisDriver {
 
   /**
    * Return a [Future] that completes with the [AnalysisDriverUnitIndex] for
-   * the file with the given [path].
+   * the file with the given [path], or with `null` if the file cannot be
+   * analyzed.
    */
   Future<AnalysisDriverUnitIndex> getIndex(String path) {
+    if (!_fsState.hasUri(path)) {
+      return null;
+    }
     var completer = new Completer<AnalysisDriverUnitIndex>();
     _indexRequestedFiles
         .putIfAbsent(path, () => <Completer<AnalysisDriverUnitIndex>>[])
@@ -511,8 +518,8 @@ class AnalysisDriver {
 
   /**
    * Return a [Future] that completes with a [AnalysisResult] for the Dart
-   * file with the given [path]. If the file is not a Dart file, the [Future]
-   * completes with `null`.
+   * file with the given [path]. If the file is not a Dart file or cannot
+   * be analyzed, the [Future] completes with `null`.
    *
    * The [path] must be absolute and normalized.
    *
@@ -527,6 +534,10 @@ class AnalysisDriver {
    * state transitions to "idle".
    */
   Future<AnalysisResult> getResult(String path) {
+    if (!_fsState.hasUri(path)) {
+      return null;
+    }
+
     // Return the cached result.
     {
       AnalysisResult result = _priorityResults[path];
@@ -560,9 +571,12 @@ class AnalysisDriver {
 
   /**
    * Return a [Future] that completes with the [CompilationUnitElement] for the
-   * file with the given [path].
+   * file with the given [path], or with `null` if the file cannot be analyzed.
    */
   Future<CompilationUnitElement> getUnitElement(String path) {
+    if (!_fsState.hasUri(path)) {
+      return null;
+    }
     var completer = new Completer<CompilationUnitElement>();
     _unitElementRequestedFiles
         .putIfAbsent(path, () => <Completer<CompilationUnitElement>>[])
