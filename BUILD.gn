@@ -42,6 +42,9 @@ group("runtime") {
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
     "runtime/vm:patched_sdk",
+
+    # TODO(rmacnak): Link this into 'dart'
+    "utils/kernel-service:kernel-service",
   ]
 }
 
@@ -122,9 +125,7 @@ action("create_sdk") {
     rebase_path("$root_gen_dir"),
   ]
   if (defined(is_fuchsia) && is_fuchsia_host) {
-    args += [
-      "--copy_libs"
-    ]
+    args += [ "--copy_libs" ]
   }
 }
 
@@ -173,11 +174,10 @@ group("samples") {
   ]
 }
 
-
 # The rules below build a qemu Fuchsia OS image that includes the Dart tree
 # under /system/test/dart. Building this image is gated by the GN argument
 # 'dart_build_fuchsia_test_image' because building the image is slow.
-if (defined(is_fuchsia) && (is_fuchsia)) {
+if (defined(is_fuchsia) && is_fuchsia) {
   declare_args() {
     dart_build_fuchsia_test_image = false
   }
@@ -217,10 +217,10 @@ if (defined(is_fuchsia) && (is_fuchsia)) {
     action("generate_dart_test_image") {
       testonly = true
       deps = [
-        "runtime/bin:dart",
-        "runtime/bin:run_vm_tests",
-        "runtime/bin:process_test",
         ":generate_dart_test_manifest",
+        "runtime/bin:dart",
+        "runtime/bin:process_test",
+        "runtime/bin:run_vm_tests",
       ]
 
       input = "$target_gen_dir/dart_test_tree.manifest"
