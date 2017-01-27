@@ -1133,7 +1133,8 @@ dart.getMethodType = function(type, name) {
 dart.getFieldType = function(type, name) {
   let sigObj = type[dart._fieldSig];
   if (sigObj === void 0) return void 0;
-  return sigObj[name];
+  let fieldType = sigObj[name];
+  return fieldType instanceof Array ? fieldType[0] : fieldType;
 };
 dart.getSetterType = function(type, name) {
   let sigObj = type[dart._setterSig];
@@ -1923,6 +1924,28 @@ dart.dload = function(obj, field) {
   }
   return dart.noSuchMethod(obj, new dart.InvocationImpl(field, [], {isGetter: true}));
 };
+dart._stripGenericArguments = function(type) {
+  let genericClass = dart.getGenericClass(type);
+  if (genericClass != null) return genericClass();
+  return type;
+};
+dart.dputLegacy = function(obj, field, value) {
+  let f = dart._canonicalMember(obj, field);
+  dart._trackCall(obj);
+  if (f != null) {
+    let objType = dart.getType(obj);
+    let setterType = dart.getSetterType(objType, f);
+    if (setterType != void 0) {
+      return obj[f] = dart.check(value, dart._stripGenericArguments(setterType.args[0]));
+    } else {
+      let fieldType = dart.getFieldType(objType, f);
+      if (fieldType != void 0) {
+        return obj[f] = dart.check(value, dart._stripGenericArguments(fieldType));
+      }
+    }
+  }
+  return dart.noSuchMethod(obj, new dart.InvocationImpl(field, [value], {isSetter: true}));
+};
 dart.dput = function(obj, field, value) {
   let f = dart._canonicalMember(obj, field);
   dart._trackCall(obj);
@@ -1930,15 +1953,11 @@ dart.dput = function(obj, field, value) {
     let objType = dart.getType(obj);
     let setterType = dart.getSetterType(objType, f);
     if (setterType != void 0) {
-      if (dart.test(dart.instanceOfOrNull(value, setterType.args[0]))) {
-        return obj[f] = value;
-      }
+      return obj[f] = dart.check(value, setterType.args[0]);
     } else {
       let fieldType = dart.getFieldType(objType, f);
       if (fieldType != void 0) {
-        if (dart.test(dart.instanceOfOrNull(value, fieldType))) {
-          return obj[f] = value;
-        }
+        return obj[f] = dart.check(value, fieldType);
       }
     }
   }
@@ -13641,7 +13660,7 @@ _js_mirrors._dload = function(obj, name) {
 };
 dart.lazyFn(_js_mirrors._dload, () => dynamicAndStringTodynamic());
 _js_mirrors._dput = function(obj, name, val) {
-  _js_mirrors._dart.dput(obj, name, val);
+  _js_mirrors._dart.dputLegacy(obj, name, val);
 };
 dart.lazyFn(_js_mirrors._dput, () => dynamicAndStringAnddynamicTovoid());
 _js_mirrors._dcall = function(obj, args) {

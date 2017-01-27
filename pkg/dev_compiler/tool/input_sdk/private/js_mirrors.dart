@@ -49,7 +49,7 @@ dynamic _dload(obj, String name) {
 }
 
 void _dput(obj, String name, val) {
-  JS('', '#.dput(#, #, #)', _dart, obj, name, val);
+  JS('', '#.dputLegacy(#, #, #)', _dart, obj, name, val);
 }
 
 dynamic _dcall(obj, List args) {

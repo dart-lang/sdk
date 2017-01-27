@@ -46,6 +46,36 @@ dload(obj, field) {
       obj, new InvocationImpl(field, JS('', '[]'), isGetter: true));
 }
 
+_stripGenericArguments(type) {
+  var genericClass = getGenericClass(type);
+  if (genericClass != null) return JS('', '#()', genericClass);
+  return type;
+}
+
+// Version of dput that matches legacy Dart 1 type check rules.
+// TODO(jacobr): remove this temporary workaround when mirrors based
+// PageLoader code can generate the correct reified generic types.
+dputLegacy(obj, field, value) {
+  var f = _canonicalMember(obj, field);
+  _trackCall(obj);
+  if (f != null) {
+    var objType = getType(obj);
+    var setterType = getSetterType(objType, f);
+    if (JS('bool', '# != void 0', setterType)) {
+      return JS('', '#[#] = #', obj, f, check(value,  _stripGenericArguments(JS('', '#.args[0]', setterType))));
+    } else {
+      var fieldType = getFieldType(objType, f);
+      // TODO(jacobr): add metadata tracking which fields are final and throw
+      // if a setter is called on a final field.
+      if (JS('bool', '# != void 0', fieldType)) {
+        return JS('', '#[#] = #', obj, f, check(value, _stripGenericArguments(fieldType)));
+      }
+    }
+  }
+  return noSuchMethod(
+      obj, new InvocationImpl(field, JS('', '[#]', value), isSetter: true));
+}
+
 dput(obj, field, value) {
   var f = _canonicalMember(obj, field);
   _trackCall(obj);
@@ -53,21 +83,13 @@ dput(obj, field, value) {
     var objType = getType(obj);
     var setterType = getSetterType(objType, f);
     if (JS('bool', '# != void 0', setterType)) {
-      // TODO(jacobr): throw a type error instead of a NoSuchMethodError if
-      // the type of the setter doesn't match.
-      if (instanceOfOrNull(value, JS('', '#.args[0]', setterType))) {
-        return JS('', '#[#] = #', obj, f, value);
-      }
+      return JS('', '#[#] = #', obj, f, check(value,  JS('', '#.args[0]', setterType)));
     } else {
       var fieldType = getFieldType(objType, f);
       // TODO(jacobr): add metadata tracking which fields are final and throw
       // if a setter is called on a final field.
       if (JS('bool', '# != void 0', fieldType)) {
-        // TODO(jacobr): throw a type error instead of a NoSuchMethodError if
-        // the type of the field doesn't match.
-        if (instanceOfOrNull(value, fieldType)) {
-          return JS('', '#[#] = #', obj, f, value);
-        }
+        return JS('', '#[#] = #', obj, f, check(value, fieldType));
       }
     }
   }
