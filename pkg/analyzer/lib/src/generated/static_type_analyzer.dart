@@ -278,16 +278,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitAwaitExpression(AwaitExpression node) {
-    DartType staticExpressionType = _getStaticType(node.expression);
-    if (staticExpressionType == null) {
-      // TODO(brianwilkerson) Determine whether this can still happen.
-      staticExpressionType = _dynamicType;
+    // Await the Future. This results in whatever type is (ultimately) returned.
+    DartType awaitType(DartType awaitedType) {
+      if (awaitedType == null) {
+        return null;
+      }
+      if (awaitedType.isDartAsyncFutureOr) {
+        return awaitType((awaitedType as InterfaceType).typeArguments[0]);
+      }
+      return awaitedType.flattenFutures(_typeSystem);
     }
-    DartType staticType = staticExpressionType.flattenFutures(_typeSystem);
-    _recordStaticType(node, staticType);
-    DartType propagatedExpressionType = node.expression.propagatedType;
-    DartType propagatedType =
-        propagatedExpressionType?.flattenFutures(_typeSystem);
+
+    _recordStaticType(node, awaitType(_getStaticType(node.expression)));
+    DartType propagatedType = awaitType(node.expression.propagatedType);
     _resolver.recordPropagatedTypeIfBetter(node, propagatedType);
     return null;
   }
