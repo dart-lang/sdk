@@ -242,9 +242,10 @@ class Driver implements ServerStarter {
       "incremental-resolution-validation";
 
   /**
-   * The name of the option used to enable using the new analysis driver.
+   * The name of the option used to disable using the new analysis driver.
    */
-  static const String ENABLE_NEW_ANALYSIS_DRIVER = 'enable-new-analysis-driver';
+  static const String DISABLE_NEW_ANALYSIS_DRIVER =
+      'disable-new-analysis-driver';
 
   /**
    * The name of the option used to enable using pub summary manager.
@@ -393,7 +394,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.enableNewAnalysisDriver =
-        results[ENABLE_NEW_ANALYSIS_DRIVER];
+        !results[DISABLE_NEW_ANALYSIS_DRIVER];
     analysisServerOptions.enablePubSummaryManager =
         results[ENABLE_PUB_SUMMARY_MANAGER];
     analysisServerOptions.finerGrainedInvalidation =
@@ -543,8 +544,8 @@ class Driver implements ServerStarter {
         help: "enable validation of incremental resolution results (slow)",
         defaultsTo: false,
         negatable: false);
-    parser.addFlag(ENABLE_NEW_ANALYSIS_DRIVER,
-        help: "enable using new analysis driver",
+    parser.addFlag(DISABLE_NEW_ANALYSIS_DRIVER,
+        help: "disable using new analysis driver",
         defaultsTo: false,
         negatable: false);
     parser.addFlag(ENABLE_PUB_SUMMARY_MANAGER,
