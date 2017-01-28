@@ -2717,7 +2717,7 @@ class A<T> {}
 
 class B<T extends num> {}
 
-class C<S extends int, T extends B<S>, U extends B> {}
+class C<S extends int, T extends B<S>, U extends A> {}
 
 void test() {
 //
@@ -2729,13 +2729,13 @@ void test() {
   var cc = new C();
 }
 ''';
-    await resolveTestUnit(code, noErrors: false);
+    await resolveTestUnit(code);
     expectIdentifierType('ai', "A<dynamic>");
     expectIdentifierType('bi', "B<num>");
-    expectIdentifierType('ci', "C<int, B<int>, B<dynamic>>");
+    expectIdentifierType('ci', "C<int, B<int>, A<dynamic>>");
     expectIdentifierType('aa', "A<dynamic>");
     expectIdentifierType('bb', "B<num>");
-    expectIdentifierType('cc', "C<int, B<int>, B<dynamic>>");
+    expectIdentifierType('cc', "C<int, B<int>, A<dynamic>>");
   }
 
   test_instantiateToBounds_class_error_recursion() async {
@@ -2767,6 +2767,28 @@ C c;
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
     expectIdentifierType('c;', 'C<dynamic>');
+  }
+
+  test_instantiateToBounds_class_error_typedef() async {
+    String code = r'''
+typedef T F<T>(T x);
+class C<T extends F<T>> {}
+C c;
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
+    expectIdentifierType('c;', 'C<dynamic>');
+  }
+
+  test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
+    String code = r'''
+class C<T0 extends Map<T1, T2>, T1 extends List, T2 extends int> {}
+C c;
+''';
+    await resolveTestUnit(code);
+    assertNoErrors(testSource);
+    expectIdentifierType(
+        'c;', 'C<Map<List<dynamic>, int>, List<dynamic>, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_after() async {
@@ -2814,11 +2836,12 @@ C c;
 class A<T> {}
 class B<T extends num> {}
 class C<T extends List<int>> {}
-
+class D<T extends A> {}
 void main() {
   A a;
   B b;
   C c;
+  D d;
 }
 ''';
     await resolveTestUnit(code);
@@ -2826,6 +2849,7 @@ void main() {
     expectIdentifierType('a;', 'A<dynamic>');
     expectIdentifierType('b;', 'B<num>');
     expectIdentifierType('c;', 'C<List<int>>');
+    expectIdentifierType('d;', 'D<A<dynamic>>');
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before() async {
@@ -2858,29 +2882,51 @@ class C<T> {
     expectStaticInvokeType('m(null)', '(T) → void');
   }
 
-  test_notInstantiatedBound_direct() async {
+  test_notInstantiatedBound_direct_class_class() async {
     String code = r'''
-class A<T> {}
+class A<T extends int> {}
 class C<T extends A> {}
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
   }
 
-  test_notInstantiatedBound_indirect() async {
+  test_notInstantiatedBound_direct_class_typedef() async {
+    // Check that if the bound of a class is an uninstantiated typedef
+    // we emit an error
+    String code = r'''
+typedef void F<T extends int>();
+class C<T extends F> {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_direct_typedef_class() async {
+    // Check that if the bound of a typeded is an uninstantiated class
+    // we emit an error
+    String code = r'''
+class C<T extends int> {}
+typedef void F<T extends C>();
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
+  }
+
+  test_notInstantiatedBound_indirect_class_class() async {
     String code = r'''
 class A<T> {}
-class B<T> {}
+class B<T extends int> {}
 class C<T extends A<B>> {}
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [StrongModeCode.NOT_INSTANTIATED_BOUND]);
   }
 
-  test_notInstantiatedBound_indirect2() async {
+  test_notInstantiatedBound_indirect_class_class2() async {
     String code = r'''
 class A<K, V> {}
-class B<T> {}
+class B<T extends int> {}
 class C<T extends A<B, B>> {}
 ''';
     await resolveTestUnit(code, noErrors: false);
