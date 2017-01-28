@@ -88,10 +88,6 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaLoadElimination(compiler, closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
-        // After GVN and load elimination the same value may be used in code
-        // controlled by a test on the value, so redo 'conversion insertion' to
-        // learn from the refined type.
-        new SsaTypeConversionInserter(closedWorld),
         new SsaTypePropagator(compiler, closedWorld),
         new SsaValueRangeAnalyzer(backend.helpers, closedWorld, this),
         // Previous optimizations may have generated new
