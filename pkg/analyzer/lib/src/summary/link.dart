@@ -539,6 +539,9 @@ class ClassElementForLink_Class extends ClassElementForLink
       _unlinkedClass.interfaces.map(_computeInterfaceType).toList();
 
   @override
+  bool get isEnum => false;
+
+  @override
   bool get isMixinApplication => _unlinkedClass.isMixinApplication;
 
   @override
@@ -668,7 +671,7 @@ class ClassElementForLink_Class extends ClassElementForLink
   InterfaceType _computeInterfaceType(EntityRef typeRef) {
     if (typeRef != null) {
       DartType type = enclosingElement.resolveTypeRef(typeRef, this);
-      if (type is InterfaceType) {
+      if (type is InterfaceType && !type.element.isEnum) {
         return type;
       }
       // In the event that the `typeRef` isn't an interface type (which may
@@ -730,6 +733,9 @@ class ClassElementForLink_Enum extends ClassElementForLink
 
   @override
   List<InterfaceType> get interfaces => const [];
+
+  @override
+  bool get isEnum => true;
 
   @override
   bool get isObject => false;

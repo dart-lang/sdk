@@ -156,6 +156,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     element.localVariables = holder.localVariables;
     element.parameters = holder.parameters;
     element.isConst = node.constKeyword != null;
+    element.isCycleFree = element.isConst;
     if (body.isAsynchronous) {
       element.asynchronous = true;
     }

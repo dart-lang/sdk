@@ -2928,6 +2928,28 @@ enum E {
     checkLibrary('enum E1 { v1 } enum E2 { v2 }');
   }
 
+  test_error_extendsEnum() {
+    checkLibrary('''
+enum E {a, b, c}
+
+class M {}
+
+class A extends E {
+  foo() {}
+}
+
+class B implements E, M {
+  foo() {}
+}
+
+class C extends Object with E, M {
+  foo() {}
+}
+
+class D = Object with M, E;
+''');
+  }
+
   test_executable_parameter_type_typedef() {
     checkLibrary(r'''
 typedef F(int p);

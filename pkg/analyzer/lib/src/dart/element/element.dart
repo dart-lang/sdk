@@ -730,7 +730,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _interfaces = _unlinkedClass.interfaces
           .map((EntityRef t) => context.resolveTypeRef(t, this))
-          .where((DartType type) => type is InterfaceType)
+          .where(_isClassInterfaceType)
           .toList(growable: false);
     }
     return _interfaces ?? const <InterfaceType>[];
@@ -837,7 +837,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _mixins = _unlinkedClass.mixins
           .map((EntityRef t) => context.resolveTypeRef(t, this))
-          .where((DartType type) => type is InterfaceType)
+          .where(_isClassInterfaceType)
           .toList(growable: false);
     }
     return _mixins ?? const <InterfaceType>[];
@@ -871,7 +871,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       if (_unlinkedClass.supertype != null) {
         DartType type = enclosingUnit.resynthesizerContext
             .resolveTypeRef(_unlinkedClass.supertype, this);
-        if (type is InterfaceType) {
+        if (_isClassInterfaceType(type)) {
           _supertype = type;
         } else {
           _supertype = context.typeProvider.objectType;
@@ -1274,6 +1274,13 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
     }
     return false;
+  }
+
+  /**
+   * Return `true` if the given [type] is a class [InterfaceType].
+   */
+  static bool _isClassInterfaceType(DartType type) {
+    return type is InterfaceType && !type.element.isEnum;
   }
 }
 
