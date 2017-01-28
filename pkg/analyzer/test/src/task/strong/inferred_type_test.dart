@@ -4290,7 +4290,7 @@ B v = null;
   void test_instantiateToBounds_generic2_noBound() {
     var unit = checkFile(r'''
 class A<T> {}
-class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
+class B<T extends A> {}
 B v = null;
 ''');
     expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
