@@ -72,7 +72,7 @@ vars = {
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
   "initialize_tag": "@v0.6.2+2",
   "intl_tag": "@0.14.0",
-  "isolate_tag": "@0.2.3",
+  "isolate_tag": "@1.0.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.2",
   "linter_rev": "@89f93362c5b48ef5192d77e9a28cf9590542669b",
