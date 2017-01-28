@@ -2362,6 +2362,12 @@ const vComplement = ~1;
 ''');
   }
 
+  test_const_topLevel_this() {
+    checkLibrary(r'''
+const vThis = this;
+''');
+  }
+
   test_const_topLevel_typedList() {
     checkLibrary(r'''
 const vNull = const <Null>[];

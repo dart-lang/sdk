@@ -2008,6 +2008,9 @@ class ExprTypeComputer {
         case UnlinkedExprOperation.pushNull:
           stack.add(typeProvider.nullType);
           break;
+        case UnlinkedExprOperation.pushThis:
+          stack.add(DynamicTypeImpl.instance);
+          break;
         case UnlinkedExprOperation.pushReference:
           _doPushReference();
           break;

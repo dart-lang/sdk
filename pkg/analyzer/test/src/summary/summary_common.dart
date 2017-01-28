@@ -5961,6 +5961,16 @@ int foo(int a, String b) => 0;
     ]);
   }
 
+  test_executable_param_isFinal() {
+    String text = 'f(x, final y) {}';
+    UnlinkedExecutable executable = serializeExecutableText(text);
+    expect(executable.parameters, hasLength(2));
+    expect(executable.parameters[0].name, 'x');
+    expect(executable.parameters[0].isFinal, isFalse);
+    expect(executable.parameters[1].name, 'y');
+    expect(executable.parameters[1].isFinal, isTrue);
+  }
+
   test_executable_param_kind_named() {
     UnlinkedExecutable executable = serializeExecutableText('f({x}) {}');
     UnlinkedParam param = executable.parameters[0];
@@ -6019,16 +6029,6 @@ int foo(int a, String b) => 0;
     if (includeInformative) {
       expect(executable.parameters[0].nameOffset, text.indexOf('x'));
     }
-  }
-
-  test_executable_param_isFinal() {
-    String text = 'f(x, final y) {}';
-    UnlinkedExecutable executable = serializeExecutableText(text);
-    expect(executable.parameters, hasLength(2));
-    expect(executable.parameters[0].name, 'x');
-    expect(executable.parameters[0].isFinal, isFalse);
-    expect(executable.parameters[1].name, 'y');
-    expect(executable.parameters[1].isFinal, isTrue);
   }
 
   test_executable_param_no_flags() {
@@ -7707,6 +7707,18 @@ final v = f<int, String>();
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'int'),
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'String')
         ]);
+  }
+
+  test_expr_this() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = this;
+''');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushThis,
+    ]);
   }
 
   test_expr_throwException() {
