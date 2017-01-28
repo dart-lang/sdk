@@ -3852,6 +3852,15 @@ class D {}
 ''');
   }
 
+  test_invalid_importPrefix_asTypeArgument() {
+    checkLibrary('''
+import 'dart:async' as ppp;
+class C {
+  List<ppp> v;
+}
+''');
+  }
+
   test_library() {
     checkLibrary('');
   }

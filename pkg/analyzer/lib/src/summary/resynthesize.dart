@@ -1248,9 +1248,7 @@ class _ReferenceInfo {
             : _buildType(instantiateToBoundsAllowed, numTypeArguments,
                 getTypeArgument, implicitFunctionTypeIndices);
     if (result == null) {
-      // TODO(paulberry): figure out how to handle this case (which should
-      // only occur in the event of erroneous code).
-      throw new UnimplementedError();
+      return DynamicTypeImpl.instance;
     }
     return result;
   }
