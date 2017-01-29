@@ -959,6 +959,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * and return TArgs.
    *
    * This function must be called with type [f] that was instantiated from [g].
+   *
+   * If [g] is not generic, returns an empty list.
    */
   static Iterable<DartType> recoverTypeArguments(
       FunctionType g, FunctionType f) {
@@ -968,7 +970,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     //
     // For now though, this is a pretty quick operation.
     assert(identical(g.element, f.element));
-    assert(g.typeFormals.isNotEmpty && f.typeFormals.isEmpty);
+    if (g.typeFormals.isEmpty) {
+      assert(g == f);
+      return DartType.EMPTY_LIST;
+    }
+    assert(f.typeFormals.isEmpty);
     assert(g.typeFormals.length + g.typeArguments.length ==
         f.typeArguments.length);
 

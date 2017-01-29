@@ -3999,7 +3999,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     DartType invokeType = node.staticInvokeType;
     DartType declaredType = node.function.staticType;
-    if (invokeType is FunctionType && declaredType is FunctionType) {
+    if (invokeType is FunctionType &&
+        declaredType is FunctionType &&
+        declaredType.typeFormals.isNotEmpty) {
       Iterable<DartType> typeArgs =
           FunctionTypeImpl.recoverTypeArguments(declaredType, invokeType);
       if (typeArgs.any((t) => t.isDynamic)) {
