@@ -2388,6 +2388,11 @@ enum UnlinkedExprOperation {
    * Push `this` expression onto the stack.
    */
   pushThis,
+
+  /**
+   * Push `super` expression onto the stack.
+   */
+  pushSuper,
 }
 
 /**

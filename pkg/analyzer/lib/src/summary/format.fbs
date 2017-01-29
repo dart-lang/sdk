@@ -812,7 +812,12 @@ enum UnlinkedExprOperation : byte {
   /**
    * Push `this` expression onto the stack.
    */
-  pushThis
+  pushThis,
+
+  /**
+   * Push `super` expression onto the stack.
+   */
+  pushSuper
 }
 
 /**

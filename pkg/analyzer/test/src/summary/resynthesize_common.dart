@@ -440,6 +440,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         checkElidablePrefix(oTarget.prefix);
         checkElidablePrefix(oTarget.identifier);
         compareConstAsts(r, o.propertyName, desc);
+      } else if (o is SuperExpression && r is SuperExpression) {
+        // Nothing to compare.
       } else if (o is ThisExpression && r is ThisExpression) {
         // Nothing to compare.
       } else if (o is NullLiteral) {
@@ -2359,6 +2361,12 @@ const vNotEqual = 1 != 2;
 const vNot = !true;
 const vNegate = -1;
 const vComplement = ~1;
+''');
+  }
+
+  test_const_topLevel_super() {
+    checkLibrary(r'''
+const vSuper = super;
 ''');
   }
 
@@ -4818,6 +4826,21 @@ typedef F();''');
 
   test_typedefs() {
     checkLibrary('f() {} g() {}');
+  }
+
+  @failingTest
+  test_unresolved_annotation_instanceCreation_argument_super() {
+    // TODO(scheglov) fix https://github.com/dart-lang/sdk/issues/28553
+    checkLibrary(
+        '''
+class A {
+  const A(_);
+}
+
+@A(super)
+class C {}
+''',
+        allowErrors: true);
   }
 
   test_unresolved_annotation_instanceCreation_argument_this() {

@@ -7709,6 +7709,18 @@ final v = f<int, String>();
         ]);
   }
 
+  test_expr_super() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = super;
+''');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushSuper,
+    ]);
+  }
+
   test_expr_this() {
     if (skipNonConstInitializers) {
       return;
@@ -9202,6 +9214,28 @@ D d;''');
     addNamedSource('/foo.dart', 'const b = null;');
     serializeLibraryText('@a import "foo.dart"; const a = b;');
     checkAnnotationA(unlinkedUnits[0].imports[0].annotations);
+  }
+
+  test_metadata_invalid_instanceCreation_argument_super() {
+    List<UnlinkedExpr> annotations = serializeClassText('''
+class A {
+  const A(_);
+}
+
+@A(super)
+class C {}
+''').annotations;
+    expect(annotations, hasLength(1));
+    assertUnlinkedConst(annotations[0], operators: [
+      UnlinkedExprOperation.pushSuper,
+      UnlinkedExprOperation.invokeConstructor,
+    ], ints: [
+      0,
+      1
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'A',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
   }
 
   test_metadata_invalid_instanceCreation_argument_this() {

@@ -476,6 +476,9 @@ class _ConstExprBuilder {
           Expression expression = _pop();
           _push(AstTestFactory.awaitExpression(expression));
           break;
+        case UnlinkedExprOperation.pushSuper:
+          _push(AstTestFactory.superExpression());
+          break;
         case UnlinkedExprOperation.pushThis:
           _push(AstTestFactory.thisExpression());
           break;
