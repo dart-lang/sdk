@@ -27,6 +27,8 @@ final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
+generic_local_functions_test: DartkCompileTimeError # Issue 28515
+generic_methods_generic_function_parameter_test: DartkCompileTimeError # Issue 28515
 metadata_test: DartkCompileTimeError
 multiline_newline_test/01: DartkCompileTimeError
 multiline_newline_test/02: DartkCompileTimeError
