@@ -2088,6 +2088,19 @@ include: package:boo/other_options.yaml
     // No error means success.
   }
 
+  test_deleteRoot_hasAnalysisOptions() async {
+    newFile([projPath, optionsFileName], '');
+
+    // Add the root.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+
+    // Remove the root, with the analysis options file.
+    // No exceptions.
+    resourceProvider.deleteFolder(projPath);
+    await pumpEventQueue();
+  }
+
   test_embedder_options() async {
     // Create files.
     String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);

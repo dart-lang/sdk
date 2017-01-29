@@ -125,7 +125,7 @@ const Map<String, LibraryInfo> libraries = const {
 
     String path = resourceProvider.convertPath('/some/directory/path');
     String filePath =
-    pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(
         filePath,
         '''
@@ -300,6 +300,12 @@ bar:$barUri
   void test_createPackageMap_none() {
     String rootPath = resourceProvider.convertPath('/root');
     resourceProvider.newFolder(rootPath);
+    Packages packages = builder.createPackageMap(rootPath);
+    expect(packages, same(Packages.noPackages));
+  }
+
+  void test_createPackageMap_rootDoesNotExist() {
+    String rootPath = resourceProvider.convertPath('/root');
     Packages packages = builder.createPackageMap(rootPath);
     expect(packages, same(Packages.noPackages));
   }

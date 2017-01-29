@@ -522,8 +522,9 @@ class ContextBuilder {
   Resource _findPackagesLocation(String path) {
     Folder folder = resourceProvider.getFolder(path);
     if (!folder.exists) {
-      throw new ArgumentError.value(path, "path", "Directory does not exist.");
+      return null;
     }
+
     File checkForConfigFile(Folder folder) {
       File file = folder.getChildAssumingFile('.packages');
       if (file.exists) {
