@@ -1048,6 +1048,22 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try using a normal parameter.");
 
   /**
+   * Temporary error to work around dartbug.com/28515.
+   *
+   * We cannot yet properly summarize function-typed parameters with generic
+   * arguments, so to prevent confusion, we produce an error for any such
+   * constructs (regardless of whether summaries are in use).
+   *
+   * TODO(paulberry): remove this once dartbug.com/28515 is fixed.
+   */
+  static const GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED =
+      const CompileTimeErrorCode(
+          'GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED',
+          "Analysis of generic function typed parameters is not yet supported.",
+          "Try using an explicit typedef, or changing type parameters to "
+          "`dynamic`.");
+
+  /**
    * 7.2 Getters: It is a compile-time error if a class has both a getter and a
    * method with the same name.
    *

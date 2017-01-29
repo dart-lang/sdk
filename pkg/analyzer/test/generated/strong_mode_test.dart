@@ -2154,9 +2154,12 @@ main() {
   }
 
   test_genericFunction_parameter() async {
-    await resolveTestUnit(r'''
+    await resolveTestUnit(
+        r'''
 void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}
-''');
+''',
+        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+        );
     expectFunctionType('f', '<T>(T) → T',
         elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f = findIdentifier('f');
@@ -2276,7 +2279,8 @@ main() {
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {
-    await resolveTestUnit(r'''
+    await resolveTestUnit(
+        r'''
 class C<E> {
   /*=T*/ f/*<T>*/(/*=T*/ e) => null;
   static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
@@ -2298,7 +2302,9 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var localCall = (lf)/*<int>*/(3);
   var paramCall = (pf)/*<int>*/(3);
 }
-''');
+''',
+        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+        );
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
     expectIdentifierType('staticFieldCall', "int");
@@ -2310,7 +2316,8 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   }
 
   test_genericMethod_functionExpressionInvocation_inferred() async {
-    await resolveTestUnit(r'''
+    await resolveTestUnit(
+        r'''
 class C<E> {
   /*=T*/ f/*<T>*/(/*=T*/ e) => null;
   static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
@@ -2332,7 +2339,9 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var localCall = (lf)(3);
   var paramCall = (pf)(3);
 }
-''');
+''',
+        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+        );
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
     expectIdentifierType('staticFieldCall', "int");
@@ -2344,7 +2353,8 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   }
 
   test_genericMethod_functionInvocation_explicit() async {
-    await resolveTestUnit(r'''
+    await resolveTestUnit(
+        r'''
 class C<E> {
   /*=T*/ f/*<T>*/(/*=T*/ e) => null;
   static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
@@ -2364,7 +2374,9 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var localCall = lf/*<int>*/(3);
   var paramCall = pf/*<int>*/(3);
 }
-''');
+''',
+        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+        );
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
     expectIdentifierType('staticFieldCall', "int");
@@ -2375,7 +2387,8 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   }
 
   test_genericMethod_functionInvocation_inferred() async {
-    await resolveTestUnit(r'''
+    await resolveTestUnit(
+        r'''
 class C<E> {
   /*=T*/ f/*<T>*/(/*=T*/ e) => null;
   static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
@@ -2395,7 +2408,9 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var localCall = lf(3);
   var paramCall = pf(3);
 }
-''');
+''',
+        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+        );
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
     expectIdentifierType('staticFieldCall', "int");
@@ -2640,7 +2655,8 @@ C toSpan(dynamic element) {
   }
 
   test_genericMethod_tearoff() async {
-    await resolveTestUnit(r'''
+    await resolveTestUnit(
+        r'''
 class C<E> {
   /*=T*/ f/*<T>*/(E e) => null;
   static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
@@ -2660,7 +2676,9 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var localTearOff = lf;
   var paramTearOff = pf;
 }
-''');
+''',
+        noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
+        );
     expectIdentifierType('methodTearOff', "<T>(int) → T");
     expectIdentifierType('staticTearOff', "<T>(T) → T");
     expectIdentifierType('staticFieldTearOff', "<T>(T) → T");

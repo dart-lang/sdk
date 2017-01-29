@@ -386,6 +386,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitTypeParameter(TypeParameter node) {
+    if (node.parent.parent is FunctionTypedFormalParameter) {
+      // Work around dartbug.com/28515.
+      // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
+      Element element = new TypeParameterElementImpl.forNode(node.name);
+      node.name?.staticElement = element;
+      return null;
+    }
     Element element = _match(node.name, _walker.getTypeParameter());
     super.visitTypeParameter(node);
     _resolveMetadata(node, node.metadata, element);

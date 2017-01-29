@@ -4,6 +4,9 @@
 
 [ $compiler == dart2analyzer ]
 
+generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
+generic_local_functions_test: CompileTimeError # Issue 28515
+
 regress_26668_test: Fail # Issue 26678
 regress_27617_test/1: MissingCompileTimeError
 
