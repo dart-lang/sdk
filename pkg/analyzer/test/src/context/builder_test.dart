@@ -13,6 +13,9 @@ import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:args/args.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -527,6 +530,38 @@ b:${pathContext.toUri(packageB)}
     expect(htmlSource.exists(), isTrue);
   }
 
+  void test_getAnalysisOptions_default_bazel() {
+    MockLintRule mockLintRule = new MockLintRule('mock_lint_rule');
+    Registry.ruleRegistry.register(mockLintRule);
+    MockLintRule mockLintRule2 = new MockLintRule('mock_lint_rule2');
+    Registry.ruleRegistry.register(mockLintRule2);
+    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+    builderOptions.defaultOptions = defaultOptions;
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.lint = true;
+    expected.lintRules = <Linter>[mockLintRule];
+    createFile(resourceProvider.convertPath('/root/WORKSPACE'), '');
+    createFile(
+        resourceProvider
+            .convertPath('/root/dart/analysis_options/lib/default.yaml'),
+        '''
+linter:
+  rules:
+    - mock_lint_rule
+''');
+    createFile(
+        resourceProvider
+            .convertPath('/root/dart/analysis_options/lib/flutter.yaml'),
+        '''
+linter:
+  rules:
+    - mock_lint_rule2
+''');
+    AnalysisOptions options = builder
+        .getAnalysisOptions(resourceProvider.convertPath('/root/some/path'));
+    _expectEqualOptions(options, expected);
+  }
+
   void test_getAnalysisOptions_default_noOverrides() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     defaultOptions.enableLazyAssignmentOperators = true;
@@ -550,6 +585,7 @@ linter:
 
   void test_getAnalysisOptions_default_overrides() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+    defaultOptions.enableSuperMixins = false;
     defaultOptions.enableLazyAssignmentOperators = true;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
@@ -726,6 +762,10 @@ analyzer:
     expect(actual.incrementalApi, expected.incrementalApi);
     expect(actual.incrementalValidation, expected.incrementalValidation);
     expect(actual.lint, expected.lint);
+    expect(
+      actual.lintRules.map((l) => l.name),
+      unorderedEquals(expected.lintRules.map((l) => l.name)),
+    );
     expect(actual.preserveComments, expected.preserveComments);
     expect(actual.strongMode, expected.strongMode);
     expect(actual.strongModeHints, expected.strongModeHints);
@@ -763,4 +803,15 @@ class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
     });
     expect(locator.embedderYamls, hasLength(1));
   }
+}
+
+class MockLintRule implements LintRule {
+  final String _name;
+
+  MockLintRule(this._name);
+
+  @override
+  String get name => _name;
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

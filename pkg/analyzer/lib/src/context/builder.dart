@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
@@ -245,36 +246,15 @@ class ContextBuilder {
   }
 
   SourceFactory createSourceFactory(String rootPath, AnalysisOptions options) {
-    BazelWorkspace bazelWorkspace =
-        BazelWorkspace.find(resourceProvider, rootPath);
-    if (bazelWorkspace != null) {
-      List<UriResolver> resolvers = <UriResolver>[
-        new DartUriResolver(findSdk(null, options)),
-        new BazelPackageUriResolver(bazelWorkspace),
-        new BazelFileUriResolver(bazelWorkspace)
-      ];
-      return new SourceFactory(resolvers, null, resourceProvider);
-    }
+    Workspace workspace = createWorkspace(rootPath);
+    DartSdk sdk = findSdk(workspace.packageMap, options);
+    return workspace.createSourceFactory(sdk);
+  }
 
-    GnWorkspace gnWorkspace = GnWorkspace.find(resourceProvider, rootPath);
-    if (gnWorkspace != null) {
-      DartSdk sdk = findSdk(gnWorkspace.packageMap, options);
-      List<UriResolver> resolvers = <UriResolver>[
-        new DartUriResolver(sdk),
-        new GnPackageUriResolver(gnWorkspace),
-        new GnFileUriResolver(gnWorkspace)
-      ];
-      return new SourceFactory(resolvers, null, resourceProvider);
-    }
-
-    Packages packages = createPackageMap(rootPath);
-    Map<String, List<Folder>> packageMap = convertPackagesToMap(packages);
-    List<UriResolver> resolvers = <UriResolver>[
-      new DartUriResolver(findSdk(packageMap, options)),
-      new PackageMapUriResolver(resourceProvider, packageMap),
-      new ResourceUriResolver(resourceProvider)
-    ];
-    return new SourceFactory(resolvers, packages, resourceProvider);
+  Workspace createWorkspace(String rootPath) {
+    Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
+    workspace ??= GnWorkspace.find(resourceProvider, rootPath);
+    return workspace ?? _BasicWorkspace.find(resourceProvider, rootPath, this);
   }
 
   /**
@@ -404,27 +384,39 @@ class ContextBuilder {
    * directory with the given [path].
    */
   AnalysisOptions getAnalysisOptions(String path) {
+    // TODO(danrubel) restructure so that we don't create a workspace
+    // both here and in createSourceFactory
+    Workspace workspace = createWorkspace(path);
+    SourceFactory sourceFactory = workspace.createSourceFactory(null);
+    AnalysisOptionsProvider optionsProvider =
+        new AnalysisOptionsProvider(sourceFactory);
+
     AnalysisOptionsImpl options = createDefaultOptions();
     File optionsFile = getOptionsFile(path);
+    Map<String, YamlNode> optionMap;
+
     if (optionsFile != null) {
-      // TODO(danrubel) restructure so that we don't recalculate the package map
-      // more than once per path.
-      Packages packages = createPackageMap(path);
-      Map<String, List<Folder>> packageMap = convertPackagesToMap(packages);
-      List<UriResolver> resolvers = <UriResolver>[
-        new ResourceUriResolver(resourceProvider),
-        new PackageMapUriResolver(resourceProvider, packageMap),
-      ];
-      SourceFactory sourceFactory =
-          new SourceFactory(resolvers, packages, resourceProvider);
       try {
-        Map<String, YamlNode> optionMap =
-            new AnalysisOptionsProvider(sourceFactory)
-                .getOptionsFromFile(optionsFile);
-        applyToAnalysisOptions(options, optionMap);
+        optionMap = optionsProvider.getOptionsFromFile(optionsFile);
       } catch (_) {
         // Ignore exceptions thrown while trying to load the options file.
       }
+    } else {
+      // Search for the default analysis options
+      // TODO(danrubel) check for flutter and use default flutter options
+      Source source =
+          sourceFactory.forUri('package:dart.analysis_options/default.yaml');
+      if (source.exists()) {
+        try {
+          optionMap = optionsProvider.getOptionsFromSource(source);
+        } catch (_) {
+          // Ignore exceptions thrown while trying to load the options file.
+        }
+      }
+    }
+
+    if (optionMap != null) {
+      applyToAnalysisOptions(options, optionMap);
       if (builderOptions.argResults != null) {
         applyAnalysisOptionFlags(options, builderOptions.argResults);
       }
@@ -710,5 +702,63 @@ class EmbedderYamlLocator {
       // File can't be read.
       return null;
     }
+  }
+}
+
+/**
+ * Information about a default Dart workspace.
+ */
+class _BasicWorkspace extends Workspace {
+  /**
+   * The [ResourceProvider] by which paths are converted into [Resource]s.
+   */
+  final ResourceProvider provider;
+
+  /**
+   * The absolute workspace root path (the directory containing the `.jiri_root`
+   * directory).
+   */
+  final String root;
+
+  final ContextBuilder _builder;
+
+  Map<String, List<Folder>> _packageMap;
+
+  Packages _packages;
+
+  _BasicWorkspace._(this.provider, this.root, this._builder);
+
+  @override
+  Map<String, List<Folder>> get packageMap {
+    _packageMap ??= _builder.convertPackagesToMap(packages);
+    return _packageMap;
+  }
+
+  Packages get packages {
+    _packages ??= _builder.createPackageMap(root);
+    return _packages;
+  }
+
+  @override
+  UriResolver get packageUriResolver =>
+      new PackageMapUriResolver(provider, packageMap);
+
+  @override
+  SourceFactory createSourceFactory(DartSdk sdk) {
+    List<UriResolver> resolvers = <UriResolver>[];
+    if (sdk != null) {
+      resolvers.add(new DartUriResolver(sdk));
+    }
+    resolvers.add(packageUriResolver);
+    resolvers.add(new ResourceUriResolver(provider));
+    return new SourceFactory(resolvers, packages, provider);
+  }
+
+  /**
+   * Find the basic workspace that contains the given [path].
+   */
+  static _BasicWorkspace find(
+      ResourceProvider resourceProvider, String path, ContextBuilder builder) {
+    return new _BasicWorkspace._(resourceProvider, path, builder);
   }
 }
