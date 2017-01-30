@@ -512,6 +512,21 @@ abstract class Uri {
    */
   String get origin;
 
+  /// Whether the scheme of this [Uri] is [scheme].
+  ///
+  /// The [scheme] should be the same as the one returned by [Uri.scheme],
+  /// but doesn't have to be case-normalized to lower-case characters.
+  ///
+  /// Example:
+  /// ```dart
+  /// var uri = Uri.parse("http://example.com/");
+  /// print(uri.isScheme("HTTP"));  // Prints true.
+  /// ```
+  ///
+  /// A `null` or empty [scheme] string matches a URI with no scheme
+  /// (one where [hasScheme] returns false).
+  bool isScheme(String scheme);
+
   /**
    * Returns the file path from a file URI.
    *
@@ -1531,6 +1546,44 @@ class _Uri implements Uri {
   String get query => _query ?? "";
 
   String get fragment => _fragment ?? "";
+
+  bool isScheme(String scheme) {
+    String thisScheme = this.scheme;
+    if (scheme == null) return thisScheme.isEmpty;
+    if (scheme.length != thisScheme.length) return false;
+    return _compareScheme(scheme, thisScheme);
+  }
+
+  /// Compares scheme characters in [scheme] and at the start of [uri].
+  ///
+  /// Returns `true` if [scheme] represents the same scheme as the start of
+  /// [uri]. That means having the same characters, but possibly different case
+  /// for letters.
+  ///
+  /// This function doesn't check that the characters are valid URI scheme
+  /// characters. The [uri] is assumed to be valid, so if [scheme] matches
+  /// it, it has to be valid too.
+  ///
+  /// The length should be tested before calling this function,
+  /// so the scheme part of [uri] is known to have the same length as [scheme].
+  static bool _compareScheme(String scheme, String uri) {
+    for (int i = 0; i < scheme.length; i++) {
+      int schemeChar = scheme.codeUnitAt(i);
+      int uriChar = uri.codeUnitAt(i);
+      int delta = schemeChar ^ uriChar;
+      if (delta != 0) {
+        if (delta == 0x20) {
+          // Might be a case difference.
+          int lowerChar = uriChar | delta;
+          if (0x61 /*a*/ <= lowerChar && lowerChar <= 0x7a /*z*/) {
+            continue;
+          }
+        }
+        return false;
+      }
+    }
+    return true;
+  }
 
   // Report a parse failure.
   static void _fail(String uri, int index, String message) {
@@ -4071,6 +4124,7 @@ class _SimpleUri implements Uri {
   bool get _isHttp => _schemeEnd == 4 && _uri.startsWith("http");
   bool get _isHttps => _schemeEnd == 5 && _uri.startsWith("https");
   bool get _isPackage => _schemeEnd == 7 && _uri.startsWith("package");
+  /// Like [isScheme] but expects argument to be case normalized.
   bool _isScheme(String scheme) =>
     _schemeEnd == scheme.length && _uri.startsWith(scheme);
 
@@ -4078,6 +4132,12 @@ class _SimpleUri implements Uri {
   bool get hasEmptyPath => _pathStart == _queryStart;
 
   bool get isAbsolute => hasScheme && !hasFragment;
+
+  bool isScheme(String scheme) {
+    if (scheme == null || scheme.isEmpty) return _schemeEnd < 0;
+    if (scheme.length != _schemeEnd) return false;
+    return _Uri._compareScheme(scheme, _uri);
+  }
 
   String get scheme {
     if (_schemeEnd <= 0) return "";

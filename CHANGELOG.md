@@ -1,3 +1,9 @@
+## 1.23.0
+
+### Core library changes
+* `dart:core`: Add `Uri.isScheme` function to check the scheme of a URI.
+   Example: `uri.isScheme("http")`. Ignores case when comparing.
+    
 ## 1.22.0
 
 ### Language
