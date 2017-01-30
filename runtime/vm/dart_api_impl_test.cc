@@ -7160,7 +7160,7 @@ void NewNativePort_send123(Dart_Port dest_port_id,
 
   // Check peer validity.
   EXPECT_NOTNULL(peer);
-  EXPECT_EQ(0xDEADBEEF, *static_cast<intptr_t*>(peer));
+  EXPECT_EQ(static_cast<intptr_t>(0xDEADBEEF), *static_cast<intptr_t*>(peer));
   *static_cast<intptr_t*>(peer) = 123;
 
   // Post integer value.
@@ -7183,7 +7183,7 @@ void NewNativePort_send321(Dart_Port dest_port_id,
 
   // Check peer validity.
   EXPECT_NOTNULL(peer);
-  EXPECT_EQ(0xDEADBEEF, *static_cast<intptr_t*>(peer));
+  EXPECT_EQ(static_cast<intptr_t>(0xDEADBEEF), *static_cast<intptr_t*>(peer));
   *static_cast<intptr_t*>(peer) = 321;
 
   // Post integer value.
