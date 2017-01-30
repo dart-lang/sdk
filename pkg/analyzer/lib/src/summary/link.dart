@@ -1980,6 +1980,10 @@ class ExprTypeComputer {
       // return type.  Assume `dynamic`.
       return DynamicTypeImpl.instance;
     }
+    // If no operations, we cannot compute the type.  Assume `dynamic`.
+    if (unlinkedConst.operations.isEmpty) {
+      return DynamicTypeImpl.instance;
+    }
     // Perform RPN evaluation of the constant, using a stack of inferred types.
     for (UnlinkedExprOperation operation in unlinkedConst.operations) {
       switch (operation) {

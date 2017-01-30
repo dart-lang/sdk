@@ -127,6 +127,12 @@ abstract class AbstractConstExprSerializer {
       _serialize(expr);
     } on StateError {
       isValidConst = false;
+      operations.clear();
+      assignmentOperators.clear();
+      ints.clear();
+      doubles.clear();
+      strings.clear();
+      references.clear();
     }
   }
 
