@@ -29,6 +29,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
+import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -4168,6 +4169,24 @@ class InferenceContext {
   }
 
   /**
+   * Like [getContext] but expands a union type into a list of types.
+   */
+  Iterable<DartType> getTypes(AstNode node) {
+    DartType t = getContext(node);
+    if (t == null) {
+      return DartType.EMPTY_LIST;
+    }
+    if (t is InterfaceType && t.isDartAsyncFutureOr) {
+      var tArg = t.typeArguments[0]; // The T in FutureOr<T>
+      return [
+        _typeProvider.futureType.instantiate([tArg]),
+        tArg
+      ];
+    }
+    return [t];
+  }
+
+  /**
    * Match type [t1] against type [t2] as follows.
    * If `t1 = I<dynamic, ..., dynamic>`, then look for a supertype
    * of t1 of the form `K<S0, ..., Sm>` where `t2 = K<S0', ..., Sm'>`
@@ -4369,24 +4388,6 @@ class InferenceContext {
       return t.typeArguments[0]; // The T in FutureOr<T>
     }
     return t;
-  }
-
-  /**
-   * Like [getContext] but expands a union type into a list of types.
-   */
-  Iterable<DartType> getTypes(AstNode node) {
-    DartType t = getContext(node);
-    if (t == null) {
-      return DartType.EMPTY_LIST;
-    }
-    if (t is InterfaceType && t.isDartAsyncFutureOr) {
-      var tArg = t.typeArguments[0]; // The T in FutureOr<T>
-      return [
-        _typeProvider.futureType.instantiate([tArg]),
-        tArg
-      ];
-    }
-    return [t];
   }
 
   /**
@@ -9468,6 +9469,23 @@ class TypeProviderImpl extends TypeProviderBase {
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
     _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
     _streamDynamicType = _streamType.instantiate(<DartType>[_dynamicType]);
+    // FutureOr<T> is still fairly new, so if we're analyzing an SDK that
+    // doesn't have it yet, create an element for it.
+    _futureOrType ??= createPlaceholderFutureOr(_futureType, _objectType);
+  }
+
+  /**
+   * Create an [InterfaceType] that can be used for `FutureOr<T>` if the SDK
+   * being analyzed does not contain its own `FutureOr<T>`.  This ensures that
+   * we can analyze older SDKs.
+   */
+  static InterfaceType createPlaceholderFutureOr(
+      InterfaceType futureType, InterfaceType objectType) {
+    var compilationUnit =
+        futureType.element.getAncestor((e) => e is CompilationUnitElement);
+    var element = ElementFactory.classElement('FutureOr', objectType, ['T']);
+    element.enclosingElement = compilationUnit;
+    return element.type;
   }
 }
 
