@@ -14,7 +14,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
@@ -338,7 +337,7 @@ class SummaryDataStore {
       bool includesDartUris = false;
       bool includesFileUris = false;
       for (String uriString in bundle.unlinkedUnitUris) {
-        Uri uri = FastUri.parse(uriString);
+        Uri uri = Uri.parse(uriString);
         String scheme = uri.scheme;
         if (scheme == 'package') {
           List<String> pathSegments = uri.pathSegments;
@@ -393,9 +392,9 @@ class SummaryDataStore {
     // Check every unlinked unit whether it uses [unitUri] as a part.
     List<String> libraryUriStrings = <String>[];
     unlinkedMap.forEach((unlinkedUnitUriString, unlinkedUnit) {
-      Uri libraryUri = FastUri.parse(unlinkedUnitUriString);
+      Uri libraryUri = Uri.parse(unlinkedUnitUriString);
       for (String partUriString in unlinkedUnit.publicNamespace.parts) {
-        Uri partUri = FastUri.parse(partUriString);
+        Uri partUri = Uri.parse(partUriString);
         String partAbsoluteUriString =
             resolveRelativeUri(libraryUri, partUri).toString();
         if (partAbsoluteUriString == unitUriString) {

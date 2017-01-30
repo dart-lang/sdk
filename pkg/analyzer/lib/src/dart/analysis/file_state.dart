@@ -25,7 +25,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
@@ -492,7 +491,7 @@ class FileState {
    * Return the [FileState] for the given [relativeUri].
    */
   FileState _fileForRelativeUri(String relativeUri) {
-    Uri absoluteUri = resolveRelativeUri(uri, FastUri.parse(relativeUri));
+    Uri absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
     return _fsState.getFileForUri(absoluteUri);
   }
 

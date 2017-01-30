@@ -12,7 +12,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/workspace.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:path/path.dart';
 
 /**
@@ -127,7 +126,7 @@ class GnPackageUriResolver extends UriResolver {
 
     String sourcePath = context.relative(path, from: _packages[package]);
 
-    return FastUri.parse('package:$package/$sourcePath');
+    return Uri.parse('package:$package/$sourcePath');
   }
 }
 

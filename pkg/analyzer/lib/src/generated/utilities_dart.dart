@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 
 /**
  * Resolve the [containedUri] against [baseUri] using Dart rules.
@@ -31,7 +30,7 @@ Uri resolveRelativeUri(Uri baseUri, Uri containedUri) {
     if (scheme == DartUriResolver.DART_SCHEME) {
       String part = baseUri.path;
       if (part.indexOf('/') < 0) {
-        baseUri = FastUri.parse('$scheme:$part/$part.dart');
+        baseUri = Uri.parse('$scheme:$part/$part.dart');
       }
     }
     // foo.dart + ../bar.dart = ../bar.dart

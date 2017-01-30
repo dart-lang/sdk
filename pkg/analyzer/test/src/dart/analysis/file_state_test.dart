@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
@@ -262,7 +261,7 @@ class A2 {}
     String path = _p('/aaa/lib/a.dart');
     FileState file = fileSystemState.getFileForPath(path);
     expect(file.path, path);
-    expect(file.uri, FastUri.parse('package:aaa/a.dart'));
+    expect(file.uri, Uri.parse('package:aaa/a.dart'));
     expect(file.content, '');
     expect(file.contentHash, _md5(''));
     expect(_excludeSdk(file.importedFiles), isEmpty);
@@ -306,23 +305,23 @@ class A1 {}
 
     expect(_excludeSdk(file.importedFiles), hasLength(2));
     expect(file.importedFiles[0].path, a2);
-    expect(file.importedFiles[0].uri, FastUri.parse('package:aaa/a2.dart'));
+    expect(file.importedFiles[0].uri, Uri.parse('package:aaa/a2.dart'));
     expect(file.importedFiles[0].source, isNotNull);
     expect(file.importedFiles[1].path, b1);
-    expect(file.importedFiles[1].uri, FastUri.parse('package:bbb/b1.dart'));
+    expect(file.importedFiles[1].uri, Uri.parse('package:bbb/b1.dart'));
     expect(file.importedFiles[1].source, isNotNull);
 
     expect(file.exportedFiles, hasLength(2));
     expect(file.exportedFiles[0].path, b2);
-    expect(file.exportedFiles[0].uri, FastUri.parse('package:bbb/b2.dart'));
+    expect(file.exportedFiles[0].uri, Uri.parse('package:bbb/b2.dart'));
     expect(file.exportedFiles[0].source, isNotNull);
     expect(file.exportedFiles[1].path, a3);
-    expect(file.exportedFiles[1].uri, FastUri.parse('package:aaa/a3.dart'));
+    expect(file.exportedFiles[1].uri, Uri.parse('package:aaa/a3.dart'));
     expect(file.exportedFiles[1].source, isNotNull);
 
     expect(file.partedFiles, hasLength(1));
     expect(file.partedFiles[0].path, a4);
-    expect(file.partedFiles[0].uri, FastUri.parse('package:aaa/a4.dart'));
+    expect(file.partedFiles[0].uri, Uri.parse('package:aaa/a4.dart'));
 
     expect(_excludeSdk(file.directReferencedFiles), hasLength(5));
 
@@ -375,7 +374,7 @@ class A2 {}
 
     FileState file_a2 = fileSystemState.getFileForPath(a2);
     expect(file_a2.path, a2);
-    expect(file_a2.uri, FastUri.parse('package:aaa/a2.dart'));
+    expect(file_a2.uri, Uri.parse('package:aaa/a2.dart'));
 
     expect(file_a2.unlinked, isNotNull);
     expect(file_a2.unlinked.classes, hasLength(1));
@@ -422,7 +421,7 @@ part 'not-a2.dart';
 
   test_getFileForUri_packageVsFileUri() {
     String path = _p('/aaa/lib/a.dart');
-    var packageUri = FastUri.parse('package:aaa/a.dart');
+    var packageUri = Uri.parse('package:aaa/a.dart');
     var fileUri = provider.pathContext.toUri(path);
 
     // The files with `package:` and `file:` URIs are different.

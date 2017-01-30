@@ -12,7 +12,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/workspace.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:path/path.dart';
 
 /**
@@ -105,7 +104,7 @@ class BazelPackageUriResolver extends UriResolver {
               components[3] == 'lib') {
             String packageName = components[2];
             String pathInLib = components.skip(4).join('/');
-            return FastUri.parse('package:$packageName/$pathInLib');
+            return Uri.parse('package:$packageName/$pathInLib');
           }
         } else {
           for (int i = 2; i < components.length - 1; i++) {
@@ -113,7 +112,7 @@ class BazelPackageUriResolver extends UriResolver {
             if (component == 'lib') {
               String packageName = components.getRange(0, i).join('.');
               String pathInLib = components.skip(i + 1).join('/');
-              return FastUri.parse('package:$packageName/$pathInLib');
+              return Uri.parse('package:$packageName/$pathInLib');
             }
           }
         }

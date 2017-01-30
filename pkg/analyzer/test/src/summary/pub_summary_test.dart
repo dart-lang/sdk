@@ -9,7 +9,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1104,7 +1103,7 @@ class A {}
 ''');
       PackageBundleAssembler assembler = new PackageBundleAssembler()
         ..addUnlinkedUnit(
-            file.createSource(FastUri.parse('package:aaa/a.dart')),
+            file.createSource(Uri.parse('package:aaa/a.dart')),
             new UnlinkedUnitBuilder());
       resourceProvider.newFileWithBytes(
           resourceProvider
