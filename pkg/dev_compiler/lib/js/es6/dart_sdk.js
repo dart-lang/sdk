@@ -34484,18 +34484,7 @@ core.StackTrace = class StackTrace extends core.Object {
     return new core._StringStackTrace(stackTraceString);
   }
   static get current() {
-    if (Error.captureStackTrace != null) {
-      let error = new Error();
-      Error.captureStackTrace(error);
-      return _js_helper.getTraceFromException(error);
-    }
-    try {
-      dart.throw('');
-    } catch (_) {
-      let stackTrace = dart.stackTrace(_);
-      return stackTrace;
-    }
-
+    return _js_helper.getTraceFromException(new Error());
   }
 };
 dart.setSignature(core.StackTrace, {
