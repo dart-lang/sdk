@@ -134,6 +134,14 @@ class FastUri implements Uri {
   }
 
   @override
+  bool isScheme(String scheme) {
+    String thisScheme = this.scheme;
+    if (scheme == null) return thisScheme.isEmpty;
+    if (scheme.length != thisScheme.length) return false;
+    return _compareScheme(scheme, thisScheme);
+  }
+
+  @override
   Uri normalizePath() {
     return this;
   }
@@ -227,6 +235,39 @@ class FastUri implements Uri {
       }
     }
     return uri;
+  }
+
+  /**
+   * Compares scheme characters in [scheme] and at the start of [uri].
+   *
+   * Returns `true` if [scheme] represents the same scheme as the start of
+   * [uri]. That means having the same characters, but possibly different case
+   * for letters.
+   *
+   * This function doesn't check that the characters are valid URI scheme
+   * characters. The [uri] is assumed to be valid, so if [scheme] matches
+   * it, it has to be valid too.
+   *
+   * The length should be tested before calling this function,
+   * so the scheme part of [uri] is known to have the same length as [scheme].
+   */
+  static bool _compareScheme(String scheme, String uri) {
+    for (int i = 0; i < scheme.length; i++) {
+      int schemeChar = scheme.codeUnitAt(i);
+      int uriChar = uri.codeUnitAt(i);
+      int delta = schemeChar ^ uriChar;
+      if (delta != 0) {
+        if (delta == 0x20) {
+          // Might be a case difference.
+          int lowerChar = uriChar | delta;
+          if (0x61 /*a*/ <= lowerChar && lowerChar <= 0x7a /*z*/) {
+            continue;
+          }
+        }
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
