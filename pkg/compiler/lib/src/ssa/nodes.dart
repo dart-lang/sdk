@@ -978,76 +978,74 @@ abstract class HInstruction implements Spannable {
     // TODO(sra): It should be possible to test only jsDoubleClass and
     // jsUInt31Class, since all others are superclasses of these two.
     return containsType(
-            instructionType, backendClasses.numImplementation, closedWorld) ||
+            instructionType, backendClasses.numClass, closedWorld) ||
+        containsType(instructionType, backendClasses.intClass, closedWorld) ||
         containsType(
-            instructionType, backendClasses.intImplementation, closedWorld) ||
-        containsType(instructionType, backendClasses.positiveIntImplementation,
-            closedWorld) ||
-        containsType(instructionType, backendClasses.uint32Implementation,
-            closedWorld) ||
-        containsType(instructionType, backendClasses.uint31Implementation,
-            closedWorld) ||
+            instructionType, backendClasses.positiveIntClass, closedWorld) ||
         containsType(
-            instructionType, backendClasses.doubleImplementation, closedWorld);
+            instructionType, backendClasses.uint32Class, closedWorld) ||
+        containsType(
+            instructionType, backendClasses.uint31Class, closedWorld) ||
+        containsType(instructionType, backendClasses.doubleClass, closedWorld);
   }
 
   bool canBePrimitiveBoolean(ClosedWorld closedWorld) {
-    return containsType(instructionType,
-        closedWorld.backendClasses.boolImplementation, closedWorld);
+    return containsType(
+        instructionType, closedWorld.backendClasses.boolClass, closedWorld);
   }
 
   bool canBePrimitiveArray(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
     return containsType(
-            instructionType, backendClasses.listImplementation, closedWorld) ||
-        containsType(instructionType, backendClasses.fixedListImplementation,
-            closedWorld) ||
-        containsType(instructionType, backendClasses.growableListImplementation,
-            closedWorld) ||
-        containsType(instructionType, backendClasses.constListImplementation,
-            closedWorld);
+            instructionType, backendClasses.listClass, closedWorld) ||
+        containsType(
+            instructionType, backendClasses.fixedListClass, closedWorld) ||
+        containsType(
+            instructionType, backendClasses.growableListClass, closedWorld) ||
+        containsType(
+            instructionType, backendClasses.constListClass, closedWorld);
   }
 
   bool isIndexablePrimitive(ClosedWorld closedWorld) {
     return instructionType.containsOnlyString(closedWorld) ||
-        isInstanceOf(instructionType,
-            closedWorld.backendClasses.indexableImplementation, closedWorld);
+        isInstanceOf(instructionType, closedWorld.backendClasses.indexableClass,
+            closedWorld);
   }
 
   bool isFixedArray(ClosedWorld closedWorld) {
     BackendClasses backendClasses = closedWorld.backendClasses;
     // TODO(sra): Recognize the union of these types as well.
-    return containsOnlyType(instructionType,
-            backendClasses.fixedListImplementation, closedWorld) ||
-        containsOnlyType(instructionType,
-            backendClasses.constListImplementation, closedWorld);
+    return containsOnlyType(
+            instructionType, backendClasses.fixedListClass, closedWorld) ||
+        containsOnlyType(
+            instructionType, backendClasses.constListClass, closedWorld);
   }
 
   bool isExtendableArray(ClosedWorld closedWorld) {
     return containsOnlyType(instructionType,
-        closedWorld.backendClasses.growableListImplementation, closedWorld);
+        closedWorld.backendClasses.growableListClass, closedWorld);
   }
 
   bool isMutableArray(ClosedWorld closedWorld) {
     return isInstanceOf(instructionType,
-        closedWorld.backendClasses.mutableListImplementation, closedWorld);
+        closedWorld.backendClasses.mutableListClass, closedWorld);
   }
 
   bool isReadableArray(ClosedWorld closedWorld) {
-    return isInstanceOf(instructionType,
-        closedWorld.backendClasses.listImplementation, closedWorld);
+    return isInstanceOf(
+        instructionType, closedWorld.backendClasses.listClass, closedWorld);
   }
 
   bool isMutableIndexable(ClosedWorld closedWorld) {
     return isInstanceOf(instructionType,
-        closedWorld.backendClasses.mutableIndexableImplementation, closedWorld);
+        closedWorld.backendClasses.mutableIndexableClass, closedWorld);
   }
 
   bool isArray(ClosedWorld closedWorld) => isReadableArray(closedWorld);
 
   bool canBePrimitiveString(ClosedWorld closedWorld) {
-    return containsType(instructionType,
-        closedWorld.backendClasses.stringImplementation, closedWorld);
+    return containsType(
+        instructionType, closedWorld.backendClasses.stringClass, closedWorld);
   }
 
   bool isInteger(ClosedWorld closedWorld) {
@@ -1057,25 +1055,25 @@ abstract class HInstruction implements Spannable {
 
   bool isUInt32(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType,
-            closedWorld.backendClasses.uint32Implementation, closedWorld);
+        isInstanceOf(instructionType, closedWorld.backendClasses.uint32Class,
+            closedWorld);
   }
 
   bool isUInt31(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType,
-            closedWorld.backendClasses.uint31Implementation, closedWorld);
+        isInstanceOf(instructionType, closedWorld.backendClasses.uint31Class,
+            closedWorld);
   }
 
   bool isPositiveInteger(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
         isInstanceOf(instructionType,
-            closedWorld.backendClasses.positiveIntImplementation, closedWorld);
+            closedWorld.backendClasses.positiveIntClass, closedWorld);
   }
 
   bool isPositiveIntegerOrNull(ClosedWorld closedWorld) {
     return isInstanceOf(instructionType,
-        closedWorld.backendClasses.positiveIntImplementation, closedWorld);
+        closedWorld.backendClasses.positiveIntClass, closedWorld);
   }
 
   bool isIntegerOrNull(ClosedWorld closedWorld) {

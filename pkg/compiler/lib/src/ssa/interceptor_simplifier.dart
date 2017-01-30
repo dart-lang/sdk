@@ -101,7 +101,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return false;
     }
     if (receiver.canBeNull() &&
-        interceptedClasses.contains(backendClasses.nullImplementation)) {
+        interceptedClasses.contains(backendClasses.nullClass)) {
       // Need the JSNull interceptor.
       return false;
     }
@@ -142,25 +142,25 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       TypeMask type, Set<ClassEntity> interceptedClasses) {
     if (type.isNullable) {
       if (type.isNull) {
-        return backendClasses.nullImplementation;
+        return backendClasses.nullClass;
       }
     } else if (type.containsOnlyInt(closedWorld)) {
-      return backendClasses.intImplementation;
+      return backendClasses.intClass;
     } else if (type.containsOnlyDouble(closedWorld)) {
-      return backendClasses.doubleImplementation;
+      return backendClasses.doubleClass;
     } else if (type.containsOnlyBool(closedWorld)) {
-      return backendClasses.boolImplementation;
+      return backendClasses.boolClass;
     } else if (type.containsOnlyString(closedWorld)) {
-      return backendClasses.stringImplementation;
-    } else if (type.satisfies(backendClasses.listImplementation, closedWorld)) {
-      return backendClasses.listImplementation;
+      return backendClasses.stringClass;
+    } else if (type.satisfies(backendClasses.listClass, closedWorld)) {
+      return backendClasses.listClass;
     } else if (type.containsOnlyNum(closedWorld) &&
-        !interceptedClasses.contains(backendClasses.intImplementation) &&
-        !interceptedClasses.contains(backendClasses.doubleImplementation)) {
+        !interceptedClasses.contains(backendClasses.intClass) &&
+        !interceptedClasses.contains(backendClasses.doubleClass)) {
       // If the method being intercepted is not defined in [int] or [double] we
       // can safely use the number interceptor.  This is because none of the
       // [int] or [double] methods are called from a method defined on [num].
-      return backendClasses.numImplementation;
+      return backendClasses.numClass;
     } else {
       // Try to find constant interceptor for a native class.  If the receiver
       // is constrained to a leaf native class, we can use the class's
@@ -229,25 +229,25 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
       // If we found that we need number, we must still go through all
       // uses to check if they require int, or double.
-      if (interceptedClasses.contains(backendClasses.numImplementation) &&
-          !(interceptedClasses.contains(backendClasses.doubleImplementation) ||
-              interceptedClasses.contains(backendClasses.intImplementation))) {
+      if (interceptedClasses.contains(backendClasses.numClass) &&
+          !(interceptedClasses.contains(backendClasses.doubleClass) ||
+              interceptedClasses.contains(backendClasses.intClass))) {
         Set<ClassEntity> required;
         for (HInstruction user in node.usedBy) {
           if (user is! HInvoke) continue;
           Set<ClassEntity> intercepted =
               backend.getInterceptedClassesOn(user.selector.name);
-          if (intercepted.contains(backendClasses.intImplementation)) {
+          if (intercepted.contains(backendClasses.intClass)) {
             // TODO(johnniwinther): Use type argument when all uses of
             // intercepted classes expect entities instead of elements.
             required ??= new Set/*<ClassEntity>*/();
-            required.add(backendClasses.intImplementation);
+            required.add(backendClasses.intClass);
           }
-          if (intercepted.contains(backendClasses.doubleImplementation)) {
+          if (intercepted.contains(backendClasses.doubleClass)) {
             // TODO(johnniwinther): Use type argument when all uses of
             // intercepted classes expect entities instead of elements.
             required ??= new Set/*<ClassEntity>*/();
-            required.add(backendClasses.doubleImplementation);
+            required.add(backendClasses.doubleClass);
           }
         }
         // Don't modify the result of [backend.getInterceptedClassesOn].
@@ -315,7 +315,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // constant interceptor `C`.  Then we can use `(receiver && C)` for the
     // interceptor.
     if (receiver.canBeNull()) {
-      if (!interceptedClasses.contains(backendClasses.nullImplementation)) {
+      if (!interceptedClasses.contains(backendClasses.nullClass)) {
         // Can use `(receiver && C)` only if receiver is either null or truthy.
         if (!(receiver.canBePrimitiveNumber(closedWorld) ||
             receiver.canBePrimitiveBoolean(closedWorld) ||

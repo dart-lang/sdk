@@ -1188,7 +1188,7 @@ class _CompilerCommonElements extends CommonElementsMixin {
       reporter.internalError(
           cls,
           "The class '${cls}' in '${cls.library.canonicalUri}' does not "
-              "contain required member: '$name'.");
+          "contain required member: '$name'.");
     }
     return member;
   }
@@ -1202,7 +1202,7 @@ class _CompilerCommonElements extends CommonElementsMixin {
       reporter.internalError(
           cls,
           "The class '${cls}' in '${cls.library.canonicalUri}' does not "
-              "contain required constructor: '$name'.");
+          "contain required constructor: '$name'.");
     }
     return constructor;
   }
@@ -1213,7 +1213,8 @@ class _CompilerCommonElements extends CommonElementsMixin {
     return _findLibraryMember(library, name, required: required);
   }
 
-  Element _findRequired(LibraryElement library, String name) => _findLibraryMember(library, name);
+  Element _findRequired(LibraryElement library, String name) =>
+      _findLibraryMember(library, name);
 
   Element _findLibraryMember(LibraryElement library, String name,
       {bool required: true}) {

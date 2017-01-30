@@ -26,11 +26,12 @@ import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../elements/resolution_types.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../enqueue.dart'
     show Enqueuer, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
@@ -1099,14 +1100,14 @@ class JavaScriptBackend extends Backend {
             null));
         registerBackendUse(helpers.createRuntimeType);
       }
-      impactBuilder.registerTypeUse(
-          new TypeUse.instantiation(backendClasses.typeImplementation.rawType));
+      impactBuilder
+          .registerTypeUse(new TypeUse.instantiation(backendClasses.typeType));
     }
     lookupMapAnalysis.registerConstantKey(constant);
   }
 
   void computeImpactForInstantiatedConstantType(
-      ResolutionDartType type, WorldImpactBuilder impactBuilder) {
+      DartType type, WorldImpactBuilder impactBuilder) {
     if (type is ResolutionInterfaceType) {
       impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
       if (classNeedsRtiField(type.element)) {
@@ -1115,7 +1116,7 @@ class JavaScriptBackend extends Backend {
             helpers.setRuntimeTypeInfo,
             null));
       }
-      if (type.element == backendClasses.typeImplementation) {
+      if (type.element == backendClasses.typeClass) {
         // If we use a type literal in a constant, the compile time
         // constant emitter will generate a call to the createRuntimeType
         // helper so we register a use of that.
@@ -3256,34 +3257,35 @@ class JavaScriptBackendClasses implements BackendClasses {
 
   JavaScriptBackendClasses(this.helpers);
 
-  ClassElement get intImplementation => helpers.jsIntClass;
-  ClassElement get uint32Implementation => helpers.jsUInt32Class;
-  ClassElement get uint31Implementation => helpers.jsUInt31Class;
-  ClassElement get positiveIntImplementation => helpers.jsPositiveIntClass;
-  ClassElement get doubleImplementation => helpers.jsDoubleClass;
-  ClassElement get numImplementation => helpers.jsNumberClass;
-  ClassElement get stringImplementation => helpers.jsStringClass;
-  ClassElement get listImplementation => helpers.jsArrayClass;
-  ClassElement get mutableListImplementation => helpers.jsMutableArrayClass;
-  ClassElement get constListImplementation => helpers.jsUnmodifiableArrayClass;
-  ClassElement get fixedListImplementation => helpers.jsFixedArrayClass;
-  ClassElement get growableListImplementation => helpers.jsExtendableArrayClass;
-  ClassElement get mapImplementation => helpers.mapLiteralClass;
-  ClassElement get constMapImplementation => helpers.constMapLiteralClass;
-  ClassElement get typeImplementation => helpers.typeLiteralClass;
-  ClassElement get boolImplementation => helpers.jsBoolClass;
-  ClassElement get nullImplementation => helpers.jsNullClass;
-  ClassElement get syncStarIterableImplementation => helpers.syncStarIterable;
-  ClassElement get asyncFutureImplementation => helpers.futureImplementation;
-  ClassElement get asyncStarStreamImplementation => helpers.controllerStream;
-  ClassElement get functionImplementation =>
-      helpers.commonElements.functionClass;
-  ClassElement get indexableImplementation => helpers.jsIndexableClass;
-  ClassElement get mutableIndexableImplementation =>
-      helpers.jsMutableIndexableClass;
-  ClassElement get indexingBehaviorImplementation =>
-      helpers.jsIndexingBehaviorInterface;
-  ClassElement get interceptorImplementation => helpers.jsInterceptorClass;
+  ClassElement get intClass => helpers.jsIntClass;
+  ClassElement get uint32Class => helpers.jsUInt32Class;
+  ClassElement get uint31Class => helpers.jsUInt31Class;
+  ClassElement get positiveIntClass => helpers.jsPositiveIntClass;
+  ClassElement get doubleClass => helpers.jsDoubleClass;
+  ClassElement get numClass => helpers.jsNumberClass;
+  ClassElement get stringClass => helpers.jsStringClass;
+  ClassElement get listClass => helpers.jsArrayClass;
+  ClassElement get mutableListClass => helpers.jsMutableArrayClass;
+  ClassElement get constListClass => helpers.jsUnmodifiableArrayClass;
+  ClassElement get fixedListClass => helpers.jsFixedArrayClass;
+  ClassElement get growableListClass => helpers.jsExtendableArrayClass;
+  ClassElement get mapClass => helpers.mapLiteralClass;
+  ClassElement get constMapClass => helpers.constMapLiteralClass;
+  ClassElement get typeClass => helpers.typeLiteralClass;
+  ResolutionInterfaceType get typeType {
+    return typeClass.computeType(helpers.backend.compiler.resolution);
+  }
+
+  ClassElement get boolClass => helpers.jsBoolClass;
+  ClassElement get nullClass => helpers.jsNullClass;
+  ClassElement get syncStarIterableClass => helpers.syncStarIterable;
+  ClassElement get asyncFutureClass => helpers.futureImplementation;
+  ClassElement get asyncStarStreamClass => helpers.controllerStream;
+  ClassElement get functionClass => helpers.commonElements.functionClass;
+  ClassElement get indexableClass => helpers.jsIndexableClass;
+  ClassElement get mutableIndexableClass => helpers.jsMutableIndexableClass;
+  ClassElement get indexingBehaviorClass => helpers.jsIndexingBehaviorInterface;
+  ClassElement get interceptorClass => helpers.jsInterceptorClass;
 
   bool isDefaultEqualityImplementation(MemberElement element) {
     assert(element.name == '==');

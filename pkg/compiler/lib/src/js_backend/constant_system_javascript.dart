@@ -320,9 +320,8 @@ class JavaScriptConstantSystem extends ConstantSystem {
 
   @override
   ConstantValue createType(Compiler compiler, ResolutionDartType type) {
-    ResolutionInterfaceType instanceType = compiler
-        .backend.backendClasses.typeImplementation
-        .computeType(compiler.resolution);
+    ResolutionInterfaceType instanceType =
+        compiler.backend.backendClasses.typeType;
     return new TypeConstantValue(type, instanceType);
   }
 

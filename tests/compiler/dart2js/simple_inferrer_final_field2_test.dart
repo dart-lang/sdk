@@ -37,9 +37,9 @@ void main() {
               typesInferrer.getTypeOfElement(element).containsOnly(type));
         }
 
-        checkFieldTypeInClass('A', 'intField',
-            compiler.backend.backendClasses.uint31Implementation);
-        checkFieldTypeInClass('A', 'stringField',
-            compiler.backend.backendClasses.stringImplementation);
+        checkFieldTypeInClass(
+            'A', 'intField', compiler.backend.backendClasses.uint31Class);
+        checkFieldTypeInClass(
+            'A', 'stringField', compiler.backend.backendClasses.stringClass);
       }));
 }

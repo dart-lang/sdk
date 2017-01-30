@@ -397,7 +397,7 @@ class BackendImpacts {
 
   BackendImpact get typeLiteral {
     return _typeLiteral ??= new BackendImpact(
-        instantiatedClasses: [backend.backendClasses.typeImplementation],
+        instantiatedClasses: [backend.backendClasses.typeClass],
         staticUses: [helpers.createRuntimeType]);
   }
 

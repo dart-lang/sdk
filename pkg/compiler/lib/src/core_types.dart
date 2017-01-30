@@ -289,7 +289,7 @@ abstract class CommonElementsMixin implements CommonElements {
 
   FunctionEntity _symbolConstructor;
   FunctionEntity get symbolConstructor =>
-    _symbolConstructor ??= findConstructor(symbolClass, '');
+      _symbolConstructor ??= findConstructor(symbolClass, '');
 
   bool isSymbolConstructor(Entity e) => e == symbolConstructor;
 

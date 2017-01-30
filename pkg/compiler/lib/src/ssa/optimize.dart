@@ -142,8 +142,8 @@ bool isFixedLength(mask, ClosedWorld closedWorld) {
     return true;
   }
   // TODO(sra): Recognize any combination of fixed length indexables.
-  if (mask.containsOnly(closedWorld.backendClasses.fixedListImplementation) ||
-      mask.containsOnly(closedWorld.backendClasses.constListImplementation) ||
+  if (mask.containsOnly(closedWorld.backendClasses.fixedListClass) ||
+      mask.containsOnly(closedWorld.backendClasses.constListClass) ||
       mask.containsOnlyString(closedWorld) ||
       closedWorld.commonMasks.isTypedArray(mask)) {
     return true;

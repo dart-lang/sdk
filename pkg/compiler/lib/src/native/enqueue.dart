@@ -437,21 +437,15 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         continue;
       }
       if (type is ResolutionInterfaceType) {
-        if (type == commonElements.intType) {
-          registerInstantiation(type);
-        } else if (type == commonElements.doubleType) {
-          registerInstantiation(type);
-        } else if (type == commonElements.numType) {
+        if (type == commonElements.numType) {
           registerInstantiation(commonElements.doubleType);
           registerInstantiation(commonElements.intType);
-        } else if (type == commonElements.stringType) {
-          registerInstantiation(type);
-        } else if (type == commonElements.nullType) {
-          registerInstantiation(type);
-        } else if (type == commonElements.boolType) {
-          registerInstantiation(type);
-        } else if (compiler.types.isSubtype(
-            type, backend.backendClasses.listImplementation.rawType)) {
+        } else if (type == commonElements.intType ||
+            type == commonElements.doubleType ||
+            type == commonElements.stringType ||
+            type == commonElements.nullType ||
+            type == commonElements.boolType ||
+            type.asInstanceOf(backend.backendClasses.listClass) != null) {
           registerInstantiation(type);
         }
         // TODO(johnniwinther): Improve spec string precision to handle type
