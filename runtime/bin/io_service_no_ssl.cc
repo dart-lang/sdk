@@ -26,7 +26,9 @@ namespace bin {
     response = type::method##Request(data);                                    \
     break;
 
-void IOServiceCallback(Dart_Port dest_port_id, Dart_CObject* message) {
+void IOServiceCallback(Dart_Port dest_port_id,
+                       Dart_CObject* message,
+                       void* peer) {
   Dart_Port reply_port_id = ILLEGAL_PORT;
   CObject* response = CObject::IllegalArgumentError();
   CObjectArray request(message);
@@ -54,7 +56,7 @@ void IOServiceCallback(Dart_Port dest_port_id, Dart_CObject* message) {
 
 
 Dart_Port IOService::GetServicePort() {
-  return Dart_NewNativePort("IOService", IOServiceCallback, true);
+  return Dart_NewNativePort("IOService", IOServiceCallback, true, NULL);
 }
 
 

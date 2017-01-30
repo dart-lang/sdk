@@ -15,11 +15,14 @@ namespace dart {
 // native C handlers.
 class NativeMessageHandler : public MessageHandler {
  public:
-  NativeMessageHandler(const char* name, Dart_NativeMessageHandler func);
+  NativeMessageHandler(const char* name,
+                       Dart_NativeMessageHandler func,
+                       void* peer);
   ~NativeMessageHandler();
 
   const char* name() const { return name_; }
   Dart_NativeMessageHandler func() const { return func_; }
+  void* peer() const { return peer_; }
 
   MessageStatus HandleMessage(Message* message);
 
@@ -34,6 +37,7 @@ class NativeMessageHandler : public MessageHandler {
  private:
   char* name_;
   Dart_NativeMessageHandler func_;
+  void* peer_;
 };
 
 }  // namespace dart

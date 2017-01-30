@@ -34,7 +34,8 @@ Loader::Loader(IsolateData* isolate_data)
       payload_length_(0) {
   monitor_ = new Monitor();
   ASSERT(isolate_data_ != NULL);
-  port_ = Dart_NewNativePort("Loader", Loader::NativeMessageHandler, false);
+  port_ =
+      Dart_NewNativePort("Loader", Loader::NativeMessageHandler, false, this);
   isolate_data_->set_loader(this);
   AddLoader(port_, isolate_data_);
 }
@@ -817,13 +818,10 @@ Loader* Loader::LoaderFor(Dart_Port port) {
 
 
 void Loader::NativeMessageHandler(Dart_Port dest_port_id,
-                                  Dart_CObject* message) {
+                                  Dart_CObject* message,
+                                  void* peer) {
   MutexLocker ml(loader_infos_lock_);
-  Loader* loader = LoaderForLocked(dest_port_id);
-  if (loader == NULL) {
-    return;
-  }
-  loader->QueueMessage(message);
+  static_cast<Loader*>(peer)->QueueMessage(message);
 }
 
 }  // namespace bin

@@ -80,7 +80,8 @@ uint8_t* randomArray(int seed, int length) {
 
 
 void wrappedRandomArray(Dart_Port dest_port_id,
-                        Dart_CObject* message) {
+                        Dart_CObject* message,
+                        void* peer) {
   Dart_Port reply_port_id = ILLEGAL_PORT;
   if (message->type == Dart_CObject_kArray &&
       3 == message->value.as_array.length) {
@@ -120,7 +121,7 @@ void randomArrayServicePort(Dart_NativeArguments arguments) {
   Dart_EnterScope();
   Dart_SetReturnValue(arguments, Dart_Null());
   Dart_Port service_port =
-      Dart_NewNativePort("RandomArrayService", wrappedRandomArray, true);
+      Dart_NewNativePort("RandomArrayService", wrappedRandomArray, true, NULL);
   if (service_port != ILLEGAL_PORT) {
     Dart_Handle send_port = HandleError(Dart_NewSendPort(service_port));
     Dart_SetReturnValue(arguments, send_port);

@@ -125,6 +125,8 @@ static int vm_service_server_port = -1;
 // checks are disabled.
 static bool vm_service_dev_mode = false;
 
+// Exit code indicating an internal Dart Frontend error.
+static const int kDartFrontendErrorExitCode = 252;
 // Exit code indicating an API error.
 static const int kApiErrorExitCode = 253;
 // Exit code indicating a compilation error.
@@ -809,7 +811,7 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
 static void SnapshotOnExitHook(int64_t exit_code);
 
 
-// Returns true on success, false on failure.
+// Returns newly created Isolate on success, NULL on failure.
 static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
                                                 const char* script_uri,
                                                 const char* main,
@@ -819,7 +821,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
                                                 char** error,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
-  if (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0) {
+  const bool is_service_isolate =
+      strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0;
+  const bool is_kernel_isolate =
+      strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0;
+  if (is_kernel_isolate) {
     if (!use_dart_frontend) {
       *error = strdup("Kernel isolate not supported.");
       return NULL;
@@ -852,13 +858,36 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   }
 #endif
 
-  // If the script is a Kernel binary, then we will try to bootstrap from the
-  // script.
   const uint8_t* kernel_file = NULL;
   intptr_t kernel_length = -1;
-  const bool is_kernel =
-      !isolate_run_app_snapshot &&
-      TryReadKernel(script_uri, &kernel_file, &kernel_length);
+  bool is_kernel = false;
+
+  if (use_dart_frontend && !is_kernel_isolate && !is_service_isolate) {
+    Dart_KernelCompilationResult result = Dart_CompileToKernel(script_uri);
+    *error = result.error;  // Copy error message (if any).
+    switch (result.status) {
+      case Dart_KernelCompilationStatus_Ok:
+        is_kernel = true;
+        kernel_file = result.kernel;
+        kernel_length = result.kernel_size;
+        break;
+      case Dart_KernelCompilationStatus_Error:
+        *exit_code = kCompilationErrorExitCode;
+        return NULL;
+      case Dart_KernelCompilationStatus_Crash:
+        *exit_code = kDartFrontendErrorExitCode;
+        return NULL;
+      case Dart_KernelCompilationStatus_Unknown:
+        *exit_code = kErrorExitCode;
+        return NULL;
+    }
+  }
+
+  // If the script is a Kernel binary, then we will try to bootstrap from the
+  // script.
+  if (!is_kernel && !isolate_run_app_snapshot) {
+    is_kernel = TryReadKernel(script_uri, &kernel_file, &kernel_length);
+  }
 
   void* kernel_program = NULL;
   if (is_kernel) {
@@ -940,16 +969,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
 
-  if (!Dart_IsKernelIsolate(isolate) && use_dart_frontend) {
-    // This must be the main script to be loaded. Wait for Kernel isolate
-    // to finish initialization.
-    Dart_Port port = Dart_ServiceWaitForKernelPort();
-    if (port == ILLEGAL_PORT) {
-      *error = strdup("Error while initializing Kernel isolate");
-      return NULL;
-    }
-  }
-
   if (isolate_run_app_snapshot) {
     result = DartUtils::SetupIOLibrary(script_uri);
     CHECK_RESULT(result);
@@ -975,6 +994,12 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     if (!is_kernel) {
       result = Loader::LibraryTagHandler(Dart_kScriptTag, Dart_Null(), uri);
       CHECK_RESULT(result);
+    } else {
+      // Various core-library parts will send requests to the Loader to resolve
+      // relative URIs and perform other related tasks. We need Loader to be
+      // initialized for this to work because loading from Kernel binary
+      // bypasses normal source code loading paths that initialize it.
+      Loader::InitForSnapshot(script_uri);
     }
 
     Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),

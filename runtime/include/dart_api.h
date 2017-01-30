@@ -3127,10 +3127,26 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer);
  *
  */
 
+typedef enum {
+  Dart_KernelCompilationStatus_Unknown = -1,
+  Dart_KernelCompilationStatus_Ok = 0,
+  Dart_KernelCompilationStatus_Error = 1,
+  Dart_KernelCompilationStatus_Crash = 2,
+} Dart_KernelCompilationStatus;
+
+typedef struct {
+  Dart_KernelCompilationStatus status;
+  char* error;
+
+  uint8_t* kernel;
+  intptr_t kernel_size;
+} Dart_KernelCompilationResult;
+
 DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
 DART_EXPORT bool Dart_KernelIsolateIsRunning();
-DART_EXPORT Dart_Port Dart_ServiceWaitForKernelPort();
 DART_EXPORT Dart_Port Dart_KernelPort();
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileToKernel(const char* script_uri);
 
 #define DART_KERNEL_ISOLATE_NAME "kernel-service"
 

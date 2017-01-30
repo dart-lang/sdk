@@ -142,7 +142,8 @@ class Loader {
 
   // This is the global callback for the native message handlers.
   static void NativeMessageHandler(Dart_Port dest_port_id,
-                                   Dart_CObject* message);
+                                   Dart_CObject* message,
+                                   void* peer);
 };
 
 }  // namespace bin

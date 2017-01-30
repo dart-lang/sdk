@@ -12,8 +12,9 @@
 namespace dart {
 
 NativeMessageHandler::NativeMessageHandler(const char* name,
-                                           Dart_NativeMessageHandler func)
-    : name_(strdup(name)), func_(func) {}
+                                           Dart_NativeMessageHandler func,
+                                           void* peer)
+    : name_(strdup(name)), func_(func), peer_(peer) {}
 
 
 NativeMessageHandler::~NativeMessageHandler() {
@@ -41,7 +42,7 @@ MessageHandler::MessageStatus NativeMessageHandler::HandleMessage(
   Dart_CObject* object;
   ApiMessageReader reader(message);
   object = reader.ReadMessage();
-  (*func())(message->dest_port(), object);
+  (*func())(message->dest_port(), object, peer());
   delete message;
   return kOK;
 }

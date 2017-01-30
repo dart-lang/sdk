@@ -6013,14 +6013,6 @@ DART_EXPORT bool Dart_KernelIsolateIsRunning() {
 }
 
 
-DART_EXPORT Dart_Port Dart_ServiceWaitForKernelPort() {
-#ifdef DART_PRECOMPILED_RUNTIME
-  return ILLEGAL_PORT;
-#else
-  return KernelIsolate::WaitForKernelPort();
-#endif
-}
-
 DART_EXPORT Dart_Port Dart_KernelPort() {
 #ifdef DART_PRECOMPILED_RUNTIME
   return false;
@@ -6029,6 +6021,18 @@ DART_EXPORT Dart_Port Dart_KernelPort() {
 #endif
 }
 
+
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileToKernel(const char* script_uri) {
+#ifdef DART_PRECOMPILED_RUNTIME
+  Dart_KernelCompilationResult result;
+  result.status = Dart_KernelCompilationStatus_Unknown;
+  result.error = strdup("Dart_CompileToKernel is unsupported.");
+  return result;
+#else
+  return KernelIsolate::CompileToKernel(script_uri);
+#endif
+}
 
 // --- Service support ---
 
