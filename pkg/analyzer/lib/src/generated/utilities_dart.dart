@@ -6,40 +6,10 @@ library analyzer.src.generated.utilities_dart;
 
 import 'package:analyzer/dart/ast/ast.dart' show AnnotatedNode, Comment;
 import 'package:analyzer/dart/ast/token.dart' show Token;
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/element/element.dart' show ElementImpl;
-import 'package:analyzer/src/generated/source.dart';
 
-/**
- * Resolve the [containedUri] against [baseUri] using Dart rules.
- *
- * This function behaves similarly to [Uri.resolveUri], except that it properly
- * handles situations like the following:
- *
- *     resolveRelativeUri(dart:core, bool.dart) -> dart:core/bool.dart
- *     resolveRelativeUri(package:a/b.dart, ../c.dart) -> package:a/c.dart
- */
-Uri resolveRelativeUri(Uri baseUri, Uri containedUri) {
-  if (containedUri.isAbsolute) {
-    return containedUri;
-  }
-  Uri origBaseUri = baseUri;
-  try {
-    String scheme = baseUri.scheme;
-    // dart:core => dart:core/core.dart
-    if (scheme == DartUriResolver.DART_SCHEME) {
-      String part = baseUri.path;
-      if (part.indexOf('/') < 0) {
-        baseUri = Uri.parse('$scheme:$part/$part.dart');
-      }
-    }
-    return baseUri.resolveUri(containedUri);
-  } catch (exception, stackTrace) {
-    throw new AnalysisException(
-        "Could not resolve URI ($containedUri) relative to source ($origBaseUri)",
-        new CaughtException(exception, stackTrace));
-  }
-}
+export 'package:front_end/src/base/resolve_relative_uri.dart'
+    show resolveRelativeUri;
 
 /**
  * If the given [node] has a documentation comment, remember its content
