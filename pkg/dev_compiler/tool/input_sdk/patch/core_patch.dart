@@ -610,16 +610,6 @@ class StackTrace {
   @patch
   @NoInline()
   static StackTrace get current {
-    if (JS('', 'Error.captureStackTrace') != null) {
-      var error = JS('', 'new Error()');
-      JS('void', 'Error.captureStackTrace(#)', error);
-      return getTraceFromException(error);
-    }
-    // Fallback if Error.captureStackTrace does not exist.
-    try {
-      throw '';
-    } catch (_, stackTrace) {
-      return stackTrace;
-    }
+    return getTraceFromException(JS('', 'new Error()'));
   }
 }
