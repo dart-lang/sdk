@@ -687,17 +687,18 @@ Uri _resolvePackageUri(Uri packageUri) {
   return resolved;
 }
 
+bool _hasErrorStackProperty = JS('bool', 'new Error().stack != void 0');
+
 @patch
 class StackTrace {
   @patch
   @NoInline()
   static StackTrace get current {
-    if (JS('', 'Error.captureStackTrace') != null) {
-      var error = JS('', 'new Error()');
-      JS('void', 'Error.captureStackTrace(#)', error);
-      return getTraceFromException(error);
+    if (_hasErrorStackProperty) {
+      return getTraceFromException(JS('', 'new Error()'));
     }
-    // Fallback if Error.captureStackTrace does not exist.
+    // Fallback if new Error().stack does not exist.
+    // Currently only required for IE 11.
     try {
       throw '';
     } catch (_, stackTrace) {
