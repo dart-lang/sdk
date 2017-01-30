@@ -435,7 +435,19 @@ class RawObject {
     uword tags = ptr()->tags_;
     intptr_t result = SizeTag::decode(tags);
     if (result != 0) {
-      ASSERT(result == SizeFromClass());
+#if defined(DEBUG)
+      // TODO(22501) Array::MakeArray has a race with this code: we might have
+      // loaded tags field and then MakeArray could have updated it leading
+      // to inconsistency between SizeFromClass() and SizeTag::decode(tags).
+      // We are working around it by reloading tags_ and recomputing
+      // size from tags.
+      const intptr_t size_from_class = SizeFromClass();
+      if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
+          (ptr()->tags_ != tags)) {
+        result = SizeTag::decode(ptr()->tags_);
+      }
+      ASSERT(result == size_from_class);
+#endif
       return result;
     }
     result = SizeFromClass();
