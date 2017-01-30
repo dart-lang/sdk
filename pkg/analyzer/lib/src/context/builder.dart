@@ -403,9 +403,16 @@ class ContextBuilder {
       }
     } else {
       // Search for the default analysis options
-      // TODO(danrubel) check for flutter and use default flutter options
-      Source source =
-          sourceFactory.forUri('package:dart.analysis_options/default.yaml');
+      Source source;
+      // TODO(danrubel) determine if bazel or gn project depends upon flutter
+      if (workspace.hasFlutterDependency) {
+        source =
+            sourceFactory.forUri('package:flutter/analysis_options_user.yaml');
+      }
+      if (source == null || !source.exists()) {
+        source =
+            sourceFactory.forUri('package:dart.analysis_options/default.yaml');
+      }
       if (source.exists()) {
         try {
           optionMap = optionsProvider.getOptionsFromSource(source);
@@ -733,6 +740,10 @@ class _BasicWorkspace extends Workspace {
     _packageMap ??= _builder.convertPackagesToMap(packages);
     return _packageMap;
   }
+
+  @override
+  // Alternately, we could check the pubspec for "sdk: flutter"
+  bool get hasFlutterDependency => packageMap.containsKey('flutter');
 
   Packages get packages {
     _packages ??= _builder.createPackageMap(root);

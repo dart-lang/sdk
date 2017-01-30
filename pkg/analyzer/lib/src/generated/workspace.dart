@@ -25,6 +25,12 @@ abstract class Workspace {
   UriResolver get packageUriResolver;
 
   /**
+   * Return `true` if this workspace defines a single "project"
+   * and that "project" depends upon flutter,
+   */
+  bool get hasFlutterDependency => false;
+
+  /**
    * Create the [SourceFactory] for resolving Uris to [Source]s.
    * The [sdk] may be `null`.
    */

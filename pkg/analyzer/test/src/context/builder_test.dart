@@ -562,6 +562,32 @@ linter:
     _expectEqualOptions(options, expected);
   }
 
+  void test_getAnalysisOptions_default_flutter() {
+    MockLintRule mockLintRule = new MockLintRule('mock_lint_rule');
+    Registry.ruleRegistry.register(mockLintRule);
+    AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+    builderOptions.defaultOptions = defaultOptions;
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.lint = true;
+    expected.lintRules = <Linter>[mockLintRule];
+    createFile(
+        resourceProvider.convertPath('/some/directory/path/.packages'),
+        '''
+flutter:/pkg/flutter/lib/
+''');
+    createFile(
+        resourceProvider
+            .convertPath('/pkg/flutter/lib/analysis_options_user.yaml'),
+        '''
+linter:
+  rules:
+    - mock_lint_rule
+''');
+    AnalysisOptions options = builder.getAnalysisOptions(
+        resourceProvider.convertPath('/some/directory/path'));
+    _expectEqualOptions(options, expected);
+  }
+
   void test_getAnalysisOptions_default_noOverrides() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     defaultOptions.enableLazyAssignmentOperators = true;
