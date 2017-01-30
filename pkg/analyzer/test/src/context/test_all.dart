@@ -9,6 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'builder_test.dart' as builder_test;
 import 'cache_test.dart' as cache_test;
 import 'context_test.dart' as context_test;
+import 'source_test.dart' as source_test;
 
 /// Utility for manually running all tests.
 main() {
@@ -16,5 +17,6 @@ main() {
     builder_test.main();
     cache_test.main();
     context_test.main();
+    source_test.main();
   }, name: 'context');
 }

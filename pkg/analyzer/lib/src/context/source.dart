@@ -5,6 +5,7 @@
 library analyzer.src.context.source;
 
 import 'dart:collection';
+import 'dart:math' show min;
 
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -203,8 +204,9 @@ class SourceFactoryImpl implements SourceFactory {
     _packages.asMap().forEach((String name, Uri uri) {
       if (packageUri == null) {
         if (utils.startsWith(sourceUri, uri)) {
-          packageUri = Uri.parse(
-              'package:$name/${sourceUri.path.substring(uri.path.length)}');
+          String relativePath = sourceUri.path
+              .substring(min(uri.path.length, sourceUri.path.length));
+          packageUri = Uri.parse('package:$name/$relativePath');
         }
       }
     });
