@@ -3118,6 +3118,15 @@ class B extends A {}
     checkLibrary('export "a.dart"; export "b.dart";');
   }
 
+  test_expr_invalid_typeParameter_asPrefix() {
+    variablesWithNotConstInitializers.add('f');
+    checkLibrary('''
+class C<T> {
+  final f = T.k;
+}
+''');
+  }
+
   test_field_covariant() {
     checkLibrary('''
 class C {
@@ -4639,6 +4648,16 @@ bool f() => true;
 
   test_type_dynamic() {
     checkLibrary('dynamic d;');
+  }
+
+  test_type_invalid_typeParameter_asPrefix() {
+    checkLibrary(
+        '''
+class C<T> {
+  m(T.K p) {}
+}
+''',
+        allowErrors: true);
   }
 
   test_type_reference_lib_to_lib() {

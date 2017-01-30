@@ -7500,6 +7500,19 @@ final v = ((a, b) => 42)(1, 2);
         ]);
   }
 
+  test_expr_invalid_typeParameter_asPrefix() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    var c = serializeClassText('''
+class C<T> {
+  final f = T.k;
+}
+''');
+    assertUnlinkedConst(c.fields[0].initializer.bodyExpr,
+        isValidConst: false, operators: []);
+  }
+
   test_expr_invokeMethod_instance() {
     if (skipNonConstInitializers) {
       return;
@@ -9886,6 +9899,17 @@ void f<T, U>(bool b) {
 
   test_type_dynamic() {
     checkDynamicTypeRef(serializeTypeText('dynamic'));
+  }
+
+  test_type_invalid_typeParameter_asPrefix() {
+    UnlinkedClass c = serializeClassText('''
+class C<T> {
+  m(T.K p) {}
+}
+''');
+    UnlinkedExecutable m = c.executables[0];
+    expect(m.name, 'm');
+    checkTypeRef(m.parameters[0].type, null, null, 'dynamic');
   }
 
   test_type_param_codeRange() {

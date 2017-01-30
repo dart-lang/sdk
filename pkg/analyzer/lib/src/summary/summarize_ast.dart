@@ -99,8 +99,7 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   EntityRefBuilder serializeIdentifier(Identifier identifier) {
     EntityRefBuilder b = new EntityRefBuilder();
     if (identifier is SimpleIdentifier) {
-      int index = visitor.serializeSimpleReference(identifier.name,
-          allowTypeParameter: true);
+      int index = visitor.serializeSimpleReference(identifier.name);
       if (index < 0) {
         b.paramReference = -index;
       } else {
@@ -108,6 +107,9 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       }
     } else if (identifier is PrefixedIdentifier) {
       int prefix = visitor.serializeSimpleReference(identifier.prefix.name);
+      if (prefix < 0) {
+        throw new StateError('Invalid type parameter usage: $identifier}');
+      }
       b.reference =
           visitor.serializeReference(prefix, identifier.identifier.name);
     } else {
@@ -265,7 +267,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    */
   final List<UnlinkedReferenceBuilder> unlinkedReferences =
       <UnlinkedReferenceBuilder>[new UnlinkedReferenceBuilder()];
-
 
   /**
    * List of [_Scope]s currently in effect.  This is used to resolve type names
@@ -842,10 +843,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * Serialize a reference to a name declared either at top level or in a
    * nested scope.
    *
-   * If [allowTypeParameter] is `true`, then references to type
-   * parameters are allowed, and are returned as negative numbers.
+   * References to type parameters are returned as negative numbers.
    */
-  int serializeSimpleReference(String name, {bool allowTypeParameter: false}) {
+  int serializeSimpleReference(String name) {
     int indexOffset = 0;
     for (int i = scopes.length - 1; i >= 0; i--) {
       _Scope scope = scopes[i];
@@ -854,15 +854,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         if (entity is _ScopedClassMember) {
           return serializeReference(
               serializeReference(null, entity.className), name);
-        } else if (allowTypeParameter && entity is _ScopedTypeParameter) {
+        } else if (entity is _ScopedTypeParameter) {
           int paramReference = indexOffset + entity.index;
           return -paramReference;
-        } else {
-          // Invalid reference to a type parameter.  Should never happen in
-          // legal Dart code.
-          // TODO(paulberry): could this exception ever be uncaught in illegal
-          // code?
-          throw new StateError('Invalid identifier reference');
         }
       }
       if (scope is _TypeParameterScope) {
@@ -909,8 +903,15 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         b.reference = serializeReference(null, name);
       } else if (identifier is PrefixedIdentifier) {
         int prefixIndex = serializeSimpleReference(identifier.prefix.name);
-        b.reference =
-            serializeReference(prefixIndex, identifier.identifier.name);
+        if (prefixIndex < 0) {
+          // Type parameters are not expected here, so this is an error and the
+          // type should be treated as a reference to `dynamic`.
+          b.reference = serializeReference(null, 'dynamic');
+          return b;
+        } else {
+          b.reference =
+              serializeReference(prefixIndex, identifier.identifier.name);
+        }
       } else {
         throw new StateError(
             'Unexpected identifier type: ${identifier.runtimeType}');
