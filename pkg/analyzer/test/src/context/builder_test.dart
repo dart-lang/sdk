@@ -633,14 +633,26 @@ analyzer:
   }
 
   void test_getAnalysisOptions_includes() {
+    MockLintRule mockLintRule = new MockLintRule('mock_lint_rule');
+    Registry.ruleRegistry.register(mockLintRule);
+    MockLintRule mockLintRule2 = new MockLintRule('mock_lint_rule2');
+    Registry.ruleRegistry.register(mockLintRule2);
+    MockLintRule mockLintRule3 = new MockLintRule('mock_lint_rule3');
+    Registry.ruleRegistry.register(mockLintRule3);
+
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
+    defaultOptions.enableSuperMixins = false;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.enableSuperMixins = true;
+    expected.lint = true;
+    expected.lintRules = <Linter>[mockLintRule, mockLintRule2, mockLintRule3];
     resourceProvider.newFile(
         resourceProvider.convertPath('/mypkgs/somepkg/lib/here.yaml'),
         '''
-two: {boo: newt}
+linter:
+  rules:
+    - mock_lint_rule3
 ''');
     String path = resourceProvider.convertPath('/some/directory/path');
     resourceProvider.newFile(
@@ -652,7 +664,12 @@ somepkg:../../../mypkgs/somepkg/lib
         pathContext.join(path, 'bar.yaml'),
         '''
 include: package:somepkg/here.yaml
-foo: {bar: baz}
+analyzer:
+  language:
+    enableSuperMixins : true
+linter:
+  rules:
+    - mock_lint_rule2
 ''');
     String filePath =
         pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
@@ -660,9 +677,9 @@ foo: {bar: baz}
         filePath,
         '''
 include: bar.yaml
-analyzer:
-  language:
-    enableSuperMixins : true
+linter:
+  rules:
+    - mock_lint_rule
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
