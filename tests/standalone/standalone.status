@@ -393,5 +393,5 @@ io/socket_info_ipv6_test: SkipByDesign
 io/process_detached_test: Pass, Slow
 io/named_pipe_script_test: RuntimeError
 
-[ $system == windows && $arch = x64 ]
+[ $system == windows && $arch == x64 ]
 standalone/io/process_stdin_transform_unsubscribe_test: Pass, Slow # Issue 28558
