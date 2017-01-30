@@ -295,3 +295,7 @@ cc/UseDartApi: Pass,Crash # Issue 28499
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
+
+[ $system == linux ] # Tests are currently flaky and are being rewritten.
+cc/BasicMallocHookTest: Pass,Fail
+cc/FreeUnseenMemoryMallocHookTest: Pass,Fail
