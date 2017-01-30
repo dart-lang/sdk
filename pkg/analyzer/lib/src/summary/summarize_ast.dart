@@ -266,11 +266,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   final List<UnlinkedReferenceBuilder> unlinkedReferences =
       <UnlinkedReferenceBuilder>[new UnlinkedReferenceBuilder()];
 
-  /**
-   * Map associating names used as prefixes in this compilation unit with their
-   * associated indices into [UnlinkedUnit.references].
-   */
-  final Map<String, int> prefixIndices = <String, int>{};
 
   /**
    * List of [_Scope]s currently in effect.  This is used to resolve type names
@@ -913,8 +908,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         }
         b.reference = serializeReference(null, name);
       } else if (identifier is PrefixedIdentifier) {
-        int prefixIndex = prefixIndices.putIfAbsent(identifier.prefix.name,
-            () => serializeSimpleReference(identifier.prefix.name));
+        int prefixIndex = serializeSimpleReference(identifier.prefix.name);
         b.reference =
             serializeReference(prefixIndex, identifier.identifier.name);
       } else {
