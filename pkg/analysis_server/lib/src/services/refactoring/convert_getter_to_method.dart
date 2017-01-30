@@ -58,11 +58,13 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
       FieldElement field = element.variable;
       Set<ClassMemberElement> elements =
           await getHierarchyMembers(searchEngine, field);
-      await Future.forEach(elements, (FieldElement field) {
-        PropertyAccessorElement getter = field.getter;
-        if (!getter.isSynthetic) {
-          _updateElementDeclaration(getter);
-          return _updateElementReferences(getter);
+      await Future.forEach(elements, (ClassMemberElement member) {
+        if (member is FieldElement) {
+          PropertyAccessorElement getter = member.getter;
+          if (!getter.isSynthetic) {
+            _updateElementDeclaration(getter);
+            return _updateElementReferences(getter);
+          }
         }
       });
     }
