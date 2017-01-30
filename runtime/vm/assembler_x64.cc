@@ -3676,29 +3676,56 @@ void Assembler::SmiUntagOrCheckClass(Register object,
 
 
 void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
-  ASSERT(result != object);
+  Label smi;
 
-  // Load up a null object. We only need it so we can use LoadClassId on it in
-  // the case that object is a Smi.
-  LoadObject(result, Object::null_object());
-  // Check if the object is a Smi.
-  testq(object, Immediate(kSmiTagMask));
-  // If the object *is* a Smi, use the null object instead.
-  cmoveq(object, result);
-  // Loads either the cid of the object if it isn't a Smi, or the cid of null
-  // if it is a Smi, which will be ignored.
-  LoadClassId(result, object);
+  if (result == object) {
+    Label join;
 
-  movq(TMP, Immediate(kSmiCid));
-  // If object is a Smi, move the Smi cid into result. o/w leave alone.
-  cmoveq(result, TMP);
+    testq(object, Immediate(kSmiTagMask));
+    j(EQUAL, &smi, Assembler::kNearJump);
+    LoadClassId(result, object);
+    jmp(&join, Assembler::kNearJump);
+
+    Bind(&smi);
+    movq(result, Immediate(kSmiCid));
+
+    Bind(&join);
+  } else {
+    testq(object, Immediate(kSmiTagMask));
+    movq(result, Immediate(kSmiCid));
+    j(EQUAL, &smi, Assembler::kNearJump);
+    LoadClassId(result, object);
+
+    Bind(&smi);
+  }
 }
 
 
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
-  LoadClassIdMayBeSmi(result, object);
-  // Finally, tag the result.
-  SmiTag(result);
+  Label smi;
+
+  if (result == object) {
+    Label join;
+
+    testq(object, Immediate(kSmiTagMask));
+    j(EQUAL, &smi, Assembler::kNearJump);
+    LoadClassId(result, object);
+    SmiTag(result);
+    jmp(&join, Assembler::kNearJump);
+
+    Bind(&smi);
+    movq(result, Immediate(Smi::RawValue(kSmiCid)));
+
+    Bind(&join);
+  } else {
+    testq(object, Immediate(kSmiTagMask));
+    movq(result, Immediate(kSmiCid));
+    j(EQUAL, &smi, Assembler::kNearJump);
+    LoadClassId(result, object);
+
+    Bind(&smi);
+    SmiTag(result);
+  }
 }
 
 

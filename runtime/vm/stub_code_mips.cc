@@ -1403,13 +1403,10 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ Bind(&ok);
 #endif
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Update counter.
+    // Update counter, ignore overflow.
     const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
     __ lw(T4, Address(T0, count_offset));
-    __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
-    __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
-    __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
-    __ movz(T4, T7, CMPRES1);
+    __ AddImmediate(T4, T4, Smi::RawValue(1));
     __ sw(T4, Address(T0, count_offset));
   }
 
@@ -1434,7 +1431,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     Token::Kind kind,
     bool optimized) {
   __ Comment("NArgsCheckInlineCacheStub");
-  ASSERT(num_args > 0);
+  ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
     Label ok;
@@ -1471,7 +1468,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Preserve return address, since RA is needed for subroutine call.
   __ mov(T2, RA);
   // Loop that checks if there is an IC data match.
-  Label loop, update, test, found;
+  Label loop, found, miss;
   // S5: IC data object (preserved).
   __ lw(T0, FieldAddress(S5, ICData::ic_data_offset()));
   // T0: ic_data_array with check entries: classes and target functions.
@@ -1481,67 +1478,58 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Get the receiver's class ID (first read number of arguments from
   // arguments descriptor array and then access the receiver from the stack).
   __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
-  __ LoadImmediate(TMP, Smi::RawValue(1));
-  __ subu(T1, T1, TMP);
-  __ sll(T3, T1, 1);  // T1 (argument_count - 1) is smi.
-  __ addu(T3, T3, SP);
-  __ lw(T3, Address(T3));
+  __ sll(T5, T1, 1);  // T1 (argument_count - 1) is smi.
+  __ addu(T5, T5, SP);
+  __ lw(T3, Address(T5, -kWordSize));
   __ LoadTaggedClassIdMayBeSmi(T3, T3);
 
-  // T1: argument_count - 1 (smi).
-  // T3: receiver's class ID (smi).
-  __ b(&test);
-  __ delay_slot()->lw(T4, Address(T0));  // First class id (smi) to check.
-
-  __ Comment("ICData loop");
-  __ Bind(&loop);
-  for (int i = 0; i < num_args; i++) {
-    if (i > 0) {
-      // If not the first, load the next argument's class ID.
-      __ LoadImmediate(T3, Smi::RawValue(-i));
-      __ addu(T3, T1, T3);
-      __ sll(T3, T3, 1);
-      __ addu(T3, SP, T3);
-      __ lw(T3, Address(T3));
-      __ LoadTaggedClassIdMayBeSmi(T3, T3);
-      // T3: next argument class ID (smi).
-      __ lw(T4, Address(T0, i * kWordSize));
-      // T4: next class ID to check (smi).
-    }
-    if (i < (num_args - 1)) {
-      __ bne(T3, T4, &update);  // Continue.
-    } else {
-      // Last check, all checks before matched.
-      Label skip;
-      __ bne(T3, T4, &skip);
-      __ b(&found);                  // Break.
-      __ delay_slot()->mov(RA, T2);  // Restore return address if found.
-      __ Bind(&skip);
-    }
-  }
-  __ Bind(&update);
-  // Reload receiver class ID.  It has not been destroyed when num_args == 1.
-  if (num_args > 1) {
-    __ sll(T3, T1, 1);
-    __ addu(T3, T3, SP);
-    __ lw(T3, Address(T3));
-    __ LoadTaggedClassIdMayBeSmi(T3, T3);
+  if (num_args == 2) {
+    __ lw(T5, Address(T5, -2 * kWordSize));
+    __ LoadTaggedClassIdMayBeSmi(T5, T5);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
-  __ AddImmediate(T0, entry_size);  // Next entry.
-  __ lw(T4, Address(T0));           // Next class ID.
+  // T1: argument_count (smi).
+  // T3: receiver's class ID (smi).
+  // T5: first argument's class ID (smi).
 
-  __ Bind(&test);
-  __ BranchNotEqual(T4, Immediate(Smi::RawValue(kIllegalCid)), &loop);  // Done?
+  // We unroll the generic one that is generated once more than the others.
+  const bool optimize = kind == Token::kILLEGAL;
 
+  __ Comment("ICData loop");
+  __ Bind(&loop);
+  for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {
+    __ lw(T4, Address(T0, 0));
+    if (num_args == 1) {
+      __ beq(T3, T4, &found);  // IC hit.
+    } else {
+      ASSERT(num_args == 2);
+      Label update;
+      __ bne(T3, T4, &update);  // Continue.
+      __ lw(T4, Address(T0, kWordSize));
+      __ beq(T5, T4, &found);  // IC hit.
+      __ Bind(&update);
+    }
+
+    __ AddImmediate(T0, entry_size);  // Next entry.
+    if (unroll == 0) {
+      __ BranchNotEqual(T4, Immediate(Smi::RawValue(kIllegalCid)),
+                        &loop);  // Done?
+    } else {
+      __ BranchEqual(T4, Immediate(Smi::RawValue(kIllegalCid)),
+                     &miss);  // Done?
+    }
+  }
+
+  __ Bind(&miss);
   __ Comment("IC miss");
   // Restore return address.
   __ mov(RA, T2);
 
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
-  // T1: argument_count - 1 (smi).
+  // T1: argument_count (smi).
+  __ addiu(T1, T1, Immediate(Smi::RawValue(-1)));
   __ sll(T1, T1, 1);  // T1 is Smi.
   __ addu(T1, SP, T1);
   // T1: address of receiver.
@@ -1584,6 +1572,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 
   __ Bind(&found);
+  __ mov(RA, T2);  // Restore return address if found.
   __ Comment("Update caller's counter");
   // T0: Pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
@@ -1591,12 +1580,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ lw(T3, Address(T0, target_offset));
 
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Update counter.
+    // Update counter, ignore overflow.
     __ lw(T4, Address(T0, count_offset));
-    __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
-    __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
-    __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
-    __ movz(T4, T7, CMPRES1);
+    __ AddImmediate(T4, T4, Smi::RawValue(1));
     __ sw(T4, Address(T0, count_offset));
   }
 
@@ -1729,12 +1715,9 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Increment count for this call.
+    // Increment count for this call, ignore overflow.
     __ lw(T4, Address(T0, count_offset));
-    __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
-    __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
-    __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
-    __ movz(T4, T7, CMPRES1);
+    __ AddImmediate(T4, T4, Smi::RawValue(1));
     __ sw(T4, Address(T0, count_offset));
   }
 

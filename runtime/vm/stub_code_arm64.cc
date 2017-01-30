@@ -1380,11 +1380,9 @@ static void EmitFastSmiOp(Assembler* assembler,
 #endif
   if (FLAG_optimization_counter_threshold >= 0) {
     const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-    // Update counter.
+    // Update counter, ignore overflow.
     __ LoadFromOffset(R1, R6, count_offset);
     __ adds(R1, R1, Operand(Smi::RawValue(1)));
-    __ LoadImmediate(R2, Smi::RawValue(Smi::kMaxValue));
-    __ csel(R1, R2, R1, VS);  // Overflow.
     __ StoreToOffset(R1, R6, count_offset);
   }
 
@@ -1408,7 +1406,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
     bool optimized) {
-  ASSERT(num_args > 0);
+  ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
     Label ok;
@@ -1445,7 +1443,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Load arguments descriptor into R4.
   __ LoadFieldFromOffset(R4, R5, ICData::arguments_descriptor_offset());
   // Loop that checks if there is an IC data match.
-  Label loop, update, test, found;
+  Label loop, found, miss;
   // R5: IC data object (preserved).
   __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset());
   // R6: ic_data_array with check entries: classes and target functions.
@@ -1462,47 +1460,45 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ ldr(R0, Address(SP, R7, UXTX, Address::Scaled));
   __ LoadTaggedClassIdMayBeSmi(R0, R0);
 
-  // R7: argument_count - 1 (untagged).
-  // R0: receiver's class ID (smi).
-  __ ldr(R1, Address(R6));  // First class id (smi) to check.
-  __ b(&test);
+  if (num_args == 2) {
+    __ AddImmediate(R1, R7, -1);
+    // R1 <- [SP + (R1 << 3)]
+    __ ldr(R1, Address(SP, R1, UXTX, Address::Scaled));
+    __ LoadTaggedClassIdMayBeSmi(R1, R1);
+  }
+
+  // We unroll the generic one that is generated once more than the others.
+  const bool optimize = kind == Token::kILLEGAL;
 
   __ Comment("ICData loop");
   __ Bind(&loop);
-  for (int i = 0; i < num_args; i++) {
-    if (i > 0) {
-      // If not the first, load the next argument's class ID.
-      __ AddImmediate(R0, R7, -i);
-      // R0 <- [SP + (R0 << 3)]
-      __ ldr(R0, Address(SP, R0, UXTX, Address::Scaled));
-      __ LoadTaggedClassIdMayBeSmi(R0, R0);
-      // R0: next argument class ID (smi).
-      __ LoadFromOffset(R1, R6, i * kWordSize);
-      // R1: next class ID to check (smi).
-    }
-    __ CompareRegisters(R0, R1);  // Class id match?
-    if (i < (num_args - 1)) {
+  for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {
+    Label update;
+
+    __ LoadFromOffset(R2, R6, 0);
+    __ CompareRegisters(R0, R2);  // Class id match?
+    if (num_args == 2) {
       __ b(&update, NE);  // Continue.
+      __ LoadFromOffset(R2, R6, kWordSize);
+      __ CompareRegisters(R1, R2);  // Class id match?
+    }
+    __ b(&found, EQ);  // Break.
+
+    __ Bind(&update);
+
+    const intptr_t entry_size =
+        ICData::TestEntryLengthFor(num_args) * kWordSize;
+    __ AddImmediate(R6, R6, entry_size);  // Next entry.
+
+    __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));  // Done?
+    if (unroll == 0) {
+      __ b(&loop, NE);
     } else {
-      // Last check, all checks before matched.
-      __ b(&found, EQ);  // Break.
+      __ b(&miss, EQ);
     }
   }
-  __ Bind(&update);
-  // Reload receiver class ID.  It has not been destroyed when num_args == 1.
-  if (num_args > 1) {
-    __ ldr(R0, Address(SP, R7, UXTX, Address::Scaled));
-    __ LoadTaggedClassIdMayBeSmi(R0, R0);
-  }
 
-  const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
-  __ AddImmediate(R6, R6, entry_size);  // Next entry.
-  __ ldr(R1, Address(R6));              // Next class ID.
-
-  __ Bind(&test);
-  __ CompareImmediate(R1, Smi::RawValue(kIllegalCid));  // Done?
-  __ b(&loop, NE);
-
+  __ Bind(&miss);
   __ Comment("IC miss");
   // Compute address of arguments.
   // R7: argument_count - 1 (untagged).
@@ -1550,11 +1546,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ LoadFromOffset(R0, R6, target_offset);
 
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Update counter.
+    // Update counter, ignore overflow.
     __ LoadFromOffset(R1, R6, count_offset);
     __ adds(R1, R1, Operand(Smi::RawValue(1)));
-    __ LoadImmediate(R2, Smi::RawValue(Smi::kMaxValue));
-    __ csel(R1, R2, R1, VS);  // Overflow.
     __ StoreToOffset(R1, R6, count_offset);
   }
 
@@ -1679,11 +1673,9 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Increment count for this call.
+    // Increment count for this call, ignore overflow.
     __ LoadFromOffset(R1, R6, count_offset);
     __ adds(R1, R1, Operand(Smi::RawValue(1)));
-    __ LoadImmediate(R2, Smi::RawValue(Smi::kMaxValue));
-    __ csel(R1, R2, R1, VS);  // Overflow.
     __ StoreToOffset(R1, R6, count_offset);
   }
 
