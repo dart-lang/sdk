@@ -1200,7 +1200,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/mixin_lib_extends_field_test',
   'language/mixin_lib_extends_method_test',
   'language/mixin_method_test',
-  'language/mixin_mixin_bound_test', // issue 28450
   'language/mixin_super_bound2_test_01_multi',
   'language/mixin_super_bound2_test_none_multi',
   'language/mixin_super_bound_test',
@@ -2121,7 +2120,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'lib/mirrors/generic_class_declaration_test',
   'lib/mirrors/generic_f_bounded_mixin_application_test',
   'lib/mirrors/generic_interface_test_01_multi',
-  'lib/mirrors/generics_dynamic_test', // issue 28450
   'lib/mirrors/generics_test_01_multi',
   'lib/mirrors/get_symbol_name_no_such_method_test',
   'lib/mirrors/immutable_collections_test',
