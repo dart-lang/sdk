@@ -77,6 +77,12 @@ class AnalysisDriver {
   static const int DATA_VERSION = 15;
 
   /**
+   * The number of exception contexts allowed to write. Once this field is
+   * zero, we stop writing any new exception contexts in this process.
+   */
+  static int allowedNumberOfContextsToWrite = 10;
+
+  /**
    * The name of the driver, e.g. the name of the folder.
    */
   final String name;
@@ -732,44 +738,52 @@ class AnalysisDriver {
         return null;
       }
 
-      _LibraryContext libraryContext = _createLibraryContext(libraryFile);
-      AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
       try {
-        CompilationUnit resolvedUnit = analysisContext.resolveCompilationUnit2(
-            file.source, libraryFile.source);
-        List<AnalysisError> errors = analysisContext.computeErrors(file.source);
-        AnalysisDriverUnitIndexBuilder index = indexUnit(resolvedUnit);
+        _LibraryContext libraryContext = _createLibraryContext(libraryFile);
+        AnalysisContext analysisContext =
+            _createAnalysisContext(libraryContext);
+        try {
+          CompilationUnit resolvedUnit = analysisContext
+              .resolveCompilationUnit2(file.source, libraryFile.source);
+          List<AnalysisError> errors =
+              analysisContext.computeErrors(file.source);
+          AnalysisDriverUnitIndexBuilder index = indexUnit(resolvedUnit);
 
-        // Store the result into the cache.
-        List<int> bytes;
-        {
-          bytes = new AnalysisDriverResolvedUnitBuilder(
-                  errors: errors
-                      .map((error) => new AnalysisDriverUnitErrorBuilder(
-                          offset: error.offset,
-                          length: error.length,
-                          uniqueName: error.errorCode.uniqueName,
-                          message: error.message,
-                          correction: error.correction))
-                      .toList(),
-                  index: index)
-              .toBuffer();
-          String key = _getResolvedUnitKey(libraryFile, file);
-          _byteStore.put(key, bytes);
-        }
+          // Store the result into the cache.
+          List<int> bytes;
+          {
+            bytes = new AnalysisDriverResolvedUnitBuilder(
+                    errors: errors
+                        .map((error) => new AnalysisDriverUnitErrorBuilder(
+                            offset: error.offset,
+                            length: error.length,
+                            uniqueName: error.errorCode.uniqueName,
+                            message: error.message,
+                            correction: error.correction))
+                        .toList(),
+                    index: index)
+                .toBuffer();
+            String key = _getResolvedUnitKey(libraryFile, file);
+            _byteStore.put(key, bytes);
+          }
 
-        // Return the result, full or partial.
-        _logger.writeln('Computed new analysis result.');
-        AnalysisResult result = _getAnalysisResultFromBytes(file, bytes,
-            content: withUnit ? file.content : null,
-            withErrors: _addedFiles.contains(path),
-            resolvedUnit: withUnit ? resolvedUnit : null);
-        if (withUnit && _priorityFiles.contains(path)) {
-          _priorityResults[path] = result;
+          // Return the result, full or partial.
+          _logger.writeln('Computed new analysis result.');
+          AnalysisResult result = _getAnalysisResultFromBytes(file, bytes,
+              content: withUnit ? file.content : null,
+              withErrors: _addedFiles.contains(path),
+              resolvedUnit: withUnit ? resolvedUnit : null);
+          if (withUnit && _priorityFiles.contains(path)) {
+            _priorityResults[path] = result;
+          }
+          return result;
+        } finally {
+          analysisContext.dispose();
         }
-        return result;
-      } finally {
-        analysisContext.dispose();
+      } catch (exception, stackTrace) {
+        String contextKey =
+            _storeExceptionContext(path, libraryFile, exception, stackTrace);
+        throw new _ExceptionState(exception, stackTrace, contextKey);
       }
     });
   }
@@ -1076,7 +1090,7 @@ class AnalysisDriver {
               _resultController.add(result);
             }
           } catch (exception, stackTrace) {
-            _reportError(path, exception, stackTrace);
+            _reportException(path, exception, stackTrace);
           }
           return;
         }
@@ -1094,7 +1108,7 @@ class AnalysisDriver {
           _resultController.add(result);
         }
       } catch (exception, stackTrace) {
-        _reportError(path, exception, stackTrace);
+        _reportException(path, exception, stackTrace);
       }
       return;
     }
@@ -1130,15 +1144,69 @@ class AnalysisDriver {
             asIsIfPartWithoutLibrary: true);
         _resultController.add(result);
       } catch (exception, stackTrace) {
-        _reportError(path, exception, stackTrace);
+        _reportException(path, exception, stackTrace);
       }
       return;
     }
   }
 
-  void _reportError(String path, exception, StackTrace stackTrace) {
+  void _reportException(String path, exception, StackTrace stackTrace) {
+    String contextKey = null;
+    if (exception is _ExceptionState) {
+      var state = exception as _ExceptionState;
+      exception = state.exception;
+      stackTrace = state.stackTrace;
+      contextKey = state.contextKey;
+    }
     CaughtException caught = new CaughtException(exception, stackTrace);
-    _exceptionController.add(new ExceptionResult(path, caught));
+    _exceptionController.add(new ExceptionResult(path, caught, contextKey));
+  }
+
+  String _storeExceptionContext(
+      String path, FileState libraryFile, exception, StackTrace stackTrace) {
+    if (allowedNumberOfContextsToWrite > 0) {
+      allowedNumberOfContextsToWrite--;
+    }
+    try {
+      List<AnalysisDriverExceptionFileBuilder> contextFiles = libraryFile
+          .transitiveFiles
+          .map((file) => new AnalysisDriverExceptionFileBuilder(
+              path: file.path, content: file.content))
+          .toList();
+      contextFiles.sort((a, b) => a.path.compareTo(b.path));
+      AnalysisDriverExceptionContextBuilder contextBuilder =
+          new AnalysisDriverExceptionContextBuilder(
+              path: path,
+              exception: exception.toString(),
+              stackTrace: stackTrace.toString(),
+              files: contextFiles);
+      List<int> bytes = contextBuilder.toBuffer();
+
+      String _twoDigits(int n) {
+        if (n >= 10) return '$n';
+        return '0$n';
+      }
+
+      String _threeDigits(int n) {
+        if (n >= 100) return '$n';
+        if (n >= 10) return '0$n';
+        return '00$n';
+      }
+
+      DateTime time = new DateTime.now();
+      String m = _twoDigits(time.month);
+      String d = _twoDigits(time.day);
+      String h = _twoDigits(time.hour);
+      String min = _twoDigits(time.minute);
+      String sec = _twoDigits(time.second);
+      String ms = _threeDigits(time.millisecond);
+      String key = 'exception_${time.year}$m$d' '_$h$min$sec' + '_$ms';
+
+      _byteStore.put(key, bytes);
+      return key;
+    } catch (_) {
+      return null;
+    }
   }
 
   /**
@@ -1487,7 +1555,15 @@ class ExceptionResult {
    */
   final CaughtException exception;
 
-  ExceptionResult(this.path, this.exception);
+  /**
+   * If the exception happened during a file analysis, and the context in which
+   * the exception happened was stored, this field is the key of the context
+   * in the byte store. May be `null` if the context is unknown, the maximum
+   * number of context to store was reached, etc.
+   */
+  final String contextKey;
+
+  ExceptionResult(this.path, this.exception, this.contextKey);
 }
 
 /**
@@ -1656,6 +1732,22 @@ class _ContentCacheWrapper implements ContentCache {
     String path = source.fullName;
     return fsState.getFileForPath(path);
   }
+}
+
+/**
+ * Information about an exception and its context.
+ */
+class _ExceptionState {
+  final exception;
+  final StackTrace stackTrace;
+
+  /**
+   * The key under which the context of the exception was stored, or `null`
+   * if unknown, the maximum number of context to store was reached, etc.
+   */
+  final String contextKey;
+
+  _ExceptionState(this.exception, this.stackTrace, this.contextKey);
 }
 
 /**

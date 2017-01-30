@@ -58,6 +58,56 @@ import 'format.dart' as generated;
 const informative = null;
 
 /**
+ * Information about the context of an exception in analysis driver.
+ */
+@TopLevel('ADEC')
+abstract class AnalysisDriverExceptionContext extends base.SummaryClass {
+  factory AnalysisDriverExceptionContext.fromBuffer(List<int> buffer) =>
+      generated.readAnalysisDriverExceptionContext(buffer);
+
+  /**
+   * The exception string.
+   */
+  @Id(1)
+  String get exception;
+
+  /**
+   * The state of files when the exception happened.
+   */
+  @Id(3)
+  List<AnalysisDriverExceptionFile> get files;
+
+  /**
+   * The path of the file being analyzed when the exception happened.
+   */
+  @Id(0)
+  String get path;
+
+  /**
+   * The exception stack trace string.
+   */
+  @Id(2)
+  String get stackTrace;
+}
+
+/**
+ * Information about a single file in [AnalysisDriverExceptionContext].
+ */
+abstract class AnalysisDriverExceptionFile extends base.SummaryClass {
+  /**
+   * The content of the file.
+   */
+  @Id(1)
+  String get content;
+
+  /**
+   * The path of the file.
+   */
+  @Id(0)
+  String get path;
+}
+
+/**
  * Information about a resolved unit.
  */
 @TopLevel('ADRU')

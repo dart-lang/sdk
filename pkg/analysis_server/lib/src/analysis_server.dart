@@ -1868,8 +1868,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       // IMPLEMENTED
     });
     analysisDriver.exceptions.listen((nd.ExceptionResult result) {
-      AnalysisEngine.instance.logger
-          .logError('Analysis failed: ${result.path}', result.exception);
+      String message = 'Analysis failed: ${result.path}';
+      if (result.contextKey != null) {
+        message += ' context: ${result.contextKey}';
+      }
+      AnalysisEngine.instance.logger.logError(message, result.exception);
     });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;

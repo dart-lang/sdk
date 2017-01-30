@@ -129,6 +129,302 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   }
 }
 
+class AnalysisDriverExceptionContextBuilder extends Object with _AnalysisDriverExceptionContextMixin implements idl.AnalysisDriverExceptionContext {
+  String _exception;
+  List<AnalysisDriverExceptionFileBuilder> _files;
+  String _path;
+  String _stackTrace;
+
+  @override
+  String get exception => _exception ??= '';
+
+  /**
+   * The exception string.
+   */
+  void set exception(String value) {
+    this._exception = value;
+  }
+
+  @override
+  List<AnalysisDriverExceptionFileBuilder> get files => _files ??= <AnalysisDriverExceptionFileBuilder>[];
+
+  /**
+   * The state of files when the exception happened.
+   */
+  void set files(List<AnalysisDriverExceptionFileBuilder> value) {
+    this._files = value;
+  }
+
+  @override
+  String get path => _path ??= '';
+
+  /**
+   * The path of the file being analyzed when the exception happened.
+   */
+  void set path(String value) {
+    this._path = value;
+  }
+
+  @override
+  String get stackTrace => _stackTrace ??= '';
+
+  /**
+   * The exception stack trace string.
+   */
+  void set stackTrace(String value) {
+    this._stackTrace = value;
+  }
+
+  AnalysisDriverExceptionContextBuilder({String exception, List<AnalysisDriverExceptionFileBuilder> files, String path, String stackTrace})
+    : _exception = exception,
+      _files = files,
+      _path = path,
+      _stackTrace = stackTrace;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _files?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._path ?? '');
+    signature.addString(this._exception ?? '');
+    signature.addString(this._stackTrace ?? '');
+    if (this._files == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._files.length);
+      for (var x in this._files) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "ADEC");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_exception;
+    fb.Offset offset_files;
+    fb.Offset offset_path;
+    fb.Offset offset_stackTrace;
+    if (_exception != null) {
+      offset_exception = fbBuilder.writeString(_exception);
+    }
+    if (!(_files == null || _files.isEmpty)) {
+      offset_files = fbBuilder.writeList(_files.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_path != null) {
+      offset_path = fbBuilder.writeString(_path);
+    }
+    if (_stackTrace != null) {
+      offset_stackTrace = fbBuilder.writeString(_stackTrace);
+    }
+    fbBuilder.startTable();
+    if (offset_exception != null) {
+      fbBuilder.addOffset(1, offset_exception);
+    }
+    if (offset_files != null) {
+      fbBuilder.addOffset(3, offset_files);
+    }
+    if (offset_path != null) {
+      fbBuilder.addOffset(0, offset_path);
+    }
+    if (offset_stackTrace != null) {
+      fbBuilder.addOffset(2, offset_stackTrace);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.AnalysisDriverExceptionContext readAnalysisDriverExceptionContext(List<int> buffer) {
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _AnalysisDriverExceptionContextReader().read(rootRef, 0);
+}
+
+class _AnalysisDriverExceptionContextReader extends fb.TableReader<_AnalysisDriverExceptionContextImpl> {
+  const _AnalysisDriverExceptionContextReader();
+
+  @override
+  _AnalysisDriverExceptionContextImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverExceptionContextImpl(bc, offset);
+}
+
+class _AnalysisDriverExceptionContextImpl extends Object with _AnalysisDriverExceptionContextMixin implements idl.AnalysisDriverExceptionContext {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AnalysisDriverExceptionContextImpl(this._bc, this._bcOffset);
+
+  String _exception;
+  List<idl.AnalysisDriverExceptionFile> _files;
+  String _path;
+  String _stackTrace;
+
+  @override
+  String get exception {
+    _exception ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _exception;
+  }
+
+  @override
+  List<idl.AnalysisDriverExceptionFile> get files {
+    _files ??= const fb.ListReader<idl.AnalysisDriverExceptionFile>(const _AnalysisDriverExceptionFileReader()).vTableGet(_bc, _bcOffset, 3, const <idl.AnalysisDriverExceptionFile>[]);
+    return _files;
+  }
+
+  @override
+  String get path {
+    _path ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _path;
+  }
+
+  @override
+  String get stackTrace {
+    _stackTrace ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _stackTrace;
+  }
+}
+
+abstract class _AnalysisDriverExceptionContextMixin implements idl.AnalysisDriverExceptionContext {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (exception != '') _result["exception"] = exception;
+    if (files.isNotEmpty) _result["files"] = files.map((_value) => _value.toJson()).toList();
+    if (path != '') _result["path"] = path;
+    if (stackTrace != '') _result["stackTrace"] = stackTrace;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "exception": exception,
+    "files": files,
+    "path": path,
+    "stackTrace": stackTrace,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class AnalysisDriverExceptionFileBuilder extends Object with _AnalysisDriverExceptionFileMixin implements idl.AnalysisDriverExceptionFile {
+  String _content;
+  String _path;
+
+  @override
+  String get content => _content ??= '';
+
+  /**
+   * The content of the file.
+   */
+  void set content(String value) {
+    this._content = value;
+  }
+
+  @override
+  String get path => _path ??= '';
+
+  /**
+   * The path of the file.
+   */
+  void set path(String value) {
+    this._path = value;
+  }
+
+  AnalysisDriverExceptionFileBuilder({String content, String path})
+    : _content = content,
+      _path = path;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._path ?? '');
+    signature.addString(this._content ?? '');
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_content;
+    fb.Offset offset_path;
+    if (_content != null) {
+      offset_content = fbBuilder.writeString(_content);
+    }
+    if (_path != null) {
+      offset_path = fbBuilder.writeString(_path);
+    }
+    fbBuilder.startTable();
+    if (offset_content != null) {
+      fbBuilder.addOffset(1, offset_content);
+    }
+    if (offset_path != null) {
+      fbBuilder.addOffset(0, offset_path);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _AnalysisDriverExceptionFileReader extends fb.TableReader<_AnalysisDriverExceptionFileImpl> {
+  const _AnalysisDriverExceptionFileReader();
+
+  @override
+  _AnalysisDriverExceptionFileImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverExceptionFileImpl(bc, offset);
+}
+
+class _AnalysisDriverExceptionFileImpl extends Object with _AnalysisDriverExceptionFileMixin implements idl.AnalysisDriverExceptionFile {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AnalysisDriverExceptionFileImpl(this._bc, this._bcOffset);
+
+  String _content;
+  String _path;
+
+  @override
+  String get content {
+    _content ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _content;
+  }
+
+  @override
+  String get path {
+    _path ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _path;
+  }
+}
+
+abstract class _AnalysisDriverExceptionFileMixin implements idl.AnalysisDriverExceptionFile {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (content != '') _result["content"] = content;
+    if (path != '') _result["path"] = path;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "content": content,
+    "path": path,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
 class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
   List<AnalysisDriverUnitErrorBuilder> _errors;
   AnalysisDriverUnitIndexBuilder _index;

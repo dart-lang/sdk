@@ -841,6 +841,46 @@ enum UnlinkedParamKind : byte {
 }
 
 /**
+ * Information about the context of an exception in analysis driver.
+ */
+table AnalysisDriverExceptionContext {
+  /**
+   * The exception string.
+   */
+  exception:string (id: 1);
+
+  /**
+   * The state of files when the exception happened.
+   */
+  files:[AnalysisDriverExceptionFile] (id: 3);
+
+  /**
+   * The path of the file being analyzed when the exception happened.
+   */
+  path:string (id: 0);
+
+  /**
+   * The exception stack trace string.
+   */
+  stackTrace:string (id: 2);
+}
+
+/**
+ * Information about a single file in [AnalysisDriverExceptionContext].
+ */
+table AnalysisDriverExceptionFile {
+  /**
+   * The content of the file.
+   */
+  content:string (id: 1);
+
+  /**
+   * The path of the file.
+   */
+  path:string (id: 0);
+}
+
+/**
  * Information about a resolved unit.
  */
 table AnalysisDriverResolvedUnit {
