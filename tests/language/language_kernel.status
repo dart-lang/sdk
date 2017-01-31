@@ -170,27 +170,20 @@ getter_setter_in_lib_test: RuntimeError
 inferrer_closure_test: RuntimeError
 initializing_formal_final_test: RuntimeError
 is_not_class2_test: RuntimeError
-issue13474_test: RuntimeError
 issue_1751477_test: RuntimeError
 library_env_test/has_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 list_literal4_test: RuntimeError
 malformed_test/none: RuntimeError
 map_literal3_test: RuntimeError
-map_literal4_test: RuntimeError  # VM checked mode Issue 28420
 map_literal6_test: RuntimeError
 method_override_test: RuntimeError
 mixin_type_parameters_super_extends_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
 multiline_newline_test/none: RuntimeError
-named_parameters_type_test/01: MissingRuntimeError
-named_parameters_type_test/02: MissingRuntimeError
-named_parameters_type_test/03: MissingRuntimeError
 not_enough_positional_arguments_test/02: MissingRuntimeError  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: MissingRuntimeError  # Dartk Issue 28301
 number_identifier_test/05: RuntimeError
-positional_parameters_type_test/01: MissingRuntimeError
-positional_parameters_type_test/02: MissingRuntimeError
 prefix10_negative_test: Fail
 prefix21_test: RuntimeError
 redirecting_constructor_initializer_test: RuntimeError
@@ -204,7 +197,6 @@ static_setter_get_test/01: RuntimeError  # Dartk Issue 28417
 switch7_negative_test: Fail  # Dartk Issue 28416
 try_catch_on_syntax_test/10: MissingRuntimeError  # Dartk Issue 28410
 try_catch_on_syntax_test/11: MissingRuntimeError  # Dartk Issue 28410
-type_checks_in_factory_method_test: RuntimeError
 type_variable_function_type_test: RuntimeError
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test: RuntimeError
@@ -231,7 +223,6 @@ if_null_assignment_static_test/35: Crash  # Dartk Issue 28302
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
 
-
 # New failures after respecting VMOptions in test files
 [ $compiler == dartk || $compiler == dartkp ]
 vm/regress_27671_test: RuntimeError
@@ -244,23 +235,10 @@ hello_dart_test: Crash  # error: expected: cls.is_type_finalized()
 [ $compiler == dartk && $runtime == vm ]
 hello_dart_test: CompileTimeError  # VMOptions=--compile-all causes us to hit "native function VMServiceIO_Shutdown cannot be resolved"
 ct_const2_test: Pass, CompileTimeError  # VMOptions=--compile-all causes us to hit "native function VMServiceIO_Shutdown cannot be resolved"
-disassemble_test: Pass, Crash  # Multitest via multiple VMOptions!
 
 # Failures during Gardening shift: To be triaged!
 [ $compiler == dartk || $compiler == dartkp ]
 runtime_type_function_test: RuntimeError
-
-# Failures during Gardening shift: To be triaged!
-[ $compiler == dartkp && $runtime == dart_precompiled ]
-assert_with_type_test_or_cast_test: Pass, Crash  # Multitest via multiple VMOptions.
-named_parameters_type_test/01: Crash
-named_parameters_type_test/02: Crash
-named_parameters_type_test/03: Crash
-positional_parameters_type_test/01: Crash
-positional_parameters_type_test/02: Crash
-type_checks_in_factory_method_test: Crash
-vm/regress_27671_test: Crash
-vm/type_vm_test: Crash
 
 # Triaged checked mode failures
 [ ($compiler == dartk || $compiler == dartkp) && $checked ]
