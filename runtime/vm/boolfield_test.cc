@@ -8,7 +8,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(BoolField) {
+VM_UNIT_TEST_CASE(BoolField) {
   class TestBoolField : public BoolField<1> {};
   EXPECT(TestBoolField::decode(2));
   EXPECT(!TestBoolField::decode(1));

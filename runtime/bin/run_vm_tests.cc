@@ -41,6 +41,13 @@ void TestCase::Run() {
 }
 
 
+void RawTestCase::Run() {
+  fprintf(stdout, "Running test: %s\n", name());
+  (*run_)();
+  fprintf(stdout, "Done: %s\n", name());
+}
+
+
 void TestCaseBase::RunTest() {
   if (strcmp(run_filter, this->name()) == 0) {
     this->Run();
@@ -90,6 +97,7 @@ static int Main(int argc, const char** argv) {
       // List all tests and benchmarks and exit without initializing the VM.
       TestCaseBase::RunAll();
       Benchmark::RunAll(argv[0]);
+      TestCaseBase::RunAllRaw();
       fflush(stdout);
       return 0;
     } else if (strcmp(argv[1], "--benchmarks") == 0) {
@@ -122,6 +130,7 @@ static int Main(int argc, const char** argv) {
   err_msg = Dart::Cleanup();
   ASSERT(err_msg == NULL);
 
+  TestCaseBase::RunAllRaw();
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
     fprintf(stderr, "No tests matched: %s\n", run_filter);

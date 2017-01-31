@@ -315,7 +315,7 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
 }
 
 
-UNIT_TEST_CASE(CustomIsolates) {
+VM_UNIT_TEST_CASE(CustomIsolates) {
   bool saved_flag = FLAG_trace_shutdown;
   FLAG_trace_shutdown = true;
   FLAG_verify_handles = true;

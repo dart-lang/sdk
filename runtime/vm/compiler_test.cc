@@ -15,7 +15,7 @@
 
 namespace dart {
 
-VM_TEST_CASE(CompileScript) {
+ISOLATE_UNIT_TEST_CASE(CompileScript) {
   const char* kScriptChars =
       "class A {\n"
       "  static foo() { return 42; }\n"
@@ -29,7 +29,7 @@ VM_TEST_CASE(CompileScript) {
 }
 
 
-VM_TEST_CASE(CompileFunction) {
+ISOLATE_UNIT_TEST_CASE(CompileFunction) {
   const char* kScriptChars =
       "class A {\n"
       "  static foo() { return 42; }\n"
@@ -69,7 +69,7 @@ VM_TEST_CASE(CompileFunction) {
 }
 
 
-VM_TEST_CASE(CompileFunctionOnHelperThread) {
+ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   // Create a simple function and compile it without optimization.
   const char* kScriptChars =
       "class A {\n"
@@ -184,7 +184,7 @@ TEST_CASE(EvalExpression) {
 }
 
 
-VM_TEST_CASE(EvalExpressionWithLazyCompile) {
+ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
   Library& lib = Library::Handle(Library::CoreLibrary());
 
   const String& expression = String::Handle(
@@ -199,7 +199,7 @@ VM_TEST_CASE(EvalExpressionWithLazyCompile) {
 }
 
 
-VM_TEST_CASE(EvalExpressionExhaustCIDs) {
+ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   Library& lib = Library::Handle(Library::CoreLibrary());
 
   const String& expression = String::Handle(String::New("3 + 4"));

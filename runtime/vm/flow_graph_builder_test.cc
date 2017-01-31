@@ -772,7 +772,7 @@ static bool SyntheticRoundTripTest(TokenPosition token_pos) {
 }
 
 
-UNIT_TEST_CASE(SourcePosition_SyntheticTokens) {
+VM_UNIT_TEST_CASE(SourcePosition_SyntheticTokens) {
   EXPECT(TokenPosition::kNoSourcePos == -1);
   EXPECT(TokenPosition::kMinSourcePos == 0);
   EXPECT(TokenPosition::kMaxSourcePos > 0);

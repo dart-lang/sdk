@@ -15,9 +15,6 @@
 
 namespace dart {
 
-// Note: for these tests, there is no need to call MallocHooks::Init() or
-// MallocHooks::TearDown() as this is all done by the VM test framework.
-
 static void MallocHookTestBufferInitializer(volatile char* buffer,
                                             uintptr_t size) {
   // Run through the buffer and do something. If we don't do this and the memory
@@ -29,10 +26,10 @@ static void MallocHookTestBufferInitializer(volatile char* buffer,
 
 
 UNIT_TEST_CASE(BasicMallocHookTest) {
+  MallocHooks::InitOnce();
   MallocHooks::ResetStats();
   EXPECT_EQ(0L, MallocHooks::allocation_count());
   EXPECT_EQ(0L, MallocHooks::heap_allocated_memory_in_bytes());
-
   const intptr_t buffer_size = 10;
   char* buffer = new char[buffer_size];
   MallocHookTestBufferInitializer(buffer, buffer_size);
@@ -44,10 +41,12 @@ UNIT_TEST_CASE(BasicMallocHookTest) {
   delete[] buffer;
   EXPECT_EQ(0L, MallocHooks::allocation_count());
   EXPECT_EQ(0L, MallocHooks::heap_allocated_memory_in_bytes());
+  MallocHooks::TearDown();
 }
 
 
 UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
+  MallocHooks::InitOnce();
   const intptr_t pre_hook_buffer_size = 3;
   char* pre_hook_buffer = new char[pre_hook_buffer_size];
   MallocHookTestBufferInitializer(pre_hook_buffer, pre_hook_buffer_size);
@@ -73,6 +72,7 @@ UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
   delete[] buffer;
   EXPECT_EQ(0L, MallocHooks::allocation_count());
   EXPECT_EQ(0L, MallocHooks::heap_allocated_memory_in_bytes());
+  MallocHooks::TearDown();
 }
 
 };  // namespace dart

@@ -12,7 +12,7 @@ namespace dart {
 DECLARE_FLAG(int, worker_timeout_millis);
 
 
-UNIT_TEST_CASE(ThreadPool_Create) {
+VM_UNIT_TEST_CASE(ThreadPool_Create) {
   ThreadPool thread_pool;
 }
 
@@ -43,7 +43,7 @@ class TestTask : public ThreadPool::Task {
 };
 
 
-UNIT_TEST_CASE(ThreadPool_RunOne) {
+VM_UNIT_TEST_CASE(ThreadPool_RunOne) {
   ThreadPool thread_pool;
   Monitor sync;
   bool done = true;
@@ -64,7 +64,7 @@ UNIT_TEST_CASE(ThreadPool_RunOne) {
 }
 
 
-UNIT_TEST_CASE(ThreadPool_RunMany) {
+VM_UNIT_TEST_CASE(ThreadPool_RunMany) {
   const int kTaskCount = 100;
   ThreadPool thread_pool;
   Monitor sync[kTaskCount];
@@ -119,7 +119,7 @@ class SleepTask : public ThreadPool::Task {
 };
 
 
-UNIT_TEST_CASE(ThreadPool_WorkerShutdown) {
+VM_UNIT_TEST_CASE(ThreadPool_WorkerShutdown) {
   const int kTaskCount = 10;
   Monitor sync;
   int slept_count = 0;
@@ -157,7 +157,7 @@ UNIT_TEST_CASE(ThreadPool_WorkerShutdown) {
 }
 
 
-UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
+VM_UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
   // Adjust the worker timeout so that we timeout quickly.
   int saved_timeout = FLAG_worker_timeout_millis;
   FLAG_worker_timeout_millis = 1;
@@ -230,7 +230,7 @@ class SpawnTask : public ThreadPool::Task {
 };
 
 
-UNIT_TEST_CASE(ThreadPool_RecursiveSpawn) {
+VM_UNIT_TEST_CASE(ThreadPool_RecursiveSpawn) {
   ThreadPool thread_pool;
   Monitor sync;
   const int kTotalTasks = 500;

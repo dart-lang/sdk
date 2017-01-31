@@ -19,7 +19,7 @@ static void DeleteRegion(const MemoryRegion& region) {
 }
 
 
-UNIT_TEST_CASE(NullRegion) {
+VM_UNIT_TEST_CASE(NullRegion) {
   static const uword kSize = 512;
   MemoryRegion region(NULL, kSize);
   EXPECT(region.pointer() == NULL);
@@ -27,7 +27,7 @@ UNIT_TEST_CASE(NullRegion) {
 }
 
 
-UNIT_TEST_CASE(NewRegion) {
+VM_UNIT_TEST_CASE(NewRegion) {
   static const uword kSize = 1024;
   MemoryRegion region(NewRegion(kSize), kSize);
   EXPECT_EQ(kSize, region.size());
@@ -40,7 +40,7 @@ UNIT_TEST_CASE(NewRegion) {
 }
 
 
-UNIT_TEST_CASE(Subregion) {
+VM_UNIT_TEST_CASE(Subregion) {
   static const uword kSize = 1024;
   static const uword kSubOffset = 128;
   static const uword kSubSize = 512;
@@ -60,7 +60,7 @@ UNIT_TEST_CASE(Subregion) {
 }
 
 
-UNIT_TEST_CASE(ExtendedRegion) {
+VM_UNIT_TEST_CASE(ExtendedRegion) {
   static const uword kSize = 1024;
   static const uword kSubSize = 512;
   static const uword kExtendSize = 512;

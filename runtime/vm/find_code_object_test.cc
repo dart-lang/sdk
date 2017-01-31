@@ -25,7 +25,7 @@ static const int kLoopCount = 25000;
 #endif
 static char scriptChars[kScriptSize];
 
-VM_TEST_CASE(FindCodeObject) {
+ISOLATE_UNIT_TEST_CASE(FindCodeObject) {
   const int kNumFunctions = 1024;
 
   // Get access to the code index table.

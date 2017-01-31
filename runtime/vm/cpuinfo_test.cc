@@ -9,7 +9,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(GetCpuModelTest) {
+VM_UNIT_TEST_CASE(GetCpuModelTest) {
   const char* cpumodel = CpuInfo::GetCpuModel();
   EXPECT_NE(strlen(cpumodel), 0UL);
   // caller is responsible for deleting the returned cpumodel string.

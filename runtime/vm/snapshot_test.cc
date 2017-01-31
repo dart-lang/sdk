@@ -1002,7 +1002,7 @@ TEST_CASE(SerializeScript) {
 
 
 #if !defined(PRODUCT)  // Uses deferred loading.
-UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
+VM_UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
   const char* kScriptChars =
       "\n"
       "import 'dart:mirrors';"
@@ -1121,7 +1121,7 @@ static void IterateScripts(const Library& lib) {
   }
 }
 
-VM_TEST_CASE(GenerateSource) {
+ISOLATE_UNIT_TEST_CASE(GenerateSource) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs =
@@ -1138,7 +1138,7 @@ VM_TEST_CASE(GenerateSource) {
 }
 
 
-UNIT_TEST_CASE(FullSnapshot) {
+VM_UNIT_TEST_CASE(FullSnapshot) {
   const char* kScriptChars =
       "class Fields  {\n"
       "  Fields(int i, int j) : fld1 = i, fld2 = j {}\n"
@@ -1212,7 +1212,7 @@ UNIT_TEST_CASE(FullSnapshot) {
 }
 
 
-UNIT_TEST_CASE(FullSnapshot1) {
+VM_UNIT_TEST_CASE(FullSnapshot1) {
   // This buffer has to be static for this to compile with Visual Studio.
   // If it is not static compilation of this file with Visual Studio takes
   // more than 30 minutes!
@@ -1281,7 +1281,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
 #ifndef PRODUCT
 
 
-UNIT_TEST_CASE(ScriptSnapshot) {
+VM_UNIT_TEST_CASE(ScriptSnapshot) {
   const char* kLibScriptChars =
       "library dart_import_lib;"
       "class LibFields  {"
@@ -1416,7 +1416,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 }
 
 
-UNIT_TEST_CASE(ScriptSnapshot1) {
+VM_UNIT_TEST_CASE(ScriptSnapshot1) {
   const char* kScriptChars =
       "class _SimpleNumEnumerable<T extends num> {"
       "final Iterable<T> _source;"
@@ -1489,7 +1489,7 @@ UNIT_TEST_CASE(ScriptSnapshot1) {
 }
 
 
-UNIT_TEST_CASE(ScriptSnapshot2) {
+VM_UNIT_TEST_CASE(ScriptSnapshot2) {
   // The snapshot of this library is always created in production mode, but
   // loaded and executed in both production and checked modes.
   // This test verifies that type information is still contained in the snapshot
@@ -1605,7 +1605,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
 }
 
 
-UNIT_TEST_CASE(MismatchedSnapshotKinds) {
+VM_UNIT_TEST_CASE(MismatchedSnapshotKinds) {
   const char* kScriptChars = "main() { print('Hello, world!'); }";
   Dart_Handle result;
 
@@ -1781,7 +1781,7 @@ static void CheckStringInvalid(Dart_Handle dart_string) {
 }
 
 
-UNIT_TEST_CASE(DartGeneratedMessages) {
+VM_UNIT_TEST_CASE(DartGeneratedMessages) {
   static const char* kCustomIsolateScriptChars =
       "getSmi() {\n"
       "  return 42;\n"
@@ -1929,7 +1929,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
 }
 
 
-UNIT_TEST_CASE(DartGeneratedListMessages) {
+VM_UNIT_TEST_CASE(DartGeneratedListMessages) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
       "final int kArrayLength = 10;\n"
@@ -2040,7 +2040,7 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
 }
 
 
-UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
+VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
       "final int kArrayLength = 10;\n"
@@ -2261,7 +2261,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 }
 
 
-UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
+VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
       "import 'dart:typed_data';\n"
@@ -2481,7 +2481,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 }
 
 
-UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
+VM_UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
       "import 'dart:typed_data';\n"
@@ -2716,7 +2716,7 @@ static void CheckTypedData(Dart_CObject* object,
   EXPECT_EQ(len, object->value.as_typed_data.length);
 }
 
-UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
+VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
   static const char* kScriptChars =
       "import 'dart:typed_data';\n"
       "getTypedDataList() {\n"
@@ -2903,7 +2903,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
 }
 
 
-UNIT_TEST_CASE(PostCObject) {
+VM_UNIT_TEST_CASE(PostCObject) {
   // Create a native port for posting from C to Dart
   TestIsolateScope __test_isolate__;
   const char* kScriptChars =

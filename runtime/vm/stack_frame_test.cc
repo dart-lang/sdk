@@ -17,7 +17,7 @@
 namespace dart {
 
 // Unit test for empty stack frame iteration.
-VM_TEST_CASE(EmptyStackFrameIteration) {
+ISOLATE_UNIT_TEST_CASE(EmptyStackFrameIteration) {
   StackFrameIterator iterator(StackFrameIterator::kValidateFrames);
   EXPECT(!iterator.HasNextFrame());
   EXPECT(iterator.NextFrame() == NULL);
@@ -26,7 +26,7 @@ VM_TEST_CASE(EmptyStackFrameIteration) {
 
 
 // Unit test for empty dart stack frame iteration.
-VM_TEST_CASE(EmptyDartStackFrameIteration) {
+ISOLATE_UNIT_TEST_CASE(EmptyDartStackFrameIteration) {
   DartFrameIterator iterator;
   EXPECT(iterator.NextFrame() == NULL);
   VerifyPointersVisitor::VerifyPointers();

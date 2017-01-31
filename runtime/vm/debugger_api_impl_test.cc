@@ -1414,7 +1414,7 @@ static void TestIsolateID(Dart_IsolateId isolate_id, Dart_IsolateEvent kind) {
 }
 
 
-UNIT_TEST_CASE(Debug_IsolateID) {
+VM_UNIT_TEST_CASE(Debug_IsolateID) {
   const char* kScriptChars =
       "void moo(s) { }        \n"
       "class A {              \n"
