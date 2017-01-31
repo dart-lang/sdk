@@ -2427,7 +2427,7 @@ var fe1 = (int x) => x;
   void test_implicitDynamic_type() {
     addFile(r'''
 class C<T> {}
-class M1<T extends /*error:IMPLICIT_DYNAMIC_TYPE*//*error:NOT_INSTANTIATED_BOUND*/List> {}
+class M1<T extends /*error:IMPLICIT_DYNAMIC_TYPE*/List> {}
 class M2<T> {}
 class I<T> {}
 class D<T, S> extends /*error:IMPLICIT_DYNAMIC_TYPE*/C

@@ -71,6 +71,11 @@
   * Make `pub run` run executables in spawned isolates. This lets them handle
     signals and use standard IO reliably.
 
+  * Fix source-maps produced by dart2js when running in `pub serve`: URL
+    references to assets from packages match the location where `pub serve`
+    serves them (`packages/package_name/` instead of
+    `../packages/package_name/`).
+
 ### Infrastructure changes
 
   * The SDK now uses GN rather than gyp to generate its build files, which will

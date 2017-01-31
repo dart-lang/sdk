@@ -4660,6 +4660,9 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
         var linker = functionElement.compilationUnit.library._linker;
         var typeProvider = linker.typeProvider;
         var typeSystem = linker.typeSystem;
+        if (bodyType.isDartAsyncFutureOr) {
+          bodyType = (bodyType as InterfaceType).typeArguments[0];
+        }
         bodyType = typeProvider.futureType
             .instantiate([bodyType.flattenFutures(typeSystem)]);
       }

@@ -61,6 +61,24 @@ var g = () async => futureInt;
     expect(f.type.toString(), '() → Future<int>');
   }
 
+  void test_asyncClosureReturnType_futureOr() {
+    var mainUnit = checkFile('''
+import 'dart:async';
+FutureOr<int> futureOrInt = null;
+var f = () => futureOrInt;
+var g = () async => futureOrInt;
+''');
+    var futureOrInt = mainUnit.topLevelVariables[0];
+    expect(futureOrInt.name, 'futureOrInt');
+    expect(futureOrInt.type.toString(), 'FutureOr<int>');
+    var f = mainUnit.topLevelVariables[1];
+    expect(f.name, 'f');
+    expect(f.type.toString(), '() → FutureOr<int>');
+    var g = mainUnit.topLevelVariables[2];
+    expect(g.name, 'g');
+    expect(g.type.toString(), '() → Future<int>');
+  }
+
   void test_blockBodiedLambdas_async_allReturnsAreFutures() {
     if (!mayCheckTypesOfLocals) {
       return;
@@ -1665,6 +1683,19 @@ int get y => null;
     expect(x.type.toString(), 'int');
   }
 
+  void test_futureOr_subtyping() {
+    checkFile(r'''
+import 'dart:async';
+void add(int x) {}
+add2(int y) {}
+main() {
+  Future<int> f;
+  var a = f.then(add);
+  var b = f.then(add2);
+}
+    ''');
+  }
+
   void test_futureThen() {
     String build({String declared, String downwards, String upwards}) => '''
 import 'dart:async';
@@ -1851,19 +1882,6 @@ main() {
   var g = base.then(/*info:INFERRED_TYPE_CLOSURE*/(x) => x == 0);
   Future<bool> b = f;
   b = g;
-}
-    ''');
-  }
-
-  void test_futureOr_subtyping() {
-    checkFile(r'''
-import 'dart:async';
-void add(int x) {}
-add2(int y) {}
-main() {
-  Future<int> f;
-  var a = f.then(add);
-  var b = f.then(add2);
 }
     ''');
   }
@@ -4272,7 +4290,7 @@ B v = null;
   void test_instantiateToBounds_generic2_noBound() {
     var unit = checkFile(r'''
 class A<T> {}
-class B<T extends /*error:NOT_INSTANTIATED_BOUND*/A> {}
+class B<T extends A> {}
 B v = null;
 ''');
     expect(unit.topLevelVariables[0].type.toString(), 'B<A<dynamic>>');
