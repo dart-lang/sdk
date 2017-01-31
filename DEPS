@@ -28,7 +28,7 @@ vars = {
   "github_dartlang": "https://github.com/dart-lang/%s.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@cf831f58ac65f68f14824c0b1515f6b7814d94b8",
+  "co19_rev": "@4af9ef149be554216c5bb16cbac8e50d4c28cdf1",
 
   # Revisions of GN related dependencies.
   "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",

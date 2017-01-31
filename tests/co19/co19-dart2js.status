@@ -80,6 +80,14 @@ Language/Expressions/Object_Identity/constant_objects_t01: RuntimeError # Please
 Language/Expressions/Object_Identity/double_t02: RuntimeError # Please triage this failure
 Language/Expressions/Object_Identity/double_t03: RuntimeError # Please triage this failure
 Language/Expressions/Object_Identity/object_t02: RuntimeError # Issue 1533 (int/double related)
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t04: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t05: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
 Language/Expressions/Shift/syntax_t01/14: MissingRuntimeError # Please triage this failure
 Language/Functions/External_Functions/not_connected_to_a_body_t01: CompileTimeError, OK # Issue 5021
 Language/Generics/syntax_t17: fail # Issue 21203
