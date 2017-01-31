@@ -5408,7 +5408,6 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
     return Api::NewHandle(T, tmp.raw());
   }
   library ^= tmp.raw();
-  library.set_debuggable(false);
   I->object_store()->set_root_library(library);
   return Api::NewHandle(T, library.raw());
 #endif

@@ -2929,6 +2929,14 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
     const Script& script = Script::Handle(zone, top_frame->SourceScript());
     if (script.kind() == RawScript::kKernelTag) {
+      // Are we at a yield point (previous await)?
+      const Array& yields = Array::Handle(script.yield_positions());
+      intptr_t looking_for = top_frame->TokenPos().value();
+      Smi& value = Smi::Handle(zone);
+      for (int i = 0; i < yields.Length(); i++) {
+        value ^= yields.At(i);
+        if (value.Value() == looking_for) return true;
+      }
       return false;
     }
     const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());

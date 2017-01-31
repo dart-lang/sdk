@@ -1177,7 +1177,14 @@ void TypeParameter::VisitChildren(Visitor* visitor) {
 }
 
 
-Program::~Program() {}
+Program::~Program() {
+  while (valid_token_positions.length() > 0) {
+    delete valid_token_positions.RemoveLast();
+  }
+  while (yield_token_positions.length() > 0) {
+    delete yield_token_positions.RemoveLast();
+  }
+}
 
 
 void Program::AcceptTreeVisitor(TreeVisitor* visitor) {
