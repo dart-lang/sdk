@@ -58,6 +58,7 @@ kernel/test/baseline_strong_mode_test: RuntimeError # Issue 28243
 [ $compiler == dart2js ]
 analysis_server/test/integration: SkipByDesign # Analysis server integration tests don't make sense to run under dart2js, since the code under test always runs in the Dart vm as a subprocess.
 analyzer_cli/test/*: SkipByDesign # Only meant to run on vm
+analyzer_plugin/test/*: SkipByDesign # Only meant to run on vm
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
 collection/test/equality_test/03: Fail # Issue 1533
