@@ -26,6 +26,9 @@ abstract class VM implements VMRef {
   /// The Dart VM version string.
   String get version;
 
+  /// The amount of memory currently allocated by native code in zones.
+  int get nativeZoneMemoryUsage;
+
   /// The process id for the VM.
   int get pid;
 

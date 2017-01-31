@@ -181,6 +181,17 @@ class VMViewElement extends HtmlElement implements Renderable {
                     ..classes = ['memberValue']
                     ..text = Utils.formatSize(_vm.maxRSS)
                 ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = [
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'native zone memory',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..text = Utils.formatSize(_vm.nativeZoneMemoryUsage)
+                    ..title = '${_vm.nativeZoneMemoryUsage} bytes'
+                ],
               new BRElement(),
               new DivElement()
                 ..classes = ['memberItem']

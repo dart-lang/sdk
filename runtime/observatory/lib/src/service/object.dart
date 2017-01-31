@@ -659,6 +659,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   int architectureBits;
   bool assertsEnabled = false;
   bool typeChecksEnabled = false;
+  int nativeZoneMemoryUsage = 0;
   int pid = 0;
   int maxRSS = 0;
   bool profileVM = false;
@@ -946,6 +947,9 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     int startTimeMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeMillis);
     refreshTime = new DateTime.now();
+    if (map['_nativeZoneMemoryUsage'] != null) {
+      nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
+    }
     pid = map['pid'];
     maxRSS = map['_maxRSS'];
     profileVM = map['_profilerMode'] == 'VM';
