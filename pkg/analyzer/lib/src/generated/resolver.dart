@@ -9850,6 +9850,23 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  Object visitGenericFunctionType(GenericFunctionType node) {
+    DartType returnType = node.returnType?.type ?? DynamicTypeImpl.instance;
+    List<TypeParameterElement> typeParameters = node
+        .typeParameters.typeParameters
+        .map((TypeParameter parameter) =>
+            parameter.element as TypeParameterElement)
+        .toList();
+    List<ParameterElement> parameters = node.parameters.parameters
+        .map((FormalParameter parameter) => parameter.element)
+        .toList();
+    (node as GenericFunctionTypeImpl).type =
+        new FunctionTypeImpl.forGenericFunctionType(
+            typeParameters, DartType.EMPTY_LIST, returnType, parameters, false);
+    return null;
+  }
+
+  @override
   Object visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
