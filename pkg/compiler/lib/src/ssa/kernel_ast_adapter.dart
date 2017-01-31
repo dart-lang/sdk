@@ -10,6 +10,7 @@ import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
+import '../core_types.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -38,7 +39,7 @@ import 'types.dart';
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
-class KernelAstAdapter implements KernelElementAdapter {
+class KernelAstAdapter extends KernelElementAdapterMixin {
   final Kernel kernel;
   final JavaScriptBackend _backend;
   final Map<ir.Node, ast.Node> _nodeToAst;
@@ -83,6 +84,8 @@ class KernelAstAdapter implements KernelElementAdapter {
     }
     _typeConverter = new DartTypeConverter(this);
   }
+
+  CommonElements get commonElements => _compiler.commonElements;
 
   /// Push the existing resolved AST on the stack and shift the current resolved
   /// AST to the AST that this kernel node points to.
@@ -142,7 +145,7 @@ class KernelAstAdapter implements KernelElementAdapter {
 
   LibraryElement getLibrary(ir.Library node) => getElement(node).declaration;
 
-  LocalFunctionElement getLocalFunction(ir.Node node) => getElement(node);
+  LocalFunctionElement getLocalFunction(ir.TreeNode node) => getElement(node);
 
   ast.Node getNode(ir.Node node) {
     ast.Node result = _nodeToAst[node];
@@ -184,63 +187,12 @@ class KernelAstAdapter implements KernelElementAdapter {
     return closedWorld.getSideEffectsOfElement(getElement(node));
   }
 
-  CallStructure getCallStructure(ir.Arguments arguments) {
-    int argumentCount = arguments.positional.length + arguments.named.length;
-    List<String> namedArguments = arguments.named.map((e) => e.name).toList();
-    return new CallStructure(argumentCount, namedArguments);
-  }
-
   FunctionSignature getFunctionSignature(ir.FunctionNode function) {
     return getElement(function).asFunctionElement().functionSignature;
   }
 
-  Name getName(ir.Name name) {
-    return new Name(
-        name.name, name.isPrivate ? getLibrary(name.library) : null);
-  }
-
   ir.Field getFieldFromElement(FieldElement field) {
     return kernel.fields[field];
-  }
-
-  Selector getSelector(ir.Expression node) {
-    if (node is ir.PropertyGet) return getGetterSelector(node);
-    if (node is ir.PropertySet) return getSetterSelector(node);
-    if (node is ir.InvocationExpression) return getInvocationSelector(node);
-    _compiler.reporter.internalError(getNode(node),
-        "Can only get the selector for a property get or an invocation.");
-    return null;
-  }
-
-  Selector getInvocationSelector(ir.InvocationExpression invocation) {
-    Name name = getName(invocation.name);
-    SelectorKind kind;
-    if (Elements.isOperatorName(invocation.name.name)) {
-      if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
-        kind = SelectorKind.INDEX;
-      } else {
-        kind = SelectorKind.OPERATOR;
-      }
-    } else {
-      kind = SelectorKind.CALL;
-    }
-
-    CallStructure callStructure = getCallStructure(invocation.arguments);
-    return new Selector(kind, name, callStructure);
-  }
-
-  Selector getGetterSelector(ir.PropertyGet getter) {
-    ir.Name irName = getter.name;
-    Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
-    return new Selector.getter(name);
-  }
-
-  Selector getSetterSelector(ir.PropertySet setter) {
-    ir.Name irName = setter.name;
-    Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
-    return new Selector.setter(name);
   }
 
   TypeMask typeOfInvocation(ir.MethodInvocation send, ClosedWorld closedWorld) {
@@ -626,188 +578,28 @@ class KernelAstAdapter implements KernelElementAdapter {
     return metadata;
   }
 
-  /// Compute the kind of foreign helper function called by [node], if any.
-  ForeignKind getForeignKind(ir.StaticInvocation node) {
-    if (isForeignLibrary(node.target.enclosingLibrary)) {
-      switch (node.target.name.name) {
-        case BackendHelpers.JS:
-          return ForeignKind.JS;
-        case BackendHelpers.JS_BUILTIN:
-          return ForeignKind.JS_BUILTIN;
-        case BackendHelpers.JS_EMBEDDED_GLOBAL:
-          return ForeignKind.JS_EMBEDDED_GLOBAL;
-        case BackendHelpers.JS_INTERCEPTOR_CONSTANT:
-          return ForeignKind.JS_INTERCEPTOR_CONSTANT;
-      }
-    }
-    return ForeignKind.NONE;
+  @override
+  LibraryEntity lookupLibrary(Uri uri) {
+    return _compiler.libraryLoader.lookupLibrary(uri);
   }
 
-  /// Return `true` if [node] is the `dart:_foreign_helper` library.
-  bool isForeignLibrary(ir.Library node) {
-    return node.importUri == BackendHelpers.DART_FOREIGN_HELPER;
-  }
-
-  /// Looks up [typeName] for use in the spec-string of a `JS` called.
-  // TODO(johnniwinther): Use this in [native.NativeBehavior] instead of calling
-  // the `ForeignResolver`.
-  // TODO(johnniwinther): Cache the result to avoid redundant lookups?
-  native.TypeLookup _typeLookup({bool resolveAsRaw: true}) {
-    return (String typeName) {
-      ResolutionDartType findIn(Uri uri) {
-        LibraryElement library = _compiler.libraryLoader.lookupLibrary(uri);
-        if (library != null) {
-          Element element = library.find(typeName);
-          if (element != null && element.isClass) {
-            ClassElement cls = element;
-            // TODO(johnniwinther): Align semantics.
-            return resolveAsRaw ? cls.rawType : cls.thisType;
-          }
-        }
-        return null;
-      }
-
-      ResolutionDartType type = findIn(Uris.dart_core);
-      type ??= findIn(BackendHelpers.DART_JS_HELPER);
-      type ??= findIn(BackendHelpers.DART_INTERCEPTORS);
-      type ??= findIn(BackendHelpers.DART_ISOLATE_HELPER);
-      type ??= findIn(Uris.dart_collection);
-      type ??= findIn(Uris.dart_html);
-      type ??= findIn(Uris.dart_svg);
-      type ??= findIn(Uris.dart_web_audio);
-      type ??= findIn(Uris.dart_web_gl);
-      return type;
-    };
-  }
-
-  String _getStringArgument(ir.StaticInvocation node, int index) {
-    return node.arguments.positional[index].accept(new Stringifier());
-  }
-
-  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
-    if (node.arguments.positional.length < 2 ||
-        node.arguments.named.isNotEmpty) {
-      reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
-      return new native.NativeBehavior();
-    }
-    String specString = _getStringArgument(node, 0);
-    if (specString == null) {
-      reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
-      return new native.NativeBehavior();
-    }
-
-    String codeString = _getStringArgument(node, 1);
-    if (codeString == null) {
-      reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
-      return new native.NativeBehavior();
-    }
-
-    return native.NativeBehavior.ofJsCall(
-        specString,
-        codeString,
-        _typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
-        reporter,
-        _compiler.commonElements);
-  }
-
-  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
-  /// function.
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node) {
-    if (node.arguments.positional.length < 1) {
-      reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
-      return new native.NativeBehavior();
-    }
-    if (node.arguments.positional.length < 2) {
-      reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
-      return new native.NativeBehavior();
-    }
-    String specString = _getStringArgument(node, 0);
-    if (specString == null) {
-      reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return new native.NativeBehavior();
-    }
-    return native.NativeBehavior.ofJsBuiltinCall(
-        specString,
-        _typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
-        reporter,
-        _compiler.commonElements);
-  }
-
-  /// Computes the [native.NativeBehavior] for a call to the
-  /// [JS_EMBEDDED_GLOBAL] function.
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
-      ir.StaticInvocation node) {
-    if (node.arguments.positional.length < 1) {
-      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-          "JS embedded global expression has no type.");
-      return new native.NativeBehavior();
-    }
-    if (node.arguments.positional.length < 2) {
-      reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS embedded global is missing name.");
-      return new native.NativeBehavior();
-    }
-    if (node.arguments.positional.length > 2 ||
-        node.arguments.named.isNotEmpty) {
-      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-          "JS embedded global has more than 2 arguments.");
-      return new native.NativeBehavior();
-    }
-    String specString = _getStringArgument(node, 0);
-    if (specString == null) {
-      reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return new native.NativeBehavior();
-    }
-    return native.NativeBehavior.ofJsEmbeddedGlobalCall(
-        specString,
-        _typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
-        reporter,
-        _compiler.commonElements);
-  }
-
-  /// Computes the [InterfaceType] referenced by a call to the
-  /// [JS_INTERCEPTOR_CONSTANT] function, if any.
-  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
-    if (node.arguments.positional.length != 1 ||
-        node.arguments.named.isNotEmpty) {
-      reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
-          MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-    }
-    ir.Node argument = node.arguments.positional.first;
-    if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
-      return getInterfaceType(argument.type);
+  @override
+  ClassElement lookupClass(LibraryElement library, String name) {
+    Element element = library.find(name);
+    if (element != null && element.isClass) {
+      return element;
     }
     return null;
   }
 
-  /// Returns `true` is [node] has a `@Native(...)` annotation.
-  // TODO(johnniwinther): Cache this for later use.
-  bool isNativeClass(ir.Class node) {
-    for (ir.Expression annotation in node.annotations) {
-      if (annotation is ir.ConstructorInvocation) {
-        ConstructorElement target = getElement(annotation.target).declaration;
-        if (target.enclosingClass ==
-            _compiler.commonElements.nativeAnnotationClass) {
-          return true;
-        }
-      }
-    }
-    return false;
+  @override
+  InterfaceType getRawType(ClassElement cls) {
+    return cls.rawType;
+  }
+
+  @override
+  InterfaceType getThisType(ClassElement cls) {
+    return cls.thisType;
   }
 
   /// Computes the native behavior for reading the native [field].
@@ -816,7 +608,7 @@ class KernelAstAdapter implements KernelElementAdapter {
     ResolutionDartType type = getDartType(field.type);
     List<ConstantExpression> metadata = getMetadata(field.annotations);
     return native.NativeBehavior.ofFieldLoad(CURRENT_ELEMENT_SPANNABLE, type,
-        metadata, _typeLookup(resolveAsRaw: false), _compiler,
+        metadata, typeLookup(resolveAsRaw: false), _compiler,
         isJsInterop: false);
   }
 
@@ -833,7 +625,7 @@ class KernelAstAdapter implements KernelElementAdapter {
     ResolutionDartType type = getFunctionType(procedure.function);
     List<ConstantExpression> metadata = getMetadata(procedure.annotations);
     return native.NativeBehavior.ofMethod(CURRENT_ELEMENT_SPANNABLE, type,
-        metadata, _typeLookup(resolveAsRaw: false), _compiler,
+        metadata, typeLookup(resolveAsRaw: false), _compiler,
         isJsInterop: false);
   }
 
@@ -908,7 +700,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
 
   @override
   ResolutionDartType visitInterfaceType(ir.InterfaceType node) {
-    ClassElement cls = astAdapter.getElement(node.classNode);
+    ClassElement cls = astAdapter.getClass(node.classNode);
     return new ResolutionInterfaceType(cls, visitTypes(node.typeArguments));
   }
 
@@ -930,24 +722,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
     }
     // Nested invalid types are treated as `dynamic`.
     return const ResolutionDynamicType();
-  }
-}
-
-/// Visitor that converts string literals and concatenations of string literals
-/// into the string value.
-class Stringifier extends ir.ExpressionVisitor<String> {
-  @override
-  String visitStringLiteral(ir.StringLiteral node) => node.value;
-
-  @override
-  String visitStringConcatenation(ir.StringConcatenation node) {
-    StringBuffer sb = new StringBuffer();
-    for (ir.Expression expression in node.expressions) {
-      String value = expression.accept(this);
-      if (value == null) return null;
-      sb.write(value);
-    }
-    return sb.toString();
   }
 }
 
