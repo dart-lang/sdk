@@ -380,6 +380,9 @@ class KernelCompilationRequest : public ValueObject {
   static void RegisterRequest(KernelCompilationRequest* rq) {
     MonitorLocker locker(requests_monitor_);
     rq->next_ = requests_;
+    if (requests_ != NULL) {
+      requests_->prev_ = rq;
+    }
     requests_ = rq;
   }
 

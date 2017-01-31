@@ -11,9 +11,9 @@ large_class_declaration_test: SkipSlow  # KernelVM Issue 28312
 ###############################################################################
 
 [ $compiler == dartk || $compiler == dartkp ]
-conditional_import_string_test: DartkCompileTimeError
-conditional_import_test: DartkCompileTimeError
-conflicting_type_variable_and_setter_test: DartkCompileTimeError
+conditional_import_string_test: CompileTimeError
+conditional_import_test: CompileTimeError
+conflicting_type_variable_and_setter_test: CompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/03: MissingCompileTimeError
 deep_nesting1_negative_test: DartkCrash
@@ -27,37 +27,27 @@ final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
-generic_local_functions_test: DartkCompileTimeError # Issue 28515
-generic_methods_generic_function_parameter_test: DartkCompileTimeError # Issue 28515
-metadata_test: DartkCompileTimeError
-multiline_newline_test/01: DartkCompileTimeError
-multiline_newline_test/02: DartkCompileTimeError
-multiline_newline_test/03: DartkCompileTimeError
+generic_local_functions_test: CompileTimeError # Issue 28515
+generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
+metadata_test: CompileTimeError
+multiline_newline_test/01: CompileTimeError
+multiline_newline_test/02: CompileTimeError
+multiline_newline_test/03: CompileTimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
-not_enough_positional_arguments_test/01: DartkCompileTimeError
 regress_27617_test/1: MissingCompileTimeError
-type_variable_conflict2_test/02: MissingCompileTimeError
-vm/debug_break_enabled_vm_test/01: DartkCompileTimeError
-vm/debug_break_enabled_vm_test/none: DartkCompileTimeError
-vm/reflect_core_vm_test: DartkCompileTimeError
-vm/regress_27201_test: DartkCompileTimeError
 vm/regress_28325_test: RuntimeError  # Issue 28055.
-
-# dartk: temporary failure
-mixin_illegal_syntax_test/00: DartkCrash
-
-# Passing for the wrong reason
-language/main_not_a_function_test/01: Pass # Fails if tree shaking is disabled
+vm/debug_break_enabled_vm_test/01: CompileTimeError
+vm/debug_break_enabled_vm_test/none: CompileTimeError
+vm/reflect_core_vm_test: CompileTimeError
+vm/regress_27201_test: CompileTimeError
+main_not_a_function_test/01: Pass # Fails if tree shaking is disabled
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
 config_import_corelib_test: RuntimeError
-reify_typevar_static_test/00: MissingCompileTimeError
-type_variable_conflict2_test/06: MissingCompileTimeError
-type_variable_conflict2_test/08: MissingCompileTimeError
-type_variable_conflict2_test/10: MissingCompileTimeError
+type_variable_conflict2_test/02: MissingCompileTimeError
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]

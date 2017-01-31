@@ -291,6 +291,9 @@ class TestOptionsParser {
           'verify-ir', 'Verify kernel IR', ['--verify-ir'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
+          'use-standalone-dartk', 'Generate Kernel binaries with a standalone dartk compiler', ['--use-standalone-dartk'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
           'list', 'List tests only, do not run them', ['--list'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(

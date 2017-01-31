@@ -6,7 +6,7 @@
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
-LibTest/isolate/*: Skip # No support for isolates ATM.
+LibTest/isolate/Isolate/spawnUri_A01_t06: Fail  # Test is racy.
 
 Language/Metadata/before_export_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_import_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
@@ -36,7 +36,7 @@ Language/Functions/Formal_Parameters/Optional_Formals/syntax_t14: Pass
 ###############################################################################
 
 [ $compiler == dartk || $compiler == dartkp ]
-Language/Classes/Getters/static_getter_t02: DartkCompileTimeError
+Language/Classes/Getters/static_getter_t02: CompileTimeError
 Language/Enums/syntax_t08: MissingCompileTimeError
 Language/Enums/syntax_t09: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
@@ -55,13 +55,13 @@ Language/Expressions/Identifier_Reference/built_in_not_dynamic_t29: MissingCompi
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t30: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t31: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t32: MissingCompileTimeError
-Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: DartkCompileTimeError
-Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: DartkCompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t04: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t05: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t06: MissingCompileTimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: DartkCompileTimeError
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError
@@ -118,9 +118,8 @@ Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
-Language/Expressions/Constants/exception_t01: MissingCompileTimeError
-Language/Expressions/Constants/exception_t02: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/evaluation_type_parameter_t02: MissingCompileTimeError
+Language/Expressions/Constants/exception_t01: Crash
+Language/Expressions/Constants/exception_t02: Crash
 Language/Mixins/Mixin_Application/syntax_t16: DartkCrash
 
 # dartk: precompilation failures

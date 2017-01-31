@@ -68,6 +68,7 @@ abstract class CompilerConfiguration {
     bool hotReloadRollback = configuration['hot_reload_rollback'];
     bool useFastStartup = configuration['fast_startup'];
     bool verifyKernel = configuration['verify-ir'];
+    bool useStandaloneDartK = configuration['use-standalone-dartk'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -99,12 +100,24 @@ abstract class CompilerConfiguration {
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android');
       case 'dartk':
-        return ComposedCompilerConfiguration.createDartKConfiguration(
-            isChecked: isChecked,
-            isHostChecked: isHostChecked,
-            useSdk: useSdk,
-            verify: verifyKernel,
-            strong: isStrong);
+        if (useStandaloneDartK) {
+          return ComposedCompilerConfiguration.createDartKConfiguration(
+              isChecked: isChecked,
+              isHostChecked: isHostChecked,
+              useSdk: useSdk,
+              verify: verifyKernel,
+              strong: isStrong);
+        }
+
+        return new NoneCompilerConfiguration(
+              isDebug: isDebug,
+              isChecked: isChecked,
+              isHostChecked: isHostChecked,
+              useSdk: useSdk,
+              hotReload: hotReload,
+              hotReloadRollback: hotReloadRollback,
+              useDFEIsolate: true);
+
       case 'dartkp':
         return ComposedCompilerConfiguration.createDartKPConfiguration(
             isChecked: isChecked,
@@ -185,18 +198,18 @@ abstract class CompilerConfiguration {
 class NoneCompilerConfiguration extends CompilerConfiguration {
   final bool hotReload;
   final bool hotReloadRollback;
+  final bool useDFEIsolate;
 
   NoneCompilerConfiguration(
       {bool isDebug, bool isChecked, bool isHostChecked, bool useSdk,
-       bool hotReload,
-       bool hotReloadRollback})
+       bool this.hotReload,
+       bool this.hotReloadRollback,
+       bool this.useDFEIsolate: false})
       : super._subclass(
             isDebug: isDebug,
             isChecked: isChecked,
             isHostChecked: isHostChecked,
-            useSdk: useSdk),
-        this.hotReload = hotReload,
-        this.hotReloadRollback = hotReloadRollback;
+            useSdk: useSdk);
 
   bool get hasCompiler => false;
 
@@ -209,6 +222,9 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     List<String> args = [];
+    if (useDFEIsolate) {
+      args.add('--dfe=runtime/tools/kernel-service.dart');
+    }
     if (isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');

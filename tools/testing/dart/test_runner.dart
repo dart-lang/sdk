@@ -365,14 +365,25 @@ class AnalysisCommand extends ProcessCommand {
 }
 
 class VmCommand extends ProcessCommand {
+  final bool needsDFERunner;
   VmCommand._(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides)
+      Map<String, String> environmentOverrides,
+      bool this.needsDFERunner)
       : super._("vm", executable, arguments, environmentOverrides);
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(needsDFERunner);
+  }
+
+  bool _equal(VmCommand other) =>
+      super._equal(other) && needsDFERunner == other.needsDFERunner;
 }
 
 class VmBatchCommand extends ProcessCommand implements VmCommand {
   final String dartFile;
   final bool checked;
+  final needsDFERunner = false;
 
   VmBatchCommand._(String executable, String dartFile, List<String> arguments,
       Map<String, String> environmentOverrides, {this.checked: true})
@@ -733,8 +744,8 @@ class CommandBuilder {
   }
 
   VmCommand getVmCommand(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides) {
-    var command = new VmCommand._(executable, arguments, environmentOverrides);
+      Map<String, String> environmentOverrides, {bool needsDFERunner: false}) {
+    var command = new VmCommand._(executable, arguments, environmentOverrides, needsDFERunner);
     return _getUniqueCommand(command);
   }
 
@@ -1592,6 +1603,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
 
 class VmCommandOutputImpl extends CommandOutputImpl
     with UnittestSuiteMessagesMixin {
+  static const DART_VM_EXITCODE_DFE_ERROR = 252;
   static const DART_VM_EXITCODE_COMPILE_TIME_ERROR = 254;
   static const DART_VM_EXITCODE_UNCAUGHT_EXCEPTION = 255;
 
@@ -1601,6 +1613,7 @@ class VmCommandOutputImpl extends CommandOutputImpl
 
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first
+    if (exitCode == DART_VM_EXITCODE_DFE_ERROR) return Expectation.DARTK_CRASH;
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
 
@@ -1915,8 +1928,9 @@ class RunningProcess {
   List<String> diagnostics = <String>[];
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
+  List<String> preArguments;
 
-  RunningProcess(this.command, this.timeout);
+  RunningProcess(this.command, this.timeout, {this.preArguments});
 
   Future<CommandOutput> run() {
     completer = new Completer<CommandOutput>();
@@ -1932,8 +1946,12 @@ class RunningProcess {
         _commandComplete(0);
       } else {
         var processEnvironment = _createProcessEnvironment();
+        var args = command.arguments;
+        if (preArguments != null) {
+          args = []..addAll(preArguments)..addAll(args);
+        }
         Future processFuture = io.Process.start(
-            command.executable, command.arguments,
+            command.executable, args,
             environment: processEnvironment,
             workingDirectory: command.workingDirectory);
         processFuture.then((io.Process process) {
@@ -2087,7 +2105,7 @@ class RunningProcess {
   }
 }
 
-class BatchRunnerProcess {
+class BatchRunnerProcess  {
   Completer<CommandOutput> _completer;
   ProcessCommand _command;
   List<String> _arguments;
@@ -2107,8 +2125,6 @@ class BatchRunnerProcess {
   String _status;
   DateTime _startTime;
   Timer _timer;
-
-  BatchRunnerProcess();
 
   Future<CommandOutput> runCommand(String runnerType, ProcessCommand command,
       int timeout, List<String> arguments) {
@@ -2303,6 +2319,99 @@ class BatchRunnerProcess {
       if (a[key] != b[key]) return false;
     }
     return true;
+  }
+}
+
+class BatchDFEProcess  {
+  io.Process _process;
+  int _port = -1;
+  Function _processExitHandler;
+
+  Completer terminating = null;
+
+  bool locked = false;
+
+  Future<int> acquire() async {
+    try {
+      assert(!locked);
+      locked = true;
+      if (_process == null) {
+        await _startProcess();
+      }
+      return _port;
+    } catch(e) {
+      locked = false;
+      rethrow;
+    }
+  }
+
+  void release() {
+    locked = false;
+  }
+
+  Future terminate() {
+    locked = true;
+    if (_process == null) {
+      return new Future.value(true);
+    }
+    if (terminating == null) {
+      terminating = new Completer();
+      _process.kill();
+    }
+    return terminating.future;
+  }
+
+  _onExit(exitCode) {
+    if (terminating != null) {
+      terminating.complete();
+      return;
+    }
+
+    _process = null;
+    locked = false;
+    _port = -1;
+  }
+
+  static Future<String> _firstLine(stream) {
+    var completer = new Completer<String>();
+    var first = true;
+    stream.transform(UTF8.decoder)
+          .transform(new LineSplitter())
+          .listen((line) {
+      if (first) {
+        completer.complete(line);
+        first = false;
+      }
+      // We need to drain a pipe continuously.
+    });
+    return completer.future;
+  }
+
+  Future _startProcess() async {
+    final executable = io.Platform.executable;
+    final arguments = ['runtime/tools/kernel-service.dart', '--batch'];
+
+    try {
+      _port = -1;
+      _process = await io.Process.start(executable, arguments);
+      _process.exitCode.then(_onExit);
+      _process.stderr.drain();
+
+      final readyMsg = await _firstLine(_process.stdout);
+      final data = readyMsg.split(' ');
+      assert(data[0] == 'READY');
+
+      _port = int.parse(data[1]);
+    } catch (e) {
+      print("Process error:");
+      print("  Command: $executable ${arguments.join(' ')}");
+      print("  Error: $e");
+      // If there is an error starting a batch process, chances are that
+      // it will always fail. So rather than re-trying a 1000+ times, we
+      // exit.
+      io.exit(1);
+      return true;
+    }
   }
 }
 
@@ -2614,6 +2723,8 @@ class CommandExecutorImpl implements CommandExecutor {
   // We keep a BrowserTestRunner for every configuration.
   final _browserTestRunners = new Map<Map, BrowserTestRunner>();
 
+  List<BatchDFEProcess> _dfeProcesses = null;
+
   bool _finishing = false;
 
   CommandExecutorImpl(
@@ -2638,7 +2749,14 @@ class CommandExecutorImpl implements CommandExecutor {
       return Future.wait(futures);
     }
 
-    return Future.wait([_terminateBatchRunners(), _terminateBrowserRunners()]);
+    Future _terminateDFEWorkers() =>
+      Future.wait((_dfeProcesses ?? <BatchDFEProcess>[]).map((p) => p.terminate()));
+
+    return Future.wait([
+      _terminateBatchRunners(),
+      _terminateBrowserRunners(),
+      _terminateDFEWorkers()
+    ]);
   }
 
   Future<CommandOutput> runCommand(node, Command command, int timeout) {
@@ -2686,6 +2804,11 @@ class CommandExecutorImpl implements CommandExecutor {
           adbDevicePool.releaseDevice(device);
         });
       });
+    } else if (command is VmCommand && command.needsDFERunner) {
+      final runner = _getDFEProcess();
+      return runner.acquire().then((port) {
+        return new RunningProcess(command, timeout, preArguments: ['-DDFE_WORKER_PORT=${port}']).run();
+      }).whenComplete(() => runner.release());
     } else if (command is VmBatchCommand) {
       var name = command.displayName;
       return _getBatchRunner(command.displayName + command.dartFile)
@@ -2786,6 +2909,12 @@ class CommandExecutorImpl implements CommandExecutor {
       if (!runner._currentlyRunning) return runner;
     }
     throw new Exception('Unable to find inactive batch runner.');
+  }
+
+  BatchDFEProcess _getDFEProcess() {
+    _dfeProcesses ??= new List<BatchDFEProcess>.generate(maxProcesses,
+        (_) => new BatchDFEProcess());
+    return _dfeProcesses.firstWhere((runner) => !runner.locked);
   }
 
   Future<CommandOutput> _startBrowserControllerTest(
