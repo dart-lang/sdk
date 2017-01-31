@@ -185,6 +185,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'generic_instanceof2_test': fail,
       'generic_is_check_test': fail,
       'getter_closure_execution_order_test': fail,
+      'gc_test': 'slow',
       'hash_code_mangling_test': fail,
       'identical_closure2_test': fail,
       'infinite_switch_label_test': fail,
@@ -353,6 +354,9 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
     },
 
     'lib/convert': {
+      'base64_test_01_multi': 'slow',
+      'chunked_conversion_utf85_test': 'slow',
+
       'encoding_test': skip_timeout,
 
       'json_utf8_chunk_test': skip_timeout,
@@ -690,8 +694,9 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
         }
       };
 
-      test(name, function(done) { // 'function' to allow `this.timeout`.
-        console.debug('Running test:  ' + name);
+      var fullName = status_group + '/' + name;
+      test(fullName, function(done) { // 'function' to allow `this.timeout`.
+        console.debug('Running test:  ' + fullName);
 
         // Many tests are async.  Currently, tests can indicate this in
         // two different ways.  First, `main` can call (in Dart)
