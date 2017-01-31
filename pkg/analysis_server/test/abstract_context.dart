@@ -168,6 +168,7 @@ class AbstractContextTest {
   void tearDown() {
     _context = null;
     provider = null;
+    AnalysisEngine.instance.clearCaches();
     AnalysisEngine.instance.logger = null;
   }
 }
