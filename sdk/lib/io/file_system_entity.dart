@@ -653,8 +653,7 @@ abstract class FileSystemEntity {
   }
 
   /**
-   * The directory containing [this].  If [this] is a root
-   * directory, returns [this].
+   * The directory containing [this].
    */
   Directory get parent => new Directory(parentOf(path));
 
