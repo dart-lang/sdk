@@ -1416,7 +1416,8 @@ abstract class LocalFunctionElement extends FunctionElement
     implements LocalElement {}
 
 /// A constructor.
-abstract class ConstructorElement extends MethodElement {
+abstract class ConstructorElement extends MethodElement
+    implements ConstructorEntity {
   /// Returns `true` if [effectiveTarget] has been computed for this
   /// constructor.
   bool get hasEffectiveTarget;

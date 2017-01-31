@@ -86,7 +86,7 @@ abstract class CommonElements {
 
   /// Constructor of the `Symbol` class. This getter will ensure that `Symbol`
   /// is resolved and lookup the constructor on demand.
-  FunctionEntity get symbolConstructor;
+  ConstructorEntity get symbolConstructor;
 
   /// Whether [element] is the same as [symbolConstructor]. Used to check
   /// for the constructor without computing it until it is likely to be seen.
@@ -107,7 +107,7 @@ abstract class CommonElements {
   /// Whether [element] is the constructor of the `MirrorsUsed` class. Used to
   /// check for the constructor without forcing the resolution of the
   /// `MirrorsUsed` class until it is necessary.
-  bool isMirrorsUsedConstructor(FunctionEntity element);
+  bool isMirrorsUsedConstructor(ConstructorEntity element);
 
   /// The `DeferredLibrary` annotation in dart:async that was used before the
   /// deferred import syntax was introduced.
@@ -125,10 +125,10 @@ abstract class CommonElements {
   bool isFunctionApplyMethod(MemberEntity element);
 
   /// The unnamed constructor of `List`.
-  FunctionEntity get unnamedListConstructor;
+  ConstructorEntity get unnamedListConstructor;
 
   /// The 'filled' constructor of `List`.
-  FunctionEntity get filledListConstructor;
+  ConstructorEntity get filledListConstructor;
 
   /// The `dynamic` type.
   DynamicType get dynamicType;
@@ -227,7 +227,7 @@ abstract class CommonElementsMixin implements CommonElements {
 
   /// Lookup the constructor [name] in [cls], fail if the class is missing and
   /// [required].
-  FunctionEntity findConstructor(ClassEntity cls, String name,
+  ConstructorEntity findConstructor(ClassEntity cls, String name,
       {bool required: true});
 
   /// Return the raw type of [cls].
@@ -287,8 +287,8 @@ abstract class CommonElementsMixin implements CommonElements {
   ClassEntity get symbolClass =>
       _symbolClass ??= findClass(coreLibrary, 'Symbol');
 
-  FunctionEntity _symbolConstructor;
-  FunctionEntity get symbolConstructor =>
+  ConstructorEntity _symbolConstructor;
+  ConstructorEntity get symbolConstructor =>
       _symbolConstructor ??= findConstructor(symbolClass, '');
 
   bool isSymbolConstructor(Entity e) => e == symbolConstructor;
@@ -347,20 +347,8 @@ abstract class CommonElementsMixin implements CommonElements {
   ClassEntity get mirrorsUsedClass => _mirrorsUsedClass ??=
       findClass(mirrorsLibrary, 'MirrorsUsed', required: false);
 
-  bool isMirrorsUsedConstructor(FunctionEntity element) =>
+  bool isMirrorsUsedConstructor(ConstructorEntity element) =>
       mirrorsLibrary != null && mirrorsUsedClass == element.enclosingClass;
-
-  FunctionEntity _mirrorsUsedConstructor;
-  @override
-  FunctionEntity get mirrorsUsedConstructor {
-    if (_mirrorsUsedConstructor == null) {
-      ClassEntity cls = mirrorsUsedClass;
-      if (cls != null) {
-        _mirrorsUsedConstructor = findConstructor(cls, '');
-      }
-    }
-    return _mirrorsUsedConstructor;
-  }
 
   // From dart:typed_data
 
@@ -368,12 +356,12 @@ abstract class CommonElementsMixin implements CommonElements {
   ClassEntity get typedDataClass =>
       _typedDataClass ??= findClass(typedDataLibrary, 'NativeTypedData');
 
-  FunctionEntity _unnamedListConstructor;
-  FunctionEntity get unnamedListConstructor =>
+  ConstructorEntity _unnamedListConstructor;
+  ConstructorEntity get unnamedListConstructor =>
       _unnamedListConstructor ??= findConstructor(listClass, '');
 
-  FunctionEntity _filledListConstructor;
-  FunctionEntity get filledListConstructor =>
+  ConstructorEntity _filledListConstructor;
+  ConstructorEntity get filledListConstructor =>
       _filledListConstructor ??= findConstructor(listClass, 'filled');
 
   // TODO(johnniwinther): Change types to `ClassEntity` when these are not

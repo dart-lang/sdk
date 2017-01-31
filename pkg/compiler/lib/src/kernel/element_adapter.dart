@@ -34,9 +34,9 @@ abstract class KernelElementAdapter {
   /// access of [node].
   Selector getSelector(ir.Expression node);
 
-  /// Returns the [FunctionEntity] corresponding to the generative or factory
+  /// Returns the [ConstructorEntity] corresponding to the generative or factory
   /// constructor [node].
-  FunctionEntity getConstructor(ir.Member node);
+  ConstructorEntity getConstructor(ir.Member node);
 
   /// Returns the [MemberEntity] corresponding to the member [node].
   MemberEntity getMember(ir.Member node);

@@ -53,6 +53,17 @@ abstract class FieldEntity extends MemberEntity {}
 
 /// Stripped down super interface for function like entities.
 ///
-/// Currently only [FieldElement] but later also kernel based Dart constructors
+/// Currently only [MethodElement] but later also kernel based Dart constructors
 /// and methods and/or Dart-in-JS function-like properties.
 abstract class FunctionEntity extends MemberEntity {}
+
+/// Stripped down super interface for constructor like entities.
+///
+/// Currently only [ConstructorElement] but later also kernel based Dart
+/// constructors and/or Dart-in-JS constructor-like properties.
+// TODO(johnniwinther): Remove factory constructors from the set of
+// constructors.
+abstract class ConstructorEntity extends FunctionEntity {
+  bool get isGenerativeConstructor;
+  bool get isFactoryConstructor;
+}

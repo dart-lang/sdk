@@ -253,7 +253,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void handleNew(ir.InvocationExpression node, ir.Member target,
       {bool isConst: false}) {
     _visitArguments(node.arguments);
-    FunctionEntity constructor = elementAdapter.getConstructor(target);
+    ConstructorEntity constructor = elementAdapter.getConstructor(target);
     InterfaceType type = elementAdapter.createInterfaceType(
         target.enclosingClass, node.arguments.types);
     CallStructure callStructure =
@@ -269,7 +269,7 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitSuperInitializer(ir.SuperInitializer node) {
-    FunctionEntity target = elementAdapter.getConstructor(node.target);
+    ConstructorEntity target = elementAdapter.getConstructor(node.target);
     _visitArguments(node.arguments);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
         target, elementAdapter.getCallStructure(node.arguments)));
@@ -559,7 +559,7 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitRedirectingInitializer(ir.RedirectingInitializer node) {
     _visitArguments(node.arguments);
-    FunctionEntity target = elementAdapter.getConstructor(node.target);
+    ConstructorEntity target = elementAdapter.getConstructor(node.target);
     impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
         target, elementAdapter.getCallStructure(node.arguments)));
   }

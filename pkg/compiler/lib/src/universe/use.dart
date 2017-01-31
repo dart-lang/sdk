@@ -21,7 +21,6 @@ import '../common.dart';
 import '../elements/types.dart';
 import '../elements/elements.dart'
     show
-        ConstructorElement,
         ConstructorBodyElement,
         Element,
         Entity,
@@ -204,7 +203,7 @@ class StaticUse {
   /// Invocation of a constructor [element] through a this or super
   /// constructor call with the given [callStructure].
   factory StaticUse.superConstructorInvoke(
-      ConstructorElement element, CallStructure callStructure) {
+      ConstructorEntity element, CallStructure callStructure) {
     // TODO(johnniwinther): Use the [callStructure].
     assert(invariant(element, element.isGenerativeConstructor,
         message: "Constructor invoke element $element must be a "
@@ -251,7 +250,7 @@ class StaticUse {
 
   /// Constructor invocation of [element] with the given [callStructure].
   factory StaticUse.constructorInvoke(
-      FunctionEntity element, CallStructure callStructure) {
+      ConstructorEntity element, CallStructure callStructure) {
     assert(invariant(element, element.isConstructor,
         message: "Constructor invocation element $element "
             "must be a constructor."));
@@ -262,7 +261,7 @@ class StaticUse {
   /// Constructor invocation of [element] with the given [callStructure] on
   /// [type].
   factory StaticUse.typedConstructorInvoke(
-      FunctionEntity element, CallStructure callStructure, DartType type) {
+      ConstructorEntity element, CallStructure callStructure, DartType type) {
     assert(invariant(element, type != null,
         message: "No type provided for constructor invocation."));
     assert(invariant(element, element.isConstructor,
@@ -276,7 +275,7 @@ class StaticUse {
   /// Constant constructor invocation of [element] with the given
   /// [callStructure] on [type].
   factory StaticUse.constConstructorInvoke(
-      FunctionEntity element, CallStructure callStructure, DartType type) {
+      ConstructorEntity element, CallStructure callStructure, DartType type) {
     assert(invariant(element, type != null,
         message: "No type provided for constructor invocation."));
     assert(invariant(element, element.isConstructor,
@@ -289,7 +288,7 @@ class StaticUse {
 
   /// Constructor redirection to [element] on [type].
   factory StaticUse.constructorRedirect(
-      FunctionEntity element, InterfaceType type) {
+      ConstructorEntity element, InterfaceType type) {
     assert(invariant(element, type != null,
         message: "No type provided for constructor redirection."));
     assert(invariant(element, element.isConstructor,
