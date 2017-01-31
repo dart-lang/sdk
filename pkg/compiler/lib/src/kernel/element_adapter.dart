@@ -136,8 +136,16 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
 
   @override
   Selector getSelector(ir.Expression node) {
-    if (node is ir.PropertyGet) return getGetterSelector(node);
-    if (node is ir.PropertySet) return getSetterSelector(node);
+    // TODO(efortuna): This is screaming for a common interface between
+    // PropertyGet and SuperPropertyGet (and same for *Get). Talk to kernel
+    // folks.
+    if (node is ir.PropertyGet) {
+      return getGetterSelector((node as ir.PropertyGet).name);
+    }
+    if (node is ir.SuperPropertyGet) {
+      return getGetterSelector((node as ir.SuperPropertyGet).name);
+    }
+    if (node is ir.PropertySet) return getSetterSelector(node.name);
     if (node is ir.InvocationExpression) return getInvocationSelector(node);
     throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
         "Can only get the selector for a property get or an invocation: "
@@ -161,15 +169,13 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
     return new Selector(kind, name, callStructure);
   }
 
-  Selector getGetterSelector(ir.PropertyGet getter) {
-    ir.Name irName = getter.name;
+  Selector getGetterSelector(ir.Name irName) {
     Name name = new Name(
         irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.getter(name);
   }
 
-  Selector getSetterSelector(ir.PropertySet setter) {
-    ir.Name irName = setter.name;
+  Selector getSetterSelector(ir.Name irName) {
     Name name = new Name(
         irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.setter(name);

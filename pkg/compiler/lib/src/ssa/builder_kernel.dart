@@ -2627,11 +2627,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return null;
   }
 
-  @override
-  void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
+  HInstruction _buildInvokeSuper(
+       ir.Expression invocation, List<HInstruction> arguments) {
+    // Invocation is either a method invocation or a property get/set.
+    // TODO(efortuna): Common interface?
+    // TODO(efortuna): Add source information.
     Selector selector = astAdapter.getSelector(invocation);
-    List<HInstruction> arguments = _visitArgumentsForStaticTarget(
-        invocation.interfaceTarget.function, invocation.arguments);
     HInstruction receiver = localsHandler.readThis();
     ir.Class surroundingClass = _containingClass(invocation);
 
@@ -2642,17 +2643,34 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     inputs.add(receiver);
     inputs.addAll(arguments);
 
+    ir.Member interfaceTarget = invocation is ir.SuperMethodInvocation ?
+        (invocation as ir.SuperMethodInvocation).interfaceTarget :
+        (invocation as ir.SuperPropertyGet).interfaceTarget;
+
     HInstruction instruction = new HInvokeSuper(
-        astAdapter.getMethod(invocation.interfaceTarget),
+        astAdapter.getMember(interfaceTarget),
         astAdapter.getClass(surroundingClass),
         selector,
         inputs,
-        astAdapter.returnTypeOf(invocation.interfaceTarget),
+        astAdapter.returnTypeOf(interfaceTarget),
         null,
         isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
         closedWorld.getSideEffectsOfSelector(selector, null);
     push(instruction);
+    return instruction;
+  }
+
+  @override
+  void visitSuperPropertyGet(ir.SuperPropertyGet propertyGet) {
+    _buildInvokeSuper(propertyGet, const <HInstruction>[]);
+  }
+
+  @override
+  void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
+    List<HInstruction> arguments = _visitArgumentsForStaticTarget(
+        invocation.interfaceTarget.function, invocation.arguments);
+    _buildInvokeSuper(invocation, arguments);
   }
 
   @override
