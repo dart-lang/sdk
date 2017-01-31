@@ -369,36 +369,10 @@ class Reader {
     }
   }
 
-  void add_token_position(
-      MallocGrowableArray<MallocGrowableArray<intptr_t>*>* list,
-      TokenPosition position) {
-    intptr_t size = list->length();
-    while (size <= current_script_id_) {
-      MallocGrowableArray<intptr_t>* tmp = new MallocGrowableArray<intptr_t>();
-      list->Add(tmp);
-      size = list->length();
-    }
-    list->At(current_script_id_)->Add(position.value());
-  }
-
-  void record_token_position(TokenPosition position) {
-    if (position.IsReal()) {
-      add_token_position(&helper()->program()->valid_token_positions, position);
-    }
-  }
-
-  void record_yield_token_position(TokenPosition position) {
-    add_token_position(&helper()->program()->yield_token_positions, position);
-  }
-
   /**
    * Read and return a TokenPosition from this reader.
-   * @param record specifies whether or not the read position is saved as a
-   * valid token position in the current script.
-   * If not be sure to record it later by calling record_token_position (after
-   * setting the correct current_script_id).
    */
-  TokenPosition ReadPosition(bool record = true) {
+  TokenPosition ReadPosition() {
     // Position is saved as unsigned,
     // but actually ranges from -1 and up (thus the -1)
     intptr_t value = ReadUInt() - 1;
@@ -410,9 +384,6 @@ class Reader {
       min_position_ = Utils::Minimum(min_position_, result);
     }
 
-    if (record) {
-      record_token_position(result);
-    }
     return result;
   }
 
@@ -701,12 +672,11 @@ Library* Library::ReadFrom(Reader* reader) {
 Class* Class::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
 
-  position_ = reader->ReadPosition(false);
+  position_ = reader->ReadPosition();
   is_abstract_ = reader->ReadBool();
   name_ = Reference::ReadStringFrom(reader);
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
-  reader->record_token_position(position_);
   annotations_.ReadFromStatic<Expression>(reader);
 
   return this;
@@ -837,14 +807,12 @@ Field* Field::ReadFrom(Reader* reader) {
   Tag tag = reader->ReadTag();
   ASSERT(tag == kField);
 
-  position_ = reader->ReadPosition(false);
-  end_position_ = reader->ReadPosition(false);
+  position_ = reader->ReadPosition();
+  end_position_ = reader->ReadPosition();
   flags_ = reader->ReadFlags();
   name_ = Name::ReadFrom(reader);
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
-  reader->record_token_position(position_);
-  reader->record_token_position(end_position_);
   annotations_.ReadFromStatic<Expression>(reader);
   type_ = DartType::ReadFrom(reader);
   inferred_value_ = reader->ReadOptional<InferredValue>();
@@ -876,15 +844,13 @@ Procedure* Procedure::ReadFrom(Reader* reader) {
   ASSERT(tag == kProcedure);
 
   VariableScope<ReaderHelper> parameters(reader->helper());
-  position_ = reader->ReadPosition(false);
-  end_position_ = reader->ReadPosition(false);
+  position_ = reader->ReadPosition();
+  end_position_ = reader->ReadPosition();
   kind_ = static_cast<ProcedureKind>(reader->ReadByte());
   flags_ = reader->ReadFlags();
   name_ = Name::ReadFrom(reader);
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
-  reader->record_token_position(position_);
-  reader->record_token_position(end_position_);
   annotations_.ReadFromStatic<Expression>(reader);
   function_ = reader->ReadOptional<FunctionNode>();
   return this;
@@ -1694,7 +1660,6 @@ YieldStatement* YieldStatement::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   YieldStatement* stmt = new YieldStatement();
   stmt->position_ = reader->ReadPosition();
-  reader->record_yield_token_position(stmt->position_);
   stmt->flags_ = reader->ReadByte();
   stmt->expression_ = Expression::ReadFrom(reader);
   return stmt;

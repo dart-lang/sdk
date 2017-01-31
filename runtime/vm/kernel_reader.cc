@@ -450,45 +450,6 @@ const Object& KernelReader::ClassForScriptAt(const dart::Class& klass,
   return klass;
 }
 
-static int LowestFirst(const intptr_t* a, const intptr_t* b) {
-  return *a - *b;
-}
-
-/**
- * If index exists as sublist in list, sort the sublist from lowest to highest,
- * then copy it, as Smis and without duplicates,
- * to a new Array in Heap::kOld which is returned.
- * Note that the source list is both sorted and de-duplicated as well, but will
- * possibly contain duplicate and unsorted data at the end.
- * Otherwise (when sublist doesn't exist in list) return new empty array.
- */
-static RawArray* AsSortedDuplicateFreeArray(
-    intptr_t index,
-    MallocGrowableArray<MallocGrowableArray<intptr_t>*>* list) {
-  if ((index < list->length()) && (list->At(index)->length() > 0)) {
-    MallocGrowableArray<intptr_t>* source = list->At(index);
-    source->Sort(LowestFirst);
-
-    intptr_t size = source->length();
-    intptr_t last = 0;
-    for (intptr_t current = 1; current < size; ++current) {
-      if (source->At(last) != source->At(current)) {
-        (*source)[++last] = source->At(current);
-      }
-    }
-    Array& array_object = Array::Handle();
-    array_object ^= Array::New(last + 1, Heap::kOld);
-    Smi& smi_value = Smi::Handle();
-    for (intptr_t i = 0; i <= last; ++i) {
-      smi_value = Smi::New(source->At(i));
-      array_object.SetAt(i, smi_value);
-    }
-    return array_object.raw();
-  } else {
-    return Array::New(0);
-  }
-}
-
 Script& KernelReader::ScriptAt(intptr_t source_uri_index, String* import_uri) {
   Script& script = Script::ZoneHandle(Z);
   script ^= scripts_.At(source_uri_index);
@@ -516,16 +477,6 @@ Script& KernelReader::ScriptAt(intptr_t source_uri_index, String* import_uri) {
       array_object.SetAt(i, value);
     }
     script.set_line_starts(array_object);
-
-    // Create tokens_seen array for the script.
-    array_object ^= AsSortedDuplicateFreeArray(
-        source_uri_index, &program_->valid_token_positions);
-    script.set_debug_positions(array_object);
-
-    // Create yield_positions array for the script.
-    array_object ^= AsSortedDuplicateFreeArray(
-        source_uri_index, &program_->yield_token_positions);
-    script.set_yield_positions(array_object);
   }
   return script;
 }

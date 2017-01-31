@@ -8866,38 +8866,15 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
     }
     intptr_t line_count = line_starts_array.Length();
     ASSERT(line_count > 0);
-    const Array& debug_positions_array = Array::Handle(debug_positions());
-    intptr_t token_count = debug_positions_array.Length();
-    int token_index = 0;
 
-    for (int line_index = 0; line_index < line_count; ++line_index) {
-      value ^= line_starts_array.At(line_index);
-      intptr_t start = value.Value();
-      // Output the rest of the tokens if we have no next line.
-      intptr_t end = INTPTR_MAX;
-      if (line_index + 1 < line_count) {
-        value ^= line_starts_array.At(line_index + 1);
-        end = value.Value();
-      }
-      bool first = true;
-      while (token_index < token_count) {
-        value ^= debug_positions_array.At(token_index);
-        intptr_t debug_position = value.Value();
-        if (debug_position >= end) break;
-
-        if (first) {
-          info.Add(line_separator);          // New line.
-          value = Smi::New(line_index + 1);  // Line number.
-          info.Add(value);
-          first = false;
-        }
-
-        value ^= debug_positions_array.At(token_index);
-        info.Add(value);                               // Token position.
-        value = Smi::New(debug_position - start + 1);  // Column.
-        info.Add(value);
-        ++token_index;
-      }
+    for (int i = 0; i < line_count; i++) {
+      info.Add(line_separator);  // New line.
+      value = Smi::New(i + 1);
+      info.Add(value);  // Line number.
+      value ^= line_starts_array.At(i);
+      info.Add(value);  // Token position.
+      value = Smi::New(1);
+      info.Add(value);  // Column.
     }
     return info.raw();
   }
@@ -9018,14 +8995,6 @@ void Script::set_line_starts(const Array& value) const {
 }
 
 
-void Script::set_debug_positions(const Array& value) const {
-  StorePointer(&raw_ptr()->debug_positions_, value.raw());
-}
-
-void Script::set_yield_positions(const Array& value) const {
-  StorePointer(&raw_ptr()->yield_positions_, value.raw());
-}
-
 void Script::set_kind(RawScript::Kind value) const {
   StoreNonPointer(&raw_ptr()->kind_, value);
 }
@@ -9116,8 +9085,6 @@ void Script::GetTokenLocation(TokenPosition token_pos,
       *column = offset - smi.Value() + 1;
     }
     if (token_len != NULL) {
-      // We don't explicitly save this data.
-      // TODO(jensj): Load the source and attempt to find it from there.
       *token_len = 1;
     }
     return;

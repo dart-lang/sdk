@@ -366,20 +366,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       // will forward the call to the real function.
       //     -> see BuildGraphOfImplicitClosureFunction
       if (!function.IsImplicitClosureFunction()) {
-        // TODO(jensj): HACK: Push the begin token to after any parameters to
-        // avoid crash when breaking on definition line of async method in
-        // debugger. It seems that another scope needs to be added
-        // in which captures are made, but I can't make that work.
-        // This 'solution' doesn't crash, but I cannot see the parameters at
-        // that particular breakpoint either.
-        // Also push the end token to after the "}" to avoid crashing on
-        // stepping past the last line (to the "}" character).
-        if (node->body() != NULL && node->body()->position().IsReal()) {
-          scope_->set_begin_token_pos(node->body()->position());
-        }
-        if (scope_->end_token_pos().IsReal()) {
-          scope_->set_end_token_pos(scope_->end_token_pos().Next());
-        }
         node_->AcceptVisitor(this);
       }
       break;
@@ -2549,20 +2535,10 @@ Fragment FlowGraphBuilder::PushArgument() {
 Fragment FlowGraphBuilder::Return(TokenPosition position) {
   Value* value = Pop();
   ASSERT(stack_ == NULL);
-
-  Fragment fragment;
-
-  const Function& function = parsed_function_->function();
-  if (FLAG_support_debugger && position.IsDebugPause() &&
-      !function.is_native()) {
-    fragment <<=
-        new (Z) DebugStepCheckInstr(position, RawPcDescriptors::kRuntimeCall);
-  }
-
-  ReturnInstr* return_instr = new (Z) ReturnInstr(position, value);
+  ReturnInstr* return_instr =
+      new (Z) ReturnInstr(TokenPosition::kNoSource, value);
   if (exit_collector_ != NULL) exit_collector_->AddExit(return_instr);
-  fragment <<= return_instr;
-  return fragment.closed();
+  return Fragment(return_instr).closed();
 }
 
 
@@ -2686,17 +2662,6 @@ Fragment FlowGraphBuilder::StoreLocal(TokenPosition position,
         StoreInstanceField(Context::variable_offset(variable->index()));
   } else {
     Value* value = Pop();
-    if (FLAG_support_debugger && position.IsDebugPause() &&
-        !variable->IsInternal()) {
-      if (value->definition()->IsConstant() ||
-          value->definition()->IsAllocateObject() ||
-          (value->definition()->IsLoadLocal() &&
-           !value->definition()->AsLoadLocal()->local().IsInternal())) {
-        instructions <<= new (Z)
-            DebugStepCheckInstr(position, RawPcDescriptors::kRuntimeCall);
-      }
-    }
-
     StoreLocalInstr* store =
         new (Z) StoreLocalInstr(*variable, value, position);
     instructions <<= store;
@@ -3208,32 +3173,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
     body = dispatch;
 
     context_depth_ = current_context_depth;
-  }
-
-  if (FLAG_support_debugger && function->position().IsDebugPause() &&
-      !dart_function.is_native() && dart_function.is_debuggable()) {
-    // If a switch was added above: Start the switch by injecting a debugable
-    // safepoint so stepping over an await works.
-    // If not, still start the body with a debugable safepoint to ensure
-    // breaking on a method always happens, even if there are no
-    // assignments/calls/runtimecalls in the first basic block.
-    // Place this check at the last parameter to ensure parameters
-    // are in scope in the debugger at method entry.
-    const int num_params = dart_function.NumParameters();
-    TokenPosition check_pos = TokenPosition::kNoSource;
-    if (num_params > 0) {
-      LocalScope* scope = parsed_function_->node_sequence()->scope();
-      const LocalVariable& parameter = *scope->VariableAt(num_params - 1);
-      check_pos = parameter.token_pos();
-    }
-    if (!check_pos.IsDebugPause()) {
-      // No parameters or synthetic parameters.
-      check_pos = function->position();
-      ASSERT(check_pos.IsDebugPause());
-    }
-    Fragment check(
-        new (Z) DebugStepCheckInstr(check_pos, RawPcDescriptors::kRuntimeCall));
-    body = check + body;
   }
 
   normal_entry->LinkTo(body.entry);

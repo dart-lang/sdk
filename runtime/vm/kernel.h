@@ -9,7 +9,6 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
-#include "vm/growable_array.h"
 #include "vm/token_position.h"
 
 
@@ -2728,8 +2727,6 @@ class Program : public TreeNode {
   SourceTable& source_table() { return source_table_; }
   List<Library>& libraries() { return libraries_; }
   Procedure* main_method() { return main_method_; }
-  MallocGrowableArray<MallocGrowableArray<intptr_t>*> valid_token_positions;
-  MallocGrowableArray<MallocGrowableArray<intptr_t>*> yield_token_positions;
 
  private:
   Program() {}
