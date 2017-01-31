@@ -46,6 +46,10 @@ group("runtime") {
 }
 
 group("runtime_kernel") {
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    # Fuchsia has run_vm_tests marked testonly.
+    testonly = true
+  }
   deps = [
     ":runtime",
 
