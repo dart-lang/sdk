@@ -274,6 +274,18 @@ class A2 {}
     expect(file.unlinked.classes, isEmpty);
   }
 
+  test_getFileForPath_hasLibraryDirective_hasPartOfDirective() {
+    String a = _p('/test/lib/a.dart');
+    provider.newFile(
+        a,
+        r'''
+library L;
+part of L;
+''');
+    FileState file = fileSystemState.getFileForPath(a);
+    expect(file.isPart, isFalse);
+  }
+
   test_getFileForPath_library() {
     String a1 = _p('/aaa/lib/a1.dart');
     String a2 = _p('/aaa/lib/a2.dart');

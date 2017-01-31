@@ -191,9 +191,10 @@ class FileState {
   List<FileState> get importedFiles => _importedFiles;
 
   /**
-   * Return `true` if the file has a `part of` directive, so is probably a part.
+   * Return `true` if the file does not have a `library` directive, and has a
+   * `part of` directive, so is probably a part.
    */
-  bool get isPart => _unlinked.isPartOf;
+  bool get isPart => _unlinked.libraryNameOffset == 0 &&  _unlinked.isPartOf;
 
   /**
    * If the file [isPart], return a currently know library the file is a part
