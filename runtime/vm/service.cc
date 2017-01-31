@@ -840,13 +840,18 @@ void Service::InvokeMethod(Isolate* I,
     ASSERT(!param_values.IsNull());
     ASSERT(param_keys.Length() == param_values.Length());
 
-    if (!reply_port.IsSendPort()) {
+    // We expect a reply port unless there is a null sequence id,
+    // which indicates that no reply should be sent.  We use this in
+    // tests.
+    if (!seq.IsNull() && !reply_port.IsSendPort()) {
       FATAL("SendPort expected.");
     }
 
     JSONStream js;
-    js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(), seq, method_name,
-             param_keys, param_values, parameters_are_dart_objects);
+    Dart_Port reply_port_id =
+        (reply_port.IsNull() ? ILLEGAL_PORT : SendPort::Cast(reply_port).Id());
+    js.Setup(zone.GetZone(), reply_port_id, seq, method_name, param_keys,
+             param_values, parameters_are_dart_objects);
 
     // RPC came in with a custom service id zone.
     const char* id_zone_param = js.LookupParam("_idZone");

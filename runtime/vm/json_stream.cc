@@ -210,10 +210,9 @@ static void Finalizer(void* isolate_callback_data,
 
 
 void JSONStream::PostReply() {
-  Dart_Port port = reply_port();
-  ASSERT(port != ILLEGAL_PORT);
-  set_reply_port(ILLEGAL_PORT);  // Prevent double replies.
   ASSERT(seq_ != NULL);
+  Dart_Port port = reply_port();
+  set_reply_port(ILLEGAL_PORT);  // Prevent double replies.
   if (seq_->IsString()) {
     const String& str = String::Cast(*seq_);
     PrintProperty("id", str.ToCString());
@@ -224,12 +223,22 @@ void JSONStream::PostReply() {
     const Double& dbl = Double::Cast(*seq_);
     PrintProperty("id", dbl.value());
   } else if (seq_->IsNull()) {
+    if (port == ILLEGAL_PORT) {
+      // This path is only used in tests.
+      buffer_.AddChar('}');  // Finish our message.
+      char* cstr;
+      intptr_t length;
+      Steal(&cstr, &length);
+      OS::PrintErr("-----\nDropping reply:\n%s\n-----\n", cstr);
+      free(cstr);
+    }
     // JSON-RPC 2.0 says that a request with a null ID shouldn't get a reply.
     PostNullReply(port);
     return;
   }
-  buffer_.AddChar('}');
+  ASSERT(port != ILLEGAL_PORT);
 
+  buffer_.AddChar('}');  // Finish our message.
   char* cstr;
   intptr_t length;
   Steal(&cstr, &length);

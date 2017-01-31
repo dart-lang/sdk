@@ -1300,7 +1300,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       break;
     }
     default:
-      UNREACHABLE();
+      FATAL1("Unexpected Dart_CObject_Type %d\n", type);
   }
 
   return true;
