@@ -1807,18 +1807,24 @@ class ObservatoryDebugger extends Debugger {
     console.printBold('\$ $command');
     return cmd.runCommand(command).then((_) {
       lastCommand = command;
-    }).catchError((e, s) {
-      if (e is S.NetworkRpcException) {
+    }).catchError(
+      (e, s) {
         console.printRed('Unable to execute command because the connection '
-            'to the VM has been closed');
-      } else {
+                         'to the VM has been closed');
+      }, test: (e) => e is S.NetworkRpcException
+    ).catchError(
+      (e, s) {
+        console.printRed(e.toString());
+      }, test: (e) => e is CommandException
+    ).catchError(
+      (e, s) {
         if (s != null) {
           console.printRed('Internal error: $e\n$s');
         } else {
           console.printRed('Internal error: $e\n');
         }
       }
-    });
+    );
   }
 
   String historyPrev(String command) {
