@@ -1558,6 +1558,12 @@ class C2 {
     addTestSource('mth() { while (b^) {} }}');
     assertOpType(returnValue: true, typeNames: true);
   }
+
+  test_WithClause() {
+    // WithClause  ClassDeclaration
+    addTestSource('class x extends Object with ^\n{}');
+    assertOpType(typeNames: true);
+  }
 }
 
 class _TestSource implements Source {

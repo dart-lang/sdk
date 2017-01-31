@@ -906,6 +906,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     }
   }
 
+  @override
+  void visitWithClause(WithClause node) {
+    optype.includeTypeNameSuggestions = true;
+  }
+
   bool _isEntityPrevTokenSynthetic() {
     Object entity = this.entity;
     if (entity is AstNode && entity.beginToken.previous?.isSynthetic ?? false) {
