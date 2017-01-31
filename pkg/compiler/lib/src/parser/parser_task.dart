@@ -8,12 +8,11 @@ import '../common.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/modelx.dart' show ElementX;
-import '../tokens/token.dart' show Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import '../tree/tree.dart' show Node;
 import 'element_listener.dart' show ScannerOptions;
-import 'listener.dart' show ParserError;
+import 'package:front_end/src/fasta/parser.dart' show Parser, ParserError;
 import 'node_listener.dart' show NodeListener;
-import 'parser.dart' show Parser;
 
 class ParserTask extends CompilerTask {
   final Compiler compiler;
@@ -36,7 +35,8 @@ class ParserTask extends CompilerTask {
       try {
         parser.parseUnit(token);
       } on ParserError catch (_) {
-        assert(invariant(token, compiler.compilationFailed));
+        assert(invariant(compiler.reporter.spanFromToken(token),
+                compiler.compilationFailed));
         return listener.makeNodeList(0, null, null, '\n');
       }
       Node result = listener.popNode();

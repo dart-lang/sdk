@@ -317,25 +317,20 @@ class _ConstructorBodyNamingScope {
 
   int get numberOfConstructors => _constructors.length;
 
-  _ConstructorBodyNamingScope _superScope;
-
   _ConstructorBodyNamingScope.rootScope(ClassElement cls)
-      : _superScope = null,
-        _startIndex = 0,
+      : _startIndex = 0,
         _constructors = cls.constructors.toList(growable: false);
 
   _ConstructorBodyNamingScope.forClass(
       ClassElement cls, _ConstructorBodyNamingScope superScope)
-      : _superScope = superScope,
-        _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+      : _startIndex = superScope._startIndex + superScope.numberOfConstructors,
         _constructors = cls.constructors.toList(growable: false);
 
   // Mixin Applications have constructors but we never generate code for them,
   // so they do not count in the inheritance chain.
   _ConstructorBodyNamingScope.forMixinApplication(
       ClassElement cls, _ConstructorBodyNamingScope superScope)
-      : _superScope = superScope,
-        _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+      : _startIndex = superScope._startIndex + superScope.numberOfConstructors,
         _constructors = const [];
 
   factory _ConstructorBodyNamingScope(ClassElement cls,

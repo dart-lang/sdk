@@ -40,7 +40,7 @@ import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'util/setlet.dart' show Setlet;
 import 'util/uri_extras.dart' as uri_extras;
-import 'util/util.dart' show Link, makeUnique;
+import 'util/util.dart' show makeUnique;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.

@@ -12,7 +12,6 @@ import '../elements/elements.dart' show ClassElement, Element;
 import '../universe/selector.dart';
 import '../util/enumset.dart';
 import 'backend_helpers.dart';
-import 'constant_system_javascript.dart';
 import 'js_backend.dart';
 
 /// Backend specific features required by a backend impact.

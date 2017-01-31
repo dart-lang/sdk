@@ -5,9 +5,7 @@
 library dart2js.common.work;
 
 import '../common.dart';
-import '../compiler.dart' show Compiler;
 import '../elements/elements.dart' show AstElement;
-import '../enqueue.dart' show Enqueuer;
 import '../universe/world_impact.dart' show WorldImpact;
 
 abstract class WorkItem {

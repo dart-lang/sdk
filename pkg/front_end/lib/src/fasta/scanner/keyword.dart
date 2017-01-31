@@ -2,12 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.tokens.keywords;
+library fasta.scanner.keywords;
 
-import '../util/characters.dart' as Characters show $a;
-import 'precedence.dart' show PrecedenceInfo;
-import 'precedence_constants.dart' as Precedence
-    show AS_INFO, IS_INFO, KEYWORD_INFO;
+import 'characters.dart' show
+    $a;
+
+import 'precedence.dart' show
+    PrecedenceInfo;
+
+import 'precedence.dart' show
+    AS_INFO,
+    IS_INFO,
+    KEYWORD_INFO;
 
 /**
  * A keyword in the Dart programming language.
@@ -49,10 +55,10 @@ class Keyword {
 
     // TODO(ahe): Don't think this is a reserved word.
     // See: http://dartbug.com/5579
-    const Keyword("is", info: Precedence.IS_INFO),
+    const Keyword("is", info: IS_INFO),
 
     const Keyword("abstract", isBuiltIn: true),
-    const Keyword("as", info: Precedence.AS_INFO, isBuiltIn: true),
+    const Keyword("as", info: AS_INFO, isBuiltIn: true),
     const Keyword("covariant", isBuiltIn: true),
     const Keyword("dynamic", isBuiltIn: true),
     const Keyword("export", isBuiltIn: true),
@@ -97,7 +103,7 @@ class Keyword {
   const Keyword(this.syntax,
       {this.isPseudo: false,
       this.isBuiltIn: false,
-      this.info: Precedence.KEYWORD_INFO});
+      this.info: KEYWORD_INFO});
 
   static Map<String, Keyword> computeKeywordMap() {
     Map<String, Keyword> result = new Map<String, Keyword>();
@@ -147,8 +153,8 @@ abstract class KeywordState {
         int c = strings[i].codeUnitAt(start);
         if (chunk != c) {
           if (chunkStart != -1) {
-            assert(result[chunk - Characters.$a] == null);
-            result[chunk - Characters.$a] = computeKeywordStateTable(
+            assert(result[chunk - $a] == null);
+            result[chunk - $a] = computeKeywordStateTable(
                 start + 1, strings, chunkStart, i - chunkStart);
           }
           chunkStart = i;
@@ -157,8 +163,8 @@ abstract class KeywordState {
       }
     }
     if (chunkStart != -1) {
-      assert(result[chunk - Characters.$a] == null);
-      result[chunk - Characters.$a] = computeKeywordStateTable(
+      assert(result[chunk - $a] == null);
+      result[chunk - $a] = computeKeywordStateTable(
           start + 1, strings, chunkStart, offset + length - chunkStart);
     } else {
       assert(length == 1);
@@ -181,7 +187,7 @@ class ArrayKeywordState extends KeywordState {
   ArrayKeywordState(List<KeywordState> this.table, String syntax)
       : super((syntax == null) ? null : Keyword.keywords[syntax]);
 
-  KeywordState next(int c) => table[c - Characters.$a];
+  KeywordState next(int c) => table[c - $a];
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -194,7 +200,7 @@ class ArrayKeywordState extends KeywordState {
     List<KeywordState> foo = table;
     for (int i = 0; i < foo.length; i++) {
       if (foo[i] != null) {
-        sb.write("${new String.fromCharCodes([i + Characters.$a])}: "
+        sb.write("${new String.fromCharCodes([i + $a])}: "
             "${foo[i]}; ");
       }
     }

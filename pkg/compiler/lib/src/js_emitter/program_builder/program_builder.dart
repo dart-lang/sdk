@@ -183,7 +183,7 @@ class ProgramBuilder {
     List<js.TokenFinalizer> finalizers = [_task.metadataCollector];
     if (backend.namer is js.TokenFinalizer) {
       var namingFinalizer = backend.namer;
-      finalizers.add(namingFinalizer);
+      finalizers.add(namingFinalizer as js.TokenFinalizer);
     }
 
     return new Program(fragments, holders, _buildLoadMap(), _symbolsMap,

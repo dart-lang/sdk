@@ -10,7 +10,6 @@ import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
-import '../enqueue.dart' show ResolutionEnqueuer;
 import '../universe/world_impact.dart' show WorldImpact;
 import 'json_serializer.dart';
 import 'serialization.dart';

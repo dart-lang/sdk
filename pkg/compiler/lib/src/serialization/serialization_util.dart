@@ -52,9 +52,6 @@ Selector deserializeSelector(ObjectDecoder decoder) {
   int argumentCount = decoder.getInt(Key.ARGUMENTS);
   List<String> namedArguments =
       decoder.getStrings(Key.NAMED_ARGUMENTS, isOptional: true);
-  String name = decoder.getString(Key.NAME);
-  bool isSetter = decoder.getBool(Key.IS_SETTER);
-  LibraryElement library = decoder.getElement(Key.LIBRARY, isOptional: true);
   return new Selector(kind, deserializeName(decoder),
       new CallStructure(argumentCount, namedArguments));
 }

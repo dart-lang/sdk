@@ -6,27 +6,30 @@ library dart2js.parser.node_listener;
 
 import '../common.dart';
 import '../elements/elements.dart' show CompilationUnitElement;
-import '../native/native.dart' as native;
-import '../tokens/precedence_constants.dart' as Precedence show INDEX_INFO;
-import '../tokens/token.dart' show ErrorToken, StringToken, Token;
+import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence show
+    INDEX_INFO;
+import 'package:front_end/src/fasta/scanner.dart' show
+    StringToken, Token;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'element_listener.dart' show ElementListener, ScannerOptions;
-import 'partial_elements.dart' show PartialFunctionElement;
 
 class NodeListener extends ElementListener {
   NodeListener(ScannerOptions scannerOptions, DiagnosticReporter reporter,
       CompilationUnitElement element)
       : super(scannerOptions, reporter, element, null);
 
+  @override
   void addLibraryTag(LibraryTag tag) {
     pushNode(tag);
   }
 
+  @override
   void addPartOfTag(PartOf tag) {
     pushNode(tag);
   }
 
+  @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     Expression name = popNode();
     pushNode(new LibraryName(
@@ -37,6 +40,7 @@ class NodeListener extends ElementListener {
         null));
   }
 
+  @override
   void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
       Token semicolon) {
     NodeList combinators = popNode();
@@ -55,6 +59,7 @@ class NodeListener extends ElementListener {
         isDeferred: deferredKeyword != null));
   }
 
+  @override
   void endExport(Token exportKeyword, Token semicolon) {
     NodeList combinators = popNode();
     NodeList conditionalUris = popNode();
@@ -69,6 +74,7 @@ class NodeListener extends ElementListener {
         null));
   }
 
+  @override
   void endPart(Token partKeyword, Token semicolon) {
     StringNode uri = popLiteralString();
     pushNode(new Part(
@@ -79,6 +85,7 @@ class NodeListener extends ElementListener {
         null));
   }
 
+  @override
   void endPartOf(Token partKeyword, Token semicolon) {
     Expression name = popNode(); // name
     pushNode(new PartOf(
@@ -89,6 +96,7 @@ class NodeListener extends ElementListener {
         null));
   }
 
+  @override
   void endClassDeclaration(int interfacesCount, Token beginToken,
       Token extendsKeyword, Token implementsKeyword, Token endToken) {
     NodeList body = popNode();
@@ -102,6 +110,7 @@ class NodeListener extends ElementListener {
         interfaces, beginToken, extendsKeyword, body, endToken));
   }
 
+  @override
   void endTopLevelDeclaration(Token token) {
     // TODO(sigmund): consider moving metadata into each declaration
     // element instead.
@@ -111,10 +120,12 @@ class NodeListener extends ElementListener {
     super.endTopLevelDeclaration(token);
   }
 
+  @override
   void endCompilationUnit(int count, Token token) {
     pushNode(makeNodeList(count, null, null, '\n'));
   }
 
+  @override
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     NodeList formals = popNode();
     NodeList typeParameters = popNode();
@@ -124,6 +135,7 @@ class NodeListener extends ElementListener {
         returnType, name, typeParameters, formals, typedefKeyword, endToken));
   }
 
+  @override
   void endNamedMixinApplication(
       Token classKeyword, Token implementsKeyword, Token endToken) {
     NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
@@ -135,16 +147,19 @@ class NodeListener extends ElementListener {
         mixinApplication, interfaces, classKeyword, endToken));
   }
 
+  @override
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     NodeList names = makeNodeList(count, enumKeyword.next.next, endBrace, ",");
     Identifier name = popNode();
     pushNode(new Enum(enumKeyword, name, names));
   }
 
+  @override
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     pushNode(makeNodeList(memberCount, beginToken, endToken, null));
   }
 
+  @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     NodeList variables = makeNodeList(count, null, endToken, ",");
     TypeAnnotation type = popNode();
@@ -152,6 +167,7 @@ class NodeListener extends ElementListener {
     pushNode(new VariableDefinitions(type, modifiers, variables));
   }
 
+  @override
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
@@ -164,6 +180,7 @@ class NodeListener extends ElementListener {
         modifiers, null, getOrSet, asyncModifier));
   }
 
+  @override
   void endFormalParameter(Token thisKeyword) {
     Expression name = popNode();
     if (thisKeyword != null) {
@@ -181,22 +198,27 @@ class NodeListener extends ElementListener {
         metadata, type, modifiers, new NodeList.singleton(name)));
   }
 
+  @override
   void endFormalParameters(int count, Token beginToken, Token endToken) {
     pushNode(makeNodeList(count, beginToken, endToken, ","));
   }
 
+  @override
   void handleNoFormalParameters(Token token) {
     pushNode(null);
   }
 
+  @override
   void endArguments(int count, Token beginToken, Token endToken) {
     pushNode(makeNodeList(count, beginToken, endToken, ","));
   }
 
+  @override
   void handleNoArguments(Token token) {
     pushNode(null);
   }
 
+  @override
   void endConstructorReference(
       Token start, Token periodBeforeName, Token endToken) {
     Identifier name = null;
@@ -228,74 +250,61 @@ class NodeListener extends ElementListener {
     pushNode(constructor);
   }
 
+  @override
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     pushNode(new RedirectingFactoryBody(beginToken, endToken, popNode()));
   }
 
+  @override
   void endReturnStatement(
       bool hasExpression, Token beginToken, Token endToken) {
     Expression expression = hasExpression ? popNode() : null;
     pushNode(new Return(beginToken, endToken, expression));
   }
 
+  @override
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
     Expression expression = popNode();
     pushNode(new Yield(yieldToken, starToken, expression, endToken));
   }
 
+  @override
   void endExpressionStatement(Token token) {
     pushNode(new ExpressionStatement(popNode(), token));
   }
 
   void handleOnError(Token token, var errorInformation) {
-    reporter.internalError(token, "'${token.value}': ${errorInformation}");
+    reporter.internalError(reporter.spanFromToken(token),
+        "'${token.value}': ${errorInformation}");
   }
 
-  Token expectedFunctionBody(Token token) {
-    if (identical(token.stringValue, 'native')) {
-      return native.handleNativeFunctionBody(this, token);
-    } else if (token is ErrorToken) {
-      pushNode(null);
-      reportErrorToken(token);
-    } else {
-      reportFatalError(
-          token, "Expected a function body, but got '${token.value}'.");
-    }
-    return skipToEof(token);
-  }
-
-  Token expectedClassBody(Token token) {
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-      return skipToEof(token);
-    } else {
-      reportFatalError(
-          token, "Expected a class body, but got '${token.value}'.");
-      return skipToEof(token);
-    }
-  }
-
+  @override
   void handleLiteralInt(Token token) {
     pushNode(new LiteralInt(token, (t, e) => handleOnError(t, e)));
   }
 
+  @override
   void handleLiteralDouble(Token token) {
     pushNode(new LiteralDouble(token, (t, e) => handleOnError(t, e)));
   }
 
+  @override
   void handleLiteralBool(Token token) {
     pushNode(new LiteralBool(token, (t, e) => handleOnError(t, e)));
   }
 
+  @override
   void handleLiteralNull(Token token) {
     pushNode(new LiteralNull(token));
   }
 
+  @override
   void endLiteralSymbol(Token hashToken, int identifierCount) {
     NodeList identifiers = makeNodeList(identifierCount, null, null, '.');
     pushNode(new LiteralSymbol(hashToken, identifiers));
   }
 
+  @override
   void handleBinaryExpression(Token token) {
     Node argument = popNode();
     Node receiver = popNode();
@@ -307,7 +316,8 @@ class NodeListener extends ElementListener {
       if (argumentSend == null) {
         // TODO(ahe): The parser should diagnose this problem, not
         // this listener.
-        reportFatalError(argument, 'Expected an identifier.');
+        reportFatalError(reporter.spanFromSpannable(argument),
+            "Expected an identifier.");
       }
       if (argumentSend.receiver != null) internalError(node: argument);
       if (argument is SendSet) internalError(node: argument);
@@ -319,23 +329,27 @@ class NodeListener extends ElementListener {
       pushNode(new Send(receiver, new Operator(token), arguments));
     }
     if (identical(tokenString, '===')) {
-      reporter.reportErrorMessage(token, MessageKind.UNSUPPORTED_EQ_EQ_EQ,
-          {'lhs': receiver, 'rhs': argument});
+      reporter.reportErrorMessage(reporter.spanFromToken(token),
+          MessageKind.UNSUPPORTED_EQ_EQ_EQ, {'lhs': receiver, 'rhs': argument});
     }
     if (identical(tokenString, '!==')) {
-      reporter.reportErrorMessage(token, MessageKind.UNSUPPORTED_BANG_EQ_EQ,
+      reporter.reportErrorMessage(reporter.spanFromToken(token),
+          MessageKind.UNSUPPORTED_BANG_EQ_EQ,
           {'lhs': receiver, 'rhs': argument});
     }
   }
 
+  @override
   void beginCascade(Token token) {
     pushNode(new CascadeReceiver(popNode(), token));
   }
 
+  @override
   void endCascade() {
     pushNode(new Cascade(popNode()));
   }
 
+  @override
   void handleAsOperator(Token operator, Token endToken) {
     TypeAnnotation type = popNode();
     Expression expression = popNode();
@@ -343,6 +357,7 @@ class NodeListener extends ElementListener {
     pushNode(new Send(expression, new Operator(operator), arguments));
   }
 
+  @override
   void handleAssignmentExpression(Token token) {
     Node arg = popNode();
     Node node = popNode();
@@ -367,9 +382,10 @@ class NodeListener extends ElementListener {
   void reportNotAssignable(Node node) {
     // TODO(ahe): The parser should diagnose this problem, not this
     // listener.
-    reportFatalError(node, 'Not assignable.');
+    reportFatalError(reporter.spanFromSpannable(node), "Not assignable.");
   }
 
+  @override
   void handleConditionalExpression(Token question, Token colon) {
     Node elseExpression = popNode();
     Node thenExpression = popNode();
@@ -378,6 +394,7 @@ class NodeListener extends ElementListener {
         condition, thenExpression, elseExpression, question, colon));
   }
 
+  @override
   void endSend(Token token) {
     NodeList arguments = popNode();
     NodeList typeArguments = popNode();
@@ -386,6 +403,7 @@ class NodeListener extends ElementListener {
     pushNode(new Send(null, selector, arguments, typeArguments));
   }
 
+  @override
   void endFunctionBody(int count, Token beginToken, Token endToken) {
     if (count == 0 && beginToken == null) {
       pushNode(new EmptyStatement(endToken));
@@ -394,6 +412,7 @@ class NodeListener extends ElementListener {
     }
   }
 
+  @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     if (asyncToken != null) {
       pushNode(new AsyncModifier(asyncToken, starToken));
@@ -402,14 +421,17 @@ class NodeListener extends ElementListener {
     }
   }
 
-  void skippedFunctionBody(Token token) {
+  @override
+  void handleFunctionBodySkipped(Token token) {
     pushNode(new Block(new NodeList.empty()));
   }
 
+  @override
   void handleNoFunctionBody(Token token) {
     pushNode(new EmptyStatement(token));
   }
 
+  @override
   void endFunction(Token getOrSet, Token endToken) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
@@ -424,10 +446,12 @@ class NodeListener extends ElementListener {
         modifiers, initializers, getOrSet, asyncModifier));
   }
 
+  @override
   void endFunctionDeclaration(Token endToken) {
     pushNode(new FunctionDeclaration(popNode()));
   }
 
+  @override
   void endVariablesDeclaration(int count, Token endToken) {
     // TODO(ahe): Pick one name for this concept, either
     // VariablesDeclaration or VariableDefinitions.
@@ -437,7 +461,8 @@ class NodeListener extends ElementListener {
     pushNode(new VariableDefinitions(type, modifiers, variables));
   }
 
-  void endInitializer(Token assignmentOperator) {
+  @override
+  void endVariableInitializer(Token assignmentOperator) {
     Expression initializer = popNode();
     NodeList arguments =
         initializer == null ? null : new NodeList.singleton(initializer);
@@ -446,6 +471,12 @@ class NodeListener extends ElementListener {
     pushNode(new SendSet(null, name, op, arguments));
   }
 
+  @override
+  void endFieldInitializer(Token assignmentOperator) {
+    endVariableInitializer(assignmentOperator);
+  }
+
+  @override
   void endIfStatement(Token ifToken, Token elseToken) {
     Statement elsePart = (elseToken == null) ? null : popNode();
     Statement thenPart = popNode();
@@ -453,6 +484,7 @@ class NodeListener extends ElementListener {
     pushNode(new If(condition, thenPart, elsePart, ifToken, elseToken));
   }
 
+  @override
   void endForStatement(
       int updateExpressionCount, Token beginToken, Token endToken) {
     Statement body = popNode();
@@ -462,10 +494,12 @@ class NodeListener extends ElementListener {
     pushNode(new For(initializer, condition, updates, body, beginToken));
   }
 
+  @override
   void handleNoExpression(Token token) {
     pushNode(null);
   }
 
+  @override
   void endDoWhileStatement(
       Token doKeyword, Token whileKeyword, Token endToken) {
     Expression condition = popNode();
@@ -473,42 +507,51 @@ class NodeListener extends ElementListener {
     pushNode(new DoWhile(body, condition, doKeyword, whileKeyword, endToken));
   }
 
+  @override
   void endWhileStatement(Token whileKeyword, Token endToken) {
     Statement body = popNode();
     Expression condition = popNode();
     pushNode(new While(condition, body, whileKeyword));
   }
 
+  @override
   void endBlock(int count, Token beginToken, Token endToken) {
     pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
   }
 
+  @override
   void endThrowExpression(Token throwToken, Token endToken) {
     Expression expression = popNode();
     pushNode(new Throw(expression, throwToken, endToken));
   }
 
+  @override
   void endAwaitExpression(Token awaitToken, Token endToken) {
     Expression expression = popNode();
     pushNode(new Await(awaitToken, expression));
   }
 
+  @override
   void endRethrowStatement(Token throwToken, Token endToken) {
     pushNode(new Rethrow(throwToken, endToken));
     if (identical(throwToken.stringValue, 'throw')) {
       reporter.reportErrorMessage(
-          throwToken, MessageKind.MISSING_EXPRESSION_IN_THROW);
+          reporter.spanFromToken(throwToken),
+          MessageKind.MISSING_EXPRESSION_IN_THROW);
     }
   }
 
+  @override
   void handleUnaryPrefixExpression(Token token) {
     pushNode(new Send.prefix(popNode(), new Operator(token)));
   }
 
+  @override
   void handleSuperExpression(Token token) {
     pushNode(new Identifier(token));
   }
 
+  @override
   void handleThisExpression(Token token) {
     pushNode(new Identifier(token));
   }
@@ -536,22 +579,27 @@ class NodeListener extends ElementListener {
     }
   }
 
+  @override
   void handleUnaryPostfixAssignmentExpression(Token token) {
     handleUnaryAssignmentExpression(token, false);
   }
 
+  @override
   void handleUnaryPrefixAssignmentExpression(Token token) {
     handleUnaryAssignmentExpression(token, true);
   }
 
+  @override
   void endInitializers(int count, Token beginToken, Token endToken) {
     pushNode(makeNodeList(count, beginToken, null, ','));
   }
 
+  @override
   void handleNoInitializers() {
     pushNode(null);
   }
 
+  @override
   void endMember() {
     // TODO(sigmund): consider moving metadata into each declaration
     // element instead.
@@ -561,6 +609,7 @@ class NodeListener extends ElementListener {
     super.endMember();
   }
 
+  @override
   void endFields(int count, Token beginToken, Token endToken) {
     NodeList variables = makeNodeList(count, null, endToken, ",");
     TypeAnnotation type = popNode();
@@ -568,6 +617,7 @@ class NodeListener extends ElementListener {
     pushNode(new VariableDefinitions(type, modifiers, variables));
   }
 
+  @override
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
@@ -581,6 +631,7 @@ class NodeListener extends ElementListener {
         returnType, modifiers, initializers, getOrSet, asyncModifier));
   }
 
+  @override
   void handleLiteralMap(
       int count, Token beginToken, Token constKeyword, Token endToken) {
     NodeList entries = makeNodeList(count, beginToken, endToken, ',');
@@ -588,18 +639,21 @@ class NodeListener extends ElementListener {
     pushNode(new LiteralMap(typeArguments, entries, constKeyword));
   }
 
+  @override
   void endLiteralMapEntry(Token colon, Token endToken) {
     Expression value = popNode();
     Expression key = popNode();
     pushNode(new LiteralMapEntry(key, colon, value));
   }
 
+  @override
   void handleLiteralList(
       int count, Token beginToken, Token constKeyword, Token endToken) {
     NodeList elements = makeNodeList(count, beginToken, endToken, ',');
     pushNode(new LiteralList(popNode(), elements, constKeyword));
   }
 
+  @override
   void handleIndexedExpression(
       Token openSquareBracket, Token closeSquareBracket) {
     NodeList arguments =
@@ -611,38 +665,45 @@ class NodeListener extends ElementListener {
     pushNode(new Send(receiver, selector, arguments));
   }
 
+  @override
   void handleNewExpression(Token token) {
     NodeList arguments = popNode();
     Node name = popNode();
     pushNode(new NewExpression(token, new Send(null, name, arguments)));
   }
 
+  @override
   void handleConstExpression(Token token) {
     // [token] carries the 'const' information.
     handleNewExpression(token);
   }
 
+  @override
   void handleOperator(Token token) {
     pushNode(new Operator(token));
   }
 
+  @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     Operator op = new Operator(token);
     pushNode(new Send(new Identifier(operatorKeyword), op, null));
   }
 
+  @override
   void handleNamedArgument(Token colon) {
     Expression expression = popNode();
     Identifier name = popNode();
     pushNode(new NamedArgument(name, colon, expression));
   }
 
+  @override
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     pushNode(makeNodeList(count, beginToken, endToken, ','));
   }
 
-  void handleFunctionTypedFormalParameter(Token endToken) {
+  @override
+  void endFunctionTypedFormalParameter(Token endToken) {
     NodeList formals = popNode();
     NodeList typeVariables = popNode();
     Identifier name = popNode();
@@ -652,6 +713,7 @@ class NodeListener extends ElementListener {
         returnType, Modifiers.EMPTY, null, null, null));
   }
 
+  @override
   void handleValuedFormalParameter(Token equals, Token token) {
     Expression defaultValue = popNode();
     Expression parameterName = popNode();
@@ -659,6 +721,7 @@ class NodeListener extends ElementListener {
         new NodeList.singleton(defaultValue)));
   }
 
+  @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     Block finallyBlock = null;
     if (finallyKeyword != null) {
@@ -670,10 +733,12 @@ class NodeListener extends ElementListener {
         tryBlock, catchBlocks, finallyBlock, tryKeyword, finallyKeyword));
   }
 
+  @override
   void handleCaseMatch(Token caseKeyword, Token colon) {
     pushNode(new CaseMatch(caseKeyword, popNode(), colon));
   }
 
+  @override
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     Block block = popNode();
     NodeList formals = catchKeyword != null ? popNode() : null;
@@ -681,12 +746,14 @@ class NodeListener extends ElementListener {
     pushNode(new CatchBlock(type, formals, block, onKeyword, catchKeyword));
   }
 
+  @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     NodeList cases = popNode();
     ParenthesizedExpression expression = popNode();
     pushNode(new SwitchStatement(expression, cases, switchKeyword));
   }
 
+  @override
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
     Link<Node> caseNodes = const Link<Node>();
     while (caseCount > 0) {
@@ -697,6 +764,7 @@ class NodeListener extends ElementListener {
     pushNode(new NodeList(beginToken, caseNodes, endToken, null));
   }
 
+  @override
   void handleSwitchCase(int labelCount, int caseCount, Token defaultKeyword,
       int statementCount, Token firstToken, Token endToken) {
     NodeList statements = makeNodeList(statementCount, null, null, null);
@@ -706,6 +774,7 @@ class NodeListener extends ElementListener {
         new SwitchCase(labelsAndCases, defaultKeyword, statements, firstToken));
   }
 
+  @override
   void handleBreakStatement(
       bool hasTarget, Token breakKeyword, Token endToken) {
     Identifier target = null;
@@ -715,6 +784,7 @@ class NodeListener extends ElementListener {
     pushNode(new BreakStatement(target, breakKeyword, endToken));
   }
 
+  @override
   void handleContinueStatement(
       bool hasTarget, Token continueKeyword, Token endToken) {
     Identifier target = null;
@@ -724,10 +794,12 @@ class NodeListener extends ElementListener {
     pushNode(new ContinueStatement(target, continueKeyword, endToken));
   }
 
+  @override
   void handleEmptyStatement(Token token) {
     pushNode(new EmptyStatement(token));
   }
 
+  @override
   void endFactoryMethod(Token beginToken, Token endToken) {
     super.endFactoryMethod(beginToken, endToken);
     Statement body = popNode();
@@ -758,6 +830,7 @@ class NodeListener extends ElementListener {
         name, null, formals, body, null, modifiers, null, null, asyncModifier));
   }
 
+  @override
   void endForIn(
       Token awaitToken, Token forToken, Token inKeyword, Token endToken) {
     Statement body = popNode();
@@ -772,6 +845,7 @@ class NodeListener extends ElementListener {
     }
   }
 
+  @override
   void endMetadataStar(int count, bool forParameter) {
     if (0 == count) {
       pushNode(null);
@@ -780,6 +854,7 @@ class NodeListener extends ElementListener {
     }
   }
 
+  @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     NodeList arguments = popNode();
     if (arguments == null) {
@@ -816,6 +891,7 @@ class NodeListener extends ElementListener {
     }
   }
 
+  @override
   void handleAssertStatement(
       Token assertKeyword, Token commaToken, Token semicolonToken) {
     Node message;
@@ -827,6 +903,7 @@ class NodeListener extends ElementListener {
     pushNode(new Assert(assertKeyword, condition, message, semicolonToken));
   }
 
+  @override
   void endUnnamedFunction(Token token) {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
@@ -836,6 +913,7 @@ class NodeListener extends ElementListener {
         Modifiers.EMPTY, null, null, asyncModifier));
   }
 
+  @override
   void handleIsOperator(Token operator, Token not, Token endToken) {
     TypeAnnotation type = popNode();
     Expression expression = popNode();
@@ -850,19 +928,30 @@ class NodeListener extends ElementListener {
     pushNode(new Send(expression, new Operator(operator), arguments));
   }
 
+  @override
   void handleLabel(Token colon) {
     Identifier name = popNode();
     pushNode(new Label(name, colon));
   }
 
+  @override
   void endLabeledStatement(int labelCount) {
     Statement statement = popNode();
     NodeList labels = makeNodeList(labelCount, null, null, null);
     pushNode(new LabeledStatement(labels, statement));
   }
 
+  @override
   void log(message) {
     reporter.log(message);
+  }
+
+  @override
+  void handleInvalidFunctionBody(Token token) {
+    if (!lastErrorWasNativeFunctionBody) {
+      pushNode(null);
+    }
+    lastErrorWasNativeFunctionBody = false;
   }
 
   void internalError({Token token, Node node}) {

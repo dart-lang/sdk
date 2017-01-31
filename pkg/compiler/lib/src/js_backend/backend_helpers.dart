@@ -206,8 +206,6 @@ class BackendHelpers {
   // TODO(johnniwinther): Split into _findHelperFunction and _findHelperClass
   // and add a check that the element has the expected kind.
   Element _findHelper(String name) => _find(jsHelperLibrary, name);
-  FunctionElement _findHelperFunction(String name) =>
-      _find(jsHelperLibrary, name);
   Element _findAsyncHelper(String name) => _find(asyncLibrary, name);
   Element _findInterceptor(String name) => _find(interceptorsLibrary, name);
   Element _find(LibraryElement library, String name) {

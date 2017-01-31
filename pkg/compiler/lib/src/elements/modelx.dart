@@ -20,8 +20,10 @@ import '../resolution/scope.dart'
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../resolution/typedefs.dart' show TypedefCyclicVisitor;
 import '../script.dart';
-import '../tokens/token.dart' show ErrorToken, Token;
-import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN;
+import 'package:front_end/src/fasta/scanner.dart'
+    show ErrorToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' as Tokens
+    show EOF_TOKEN;
 import '../tree/tree.dart';
 import '../util/util.dart';
 import 'common.dart';
@@ -314,7 +316,6 @@ class ErroneousConstructorElementX extends ErroneousElementX
   @override
   bool isRedirectingGenerativeInternal;
 
-  @override
   void set isRedirectingGenerative(_) {
     throw new UnsupportedError("isRedirectingGenerative");
   }

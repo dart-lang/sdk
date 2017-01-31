@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection' show Queue;
-
 import '../common.dart';
 import '../common/backend_api.dart' show ForeignResolver;
 import '../common/resolution.dart' show Resolution;
@@ -17,8 +15,10 @@ import '../elements/resolution_types.dart';
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import '../tokens/token.dart' show BeginGroupToken, Token;
-import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN;
+import 'package:front_end/src/fasta/scanner.dart'
+    show BeginGroupToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' as Tokens
+    show EOF_TOKEN;
 import '../tree/tree.dart';
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'

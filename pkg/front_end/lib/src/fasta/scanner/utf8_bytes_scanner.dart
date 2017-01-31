@@ -2,14 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.scanner.utf8;
+library fasta.scanner.utf8_bytes_scanner;
 
-import 'dart:convert' show UNICODE_BOM_CHARACTER_RUNE, UTF8;
+import 'dart:convert' show
+    UNICODE_BOM_CHARACTER_RUNE,
+    UTF8;
 
-import '../io/source_file.dart' show SourceFile;
-import '../tokens/precedence.dart' show PrecedenceInfo;
-import '../tokens/token.dart' show StringToken, Token;
-import 'array_based_scanner.dart' show ArrayBasedScanner;
+import 'precedence.dart' show
+    PrecedenceInfo;
+
+import 'token.dart' show
+    StringToken,
+    Token;
+
+import 'array_based_scanner.dart' show
+    ArrayBasedScanner;
 
 /**
  * Scanner that reads from a UTF-8 encoded list of bytes and creates tokens
@@ -76,29 +83,14 @@ class Utf8BytesScanner extends ArrayBasedScanner {
    * array whose last element is '0' to signal the end of the file. If this
    * is not the case, the entire array is copied before scanning.
    */
-  Utf8BytesScanner(SourceFile file, {bool includeComments: false})
-      : bytes = file.slowUtf8ZeroTerminatedBytes(),
-        super(file, includeComments) {
+  Utf8BytesScanner(this.bytes, {bool includeComments: false})
+      : super(includeComments) {
     assert(bytes.last == 0);
     // Skip a leading BOM.
-    if (_containsBomAt(0)) byteOffset += 3;
+    if (containsBomAt(0)) byteOffset += 3;
   }
 
-  /**
-   * Creates a new Utf8BytesScanner from a list of UTF-8 bytes.
-   *
-   * The last element of the list is expected to be '0' to signal the end of
-   * the file. If this is not the case, the entire array is copied before
-   * scanning.
-   */
-  Utf8BytesScanner.fromBytes(List<int> zeroTerminatedBytes,
-      {bool includeComments: false})
-      : this.bytes = zeroTerminatedBytes,
-        super(null, includeComments) {
-    assert(bytes.last == 0);
-  }
-
-  bool _containsBomAt(int offset) {
+  bool containsBomAt(int offset) {
     const BOM_UTF8 = const [0xEF, 0xBB, 0xBF];
 
     return offset + 3 < bytes.length &&
@@ -136,7 +128,7 @@ class Utf8BytesScanner extends ArrayBasedScanner {
       // The UTF-8 decoder discards leading BOM characters.
       // TODO(floitsch): don't just assume that removed characters were the
       // BOM.
-      assert(_containsBomAt(startOffset));
+      assert(containsBomAt(startOffset));
       codePoint = new String.fromCharCode(UNICODE_BOM_CHARACTER_RUNE);
     }
     if (codePoint.length == 1) {

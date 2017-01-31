@@ -659,7 +659,6 @@ bool includeAllElements(Element element) => true;
 class Serializer {
   List<SerializerPlugin> plugins = <SerializerPlugin>[];
 
-  Map<Uri, dynamic> _dependencyMap = <Uri, dynamic>{};
   Map<Element, DataObject> _elementMap = <Element, DataObject>{};
   Map<ConstantExpression, DataObject> _constantMap =
       <ConstantExpression, DataObject>{};

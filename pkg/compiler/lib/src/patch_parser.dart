@@ -134,14 +134,14 @@ import 'id_generator.dart';
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'library_loader.dart' show LibraryLoader;
 import 'parser/element_listener.dart' show ElementListener;
-import 'parser/listener.dart' show Listener, ParserError;
+import 'package:front_end/src/fasta/parser.dart'
+    show Listener, Parser, ParserError;
 import 'parser/member_listener.dart' show MemberListener;
-import 'parser/parser.dart' show Parser;
-import 'parser/partial_elements.dart' show PartialClassElement;
-import 'parser/partial_parser.dart' show PartialParser;
-import 'scanner/scanner.dart' show Scanner;
+import 'parser/partial_elements.dart'
+    show ClassElementParser, PartialClassElement;
 import 'script.dart';
-import 'tokens/token.dart' show StringToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
+import 'parser/diet_parser_task.dart' show PartialParser;
 
 class PatchParserTask extends CompilerTask {
   final String name = "Patching Parser";
@@ -178,7 +178,7 @@ class PatchParserTask extends CompilerTask {
     measure(() {
       // TODO(johnniwinther): Test that parts and exports are handled correctly.
       Script script = compilationUnit.script;
-      Token tokens = new Scanner(script.file).tokenize();
+      Token tokens = compiler.scanner.scanFile(script.file);
       Listener patchListener = new PatchElementListener(
           compiler, compilationUnit, compiler.idGenerator);
       try {
@@ -199,7 +199,7 @@ class PatchParserTask extends CompilerTask {
 
     measure(() => reporter.withCurrentElement(cls, () {
           MemberListener listener = new PatchMemberListener(compiler, cls);
-          Parser parser = new PatchClassElementParser(listener);
+          Parser parser = new ClassElementParser(listener);
           try {
             Token token = parser.parseTopLevelDeclaration(cls.beginToken);
             assert(identical(token, cls.endToken.next));
@@ -242,16 +242,6 @@ class PatchMemberListener extends MemberListener {
       enclosingClass.addMember(patch, reporter);
     }
   }
-}
-
-/**
- * Partial parser for patch files that also handles the members of class
- * declarations.
- */
-class PatchClassElementParser extends PartialParser {
-  PatchClassElementParser(Listener listener) : super(listener);
-
-  Token parseClassBody(Token token) => fullParseClassBody(token);
 }
 
 /**

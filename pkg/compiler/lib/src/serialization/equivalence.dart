@@ -21,7 +21,7 @@ import '../native/native.dart' show NativeBehavior;
 import '../resolution/access_semantics.dart';
 import '../resolution/send_structure.dart';
 import '../resolution/tree_elements.dart';
-import '../tokens/token.dart';
+import 'package:front_end/src/fasta/scanner.dart';
 import '../tree/nodes.dart';
 import '../universe/selector.dart';
 import '../universe/feature.dart';
@@ -1437,7 +1437,10 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
         (Token t1, Token t2) {
       if (t1 == t2) return true;
       if (t1 == null || t2 == null) return false;
-      return strategy.test(t1, t2, 'hashCode', t1.hashCode, t2.hashCode);
+      return
+          strategy.test(t1, t2, 'charOffset', t1.charOffset, t2.charOffset) &&
+          strategy.test(t1, t2, 'info', t1.info, t2.info) &&
+          strategy.test(t1, t2, 'value', t1.value, t2.value);
     });
   }
 

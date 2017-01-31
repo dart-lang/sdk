@@ -589,7 +589,6 @@ class _RuntimeTypes implements RuntimeTypes {
 
 class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   final Compiler compiler;
-  @override
   final TypeRepresentationGenerator representationGenerator;
 
   _RuntimeTypesEncoder(Compiler compiler)

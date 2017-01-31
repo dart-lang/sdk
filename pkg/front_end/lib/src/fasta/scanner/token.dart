@@ -2,22 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.tokens;
+library fasta.scanner.token;
 
-import 'dart:collection' show HashSet;
-import 'dart:convert' show UTF8;
+import 'dart:collection' show
+    HashSet;
 
-import '../common.dart';
-import '../util/util.dart' show computeHashCode;
-import 'keyword.dart' show Keyword;
-import 'precedence.dart' show PrecedenceInfo;
-import 'precedence_constants.dart' as Precedence show BAD_INPUT_INFO;
-import 'token_constants.dart' as Tokens show IDENTIFIER_TOKEN;
+import 'dart:convert' show
+    UTF8;
+
+import 'keyword.dart' show
+    Keyword;
+
+import 'precedence.dart' show
+    BAD_INPUT_INFO,
+    PrecedenceInfo;
+
+import 'token_constants.dart' show
+    IDENTIFIER_TOKEN;
 
 /**
  * A token that doubles as a linked list.
  */
-abstract class Token implements Spannable {
+abstract class Token {
   /**
    * The character offset of the start of this token within the source text.
    */
@@ -95,7 +101,7 @@ abstract class Token implements Spannable {
    * The number of characters parsed by this token.
    */
   int get charCount {
-    if (info == Precedence.BAD_INPUT_INFO) {
+    if (info == BAD_INPUT_INFO) {
       // This is a token that wraps around an error message. Return 1
       // instead of the size of the length of the error message.
       return 1;
@@ -106,17 +112,6 @@ abstract class Token implements Spannable {
 
   /// The character offset of the end of this token within the source text.
   int get charEnd => charOffset + charCount;
-
-  int get hashCode => computeHashCode(charOffset, info, value);
-}
-
-/// A pair of tokens marking the beginning and the end of a span. Use for error
-/// reporting.
-class TokenPair implements Spannable {
-  final Token begin;
-  final Token end;
-
-  TokenPair(this.begin, this.end);
 }
 
 /**
@@ -172,10 +167,10 @@ class KeywordToken extends Token {
 abstract class ErrorToken extends Token {
   ErrorToken(int charOffset) : super(charOffset);
 
-  PrecedenceInfo get info => Precedence.BAD_INPUT_INFO;
+  PrecedenceInfo get info => BAD_INPUT_INFO;
 
   String get value {
-    throw new SpannableAssertionFailure(this, assertionMessage);
+    throw assertionMessage;
   }
 
   String get stringValue => null;
@@ -307,7 +302,7 @@ class StringToken extends Token {
   /// See [Token.stringValue] for an explanation.
   String get stringValue => null;
 
-  bool isIdentifier() => identical(kind, Tokens.IDENTIFIER_TOKEN);
+  bool isIdentifier() => identical(kind, IDENTIFIER_TOKEN);
 
   String toString() => "StringToken($value)";
 

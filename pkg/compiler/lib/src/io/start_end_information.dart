@@ -12,7 +12,7 @@ import '../diagnostics/messages.dart' show MessageTemplate;
 import '../elements/elements.dart' show ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
-import '../tokens/token.dart' show Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import '../tree/tree.dart' show Node;
 import 'source_file.dart';
 import 'source_information.dart';

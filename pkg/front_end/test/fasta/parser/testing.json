@@ -1,0 +1,31 @@
+{
+"":"Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file",
+"":"for details. All rights reserved. Use of this source code is governed by a",
+"":"BSD-style license that can be found in the LICENSE.md file.",
+  "packages": "../../../../../.packages",
+  "suites": [
+    {
+      "name": "parser",
+      "kind": "Chain",
+      "source": "parser_suite.dart",
+      "path": "../../",
+      "status": "parser.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+        "README.dart",
+        "xcodebuild/",
+        "tools/sdks/"
+      ]
+    }
+  ],
+  "analyze": {
+    "uris": [
+      "../../../lib/src/fasta/parser/",
+      "../../../lib/src/fasta/parser/bin/"
+    ],
+    "exclude": [
+    ]
+  }
+}

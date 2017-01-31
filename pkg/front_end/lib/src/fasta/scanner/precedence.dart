@@ -2,10 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.tokens.precedence.constants;
+library fasta.scanner.precedence;
 
-import 'precedence.dart' show PrecedenceInfo;
 import 'token_constants.dart';
+
+class PrecedenceInfo {
+  final String value;
+  final int precedence;
+  final int kind;
+
+  const PrecedenceInfo(this.value, this.precedence, this.kind);
+
+  toString() => 'PrecedenceInfo($value, $precedence, $kind)';
+}
 
 // TODO(ahe): The following are not tokens in Dart.
 const PrecedenceInfo BACKPING_INFO =

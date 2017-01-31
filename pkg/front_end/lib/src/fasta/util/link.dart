@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.util;
+library fasta.util.link;
+
+import 'link_implementation.dart' show
+    LinkBuilderImplementation,
+    LinkEntry,
+    LinkIterator,
+    MappedLinkIterable;
 
 class Link<T> implements Iterable<T> {
   T get head => throw new StateError("no elements");

@@ -102,7 +102,6 @@ StackTraceLines stackTrace({int offset: 1, int limit: null}) {
         rangeEnd: rangeEnd,
         filePrefix: stackTraceFilePrefix);
   }
-  return null;
 }
 
 /// A stack trace as a sequence of [StackTraceLine]s.

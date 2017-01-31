@@ -281,7 +281,6 @@ class Collector {
   }
 
   void computeNeededStaticNonFinalFields() {
-    JavaScriptConstantCompiler handler = backend.constants;
     addToOutputUnit(Element element) {
       List<VariableElement> list = outputStaticNonFinalFieldLists.putIfAbsent(
           compiler.deferredLoadTask.outputUnitForElement(element),

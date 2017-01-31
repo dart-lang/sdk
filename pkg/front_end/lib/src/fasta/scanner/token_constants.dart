@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.tokens.constants;
+library fasta.scanner.token_constants;
 
-import '../util/characters.dart';
+import 'characters.dart';
 
 const int EOF_TOKEN = 0;
 

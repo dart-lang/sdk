@@ -122,7 +122,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
   Uri resolutionOutput = currentDirectory.resolve('out.data');
   bool allowNativeExtensions = false;
   bool trustTypeAnnotations = false;
-  bool trustJSInteropTypeAnnotations = false;
   bool checkedMode = false;
   List<String> hints = <String>[];
   bool verbose;
@@ -243,7 +242,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   void setTrustJSInteropTypeAnnotations(String argument) {
-    trustJSInteropTypeAnnotations = true;
     implyCompilation(argument);
   }
 

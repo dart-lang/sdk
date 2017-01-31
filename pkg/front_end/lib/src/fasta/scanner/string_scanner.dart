@@ -2,12 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.scanner.string;
+library dart2js.scanner.string_scanner;
 
-import '../io/source_file.dart' show SourceFile;
-import '../tokens/precedence.dart' show PrecedenceInfo;
-import '../tokens/token.dart' show StringToken, Token;
-import 'array_based_scanner.dart' show ArrayBasedScanner;
+import 'array_based_scanner.dart' show
+    ArrayBasedScanner;
+
+import 'precedence.dart' show
+    PrecedenceInfo;
+
+import 'token.dart' show
+    StringToken,
+    Token;
 
 /**
  * Scanner that reads from a String and creates tokens that points to
@@ -20,22 +25,15 @@ class StringScanner extends ArrayBasedScanner {
   /** The current offset in [string]. */
   int scanOffset = -1;
 
-  StringScanner(SourceFile file, {bool includeComments: false})
-      : string = file.slowText(),
-        super(file, includeComments) {
-    ensureZeroTermination();
-  }
+  StringScanner(String string, {bool includeComments: false})
+      : string = ensureZeroTermination(string),
+        super(includeComments);
 
-  StringScanner.fromString(this.string, {bool includeComments: false})
-      : super(null, includeComments) {
-    ensureZeroTermination();
-  }
-
-  void ensureZeroTermination() {
-    if (string.isEmpty || string.codeUnitAt(string.length - 1) != 0) {
-      // TODO(lry): abort instead of copying the array, or warn?
-      string = string + '\x00';
-    }
+  static String ensureZeroTermination(String string) {
+    return (string.isEmpty || string.codeUnitAt(string.length - 1) != 0)
+        // TODO(lry): abort instead of copying the array, or warn?
+        ? string + '\x00'
+        : string;
   }
 
   int advance() => string.codeUnitAt(++scanOffset);

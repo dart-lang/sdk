@@ -17,7 +17,6 @@ import '../elements/elements.dart'
         FunctionElement,
         LocalFunctionElement,
         ResolvedAst;
-import '../enqueue.dart' show Enqueuer;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilderImpl, WorldImpactVisitor;

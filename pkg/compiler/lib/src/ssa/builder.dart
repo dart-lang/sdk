@@ -1140,7 +1140,6 @@ class SsaBuilder extends ast.Visitor
       if (compiler.elementHasCompileTimeError(member)) return;
       reporter.withCurrentElement(member, () {
         ResolvedAst fieldResolvedAst = member.resolvedAst;
-        ast.Node node = fieldResolvedAst.node;
         ast.Expression initializer = fieldResolvedAst.body;
         if (initializer == null) {
           // Unassigned fields of native classes are not initialized to

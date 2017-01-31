@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../tokens/token.dart' show Token;
-import '../tokens/token_constants.dart' as Tokens
+import 'package:front_end/src/fasta/scanner.dart' show Token;
+import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
     show IDENTIFIER_TOKEN, KEYWORD_TOKEN, PLUS_TOKEN;
 import '../util/util.dart';
 import 'nodes.dart';

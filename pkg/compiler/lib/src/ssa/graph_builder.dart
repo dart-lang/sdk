@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../compiler.dart';
 import '../elements/elements.dart';
-import '../elements/entities.dart';
+import '../elements/entities.dart' show Entity, Local;
 import '../elements/resolution_types.dart';
 import '../js_backend/js_backend.dart';
 import '../resolution/tree_elements.dart';

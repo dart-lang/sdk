@@ -487,7 +487,6 @@ class LocalsHandler {
     Map<Local, HInstruction> savedDirectLocals =
         new Map<Local, HInstruction>.from(directLocals);
 
-    JavaScriptBackend backend = _compiler.backend;
     // Create phis for all elements in the definitions environment.
     savedDirectLocals.forEach((Local local, HInstruction instruction) {
       if (isAccessedDirectly(local)) {

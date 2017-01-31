@@ -31,14 +31,20 @@ import '../elements/modelx.dart'
         TypedefElementX,
         VariableList;
 import '../elements/visitor.dart' show ElementVisitor;
-import '../tokens/token.dart' show Token;
-import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
+import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 import '../tree/tree.dart';
-import 'class_element_parser.dart' show ClassElementParser;
-import 'listener.dart' show ParserError;
+import 'package:front_end/src/fasta/parser.dart'
+    show ClassMemberParser, Listener, Parser, ParserError;
 import 'member_listener.dart' show MemberListener;
 import 'node_listener.dart' show NodeListener;
-import 'parser.dart' show Parser;
+
+class ClassElementParser extends ClassMemberParser {
+  ClassElementParser(Listener listener)
+      : super(listener);
+
+  Token parseFormalParameters(Token token) => skipFormalParameters(token);
+}
 
 abstract class PartialElement implements DeclarationSite {
   Token beginToken;
@@ -379,8 +385,9 @@ class PartialClassElement extends ClassElementX with PartialElement {
           Token token = parser.parseTopLevelDeclaration(beginToken);
           assert(identical(token, endToken.next));
           cachedNode = listener.popNode();
-          assert(invariant(beginToken, listener.nodes.isEmpty,
-              message: "Non-empty listener stack: ${listener.nodes}"));
+          assert(invariant(reporter.spanFromToken(beginToken),
+                  listener.nodes.isEmpty,
+                  message: "Non-empty listener stack: ${listener.nodes}"));
         } on ParserError {
           // TODO(ahe): Often, a ParserError is thrown while parsing the class
           // body. This means that the stack actually contains most of the
@@ -443,7 +450,7 @@ Node parse(ParsingContext parsing, ElementX element, PartialElement partial,
         doParse(new Parser(listener));
       } on ParserError catch (e) {
         partial.hasParseError = true;
-        return new ErrorNode(element.position, e.reason);
+        return new ErrorNode(element.position, e.kind, e.arguments);
       }
       Node node = listener.popNode();
       assert(listener.nodes.isEmpty);

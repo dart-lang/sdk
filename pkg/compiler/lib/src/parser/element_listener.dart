@@ -22,14 +22,16 @@ import '../elements/modelx.dart'
 import '../id_generator.dart';
 import '../native/native.dart' as native;
 import '../string_validator.dart' show StringValidator;
-import '../tokens/keyword.dart' show Keyword;
-import '../tokens/precedence_constants.dart' as Precedence show BAD_INPUT_INFO;
-import '../tokens/token.dart'
-    show BeginGroupToken, ErrorToken, KeywordToken, Token;
-import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN;
+import 'package:front_end/src/fasta/scanner.dart'
+    show Keyword, BeginGroupToken, ErrorToken, KeywordToken, StringToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' as Tokens
+    show EOF_TOKEN;
+import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence show
+    BAD_INPUT_INFO, IDENTIFIER_INFO;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
-import 'listener.dart' show closeBraceFor, Listener, ParserError, VERBOSE;
+import 'package:front_end/src/fasta/parser.dart'
+    show ErrorKind, Listener, ParserError, optional;
 import 'partial_elements.dart'
     show
         PartialClassElement,
@@ -38,6 +40,8 @@ import 'partial_elements.dart'
         PartialFunctionElement,
         PartialMetadataAnnotation,
         PartialTypedefElement;
+
+const bool VERBOSE = false;
 
 /// Options used for scanning.
 ///
@@ -82,6 +86,10 @@ class ElementListener extends Listener {
 
   bool suppressParseErrors = false;
 
+  /// Set to true each time we parse a native function body. It is reset in
+  /// [handleInvalidFunctionBody] which is called immediately after.
+  bool lastErrorWasNativeFunctionBody = false;
+
   ElementListener(this.scannerOptions, DiagnosticReporter reporter,
       this.compilationUnitElement, this.idGenerator)
       : this.reporter = reporter,
@@ -121,12 +129,14 @@ class ElementListener extends Listener {
         library.entryCompilationUnit == compilationUnitElement;
   }
 
+  @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     Expression name = popNode();
     addLibraryTag(new LibraryName(
         libraryKeyword, name, popMetadata(compilationUnitElement)));
   }
 
+  @override
   void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
       Token semicolon) {
     NodeList combinators = popNode();
@@ -142,11 +152,13 @@ class ElementListener extends Listener {
         isDeferred: isDeferred));
   }
 
+  @override
   void endDottedName(int count, Token token) {
     NodeList identifiers = makeNodeList(count, null, null, '.');
     pushNode(new DottedName(token, identifiers));
   }
 
+  @override
   void endConditionalUris(int count) {
     if (count == 0) {
       pushNode(null);
@@ -155,6 +167,7 @@ class ElementListener extends Listener {
     }
   }
 
+  @override
   void endConditionalUri(Token ifToken, Token equalSign) {
     StringNode uri = popNode();
     LiteralString conditionValue = (equalSign != null) ? popNode() : null;
@@ -162,6 +175,7 @@ class ElementListener extends Listener {
     pushNode(new ConditionalUri(ifToken, identifier, conditionValue, uri));
   }
 
+  @override
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     NodeList names = makeNodeList(count, enumKeyword.next.next, endBrace, ",");
     Identifier name = popNode();
@@ -173,6 +187,7 @@ class ElementListener extends Listener {
     rejectBuiltInIdentifier(name);
   }
 
+  @override
   void endExport(Token exportKeyword, Token semicolon) {
     NodeList combinators = popNode();
     NodeList conditionalUris = popNode();
@@ -181,6 +196,7 @@ class ElementListener extends Listener {
         popMetadata(compilationUnitElement)));
   }
 
+  @override
   void endCombinators(int count) {
     if (0 == count) {
       pushNode(null);
@@ -189,8 +205,10 @@ class ElementListener extends Listener {
     }
   }
 
+  @override
   void endHide(Token hideKeyword) => pushCombinator(hideKeyword);
 
+  @override
   void endShow(Token showKeyword) => pushCombinator(showKeyword);
 
   void pushCombinator(Token keywordToken) {
@@ -198,20 +216,24 @@ class ElementListener extends Listener {
     pushNode(new Combinator(identifiers, keywordToken));
   }
 
+  @override
   void endIdentifierList(int count) {
     pushNode(makeNodeList(count, null, null, ","));
   }
 
+  @override
   void endTypeList(int count) {
     pushNode(makeNodeList(count, null, null, ","));
   }
 
+  @override
   void endPart(Token partKeyword, Token semicolon) {
     StringNode uri = popLiteralString();
     addLibraryTag(
         new Part(partKeyword, uri, popMetadata(compilationUnitElement)));
   }
 
+  @override
   void endPartOf(Token partKeyword, Token semicolon) {
     Expression name = popNode();
     addPartOfTag(
@@ -222,6 +244,7 @@ class ElementListener extends Listener {
     compilationUnitElement.setPartOf(tag, reporter);
   }
 
+  @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     if (periodBeforeName != null) {
       popNode(); // Discard name.
@@ -230,14 +253,17 @@ class ElementListener extends Listener {
     pushMetadata(new PartialMetadataAnnotation(beginToken, endToken));
   }
 
+  @override
   void endTopLevelDeclaration(Token token) {
     if (!metadata.isEmpty) {
       MetadataAnnotationX first = metadata.first;
-      recoverableError(first.beginToken, 'Metadata not supported here.');
+      recoverableError(reporter.spanFromToken(first.beginToken),
+          'Metadata not supported here.');
       metadata.clear();
     }
   }
 
+  @override
   void endClassDeclaration(int interfacesCount, Token beginToken,
       Token extendsKeyword, Token implementsKeyword, Token endToken) {
     makeNodeList(interfacesCount, implementsKeyword, null, ","); // interfaces
@@ -260,6 +286,7 @@ class ElementListener extends Listener {
     }
   }
 
+  @override
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     popNode(); // TODO(karlklose): do not throw away typeVariables.
     Identifier name = popNode();
@@ -269,6 +296,7 @@ class ElementListener extends Listener {
     rejectBuiltInIdentifier(name);
   }
 
+  @override
   void endNamedMixinApplication(
       Token classKeyword, Token implementsKeyword, Token endToken) {
     NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
@@ -292,16 +320,19 @@ class ElementListener extends Listener {
     rejectBuiltInIdentifier(name);
   }
 
+  @override
   void endMixinApplication() {
     NodeList mixins = popNode();
     TypeAnnotation superclass = popNode();
     pushNode(new MixinApplication(superclass, mixins));
   }
 
+  @override
   void handleVoidKeyword(Token token) {
     pushNode(new TypeAnnotation(new Identifier(token), null));
   }
 
+  @override
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     bool hasParseError = currentMemberHasParseError;
     memberErrors = memberErrors.tail;
@@ -315,6 +346,7 @@ class ElementListener extends Listener {
     pushElement(element);
   }
 
+  @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     bool hasParseError = currentMemberHasParseError;
     memberErrors = memberErrors.tail;
@@ -351,20 +383,24 @@ class ElementListener extends Listener {
     }
   }
 
+  @override
   void handleIdentifier(Token token) {
     pushNode(new Identifier(token));
   }
 
+  @override
   void handleQualified(Token period) {
     Identifier last = popNode();
     Expression first = popNode();
     pushNode(new Send(first, last));
   }
 
+  @override
   void handleNoType(Token token) {
     pushNode(null);
   }
 
+  @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
     TypeAnnotation bound = popNode();
     Identifier name = popNode();
@@ -372,37 +408,45 @@ class ElementListener extends Listener {
     rejectBuiltInIdentifier(name);
   }
 
+  @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
     pushNode(makeNodeList(count, beginToken, endToken, ','));
   }
 
+  @override
   void handleNoTypeVariables(Token token) {
     pushNode(null);
   }
 
+  @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     pushNode(makeNodeList(count, beginToken, endToken, ','));
   }
 
+  @override
   void handleNoTypeArguments(Token token) {
     pushNode(null);
   }
 
+  @override
   void endType(Token beginToken, Token endToken) {
     NodeList typeArguments = popNode();
     Expression typeName = popNode();
     pushNode(new TypeAnnotation(typeName, typeArguments));
   }
 
+  @override
   void handleParenthesizedExpression(BeginGroupToken token) {
     Expression expression = popNode();
     pushNode(new ParenthesizedExpression(expression, token));
   }
 
+  @override
   void handleModifier(Token token) {
     pushNode(new Identifier(token));
   }
 
+  @override
   void handleModifiers(int count) {
     if (count == 0) {
       pushNode(Modifiers.EMPTY);
@@ -412,29 +456,234 @@ class ElementListener extends Listener {
     }
   }
 
-  Token expected(String string, Token token) {
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-    } else if (identical(';', string)) {
-      // When a semicolon is missing, it often leads to an error on the
-      // following line. So we try to find the token preceding the semicolon
-      // and report that something is missing *after* it.
-      Token preceding = findPrecedingToken(token);
-      if (preceding == token) {
-        reportError(
-            token, MessageKind.MISSING_TOKEN_BEFORE_THIS, {'token': string});
-      } else {
-        reportError(
-            preceding, MessageKind.MISSING_TOKEN_AFTER_THIS, {'token': string});
-      }
-      return token;
+  @override
+  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
+    Token next = handleError(token, kind, arguments);
+    if (next == null &&
+        kind != ErrorKind.UnterminatedComment &&
+        kind != ErrorKind.UnterminatedString) {
+      throw new ParserError.fromTokens(token, token, kind, arguments);
     } else {
-      reportFatalError(
-          token,
-          MessageTemplate.TEMPLATES[MessageKind.MISSING_TOKEN_BEFORE_THIS]
-              .message({'token': string}, true).toString());
+      return next;
     }
-    return skipToEof(token);
+  }
+
+  @override
+  void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
+    handleError(token, kind, arguments);
+  }
+
+  @override
+  void handleInvalidExpression(Token token) {
+    pushNode(new ErrorExpression(token));
+  }
+
+  @override
+  void handleInvalidFunctionBody(Token token) {
+    lastErrorWasNativeFunctionBody = false;
+  }
+
+  @override
+  void handleInvalidTypeReference(Token token) {
+    pushNode(null);
+  }
+
+  Token handleError(Token token, ErrorKind kind, Map arguments) {
+    MessageKind errorCode;
+
+    switch (kind) {
+      case ErrorKind.ExpectedButGot:
+        String expected = arguments["expected"];
+        if (identical(";", expected)) {
+          // When a semicolon is missing, it often leads to an error on the
+          // following line. So we try to find the token preceding the semicolon
+          // and report that something is missing *after* it.
+          Token preceding = findPrecedingToken(token);
+          if (preceding == token) {
+            reportErrorFromToken(
+                token, MessageKind.MISSING_TOKEN_BEFORE_THIS,
+                {'token': expected});
+          } else {
+            reportErrorFromToken(
+                preceding, MessageKind.MISSING_TOKEN_AFTER_THIS,
+                {'token': expected});
+          }
+          return token;
+        } else {
+          reportFatalError(
+              reporter.spanFromToken(token),
+              MessageTemplate.TEMPLATES[MessageKind.MISSING_TOKEN_BEFORE_THIS]
+                  .message({'token': expected}, true).toString());
+          return null;
+        }
+        break;
+
+      case ErrorKind.ExpectedIdentifier:
+        if (token is KeywordToken) {
+          reportErrorFromToken(token,
+              MessageKind.EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
+              {'keyword': token.value});
+        } else if (token is ErrorToken) {
+          // TODO(ahe): This is dead code.
+          return synthesizeIdentifier(token);
+        } else {
+          reportFatalError(reporter.spanFromToken(token),
+              "Expected identifier, but got '${token.value}'.");
+        }
+        return token;
+
+      case ErrorKind.ExpectedType:
+        reportFatalError(reporter.spanFromToken(token),
+            "Expected a type, but got '${token.value}'.");
+        return null;
+
+      case ErrorKind.ExpectedExpression:
+        reportFatalError(
+            reporter.spanFromToken(token),
+            "Expected an expression, but got '${token.value}'.");
+        return null;
+
+      case ErrorKind.UnexpectedToken:
+        String message = "Unexpected token '${token.value}'.";
+        if (token.info == Precedence.BAD_INPUT_INFO) {
+          message = token.value;
+        }
+        reportFatalError(reporter.spanFromToken(token), message);
+        return null;
+
+      case ErrorKind.ExpectedBlockToSkip:
+        if (optional("native", token)) {
+          return native.handleNativeBlockToSkip(this, token);
+        } else {
+          errorCode = MessageKind.BODY_EXPECTED;
+        }
+        break;
+
+      case ErrorKind.ExpectedFunctionBody:
+        if (optional("native", token)) {
+          lastErrorWasNativeFunctionBody = true;
+          return native.handleNativeFunctionBody(this, token);
+        } else {
+          reportFatalError(
+              reporter.spanFromToken(token),
+              "Expected a function body, but got '${token.value}'.");
+        }
+        return null;
+
+      case ErrorKind.ExpectedClassBodyToSkip:
+      case ErrorKind.ExpectedClassBody:
+        reportFatalError(
+            reporter.spanFromToken(token),
+            "Expected a class body, but got '${token.value}'.");
+        return null;
+
+      case ErrorKind.ExpectedDeclaration:
+        reportFatalError(
+            reporter.spanFromToken(token),
+            "Expected a declaration, but got '${token.value}'.");
+        return null;
+
+      case ErrorKind.UnmatchedToken:
+        reportErrorFromToken(token, MessageKind.UNMATCHED_TOKEN, arguments);
+        Token next = token.next;
+        while (next is ErrorToken) {
+          next = next.next;
+        }
+        return next;
+
+      case ErrorKind.EmptyNamedParameterList:
+        errorCode = MessageKind.EMPTY_NAMED_PARAMETER_LIST;
+        break;
+
+      case ErrorKind.EmptyOptionalParameterList:
+        errorCode = MessageKind.EMPTY_OPTIONAL_PARAMETER_LIST;
+        break;
+
+      case ErrorKind.ExpectedBody:
+        errorCode = MessageKind.BODY_EXPECTED;
+        break;
+
+      case ErrorKind.ExpectedHexDigit:
+        errorCode = MessageKind.HEX_DIGIT_EXPECTED;
+        break;
+
+      case ErrorKind.ExpectedOpenParens:
+        errorCode = MessageKind.GENERIC;
+        arguments = {"text": "Expected '('."};
+        break;
+
+      case ErrorKind.ExpectedString:
+        reportFatalError(
+            reporter.spanFromToken(token),
+            "Expected a String, but got '${token.value}'.");
+        return null;
+
+      case ErrorKind.ExtraneousModifier:
+        errorCode = MessageKind.EXTRANEOUS_MODIFIER;
+        break;
+
+      case ErrorKind.ExtraneousModifierReplace:
+        errorCode = MessageKind.EXTRANEOUS_MODIFIER_REPLACE;
+        break;
+
+      case ErrorKind.InvalidAwaitFor:
+        errorCode = MessageKind.INVALID_AWAIT_FOR;
+        break;
+
+      case ErrorKind.InvalidInputCharacter:
+        errorCode = MessageKind.BAD_INPUT_CHARACTER;
+        break;
+
+      case ErrorKind.InvalidSyncModifier:
+        errorCode = MessageKind.INVALID_SYNC_MODIFIER;
+        break;
+
+      case ErrorKind.InvalidVoid:
+        errorCode = MessageKind.VOID_NOT_ALLOWED;
+        break;
+
+      case ErrorKind.MalformedStringLiteral:
+        errorCode = MessageKind.MALFORMED_STRING_LITERAL;
+        break;
+
+      case ErrorKind.MissingExponent:
+        errorCode = MessageKind.EXPONENT_MISSING;
+        break;
+
+      case ErrorKind.PositionalParameterWithEquals:
+        errorCode = MessageKind.POSITIONAL_PARAMETER_WITH_EQUALS;
+        break;
+
+      case ErrorKind.RequiredParameterWithDefault:
+        errorCode = MessageKind.REQUIRED_PARAMETER_WITH_DEFAULT;
+        break;
+
+      case ErrorKind.UnmatchedToken:
+        errorCode = MessageKind.UNMATCHED_TOKEN;
+        break;
+
+      case ErrorKind.UnsupportedPrefixPlus:
+        errorCode = MessageKind.UNSUPPORTED_PREFIX_PLUS;
+        break;
+
+      case ErrorKind.UnterminatedComment:
+        errorCode = MessageKind.UNTERMINATED_COMMENT;
+        break;
+
+      case ErrorKind.UnterminatedString:
+        errorCode = MessageKind.UNTERMINATED_STRING;
+        break;
+
+      case ErrorKind.UnterminatedToken:
+        errorCode = MessageKind.UNTERMINATED_TOKEN;
+        break;
+
+      case ErrorKind.Unspecified:
+        errorCode = MessageKind.GENERIC;
+        break;
+    }
+    SourceSpan span = reporter.spanFromToken(token);
+    reportError(span, errorCode, arguments);
   }
 
   /// Finds the preceding token via the begin token of the last AST node pushed
@@ -494,113 +743,13 @@ class ElementListener extends Listener {
     return null;
   }
 
-  Token expectedIdentifier(Token token) {
-    if (token is KeywordToken) {
-      reportError(token, MessageKind.EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
-          {'keyword': token.value});
-    } else if (token is ErrorToken) {
-      reportErrorToken(token);
-      return synthesizeIdentifier(token);
-    } else {
-      reportFatalError(token, "Expected identifier, but got '${token.value}'.");
-    }
-    return token;
-  }
-
-  Token expectedType(Token token) {
-    pushNode(null);
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-      return synthesizeIdentifier(token);
-    } else {
-      reportFatalError(token, "Expected a type, but got '${token.value}'.");
-      return skipToEof(token);
-    }
-  }
-
-  Token expectedExpression(Token token) {
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-      pushNode(new ErrorExpression(token));
-      return token.next;
-    } else {
-      reportFatalError(
-          token, "Expected an expression, but got '${token.value}'.");
-      pushNode(null);
-      return skipToEof(token);
-    }
-  }
-
-  Token unexpected(Token token) {
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-    } else {
-      String message = "Unexpected token '${token.value}'.";
-      if (token.info == Precedence.BAD_INPUT_INFO) {
-        message = token.value;
-      }
-      reportFatalError(token, message);
-    }
-    return skipToEof(token);
-  }
-
-  Token expectedBlockToSkip(Token token) {
-    if (identical(token.stringValue, 'native')) {
-      return native.handleNativeBlockToSkip(this, token);
-    } else {
-      return unexpected(token);
-    }
-  }
-
-  Token expectedFunctionBody(Token token) {
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-    } else {
-      String printString = token.value;
-      reportFatalError(
-          token, "Expected a function body, but got '$printString'.");
-    }
-    return skipToEof(token);
-  }
-
-  Token expectedClassBody(Token token) {
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-    } else {
-      reportFatalError(
-          token, "Expected a class body, but got '${token.value}'.");
-    }
-    return skipToEof(token);
-  }
-
-  Token expectedClassBodyToSkip(Token token) {
-    return unexpected(token);
-  }
-
-  Token expectedDeclaration(Token token) {
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-    } else {
-      reportFatalError(
-          token, "Expected a declaration, but got '${token.value}'.");
-    }
-    return skipToEof(token);
-  }
-
-  Token unmatched(Token token) {
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-    } else {
-      String begin = token.value;
-      String end = closeBraceFor(begin);
-      reportError(
-          token, MessageKind.UNMATCHED_TOKEN, {'begin': begin, 'end': end});
-    }
-    Token next = token.next;
-    while (next is ErrorToken) {
-      next = next.next;
-    }
-    return next;
+  /// Finds the preceding token via the begin token of the last AST node pushed
+  /// on the [nodes] stack.
+  Token synthesizeIdentifier(Token token) {
+    Token synthesizedToken = new StringToken.fromString(
+        Precedence.IDENTIFIER_INFO, '?', token.charOffset);
+    synthesizedToken.next = token.next;
+    return synthesizedToken;
   }
 
   void recoverableError(Spannable node, String message) {
@@ -663,6 +812,7 @@ class ElementListener extends Listener {
     return new NodeList(beginToken, poppedNodes, endToken, delimiter);
   }
 
+  @override
   void beginLiteralString(Token token) {
     String source = token.value;
     StringQuoting quoting = StringValidator.quotingFromString(source);
@@ -672,12 +822,14 @@ class ElementListener extends Listener {
     pushNode(new LiteralString(token, null));
   }
 
+  @override
   void handleStringPart(Token token) {
     // Just push an unvalidated token now, and replace it when we know the
     // end of the interpolation.
     pushNode(new LiteralString(token, null));
   }
 
+  @override
   void endLiteralString(int count) {
     StringQuoting quoting = popQuoting();
 
@@ -711,6 +863,7 @@ class ElementListener extends Listener {
     }
   }
 
+  @override
   void handleStringJuxtaposition(int stringCount) {
     assert(stringCount != 0);
     Expression accumulator = popNode();
@@ -723,14 +876,17 @@ class ElementListener extends Listener {
     pushNode(accumulator);
   }
 
+  @override
   void beginMember(Token token) {
     memberErrors = memberErrors.prepend(false);
   }
 
+  @override
   void beginTopLevelMember(Token token) {
     beginMember(token);
   }
 
+  @override
   void endMember() {
     memberErrors = memberErrors.tail;
   }
@@ -740,11 +896,12 @@ class ElementListener extends Listener {
   void reportFatalError(Spannable spannable, String message) {
     reportError(spannable, MessageKind.GENERIC, {'text': message});
     // Some parse errors are infeasible to recover from, so we throw an error.
-    throw new ParserError(message);
+    SourceSpan span = reporter.spanFromSpannable(spannable);
+    throw new ParserError(
+        span.begin, span.end, ErrorKind.Unspecified, {'text': message});
   }
 
-  @override
-  void reportErrorHelper(Spannable spannable, MessageKind errorCode,
+  void reportError(Spannable spannable, MessageKind errorCode,
       [Map arguments = const {}]) {
     if (currentMemberHasParseError) return; // Error already reported.
     if (suppressParseErrors) return;
@@ -752,5 +909,10 @@ class ElementListener extends Listener {
       memberErrors = memberErrors.tail.prepend(true);
     }
     reporter.reportErrorMessage(spannable, errorCode, arguments);
+  }
+
+  void reportErrorFromToken(Token token, MessageKind errorCode,
+      [Map arguments = const {}]) {
+    reportError(reporter.spanFromToken(token), errorCode, arguments);
   }
 }

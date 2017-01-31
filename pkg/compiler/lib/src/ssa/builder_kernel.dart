@@ -26,7 +26,7 @@ import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
-import '../tree/nodes.dart' show Node, BreakStatement;
+import '../tree/nodes.dart' show Node;
 import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart';
@@ -663,7 +663,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       returnStatement.expression.accept(this);
       value = pop();
       if (_targetFunction.asyncMarker == ir.AsyncMarker.Async) {
-        var returnType = astAdapter.getDartType(_targetFunction.returnType);
         if (compiler.options.enableTypeAssertions &&
             !isValidAsyncReturnType(_targetFunction.returnType)) {
           generateTypeError(
@@ -1309,11 +1308,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     int switchIndex = 1;
     bool hasDefault = false;
     for (ir.SwitchCase switchCase in switchStatement.cases) {
+      if (_isDefaultCase(switchCase)) {
+        hasDefault = true;
+      }
       if (SwitchContinueAnalysis.containsContinue(switchCase.body)) {
         hasContinue = true;
-      }
-      if (switchCase.isDefault) {
-        hasDefault = true;
       }
       caseIndex[switchCase] = switchIndex;
       switchIndex++;

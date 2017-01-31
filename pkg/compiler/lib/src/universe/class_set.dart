@@ -6,7 +6,6 @@ library dart2js.world.class_set;
 
 import 'dart:collection' show IterableBase;
 
-import '../common.dart';
 import '../elements/elements.dart' show ClassElement;
 import '../util/enumset.dart' show EnumSet;
 import '../util/util.dart' show Link;

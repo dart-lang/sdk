@@ -4,6 +4,7 @@
 
 library dart2js.diagnostic_listener;
 
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import '../elements/elements.dart' show Element;
 import '../options.dart' show DiagnosticOptions;
 import 'messages.dart';
@@ -21,10 +22,15 @@ abstract class DiagnosticReporter {
 
   /// Creates a [SourceSpan] for [node] in scope of the current element.
   ///
-  /// If [node] is a [Node] or [Token] we assert in checked mode that the
-  /// corresponding tokens can be found within the tokens of the current
-  /// element.
+  /// If [node] is a [Node] we assert in checked mode that the corresponding
+  /// tokens can be found within the tokens of the current element.
   SourceSpan spanFromSpannable(Spannable node);
+
+  /// Creates a [SourceSpan] for [token] in scope of the current element.
+  ///
+  /// In checked mode we assert that the token can be found within the tokens
+  /// of the current element.
+  SourceSpan spanFromToken(Token token);
 
   void reportErrorMessage(Spannable spannable, MessageKind messageKind,
       [Map arguments = const {}]) {

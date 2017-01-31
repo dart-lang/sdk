@@ -2,33 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.scanner;
+library fasta.scanner.abstract_scanner;
 
-import '../io/source_file.dart' show SourceFile, Utf8BytesSourceFile;
-import '../tokens/keyword.dart' show Keyword, KeywordState;
-import '../tokens/precedence.dart';
-import '../tokens/precedence_constants.dart';
-import '../tokens/token.dart';
-import '../tokens/token_constants.dart';
-import '../util/characters.dart';
-import 'string_scanner.dart' show StringScanner;
-import 'utf8_bytes_scanner.dart' show Utf8BytesScanner;
+import '../scanner.dart' show
+    Scanner;
 
-abstract class Scanner {
-  Token tokenize();
+import 'keyword.dart' show
+    KeywordState,
+    Keyword;
 
-  factory Scanner(SourceFile file, {bool includeComments: false}) {
-    if (file is Utf8BytesSourceFile) {
-      return new Utf8BytesScanner(file, includeComments: includeComments);
-    } else {
-      return new StringScanner(file, includeComments: includeComments);
-    }
-  }
-}
+import 'precedence.dart';
+
+import 'token.dart' show
+    BadInputToken,
+    BeginGroupToken,
+    ErrorToken,
+    KeywordToken,
+    SymbolToken,
+    Token,
+    UnmatchedToken,
+    UnterminatedToken;
+
+import 'token_constants.dart';
+
+import 'characters.dart';
 
 abstract class AbstractScanner implements Scanner {
-  // TODO(ahe): Move this class to implementation.
-
   final bool includeComments;
 
   /**
@@ -54,16 +53,9 @@ abstract class AbstractScanner implements Scanner {
    */
   Token tail;
 
-  /**
-   * The source file that is being scanned. This field can be [:null:].
-   * If the source file is available, the scanner assigns its [:lineStarts:] and
-   * [:length:] fields at the end of [tokenize].
-   */
-  final SourceFile file;
-
   final List<int> lineStarts = <int>[0];
 
-  AbstractScanner(this.file, this.includeComments) {
+  AbstractScanner(this.includeComments) {
     this.tail = this.tokens;
   }
 
@@ -214,12 +206,8 @@ abstract class AbstractScanner implements Scanner {
       }
     }
 
-    if (file != null) {
-      file.length = stringOffset;
-      // One additional line start at the end, see [SourceFile.lineStarts].
-      lineStarts.add(stringOffset + 1);
-      file.lineStarts = lineStarts;
-    }
+    // Always pretend that there's a line at the end of the file.
+    lineStarts.add(stringOffset + 1);
 
     return firstToken();
   }
@@ -635,7 +623,6 @@ abstract class AbstractScanner implements Scanner {
         return next;
       }
     }
-    return null;
   }
 
   int tokenizeHexOrNumber(int next) {
@@ -665,7 +652,6 @@ abstract class AbstractScanner implements Scanner {
         return next;
       }
     }
-    return null;
   }
 
   int tokenizeDotsOrNumber(int next) {
@@ -761,7 +747,6 @@ abstract class AbstractScanner implements Scanner {
         return next;
       }
     }
-    return null;
   }
 
   int tokenizeMultiLineComment(int next, int start) {

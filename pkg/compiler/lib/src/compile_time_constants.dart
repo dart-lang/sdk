@@ -1294,7 +1294,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       Function compileArgument = (element) => definitions[element];
       Function compileConstant = handler.compileConstant;
       FunctionElement target = constructor.definingConstructor.implementation;
-      Elements.addForwardingElementArgumentsToList<AstConstant>(constructor,
+      Elements.addForwardingElementArgumentsToList(constructor,
           compiledArguments, target, compileArgument, compileConstant);
       CallStructure callStructure = new CallStructure(
           target.functionSignature.parameterCount, target.type.namedParameters);

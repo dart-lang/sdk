@@ -4,42 +4,38 @@
 
 library parser_helper;
 
-import "package:expect/expect.dart";
+import 'package:expect/expect.dart';
 
-import "package:compiler/src/elements/elements.dart";
+import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/id_generator.dart';
-import "package:compiler/src/tree/tree.dart";
-import "package:compiler/src/parser/element_listener.dart";
-import "package:compiler/src/parser/node_listener.dart";
-import "package:compiler/src/parser/parser.dart";
-import "package:compiler/src/parser/partial_parser.dart";
-import "package:compiler/src/scanner/string_scanner.dart";
-import "package:compiler/src/tokens/token.dart";
-import "package:compiler/src/tokens/token_constants.dart";
-import "package:compiler/src/io/source_file.dart";
-import "package:compiler/src/util/util.dart";
+import 'package:compiler/src/tree/tree.dart';
+import 'package:compiler/src/parser/element_listener.dart';
+import 'package:compiler/src/parser/node_listener.dart';
+import 'package:compiler/src/parser/diet_parser_task.dart';
+import 'package:front_end/src/fasta/parser.dart' hide parse;
+import 'package:front_end/src/fasta/scanner.dart' hide scan;
+import 'package:compiler/src/io/source_file.dart';
+import 'package:compiler/src/util/util.dart';
 
-import "package:compiler/src/elements/modelx.dart"
+import 'package:compiler/src/elements/modelx.dart'
     show CompilationUnitElementX, ElementX, LibraryElementX;
 
-import "package:compiler/src/compiler.dart";
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/options.dart';
-import "package:compiler/src/diagnostics/source_span.dart";
-import "package:compiler/src/diagnostics/spannable.dart";
-import "package:compiler/src/diagnostics/diagnostic_listener.dart";
-import "package:compiler/src/diagnostics/messages.dart";
-import "package:compiler/src/script.dart";
+import 'package:compiler/src/diagnostics/source_span.dart';
+import 'package:compiler/src/diagnostics/spannable.dart';
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
+import 'package:compiler/src/diagnostics/messages.dart';
+import 'package:compiler/src/script.dart';
 
-import "options_helper.dart";
+import 'options_helper.dart';
 
-export "package:compiler/src/diagnostics/diagnostic_listener.dart";
-export 'package:compiler/src/parser/listener.dart';
+export 'package:front_end/src/fasta/parser.dart' hide parse;
+export 'package:front_end/src/fasta/scanner.dart' hide scan;
+export 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 export 'package:compiler/src/parser/node_listener.dart';
-export 'package:compiler/src/parser/parser.dart';
-export 'package:compiler/src/parser/partial_parser.dart';
-export 'package:compiler/src/parser/partial_elements.dart';
-export "package:compiler/src/tokens/token.dart";
-export "package:compiler/src/tokens/token_constants.dart";
+export 'package:compiler/src/parser/diet_parser_task.dart';
+export 'package:front_end/src/fasta/scanner/token_constants.dart';
 
 class LoggerCanceler extends DiagnosticReporter {
   DiagnosticOptions get options => const MockDiagnosticOptions();
@@ -55,6 +51,8 @@ class LoggerCanceler extends DiagnosticReporter {
   SourceSpan spanFromSpannable(node) {
     throw 'unsupported operation';
   }
+
+  SourceSpan spanFromToken(token) => null;
 
   void reportError(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
@@ -92,7 +90,7 @@ class LoggerCanceler extends DiagnosticReporter {
   bool get hasReportedError => false;
 }
 
-Token scan(String text) => new StringScanner.fromString(text).tokenize();
+Token scan(String text) => new StringScanner(text).tokenize();
 
 Node parseBodyCode(String text, Function parseMethod,
     {DiagnosticReporter reporter}) {

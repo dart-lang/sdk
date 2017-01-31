@@ -28,7 +28,6 @@ compiler_unsupported:pkg/compiler/lib
 convert:third_party/pkg/convert/lib
 crypto:third_party/pkg/crypto/lib
 csslib:third_party/pkg/csslib/lib
-dart2js_incremental:pkg/dart2js_incremental/lib
 dart2js_info:third_party/pkg/dart2js_info/lib
 dart_messages:pkg/dart_messages/lib
 dart_style:third_party/pkg_tested/dart_style/lib
@@ -90,7 +89,8 @@ stack_trace:third_party/pkg/stack_trace/lib
 stream_channel:third_party/pkg/stream_channel/lib
 string_scanner:third_party/pkg/string_scanner/lib
 test:third_party/pkg/test/lib
-testing:third_party/testing/lib
+test_dart:tools/testing/dart
+testing:pkg/testing/lib
 test_reflective_loader:third_party/pkg/test_reflective_loader/lib
 typed_data:third_party/pkg/typed_data/lib
 typed_mock:pkg/typed_mock/lib

@@ -18,7 +18,6 @@ import '../elements/modelx.dart'
         LocalParameterElementX,
         TypeVariableElementX;
 import '../tree/tree.dart';
-import '../universe/use.dart' show TypeUse;
 import '../util/util.dart' show Link, LinkBuilder;
 import 'members.dart' show ResolverVisitor;
 import 'registry.dart' show ResolutionRegistry;

@@ -2,7 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of util_implementation;
+library fasta.util.link_implementation;
+
+import 'dart:collection' show
+    IterableBase;
+
+import 'link.dart' show
+    Link,
+    LinkBuilder;
 
 class LinkIterator<T> implements Iterator<T> {
   T _current;

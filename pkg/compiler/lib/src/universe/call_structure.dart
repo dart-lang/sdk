@@ -4,7 +4,6 @@
 
 library dart2js.call_structure;
 
-import '../common.dart';
 import '../common/names.dart' show Names;
 import '../elements/types.dart' show FunctionType;
 import '../util/util.dart';

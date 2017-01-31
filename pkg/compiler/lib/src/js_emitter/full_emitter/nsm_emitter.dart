@@ -9,7 +9,8 @@ import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../../js_backend/js_backend.dart' show GetterName, SetterName;
 import '../../universe/selector.dart' show Selector;
-import '../../util/characters.dart' show $$, $A, $HASH, $Z, $a, $z;
+import 'package:front_end/src/fasta/scanner/characters.dart'
+    show $$, $A, $HASH, $Z, $a, $z;
 import '../../world.dart' show ClosedWorld;
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../model.dart';

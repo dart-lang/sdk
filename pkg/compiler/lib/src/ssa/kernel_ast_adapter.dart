@@ -6,7 +6,6 @@ import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
@@ -17,7 +16,6 @@ import '../elements/entities.dart';
 import '../elements/modelx.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
-import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart';
 import '../kernel/element_adapter.dart';
 import '../kernel/kernel.dart';
@@ -766,7 +764,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   ConstantExpression visitStaticGet(ir.StaticGet node) {
     Element element = astAdapter.getMember(node.target);
     if (element.isField) {
-      return new VariableConstantExpression(element);
+      return new VariableConstantExpression(element as VariableElement);
     }
     astAdapter.reporter.internalError(
         CURRENT_ELEMENT_SPANNABLE, "Unexpected constant target: $element.");

@@ -66,9 +66,9 @@ import 'scanner/scanner_task.dart' show ScannerTask;
 import 'script.dart' show Script;
 import 'serialization/task.dart' show SerializationTask;
 import 'ssa/nodes.dart' show HInstruction;
-import 'tokens/token.dart' show StringToken, Token, TokenPair;
+import 'package:front_end/src/fasta/scanner.dart'
+    show StringToken, Token;
 import 'tokens/token_map.dart' show TokenMap;
-import 'tracer.dart' show Tracer;
 import 'tree/tree.dart' show Node, TypeAnnotation;
 import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' show GlobalTypeInferenceTask;
@@ -80,7 +80,6 @@ import 'universe/world_impact.dart'
     show
         ImpactStrategy,
         WorldImpact,
-        WorldImpactBuilder,
         WorldImpactBuilderImpl;
 import 'util/util.dart' show Link, Setlet;
 import 'world.dart' show ClosedWorld, ClosedWorldRefiner, ClosedWorldImpl;
@@ -266,7 +265,7 @@ abstract class Compiler implements LibraryLoaderListener {
     }
 
     _parsingContext =
-        new ParsingContext(reporter, parser, patchParser, backend);
+        new ParsingContext(reporter, parser, scanner, patchParser, backend);
 
     tasks.addAll(backend.tasks);
   }
@@ -1214,9 +1213,6 @@ class _CompilerCommonElements extends CommonElementsMixin {
     return _findLibraryMember(library, name, required: required);
   }
 
-  Element _findRequired(LibraryElement library, String name) =>
-      _findLibraryMember(library, name);
-
   Element _findLibraryMember(LibraryElement library, String name,
       {bool required: true}) {
     // If the script of the library is synthesized, the library does not exist
@@ -1398,6 +1394,9 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
         api.Diagnostic.CRASH);
   }
 
+  @override
+  SourceSpan spanFromToken(Token token) => spanFromTokens(token, token);
+
   SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
     if (begin == null || end == null) {
       // TODO(ahe): We can almost always do better. Often it is only
@@ -1546,10 +1545,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
       return node;
     } else if (node is Node) {
       return spanFromNode(node);
-    } else if (node is TokenPair) {
-      return spanFromTokens(node.begin, node.end);
-    } else if (node is Token) {
-      return spanFromTokens(node, node);
     } else if (node is HInstruction) {
       return spanFromHInstruction(node);
     } else if (node is Element) {
@@ -1715,7 +1710,6 @@ class CompilerResolution implements Resolution {
   MirrorUsageAnalyzerTask get mirrorUsageAnalyzerTask =>
       _compiler.mirrorUsageAnalyzerTask;
 
-  @override
   LibraryElement get coreLibrary => _compiler._commonElements.coreLibrary;
 
   @override

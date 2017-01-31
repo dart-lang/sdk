@@ -129,7 +129,6 @@ abstract class ReferenceCountedAstNode implements Node {
 /// This is used when generated code needs to be represented as a string,
 /// for example by the lazy emitter or when generating code generators.
 class UnparsedNode extends DeferredString implements AstContainer {
-  @override
   final Node tree;
   final Compiler _compiler;
   final bool _protectForEval;

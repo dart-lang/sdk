@@ -6,7 +6,6 @@ library type_graph_inferrer;
 
 import 'dart:collection' show Queue;
 
-import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../tree/tree.dart' as ast show Node;
