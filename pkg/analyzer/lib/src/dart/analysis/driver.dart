@@ -13,10 +13,10 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
@@ -27,10 +27,6 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/link.dart';
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/task/dart.dart' show COMPILATION_UNIT_ELEMENT;
-import 'package:analyzer/task/dart.dart' show LibrarySpecificUnit;
 import 'package:meta/meta.dart';
 
 /**
@@ -739,14 +735,12 @@ class AnalysisDriver {
       }
 
       try {
-        _LibraryContext libraryContext = _createLibraryContext(libraryFile);
-        AnalysisContext analysisContext =
-            _createAnalysisContext(libraryContext);
+        LibraryContext libraryContext = _createLibraryContext(libraryFile);
         try {
-          CompilationUnit resolvedUnit = analysisContext
-              .resolveCompilationUnit2(file.source, libraryFile.source);
-          List<AnalysisError> errors =
-              analysisContext.computeErrors(file.source);
+          var resolutionResult =
+              libraryContext.resolveUnit(libraryFile.source, file.source);
+          CompilationUnit resolvedUnit = resolutionResult.resolvedUnit;
+          List<AnalysisError> errors = resolutionResult.errors;
           AnalysisDriverUnitIndexBuilder index = indexUnit(resolvedUnit);
 
           // Store the result into the cache.
@@ -778,7 +772,7 @@ class AnalysisDriver {
           }
           return result;
         } finally {
-          analysisContext.dispose();
+          libraryContext.dispose();
         }
       } catch (exception, stackTrace) {
         String contextKey =
@@ -799,113 +793,29 @@ class AnalysisDriver {
     FileState libraryFile = file.library ?? file;
 
     // Create the AnalysisContext to resynthesize elements in.
-    _LibraryContext libraryContext = _createLibraryContext(libraryFile);
-    AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
+    LibraryContext libraryContext = _createLibraryContext(libraryFile);
 
     // Resynthesize the CompilationUnitElement in the context.
     try {
-      return analysisContext.computeResult(
-          new LibrarySpecificUnit(libraryFile.source, file.source),
-          COMPILATION_UNIT_ELEMENT);
+      return libraryContext.computeUnitElement(libraryFile.source, file.source);
     } finally {
-      analysisContext.dispose();
+      libraryContext.dispose();
     }
   }
 
-  AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
-    AnalysisContextImpl analysisContext =
-        AnalysisEngine.instance.createAnalysisContext();
-    analysisContext.useSdkCachePartition = false;
-    analysisContext.analysisOptions = _analysisOptions;
-    analysisContext.declaredVariables.addAll(declaredVariables);
-    analysisContext.sourceFactory = _sourceFactory.clone();
-    analysisContext.contentCache = new _ContentCacheWrapper(_fsState);
-    analysisContext.resultProvider =
-        new InputPackagesResultProvider(analysisContext, libraryContext.store);
-    return analysisContext;
-  }
-
   /**
-   * Return the context in which the [library] should be analyzed it.
+   * Return the context in which the [library] should be analyzed.
    */
-  _LibraryContext _createLibraryContext(FileState library) {
-    return _logger.run('Create library context', () {
-      Map<String, FileState> libraries = <String, FileState>{};
-      SummaryDataStore store = new SummaryDataStore(const <String>[]);
-
-      if (_sdkBundle != null) {
-        store.addBundle(null, _sdkBundle);
-      }
-
-      void appendLibraryFiles(FileState library) {
-        if (!libraries.containsKey(library.uriStr)) {
-          // Serve 'dart:' URIs from the SDK bundle.
-          if (_sdkBundle != null && library.uri.scheme == 'dart') {
-            return;
-          }
-
-          libraries[library.uriStr] = library;
-
-          // Append the defining unit.
-          store.addUnlinkedUnit(library.uriStr, library.unlinked);
-
-          // Append parts.
-          for (FileState part in library.partedFiles) {
-            store.addUnlinkedUnit(part.uriStr, part.unlinked);
-          }
-
-          // Append referenced libraries.
-          library.importedFiles.forEach(appendLibraryFiles);
-          library.exportedFiles.forEach(appendLibraryFiles);
-        }
-      }
-
-      _logger.run('Append library files', () {
-        return appendLibraryFiles(library);
-      });
-
-      Set<String> libraryUrisToLink = new Set<String>();
-      _logger.run('Load linked bundles', () {
-        for (FileState library in libraries.values) {
-          if (library.exists) {
-            String key = '${library.transitiveSignature}.linked';
-            List<int> bytes = _byteStore.get(key);
-            if (bytes != null) {
-              LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
-              store.addLinkedLibrary(library.uriStr, linked);
-            } else {
-              libraryUrisToLink.add(library.uriStr);
-            }
-          }
-        }
-        int numOfLoaded = libraries.length - libraryUrisToLink.length;
-        _logger.writeln('Loaded $numOfLoaded linked bundles.');
-      });
-
-      Map<String, LinkedLibraryBuilder> linkedLibraries = {};
-      _logger.run('Link bundles', () {
-        linkedLibraries = link(libraryUrisToLink, (String uri) {
-          LinkedLibrary linkedLibrary = store.linkedMap[uri];
-          return linkedLibrary;
-        }, (String uri) {
-          UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
-          return unlinkedUnit;
-        }, (_) => null, _analysisOptions.strongMode);
-        _logger.writeln('Linked ${linkedLibraries.length} bundles.');
-      });
-
-      linkedLibraries.forEach((uri, linkedBuilder) {
-        FileState library = libraries[uri];
-        String key = '${library.transitiveSignature}.linked';
-        List<int> bytes = linkedBuilder.toBuffer();
-        LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
-        store.addLinkedLibrary(uri, linked);
-        _byteStore.put(key, bytes);
-      });
-
-      return new _LibraryContext(library, store);
-    });
-  }
+  LibraryContext _createLibraryContext(FileState library) =>
+      new LibraryContext.forSingleLibrary(
+          library,
+          _logger,
+          _sdkBundle,
+          _byteStore,
+          _analysisOptions,
+          declaredVariables,
+          _sourceFactory,
+          _fsState);
 
   /**
    * Fill [_salt] with data.
@@ -1692,51 +1602,6 @@ class PerformanceLogSection {
 }
 
 /**
- * [ContentCache] wrapper around [FileContentOverlay].
- */
-class _ContentCacheWrapper implements ContentCache {
-  final FileSystemState fsState;
-
-  _ContentCacheWrapper(this.fsState);
-
-  @override
-  void accept(ContentCacheVisitor visitor) {
-    throw new UnimplementedError();
-  }
-
-  @override
-  String getContents(Source source) {
-    return _getFileForSource(source).content;
-  }
-
-  @override
-  bool getExists(Source source) {
-    if (source.isInSystemLibrary) {
-      return true;
-    }
-    return _getFileForSource(source).exists;
-  }
-
-  @override
-  int getModificationStamp(Source source) {
-    if (source.isInSystemLibrary) {
-      return 0;
-    }
-    return _getFileForSource(source).exists ? 0 : -1;
-  }
-
-  @override
-  String setContents(Source source, String contents) {
-    throw new UnimplementedError();
-  }
-
-  FileState _getFileForSource(Source source) {
-    String path = source.fullName;
-    return fsState.getFileForPath(path);
-  }
-}
-
-/**
  * Information about an exception and its context.
  */
 class _ExceptionState {
@@ -1807,15 +1672,6 @@ class _FilesReferencingNameTask {
     // We're not done yet.
     return false;
   }
-}
-
-/**
- * TODO(scheglov) document
- */
-class _LibraryContext {
-  final FileState file;
-  final SummaryDataStore store;
-  _LibraryContext(this.file, this.store);
 }
 
 /**
