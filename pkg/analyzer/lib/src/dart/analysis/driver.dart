@@ -1164,7 +1164,9 @@ class AnalysisDriver {
 
   String _storeExceptionContext(
       String path, FileState libraryFile, exception, StackTrace stackTrace) {
-    if (allowedNumberOfContextsToWrite > 0) {
+    if (allowedNumberOfContextsToWrite <= 0) {
+      return null;
+    } else {
       allowedNumberOfContextsToWrite--;
     }
     try {
