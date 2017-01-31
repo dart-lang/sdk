@@ -586,7 +586,7 @@ linter:
     AnalysisOptions options = builder.getAnalysisOptions(
         resourceProvider.convertPath('/some/directory/path'));
     // TODO(danrubel) fix on Windows
-    if (resourceProvider.absolutePathContext.separator != r'/') {
+    if (resourceProvider.absolutePathContext.separator != r'\') {
       _expectEqualOptions(options, expected);
     }
   }
