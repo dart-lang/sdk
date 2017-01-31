@@ -98,6 +98,10 @@ Zone::Zone()
       handles_(),
       previous_(NULL) {
   ASSERT(Utils::IsAligned(position_, kAlignment));
+  Thread* current = Thread::Current();
+  if (current != NULL) {
+    current->IncrementMemoryUsage(kInitialChunkSize);
+  }
 #ifdef DEBUG
   // Zap the entire initial buffer.
   memset(initial_buffer_.pointer(), kZapUninitializedByte,
@@ -109,6 +113,10 @@ Zone::Zone()
 Zone::~Zone() {
   if (FLAG_trace_zones) {
     DumpZoneSizes();
+  }
+  Thread* current = Thread::Current();
+  if (current != NULL) {
+    current->DecrementMemoryUsage(kInitialChunkSize);
   }
   DeleteAll();
 }

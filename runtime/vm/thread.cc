@@ -38,8 +38,6 @@ Thread::~Thread() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
-  // All zone allocated memory should be free by this point.
-  ASSERT(current_thread_memory_ == 0);
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -134,6 +132,19 @@ Thread::Thread(Isolate* isolate)
     if (FLAG_compiler_benchmark) {
       compiler_stats_->EnableBenchmark();
     }
+  }
+  // This thread should not yet own any zones. If it does, we need to make sure
+  // we've accounted for any memory it has already allocated.
+  if (zone_ == NULL) {
+    ASSERT(current_thread_memory_ == 0);
+  } else {
+    Zone* current = zone_;
+    uintptr_t total_zone_capacity = 0;
+    while (current != NULL) {
+      total_zone_capacity += static_cast<uintptr_t>(current->CapacityInBytes());
+      current = current->previous();
+    }
+    ASSERT(current_thread_memory_ == total_zone_capacity);
   }
 }
 
