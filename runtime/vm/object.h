@@ -3557,6 +3557,12 @@ class Script : public Object {
 
   void set_line_starts(const Array& value) const;
 
+  void set_debug_positions(const Array& value) const;
+
+  void set_yield_positions(const Array& value) const;
+
+  RawArray* yield_positions() const { return raw_ptr()->yield_positions_; }
+
   void Tokenize(const String& private_key, bool use_shared_tokens = true) const;
 
   RawLibrary* FindLibrary() const;
@@ -3607,6 +3613,7 @@ class Script : public Object {
   void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
   RawArray* line_starts() const { return raw_ptr()->line_starts_; }
+  RawArray* debug_positions() const { return raw_ptr()->debug_positions_; }
 
   static RawScript* New();
 
