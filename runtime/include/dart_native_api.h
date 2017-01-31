@@ -124,8 +124,7 @@ DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message);
  */
 
 typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
-                                          Dart_CObject* message,
-                                          void* peer);
+                                          Dart_CObject* message);
 
 /**
  * Creates a new native port.  When messages are received on this
@@ -136,16 +135,13 @@ typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
  * \param handler The C handler to run when messages arrive on the port.
  * \param handle_concurrently Is it okay to process requests on this
  *                            native port concurrently?
- * \param peer Peer associated with this port. It will be passed down to the
-               handler when new message arrives.
  *
  * \return If successful, returns the port id for the native port.  In
  *   case of error, returns ILLEGAL_PORT.
  */
 DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
                                          Dart_NativeMessageHandler handler,
-                                         bool handle_concurrently,
-                                         void* peer);
+                                         bool handle_concurrently);
 /* TODO(turnidge): Currently handle_concurrently is ignored. */
 
 /**

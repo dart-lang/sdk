@@ -277,8 +277,11 @@ class KernelCompilationRequest : public ValueObject {
       : monitor_(new Monitor()),
         port_(Dart_NewNativePort("kernel-compilation-port",
                                  &HandleResponse,
-                                 false,
-                                 this)) {
+                                 false)),
+        next_(NULL),
+        prev_(NULL) {
+    ASSERT(port_ != ILLEGAL_PORT);
+    RegisterRequest(this);
     result_.status = Dart_KernelCompilationStatus_Unknown;
     result_.error = NULL;
     result_.kernel = NULL;
@@ -286,6 +289,7 @@ class KernelCompilationRequest : public ValueObject {
   }
 
   ~KernelCompilationRequest() {
+    UnregisterRequest(this);
     Dart_CloseNativePort(port_);
     delete monitor_;
   }
@@ -364,18 +368,62 @@ class KernelCompilationRequest : public ValueObject {
     ml.Notify();
   }
 
-  static void HandleResponse(Dart_Port dest_port_id,
-                             Dart_CObject* message,
-                             void* peer) {
-    static_cast<KernelCompilationRequest*>(peer)->HandleResponseImpl(message);
+  static void HandleResponse(Dart_Port port, Dart_CObject* message) {
+    MonitorLocker locker(requests_monitor_);
+    KernelCompilationRequest* rq = FindRequestLocked(port);
+    if (rq == NULL) {
+      return;
+    }
+    rq->HandleResponseImpl(message);
   }
+
+  static void RegisterRequest(KernelCompilationRequest* rq) {
+    MonitorLocker locker(requests_monitor_);
+    rq->next_ = requests_;
+    requests_ = rq;
+  }
+
+  static void UnregisterRequest(KernelCompilationRequest* rq) {
+    MonitorLocker locker(requests_monitor_);
+    if (rq->next_ != NULL) {
+      rq->next_->prev_ = rq->prev_;
+    }
+    if (rq->prev_ != NULL) {
+      rq->prev_->next_ = rq->next_;
+    } else {
+      requests_ = rq->next_;
+    }
+  }
+
+  // Note: Caller must hold requests_monitor_.
+  static KernelCompilationRequest* FindRequestLocked(Dart_Port port) {
+    for (KernelCompilationRequest* rq = requests_; rq != NULL; rq = rq->next_) {
+      if (rq->port_ == port) {
+        return rq;
+      }
+    }
+    return NULL;
+  }
+
+  // This monitor must be held whenever linked list of requests is accessed.
+  static Monitor* requests_monitor_;
+
+  // Linked list of all active requests. Used to find a request by port number.
+  // Guarded by requests_monitor_ lock.
+  static KernelCompilationRequest* requests_;
 
   Monitor* monitor_;
   Dart_Port port_;
 
+  // Linked list of active requests. Guarded by requests_monitor_ lock.
+  KernelCompilationRequest* next_;
+  KernelCompilationRequest* prev_;
+
   Dart_KernelCompilationResult result_;
 };
 
+Monitor* KernelCompilationRequest::requests_monitor_ = new Monitor();
+KernelCompilationRequest* KernelCompilationRequest::requests_ = NULL;
 
 Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     const char* script_uri) {

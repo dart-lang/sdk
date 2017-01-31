@@ -82,8 +82,7 @@ DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {
 
 DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
                                          Dart_NativeMessageHandler handler,
-                                         bool handle_concurrently,
-                                         void* peer) {
+                                         bool handle_concurrently) {
   if (name == NULL) {
     name = "<UnnamedNativePort>";
   }
@@ -95,7 +94,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
   // Start the native port without a current isolate.
   IsolateSaver saver(Isolate::Current());
 
-  NativeMessageHandler* nmh = new NativeMessageHandler(name, handler, peer);
+  NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
   Dart_Port port_id = PortMap::CreatePort(nmh);
   PortMap::SetPortState(port_id, PortMap::kLivePort);
   nmh->Run(Dart::thread_pool(), NULL, NULL, 0);

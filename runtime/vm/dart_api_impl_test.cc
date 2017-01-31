@@ -7150,18 +7150,11 @@ TEST_CASE(ImportLibrary5) {
 }
 
 
-void NewNativePort_send123(Dart_Port dest_port_id,
-                           Dart_CObject* message,
-                           void* peer) {
+void NewNativePort_send123(Dart_Port dest_port_id, Dart_CObject* message) {
   // Gets a send port message.
   EXPECT_NOTNULL(message);
   EXPECT_EQ(Dart_CObject_kArray, message->type);
   EXPECT_EQ(Dart_CObject_kSendPort, message->value.as_array.values[0]->type);
-
-  // Check peer validity.
-  EXPECT_NOTNULL(peer);
-  EXPECT_EQ(static_cast<intptr_t>(0xDEADBEEF), *static_cast<intptr_t*>(peer));
-  *static_cast<intptr_t*>(peer) = 123;
 
   // Post integer value.
   Dart_CObject* response =
@@ -7173,18 +7166,11 @@ void NewNativePort_send123(Dart_Port dest_port_id,
 }
 
 
-void NewNativePort_send321(Dart_Port dest_port_id,
-                           Dart_CObject* message,
-                           void* peer) {
+void NewNativePort_send321(Dart_Port dest_port_id, Dart_CObject* message) {
   // Gets a null message.
   EXPECT_NOTNULL(message);
   EXPECT_EQ(Dart_CObject_kArray, message->type);
   EXPECT_EQ(Dart_CObject_kSendPort, message->value.as_array.values[0]->type);
-
-  // Check peer validity.
-  EXPECT_NOTNULL(peer);
-  EXPECT_EQ(static_cast<intptr_t>(0xDEADBEEF), *static_cast<intptr_t*>(peer));
-  *static_cast<intptr_t*>(peer) = 321;
 
   // Post integer value.
   Dart_CObject* response =
@@ -7212,13 +7198,12 @@ TEST_CASE(IllegalPost) {
 
 UNIT_TEST_CASE(NewNativePort) {
   // Create a port with a bogus handler.
-  Dart_Port error_port = Dart_NewNativePort("Foo", NULL, true, NULL);
+  Dart_Port error_port = Dart_NewNativePort("Foo", NULL, true);
   EXPECT_EQ(ILLEGAL_PORT, error_port);
 
-  intptr_t peer1 = 0xDEADBEEF;
   // Create the port w/o a current isolate, just to make sure that works.
   Dart_Port port_id1 =
-      Dart_NewNativePort("Port123", NewNativePort_send123, true, &peer1);
+      Dart_NewNativePort("Port123", NewNativePort_send123, true);
 
   TestIsolateScope __test_isolate__;
   const char* kScriptChars =
@@ -7236,9 +7221,8 @@ UNIT_TEST_CASE(NewNativePort) {
   Dart_EnterScope();
 
   // Create a port w/ a current isolate, to make sure that works too.
-  intptr_t peer2 = 0xDEADBEEF;
   Dart_Port port_id2 =
-      Dart_NewNativePort("Port321", NewNativePort_send321, true, &peer2);
+      Dart_NewNativePort("Port321", NewNativePort_send321, true);
 
   Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
   EXPECT_VALID(send_port1);
@@ -7254,7 +7238,6 @@ UNIT_TEST_CASE(NewNativePort) {
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
   EXPECT_SUBSTRING("Exception: 123\n", Dart_GetError(result));
-  EXPECT_EQ(123, peer1);
 
   // result second port.
   dart_args[0] = send_port2;
@@ -7264,7 +7247,6 @@ UNIT_TEST_CASE(NewNativePort) {
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
   EXPECT_SUBSTRING("Exception: 321\n", Dart_GetError(result));
-  EXPECT_EQ(321, peer2);
 
   Dart_ExitScope();
 
@@ -7275,8 +7257,7 @@ UNIT_TEST_CASE(NewNativePort) {
 
 
 void NewNativePort_sendInteger123(Dart_Port dest_port_id,
-                                  Dart_CObject* message,
-                                  void* peer) {
+                                  Dart_CObject* message) {
   // Gets a send port message.
   EXPECT_NOTNULL(message);
   EXPECT_EQ(Dart_CObject_kArray, message->type);
@@ -7289,8 +7270,7 @@ void NewNativePort_sendInteger123(Dart_Port dest_port_id,
 
 
 void NewNativePort_sendInteger321(Dart_Port dest_port_id,
-                                  Dart_CObject* message,
-                                  void* peer) {
+                                  Dart_CObject* message) {
   // Gets a null message.
   EXPECT_NOTNULL(message);
   EXPECT_EQ(Dart_CObject_kArray, message->type);
@@ -7318,9 +7298,9 @@ TEST_CASE(NativePortPostInteger) {
   Dart_EnterScope();
 
   Dart_Port port_id1 =
-      Dart_NewNativePort("Port123", NewNativePort_sendInteger123, true, NULL);
+      Dart_NewNativePort("Port123", NewNativePort_sendInteger123, true);
   Dart_Port port_id2 =
-      Dart_NewNativePort("Port321", NewNativePort_sendInteger321, true, NULL);
+      Dart_NewNativePort("Port321", NewNativePort_sendInteger321, true);
 
   Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
   EXPECT_VALID(send_port1);
@@ -7355,8 +7335,7 @@ TEST_CASE(NativePortPostInteger) {
 
 
 void NewNativePort_nativeReceiveNull(Dart_Port dest_port_id,
-                                     Dart_CObject* message,
-                                     void* peer) {
+                                     Dart_CObject* message) {
   EXPECT_NOTNULL(message);
 
   if ((message->type == Dart_CObject_kArray) &&
@@ -7386,8 +7365,8 @@ TEST_CASE(NativePortReceiveNull) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();
 
-  Dart_Port port_id1 = Dart_NewNativePort(
-      "PortNull", NewNativePort_nativeReceiveNull, true, NULL);
+  Dart_Port port_id1 =
+      Dart_NewNativePort("PortNull", NewNativePort_nativeReceiveNull, true);
   Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
   EXPECT_VALID(send_port1);
 
@@ -7409,8 +7388,7 @@ TEST_CASE(NativePortReceiveNull) {
 
 
 void NewNativePort_nativeReceiveInteger(Dart_Port dest_port_id,
-                                        Dart_CObject* message,
-                                        void* peer) {
+                                        Dart_CObject* message) {
   EXPECT_NOTNULL(message);
 
   if ((message->type == Dart_CObject_kArray) &&
@@ -7441,8 +7419,8 @@ TEST_CASE(NativePortReceiveInteger) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();
 
-  Dart_Port port_id1 = Dart_NewNativePort(
-      "PortNull", NewNativePort_nativeReceiveInteger, true, NULL);
+  Dart_Port port_id1 =
+      Dart_NewNativePort("PortNull", NewNativePort_nativeReceiveInteger, true);
   Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
   EXPECT_VALID(send_port1);
 
