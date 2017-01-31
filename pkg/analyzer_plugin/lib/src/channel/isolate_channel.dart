@@ -10,7 +10,8 @@ import 'package:analyzer_plugin/protocol/protocol.dart';
 
 /**
  * The object that allows a [ServerPlugin] to receive [Request]s and to return
- * both [Response]s and [Notification]s.
+ * both [Response]s and [Notification]s. It communicates with the analysis
+ * server by passing data to the server's main isolate.
  */
 class IsolateChannel implements PluginCommunicationChannel {
   /**
