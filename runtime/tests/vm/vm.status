@@ -303,3 +303,4 @@ cc/FreeUnseenMemoryMallocHookTest: Pass,Fail
 [ $arch == simdbc  || $arch == simdbc64 ]
 cc/Debugger_RewindOneFrame_Unoptimized: Skip # Issue 27878
 cc/Debugger_RewindTwoFrames_Unoptimized: Skip # Issue 27878
+cc/Debugger_Rewind_Optimized: Skip # Issue 27878

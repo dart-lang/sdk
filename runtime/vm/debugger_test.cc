@@ -12,8 +12,12 @@ namespace dart {
 
 #ifndef PRODUCT
 
+DECLARE_FLAG(bool, background_compilation);
+DECLARE_FLAG(bool, enable_inlining_annotations);
+DECLARE_FLAG(bool, prune_dead_locals);
 DECLARE_FLAG(bool, remove_script_timestamps_for_test);
 DECLARE_FLAG(bool, trace_rewind);
+DECLARE_FLAG(int, optimization_counter_threshold);
 
 // Search for the formatted string in buffer.
 //
@@ -266,6 +270,8 @@ static void RewindOnce(Dart_IsolateId isolate_id,
 
 TEST_CASE(Debugger_RewindOneFrame_Unoptimized) {
   SetFlagScope<bool> sfs(&FLAG_trace_rewind, true);
+
+  // These variables are global state used by RewindOnce.
   saw_paused_event = false;
   rewind_frame_index = "1";
 
@@ -303,6 +309,8 @@ TEST_CASE(Debugger_RewindOneFrame_Unoptimized) {
 
 TEST_CASE(Debugger_RewindTwoFrames_Unoptimized) {
   SetFlagScope<bool> sfs(&FLAG_trace_rewind, true);
+
+  // These variables are global state used by RewindOnce.
   saw_paused_event = false;
   rewind_frame_index = "2";
 
@@ -341,6 +349,88 @@ TEST_CASE(Debugger_RewindTwoFrames_Unoptimized) {
   EXPECT_STREQ(
       "enter(main) enter(bar) enter(foo) enter(bar) enter(foo) "
       "exit(foo) exit(bar) exit(main) ",
+      result_cstr);
+  EXPECT(saw_paused_event);
+}
+
+
+TEST_CASE(Debugger_Rewind_Optimized) {
+  SetFlagScope<bool> sfs1(&FLAG_trace_rewind, true);
+  SetFlagScope<bool> sfs2(&FLAG_prune_dead_locals, false);
+  SetFlagScope<bool> sfs3(&FLAG_enable_inlining_annotations, true);
+  SetFlagScope<bool> sfs4(&FLAG_background_compilation, false);
+  SetFlagScope<int> sfs5(&FLAG_optimization_counter_threshold, 10);
+
+  // These variables are global state used by RewindOnce.
+  saw_paused_event = false;
+  rewind_frame_index = "2";
+
+  const char* kScriptChars =
+      "import 'dart:developer';\n"
+      "\n"
+      "const alwaysInline = \"AlwaysInline\";\n"
+      "const noInline = \"NeverInline\";\n"
+      "\n"
+      "var msg = new StringBuffer();\n"
+      "int i;\n"
+      "\n"
+      "@noInline\n"
+      "foo() {\n"
+      "  msg.write('enter(foo) ');\n"
+      "  if (i > 15) {\n"
+      "    debugger();\n"
+      "    msg.write('exit(foo) ');\n"
+      "    return true;\n"
+      "  } else {\n"
+      "    msg.write('exit(foo) ');\n"
+      "    return false;\n"
+      "  }\n"
+      "}\n"
+      "\n"
+      "@alwaysInline\n"
+      "bar3() {\n"
+      "  msg.write('enter(bar3) ');\n"
+      "  var result = foo();\n"
+      "  msg.write('exit(bar3) ');\n"
+      "  return result;\n"
+      "}\n"
+      "\n"
+      "@alwaysInline\n"
+      "bar2() {\n"
+      "  msg.write('enter(bar2) ');\n"
+      "  var result = bar3();\n"
+      "  msg.write('exit(bar2) ');\n"
+      "  return result;\n"
+      "}\n"
+      "\n"
+      "@alwaysInline\n"
+      "bar1() {\n"
+      "  msg.write('enter(bar1) ');\n"
+      "  var result = bar2();\n"
+      "  msg.write('exit(bar1) ');\n"
+      "  return result;\n"
+      "}\n"
+      "\n"
+      "main() {\n"
+      "  for (i = 0; i < 20; i++) {\n"
+      "    msg.clear();\n"
+      "    if (bar1()) break;\n;"
+      "  }\n"
+      "  return msg.toString();\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  Dart_SetPausedEventHandler(RewindOnce);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  const char* result_cstr;
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsString(result));
+  EXPECT_VALID(Dart_StringToCString(result, &result_cstr));
+  EXPECT_STREQ(
+      "enter(bar1) enter(bar2) enter(bar3) enter(foo) "
+      "enter(bar3) enter(foo) "
+      "exit(foo) exit(bar3) exit(bar2) exit(bar1) ",
       result_cstr);
   EXPECT(saw_paused_event);
 }
