@@ -5700,9 +5700,6 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
    */
   FormalParameterList _parameters;
 
-  @override
-  DartType type;
-
   /**
    * Initialize a newly created generic function type.
    */
@@ -5745,6 +5742,9 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   void set returnType(TypeAnnotation type) {
     _returnType = _becomeParentOf(type as AstNodeImpl);
   }
+
+  @override
+  DartType get type => null;
 
   /**
    * Return the type parameters for the function type, or `null` if the function
