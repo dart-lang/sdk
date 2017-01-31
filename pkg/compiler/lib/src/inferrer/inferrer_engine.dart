@@ -9,6 +9,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../core_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js_backend/js_backend.dart';
 import '../native/behavior.dart' as native;
 import '../resolution/tree_elements.dart';

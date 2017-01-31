@@ -22,7 +22,6 @@ import '../../elements/elements.dart'
         ClassElement,
         Element,
         Elements,
-        Entity,
         FieldElement,
         FunctionElement,
         FunctionSignature,
@@ -30,6 +29,7 @@ import '../../elements/elements.dart'
         MethodElement,
         TypedefElement,
         VariableElement;
+import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
 import '../../io/line_column_provider.dart'

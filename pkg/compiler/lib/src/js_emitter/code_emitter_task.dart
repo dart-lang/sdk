@@ -11,7 +11,6 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
-import '../elements/elements.dart' show Entity;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;

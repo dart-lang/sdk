@@ -8,6 +8,7 @@ import 'dart:collection' show IterableMixin;
 
 import '../options.dart' show CompilerOptions;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import 'inferrer_engine.dart';

@@ -6,13 +6,8 @@ library js_backend.native_data;
 
 import '../common.dart';
 import '../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        Entity,
-        FieldElement,
-        FunctionElement,
-        MemberElement;
+    show ClassElement, Element, FieldElement, FunctionElement, MemberElement;
+import '../elements/entities.dart';
 import '../native/behavior.dart' show NativeBehavior;
 
 /// Additional element information for native classes and methods and js-interop

@@ -7,7 +7,6 @@ library dart2js.type_system;
 
 import 'elements/types.dart';
 import 'elements/entities.dart';
-import 'elements/elements.dart' show Entity;
 
 /// The common elements and types in Dart.
 abstract class CommonElements {

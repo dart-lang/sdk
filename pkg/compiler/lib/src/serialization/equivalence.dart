@@ -12,6 +12,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/types.dart';
 import '../elements/visitor.dart';
 import '../js_backend/backend_serialization.dart'
     show NativeBehaviorSerialization;
@@ -97,7 +98,7 @@ bool areElementsEquivalent(Element a, Element b) {
 }
 
 /// Returns `true` if types [a] and [b] are equivalent.
-bool areTypesEquivalent(ResolutionDartType a, ResolutionDartType b) {
+bool areTypesEquivalent(DartType a, DartType b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   return const TypeEquivalence().visit(a, b);
@@ -519,9 +520,11 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   bool visitLocalFunctionElement(
       LocalFunctionElement element1, LocalFunctionElement element2) {
     // TODO(johnniwinther): Define an equivalence on locals.
+    MemberElement member1 = element1.memberContext;
+    MemberElement member2 = element2.memberContext;
     return strategy.test(
             element1, element2, 'name', element1.name, element2.name) &&
-        checkMembers(element1.memberContext, element2.memberContext);
+        checkMembers(member1, member2);
   }
 
   @override

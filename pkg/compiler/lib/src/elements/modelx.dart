@@ -3269,6 +3269,9 @@ class JumpTargetX implements JumpTarget {
 
   JumpTargetX(this.statement, this.nestingLevel, this.executableContext);
 
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
+
   String get name => "target";
 
   bool get isTarget => isBreakTarget || isContinueTarget;

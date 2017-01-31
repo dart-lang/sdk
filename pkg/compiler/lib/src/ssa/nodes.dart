@@ -9,7 +9,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../elements/elements.dart'
-    show Entity, JumpTarget, LabelDefinition, Local;
+    show JumpTarget, LabelDefinition;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';

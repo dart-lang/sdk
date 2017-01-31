@@ -20,7 +20,6 @@ import 'elements/elements.dart'
         ClassElement,
         ConstructorElement,
         Element,
-        Entity,
         MemberElement;
 import 'elements/entities.dart';
 import 'elements/resolution_types.dart'

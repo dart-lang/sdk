@@ -10,7 +10,7 @@ import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
 import '../elements/elements.dart'
-    show ClassElement, Entity, FieldElement, MethodElement;
+    show ClassElement, FieldElement, MethodElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../js/js.dart' as js;

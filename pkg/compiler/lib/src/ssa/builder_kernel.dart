@@ -16,9 +16,9 @@ import '../constants/values.dart'
         InterceptorConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../elements/entities.dart' show MemberEntity;
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;

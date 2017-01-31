@@ -54,6 +54,9 @@ abstract class KernelElementAdapter {
   /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
   Local getLocalFunction(ir.Node node);
 
+  /// Returns the [LibraryEntity] corresponding to the library [node].
+  LibraryEntity getLibrary(ir.Library node);
+
   /// Returns the [Name] corresponding to [name].
   Name getName(ir.Name name);
 

@@ -140,6 +140,8 @@ class KernelAstAdapter implements KernelElementAdapter {
 
   ClassElement getClass(ir.Class node) => getElement(node).declaration;
 
+  LibraryElement getLibrary(ir.Library node) => getElement(node).declaration;
+
   LocalFunctionElement getLocalFunction(ir.Node node) => getElement(node);
 
   ast.Node getNode(ir.Node node) {
@@ -194,7 +196,7 @@ class KernelAstAdapter implements KernelElementAdapter {
 
   Name getName(ir.Name name) {
     return new Name(
-        name.name, name.isPrivate ? getElement(name.library) : null);
+        name.name, name.isPrivate ? getLibrary(name.library) : null);
   }
 
   ir.Field getFieldFromElement(FieldElement field) {
@@ -230,14 +232,14 @@ class KernelAstAdapter implements KernelElementAdapter {
   Selector getGetterSelector(ir.PropertyGet getter) {
     ir.Name irName = getter.name;
     Name name = new Name(
-        irName.name, irName.isPrivate ? getElement(irName.library) : null);
+        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.getter(name);
   }
 
   Selector getSetterSelector(ir.PropertySet setter) {
     ir.Name irName = setter.name;
     Name name = new Name(
-        irName.name, irName.isPrivate ? getElement(irName.library) : null);
+        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.setter(name);
   }
 
@@ -1066,6 +1068,9 @@ class KernelJumpTarget extends JumpTarget {
 
   @override
   ExecutableElement get executableContext => null;
+
+  @override
+  MemberElement get memberContext => null;
 
   @override
   bool get isSwitch => targetStatement is ir.SwitchStatement;

@@ -19,12 +19,7 @@ library dart2js.universe.use;
 import '../closure.dart' show BoxFieldElement;
 import '../common.dart';
 import '../elements/types.dart';
-import '../elements/elements.dart'
-    show
-        ConstructorBodyElement,
-        Element,
-        Entity,
-        LocalFunctionElement;
+import '../elements/elements.dart' show ConstructorBodyElement, Element;
 import '../elements/entities.dart';
 import '../util/util.dart' show Hashing;
 import '../world.dart' show World;
@@ -323,7 +318,7 @@ class StaticUse {
   }
 
   /// Read of a local function [element].
-  factory StaticUse.closure(LocalFunctionElement element) {
+  factory StaticUse.closure(Local element) {
     return new StaticUse.internal(element, StaticUseKind.CLOSURE);
   }
 

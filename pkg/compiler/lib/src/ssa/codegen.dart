@@ -12,7 +12,6 @@ import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
 import '../elements/elements.dart'
     show
-        Entity,
         JumpTarget,
         LabelDefinition,
         Name,

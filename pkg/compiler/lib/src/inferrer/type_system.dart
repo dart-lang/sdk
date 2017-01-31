@@ -4,6 +4,7 @@
 
 import '../common.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
 import '../tree/dartstring.dart';

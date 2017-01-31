@@ -16,10 +16,10 @@ import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load.dart' show OutputUnit;
 import 'elements/elements.dart';
+import 'elements/entities.dart';
 import 'elements/visitor.dart';
 import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
-import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'types/types.dart' show TypeMask;
 import 'universe/world_builder.dart' show ReceiverConstraint;
 import 'universe/world_impact.dart'

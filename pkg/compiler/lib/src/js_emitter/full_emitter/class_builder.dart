@@ -4,7 +4,6 @@
 
 library dart2js.js_emitter.full_emitter.class_builder;
 
-import '../../elements/elements.dart' show Entity;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;

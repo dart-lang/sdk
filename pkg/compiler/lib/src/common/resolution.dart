@@ -6,7 +6,6 @@ library dart2js.common.resolution;
 
 import '../common.dart';
 import '../compile_time_constants.dart';
-import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
 import '../core_types.dart' show CommonElements;
@@ -16,7 +15,6 @@ import '../elements/elements.dart'
         AstElement,
         ClassElement,
         Element,
-        Entity,
         ExecutableElement,
         FunctionElement,
         FunctionSignature,
@@ -25,6 +23,7 @@ import '../elements/elements.dart'
         MethodElement,
         ResolvedAst,
         TypedefElement;
+import '../elements/entities.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../id_generator.dart';
 import '../mirrors_used.dart';

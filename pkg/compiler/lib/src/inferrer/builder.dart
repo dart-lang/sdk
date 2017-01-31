@@ -14,6 +14,7 @@ import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;

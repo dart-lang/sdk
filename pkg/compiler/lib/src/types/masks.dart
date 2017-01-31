@@ -7,7 +7,6 @@ library masks;
 import '../common.dart';
 import '../common/backend_api.dart' show BackendClasses;
 import '../constants/values.dart' show PrimitiveConstantValue;
-import '../elements/elements.dart' show Entity;
 import '../elements/entities.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../tree/tree.dart';

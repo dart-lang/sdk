@@ -25,12 +25,6 @@ import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'core_types.dart' show CommonElements, CommonElementsMixin;
-import 'elements/resolution_types.dart'
-    show
-        ResolutionDartType,
-        ResolutionDynamicType,
-        ResolutionInterfaceType,
-        Types;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
@@ -38,7 +32,14 @@ import 'diagnostics/invariant.dart' show REPORT_EXCESS_RESOLUTION;
 import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/elements.dart';
+import 'elements/entities.dart';
 import 'elements/modelx.dart' show ErroneousElementX;
+import 'elements/resolution_types.dart'
+    show
+        ResolutionDartType,
+        ResolutionDynamicType,
+        ResolutionInterfaceType,
+        Types;
 import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'id_generator.dart';

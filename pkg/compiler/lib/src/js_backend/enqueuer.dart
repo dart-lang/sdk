@@ -15,7 +15,7 @@ import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
-import '../elements/elements.dart' show Entity, MemberElement, TypedElement;
+import '../elements/elements.dart' show MemberElement, TypedElement;
 import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../native/native.dart' as native;

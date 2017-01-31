@@ -44,7 +44,8 @@ class ImpactSerializer implements WorldImpactVisitor {
       ListEncoder encoder = objectEncoder.createList(Key.LISTS);
       for (ListLiteralUse use in resolutionImpact.listLiterals) {
         ObjectEncoder useEncoder = encoder.createObject();
-        useEncoder.setType(Key.TYPE, use.type);
+        ResolutionInterfaceType type = use.type;
+        useEncoder.setType(Key.TYPE, type);
         useEncoder.setBool(Key.IS_CONST, use.isConstant);
         useEncoder.setBool(Key.IS_EMPTY, use.isEmpty);
       }
@@ -53,7 +54,8 @@ class ImpactSerializer implements WorldImpactVisitor {
       ListEncoder encoder = objectEncoder.createList(Key.MAPS);
       for (MapLiteralUse use in resolutionImpact.mapLiterals) {
         ObjectEncoder useEncoder = encoder.createObject();
-        useEncoder.setType(Key.TYPE, use.type);
+        ResolutionInterfaceType type = use.type;
+        useEncoder.setType(Key.TYPE, type);
         useEncoder.setBool(Key.IS_CONST, use.isConstant);
         useEncoder.setBool(Key.IS_EMPTY, use.isEmpty);
       }
@@ -174,7 +176,7 @@ class ImpactDeserializer {
       listLiterals = <ListLiteralUse>[];
       for (int i = 0; i < listLiteralDecoder.length; i++) {
         ObjectDecoder useDecoder = listLiteralDecoder.getObject(i);
-        ResolutionDartType type = useDecoder.getType(Key.TYPE);
+        ResolutionInterfaceType type = useDecoder.getType(Key.TYPE);
         bool isConstant = useDecoder.getBool(Key.IS_CONST);
         bool isEmpty = useDecoder.getBool(Key.IS_EMPTY);
         listLiterals.add(
@@ -189,7 +191,7 @@ class ImpactDeserializer {
       mapLiterals = <MapLiteralUse>[];
       for (int i = 0; i < mapLiteralDecoder.length; i++) {
         ObjectDecoder useDecoder = mapLiteralDecoder.getObject(i);
-        ResolutionDartType type = useDecoder.getType(Key.TYPE);
+        ResolutionInterfaceType type = useDecoder.getType(Key.TYPE);
         bool isConstant = useDecoder.getBool(Key.IS_CONST);
         bool isEmpty = useDecoder.getBool(Key.IS_EMPTY);
         mapLiterals.add(

@@ -6,9 +6,10 @@ import 'graph_builder.dart';
 import 'nodes.dart';
 import '../closure.dart';
 import '../common.dart';
-import '../elements/resolution_types.dart';
 import '../types/types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
 import '../io/source_information.dart';
 import '../universe/use.dart' show TypeUse;
 

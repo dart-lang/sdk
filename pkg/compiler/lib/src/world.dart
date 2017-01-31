@@ -14,7 +14,6 @@ import 'elements/elements.dart'
     show
         ClassElement,
         Element,
-        Entity,
         FunctionElement,
         MemberElement,
         MixinApplicationElement,

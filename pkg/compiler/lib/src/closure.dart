@@ -12,6 +12,7 @@ import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
 import 'elements/resolution_types.dart';
 import 'elements/elements.dart';
+import 'elements/entities.dart';
 import 'elements/modelx.dart'
     show BaseFunctionElementX, ClassElementX, ElementX;
 import 'elements/visitor.dart' show ElementVisitor;
@@ -286,6 +287,9 @@ class BoxLocal extends Local {
 
   BoxLocal(this.name, this.executableContext);
 
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
+
   String toString() => 'BoxLocal($name)';
 }
 
@@ -358,6 +362,9 @@ class ThisLocal extends Local {
   final hashCode = ElementX.newHashCode();
 
   ThisLocal(this.executableContext);
+
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
 
   String get name => 'this';
 
@@ -1201,6 +1208,9 @@ class TypeVariableLocal implements Local {
   final ExecutableElement executableContext;
 
   TypeVariableLocal(this.typeVariable, this.executableContext);
+
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
 
   String get name => typeVariable.name;
 

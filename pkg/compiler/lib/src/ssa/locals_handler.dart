@@ -7,6 +7,7 @@ import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
@@ -670,6 +671,9 @@ class SyntheticLocal extends Local {
   static int _nextHashCode = 0;
 
   SyntheticLocal(this.name, this.executableContext);
+
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
 
   toString() => 'SyntheticLocal($name)';
 }

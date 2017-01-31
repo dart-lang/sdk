@@ -2,25 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../closure.dart';
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../compiler.dart';
-import '../constants/constant_system.dart';
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../io/source_information.dart';
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
 import '../js_backend/js_backend.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../universe/call_structure.dart' show CallStructure;
-import '../universe/use.dart' show TypeUse;
 import '../world.dart' show ClosedWorld;
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
-import 'ssa_branch_builder.dart';
 import 'type_builder.dart';
 
 /// Base class for objects that build up an SSA graph.

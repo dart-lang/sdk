@@ -2139,7 +2139,8 @@ class JavaScriptBackend extends Backend {
         List<LocalFunctionElement> closures = closureMap[cls];
         if (closures != null) {
           for (LocalFunctionElement closure in closures) {
-            if (referencedFromMirrorSystem(closure.memberContext, false)) {
+            MemberElement member = closure.memberContext;
+            if (referencedFromMirrorSystem(member, false)) {
               reflectableMembers.add(closure);
               foundClosure = true;
             }
@@ -2892,7 +2893,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         transformed
             .registerTypeUse(new TypeUse.instantiation(mapLiteralUse.type));
       }
-      registerRequiredType(mapLiteralUse.type);
+      ResolutionInterfaceType type = mapLiteralUse.type;
+      registerRequiredType(type);
     }
 
     for (ListLiteralUse listLiteralUse in worldImpact.listLiterals) {
@@ -2900,7 +2902,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       // factory constructors are registered directly.
       transformed
           .registerTypeUse(new TypeUse.instantiation(listLiteralUse.type));
-      registerRequiredType(listLiteralUse.type);
+      ResolutionInterfaceType type = listLiteralUse.type;
+      registerRequiredType(type);
     }
 
     if (worldImpact.constSymbolNames.isNotEmpty) {

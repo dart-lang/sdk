@@ -10,13 +10,14 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
+import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../elements/resolution_types.dart'
     show
         ResolutionDartType,
         ResolutionFunctionType,
         ResolutionInterfaceType,
         ResolutionTypeKind;
-import '../elements/elements.dart';
 import '../js_backend/backend.dart';
 import '../tree/dartstring.dart' show DartString;
 import '../tree/tree.dart' as ast show Node, LiteralBool, Send;

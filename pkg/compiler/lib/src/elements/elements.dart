@@ -6,7 +6,6 @@ library elements;
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../compiler.dart' show Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../core_types.dart' show CommonElements;
@@ -116,19 +115,6 @@ class ElementKind {
       const ElementKind('error', ElementCategory.NONE);
 
   toString() => id;
-}
-
-/// Abstract interface for entities.
-///
-/// Implement this directly if the entity is not a Dart language entity.
-/// Entities defined within the Dart language should implement [Element].
-///
-/// For instance, the JavaScript backend need to create synthetic variables for
-/// calling intercepted classes and such variables do not correspond to an
-/// entity in the Dart source code nor in the terminology of the Dart language
-/// and should therefore implement [Entity] directly.
-abstract class Entity implements Spannable {
-  String get name;
 }
 
 /**
@@ -1171,7 +1157,9 @@ abstract class MemberElement extends Element
 
 /// A function, variable or parameter defined in an executable context.
 abstract class LocalElement extends Element
-    implements AstElement, TypedElement, Local {}
+    implements AstElement, TypedElement, Local {
+  ExecutableElement get executableContext;
+}
 
 /// A top level, static or instance field, a formal parameter or local variable.
 abstract class VariableElement extends ExecutableElement {
@@ -1188,24 +1176,6 @@ abstract class VariableElement extends ExecutableElement {
   /// [ErroneousConstantExpression], otherwise, the value is null when the
   /// initializer isn't a constant expression.
   ConstantExpression get constant;
-}
-
-/// An entity that defines a local entity (memory slot) in generated code.
-///
-/// Parameters, local variables and local functions (can) define local entity
-/// and thus implement [Local] through [LocalElement]. For non-element locals,
-/// like `this` and boxes, specialized [Local] classes are created.
-///
-/// Type variables can introduce locals in factories and constructors
-/// but since one type variable can introduce different locals in different
-/// factories and constructors it is not itself a [Local] but instead
-/// a non-element [Local] is created through a specialized class.
-// TODO(johnniwinther): Should [Local] have `isAssignable` or `type`?
-// TODO(johnniwinther): Move this to 'entities.dart' when it does not refer
-// to [ExecutableElement].
-abstract class Local extends Entity {
-  /// The context in which this local is defined.
-  ExecutableElement get executableContext;
 }
 
 /// A variable or parameter that is local to an executable context.
