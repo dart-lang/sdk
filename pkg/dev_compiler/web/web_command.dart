@@ -207,7 +207,8 @@ class WebCompileCommand extends Command {
           code: moduleCode, isValid: module.isValid, errors: module.errors);
     };
 
-    return allowInterop(compileFn);
+    // TODO(vsm): Cast is due to https://github.com/dart-lang/sdk/issues/28507
+    return allowInterop(compileFn) as CompileModule;
   }
 }
 
