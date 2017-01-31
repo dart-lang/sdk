@@ -9554,6 +9554,17 @@ f(x) => 42;
     _assertParameterZeroVisibleRange(p);
   }
 
+  test_parameter_visibleRange_invalid_fieldFormalParameter() {
+    UnlinkedExecutable m =
+        findExecutable('m', executables: serializeClassText(r'''
+class C {
+  int foo;
+  void m(this.foo) {}
+}
+''').executables);
+    _assertParameterZeroVisibleRange(m.parameters[0]);
+  }
+
   test_parameter_visibleRange_typedef() {
     UnlinkedTypedef type = serializeTypedefText('typedef F(x);');
     _assertParameterZeroVisibleRange(type.parameters[0]);

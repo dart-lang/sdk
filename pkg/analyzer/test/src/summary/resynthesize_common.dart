@@ -3900,6 +3900,15 @@ class C {
 ''');
   }
 
+  test_invalid_setterParameter_fieldFormalParameter() {
+    checkLibrary('''
+class C {
+  int foo;
+  void set bar(this.foo) {}
+}
+''');
+  }
+
   test_library() {
     checkLibrary('');
   }

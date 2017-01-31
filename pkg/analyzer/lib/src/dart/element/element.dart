@@ -1208,16 +1208,6 @@ class ClassElementImpl extends AbstractClassElementImpl
         PropertyAccessorElementImpl accessor =
             new PropertyAccessorElementImpl.forSerialized(e, this);
         explicitAccessors.add(accessor);
-        // Prepare the field type.
-        DartType fieldType;
-        if (e.kind == UnlinkedExecutableKind.getter) {
-          fieldType = accessor.returnType;
-        } else {
-          List<ParameterElement> parameters = accessor.parameters;
-          fieldType = parameters.isNotEmpty
-              ? parameters[0].type
-              : DynamicTypeImpl.instance;
-        }
         // Create or update the implicit field.
         String fieldName = accessor.displayName;
         FieldElementImpl field = implicitFields[fieldName];
@@ -1227,7 +1217,6 @@ class ClassElementImpl extends AbstractClassElementImpl
           field.enclosingElement = this;
           field.isSynthetic = true;
           field.isFinal = e.kind == UnlinkedExecutableKind.getter;
-          field.type = fieldType;
           field.isStatic = e.isStatic;
         } else {
           field.isFinal = false;
@@ -6907,6 +6896,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     return super.type;
   }
 
+  @override
   void set type(DartType type) {
     _assertNotResynthesized(_unlinkedVariable);
     _type = type;
@@ -7886,6 +7876,23 @@ abstract class PropertyInducingElementImpl
   void set propagatedType(DartType propagatedType) {
     _assertNotResynthesized(_unlinkedVariable);
     _propagatedType = propagatedType;
+  }
+
+  @override
+  DartType get type {
+    if (isSynthetic && _type == null) {
+      if (getter != null) {
+        _type = getter.returnType;
+      } else if (setter != null) {
+        List<ParameterElement> parameters = setter.parameters;
+        _type = parameters.isNotEmpty
+            ? parameters[0].type
+            : DynamicTypeImpl.instance;
+      } else {
+        _type = DynamicTypeImpl.instance;
+      }
+    }
+    return super.type;
   }
 }
 

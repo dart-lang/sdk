@@ -710,8 +710,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       bool serializeBody) {
     if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
       for (UnlinkedParamBuilder parameter in b.parameters) {
-        parameter.visibleOffset = body.offset;
-        parameter.visibleLength = body.length;
+        if (!parameter.isInitializingFormal) {
+          parameter.visibleOffset = body.offset;
+          parameter.visibleLength = body.length;
+        }
       }
     }
     List<UnlinkedExecutableBuilder> oldExecutables = executables;
