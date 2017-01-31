@@ -4679,6 +4679,15 @@ int V = 0;
         allowErrors: true);
   }
 
+  test_type_invalid_topLevelVariableElement_asTypeArgument() {
+    checkLibrary(
+        '''
+var V;
+static List<V> V2;
+''',
+        allowErrors: true);
+  }
+
   test_type_invalid_typeParameter_asPrefix() {
     checkLibrary(
         '''

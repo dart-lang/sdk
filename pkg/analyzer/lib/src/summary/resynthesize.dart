@@ -1625,7 +1625,8 @@ class _UnitResynthesizer {
     } else {
       DartType getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
-          return buildType(type.typeArguments[i], typeParameterContext);
+          return buildType(type.typeArguments[i], typeParameterContext,
+              declaredType: declaredType);
         } else {
           return DynamicTypeImpl.instance;
         }
