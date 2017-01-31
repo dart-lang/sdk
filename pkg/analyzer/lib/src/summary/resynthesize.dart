@@ -1194,6 +1194,11 @@ class _ReferenceInfo {
   final String name;
 
   /**
+   * Is `true` if the [element] can be used as a declared type.
+   */
+  final bool isDeclarableType;
+
+  /**
    * The element referred to by this reference, or `null` if there is no
    * associated element (e.g. because it is a reference to an undefined
    * entity).
@@ -1221,8 +1226,14 @@ class _ReferenceInfo {
    * the type itself.  Otherwise, pass `null` and the type will be computed
    * when appropriate.
    */
-  _ReferenceInfo(this.libraryResynthesizer, this.enclosing, this.name,
-      this.element, DartType specialType, this.numTypeParameters) {
+  _ReferenceInfo(
+      this.libraryResynthesizer,
+      this.enclosing,
+      this.name,
+      this.isDeclarableType,
+      this.element,
+      DartType specialType,
+      this.numTypeParameters) {
     if (specialType != null) {
       type = specialType;
     } else {
@@ -1409,10 +1420,13 @@ class _ResynthesizerContext implements ResynthesizerContext {
   @override
   DartType resolveTypeRef(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
-      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
+      {bool defaultVoid: false,
+      bool instantiateToBoundsAllowed: true,
+      bool declaredType: false}) {
     return _unitResynthesizer.buildType(type, typeParameterContext,
         defaultVoid: defaultVoid,
-        instantiateToBoundsAllowed: instantiateToBoundsAllowed);
+        instantiateToBoundsAllowed: instantiateToBoundsAllowed,
+        declaredType: declaredType);
   }
 }
 
@@ -1592,7 +1606,9 @@ class _UnitResynthesizer {
    */
   DartType buildType(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
-      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
+      {bool defaultVoid: false,
+      bool instantiateToBoundsAllowed: true,
+      bool declaredType: false}) {
     if (type == null) {
       if (defaultVoid) {
         return VoidTypeImpl.instance;
@@ -1616,6 +1632,9 @@ class _UnitResynthesizer {
       }
 
       _ReferenceInfo referenceInfo = getReferenceInfo(type.reference);
+      if (declaredType && !referenceInfo.isDeclarableType) {
+        return DynamicTypeImpl.instance;
+      }
       return referenceInfo.buildType(
           instantiateToBoundsAllowed,
           type.typeArguments.length,
@@ -1715,19 +1734,24 @@ class _UnitResynthesizer {
           : null;
       Element element;
       DartType type;
+      bool isDeclarableType = false;
       int numTypeParameters = linkedReference.numTypeParameters;
       if (linkedReference.kind == ReferenceKind.unresolved) {
         type = UndefinedTypeImpl.instance;
         element = null;
+        isDeclarableType = true;
       } else if (name == 'dynamic') {
         type = DynamicTypeImpl.instance;
         element = type.element;
+        isDeclarableType = true;
       } else if (name == 'void') {
         type = VoidTypeImpl.instance;
         element = type.element;
+        isDeclarableType = true;
       } else if (name == '*bottom*') {
         type = BottomTypeImpl.instance;
         element = null;
+        isDeclarableType = true;
       } else {
         List<String> locationComponents;
         if (enclosingInfo != null && enclosingInfo.element is ClassElement) {
@@ -1756,6 +1780,7 @@ class _UnitResynthesizer {
         switch (linkedReference.kind) {
           case ReferenceKind.classOrEnum:
             element = new ClassElementHandle(summaryResynthesizer, location);
+            isDeclarableType = true;
             break;
           case ReferenceKind.constructor:
             assert(location.components.length == 4);
@@ -1782,6 +1807,7 @@ class _UnitResynthesizer {
           case ReferenceKind.typedef:
             element = new FunctionTypeAliasElementHandle(
                 summaryResynthesizer, location);
+            isDeclarableType = true;
             break;
           case ReferenceKind.variable:
             Element enclosingElement = enclosingInfo.element;
@@ -1811,7 +1837,7 @@ class _UnitResynthesizer {
         }
       }
       result = new _ReferenceInfo(libraryResynthesizer, enclosingInfo, name,
-          element, type, numTypeParameters);
+          isDeclarableType, element, type, numTypeParameters);
       referenceInfos[index] = result;
     }
     return result;

@@ -3871,7 +3871,8 @@ abstract class ExecutableElementImpl extends ElementImpl
           serializedExecutable.inferredReturnTypeSlot, typeParameterContext);
       _declaredReturnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
           serializedExecutable.returnType, typeParameterContext,
-          defaultVoid: isSetter && context.analysisOptions.strongMode);
+          defaultVoid: isSetter && context.analysisOptions.strongMode,
+          declaredType: true);
     }
     return _returnType ?? _declaredReturnType;
   }
@@ -4743,8 +4744,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   @override
   DartType get returnType {
     if (_unlinkedTypedef != null && _returnType == null) {
-      _returnType = enclosingUnit.resynthesizerContext
-          .resolveTypeRef(_unlinkedTypedef.returnType, this);
+      _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+          _unlinkedTypedef.returnType, this,
+          declaredType: true);
     }
     return _returnType;
   }
@@ -6890,8 +6892,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     if (_unlinkedVariable != null && _declaredType == null && _type == null) {
       _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
           _unlinkedVariable.inferredTypeSlot, typeParameterContext);
-      _declaredType = enclosingUnit.resynthesizerContext
-          .resolveTypeRef(_unlinkedVariable.type, typeParameterContext);
+      _declaredType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+          _unlinkedVariable.type, typeParameterContext,
+          declaredType: true);
     }
     return super.type;
   }
@@ -7379,8 +7382,9 @@ class ParameterElementImpl extends VariableElementImpl
       } else {
         _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
             _unlinkedParam.inferredTypeSlot, typeParameterContext);
-        _declaredType = enclosingUnit.resynthesizerContext
-            .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
+        _declaredType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+            _unlinkedParam.type, typeParameterContext,
+            declaredType: true);
       }
     }
   }
@@ -7955,7 +7959,9 @@ abstract class ResynthesizerContext {
    */
   DartType resolveTypeRef(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
-      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true});
+      {bool defaultVoid: false,
+      bool instantiateToBoundsAllowed: true,
+      bool declaredType: false});
 }
 
 /**
@@ -8155,7 +8161,7 @@ class TypeParameterElementImpl extends ElementImpl
       }
       return _bound ??= enclosingUnit.resynthesizerContext.resolveTypeRef(
           _unlinkedTypeParam.bound, enclosingElement,
-          instantiateToBoundsAllowed: false);
+          instantiateToBoundsAllowed: false, declaredType: true);
     }
     return _bound;
   }

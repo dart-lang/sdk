@@ -1061,7 +1061,9 @@ abstract class CompilationUnitElementForLink
   @override
   DartType resolveTypeRef(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
-      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
+      {bool defaultVoid: false,
+      bool instantiateToBoundsAllowed: true,
+      bool declaredType: false}) {
     if (type == null) {
       if (defaultVoid) {
         return VoidTypeImpl.instance;

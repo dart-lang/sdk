@@ -4659,6 +4659,18 @@ bool f() => true;
     checkLibrary('dynamic d;');
   }
 
+  test_type_invalid_topLevelVariableElement_asType() {
+    checkLibrary(
+        '''
+class C<T extends V> {}
+typedef V F(V p);
+V f(V p) {}
+V V2 = null;
+int V = 0;
+''',
+        allowErrors: true);
+  }
+
   test_type_invalid_typeParameter_asPrefix() {
     checkLibrary(
         '''
