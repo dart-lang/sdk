@@ -3909,6 +3909,14 @@ class C {
 ''');
   }
 
+  test_invalid_setterParameter_fieldFormalParameter_self() {
+    checkLibrary('''
+class C {
+  set x(this.x) {}
+}
+''');
+  }
+
   test_library() {
     checkLibrary('');
   }

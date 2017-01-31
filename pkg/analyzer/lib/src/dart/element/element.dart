@@ -4314,13 +4314,14 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   @override
   FieldElement get field {
     if (_unlinkedParam != null && _field == null) {
-      Element enclosing = enclosingElement?.enclosingElement;
-      while (enclosing != null) {
-        if (enclosing is ClassElement) {
-          _field = enclosing.getField(_unlinkedParam.name);
-          break;
-        } else {
-          enclosing = enclosing.enclosingElement;
+      Element enclosingConstructor = enclosingElement;
+      if (enclosingConstructor is ConstructorElement) {
+        Element enclosingClass = enclosingConstructor.enclosingElement;
+        if (enclosingClass is ClassElement) {
+          FieldElement field = enclosingClass.getField(_unlinkedParam.name);
+          if (field != null && !field.isSynthetic) {
+            _field = field;
+          }
         }
       }
     }

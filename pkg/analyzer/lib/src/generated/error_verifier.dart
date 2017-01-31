@@ -5904,6 +5904,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   void _checkForValidField(FieldFormalParameter parameter) {
+    AstNode parent2 = parameter.parent?.parent;
+    if (parent2 is! ConstructorDeclaration &&
+        parent2?.parent is! ConstructorDeclaration) {
+      return;
+    }
     ParameterElement element = parameter.element;
     if (element is FieldFormalParameterElement) {
       FieldElement fieldElement = element.field;
