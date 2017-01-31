@@ -339,8 +339,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitPartDirective(PartDirective node) {
     super.visitPartDirective(node);
-    _resolveAnnotations(
-        node, node.metadata, _enclosingUnit.getAnnotations(node.offset));
+    List<ElementAnnotation> annotations =
+        _enclosingUnit.getAnnotations(node.offset);
+    if (annotations.isEmpty && node.metadata.isNotEmpty) {
+      int index = (node.parent as CompilationUnit)
+          .directives
+          .where((directive) => directive is PartDirective)
+          .toList()
+          .indexOf(node);
+      annotations = _walker.element.library.parts[index].metadata;
+    }
+    _resolveAnnotations(node, node.metadata, annotations);
     return null;
   }
 
