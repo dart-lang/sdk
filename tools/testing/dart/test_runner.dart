@@ -2389,7 +2389,7 @@ class BatchDFEProcess  {
 
   Future _startProcess() async {
     final executable = io.Platform.executable;
-    final arguments = ['runtime/tools/kernel-service.dart', '--batch'];
+    final arguments = ['utils/kernel-service/kernel-service.dart', '--batch'];
 
     try {
       _port = -1;

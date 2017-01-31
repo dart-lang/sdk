@@ -1,0 +1,17 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../application_snapshot.gni")
+
+application_snapshot("kernel-service") {
+  dfe_script = "kernel-service.dart"
+  deps = [
+    "../../runtime/vm:patched_sdk($host_toolchain)",
+  ]
+  main_dart = dfe_script
+  training_args = [
+    "--train",
+    "file://" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart"),
+  ]
+}

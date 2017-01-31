@@ -74,10 +74,8 @@ class RunKernelTask : public ThreadPool::Task {
     isolate = reinterpret_cast<Isolate*>(create_callback(
         KernelIsolate::kName, NULL, NULL, NULL, &api_flags, NULL, &error));
     if (isolate == NULL) {
-      if (FLAG_trace_kernel) {
-        OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Isolate creation error: %s\n",
-                     error);
-      }
+      OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Isolate creation error: %s\n",
+                   error);
       KernelIsolate::SetKernelIsolate(NULL);
       KernelIsolate::FinishedInitializing();
       return;
@@ -151,10 +149,8 @@ class RunKernelTask : public ThreadPool::Task {
     const Library& root_library =
         Library::Handle(Z, I->object_store()->root_library());
     if (root_library.IsNull()) {
-      if (FLAG_trace_kernel) {
-        OS::Print(DART_KERNEL_ISOLATE_NAME
-                  ": Embedder did not install a script.");
-      }
+      OS::Print(DART_KERNEL_ISOLATE_NAME
+                ": Embedder did not install a script.");
       // Kernel isolate is not supported by embedder.
       return false;
     }
@@ -165,10 +161,8 @@ class RunKernelTask : public ThreadPool::Task {
         Z, root_library.LookupFunctionAllowPrivate(entry_name));
     if (entry.IsNull()) {
       // Kernel isolate is not supported by embedder.
-      if (FLAG_trace_kernel) {
-        OS::Print(DART_KERNEL_ISOLATE_NAME
-                  ": Embedder did not provide a main function.");
-      }
+      OS::Print(DART_KERNEL_ISOLATE_NAME
+                ": Embedder did not provide a main function.");
       return false;
     }
     ASSERT(!entry.IsNull());
@@ -177,12 +171,10 @@ class RunKernelTask : public ThreadPool::Task {
     ASSERT(!result.IsNull());
     if (result.IsError()) {
       // Kernel isolate did not initialize properly.
-      if (FLAG_trace_kernel) {
-        const Error& error = Error::Cast(result);
-        OS::Print(DART_KERNEL_ISOLATE_NAME
-                  ": Calling main resulted in an error: %s",
-                  error.ToErrorCString());
-      }
+      const Error& error = Error::Cast(result);
+      OS::Print(DART_KERNEL_ISOLATE_NAME
+                ": Calling main resulted in an error: %s",
+                error.ToErrorCString());
       return false;
     }
     ASSERT(result.IsReceivePort());

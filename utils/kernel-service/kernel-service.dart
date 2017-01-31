@@ -11,12 +11,12 @@ library runtime.tools.kernel_service;
 // This is either invoked as the root script of the Kernel isolate when used
 // as a part of
 //
-//           dart --dfe=runtime/tools/kernel-service.dart ...
+//           dart --dfe=utils/kernel-service/kernel-service.dart ...
 //
 // invocation or it is invoked as a standalone script to perform batch mode
 // compilation requested via an HTTP interface
 //
-//           dart runtime/tools/kernel-service.dart --batch
+//           dart utils/kernel-service/kernel-service.dart --batch
 //
 // The port for the batch mode worker is controlled by DFE_WORKER_PORT
 // environment declarations (set by -DDFE_WORKER_PORT=... command line flag).
@@ -312,9 +312,34 @@ void startBatchServer() {
   });
 }
 
+train(String scriptUri) {
+  // TODO(28532): Enable on Windows.
+  if (Platform.isWindows) return;
+
+  var tag = 1;
+  var responsePort = new RawReceivePort();
+  responsePort.handler = (response) {
+    if (response[0] == tag) {
+      // Success.
+      responsePort.close();
+    } else if (response[0] == -tag) {
+      // Compilation error.
+      throw response[4];
+    } else {
+      throw "Unexpected response: $response";
+    }
+  };
+  var request = [tag, responsePort.sendPort, scriptUri];
+  _processLoadRequest(request);
+}
+
 main([args]) {
   if (args?.length == 1 && args[0] == '--batch') {
     startBatchServer();
+  } else if (args?.length == 2 && args[0] == '--train') {
+    // This entry point is used when creating an app snapshot. The argument
+    // provides a script to compile to warm-up generated code.
+    train(args[1]);
   } else {
     // Entry point for the Kernel isolate.
     return new RawReceivePort()..handler = _processLoadRequest;
