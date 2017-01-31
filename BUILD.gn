@@ -42,6 +42,12 @@ group("runtime") {
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
     "runtime/vm:patched_sdk",
+  ]
+}
+
+group("runtime_kernel") {
+  deps = [
+    ":runtime",
 
     # TODO(rmacnak): Link this into 'dart'
     "utils/kernel-service:kernel-service",
