@@ -286,6 +286,41 @@ part of L;
     expect(file.isPart, isFalse);
   }
 
+  test_getFileForPath_import_invalidUri() {
+    String a = _p('/aaa/lib/a.dart');
+    String a1 = _p('/aaa/lib/a1.dart');
+    String a2 = _p('/aaa/lib/a2.dart');
+    String a3 = _p('/aaa/lib/a3.dart');
+    String content_a1 = r'''
+import 'package:aaa/a1.dart';
+import '[invalid uri]';
+
+export '[invalid uri]';
+export 'package:aaa/a2.dart';
+
+part 'a3.dart';
+part '[invalid uri]';
+''';
+    provider.newFile(a, content_a1);
+
+    FileState file = fileSystemState.getFileForPath(a);
+
+    expect(_excludeSdk(file.importedFiles), hasLength(1));
+    expect(file.importedFiles[0].path, a1);
+    expect(file.importedFiles[0].uri, Uri.parse('package:aaa/a1.dart'));
+    expect(file.importedFiles[0].source, isNotNull);
+
+    expect(_excludeSdk(file.exportedFiles), hasLength(1));
+    expect(file.exportedFiles[0].path, a2);
+    expect(file.exportedFiles[0].uri, Uri.parse('package:aaa/a2.dart'));
+    expect(file.exportedFiles[0].source, isNotNull);
+
+    expect(_excludeSdk(file.partedFiles), hasLength(1));
+    expect(file.partedFiles[0].path, a3);
+    expect(file.partedFiles[0].uri, Uri.parse('package:aaa/a3.dart'));
+    expect(file.partedFiles[0].source, isNotNull);
+  }
+
   test_getFileForPath_library() {
     String a1 = _p('/aaa/lib/a1.dart');
     String a2 = _p('/aaa/lib/a2.dart');
