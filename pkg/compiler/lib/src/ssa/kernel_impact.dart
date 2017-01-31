@@ -33,45 +33,57 @@ ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
     Kernel kernel = backend.kernelTask.kernel;
     KernelAstAdapter astAdapter = new KernelAstAdapter(kernel, compiler.backend,
         resolvedAst, kernel.nodeToAst, kernel.nodeToElement);
-    KernelImpactBuilder builder = new KernelImpactBuilder(
-        '${resolvedAst.element}', astAdapter, compiler.commonElements);
-    if (element.isFunction ||
-        element.isGetter ||
-        element.isSetter ||
-        element.isFactoryConstructor) {
-      ir.Procedure function = kernel.functions[element];
-      if (function == null) {
-        throw "FOUND NULL FUNCTION: $element";
-      } else {
-        return builder.buildProcedure(function);
-      }
-    } else if (element.isGenerativeConstructor) {
-      ir.Constructor constructor = kernel.functions[element];
-      if (constructor == null) {
-        throw "FOUND NULL CONSTRUCTOR: $element";
-      } else {
-        return builder.buildConstructor(constructor);
-      }
-    } else if (element.isField) {
-      ir.Field field = kernel.fields[element];
-      if (field == null) {
-        throw "FOUND NULL FIELD: $element";
-      } else {
-        return builder.buildField(field);
-      }
-    } else {
-      throw new UnsupportedError("Unsupported element: $element");
-    }
+    ir.Member member = getIrMember(compiler, resolvedAst);
+    return buildKernelImpact(member, astAdapter);
   });
+}
+
+ir.Member getIrMember(Compiler compiler, ResolvedAst resolvedAst) {
+  AstElement element = resolvedAst.element;
+  JavaScriptBackend backend = compiler.backend;
+  Kernel kernel = backend.kernelTask.kernel;
+  ir.Member member;
+  if (element.isFunction ||
+      element.isGetter ||
+      element.isSetter ||
+      element.isConstructor) {
+    member = kernel.functions[element];
+    if (member == null) {
+      throw "FOUND NULL FUNCTION: $element";
+    }
+  } else if (element.isField) {
+    member = kernel.fields[element];
+    if (member == null) {
+      throw "FOUND NULL FIELD: $element";
+    }
+  } else {
+    throw new UnsupportedError("Unsupported element: $element");
+  }
+  return member;
+}
+
+ResolutionImpact buildKernelImpact(
+    ir.Member member, KernelElementAdapter elementAdapter) {
+  KernelImpactBuilder builder =
+      new KernelImpactBuilder('${member.name}', elementAdapter);
+  if (member is ir.Procedure) {
+    return builder.buildProcedure(member);
+  } else if (member is ir.Constructor) {
+    return builder.buildConstructor(member);
+  } else if (member is ir.Field) {
+    return builder.buildField(member);
+  }
+  throw new UnsupportedError("Unsupported member: $member");
 }
 
 class KernelImpactBuilder extends ir.Visitor {
   final ResolutionWorldImpactBuilder impactBuilder;
   final KernelElementAdapter elementAdapter;
-  final CommonElements commonElements;
 
-  KernelImpactBuilder(String name, this.elementAdapter, this.commonElements)
+  KernelImpactBuilder(String name, this.elementAdapter)
       : this.impactBuilder = new ResolutionWorldImpactBuilder(name);
+
+  CommonElements get commonElements => elementAdapter.commonElements;
 
   /// Add a checked-mode type use of [type] if it is not `dynamic`.
   DartType checkType(ir.DartType irType) {
@@ -277,7 +289,6 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitStaticInvocation(ir.StaticInvocation node) {
-    FunctionEntity target = elementAdapter.getMethod(node.target);
     if (node.target.kind == ir.ProcedureKind.Factory) {
       // TODO(johnniwinther): We should not mark the type as instantiated but
       // rather follow the type arguments directly.
@@ -303,6 +314,7 @@ class KernelImpactBuilder extends ir.Visitor {
       // instantiated as int and String.
       handleNew(node, node.target, isConst: node.isConst);
     } else {
+      FunctionEntity target = elementAdapter.getMethod(node.target);
       _visitArguments(node.arguments);
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
           target, elementAdapter.getCallStructure(node.arguments)));

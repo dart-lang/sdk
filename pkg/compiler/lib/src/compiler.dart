@@ -1559,6 +1559,8 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     } else if (node is Local) {
       Local local = node;
       return spanFromElement(local.executableContext);
+    } else if (node is Entity) {
+      return spanFromElement(currentElement);
     } else {
       throw 'No error location.';
     }

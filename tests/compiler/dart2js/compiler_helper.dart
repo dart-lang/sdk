@@ -260,7 +260,6 @@ Future compileAndMatchFuzzyHelper(
   });
 }
 
-
 /// Returns a 'check' function that uses comments in [test] to drive checking.
 ///
 /// The comments contains one or more 'present:' or 'absent:' tags, each
@@ -281,14 +280,15 @@ checkerForAbsentPresent(String test) {
       String pattern = match.groups([2, 3]).where((s) => s != null).single;
       if (directive == 'present') {
         Expect.isTrue(generated.contains(pattern),
-                      "Cannot find '$pattern' in:\n$generated");
+            "Cannot find '$pattern' in:\n$generated");
       } else {
         assert(directive == 'absent');
         Expect.isFalse(generated.contains(pattern),
-                       "Must not find '$pattern' in:\n$generated");
+            "Must not find '$pattern' in:\n$generated");
       }
     }
   }
+
   return checker;
 }
 

@@ -8,8 +8,7 @@ import '../common/backend_api.dart' show BackendClasses;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart'
-    show JumpTarget, LabelDefinition;
+import '../elements/elements.dart' show JumpTarget, LabelDefinition;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -1352,7 +1351,7 @@ abstract class HInstruction implements Spannable {
     assert(!type.isTypeVariable);
     assert(type.treatAsRaw || type.isFunctionType);
     if (type.isDynamic) return this;
-    if (type.isObject) return this;
+    if (type == closedWorld.commonElements.objectType) return this;
     if (type.isVoid || type.isFunctionType || type.isMalformed) {
       return new HTypeConversion(
           type, kind, closedWorld.commonMasks.dynamicType, this);

@@ -13,6 +13,9 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/js_backend/backend.dart';
+import 'package:compiler/src/kernel/world_builder.dart';
+import 'package:compiler/src/kernel/element_adapter.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
@@ -21,6 +24,7 @@ import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:expect/expect.dart';
+import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
 import '../serialization/test_helper.dart';
 
@@ -628,34 +632,43 @@ main(List<String> args) {
         ]);
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    checkLibrary(compiler, compiler.mainApp, fullTest: fullTest);
+    JavaScriptBackend backend = compiler.backend;
+    KernelElementAdapter kernelElementAdapter =
+        new KernelWorldBuilder(compiler.reporter, backend.kernelTask.program);
+
+    checkLibrary(compiler, kernelElementAdapter, compiler.mainApp,
+        fullTest: fullTest);
     if (fullTest) {
       // TODO(johnniwinther): Handle all libraries for `!fullTest`.
       compiler.libraryLoader.libraries.forEach((LibraryElement library) {
         if (library == compiler.mainApp) return;
-        checkLibrary(compiler, library, fullTest: fullTest);
+        checkLibrary(compiler, kernelElementAdapter, library,
+            fullTest: fullTest);
       });
     }
   });
 }
 
-void checkLibrary(Compiler compiler, LibraryElement library,
+void checkLibrary(Compiler compiler, KernelElementAdapter kernelElementAdapter,
+    LibraryElement library,
     {bool fullTest: false}) {
   library.forEachLocalMember((AstElement element) {
     if (element.isClass) {
       ClassElement cls = element;
       cls.forEachLocalMember((AstElement member) {
-        checkElement(compiler, member, fullTest: fullTest);
+        checkElement(compiler, kernelElementAdapter, member,
+            fullTest: fullTest);
       });
     } else if (element.isTypedef) {
       // Skip typedefs.
     } else {
-      checkElement(compiler, element, fullTest: fullTest);
+      checkElement(compiler, kernelElementAdapter, element, fullTest: fullTest);
     }
   });
 }
 
-void checkElement(Compiler compiler, AstElement element,
+void checkElement(Compiler compiler, KernelElementAdapter kernelElementAdapter,
+    AstElement element,
     {bool fullTest: false}) {
   if (!fullTest) {
     if (element.library.isPlatformLibrary) {
@@ -695,12 +708,18 @@ void checkElement(Compiler compiler, AstElement element,
   if (!fullTest && !compiler.resolution.hasResolutionImpact(element)) {
     return;
   }
-  ResolutionImpact astImpact = compiler.resolution.getResolutionImpact(element);
-  astImpact = laxImpact(compiler, element, astImpact);
-  ResolutionImpact kernelImpact = build(compiler, element.resolvedAst);
-  Expect.isNotNull(kernelImpact, 'No impact computed for $element');
-  testResolutionImpactEquivalence(
-      astImpact, kernelImpact, const CheckStrategy());
+  compiler.reporter.withCurrentElement(element.implementation, () {
+    ResolutionImpact astImpact =
+        compiler.resolution.getResolutionImpact(element);
+    astImpact = laxImpact(compiler, element, astImpact);
+    ResolutionImpact kernelImpact = build(compiler, element.resolvedAst);
+    ir.Member member = getIrMember(compiler, element.resolvedAst);
+    // TODO(johnniwinther): Check equivalence for the computed impact.
+    buildKernelImpact(member, kernelElementAdapter);
+    Expect.isNotNull(kernelImpact, 'No impact computed for $element');
+    testResolutionImpactEquivalence(
+        astImpact, kernelImpact, const CheckStrategy());
+  });
 }
 
 /// Lax the precision of [impact] to meet expectancy of the corresponding impact
