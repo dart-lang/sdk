@@ -330,6 +330,20 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
 
 
 static void DumpStackFrame(intptr_t frame_index, uword pc) {
+  Isolate* isolate = Isolate::Current();
+  if ((isolate != NULL) && isolate->is_runnable()) {
+    Code& code = Code::Handle(Code::LookupCodeInVmIsolate(pc));
+    if (!code.IsNull()) {
+      OS::PrintErr("  [0x%" Pp "] %s\n", pc, code.QualifiedName());
+      return;
+    }
+    code = Code::LookupCode(pc);
+    if (!code.IsNull()) {
+      OS::PrintErr("  [0x%" Pp "] %s\n", pc, code.QualifiedName());
+      return;
+    }
+  }
+
   uintptr_t start = 0;
   char* native_symbol_name = NativeSymbolResolver::LookupSymbolName(pc, &start);
   if (native_symbol_name == NULL) {
@@ -337,16 +351,6 @@ static void DumpStackFrame(intptr_t frame_index, uword pc) {
   } else {
     OS::PrintErr("  [0x%" Pp "] %s\n", pc, native_symbol_name);
     NativeSymbolResolver::FreeSymbolName(native_symbol_name);
-  }
-}
-
-
-static void DumpStackFrame(intptr_t frame_index, uword pc, const Code& code) {
-  if (code.IsNull()) {
-    DumpStackFrame(frame_index, pc);
-  } else {
-    OS::PrintErr("Frame[%" Pd "] = Dart:`%s` [0x%" Px "]\n", frame_index,
-                 code.ToCString(), pc);
   }
 }
 
@@ -368,16 +372,6 @@ class ProfilerStackWalker : public ValueObject {
       ASSERT(sample_buffer_ != NULL);
       ASSERT(sample_->head_sample());
     }
-  }
-
-  bool Append(uword pc, const Code& code) {
-    if (sample_ == NULL) {
-      DumpStackFrame(frame_index_, pc, code);
-      frame_index_++;
-      total_frames_++;
-      return true;
-    }
-    return Append(pc);
   }
 
   bool Append(uword pc) {
