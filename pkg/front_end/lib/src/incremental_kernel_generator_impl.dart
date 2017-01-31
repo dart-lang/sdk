@@ -93,7 +93,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 }
 
 class _AnalysisContextProxy implements AnalysisContext {
-  final Map<Uri, ResolvedLibrary> _resolvedLibraries;
+  final Map<Uri, Map<Uri, CompilationUnit>> _resolvedLibraries;
 
   @override
   final _SourceFactoryProxy sourceFactory = new _SourceFactoryProxy();
@@ -112,7 +112,7 @@ class _AnalysisContextProxy implements AnalysisContext {
     assert(_resolvedLibraries.containsKey(source.uri));
     return resolutionMap
         .elementDeclaredByCompilationUnit(
-            _resolvedLibraries[source.uri].definingCompilationUnit)
+            _resolvedLibraries[source.uri][source.uri])
         .library;
   }
 
@@ -120,14 +120,9 @@ class _AnalysisContextProxy implements AnalysisContext {
 
   CompilationUnit resolveCompilationUnit(
       Source unitSource, LibraryElement library) {
-    assert(_resolvedLibraries.containsKey(library.source.uri));
-    var resolvedLibrary = _resolvedLibraries[library.source.uri];
-    if (unitSource == library.source) {
-      return resolvedLibrary.definingCompilationUnit;
-    } else {
-      assert(resolvedLibrary.partUnits.containsKey(unitSource.uri));
-      return resolvedLibrary.partUnits[unitSource.uri];
-    }
+    var unit = _resolvedLibraries[library.source.uri][unitSource.uri];
+    assert(unit != null);
+    return unit;
   }
 }
 

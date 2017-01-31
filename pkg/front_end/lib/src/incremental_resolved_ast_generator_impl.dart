@@ -69,7 +69,7 @@ class IncrementalResolvedAstGeneratorImpl
         await graphForProgram([_source], _options, fileReader: _fileReader);
     // TODO(paulberry): collect no-longer-referenced files from _fileState and
     // _fileRepository.
-    var libraries = <Uri, ResolvedLibrary>{};
+    var libraries = <Uri, Map<Uri, CompilationUnit>>{};
     if (!_schedulerStarted) {
       _scheduler.start();
       _schedulerStarted = true;
@@ -87,8 +87,7 @@ class IncrementalResolvedAstGeneratorImpl
         var result =
             await _driver.getResult(_fileRepository.pathForUri(libraryUri));
         // TODO(paulberry): handle errors.
-        var definingCompilationUnit = result.unit;
-        var partUnits = <Uri, CompilationUnit>{};
+        var units = {libraryUri: result.unit};
         for (var partUri in libraryNode.parts) {
           // Really we ought to have a driver API that lets us request a
           // specific part of a given library.  Otherwise we will run into
@@ -97,10 +96,9 @@ class IncrementalResolvedAstGeneratorImpl
           var partResult =
               await _driver.getResult(_fileRepository.pathForUri(partUri));
           // TODO(paulberry): handle errors.
-          partUnits[partUri] = partResult.unit;
+          units[partUri] = partResult.unit;
         }
-        libraries[libraryUri] =
-            new ResolvedLibrary(definingCompilationUnit, partUnits);
+        libraries[libraryUri] = units;
       }
     }
     _driver.addFile(_fileRepository.pathForUri(_source));
