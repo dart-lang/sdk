@@ -7,6 +7,7 @@ library kernel.transformations.continuation;
 import 'dart:math' as math;
 
 import '../ast.dart';
+import '../core_types.dart';
 import '../visitor.dart';
 
 import 'async.dart';
@@ -112,11 +113,12 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
 }
 
 class SyncStarFunctionRewriter extends ContinuationRewriterBase {
-  final VariableDeclaration iteratorVariable =
-      new VariableDeclaration(":iterator");
+  final VariableDeclaration iteratorVariable;
 
   SyncStarFunctionRewriter(helper, enclosingFunction)
-      : super(helper, enclosingFunction);
+      : iteratorVariable = new VariableDeclaration(':iterator')
+            ..type = helper.iteratorClass.rawType,
+        super(helper, enclosingFunction);
 
   FunctionNode rewrite() {
     // :sync_body(:iterator) {
@@ -128,7 +130,9 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
         requiredParameterCount: 1,
         asyncMarker: AsyncMarker.SyncYielding)
       ..fileOffset = enclosingFunction.fileOffset
-      ..fileEndOffset = enclosingFunction.fileEndOffset;
+      ..fileEndOffset = enclosingFunction.fileEndOffset
+      ..returnType = helper.coreTypes.boolClass.rawType;
+
     final closureFunction =
         new FunctionDeclaration(nestedClosureVariable, function)
           ..fileOffset = enclosingFunction.parent.fileOffset;
@@ -151,7 +155,10 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     //    :iterator.current_=
     //    :iterator.isYieldEach=
     // and return `true` as long as it did something and `false` when it's done.
-    return enclosingFunction.body.accept(this);
+    return new Block([
+        enclosingFunction.body.accept(this),
+        new ReturnStatement(new BoolLiteral(false))
+    ]);
   }
 
   visitYieldStatement(YieldStatement node) {
@@ -174,6 +181,13 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     statements.add(setCurrentIteratorValue);
     statements.add(createContinuationPoint(new BoolLiteral(true)));
     return new Block(statements);
+  }
+
+  TreeNode visitReturnStatement(ReturnStatement node) {
+    // sync* functions cannot return a value.
+    assert(node.expression == null || node.expression is NullLiteral);
+    node.expression = new BoolLiteral(false)..parent = node;
+    return node;
   }
 }
 
@@ -755,15 +769,37 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
   FunctionNode rewrite() {
     var statements = <Statement>[];
 
-    // var :completer = new Completer.sync();
+    // The original function return type should be Future<T> because the
+    // function is async. If it was, we make a Completer<T>.  Otherwise
+    // We will make a malformed type.
+    var future_type = enclosingFunction.returnType;
+    DartType returnType = const DynamicType();
+    if (future_type is InterfaceType) {
+      if (future_type.classNode == helper.futureClass) {
+        if (future_type.typeArguments.length == 0) {
+          returnType = const DynamicType();
+        } else if (future_type.typeArguments.length == 1) {
+          returnType = future_type.typeArguments[0];
+        } else {
+          returnType = const InvalidType();
+        }
+      }
+    }
+    var completerTypeArguments = <DartType>[returnType];
+    var completerType = new InterfaceType(
+        helper.completerClass, completerTypeArguments);
+
+    // final Completer<T> :completer = new Completer<T>.sync();
     completerVariable = new VariableDeclaration(":completer",
         initializer: new StaticInvocation(helper.completerConstructor,
-            new Arguments([], types: [const DynamicType()]))
+            new Arguments([], types: completerTypeArguments))
           ..fileOffset = enclosingFunction.body.fileOffset,
-        isFinal: true);
+        isFinal: true,
+        type: completerType);
     statements.add(completerVariable);
 
-    returnVariable = new VariableDeclaration(":return_value");
+    returnVariable = new VariableDeclaration(
+        ":return_value", type: returnType);
     statements.add(returnVariable);
 
     setupAsyncContinuations(statements);
@@ -827,6 +863,9 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
 class HelperNodes {
   final Library asyncLibrary;
   final Library coreLibrary;
+  final Class iteratorClass;
+  final Class futureClass;
+  final Class completerClass;
   final Procedure printProcedure;
   final Procedure completerConstructor;
   final Procedure futureMicrotaskConstructor;
@@ -836,10 +875,14 @@ class HelperNodes {
   final Procedure asyncThenWrapper;
   final Procedure asyncErrorWrapper;
   final Procedure awaitHelper;
+  final CoreTypes coreTypes;
 
   HelperNodes(
       this.asyncLibrary,
       this.coreLibrary,
+      this.iteratorClass,
+      this.futureClass,
+      this.completerClass,
       this.printProcedure,
       this.completerConstructor,
       this.syncIterableConstructor,
@@ -848,7 +891,8 @@ class HelperNodes {
       this.streamControllerConstructor,
       this.asyncThenWrapper,
       this.asyncErrorWrapper,
-      this.awaitHelper);
+      this.awaitHelper,
+      this.coreTypes);
 
   factory HelperNodes.fromProgram(Program program) {
     Library findLibrary(String name) {
@@ -895,6 +939,7 @@ class HelperNodes {
 
     var completerClass = findClass(asyncLibrary, 'Completer');
     var futureClass = findClass(asyncLibrary, 'Future');
+    var iteratorClass = findClass(coreLibrary, 'Iterator');
 
     // The VM's dart:async implementation has renamed _StreamIteratorImpl to
     // _StreamIterator.  To support both old and new library implementations we
@@ -917,6 +962,9 @@ class HelperNodes {
     return new HelperNodes(
         asyncLibrary,
         coreLibrary,
+        iteratorClass,
+        futureClass,
+        completerClass,
         findProcedure(coreLibrary, 'print'),
         findFactoryConstructor(completerClass, 'sync'),
         findConstructor(syncIterableClass, ''),
@@ -925,6 +973,7 @@ class HelperNodes {
         findConstructor(streamControllerClass, ''),
         findProcedure(asyncLibrary, '_asyncThenWrapperHelper'),
         findProcedure(asyncLibrary, '_asyncErrorWrapperHelper'),
-        findProcedure(asyncLibrary, '_awaitHelper'));
+        findProcedure(asyncLibrary, '_awaitHelper'),
+        new CoreTypes(program));
   }
 }
