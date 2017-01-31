@@ -78,7 +78,10 @@ env:
   - ANALYZER=master
   - ANALYZER=master DDC_BROWSERS=Firefox
   - ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
-  - ANALYZER=master CXX=clang++
+  # TODO(vsm): We don't get much value from this for DDC & it eats up travis
+  # cycles.  Consider adding back at some point to test the built dartdevc
+  # snapshot.
+  # - ANALYZER=master CXX=clang++
   - TEST=coverage
   - TEST=package
 matrix:
