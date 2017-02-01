@@ -32,13 +32,13 @@ abstract class Accessor {
       {bool voidContext: false}) {
     if (voidContext) {
       return _finish(new ConditionalExpression(buildIsNull(_makeRead()),
-          _makeWrite(value, voidContext), new NullLiteral(), type));
+          _makeWrite(value, false), new NullLiteral(), type));
     }
     var tmp = new VariableDeclaration.forValue(_makeRead());
     return _finish(makeLet(
         tmp,
         new ConditionalExpression(buildIsNull(new VariableGet(tmp)),
-            _makeWrite(value, voidContext), new VariableGet(tmp), type)));
+            _makeWrite(value, false), new VariableGet(tmp), type)));
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
