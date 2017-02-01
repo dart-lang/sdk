@@ -587,8 +587,10 @@ class _RefactoringManager {
    * Cancels processing of the current request and cleans up.
    */
   void cancel() {
-    server.sendResponse(new Response.refactoringRequestCancelled(request));
-    request = null;
+    if (request != null) {
+      server.sendResponse(new Response.refactoringRequestCancelled(request));
+      request = null;
+    }
     _reset();
   }
 
