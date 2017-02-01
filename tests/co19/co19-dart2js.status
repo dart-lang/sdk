@@ -420,6 +420,9 @@ WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
 
+[ $compiler == dart2js && $fast_startup && $runtime == ff ]
+LayoutTests/fast/canvas/webgl/get-active-test_t01: RuntimeError # Dart issue 28593
+
 [ $compiler == dart2js && $fast_startup && $runtime == d8]
 LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
 
@@ -2669,7 +2672,6 @@ LayoutTests/fast/canvas/canvas-composite-image_t01: Pass, RuntimeError # Please 
 LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-currentColor_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Feature is not implemented.
-LayoutTests/fast/canvas/canvas-drawImage-incomplete_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-ellipse-zero-lineto_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-empty-image-pattern_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-fill-zeroSizeGradient_t01: RuntimeError # Please triage this failure
