@@ -247,6 +247,12 @@ class MatchExpectation extends Step<Program, Program, dynamic> {
     StringBuffer buffer = new StringBuffer();
     new Printer(buffer).writeLibraryFile(library);
 
+    bool updateExpectations = this.updateExpectations;
+    if (uri.path.contains("/test/rasta/")) {
+      // TODO(ahe): Remove this. Short term, we don't want to automatically
+      // update rasta expectations, as we have too many failures.
+      updateExpectations = false;
+    }
     File expectedFile = new File("${uri.toFilePath()}$suffix");
     if (await expectedFile.exists()) {
       String expected = await expectedFile.readAsString();
