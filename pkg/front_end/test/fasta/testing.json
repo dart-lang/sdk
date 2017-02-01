@@ -124,7 +124,8 @@
       "scanner/scanner_suite.dart"
     ],
     "exclude": [
-      "/third_party/pkg/"
+      "/third_party/pkg/",
+      "/pkg/analyzer/"
     ]
   }
 }
