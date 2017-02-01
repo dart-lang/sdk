@@ -101,16 +101,24 @@
       ]
     }
   ],
+
   "analyze": {
     "uris": [
       "../../lib/src/fasta",
+      "../../lib/src/fasta/analyzer",
+      "../../lib/src/fasta/bin",
+      "../../lib/src/fasta/builder",
+      "../../lib/src/fasta/dill",
+      "../../lib/src/fasta/kernel",
       "../../lib/src/fasta/parser",
       "../../lib/src/fasta/parser/bin",
       "../../lib/src/fasta/scanner",
       "../../lib/src/fasta/scanner/bin",
       "../../lib/src/fasta/scanner/testing",
+      "../../lib/src/fasta/source",
+      "../../lib/src/fasta/testing",
       "../../lib/src/fasta/util",
-      "../../../../pkg/compiler/lib/src/dart2js.dart",
+      "../../../compiler/lib/src/dart2js.dart",
       "dart2js_test.dart",
       "parser/parser_suite.dart",
       "scanner/scanner_suite.dart"
