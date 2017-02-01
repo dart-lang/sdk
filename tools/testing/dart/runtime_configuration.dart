@@ -237,9 +237,17 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "Dart VM cannot run files of type '$type'.";
     }
     String executable = suite.dartVmBinaryFileName;
-    return <Command>[
-      commandBuilder.getVmCommand(executable, arguments, environmentOverrides, needsDFERunner: needsDFERunner)
-    ];
+    var commands = new List<Command>();
+    commands.add(commandBuilder.getVmCommand(executable,
+                                             arguments,
+                                             environmentOverrides,
+                                             needsDFERunner: needsDFERunner));
+    if (type == 'application/dart-snapshot') {
+      // Delete snapshots as we go to reduce the space required to run the test
+      // suite.
+      commands.add(commandBuilder.getDeleteCommand(script));
+    }
+    return commands;
   }
 }
 
@@ -282,10 +290,13 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
-    return <Command>[
-      commandBuilder.getVmCommand(suite.dartPrecompiledBinaryFileName,
-          arguments, environmentOverrides)
-    ];
+    var commands = new List<Command>();
+    commands.add(commandBuilder.getVmCommand(suite.dartPrecompiledBinaryFileName,
+                                             arguments, environmentOverrides));
+    // Delete snapshots (dylibs or blobs) as we go to reduce the space required
+    // to run the test suite.
+    commands.add(commandBuilder.getDeleteCommand(script));
+    return commands;
   }
 }
 

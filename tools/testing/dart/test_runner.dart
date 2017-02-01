@@ -525,6 +525,38 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
       _destinationDirectory == other._destinationDirectory;
 }
 
+class DeleteCommand extends ScriptCommand {
+  final String _filename;
+
+  DeleteCommand._(this._filename) : super._('delete');
+
+  String get reproductionCommand =>
+      "Deleting $_filename";
+
+  Future<ScriptCommandOutputImpl> run() {
+    var watch = new Stopwatch()..start();
+
+    var file = new io.File(_filename);
+
+    return file.delete(recursive: true).then((io.File file) {
+      return new ScriptCommandOutputImpl(
+          this, Expectation.PASS, "", watch.elapsed);
+    }).catchError((error) {
+      return new ScriptCommandOutputImpl(
+          this, Expectation.FAIL, "An error occured: $error.", watch.elapsed);
+    });
+  }
+
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.addJson(_filename);
+  }
+
+  bool _equal(DeleteCommand other) =>
+      super._equal(other) &&
+      _filename == other._filename;
+}
+
 class ModifyPubspecYamlCommand extends ScriptCommand {
   String _pubspecYamlFile;
   String _destinationFile;
@@ -785,6 +817,11 @@ class CommandBuilder {
   Command getCopyCommand(String sourceDirectory, String destinationDirectory) {
     var command =
         new CleanDirectoryCopyCommand._(sourceDirectory, destinationDirectory);
+    return _getUniqueCommand(command);
+  }
+
+  Command getDeleteCommand(String filename) {
+    var command = new DeleteCommand._(filename);
     return _getUniqueCommand(command);
   }
 
