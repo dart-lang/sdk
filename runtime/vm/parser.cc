@@ -2357,10 +2357,13 @@ RawFunction* Parser::GetSuperFunction(TokenPosition token_pos,
                                     NULL)) {
     super_func = Function::null();
   } else if (super_func.IsNull() && resolve_getter) {
-    const String& getter_name = String::ZoneHandle(Z, Field::GetterName(name));
-    super_func = Resolver::ResolveDynamicAnyArgs(Z, super_class, getter_name);
-    ASSERT(super_func.IsNull() ||
-           (super_func.kind() != RawFunction::kImplicitStaticFinalGetter));
+    const String& getter_name =
+        String::ZoneHandle(Z, Field::LookupGetterSymbol(name));
+    if (!getter_name.IsNull()) {
+      super_func = Resolver::ResolveDynamicAnyArgs(Z, super_class, getter_name);
+      ASSERT(super_func.IsNull() ||
+             (super_func.kind() != RawFunction::kImplicitStaticFinalGetter));
+    }
   }
   if (super_func.IsNull()) {
     super_func = Resolver::ResolveDynamicAnyArgs(Z, super_class,
@@ -5636,13 +5639,16 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     // or final field implies a setter which throws a NoSuchMethodError,
     // thus we need to check for conflicts with existing setters and
     // getters.
-    String& accessor_name = String::Handle(Z, Field::GetterName(var_name));
-    if (library_.LookupLocalObject(accessor_name) != Object::null()) {
+    String& accessor_name =
+        String::Handle(Z, Field::LookupGetterSymbol(var_name));
+    if (!accessor_name.IsNull() &&
+        library_.LookupLocalObject(accessor_name) != Object::null()) {
       ReportError(name_pos, "getter for '%s' is already defined",
                   var_name.ToCString());
     }
-    accessor_name = Field::SetterName(var_name);
-    if (library_.LookupLocalObject(accessor_name) != Object::null()) {
+    accessor_name = Field::LookupSetterSymbol(var_name);
+    if (!accessor_name.IsNull() &&
+        library_.LookupLocalObject(accessor_name) != Object::null()) {
       ReportError(name_pos, "setter for '%s' is already defined",
                   var_name.ToCString());
     }
@@ -5757,8 +5763,10 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     ReportError(name_pos, "missing '%s' cannot be patched",
                 func_name.ToCString());
   }
-  String& accessor_name = String::Handle(Z, Field::GetterName(func_name));
-  if (library_.LookupLocalObject(accessor_name) != Object::null()) {
+  const String& accessor_name =
+      String::Handle(Z, Field::LookupGetterSymbol(func_name));
+  if (!accessor_name.IsNull() &&
+      library_.LookupLocalObject(accessor_name) != Object::null()) {
     ReportError(name_pos, "'%s' is already defined as getter",
                 func_name.ToCString());
   }
@@ -11102,13 +11110,13 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
     ArgumentListNode* error_arguments =
         new (Z) ArgumentListNode(rhs->token_pos());
     error_arguments->Add(rhs);
-    result = ThrowNoSuchMethodError(original->token_pos(), *target_cls,
-                                    String::Handle(Z, Field::SetterName(name)),
-                                    error_arguments, InvocationMirror::kStatic,
-                                    original->IsLoadLocalNode()
-                                        ? InvocationMirror::kLocalVar
-                                        : InvocationMirror::kSetter,
-                                    NULL);  // No existing function.
+    result = ThrowNoSuchMethodError(
+        original->token_pos(), *target_cls,
+        String::Handle(Z, Field::SetterSymbol(name)), error_arguments,
+        InvocationMirror::kStatic,
+        original->IsLoadLocalNode() ? InvocationMirror::kLocalVar
+                                    : InvocationMirror::kSetter,
+        NULL);  // No existing function.
   }
   // The compound assignment operator a ??= b is different from other
   // a op= b assignments. If a is non-null, the assignment to a must be
@@ -11473,15 +11481,17 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
     if (field.IsNull()) {
       // No field, check if we have an explicit getter function.
       const String& getter_name =
-          String::ZoneHandle(Z, Field::GetterName(func_name));
-      const int kNumArguments = 0;  // no arguments.
-      func = Resolver::ResolveStatic(cls, getter_name, kNumArguments,
-                                     Object::empty_array());
-      if (!func.IsNull()) {
-        ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
-        closure = new (Z) StaticGetterNode(
-            call_pos, NULL, Class::ZoneHandle(Z, cls.raw()), func_name);
-        return BuildClosureCall(call_pos, closure, arguments);
+          String::ZoneHandle(Z, Field::LookupGetterSymbol(func_name));
+      if (!getter_name.IsNull()) {
+        const int kNumArguments = 0;  // no arguments.
+        func = Resolver::ResolveStatic(cls, getter_name, kNumArguments,
+                                       Object::empty_array());
+        if (!func.IsNull()) {
+          ASSERT(func.kind() != RawFunction::kImplicitStaticFinalGetter);
+          closure = new (Z) StaticGetterNode(
+              call_pos, NULL, Class::ZoneHandle(Z, cls.raw()), func_name);
+          return BuildClosureCall(call_pos, closure, arguments);
+        }
       }
     } else {
       closure = GenerateStaticFieldLookup(field, call_pos);
@@ -12011,8 +12021,10 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
       // name, so we explicitly prevent lookup of private names here.
       if (is_setter_name) {
         const String& setter_name =
-            String::Handle(Z, Field::SetterName(extractor_name));
-        obj = prefix.LookupObject(setter_name);
+            String::Handle(Z, Field::LookupSetterSymbol(extractor_name));
+        if (!setter_name.IsNull()) {
+          obj = prefix.LookupObject(setter_name);
+        }
       }
       if (obj.IsNull()) {
         obj = prefix.LookupObject(extractor_name);
@@ -12059,7 +12071,6 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
         Field::Handle(Z, cls.LookupStaticField(extractor_name));
     if (!field.IsNull()) {
       if (is_setter_name) {
-        extractor_name = Field::SetterName(extractor_name);
         if (!field.is_final()) {
           const Instance& setter_closure =
               Instance::ZoneHandle(Z, field.SetterClosure());
@@ -12069,6 +12080,7 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
           // be invoked here. The same applies for getters below.
           return new (Z) LiteralNode(property_pos, setter_closure);
         }
+        extractor_name = Field::SetterSymbol(extractor_name);
       } else {
         const Instance& getter_closure =
             Instance::ZoneHandle(Z, field.GetterClosure());
@@ -12078,14 +12090,20 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
     } else {
       Function& func = Function::Handle(Z);
       if (is_setter_name) {
-        extractor_name = Field::SetterName(extractor_name);
-        func = cls.LookupStaticFunction(extractor_name);
+        extractor_name = Field::LookupSetterSymbol(extractor_name);
+        if (!extractor_name.IsNull()) {
+          func = cls.LookupStaticFunction(extractor_name);
+        } else {
+          extractor_name = Field::SetterSymbol(extractor_name);
+        }
       } else {
         func = cls.LookupStaticFunction(extractor_name);
         if (func.IsNull()) {
           const String& getter_name =
-              String::Handle(Z, Field::GetterName(extractor_name));
-          func = cls.LookupStaticFunction(getter_name);
+              String::Handle(Z, Field::LookupGetterSymbol(extractor_name));
+          if (!getter_name.IsNull()) {
+            func = cls.LookupStaticFunction(getter_name);
+          }
         }
       }
       if (!func.IsNull()) {
