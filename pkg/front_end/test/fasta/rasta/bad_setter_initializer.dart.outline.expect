@@ -3,11 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor •() → dynamic
-    : invalid-initializer, super core::Object::•()
+  constructor •() → void
     ;
-  set field(dynamic value) → dynamic {}
+  set field(dynamic value) → dynamic
+    ;
 }
-static method main() → dynamic {
-  new self::C::•();
-}
+static method main() → dynamic
+  ;

@@ -4,6 +4,6 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field invalid-type c;
-  constructor •() → self::C
-    : self::C::c = invalid-expression, super core::Object::•();
+  constructor •() → void
+    ;
 }

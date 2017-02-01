@@ -3,24 +3,20 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •() → self::A
-    : invalid-initializer;
+  constructor •() → void
+    ;
 }
 class B extends core::Object {
-  constructor •() → self::B
-    : invalid-initializer;
+  constructor •() → void
+    ;
 }
 class C extends core::Object {
-  constructor •() → dynamic
-    : invalid-initializer;
+  constructor •() → void
+    ;
 }
 class D extends core::Object {
   static factory •() → self::D
-    invalid-statement;
+    ;
 }
-static method main() → void {
-  new self::A::•();
-  new self::B::•();
-  new self::C::•();
-  invalid-expression.call();
-}
+static method main() → void
+  ;

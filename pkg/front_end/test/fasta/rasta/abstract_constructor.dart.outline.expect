@@ -3,9 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 abstract class C extends core::Object {
-  constructor •() → self::C
-    : super core::Object::•();
+  constructor •() → void
+    ;
 }
-static method main() → dynamic {
-  invalid-expression;
-}
+static method main() → dynamic
+  ;

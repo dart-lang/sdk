@@ -2,4 +2,4 @@ library;
 import self as self;
 
 static method main() → dynamic
-  invalid-statement;
+  ;

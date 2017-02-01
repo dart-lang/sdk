@@ -6,16 +6,16 @@ class Foo extends core::Object {
   field dynamic field1;
   field dynamic field2;
   field dynamic field3;
-  constructor constructor1() → dynamic
-    : super core::Object::•()
+  constructor constructor1() → void
     ;
-  constructor constructor2() → dynamic
-    : super core::Object::•()
+  constructor constructor2() → void
     ;
-  constructor constructor3() → dynamic
-    : super core::Object::•()
+  constructor constructor3() → void
     ;
-  method a() → dynamic {}
-  method b() → dynamic {}
-  method c() → dynamic {}
+  method a() → dynamic
+    ;
+  method b() → dynamic
+    ;
+  method c() → dynamic
+    ;
 }

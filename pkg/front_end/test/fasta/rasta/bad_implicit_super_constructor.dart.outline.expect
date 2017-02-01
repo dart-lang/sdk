@@ -3,16 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •(dynamic x) → dynamic
-    : invalid-initializer, super core::Object::•()
+  constructor •(dynamic x) → void
     ;
 }
 class B extends self::A {
-  const constructor •() → dynamic
-    : invalid-initializer
+  const constructor •() → void
     ;
 }
-static method main() → dynamic {
-  new self::B::•();
-  const self::B::•();
-}
+static method main() → dynamic
+  ;

@@ -6,18 +6,15 @@ class C extends core::Object {
   field dynamic a;
   field dynamic b;
   field dynamic c;
-  constructor •() → self::C
-    : self::C::b = 0, self::C::c = 1.+(2), super core::Object::•();
+  constructor •() → void
+    ;
 }
 class D extends core::Object {
   field dynamic a;
   field dynamic b;
   field dynamic c;
-  constructor •() → dynamic
-    : self::D::b = 1, self::D::c = 2.-(3), super core::Object::•()
+  constructor •() → void
     ;
 }
-static method main() → dynamic {
-  new self::C::•();
-  new self::D::•();
-}
+static method main() → dynamic
+  ;

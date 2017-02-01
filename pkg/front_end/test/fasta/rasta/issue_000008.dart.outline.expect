@@ -4,10 +4,8 @@ import "dart:core" as core;
 
 class C extends core::Object {
   final field dynamic x;
-  constructor •(dynamic x) → dynamic
-    : self::C::x = x, super core::Object::•()
+  constructor •(dynamic x) → void
     ;
 }
-static method main() → dynamic {
-  new self::C::•(42);
-}
+static method main() → dynamic
+  ;

@@ -1,7 +1,5 @@
 library;
 import self as self;
-import "dart:core" as core;
 
-static method main() → dynamic {
-  core::print(const core::bool::fromEnvironment("dart.library.mirrors"));
-}
+static method main() → dynamic
+  ;

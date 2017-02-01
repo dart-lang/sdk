@@ -2,4 +2,4 @@ library deferred_lib;
 import self as self;
 
 static method foo() → dynamic
-  return null;
+  ;

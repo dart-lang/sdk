@@ -3,14 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  constructor •() → dynamic
-    : super core::Object::•()
-    invalid-statement;
+  constructor •() → void
+    ;
 }
 class Bar extends self::Foo {
   static factory •() → self::Bar
-    return null;
+    ;
 }
-static method main() → dynamic {
-  new self::Foo::•();
-}
+static method main() → dynamic
+  ;

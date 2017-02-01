@@ -1,6 +1,5 @@
 library;
 import self as self;
 
-static method main() → dynamic {
-  let final dynamic #t1 = invalid-expression in let final dynamic #t2 = #t1.toString() in #t1;
-}
+static method main() → dynamic
+  ;
