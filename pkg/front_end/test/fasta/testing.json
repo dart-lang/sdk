@@ -44,7 +44,8 @@
         "\\.dart$"
       ],
       "exclude": [
-        "/test/.*_test\\.dart$"
+        "/test/.*_test\\.dart$",
+        "/test/.*_suite\\.dart$"
       ]
     },
     {
@@ -57,7 +58,8 @@
         "\\.dart$"
       ],
       "exclude": [
-        "/test/.*_test\\.dart$"
+        "/test/.*_test\\.dart$",
+        "/test/.*_suite\\.dart$"
       ]
     },
     {
@@ -70,7 +72,8 @@
         "\\.dart$"
       ],
       "exclude": [
-        "/test/.*_test\\.dart$"
+        "/test/.*_test\\.dart$",
+        "/test/.*_suite\\.dart$"
       ]
     },
     {

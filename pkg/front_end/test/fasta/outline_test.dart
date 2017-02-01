@@ -14,4 +14,4 @@ Future<FeContext> createContext(
   return TestContext.create(suite, environment, FeContext.create);
 }
 
-main(List<String> arguments) => runMe(arguments, createContext);
+main(List<String> arguments) => runMe(arguments, createContext, "testing.json");

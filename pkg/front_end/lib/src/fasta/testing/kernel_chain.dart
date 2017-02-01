@@ -248,7 +248,7 @@ class MatchExpectation extends Step<Program, Program, dynamic> {
     new Printer(buffer).writeLibraryFile(library);
 
     bool updateExpectations = this.updateExpectations;
-    if (uri.path.contains("/test/rasta/")) {
+    if (uri.path.contains("/test/fasta/rasta/")) {
       // TODO(ahe): Remove this. Short term, we don't want to automatically
       // update rasta expectations, as we have too many failures.
       updateExpectations = false;
