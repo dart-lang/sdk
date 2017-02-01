@@ -1606,7 +1606,7 @@ class _LinkedHashSetCell<E> {
 
 // TODO(kasperl): Share this code with LinkedHashMapKeyIterator<E>?
 class _LinkedHashSetIterator<E> implements Iterator<E> {
-  final _set;
+  final _LinkedHashSet _set;
   final int _modifications;
   _LinkedHashSetCell _cell;
   E _current;

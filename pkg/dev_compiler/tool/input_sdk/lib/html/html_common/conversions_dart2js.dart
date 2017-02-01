@@ -60,11 +60,11 @@ class _StructuredCloneDart2Js extends _StructuredClone {
 
 class _AcceptStructuredCloneDart2Js extends _AcceptStructuredClone {
 
-  newJsList(length) => JS('JSExtendableArray', 'new Array(#)', length);
-  newDartList(length) => newJsList(length);
-  identicalInJs(a, b) => identical(a, b);
+  List newJsList(length) => JS('JSExtendableArray', 'new Array(#)', length);
+  List newDartList(length) => newJsList(length);
+  bool identicalInJs(a, b) => identical(a, b);
 
-  void forEachJsField(object, action) {
+  void forEachJsField(object, action(key, value)) {
       for (final key in JS('JSExtendableArray', 'Object.keys(#)', object)) {
         action(key, JS('var', '#[#]', object, key));
       }
