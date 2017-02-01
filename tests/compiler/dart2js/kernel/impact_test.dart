@@ -30,6 +30,7 @@ import '../serialization/test_helper.dart';
 
 const Map<String, String> SOURCE = const <String, String>{
   'main.dart': r'''
+import 'dart:_foreign_helper';
 import 'helper.dart';
 import 'dart:html';
 
@@ -175,6 +176,7 @@ main() {
   testStaticGenericMethod();
   testInstanceGenericMethod();
   testDynamicPrivateMethodInvoke();
+  testJSCall();
 }
 
 testEmpty() {}
@@ -601,6 +603,7 @@ testInstanceGenericMethod() {
 }
 
 testDynamicPrivateMethodInvoke([o]) => o._privateMethod();
+testJSCall() => JS('int|bool', '#', null);
 ''',
   'helper.dart': '''
 class Class {

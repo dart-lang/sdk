@@ -1068,8 +1068,13 @@ bool testResolutionImpactEquivalence(
           impact1.typeUses,
           impact2.typeUses,
           (a, b) => areTypeUsesEquivalent(a, b, strategy: strategy.testOnly)) &&
-      strategy.testSets(impact1, impact2, 'nativeData', impact1.nativeData,
-          impact2.nativeData, testNativeBehavior);
+      strategy.testSets(
+          impact1,
+          impact2,
+          'nativeData',
+          impact1.nativeData,
+          impact2.nativeData,
+          (a, b) => testNativeBehavior(a, b, strategy: strategy));
 }
 
 /// Tests the equivalence of [resolvedAst1] and [resolvedAst2] using [strategy].
@@ -1137,7 +1142,7 @@ bool testTreeElementsEquivalence(
 }
 
 bool testNativeBehavior(NativeBehavior a, NativeBehavior b,
-    [TestStrategy strategy = const TestStrategy()]) {
+    {TestStrategy strategy = const TestStrategy()}) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   return strategy.test(
@@ -1224,7 +1229,7 @@ class TreeElementsEquivalenceVisitor extends Visitor {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
     if (a is NativeBehavior && b is NativeBehavior) {
-      return testNativeBehavior(a, b, strategy);
+      return testNativeBehavior(a, b, strategy: strategy);
     }
     return true;
   }

@@ -212,30 +212,15 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   }
 
   @override
-  InterfaceType getRawType(ClassEntity cls) {
-    throw new UnimplementedError('KernelWorldBuilder.getRawType');
-  }
-
-  @override
-  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
-    throw new UnimplementedError('KernelWorldBuilder.getDartType');
-  }
-
-  @override
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
-      ir.StaticInvocation node) {
-    throw new UnimplementedError('KernelWorldBuilder.getDartType');
-  }
-
-  @override
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node) {
-    throw new UnimplementedError('KernelWorldBuilder.getDartType');
-  }
-
-  @override
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
-    throw new UnimplementedError('KernelWorldBuilder.getDartType');
+  InterfaceType getRawType(KClass cls) {
+    KClassEnv env = _classEnvs[cls.classIndex];
+    ir.Class node = env.cls;
+    // TODO(johnniwinther): Add the type argument to the list literal when we
+    // no longer use resolution types.
+    return new InterfaceType(
+        cls,
+        new List/*<DartType>*/ .filled(
+            node.typeParameters.length, const DynamicType()));
   }
 
   @override
@@ -358,7 +343,7 @@ class KernelCommonElements extends CommonElementsMixin {
 
   @override
   InterfaceType getRawType(ClassEntity cls) {
-    throw new UnimplementedError('KernelCommonElements.getRawType');
+    return worldBuilder.getRawType(cls);
   }
 
   @override
