@@ -103,6 +103,90 @@ class OpTypeTest {
     assertOpType(namedArgs: true, returnValue: true, typeNames: true);
   }
 
+  test_ArgumentList_constructor_named_resolved_1_0() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
+    addTestSource(
+        'main() { new A.b(^); }'
+        'class A{ A.b({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_constructor_named_resolved_1_1() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource(
+        'main() { new A.b(o^); }'
+        'class A { A.b({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_constructor_resolved_1_0() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
+    addTestSource(
+        'main() { new A(^); }'
+        'class A{ A({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_constructor_resolved_1_1() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource(
+        'main() { new A(o^); }'
+        'class A { A({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_factory_named_resolved_1_0() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
+    addTestSource(
+        'main() { new A.b(^); }'
+        'class A{ factory A.b({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_factory_named_resolved_1_1() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource(
+        'main() { new A.b(o^); }'
+        'class A { factory A.b({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_factory_resolved_1_0() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
+    addTestSource(
+        'main() { new A(^); }'
+        'class A{ factory A({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_factory_resolved_1_1() {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
+    addTestSource(
+        'main() { new A(o^); }'
+        'class A { factory A({one, two}) {} }',
+        resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_method_resolved_1_0() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addTestSource('main() { foo(^);} foo({one, two}) {}', resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_method_resolved_1_1() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addTestSource('main() { foo(o^);} foo({one, two}) {}', resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
   test_ArgumentList_namedParam() {
     // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
     // ExpressionStatement
@@ -120,18 +204,6 @@ class OpTypeTest {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('void main() {int.parse(^)}', resolved: true);
     assertOpType(returnValue: true, typeNames: true);
-  }
-
-  test_ArgumentList_resolved_1_0() {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('main() { foo(^);} foo({one, two}) {}', resolved: true);
-    assertOpType(namedArgs: true);
-  }
-
-  test_ArgumentList_resolved_1_1() {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('main() { foo(o^);} foo({one, two}) {}', resolved: true);
-    assertOpType(namedArgs: true);
   }
 
   test_ArgumentList_resolved_2_0() {

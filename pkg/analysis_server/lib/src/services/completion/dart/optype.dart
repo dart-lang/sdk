@@ -189,38 +189,58 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitArgumentList(ArgumentList node) {
     AstNode parent = node.parent;
+    List<ParameterElement> parameters;
+    if (parent is InstanceCreationExpression) {
+      Element constructor;
+      SimpleIdentifier name = parent.constructorName?.name;
+      if (name != null) {
+        constructor = name.bestElement;
+      } else {
+        var classElem = parent.constructorName?.type?.name?.bestElement;
+        if (classElem is ClassElement) {
+          constructor = classElem.unnamedConstructor;
+        }
+      }
+      if (constructor is ConstructorElement) {
+        parameters = constructor.parameters;
+      } else if (constructor == null) {
+        // If unresolved, then include named arguments
+        optype.includeNamedArgumentSuggestions = true;
+      }
+    } else
     if (parent is InvocationExpression) {
       Expression function = parent.function;
       if (function is SimpleIdentifier) {
         var elem = function.bestElement;
         if (elem is FunctionTypedElement) {
-          List<ParameterElement> parameters = elem.parameters;
-          if (parameters != null) {
-            int index;
-            if (node.arguments.isEmpty) {
-              index = 0;
-            } else if (entity == node.rightParenthesis) {
-              // Parser ignores trailing commas
-              if (node.rightParenthesis.previous?.lexeme == ',') {
-                index = node.arguments.length;
-              } else {
-                index = node.arguments.length - 1;
-              }
-            } else {
-              index = node.arguments.indexOf(entity);
-            }
-            if (0 <= index && index < parameters.length) {
-              ParameterElement param = parameters[index];
-              if (param?.parameterKind == ParameterKind.NAMED) {
-                optype.includeNamedArgumentSuggestions = true;
-                return;
-              }
-            }
-          }
+          parameters = elem.parameters;
         } else if (elem == null) {
           // If unresolved, then include named arguments
           optype.includeNamedArgumentSuggestions = true;
-          // fall through to include others as well
+        }
+      }
+    }
+    // Based upon the insertion location and declared parameters
+    // determine whether only named arguments should be suggested
+    if (parameters != null) {
+      int index;
+      if (node.arguments.isEmpty) {
+        index = 0;
+      } else if (entity == node.rightParenthesis) {
+        // Parser ignores trailing commas
+        if (node.rightParenthesis.previous?.lexeme == ',') {
+          index = node.arguments.length;
+        } else {
+          index = node.arguments.length - 1;
+        }
+      } else {
+        index = node.arguments.indexOf(entity);
+      }
+      if (0 <= index && index < parameters.length) {
+        ParameterElement param = parameters[index];
+        if (param?.parameterKind == ParameterKind.NAMED) {
+          optype.includeNamedArgumentSuggestions = true;
+          return;
         }
       }
     }

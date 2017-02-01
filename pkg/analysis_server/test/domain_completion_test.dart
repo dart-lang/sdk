@@ -28,6 +28,28 @@ main() {
 
 @reflectiveTest
 class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
+  test_ArgumentList_constructor_named_param_label() async {
+    addTestFile('main() { new A(^);}'
+        'class A { A({one, two}) {} }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
+  test_ArgumentList_factory_named_param_label() async {
+    addTestFile('main() { new A(^);}'
+        'class A { factory A({one, two}) => null; }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
   test_ArgumentList_imported_function_named_param() async {
     addTestFile('main() { int.parse("16", ^);}');
     await getSuggestions();

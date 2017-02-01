@@ -204,12 +204,8 @@ class ArgListContributor extends DartCompletionContributor {
 
     // Generate argument list suggestion based upon the type of element
     if (elem is ClassElement) {
-      for (ConstructorElement constructor in elem.constructors) {
-        if (!constructor.isFactory) {
-          _addSuggestions(constructor.parameters);
-          return suggestions;
-        }
-      }
+      _addSuggestions(elem.unnamedConstructor?.parameters);
+      return suggestions;
     }
     if (elem is ConstructorElement) {
       _addSuggestions(elem.parameters);

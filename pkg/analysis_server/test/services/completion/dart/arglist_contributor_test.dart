@@ -229,7 +229,7 @@ class A { const A(int one, int two, int three, {int four, String five:
   }
 
   test_ArgumentList_imported_constructor_named_param() async {
-    //
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement
     addSource('/libA.dart', 'library libA; class A{A({int one}); }');
     addTestSource('import "/libA.dart"; main() { new A(^);}');
     await computeSuggestions();
@@ -237,7 +237,7 @@ class A { const A(int one, int two, int three, {int four, String five:
   }
 
   test_ArgumentList_imported_constructor_named_param2() async {
-    //
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement
     addSource('/libA.dart', 'library libA; class A{A.foo({int one}); }');
     addTestSource('import "/libA.dart"; main() { new A.foo(^);}');
     await computeSuggestions();
@@ -245,9 +245,35 @@ class A { const A(int one, int two, int three, {int four, String five:
   }
 
   test_ArgumentList_imported_constructor_named_typed_param() async {
-    //
+    // ArgumentList  InstanceCreationExpression  VariableDeclaration
     addSource(
         '/libA.dart', 'library libA; class A { A({int i, String s, d}) {} }}');
+    addTestSource('import "/libA.dart"; main() { var a = new A(^);}');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'i': 'int', 's': 'String', 'd': 'dynamic'});
+  }
+
+  test_ArgumentList_imported_factory_named_param() async {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement
+    addSource('/libA.dart', 'library libA; class A{factory A({int one}) => null;}');
+    addTestSource('import "/libA.dart"; main() { new A(^);}');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
+  }
+
+  test_ArgumentList_imported_factory_named_param2() async {
+    // ArgumentList  InstanceCreationExpression  ExpressionStatement
+    addSource('/libA.dart', 'library libA; abstract class A{factory A.foo({int one});}');
+    addTestSource('import "/libA.dart"; main() { new A.foo(^);}');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
+  }
+
+  test_ArgumentList_imported_factory_named_typed_param() async {
+    // ArgumentList  InstanceCreationExpression  VariableDeclaration
+    addSource('/libA.dart',
+        'library libA; class A {factory A({int i, String s, d}) {} }}');
     addTestSource('import "/libA.dart"; main() { var a = new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
