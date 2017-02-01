@@ -2849,11 +2849,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeConversion(HTypeConversion node) {
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
-      // An int check if the input is not int or null, is not
-      // sufficient for doing an argument or receiver check.
-      assert(compiler.options.trustTypeAnnotations ||
-          !node.checkedType.containsOnlyInt(closedWorld) ||
-          node.checkedInput.isIntegerOrNull(closedWorld));
       js.Expression test = generateReceiverOrArgumentTypeTest(
           node.checkedInput, node.checkedType);
       js.Block oldContainer = currentContainer;
