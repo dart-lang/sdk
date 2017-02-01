@@ -147,8 +147,9 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   @override
   visitExportDirective(ExportDirective node) {
+    String uriStr = Uri.encodeFull(node.uri.stringValue ?? '');
     exports.add(new UnlinkedExportPublicBuilder(
-        uri: node.uri.stringValue,
+        uri: uriStr,
         combinators: node.combinators
             .map((Combinator c) => c.accept(new _CombinatorEncoder()))
             .toList(),
@@ -178,7 +179,8 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   @override
   visitPartDirective(PartDirective node) {
-    parts.add(node.uri.stringValue ?? '');
+    String uriStr = Uri.encodeFull(node.uri.stringValue ?? '');
+    parts.add(uriStr);
   }
 
   @override

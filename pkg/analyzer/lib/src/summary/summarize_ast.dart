@@ -1306,7 +1306,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.prefixOffset = node.prefix.offset;
     }
     b.isDeferred = node.deferredKeyword != null;
-    b.uri = node.uri.stringValue;
+    b.uri = Uri.encodeFull(node.uri.stringValue ?? '');
     b.uriOffset = node.uri.offset;
     b.uriEnd = node.uri.end;
     unlinkedImports.add(b);

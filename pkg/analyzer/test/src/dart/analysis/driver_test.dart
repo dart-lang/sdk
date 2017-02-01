@@ -885,6 +885,23 @@ class C {}
     expect(a.name.staticElement, new isInstanceOf<FunctionElement>());
   }
 
+  test_getResult_invalidUri() async {
+    String content = r'''
+import 'package:aaa/a1.dart';
+import '[invalid uri]';
+
+export '[invalid uri]';
+export 'package:aaa/a2.dart';
+
+part 'a3.dart';
+part '[invalid uri]';
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+  }
+
   test_getResult_invalidUri_exports_dart() async {
     String content = r'''
 export 'dart:async';
