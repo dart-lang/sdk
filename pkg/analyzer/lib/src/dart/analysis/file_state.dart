@@ -493,7 +493,12 @@ class FileState {
    * cannot be parsed, cannot correspond any file, etc.
    */
   FileState _fileForRelativeUri(String relativeUri) {
-    Uri absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
+    Uri absoluteUri;
+    try {
+      absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
+    } on FormatException {
+      return null;
+    }
     return _fsState.getFileForUri(absoluteUri);
   }
 

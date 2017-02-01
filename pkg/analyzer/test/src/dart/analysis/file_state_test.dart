@@ -295,40 +295,30 @@ part of L;
 import 'package:aaa/a1.dart';
 import '[invalid uri]';
 
-export 'package:aaa/a2.dart';
 export '[invalid uri]';
+export 'package:aaa/a2.dart';
 
 part 'a3.dart';
 part '[invalid uri]';
 ''';
     provider.newFile(a, content_a1);
-    Uri invalidUri = Uri.parse(Uri.encodeFull('package:aaa/[invalid uri]'));
 
     FileState file = fileSystemState.getFileForPath(a);
 
-    expect(_excludeSdk(file.importedFiles), hasLength(2));
+    expect(_excludeSdk(file.importedFiles), hasLength(1));
     expect(file.importedFiles[0].path, a1);
     expect(file.importedFiles[0].uri, Uri.parse('package:aaa/a1.dart'));
     expect(file.importedFiles[0].source, isNotNull);
-    expect(file.importedFiles[1].path, isNotNull);
-    expect(file.importedFiles[1].uri, invalidUri);
-    expect(file.importedFiles[1].source, isNotNull);
 
-    expect(_excludeSdk(file.exportedFiles), hasLength(2));
+    expect(_excludeSdk(file.exportedFiles), hasLength(1));
     expect(file.exportedFiles[0].path, a2);
     expect(file.exportedFiles[0].uri, Uri.parse('package:aaa/a2.dart'));
     expect(file.exportedFiles[0].source, isNotNull);
-    expect(file.exportedFiles[1].path, isNotNull);
-    expect(file.exportedFiles[1].uri, invalidUri);
-    expect(file.exportedFiles[1].source, isNotNull);
 
-    expect(_excludeSdk(file.partedFiles), hasLength(2));
+    expect(_excludeSdk(file.partedFiles), hasLength(1));
     expect(file.partedFiles[0].path, a3);
     expect(file.partedFiles[0].uri, Uri.parse('package:aaa/a3.dart'));
     expect(file.partedFiles[0].source, isNotNull);
-    expect(file.partedFiles[1].path, isNotNull);
-    expect(file.partedFiles[1].uri, invalidUri);
-    expect(file.partedFiles[1].source, isNotNull);
   }
 
   test_getFileForPath_library() {

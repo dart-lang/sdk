@@ -6481,16 +6481,6 @@ class B extends A {}
     expect(unlinkedExports[0].configurations, isEmpty);
   }
 
-  test_export_uri_invalid() {
-    allowMissingFiles = true;
-    String uri = '[invalid uri]';
-    String libraryText = 'export "$uri";';
-    serializeLibraryText(libraryText);
-    UnlinkedPublicNamespace publicNamespace = unlinkedUnits[0].publicNamespace;
-    expect(publicNamespace.exports, hasLength(1));
-    expect(publicNamespace.exports[0].uri, Uri.encodeFull(uri));
-  }
-
   test_export_uri_nullStringValue() {
     String libraryText = r'''
 export "${'a'}.dart";
@@ -8414,16 +8404,6 @@ class D extends p.C {} // Prevent "unused import" warning
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
   }
 
-  test_import_uri_invalid() {
-    allowMissingFiles = true;
-    String uri = '[invalid uri]';
-    String libraryText = 'import "$uri";';
-    serializeLibraryText(libraryText);
-    // Second import is the implicit import of dart:core
-    expect(unlinkedUnits[0].imports, hasLength(2));
-    expect(unlinkedUnits[0].imports[0].uri, Uri.encodeFull(uri));
-  }
-
   test_import_uri_nullStringValue() {
     String libraryText = r'''
 import "${'a'}.dart";
@@ -9620,16 +9600,6 @@ part "${'a'}.dart"; // <-part
     serializeLibraryText('library foo; part "a.dart";');
     expect(unlinkedUnits[0].isPartOf, isFalse);
     expect(unlinkedUnits[1].isPartOf, isTrue);
-  }
-
-  test_part_uri_invalid() {
-    allowMissingFiles = true;
-    String uri = '[invalid uri]';
-    String libraryText = 'part "$uri";';
-    serializeLibraryText(libraryText);
-    UnlinkedPublicNamespace publicNamespace = unlinkedUnits[0].publicNamespace;
-    expect(publicNamespace.parts, hasLength(1));
-    expect(publicNamespace.parts[0], Uri.encodeFull(uri));
   }
 
   test_parts_defining_compilation_unit() {
