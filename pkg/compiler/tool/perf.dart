@@ -19,15 +19,13 @@ import 'package:compiler/src/diagnostics/messages.dart'
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/parser/element_listener.dart' show ScannerOptions;
-import 'package:compiler/src/parser/listener.dart';
 import 'package:compiler/src/parser/node_listener.dart' show NodeListener;
-import 'package:compiler/src/parser/parser.dart' show Parser;
-import 'package:compiler/src/parser/partial_parser.dart';
+import 'package:compiler/src/parser/diet_parser_task.dart' show PartialParser;
 import 'package:compiler/src/platform_configuration.dart' as platform;
-import 'package:compiler/src/scanner/scanner.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import 'package:compiler/src/tokens/token.dart' show Token;
 import 'package:compiler/src/universe/world_impact.dart' show WorldImpact;
+import 'package:front_end/src/fasta/parser.dart' show Listener, Parser;
+import 'package:front_end/src/fasta/scanner.dart' show Token, scan;
 import 'package:package_config/discovery.dart' show findPackages;
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/src/util.dart' show checkValidPackageUri;
@@ -175,7 +173,7 @@ parseFull(SourceFile source) {
 /// Scan [source] and return the first token produced by the scanner.
 Token tokenize(SourceFile source) {
   scanTimer.start();
-  var token = new Scanner(source).tokenize();
+  var token = scan(source.slowUtf8ZeroTerminatedBytes()).tokens;
   scanTimer.stop();
   return token;
 }
@@ -234,6 +232,7 @@ class FakeReporter extends DiagnosticReporter {
   log(m) => print(m);
   internalError(_, m) => print(m);
   spanFromSpannable(_) => null;
+  spanFromToken(_) => null;
 
   void reportError(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
