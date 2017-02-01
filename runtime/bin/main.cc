@@ -1042,31 +1042,29 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   intptr_t kernel_length = -1;
   bool is_kernel = false;
 
-  if (use_dart_frontend && !is_kernel_isolate && !is_service_isolate) {
-    Dart_KernelCompilationResult result = Dart_CompileToKernel(script_uri);
-    *error = result.error;  // Copy error message (if any).
-    switch (result.status) {
-      case Dart_KernelCompilationStatus_Ok:
-        is_kernel = true;
-        kernel_file = result.kernel;
-        kernel_length = result.kernel_size;
-        break;
-      case Dart_KernelCompilationStatus_Error:
-        *exit_code = kCompilationErrorExitCode;
-        return NULL;
-      case Dart_KernelCompilationStatus_Crash:
-        *exit_code = kDartFrontendErrorExitCode;
-        return NULL;
-      case Dart_KernelCompilationStatus_Unknown:
-        *exit_code = kErrorExitCode;
-        return NULL;
+  if (!is_kernel_isolate && !is_service_isolate) {
+    if (use_dart_frontend) {
+      Dart_KernelCompilationResult result = Dart_CompileToKernel(script_uri);
+      *error = result.error;  // Copy error message (if any).
+      switch (result.status) {
+        case Dart_KernelCompilationStatus_Ok:
+          is_kernel = true;
+          kernel_file = result.kernel;
+          kernel_length = result.kernel_size;
+          break;
+        case Dart_KernelCompilationStatus_Error:
+          *exit_code = kCompilationErrorExitCode;
+          return NULL;
+        case Dart_KernelCompilationStatus_Crash:
+          *exit_code = kDartFrontendErrorExitCode;
+          return NULL;
+        case Dart_KernelCompilationStatus_Unknown:
+          *exit_code = kErrorExitCode;
+          return NULL;
+      }
+    } else if (!isolate_run_app_snapshot) {
+      is_kernel = TryReadKernel(script_uri, &kernel_file, &kernel_length);
     }
-  }
-
-  // If the script is a Kernel binary, then we will try to bootstrap from the
-  // script.
-  if (!is_kernel && !isolate_run_app_snapshot) {
-    is_kernel = TryReadKernel(script_uri, &kernel_file, &kernel_length);
   }
 
   void* kernel_program = NULL;
@@ -1077,6 +1075,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
 
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config);
+  // If the script is a Kernel binary, then we will try to bootstrap from the
+  // script.
   Dart_Isolate isolate =
       is_kernel ? Dart_CreateIsolateFromKernel(script_uri, main, kernel_program,
                                                flags, isolate_data, error)
