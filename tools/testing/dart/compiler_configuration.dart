@@ -609,9 +609,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     if (!useBlobs) {
       commands.add(this.computeAssembleCommand(tempDir, buildDir, CommandBuilder.instance,
           arguments, environmentOverrides));
-      // This step reduces the amount of space needed to run the precompilation
-      // tests by 60%.
-      commands.add(commandBuilder.getDeleteCommand("$tempDir/out.S"));
+      commands.add(this.computeRemoveAssemblyCommand(tempDir, buildDir,
+          CommandBuilder.instance, arguments, environmentOverrides));
     }
     return new CommandArtifact(commands, '$tempDir', 'application/dart-precompiled');
   }
@@ -696,6 +695,27 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
 
     return commandBuilder.getCompilationCommand('assemble', tempDir, !useSdk,
         bootstrapDependencies(buildDir), exec, args, environmentOverrides);
+  }
+
+  // This step reduces the amount of space needed to run the precompilation
+  // tests by 60%.
+  CompilationCommand computeRemoveAssemblyCommand(
+      String tempDir,
+      String buildDir,
+      CommandBuilder commandBuilder,
+      List arguments,
+      Map<String, String> environmentOverrides) {
+    var exec = 'rm';
+    var args = ['$tempDir/out.S'];
+
+    return commandBuilder.getCompilationCommand(
+        'remove_assembly',
+        tempDir,
+        !useSdk,
+        bootstrapDependencies(buildDir),
+        exec,
+        args,
+        environmentOverrides);
   }
 
   List<String> filterVmOptions(List<String> vmOptions) {
