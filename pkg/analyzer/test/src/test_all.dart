@@ -9,6 +9,7 @@ import 'package:unittest/unittest.dart';
 import '../utils.dart';
 import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
+import 'lint/test_all.dart' as lint;
 import 'plugin/plugin_config_test.dart' as plugin;
 import 'source/test_all.dart' as source;
 import 'summary/test_all.dart' as summary;
@@ -21,6 +22,7 @@ main() {
   group('src tests', () {
     context.main();
     dart.main();
+    lint.main();
     plugin.main();
     source.main();
     summary.main();
