@@ -30,6 +30,10 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   /// fast lookup into library classes and members.
   List<KLibraryEnv> _libraryEnvs = <KLibraryEnv>[];
 
+  /// List of class environments by `KClass.classIndex`. This is used for
+  /// fast lookup into class members.
+  List<KClassEnv> _classEnvs = <KClassEnv>[];
+
   Map<ir.Library, KLibrary> _libraryMap = <ir.Library, KLibrary>{};
   Map<ir.Class, KClass> _classMap = <ir.Class, KClass>{};
   Map<ir.TypeParameter, KTypeVariable> _typeVariableMap =
@@ -56,7 +60,8 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   KLibrary _getLibrary(ir.Library node, [KLibraryEnv libraryEnv]) {
     return _libraryMap.putIfAbsent(node, () {
       _libraryEnvs.add(libraryEnv ?? _env.lookupLibrary(node.importUri));
-      return new KLibrary(_libraryMap.length, node.name, node.fileUri);
+      return new KLibrary(_libraryMap.length, node.name ?? '${node.importUri}',
+          node.name ?? node.fileUri ?? '${node.importUri}');
     });
   }
 
@@ -68,7 +73,12 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   KClass _getClass(ir.Class node, [KClassEnv classEnv]) {
     return _classMap.putIfAbsent(node, () {
-      return new KClass(node.name);
+      if (classEnv == null) {
+        KLibrary library = _getLibrary(node.enclosingLibrary);
+        classEnv = _libraryEnvs[library.libraryIndex].lookupClass(node.name);
+      }
+      _classEnvs.add(classEnv);
+      return new KClass(_classMap.length, node.name);
     });
   }
 
@@ -472,4 +482,39 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     // Nested invalid types are treated as `dynamic`.
     return const DynamicType();
   }
+}
+
+// Interface for testing equivalence of Kernel-based entities.
+class WorldDeconstructionForTesting {
+  final KernelWorldBuilder builder;
+
+  WorldDeconstructionForTesting(this.builder);
+
+  Uri getLibraryUri(KLibrary library) {
+    return builder._libraryEnvs[library.libraryIndex].library.importUri;
+  }
+
+  KLibrary getLibraryForClass(KClass cls) {
+    KClassEnv env = builder._classEnvs[cls.classIndex];
+    return builder.getLibrary(env.cls.enclosingLibrary);
+  }
+
+  KLibrary _getLibrary<E>(E member, Map<ir.Member, E> map) {
+    ir.Library library;
+    map.forEach((ir.Member node, E other) {
+      if (library == null && member == other) {
+        library = node.enclosingLibrary;
+      }
+    });
+    if (library == null) {
+      throw new ArgumentError("No library found for $member");
+    }
+    return builder._getLibrary(library);
+  }
+
+  KLibrary getLibraryForFunction(KFunction function) =>
+      _getLibrary(function, builder._methodMap);
+
+  KLibrary getLibraryForField(KField field) =>
+      _getLibrary(field, builder._fieldMap);
 }

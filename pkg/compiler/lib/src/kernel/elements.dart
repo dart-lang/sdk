@@ -19,9 +19,11 @@ class KLibrary implements LibraryEntity {
 }
 
 class KClass implements ClassEntity {
+  /// Class index used for fast lookup in [KernelWorldBuilder].
+  final int classIndex;
   final String name;
 
-  KClass(this.name);
+  KClass(this.classIndex, this.name);
 
   @override
   bool get isClosure => false;
@@ -168,6 +170,8 @@ class KTypeVariable implements TypeVariableEntity {
   final int index;
 
   KTypeVariable(this.typeDeclaration, this.name, this.index);
+
+  String toString() => 'type_variable(${typeDeclaration.name}.$name)';
 }
 
 class KLocalFunction implements Local {
@@ -176,4 +180,7 @@ class KLocalFunction implements Local {
   final Entity executableContext;
 
   KLocalFunction(this.name, this.memberContext, this.executableContext);
+
+  String toString() =>
+      'local_function(${memberContext.name}.${name ?? '<anonymous>'})';
 }

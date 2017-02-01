@@ -147,7 +147,8 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
     }
     if (node is ir.PropertySet) return getSetterSelector(node.name);
     if (node is ir.InvocationExpression) return getInvocationSelector(node);
-    throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+    throw new SpannableAssertionFailure(
+        CURRENT_ELEMENT_SPANNABLE,
         "Can only get the selector for a property get or an invocation: "
         "${node}");
   }

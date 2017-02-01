@@ -11,11 +11,11 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/js_backend/backend.dart';
-import 'package:compiler/src/kernel/world_builder.dart';
 import 'package:compiler/src/kernel/element_adapter.dart';
+import 'package:compiler/src/kernel/world_builder.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
@@ -712,13 +712,19 @@ void checkElement(Compiler compiler, KernelElementAdapter kernelElementAdapter,
     ResolutionImpact astImpact =
         compiler.resolution.getResolutionImpact(element);
     astImpact = laxImpact(compiler, element, astImpact);
-    ResolutionImpact kernelImpact = build(compiler, element.resolvedAst);
+    ResolutionImpact kernelImpact1 = build(compiler, element.resolvedAst);
     ir.Member member = getIrMember(compiler, element.resolvedAst);
-    // TODO(johnniwinther): Check equivalence for the computed impact.
-    buildKernelImpact(member, kernelElementAdapter);
-    Expect.isNotNull(kernelImpact, 'No impact computed for $element');
-    testResolutionImpactEquivalence(
-        astImpact, kernelImpact, const CheckStrategy());
+    Expect.isNotNull(kernelImpact1, 'No impact computed for $element');
+    ResolutionImpact kernelImpact2 =
+        buildKernelImpact(member, kernelElementAdapter);
+    Expect.isNotNull(kernelImpact2, 'No impact computed for $member');
+    testResolutionImpactEquivalence(astImpact, kernelImpact1,
+        strategy: const CheckStrategy());
+    KernelEquivalence equivalence = new KernelEquivalence(kernelElementAdapter);
+    testResolutionImpactEquivalence(astImpact, kernelImpact2,
+        strategy: new CheckStrategy(
+            elementEquivalence: equivalence.entityEquivalence,
+            typeEquivalence: equivalence.typeEquivalence));
   });
 }
 

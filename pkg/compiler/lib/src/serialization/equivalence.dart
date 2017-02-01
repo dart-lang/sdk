@@ -173,25 +173,30 @@ bool areDynamicUsesEquivalent(DynamicUse a, DynamicUse b) {
 }
 
 /// Returns `true` if the static uses [a] and [b] are equivalent.
-bool areStaticUsesEquivalent(StaticUse a, StaticUse b) {
-  return a.kind == b.kind && areElementsEquivalent(a.element, b.element);
+bool areStaticUsesEquivalent(StaticUse a, StaticUse b,
+    {TestStrategy strategy: const TestStrategy()}) {
+  return a.kind == b.kind &&
+      strategy.testElements(a, b, 'element', a.element, b.element);
 }
 
 /// Returns `true` if the type uses [a] and [b] are equivalent.
-bool areTypeUsesEquivalent(TypeUse a, TypeUse b) {
-  return a.kind == b.kind && areTypesEquivalent(a.type, b.type);
+bool areTypeUsesEquivalent(TypeUse a, TypeUse b,
+    {TestStrategy strategy: const TestStrategy()}) {
+  return a.kind == b.kind && strategy.testTypes(a, b, 'type', a.type, b.type);
 }
 
 /// Returns `true` if the list literal uses [a] and [b] are equivalent.
-bool areListLiteralUsesEquivalent(ListLiteralUse a, ListLiteralUse b) {
-  return areTypesEquivalent(a.type, b.type) &&
+bool areListLiteralUsesEquivalent(ListLiteralUse a, ListLiteralUse b,
+    {TestStrategy strategy: const TestStrategy()}) {
+  return strategy.testTypes(a, b, 'type', a.type, b.type) &&
       a.isConstant == b.isConstant &&
       a.isEmpty == b.isEmpty;
 }
 
 /// Returns `true` if the map literal uses [a] and [b] are equivalent.
-bool areMapLiteralUsesEquivalent(MapLiteralUse a, MapLiteralUse b) {
-  return areTypesEquivalent(a.type, b.type) &&
+bool areMapLiteralUsesEquivalent(MapLiteralUse a, MapLiteralUse b,
+    {TestStrategy strategy: const TestStrategy()}) {
+  return strategy.testTypes(a, b, 'type', a.type, b.type) &&
       a.isConstant == b.isConstant &&
       a.isEmpty == b.isEmpty;
 }
@@ -1011,7 +1016,7 @@ class ConstantValueEquivalence
 /// Tests the equivalence of [impact1] and [impact2] using [strategy].
 bool testResolutionImpactEquivalence(
     ResolutionImpact impact1, ResolutionImpact impact2,
-    [TestStrategy strategy = const TestStrategy()]) {
+    {TestStrategy strategy = const TestStrategy()}) {
   return strategy.testSets(impact1, impact2, 'constSymbolNames',
           impact1.constSymbolNames, impact2.constSymbolNames) &&
       strategy.testSets(
@@ -1025,14 +1030,37 @@ bool testResolutionImpactEquivalence(
           impact2.dynamicUses, areDynamicUsesEquivalent) &&
       strategy.testSets(
           impact1, impact2, 'features', impact1.features, impact2.features) &&
-      strategy.testSets(impact1, impact2, 'listLiterals', impact1.listLiterals,
-          impact2.listLiterals, areListLiteralUsesEquivalent) &&
-      strategy.testSets(impact1, impact2, 'mapLiterals', impact1.mapLiterals,
-          impact2.mapLiterals, areMapLiteralUsesEquivalent) &&
-      strategy.testSets(impact1, impact2, 'staticUses', impact1.staticUses,
-          impact2.staticUses, areStaticUsesEquivalent) &&
-      strategy.testSets(impact1, impact2, 'typeUses', impact1.typeUses,
-          impact2.typeUses, areTypeUsesEquivalent) &&
+      strategy.testSets(
+          impact1,
+          impact2,
+          'listLiterals',
+          impact1.listLiterals,
+          impact2.listLiterals,
+          (a, b) => areListLiteralUsesEquivalent(a, b,
+              strategy: strategy.testOnly)) &&
+      strategy.testSets(
+          impact1,
+          impact2,
+          'mapLiterals',
+          impact1.mapLiterals,
+          impact2.mapLiterals,
+          (a, b) =>
+              areMapLiteralUsesEquivalent(a, b, strategy: strategy.testOnly)) &&
+      strategy.testSets(
+          impact1,
+          impact2,
+          'staticUses',
+          impact1.staticUses,
+          impact2.staticUses,
+          (a, b) =>
+              areStaticUsesEquivalent(a, b, strategy: strategy.testOnly)) &&
+      strategy.testSets(
+          impact1,
+          impact2,
+          'typeUses',
+          impact1.typeUses,
+          impact2.typeUses,
+          (a, b) => areTypeUsesEquivalent(a, b, strategy: strategy.testOnly)) &&
       strategy.testSets(impact1, impact2, 'nativeData', impact1.nativeData,
           impact2.nativeData, testNativeBehavior);
 }
