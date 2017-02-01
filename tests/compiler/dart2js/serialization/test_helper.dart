@@ -8,7 +8,9 @@ import 'dart:collection';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
@@ -55,8 +57,25 @@ class Check {
 ///
 /// Use this strategy to fail early with contextual information in the event of
 /// inequivalence.
-class CheckStrategy implements TestStrategy {
-  const CheckStrategy();
+class CheckStrategy extends TestStrategy {
+  const CheckStrategy(
+      {Equivalence<Entity> elementEquivalence: areElementsEquivalent,
+      Equivalence<DartType> typeEquivalence: areTypesEquivalent,
+      Equivalence<ConstantExpression> constantEquivalence:
+          areConstantsEquivalent,
+      Equivalence<ConstantValue> constantValueEquivalence:
+          areConstantValuesEquivalent})
+      : super(
+            elementEquivalence: elementEquivalence,
+            typeEquivalence: typeEquivalence,
+            constantEquivalence: constantEquivalence,
+            constantValueEquivalence: constantValueEquivalence);
+
+  TestStrategy get testOnly => new TestStrategy(
+      elementEquivalence: elementEquivalence,
+      typeEquivalence: typeEquivalence,
+      constantEquivalence: constantEquivalence,
+      constantValueEquivalence: constantValueEquivalence);
 
   @override
   bool test(var object1, var object2, String property, var value1, var value2,
@@ -92,56 +111,6 @@ class CheckStrategy implements TestStrategy {
       bool valueEquivalence(a, b) = equality]) {
     return checkMapEquivalence(object1, object2, property, map1, map2,
         keyEquivalence, valueEquivalence);
-  }
-
-  @override
-  bool testElements(Object object1, Object object2, String property,
-      Element element1, Element element2) {
-    return checkElementIdentities(
-        object1, object2, property, element1, element2);
-  }
-
-  @override
-  bool testTypes(Object object1, Object object2, String property,
-      ResolutionDartType type1, ResolutionDartType type2) {
-    return checkTypes(object1, object2, property, type1, type2);
-  }
-
-  @override
-  bool testConstants(Object object1, Object object2, String property,
-      ConstantExpression exp1, ConstantExpression exp2) {
-    return checkConstants(object1, object2, property, exp1, exp2);
-  }
-
-  @override
-  bool testConstantValues(Object object1, Object object2, String property,
-      ConstantValue value1, ConstantValue value2) {
-    return areConstantValuesEquivalent(value1, value2);
-  }
-
-  @override
-  bool testTypeLists(Object object1, Object object2, String property,
-      List<ResolutionDartType> list1, List<ResolutionDartType> list2) {
-    return checkTypeLists(object1, object2, property, list1, list2);
-  }
-
-  @override
-  bool testConstantLists(Object object1, Object object2, String property,
-      List<ConstantExpression> list1, List<ConstantExpression> list2) {
-    return checkConstantLists(object1, object2, property, list1, list2);
-  }
-
-  @override
-  bool testConstantValueLists(Object object1, Object object2, String property,
-      List<ConstantValue> list1, List<ConstantValue> list2) {
-    return checkConstantValueLists(object1, object2, property, list1, list2);
-  }
-
-  @override
-  bool testNodes(
-      Object object1, Object object2, String property, Node node1, Node node2) {
-    return new NodeEquivalenceVisitor(this)
-        .testNodes(object1, object2, property, node1, node2);
   }
 }
 

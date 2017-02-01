@@ -291,6 +291,12 @@ class ConstantConstructorComputer extends SemanticVisitor
   }
 
   @override
+  ConstantExpression visitTopLevelFunctionGet(
+      Send node, MethodElement method, _) {
+    return new FunctionConstantExpression(method);
+  }
+
+  @override
   ConstantExpression visitTopLevelFieldGet(Send node, FieldElement field, _) {
     return new VariableConstantExpression(field);
   }

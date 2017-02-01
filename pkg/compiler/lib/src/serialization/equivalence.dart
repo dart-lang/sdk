@@ -12,6 +12,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../elements/visitor.dart';
 import '../js_backend/backend_serialization.dart'
@@ -27,6 +28,8 @@ import '../universe/feature.dart';
 import '../universe/use.dart';
 import '../util/util.dart';
 import 'resolved_ast_serialization.dart';
+
+typedef bool Equivalence<E>(E a, E b, {TestStrategy strategy});
 
 /// Equality based equivalence function.
 bool equality(a, b) => a == b;
@@ -91,31 +94,36 @@ bool areMapsEquivalent(Map map1, Map map2,
 }
 
 /// Returns `true` if elements [a] and [b] are equivalent.
-bool areElementsEquivalent(Element a, Element b) {
+bool areElementsEquivalent(Element a, Element b, {TestStrategy strategy}) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
-  return const ElementIdentityEquivalence().visit(a, b);
+  return new ElementIdentityEquivalence(strategy ?? const TestStrategy())
+      .visit(a, b);
 }
 
 /// Returns `true` if types [a] and [b] are equivalent.
-bool areTypesEquivalent(DartType a, DartType b) {
+bool areTypesEquivalent(DartType a, DartType b, {TestStrategy strategy}) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
-  return const TypeEquivalence().visit(a, b);
+  return new TypeEquivalence(strategy ?? const TestStrategy()).visit(a, b);
 }
 
 /// Returns `true` if constants [exp1] and [exp2] are equivalent.
-bool areConstantsEquivalent(ConstantExpression exp1, ConstantExpression exp2) {
+bool areConstantsEquivalent(ConstantExpression exp1, ConstantExpression exp2,
+    {TestStrategy strategy}) {
   if (identical(exp1, exp2)) return true;
   if (exp1 == null || exp2 == null) return false;
-  return const ConstantEquivalence().visit(exp1, exp2);
+  return new ConstantEquivalence(strategy ?? const TestStrategy())
+      .visit(exp1, exp2);
 }
 
 /// Returns `true` if constant values [value1] and [value2] are equivalent.
-bool areConstantValuesEquivalent(ConstantValue value1, ConstantValue value2) {
+bool areConstantValuesEquivalent(ConstantValue value1, ConstantValue value2,
+    {TestStrategy strategy}) {
   if (identical(value1, value2)) return true;
   if (value1 == null || value2 == null) return false;
-  return const ConstantValueEquivalence().visit(value1, value2);
+  return new ConstantValueEquivalence(strategy ?? const TestStrategy())
+      .visit(value1, value2);
 }
 
 /// Returns `true` if the lists of elements, [a] and [b], are equivalent.
@@ -332,7 +340,19 @@ bool areNodesEquivalent(Node node1, Node node2) {
 ///
 /// Use this strategy to determine equivalence without failing on inequivalence.
 class TestStrategy {
-  const TestStrategy();
+  final Equivalence<Entity> elementEquivalence;
+  final Equivalence<DartType> typeEquivalence;
+  final Equivalence<ConstantExpression> constantEquivalence;
+  final Equivalence<ConstantValue> constantValueEquivalence;
+
+  const TestStrategy(
+      {this.elementEquivalence: areElementsEquivalent,
+      this.typeEquivalence: areTypesEquivalent,
+      this.constantEquivalence: areConstantsEquivalent,
+      this.constantValueEquivalence: areConstantValuesEquivalent});
+
+  /// An equivalence [TestStrategy] that doesn't throw on inequivalence.
+  TestStrategy get testOnly => this;
 
   bool test(var object1, var object2, String property, var value1, var value2,
       [bool equivalence(a, b) = equality]) {
@@ -358,38 +378,45 @@ class TestStrategy {
   }
 
   bool testElements(Object object1, Object object2, String property,
-      Element element1, Element element2) {
-    return areElementsEquivalent(element1, element2);
+      Entity element1, Entity element2) {
+    return test(object1, object2, property, element1, element2,
+        (a, b) => elementEquivalence(a, b, strategy: this));
   }
 
   bool testTypes(Object object1, Object object2, String property,
-      ResolutionDartType type1, ResolutionDartType type2) {
-    return areTypesEquivalent(type1, type2);
+      DartType type1, DartType type2) {
+    return test(object1, object2, property, type1, type2,
+        (a, b) => typeEquivalence(a, b, strategy: this));
   }
 
   bool testConstants(Object object1, Object object2, String property,
       ConstantExpression exp1, ConstantExpression exp2) {
-    return areConstantsEquivalent(exp1, exp2);
+    return test(object1, object2, property, exp1, exp2,
+        (a, b) => constantEquivalence(a, b, strategy: this));
   }
 
   bool testConstantValues(Object object1, Object object2, String property,
       ConstantValue value1, ConstantValue value2) {
-    return areConstantValuesEquivalent(value1, value2);
+    return test(object1, object2, property, value1, value2,
+        (a, b) => constantValueEquivalence(a, b, strategy: this));
   }
 
   bool testTypeLists(Object object1, Object object2, String property,
-      List<ResolutionDartType> list1, List<ResolutionDartType> list2) {
-    return areTypeListsEquivalent(list1, list2);
+      List<DartType> list1, List<DartType> list2) {
+    return testLists(object1, object2, property, list1, list2,
+        (a, b) => typeEquivalence(a, b, strategy: this));
   }
 
   bool testConstantLists(Object object1, Object object2, String property,
       List<ConstantExpression> list1, List<ConstantExpression> list2) {
-    return areConstantListsEquivalent(list1, list2);
+    return testLists(object1, object2, property, list1, list2,
+        (a, b) => constantEquivalence(a, b, strategy: this));
   }
 
   bool testConstantValueLists(Object object1, Object object2, String property,
       List<ConstantValue> list1, List<ConstantValue> list2) {
-    return areConstantValueListsEquivalent(list1, list2);
+    return testLists(object1, object2, property, list1, list2,
+        (a, b) => constantValueEquivalence(a, b, strategy: this));
   }
 
   bool testNodes(
