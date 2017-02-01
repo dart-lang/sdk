@@ -50,7 +50,8 @@ class BooleanArray {
    * Return the value of the element at the given index.
    */
   @deprecated
-  static bool getEnum(int array, Enum index) => get(array, index.ordinal);
+  static bool getEnum<E extends Enum<E>>(int array, Enum<E> index) => get(
+      array, index.ordinal);
 
   /**
    * Set the value of the element of the given [array] at the given [index] to
@@ -69,7 +70,7 @@ class BooleanArray {
    * Set the value of the element at the given index to the given value.
    */
   @deprecated
-  static int setEnum(int array, Enum index, bool value) =>
+  static int setEnum<E extends Enum<E>>(int array, Enum<E> index, bool value) =>
       set(array, index.ordinal, value);
 
   /**

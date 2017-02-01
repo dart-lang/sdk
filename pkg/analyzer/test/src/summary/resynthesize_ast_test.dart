@@ -695,7 +695,6 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
         .test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment();
   }
 
-  @override
   LibraryElementImpl _checkSource(
       SummaryResynthesizer resynthesizer, Source source) {
     LibraryElementImpl resynthesized =
