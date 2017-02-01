@@ -644,7 +644,6 @@ void main() {
     ''');
   }
 
-  @failingTest
   void test_constructors_inferenceFBounded() {
     // Regression for https://github.com/dart-lang/sdk/issues/26990
     var unit = checkFile('''
