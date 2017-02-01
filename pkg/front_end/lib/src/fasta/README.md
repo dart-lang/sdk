@@ -16,7 +16,7 @@ Fasta sounds like faster, and that's a promise we intend to keep.
 1. [Build](https://github.com/dart-lang/sdk/wiki/Building#building) the VM and patched SDK. Note: you only need to build the target `runtime`, so you only need to run this command:
 
 ```bash
-./tools/build.py --mode release --arch ia32 runtime
+./tools/build.py --mode release --arch x64 runtime
 ```
 
 Make sure to define these environment variables, for example, by adding them to `~/.bashrc`:
@@ -39,11 +39,11 @@ If you want to help us translate these instructions to another OS, please let us
 
 ## Create an Outline File
 
-1. Run `dart pkg/fasta/bin/outline.dart pkg/compiler/lib/src/dart2js.dart`
+1. Run `dart pkg/front_end/lib/src/fasta/bin/outline.dart pkg/compiler/lib/src/dart2js.dart`
 
-2. Optionally, run `dart pkg/kernel/bin/dartk.dart outline.dill` to view the generated outline.
+2. Optionally, run `dart pkg/kernel/bin/dartk.dart pkg/compiler/lib/src/dart2js.dart.dill` to view the generated outline.
 
-This will generate a file named `outline.dill` which contains a serialized reprsentation of the input program excluding method bodies. This is similar to an analyzer summary.
+This will generate a file named `pkg/compiler/lib/src/dart2js.dart.dill` which contains a serialized reprsentation of the input program excluding method bodies. This is similar to an analyzer summary.
 
 
 ## Create a Platform Dill File
@@ -51,7 +51,7 @@ This will generate a file named `outline.dill` which contains a serialized reprs
 A `platform.dill` is a dill file that contains the Dart SDK platform libraries. For now, this is generated with dartk until fasta reaches a higher rate of test passes.
 
 ```bash
-dart pkg/fasta/bin/compile_platform.dart platform.dill
+dart pkg/front_end/lib/src/fasta/bin/compile_platform.dart platform.dill
 ```
 
 Make sure to define `$DART_AOT_SDK` as described [above](#Building-The-Dart-SDK).
@@ -59,13 +59,13 @@ Make sure to define `$DART_AOT_SDK` as described [above](#Building-The-Dart-SDK)
 ## Compiling a Program
 
 ```bash
-dart pkg/fasta/bin/compile.dart test/hello.dart
+dart pkg/front_end/lib/src/fasta/bin/compile.dart pkg/front_end/test/fasta/hello.dart
 ```
 
-This will generate `program.dill` which can be run this way:
+This will generate `pkg/front_end/test/fasta/hello.dart.dill` which can be run this way:
 
 ```bash
-$DART_AOT_VM program.dill
+$DART_AOT_VM pkg/front_end/test/fasta/hello.dart.dill
 ```
 
 Where `$DART_AOT_VM` is defined as described [above](#Building-The-Dart-SDK).
@@ -73,13 +73,13 @@ Where `$DART_AOT_VM` is defined as described [above](#Building-The-Dart-SDK).
 ### Using dartk and the Analyzer AST
 
 ```bash
-dart pkg/fasta/bin/kompile.dart test/hello.dart
+dart pkg/front_end/lib/src/fasta/bin/kompile.dart pkg/front_end/test/fasta/hello.dart
 ```
 
-This will generate `program.dill` which can be run this way:
+This will generate `pkg/front_end/test/fasta/hello.dart.dill` which can be run this way:
 
 ```bash
-$DART_AOT_VM program.dill
+$DART_AOT_VM pkg/front_end/test/fasta/hello.dart.dill
 ```
 
 Where `$DART_AOT_VM` is defined as described [above](#Building-The-Dart-SDK).
@@ -89,12 +89,20 @@ Where `$DART_AOT_VM` is defined as described [above](#Building-The-Dart-SDK).
 Run:
 
 ```bash
-dart -c pkg/testing/bin/testing.dart --config=pkg/fasta/testing.json
+dart -c pkg/testing/bin/testing.dart --config=pkg/front_end/test/fasta/testing.json
 ```
 
 ## Running dart2js
 
 ```bash
-dart pkg/fasta/bin/compile.dart pkg/compiler/lib/src/dart2js.dart
-$DART_AOT_VM pkg/compiler/lib/src/dart2js.dart.dill pkg/fasta/test/test/hello.dart
+dart pkg/front_end/lib/src/fasta/bin/compile.dart pkg/compiler/lib/src/dart2js.dart
+$DART_AOT_VM pkg/compiler/lib/src/dart2js.dart.dill pkg/front_end/test/fasta/hello.dart
 ```
+
+The output of dart2js will be `out.js`, and it can be run on any Javascript engine, for example, d8 which is included with the Dart SDK sources:
+
+```
+./third_party/d8/<OS>/d8 out.js
+```
+
+Where `<OS>` is one of `linux`, `macos`, or `windows`.
