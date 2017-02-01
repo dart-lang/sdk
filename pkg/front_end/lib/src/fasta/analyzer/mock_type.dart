@@ -22,6 +22,8 @@ abstract class MockType extends DartType {
 
   bool get isDartAsyncFuture => internalError("not supported.");
 
+  bool get isDartAsyncFutureOr => internalError("not supported.");
+
   bool get isDartCoreFunction => internalError("not supported.");
 
   bool get isDynamic => internalError("not supported.");

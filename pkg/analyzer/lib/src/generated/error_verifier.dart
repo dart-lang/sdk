@@ -2586,7 +2586,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForBadFunctionUse(ClassDeclaration node) {
     ExtendsClause extendsClause = node.extendsClause;
-    ImplementsClause implementsClause = node.implementsClause;
     WithClause withClause = node.withClause;
 
     if (node.name.name == "Function") {
