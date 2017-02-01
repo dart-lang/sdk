@@ -5,7 +5,8 @@
   * Breaking change: ['Generalized tear-offs'](https://github.com/gbracha/generalizedTearOffs/blob/master/proposal.md)
     are no longer supported, and will cause errors. We updated the language spec
     and added warnings in 1.21, and are now taking the last step to fully
-    de-support them. They were previously supported in the VM only.
+    de-support them. They were previously only supported in the VM, and there
+    are almost no known uses of them in the wild.
 
   * The `assert()` statement has been expanded to support an optional second
     `message` argument (SDK issue [27342](https://github.com/dart-lang/sdk/issues/27342)).
@@ -30,18 +31,186 @@
     ```
 
   * The `Null` type has been moved to the bottom of the type hierarchy. As such,
-    it is considered a subtype of every other type.
+    it is considered a subtype of every other type. The `null` *literal* was
+    always treated as a bottom type. Now the named class `Null` is too:
 
-    Examples:
-    ```
-    Null foo() => null;
-    int x = foo();
-    String x = foo();
+    ```dart
+    const empty = <Null>[];
 
-    List<Null> bar() => <Null>[];
-    List<int> = bar();
-    List<String> = bar();
+    String concatenate(List<String> parts) => parts.join();
+    int sum(List<int> numbers) => numbers.fold(0, (sum, n) => sum + n);
+
+    concatenate(empty); // OK.
+    sum(empty); // OK.
     ```
+
+  * Introduce `covariant` modifier on parameters. It indicates that the
+    parameter (and the corresponding parameter in any method that overrides it)
+    has looser override rules. In strong mode, these require a runtime type
+    check to maintain soundness, but enable an architectural pattern that is
+    useful in some code.
+
+    It lets you specialize a family of classes together, like so:
+
+    ```dart
+    abstract class Predator {
+      void chaseAndEat(covariant Prey p);
+    }
+
+    abstract class Prey {}
+
+    class Mouse extends Prey {}
+
+    class Seal extends Prey {}
+
+    class Cat extends Predator {
+      void chaseAndEat(Mouse m) => ...
+    }
+
+    class Orca extends Predator {
+      void chaseAndEat(Seal s) => ...
+    }
+    ```
+
+    This isn't statically safe, because you could do:
+
+    ```dart
+    Predator predator = new Cat(); // Upcast.
+    predator(new Seal()); // Cats can't eat seals!
+    ```
+
+    To preserve soundness in strong mode, in the body of a method that uses a
+    covariant override (here, `Cat.chaseAndEat()`), the compiler automatically
+    inserts a check that the parameter is of the expected type. So the compiler
+    gives you something like:
+
+    ```dart
+    class Cat extends Predator {
+      void chaseAndEat(o) {
+        var m = o as Mouse;
+        ...
+      }
+    }
+    ```
+
+    Spec mode allows this unsound behavior on all parameters, even though users
+    rarely rely on it. Strong mode disallowed it initially. Now, strong mode
+    lets you opt into this behavior in the places where you do want it by using
+    this modifier. Outside of strong mode, the modifier is ignored.
+
+  * Change instantiate-to-bounds rules for generic type parameters when running
+    in strong mode. If you leave off the type parameters from a generic type, we
+    need to decide what to fill them in with.  Dart 1.0 says just use `dynamic`,
+    but that isn't sound:
+
+    ```dart
+    class Abser<T extends num> {
+       void absThis(T n) { n.abs(); }
+    }
+
+    var a = new Abser(); // Abser<dynamic>.
+    a.absThis("not a num");
+    ```
+
+    We want the body of `absThis()` to be able to safely assume `n` is at
+    least a `num` -- that's why there's a constraint on T, after all. Implicitly
+    using `dynamic` as the type parameter in this example breaks that.
+
+    Instead, strong mode uses the bound. In the above example, it fills it in
+    with `num`, and then the second line where a string is passed becomes a
+    static error.
+
+    However, there are some cases where it is hard to figure out what that
+    default bound should be:
+
+    ```dart
+    class RuhRoh<T extends Comparable<T>> {}
+    ```
+
+    Strong mode's initial behavior sometimes produced surprising, unintended
+    results. For 1.22, we take a simpler approach and then report an error if
+    a good default type argument can't be found.
+
+### Core libraries
+
+  * Define `FutureOr<T>` for code that works with either a future or an
+    immediate value of some type. For example, say you do a lot of text
+    manipulation, and you want a handy function to chain a bunch of them:
+
+    ```dart
+    typedef String StringSwizzler(String input);
+
+    String swizzle(String input, List<StringSwizzler> swizzlers) {
+      var result = input;
+      for (var swizzler in swizzlers) {
+        result = swizzler(result);
+      }
+
+      return result;
+    }
+    ```
+
+    This works fine:
+
+    ```dart
+    main() {
+      var result = swizzle("input", [
+        (s) => s.toUpperCase(),
+        (s) => () => s * 2)
+      ]);
+      print(result); // "INPUTINPUT".
+    }
+    ```
+
+    Later, you realize you'd also like to support swizzlers that are
+    asynchronous (maybe they look up synonyms for words online). You could make
+    your API strictly asynchronous, but then users of simple synchronous
+    swizzlers have to manually wrap the return value in a `Future.value()`.
+    Ideally, your `swizzle()` function would be "polymorphic over asynchrony".
+    It would allow both synchronous and asynchronous swizzlers. Because `await`
+    accepts immediate values, it is easy to implement this dynamically:
+
+    ```dart
+    Future<String> swizzle(String input, List<StringSwizzler> swizzlers) async {
+      var result = input;
+      for (var swizzler in swizzlers) {
+        result = await swizzler(result);
+      }
+
+      return result;
+    }
+
+    main() async {
+      var result = swizzle("input", [
+        (s) => s.toUpperCase(),
+        (s) => new Future.delayed(new Duration(milliseconds: 40), () => s * 2)
+      ]);
+      print(await result);
+    }
+    ```
+
+    What should the declared return type on StringSwizzler be? In the past, you
+    had to use `dynamic` or `Object`, but that doesn't tell the user much. Now,
+    you can do:
+
+    ```dart
+    typedef FutureOr<String> StringSwizzler(String input);
+    ```
+
+    Like the name implies, `FutureOr<String>` is a union type. It can be a
+    `String` or a `Future<String>`, but not anything else. In this case, that's
+    not super useful beyond just stating a more precise type for readers of the
+    code. It does give you a little better error checking in code that uses the
+    result of that.
+
+    `FutureOr<T>` becomes really important in *generic* methods like
+    `Future.then()`. In those cases, having the type system understand this
+    magical union type helps type inference figure out the type argument of
+    `then()` based on the closure you pass it.
+
+    Previously, strong mode had hard-coded rules for handling `Future.then()`
+    specifically. `FutureOr<T>` exposes that functionality so third-party APIs
+    can take advantage of it too.
 
 ### Tool changes
 
