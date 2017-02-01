@@ -217,11 +217,6 @@ class AnalysisDriver {
   final Map<String, AnalysisResult> _priorityResults = {};
 
   /**
-   * The instance of the status helper.
-   */
-  final StatusSupport _statusSupport = new StatusSupport();
-
-  /**
    * The controller for the [exceptions] stream.
    */
   final StreamController<ExceptionResult> _exceptionController =
@@ -324,7 +319,6 @@ class AnalysisDriver {
         .forEach(_priorityResults.remove);
     _priorityFiles.clear();
     _priorityFiles.addAll(priorityPaths);
-    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
 
@@ -362,11 +356,6 @@ class AnalysisDriver {
    * from file paths.
    */
   SourceFactory get sourceFactory => _sourceFactory;
-
-  /**
-   * Return the stream that produces [AnalysisStatus] events.
-   */
-  Stream<AnalysisStatus> get status => _statusSupport.stream;
 
   @visibleForTesting
   AnalysisDriverTestView get test => _testView;
@@ -406,7 +395,6 @@ class AnalysisDriver {
     if (_requestedParts.isNotEmpty || _partsToAnalyze.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
-    _statusSupport.transitionToIdle();
     return AnalysisDriverPriority.nothing;
   }
 
@@ -426,7 +414,6 @@ class AnalysisDriver {
       _filesToAnalyze.add(path);
       _priorityResults.clear();
     }
-    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
 
@@ -454,7 +441,6 @@ class AnalysisDriver {
       _filesToAnalyze.add(path);
     }
     _priorityResults.clear();
-    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
 
@@ -477,7 +463,6 @@ class AnalysisDriver {
     _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
         _resourceProvider, _sourceFactory, _analysisOptions, _salt);
     _filesToAnalyze.addAll(_addedFiles);
-    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
 
@@ -525,7 +510,6 @@ class AnalysisDriver {
   Future<List<String>> getFilesReferencingName(String name) {
     var task = new _FilesReferencingNameTask(this, name);
     _referencingNameTasks.add(task);
-    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
     return task.completer.future;
   }
@@ -543,7 +527,6 @@ class AnalysisDriver {
     _indexRequestedFiles
         .putIfAbsent(path, () => <Completer<AnalysisDriverUnitIndex>>[])
         .add(completer);
-    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
     return completer.future;
   }
@@ -583,7 +566,6 @@ class AnalysisDriver {
     _requestedFiles
         .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
         .add(completer);
-    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
     return completer.future;
   }
@@ -611,7 +593,6 @@ class AnalysisDriver {
       String name) {
     var task = new _TopLevelNameDeclarationsTask(this, name);
     _topLevelNameDeclarationsTasks.add(task);
-    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
     return task.completer.future;
   }
@@ -628,7 +609,6 @@ class AnalysisDriver {
     _unitElementRequestedFiles
         .putIfAbsent(path, () => <Completer<CompilationUnitElement>>[])
         .add(completer);
-    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
     return completer.future;
   }
@@ -668,17 +648,8 @@ class AnalysisDriver {
     _fsState.removeFile(path);
     _filesToAnalyze.addAll(_addedFiles);
     _priorityResults.clear();
-    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
-
-  /**
-   * Return a future that will be completed the next time the status is idle.
-   *
-   * If the status is currently idle, the returned future will be signaled
-   * immediately.
-   */
-  Future<Null> waitForIdle() => _statusSupport.waitForIdle();
 
   /**
    * Return the cached or newly computed analysis result of the file with the
@@ -1231,6 +1202,14 @@ class AnalysisDriverScheduler {
   }
 
   /**
+   * Return a future that will be completed the next time the status is idle.
+   *
+   * If the status is currently idle, the returned future will be signaled
+   * immediately.
+   */
+  Future<Null> waitForIdle() => _statusSupport.waitForIdle();
+
+  /**
    * Add the given [driver] and schedule it to perform its work.
    */
   void _add(AnalysisDriver driver) {
@@ -1244,6 +1223,7 @@ class AnalysisDriverScheduler {
    */
   void _notify(AnalysisDriver driver) {
     _hasWork.notify();
+    _statusSupport.preTransitionToAnalyzing();
   }
 
   /**
@@ -1282,7 +1262,7 @@ class AnalysisDriverScheduler {
       AnalysisDriverPriority bestPriority = AnalysisDriverPriority.nothing;
       for (AnalysisDriver driver in _drivers) {
         AnalysisDriverPriority priority = driver._workPriority;
-        if (bestPriority == null || priority.index > bestPriority.index) {
+        if (priority.index > bestPriority.index) {
           bestDriver = driver;
           bestPriority = priority;
         }

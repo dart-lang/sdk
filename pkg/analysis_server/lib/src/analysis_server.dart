@@ -1820,9 +1820,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   nd.AnalysisDriver addAnalysisDriver(Folder folder, AnalysisOptions options) {
     ContextBuilder builder = createContextBuilder(folder, options);
     nd.AnalysisDriver analysisDriver = builder.buildDriver(folder.path);
-    analysisDriver.status.listen((status) {
-      // TODO(scheglov) send server status
-    });
     analysisDriver.results.listen((result) {
       new_sendErrorNotification(analysisServer, result);
       String path = result.path;

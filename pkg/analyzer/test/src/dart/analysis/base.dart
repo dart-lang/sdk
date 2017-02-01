@@ -124,7 +124,7 @@ class BaseAnalysisDriverTest {
         ], null, provider),
         new AnalysisOptionsImpl()..strongMode = true);
     scheduler.start();
-    driver.status.listen(allStatuses.add);
+    scheduler.status.listen(allStatuses.add);
     driver.results.listen(allResults.add);
     driver.exceptions.listen(allExceptions.add);
   }
