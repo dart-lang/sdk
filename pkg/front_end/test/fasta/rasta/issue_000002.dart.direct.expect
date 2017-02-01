@@ -6,14 +6,14 @@ import "dart:typed_data" as typ;
 
 class Foo extends core::Object {
   final field dynamic value;
-  constructor •(dynamic value) → dynamic
+  constructor •(dynamic value) → void
     : self::Foo::value = value, super core::Object::•() {}
-  static factory fac(dynamic value) → self::Foo {
+  static factory fac(dynamic value) → dynamic {
     return new self::Foo::•(value);
   }
 }
 static field dynamic list = <dynamic>[1, 2, 3];
 static method main() → dynamic {
-  exp::Expect::isTrue(typ::Uint8List::fromList(self::list).[](1).==(2));
-  exp::Expect::isTrue(self::Foo::fac(10).value.==(10));
+  exp::Expect::isTrue(typ::Uint8List::fromList(self::list).[](1).==(2), null);
+  exp::Expect::isTrue(self::Foo::fac(10).value.==(10), null);
 }

@@ -2,5 +2,5 @@ library;
 import self as self;
 
 static method main() → dynamic {
-  let final dynamic #t1 = invalid-expression in let final dynamic #t2 = #t1.toString() in #t1;
+  let final dynamic #t1 = throw "pkg/fasta/test/rasta/issue_000031.dart: \u0027[31mError: A library can't be used as an expression.\u0027[0m" in let final dynamic #t2 = #t1.toString() in #t1;
 }

@@ -28,7 +28,7 @@ static method fact6() → dynamic {
   return f;
 }
 static method main() → dynamic {
-  exp::Expect::isTrue(self::fact4().==(24));
-  exp::Expect::isTrue(self::fact5().==(120));
-  exp::Expect::isTrue(self::fact6().==(720));
+  exp::Expect::isTrue(self::fact4().==(24), null);
+  exp::Expect::isTrue(self::fact5().==(120), null);
+  exp::Expect::isTrue(self::fact6().==(720), null);
 }

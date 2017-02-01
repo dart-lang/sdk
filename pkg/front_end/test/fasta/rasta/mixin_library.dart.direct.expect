@@ -3,14 +3,15 @@ import self as self;
 import "dart:core" as core;
 
 class Mixin<T extends core::Object> extends core::Object {
-  field dynamic x;
-  field dynamic y;
-  field dynamic z;
-  field self::Mixin::T t;
-  constructor •() → self::Mixin<self::Mixin::T>
-    : self::Mixin::x = self::f(), super core::Object::•();
+  field dynamic x = self::f();
+  field dynamic y = null;
+  field dynamic z = null;
+  field self::Mixin::T t = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
   method foo() → dynamic
-    return (throw core::_unresolvedSuperMethodError(this, #foo, <dynamic>[], <dynamic, dynamic>{}, null)).+(self::f());
+    return (throw new core::NoSuchMethodError::•(null, #foo, <dynamic>[], <dynamic, dynamic>{}, null)).+(self::f());
   method g(self::Mixin::T a) → self::Mixin::T
     return null;
   method h() → dynamic

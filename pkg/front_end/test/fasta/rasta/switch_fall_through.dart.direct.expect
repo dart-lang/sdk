@@ -8,9 +8,11 @@ static method main() → dynamic {
     #L2:
     case 1:
       {
-        "No fall-through error needed.";
-        break #L1;
-        ;
+        {
+          "No fall-through error needed.";
+          break #L1;
+          ;
+        }
       }
     #L3:
     case 2:
@@ -25,19 +27,23 @@ static method main() → dynamic {
       }
     #L4:
     case 3:
-      try {
-        "No fall-through error needed.";
-      }
-      finally {
-        break #L1;
+      {
+        try {
+          "No fall-through error needed.";
+        }
+        finally {
+          break #L1;
+        }
       }
     #L5:
     case 4:
-      try {
-        "No fall-through error needed.";
-        break #L1;
-      }
-      finally {
+      {
+        try {
+          "No fall-through error needed.";
+          break #L1;
+        }
+        finally {
+        }
       }
     #L6:
     case 5:
@@ -51,6 +57,8 @@ static method main() → dynamic {
       }
     #L7:
     case 10000:
-      "Should be last. No fall-through error, falling through allowed here.";
+      {
+        "Should be last. No fall-through error, falling through allowed here.";
+      }
   }
 }

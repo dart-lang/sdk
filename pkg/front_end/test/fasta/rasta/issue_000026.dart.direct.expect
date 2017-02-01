@@ -3,18 +3,19 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field dynamic a;
-  field dynamic b;
-  field dynamic c;
-  constructor •() → self::C
-    : self::C::b = 0, self::C::c = 1.+(2), super core::Object::•();
+  field dynamic a = null;
+  field dynamic b = 0;
+  field dynamic c = 1.+(2);
+  constructor •() → void
+    : super core::Object::•()
+    ;
 }
 class D extends core::Object {
-  field dynamic a;
-  field dynamic b;
-  field dynamic c;
-  constructor •() → dynamic
-    : self::D::b = 1, self::D::c = 2.-(3), super core::Object::•()
+  field dynamic a = null;
+  field dynamic b = 1;
+  field dynamic c = 2.-(3);
+  constructor •() → void
+    : super core::Object::•()
     ;
 }
 static method main() → dynamic {

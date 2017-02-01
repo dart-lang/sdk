@@ -6,5 +6,5 @@ static method test0(dynamic x) → dynamic {
   core::print("test0");
 }
 static method main() → dynamic {
-  self::test0(0, 1);
+  throw new core::NoSuchMethodError::•(null, #test0, <dynamic>[0, 1], <dynamic, dynamic>{}, null);
 }

@@ -2,6 +2,6 @@ library;
 import self as self;
 
 static method main() → dynamic {
-  invalid-statement;
+  throw "pkg/fasta/test/rasta/bad_continue.dart:239: \u0027[31mError: Can't find label 'here'.\u0027[0m";
   invalid-statement;
 }

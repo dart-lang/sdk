@@ -1,7 +1,8 @@
 library;
 import self as self;
+import "dart:core" as core;
 
 static method main() → dynamic {
-  invalid-expression;
-  invalid-expression;
+  throw new core::NoSuchMethodError::•(null, #loadLibrary, <dynamic>[], <dynamic, dynamic>{}, null);
+  throw new core::NoSuchMethodError::•(null, #lib.loadLibrary, <dynamic>[], <dynamic, dynamic>{}, null);
 }

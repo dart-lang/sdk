@@ -3,8 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 class C<T extends core::Object> extends core::Object {
-  constructor •() → self::C<self::C::T>
-    : super core::Object::•();
+  constructor •() → void
+    : super core::Object::•()
+    ;
   method test() → dynamic {
     self::C<dynamic>;
     self::use(self::C<dynamic>);
