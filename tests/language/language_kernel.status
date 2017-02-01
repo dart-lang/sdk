@@ -43,15 +43,17 @@ vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 vm/regress_27201_test: CompileTimeError
 main_not_a_function_test/01: Pass # Fails if tree shaking is disabled
+type_variable_conflict2_test/02: MissingCompileTimeError
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
 config_import_corelib_test: RuntimeError
-type_variable_conflict2_test/02: MissingCompileTimeError
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 config_import_corelib_test: RuntimeError
+mixin_illegal_syntax_test/00: DartkCrash
+not_enough_positional_arguments_test/01: DartkCompileTimeError # Issue 28590
 
 ###############################################################################
 # VM Entries
