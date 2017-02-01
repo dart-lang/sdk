@@ -2527,8 +2527,11 @@ class GetHandler implements AbstractGetHandler {
         buffer.write('Inactive');
       }
       buffer.write('<br>');
-      buffer.write('Version: ');
+      buffer.write('Server version: ');
       buffer.write(AnalysisServer.VERSION);
+      buffer.write('<br>');
+      buffer.write('SDK: ');
+      buffer.write(Platform.version);
       buffer.write('<br>');
       buffer.write('Process ID: ');
       buffer.write(pid);
