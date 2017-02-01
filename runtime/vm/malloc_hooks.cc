@@ -223,6 +223,11 @@ void MallocHooks::ResetStats() {
 }
 
 
+bool MallocHooks::Initialized() {
+  return MallocHooksState::initialized();
+}
+
+
 intptr_t MallocHooks::allocation_count() {
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
   return MallocHooksState::allocation_count();

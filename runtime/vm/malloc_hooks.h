@@ -14,6 +14,7 @@ class MallocHooks {
   static void InitOnce();
   static void TearDown();
   static void ResetStats();
+  static bool Initialized();
 
   static intptr_t allocation_count();
   static intptr_t heap_allocated_memory_in_bytes();

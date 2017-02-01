@@ -661,6 +661,8 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   bool typeChecksEnabled = false;
   int nativeZoneMemoryUsage = 0;
   int pid = 0;
+  int heapAllocatedMemoryUsage = 0;
+  int heapAllocationCount = 0;
   int maxRSS = 0;
   bool profileVM = false;
   DateTime startTime;
@@ -951,6 +953,12 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       nativeZoneMemoryUsage = map['_nativeZoneMemoryUsage'];
     }
     pid = map['pid'];
+    if (map['_heapAllocatedMemoryUsage'] != null) {
+      heapAllocatedMemoryUsage = map['_heapAllocatedMemoryUsage'];
+    }
+    if (map['_heapAllocationCount'] != null) {
+      heapAllocationCount = map['_heapAllocationCount'];
+    }
     maxRSS = map['_maxRSS'];
     profileVM = map['_profilerMode'] == 'VM';
     assertsEnabled = map['_assertsEnabled'];

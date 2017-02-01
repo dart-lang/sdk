@@ -16,6 +16,7 @@
 #include "vm/debugger.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
+#include "vm/malloc_hooks.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
@@ -3801,6 +3802,11 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty64("_maxRSS", OS::MaxRSS());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
+  if (MallocHooks::Initialized()) {
+    jsobj.AddProperty("_heapAllocatedMemoryUsage",
+                      MallocHooks::heap_allocated_memory_in_bytes());
+    jsobj.AddProperty("_heapAllocationCount", MallocHooks::allocation_count());
+  }
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");

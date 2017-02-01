@@ -25,6 +25,11 @@ void MallocHooks::ResetStats() {
 }
 
 
+bool MallocHooks::Initialized() {
+  return false;
+}
+
+
 intptr_t MallocHooks::allocation_count() {
   return 0;
 }
