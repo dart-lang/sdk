@@ -7,9 +7,9 @@ library fasta.test.compile_test;
 import 'dart:async' show
     Future;
 
-import 'package:fasta/testing/suite.dart';
+import 'package:front_end/src/fasta/testing/suite.dart';
 
-import 'package:fasta/testing/kernel_chain.dart' show
+import 'package:front_end/src/fasta/testing/kernel_chain.dart' show
     MatchExpectation;
 
 Future<FeContext> createContext(

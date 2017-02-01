@@ -7,7 +7,7 @@ library fasta.test.outline_test;
 import 'dart:async' show
     Future;
 
-import 'package:fasta/testing/suite.dart';
+import 'package:front_end/src/fasta/testing/suite.dart';
 
 Future<FeContext> createContext(
     Chain suite, Map<String, String> environment) {
