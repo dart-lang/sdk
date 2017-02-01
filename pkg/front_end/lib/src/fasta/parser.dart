@@ -18,7 +18,6 @@ import 'parser/listener.dart' show
 
 export 'parser/parser.dart' show
     Parser,
-    closeBraceFor,
     optional;
 
 export 'parser/listener.dart' show

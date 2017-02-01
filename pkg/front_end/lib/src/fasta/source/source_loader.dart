@@ -13,10 +13,9 @@ import 'dart:io' show
 import 'package:front_end/src/fasta/scanner/io.dart' show
     readBytesFromFile;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show
-    Token;
-
 import 'package:front_end/src/fasta/scanner.dart' show
+    ErrorToken,
+    Token,
     scan;
 
 import 'package:front_end/src/fasta/parser/class_member_parser.dart' show
@@ -32,6 +31,7 @@ import 'package:kernel/core_types.dart' show
     CoreTypes;
 
 import '../errors.dart' show
+    InputError,
     inputError;
 
 import '../export.dart' show
@@ -77,7 +77,8 @@ class SourceLoader<L> extends Loader<L> {
   SourceLoader(TargetImplementation target)
       : super(target);
 
-  Future<Token> tokenize(SourceLibraryBuilder library) async {
+  Future<Token> tokenize(SourceLibraryBuilder library,
+      {bool suppressLexicalErrors: false}) async {
     Uri uri = library.uri;
     if (uri.scheme != "file") {
       uri = target.translateUri(uri);
@@ -90,7 +91,17 @@ class SourceLoader<L> extends Loader<L> {
     try {
       List<int> bytes = await readBytesFromFile(uri);
       byteCount += bytes.length - 1;
-      return scan(bytes).tokens;
+      Token token = scan(bytes).tokens;
+      while (token is ErrorToken) {
+        if (!suppressLexicalErrors) {
+          ErrorToken error = token;
+          String message = new InputError(
+              uri, token.charOffset, error.assertionMessage).format();
+          print(message);
+        }
+        token = token.next;
+      }
+      return token;
     } on FileSystemException catch (e) {
       String message = e.message;
       String osMessage = e.osError?.message;
@@ -110,7 +121,10 @@ class SourceLoader<L> extends Loader<L> {
 
   Future<Null> buildBody(LibraryBuilder library, AstKind astKind) async {
     if (library is SourceLibraryBuilder) {
-      Token tokens = await tokenize(library);
+      // We tokenize source files twice to keep memory usage low. This is the
+      // second time, and the first time was in [buildOutline] above. So this
+      // time we suppress lexical errors.
+      Token tokens = await tokenize(library, suppressLexicalErrors: true);
       if (tokens == null) return;
       DietListener listener = new DietListener(
           library, elementStore, hierarchy, coreTypes, astKind);

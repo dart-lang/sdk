@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •() → void
+    : super core::Object::•() {}
+}

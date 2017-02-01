@@ -4,6 +4,9 @@
 
 library fasta.scanner.array_based_scanner;
 
+import 'error_token.dart' show
+    ErrorToken;
+
 import 'keyword.dart' show
     Keyword;
 
@@ -14,7 +17,6 @@ import 'precedence.dart' show
 
 import 'token.dart' show
     BeginGroupToken,
-    ErrorToken,
     KeywordToken,
     SymbolToken,
     Token;

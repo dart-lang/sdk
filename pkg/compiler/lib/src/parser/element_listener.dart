@@ -630,7 +630,10 @@ class ElementListener extends Listener {
         errorCode = MessageKind.INVALID_AWAIT_FOR;
         break;
 
-      case ErrorKind.InvalidInputCharacter:
+      case ErrorKind.AsciiControlCharacter:
+      case ErrorKind.NonAsciiIdentifier:
+      case ErrorKind.NonAsciiWhitespace:
+      case ErrorKind.Encoding:
         errorCode = MessageKind.BAD_INPUT_CHARACTER;
         break;
 
@@ -642,7 +645,7 @@ class ElementListener extends Listener {
         errorCode = MessageKind.VOID_NOT_ALLOWED;
         break;
 
-      case ErrorKind.MalformedStringLiteral:
+      case ErrorKind.UnexpectedDollarInString:
         errorCode = MessageKind.MALFORMED_STRING_LITERAL;
         break;
 

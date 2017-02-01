@@ -5,7 +5,13 @@
 library fasta.scanner.abstract_scanner;
 
 import '../scanner.dart' show
-    Scanner;
+    ErrorToken,
+    Scanner,
+    buildUnexpectedCharacterToken;
+
+import 'error_token.dart' show
+    UnmatchedToken,
+    UnterminatedToken;
 
 import 'keyword.dart' show
     KeywordState,
@@ -14,14 +20,10 @@ import 'keyword.dart' show
 import 'precedence.dart';
 
 import 'token.dart' show
-    BadInputToken,
     BeginGroupToken,
-    ErrorToken,
     KeywordToken,
     SymbolToken,
-    Token,
-    UnmatchedToken,
-    UnterminatedToken;
+    Token;
 
 import 'token_constants.dart';
 
@@ -393,13 +395,6 @@ abstract class AbstractScanner implements Scanner {
     }
 
     next = currentAsUnicode(next);
-
-    // The following are non-ASCII characters.
-
-    if (identical(next, $NBSP)) {
-      appendWhiteSpace(next);
-      return advance();
-    }
 
     return unexpected(next);
   }
@@ -1073,7 +1068,7 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int unexpected(int character) {
-    appendErrorToken(new BadInputToken(character, tokenStart));
+    appendErrorToken(buildUnexpectedCharacterToken(character, tokenStart));
     return advanceAfterError(true);
   }
 

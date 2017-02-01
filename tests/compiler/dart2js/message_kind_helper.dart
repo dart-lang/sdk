@@ -22,7 +22,6 @@ const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
 /// However, consider that a single concise diagnostic is easier to understand,
 /// so try to change error reporting logic before adding an exception.
 final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
-  // If you add something here, please file a *new* bug report.
   // See http://dartbug.com/18361:
   MessageKind.CANNOT_EXTEND_MALFORMED,
   MessageKind.CANNOT_IMPLEMENT_MALFORMED,
@@ -42,6 +41,7 @@ final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
   MessageKind.UNIMPLEMENTED_METHOD,
   MessageKind.UNIMPLEMENTED_METHOD_ONE,
   MessageKind.VAR_FUNCTION_TYPE_PARAMETER,
+  MessageKind.UNMATCHED_TOKEN,
 ]);
 
 /// Most messages can be tested without causing a fatal error. Add an exception

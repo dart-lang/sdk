@@ -16,7 +16,7 @@ rasta/bad_default_constructor: VerificationError
 rasta/bad_explicit_super_constructor: Fail
 rasta/bad_implicit_super_constructor: Fail
 rasta/bad_interpolation: Crash
-rasta/bad_redirection: Crash
+rasta/bad_redirection: Fail
 rasta/bad_setter_initializer: Fail
 rasta/bad_unicode: Fail
 rasta/breaking_bad: Fail
@@ -35,13 +35,14 @@ rasta/issue_000001: Fail
 rasta/issue_000031: Fail
 rasta/issue_000032: Crash
 rasta/issue_000034: Fail
-rasta/issue_000035: Crash
+rasta/issue_000035: Fail
+rasta/issue_000035a: Fail
 rasta/issue_000036: Crash
 rasta/issue_000039: Crash
 rasta/issue_000041: Fail
 rasta/issue_000042: Fail
 rasta/issue_000043: Fail
-rasta/issue_000044: Crash
+rasta/issue_000044: Fail
 rasta/issue_000045: Crash
 rasta/issue_000046: Crash
 rasta/issue_000047: Crash

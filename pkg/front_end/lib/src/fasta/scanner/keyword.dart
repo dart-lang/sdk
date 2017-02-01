@@ -74,16 +74,17 @@ class Keyword {
     const Keyword("static", isBuiltIn: true),
     const Keyword("typedef", isBuiltIn: true),
 
+    const Keyword("async", isPseudo: true),
+    const Keyword("await", isPseudo: true),
+    const Keyword("deferred", isPseudo: true),
     const Keyword("hide", isPseudo: true),
     const Keyword("native", isPseudo: true),
     const Keyword("of", isPseudo: true),
     const Keyword("on", isPseudo: true),
+    const Keyword("patch", isPseudo: true),
     const Keyword("show", isPseudo: true),
     const Keyword("source", isPseudo: true),
-    const Keyword("deferred", isPseudo: true),
-    const Keyword("async", isPseudo: true),
     const Keyword("sync", isPseudo: true),
-    const Keyword("await", isPseudo: true),
     const Keyword("yield", isPseudo: true),
   ];
 

@@ -15,6 +15,7 @@ import 'keyword.dart' show
 
 import 'precedence.dart' show
     BAD_INPUT_INFO,
+    EOF_INFO,
     PrecedenceInfo;
 
 import 'token_constants.dart' show
@@ -112,6 +113,8 @@ abstract class Token {
 
   /// The character offset of the end of this token within the source text.
   int get charEnd => charOffset + charCount;
+
+  bool get isEof => false;
 }
 
 /**
@@ -130,6 +133,8 @@ class SymbolToken extends Token {
   bool isIdentifier() => false;
 
   String toString() => "SymbolToken($value)";
+
+  bool get isEof => info == EOF_INFO;
 }
 
 /**
@@ -162,60 +167,6 @@ class KeywordToken extends Token {
   bool isIdentifier() => keyword.isPseudo || keyword.isBuiltIn;
 
   String toString() => "KeywordToken($value)";
-}
-
-abstract class ErrorToken extends Token {
-  ErrorToken(int charOffset) : super(charOffset);
-
-  PrecedenceInfo get info => BAD_INPUT_INFO;
-
-  String get value {
-    throw assertionMessage;
-  }
-
-  String get stringValue => null;
-
-  bool isIdentifier() => false;
-
-  String get assertionMessage;
-}
-
-class BadInputToken extends ErrorToken {
-  final int character;
-
-  BadInputToken(this.character, int charOffset) : super(charOffset);
-
-  String toString() => "BadInputToken($character)";
-
-  String get assertionMessage {
-    return 'Character U+${character.toRadixString(16)} not allowed here.';
-  }
-}
-
-class UnterminatedToken extends ErrorToken {
-  final String start;
-  final int endOffset;
-
-  UnterminatedToken(this.start, int charOffset, this.endOffset)
-      : super(charOffset);
-
-  String toString() => "UnterminatedToken($start)";
-
-  String get assertionMessage => "'$start' isn't terminated.";
-
-  int get charCount => endOffset - charOffset;
-}
-
-class UnmatchedToken extends ErrorToken {
-  final BeginGroupToken begin;
-
-  UnmatchedToken(BeginGroupToken begin)
-      : this.begin = begin,
-        super(begin.charOffset);
-
-  String toString() => "UnmatchedToken(${begin.value})";
-
-  String get assertionMessage => "'$begin' isn't closed.";
 }
 
 /**

@@ -5,8 +5,10 @@
 library fasta.parser.error_kind;
 
 enum ErrorKind {
+  AsciiControlCharacter,
   EmptyNamedParameterList,
   EmptyOptionalParameterList,
+  Encoding,
   ExpectedBlockToSkip,
   ExpectedBody,
   ExpectedButGot,
@@ -23,13 +25,14 @@ enum ErrorKind {
   ExtraneousModifier,
   ExtraneousModifierReplace,
   InvalidAwaitFor,
-  InvalidInputCharacter,
   InvalidSyncModifier,
   InvalidVoid,
-  MalformedStringLiteral,
   MissingExponent,
+  NonAsciiIdentifier,
+  NonAsciiWhitespace,
   PositionalParameterWithEquals,
   RequiredParameterWithDefault,
+  UnexpectedDollarInString,
   UnexpectedToken,
   UnmatchedToken,
   UnsupportedPrefixPlus,

@@ -56,6 +56,11 @@ class InputError {
     // Windows.
     String message = red("Error: ${safeToString(error)}");
     if (uri != null) {
+      String uri = "${this.uri}";
+      String base = "${Uri.base}";
+      if (uri.startsWith(base)) {
+        uri = uri.substring(base.length);
+      }
       String position = charOffset == -1 ? "" : "$charOffset:";
       return "${uri}:$position $message";
     } else {

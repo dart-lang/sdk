@@ -7,8 +7,7 @@ rasta/class_hierarchy: Crash
 rasta/generic_factory: Fail
 rasta/issue_000002: Fail
 rasta/issue_000032: Crash
-rasta/issue_000035: Crash
-rasta/issue_000044: Crash
+rasta/issue_000044: Fail
 rasta/issue_000045: Crash
 rasta/issue_000046: Crash
 rasta/issue_000047: Crash
