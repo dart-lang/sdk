@@ -3917,6 +3917,27 @@ class C {
 ''');
   }
 
+  test_invalidUris() {
+    allowMissingFiles = true;
+    checkLibrary(r'''
+import '[invalid uri]';
+import '[invalid uri]:foo.dart';
+import 'a1.dart';
+import '[invalid uri]';
+import '[invalid uri]:foo.dart';
+
+export '[invalid uri]';
+export '[invalid uri]:foo.dart';
+export 'a2.dart';
+export '[invalid uri]';
+export '[invalid uri]:foo.dart';
+
+part '[invalid uri]';
+part 'a3.dart';
+part '[invalid uri]';
+''');
+  }
+
   test_library() {
     checkLibrary('');
   }

@@ -4258,8 +4258,12 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     UriValidationCode code =
         UriBasedDirectiveImpl.validateUri(isImport, uriLiteral, uriContent);
     if (code == null) {
-      String encodedUriContent = Uri.encodeFull(uriContent);
-      return context.sourceFactory.resolveUri(_source, encodedUriContent);
+      try {
+        Uri.parse(uriContent);
+      } on FormatException {
+        return null;
+      }
+      return context.sourceFactory.resolveUri(_source, uriContent);
     } else if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
       return null;
     } else if (code == UriValidationCode.URI_WITH_INTERPOLATION) {

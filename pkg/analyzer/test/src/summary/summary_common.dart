@@ -6481,6 +6481,14 @@ class B extends A {}
     expect(unlinkedExports[0].configurations, isEmpty);
   }
 
+  test_export_uri_invalid() {
+    String uriString = '[invalid uri]';
+    String libraryText = 'export "$uriString";';
+    serializeLibraryText(libraryText);
+    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].uri, uriString);
+  }
+
   test_export_uri_nullStringValue() {
     String libraryText = r'''
 export "${'a'}.dart";
@@ -8404,6 +8412,15 @@ class D extends p.C {} // Prevent "unused import" warning
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
   }
 
+  test_import_uri_invalid() {
+    String uriString = '[invalid uri]';
+    String libraryText = 'import "$uriString";';
+    serializeLibraryText(libraryText);
+    // Second import is the implicit import of dart:core
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].uri, uriString);
+  }
+
   test_import_uri_nullStringValue() {
     String libraryText = r'''
 import "${'a'}.dart";
@@ -9600,6 +9617,14 @@ part "${'a'}.dart"; // <-part
     serializeLibraryText('library foo; part "a.dart";');
     expect(unlinkedUnits[0].isPartOf, isFalse);
     expect(unlinkedUnits[1].isPartOf, isTrue);
+  }
+
+  test_part_uri_invalid() {
+    String uriString = '[invalid uri]';
+    String libraryText = 'part "$uriString";';
+    serializeLibraryText(libraryText);
+    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.parts[0], uriString);
   }
 
   test_parts_defining_compilation_unit() {

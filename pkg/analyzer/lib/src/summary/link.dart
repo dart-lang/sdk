@@ -146,8 +146,17 @@ Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
       <String, LinkedLibraryBuilder>{};
   for (String absoluteUri in libraryUris) {
     Uri uri = Uri.parse(absoluteUri);
-    UnlinkedUnit getRelativeUnit(String relativeUri) =>
-        getUnit(resolveRelativeUri(uri, Uri.parse(relativeUri)).toString());
+
+    UnlinkedUnit getRelativeUnit(String relativeUriStr) {
+      Uri relativeUri;
+      try {
+        relativeUri = Uri.parse(relativeUriStr);
+      } on FormatException {
+        return new UnlinkedUnitBuilder();
+      }
+      return getUnit(resolveRelativeUri(uri, relativeUri).toString());
+    }
+
     linkedLibraries[absoluteUri] = prelink(
         getUnit(absoluteUri),
         getRelativeUnit,
@@ -3312,8 +3321,11 @@ abstract class LibraryElementForLink<
   Element get enclosingElement => null;
 
   @override
-  List<LibraryElementForLink> get exportedLibraries => _exportedLibraries ??=
-      _linkedLibrary.exportDependencies.map(_getDependency).toList();
+  List<LibraryElementForLink> get exportedLibraries =>
+      _exportedLibraries ??= _linkedLibrary.exportDependencies
+          .map(_getDependency)
+          .where((library) => library != null)
+          .toList();
 
   @override
   String get identifier => _absoluteUri.toString();
@@ -3348,11 +3360,19 @@ abstract class LibraryElementForLink<
       ];
       int numParts = definingUnit.parts.length;
       for (int i = 0; i < numParts; i++) {
-        // TODO(paulberry): make sure we handle the case where Uri.parse fails.
         // TODO(paulberry): make sure we handle the case where
         // resolveRelativeUri fails.
+        String partRelativeUriStr = definingUnit.publicNamespace.parts[i];
+
+        Uri partRelativeUri;
+        try {
+          partRelativeUri = Uri.parse(partRelativeUriStr);
+        } on FormatException {
+          continue;
+        }
+
         String partAbsoluteUri = resolveRelativeUri(
-                _absoluteUri, Uri.parse(definingUnit.publicNamespace.parts[i]))
+                _absoluteUri, partRelativeUri)
             .toString();
         UnlinkedUnit partUnit = _linker.getUnit(partAbsoluteUri);
         _units.add(_makeUnitElement(
@@ -3395,10 +3415,18 @@ abstract class LibraryElementForLink<
   LibraryElementForLink _getDependency(int index) {
     LibraryElementForLink result = _dependencies[index];
     if (result == null) {
-      String relativeUri = _linkedLibrary.dependencies[index].uri;
-      Uri absoluteUri = relativeUri.isEmpty
+      String relativeUriStr = _linkedLibrary.dependencies[index].uri;
+
+      Uri relativeUri;
+      try {
+        relativeUri = Uri.parse(relativeUriStr);
+      } on FormatException {
+        return null;
+      }
+
+      Uri absoluteUri = relativeUriStr.isEmpty
           ? _absoluteUri
-          : resolveRelativeUri(_absoluteUri, Uri.parse(relativeUri));
+          : resolveRelativeUri(_absoluteUri, relativeUri);
       result = _linker.getLibrary(absoluteUri);
       _dependencies[index] = result;
     }

@@ -858,7 +858,7 @@ abstract class _AstResynthesizeTestMixin
   }
 
   void _serializeLibrary(Source librarySource) {
-    if (librarySource.isInSystemLibrary) {
+    if (librarySource == null || librarySource.isInSystemLibrary) {
       return;
     }
     if (!serializedSources.add(librarySource)) {
