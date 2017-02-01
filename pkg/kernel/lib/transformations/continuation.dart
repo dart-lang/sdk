@@ -155,7 +155,7 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     //    :iterator.current_=
     //    :iterator.isYieldEach=
     // and return `true` as long as it did something and `false` when it's done.
-    return new Block([
+    return new Block(<Statement>[
         enclosingFunction.body.accept(this),
         new ReturnStatement(new BoolLiteral(false))
     ]);
