@@ -209,14 +209,10 @@ class Test {
   Test(this.code, this.expectedLines, this.unexpectedLines);
 }
 
-const int _LF = 0x0A;
-const int _CR = 0x0D;
-const int _LBRACE = 0x7B;
-
 Test processTestCode(String code) {
   Map<int, StackTraceLine> stackTraceMap = <int, StackTraceLine>{};
   List<StackTraceLine> unexpectedLines = <StackTraceLine>[];
-  AnnotatedCode annotatedCode = new AnnotatedCode(code);
+  AnnotatedCode annotatedCode = new AnnotatedCode.fromText(code);
   for (Annotation annotation in annotatedCode.annotations) {
     int colonIndex = annotation.text.indexOf(':');
     String indexText = annotation.text.substring(0, colonIndex);

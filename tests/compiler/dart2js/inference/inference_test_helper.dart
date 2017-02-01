@@ -15,7 +15,7 @@ import '../memory_compiler.dart';
 import 'enumerator.dart';
 
 checkCode(String annotatedCode) async {
-  AnnotatedCode code = new AnnotatedCode(annotatedCode);
+  AnnotatedCode code = new AnnotatedCode.fromText(annotatedCode);
   Map<Id, String> expectedMap = computeExpectedMap(code);
   Compiler compiler =
       compilerFor(memorySourceFiles: {'main.dart': code.sourceCode});

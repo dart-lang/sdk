@@ -44,24 +44,31 @@ class AnnotatedCode {
   /// The annotations for the source code.
   final List<Annotation> annotations;
 
-  AnnotatedCode.internal(this.sourceCode, this.annotations);
+  List<int> _lineStarts;
+
+  AnnotatedCode(this.sourceCode, this.annotations);
+
+  AnnotatedCode.internal(this.sourceCode, this.annotations, this._lineStarts);
 
   /// Creates an [AnnotatedCode] by processing [annotatedCode]. Annotation of
   /// the form `@{...}` are converted into [Annotation]s and removed from the
   /// [annotatedCode] to process the source code.
-  factory AnnotatedCode(String annotatedCode) {
+  factory AnnotatedCode.fromText(String annotatedCode) {
     StringBuffer codeBuffer = new StringBuffer();
     List<Annotation> annotations = <Annotation>[];
     int index = 0;
     int offset = 0;
     int lineNo = 1;
     int columnNo = 1;
+    List<int> lineStarts = <int>[];
+    lineStarts.add(offset);
     while (index < annotatedCode.length) {
       int charCode = annotatedCode.codeUnitAt(index);
       switch (charCode) {
         case _LF:
           codeBuffer.write('\n');
           offset++;
+          lineStarts.add(offset);
           lineNo++;
           columnNo = 1;
           break;
@@ -72,6 +79,7 @@ class AnnotatedCode {
           }
           codeBuffer.write('\n');
           offset++;
+          lineStarts.add(offset);
           lineNo++;
           columnNo = 1;
           break;
@@ -95,6 +103,58 @@ class AnnotatedCode {
       }
       index++;
     }
-    return new AnnotatedCode.internal(codeBuffer.toString(), annotations);
+    lineStarts.add(offset);
+    return new AnnotatedCode.internal(
+        codeBuffer.toString(), annotations, lineStarts);
+  }
+
+  void _ensureLineStarts() {
+    if (_lineStarts == null) {
+      int index = 0;
+      int offset = 0;
+      _lineStarts = <int>[];
+      _lineStarts.add(offset);
+      while (index < sourceCode.length) {
+        int charCode = sourceCode.codeUnitAt(index);
+        switch (charCode) {
+          case _LF:
+            offset++;
+            _lineStarts.add(offset);
+            break;
+          case _CR:
+            if (index + 1 < sourceCode.length &&
+                sourceCode.codeUnitAt(index + 1) == _LF) {
+              index++;
+            }
+            offset++;
+            _lineStarts.add(offset);
+            break;
+          default:
+            offset++;
+        }
+        index++;
+      }
+      _lineStarts.add(offset);
+    }
+  }
+
+  void addAnnotation(int lineNo, int columnNo, String text) {
+    _ensureLineStarts();
+    int offset = _lineStarts[lineNo - 1] + (columnNo - 1);
+    annotations.add(new Annotation(lineNo, columnNo, offset, text));
+  }
+
+  String toText() {
+    StringBuffer sb = new StringBuffer();
+    List<Annotation> list = annotations.toList()
+      ..sort((a, b) => a.offset.compareTo(b.offset));
+    int offset = 0;
+    for (Annotation annotation in list) {
+      sb.write(sourceCode.substring(offset, annotation.offset));
+      sb.write('@{${annotation.text}}');
+      offset = annotation.offset;
+    }
+    sb.write(sourceCode.substring(offset));
+    return sb.toString();
   }
 }
