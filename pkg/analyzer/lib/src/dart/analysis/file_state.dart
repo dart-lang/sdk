@@ -194,7 +194,7 @@ class FileState {
    * Return `true` if the file does not have a `library` directive, and has a
    * `part of` directive, so is probably a part.
    */
-  bool get isPart => _unlinked.libraryNameOffset == 0 &&  _unlinked.isPartOf;
+  bool get isPart => _unlinked.libraryNameOffset == 0 && _unlinked.isPartOf;
 
   /**
    * If the file [isPart], return a currently know library the file is a part
@@ -493,12 +493,7 @@ class FileState {
    * cannot be parsed, cannot correspond any file, etc.
    */
   FileState _fileForRelativeUri(String relativeUri) {
-    Uri absoluteUri;
-    try {
-      absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
-    } on FormatException catch (e) {
-      return null;
-    }
+    Uri absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
     return _fsState.getFileForUri(absoluteUri);
   }
 

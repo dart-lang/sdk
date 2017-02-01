@@ -70,7 +70,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 16;
+  static const int DATA_VERSION = 17;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -1595,6 +1595,9 @@ class _ExceptionState {
   final String contextKey;
 
   _ExceptionState(this.exception, this.stackTrace, this.contextKey);
+
+  @override
+  String toString() => '$exception\n$stackTrace';
 }
 
 /**
