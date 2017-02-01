@@ -150,26 +150,27 @@ bool areConstantValueListsEquivalent(
 }
 
 /// Returns `true` if the selectors [a] and [b] are equivalent.
-bool areSelectorsEquivalent(Selector a, Selector b) {
+bool areSelectorsEquivalent(Selector a, Selector b,
+    {TestStrategy strategy: const TestStrategy()}) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   return a.kind == b.kind &&
       a.callStructure == b.callStructure &&
-      areNamesEquivalent(a.memberName, b.memberName);
+      areNamesEquivalent(a.memberName, b.memberName, strategy: strategy);
 }
 
 /// Returns `true` if the names [a] and [b] are equivalent.
-bool areNamesEquivalent(Name a, Name b) {
-  LibraryElement library1 = a.library;
-  LibraryElement library2 = b.library;
+bool areNamesEquivalent(Name a, Name b,
+    {TestStrategy strategy: const TestStrategy()}) {
   return a.text == b.text &&
       a.isSetter == b.isSetter &&
-      areElementsEquivalent(library1, library2);
+      strategy.testElements(a, b, 'library', a.library, b.library);
 }
 
 /// Returns `true` if the dynamic uses [a] and [b] are equivalent.
-bool areDynamicUsesEquivalent(DynamicUse a, DynamicUse b) {
-  return areSelectorsEquivalent(a.selector, b.selector);
+bool areDynamicUsesEquivalent(DynamicUse a, DynamicUse b,
+    {TestStrategy strategy: const TestStrategy()}) {
+  return areSelectorsEquivalent(a.selector, b.selector, strategy: strategy);
 }
 
 /// Returns `true` if the static uses [a] and [b] are equivalent.
@@ -1026,8 +1027,14 @@ bool testResolutionImpactEquivalence(
           impact1.constantLiterals,
           impact2.constantLiterals,
           areConstantsEquivalent) &&
-      strategy.testSets(impact1, impact2, 'dynamicUses', impact1.dynamicUses,
-          impact2.dynamicUses, areDynamicUsesEquivalent) &&
+      strategy.testSets(
+          impact1,
+          impact2,
+          'dynamicUses',
+          impact1.dynamicUses,
+          impact2.dynamicUses,
+          (a, b) =>
+              areDynamicUsesEquivalent(a, b, strategy: strategy.testOnly)) &&
       strategy.testSets(
           impact1, impact2, 'features', impact1.features, impact2.features) &&
       strategy.testSets(

@@ -174,6 +174,7 @@ main() {
   testEnum();
   testStaticGenericMethod();
   testInstanceGenericMethod();
+  testDynamicPrivateMethodInvoke();
 }
 
 testEmpty() {}
@@ -598,6 +599,8 @@ testStaticGenericMethod() {
 testInstanceGenericMethod() {
   new GenericClass<int, String>.generative().genericMethod<bool>(false);
 }
+
+testDynamicPrivateMethodInvoke([o]) => o._privateMethod();
 ''',
   'helper.dart': '''
 class Class {
