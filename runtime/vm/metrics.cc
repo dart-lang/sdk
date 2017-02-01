@@ -75,6 +75,8 @@ static const char* UnitString(intptr_t unit) {
       return "counter";
     case Metric::kByte:
       return "byte";
+    case Metric::kMicrosecond:
+      return "us";
     default:
       UNREACHABLE();
   }
@@ -113,19 +115,32 @@ char* Metric::ValueToString(int64_t value, Unit unit) {
     case kCounter:
       return zone->PrintToString("%" Pd64 "", value);
     case kByte: {
-      const char* scaled_suffix = "b";
+      const char* scaled_suffix = "B";
       double scaled_value = static_cast<double>(value);
-      if (value > KB) {
-        scaled_suffix = "kb";
-        scaled_value /= KB;
-      } else if (value > MB) {
-        scaled_suffix = "mb";
-        scaled_value /= MB;
-      } else if (value > GB) {
-        scaled_suffix = "gb";
+      if (value > GB) {
+        scaled_suffix = "GB";
         scaled_value /= GB;
+      } else if (value > MB) {
+        scaled_suffix = "MB";
+        scaled_value /= MB;
+      } else if (value > KB) {
+        scaled_suffix = "kB";
+        scaled_value /= KB;
       }
-      return zone->PrintToString("%.3f %s (%" Pd64 ")", scaled_value,
+      return zone->PrintToString("%.3f %s (%" Pd64 " B)", scaled_value,
+                                 scaled_suffix, value);
+    }
+    case kMicrosecond: {
+      const char* scaled_suffix = "us";
+      double scaled_value = static_cast<double>(value);
+      if (value > kMicrosecondsPerSecond) {
+        scaled_suffix = "s";
+        scaled_value /= kMicrosecondsPerSecond;
+      } else if (value > kMicrosecondsPerMillisecond) {
+        scaled_suffix = "ms";
+        scaled_value /= kMicrosecondsPerMillisecond;
+      }
+      return zone->PrintToString("%.3f %s (%" Pd64 " us)", scaled_value,
                                  scaled_suffix, value);
     }
     default:
@@ -140,7 +155,7 @@ char* Metric::ToString() {
   ASSERT(thread != NULL);
   Zone* zone = thread->zone();
   ASSERT(zone != NULL);
-  return zone->PrintToString("%s %s", name(), ValueToString(value(), unit()));
+  return zone->PrintToString("%s %s", name(), ValueToString(Value(), unit()));
 }
 
 
@@ -291,6 +306,11 @@ int64_t MetricIsolateCount::Value() const {
   return Isolate::IsolateListLength();
 }
 
+
+int64_t MetricPeakRSS::Value() const {
+  return OS::MaxRSS();
+}
+
 #define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
   static type vm_metric_##variable##_;
 VM_METRIC_LIST(VM_METRIC_VARIABLE);
@@ -305,7 +325,7 @@ void Metric::InitOnce() {
 }
 
 void Metric::Cleanup() {
-  if (FLAG_print_metrics) {
+  if (FLAG_print_metrics || FLAG_print_benchmarking_metrics) {
     // Create a zone to allocate temporary strings in.
     StackZone sz(Thread::Current());
     OS::PrintErr("Printing metrics for VM\n");

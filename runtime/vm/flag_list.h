@@ -122,6 +122,8 @@
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
   C(precompiled_runtime, true, false, bool, false, "Precompiled runtime mode") \
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
+  P(print_benchmarking_metrics, bool, false,                                   \
+    "Print additional memory and latency metrics for benchmarking.")           \
   R(print_ssa_liveranges, false, bool, false,                                  \
     "Print live ranges after allocation.")                                     \
   C(print_stop_message, false, false, bool, false, "Print stop message.")      \
