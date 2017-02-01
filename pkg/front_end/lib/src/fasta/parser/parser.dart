@@ -3286,7 +3286,10 @@ class Parser {
     ErrorKind kind = token.errorCode;
     Map arguments = const {};
     switch (kind) {
+      case ErrorKind.AsciiControlCharacter:
       case ErrorKind.NonAsciiIdentifier:
+      case ErrorKind.NonAsciiWhitespace:
+      case ErrorKind.Encoding:
         String hex = token.character.toRadixString(16);
         if (hex.length < 4) {
           String padding = "0000".substring(hex.length);
