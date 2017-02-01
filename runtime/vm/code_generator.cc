@@ -931,28 +931,6 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 3) {
 }
 
 
-// Handles inline cache misses by updating the IC data array of the call site.
-//   Arg0: Receiver object.
-//   Arg1: Argument after receiver.
-//   Arg2: Second argument after receiver.
-//   Arg3: IC data object.
-//   Returns: target function with compiled code or null.
-// Modifies the instance call to hold the updated IC data array.
-DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 4) {
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
-  const Instance& arg2 = Instance::CheckedHandle(arguments.ArgAt(2));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(3));
-  GrowableArray<const Instance*> args(3);
-  args.Add(&receiver);
-  args.Add(&arg1);
-  args.Add(&arg2);
-  const Function& result =
-      Function::Handle(InlineCacheMissHandler(args, ic_data));
-  arguments.SetReturn(result);
-}
-
-
 // Handles a static call in unoptimized code that has one argument type not
 // seen before. Compile the target if necessary and update the ICData.
 // Arg0: argument.

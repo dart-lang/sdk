@@ -787,9 +787,6 @@ void Simulator::InlineCacheMiss(int checked_args,
     case 2:
       handler = DRT_InlineCacheMissHandlerTwoArgs;
       break;
-    case 3:
-      handler = DRT_InlineCacheMissHandlerThreeArgs;
-      break;
     default:
       UNREACHABLE();
       break;
