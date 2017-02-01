@@ -930,7 +930,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/is_not_class2_test',
   'language/is_object_test',
   'language/isnot_malformed_type_test',
-  'language/issue_23914_test', // issue 28478
   'language/issue11724_test',
   'language/issue11793_test',
   'language/issue13474_test',
@@ -1448,8 +1447,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/proxy_test_02_multi',
   'language/proxy_test_05_multi',
   'language/proxy_test_06_multi',
-  'language/recursive_generic_test', // issue 28478
-  'language/recursive_inheritance_test', // issue 28478
   'language/redirecting_constructor_initializer_test',
   'language/redirecting_factory_default_values_test_01_multi',
   'language/redirecting_factory_default_values_test_02_multi',
@@ -2093,7 +2090,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'corelib/symbol_test_none_multi',
   'corelib/uri_path_test',
   'corelib/uri_query_test',
-  'lib/collection/linked_list_test', // issue 28478
   'lib/convert/chunked_conversion1_test',
   'lib/math/min_max_test',
   'lib/typed_data/float32x4_test',

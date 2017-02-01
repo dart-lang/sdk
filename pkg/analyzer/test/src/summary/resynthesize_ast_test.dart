@@ -720,7 +720,6 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
       super.createOptions()..strongMode = true;
 
   @override
-  @failingTest
   test_instantiateToBounds_boundRefersToItself() {
     super.test_instantiateToBounds_boundRefersToItself();
   }
