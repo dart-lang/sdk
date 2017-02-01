@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-tests/language/deep_nesting1_negative_test: Crash
-tests/language/deep_nesting2_negative_test: Crash
-
 pkg/analyzer_cli/test/data/file_with_error: Fail
 pkg/dev_compiler/test/codegen/corelib/from_environment_const_type_test: Fail
 pkg/dev_compiler/test/codegen/corelib/from_environment_const_type_undefined_test: Fail
@@ -173,6 +170,24 @@ pkg/dev_compiler/tool/input_sdk/lib/web_gl/dart2js/web_gl_dart2js: Fail
 pkg/dev_compiler/tool/input_sdk/lib/web_sql/dart2js/web_sql_dart2js: Fail
 pkg/dev_compiler/tool/input_sdk/private/ddc_runtime/types: Fail
 pkg/dev_compiler/tool/input_sdk/private/native_typed_data: Fail
+pkg/front_end/test/fasta/rasta/bad_interpolation: Fail
+pkg/front_end/test/fasta/rasta/issue_000032: Fail
+pkg/front_end/test/fasta/rasta/issue_000035: Fail
+pkg/front_end/test/fasta/rasta/issue_000035a: Fail
+pkg/front_end/test/fasta/rasta/issue_000036: Fail
+pkg/front_end/test/fasta/rasta/issue_000039: Fail
+pkg/front_end/test/fasta/rasta/issue_000041: Fail
+pkg/front_end/test/fasta/rasta/issue_000044: Fail
+pkg/front_end/test/fasta/rasta/issue_000045: Fail
+pkg/front_end/test/fasta/rasta/issue_000046: Fail
+pkg/front_end/test/fasta/rasta/issue_000047: Fail
+pkg/front_end/test/fasta/rasta/malformed_const_constructor: Fail
+pkg/front_end/test/fasta/rasta/mandatory_parameter_initializer: Fail
+pkg/front_end/test/fasta/rasta/native_is_illegal: Fail
+pkg/front_end/test/fasta/rasta/parser_error: Fail
+pkg/front_end/test/fasta/rasta/super: Fail
+pkg/front_end/test/fasta/rasta/type_with_parse_error: Fail
+pkg/front_end/test/fasta/rasta/unresolved_recovery: Fail
 pkg/testing/test/dart_sdk_negative_test: Fail
 runtime/bin/builtin: Fail
 runtime/bin/common_patch: Fail
@@ -713,10 +728,6 @@ tests/co19/src/Language/Expressions/Property_Extraction/Ordinary_Member_Closuriz
 tests/co19/src/Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t06: Fail
 tests/co19/src/Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t07: Fail
 tests/co19/src/Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/getter_closurization_t08: Fail
-tests/co19/src/Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_closurization_named_params_t01: Fail
-tests/co19/src/Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_closurization_named_params_t02: Fail
-tests/co19/src/Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_closurization_positional_params_t01: Fail
-tests/co19/src/Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_closurization_positional_params_t02: Fail
 tests/co19/src/Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_identical_t01: Fail
 tests/co19/src/Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_identical_t02: Fail
 tests/co19/src/Language/Expressions/Property_Extraction/Ordinary_Member_Closurization/method_identical_t03: Fail
@@ -758,10 +769,6 @@ tests/co19/src/Language/Expressions/Property_Extraction/Super_Closurization/gett
 tests/co19/src/Language/Expressions/Property_Extraction/Super_Closurization/getter_closurization_t08: Fail
 tests/co19/src/Language/Expressions/Property_Extraction/Super_Closurization/getter_closurization_t09: Fail
 tests/co19/src/Language/Expressions/Property_Extraction/Super_Closurization/getter_closurization_t10: Fail
-tests/co19/src/Language/Expressions/Property_Extraction/Super_Closurization/method_closurization_named_params_t01: Fail
-tests/co19/src/Language/Expressions/Property_Extraction/Super_Closurization/method_closurization_named_params_t02: Fail
-tests/co19/src/Language/Expressions/Property_Extraction/Super_Closurization/method_closurization_positional_params_t01: Fail
-tests/co19/src/Language/Expressions/Property_Extraction/Super_Closurization/method_closurization_positional_params_t02: Fail
 tests/co19/src/Language/Expressions/Property_Extraction/Super_Closurization/method_identical_t01: Fail
 tests/co19/src/Language/Expressions/Property_Extraction/Super_Closurization/method_identical_t02: Fail
 tests/co19/src/Language/Expressions/Property_Extraction/Super_Closurization/method_identical_t03: Fail
@@ -1494,6 +1501,7 @@ tests/co19/src/Language/Reference/Lexical_Rules/Reserved_Words/while_t10: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/Reserved_Words/while_t11: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/Reserved_Words/whitespace_t02: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/Reserved_Words/whitespace_t03: Fail
+tests/co19/src/Language/Reference/Lexical_Rules/Reserved_Words/whitespace_t04: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/Reserved_Words/with_lib: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/Reserved_Words/with_t01: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/Reserved_Words/with_t02: Fail
@@ -1512,6 +1520,7 @@ tests/co19/src/Language/Reference/Lexical_Rules/whitespace_t02: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/whitespace_t03: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/whitespace_t04: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/whitespace_t05: Fail
+tests/co19/src/Language/Reference/Lexical_Rules/whitespace_t06: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/whitespace_t07: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/whitespace_t08: Fail
 tests/co19/src/Language/Reference/Lexical_Rules/whitespace_t09: Fail
@@ -1533,6 +1542,7 @@ tests/co19/src/Language/Reference/Operator_Precedence/precedence_08_relational_t
 tests/co19/src/Language/Statements/Assert/syntax_t01: Fail
 tests/co19/src/Language/Statements/Assert/syntax_t02: Fail
 tests/co19/src/Language/Statements/Assert/syntax_t03: Fail
+tests/co19/src/Language/Statements/Assert/syntax_t04: Fail
 tests/co19/src/Language/Statements/Assert/syntax_t05: Fail
 tests/co19/src/Language/Statements/Blocks/execution_t04: Fail
 tests/co19/src/Language/Statements/Blocks/execution_t05: Fail

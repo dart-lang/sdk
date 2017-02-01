@@ -113,14 +113,13 @@ Token defaultRecoveryStrategy(
       next = next.next;
     }
     String value = new String.fromCharCodes(codeUnits);
-    Token recovered = synthesizeToken(
-        charOffset, value, Precedence.IDENTIFIER_INFO);
-    recovered.next = next;
-    return recovered;
+    return synthesizeToken(charOffset, value, Precedence.IDENTIFIER_INFO)
+        ..next = next;
   }
 
   recoverExponent() {
-    return synthesizeToken(errorTail.charOffset, "NaN", Precedence.DOUBLE_INFO);
+    return synthesizeToken(errorTail.charOffset, "NaN", Precedence.DOUBLE_INFO)
+        ..next = errorTail.next;
   }
 
   recoverString() {
@@ -129,7 +128,8 @@ Token defaultRecoveryStrategy(
   }
 
   recoverHexDigit() {
-    return synthesizeToken(errorTail.charOffset, "-1", Precedence.INT_INFO);
+    return synthesizeToken(errorTail.charOffset, "-1", Precedence.INT_INFO)
+        ..next = errorTail.next;
   }
 
   recoverStringInterpolation() {
@@ -145,7 +145,7 @@ Token defaultRecoveryStrategy(
   recoverUnmatched() {
     // TODO(ahe): Try to use top-level keywords (such as `class`, `typedef`,
     // and `enum`) and identation to recover.
-    return errorTail;
+    return errorTail.next;
   }
 
   for (Token current = tokens; !current.isEof; current = current.next) {
@@ -173,30 +173,37 @@ Token defaultRecoveryStrategy(
 
         case ErrorKind.NonAsciiIdentifier:
           current = recoverIdentifier(first);
+          assert(current.next != null);
           break;
 
         case ErrorKind.MissingExponent:
           current = recoverExponent();
+          assert(current.next != null);
           break;
 
         case ErrorKind.UnterminatedString:
           current = recoverString();
+          assert(current.next != null);
           break;
 
         case ErrorKind.ExpectedHexDigit:
           current = recoverHexDigit();
+          assert(current.next != null);
           break;
 
         case ErrorKind.UnexpectedDollarInString:
           current = recoverStringInterpolation();
+          assert(current.next != null);
           break;
 
         case ErrorKind.UnterminatedComment:
           current = recoverComment();
+          assert(current.next != null);
           break;
 
         case ErrorKind.UnmatchedToken:
           current = recoverUnmatched();
+          assert(current.next != null);
           break;
 
         case ErrorKind.UnterminatedToken: // TODO(ahe): Can this happen?
