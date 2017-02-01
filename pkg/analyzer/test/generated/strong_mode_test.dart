@@ -955,6 +955,51 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     expect(functionReturnValue(4).staticType, typeProvider.stringType);
   }
 
+  test_futureOr_assignFromFuture() async {
+    // Test a Future<T> can be assigned to FutureOr<T>.
+    MethodInvocation invoke = await _testFutureOr(r'''
+    FutureOr<T> mk<T>(Future<T> x) => x;
+    test() => mk(new Future<int>.value(42));
+    ''');
+    _isFutureOrOfInt(invoke.staticType);
+  }
+
+  test_futureOr_assignFromValue() async {
+    // Test a T can be assigned to FutureOr<T>.
+    MethodInvocation invoke = await _testFutureOr(r'''
+    FutureOr<T> mk<T>(T x) => x;
+    test() => mk(42);
+    ''');
+    _isFutureOrOfInt(invoke.staticType);
+  }
+
+  test_futureOr_asyncExpressionBody() async {
+    // A FutureOr<T> can be used as the expression body for an async function
+    MethodInvocation invoke = await _testFutureOr(r'''
+    Future<T> mk<T>(FutureOr<T> x) async => x;
+    test() => mk(42);
+    ''');
+    _isFutureOfInt(invoke.staticType);
+  }
+
+  test_futureOr_asyncReturn() async {
+    // A FutureOr<T> can be used as the return value for an async function
+    MethodInvocation invoke = await _testFutureOr(r'''
+    Future<T> mk<T>(FutureOr<T> x) async { return x; }
+    test() => mk(42);
+    ''');
+    _isFutureOfInt(invoke.staticType);
+  }
+
+  test_futureOr_await() async {
+    // Test a FutureOr<T> can be awaited.
+    MethodInvocation invoke = await _testFutureOr(r'''
+    Future<T> mk<T>(FutureOr<T> x) async => await x;
+    test() => mk(42);
+    ''');
+    _isFutureOfInt(invoke.staticType);
+  }
+
   test_futureOr_downwards1() async {
     // Test that downwards inference interacts correctly with FutureOr
     // parameters.
@@ -1088,51 +1133,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     ''',
         errors: [StrongModeCode.COULD_NOT_INFER]);
     _isFutureOf([_isObject])(invoke.staticType);
-  }
-
-  test_futureOr_assignFromValue() async {
-    // Test a T can be assigned to FutureOr<T>.
-    MethodInvocation invoke = await _testFutureOr(r'''
-    FutureOr<T> mk<T>(T x) => x;
-    test() => mk(42);
-    ''');
-    _isFutureOrOfInt(invoke.staticType);
-  }
-
-  test_futureOr_assignFromFuture() async {
-    // Test a Future<T> can be assigned to FutureOr<T>.
-    MethodInvocation invoke = await _testFutureOr(r'''
-    FutureOr<T> mk<T>(Future<T> x) => x;
-    test() => mk(new Future<int>.value(42));
-    ''');
-    _isFutureOrOfInt(invoke.staticType);
-  }
-
-  test_futureOr_await() async {
-    // Test a FutureOr<T> can be awaited.
-    MethodInvocation invoke = await _testFutureOr(r'''
-    Future<T> mk<T>(FutureOr<T> x) async => await x;
-    test() => mk(42);
-    ''');
-    _isFutureOfInt(invoke.staticType);
-  }
-
-  test_futureOr_asyncExpressionBody() async {
-    // A FutureOr<T> can be used as the expression body for an async function
-    MethodInvocation invoke = await _testFutureOr(r'''
-    Future<T> mk<T>(FutureOr<T> x) async => x;
-    test() => mk(42);
-    ''');
-    _isFutureOfInt(invoke.staticType);
-  }
-
-  test_futureOr_asyncReturn() async {
-    // A FutureOr<T> can be used as the return value for an async function
-    MethodInvocation invoke = await _testFutureOr(r'''
-    Future<T> mk<T>(FutureOr<T> x) async { return x; }
-    test() => mk(42);
-    ''');
-    _isFutureOfInt(invoke.staticType);
   }
 
   test_inference_hints() async {
@@ -2738,14 +2738,41 @@ void test() {
     expectIdentifierType('cc', "C<int, B<int>, A<dynamic>>");
   }
 
+  @failingTest
+  test_instantiateToBounds_class_error_extension_malbounded() async {
+    // Test that superclasses are strictly checked for malbounded default
+    // types
+    String code = r'''
+class C<T0 extends List<T1>, T1 extends List<T0>> {}
+class D extends C {}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
+  }
+
+  @failingTest
+  test_instantiateToBounds_class_error_instantiation_malbounded() async {
+    // Test that instance creations are strictly checked for malbounded default
+    // types
+    String code = r'''
+class C<T0 extends List<T1>, T1 extends List<T0>> {}
+void test() {
+  var c = new C();
+}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
+    expectIdentifierType('c;', 'C<List<dynamic>, List<dynamic>>');
+  }
+
   test_instantiateToBounds_class_error_recursion() async {
     String code = r'''
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 C c;
 ''';
     await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
-    expectIdentifierType('c;', 'C<dynamic, dynamic>');
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<List<dynamic>, List<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self() async {
@@ -2754,8 +2781,8 @@ class C<T extends C<T>> {}
 C c;
 ''';
     await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
-    expectIdentifierType('c;', 'C<dynamic>');
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<C<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self2() async {
@@ -2765,8 +2792,8 @@ class C<T extends A<T>> {}
 C c;
 ''';
     await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
-    expectIdentifierType('c;', 'C<dynamic>');
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<A<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_typedef() async {
@@ -2776,8 +2803,8 @@ class C<T extends F<T>> {}
 C c;
 ''';
     await resolveTestUnit(code, noErrors: false);
-    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
-    expectIdentifierType('c;', 'C<dynamic>');
+    assertNoErrors(testSource);
+    expectIdentifierType('c;', 'C<(dynamic) → dynamic>');
   }
 
   test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
@@ -2850,6 +2877,22 @@ void main() {
     expectIdentifierType('b;', 'B<num>');
     expectIdentifierType('c;', 'C<List<int>>');
     expectIdentifierType('d;', 'D<A<dynamic>>');
+  }
+
+  @failingTest
+  test_instantiateToBounds_generic_function_error_malbounded() async {
+    // Test that generic methods are strictly checked for malbounded default
+    // types
+    String code = r'''
+T0 f<T0 extends List<T1>, T1 extends List<T0>>() {}
+void g() {
+  var c = f();
+  return;
+}
+''';
+    await resolveTestUnit(code, noErrors: false);
+    assertErrors(testSource, [StrongModeCode.NO_DEFAULT_BOUNDS]);
+    expectIdentifierType('c;', 'List<dynamic>');
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before() async {

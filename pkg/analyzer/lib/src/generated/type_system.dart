@@ -58,12 +58,12 @@ class StrongTypeSystemImpl extends TypeSystem {
       {this.implicitCasts: true,
       this.nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES});
 
+  @override
+  bool get isStrong => true;
+
   bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
     return ft.parameters.any((p) => predicate(p.type));
   }
-
-  @override
-  bool get isStrong => true;
 
   @override
   FunctionType functionTypeToConcreteType(FunctionType t) {
@@ -371,13 +371,26 @@ class StrongTypeSystemImpl extends TypeSystem {
     }
 
     // If we stopped making progress, and not all types are ground,
-    // then the whole type is malbounded and an error should be reported.
+    // then the whole type is malbounded and an error should be reported
+    // if errors are requested, and a partially completed type should
+    // be returned.
     if (partials.isNotEmpty) {
       if (hasError != null) {
         hasError[0] = true;
       }
-      return instantiateType(
-          type, new List<DartType>.filled(count, DynamicTypeImpl.instance));
+      var domain = defaults.keys.toList();
+      var range = defaults.values.toList();
+      // Build a substitution Phi mapping each uncompleted type variable to
+      // dynamic, and each completed type variable to its default.
+      for (TypeParameterType parameter in partials.keys) {
+        domain.add(parameter);
+        range.add(DynamicTypeImpl.instance);
+      }
+      // Set the default for an uncompleted type variable (T extends B)
+      // to be Phi(B)
+      for (TypeParameterType parameter in partials.keys) {
+        defaults[parameter] = partials[parameter].substitute2(range, domain);
+      }
     }
 
     List<DartType> orderedArguments =
