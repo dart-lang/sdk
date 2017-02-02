@@ -357,7 +357,6 @@ try_finally_regress_25333_test: Crash # Issue 24485
 *: Skip # `assert` not implemented
 
 [ $compiler == dart2js && $host_checked ]
-deep_nesting2_negative_test: Crash # Issue 28597
 regress_26855_test/1: Crash # Issue 26867
 regress_26855_test/2: Crash # Issue 26867
 regress_26855_test/3: Crash # Issue 26867

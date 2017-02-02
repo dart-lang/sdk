@@ -681,6 +681,11 @@ class ElementListener extends Listener {
         errorCode = MessageKind.UNTERMINATED_TOKEN;
         break;
 
+      case ErrorKind.StackOverflow:
+        errorCode = MessageKind.GENERIC;
+        arguments = {"text": "Stack overflow."};
+        break;
+
       case ErrorKind.Unspecified:
         errorCode = MessageKind.GENERIC;
         break;

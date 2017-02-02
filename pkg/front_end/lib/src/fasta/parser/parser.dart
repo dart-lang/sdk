@@ -1870,9 +1870,7 @@ class Parser {
       // This happens for degenerate programs, for example, a lot of nested
       // if-statements. The language test deep_nesting2_negative_test, for
       // example, provokes this.
-      reportRecoverableError(
-          token, ErrorKind.Unspecified, {'text': 'Stack overflow'});
-      return skipToEof(token);
+      return reportUnrecoverableError(token, ErrorKind.StackOverflow);
     }
     Token result = parseStatementX(token);
     statementDepth--;
@@ -2190,9 +2188,7 @@ class Parser {
       // This happens in degenerate programs, for example, with a lot of nested
       // list literals. This is provoked by, for examaple, the language test
       // deep_nesting1_negative_test.
-      reportRecoverableError(
-          token, ErrorKind.Unspecified, {'text': 'Stack overflow'});
-      return token.next;
+      return reportUnrecoverableError(token, ErrorKind.StackOverflow);
     }
     listener.beginExpression(token);
     Token result = optional('throw', token)

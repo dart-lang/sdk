@@ -32,6 +32,7 @@ enum ErrorKind {
   NonAsciiWhitespace,
   PositionalParameterWithEquals,
   RequiredParameterWithDefault,
+  StackOverflow,
   UnexpectedDollarInString,
   UnexpectedToken,
   UnmatchedToken,
