@@ -1936,21 +1936,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitFieldGet(HFieldGet node) {
     use(node.receiver);
-    MemberEntity element = node.element;
     if (node.isNullCheck) {
       // We access a JavaScript member we know all objects besides
       // null and undefined have: V8 does not like accessing a member
       // that does not exist.
       push(new js.PropertyAccess.field(pop(), 'toString')
           .withSourceInformation(node.sourceInformation));
-    } else if (element == helpers.jsIndexableLength) {
-      // We're accessing a native JavaScript property called 'length'
-      // on a JS String or a JS array. Therefore, the name of that
-      // property should not be mangled.
-      push(new js.PropertyAccess.field(pop(), 'length')
-          .withSourceInformation(node.sourceInformation));
     } else {
-      FieldEntity field = element;
+      FieldEntity field = node.element;
       js.Name name = backend.namer.instanceFieldPropertyName(field);
       push(new js.PropertyAccess(pop(), name)
           .withSourceInformation(node.sourceInformation));
@@ -1959,13 +1952,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
-    MemberEntity element = node.element;
+    FieldEntity element = node.element;
     registry.registerStaticUse(new StaticUse.fieldSet(element));
     js.Name name = backend.namer.instanceFieldPropertyName(element);
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.value);
     push(new js.Assignment(new js.PropertyAccess(receiver, name), pop())
+        .withSourceInformation(node.sourceInformation));
+  }
+
+  visitGetLength(HGetLength node) {
+    use(node.receiver);
+    push(new js.PropertyAccess.field(pop(), 'length')
         .withSourceInformation(node.sourceInformation));
   }
 

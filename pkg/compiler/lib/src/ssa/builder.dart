@@ -5482,9 +5482,7 @@ class SsaBuilder extends ast.Visitor
     HInstruction originalLength = null; // Set for growable lists.
 
     HInstruction buildGetLength() {
-      MemberElement lengthElement = helpers.jsIndexableLength;
-      HFieldGet result = new HFieldGet(
-          lengthElement, array, commonMasks.positiveIntType,
+      HInstruction result = new HGetLength(array, commonMasks.positiveIntType,
           isAssignable: !isFixed);
       add(result);
       return result;

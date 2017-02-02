@@ -389,8 +389,6 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
   ir.Procedure get mapLiteralUntypedMaker =>
       kernel.functions[_backend.helpers.mapLiteralUntypedMaker];
 
-  MemberElement get jsIndexableLength => _backend.helpers.jsIndexableLength;
-
   ir.Procedure get checkConcurrentModificationError =>
       kernel.functions[_backend.helpers.checkConcurrentModificationError];
 

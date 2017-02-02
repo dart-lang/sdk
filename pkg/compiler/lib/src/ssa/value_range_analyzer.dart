@@ -698,12 +698,11 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitFieldGet(HFieldGet fieldGet) {
-    if (!fieldGet.isInteger(closedWorld)) return info.newUnboundRange();
-    if (!fieldGet.receiver.isIndexablePrimitive(closedWorld)) {
-      return visitInstruction(fieldGet);
-    }
-    assert(fieldGet.element == backendHelpers.jsIndexableLength);
-    PositiveValue value = info.newPositiveValue(fieldGet);
+    return visitInstruction(fieldGet);
+  }
+
+  Range visitGetLength(HGetLength node) {
+    PositiveValue value = info.newPositiveValue(node);
     // We know this range is above zero. To simplify the analysis, we
     // put the zero value as the lower bound of this range. This
     // allows to easily remove the second bound check in the following

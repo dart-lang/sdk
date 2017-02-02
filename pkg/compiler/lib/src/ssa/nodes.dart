@@ -44,6 +44,7 @@ abstract class HVisitor<R> {
   R visitFieldGet(HFieldGet node);
   R visitFieldSet(HFieldSet node);
   R visitForeignCode(HForeignCode node);
+  R visitGetLength(HGetLength node);
   R visitGoto(HGoto node);
   R visitGreater(HGreater node);
   R visitGreaterEqual(HGreaterEqual node);
@@ -357,6 +358,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitFieldGet(HFieldGet node) => visitFieldAccess(node);
   visitFieldSet(HFieldSet node) => visitFieldAccess(node);
   visitForeignCode(HForeignCode node) => visitInstruction(node);
+  visitGetLength(HGetLength node) => visitInstruction(node);
   visitGoto(HGoto node) => visitControlFlow(node);
   visitGreater(HGreater node) => visitRelational(node);
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
@@ -892,6 +894,7 @@ abstract class HInstruction implements Spannable {
 
   static const int FOREIGN_CODE_TYPECODE = 41;
   static const int REMAINDER_TYPECODE = 42;
+  static const int GET_LENGTH_TYPECODE = 43;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -1694,9 +1697,7 @@ class HInvokeConstructorBody extends HInvokeStatic {
 }
 
 abstract class HFieldAccess extends HInstruction {
-  // TODO(johnniwinther): This should be a [FieldLike] but JSIndexable.length is
-  // encoded using a [HFieldGet].
-  final MemberEntity element;
+  final FieldEntity element;
 
   HFieldAccess(this.element, List<HInstruction> inputs, TypeMask type)
       : super(inputs, type);
@@ -1707,7 +1708,7 @@ abstract class HFieldAccess extends HInstruction {
 class HFieldGet extends HFieldAccess {
   final bool isAssignable;
 
-  HFieldGet(MemberEntity element, HInstruction receiver, TypeMask type,
+  HFieldGet(FieldEntity element, HInstruction receiver, TypeMask type,
       {bool isAssignable})
       : this.isAssignable =
             (isAssignable != null) ? isAssignable : element.isAssignable,
@@ -1748,7 +1749,7 @@ class HFieldGet extends HFieldAccess {
 }
 
 class HFieldSet extends HFieldAccess {
-  HFieldSet(MemberEntity element, HInstruction receiver, HInstruction value)
+  HFieldSet(FieldEntity element, HInstruction receiver, HInstruction value)
       : super(element, <HInstruction>[receiver, value],
             const TypeMask.nonNullEmpty()) {
     sideEffects.clearAllSideEffects();
@@ -1766,6 +1767,34 @@ class HFieldSet extends HFieldAccess {
 
   bool isJsStatement() => true;
   String toString() => "FieldSet $element";
+}
+
+class HGetLength extends HInstruction {
+  final bool isAssignable;
+  HGetLength(HInstruction receiver, TypeMask type, {bool this.isAssignable})
+      : super(<HInstruction>[receiver], type) {
+    assert(isAssignable != null);
+    sideEffects.clearAllSideEffects();
+    sideEffects.clearAllDependencies();
+    setUseGvn();
+    if (this.isAssignable) {
+      sideEffects.setDependsOnInstancePropertyStore();
+    }
+  }
+
+  HInstruction get receiver => inputs.single;
+
+  bool canThrow() => receiver.canBeNull();
+
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
+  bool onlyThrowsNSM() => true;
+
+  accept(HVisitor visitor) => visitor.visitGetLength(this);
+
+  int typeCode() => HInstruction.GET_LENGTH_TYPECODE;
+  bool typeEquals(other) => other is HGetLength;
+  bool dataEquals(HGetLength other) => true;
+  String toString() => "GetLength()";
 }
 
 /**

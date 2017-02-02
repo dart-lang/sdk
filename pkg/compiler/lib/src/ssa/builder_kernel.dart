@@ -754,8 +754,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction originalLength = null; // Set for growable lists.
 
     HInstruction buildGetLength() {
-      HFieldGet result = new HFieldGet(
-          astAdapter.jsIndexableLength, array, commonMasks.positiveIntType,
+      HGetLength result = new HGetLength(array, commonMasks.positiveIntType,
           isAssignable: !isFixed);
       add(result);
       return result;
