@@ -281,6 +281,7 @@ class _ServiceTesterRunner {
             bool testeeControlsServer: false,
             bool useAuthToken: false}) {
     var process = new _ServiceTesteeLauncher();
+    bool testsDone = false;
     process.launch(pause_on_start, pause_on_exit,
                    pause_on_unhandled_exceptions,
                    testeeControlsServer,
@@ -325,11 +326,18 @@ class _ServiceTesterRunner {
           }
         }
 
+        print('All service tests completed successfully.');
+        testsDone = true;
         await process.requestExit();
       }, onError: (error, stackTrace) {
-        process.requestExit();
-        print('Unexpected exception in service tests: $error\n$stackTrace');
-        throw error;
+        if (testsDone) {
+          print('Ignoring late exception during process exit:\n'
+                '$error\n#stackTrace');
+        } else {
+          process.requestExit();
+          print('Unexpected exception in service tests: $error\n$stackTrace');
+          throw error;
+        }
       });
     });
   }
