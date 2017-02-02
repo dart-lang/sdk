@@ -52,7 +52,7 @@ Graph<Info> graphFromInfo(AllInfo info) {
 
 /// Provide a unique long name associated with [info].
 // TODO(sigmund): guarantee that the name is actually unique.
-String longName(Info info) {
+String longName(Info info, {bool useLibraryUri: false}) {
   var infoPath = [];
   while (info != null) {
     infoPath.add(info);
@@ -62,14 +62,15 @@ String longName(Info info) {
   var first = true;
   for (var segment in infoPath.reversed) {
     if (!first) sb.write('.');
-    sb.write(segment.name);
     // TODO(sigmund): ensure that the first segment is a LibraryInfo.
     // assert(!first || segment is LibraryInfo);
     // (today might not be true for for closure classes).
     if (segment is LibraryInfo) {
+      sb.write(useLibraryUri ? segment.uri : segment.name);
       sb.write('::');
     } else {
       first = false;
+      sb.write(segment.name);
     }
   }
   return sb.toString();

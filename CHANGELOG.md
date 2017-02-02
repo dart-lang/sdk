@@ -1,4 +1,6 @@
-# Changelog
+## 0.5.3
+
+- Made IDs in the JSON format stable. Improves plain text diffing.
 
 ## 0.2.7
 - Make dart2js_info strong-mode clean.

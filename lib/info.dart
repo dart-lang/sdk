@@ -5,9 +5,14 @@
 /// Data produced by dart2js when run with the `--dump-info` flag.
 library dart2js_info.info;
 
+import 'dart:collection';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
+
 import 'src/measurements.dart';
+import 'src/util.dart';
+
 export 'src/measurements.dart';
 
 part 'json_info_codec.dart';
@@ -23,6 +28,8 @@ abstract class Info {
   String name;
 
   /// An id to uniquely identify this info among infos of the same [kind].
+  // TODO(kevmoo) Consider removing `id` entirely. Make it an impl detail of
+  //              the JSON encoder
   int get id;
 
   /// A globally unique id combining [kind] and [id] together.
@@ -46,8 +53,27 @@ abstract class Info {
 // TODO(sigmund): add more:
 //  - inputSize: bytes used in the Dart source program
 abstract class BasicInfo implements Info {
+  static Set<int> _ids = new Set<int>();
   final InfoKind kind;
-  final int id;
+
+  int _id;
+  // TODO(kevmoo) Make computation of id explicit and not on-demand.
+  int get id {
+    if (_id == null) {
+      assert(this is LibraryInfo ||
+          this is ConstantInfo ||
+          this is OutputUnitInfo ||
+          this.parent != null);
+
+      _id = longName(this, useLibraryUri: true).hashCode;
+      while (!_ids.add(_id)) {
+        _id++;
+      }
+    }
+
+    return _id;
+  }
+
   String coverageId;
   int size;
   Info parent;
@@ -60,12 +86,11 @@ abstract class BasicInfo implements Info {
   /// is generated.
   OutputUnitInfo outputUnit;
 
-  BasicInfo(this.kind, this.id, this.name, this.outputUnit, this.size,
-      this.coverageId);
+  BasicInfo(this.kind, this.name, this.outputUnit, this.size, this.coverageId);
 
   BasicInfo._fromId(String serializedId)
       : kind = _kindFromSerializedId(serializedId),
-        id = _idFromSerializedId(serializedId);
+        _id = _idFromSerializedId(serializedId);
 
   String toString() => '$serializedId $name [$size]';
 }
@@ -186,14 +211,12 @@ class LibraryInfo extends BasicInfo {
   // encode source-span information in metrics (rather than include the uri on
   // each function, include an index into this list).
 
-  static int _id = 0;
-
   /// Whether there is any information recorded for this library.
   bool get isEmpty =>
       topLevelFunctions.isEmpty && topLevelVariables.isEmpty && classes.isEmpty;
 
   LibraryInfo(String name, this.uri, OutputUnitInfo outputUnit, int size)
-      : super(InfoKind.library, _id++, name, outputUnit, size, null);
+      : super(InfoKind.library, name, outputUnit, size, null);
 
   LibraryInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -207,10 +230,8 @@ class OutputUnitInfo extends BasicInfo {
   /// The deferred imports that will load this output unit.
   List<String> imports = <String>[];
 
-  static int _ids = 0;
-
   OutputUnitInfo(String name, int size)
-      : super(InfoKind.outputUnit, _ids++, name, null, size, null);
+      : super(InfoKind.outputUnit, name, null, size, null);
 
   OutputUnitInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -230,11 +251,10 @@ class ClassInfo extends BasicInfo {
   // TODO(sigmund): currently appears to only be populated with instance fields,
   // but this should be fixed.
   final List<FieldInfo> fields = <FieldInfo>[];
-  static int _ids = 0;
 
   ClassInfo(
       {String name, this.isAbstract, OutputUnitInfo outputUnit, int size: 0})
-      : super(InfoKind.clazz, _ids++, name, outputUnit, size, null);
+      : super(InfoKind.clazz, name, outputUnit, size, null);
 
   ClassInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -247,10 +267,9 @@ class ConstantInfo extends BasicInfo {
   /// The actual generated code for the constant.
   String code;
 
-  static int _ids = 0;
   // TODO(sigmund): Add coverage support to constants?
   ConstantInfo({int size: 0, this.code, OutputUnitInfo outputUnit})
-      : super(InfoKind.constant, _ids++, null, outputUnit, size, null);
+      : super(InfoKind.constant, null, outputUnit, size, null);
 
   ConstantInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -277,7 +296,6 @@ class FieldInfo extends BasicInfo with CodeInfo {
   /// When [isConst] is true, the constant initializer expression.
   ConstantInfo initializer;
 
-  static int _ids = 0;
   FieldInfo(
       {String name,
       String coverageId,
@@ -288,7 +306,7 @@ class FieldInfo extends BasicInfo with CodeInfo {
       this.code,
       OutputUnitInfo outputUnit,
       this.isConst})
-      : super(InfoKind.field, _ids++, name, outputUnit, size, coverageId);
+      : super(InfoKind.field, name, outputUnit, size, coverageId);
 
   FieldInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -300,9 +318,8 @@ class TypedefInfo extends BasicInfo {
   /// The declared type.
   String type;
 
-  static int _ids = 0;
   TypedefInfo(String name, this.type, OutputUnitInfo outputUnit)
-      : super(InfoKind.typedef, _ids++, name, outputUnit, 0, null);
+      : super(InfoKind.typedef, name, outputUnit, 0, null);
 
   TypedefInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -315,7 +332,6 @@ class FunctionInfo extends BasicInfo with CodeInfo {
   static const int CLOSURE_FUNCTION_KIND = 1;
   static const int METHOD_FUNCTION_KIND = 2;
   static const int CONSTRUCTOR_FUNCTION_KIND = 3;
-  static int _ids = 0;
 
   /// Kind of function (top-level function, closure, method, or constructor).
   int functionKind;
@@ -367,7 +383,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
       this.inlinedCount,
       this.code,
       this.measurements})
-      : super(InfoKind.function, _ids++, name, outputUnit, size, coverageId);
+      : super(InfoKind.function, name, outputUnit, size, coverageId);
 
   FunctionInfo._(String serializedId) : super._fromId(serializedId);
 
@@ -376,14 +392,12 @@ class FunctionInfo extends BasicInfo with CodeInfo {
 
 /// Information about a closure, also known as a local function.
 class ClosureInfo extends BasicInfo {
-  static int _ids = 0;
-
   /// The function that is wrapped by this closure.
   FunctionInfo function;
 
   ClosureInfo(
       {String name, OutputUnitInfo outputUnit, int size: 0, this.function})
-      : super(InfoKind.closure, _ids++, name, outputUnit, size, null);
+      : super(InfoKind.closure, name, outputUnit, size, null);
 
   ClosureInfo._(String serializedId) : super._fromId(serializedId);
 
