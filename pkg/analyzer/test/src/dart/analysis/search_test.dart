@@ -86,8 +86,7 @@ class B {
 ''');
     ClassElement a = _findElement('A');
     ClassElement b = _findElement('B');
-    RegExp regExp = new RegExp(r'^test$');
-    expect(await driver.search.classMembers(regExp),
+    expect(await driver.search.classMembers('test'),
         unorderedEquals([a.methods[0], b.fields[0]]));
   }
 
@@ -95,8 +94,7 @@ class B {
     await _resolveTestUnit('''
 import 'not-dart.txt';
 ''');
-    RegExp regExp = new RegExp(r'^test$');
-    expect(await driver.search.classMembers(regExp), isEmpty);
+    expect(await driver.search.classMembers('test'), isEmpty);
   }
 
   test_searchMemberReferences_qualified_resolved() async {

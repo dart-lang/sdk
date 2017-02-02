@@ -34,20 +34,20 @@ class Search {
   Search(this._driver);
 
   /**
-   * Returns class members with names matching the given [regExp].
+   * Returns class members with the given [name].
    */
-  Future<List<Element>> classMembers(RegExp regExp) async {
+  Future<List<Element>> classMembers(String name) async {
     List<Element> elements = <Element>[];
 
     void addElement(Element element) {
-      if (!element.isSynthetic && regExp.hasMatch(element.displayName)) {
+      if (!element.isSynthetic && element.displayName == name) {
         elements.add(element);
       }
     }
 
-    for (FileState file in _driver.fsState.knownFiles) {
-      CompilationUnitElement unitElement =
-          await _driver.getUnitElement(file.path);
+    List<String> files = await _driver.getFilesDefiningClassMemberName(name);
+    for (String file in files) {
+      CompilationUnitElement unitElement = await _driver.getUnitElement(file);
       if (unitElement != null) {
         for (ClassElement clazz in unitElement.types) {
           clazz.accessors.forEach(addElement);
