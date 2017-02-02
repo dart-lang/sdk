@@ -6,6 +6,7 @@
 library dart2js_info.bin.deferred_library_size;
 
 import 'dart:io';
+
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/util.dart';
 

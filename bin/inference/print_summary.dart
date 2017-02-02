@@ -5,8 +5,9 @@
 /// Utility to display statistics about "sends" as a table on the command line.
 library compiler.tool.stats.print_summary;
 
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/table.dart';
 

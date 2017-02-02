@@ -19,11 +19,12 @@
 ///      server to this one.
 library dart2js_info.bin.coverage_log_server;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:async';
-import 'package:path/path.dart' as path;
+
 import 'package:args/args.dart';
+import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf;
 

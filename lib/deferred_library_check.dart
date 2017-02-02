@@ -38,8 +38,9 @@
 /// 'baz'.
 library dart2js_info.deferred_library_check;
 
-import 'info.dart';
 import 'package:quiver/collection.dart';
+
+import 'info.dart';
 
 List<ManifestComplianceFailure> checkDeferredLibraryManifest(
     AllInfo info, Map manifest) {

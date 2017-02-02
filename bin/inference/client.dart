@@ -5,11 +5,12 @@
 /// Client component to display [GlobalResult]s as a web app.
 library dart2js_info.bin.inference.client;
 
-import 'dart:html' hide Entry;
 import 'dart:convert';
+import 'dart:html' hide Entry;
+
+import 'package:charcode/charcode.dart';
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/string_edit_buffer.dart';
-import 'package:charcode/charcode.dart';
 
 AllInfo data;
 main() async {
