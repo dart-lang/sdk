@@ -54,7 +54,8 @@ void runBaselineTests(String folderName, TestTarget target) {
                 applicationRoot: applicationRoot));
         var program = loader.loadProgram(dartPath, target: target);
         verifyProgram(program);
-        var errors = target.performModularTransformations(program);
+        var errors = <String>[];
+        errors.addAll(target.performModularTransformations(program));
         verifyProgram(program);
         errors.addAll(target.performGlobalTransformations(program));
         verifyProgram(program);
