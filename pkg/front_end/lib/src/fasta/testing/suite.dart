@@ -126,7 +126,8 @@ class FeContext extends TestContext {
           "vm", new TargetFlags(strongMode: options.strongMode));
       Program program = loader.loadProgram(
           Uri.base.resolve("pkg/fasta/test/platform.dart"), target: target);
-      target.transformProgram(program);
+      target.performModularTransformations(program);
+      target.performGlobalTransformations(program);
       if (loader.errors.isNotEmpty) {
         throw loader.errors.join("\n");
       }

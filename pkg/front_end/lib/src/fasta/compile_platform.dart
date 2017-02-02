@@ -102,7 +102,8 @@ main(List<String> arguments) async {
       program.libraries.where(
           (Library l) => l.importUri.scheme == "dart").toList(),
       program.uriToSource);
-  target.transformProgram(program);
+  target.performModularTransformations(program);
+  target.performGlobalTransformations(program);
   for (LibraryElement analyzerLibrary in loader.libraryElements) {
     Library library = loader.getLibraryReference(analyzerLibrary);
     StringBuffer sb = new StringBuffer();
