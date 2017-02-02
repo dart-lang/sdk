@@ -450,7 +450,7 @@ var A = B;
     driver.changeFile(b);
 
     // "b" is not an added file, so it is not scheduled for analysis.
-    expect(driver.test.filesToAnalyze, isEmpty);
+    expect(driver.test.fileTracker.hasPendingFiles, isFalse);
 
     // While "b" is not analyzed explicitly, it is analyzed implicitly.
     // The change causes "a" to be reanalyzed.
@@ -568,7 +568,7 @@ var A2 = B1;
     driver.changeFile(testFile);
 
     // The file was added, so it is scheduled for analysis.
-    expect(driver.test.filesToAnalyze, contains(testFile));
+    expect(driver.test.fileTracker.isFilePending(testFile), isTrue);
 
     // We get a new result.
     {

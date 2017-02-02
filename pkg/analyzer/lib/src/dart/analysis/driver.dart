@@ -15,6 +15,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
@@ -139,16 +140,6 @@ class AnalysisDriver {
   final Uint32List _salt = new Uint32List(1 + AnalysisOptions.signatureLength);
 
   /**
-   * The current file system state.
-   */
-  FileSystemState _fsState;
-
-  /**
-   * The set of added files.
-   */
-  final _addedFiles = new LinkedHashSet<String>();
-
-  /**
    * The set of priority files, that should be analyzed sooner.
    */
   final _priorityFiles = new LinkedHashSet<String>();
@@ -189,17 +180,6 @@ class AnalysisDriver {
       <String, List<Completer<CompilationUnitElement>>>{};
 
   /**
-   * The set of files were reported as changed through [changeFile] and not
-   * checked for actual changes yet.
-   */
-  final _changedFiles = new LinkedHashSet<String>();
-
-  /**
-   * The set of files that are currently scheduled for analysis.
-   */
-  final _filesToAnalyze = new LinkedHashSet<String>();
-
-  /**
    * The mapping from the files for which analysis was requested using
    * [getResult], and which were found to be parts without known libraries,
    * to the [Completer]s to report the result.
@@ -235,6 +215,11 @@ class AnalysisDriver {
   AnalysisDriverTestView _testView;
 
   /**
+   * The [FileTracker] used by this driver.
+   */
+  FileTracker _fileTracker;
+
+  /**
    * Create a new instance of [AnalysisDriver].
    *
    * The given [SourceFactory] is cloned to ensure that it does not contain a
@@ -242,7 +227,7 @@ class AnalysisDriver {
    */
   AnalysisDriver(
       this._scheduler,
-      this._logger,
+      PerformanceLog logger,
       this._resourceProvider,
       this._byteStore,
       this._contentOverlay,
@@ -250,12 +235,11 @@ class AnalysisDriver {
       SourceFactory sourceFactory,
       this._analysisOptions,
       {PackageBundle sdkBundle})
-      : _sourceFactory = sourceFactory.clone(),
+      : _logger = logger,
+        _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle {
     _testView = new AnalysisDriverTestView(this);
-    _fillSalt();
-    _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
-        _resourceProvider, sourceFactory, _analysisOptions, _salt);
+    _createFileTracker(logger);
     _scheduler._add(this);
     _search = new Search(this);
   }
@@ -263,7 +247,7 @@ class AnalysisDriver {
   /**
    * Return the set of files explicitly added to analysis using [addFile].
    */
-  Set<String> get addedFiles => _addedFiles;
+  Set<String> get addedFiles => _fileTracker.addedFiles;
 
   /**
    * Return the analysis options used to control analysis.
@@ -278,16 +262,16 @@ class AnalysisDriver {
   /**
    * The current file system state.
    */
-  FileSystemState get fsState => _fsState;
+  FileSystemState get fsState => _fileTracker.fsState;
 
   /**
    * Return `true` if the driver has a file to analyze.
    */
   bool get hasFilesToAnalyze {
-    return _changedFiles.isNotEmpty ||
+    return _fileTracker.hasChangedFiles ||
         _requestedFiles.isNotEmpty ||
         _requestedParts.isNotEmpty ||
-        _filesToAnalyze.isNotEmpty ||
+        _fileTracker.hasPendingFiles ||
         _partsToAnalyze.isNotEmpty;
   }
 
@@ -296,12 +280,12 @@ class AnalysisDriver {
    * always include all added files or all implicitly used file. If a file has
    * not been processed yet, it might be missing.
    */
-  Set<String> get knownFiles => _fsState.knownFilePaths;
+  Set<String> get knownFiles => _fileTracker.fsState.knownFilePaths;
 
   /**
    * Return the number of files scheduled for analysis.
    */
-  int get numberOfFilesToAnalyze => _filesToAnalyze.length;
+  int get numberOfFilesToAnalyze => _fileTracker.numberOfPendingFiles;
 
   /**
    * Return the list of files that the driver should try to analyze sooner.
@@ -324,7 +308,7 @@ class AnalysisDriver {
         .forEach(_priorityResults.remove);
     _priorityFiles.clear();
     _priorityFiles.addAll(priorityPaths);
-    _scheduler._notify(this);
+    _scheduler.notify(this);
   }
 
   /**
@@ -387,15 +371,15 @@ class AnalysisDriver {
     }
     if (_priorityFiles.isNotEmpty) {
       for (String path in _priorityFiles) {
-        if (_filesToAnalyze.contains(path)) {
+        if (_fileTracker.isFilePending(path)) {
           return AnalysisDriverPriority.priority;
         }
       }
     }
-    if (_filesToAnalyze.isNotEmpty) {
+    if (_fileTracker.hasPendingFiles) {
       return AnalysisDriverPriority.general;
     }
-    if (_changedFiles.isNotEmpty) {
+    if (_fileTracker.hasChangedFiles) {
       return AnalysisDriverPriority.general;
     }
     if (_requestedParts.isNotEmpty || _partsToAnalyze.isNotEmpty) {
@@ -412,15 +396,12 @@ class AnalysisDriver {
    * The results of analysis are eventually produced by the [results] stream.
    */
   void addFile(String path) {
-    if (!_fsState.hasUri(path)) {
+    if (!_fileTracker.fsState.hasUri(path)) {
       return;
     }
     if (AnalysisEngine.isDartFileName(path)) {
-      _addedFiles.add(path);
-      _filesToAnalyze.add(path);
-      _priorityResults.clear();
+      _fileTracker.addFile(path);
     }
-    _scheduler._notify(this);
   }
 
   /**
@@ -442,12 +423,8 @@ class AnalysisDriver {
    * [changeFile] invocation.
    */
   void changeFile(String path) {
-    _changedFiles.add(path);
-    if (_addedFiles.contains(path)) {
-      _filesToAnalyze.add(path);
-    }
+    _fileTracker.changeFile(path);
     _priorityResults.clear();
-    _scheduler._notify(this);
   }
 
   /**
@@ -465,11 +442,9 @@ class AnalysisDriver {
     if (sourceFactory != null) {
       _sourceFactory = sourceFactory;
     }
-    _fillSalt();
-    _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
-        _resourceProvider, _sourceFactory, _analysisOptions, _salt);
-    _filesToAnalyze.addAll(_addedFiles);
-    _scheduler._notify(this);
+    Iterable<String> addedFiles = _fileTracker.addedFiles;
+    _createFileTracker(_logger);
+    _fileTracker.addFiles(addedFiles);
   }
 
   /**
@@ -516,7 +491,7 @@ class AnalysisDriver {
   Future<List<String>> getFilesDefiningClassMemberName(String name) {
     var task = new _FilesDefiningClassMemberNameTask(this, name);
     _definingClassMemberNameTasks.add(task);
-    _scheduler._notify(this);
+    _scheduler.notify(this);
     return task.completer.future;
   }
 
@@ -527,7 +502,7 @@ class AnalysisDriver {
   Future<List<String>> getFilesReferencingName(String name) {
     var task = new _FilesReferencingNameTask(this, name);
     _referencingNameTasks.add(task);
-    _scheduler._notify(this);
+    _scheduler.notify(this);
     return task.completer.future;
   }
 
@@ -537,14 +512,14 @@ class AnalysisDriver {
    * analyzed.
    */
   Future<AnalysisDriverUnitIndex> getIndex(String path) {
-    if (!_fsState.hasUri(path)) {
+    if (!_fileTracker.fsState.hasUri(path)) {
       return new Future.value();
     }
     var completer = new Completer<AnalysisDriverUnitIndex>();
     _indexRequestedFiles
         .putIfAbsent(path, () => <Completer<AnalysisDriverUnitIndex>>[])
         .add(completer);
-    _scheduler._notify(this);
+    _scheduler.notify(this);
     return completer.future;
   }
 
@@ -566,7 +541,7 @@ class AnalysisDriver {
    * state transitions to "idle".
    */
   Future<AnalysisResult> getResult(String path) {
-    if (!_fsState.hasUri(path)) {
+    if (!_fileTracker.fsState.hasUri(path)) {
       return new Future.value();
     }
 
@@ -583,7 +558,7 @@ class AnalysisDriver {
     _requestedFiles
         .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
         .add(completer);
-    _scheduler._notify(this);
+    _scheduler.notify(this);
     return completer.future;
   }
 
@@ -596,7 +571,7 @@ class AnalysisDriver {
    */
   Future<SourceKind> getSourceKind(String path) async {
     if (AnalysisEngine.isDartFileName(path)) {
-      FileState file = _fsState.getFileForPath(path);
+      FileState file = _fileTracker.fsState.getFileForPath(path);
       return file.isPart ? SourceKind.PART : SourceKind.LIBRARY;
     }
     return null;
@@ -610,7 +585,7 @@ class AnalysisDriver {
       String name) {
     var task = new _TopLevelNameDeclarationsTask(this, name);
     _topLevelNameDeclarationsTasks.add(task);
-    _scheduler._notify(this);
+    _scheduler.notify(this);
     return task.completer.future;
   }
 
@@ -619,14 +594,14 @@ class AnalysisDriver {
    * file with the given [path], or with `null` if the file cannot be analyzed.
    */
   Future<CompilationUnitElement> getUnitElement(String path) {
-    if (!_fsState.hasUri(path)) {
+    if (!_fileTracker.fsState.hasUri(path)) {
       return new Future.value();
     }
     var completer = new Completer<CompilationUnitElement>();
     _unitElementRequestedFiles
         .putIfAbsent(path, () => <Completer<CompilationUnitElement>>[])
         .add(completer);
-    _scheduler._notify(this);
+    _scheduler.notify(this);
     return completer.future;
   }
 
@@ -643,7 +618,7 @@ class AnalysisDriver {
    * resolved unit).
    */
   Future<ParseResult> parseFile(String path) async {
-    FileState file = _verifyApiSignature(path);
+    FileState file = _fileTracker.verifyApiSignature(path);
     RecordingErrorListener listener = new RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
     return new ParseResult(file.path, file.uri, file.content, file.contentHash,
@@ -660,12 +635,17 @@ class AnalysisDriver {
    * but does not guarantee this.
    */
   void removeFile(String path) {
-    _addedFiles.remove(path);
-    _filesToAnalyze.remove(path);
-    _fsState.removeFile(path);
-    _filesToAnalyze.addAll(_addedFiles);
+    _fileTracker.removeFile(path);
     _priorityResults.clear();
-    _scheduler._notify(this);
+  }
+
+  /**
+   * Handles a notification from the [FileTracker] that there has been a change
+   * of state.
+   */
+  void _changeHook() {
+    _priorityResults.clear();
+    _scheduler.notify(this);
   }
 
   /**
@@ -696,7 +676,7 @@ class AnalysisDriver {
 
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      FileState file = _fsState.getFileForPath(path);
+      FileState file = _fileTracker.fsState.getFileForPath(path);
 
       // Prepare the library file - the file itself, or the known library.
       FileState libraryFile = getLibraryFile(file);
@@ -714,7 +694,7 @@ class AnalysisDriver {
 
     // We need the fully resolved unit, or the result is not cached.
     return _logger.run('Compute analysis result for $path', () {
-      FileState file = _verifyApiSignature(path);
+      FileState file = _fileTracker.verifyApiSignature(path);
 
       // Prepare the library file - the file itself, or the known library.
       FileState libraryFile = getLibraryFile(file);
@@ -753,7 +733,7 @@ class AnalysisDriver {
           _logger.writeln('Computed new analysis result.');
           AnalysisResult result = _getAnalysisResultFromBytes(file, bytes,
               content: withUnit ? file.content : null,
-              withErrors: _addedFiles.contains(path),
+              withErrors: _fileTracker.addedFiles.contains(path),
               resolvedUnit: withUnit ? resolvedUnit : null);
           if (withUnit && _priorityFiles.contains(path)) {
             _priorityResults[path] = result;
@@ -777,7 +757,7 @@ class AnalysisDriver {
   }
 
   CompilationUnitElement _computeUnitElement(String path) {
-    FileState file = _fsState.getFileForPath(path);
+    FileState file = _fileTracker.fsState.getFileForPath(path);
     FileState libraryFile = file.library ?? file;
 
     // Create the AnalysisContext to resynthesize elements in.
@@ -792,6 +772,18 @@ class AnalysisDriver {
   }
 
   /**
+   * Creates a new [FileTracker] object and stores it in [_fileTracker].
+   *
+   * This is used both on initial construction and whenever the configuration
+   * changes.
+   */
+  void _createFileTracker(PerformanceLog logger) {
+    _fillSalt();
+    _fileTracker = new FileTracker(logger, _byteStore, _contentOverlay,
+        _resourceProvider, sourceFactory, _analysisOptions, _salt, _changeHook);
+  }
+
+  /**
    * Return the context in which the [library] should be analyzed.
    */
   LibraryContext _createLibraryContext(FileState library) =>
@@ -803,7 +795,7 @@ class AnalysisDriver {
           _analysisOptions,
           declaredVariables,
           _sourceFactory,
-          _fsState);
+          _fileTracker);
 
   /**
    * Fill [_salt] with data.
@@ -896,14 +888,7 @@ class AnalysisDriver {
    * Perform a single chunk of work and produce [results].
    */
   Future<Null> _performWork() async {
-    // Verify all changed files one at a time.
-    if (_changedFiles.isNotEmpty) {
-      String path = _removeFirst(_changedFiles);
-      // If the file has not been accessed yet, we either will eventually read
-      // it later while analyzing one of the added files, or don't need it.
-      if (_fsState.knownFilePaths.contains(path)) {
-        _verifyApiSignature(path);
-      }
+    if (_fileTracker.verifyChangedFilesIfNeeded()) {
       return;
     }
 
@@ -924,10 +909,10 @@ class AnalysisDriver {
           completer.complete(result);
         });
         // Remove from to be analyzed and produce it now.
-        _filesToAnalyze.remove(path);
+        _fileTracker.fileWasAnalyzed(path);
         _resultController.add(result);
       } catch (exception, stackTrace) {
-        _filesToAnalyze.remove(path);
+        _fileTracker.fileWasAnalyzed(path);
         _requestedFiles.remove(path).forEach((completer) {
           completer.completeError(exception, stackTrace);
         });
@@ -989,7 +974,7 @@ class AnalysisDriver {
     // Analyze a priority file.
     if (_priorityFiles.isNotEmpty) {
       for (String path in _priorityFiles) {
-        if (_filesToAnalyze.remove(path)) {
+        if (_fileTracker.isFilePending(path)) {
           try {
             AnalysisResult result =
                 _computeAnalysisResult(path, withUnit: true);
@@ -1000,15 +985,17 @@ class AnalysisDriver {
             }
           } catch (exception, stackTrace) {
             _reportException(path, exception, stackTrace);
+          } finally {
+            _fileTracker.fileWasAnalyzed(path);
           }
           return;
         }
       }
     }
 
-    // Analyze a general file.
-    if (_filesToAnalyze.isNotEmpty) {
-      String path = _removeFirst(_filesToAnalyze);
+    if (_fileTracker.hasPendingFiles) {
+      // Analyze a general file.
+      String path = _fileTracker.anyPendingFile;
       try {
         AnalysisResult result = _computeAnalysisResult(path, withUnit: false);
         if (result == null) {
@@ -1018,6 +1005,8 @@ class AnalysisDriver {
         }
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
+      } finally {
+        _fileTracker.fileWasAnalyzed(path);
       }
       return;
     }
@@ -1046,7 +1035,8 @@ class AnalysisDriver {
 
     // Analyze a general part.
     if (_partsToAnalyze.isNotEmpty) {
-      String path = _removeFirst(_partsToAnalyze);
+      String path = _partsToAnalyze.first;
+      _partsToAnalyze.remove(path);
       try {
         AnalysisResult result = _computeAnalysisResult(path,
             withUnit: _priorityFiles.contains(path),
@@ -1119,38 +1109,6 @@ class AnalysisDriver {
       return null;
     }
   }
-
-  /**
-   * Verify the API signature for the file with the given [path], and decide
-   * which linked libraries should be invalidated, and files reanalyzed.
-   */
-  FileState _verifyApiSignature(String path) {
-    return _logger.run('Verify API signature of $path', () {
-      bool anyApiChanged = false;
-      List<FileState> files = _fsState.getFilesForPath(path);
-      for (FileState file in files) {
-        bool apiChanged = file.refresh();
-        if (apiChanged) {
-          anyApiChanged = true;
-        }
-      }
-      if (anyApiChanged) {
-        _logger.writeln('API signatures mismatch found for $path');
-        // TODO(scheglov) schedule analysis of only affected files
-        _filesToAnalyze.addAll(_addedFiles);
-      }
-      return files[0];
-    });
-  }
-
-  /**
-   * Remove and return the first item in the given [set].
-   */
-  static Object/*=T*/ _removeFirst/*<T>*/(LinkedHashSet<Object/*=T*/ > set) {
-    Object/*=T*/ element = set.first;
-    set.remove(element);
-    return element;
-  }
 }
 
 /**
@@ -1218,6 +1176,15 @@ class AnalysisDriverScheduler {
   }
 
   /**
+   * Notify that there is a change to the [driver], it it might need to
+   * perform some work.
+   */
+  void notify(AnalysisDriver driver) {
+    _hasWork.notify();
+    _statusSupport.preTransitionToAnalyzing();
+  }
+
+  /**
    * Start the scheduler, so that any [AnalysisDriver] created before or
    * after will be asked to perform work.
    */
@@ -1243,15 +1210,6 @@ class AnalysisDriverScheduler {
   void _add(AnalysisDriver driver) {
     _drivers.add(driver);
     _hasWork.notify();
-  }
-
-  /**
-   * Notify that there is a change to the [driver], it it might need to
-   * perform some work.
-   */
-  void _notify(AnalysisDriver driver) {
-    _hasWork.notify();
-    _statusSupport.preTransitionToAnalyzing();
   }
 
   /**
@@ -1334,7 +1292,7 @@ class AnalysisDriverTestView {
 
   AnalysisDriverTestView(this.driver);
 
-  Set<String> get filesToAnalyze => driver._filesToAnalyze;
+  FileTracker get fileTracker => driver._fileTracker;
 
   Map<String, AnalysisResult> get priorityResults => driver._priorityResults;
 }
@@ -1672,7 +1630,7 @@ class _FilesDefiningClassMemberNameTask {
 
       // Check the next file.
       String path = filesToCheck.removeLast();
-      FileState file = driver._fsState.getFileForPath(path);
+      FileState file = driver._fileTracker.fsState.getFileForPath(path);
       if (file.definedClassMemberNames.contains(name)) {
         definingFiles.add(path);
       }
@@ -1729,7 +1687,7 @@ class _FilesReferencingNameTask {
 
       // Check the next file.
       String path = filesToCheck.removeLast();
-      FileState file = driver._fsState.getFileForPath(path);
+      FileState file = driver._fileTracker.fsState.getFileForPath(path);
       if (file.referencedNames.contains(name)) {
         referencingFiles.add(path);
       }
@@ -1779,7 +1737,7 @@ class _TopLevelNameDeclarationsTask {
     // Check the next file.
     String path = filesToCheck.removeLast();
     if (checkedFiles.add(path)) {
-      FileState file = driver._fsState.getFileForPath(path);
+      FileState file = driver._fileTracker.fsState.getFileForPath(path);
       if (!file.isPart) {
         bool isExported = false;
         TopLevelDeclaration declaration = file.topLevelDeclarations[name];

@@ -10,6 +10,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
@@ -44,7 +45,7 @@ class LibraryContext {
       AnalysisOptions options,
       DeclaredVariables declaredVariables,
       SourceFactory sourceFactory,
-      FileSystemState fsState) {
+      FileTracker fileTracker) {
     return logger.run('Create library context', () {
       Map<String, FileState> libraries = <String, FileState>{};
       SummaryDataStore store = new SummaryDataStore(const <String>[]);
@@ -120,7 +121,7 @@ class LibraryContext {
       });
 
       var analysisContext = _createAnalysisContext(
-          options, declaredVariables, sourceFactory, fsState, store);
+          options, declaredVariables, sourceFactory, fileTracker, store);
 
       return new LibraryContext._(analysisContext);
     });
@@ -162,7 +163,7 @@ class LibraryContext {
       AnalysisOptions _analysisOptions,
       DeclaredVariables declaredVariables,
       SourceFactory _sourceFactory,
-      FileSystemState _fsState,
+      FileTracker fileTracker,
       SummaryDataStore store) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
@@ -170,7 +171,7 @@ class LibraryContext {
     analysisContext.analysisOptions = _analysisOptions;
     analysisContext.declaredVariables.addAll(declaredVariables);
     analysisContext.sourceFactory = _sourceFactory.clone();
-    analysisContext.contentCache = new _ContentCacheWrapper(_fsState);
+    analysisContext.contentCache = new _ContentCacheWrapper(fileTracker);
     analysisContext.resultProvider =
         new InputPackagesResultProvider(analysisContext, store);
     return analysisContext;
@@ -192,9 +193,9 @@ class ResolutionResult {
  * [ContentCache] wrapper around [FileContentOverlay].
  */
 class _ContentCacheWrapper implements ContentCache {
-  final FileSystemState fsState;
+  final FileTracker fileTracker;
 
-  _ContentCacheWrapper(this.fsState);
+  _ContentCacheWrapper(this.fileTracker);
 
   @override
   void accept(ContentCacheVisitor visitor) {
@@ -229,6 +230,6 @@ class _ContentCacheWrapper implements ContentCache {
 
   FileState _getFileForSource(Source source) {
     String path = source.fullName;
-    return fsState.getFileForPath(path);
+    return fileTracker.fsState.getFileForPath(path);
   }
 }
