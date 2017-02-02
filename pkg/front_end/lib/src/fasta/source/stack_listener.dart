@@ -232,4 +232,9 @@ abstract class StackListener extends Listener {
     super.handleRecoverableError(token, kind, arguments);
     debugEvent("Error: ${recoverableErrors.last}");
   }
+
+  @override
+  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
+    throw inputError(uri, token.charOffset, "$kind $arguments");
+  }
 }
