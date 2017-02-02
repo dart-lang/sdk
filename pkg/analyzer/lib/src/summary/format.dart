@@ -1483,8 +1483,30 @@ abstract class _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIn
 }
 
 class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnlinkedUnit {
+  List<String> _definedClassMemberNames;
+  List<String> _definedTopLevelNames;
   List<String> _referencedNames;
   UnlinkedUnitBuilder _unit;
+
+  @override
+  List<String> get definedClassMemberNames => _definedClassMemberNames ??= <String>[];
+
+  /**
+   * List of class member names defined by the unit.
+   */
+  void set definedClassMemberNames(List<String> value) {
+    this._definedClassMemberNames = value;
+  }
+
+  @override
+  List<String> get definedTopLevelNames => _definedTopLevelNames ??= <String>[];
+
+  /**
+   * List of top-level names defined by the unit.
+   */
+  void set definedTopLevelNames(List<String> value) {
+    this._definedTopLevelNames = value;
+  }
 
   @override
   List<String> get referencedNames => _referencedNames ??= <String>[];
@@ -1506,8 +1528,10 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlin
     this._unit = value;
   }
 
-  AnalysisDriverUnlinkedUnitBuilder({List<String> referencedNames, UnlinkedUnitBuilder unit})
-    : _referencedNames = referencedNames,
+  AnalysisDriverUnlinkedUnitBuilder({List<String> definedClassMemberNames, List<String> definedTopLevelNames, List<String> referencedNames, UnlinkedUnitBuilder unit})
+    : _definedClassMemberNames = definedClassMemberNames,
+      _definedTopLevelNames = definedTopLevelNames,
+      _referencedNames = referencedNames,
       _unit = unit;
 
   /**
@@ -1531,6 +1555,22 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlin
     }
     signature.addBool(this._unit != null);
     this._unit?.collectApiSignature(signature);
+    if (this._definedTopLevelNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._definedTopLevelNames.length);
+      for (var x in this._definedTopLevelNames) {
+        signature.addString(x);
+      }
+    }
+    if (this._definedClassMemberNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._definedClassMemberNames.length);
+      for (var x in this._definedClassMemberNames) {
+        signature.addString(x);
+      }
+    }
   }
 
   List<int> toBuffer() {
@@ -1539,8 +1579,16 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlin
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_definedClassMemberNames;
+    fb.Offset offset_definedTopLevelNames;
     fb.Offset offset_referencedNames;
     fb.Offset offset_unit;
+    if (!(_definedClassMemberNames == null || _definedClassMemberNames.isEmpty)) {
+      offset_definedClassMemberNames = fbBuilder.writeList(_definedClassMemberNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_definedTopLevelNames == null || _definedTopLevelNames.isEmpty)) {
+      offset_definedTopLevelNames = fbBuilder.writeList(_definedTopLevelNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
     if (!(_referencedNames == null || _referencedNames.isEmpty)) {
       offset_referencedNames = fbBuilder.writeList(_referencedNames.map((b) => fbBuilder.writeString(b)).toList());
     }
@@ -1548,6 +1596,12 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlin
       offset_unit = _unit.finish(fbBuilder);
     }
     fbBuilder.startTable();
+    if (offset_definedClassMemberNames != null) {
+      fbBuilder.addOffset(3, offset_definedClassMemberNames);
+    }
+    if (offset_definedTopLevelNames != null) {
+      fbBuilder.addOffset(2, offset_definedTopLevelNames);
+    }
     if (offset_referencedNames != null) {
       fbBuilder.addOffset(0, offset_referencedNames);
     }
@@ -1576,8 +1630,22 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object with _AnalysisDriverUnlinke
 
   _AnalysisDriverUnlinkedUnitImpl(this._bc, this._bcOffset);
 
+  List<String> _definedClassMemberNames;
+  List<String> _definedTopLevelNames;
   List<String> _referencedNames;
   idl.UnlinkedUnit _unit;
+
+  @override
+  List<String> get definedClassMemberNames {
+    _definedClassMemberNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 3, const <String>[]);
+    return _definedClassMemberNames;
+  }
+
+  @override
+  List<String> get definedTopLevelNames {
+    _definedTopLevelNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 2, const <String>[]);
+    return _definedTopLevelNames;
+  }
 
   @override
   List<String> get referencedNames {
@@ -1596,6 +1664,8 @@ abstract class _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnl
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (definedClassMemberNames.isNotEmpty) _result["definedClassMemberNames"] = definedClassMemberNames;
+    if (definedTopLevelNames.isNotEmpty) _result["definedTopLevelNames"] = definedTopLevelNames;
     if (referencedNames.isNotEmpty) _result["referencedNames"] = referencedNames;
     if (unit != null) _result["unit"] = unit.toJson();
     return _result;
@@ -1603,6 +1673,8 @@ abstract class _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnl
 
   @override
   Map<String, Object> toMap() => {
+    "definedClassMemberNames": definedClassMemberNames,
+    "definedTopLevelNames": definedTopLevelNames,
     "referencedNames": referencedNames,
     "unit": unit,
   };

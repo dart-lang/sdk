@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
@@ -88,6 +89,8 @@ class FileState {
   String _content;
   String _contentHash;
   LineInfo _lineInfo;
+  Set<String> _definedTopLevelNames;
+  Set<String> _definedClassMemberNames;
   Set<String> _referencedNames;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
@@ -120,6 +123,16 @@ class FileState {
    * The MD5 hash of the [content].
    */
   String get contentHash => _contentHash;
+
+  /**
+   * The class member names defined by the file.
+   */
+  Set<String> get definedClassMemberNames => _definedClassMemberNames;
+
+  /**
+   * The top-level names defined by the file.
+   */
+  Set<String> get definedTopLevelNames => _definedTopLevelNames;
 
   /**
    * Return the set of all directly referenced files - imported, exported or
@@ -388,8 +401,13 @@ class FileState {
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
           List<String> referencedNames = computeReferencedNames(unit).toList();
+          DefinedNames definedNames = computeDefinedNames(unit);
           bytes = new AnalysisDriverUnlinkedUnitBuilder(
-                  unit: unlinkedUnit, referencedNames: referencedNames)
+                  unit: unlinkedUnit,
+                  definedTopLevelNames: definedNames.topLevelNames.toList(),
+                  definedClassMemberNames:
+                      definedNames.classMemberNames.toList(),
+                  referencedNames: referencedNames)
               .toBuffer();
           _fsState._byteStore.put(unlinkedKey, bytes);
         });
@@ -398,7 +416,10 @@ class FileState {
 
     // Read the unlinked bundle.
     var driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
-    _referencedNames = new Set<String>.from(driverUnlinkedUnit.referencedNames);
+    _definedTopLevelNames = driverUnlinkedUnit.definedTopLevelNames.toSet();
+    _definedClassMemberNames =
+        driverUnlinkedUnit.definedClassMemberNames.toSet();
+    _referencedNames = driverUnlinkedUnit.referencedNames.toSet();
     _unlinked = driverUnlinkedUnit.unit;
     _lineInfo = new LineInfo(_unlinked.lineStarts);
     _topLevelDeclarations = null;

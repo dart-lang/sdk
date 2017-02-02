@@ -1050,6 +1050,16 @@ table AnalysisDriverUnitIndex {
  */
 table AnalysisDriverUnlinkedUnit {
   /**
+   * List of class member names defined by the unit.
+   */
+  definedClassMemberNames:[string] (id: 3);
+
+  /**
+   * List of top-level names defined by the unit.
+   */
+  definedTopLevelNames:[string] (id: 2);
+
+  /**
    * List of external names referenced by the unit.
    */
   referencedNames:[string] (id: 0);

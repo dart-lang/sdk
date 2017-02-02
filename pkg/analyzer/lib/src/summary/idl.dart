@@ -314,6 +314,18 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
       generated.readAnalysisDriverUnlinkedUnit(buffer);
 
   /**
+   * List of class member names defined by the unit.
+   */
+  @Id(3)
+  List<String> get definedClassMemberNames;
+
+  /**
+   * List of top-level names defined by the unit.
+   */
+  @Id(2)
+  List<String> get definedTopLevelNames;
+
+  /**
    * List of external names referenced by the unit.
    */
   @Id(0)

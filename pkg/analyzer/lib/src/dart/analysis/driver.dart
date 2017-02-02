@@ -70,7 +70,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 17;
+  static const int DATA_VERSION = 18;
 
   /**
    * The number of exception contexts allowed to write. Once this field is

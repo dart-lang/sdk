@@ -62,6 +62,46 @@ class FileSystemStateTest {
         provider, sourceFactory, analysisOptions, new Uint32List(0));
   }
 
+  test_definedClassMemberNames() {
+    String path = _p('/aaa/lib/a.dart');
+    provider.newFile(
+        path,
+        r'''
+class A {
+  int a, b;
+  A();
+  A.c();
+  d() {}
+  get e => null;
+  set f(_) {}
+}
+class B {
+  g() {}
+}
+''');
+    FileState file = fileSystemState.getFileForPath(path);
+    expect(file.definedClassMemberNames,
+        unorderedEquals(['a', 'b', 'd', 'e', 'f', 'g']));
+  }
+
+  test_definedTopLevelNames() {
+    String path = _p('/aaa/lib/a.dart');
+    provider.newFile(
+        path,
+        r'''
+class A {}
+class B = Object with A;
+typedef C {}
+D() {}
+get E => null;
+set F(_) {}
+var G, H;
+''');
+    FileState file = fileSystemState.getFileForPath(path);
+    expect(file.definedTopLevelNames,
+        unorderedEquals(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']));
+  }
+
   test_exportedTopLevelDeclarations_export() {
     String a = _p('/aaa/lib/a.dart');
     String b = _p('/aaa/lib/b.dart');
