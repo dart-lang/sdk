@@ -1082,8 +1082,8 @@ class ResolverTask extends CompilerTask {
               switch (constant.kind) {
                 case ConstantExpressionKind.CONSTRUCTED:
                   ConstructedConstantExpression constructedConstant = constant;
-                  if (constructedConstant.type.isGeneric &&
-                      !constructedConstant.type.isRaw) {
+                  ResolutionInterfaceType type = constructedConstant.type;
+                  if (type.isGeneric && !type.isRaw) {
                     // Const constructor calls cannot have type arguments.
                     // TODO(24312): Remove this.
                     reporter.reportErrorMessage(
@@ -1091,7 +1091,7 @@ class ResolverTask extends CompilerTask {
                     constant = new ErroneousConstantExpression();
                   }
                   break;
-                case ConstantExpressionKind.VARIABLE:
+                case ConstantExpressionKind.FIELD:
                 case ConstantExpressionKind.ERRONEOUS:
                   break;
                 default:

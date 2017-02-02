@@ -7,12 +7,14 @@ library dart2js.constants.expressions.evaluate_test;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/evaluation.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/constant_system_dart.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'memory_compiler.dart';
 
 class TestData {
@@ -43,6 +45,27 @@ class MemoryEnvironment implements Environment {
 
   @override
   String readFromEnvironment(String name) => env[name];
+
+  @override
+  ResolutionInterfaceType substByContext(
+      ResolutionInterfaceType base, ResolutionInterfaceType target) {
+    return base.substByContext(target);
+  }
+
+  @override
+  ConstantConstructor getConstructorConstant(ConstructorElement constructor) {
+    return constructor.constantConstructor;
+  }
+
+  @override
+  ConstantExpression getFieldConstant(FieldElement field) {
+    return field.constant;
+  }
+
+  @override
+  ConstantExpression getLocalConstant(LocalVariableElement local) {
+    return local.constant;
+  }
 }
 
 const List<TestData> DATA = const [

@@ -5,7 +5,12 @@
 library dart2js.constants.evaluation;
 
 import '../compiler.dart' show Compiler;
+import '../elements/elements.dart';
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import 'constructors.dart';
 import 'expressions.dart';
 
 /// Environment used for evaluating constant expressions.
@@ -16,6 +21,20 @@ abstract class Environment {
 
   /// Read environments string passed in using the '-Dname=value' option.
   String readFromEnvironment(String name);
+
+  /// Returns the [ConstantExpression] for the value of the constant [local].
+  ConstantExpression getLocalConstant(Local local);
+
+  /// Returns the [ConstantExpression] for the value of the constant [field].
+  ConstantExpression getFieldConstant(FieldEntity field);
+
+  /// Returns the [ConstantConstructor] corresponding to the constant
+  /// [constructor].
+  ConstantConstructor getConstructorConstant(ConstructorEntity constructor);
+
+  /// Performs the substitution of the type arguments of [target] for their
+  /// corresponding type variables in [type].
+  InterfaceType substByContext(InterfaceType base, InterfaceType target);
 }
 
 /// The normalized arguments passed to a const constructor computed from the

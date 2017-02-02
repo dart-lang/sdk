@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../constants/expressions.dart';
+import '../elements/elements.dart' show ConstructorElement;
 import 'kernel.dart';
 
 /// Visitor that converts a [ConstantExpression] into a kernel constant
@@ -78,8 +79,14 @@ class ConstantVisitor extends ConstantExpressionVisitor<ir.Node, Kernel> {
   }
 
   @override
-  ir.Node visitVariable(VariableConstantExpression exp, Kernel kernel) {
+  ir.Node visitField(FieldConstantExpression exp, Kernel kernel) {
     return new ir.StaticGet(kernel.fieldToIr(exp.element));
+  }
+
+  @override
+  ir.Node visitLocalVariable(
+      LocalVariableConstantExpression exp, Kernel kernel) {
+    throw new UnimplementedError('${exp.toStructuredText()} is not supported.');
   }
 
   @override
@@ -114,8 +121,9 @@ class ConstantVisitor extends ConstantExpressionVisitor<ir.Node, Kernel> {
       }
     }
     ir.Arguments arguments = new ir.Arguments(positional, named: named);
+    ConstructorElement constructor = exp.target;
     return new ir.ConstructorInvocation(
-        kernel.functionToIr(exp.target), arguments,
+        kernel.functionToIr(constructor), arguments,
         isConst: true);
   }
 

@@ -1546,15 +1546,12 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_GET,
             constant: 'dynamic')),
-    // TODO(johnniwinther): Update these to expect the constant to be `dynamic`
-    // instead of `Type`. Currently the compile time constant evaluator cannot
-    // detect `dynamic` as a constant subexpression.
     const Test(
         '''
         m() { dynamic(null, 42); }
         ''',
         const Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_INVOKE,
-            constant: 'Type', arguments: '(null,42)')),
+            constant: 'dynamic', arguments: '(null,42)')),
     const Test(
         '''
         m() => dynamic = 42;

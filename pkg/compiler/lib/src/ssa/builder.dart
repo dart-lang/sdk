@@ -4736,21 +4736,21 @@ class SsaBuilder extends ast.Visitor
   @override
   void visitClassTypeLiteralSet(
       ast.SendSet node, TypeConstantExpression constant, ast.Node rhs, _) {
-    generateThrowNoSuchMethod(node, constant.type.name,
+    generateThrowNoSuchMethod(node, constant.name,
         argumentNodes: node.arguments);
   }
 
   @override
   void visitTypedefTypeLiteralSet(
       ast.SendSet node, TypeConstantExpression constant, ast.Node rhs, _) {
-    generateThrowNoSuchMethod(node, constant.type.name,
+    generateThrowNoSuchMethod(node, constant.name,
         argumentNodes: node.arguments);
   }
 
   @override
   void visitDynamicTypeLiteralSet(
       ast.SendSet node, TypeConstantExpression constant, ast.Node rhs, _) {
-    generateThrowNoSuchMethod(node, constant.type.name,
+    generateThrowNoSuchMethod(node, constant.name,
         argumentNodes: node.arguments);
   }
 

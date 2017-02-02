@@ -102,8 +102,8 @@ void useConstant(
     constants.Environment env]) {
   constant.isObject;
   cs.isBool(constant);
-  constructedConstant.computeInstanceType();
-  constructedConstant.computeInstanceFields();
+  constructedConstant.computeInstanceType(null);
+  constructedConstant.computeInstanceFields(null);
   expression.evaluate(null, null);
   new NullConstantConstructorVisitor()
     ..visit(null, null)

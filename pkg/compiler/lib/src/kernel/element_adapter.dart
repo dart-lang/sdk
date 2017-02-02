@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../common/names.dart';
+import '../constants/expressions.dart';
 import '../core_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -14,6 +15,7 @@ import '../js_backend/backend_helpers.dart';
 import '../native/native.dart' as native;
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
+import 'kernel_debug.dart';
 
 /// Interface that translates between Kernel IR nodes and entities.
 abstract class KernelElementAdapter {
@@ -180,6 +182,20 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
     Name name = new Name(
         irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.setter(name);
+  }
+
+  /// Converts [annotations] into a list of [ConstantExpression]s.
+  List<ConstantExpression> getMetadata(List<ir.Expression> annotations) {
+    List<ConstantExpression> metadata = <ConstantExpression>[];
+    annotations.forEach((ir.Expression node) {
+      ConstantExpression constant = node.accept(new Constantifier(this));
+      if (constant == null) {
+        throw new UnsupportedError(
+            'No constant for ${DebugPrinter.prettyPrint(node)}');
+      }
+      metadata.add(constant);
+    });
+    return metadata;
   }
 
   /// Returns `true` is [node] has a `@Native(...)` annotation.
@@ -380,5 +396,48 @@ class Stringifier extends ir.ExpressionVisitor<String> {
       sb.write(value);
     }
     return sb.toString();
+  }
+}
+
+/// Visitor that converts a kernel constant expression into a
+/// [ConstantExpression].
+class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
+  final KernelElementAdapter elementAdapter;
+
+  Constantifier(this.elementAdapter);
+
+  @override
+  ConstantExpression visitConstructorInvocation(ir.ConstructorInvocation node) {
+    List<ConstantExpression> arguments = <ConstantExpression>[];
+    List<String> argumentNames = <String>[];
+    for (ir.Expression argument in node.arguments.positional) {
+      ConstantExpression constant = argument.accept(this);
+      if (constant == null) return null;
+      arguments.add(constant);
+    }
+    for (ir.NamedExpression argument in node.arguments.named) {
+      argumentNames.add(argument.name);
+      ConstantExpression constant = argument.value.accept(this);
+      if (constant == null) return null;
+      arguments.add(constant);
+    }
+    return new ConstructedConstantExpression(
+        elementAdapter.createInterfaceType(
+            node.target.enclosingClass, node.arguments.types),
+        elementAdapter.getConstructor(node.target),
+        new CallStructure(
+            node.arguments.positional.length + argumentNames.length,
+            argumentNames),
+        arguments);
+  }
+
+  @override
+  ConstantExpression visitStaticGet(ir.StaticGet node) {
+    return new FieldConstantExpression(elementAdapter.getField(node.target));
+  }
+
+  @override
+  ConstantExpression visitStringLiteral(ir.StringLiteral node) {
+    return new StringConstantExpression(node.value);
   }
 }

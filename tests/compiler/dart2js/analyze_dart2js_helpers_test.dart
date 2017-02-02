@@ -211,6 +211,7 @@ class HelperAnalyzer extends TraversalVisitor {
   @override
   void visitConstConstructorInvoke(
       NewExpression node, ConstructedConstantExpression constant, _) {
-    checkAccess(node, constant.target);
+    ConstructorElement constructor = constant.target;
+    checkAccess(node, constructor);
   }
 }

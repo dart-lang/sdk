@@ -562,20 +562,6 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
         getClass(cls), getDartTypes(typeArguments));
   }
 
-  /// Converts [annotations] into a list of [ConstantExpression]s.
-  List<ConstantExpression> getMetadata(List<ir.Expression> annotations) {
-    List<ConstantExpression> metadata = <ConstantExpression>[];
-    annotations.forEach((ir.Expression node) {
-      ConstantExpression constant = node.accept(new Constantifier(this));
-      if (constant == null) {
-        throw new UnsupportedError(
-            'No constant for ${DebugPrinter.prettyPrint(node)}');
-      }
-      metadata.add(constant);
-    });
-    return metadata;
-  }
-
   @override
   LibraryEntity lookupLibrary(Uri uri) {
     return _compiler.libraryLoader.lookupLibrary(uri);
@@ -720,60 +706,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
     }
     // Nested invalid types are treated as `dynamic`.
     return const ResolutionDynamicType();
-  }
-}
-
-/// Visitor that converts a kernel constant expression into a
-/// [ConstantExpression].
-class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
-  final KernelAstAdapter astAdapter;
-
-  Constantifier(this.astAdapter);
-
-  @override
-  ConstantExpression visitConstructorInvocation(ir.ConstructorInvocation node) {
-    ConstructorElement constructor =
-        astAdapter.getElement(node.target).declaration;
-    List<ResolutionDartType> typeArguments = <ResolutionDartType>[];
-    for (ir.DartType type in node.arguments.types) {
-      typeArguments.add(astAdapter.getDartType(type));
-    }
-    List<ConstantExpression> arguments = <ConstantExpression>[];
-    List<String> argumentNames = <String>[];
-    for (ir.Expression argument in node.arguments.positional) {
-      ConstantExpression constant = argument.accept(this);
-      if (constant == null) return null;
-      arguments.add(constant);
-    }
-    for (ir.NamedExpression argument in node.arguments.named) {
-      argumentNames.add(argument.name);
-      ConstantExpression constant = argument.value.accept(this);
-      if (constant == null) return null;
-      arguments.add(constant);
-    }
-    return new ConstructedConstantExpression(
-        constructor.enclosingClass.thisType.createInstantiation(typeArguments),
-        constructor,
-        new CallStructure(
-            node.arguments.positional.length + argumentNames.length,
-            argumentNames),
-        arguments);
-  }
-
-  @override
-  ConstantExpression visitStaticGet(ir.StaticGet node) {
-    Element element = astAdapter.getMember(node.target);
-    if (element.isField) {
-      return new VariableConstantExpression(element as VariableElement);
-    }
-    astAdapter.reporter.internalError(
-        CURRENT_ELEMENT_SPANNABLE, "Unexpected constant target: $element.");
-    return null;
-  }
-
-  @override
-  ConstantExpression visitStringLiteral(ir.StringLiteral node) {
-    return new StringConstantExpression(node.value);
   }
 }
 

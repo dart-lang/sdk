@@ -2061,7 +2061,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Send node, Name name, TypedefElement typdef) {
     typdef.ensureResolved(resolution);
     ResolutionDartType type = typdef.rawType;
-    ConstantExpression constant = new TypeConstantExpression(type);
+    ConstantExpression constant = new TypeConstantExpression(type, name.text);
     AccessSemantics semantics = new ConstantAccess.typedefTypeLiteral(constant);
     return handleConstantTypeLiteralAccess(node, name, typdef, type, semantics);
   }
@@ -2072,7 +2072,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       SendSet node, Name name, TypedefElement typdef) {
     typdef.ensureResolved(resolution);
     ResolutionDartType type = typdef.rawType;
-    ConstantExpression constant = new TypeConstantExpression(type);
+    ConstantExpression constant = new TypeConstantExpression(type, name.text);
     AccessSemantics semantics = new ConstantAccess.typedefTypeLiteral(constant);
     return handleConstantTypeLiteralUpdate(node, name, typdef, type, semantics);
   }
@@ -2084,7 +2084,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstantExpression constant = new TypeConstantExpression(
         // TODO(johnniwinther): Use [type] when evaluation of constants is done
         // directly on the constant expressions.
-        node.isCall ? commonElements.typeType : type);
+        node.isCall ? commonElements.typeType : type,
+        'dynamic');
     AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
     ClassElement typeClass = commonElements.typeClass;
     return handleConstantTypeLiteralAccess(
@@ -2096,7 +2097,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleDynamicTypeLiteralUpdate(SendSet node) {
     ResolutionDartType type = const ResolutionDynamicType();
     ConstantExpression constant =
-        new TypeConstantExpression(const ResolutionDynamicType());
+        new TypeConstantExpression(const ResolutionDynamicType(), 'dynamic');
     AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
     ClassElement typeClass = commonElements.typeClass;
     return handleConstantTypeLiteralUpdate(
@@ -2109,7 +2110,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Send node, Name name, ClassElement cls) {
     cls.ensureResolved(resolution);
     ResolutionDartType type = cls.rawType;
-    ConstantExpression constant = new TypeConstantExpression(type);
+    ConstantExpression constant = new TypeConstantExpression(type, name.text);
     AccessSemantics semantics = new ConstantAccess.classTypeLiteral(constant);
     return handleConstantTypeLiteralAccess(node, name, cls, type, semantics);
   }
@@ -2120,7 +2121,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       SendSet node, Name name, ClassElement cls) {
     cls.ensureResolved(resolution);
     ResolutionDartType type = cls.rawType;
-    ConstantExpression constant = new TypeConstantExpression(type);
+    ConstantExpression constant = new TypeConstantExpression(type, name.text);
     AccessSemantics semantics = new ConstantAccess.classTypeLiteral(constant);
     return handleConstantTypeLiteralUpdate(node, name, cls, type, semantics);
   }
@@ -2551,8 +2552,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           break;
         case AccessKind.FINAL_LOCAL_VARIABLE:
           if (element.isConst) {
+            LocalVariableElement local = element;
             result = new ConstantResult(
-                node, new VariableConstantExpression(element),
+                node, new LocalVariableConstantExpression(local),
                 element: element);
           } else {
             result = new ElementResult(element);
@@ -2747,7 +2749,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registry.registerSendStructure(node, new GetStructure(semantics));
       if (member.isConst) {
         FieldElement field = member;
-        result = new ConstantResult(node, new VariableConstantExpression(field),
+        result = new ConstantResult(node, new FieldConstantExpression(field),
             element: field);
       } else {
         result = new ElementResult(member);
@@ -3983,12 +3985,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           // TODO(johnniwinther): Remove this when all constants are computed
           // in resolution.
           !constructor.isFromEnvironmentConstructor) {
+        ResolutionInterfaceType interfaceType = type;
         CallStructure callStructure = argumentsResult.callStructure;
         List<ConstantExpression> arguments = argumentsResult.constantArguments;
 
         ConstructedConstantExpression constant =
             new ConstructedConstantExpression(
-                type, constructor, callStructure, arguments);
+                interfaceType, constructor, callStructure, arguments);
         registry.registerNewStructure(node,
             new ConstInvokeStructure(ConstantInvokeKind.CONSTRUCTED, constant));
         resolutionResult = new ConstantResult(node, constant);

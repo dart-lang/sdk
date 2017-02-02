@@ -810,8 +810,14 @@ class ConstantEquivalence
   }
 
   @override
-  bool visitVariable(
-      VariableConstantExpression exp1, VariableConstantExpression exp2) {
+  bool visitField(FieldConstantExpression exp1, FieldConstantExpression exp2) {
+    return strategy.testElements(
+        exp1, exp2, 'element', exp1.element, exp2.element);
+  }
+
+  @override
+  bool visitLocalVariable(LocalVariableConstantExpression exp1,
+      LocalVariableConstantExpression exp2) {
     return strategy.testElements(
         exp1, exp2, 'element', exp1.element, exp2.element);
   }

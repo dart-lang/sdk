@@ -112,7 +112,7 @@ class TypeVariableHandler {
           _typeVariableConstructor.enclosingClass.thisType,
           _typeVariableConstructor,
           const CallStructure.unnamed(3), [
-        new TypeConstantExpression(cls.rawType),
+        new TypeConstantExpression(cls.rawType, cls.name),
         new StringConstantExpression(currentTypeVariable.name),
         new SyntheticConstantExpression(boundValue)
       ]);
