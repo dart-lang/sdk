@@ -1832,7 +1832,7 @@ class SuperMethodInvocation extends InvocationExpression {
   Name name;
   Arguments arguments;
 
-  Member interfaceTarget;
+  Procedure interfaceTarget;
 
   SuperMethodInvocation(this.name, this.arguments, this.interfaceTarget) {
     arguments?.parent = this;
