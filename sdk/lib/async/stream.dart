@@ -1761,6 +1761,8 @@ abstract class StreamTransformer<S, T> {
  * This wraps a [Stream] and a subscription on the stream. It listens
  * on the stream, and completes the future returned by [moveNext] when the
  * next value becomes available.
+ *
+ * The stream may be paused between calls to [moveNext].
  */
 abstract class StreamIterator<T> {
 
@@ -1776,7 +1778,7 @@ abstract class StreamIterator<T> {
    * Returns a future which will complete with either `true` or `false`.
    * Completing with `true` means that another event has been received and
    * can be read as [current].
-   * Completing with `false` means that the stream itearation is done and
+   * Completing with `false` means that the stream iteration is done and
    * no further events will ever be available.
    * The future may complete with an error, if the stream produces an error,
    * which also ends iteration.
