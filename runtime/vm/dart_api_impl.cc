@@ -536,11 +536,13 @@ Dart_Handle Api::AcquiredError(Isolate* isolate) {
 
 bool Api::IsValid(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
   CHECK_ISOLATE(isolate);
 
   // Check against all of the handles in the current isolate as well as the
   // read-only handles.
-  return isolate->thread_registry()->IsValidHandle(handle) ||
+  return thread->IsValidHandle(handle) ||
          isolate->api_state()->IsActivePersistentHandle(
              reinterpret_cast<Dart_PersistentHandle>(handle)) ||
          isolate->api_state()->IsActiveWeakPersistentHandle(
