@@ -24,7 +24,9 @@ abstract class TestTarget extends Target {
   /// Annotations to apply on the textual output.
   Annotator get annotator => null;
 
-  List<String> transformProgram(Program program);
+  // Return a list of strings so that we can accumulate errors.
+  List<String> performModularTransformations(Program program);
+  List<String> performGlobalTransformations(Program program);
 }
 
 void runBaselineTests(String folderName, TestTarget target) {
@@ -52,7 +54,9 @@ void runBaselineTests(String folderName, TestTarget target) {
                 applicationRoot: applicationRoot));
         var program = loader.loadProgram(dartPath, target: target);
         verifyProgram(program);
-        var errors = target.transformProgram(program);
+        var errors = target.performModularTransformations(program);
+        verifyProgram(program);
+        errors.addAll(target.performGlobalTransformations(program));
         verifyProgram(program);
 
         var buffer = new StringBuffer();
