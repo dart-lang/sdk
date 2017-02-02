@@ -65,7 +65,11 @@ Future cleanupCallback() async {
 
 Future<Uri> createTempDirCallback(String base) async {
   Directory temp = await Directory.systemTemp.createTemp(base);
-  return temp.uri;
+  // Underneath the temporary directory, create a directory with the
+  // same name as the DevFS name [base].
+  var fsUri = temp.uri.resolveUri(new Uri.directory(base));
+  await new Directory.fromUri(fsUri).create();
+  return fsUri;
 }
 
 Future deleteDirCallback(Uri path) async {
