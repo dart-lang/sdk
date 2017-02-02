@@ -1762,7 +1762,7 @@ abstract class StreamTransformer<S, T> {
  * on the stream, and completes the future returned by [moveNext] when the
  * next value becomes available.
  *
- * Pauses the stream between calls to [moveNext].
+ * The stream may be paused between calls to [moveNext].
  */
 abstract class StreamIterator<T> {
 
@@ -1782,9 +1782,6 @@ abstract class StreamIterator<T> {
    * no further events will ever be available.
    * The future may complete with an error, if the stream produces an error,
    * which also ends iteration.
-   *
-   * The stream is paused when the future completes with `true` and
-   * resumed on the next call to `moveNext`.
    *
    * The function must not be called again until the future returned by a
    * previous call is completed.
