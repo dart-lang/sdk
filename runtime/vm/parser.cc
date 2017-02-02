@@ -9441,24 +9441,13 @@ AstNode* Parser::ParseAssertStatement(bool is_const) {
   ExpectToken(Token::kRPAREN);
 
   if (!is_const) {
-    if (condition->IsClosureNode()) {
-      // We always have to invoke a closure node.
-      InstanceCallNode* invoke_condition =
-          new (Z) InstanceCallNode(condition_pos, condition, Symbols::Call(),
-                                   new (Z) ArgumentListNode(condition_pos));
-      condition = invoke_condition;
-    } else if (condition->IsComparisonNode() || condition->IsUnaryOpNode()) {
-      // Cannot be a function, skip type test and invocation.
-    } else {
-      // Check for assertion condition being a function if not const.
-      ArgumentListNode* arguments = new (Z) ArgumentListNode(condition_pos);
-      arguments->Add(condition);
-      condition = MakeStaticCall(
-          Symbols::AssertionError(),
-          Library::PrivateCoreLibName(Symbols::EvaluateAssertion()), arguments);
-    }
+    // Check for assertion condition being a function if not const.
+    ArgumentListNode* arguments = new (Z) ArgumentListNode(condition_pos);
+    arguments->Add(condition);
+    condition = MakeStaticCall(
+        Symbols::AssertionError(),
+        Library::PrivateCoreLibName(Symbols::EvaluateAssertion()), arguments);
   }
-
   AstNode* not_condition =
       new (Z) UnaryOpNode(condition_pos, Token::kNOT, condition);
 
