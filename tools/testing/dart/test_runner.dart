@@ -2008,6 +2008,9 @@ class RunningProcess {
                 // sample the threads once.
                 executable = '/usr/bin/sample';
                 arguments = ['${process.pid}', '1', '4000', '-mayDie'];
+              } else if (io.Platform.isWindows) {
+                executable = "cdb.exe";
+                arguments = ['-p', '${process.pid}', '-c', '!uniqstack;qd'];
               }
 
               if (executable != null) {
