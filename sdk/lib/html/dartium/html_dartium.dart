@@ -5638,6 +5638,11 @@ class CssStyleDeclaration  extends DartHtmlDomObject with
     return style;
   }
 
+  /// Returns the value of the property if the provided *CSS* property
+  /// name is supported on this element and if the value is set. Otherwise
+  /// returns an empty string.
+  ///
+  /// Please note the property name uses camelCase, not-hyphens.
   String getPropertyValue(String propertyName) {
     var propValue = _getPropertyValueHelper(propertyName);
     return propValue != null ? propValue : '';
@@ -37662,10 +37667,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
