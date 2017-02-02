@@ -701,6 +701,32 @@ bbb() {}
     expect(result.errors, hasLength(1));
   }
 
+  test_getFilesDefiningClassMemberName() async {
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+    var c = _p('/test/bin/c.dart');
+    var d = _p('/test/bin/d.dart');
+
+    provider.newFile(a, 'class A { m1() {} }');
+    provider.newFile(b, 'class B { m2() {} }');
+    provider.newFile(c, 'class C { m2() {} }');
+    provider.newFile(d, 'class D { m3() {} }');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+    driver.addFile(d);
+
+    expect(await driver.getFilesDefiningClassMemberName('m1'),
+        unorderedEquals([a]));
+
+    expect(await driver.getFilesDefiningClassMemberName('m2'),
+        unorderedEquals([b, c]));
+
+    expect(await driver.getFilesDefiningClassMemberName('m3'),
+        unorderedEquals([d]));
+  }
+
   test_getFilesReferencingName() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');

@@ -160,6 +160,11 @@ class AnalysisDriver {
   final _requestedFiles = <String, List<Completer<AnalysisResult>>>{};
 
   /**
+   * The list of tasks to compute files defining a class member name.
+   */
+  final _definingClassMemberNameTasks = <_FilesDefiningClassMemberNameTask>[];
+
+  /**
    * The list of tasks to compute files referencing a name.
    */
   final _referencingNameTasks = <_FilesReferencingNameTask>[];
@@ -367,7 +372,8 @@ class AnalysisDriver {
     if (_requestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
-    if (_referencingNameTasks.isNotEmpty) {
+    if (_definingClassMemberNameTasks.isNotEmpty ||
+        _referencingNameTasks.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
     if (_indexRequestedFiles.isNotEmpty) {
@@ -501,6 +507,17 @@ class AnalysisDriver {
         analysisResult.contentHash,
         analysisResult.lineInfo,
         analysisResult.errors);
+  }
+
+  /**
+   * Return a [Future] that completes with the list of added files that
+   * define a class member with the given [name].
+   */
+  Future<List<String>> getFilesDefiningClassMemberName(String name) {
+    var task = new _FilesDefiningClassMemberNameTask(this, name);
+    _definingClassMemberNameTasks.add(task);
+    _scheduler._notify(this);
+    return task.completer.future;
   }
 
   /**
@@ -935,6 +952,17 @@ class AnalysisDriver {
       _unitElementRequestedFiles.remove(path).forEach((completer) {
         completer.complete(unitElement);
       });
+      return;
+    }
+
+    // Compute files defining a name.
+    if (_definingClassMemberNameTasks.isNotEmpty) {
+      _FilesDefiningClassMemberNameTask task =
+          _definingClassMemberNameTasks.first;
+      bool isDone = await task.perform();
+      if (isDone) {
+        _definingClassMemberNameTasks.remove(task);
+      }
       return;
     }
 
@@ -1598,6 +1626,62 @@ class _ExceptionState {
 
   @override
   String toString() => '$exception\n$stackTrace';
+}
+
+/**
+ * Task that computes the list of files that were added to the driver and
+ * declare a class member with the given [name].
+ */
+class _FilesDefiningClassMemberNameTask {
+  static const int _MS_WORK_INTERVAL = 5;
+
+  final AnalysisDriver driver;
+  final String name;
+  final Completer<List<String>> completer = new Completer<List<String>>();
+
+  final List<String> definingFiles = <String>[];
+  final Set<String> checkedFiles = new Set<String>();
+  final List<String> filesToCheck = <String>[];
+
+  _FilesDefiningClassMemberNameTask(this.driver, this.name);
+
+  /**
+   * Perform work for a fixed length of time, and complete the [completer] to
+   * either return `true` to indicate that the task is done, or return `false`
+   * to indicate that the task should continue to be run.
+   *
+   * Each invocation of an asynchronous method has overhead, which looks as
+   * `_SyncCompleter.complete` invocation, we see as much as 62% in some
+   * scenarios. Instead we use a fixed length of time, so we can spend less time
+   * overall and keep quick enough response time.
+   */
+  Future<bool> perform() async {
+    Stopwatch timer = new Stopwatch()..start();
+    while (timer.elapsedMilliseconds < _MS_WORK_INTERVAL) {
+      // Prepare files to check.
+      if (filesToCheck.isEmpty) {
+        Set<String> newFiles = driver.addedFiles.difference(checkedFiles);
+        filesToCheck.addAll(newFiles);
+      }
+
+      // If no more files to check, complete and done.
+      if (filesToCheck.isEmpty) {
+        completer.complete(definingFiles);
+        return true;
+      }
+
+      // Check the next file.
+      String path = filesToCheck.removeLast();
+      FileState file = driver._fsState.getFileForPath(path);
+      if (file.definedClassMemberNames.contains(name)) {
+        definingFiles.add(path);
+      }
+      checkedFiles.add(path);
+    }
+
+    // We're not done yet.
+    return false;
+  }
 }
 
 /**
