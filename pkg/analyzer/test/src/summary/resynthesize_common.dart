@@ -43,6 +43,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   Set<String> variablesWithNotConstInitializers = new Set<String>();
 
   /**
+   * Names that cannot be resolved, e.g. because of duplicate declaration.
+   */
+  Set<String> namesThatCannotBeResolved = new Set<String>();
+
+  /**
    * Tests may set this to `true` to indicate that a missing file at the time of
    * summary resynthesis shouldn't trigger an error.
    */
@@ -381,7 +386,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         compareConstAsts(r, o.expression, desc);
       } else if (o is SimpleIdentifier && r is SimpleIdentifier) {
         expect(r.name, o.name, reason: desc);
-        compareElements(r.staticElement, o.staticElement, desc);
+        if (namesThatCannotBeResolved.contains(r.name)) {
+          expect(r.staticElement, isNull);
+        } else {
+          compareElements(r.staticElement, o.staticElement, desc);
+        }
       } else if (o is PrefixedIdentifier && r is SimpleIdentifier) {
         // We don't resynthesize prefixed identifiers when the prefix refers to
         // a PrefixElement or a ClassElement.  We use simple identifiers with
@@ -3897,6 +3906,42 @@ import 'dart:async' as ppp;
 class C {
   List<ppp> v;
 }
+''');
+  }
+
+  test_invalid_nameConflict_imported() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'V() {}');
+    addLibrarySource('/b.dart', 'V() {}');
+    checkLibrary('''
+import 'a.dart';
+import 'b.dart';
+foo([p = V]) {}
+''');
+  }
+
+  test_invalid_nameConflict_imported_exported() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'V() {}');
+    addLibrarySource('/b.dart', 'V() {}');
+    addLibrarySource(
+        '/c.dart',
+        r'''
+export 'a.dart';
+export 'b.dart';
+''');
+    checkLibrary('''
+import 'c.dart';
+foo([p = V]) {}
+''');
+  }
+
+  test_invalid_nameConflict_local() {
+    namesThatCannotBeResolved.add('V');
+    checkLibrary('''
+foo([p = V]) {}
+V() {}
+var V;
 ''');
   }
 

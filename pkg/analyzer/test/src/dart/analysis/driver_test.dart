@@ -1005,6 +1005,16 @@ String z = "string";
     }
   }
 
+  test_getResult_nameConflict_local() async {
+    String content = r'''
+foo([p = V]) {}
+V();
+var V;
+''';
+    addTestFile(content);
+    await driver.getResult(testFile);
+  }
+
   test_getResult_noErrors_ifNotAdded() async {
     var a = _p('/test/lib/a.dart');
     provider.newFile(a, 'A a = null;');
