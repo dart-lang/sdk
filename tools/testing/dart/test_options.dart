@@ -291,6 +291,9 @@ class TestOptionsParser {
           'verify-ir', 'Verify kernel IR', ['--verify-ir'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
+          'no-tree-shake', 'Disable kernel IR tree shaking', ['--no-tree-shake'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
           'use-standalone-dartk', 'Generate Kernel binaries with a standalone dartk compiler', ['--use-standalone-dartk'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(

@@ -13,7 +13,9 @@ final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
   bool strongMode;
-  TargetFlags({this.strongMode: false});
+  bool treeShake;
+
+  TargetFlags({this.strongMode: false, this.treeShake: false});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);

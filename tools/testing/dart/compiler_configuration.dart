@@ -69,6 +69,7 @@ abstract class CompilerConfiguration {
     bool useFastStartup = configuration['fast_startup'];
     bool verifyKernel = configuration['verify-ir'];
     bool useStandaloneDartK = configuration['use-standalone-dartk'];
+    bool treeShake = !configuration['no-tree-shake'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -106,7 +107,8 @@ abstract class CompilerConfiguration {
               isHostChecked: isHostChecked,
               useSdk: useSdk,
               verify: verifyKernel,
-              strong: isStrong);
+              strong: isStrong,
+              treeShake: treeShake);
         }
 
         return new NoneCompilerConfiguration(
@@ -127,7 +129,8 @@ abstract class CompilerConfiguration {
             isAndroid: configuration['system'] == 'android',
             useSdk: useSdk,
             verify: verifyKernel,
-            strong: isStrong);
+            strong: isStrong,
+            treeShake: treeShake);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug,
@@ -243,10 +246,10 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 
 /// The "dartk" compiler.
 class DartKCompilerConfiguration extends CompilerConfiguration {
-  final bool verify, strong;
+  final bool verify, strong, treeShake;
 
   DartKCompilerConfiguration({bool isChecked, bool isHostChecked, bool useSdk,
-        this.verify, this.strong})
+        this.verify, this.strong, this.treeShake})
       : super._subclass(isChecked: isChecked, isHostChecked: isHostChecked,
                         useSdk: useSdk);
 
@@ -266,6 +269,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
       '$buildDir/patched_sdk',
       '--link',
       '--target=vm',
+      treeShake ? '--tree-shake' : null,
       strong ? '--strong' : null,
       verify ? '--verify-ir' : null,
       '--out',
@@ -422,14 +426,14 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
   static ComposedCompilerConfiguration createDartKPConfiguration(
       {bool isChecked, bool isHostChecked, String arch, bool useBlobs,
-       bool isAndroid, bool useSdk, bool verify, bool strong}) {
+       bool isAndroid, bool useSdk, bool verify, bool strong, bool treeShake}) {
     var nested = [];
 
     // Compile with dartk.
     nested.add(new PipelineCommand.runWithGlobalArguments(
         new DartKCompilerConfiguration(isChecked: isChecked,
             isHostChecked: isHostChecked, useSdk: useSdk, verify: verify,
-            strong: strong)));
+            strong: strong, treeShake: treeShake)));
 
     // Run the normal precompiler.
     nested.add(new PipelineCommand.runWithPreviousKernelOutput(
@@ -442,14 +446,14 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
   static ComposedCompilerConfiguration createDartKConfiguration(
       {bool isChecked, bool isHostChecked, bool useSdk, bool verify,
-       bool strong}) {
+       bool strong, bool treeShake}) {
     var nested = [];
 
     // Compile with dartk.
     nested.add(new PipelineCommand.runWithGlobalArguments(
         new DartKCompilerConfiguration(isChecked: isChecked,
             isHostChecked: isHostChecked, useSdk: useSdk,
-            verify: verify, strong: strong)));
+            verify: verify, strong: strong, treeShake: treeShake)));
 
     return new ComposedCompilerConfiguration(nested);
   }

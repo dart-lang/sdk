@@ -77,7 +77,9 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       help: 'When printing a library as text, also print its dependencies\n'
           'on external libraries.')
   ..addFlag('show-offsets',
-      help: 'When printing a library as text, also print node offsets');
+      help: 'When printing a library as text, also print node offsets')
+  ..addFlag('tree-shake',
+      defaultsTo: false, help: 'Enable tree-shaking if the target supports it');
 
 String getUsage() => """
 Usage: dartk [options] FILE
@@ -288,7 +290,8 @@ Future<CompilerOutcome> batchMain(
   List<String> loadedFiles;
   Function getLoadedFiles;
   List errors = const [];
-  TargetFlags targetFlags = new TargetFlags(strongMode: options['strong']);
+  TargetFlags targetFlags = new TargetFlags(
+      strongMode: options['strong'], treeShake: options['tree-shake']);
   Target target = getTarget(options['target'], targetFlags);
 
   var declaredVariables = <String, String>{};
@@ -402,6 +405,10 @@ Future<CompilerOutcome> batchMain(
   if (shouldReportMetrics) {
     int flushTime = watch.elapsedMilliseconds - time;
     print('writer.flush_time = $flushTime ms');
+  }
+
+  if (options['tolerant']) {
+    return CompilerOutcome.Ok;
   }
 
   return errors.length > 0 ? CompilerOutcome.Fail : CompilerOutcome.Ok;

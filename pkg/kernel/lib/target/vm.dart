@@ -4,7 +4,7 @@
 library kernel.target.vm;
 
 import '../ast.dart';
-import '../class_hierarchy.dart' show ClassHierarchy;
+import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../transformations/continuation.dart' as cont;
 import '../transformations/erasure.dart';
@@ -58,8 +58,7 @@ class VmTarget extends Target {
   ClassHierarchy _hierarchy;
 
   void performModularTransformations(Program program) {
-    var mixins = new mix.MixinFullResolution();
-    mixins.transform(program);
+    var mixins = new mix.MixinFullResolution()..transform(program);
 
     _hierarchy = mixins.hierarchy;
   }
@@ -74,11 +73,13 @@ class VmTarget extends Target {
           .transformProgram(program);
     }
 
-    if (program.mainMethod != null) {
+    if (flags.treeShake) {
       new TreeShaker(program,
-              hierarchy: _hierarchy, coreTypes: coreTypes,
+              hierarchy: _hierarchy,
+              coreTypes: coreTypes,
               strongMode: strongMode)
           .transform(program);
+      _hierarchy = null; // Hierarchy must be recomputed.
     }
 
     cont.transformProgram(program);
