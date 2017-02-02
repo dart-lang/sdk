@@ -70,9 +70,7 @@ void main(List<String> arguments) {
   useElements();
   useCompiler(null);
   useTypes();
-  useCodeEmitterTask(null);
   useScript(null);
-  useProgramBuilder(null);
   useSemanticVisitor();
   useDeferred();
 }
@@ -283,26 +281,14 @@ useCompiler(compiler.Compiler c) {
     ..reset()
     ..resetAsync(null)
     ..lookupLibrary(null);
-  c.forgetElement(null);
   c.backend.constantCompilerTask.copyConstantValues(null);
   c.currentlyInUserCode();
 }
 
 useTypes() {}
 
-useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
-  full.Emitter fullEmitter = codeEmitterTask.emitter;
-  fullEmitter.clearCspPrecompiledNodes();
-  fullEmitter.buildLazilyInitializedStaticField(null, isolateProperties: null);
-}
-
 useScript(Script script) {
   script.copyWithFile(null);
-}
-
-useProgramBuilder(program_builder.ProgramBuilder builder) {
-  builder.buildMethodHackForIncrementalCompilation(null);
-  builder.buildFieldsHackForIncrementalCompilation(null);
 }
 
 useSemanticVisitor() {

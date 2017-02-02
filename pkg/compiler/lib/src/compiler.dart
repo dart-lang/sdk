@@ -7,7 +7,6 @@ library dart2js.compiler_base;
 import 'dart:async' show EventSink, Future;
 
 import '../compiler_new.dart' as api;
-import 'cache_strategy.dart' show CacheStrategy;
 import 'closure.dart' as closureMapping show ClosureTask;
 import 'common/backend_api.dart' show Backend;
 import 'common/names.dart' show Selectors;
@@ -98,8 +97,6 @@ abstract class Compiler implements LibraryLoaderListener {
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
   ParsingContext _parsingContext;
-
-  final CacheStrategy cacheStrategy;
 
   ImpactStrategy impactStrategy = const ImpactStrategy();
 
@@ -202,7 +199,6 @@ abstract class Compiler implements LibraryLoaderListener {
       MakeBackendFunction makeBackend,
       MakeReporterFunction makeReporter})
       : this.options = options,
-        this.cacheStrategy = new CacheStrategy(options.hasIncrementalSupport),
         this.userOutputProvider = outputProvider == null
             ? const NullCompilerOutput()
             : outputProvider {
@@ -488,7 +484,7 @@ abstract class Compiler implements LibraryLoaderListener {
           .add(selector);
     }
 
-    assert(uri != null || options.analyzeOnly || options.hasIncrementalSupport);
+    assert(uri != null || options.analyzeOnly);
     return new Future.sync(() {
       if (librariesToAnalyzeWhenRun != null) {
         return Future.forEach(librariesToAnalyzeWhenRun, (libraryUri) {
@@ -1069,18 +1065,6 @@ abstract class Compiler implements LibraryLoaderListener {
       }
     }
     return libraryUri;
-  }
-
-  void forgetElement(Element element) {
-    resolution.forgetElement(element);
-    enqueuer.forgetEntity(element);
-    if (element is MemberElement) {
-      for (Element closure in element.nestedClosures) {
-        // TODO(ahe): It would be nice to reuse names of nested closures.
-        closureToClassMapper.forgetElement(closure);
-      }
-    }
-    backend.forgetElement(element);
   }
 
   /// Returns [true] if a compile-time error has been reported for element.
@@ -1915,12 +1899,6 @@ class CompilerResolution implements Resolution {
     } else {
       return new ResolutionWorkItem(this, element);
     }
-  }
-
-  @override
-  void forgetElement(Element element) {
-    _worldImpactCache.remove(element);
-    _resolutionImpactCache.remove(element);
   }
 
   ConstantValue _proxyConstant;

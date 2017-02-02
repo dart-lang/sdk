@@ -6,13 +6,11 @@ library dart2js.js.enqueue;
 
 import 'dart:collection' show Queue;
 
-import '../cache_strategy.dart' show CacheStrategy;
 import '../common/backend_api.dart' show Backend;
 import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show WorkItem;
 import '../common.dart';
-import '../compiler.dart' show Compiler;
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart' show MemberElement, TypedElement;
@@ -51,20 +49,14 @@ class CodegenEnqueuer extends EnqueuerImpl {
   /// All declaration elements that have been processed by codegen.
   final Set<Entity> _processedEntities = new Set<Entity>();
 
-  final Set<Entity> newlyEnqueuedElements;
-
-  final Set<DynamicUse> newlySeenSelectors;
-
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('CodegenEnqueuer');
 
-  CodegenEnqueuer(this.task, CacheStrategy cacheStrategy, Backend backend,
-      CompilerOptions options, this.strategy)
+  CodegenEnqueuer(
+      this.task, Backend backend, CompilerOptions options, this.strategy)
       : _universe =
             new CodegenWorldBuilderImpl(backend, const TypeMaskStrategy()),
         _workItemBuilder = new CodegenWorkItemBuilder(backend, options),
-        newlyEnqueuedElements = cacheStrategy.newSet(),
-        newlySeenSelectors = cacheStrategy.newSet(),
         nativeEnqueuer = backend.nativeCodegenEnqueuer(),
         this._backend = backend,
         this._options = options,
@@ -86,10 +78,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
     WorkItem workItem = _workItemBuilder.createWorkItem(entity);
     if (workItem == null) return;
-
-    if (_options.hasIncrementalSupport) {
-      newlyEnqueuedElements.add(entity);
-    }
 
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(
@@ -162,11 +150,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   void processDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
-      if (_universe.registerDynamicUse(dynamicUse, _applyMemberUse)) {
-        if (_options.hasIncrementalSupport) {
-          newlySeenSelectors.add(dynamicUse);
-        }
-      }
+      _universe.registerDynamicUse(dynamicUse, _applyMemberUse);
     });
   }
 
@@ -263,11 +247,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
   String toString() => 'Enqueuer($name)';
 
   ImpactUseCase get impactUse => IMPACT_USE;
-
-  void forgetEntity(Entity entity, Compiler compiler) {
-    _universe.forgetElement(entity, compiler);
-    _processedEntities.remove(entity);
-  }
 
   @override
   Iterable<Entity> get processedEntities => _processedEntities;

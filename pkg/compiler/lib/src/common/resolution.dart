@@ -206,8 +206,6 @@ abstract class Resolution implements Frontend {
   /// impact.
   void emptyCache();
 
-  void forgetElement(Element element);
-
   /// Returns `true` if [value] is the top-level [proxy] annotation from the
   /// core library.
   bool isProxyConstant(ConstantValue value);

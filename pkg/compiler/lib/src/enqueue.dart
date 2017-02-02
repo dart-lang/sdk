@@ -6,7 +6,6 @@ library dart2js.enqueue;
 
 import 'dart:collection' show Queue;
 
-import 'cache_strategy.dart';
 import 'common/backend_api.dart' show Backend;
 import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask;
@@ -51,24 +50,17 @@ class EnqueueTask extends CompilerTask {
             ? const DirectEnqueuerStrategy()
             : const TreeShakingEnqueuerStrategy(),
         compiler.globalDependencies,
-        compiler.backend,
-        compiler.cacheStrategy);
+        compiler.backend);
     _codegen = compiler.backend.createCodegenEnqueuer(this, compiler);
   }
 
   ResolutionEnqueuer get resolution => _resolution;
   Enqueuer get codegen => _codegen;
-
-  void forgetEntity(Entity entity) {
-    resolution.forgetEntity(entity, compiler);
-    codegen.forgetEntity(entity, compiler);
-  }
 }
 
 abstract class Enqueuer {
   WorldBuilder get worldBuilder;
   native.NativeEnqueuer get nativeEnqueuer;
-  void forgetEntity(Entity entity, Compiler compiler);
 
   // TODO(johnniwinther): Initialize [_impactStrategy] to `null`.
   ImpactStrategy _impactStrategy = const ImpactStrategy();
@@ -148,20 +140,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   /// has been emptied.
   final Queue<_DeferredAction> _deferredQueue = new Queue<_DeferredAction>();
 
-  ResolutionEnqueuer(
-      this.task,
-      this._options,
-      Resolution resolution,
-      this.strategy,
-      this._globalDependencies,
-      Backend backend,
-      CacheStrategy cacheStrategy,
+  ResolutionEnqueuer(this.task, this._options, Resolution resolution,
+      this.strategy, this._globalDependencies, Backend backend,
       [this.name = 'resolution enqueuer'])
       : this.backend = backend,
         this._resolution = resolution,
         this.nativeEnqueuer = backend.nativeResolutionEnqueuer(),
         _universe = new ResolutionWorldBuilderImpl(
-            backend, resolution, cacheStrategy, const OpenWorldStrategy()),
+            backend, resolution, const OpenWorldStrategy()),
         _workItemBuilder = new ResolutionWorkItemBuilder(resolution) {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
@@ -417,11 +403,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       _DeferredAction task = _deferredQueue.removeFirst();
       _reporter.withCurrentElement(task.element, task.action);
     }
-  }
-
-  void forgetEntity(Entity entity, Compiler compiler) {
-    _universe.forgetEntity(entity, compiler);
-    _processedEntities.remove(entity);
   }
 }
 

@@ -6,12 +6,10 @@ library universe;
 
 import 'dart:collection';
 
-import '../cache_strategy.dart';
 import '../common.dart';
 import '../common/backend_api.dart' show Backend;
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
-import '../compiler.dart' show Compiler;
 import '../core_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -479,18 +477,12 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       <ClassElement, ClassHierarchyNode>{};
   final Map<ClassElement, ClassSet> _classSets = <ClassElement, ClassSet>{};
 
-  final Set<Element> alreadyPopulated;
-
-  final CacheStrategy cacheStrategy;
-
   bool get isClosed => _closed;
 
-  ResolutionWorldBuilderImpl(Backend backend, Resolution resolution,
-      CacheStrategy cacheStrategy, this.selectorConstraintsStrategy)
+  ResolutionWorldBuilderImpl(
+      Backend backend, Resolution resolution, this.selectorConstraintsStrategy)
       : this._backend = backend,
-        this._resolution = resolution,
-        this.cacheStrategy = cacheStrategy,
-        alreadyPopulated = cacheStrategy.newSet() {
+        this._resolution = resolution {
     _allFunctions = new FunctionSetBuilder();
   }
 
@@ -796,24 +788,6 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     }
   }
 
-  void forgetEntity(Entity entity, Compiler compiler) {
-    allClosures.remove(entity);
-    slowDirectlyNestedClosures(entity).forEach(compiler.forgetElement);
-    closurizedMembers.remove(entity);
-    fieldSetters.remove(entity);
-    _instantiationInfo.remove(entity);
-
-    void removeUsage(Set<_MemberUsage> set, Entity entity) {
-      if (set == null) return;
-      set.removeAll(
-          set.where((_MemberUsage usage) => usage.entity == entity).toList());
-    }
-
-    _processedClasses.remove(entity);
-    removeUsage(_instanceMembersByName[entity.name], entity);
-    removeUsage(_instanceFunctionsByName[entity.name], entity);
-  }
-
   // TODO(ahe): Replace this method with something that is O(1), for example,
   // by using a map.
   List<LocalFunctionElement> slowDirectlyNestedClosures(Element element) {
@@ -1031,9 +1005,6 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
 
     void addSubtypes(ClassElement cls, InstantiationInfo info) {
       if (!info.hasInstantiation) {
-        return;
-      }
-      if (cacheStrategy.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
         return;
       }
       assert(cls.isDeclaration);
@@ -1504,24 +1475,6 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     memberUsed(usage.entity, useSet);
   }
 
-  void forgetElement(Element element, Compiler compiler) {
-    _processedClasses.remove(element);
-    _directlyInstantiatedClasses.remove(element);
-    if (element is ClassElement) {
-      assert(invariant(element, element.thisType.isRaw,
-          message: 'Generic classes not supported (${element.thisType}).'));
-      _instantiatedTypes..remove(element.rawType)..remove(element.thisType);
-    }
-    removeFromSet(_instanceMembersByName, element);
-    removeFromSet(_instanceFunctionsByName, element);
-    if (element is MemberElement) {
-      for (Element closure in element.nestedClosures) {
-        removeFromSet(_instanceMembersByName, closure);
-        removeFromSet(_instanceFunctionsByName, closure);
-      }
-    }
-  }
-
   void processClassMembers(ClassElement cls, MemberUsedCallback memberUsed) {
     cls.implementation.forEachMember((_, MemberElement member) {
       assert(invariant(member, member.isDeclaration));
@@ -1980,11 +1933,4 @@ class _StaticFunctionUsage extends _StaticMemberUsage {
 
   @override
   EnumSet<MemberUse> get _originalUse => MemberUses.ALL_STATIC;
-}
-
-void removeFromSet(Map<String, Set<_MemberUsage>> map, Element element) {
-  Set<_MemberUsage> set = map[element.name];
-  if (set == null) return;
-  set.removeAll(
-      set.where((_MemberUsage usage) => usage.entity == element).toList());
 }

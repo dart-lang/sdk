@@ -353,16 +353,6 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
       MetadataAnnotation metadata, Node node, TreeElements elements) {
     return compileNodeWithDefinitions(node, elements);
   }
-
-  void forgetElement(Element element) {
-    initialVariableValues.remove(element);
-    if (element is ScopeContainerElement) {
-      element.forEachLocalMember(initialVariableValues.remove);
-    }
-    if (element is FunctionElement && element.hasFunctionSignature) {
-      element.functionSignature.forEachParameter(this.forgetElement);
-    }
-  }
 }
 
 /// [ConstantCompiler] that uses the Dart semantics for the compile-time

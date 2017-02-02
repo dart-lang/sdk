@@ -192,7 +192,4 @@ class Emitter implements emitterTask.Emitter {
   @override
   // TODO(het): Generate this correctly
   int generatedSize(OutputUnit unit) => 0;
-
-  @override
-  void invalidateCaches() {}
 }

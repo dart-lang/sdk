@@ -1710,18 +1710,6 @@ class Namer {
       return name;
     }
   }
-
-  String get incrementalHelperName => r'$dart_unsafe_incremental_support';
-
-  jsAst.Expression get accessIncrementalHelper {
-    return js('self.${incrementalHelperName}');
-  }
-
-  void forgetElement(Element element) {
-    jsAst.Name globalName = userGlobals[element];
-    invariant(element, globalName != null, message: 'No global name.');
-    userGlobals.remove(element);
-  }
 }
 
 /**

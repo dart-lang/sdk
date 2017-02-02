@@ -232,9 +232,8 @@ class ProgramBuilder {
   js.Statement _buildInvokeMain() {
     if (_compiler.isMockCompilation) return js.js.comment("Mock compilation");
 
-    MainCallStubGenerator generator = new MainCallStubGenerator(
-        backend, backend.emitter,
-        hasIncrementalSupport: _compiler.options.hasIncrementalSupport);
+    MainCallStubGenerator generator =
+        new MainCallStubGenerator(backend, backend.emitter);
     return generator.generateInvokeMain(_compiler.mainFunction);
   }
 
@@ -492,23 +491,6 @@ class ProgramBuilder {
         library, uri, statics, classes, staticFieldsForReflection);
   }
 
-  /// HACK for Incremental Compilation.
-  ///
-  /// Returns a class that contains the fields of a class.
-  Class buildFieldsHackForIncrementalCompilation(ClassElement element) {
-    assert(_compiler.options.hasIncrementalSupport);
-
-    List<Field> instanceFields = _buildFields(element, false);
-    js.Name name = namer.className(element);
-
-    return new Class(
-        element, name, null, [], instanceFields, [], [], [], [], [], [], null,
-        isDirectlyInstantiated: true,
-        hasRtiField: backend.classNeedsRtiField(element),
-        onlyForRti: false,
-        isNative: backend.isNative(element));
-  }
-
   Class _buildClass(ClassElement element) {
     bool onlyForRti = collector.classesOnlyNeededForRti.contains(element);
     bool hasRtiField = backend.classNeedsRtiField(element);
@@ -673,25 +655,12 @@ class ProgramBuilder {
   }
 
   bool _methodCanBeReflected(FunctionElement method) {
-    return backend.isAccessibleByReflection(method) ||
-        // During incremental compilation, we have to assume that reflection
-        // *might* get enabled.
-        _compiler.options.hasIncrementalSupport;
+    return backend.isAccessibleByReflection(method);
   }
 
   bool _methodCanBeApplied(FunctionElement method) {
     return backend.hasFunctionApplySupport &&
         closedWorld.getMightBePassedToApply(method);
-  }
-
-  // TODO(herhut): Refactor incremental compilation and remove method.
-  Method buildMethodHackForIncrementalCompilation(FunctionElement element) {
-    assert(_compiler.options.hasIncrementalSupport);
-    if (element.isInstanceMember) {
-      return _buildMethod(element);
-    } else {
-      return _buildStaticMethod(element);
-    }
   }
 
   /* Map | List */ _computeParameterDefaultValues(FunctionSignature signature) {

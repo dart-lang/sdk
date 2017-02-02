@@ -115,19 +115,6 @@ class ClosureTask extends CompilerTask {
       });
     });
   }
-
-  void forgetElement(var closure) {
-    ClosureClassElement cls;
-    if (closure is ClosureFieldElement) {
-      cls = closure.closureClass;
-    } else if (closure is SynthesizedCallMethodElementX) {
-      cls = closure.closureClass;
-    } else {
-      throw new SpannableAssertionFailure(
-          closure, 'Not a closure: $closure (${closure.runtimeType}).');
-    }
-    compiler.enqueuer.codegen.forgetEntity(cls, compiler);
-  }
 }
 
 /// Common interface for [BoxFieldElement] and [ClosureFieldElement] as

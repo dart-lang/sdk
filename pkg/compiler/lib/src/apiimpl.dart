@@ -226,6 +226,7 @@ class CompilerImpl extends Compiler {
         });
       });
     }
+    // TODO(johnniwinther): This does not apply anymore.
     // The incremental compiler sets up the sdk before run.
     // Therefore this will be called a second time.
     return future;

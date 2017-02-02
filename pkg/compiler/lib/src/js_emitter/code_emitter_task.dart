@@ -174,8 +174,6 @@ class CodeEmitterTask extends CompilerTask {
 
   int assembleProgram(Namer namer, ClosedWorld closedWorld) {
     return measure(() {
-      emitter.invalidateCaches();
-
       Set<ClassEntity> rtiNeededClasses = _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
           compiler, namer, this, emitter, closedWorld, rtiNeededClasses);
@@ -250,6 +248,4 @@ abstract class Emitter {
 
   /// Returns the size of the code generated for a given output [unit].
   int generatedSize(OutputUnit unit);
-
-  void invalidateCaches();
 }

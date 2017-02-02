@@ -461,9 +461,6 @@ class JavaScriptBackend extends Backend {
   /// `true` if access to [BackendHelpers.invokeOnMethod] is supported.
   bool hasInvokeOnSupport = false;
 
-  /// `true` if tear-offs are supported for incremental compilation.
-  bool hasIncrementalTearOffSupport = false;
-
   /// `true` of `Object.runtimeType` is supported.
   bool hasRuntimeTypeSupport = false;
 
@@ -763,9 +760,6 @@ class JavaScriptBackend extends Backend {
     if (!canUseAliasedSuperMember(member, selector)) {
       // Invoking a super getter isn't supported, this would require changes to
       // compact field descriptors in the emitter.
-      // We also turn off this optimization in incremental compilation, to
-      // avoid having to regenerate a method just because someone started
-      // calling it through super.
       return false;
     }
     aliasedSuperMembers.add(member);
@@ -773,7 +767,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool canUseAliasedSuperMember(Element member, Selector selector) {
-    return !selector.isGetter && !compiler.options.hasIncrementalSupport;
+    return !selector.isGetter;
   }
 
   /**
@@ -1446,8 +1440,8 @@ class JavaScriptBackend extends Backend {
   CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
 
   CodegenEnqueuer createCodegenEnqueuer(CompilerTask task, Compiler compiler) {
-    return new CodegenEnqueuer(task, compiler.cacheStrategy, this,
-        compiler.options, const TreeShakingEnqueuerStrategy());
+    return new CodegenEnqueuer(
+        task, this, compiler.options, const TreeShakingEnqueuerStrategy());
   }
 
   WorldImpact codegen(CodegenWorkItem work) {
@@ -2291,17 +2285,6 @@ class JavaScriptBackend extends Backend {
       kernelTask.buildKernelIr();
     }
 
-    if (compiler.options.hasIncrementalSupport &&
-        !hasIncrementalTearOffSupport) {
-      // Always enable tear-off closures during incremental compilation.
-      Element element = helpers.closureFromTearOff;
-      if (element != null) {
-        enqueuer.applyImpact(
-            impactTransformer.createImpactFor(impacts.closureClass));
-      }
-      hasIncrementalTearOffSupport = true;
-    }
-
     if (!enqueuer.isResolutionQueue && preMirrorsMethodCount == 0) {
       preMirrorsMethodCount = generatedCode.length;
     }
@@ -2520,18 +2503,6 @@ class JavaScriptBackend extends Backend {
   FunctionElement helperForMissingMain() => helpers.missingMain;
 
   FunctionElement helperForMainArity() => helpers.mainHasTooManyParameters;
-
-  void forgetElement(Element element) {
-    constants.forgetElement(element);
-    constantCompilerTask.dartConstantCompiler.forgetElement(element);
-    aliasedSuperMembers.remove(element);
-    generatedCode.remove(element);
-    if (element is MemberElement) {
-      for (Element closure in element.nestedClosures) {
-        generatedCode.remove(closure);
-      }
-    }
-  }
 
   @override
   WorldImpact computeMainImpact(MethodElement mainMethod,

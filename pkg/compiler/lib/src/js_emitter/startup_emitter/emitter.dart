@@ -201,7 +201,4 @@ class Emitter implements emitterTask.Emitter {
         .firstWhere((Fragment fragment) => fragment.outputUnit == unit);
     return _emitter.outputBuffers[key].length;
   }
-
-  @override
-  void invalidateCaches() {}
 }

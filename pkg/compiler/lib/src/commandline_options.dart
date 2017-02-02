@@ -27,7 +27,6 @@ class Flags {
   static const String fatalWarnings = '--fatal-warnings';
   static const String generateCodeWithCompileTimeErrors =
       '--generate-code-with-compile-time-errors';
-  static const String incrementalSupport = '--incremental-support';
   static const String minify = '--minify';
   static const String noFrequencyBasedMinification =
       '--no-frequency-based-minification';

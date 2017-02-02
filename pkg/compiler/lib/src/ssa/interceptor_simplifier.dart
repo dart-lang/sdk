@@ -334,7 +334,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     }
 
     // Try creating a one-shot interceptor or optimized is-check
-    if (compiler.options.hasIncrementalSupport) return false;
     if (node.usedBy.length != 1) return false;
     HInstruction user = node.usedBy.single;
 

@@ -325,8 +325,6 @@ abstract class Backend extends Target {
 
   FunctionElement helperForMainArity() => null;
 
-  void forgetElement(Element element) {}
-
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
   WorldImpact computeMainImpact(MethodElement mainMethod,
           {bool forResolution}) =>

@@ -1571,10 +1571,6 @@ abstract class MemberElementMixin
 
   @override
   bool get isInjected => _decoder.getBool(Key.IS_INJECTED);
-
-  void forgetElement() {
-    nestedClosures.clear();
-  }
 }
 
 abstract class FieldElementZ extends DeserializedElementZ

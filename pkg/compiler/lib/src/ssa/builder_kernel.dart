@@ -2627,7 +2627,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   HInstruction _buildInvokeSuper(
-       ir.Expression invocation, List<HInstruction> arguments) {
+      ir.Expression invocation, List<HInstruction> arguments) {
     // Invocation is either a method invocation or a property get/set.
     // TODO(efortuna): Common interface?
     // TODO(efortuna): Add source information.
@@ -2642,9 +2642,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     inputs.add(receiver);
     inputs.addAll(arguments);
 
-    ir.Member interfaceTarget = invocation is ir.SuperMethodInvocation ?
-        (invocation as ir.SuperMethodInvocation).interfaceTarget :
-        (invocation as ir.SuperPropertyGet).interfaceTarget;
+    ir.Member interfaceTarget = invocation is ir.SuperMethodInvocation
+        ? (invocation as ir.SuperMethodInvocation).interfaceTarget
+        : (invocation as ir.SuperPropertyGet).interfaceTarget;
 
     HInstruction instruction = new HInvokeSuper(
         astAdapter.getMember(interfaceTarget),
