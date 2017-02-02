@@ -12,17 +12,17 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 void main() {
-  defineReflectiveTests(IsolateChannelTest);
+  defineReflectiveTests(PluginIsolateChannelTest);
 }
 
 @reflectiveTest
-class IsolateChannelTest {
+class PluginIsolateChannelTest {
   TestSendPort sendPort;
-  IsolateChannel channel;
+  PluginIsolateChannel channel;
 
   void setUp() {
     sendPort = new TestSendPort();
-    channel = new IsolateChannel(sendPort);
+    channel = new PluginIsolateChannel(sendPort);
   }
 
   void tearDown() {

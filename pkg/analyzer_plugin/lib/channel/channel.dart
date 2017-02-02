@@ -5,8 +5,9 @@
 import 'package:analyzer_plugin/protocol/protocol.dart';
 
 /**
- * The object that allows a [ServerPlugin] to receive [Request]s and to return
- * both [Response]s and [Notification]s.
+ * A communication channel that allows a [ServerPlugin] to receive [Request]s
+ * from, and to return both [Response]s and [Notification]s to, an analysis
+ * server.
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -35,4 +36,34 @@ abstract class PluginCommunicationChannel {
    * Send the given [response] to the server.
    */
   void sendResponse(Response response);
+}
+
+/**
+ * A communication channel that allows an analysis server to send [Request]s
+ * to, and to receive both [Response]s and [Notification]s from, a plugin.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class ServerCommunicationChannel {
+  /**
+   * Close the communication channel.
+   */
+  void close();
+
+  /**
+   * Listen to the channel for responses and notifications. If a response is
+   * received, invoke the [onResponse] function. If a notification is received,
+   * invoke the [onNotification] function. If an error is encountered while
+   * trying to read from the socket, invoke the [onError] function. If the
+   * socket is closed by the plugin, invoke the [onDone] function. Only one
+   * listener is allowed per channel.
+   */
+  void listen(void onResponse(Response response),
+      void onNotification(Notification notification),
+      {Function onError, void onDone()});
+
+  /**
+   * Send the given [request] to the plugin.
+   */
+  void sendRequest(Request request);
 }

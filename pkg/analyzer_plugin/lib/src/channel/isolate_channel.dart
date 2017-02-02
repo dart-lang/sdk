@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/protocol/protocol.dart';
  * both [Response]s and [Notification]s. It communicates with the analysis
  * server by passing data to the server's main isolate.
  */
-class IsolateChannel implements PluginCommunicationChannel {
+class PluginIsolateChannel implements PluginCommunicationChannel {
   /**
    * The port used to send notifications and responses to the server.
    */
@@ -32,7 +32,7 @@ class IsolateChannel implements PluginCommunicationChannel {
   /**
    * Initialize a newly created channel to communicate with the server.
    */
-  IsolateChannel(this._sendPort) {
+  PluginIsolateChannel(this._sendPort) {
     _receivePort = new ReceivePort();
     _sendPort.send(_receivePort.sendPort);
   }
@@ -71,5 +71,85 @@ class IsolateChannel implements PluginCommunicationChannel {
   @override
   void sendResponse(Response response) {
     _sendPort.send(response.toJson());
+  }
+}
+
+/**
+ * The communication channel that allows an analysis server to send [Request]s
+ * to, and to receive both [Response]s and [Notification]s from, a plugin.
+ */
+class ServerIsolateChannel implements ServerCommunicationChannel {
+  /**
+   * The URI for the plugin that will be run in the isolate that this channel
+   * communicates with.
+   */
+  final Uri uri;
+
+  /**
+   * The isolate in which the plugin is running, or `null` if the plugin has
+   * not yet been started by invoking [listen].
+   */
+  Isolate _isolate;
+
+  /**
+   * The port used to send requests to the plugin, or `null` if the plugin has
+   * not yet been started by invoking [listen].
+   */
+  SendPort _sendPort;
+
+  /**
+   * Initialize a newly created channel to communicate with an isolate running
+   * the code at the given [uri].
+   */
+  ServerIsolateChannel(this.uri);
+
+  @override
+  void close() {
+    // TODO(brianwilkerson) Is there anything useful to do here?
+    _isolate = null;
+    _sendPort = null;
+  }
+
+  @override
+  Future<Null> listen(void onResponse(Response response),
+      void onNotification(Notification notification),
+      {Function onError, void onDone()}) async {
+    if (_isolate != null) {
+      throw new StateError('Cannot listen to the same channel more than once.');
+    }
+    ReceivePort receivePort = new ReceivePort();
+    ReceivePort errorPort;
+    if (onError != null) {
+      errorPort = new ReceivePort();
+      errorPort.listen((error) {
+        onError(error);
+      });
+    }
+    ReceivePort exitPort;
+    if (onDone != null) {
+      exitPort = new ReceivePort();
+      exitPort.listen((_) {
+        onDone();
+      });
+    }
+    _isolate = await Isolate.spawnUri(uri, <String>[], receivePort.sendPort,
+        automaticPackageResolution: true,
+        onError: errorPort?.sendPort,
+        onExit: exitPort?.sendPort);
+    _sendPort = await receivePort.first as SendPort;
+    receivePort.listen((dynamic input) {
+      if (input is Map) {
+        if (input.containsKey('id') != null) {
+          onResponse(new Response.fromJson(input));
+        } else if (input.containsKey('event')) {
+          onNotification(new Notification.fromJson(input));
+        }
+      }
+    });
+  }
+
+  @override
+  void sendRequest(Request request) {
+    _sendPort.send(request.toJson());
   }
 }
