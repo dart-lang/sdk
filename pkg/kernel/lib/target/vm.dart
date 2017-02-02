@@ -4,6 +4,7 @@
 library kernel.target.vm;
 
 import '../ast.dart';
+import '../class_hierarchy.dart' show ClassHierarchy;
 import '../core_types.dart';
 import '../transformations/continuation.dart' as cont;
 import '../transformations/erasure.dart';
@@ -54,23 +55,28 @@ class VmTarget extends Target {
         'dart:io',
       ];
 
-  void transformProgram(Program program) {
+  ClassHierarchy _hierarchy;
+
+  void performModularTransformations(Program program) {
     var mixins = new mix.MixinFullResolution();
     mixins.transform(program);
 
-    var hierarchy = mixins.hierarchy;
+    _hierarchy = mixins.hierarchy;
+  }
+
+  void performGlobalTransformations(Program program) {
     var coreTypes = new CoreTypes(program);
 
     if (strongMode) {
-      new InsertTypeChecks(hierarchy: hierarchy, coreTypes: coreTypes)
+      new InsertTypeChecks(hierarchy: _hierarchy, coreTypes: coreTypes)
           .transformProgram(program);
-      new InsertCovarianceChecks(hierarchy: hierarchy, coreTypes: coreTypes)
+      new InsertCovarianceChecks(hierarchy: _hierarchy, coreTypes: coreTypes)
           .transformProgram(program);
     }
 
     if (program.mainMethod != null) {
       new TreeShaker(program,
-              hierarchy: hierarchy, coreTypes: coreTypes,
+              hierarchy: _hierarchy, coreTypes: coreTypes,
               strongMode: strongMode)
           .transform(program);
     }

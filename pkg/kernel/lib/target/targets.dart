@@ -52,7 +52,18 @@ abstract class Target {
   /// If true, the SDK should be loaded in strong mode.
   bool get strongModeSdk => strongMode;
 
-  void transformProgram(Program program);
+  /// Perform target-specific modular transformations.
+  ///
+  /// These transformations should not be whole-program transformations.  They
+  /// should expect that the program will contain external libraries.
+  void performModularTransformations(Program program);
+
+  /// Perform target-specific whole-program transformations.
+  ///
+  /// These transformations should be optimizations and not required for
+  /// correctness.  Everything should work if a simple and fast linker chooses
+  /// not to apply these transformations.
+  void performGlobalTransformations(Program program);
 
   String toString() => 'Target($name)';
 }
@@ -65,5 +76,6 @@ class NoneTarget extends Target {
   bool get strongMode => flags.strongMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
-  void transformProgram(Program program) {}
+  void performModularTransformations(Program program) {}
+  void performGlobalTransformations(Program program) {}
 }

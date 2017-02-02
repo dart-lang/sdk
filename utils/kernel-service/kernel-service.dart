@@ -151,8 +151,9 @@ Future<CompilationResult> parseScriptImpl(DartLoaderBatch batch_loader,
     return new CompilationError(loader.errors.toList());
   }
 
-  // Link program into one file, cf. --link option in dartk.
-  target.transformProgram(program);
+  // Perform target-specific transformations.
+  target.performModularTransformations(program);
+  target.performGlobalTransformations(program);
 
   // Write the program to a list of bytes and return it.
   var sink = new DataSink();

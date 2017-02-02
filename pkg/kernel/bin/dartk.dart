@@ -362,9 +362,13 @@ Future<CompilerOutcome> batchMain(
   }
 
   // Apply target-specific transformations.
-  if (target != null && options['link'] && canContinueCompilation) {
-    target.transformProgram(program);
+  if (target != null && canContinueCompilation) {
+    target.performModularTransformations(program);
     runVerifier();
+    if (options['link']) {
+      target.performGlobalTransformations(program);
+      runVerifier();
+    }
   }
 
   if (options['no-output']) {
