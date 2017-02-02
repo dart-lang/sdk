@@ -148,7 +148,9 @@ class Kernel extends Step<TestDescription, Program, TestContext> {
       for (var error in loader.errors) {
         return fail(program, "$error");
       }
-      target.transformProgram(program);
+      target
+        ..performModularTransformations(program)
+        ..performGlobalTransformations(program);
       return pass(program);
     } catch (e, s) {
       return crash(e, s);
