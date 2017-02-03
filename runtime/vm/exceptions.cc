@@ -421,7 +421,10 @@ static void ThrowExceptionHelper(Thread* thread,
     }
     stacktrace ^= isolate->object_store()->preallocated_stack_trace();
     PreallocatedStackTraceBuilder frame_builder(stacktrace);
-    if (handler_needs_stacktrace) {
+    ASSERT(existing_stacktrace.IsNull() ||
+           (existing_stacktrace.raw() == stacktrace.raw()));
+    ASSERT(existing_stacktrace.IsNull() || is_rethrow);
+    if (handler_needs_stacktrace && existing_stacktrace.IsNull()) {
       BuildStackTrace(&frame_builder);
     }
   } else {
