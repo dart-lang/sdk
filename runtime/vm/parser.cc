@@ -3517,9 +3517,9 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     if (func.parameter_types() == Object::empty_array().raw()) {
       AddFormalParamsToFunction(&params, func);
     }
-    ResolveSignature(ClassFinalizer::kResolveTypeParameters, func);
+    ResolveSignature(func);
     if (!is_top_level_) {
-      ClassFinalizer::FinalizeSignature(current_class(), func);
+      ClassFinalizer::FinalizeSignature(Class::Handle(Z, func.origin()), func);
     }
     SetupDefaultsForOptionalParams(params);
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
@@ -4125,7 +4125,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   AddFormalParamsToFunction(&method->params, func);
   ASSERT(innermost_function().raw() == func.raw());
   innermost_function_ = Function::null();
-  ResolveSignature(ClassFinalizer::kResolveTypeParameters, func);
+  ResolveSignature(func);
   members->AddFunction(func);
 }
 
@@ -4265,7 +4265,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       getter.set_result_type(*field->type);
       getter.set_is_debuggable(false);
       AddFormalParamsToFunction(&params, getter);
-      ResolveSignature(ClassFinalizer::kResolveTypeParameters, getter);
+      ResolveSignature(getter);
       members->AddFunction(getter);
       if (!field->has_final) {
         // Build a setter accessor for non-const fields.
@@ -4287,7 +4287,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
           setter.set_is_reflectable(false);
         }
         AddFormalParamsToFunction(&params, setter);
-        ResolveSignature(ClassFinalizer::kResolveTypeParameters, setter);
+        ResolveSignature(setter);
         members->AddFunction(setter);
       }
     }
@@ -4557,7 +4557,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     }
     if (!member.type->IsResolved()) {
       AbstractType& type = AbstractType::ZoneHandle(Z, member.type->raw());
-      ResolveType(ClassFinalizer::kResolveTypeParameters, &type);
+      ResolveType(&type);
       member.type = &type;
     }
     ParseFieldDefinition(members, &member);
@@ -4876,7 +4876,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
 void Parser::ParseEnumDefinition(const Class& cls) {
   TRACE_PARSER("ParseEnumDefinition");
   INC_STAT(thread(), num_classes_parsed, 1);
-
+  set_current_class(cls);
   const Class& helper_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::_EnumHelper()));
   ASSERT(!helper_class.IsNull());
@@ -4913,7 +4913,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   ParamList params;
   params.AddReceiver(&Object::dynamic_type(), cls.token_pos());
   AddFormalParamsToFunction(&params, getter);
-  ResolveSignature(ClassFinalizer::kResolveTypeParameters, getter);
+  ResolveSignature(getter);
   enum_members.AddFunction(getter);
 
   ASSERT(IsIdentifier());
@@ -4986,8 +4986,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   values_type_args.SetTypeAt(0, enum_type);
   Type& values_type = Type::ZoneHandle(
       Z, Type::New(array_class, values_type_args, cls.token_pos(), Heap::kOld));
-  values_type ^= ClassFinalizer::FinalizeType(cls, values_type,
-                                              ClassFinalizer::kCanonicalize);
+  values_type ^= CanonicalizeType(values_type);
   values_type_args = values_type.arguments();  // Get canonical type arguments.
   // Add static field 'const List<E> values'.
   Field& values_field = Field::ZoneHandle(Z);
@@ -5042,7 +5041,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   ParamList name_params;
   name_params.AddReceiver(&Object::dynamic_type(), cls.token_pos());
   AddFormalParamsToFunction(&name_params, name_getter);
-  ResolveSignature(ClassFinalizer::kResolveTypeParameters, name_getter);
+  ResolveSignature(name_getter);
   enum_members.AddFunction(name_getter);
 
   // Clone the toString() function from the helper class.
@@ -5093,7 +5092,7 @@ void Parser::AddImplicitConstructor(const Class& cls) {
 
   AddFormalParamsToFunction(&params, ctor);
   ctor.set_result_type(Object::dynamic_type());
-  ResolveSignature(ClassFinalizer::kResolveTypeParameters, ctor);
+  ResolveSignature(ctor);
   // The body of the constructor cannot modify the type of the constructed
   // instance, which is passed in as the receiver.
   ctor.set_result_type(*receiver_type);
@@ -5317,7 +5316,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   AbstractType& function_type =
       Type::Handle(Z, signature_function.SignatureType());
   ASSERT(current_class().raw() == function_type_alias.raw());
-  ResolveType(ClassFinalizer::kResolveTypeParameters, &function_type);
+  ResolveType(&function_type);
   // Resolving does not replace type or signature.
   ASSERT(function_type_alias.signature_function() ==
          Type::Cast(function_type).signature());
@@ -5522,8 +5521,7 @@ void Parser::ParseTypeParameters(bool parameterizing_class) {
     for (intptr_t i = 0; i < num_types; i++) {
       type_parameter ^= type_parameters.TypeAt(i);
       type_parameter_bound = type_parameter.bound();
-      ResolveType(ClassFinalizer::kResolveTypeParameters,
-                  &type_parameter_bound);
+      ResolveType(&type_parameter_bound);
       type_parameter.set_bound(type_parameter_bound);
     }
   }
@@ -5846,7 +5844,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   AddFormalParamsToFunction(&params, func);
   ASSERT(innermost_function().raw() == func.raw());
   innermost_function_ = Function::null();
-  ResolveSignature(ClassFinalizer::kResolveTypeParameters, func);
+  ResolveSignature(func);
   top_level->AddFunction(func);
   if (!is_patch) {
     library_.AddObject(func, func_name);
@@ -6001,7 +5999,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     func.set_is_reflectable(false);
   }
   AddFormalParamsToFunction(&params, func);
-  ResolveSignature(ClassFinalizer::kResolveTypeParameters, func);
+  ResolveSignature(func);
   top_level->AddFunction(func);
   if (!is_patch) {
     library_.AddObject(func, accessor_name);
@@ -6852,11 +6850,10 @@ RawFunction* Parser::OpenSyncGeneratorFunction(TokenPosition func_pos) {
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, body);
-    ResolveSignature(ClassFinalizer::kResolveTypeParameters, body);
+    ResolveSignature(body);
     // Finalize function type.
     Type& signature_type = Type::Handle(Z, body.SignatureType());
-    signature_type ^= ClassFinalizer::FinalizeType(
-        current_class(), signature_type, ClassFinalizer::kCanonicalize);
+    signature_type ^= CanonicalizeType(signature_type);
     body.SetSignatureType(signature_type);
     ASSERT(AbstractType::Handle(Z, body.result_type()).IsResolved());
     ASSERT(body.NumParameters() == closure_params.parameters->length());
@@ -6980,12 +6977,11 @@ RawFunction* Parser::OpenAsyncFunction(TokenPosition async_func_pos) {
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, closure);
-    ResolveSignature(ClassFinalizer::kResolveTypeParameters, closure);
+    ResolveSignature(closure);
 
     // Finalize function type.
     Type& signature_type = Type::Handle(Z, closure.SignatureType());
-    signature_type ^= ClassFinalizer::FinalizeType(
-        current_class(), signature_type, ClassFinalizer::kCanonicalize);
+    signature_type ^= CanonicalizeType(signature_type);
     closure.SetSignatureType(signature_type);
     ASSERT(AbstractType::Handle(Z, closure.result_type()).IsResolved());
     ASSERT(closure.NumParameters() == closure_params.parameters->length());
@@ -7110,12 +7106,11 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(TokenPosition async_func_pos) {
   if (is_new_closure) {
     // Add the parameters to the newly created closure.
     AddFormalParamsToFunction(&closure_params, closure);
-    ResolveSignature(ClassFinalizer::kResolveTypeParameters, closure);
+    ResolveSignature(closure);
 
     // Finalize function type.
     Type& signature_type = Type::Handle(Z, closure.SignatureType());
-    signature_type ^= ClassFinalizer::FinalizeType(
-        current_class(), signature_type, ClassFinalizer::kCanonicalize);
+    signature_type ^= CanonicalizeType(signature_type);
     closure.SetSignatureType(signature_type);
     ASSERT(AbstractType::Handle(Z, closure.result_type()).IsResolved());
     ASSERT(closure.NumParameters() == closure_params.parameters->length());
@@ -7480,9 +7475,8 @@ void Parser::FinalizeFormalParameterTypes(const ParamList* params) {
   for (int i = 0; i < num_parameters; i++) {
     ParamDesc& param_desc = (*params->parameters)[i];
     type = param_desc.type->raw();
-    ResolveType(ClassFinalizer::kCanonicalize, &type);
-    type = ClassFinalizer::FinalizeType(current_class(), type,
-                                        ClassFinalizer::kCanonicalize);
+    ResolveType(&type);
+    type = CanonicalizeType(type);
     if (type.raw() != param_desc.type->raw()) {
       param_desc.type = &AbstractType::ZoneHandle(Z, type.raw());
     }
@@ -7871,9 +7865,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   if (!found_func && !result_type.IsFinalized()) {
     // Now that type parameters are declared, the result type can be resolved
     // and finalized.
-    ResolveType(ClassFinalizer::kCanonicalize, &result_type);
-    result_type = ClassFinalizer::FinalizeType(current_class(), result_type,
-                                               ClassFinalizer::kCanonicalize);
+    ResolveType(&result_type);
+    result_type = CanonicalizeType(result_type);
     function.set_result_type(result_type);
   }
 
@@ -7929,8 +7922,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
     // Now that the local function has formal parameters, lookup the signature
     signature_type = function.SignatureType();
-    signature_type ^= ClassFinalizer::FinalizeType(
-        current_class(), signature_type, ClassFinalizer::kCanonicalize);
+    signature_type ^= CanonicalizeType(signature_type);
     function.SetSignatureType(signature_type);
   } else {
     // The local function was parsed before. The captured variables are
@@ -10740,8 +10732,7 @@ AstNode* Parser::ThrowNoSuchMethodError(TokenPosition call_pos,
   } else {
     AbstractType& type = AbstractType::ZoneHandle(Z);
     type ^= Type::New(cls, TypeArguments::Handle(Z), call_pos, Heap::kOld);
-    type ^= ClassFinalizer::FinalizeType(current_class(), type,
-                                         ClassFinalizer::kCanonicalize);
+    type ^= CanonicalizeType(type);
     arguments->Add(new (Z) LiteralNode(call_pos, type));
   }
   // String memberName.
@@ -11708,8 +11699,7 @@ AstNode* Parser::LoadTypeParameter(PrimaryNode* primary) {
       // Make sure that the class instantiator is captured.
       CaptureInstantiator();
     }
-    type_parameter ^= ClassFinalizer::FinalizeType(
-        current_class(), type_parameter, ClassFinalizer::kCanonicalize);
+    type_parameter ^= CanonicalizeType(type_parameter);
     ASSERT(!type_parameter.IsMalformed());
     return new (Z) TypeNode(primary_pos, type_parameter);
   } else {
@@ -11828,8 +11818,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           AbstractType& type = Type::ZoneHandle(
               Z, Type::New(type_class, TypeArguments::Handle(Z), primary_pos,
                            Heap::kOld));
-          type ^= ClassFinalizer::FinalizeType(current_class(), type,
-                                               ClassFinalizer::kCanonicalize);
+          type ^= CanonicalizeType(type);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
           array = new (Z) TypeNode(primary_pos, type);
@@ -11923,8 +11912,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           AbstractType& type = Type::ZoneHandle(
               Z, Type::New(type_class, TypeArguments::Handle(Z), primary_pos,
                            Heap::kOld));
-          type ^= ClassFinalizer::FinalizeType(current_class(), type,
-                                               ClassFinalizer::kCanonicalize);
+          type ^= CanonicalizeType(type);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
           selector = new (Z) TypeNode(primary_pos, type);
@@ -11950,8 +11938,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           AbstractType& type = Type::ZoneHandle(
               Z, Type::New(type_class, TypeArguments::Handle(Z), primary_pos,
                            Heap::kOld));
-          type = ClassFinalizer::FinalizeType(current_class(), type,
-                                              ClassFinalizer::kCanonicalize);
+          type = CanonicalizeType(type);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
           left = new (Z) TypeNode(primary_pos, type);
@@ -12171,53 +12158,42 @@ AstNode* Parser::ParsePostfixExpr() {
 }
 
 
-// Resolve the types of the given signature from the current class according to
-// the given type finalization mode.
-// Not all involved type classes may get resolved yet, but at least type
-// parameters will get resolved, thereby relieving the class
-// finalizer from resolving type parameters out of context.
-// TODO(regis): Refactor this code which is partially duplicated in the class
-// finalizer, paying attention to type parameter resolution and mixin library.
-void Parser::ResolveSignature(ClassFinalizer::FinalizationKind finalization,
-                              const Function& signature) {
+// Resolve the type parameters that may appear in the given signature from the
+// signature function and current class.
+// Unresolved type classes get resolved later by the class finalizer.
+void Parser::ResolveSignature(const Function& signature) {
   const Function& saved_innermost_function =
       Function::Handle(Z, innermost_function().raw());
   innermost_function_ = signature.raw();
   // TODO(regis): Resolve upper bounds of function type parameters.
   AbstractType& type = AbstractType::Handle(signature.result_type());
-  ResolveType(finalization, &type);
+  ResolveType(&type);
   signature.set_result_type(type);
   const intptr_t num_parameters = signature.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = signature.ParameterTypeAt(i);
-    ResolveType(finalization, &type);
+    ResolveType(&type);
     signature.SetParameterTypeAt(i, type);
   }
   innermost_function_ = saved_innermost_function.raw();
 }
 
 
-// Resolve the given type and its type arguments from the current function and
-// current class according to the given type finalization mode.
-// Not all involved type classes may get resolved yet, but at least type
-// parameters will get resolved, thereby relieving the class
-// finalizer from resolving type parameters out of context.
-// TODO(regis): Refactor this code which is partially duplicated in the class
-// finalizer, paying attention to type parameter resolution and mixin library.
-void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
-                         AbstractType* type) {
-  ASSERT(finalization >= ClassFinalizer::kResolveTypeParameters);
+// Resolve the type parameters that may appear in the given type and in its type
+// arguments from the current function and current class.
+// Unresolved type classes get resolved later by the class finalizer.
+void Parser::ResolveType(AbstractType* type) {
   ASSERT(type != NULL);
   if (type->IsResolved()) {
+    // Some types are resolved by definition, such as a TypeParameter.
     return;
   }
-  // Resolve class.
+  // Resolve type class.
   if (!type->HasResolvedTypeClass()) {
     const UnresolvedClass& unresolved_class =
         UnresolvedClass::Handle(Z, type->unresolved_class());
     const String& unresolved_class_name =
         String::Handle(Z, unresolved_class.ident());
-    Class& resolved_type_class = Class::Handle(Z);
     if (unresolved_class.library_or_library_prefix() == Object::null()) {
       // First check if the type is a function type parameter.
       if (!innermost_function().IsNull()) {
@@ -12260,50 +12236,7 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
         *type = type_parameter.raw();
         return;
       }
-      // The referenced class may not have been parsed yet. It would be wrong
-      // to resolve it too early to an imported class of the same name. Only
-      // resolve the class when a finalized type is requested.
-      // Note that when compiling a cloned mixin function, library_ may be
-      // different than current_class's library.
-      if (finalization > ClassFinalizer::kResolveTypeParameters) {
-        resolved_type_class = library_.LookupClass(unresolved_class_name);
-      }
-    } else {
-      // Resolve class name in the scope of the library prefix.
-      const Object& prefix =
-          Object::Handle(Z, unresolved_class.library_or_library_prefix());
-      ASSERT(prefix.IsLibraryPrefix());
-      resolved_type_class =
-          LibraryPrefix::Cast(prefix).LookupClass(unresolved_class_name);
     }
-    // At this point, we can only have a parameterized_type.
-    const Type& parameterized_type = Type::Cast(*type);
-    if (!resolved_type_class.IsNull()) {
-      // Replace unresolved class with resolved type class.
-      parameterized_type.set_type_class(resolved_type_class);
-      // Promote type to a function type in case its type class is a typedef.
-      if (resolved_type_class.IsTypedefClass()) {
-        ASSERT(!parameterized_type.IsFunctionType());
-        parameterized_type.set_signature(
-            Function::Handle(Z, resolved_type_class.signature_function()));
-      }
-      // Replace FutureOr<T> type of async library with dynamic.
-      if ((resolved_type_class.library() == Library::AsyncLibrary()) &&
-          (resolved_type_class.Name() == Symbols::FutureOr().raw())) {
-        parameterized_type.set_type_class(
-            Class::Handle(Object::dynamic_class()));
-        parameterized_type.set_arguments(Object::null_type_arguments());
-      }
-    } else if (finalization >= ClassFinalizer::kCanonicalize) {
-      ClassFinalizer::FinalizeMalformedType(
-          Error::Handle(Z),  // No previous error.
-          script_, parameterized_type, "type '%s' is not loaded",
-          String::Handle(Z, parameterized_type.UserVisibleName()).ToCString());
-      return;
-    }
-  }
-  if (finalization > ClassFinalizer::kResolveTypeParameters) {
-    type->SetIsResolved();
   }
   // Resolve type arguments, if any.
   if (type->arguments() != TypeArguments::null()) {
@@ -12313,7 +12246,7 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
     AbstractType& type_argument = AbstractType::Handle(Z);
     for (intptr_t i = 0; i < num_arguments; i++) {
       type_argument ^= arguments.TypeAt(i);
-      ResolveType(finalization, &type_argument);
+      ResolveType(&type_argument);
       arguments.SetTypeAt(i, type_argument);
     }
   }
@@ -12322,44 +12255,24 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
         Function::Handle(Z, Type::Cast(*type).signature());
     Type& signature_type = Type::Handle(Z, signature.SignatureType());
     if (signature_type.raw() != type->raw()) {
-      ResolveType(finalization, &signature_type);
+      ResolveType(&signature_type);
     } else {
-      ResolveSignature(finalization, signature);
-      if (signature.IsSignatureFunction()) {
-        // Drop fields that are not necessary anymore after resolution.
-        // The parent function, owner, and token position of a shared
-        // canonical function type are meaningless, since the canonical
-        // representent is picked arbitrarily.
-        signature.set_parent_function(Function::Handle(Z));
-        // TODO(regis): As long as we support metadata in typedef signatures,
-        // we cannot reset these fields used to reparse a typedef.
-        // Note that the scope class of a typedef function type is always
-        // preserved as the typedef class (not reset to _Closure class), thereby
-        // preventing sharing of canonical function types between typedefs.
-        // Not being shared, these fields are therefore always meaningful for
-        // typedefs.
-      }
-      if (type->HasResolvedTypeClass()) {
-        const Class& scope_class = Class::Handle(Z, type->type_class());
-        if (!scope_class.IsTypedefClass()) {
-          if (signature.IsSignatureFunction()) {
-            signature.set_owner(Object::Handle(Z));
-            signature.set_token_pos(TokenPosition::kNoSource);
-          }
-          if ((type->arguments() != TypeArguments::null()) &&
-              signature.HasInstantiatedSignature()) {
-            ASSERT(scope_class.IsGeneric());
-            // Although the scope class of this function type is generic,
-            // the signature of this function type does not refer to any
-            // of its type parameters. Reset its scope class to _Closure.
-            Type::Cast(*type).set_type_class(Class::Handle(
-                Z, Isolate::Current()->object_store()->closure_class()));
-            type->set_arguments(Object::null_type_arguments());
-          }
-        }
-      }
+      ResolveSignature(signature);
     }
   }
+}
+
+
+RawAbstractType* Parser::CanonicalizeType(const AbstractType& type) {
+  // If the current class is the result of a mixin application, we must
+  // use the class scope of the class from which the function originates.
+  if (current_class().IsMixinApplication()) {
+    return ClassFinalizer::FinalizeType(
+        Class::Handle(Z, parsed_function()->function().origin()), type,
+        ClassFinalizer::kCanonicalize);
+  }
+  return ClassFinalizer::FinalizeType(current_class(), type,
+                                      ClassFinalizer::kCanonicalize);
 }
 
 
@@ -12905,8 +12818,7 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
           // Make sure that the class instantiator is captured.
           CaptureInstantiator();
         }
-        type_parameter ^= ClassFinalizer::FinalizeType(
-            current_class(), type_parameter, ClassFinalizer::kCanonicalize);
+        type_parameter ^= CanonicalizeType(type_parameter);
         ASSERT(!type_parameter.IsMalformed());
         return new (Z) TypeNode(ident_pos, type_parameter);
       }
@@ -12947,8 +12859,7 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
       AbstractType& type =
           Type::ZoneHandle(Z, Type::New(type_class, TypeArguments::Handle(Z),
                                         primary_pos, Heap::kOld));
-      type ^= ClassFinalizer::FinalizeType(current_class(), type,
-                                           ClassFinalizer::kCanonicalize);
+      type ^= CanonicalizeType(type);
       // Type may be malbounded, but not malformed.
       ASSERT(!type.IsMalformed());
       resolved = new (Z) TypeNode(primary_pos, type);
@@ -13000,9 +12911,9 @@ RawAbstractType* Parser::ParseTypeOrFunctionType(
     return Type::DynamicType();
   }
   if (finalization >= ClassFinalizer::kResolveTypeParameters) {
-    ResolveType(finalization, &type);
+    ResolveType(&type);
     if (finalization >= ClassFinalizer::kCanonicalize) {
-      type ^= ClassFinalizer::FinalizeType(current_class(), type, finalization);
+      type ^= CanonicalizeType(type);
     }
   }
   return type.raw();
@@ -13072,9 +12983,9 @@ RawType* Parser::ParseFunctionType(
     return Type::DynamicType();
   }
   if (finalization >= ClassFinalizer::kResolveTypeParameters) {
-    ResolveType(finalization, &type);
+    ResolveType(&type);
     if (finalization >= ClassFinalizer::kCanonicalize) {
-      type ^= ClassFinalizer::FinalizeType(current_class(), type, finalization);
+      type ^= CanonicalizeType(type);
     }
   }
   return Type::RawCast(type.raw());
@@ -13186,9 +13097,9 @@ RawAbstractType* Parser::ParseType(
   AbstractType& type = AbstractType::Handle(
       Z, Type::New(type_class, type_arguments, ident_pos, Heap::kOld));
   if (finalization >= ClassFinalizer::kResolveTypeParameters) {
-    ResolveType(finalization, &type);
+    ResolveType(&type);
     if (finalization >= ClassFinalizer::kCanonicalize) {
-      type ^= ClassFinalizer::FinalizeType(current_class(), type, finalization);
+      type ^= CanonicalizeType(type);
     }
   }
   return type.raw();
@@ -13269,8 +13180,7 @@ AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
   const Class& array_class = Class::Handle(Z, I->object_store()->array_class());
   Type& type = Type::ZoneHandle(
       Z, Type::New(array_class, list_type_arguments, type_pos, Heap::kOld));
-  type ^= ClassFinalizer::FinalizeType(current_class(), type,
-                                       ClassFinalizer::kCanonicalize);
+  type ^= CanonicalizeType(type);
   GrowableArray<AstNode*> element_list;
   // Parse the list elements. Note: there may be an optional extra
   // comma after the last element.
@@ -13352,12 +13262,15 @@ AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
       ASSERT(factory_type_args.Length() == 1);
       Type& factory_type = Type::Handle(
           Z, Type::New(factory_class, factory_type_args, type_pos, Heap::kOld));
-      factory_type ^= ClassFinalizer::FinalizeType(
-          current_class(), factory_type, ClassFinalizer::kFinalize);
+      // It is not strictly necessary to canonicalize factory_type, but only its
+      // type argument vector.
+      factory_type ^= CanonicalizeType(factory_type);
       factory_type_args = factory_type.arguments();
       ASSERT(factory_type_args.Length() == factory_class.NumTypeArguments());
+      ASSERT(factory_type_args.IsCanonical());
+    } else {
+      factory_type_args = factory_type_args.Canonicalize();
     }
-    factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new (Z) ArgumentListNode(literal_pos);
     if (element_list.length() == 0) {
       LiteralNode* empty_array_literal =
@@ -13599,12 +13512,15 @@ AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
       ASSERT(factory_type_args.Length() == 2);
       Type& factory_type = Type::Handle(
           Z, Type::New(factory_class, factory_type_args, type_pos, Heap::kOld));
-      factory_type ^= ClassFinalizer::FinalizeType(
-          current_class(), factory_type, ClassFinalizer::kFinalize);
+      // It is not strictly necessary to canonicalize factory_type, but only its
+      // type argument vector.
+      factory_type ^= CanonicalizeType(factory_type);
       factory_type_args = factory_type.arguments();
       ASSERT(factory_type_args.Length() == factory_class.NumTypeArguments());
+      ASSERT(factory_type_args.IsCanonical());
+    } else {
+      factory_type_args = factory_type_args.Canonicalize();
     }
-    factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new (Z) ArgumentListNode(literal_pos);
     // The kv_pair array is temporary and of element type dynamic. It is passed
     // to the factory to initialize a properly typed map. Pass a pre-allocated
@@ -13733,12 +13649,11 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
   closure.set_is_visible(false);
   closure.set_result_type(Object::dynamic_type());
   AddFormalParamsToFunction(&params, closure);
-  ResolveSignature(ClassFinalizer::kResolveTypeParameters, closure);
+  ResolveSignature(closure);
 
   // Finalize function type.
   Type& signature_type = Type::Handle(Z, closure.SignatureType());
-  signature_type ^= ClassFinalizer::FinalizeType(
-      current_class(), signature_type, ClassFinalizer::kCanonicalize);
+  signature_type ^= CanonicalizeType(signature_type);
   closure.SetSignatureType(signature_type);
   // Finalization would be premature when top-level parsing.
   ASSERT(!is_top_level_);
