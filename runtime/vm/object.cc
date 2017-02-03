@@ -4544,7 +4544,7 @@ static uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits) {
   hash += hash << 3;
   hash ^= hash >> 11;  // Logical shift, unsigned hash.
   hash += hash << 15;
-  hash &= ((static_cast<uintptr_t>(1) << hashbits) - 1);
+  hash &= (static_cast<uint32_t>(1) << hashbits) - 1;
   return (hash == 0) ? 1 : hash;
 }
 
@@ -17462,7 +17462,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
-    object_store->set_canonical_types(table.Release());
+    ASSERT(object_store->canonical_types() == table.Release().raw());
   }
   if (type.IsNull()) {
     // The type was not found in the table. It is not canonical yet.
