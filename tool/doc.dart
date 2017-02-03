@@ -35,8 +35,8 @@ to indicate that they are under review.
 
 Rules can be selectively enabled in the analyzer using
 [analysis options](https://pub.dartlang.org/packages/analyzer)
-or through the
-[.analysis-options file](https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file). 
+or through an
+[analysis options file](https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file). 
 
 * **[An auto-generated list enabling all options is provided
 here.](options/options.html)** 
