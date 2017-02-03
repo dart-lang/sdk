@@ -94,7 +94,7 @@ class Isolate {
    * then calls to [pause] will have no effect.
    *
    * If the isolate is spawned in a paused state, use this capability as
-   * argument to [resume] to resume the isolate.
+   * argument to the [resume] method in order to resume the paused isolate.
    */
   final Capability pauseCapability;
 
