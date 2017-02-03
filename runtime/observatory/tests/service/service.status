@@ -80,6 +80,9 @@ dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
 dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
 complex_reload_test: Skip # Issue 27861
 
+# Flaky test, only observed on Windows so far.
+vm_timeline_flags_test: Pass, RuntimeError # Issue 28625
+
 # Service protocol is not supported in product mode.
 [ $mode == product ]
 *: SkipByDesign
