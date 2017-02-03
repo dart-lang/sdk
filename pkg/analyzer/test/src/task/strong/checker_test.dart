@@ -3678,6 +3678,33 @@ class B extends A {
 ''');
   }
 
+  void test_tearOffTreatedConsistentlyAsStrictArrow() {
+    checkFile(r'''
+void foo(void f(String x)) {}
+
+class A {
+  Null bar1(dynamic x) => null;
+  void bar2(dynamic x) => null;
+  Null bar3(String x) => null;
+  void test() {
+    foo(bar1);
+    foo(bar2);
+    foo(bar3);
+  }
+}
+
+
+Null baz1(dynamic x) => null;
+void baz2(dynamic x) => null;
+Null baz3(String x) => null;
+void test() {
+  foo(baz1);
+  foo(baz2);
+  foo(baz3);
+}
+    ''');
+  }
+
   void test_ternaryOperator() {
     checkFile('''
 abstract class Comparable<T> {
