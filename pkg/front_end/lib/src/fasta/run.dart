@@ -14,23 +14,15 @@ import 'package:testing/testing.dart' show
     StdioProcess;
 
 import 'testing/kernel_chain.dart' show
-    TestContext;
+    computeDartVm,
+    computePatchedSdk;
 
 import 'compiler_command_line.dart' show
     CompilerCommandLine;
 
 Future<int> run(Uri uri, CompilerCommandLine cl) async {
-  Uri dartVm;
-
-  Future<TestContext> constructor(
-      suite, Map<String, String> environment, String sdk, Uri vm,
-      Uri packages, bool strongMode, dartSdk, bool updateExpectations) {
-    dartVm = vm;
-    return null;
-  }
-  // TODO(ahe): Using [TestContext] to compute a value for [dartVm]. Make the
-  // API simpler.
-  await TestContext.create(null, <String, String>{}, constructor);
+  Uri sdk = await computePatchedSdk();
+  Uri dartVm = computeDartVm(sdk);
   List<String> arguments = <String>["${uri.toFilePath()}"]
       ..addAll(cl.arguments.skip(1));
   if (cl.verbose) {

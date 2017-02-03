@@ -27,7 +27,7 @@ front_end/test/fasta/rasta/*: SkipByDesign
 # way.
 front_end/test/fasta/sdk_test: SkipByDesign
 
-# Skip fasta tests for now (https://github.com/dart-lang/sdk/issues/28594).
+[ $runtime != vm || $mode != release || $system == windows ]
 front_end/test/fasta/*: Skip
 
 [ $runtime == vm && $mode == release && $system == linux ]

@@ -179,6 +179,10 @@ abstract class ChainContext {
           isAsync = step.isAsync;
           logStepStart(completed, unexpectedResults.length, descriptions.length,
               suite, description, step);
+          // TODO(ahe): It's important to share the zone error reporting zone
+          // between all the tasks. Otherwise, if a future completes with an
+          // error in one zone, and gets stored, it becomes an uncaught error
+          // in other zones (this happened in createPlatform).
           future = runGuarded(() async {
             try {
               return await step.run(input, this);
@@ -218,6 +222,7 @@ abstract class ChainContext {
             unexpectedResults[description] = result;
             unexpectedOutcomes[description] = expectedOutcomes;
             logUnexpectedResult(suite, description, result, expectedOutcomes);
+            exitCode = 1;
           } else {
             logMessage(sb);
           }
@@ -238,7 +243,6 @@ abstract class ChainContext {
     logSuiteComplete();
     if (unexpectedResults.isNotEmpty) {
       unexpectedResults.forEach((TestDescription description, Result result) {
-        exitCode = 1;
         logUnexpectedResult(suite, description, result,
             unexpectedOutcomes[description]);
       });

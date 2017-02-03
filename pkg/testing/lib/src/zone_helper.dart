@@ -11,6 +11,10 @@ import 'dart:async' show
     ZoneSpecification,
     runZoned;
 
+import 'dart:io' show
+    exit,
+    stderr;
+
 import 'dart:isolate' show
     Capability,
     Isolate,
@@ -40,8 +44,16 @@ Future runGuarded(
     } else if (handleLateError != null) {
       handleLateError(error, stackTrace);
     } else {
-      // Delegate to parent.
-      throw error;
+      String errorString = "error.toString() failed.";
+      try {
+        errorString = "$error";
+      } catch (_) {
+        // Ignored.
+      }
+      stderr.write("$errorString\n" +
+          (stackTrace == null ? "" : "$stackTrace"));
+      stderr.flush();
+      exit(255);
     }
   }
 
@@ -59,6 +71,7 @@ Future runGuarded(
     handleUncaughtError(error, stackTrace);
   }).asFuture();
 
+  Isolate.current.setErrorsFatal(false);
   Isolate.current.addErrorListener(errorPort.sendPort);
   return acknowledgeControlMessages(Isolate.current).then((_) {
     runZoned(

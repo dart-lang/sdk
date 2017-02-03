@@ -77,12 +77,55 @@ import 'package:kernel/ast.dart' show
 import 'package:package_config/discovery.dart' show
     loadPackagesFile;
 
+import '../environment_variable.dart' show
+    EnvironmentVariable;
+
 typedef Future<TestContext> TestContextConstructor(
-    Chain suite, Map<String, String> environment, String sdk, Uri vm,
+    Chain suite, Map<String, String> environment, Uri sdk, Uri vm,
     Uri packages, bool strongMode, DartSdk dartSdk, bool updateExpectations);
 
 Future<bool> fileExists(Uri base, String path) async {
   return await new File.fromUri(base.resolve(path)).exists();
+}
+
+final EnvironmentVariable testConfigVariable = new EnvironmentVariable(
+    "DART_CONFIGURATION",
+    "It should be something like 'ReleaseX64', depending on which"
+    " configuration you're testing.");
+
+Future<Uri> computePatchedSdk() async {
+  String config = await testConfigVariable.value;
+  String path;
+  switch (Platform.operatingSystem) {
+    case "linux":
+      path = "out/$config/patched_sdk";
+      break;
+
+    case "macos":
+      path = "xcodebuild/$config/patched_sdk";
+      break;
+
+    case "windows":
+      path = "build/$config/patched_sdk";
+      break;
+
+    default:
+      throw "Unsupported operating system: '${Platform.operatingSystem}'.";
+  }
+  Uri sdk = Uri.base.resolve("$path/");
+  const String asyncDart = "lib/async/async.dart";
+  if (!await fileExists(sdk, asyncDart)) {
+    throw "Couldn't find '$asyncDart' in '$sdk'.";
+  }
+  const String asyncSources = "lib/async/async_sources.gypi";
+  if (await fileExists(sdk, asyncSources)) {
+    throw "Found '$asyncSources' in '$sdk', so it isn't a patched SDK.";
+  }
+  return sdk;
+}
+
+Uri computeDartVm(Uri patchedSdk) {
+  return patchedSdk.resolve(Platform.isWindows ? "../dart.exe" : "../dart");
 }
 
 abstract class TestContext extends ChainContext {
@@ -94,9 +137,9 @@ abstract class TestContext extends ChainContext {
 
   final DartSdk dartSdk;
 
-  TestContext(String sdk, this.vm, Uri packages, bool strongMode, this.dartSdk)
+  TestContext(Uri sdk, this.vm, Uri packages, bool strongMode, this.dartSdk)
       : packages = packages,
-        options = new DartOptions(strongMode: strongMode, sdk: sdk,
+        options = new DartOptions(strongMode: strongMode, sdk: sdk.toFilePath(),
             packagePath: packages.toFilePath());
 
   Future<DartLoader> createLoader() async {
@@ -108,63 +151,15 @@ abstract class TestContext extends ChainContext {
   static Future<TestContext> create(Chain suite,
       Map<String, String> environment,
       TestContextConstructor constructor) async {
-    const String suggestion =
-        "Try checking the value of environment variable 'DART_AOT_SDK', "
-        "it should point to a patched SDK.";
-    String sdk = await getEnvironmentVariable(
-        "DART_AOT_SDK", Environment.directory,
-        "Please define environment variable 'DART_AOT_SDK' to point to a "
-        "patched SDK.",
-        (String n) => "Couldn't locate '$n'. $suggestion");
-    Uri sdkUri = Uri.base.resolve("$sdk/");
-    const String asyncDart = "lib/async/async.dart";
-    if (!await fileExists(sdkUri, asyncDart)) {
-      throw "Couldn't find '$asyncDart' in '$sdk'. $suggestion";
-    }
-    const String asyncSources = "lib/async/async_sources.gypi";
-    if (await fileExists(sdkUri, asyncSources)) {
-      throw "Found '$asyncSources' in '$sdk', so it isn't a patched SDK. "
-          "$suggestion";
-    }
-
-    String vmPath = await getEnvironmentVariable(
-        "DART_AOT_VM", Environment.file,
-        "Please define environment variable 'DART_AOT_VM' to point to a "
-        "Dart VM that reads .dill files.",
-        (String n) => "Couldn't locate '$n'. Please check the value of "
-            "environment variable 'DART_AOT_VM', it should point to a "
-            "Dart VM that reads .dill files.");
-    Uri vm = Uri.base.resolve(vmPath);
-
+    Uri sdk = await computePatchedSdk();
+    Uri vm = computeDartVm(sdk);
     Uri packages = Uri.base.resolve(".packages");
     bool strongMode = false;
     bool updateExpectations = environment["updateExpectations"] != "false";
     return constructor(suite, environment, sdk, vm, packages, strongMode,
-        createDartSdk(sdk, strongMode: strongMode), updateExpectations);
+        createDartSdk(sdk.toFilePath(), strongMode: strongMode),
+        updateExpectations);
   }
-}
-
-enum Environment {
-  directory,
-  file,
-}
-
-Future<String> getEnvironmentVariable(
-    String name, Environment kind, String undefined, notFound(String n)) async {
-  String result = Platform.environment[name];
-  if (result == null) {
-    throw undefined;
-  }
-  switch (kind) {
-    case Environment.directory:
-      if (!await new Directory(result).exists()) throw notFound(result);
-      break;
-
-    case Environment.file:
-      if (!await new File(result).exists()) throw notFound(result);
-      break;
-  }
-  return result;
 }
 
 class Kernel extends Step<TestDescription, Program, TestContext> {

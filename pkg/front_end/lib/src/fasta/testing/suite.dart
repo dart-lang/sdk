@@ -99,7 +99,7 @@ class FeContext extends TestContext {
 
   Future<Program> platform;
 
-  FeContext(String sdk, Uri vm, Uri packages, bool strongMode,
+  FeContext(Uri sdk, Uri vm, Uri packages, bool strongMode,
       DartSdk dartSdk, bool updateExpectations, this.uriTranslator,
       bool fullCompile, AstKind astKind)
       : steps = <Step>[
@@ -140,7 +140,7 @@ class FeContext extends TestContext {
   }
 
   static Future<FeContext> create(Chain suite, Map<String, String> environment,
-      String sdk, Uri vm, Uri packages, bool strongMode, DartSdk dartSdk,
+      Uri sdk, Uri vm, Uri packages, bool strongMode, DartSdk dartSdk,
       bool updateExpectations) async {
     TranslateUri uriTranslator = await TranslateUri.parse(packages);
     String astKindString = environment[AST_KIND_INDEX];
