@@ -1003,7 +1003,6 @@ LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyl
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent-inherited_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-justify/getComputedStyle/getComputedStyle-text-justify_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/52776_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/XPathException_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/dispatch-event-exception_t01: RuntimeError # https://github.com/dart-lang/sdk/issues/25928
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: RuntimeError # Please triage this failure
@@ -1029,7 +1028,6 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Plea
 LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/multiple-centered-dialogs_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/non-anchored-dialog-positioning_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/show-modal-focusing-steps_t01: RuntimeError # Please triage this failure
@@ -1103,7 +1101,6 @@ LayoutTests/fast/dom/getElementsByClassName/011_t01: Pass, RuntimeError # Please
 LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getelementsbyname-invalidation-cache_t01: RuntimeError # Issue 25155
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/icon-size-property_t01: RuntimeError # https://github.com/dart-lang/sdk/issues/26422
 LayoutTests/fast/dom/location-hash_t01: Pass, RuntimeError # Please triage this failure
@@ -1221,7 +1218,6 @@ LayoutTests/fast/forms/option-strip-unicode-spaces_t01: RuntimeError # Please tr
 LayoutTests/fast/forms/parser-associated-form-removal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/paste-into-textarea_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/search-popup-crasher_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-change-popup-to-listbox-in-event-handler_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/select-clientheight-large-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-clientheight-with-multiple-attr_t01: Pass, RuntimeError # Please triage this failure
@@ -2047,7 +2043,6 @@ LayoutTests/fast/css/style-scoped/style-scoped-with-important-rule_t01: RuntimeE
 LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-sheet_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/stylesheet-enable-second-alternate-link_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/word-break-user-modify-allowed-values_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/52776_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/XPathException_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-zoom-and-scroll_t01: RuntimeError # Please triage this failure
@@ -2066,7 +2061,6 @@ LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-search_t01: RuntimeErr
 LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/multiple-centered-dialogs_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/non-anchored-dialog-positioning_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/show-modal-focusing-steps_t01: RuntimeError # Please triage this failure
@@ -2118,7 +2112,6 @@ LayoutTests/fast/dom/document-importNode-arguments_t01: RuntimeError # Please tr
 LayoutTests/fast/dom/domparser-parsefromstring-mimetype-support_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/011_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/navigatorcontentutils/unregister-protocol-handler_t01: RuntimeError # Please triage this failure
@@ -2915,7 +2908,6 @@ LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyl
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent-inherited_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-justify/getComputedStyle/getComputedStyle-text-justify_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/52776_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/dispatch-event-exception_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Document/CaretRangeFromPoint/basic_t01: RuntimeError # Please triage this failure
@@ -2955,7 +2947,6 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeErro
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/multiple-centered-dialogs_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/non-anchored-dialog-positioning_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/show-modal-focusing-steps_t01: RuntimeError # Please triage this failure
@@ -3119,7 +3110,6 @@ LayoutTests/fast/dom/getElementsByClassName/011_t01: RuntimeError # Please triag
 LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getelementsbyname-invalidation-cache_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/icon-size-property_t01: RuntimeError # Issue 26714
 LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError # Please triage this failure
@@ -3386,7 +3376,6 @@ LayoutTests/fast/forms/parser-associated-form-removal_t01: RuntimeError # Please
 LayoutTests/fast/forms/paste-into-textarea_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/paste-multiline-text-input_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/search-popup-crasher_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-change-popup-to-listbox-in-event-handler_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/select-change-popup-to-listbox-roundtrip_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-clientheight-large-size_t01: RuntimeError # Please triage this failure
@@ -4292,7 +4281,6 @@ LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyl
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent-inherited_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-justify/getComputedStyle/getComputedStyle-text-justify_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/52776_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Attr/direction-attribute-set-and-cleared_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/XPathException_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/dispatch-event-exception_t01: RuntimeError # Please triage this failure
@@ -4320,7 +4308,6 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeErro
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/multiple-centered-dialogs_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/non-anchored-dialog-positioning_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/show-modal-focusing-steps_t01: RuntimeError # Please triage this failure
@@ -4410,7 +4397,6 @@ LayoutTests/fast/dom/domparser-parsefromstring-mimetype-support_t01: RuntimeErro
 LayoutTests/fast/dom/fragment-activation-focuses-target_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/html-collections-named-getter-mandatory-arg_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/implementation-api-args_t01: RuntimeError # Please triage this failure
@@ -4631,7 +4617,6 @@ LayoutTests/fast/forms/option-change-single-selected_t01: RuntimeError # Please 
 LayoutTests/fast/forms/option-strip-unicode-spaces_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/parser-associated-form-removal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/search-popup-crasher_t01: Pass, RuntimeError # Fails on 7.1. Please triage this failure
 LayoutTests/fast/forms/select-set-length-with-mutation-remove_t01: RuntimeError
 LayoutTests/fast/forms/select-set-length-with-mutation-reparent_t01: RuntimeError
 LayoutTests/fast/forms/selection-wrongtype_t01: RuntimeError # Please triage this failure
@@ -5529,7 +5514,6 @@ LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyl
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent-inherited_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-justify/getComputedStyle/getComputedStyle-text-justify_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/52776_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/Attr/direction-attribute-set-and-cleared_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/XPathException_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/dispatch-event-exception_t01: RuntimeError # Please triage this failure
@@ -5561,7 +5545,6 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeErro
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/multiple-centered-dialogs_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/non-anchored-dialog-positioning_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/show-modal-focusing-steps_t01: RuntimeError # Please triage this failure
@@ -5684,7 +5667,6 @@ LayoutTests/fast/dom/elementFromPoint-scaled-scrolled_t01: RuntimeError # Please
 LayoutTests/fast/dom/getElementsByClassName/014_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/html-collections-named-getter-mandatory-arg_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Dartium JSInterop failure
@@ -5891,7 +5873,6 @@ LayoutTests/fast/forms/multiple-selected-options-innerHTML_t01: RuntimeError # P
 LayoutTests/fast/forms/option-change-single-selected_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/option-strip-unicode-spaces_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/search-popup-crasher_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-clientheight-large-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-clientheight-with-multiple-attr_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/selection-direction_t01: RuntimeError # Please triage this failure
@@ -6984,7 +6965,6 @@ LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyl
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent-inherited_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-justify/getComputedStyle/getComputedStyle-text-justify_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/52776_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/XPathException_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/dispatch-event-exception_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: RuntimeError # Please triage this failure
@@ -7026,7 +7006,6 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeErro
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/multiple-centered-dialogs_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/non-anchored-dialog-positioning_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/show-modal-focusing-steps_t01: RuntimeError # Please triage this failure
@@ -7281,7 +7260,6 @@ LayoutTests/fast/dom/getElementsByClassName/014_t01: RuntimeError # Please triag
 LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getelementsbyname-invalidation-cache_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/icon-size-property_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/image-object_t01: RuntimeError # Please triage this failure
@@ -7588,7 +7566,6 @@ LayoutTests/fast/forms/paste-into-textarea_t01: RuntimeError # Please triage thi
 LayoutTests/fast/forms/paste-multiline-text-input_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/radio-checkbox-restore-indeterminate_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/search-popup-crasher_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-change-popup-to-listbox-in-event-handler_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/select-clientheight-large-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-clientheight-with-multiple-attr_t01: RuntimeError # Please triage this failure
@@ -8956,7 +8933,6 @@ LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyl
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent-inherited_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-indent/getComputedStyle/getComputedStyle-text-indent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css3-text/css3-text-justify/getComputedStyle/getComputedStyle-text-justify_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/52776_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/XPathException_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMException/dispatch-event-exception_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01: RuntimeError # Please triage this failure
@@ -8998,7 +8974,6 @@ LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeErro
 LayoutTests/fast/dom/HTMLDialogElement/dialog-show-modal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-does-not-match-disabled-selector_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/multiple-centered-dialogs_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/non-anchored-dialog-positioning_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/show-modal-focusing-steps_t01: RuntimeError # Please triage this failure
@@ -9231,7 +9206,6 @@ LayoutTests/fast/dom/getElementsByClassName/014_t01: RuntimeError # Please triag
 LayoutTests/fast/dom/getElementsByClassName/dumpNodeList_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/getelementsbyname-invalidation-cache_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/icon-size-property_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/image-object_t01: RuntimeError # Please triage this failure
@@ -9534,7 +9508,6 @@ LayoutTests/fast/forms/paste-into-textarea_t01: RuntimeError # Please triage thi
 LayoutTests/fast/forms/paste-multiline-text-input_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/plaintext-mode-1_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/radio-checkbox-restore-indeterminate_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/search-popup-crasher_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-change-popup-to-listbox-in-event-handler_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/select-clientheight-large-size_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/select-clientheight-with-multiple-attr_t01: RuntimeError # Please triage this failure
