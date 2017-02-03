@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'batch_util.dart';
+import 'util.dart';
 
 import 'package:args/args.dart';
 import 'package:kernel/analyzer/loader.dart';
@@ -56,6 +57,10 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
   ..addOption('url-mapping',
       allowMultiple: true,
       help: 'A custom url mapping of the form `<scheme>:<name>::<uri>`.')
+  ..addOption('embedder-entry-points-manifest',
+      allowMultiple: true,
+      help: 'A path to a file describing entrypoints '
+          '(lines of the form `<library>,<class>,<member>`).')
   ..addFlag('verbose',
       abbr: 'v',
       negatable: false,
@@ -282,6 +287,12 @@ Future<CompilerOutcome> batchMain(
 
   List<String> urlMapping = options['url-mapping'] as List<String>;
   var customUriMappings = parseCustomUriMappings(urlMapping);
+
+  List<String> embedderEntryPointManifests =
+      options['embedder-entry-points-manifest'] as List<String>;
+  List<ProgramRoot> programRoots =
+      parseProgramRoots(embedderEntryPointManifests);
+
   var repository = new Repository();
 
   Program program;
@@ -291,7 +302,9 @@ Future<CompilerOutcome> batchMain(
   Function getLoadedFiles;
   List errors = const [];
   TargetFlags targetFlags = new TargetFlags(
-      strongMode: options['strong'], treeShake: options['tree-shake']);
+      strongMode: options['strong'],
+      treeShake: options['tree-shake'],
+      programRoots: programRoots);
   Target target = getTarget(options['target'], targetFlags);
 
   var declaredVariables = <String, String>{};

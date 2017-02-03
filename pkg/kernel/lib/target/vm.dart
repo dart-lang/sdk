@@ -77,7 +77,8 @@ class VmTarget extends Target {
       new TreeShaker(program,
               hierarchy: _hierarchy,
               coreTypes: coreTypes,
-              strongMode: strongMode)
+              strongMode: strongMode,
+              programRoots: flags.programRoots)
           .transform(program);
       _hierarchy = null; // Hierarchy must be recomputed.
     }
