@@ -4544,7 +4544,10 @@ static uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits) {
   hash += hash << 3;
   hash ^= hash >> 11;  // Logical shift, unsigned hash.
   hash += hash << 15;
-  hash &= (static_cast<uint32_t>(1) << hashbits) - 1;
+  // FinalizeHash gets called with values for hashbits that are bigger than 31
+  // (like kBitsPerWord - 1).  Therefore we are careful to use a type
+  // (uintptr_t) big enough to avoid undefined behavior with the left shift.
+  hash &= (static_cast<uintptr_t>(1) << hashbits) - 1;
   return (hash == 0) ? 1 : hash;
 }
 
