@@ -1967,6 +1967,45 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           argTypes.add(argumentList.arguments[i].staticType);
         }
       }
+
+      // TODO(leafp): remove this again after code has been updated to
+      // use FutureOr on classes that implement Future
+      // Special case Future<T>.then upwards inference. It has signature:
+      //
+      //     <S>(T -> (S | Future<S>)) -> Future<S>
+      //
+      // Based on the first argument type, we'll pick one of these signatures:
+      //
+      //     <S>(T -> S) -> Future<S>
+      //     <S>(T -> Future<S>) -> Future<S>
+      //
+      // ... and finish the inference using that.
+      if (argTypes.isNotEmpty && _resolver.isFutureThen(fnType.element)) {
+        var firstArgType = argTypes[0];
+        var firstParamType = paramTypes[0];
+        if (firstArgType is FunctionType &&
+            firstParamType is FunctionType &&
+            !firstParamType.returnType.isDartAsyncFutureOr) {
+          var argReturnType = firstArgType.returnType;
+          // Skip the inference if we have the top type. It can only lead to
+          // worse inference. For example, this happens when the lambda returns
+          // S or Future<S> in a conditional.
+          if (!argReturnType.isObject && !argReturnType.isDynamic) {
+            DartType paramReturnType = _typeProvider.futureOrType
+                .instantiate([fnType.typeFormals[0].type]);
+
+            // Adjust the expected parameter type to have this return type.
+            var function = new FunctionElementImpl(firstParamType.name, -1)
+              ..isSynthetic = true
+              ..shareParameters(firstParamType.parameters)
+              ..returnType = paramReturnType;
+            function.type = new FunctionTypeImpl(function);
+            // Use this as the expected 1st parameter type.
+            paramTypes[0] = function.type;
+          }
+        }
+      }
+
       return ts.inferGenericFunctionCall(fnType, paramTypes, argTypes,
           fnType.returnType, InferenceContext.getContext(node),
           errorReporter: _resolver.errorReporter, errorNode: errorNode);
