@@ -811,8 +811,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       HInstruction value = new HIndex(array, index, null, type);
       add(value);
 
-      localsHandler.updateLocal(
-          astAdapter.getLocal(forInStatement.variable), value);
+      Local loopVariableLocal = astAdapter.getLocal(forInStatement.variable);
+      localsHandler.updateLocal(loopVariableLocal, value);
+      // Hint to name loop value after name of loop variable.
+      if (loopVariableLocal is !SyntheticLocal) {
+        value.sourceElement ??= loopVariableLocal;
+      }
 
       forInStatement.body.accept(this);
     }
@@ -868,8 +872,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       TypeMask mask = astAdapter.typeOfIteratorCurrent(forInStatement);
       _pushDynamicInvocation(forInStatement, mask, [iterator],
           selector: Selectors.current);
-      localsHandler.updateLocal(
-          astAdapter.getLocal(forInStatement.variable), pop());
+      Local loopVariableLocal = astAdapter.getLocal(forInStatement.variable);
+      HInstruction value = pop();
+      localsHandler.updateLocal(loopVariableLocal, value);
+      // Hint to name loop value after name of loop variable.
+      if (loopVariableLocal is !SyntheticLocal) {
+        value.sourceElement ??= loopVariableLocal;
+      }
       forInStatement.body.accept(this);
     }
 

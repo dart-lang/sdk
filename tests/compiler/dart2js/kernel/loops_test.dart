@@ -52,10 +52,8 @@ main() {
   }
   return sum;
 }''';
-    // TODO(het): Check that the code is alpha-equivalent. That is,
-    // the same except for variable names.
     return check(code);
-  }, skip: "The output is the same, with one variable renamed");
+  });
 
   test('for-in loop optimized', () {
     String code = '''
