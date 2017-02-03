@@ -430,7 +430,7 @@ class AnalysisServer {
     if (options.enableNewAnalysisDriver) {
       searchEngine = new SearchEngineImpl2(driverMap.values);
     } else if (index != null) {
-      searchEngine = new SearchEngineImpl(index);
+      searchEngine = new SearchEngineImpl(index, getAstProvider);
     }
     pubSummaryManager =
         new PubSummaryManager(resourceProvider, '${io.pid}.temp');

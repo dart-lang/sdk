@@ -66,7 +66,7 @@ abstract class AbstractAstProvider implements AstProvider {
     if (element is TopLevelVariableElement) {
       return nameNode.getAncestor((node) => node is VariableDeclaration);
     }
-    return null;
+    return nameNode;
   }
 
   @override

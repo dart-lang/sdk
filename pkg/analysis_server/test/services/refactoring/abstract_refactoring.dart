@@ -187,7 +187,8 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
       astProvider = new AstProviderForDriver(driver);
     } else {
       index = createMemoryIndex();
-      searchEngine = new SearchEngineImpl(index);
+      searchEngine = new SearchEngineImpl(
+          index, (_) => new AstProviderForContext(context));
       astProvider = new AstProviderForContext(context);
     }
   }
