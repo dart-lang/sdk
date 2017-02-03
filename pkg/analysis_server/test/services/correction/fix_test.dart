@@ -17,6 +17,8 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -161,6 +163,7 @@ bool test() {
           provider,
           driver.getTopLevelNameDeclarations,
           resolutionMap.elementDeclaredByCompilationUnit(testUnit).context,
+          new AstProviderForDriver(driver),
           testUnit,
           error);
       return await new DefaultFixContributor().internalComputeFixes(fixContext);
@@ -5647,11 +5650,14 @@ class _DartFixContextImpl implements DartFixContext {
   final AnalysisContext analysisContext;
 
   @override
+  final AstProvider astProvider;
+
+  @override
   final CompilationUnit unit;
 
   @override
   final AnalysisError error;
 
   _DartFixContextImpl(this.resourceProvider, this.getTopLevelDeclarations,
-      this.analysisContext, this.unit, this.error);
+      this.analysisContext, this.astProvider, this.unit, this.error);
 }

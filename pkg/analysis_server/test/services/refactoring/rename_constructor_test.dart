@@ -235,7 +235,8 @@ main() {
   }
 
   test_newInstance_nullElement() async {
-    RenameRefactoring refactoring = new RenameRefactoring(searchEngine, null);
+    RenameRefactoring refactoring =
+        new RenameRefactoring(searchEngine, null, null);
     expect(refactoring, isNull);
   }
 

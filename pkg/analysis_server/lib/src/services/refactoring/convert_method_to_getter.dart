@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -24,13 +25,13 @@ import 'package:analyzer/src/generated/source.dart';
 class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     implements ConvertMethodToGetterRefactoring {
   final SearchEngine searchEngine;
-  final GetResolvedUnit getResolvedUnit;
+  final AstProvider astProvider;
   final ExecutableElement element;
 
   SourceChange change;
 
   ConvertMethodToGetterRefactoringImpl(
-      this.searchEngine, this.getResolvedUnit, this.element);
+      this.searchEngine, this.astProvider, this.element);
 
   @override
   String get refactoringName => 'Convert Method To Getter';
@@ -72,7 +73,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     change = new SourceChange(refactoringName);
     // FunctionElement
     if (element is FunctionElement) {
-      _updateElementDeclaration(element);
+      await _updateElementDeclaration(element);
       await _updateElementReferences(element);
     }
     // MethodElement
@@ -80,8 +81,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       MethodElement method = element;
       Set<ClassMemberElement> elements =
           await getHierarchyMembers(searchEngine, method);
-      await Future.forEach(elements, (Element element) {
-        _updateElementDeclaration(element);
+      await Future.forEach(elements, (Element element) async {
+        await _updateElementDeclaration(element);
         return _updateElementReferences(element);
       });
     }
@@ -92,11 +93,11 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   @override
   bool requiresPreview() => false;
 
-  void _updateElementDeclaration(Element element) {
+  Future<Null> _updateElementDeclaration(Element element) async {
     // prepare parameters
     FormalParameterList parameters;
     {
-      AstNode node = element.computeNode();
+      AstNode node = await astProvider.getParsedNodeForElement(element);
       if (node is MethodDeclaration) {
         parameters = node.parameters;
       }
@@ -125,7 +126,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       // prepare invocation
       MethodInvocation invocation;
       {
-        CompilationUnit refUnit = await getResolvedUnit(refElement);
+        CompilationUnit refUnit =
+            await astProvider.getResolvedUnitForElement(refElement);
         AstNode refNode =
             new NodeLocator(refRange.offset).searchWithin(refUnit);
         invocation = refNode.getAncestor((node) => node is MethodInvocation);

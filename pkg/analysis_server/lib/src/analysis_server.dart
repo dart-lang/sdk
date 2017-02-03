@@ -37,12 +37,15 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -634,6 +637,19 @@ class AnalysisServer {
     }
   }
 
+  /**
+   * Return the [AstProvider] for the given [path].
+   */
+  AstProvider getAstProvider(String path) {
+    if (options.enableNewAnalysisDriver) {
+      var analysisDriver = getAnalysisDriver(path);
+      return new AstProviderForDriver(analysisDriver);
+    } else {
+      var analysisContext = getAnalysisContext(path);
+      return new AstProviderForContext(analysisContext);
+    }
+  }
+
   CompilationUnitElement getCompilationUnitElement(String file) {
     ContextSourcePair pair = getContextSourcePair(file);
     if (pair == null) {
@@ -821,6 +837,23 @@ class AnalysisServer {
     return null;
   }
 
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
+
   /**
    * Return a [Future] that completes with the resolved [CompilationUnit] for
    * the Dart file with the given [path], or with `null` if the file is not a
@@ -845,23 +878,6 @@ class AnalysisServer {
       return null;
     });
   }
-
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
 
   /**
    * Handle a [request] that was read from the communication channel.

@@ -34,6 +34,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -61,10 +62,11 @@ typedef bool ElementPredicate(Element argument);
  */
 class DartFixContextImpl extends FixContextImpl implements DartFixContext {
   final GetTopLevelDeclarations getTopLevelDeclarations;
+  final AstProvider astProvider;
   final CompilationUnit unit;
 
-  DartFixContextImpl(
-      FixContext fixContext, this.getTopLevelDeclarations, this.unit)
+  DartFixContextImpl(FixContext fixContext, this.getTopLevelDeclarations,
+      this.astProvider, this.unit)
       : super.from(fixContext);
 }
 
@@ -90,6 +92,7 @@ class FixProcessor {
   static const int MAX_LEVENSHTEIN_DISTANCE = 3;
 
   ResourceProvider resourceProvider;
+  AstProvider astProvider;
   GetTopLevelDeclarations getTopLevelDeclarations;
   CompilationUnit unit;
   AnalysisError error;
@@ -120,6 +123,7 @@ class FixProcessor {
 
   FixProcessor(DartFixContext dartContext) {
     resourceProvider = dartContext.resourceProvider;
+    astProvider = dartContext.astProvider;
     getTopLevelDeclarations = dartContext.getTopLevelDeclarations;
     context = dartContext.analysisContext;
     // unit
@@ -254,14 +258,14 @@ class FixProcessor {
       _addFix_replaceVarWithDynamic();
     }
     if (errorCode == StaticWarningCode.ASSIGNMENT_TO_FINAL) {
-      _addFix_makeFieldNotFinal();
+      await _addFix_makeFieldNotFinal();
     }
     if (errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER) {
       _addFix_makeEnclosingClassAbstract();
     }
     if (errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS) {
       _addFix_createConstructor_insteadOfSyntheticDefault();
-      _addFix_addMissingParameter();
+      await _addFix_addMissingParameter();
     }
     if (errorCode == StaticWarningCode.FUNCTION_WITHOUT_CALL) {
       _addFix_addMissingMethodCall();
@@ -458,7 +462,7 @@ class FixProcessor {
     _addFix(DartFixKind.CREATE_MISSING_METHOD_CALL, []);
   }
 
-  void _addFix_addMissingParameter() {
+  Future<Null> _addFix_addMissingParameter() async {
     if (node is ArgumentList && node.parent is MethodInvocation) {
       ArgumentList argumentList = node;
       MethodInvocation invocation = node.parent;
@@ -481,10 +485,12 @@ class FixProcessor {
         // prepare target
         int targetOffset;
         if (numRequired != 0) {
-          AstNode parameterNode = requiredParameters.last.computeNode();
+          AstNode parameterNode = await astProvider
+              .getParsedNodeForElement(requiredParameters.last);
           targetOffset = parameterNode.end;
         } else {
-          AstNode targetNode = targetElement.computeNode();
+          AstNode targetNode =
+              await astProvider.getParsedNodeForElement(targetElement);
           if (targetNode is FunctionDeclaration) {
             FunctionExpression function = targetNode.functionExpression;
             Token paren = function.parameters?.leftParenthesis;
@@ -1649,7 +1655,7 @@ class FixProcessor {
     _addFix(DartFixKind.MAKE_CLASS_ABSTRACT, [className]);
   }
 
-  void _addFix_makeFieldNotFinal() {
+  Future<Null> _addFix_makeFieldNotFinal() async {
     AstNode node = this.node;
     if (node is SimpleIdentifier &&
         node.bestElement is PropertyAccessorElement) {
@@ -1659,7 +1665,8 @@ class FixProcessor {
           !getter.variable.isSynthetic &&
           getter.variable.setter == null &&
           getter.enclosingElement is ClassElement) {
-        AstNode variable = getter.variable.computeNode();
+        AstNode variable =
+            await astProvider.getParsedNodeForElement(getter.variable);
         if (variable is VariableDeclaration &&
             variable.parent is VariableDeclarationList &&
             variable.parent.parent is FieldDeclaration) {
