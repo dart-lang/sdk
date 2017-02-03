@@ -147,7 +147,12 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
     if (node is ir.SuperPropertyGet) {
       return getGetterSelector((node as ir.SuperPropertyGet).name);
     }
-    if (node is ir.PropertySet) return getSetterSelector(node.name);
+    if (node is ir.PropertySet) {
+      return getSetterSelector((node as ir.PropertySet).name);
+    }
+    if (node is ir.SuperPropertySet) {
+      return getSetterSelector((node as ir.SuperPropertySet).name);
+    }
     if (node is ir.InvocationExpression) return getInvocationSelector(node);
     throw new SpannableAssertionFailure(
         CURRENT_ELEMENT_SPANNABLE,

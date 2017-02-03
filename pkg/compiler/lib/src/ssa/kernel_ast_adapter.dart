@@ -346,6 +346,9 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
     });
   }
 
+  ir.Procedure get createInvocationMirror =>
+      kernel.functions[_backend.helpers.createInvocationMirror];
+
   ir.Class get mapLiteralClass =>
       kernel.classes[_backend.helpers.mapLiteralClass];
 

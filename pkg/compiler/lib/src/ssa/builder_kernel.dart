@@ -31,7 +31,7 @@ import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
-import '../universe/use.dart' show StaticUse;
+import '../universe/use.dart' show DynamicUse, StaticUse;
 import '../world.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
@@ -1908,6 +1908,25 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitSuperPropertySet(ir.SuperPropertySet propertySet) {
+    propertySet.value.accept(this);
+    HInstruction value = pop();
+
+    if (propertySet.interfaceTarget == null) {
+      _generateSuperNoSuchMethod(
+          propertySet,
+          astAdapter.getSelector(propertySet).name + "=",
+          <HInstruction>[value]);
+    } else {
+      _buildInvokeSuper(
+          astAdapter.getSelector(propertySet),
+          _containingClass(propertySet),
+          propertySet.interfaceTarget,
+          <HInstruction>[value]);
+    }
+  }
+
+  @override
   void visitVariableSet(ir.VariableSet variableSet) {
     variableSet.value.accept(this);
     HInstruction value = pop();
@@ -2634,29 +2653,107 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return null;
   }
 
-  HInstruction _buildInvokeSuper(
-      ir.Expression invocation, List<HInstruction> arguments) {
-    // Invocation is either a method invocation or a property get/set.
-    // TODO(efortuna): Common interface?
-    // TODO(efortuna): Add source information.
+  /// Find the applicable NoSuchMethod method for an object of this particular
+  /// class.
+  ir.Procedure _findNoSuchMethodInClass(ir.Class cls) {
+    // TODO(efortuna): If we find ourselves doing this sort of calculation
+    // often, rewrite what is done with the original element class where we call
+    // lookupSuperMember.
+    ir.Procedure noSuchMethod = null;
+    while (cls != null && cls != astAdapter.objectClass) {
+      for (ir.Procedure procedure in cls.procedures) {
+        // TODO(efortuna): Do we need to check mixin classes as well?
+        if (procedure.name.name == Identifiers.noSuchMethod_ &&
+            Selectors.noSuchMethod_
+                .signatureApplies(astAdapter.getElement(procedure))) {
+          noSuchMethod = procedure;
+        }
+      }
+      cls = cls.superclass;
+    }
+
+    if (noSuchMethod == null) {
+      // There is no matching overloaded NoSuchMethod function in the containing
+      // class. Look on the Object class itself.
+      for (ir.Procedure procedure in astAdapter.objectClass.procedures) {
+        if (procedure.name.name == Identifiers.noSuchMethod_) {
+          noSuchMethod = procedure;
+        }
+      }
+    }
+    assert(noSuchMethod != null);
+    return noSuchMethod;
+  }
+
+  void _generateSuperNoSuchMethod(ir.Expression invocation, String publicName,
+      List<HInstruction> arguments) {
     Selector selector = astAdapter.getSelector(invocation);
+    ir.Class cls = _containingClass(invocation).superclass;
+    assert(cls != null);
+    ir.Procedure noSuchMethod = _findNoSuchMethodInClass(cls);
+    if (backend.hasInvokeOnSupport &&
+        _containingClass(noSuchMethod) != astAdapter.objectClass) {
+      // Register the call as dynamic if [noSuchMethod] on the super
+      // class is _not_ the default implementation from [Object] (it might be
+      // overridden in the super class, but it might have a different number of
+      // arguments), in case the [noSuchMethod] implementation calls
+      // [JSInvocationMirror._invokeOn].
+      // TODO(johnniwinther): Register this more precisely.
+      registry?.registerDynamicUse(new DynamicUse(selector, null));
+    }
+
+    ConstantValue nameConstant =
+        backend.constantSystem.createString(new DartString.literal(publicName));
+
+    js.Name internalName = backend.namer.invocationName(selector);
+
+    var argumentsInstruction =
+        new HLiteralList(arguments, commonMasks.extendableArrayType);
+    add(argumentsInstruction);
+
+    var argumentNames = new List<HInstruction>();
+    for (String argumentName in selector.namedArguments) {
+      ConstantValue argumentNameConstant = backend.constantSystem
+          .createString(new DartString.literal(argumentName));
+      argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
+    }
+    var argumentNamesInstruction =
+        new HLiteralList(argumentNames, commonMasks.extendableArrayType);
+    add(argumentNamesInstruction);
+
+    ConstantValue kindConstant =
+        backend.constantSystem.createInt(selector.invocationMirrorKind);
+
+    _pushStaticInvocation(
+        astAdapter.createInvocationMirror,
+        [
+          graph.addConstant(nameConstant, closedWorld),
+          graph.addConstantStringFromName(internalName, closedWorld),
+          graph.addConstant(kindConstant, closedWorld),
+          argumentsInstruction,
+          argumentNamesInstruction
+        ],
+        commonMasks.dynamicType);
+
+    _buildInvokeSuper(Selectors.noSuchMethod_, _containingClass(invocation),
+        noSuchMethod, <HInstruction>[pop()]);
+  }
+
+  HInstruction _buildInvokeSuper(Selector selector, ir.Class containingClass,
+      ir.Member interfaceTarget, List<HInstruction> arguments) {
+    // TODO(efortuna): Add source information.
     HInstruction receiver = localsHandler.readThis();
-    ir.Class surroundingClass = _containingClass(invocation);
 
     List<HInstruction> inputs = <HInstruction>[];
-    if (astAdapter.isIntercepted(invocation)) {
+    if (astAdapter.isInterceptedSelector(selector)) {
       inputs.add(_interceptorFor(receiver));
     }
     inputs.add(receiver);
     inputs.addAll(arguments);
 
-    ir.Member interfaceTarget = invocation is ir.SuperMethodInvocation
-        ? (invocation as ir.SuperMethodInvocation).interfaceTarget
-        : (invocation as ir.SuperPropertyGet).interfaceTarget;
-
     HInstruction instruction = new HInvokeSuper(
         astAdapter.getMember(interfaceTarget),
-        astAdapter.getClass(surroundingClass),
+        astAdapter.getClass(containingClass),
         selector,
         inputs,
         astAdapter.returnTypeOf(interfaceTarget),
@@ -2670,14 +2767,23 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   @override
   void visitSuperPropertyGet(ir.SuperPropertyGet propertyGet) {
-    _buildInvokeSuper(propertyGet, const <HInstruction>[]);
+    if (propertyGet.interfaceTarget == null) {
+      _generateSuperNoSuchMethod(propertyGet,
+          astAdapter.getSelector(propertyGet).name, const <HInstruction>[]);
+    } else {
+      _buildInvokeSuper(
+          astAdapter.getSelector(propertyGet),
+          _containingClass(propertyGet),
+          propertyGet.interfaceTarget, const <HInstruction>[]);
+    }
   }
 
   @override
   void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
     List<HInstruction> arguments = _visitArgumentsForStaticTarget(
         invocation.interfaceTarget.function, invocation.arguments);
-    _buildInvokeSuper(invocation, arguments);
+    _buildInvokeSuper(astAdapter.getSelector(invocation),
+        _containingClass(invocation), invocation.interfaceTarget, arguments);
   }
 
   @override
