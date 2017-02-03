@@ -28,6 +28,7 @@
 % - Assert statements may now also include a "message" operand.
 % - The Null type is now considered a subtype of all types in most cases.
 % - Specify what NEWLINE means in multiline strings.
+% - Specified the FutureOf type.
 %
 % 1.14
 % - The call "C()" where "C" is a class name, is a now compile-time error.
@@ -7228,11 +7229,11 @@ Static type annotations are used in variable declarations (\ref{variables}) (inc
     .
 
 {\bf typeArguments:}
-      '<' typeList '>'
+      `<' typeList `>'
     .
 
 {\bf typeList:}
-      type (',' type)*
+      type (`,' type)*
     .
  \end{grammar}
 
@@ -7653,6 +7654,29 @@ What of static checking? Surely we would want to flag (2) when users have explic
 \LMHash{}
 The name \DYNAMIC{} denotes a \cd{Type} object even though \DYNAMIC{} is not a class.
 
+\LMHash{}
+The built-in type declaration \code{FutureOr},
+which is declared in the library \code{dart:async},
+defines a generic type with one type parameter (\ref{generics}).
+If the \code{FutureOr} type, optionally followed by type arguments,
+is used as a type, it denotes the \DYNAMIC{} type.
+As such, the \code{FutureOr} type cannot be used where \DYNAMIC{} cannot be
+used as a type.
+If the type arguments applied to \code{FutureOr} would issue static warnings
+if applied to a normal generic class with one type parameter,
+the same warnings are issued for \code{FutureOr},
+even though the type arguments are otherwise ignored.
+The name \code{FutureOr} as an expression
+denotes the same \cd{Type} object as \DYNAMIC{}.
+
+\rationale{
+The \code{FutureOr} type is reserved for future use,
+for cases where a value can be either an instance of the type \metavar{type}
+or the type \code{Future<\metavar{type}>}. Such cases occur naturally
+in asynchronous code.
+Using \code{FutureOr} instead of \DYNAMIC{} will allow some tools
+to provide a more precise type analysis.
+}
 %\rationale {
 %Type objects reify the runtime types of instances. No instance ever has type \DYNAMIC{}.
 %}
