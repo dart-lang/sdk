@@ -16,6 +16,7 @@ import 'package:kernel/verifier.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/treeshaker.dart';
 import 'package:path/path.dart' as path;
 
 // Returns the path to the current sdk based on `Platform.resolvedExecutable`.

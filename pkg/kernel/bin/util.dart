@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/treeshaker.dart';
 
 /// Parses all given [embedderEntryPointManifests] and returns the program roots
