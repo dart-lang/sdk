@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer && $use_sdk ]
+lib/*: Skip # Issue 28620
 lib/analyzer: Skip # Issue 28620
 lib/analysis_server: Skip # Issue 28620
 lib/dev_compiler: Skip # Issue 28620
