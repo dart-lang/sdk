@@ -10,12 +10,26 @@ library kernel.frontend.accessors;
 
 import 'package:kernel/ast.dart';
 
+/// An [Accessor] represents a subexpression for which we can't yet build a
+/// kernel [Expression] because we don't yet know the context in which it is
+/// used.
+///
+/// Once the context is known, an [Accessor] can be converted into an
+/// [Expression] by calling a "build" method.
+///
+/// For example, when building a kernel representation for `a[x] = b`, after
+/// parsing `a[x]` but before parsing `= b`, we don't yet know whether to
+/// generate an invocation of `operator[]` or `operator[]=`, so we generate an
+/// [Accessor] object.  Later, after `= b` is parsed, [buildAssignment] will be
+/// called.
 abstract class Accessor {
+  /// Builds an [Expression] representing a read from the accessor.
   Expression buildSimpleRead() {
     return _finish(_makeSimpleRead());
   }
 
-  /// Returns an assignment to the accessor.
+  /// Builds an [Expression] representing an assignment with the accessor on
+  /// the LHS and [value] on the RHS.
   ///
   /// The returned expression evaluates to the assigned value, unless
   /// [voidContext] is true, in which case it may evaluate to anything.
@@ -23,6 +37,13 @@ abstract class Accessor {
     return _finish(_makeSimpleWrite(value, voidContext));
   }
 
+  /// Returns an [Expression] representing a null-aware assignment (`??=`) with
+  /// the accessor on the LHS and [value] on the RHS.
+  ///
+  /// The returned expression evaluates to the assigned value, unless
+  /// [voidContext] is true, in which case it may evaluate to anything.
+  ///
+  /// [type] is the static type of the RHS.
   Expression buildNullAwareAssignment(Expression value, DartType type,
       {bool voidContext: false}) {
     if (voidContext) {
@@ -36,6 +57,8 @@ abstract class Accessor {
             _makeWrite(value, false), new VariableGet(tmp), type)));
   }
 
+  /// Returns an [Expression] representing a compound assignment (e.g. `+=`)
+  /// with the accessor on the LHS and [value] on the RHS.
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return _finish(_makeWrite(
@@ -43,12 +66,16 @@ abstract class Accessor {
         voidContext));
   }
 
+  /// Returns an [Expression] representing a pre-increment or pre-decrement
+  /// of the accessor.
   Expression buildPrefixIncrement(Name binaryOperator,
       {bool voidContext: false, Procedure interfaceTarget}) {
     return buildCompoundAssignment(binaryOperator, new IntLiteral(1),
         voidContext: voidContext, interfaceTarget: interfaceTarget);
   }
 
+  /// Returns an [Expression] representing a post-increment or post-decrement
+  /// of the accessor.
   Expression buildPostfixIncrement(Name binaryOperator,
       {bool voidContext: false, Procedure interfaceTarget}) {
     if (voidContext) {
@@ -76,8 +103,15 @@ abstract class Accessor {
 
   Expression _finish(Expression body) => body;
 
+  /// Returns an [Expression] representing a compile-time error.
+  ///
+  /// At runtime, an exception will be thrown.
   makeInvalidRead() => new InvalidExpression();
 
+  /// Returns an [Expression] representing a compile-time error wrapping
+  /// [value].
+  ///
+  /// At runtime, [value] will be evaluated before throwing an exception.
   makeInvalidWrite(Expression value) => wrapInvalid(value);
 }
 
