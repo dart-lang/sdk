@@ -41,7 +41,7 @@ abstract class Comparable<T> {
   int compareTo(T other);
 }
 
-abstract class String implements Comparable<String> {
+abstract class String extends Object implements Comparable<String> {
   external factory String.fromCharCodes(Iterable<int> charCodes,
                                         [int start = 0, int end]);
   bool get isEmpty => false;
@@ -52,7 +52,7 @@ abstract class String implements Comparable<String> {
 }
 
 class bool extends Object {}
-abstract class num implements Comparable<num> {
+abstract class num extends Object implements Comparable<num> {
   bool operator <(num other);
   bool operator <=(num other);
   bool operator >(num other);
@@ -94,6 +94,9 @@ abstract class Iterable<E> {
   Iterator<E> get iterator;
   bool get isEmpty;
   bool get isNotEmpty;
+  E get first;
+  E get last;
+  int get length;
 }
 
 abstract class List<E> implements Iterable<E> {
@@ -110,6 +113,7 @@ abstract class Map<K, V> extends Object {
   Iterable<K> get keys;
   bool get isEmpty;
   bool get isNotEmpty;
+  int get length;
 }
 
 external bool identical(Object a, Object b);
@@ -125,6 +129,7 @@ const Object override = const _Override();
 abstract class RegExp {
   external factory RegExp(String source, {bool multiLine: false,
                                           bool caseSensitive: true});
+}
 ''');
 
   static const _MockSdkLibrary LIB_ASYNC = const _MockSdkLibrary(

@@ -43,6 +43,7 @@ import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/rules/parameter_assignments.dart';
 import 'package:linter/src/rules/prefer_final_fields.dart';
 import 'package:linter/src/rules/prefer_final_locals.dart';
+import 'package:linter/src/rules/prefer_is_empty.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
 import 'package:linter/src/rules/public_member_api_docs.dart';
@@ -101,6 +102,7 @@ void registerLintRules() {
     ..register(new ParameterAssignments())
     ..register(new PreferFinalFields())
     ..register(new PreferFinalLocals())
+    ..register(new PreferIsEmpty())
     ..register(new PreferIsNotEmpty())
     ..register(new PublicMemberApiDocs())
     ..register(new PubPackageNames())
