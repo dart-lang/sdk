@@ -34,10 +34,15 @@ rules are considered stable, while others may be marked **experimental**
 to indicate that they are under review.
 
 Rules can be selectively enabled in the analyzer using
-[analysis options](https://pub.dartlang.org/packages/analyzer).  An
-auto-generated list enabling all options is provided
-[here](options/options.html).  As some lints may contradict each other, only
-some lints will be enabled in practice, but this list should provide a
+[analysis options](https://pub.dartlang.org/packages/analyzer)
+or through the
+[.analysis-options file](https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file). 
+
+* **[An auto-generated list enabling all options is provided
+here.](options/options.html)** 
+
+As some lints may contradict each other, only a subset of these will be
+enabled in practice, but this list should provide a
 convenient jumping-off point.
 
 These rules are under active development.  Feedback is
@@ -331,7 +336,10 @@ linter:
 
             <h1 id="analysis-options">Analysis Options</h1>
             <p>
-               Auto-generated options enabling all lints; tailor to fit!
+               Auto-generated options enabling all lints.
+               Add these to your
+               [.analysis-options file](https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file)
+               and tailor to fit!
             </p>
 
 ${markdownToHtml(generateOptions())}
