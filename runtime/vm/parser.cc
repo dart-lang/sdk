@@ -5431,7 +5431,7 @@ void Parser::SkipTypeOrFunctionType(bool allow_void) {
     // Including 'Function' not followed by '(' or '<'.
     SkipType(false);
   }
-  while (IsSymbol(Symbols::Function())) {
+  while (IsFunctionTypeSymbol()) {
     ConsumeToken();
     SkipTypeArguments();
     if (CurrentToken() == Token::kLPAREN) {
@@ -8232,7 +8232,7 @@ bool Parser::TryParseType(bool allow_void) {
     }
     found = true;
   }
-  while (IsSymbol(Symbols::Function())) {
+  while (IsFunctionTypeSymbol()) {
     ConsumeToken();
     if ((CurrentToken() == Token::kLT) && !TryParseTypeParameters()) {
       return false;
@@ -12988,7 +12988,7 @@ RawAbstractType* Parser::ParseTypeOrFunctionType(
     // refer to a not yet declared function type parameter.
     type = ParseType(ClassFinalizer::kDoNotResolve);
   }
-  while (IsSymbol(Symbols::Function())) {
+  while (IsFunctionTypeSymbol()) {
     if (type.IsNull()) {
       type = Type::DynamicType();
     }
@@ -13066,7 +13066,7 @@ RawType* Parser::ParseFunctionType(
     AddFormalParamsToFunction(&params, signature_function);
     innermost_function_ = innermost_function_.parent_function();
     type = signature_function.SignatureType();
-  } while (IsSymbol(Symbols::Function()));
+  } while (IsFunctionTypeSymbol());
   // At this point, all type parameters have been parsed, resolve the type.
   if (finalization == ClassFinalizer::kIgnore) {
     return Type::DynamicType();
