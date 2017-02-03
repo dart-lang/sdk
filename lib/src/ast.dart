@@ -5,40 +5,11 @@
 /// Common AST helpers.
 library linter.src.ast;
 
-import 'package:analyzer/dart/ast/ast.dart'
-    show
-        Annotation,
-        AssignmentExpression,
-        AstNode,
-        Block,
-        BlockFunctionBody,
-        ClassDeclaration,
-        ClassMember,
-        ClassTypeAlias,
-        ConstructorDeclaration,
-        Declaration,
-        EnumConstantDeclaration,
-        EnumDeclaration,
-        Expression,
-        ExpressionFunctionBody,
-        ExpressionStatement,
-        FieldDeclaration,
-        FunctionDeclaration,
-        FunctionTypeAlias,
-        Identifier,
-        MethodDeclaration,
-        NamedCompilationUnitMember,
-        ReturnStatement,
-        SimpleIdentifier,
-        TopLevelVariableDeclaration,
-        TypeParameter,
-        VariableDeclaration;
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
-import 'package:analyzer/dart/element/element.dart'
-    show Element, ParameterElement, PropertyAccessorElement;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:linter/src/analyzer.dart';
 
 /// Returns direct children of [parent].

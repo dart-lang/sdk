@@ -4,12 +4,25 @@
 
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/util.dart'
-    as util; // ignore: implementation_imports
+import 'package:analyzer/src/lint/util.dart' // ignore: implementation_imports
+    as util;
 
+export 'package:analyzer/src/dart/ast/token.dart';
+export 'package:analyzer/src/dart/constant/evaluation.dart'
+    show ConstantEvaluationEngine, ConstantVisitor;
+export 'package:analyzer/src/dart/constant/value.dart' show DartObjectImpl;
+export 'package:analyzer/src/generated/engine.dart'
+    show AnalysisContext, AnalysisErrorInfo;
+export 'package:analyzer/src/generated/resolver.dart'
+    show InheritanceManager, TypeProvider, TypeSystem;
+export 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 export 'package:analyzer/src/lint/linter.dart'
     show LintRule, Group, Maturity, LintFilter;
+export 'package:analyzer/src/lint/project.dart'
+    show DartProject, ProjectVisitor;
+export 'package:analyzer/src/lint/pub.dart' show PubspecVisitor, PSEntry;
 export 'package:analyzer/src/lint/util.dart' show Spelunker;
+export 'package:analyzer/src/services/lint.dart' show lintRegistry;
 
 /// Facade for managing access to `analyzer` package APIs.
 class Analyzer {

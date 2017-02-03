@@ -7,9 +7,7 @@ library linter.src.rules.package_prefixed_library_names;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:analyzer/src/lint/project.dart';
 
 const desc =
     r'Prefix library names with the package name and a dot-separated path.';

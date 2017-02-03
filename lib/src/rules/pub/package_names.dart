@@ -5,7 +5,6 @@
 library linter.src.rules.pub.package_names;
 
 import 'package:linter/src/analyzer.dart';
-import 'package:analyzer/src/lint/pub.dart';
 import 'package:linter/src/ast.dart';
 
 const desc = 'Use `lowercase_with_underscores` for package names.';

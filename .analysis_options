@@ -22,7 +22,7 @@ linter:
     - empty_constructor_bodies
     - empty_statements
     - hash_and_equals
-    # - implementation_imports
+    - implementation_imports
     - iterable_contains_unrelated_type
     - library_names
     - library_prefixes

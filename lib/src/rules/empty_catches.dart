@@ -6,7 +6,6 @@ library linter.src.rules.empty_catches;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:linter/src/analyzer.dart';
 
 const desc = r'Avoid empty catch blocks.';
