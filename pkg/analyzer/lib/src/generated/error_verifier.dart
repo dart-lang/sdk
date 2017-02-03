@@ -33,7 +33,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart' as checker
-    show isKnownFunction;
+    show hasStrictArrow;
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -6234,7 +6234,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   bool _expressionIsAssignableAtType(Expression expression,
       DartType actualStaticType, DartType expectedStaticType) {
-    bool concrete = _options.strongMode && checker.isKnownFunction(expression);
+    bool concrete = _options.strongMode && checker.hasStrictArrow(expression);
     if (concrete && actualStaticType is FunctionType) {
       actualStaticType =
           _typeSystem.functionTypeToConcreteType(actualStaticType);
