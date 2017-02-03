@@ -3,7 +3,7 @@
 ### Core library changes
 * `dart:core`: Add `Uri.isScheme` function to check the scheme of a URI.
    Example: `uri.isScheme("http")`. Ignores case when comparing.
-    
+
 ## 1.22.0
 
 ### Language
@@ -82,7 +82,7 @@
 
     ```dart
     Predator predator = new Cat(); // Upcast.
-    predator(new Seal()); // Cats can't eat seals!
+    predator.chaseAndEat(new Seal()); // Cats can't eat seals!
     ```
 
     To preserve soundness in strong mode, in the body of a method that uses a
