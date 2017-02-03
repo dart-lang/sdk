@@ -44,7 +44,7 @@ least_upper_bound_expansive_test/*: Fail, OK
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 multiline_strings_test: Fail # Issue 23020
 
-deferred_redirecting_factory_test: Fail # Issue 23408
+deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
 async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
@@ -191,18 +191,20 @@ regress_28255_test: SkipByDesign
 
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
-regress_23408_test: Fail
-deferred_inheritance_constraints_test/redirecting_constructor: Fail
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
 deferred_not_loaded_check_test: Fail
 vm/regress_27201_test: Fail
 
+[ $compiler == app_jit ]
+deferred_inheritance_constraints_test/redirecting_constructor: Crash
+
 [ $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
 deferred_global_test: Fail
 vm/regress_27201_test: Fail
+regress_23408_test: RuntimeError
 
 [ $compiler == precompiler ]
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
