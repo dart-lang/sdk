@@ -1962,9 +1962,13 @@ class DartcCompilationTestSuite extends StandardTestSuite {
 }
 
 class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
+  static String libraryPath(Map configuration) => configuration['use_sdk']
+      ? '${TestUtils.buildDir(configuration)}/dart-sdk'
+      : 'sdk';
+
   AnalyzeLibraryTestSuite(Map configuration)
-      : super(configuration, 'analyze_library', 'sdk', ['lib'],
-            ['tests/lib/analyzer/analyze_library.status']);
+      : super(configuration, 'analyze_library', libraryPath(configuration),
+            ['lib'], ['tests/lib/analyzer/analyze_library.status']);
 
   List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) {
     var options = super.additionalOptions(filePath);
