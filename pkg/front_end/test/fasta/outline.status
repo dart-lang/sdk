@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 rasta/bad_redirection: Fail
-rasta/class_hierarchy: Crash
+rasta/class_hierarchy: Fail
 rasta/generic_factory: Fail
 rasta/issue_000002: Fail
 rasta/issue_000032: Fail
@@ -11,7 +11,7 @@ rasta/issue_000044: Fail
 rasta/issue_000045: Fail
 rasta/issue_000046: Fail
 rasta/issue_000047: Fail
-rasta/issue_000048: Crash
+rasta/issue_000048: Fail
 rasta/issue_000067: Fail
 rasta/issue_000068: Fail
 rasta/issue_000070: Fail
@@ -19,7 +19,7 @@ rasta/mandatory_parameter_initializer: Fail
 rasta/mixin_library: Fail
 rasta/native_is_illegal: Fail
 rasta/super: Fail
-rasta/super_mixin: Crash
+rasta/super_mixin: Fail
 rasta/super_operator: Fail
 rasta/type_literals: Fail
 rasta/type_with_parse_error: Fail

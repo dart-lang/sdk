@@ -267,9 +267,9 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("endNamedMixinApplication");
     List<TypeBuilder> interfaces = popIfNotNull(implementsKeyword);
     TypeBuilder mixinApplication = pop();
-    int modifiers = Modifier.validate(pop());
     List<TypeVariableBuilder> typeVariables = pop();
     String name = pop();
+    int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
     library.addNamedMixinApplication(
         metadata, name, typeVariables, modifiers, mixinApplication, interfaces);

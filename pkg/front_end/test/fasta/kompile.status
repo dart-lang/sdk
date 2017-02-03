@@ -34,7 +34,7 @@ rasta/bad_setter_initializer: Crash
 rasta/bad_unicode: Fail
 rasta/breaking_bad: Crash
 rasta/cascades: Crash
-rasta/class_hierarchy: Crash
+rasta/class_hierarchy: Fail
 rasta/class_member: Crash
 rasta/constant_get_and_invoke: Crash
 rasta/deferred_lib: Fail
