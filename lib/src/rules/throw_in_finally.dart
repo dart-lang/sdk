@@ -6,7 +6,7 @@ library linter.src.rules.throw_in_finally;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules/control_flow_in_finally.dart';
 
 const desc = r'Avoid `throw` in finally block.';

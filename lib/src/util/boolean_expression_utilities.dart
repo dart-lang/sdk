@@ -8,13 +8,11 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/token.dart';
 
 class BooleanExpressionUtilities {
-  static HashSet<TokenType> BOOLEAN_OPERATIONS = new HashSet.from(const [
-    TokenType.AMPERSAND_AMPERSAND, TokenType.BAR_BAR
-  ]);
+  static HashSet<TokenType> BOOLEAN_OPERATIONS = new HashSet.from(
+      const [TokenType.AMPERSAND_AMPERSAND, TokenType.BAR_BAR]);
 
-  static HashSet<TokenType> EQUALITY_OPERATIONS = new HashSet.from(const [
-    TokenType.EQ_EQ, TokenType.BANG_EQ
-  ]);
+  static HashSet<TokenType> EQUALITY_OPERATIONS =
+      new HashSet.from(const [TokenType.EQ_EQ, TokenType.BANG_EQ]);
 
   static HashMap<TokenType, TokenType> IMPLICATIONS = new HashMap.from(const {
     TokenType.GT: TokenType.GT_EQ,
@@ -30,9 +28,9 @@ class BooleanExpressionUtilities {
     TokenType.LT_EQ: TokenType.GT,
   });
 
-  static HashSet<TokenType> TRICHOTOMY_OPERATORS = new HashSet.from(const [
-    TokenType.EQ_EQ, TokenType.LT, TokenType.GT
-  ]);
+  static HashSet<TokenType> TRICHOTOMY_OPERATORS =
+      new HashSet.from(const [TokenType.EQ_EQ, TokenType.LT, TokenType.GT]);
 
-  static final HashSet<TokenType> COMPARISONS = new HashSet.from(NEGATIONS.keys);
+  static final HashSet<TokenType> COMPARISONS =
+      new HashSet.from(NEGATIONS.keys);
 }

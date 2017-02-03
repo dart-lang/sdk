@@ -6,8 +6,7 @@ library linter.src.rules.non_constant_identifier_names;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/util.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc = r'Name non-constant identifiers using lowerCamelCase.';
 
@@ -48,11 +47,11 @@ class Visitor extends SimpleAstVisitor {
   Visitor(this.rule);
 
   checkIdentifier(SimpleIdentifier id, {bool underscoresOk: false}) {
-    if (underscoresOk && isJustUnderscores(id.name)) {
+    if (underscoresOk && Analyzer.facade.isJustUnderscores(id.name)) {
       // For example, `___` is OK in a callback.
       return;
     }
-    if (!isLowerCamelCase(id.name)) {
+    if (!Analyzer.facade.isLowerCamelCase(id.name)) {
       rule.reportLint(id);
     }
   }

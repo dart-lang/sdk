@@ -8,9 +8,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:analyzer/src/lint/project.dart';
-import 'package:analyzer/src/lint/util.dart';
 
 const desc =
     r'Prefix library names with the package name and a dot-separated path.';
@@ -88,7 +87,7 @@ class Visitor extends SimpleAstVisitor {
       return;
     }
     Source source = resolutionMap.elementDeclaredByDirective(node).source;
-    var prefix = createLibraryNamePrefix(
+    var prefix = Analyzer.facade.createLibraryNamePrefix(
         libraryPath: source.fullName,
         projectRoot: project.root.absolute.path,
         packageName: project.name);

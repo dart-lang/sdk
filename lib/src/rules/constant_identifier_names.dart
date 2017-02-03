@@ -6,8 +6,7 @@ library linter.src.rules.constant_identifier_names;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/util.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc = r'Prefer using lowerCamelCase for constant names.';
 
@@ -60,7 +59,7 @@ class Visitor extends SimpleAstVisitor {
   Visitor(this.rule);
 
   checkIdentifier(SimpleIdentifier id) {
-    if (!isLowerCamelCase(id.name)) {
+    if (!Analyzer.facade.isLowerCamelCase(id.name)) {
       rule.reportLint(id);
     }
   }

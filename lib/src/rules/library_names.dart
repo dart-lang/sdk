@@ -6,8 +6,7 @@ library linter.src.rules.library_names;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/util.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc =
     'Name libraries and source files using `lowercase_with_underscores`.';
@@ -52,7 +51,7 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitLibraryDirective(LibraryDirective node) {
-    if (!isLowerCaseUnderScoreWithDots(node.name.toString())) {
+    if (!Analyzer.facade.isLowerCaseUnderScoreWithDots(node.name.toString())) {
       rule.reportLint(node.name);
     }
   }

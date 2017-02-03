@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:meta/meta.dart';
 
@@ -138,7 +138,7 @@ bool _hasMatch(Map<DartTypePredicate, String> predicates, DartType type,
             previous || p(type) && predicates[p] == methodName);
 
 bool _isInvocationThroughCascadeExpression(
-        MethodInvocation invocation, VariableDeclaration variable) {
+    MethodInvocation invocation, VariableDeclaration variable) {
   if (invocation.realTarget is! SimpleIdentifier) {
     return false;
   }
@@ -150,7 +150,8 @@ bool _isInvocationThroughCascadeExpression(
       return element.variable == variable.element;
     }
   }
-  return false;}
+  return false;
+}
 
 bool _isSimpleIdentifierElementEqualToVariable(
         AstNode n, VariableDeclaration variable) =>

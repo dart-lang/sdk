@@ -6,7 +6,7 @@ library linter.src.rules.package_api_docs;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:analyzer/src/lint/project.dart';
 import 'package:linter/src/ast.dart';
 

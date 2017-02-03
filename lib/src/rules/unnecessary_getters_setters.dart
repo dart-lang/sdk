@@ -6,7 +6,7 @@ library linter.src.rules.unnecessary_getters_setters;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 
 const desc = 'Avoid wrapping fields in getters and setters just to be "safe".';

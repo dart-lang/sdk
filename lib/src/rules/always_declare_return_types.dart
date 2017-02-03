@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart'
     show AstVisitor, FunctionDeclaration, FunctionTypeAlias, MethodDeclaration;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc = 'Declare method return types.';
 

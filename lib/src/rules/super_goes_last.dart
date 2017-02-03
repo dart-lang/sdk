@@ -6,7 +6,7 @@ library linter.src.rules.super_goes_last;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc =
     'Place the super() call last in a constructor initialization list.';

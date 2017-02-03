@@ -39,7 +39,7 @@ import 'package:analyzer/dart/element/element.dart'
     show Element, ParameterElement, PropertyAccessorElement;
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/lint/util.dart';
+import 'package:linter/src/analyzer.dart';
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String name]) {
@@ -170,7 +170,8 @@ bool isSimpleSetter(MethodDeclaration setter) {
 }
 
 /// Returns `true` if the given [id] is a valid Dart identifier.
-bool isValidDartIdentifier(String id) => !isKeyWord(id) && isIdentifier(id);
+bool isValidDartIdentifier(String id) =>
+    !isKeyWord(id) && Analyzer.facade.isIdentifier(id);
 
 /// Returns `true` if the keyword associated with this token is `var`.
 bool isVar(Token token) => isKeyword(token, Keyword.VAR);

@@ -6,7 +6,7 @@ library linter.src.rules.avoid_init_to_null;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc = r"Don't explicitly initialize variables to null";
 

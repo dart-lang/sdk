@@ -31,7 +31,8 @@ class TestedExpressions {
 
     if (_contradictions.isEmpty) {
       HashSet<Expression> set = _extractComparisons(testingExpression)
-        ..addAll(truths)..addAll(negations);
+        ..addAll(truths)
+        ..addAll(negations);
       // Here and in several places we proceed only for
       // TokenType.AMPERSAND_AMPERSAND because we then know that all comparisons
       // must be true.
@@ -46,11 +47,10 @@ class TestedExpressions {
   /// (ref.prop && other.otherProp) && (!ref.prop || !other.otherProp)
   /// assuming properties are pure computations. i.e. dealing with De Morgan's
   /// laws https://en.wikipedia.org/wiki/De_Morgan%27s_laws
-  LinkedHashSet<ContradictoryComparisons> _findContradictoryComparisons
-      (HashSet<Expression> comparisons,
-      TokenType tokenType) {
-    final Iterable<Expression> binaryExpressions = comparisons
-        .where((e) => e is BinaryExpression).toSet();
+  LinkedHashSet<ContradictoryComparisons> _findContradictoryComparisons(
+      HashSet<Expression> comparisons, TokenType tokenType) {
+    final Iterable<Expression> binaryExpressions =
+        comparisons.where((e) => e is BinaryExpression).toSet();
 
     LinkedHashSet<ContradictoryComparisons> contradictions =
         new LinkedHashSet.identity();
@@ -80,17 +80,16 @@ class TestedExpressions {
             eLeftOperand == bcLeftOperand && eRightOperand == bcRightOperand;
         final bool sameOperandsInverted =
             eRightOperand == bcLeftOperand && eLeftOperand == bcRightOperand;
-        final bool isNegationOperation =
-            cOperatorType ==
+        final bool isNegationOperation = cOperatorType ==
                 BooleanExpressionUtilities.NEGATIONS[eOperatorType] ||
-                BooleanExpressionUtilities.IMPLICATIONS[cOperatorType] ==
-                    BooleanExpressionUtilities.NEGATIONS[eOperatorType];
-        final bool isTrichotomyConjunction =
-            BooleanExpressionUtilities.
-            TRICHOTOMY_OPERATORS.contains(eOperatorType) &&
-                BooleanExpressionUtilities.
-                TRICHOTOMY_OPERATORS.contains(cOperatorType) &&
-                tokenType == TokenType.AMPERSAND_AMPERSAND;
+            BooleanExpressionUtilities.IMPLICATIONS[cOperatorType] ==
+                BooleanExpressionUtilities.NEGATIONS[eOperatorType];
+        final bool isTrichotomyConjunction = BooleanExpressionUtilities
+                .TRICHOTOMY_OPERATORS
+                .contains(eOperatorType) &&
+            BooleanExpressionUtilities.TRICHOTOMY_OPERATORS
+                .contains(cOperatorType) &&
+            tokenType == TokenType.AMPERSAND_AMPERSAND;
         if ((isNegationOperation || isTrichotomyConjunction) &&
             (sameOperands || sameOperandsInverted)) {
           contradictions.add(new ContradictoryComparisons(c, ex));
@@ -106,19 +105,19 @@ class TestedExpressions {
   }
 
   _recurseCallback _recurseOnChildNodes(
-      LinkedHashSet<ContradictoryComparisons> expressions) =>
-          (Expression e) {
-            BinaryExpression ex = e as BinaryExpression;
-            if (ex.operator.type != TokenType.AMPERSAND_AMPERSAND) {
-              return;
-            }
+          LinkedHashSet<ContradictoryComparisons> expressions) =>
+      (Expression e) {
+        BinaryExpression ex = e as BinaryExpression;
+        if (ex.operator.type != TokenType.AMPERSAND_AMPERSAND) {
+          return;
+        }
 
-            LinkedHashSet<ContradictoryComparisons> set =
+        LinkedHashSet<ContradictoryComparisons> set =
             _findContradictoryComparisons(
                 new HashSet.from([ex.leftOperand, ex.rightOperand]),
                 ex.operator.type);
-            expressions.addAll(set);
-          };
+        expressions.addAll(set);
+      };
 }
 
 class ContradictoryComparisons {
@@ -151,10 +150,11 @@ void _addNodeComparisons(Expression node, HashSet<Expression> comparisons) {
   }
 }
 
-bool _isComparison(Expression expression) => expression is BinaryExpression &&
+bool _isComparison(Expression expression) =>
+    expression is BinaryExpression &&
     BooleanExpressionUtilities.COMPARISONS.contains(expression.operator.type);
 
 bool _isBooleanOperation(Expression expression) =>
     expression is BinaryExpression &&
-        BooleanExpressionUtilities.BOOLEAN_OPERATIONS.
-        contains(expression.operator.type);
+    BooleanExpressionUtilities.BOOLEAN_OPERATIONS
+        .contains(expression.operator.type);

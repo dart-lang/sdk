@@ -7,7 +7,7 @@ library linter.src.rules.implementation_imports;
 import 'package:analyzer/dart/ast/ast.dart' show AstVisitor, ImportDirective;
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc = "Don't import implementation files from another package.";
 

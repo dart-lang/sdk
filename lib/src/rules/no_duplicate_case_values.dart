@@ -15,7 +15,7 @@ import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc = 'Do not use more the one case with same value';
 
@@ -104,8 +104,8 @@ class Visitor extends SimpleAstVisitor {
     });
 
     final ConstantVisitor constantVisitor = new ConstantVisitor(
-        new ConstantEvaluationEngine(
-            typeProvider, declaredVariables, typeSystem: typeSystem),
+        new ConstantEvaluationEngine(typeProvider, declaredVariables,
+            typeSystem: typeSystem),
         new ErrorReporter(
             AnalysisErrorListener.NULL_LISTENER, rule.reporter.source));
 

@@ -4,7 +4,7 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc =
     'Await for future expression statements inside async function bodies.';

@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart';

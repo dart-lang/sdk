@@ -6,7 +6,7 @@ library linter.src.rules.control_flow_in_finally;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc = r'Avoid control flow in `finally` block.';
 

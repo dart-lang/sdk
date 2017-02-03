@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/util.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:linter/src/rules.dart';
@@ -142,8 +142,8 @@ defineRuleUnitTests() {
       testEach(bad, isValidDartIdentifier, isFalse);
     });
     group('pubspec', () {
-      testEach(['pubspec.yaml', '_pubspec.yaml'], isPubspecFileName, isTrue);
-      testEach(['__pubspec.yaml', 'foo.yaml'], isPubspecFileName, isFalse);
+      testEach(['pubspec.yaml', '_pubspec.yaml'], Analyzer.facade.isPubspecFileName, isTrue);
+      testEach(['__pubspec.yaml', 'foo.yaml'], Analyzer.facade.isPubspecFileName, isFalse);
     });
 
     group('camel case', () {
@@ -169,7 +169,7 @@ defineRuleUnitTests() {
     });
     group('lower_case_underscores', () {
       var good = ['foo_bar', 'foo', 'foo_bar_baz', 'p', 'p1', 'p21', 'p1ll0'];
-      testEach(good, isLowerCaseUnderScore, isTrue);
+      testEach(good, Analyzer.facade.isLowerCaseUnderScore, isTrue);
 
       var bad = [
         'Foo',
@@ -183,7 +183,7 @@ defineRuleUnitTests() {
         '1',
         '1b',
       ];
-      testEach(bad, isLowerCaseUnderScore, isFalse);
+      testEach(bad, Analyzer.facade.isLowerCaseUnderScore, isFalse);
     });
     group('qualified lower_case_underscores', () {
       var good = [
@@ -201,10 +201,10 @@ defineRuleUnitTests() {
         'a.b.c',
         'p2.src.acme'
       ];
-      testEach(good, isLowerCaseUnderScoreWithDots, isTrue);
+      testEach(good, Analyzer.facade.isLowerCaseUnderScoreWithDots, isTrue);
 
       var bad = ['Foo', 'fooBar.', '.foo_Bar', '_f', 'F_B', 'JS', 'JSON'];
-      testEach(bad, isLowerCaseUnderScoreWithDots, isFalse);
+      testEach(bad, Analyzer.facade.isLowerCaseUnderScoreWithDots, isFalse);
     });
     group('lowerCamelCase', () {
       var good = [
@@ -223,17 +223,17 @@ defineRuleUnitTests() {
         'foo\$Generated',
         'foo\$Generated\$Bar'
       ];
-      testEach(good, isLowerCamelCase, isTrue);
+      testEach(good, Analyzer.facade.isLowerCamelCase, isTrue);
 
       var bad = ['Foo', 'foo_', 'foo_bar', '_X'];
-      testEach(bad, isLowerCamelCase, isFalse);
+      testEach(bad, Analyzer.facade.isLowerCamelCase, isFalse);
     });
     group('isUpperCase', () {
       var caps = new List<int>.generate(26, (i) => 'A'.codeUnitAt(0) + i);
-      testEachInt(caps, isUpperCase, isTrue);
+      testEachInt(caps, Analyzer.facade.isUpperCase, isTrue);
 
       var bad = ['a', '1', 'z'].map((c) => c.codeUnitAt(0));
-      testEachInt(bad, isUpperCase, isFalse);
+      testEachInt(bad, Analyzer.facade.isUpperCase, isFalse);
     });
     group('libary_name_prefixes', () {
       testEach(Iterable<List<String>> values, dynamic f(List<String> s),
@@ -244,7 +244,7 @@ defineRuleUnitTests() {
       bool isGoodPrefx(List<String> v) =>
           matchesOrIsPrefixedBy(
               v[3],
-              createLibraryNamePrefix(
+              Analyzer.facade.createLibraryNamePrefix(
                   libraryPath: v[0], projectRoot: v[1], packageName: v[2]));
 
       var good = [

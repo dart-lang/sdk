@@ -6,7 +6,7 @@ library linter.src.rules.camel_case_types;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc = 'Name types using UpperCamelCase.';
 
@@ -33,7 +33,7 @@ typedef num Adder(num x, num y);
 ```
 ''';
 
-bool isUpperCamelCase(String s) => CamelCaseString.isCamelCase(s);
+bool isUpperCamelCase(String s) => Analyzer.facade.isCamelCase(s);
 
 class CamelCaseTypes extends LintRule {
   CamelCaseTypes()

@@ -6,7 +6,7 @@ library linter.src.rules.iterable_contains_unrelated_type;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:linter/src/util/unrelated_types_visitor.dart';
 

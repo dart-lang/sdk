@@ -18,8 +18,7 @@ import 'package:analyzer/dart/ast/ast.dart'
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/util.dart';
+import 'package:linter/src/analyzer.dart';
 
 const desc = 'Specify type annotations.';
 
@@ -103,6 +102,7 @@ class AlwaysSpecifyTypes extends LintRule {
 
 class Visitor extends SimpleAstVisitor {
   final LintRule rule;
+
   Visitor(this.rule);
 
   void checkLiteral(TypedLiteral literal) {
@@ -142,7 +142,8 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitSimpleFormalParameter(SimpleFormalParameter param) {
-    if (param.type == null && !isJustUnderscores(param.identifier.name)) {
+    if (param.type == null &&
+        !Analyzer.facade.isJustUnderscores(param.identifier.name)) {
       if (param.keyword != null) {
         rule.reportLintForToken(param.keyword);
       } else {
