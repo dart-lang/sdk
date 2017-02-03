@@ -130,9 +130,6 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 
     FieldInfo info = new FieldInfo(
         name: element.name,
-        // We use element.hashCode because it is globally unique and it is
-        // available while we are doing codegen.
-        coverageId: '${element.hashCode}',
         type: '${element.type}',
         inferredType: '$inferredType',
         code: code,
@@ -145,6 +142,12 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       if (value != null) {
         info.initializer = _constantToInfo[value];
       }
+    }
+
+    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+      // We use element.hashCode because it is globally unique and it is
+      // available while we are doing codegen.
+      info.coverageId = '${element.hashCode}';
     }
 
     int closureSize = _addClosureInfo(info, element);
@@ -274,9 +277,6 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     FunctionInfo info = new FunctionInfo(
         name: name,
         functionKind: kind,
-        // We use element.hashCode because it is globally unique and it is
-        // available while we are doing codegen.
-        coverageId: '${element.hashCode}',
         modifiers: modifiers,
         returnType: returnType,
         inferredReturnType: inferredReturnType,
@@ -293,6 +293,12 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       size += closureSize;
     } else {
       info.closures = <ClosureInfo>[];
+    }
+
+    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+      // We use element.hashCode because it is globally unique and it is
+      // available while we are doing codegen.
+      info.coverageId = '${element.hashCode}';
     }
 
     info.size = size;
