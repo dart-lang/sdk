@@ -862,6 +862,20 @@ main() {
     expect(unitA.context.getContents(sourceB).data, 'var v = 2;');
   }
 
+  test_getResult_functionTypeFormalParameter_withTypeParameter() async {
+    // This was code crashing because of incomplete implementation.
+    // Consider (re)moving after fixing dartbug.com/28515
+    addTestFile(r'''
+class A {
+  int foo( bar<T extends B>() ) {}
+}
+class B {}
+''');
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+  }
+
   test_getResult_inferTypes_finalField() async {
     addTestFile(
         r'''

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /**
@@ -398,7 +399,8 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (node.parent.parent is FunctionTypedFormalParameter) {
       // Work around dartbug.com/28515.
       // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
-      Element element = new TypeParameterElementImpl.forNode(node.name);
+      var element = new TypeParameterElementImpl.forNode(node.name);
+      element.type = new TypeParameterTypeImpl(element);
       node.name?.staticElement = element;
       return null;
     }
