@@ -643,6 +643,7 @@ class Server {
       bool debugServer: false,
       int diagnosticPort,
       bool enableNewAnalysisDriver: false,
+      bool noErrorNotification: false,
       bool profileServer: false,
       String sdkPath,
       int servicesPort,
@@ -700,6 +701,9 @@ class Server {
     }
     if (!enableNewAnalysisDriver) {
       arguments.add('--disable-new-analysis-driver');
+    }
+    if (noErrorNotification) {
+      arguments.add('--no-error-notification');
     }
 //    print('Launching $serverPath');
 //    print('$dartBinary ${arguments.join(' ')}');
