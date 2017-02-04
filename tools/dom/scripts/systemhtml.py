@@ -104,7 +104,6 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Navigator.language',
     'Navigator.webkitGetUserMedia',
     'ScriptProcessorNode._setEventListener',
-    'Selection.toString',
     'URL.createObjectURL',
     'URL.createObjectUrlFromSource',
     'URL.createObjectUrlFromStream',
