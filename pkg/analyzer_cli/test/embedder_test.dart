@@ -73,7 +73,7 @@ Function wrap(Function f) {
         print('stderr:');
         print(errorSink);
       }
-      throw e;
+      rethrow;
     }
   };
 }

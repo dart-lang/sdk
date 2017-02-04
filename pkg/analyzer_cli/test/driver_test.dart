@@ -322,6 +322,14 @@ linter:
         expect(outSink.toString(), contains('isn\'t defined'));
         expect(outSink.toString(), contains('Avoid empty else statements.'));
       });
+
+      test('test strong SDK', () async {
+        String testDir = path.join(testDirectory, 'data', 'strong_sdk');
+        await drive(path.join(testDir, 'main.dart'), args: ['--strong']);
+        expect(driver.context.analysisOptions.strongMode, isTrue);
+        expect(outSink.toString(), contains('No issues found'));
+        expect(exitCode, 0);
+      });
     });
 
     void createTests(String designator, String optionsFileName) {
