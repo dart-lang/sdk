@@ -283,6 +283,11 @@ class SsaTypeKnownRemover extends HBaseVisitor {
   }
 
   void visitTypeKnown(HTypeKnown instruction) {
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HTypeConversion) {
+        user.inputType = instruction.instructionType;
+      }
+    }
     instruction.block.rewrite(instruction, instruction.checkedInput);
     instruction.block.remove(instruction);
   }

@@ -2807,15 +2807,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         negative: negative);
   }
 
-  js.Expression generateReceiverOrArgumentTypeTest(
-      HInstruction input, TypeMask checkedType) {
-    TypeMask inputType = input.instructionType;
+  js.Expression generateReceiverOrArgumentTypeTest(HTypeConversion node) {
+    HInstruction input = node.checkedInput;
+    TypeMask inputType = node.inputType ?? input.instructionType;
+    TypeMask checkedType = node.checkedType;
     // Figure out if it is beneficial to turn this into a null check.
     // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
     bool isIntCheck = checkedType.containsOnlyInt(closedWorld);
-    bool turnIntoNumCheck = isIntCheck && input.isIntegerOrNull(closedWorld);
+    bool turnIntoNumCheck =
+        isIntCheck && inputType.containsOnlyInt(closedWorld);
     bool turnIntoNullCheck = !turnIntoNumCheck &&
         (checkedType.nullable() == inputType) &&
         (isIntCheck ||
@@ -2848,8 +2850,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeConversion(HTypeConversion node) {
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
-      js.Expression test = generateReceiverOrArgumentTypeTest(
-          node.checkedInput, node.checkedType);
+      js.Expression test = generateReceiverOrArgumentTypeTest(node);
       js.Block oldContainer = currentContainer;
       js.Statement body = new js.Block.empty();
       currentContainer = body;

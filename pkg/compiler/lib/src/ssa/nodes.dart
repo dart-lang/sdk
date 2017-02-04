@@ -2839,6 +2839,7 @@ class HTypeConversion extends HCheck {
   final Selector receiverTypeCheckSelector;
 
   TypeMask checkedType; // Not final because we refine it.
+  TypeMask inputType; // Holds input type for codegen after HTypeKnown removal.
 
   HTypeConversion(
       this.typeExpression, this.kind, TypeMask type, HInstruction input,
