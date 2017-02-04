@@ -9,11 +9,10 @@ import 'package:args/args.dart';
 /// Generates rule and rule test stub files (int src/rules and test/rules
 /// respectively), as well as the rule index (rules.dart).
 void main([List<String> args]) {
-  var parser = new ArgParser(allowTrailingOptions: true);
-
-  parser.addOption('out', abbr: 'o', help: 'Specifies project root.');
-  parser.addOption('library',
-      abbr: 'l', help: 'Specifies lower_underscore rule library name.');
+  final parser = new ArgParser(allowTrailingOptions: true)
+    ..addOption('out', abbr: 'o', help: 'Specifies project root.')
+    ..addOption('library',
+        abbr: 'l', help: 'Specifies lower_underscore rule library name.');
 
   var options;
   try {
@@ -23,17 +22,17 @@ void main([List<String> args]) {
     return;
   }
 
-  var outDir = options['out'];
+  final outDir = options['out'];
 
   if (outDir != null) {
-    Directory d = new Directory(outDir);
+    final d = new Directory(outDir);
     if (!d.existsSync()) {
       print("Directory '${d.path}' does not exist");
       return;
     }
   }
 
-  var libName = options['library'];
+  final libName = options['library'];
 
   if (libName == null) {
     printUsage(parser);
@@ -58,9 +57,9 @@ void generateRule(String libName, {String outDir}) {
 }
 
 void generateStub(String libName, {String outDir}) {
-  var generated = _generateStub(libName, toClassName(libName));
+  final generated = _generateStub(libName, toClassName(libName));
   if (outDir != null) {
-    var outPath = '$outDir/lib/src/rules/$libName.dart';
+    final outPath = '$outDir/lib/src/rules/$libName.dart';
     print('Writing to $outPath');
     new File(outPath).writeAsStringSync(generated);
   } else {
@@ -69,9 +68,9 @@ void generateStub(String libName, {String outDir}) {
 }
 
 void generateTest(String libName, {String outDir}) {
-  var generated = _generateTest(libName, toClassName(libName));
+  final generated = _generateTest(libName, toClassName(libName));
   if (outDir != null) {
-    var outPath = '$outDir/test/rules/$libName.dart';
+    final outPath = '$outDir/test/rules/$libName.dart';
     print('Writing to $outPath');
     new File(outPath).writeAsStringSync(generated);
   } else {
@@ -80,7 +79,7 @@ void generateTest(String libName, {String outDir}) {
 }
 
 void printUsage(ArgParser parser, [String error]) {
-  var message = error ?? 'Generates rule stubs.';
+  final message = error ?? 'Generates rule stubs.';
 
   stdout.write('''$message
 Usage: rule
