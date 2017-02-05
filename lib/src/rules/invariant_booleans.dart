@@ -100,19 +100,18 @@ void nestedOk5() {
 Set<Expression> _findConditionsCausingReturns(
         BinaryExpression node, Iterable<AstNode> nodesInDFS) =>
     nodesInDFS
+        .where(_isAnalyzedNode)
+        .where(_isConditionalStatementWithReturn(nodesInDFS))
         .takeWhile((n) => n != node.parent)
-        .where(_isIfStatementWithReturn(nodesInDFS))
         .where((_noFurtherAssignmentInvalidatingCondition(node, nodesInDFS)))
         .fold(<Expression>[], (List<Expression> previous, AstNode statement) {
-      if (statement is IfStatement) {
-        previous.add(statement.condition);
-      }
+      previous.add(_getCondition(statement));
       return previous;
     }).toSet();
 
 Set<Expression> _findConditionsOfElseStatementAncestor(
-    IfStatement statement, Iterable<AstNode> nodesInDFS) {
-  return _findConditionsUnderIfStatementBranch(
+    Statement statement, Iterable<AstNode> nodesInDFS) {
+  return _findConditionsUnderStatementBranch(
       statement,
       (n) =>
           n is IfStatement &&
@@ -120,30 +119,31 @@ Set<Expression> _findConditionsOfElseStatementAncestor(
       nodesInDFS);
 }
 
-Set<Expression> _findConditionsOfIfStatementAncestor(
-    IfStatement statement, Iterable<AstNode> nodesInDFS) {
-  return _findConditionsUnderIfStatementBranch(
+Set<Expression> _findConditionsOfStatementAncestor(
+    Statement statement, Iterable<AstNode> nodesInDFS) {
+  return _findConditionsUnderStatementBranch(
       statement,
       (n) =>
-          n is IfStatement &&
-          statement.getAncestor((a) => a == n.thenStatement) != null,
+          _isAnalyzedNode(n) &&
+          (n is! IfStatement ||
+              statement.getAncestor(
+                      (a) => a == (n as IfStatement).thenStatement) !=
+                  null),
       nodesInDFS);
 }
 
-Set<Expression> _findConditionsUnderIfStatementBranch(IfStatement statement,
+Set<Expression> _findConditionsUnderStatementBranch(Statement statement,
     AstNodePredicate predicate, Iterable<AstNode> nodesInDFS) {
+  Expression condition = _getCondition(statement);
   AstNodePredicate noFurtherAssignmentInvalidatingCondition =
-      _noFurtherAssignmentInvalidatingCondition(
-          statement.condition, nodesInDFS);
+      _noFurtherAssignmentInvalidatingCondition(condition, nodesInDFS);
   return nodesInDFS
       .where((n) => n == statement.getAncestor((a) => a == n && a != statement))
-      .where((n) => n is IfStatement)
+      .where(_isAnalyzedNode)
       .where(predicate)
       .where(noFurtherAssignmentInvalidatingCondition)
       .fold(<Expression>[], (List<Expression> previous, AstNode statement) {
-    if (statement is IfStatement) {
-      previous.add(statement.condition);
-    }
+    previous.add(_getCondition(statement));
     return previous;
   }).toSet();
 }
@@ -153,7 +153,7 @@ TestedExpressions _findPreviousTestedExpressions(BinaryExpression node) {
   Iterable<AstNode> nodesInDFS = DartTypeUtilities.traverseNodesInDFS(block,
       excludeCriteria: (n) => n is FunctionDeclarationStatement);
   Iterable<Expression> conjunctions =
-      _findConditionsOfIfStatementAncestor(node.parent, nodesInDFS).toSet();
+      _findConditionsOfStatementAncestor(node.parent, nodesInDFS).toSet();
   Iterable<Expression> negations = (_findConditionsCausingReturns(
           node, nodesInDFS)
         ..addAll(
@@ -162,25 +162,50 @@ TestedExpressions _findPreviousTestedExpressions(BinaryExpression node) {
   return new TestedExpressions(node, conjunctions, negations);
 }
 
-Set<Identifier> _findStatementIdentifiers(IfStatement statement) =>
+Set<Identifier> _findStatementIdentifiers(Statement statement) =>
     DartTypeUtilities
         .traverseNodesInDFS(statement)
         .where((n) => n is Identifier)
         .toSet();
 
-AstNodePredicate _isIfStatementWithReturn(Iterable<AstNode> blockNodes) =>
+Expression _getCondition(Statement statement) {
+  if (statement is IfStatement) {
+    return statement.condition;
+  }
+
+  if (statement is DoStatement) {
+    return statement.condition;
+  }
+
+  if (statement is ForStatement) {
+    return statement.condition;
+  }
+
+  if (statement is WhileStatement) {
+    return statement.condition;
+  }
+
+  return null;
+}
+
+bool _isAnalyzedNode(AstNode node) =>
+    node is IfStatement ||
+    node is DoStatement ||
+    node is ForStatement ||
+    node is WhileStatement;
+
+AstNodePredicate _isConditionalStatementWithReturn(
+        Iterable<AstNode> blockNodes) =>
     (AstNode node) {
       Block block =
           node.getAncestor((a) => a is Block && a.parent is BlockFunctionBody);
       Iterable<AstNode> nodesInDFS = DartTypeUtilities.traverseNodesInDFS(node);
-      return node is IfStatement &&
-          nodesInDFS.any((n) => n is ReturnStatement)
+      return nodesInDFS.any((n) => n is ReturnStatement) &&
           // Ignore nested if statements.
-          &&
-          !nodesInDFS.any((n) => n is IfStatement) &&
+          !nodesInDFS.any(_isAnalyzedNode) &&
           node.getAncestor((n) =>
                   n != node &&
-                  n is IfStatement &&
+                  _isAnalyzedNode(n) &&
                   n.getAncestor((a) => a == block) == block) ==
               null;
     };
@@ -264,7 +289,7 @@ class _Visitor extends SimpleAstVisitor {
   _reportBinaryExpressionIfConstantValue(BinaryExpression node) {
     // Right part discards reporting a subexpression already reported.
     if (resolutionMap.bestTypeForExpression(node).name != 'bool' ||
-        node.parent is! IfStatement) {
+        !_isAnalyzedNode(node.parent)) {
       return;
     }
 

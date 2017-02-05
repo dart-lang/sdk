@@ -11,11 +11,22 @@ int baz = 2;
 int foo = 0;
 bool setting = null;
 
+class A {
+  bool foo;
+  int fooNumber;
+}
+
+class B {
+  bool bar;
+  int barNumber;
+}
+
 A a = new A();
 B b = new B();
 
 void bad() {
-  if ((foo == bar && someComputation()) || (foo != bar && otherComputation())) {} // OK
+  if ((foo == bar && someComputation()) ||
+      (foo != bar && otherComputation())) {} // OK
   if (foo > bar || foo == bar) {} // OK
   if (a.fooNumber > b.barNumber || a.fooNumber == b.barNumber) {} // OK
   if (foo > bar && someComputation() || foo == bar) {} // OK
@@ -43,10 +54,25 @@ void bad() {
   if (foo > bar && foo > bar) {} // LINT
   if (foo > bar && bar < foo) {} // LINT
   if (foo == bar && bar == foo) {} // LINT
+  while (foo == bar && bar == foo) {} // LINT
+  for (; foo == bar && bar == foo;) {} // LINT
+  do {} while (foo == bar && bar == foo); // LINT
 }
 
-void nestedBad1() {
+void nestedBad1_1() {
   if (foo == bar) {
+    if (foo != bar) {} // LINT
+  }
+}
+
+void nestedBad1_2() {
+  if (foo == bar) {
+    while (foo != bar) {} // LINT
+  }
+}
+
+void nestedBad1_3() {
+  while (foo == bar) {
     if (foo != bar) {} // LINT
   }
 }
@@ -60,10 +86,17 @@ void nestedBad2() {
 }
 
 void nestedBad7() {
-  if (foo < bar) {
-  } else {
-   if (foo < bar) {} // LINT
+  if (foo < bar) {} else {
+    if (foo < bar) {} // LINT
   }
+}
+
+void nestedBad8() {
+  if (foo <= bar) {
+    return;
+  }
+
+  if (foo == bar) {} // LINT
 }
 
 void nestedOK1() {
@@ -90,14 +123,6 @@ void nestedOk3() {
   if (foo == bar) {} // OK
 }
 
-void nestedOk4() {
-  if (foo <= bar) {
-    return;
-  }
-
-  if (foo == bar) {} // LINT
-}
-
 void nestedOk5() {
   if (foo != null) {
     if (bar != null) {
@@ -119,14 +144,12 @@ void nestedOk5_1() {
 }
 
 void nestedOk6() {
-  if (foo < bar) {
-  } else if (foo > bar) {} // OK
+  if (foo < bar) {} else if (foo > bar) {} // OK
 }
 
 void nestedOk7() {
-  if (foo < bar) {
-  } else {
-   if (foo > bar) {} // OK
+  if (foo < bar) {} else {
+    if (foo > bar) {} // OK
   }
 }
 
@@ -156,16 +179,6 @@ String sixDigits(int n) {
   return "00000$n";
 }
 
-class A {
-  bool foo;
-  int fooNumber;
-}
-
-class B {
-  bool bar;
-  int barNumber;
-}
-
 someFunction() {
   int a = new DateTime.now().millisecondsSinceEpoch;
 
@@ -177,7 +190,8 @@ someFunction() {
 
   otherInnerFunction() => a > 0 ? false : null;
 
-  if (a > 0) { // OK
+  if (a > 0) {
+    // OK
     print('bla');
   }
 }
