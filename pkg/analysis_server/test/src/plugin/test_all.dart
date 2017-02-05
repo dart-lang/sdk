@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'plugin_locator_test.dart' as plugin_locator_test;
 import 'result_collector_test.dart' as result_collector_test;
 
 main() {
   defineReflectiveSuite(() {
+    plugin_locator_test.main();
     result_collector_test.main();
   });
 }
