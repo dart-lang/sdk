@@ -485,21 +485,26 @@ class FixProcessor {
         // prepare target
         int targetOffset;
         if (numRequired != 0) {
-          AstNode parameterNode = await astProvider
-              .getParsedNodeForElement(requiredParameters.last);
-          targetOffset = parameterNode.end;
+          SimpleIdentifier lastName = await astProvider
+              .getParsedNameForElement(requiredParameters.last);
+          if (lastName != null) {
+            targetOffset = lastName.end;
+          } else {
+            return;
+          }
         } else {
-          AstNode targetNode =
-              await astProvider.getParsedNodeForElement(targetElement);
-          if (targetNode is FunctionDeclaration) {
-            FunctionExpression function = targetNode.functionExpression;
+          SimpleIdentifier targetName =
+              await astProvider.getParsedNameForElement(targetElement);
+          AstNode targetDeclaration = targetName?.parent;
+          if (targetDeclaration is FunctionDeclaration) {
+            FunctionExpression function = targetDeclaration.functionExpression;
             Token paren = function.parameters?.leftParenthesis;
             if (paren == null) {
               return;
             }
             targetOffset = paren.end;
-          } else if (targetNode is MethodDeclaration) {
-            Token paren = targetNode.parameters?.leftParenthesis;
+          } else if (targetDeclaration is MethodDeclaration) {
+            Token paren = targetDeclaration.parameters?.leftParenthesis;
             if (paren == null) {
               return;
             }
@@ -1665,8 +1670,9 @@ class FixProcessor {
           !getter.variable.isSynthetic &&
           getter.variable.setter == null &&
           getter.enclosingElement is ClassElement) {
-        AstNode variable =
-            await astProvider.getParsedNodeForElement(getter.variable);
+        AstNode name =
+            await astProvider.getParsedNameForElement(getter.variable);
+        AstNode variable = name?.parent;
         if (variable is VariableDeclaration &&
             variable.parent is VariableDeclarationList &&
             variable.parent.parent is FieldDeclaration) {

@@ -37,7 +37,8 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   VariableDeclaration _variableNode;
   List<SearchMatch> _references;
 
-  InlineLocalRefactoringImpl(this.searchEngine, this.astProvider, this.unit, this.offset) {
+  InlineLocalRefactoringImpl(
+      this.searchEngine, this.astProvider, this.unit, this.offset) {
     unitElement = unit.element;
     utils = new CorrectionUtils(unit);
   }
@@ -77,7 +78,8 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
         Element element = offsetNode.staticElement;
         if (element is LocalVariableElement) {
           _variableElement = element;
-          _variableNode = await astProvider.getResolvedNodeForElement(element);
+          AstNode name = await astProvider.getResolvedNameForElement(element);
+          _variableNode = name.parent as VariableDeclaration;
         }
       }
     }

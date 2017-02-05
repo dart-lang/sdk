@@ -262,8 +262,8 @@ class SearchEngineImpl implements SearchEngine {
       Element element, bool isRootNode(AstNode n)) async {
     _LocalReferencesVisitor visitor = new _LocalReferencesVisitor(element);
     AstProvider astProvider = _getAstProvider(element.source.fullName);
-    AstNode node = await astProvider.getResolvedNodeForElement(element);
-    AstNode enclosingNode = node?.getAncestor(isRootNode);
+    AstNode name = await astProvider.getResolvedNameForElement(element);
+    AstNode enclosingNode = name?.getAncestor(isRootNode);
     enclosingNode?.accept(visitor);
     return visitor.matches;
   }

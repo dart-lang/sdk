@@ -11,75 +11,28 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 
 abstract class AbstractAstProvider implements AstProvider {
-  /**
-   * Return the [AstNode] for the given [element] if the given [unit], or
-   * `null` if the [element] is not know, or is not defined in the [unit].
-   */
   @override
-  AstNode findNodeForElement(CompilationUnit unit, Element element) {
-    AstNode nameNode = new NodeLocator(element.nameOffset).searchWithin(unit);
-    if (element is ClassElement) {
-      if (element.isEnum) {
-        return nameNode.getAncestor((node) => node is EnumDeclaration);
-      } else {
-        return nameNode.getAncestor(
-            (node) => node is ClassDeclaration || node is ClassTypeAlias);
-      }
-    }
-    if (element is ConstructorElement) {
-      return nameNode.getAncestor((node) => node is ConstructorDeclaration);
-    }
-    if (element is FieldElement) {
-      if (element.isEnumConstant) {
-        return nameNode.getAncestor((node) => node is EnumConstantDeclaration);
-      } else {
-        return nameNode.getAncestor((node) => node is VariableDeclaration);
-      }
-    }
-    if (element is FunctionElement) {
-      return nameNode.getAncestor((node) => node is FunctionDeclaration);
-    }
-    if (element is FunctionTypeAliasElement) {
-      return nameNode.getAncestor((node) => node is FunctionTypeAlias);
-    }
-    if (element is LocalVariableElement) {
-      return nameNode.getAncestor(
-          (node) => node is DeclaredIdentifier || node is VariableDeclaration);
-    }
-    if (element is MethodElement) {
-      return nameNode.getAncestor((node) => node is MethodDeclaration);
-    }
-    if (element is ParameterElement) {
-      return nameNode.getAncestor((node) => node is FormalParameter);
-    }
-    if (element is PropertyAccessorElement) {
-      if (element.isSynthetic) {
-        return null;
-      }
-      if (element.enclosingElement is ClassElement) {
-        return nameNode.getAncestor((node) => node is MethodDeclaration);
-      } else if (element.enclosingElement is CompilationUnitElement) {
-        return nameNode.getAncestor((node) => node is FunctionDeclaration);
-      }
+  Future<SimpleIdentifier> getParsedNameForElement(Element element) async {
+    CompilationUnit unit = await getParsedUnitForElement(element);
+    return _getNameNode(unit, element);
+  }
+
+  @override
+  Future<SimpleIdentifier> getResolvedNameForElement(Element element) async {
+    CompilationUnit unit = await getResolvedUnitForElement(element);
+    return _getNameNode(unit, element);
+  }
+
+  SimpleIdentifier _getNameNode(CompilationUnit unit, Element element) {
+    int nameOffset = element.nameOffset;
+    if (nameOffset == -1) {
       return null;
     }
-    if (element is TopLevelVariableElement) {
-      return nameNode.getAncestor((node) => node is VariableDeclaration);
+    AstNode nameNode = new NodeLocator(nameOffset).searchWithin(unit);
+    if (nameNode is SimpleIdentifier) {
+      return nameNode;
     }
-    return nameNode;
-  }
-
-  @override
-  Future<T> getParsedNodeForElement<T extends AstNode>(Element element) async {
-    CompilationUnit unit = await getParsedUnitForElement(element);
-    return findNodeForElement(unit, element) as T;
-  }
-
-  @override
-  Future<T> getResolvedNodeForElement<T extends AstNode>(
-      Element element) async {
-    CompilationUnit unit = await getResolvedUnitForElement(element);
-    return findNodeForElement(unit, element) as T;
+    return null;
   }
 }
 

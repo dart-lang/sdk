@@ -12,12 +12,13 @@ import 'package:analyzer/dart/element/element.dart';
  * [AstNode]s that declare [Element]s.
  */
 abstract class AstProvider {
-  AstNode findNodeForElement(CompilationUnit unit, Element element);
-
   /**
-   * Completes with the parsed [AstNode] that declares the [element].
+   * Completes with the [SimpleIdentifier] that declares the [element]. The
+   * enclosing unit is only parsed, but not resolved. Completes with `null` if
+   * the [element] is synthetic, or the file where it is declared cannot be
+   * parsed, etc.
    */
-  Future<T> getParsedNodeForElement<T extends AstNode>(Element element);
+  Future<SimpleIdentifier> getParsedNameForElement(Element element);
 
   /**
    * Completes with the parsed [CompilationUnit] that contains the [element].
@@ -25,9 +26,12 @@ abstract class AstProvider {
   Future<CompilationUnit> getParsedUnitForElement(Element element);
 
   /**
-   * Completes with the resolved [AstNode] that declares the [element].
+   * Completes with the [SimpleIdentifier] that declares the [element]. The
+   * enclosing unit is fully resolved. Completes with `null` if the [element]
+   * is synthetic, or the file where it is declared cannot be parsed and
+   * resolved, etc.
    */
-  Future<T> getResolvedNodeForElement<T extends AstNode>(Element element);
+  Future<SimpleIdentifier> getResolvedNameForElement(Element element);
 
   /**
    * Completes with the resolved [CompilationUnit] that contains the [element].

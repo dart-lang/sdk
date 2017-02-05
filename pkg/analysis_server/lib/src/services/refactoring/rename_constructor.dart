@@ -112,8 +112,8 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
   Future<Null> _replaceSynthetic() async {
     ClassElement classElement = element.enclosingElement;
-    ClassDeclaration classNode =
-        await astProvider.getResolvedNodeForElement(classElement);
+    AstNode name = await astProvider.getResolvedNameForElement(classElement);
+    ClassDeclaration classNode = name.parent as ClassDeclaration;
     CorrectionUtils utils = new CorrectionUtils(classNode.parent);
     ClassMemberLocation location =
         utils.prepareNewConstructorLocation(classNode);

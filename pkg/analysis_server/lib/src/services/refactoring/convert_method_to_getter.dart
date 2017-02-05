@@ -97,12 +97,14 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     // prepare parameters
     FormalParameterList parameters;
     {
-      AstNode node = await astProvider.getParsedNodeForElement(element);
-      if (node is MethodDeclaration) {
-        parameters = node.parameters;
-      }
-      if (node is FunctionDeclaration) {
-        parameters = node.functionExpression.parameters;
+      AstNode name = await astProvider.getParsedNameForElement(element);
+      AstNode declaration = name?.parent;
+      if (declaration is MethodDeclaration) {
+        parameters = declaration.parameters;
+      } else if (declaration is FunctionDeclaration) {
+        parameters = declaration.functionExpression.parameters;
+      } else {
+        return;
       }
     }
     // insert "get "
@@ -127,7 +129,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       MethodInvocation invocation;
       {
         CompilationUnit refUnit =
-            await astProvider.getResolvedUnitForElement(refElement);
+            await astProvider.getParsedUnitForElement(refElement);
         AstNode refNode =
             new NodeLocator(refRange.offset).searchWithin(refUnit);
         invocation = refNode.getAncestor((node) => node is MethodInvocation);
