@@ -64,7 +64,8 @@ class TestedExpressions {
       final String eRightOperand = e.rightOperand.toString();
       TokenType eOperatorType = e.operator.type;
       comparisons
-          .where((c) => c.offset < e.offset && c is BinaryExpression)
+          .where(
+              (c) => c != null && c.offset < e.offset && c is BinaryExpression)
           .forEach((Expression c) {
         if (contradictions.isNotEmpty) {
           return;
