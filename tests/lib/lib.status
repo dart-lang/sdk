@@ -340,6 +340,9 @@ profiler/metrics_num_test: Fail # Issue 20309
 [ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
 
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
+
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 async/*deferred*: Pass,RuntimeError # Issue 17458
 mirrors/*deferred*: Pass,RuntimeError # Issue 17458

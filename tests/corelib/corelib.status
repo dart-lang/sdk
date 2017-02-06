@@ -151,6 +151,9 @@ num_clamp_test: StaticWarning, OK # Test generates errors on purpose.
 string_test: StaticWarning, OK # Test generates error on purpose.
 duration2_test: StaticWarning, OK # Test generates error on purpose.
 
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
+
 [ $system == windows && $arch == x64 ]
 stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 

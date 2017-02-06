@@ -166,6 +166,9 @@ browser/package_resolve_browser_test: Skip # Temporarily disabled working on CL 
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
 
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
+
 [ $compiler == none && $runtime == vm ]
 scenarios/short_package/short_package_test: Fail, OK  # We do not plan to support the tested behavior anyway.
 

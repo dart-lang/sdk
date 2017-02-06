@@ -449,3 +449,6 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-005_t0
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t01: StaticWarning # Please triage this failure.
+
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649

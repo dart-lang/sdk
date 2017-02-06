@@ -39,6 +39,9 @@ vm_restart_test: Pass, Slow
 developer_extension_test: SkipByDesign
 get_isolate_after_language_error_test: SkipByDesign
 
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
+
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
 

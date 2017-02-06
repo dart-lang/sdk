@@ -94,6 +94,9 @@ io/file_constructor_test: fail
 # This is runtime test.
 io/process_exit_negative_test: Skip
 
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
+
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
 typed_data_test: Skip # dart:typed_data support needed.
