@@ -375,6 +375,122 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true, voidReturn: true);
   }
 
+  test_Block_catch_1a() async {
+    // '}'  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} ^}');
+    // Only return 'on', 'catch', and 'finally' keywords
+    assertOpType();
+  }
+
+  test_Block_catch_1b() async {
+    // [ExpressionStatement 'c']  Block  BlockFunctionBody
+    addTestSource('main() {try {} c^}');
+    // Only return 'on', 'catch', and 'finally' keywords
+    assertOpType();
+  }
+
+  test_Block_catch_1c() async {
+    // [EmptyStatement]  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} ^;}');
+    // Only return 'on', 'catch', and 'finally' keywords
+    assertOpType();
+  }
+
+  test_Block_catch_1d() async {
+    // [VariableDeclarationStatement 'Foo foo']  Block  BlockFunctionBody
+    addTestSource('main() {try {} ^ Foo foo;}');
+    // Only return 'on', 'catch', and 'finally' keywords
+    assertOpType();
+  }
+
+  test_Block_catch_2a() async {
+    // '}'  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} catch () {} ^}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_2b() async {
+    // [ExpressionStatement 'c']  Block  BlockFunctionBody
+    addTestSource('main() {try {} catch () {} c^}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_2c() async {
+    // [EmptyStatement]  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} catch () {} ^;}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_2d() async {
+    // [VariableDeclarationStatement 'Foo foo']  Block  BlockFunctionBody
+    addTestSource('main() {try {} catch () {} ^ Foo foo;}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_3a() async {
+    // '}'  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} finally {} ^}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_3b() async {
+    // [ExpressionStatement 'c']  Block  BlockFunctionBody
+    addTestSource('main() {try {} finally {} c^}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_3c() async {
+    // [EmptyStatement]  Block  BlockFunctionBody  FunctionExpression
+    addTestSource('main() {try {} finally {} ^;}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_Block_catch_3d() async {
+    // [VariableDeclarationStatement 'Foo foo']  Block  BlockFunctionBody
+    addTestSource('main() {try {} finally {} ^ Foo foo;}');
+    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+  }
+
+  test_catch_4a1() async {
+    addTestSource('main() {try {} ^ on SomeException {}}');
+    assertOpType();
+  }
+
+  test_catch_4a2() async {
+    addTestSource('main() {try {} c^ on SomeException {}}');
+    assertOpType();
+  }
+
+  test_catch_4b1() async {
+    addTestSource('main() {try {} ^ catch (e) {}}');
+    assertOpType();
+  }
+
+  test_catch_4b2() async {
+    addTestSource('main() {try {} c^ catch (e) {}}');
+    assertOpType();
+  }
+
+  test_catch_4c1() async {
+    addTestSource('main() {try {} ^ finally {}}');
+    assertOpType();
+  }
+
+  test_catch_4c2() async {
+    addTestSource('main() {try {} c^ finally {}}');
+    assertOpType();
+  }
+
+  test_catch_5a() async {
+    addTestSource('main() {try {} on ^ finally {}}');
+    assertOpType(typeNames: true);
+  }
+
+  test_catch_5b() async {
+    addTestSource('main() {try {} on E^ finally {}}');
+    assertOpType(typeNames: true);
+  }
+
   test_Block_empty() {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('class A extends E implements I with M {a() {^}}');

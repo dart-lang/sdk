@@ -99,6 +99,76 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     expect(suggestions, hasLength(2));
   }
 
+  test_catch() async {
+    addTestFile('main() {try {} ^}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'finally',
+        relevance: DART_RELEVANCE_KEYWORD);
+    expect(suggestions, hasLength(3));
+  }
+
+  test_catch2() async {
+    addTestFile('main() {try {} on Foo {} ^}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'finally',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for',
+        relevance: DART_RELEVANCE_KEYWORD);
+    suggestions.firstWhere(
+        (CompletionSuggestion suggestion) =>
+            suggestion.kind != CompletionSuggestionKind.KEYWORD, orElse: () {
+      fail('Expected suggestions other than keyword suggestions');
+    });
+  }
+
+  test_catch3() async {
+    addTestFile('main() {try {} catch (e) {} finally {} ^}');
+    await getSuggestions();
+    assertNoResult('on');
+    assertNoResult('catch');
+    assertNoResult('finally');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for',
+        relevance: DART_RELEVANCE_KEYWORD);
+    suggestions.firstWhere(
+        (CompletionSuggestion suggestion) =>
+            suggestion.kind != CompletionSuggestionKind.KEYWORD, orElse: () {
+      fail('Expected suggestions other than keyword suggestions');
+    });
+  }
+
+  test_catch4() async {
+    addTestFile('main() {try {} finally {} ^}');
+    await getSuggestions();
+    assertNoResult('on');
+    assertNoResult('catch');
+    assertNoResult('finally');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for',
+        relevance: DART_RELEVANCE_KEYWORD);
+    suggestions.firstWhere(
+        (CompletionSuggestion suggestion) =>
+            suggestion.kind != CompletionSuggestionKind.KEYWORD, orElse: () {
+      fail('Expected suggestions other than keyword suggestions');
+    });
+  }
+
+  test_catch5() async {
+    addTestFile('main() {try {} ^ finally {}}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch',
+        relevance: DART_RELEVANCE_KEYWORD);
+    expect(suggestions, hasLength(2));
+  }
+
   test_html() {
     testFile = '/project/web/test.html';
     addTestFile('''

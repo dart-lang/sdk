@@ -153,6 +153,22 @@ class OpType {
       !includeNamedArgumentSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
+
+  /// Return the statement before [entity]
+  /// where [entity] can be a statement or the `}` closing the given block.
+  static Statement getPreviousStatement(Block node, Object entity) {
+    if (entity == node.rightBracket) {
+      return node.statements.isNotEmpty ? node.statements.last : null;
+    }
+    if (entity is Statement) {
+      int index = node.statements.indexOf(entity);
+      if (index > 0) {
+        return node.statements[index - 1];
+      }
+      return null;
+    }
+    return null;
+  }
 }
 
 class _OpTypeAstVisitor extends GeneralizingAstVisitor {
@@ -207,8 +223,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         // If unresolved, then include named arguments
         optype.includeNamedArgumentSuggestions = true;
       }
-    } else
-    if (parent is InvocationExpression) {
+    } else if (parent is InvocationExpression) {
       Expression function = parent.function;
       if (function is SimpleIdentifier) {
         var elem = function.bestElement;
@@ -298,6 +313,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitBlock(Block node) {
+    Statement prevStmt = OpType.getPreviousStatement(node, entity);
+    if (prevStmt is TryStatement) {
+      if (prevStmt.catchClauses.isEmpty && prevStmt.finallyBlock == null) {
+        return;
+      }
+    }
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
     optype.includeVoidReturnSuggestions = true;
