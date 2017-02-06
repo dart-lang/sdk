@@ -36,6 +36,10 @@ kernel/test/closures_test: Slow, Pass
 [ $runtime != vm || $mode != release || $system != linux ]
 kernel/test/closures_test: Skip
 
+# Don't analyze tests in strong mode yet
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
+
 # Analyze dev_compiler but don't run its tests
 [ $compiler != dart2analyzer ]
 dev_compiler/test/*: Skip
@@ -165,6 +169,7 @@ kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
 [ $runtime == vm ]
 analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
+analyzer_cli/test/embedder_test: RuntimeError # Issue 28653
 # Skip tests on the VM if the package depends on dart:html
 mutation_observer: Skip
 
