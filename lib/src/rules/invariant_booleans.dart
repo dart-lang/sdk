@@ -153,7 +153,10 @@ TestedExpressions _findPreviousTestedExpressions(BinaryExpression node) {
   Iterable<AstNode> nodesInDFS = DartTypeUtilities.traverseNodesInDFS(block,
       excludeCriteria: (n) => n is FunctionDeclarationStatement);
   Iterable<Expression> conjunctions =
-      _findConditionsOfStatementAncestor(node.parent, nodesInDFS).toSet();
+      _findConditionsOfStatementAncestor(node.parent, nodesInDFS)
+          .map(_splitConjunctions)
+          .expand((iterable) => iterable)
+          .toSet();
   Iterable<Expression> negations = (_findConditionsCausingReturns(
           node, nodesInDFS)
         ..addAll(
@@ -222,6 +225,16 @@ AstNodePredicate _noFurtherAssignmentInvalidatingCondition(
               !identifiers.contains(n.leftHandSide))
           .length ==
       0;
+}
+
+List<Expression> _splitConjunctions(Expression expression) {
+  if (expression is BinaryExpression &&
+      expression.operator.type == TokenType.AMPERSAND_AMPERSAND) {
+    return _splitConjunctions(expression.leftOperand)
+      ..addAll(_splitConjunctions(expression.rightOperand));
+  }
+
+  return [expression];
 }
 
 class InvariantBooleans extends LintRule {
