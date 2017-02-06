@@ -1200,12 +1200,12 @@ class Parser {
                  optional("=>", token)) {
         // A method.
         identifiers = identifiers.prepend(token);
-        return identifiers;
+        return listener.handleMemberName(identifiers);
       } else if (optional("=", token) || optional(";", token) ||
                  optional(",", token)) {
         // A field or abstract getter.
         identifiers = identifiers.prepend(token);
-        return identifiers;
+        return listener.handleMemberName(identifiers);
       } else if (isGetter) {
         hasName = true;
       }
@@ -1232,7 +1232,7 @@ class Parser {
       }
       token = token.next;
     }
-    return const Link<Token>();
+    return listener.handleMemberName(const Link<Token>());
   }
 
   Token parseFieldInitializerOpt(Token token) {
@@ -1485,7 +1485,7 @@ class Parser {
         if (getOrSet != null) {
           // If we found a "get" keyword, this must be an abstract
           // getter.
-          isField = (!identical(getOrSet.stringValue, 'get'));
+          isField = !optional("get", getOrSet);
           // TODO(ahe): This feels like a hack.
         } else {
           isField = true;

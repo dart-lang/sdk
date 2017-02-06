@@ -4,9 +4,12 @@
 
 library fasta.parser.listener;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show
+import '../scanner/token.dart' show
     BeginGroupToken,
     Token;
+
+import '../util/link.dart' show
+    Link;
 
 import 'error_kind.dart' show
     ErrorKind;
@@ -402,6 +405,8 @@ class Listener {
   void endMember() {
     logEvent("Member");
   }
+
+  Link<Token> handleMemberName(Link<Token> identifiers) => identifiers;
 
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
