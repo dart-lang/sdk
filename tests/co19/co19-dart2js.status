@@ -312,6 +312,7 @@ WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeE
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Pass, Slow
+WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Pass, Slow
 
 [ $compiler == dart2js && $checked ]
 Language/Errors_and_Warnings/static_warning_t02: RuntimeError # Please triage this failure
