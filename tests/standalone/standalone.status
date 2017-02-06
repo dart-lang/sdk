@@ -208,13 +208,24 @@ package/scenarios/invalid/invalid_package_name_test: Crash, OK # Analyzer exits 
 package/scenarios/invalid/same_package_twice_test: Crash, OK # Analyzer exits on invalid package config
 
 [ $system == windows ]
-io/skipping_dart2js_compilations_test: Fail # Issue 19551.
 verbose_gc_to_bmu_test: Skip
-io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 io/process_sync_test: Pass, Timeout # Issue 24596
 io/sleep_test: Pass, Fail # Issue 25757
-io/socket_info_ipv6_test: RuntimeError # Issue 27876
 io/http_server_early_client_close2_test: Pass, Crash  # Issue 28197
+
+[ $system == windows && $compiler != dart2analyzer ]
+io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
+io/skipping_dart2js_compilations_test: Fail # Issue 19551.
+io/socket_info_ipv6_test: RuntimeError # Issue 27876
+
+[ $system == windows && $compiler == dart2analyzer ]
+package/package_isolate_test: Crash # Issue 28645
+package/scenarios/empty_packages_file/empty_packages_file_noimports_test: Crash # Issue 28645
+package/scenarios/packages_file_strange_formatting/empty_lines_test: Crash # Issue 28645
+package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Crash # Issue 28645
+package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Crash # Issue 28645
+package/scenarios/packages_option_only/packages_option_only_noimports_test: Crash # Issue 28645
+package/scenarios/packages_option_only/packages_option_only_test: Crash # Issue 28645
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 io/file_lock_test: Skip  # Timeout.
