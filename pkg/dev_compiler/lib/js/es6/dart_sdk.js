@@ -1707,10 +1707,7 @@ dart.isFunctionSubtype = function(ft1, ft2, isCovariant) {
       return null;
     }
   }
-  if (ret2 === dart.void) return true;
-  if (ret1 === dart.void) {
-    return ret2 === dart.dynamic || ret2 === async.FutureOr;
-  }
+  if (ret1 === dart.void) return dart._isTop(ret2);
   if (!dart._isSubtype(ret1, ret2, isCovariant)) return null;
   return true;
 };
@@ -1731,13 +1728,13 @@ dart._subtypeMemo = function(f) {
   };
 };
 dart._isBottom = function(type) {
-  return type == dart.bottom;
+  return type == dart.bottom || type == core.Null;
 };
 dart._isTop = function(type) {
   if (dart.getGenericClass(type) === dart.getGenericClass(async.FutureOr)) {
     return dart._isTop(dart.getGenericArgs(type)[0]);
   }
-  return type == core.Object || type == dart.dynamic;
+  return type == core.Object || type == dart.dynamic || type == dart.void;
 };
 dart._isSubtype = function(t1, t2, isCovariant) {
   if (t1 === t2) return true;
@@ -2184,6 +2181,9 @@ dart.instanceOfOrNull = function(obj, type) {
   return false;
 };
 dart.is = function(obj, type) {
+  if (obj == null) {
+    return type == core.Null || dart._isTop(type);
+  }
   let result = dart.strongInstanceOf(obj, type);
   if (result !== null) return result;
   let actual = dart.getReifiedType(obj);
