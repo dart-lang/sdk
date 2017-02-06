@@ -63,6 +63,7 @@ var tests = [
     print(flags);
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Get the timeline.
     Map result = await isolate.vm.invokeRpcNoUpgrade('_getVMTimeline', {});
@@ -96,6 +97,7 @@ var tests = [
     expect(flags['recordedStreams'].length, equals(0));
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Grab the timeline and verify that we haven't added any new Dart events.
     Map result = await isolate.vm.invokeRpcNoUpgrade('_getVMTimeline', {});
