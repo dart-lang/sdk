@@ -107,14 +107,26 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel();
+  void test_blockBodiedLambdas_inferBottom_async_topLevel() {
+    super.test_blockBodiedLambdas_inferBottom_async_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel();
+  void test_blockBodiedLambdas_inferBottom_asyncStar_topLevel() {
+    super.test_blockBodiedLambdas_inferBottom_asyncStar_topLevel();
+  }
+
+  @override
+  @failingTest
+  void test_blockBodiedLambdas_inferBottom_sync_topLevel() {
+    super.test_blockBodiedLambdas_inferBottom_sync_topLevel();
+  }
+
+  @override
+  @failingTest
+  void test_blockBodiedLambdas_inferBottom_syncStar_topLevel() {
+    super.test_blockBodiedLambdas_inferBottom_syncStar_topLevel();
   }
 
   @override
@@ -549,6 +561,18 @@ var b = a.m();
   @failingTest
   void test_inferLocalFunctionReturnType() {
     super.test_inferLocalFunctionReturnType();
+  }
+
+  @override
+  @failingTest
+  void test_inferredType_blockBodiedClosure_noArguments() {
+    super.test_inferredType_blockBodiedClosure_noArguments();
+  }
+
+  @override
+  @failingTest
+  void test_inferredType_blockClosure_noArgs_noReturn() {
+    super.test_inferredType_blockClosure_noArgs_noReturn();
   }
 
   @override

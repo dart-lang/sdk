@@ -247,113 +247,6 @@ Iterable<int> z = y;
 ''');
   }
 
-  void test_blockBodiedLambdas_doesNotInferBottom_async() {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
-    var mainUnit = checkFile(r'''
-import 'dart:async';
-main() async {
-  var f = () async { return null; };
-  Future y = f();
-  Future<String> z = /*warning:DOWN_CAST_COMPOSITE*/f();
-  String s = /*info:DYNAMIC_CAST*/await f();
-}
-''');
-    var f = mainUnit.functions[0].localVariables[0];
-    expect(f.type.toString(), '() → Future<dynamic>');
-  }
-
-  void test_blockBodiedLambdas_doesNotInferBottom_async_topLevel() {
-    var mainUnit = checkFile(r'''
-import 'dart:async';
-var f = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE,info:INFERRED_TYPE_CLOSURE*/() async { return null; };
-''');
-    var f = mainUnit.topLevelVariables[0];
-    expect(f.type.toString(), '() → Future<dynamic>');
-  }
-
-  void test_blockBodiedLambdas_doesNotInferBottom_asyncStar() {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
-    var mainUnit = checkFile(r'''
-import 'dart:async';
-main() async {
-  var f = () async* { yield null; };
-  Stream y = f();
-  Stream<String> z = /*warning:DOWN_CAST_COMPOSITE*/f();
-  String s = /*info:DYNAMIC_CAST*/await f().first;
-}
-''');
-    var f = mainUnit.functions[0].localVariables[0];
-    expect(f.type.toString(), '() → Stream<dynamic>');
-  }
-
-  void test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel() {
-    var mainUnit = checkFile(r'''
-import 'dart:async';
-var f = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() async* { yield null; };
-''');
-    var f = mainUnit.topLevelVariables[0];
-    expect(f.type.toString(), '() → Stream<dynamic>');
-  }
-
-  void test_blockBodiedLambdas_doesNotInferBottom_sync() {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
-    var mainUnit = checkFile(r'''
-var h = null;
-void foo(int f(Object _)) {}
-
-main() {
-  var f = (Object x) { return null; };
-  String y = /*info:DYNAMIC_CAST*/f(42);
-
-  f = /*info:INFERRED_TYPE_CLOSURE*/(x) => 'hello';
-
-  foo(/*info:INFERRED_TYPE_CLOSURE*/(x) { return null; });
-  foo(/*info:INFERRED_TYPE_CLOSURE*/(x) { throw "not implemented"; });
-}
-''');
-
-    var f = mainUnit.functions[1].localVariables[0];
-    expect(f.type.toString(), '(Object) → dynamic');
-  }
-
-  void test_blockBodiedLambdas_doesNotInferBottom_sync_topLevel() {
-    var mainUnit = checkFile(r'''
-var f = (Object x) { return null; };
-''');
-    var f = mainUnit.topLevelVariables[0];
-    expect(f.type.toString(), '(Object) → dynamic');
-  }
-
-  void test_blockBodiedLambdas_doesNotInferBottom_syncStar() {
-    if (!mayCheckTypesOfLocals) {
-      return;
-    }
-    var mainUnit = checkFile(r'''
-main() {
-  var f = () sync* { yield null; };
-  Iterable y = f();
-  Iterable<String> z = /*warning:DOWN_CAST_COMPOSITE*/f();
-  String s = /*info:DYNAMIC_CAST*/f().first;
-}
-''');
-    var f = mainUnit.functions[0].localVariables[0];
-    expect(f.type.toString(), '() → Iterable<dynamic>');
-  }
-
-  void test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel() {
-    var mainUnit = checkFile(r'''
-var f = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() sync* { yield null; };
-''');
-    var f = mainUnit.topLevelVariables[0];
-    expect(f.type.toString(), '() → Iterable<dynamic>');
-  }
-
   void test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference() {
     if (!mayCheckTypesOfLocals) {
       return;
@@ -377,6 +270,115 @@ var g = f;
 ''');
     var f = mainUnit.topLevelVariables[0];
     expect(f.type.toString(), '() → String');
+  }
+
+  void test_blockBodiedLambdas_inferBottom_async() {
+    if (!mayCheckTypesOfLocals) {
+      return;
+    }
+    var mainUnit = checkFile(r'''
+import 'dart:async';
+main() async {
+  var f = /*info:INFERRED_TYPE_CLOSURE*/() async { return null; };
+  Future y = f();
+  Future<String> z = f();
+  String s = await f();
+}
+''');
+    var f = mainUnit.functions[0].localVariables[0];
+    expect(f.type.toString(), '() → Future<Null>');
+  }
+
+  void test_blockBodiedLambdas_inferBottom_async_topLevel() {
+    var mainUnit = checkFile(r'''
+import 'dart:async';
+var f = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE,info:INFERRED_TYPE_CLOSURE*/() async { return null; };
+''');
+    var f = mainUnit.topLevelVariables[0];
+    expect(f.type.toString(), '() → Future<Null>');
+  }
+
+  void test_blockBodiedLambdas_inferBottom_asyncStar() {
+    if (!mayCheckTypesOfLocals) {
+      return;
+    }
+    var mainUnit = checkFile(r'''
+import 'dart:async';
+main() async {
+  var f = /*info:INFERRED_TYPE_CLOSURE*/() async* { yield null; };
+  Stream y = f();
+  Stream<String> z = f();
+  String s = await f().first;
+}
+''');
+    var f = mainUnit.functions[0].localVariables[0];
+    expect(f.type.toString(), '() → Stream<Null>');
+  }
+
+  void test_blockBodiedLambdas_inferBottom_asyncStar_topLevel() {
+    var mainUnit = checkFile(r'''
+import 'dart:async';
+var f = /*info:INFERRED_TYPE_CLOSURE, warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() async* { yield null; };
+''');
+    var f = mainUnit.topLevelVariables[0];
+    expect(f.type.toString(), '() → Stream<Null>');
+  }
+
+  void test_blockBodiedLambdas_inferBottom_sync() {
+    if (!mayCheckTypesOfLocals) {
+      return;
+    }
+    var mainUnit = checkFile(r'''
+var h = null;
+void foo(int f(Object _)) {}
+
+main() {
+  var f = /*info:INFERRED_TYPE_CLOSURE*/(Object x) { return null; };
+  String y = f(42);
+
+  f = /*error:INVALID_CAST_FUNCTION_EXPR, info:INFERRED_TYPE_CLOSURE*/(x) => 'hello';
+
+  foo(/*info:INFERRED_TYPE_CLOSURE,
+        info:INFERRED_TYPE_CLOSURE*/(x) { return null; });
+  foo(/*info:INFERRED_TYPE_CLOSURE,
+        info:INFERRED_TYPE_CLOSURE*/(x) { throw "not implemented"; });
+}
+''');
+
+    var f = mainUnit.functions[1].localVariables[0];
+    expect(f.type.toString(), '(Object) → Null');
+  }
+
+  void test_blockBodiedLambdas_inferBottom_sync_topLevel() {
+    var mainUnit = checkFile(r'''
+var f = /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/(Object x) { return null; };
+''');
+    var f = mainUnit.topLevelVariables[0];
+    expect(f.type.toString(), '(Object) → Null');
+  }
+
+  void test_blockBodiedLambdas_inferBottom_syncStar() {
+    if (!mayCheckTypesOfLocals) {
+      return;
+    }
+    var mainUnit = checkFile(r'''
+main() {
+  var f = /*info:INFERRED_TYPE_CLOSURE*/() sync* { yield null; };
+  Iterable y = f();
+  Iterable<String> z = f();
+  String s = f().first;
+}
+''');
+    var f = mainUnit.functions[0].localVariables[0];
+    expect(f.type.toString(), '() → Iterable<Null>');
+  }
+
+  void test_blockBodiedLambdas_inferBottom_syncStar_topLevel() {
+    var mainUnit = checkFile(r'''
+var f = /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() sync* { yield null; };
+''');
+    var f = mainUnit.topLevelVariables[0];
+    expect(f.type.toString(), '() → Iterable<Null>');
   }
 
   void test_blockBodiedLambdas_LUB() {
@@ -447,7 +449,7 @@ var f = /*info:INFERRED_TYPE_CLOSURE,warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/() 
     var mainUnit = checkFile(r'''
 test1() {
   List<int> o;
-  var y = o.map(/*info:INFERRED_TYPE_CLOSURE*/(x) { });
+  var y = o.map(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) { });
   Iterable<int> z = /*warning:DOWN_CAST_COMPOSITE*/y;
 }
 ''');
@@ -458,7 +460,7 @@ test1() {
   void test_blockBodiedLambdas_noReturn_topLevel() {
     var mainUnit = checkFile(r'''
 final List<int> o = <int>[];
-var y = o.map((x) { });
+var y = o.map(/*info:INFERRED_TYPE_CLOSURE, warning:UNSAFE_BLOCK_CLOSURE_INFERENCE*/(x) { });
 ''');
     var f = mainUnit.topLevelVariables[1];
     expect(f.type.toString(), 'Iterable<dynamic>');
@@ -1855,7 +1857,7 @@ main() {
   Future<int> f;
   Future<List<int>> b = /*info:ASSIGNMENT_CAST should be pass*/f
       .then(/*info:INFERRED_TYPE_CLOSURE*/(x) => [])
-      .whenComplete(/*pass should be info:INFERRED_TYPE_LITERAL*/() {});
+      .whenComplete(/*info:INFERRED_TYPE_CLOSURE*/() {});
   b = f.then(/*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
 }
     ''');
@@ -3551,19 +3553,21 @@ class Foo {
   void test_inferredType_blockBodiedClosure_noArguments() {
     var mainUnit = checkFile('''
 class C {
-  static final v = () {};
+  static final v = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE,
+                     info:INFERRED_TYPE_CLOSURE*/() {};
 }
 ''');
     var v = mainUnit.getType('C').fields[0];
-    expect(v.type.toString(), '() → dynamic');
+    expect(v.type.toString(), '() → Null');
   }
 
   void test_inferredType_blockClosure_noArgs_noReturn() {
     var mainUnit = checkFile('''
-var f = () {};
+var f = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE,
+                     info:INFERRED_TYPE_CLOSURE*/() {};
 ''');
     var f = mainUnit.topLevelVariables[0];
-    expect(f.type.toString(), '() → dynamic');
+    expect(f.type.toString(), '() → Null');
   }
 
   void test_inferredType_customBinaryOp() {

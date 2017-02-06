@@ -123,6 +123,7 @@ class SummaryTypeProvider extends TypeProviderBase {
   InterfaceType _functionType;
   InterfaceType _futureDynamicType;
   InterfaceType _futureNullType;
+  InterfaceType _futureOrNullType;
   InterfaceType _futureOrType;
   InterfaceType _futureType;
   InterfaceType _intType;
@@ -187,6 +188,13 @@ class SummaryTypeProvider extends TypeProviderBase {
     assert(_asyncLibrary != null);
     _futureNullType ??= futureType.instantiate(<DartType>[nullType]);
     return _futureNullType;
+  }
+
+  @override
+  InterfaceType get futureOrNullType {
+    assert(_asyncLibrary != null);
+    _futureOrNullType ??= futureOrType.instantiate(<DartType>[nullType]);
+    return _futureOrNullType;
   }
 
   @override

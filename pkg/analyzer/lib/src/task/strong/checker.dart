@@ -53,9 +53,10 @@ DartType _elementType(Element e) {
 
 Element _getKnownElement(Expression expression) {
   if (expression is ParenthesizedExpression) {
-    expression = (expression as ParenthesizedExpression).expression;
-  }
-  if (expression is FunctionExpression) {
+    return _getKnownElement(expression.expression);
+  } else if (expression is NamedExpression) {
+    return _getKnownElement(expression.expression);
+  } else if (expression is FunctionExpression) {
     return expression.element;
   } else if (expression is PropertyAccess) {
     return expression.propertyName.staticElement;

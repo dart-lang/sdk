@@ -39,8 +39,10 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
   Asserter<DartType> _isDynamic;
   Asserter<InterfaceType> _isFutureOfDynamic;
   Asserter<InterfaceType> _isFutureOfInt;
+  Asserter<InterfaceType> _isFutureOfNull;
   Asserter<InterfaceType> _isFutureOrOfInt;
   Asserter<DartType> _isInt;
+  Asserter<DartType> _isNull;
   Asserter<DartType> _isNum;
   Asserter<DartType> _isObject;
   Asserter<DartType> _isString;
@@ -69,6 +71,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
       _hasElement = _assertions.hasElement;
       _isInstantiationOf = _assertions.isInstantiationOf;
       _isInt = _assertions.isInt;
+      _isNull = _assertions.isNull;
       _isNum = _assertions.isNum;
       _isObject = _assertions.isObject;
       _isString = _assertions.isString;
@@ -82,6 +85,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
           _isInstantiationOf(_hasElementOf(typeProvider.futureOrType));
       _isFutureOfDynamic = _isFutureOf([_isDynamic]);
       _isFutureOfInt = _isFutureOf([_isInt]);
+      _isFutureOfNull = _isFutureOf([_isNull]);
       _isFutureOrOfInt = _isFutureOrOf([_isInt]);
       _isStreamOf = _isInstantiationOf(_hasElementOf(typeProvider.streamType));
     }
@@ -1113,6 +1117,39 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     _isDynamic(invoke.staticType);
   }
 
+  test_futureOr_no_return() async {
+    MethodInvocation invoke = await _testFutureOr(r'''
+    FutureOr<T> mk<T>(Future<T> x) => x;
+    Future<int> f;
+    test() => f.then((int x) {});
+    ''');
+    _isFunction2Of(_isInt, _isNull)(
+        invoke.argumentList.arguments[0].staticType);
+    _isFutureOfDynamic(invoke.staticType);
+  }
+
+  test_futureOr_no_return_value() async {
+    MethodInvocation invoke = await _testFutureOr(r'''
+    FutureOr<T> mk<T>(Future<T> x) => x;
+    Future<int> f;
+    test() => f.then((int x) {return;});
+    ''');
+    _isFunction2Of(_isInt, _isNull)(
+        invoke.argumentList.arguments[0].staticType);
+    _isFutureOfDynamic(invoke.staticType);
+  }
+
+  test_futureOr_return_null() async {
+    MethodInvocation invoke = await _testFutureOr(r'''
+    FutureOr<T> mk<T>(Future<T> x) => x;
+    Future<int> f;
+    test() => f.then((int x) {});
+    ''');
+    _isFunction2Of(_isInt, _isNull)(
+        invoke.argumentList.arguments[0].staticType);
+    _isFutureOfDynamic(invoke.staticType);
+  }
+
   test_futureOr_upwards1() async {
     // Test that upwards inference correctly prefers to instantiate type
     // variables with the "smaller" solution when both are possible.
@@ -1133,6 +1170,39 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     ''',
         errors: [StrongModeCode.COULD_NOT_INFER]);
     _isFutureOf([_isObject])(invoke.staticType);
+  }
+
+  test_futureOrNull_no_return_value() async {
+    MethodInvocation invoke = await _testFutureOr(r'''
+    FutureOr<T> mk<T>(Future<T> x) => x;
+    Future<int> f;
+    test() => f.then<Null>((int x) {return;});
+    ''');
+    _isFunction2Of(_isInt, _isNull)(
+        invoke.argumentList.arguments[0].staticType);
+    _isFutureOfNull(invoke.staticType);
+  }
+
+  test_futureOrNull_no_return() async {
+    MethodInvocation invoke = await _testFutureOr(r'''
+    FutureOr<T> mk<T>(Future<T> x) => x;
+    Future<int> f;
+    test() => f.then<Null>((int x) {});
+    ''');
+    _isFunction2Of(_isInt, _isNull)(
+        invoke.argumentList.arguments[0].staticType);
+    _isFutureOfNull(invoke.staticType);
+  }
+
+  test_futureOrNull_return_null() async {
+    MethodInvocation invoke = await _testFutureOr(r'''
+    FutureOr<T> mk<T>(Future<T> x) => x;
+    Future<int> f;
+    test() => f.then<Null>((int x) {});
+    ''');
+    _isFunction2Of(_isInt, _isNull)(
+        invoke.argumentList.arguments[0].staticType);
+    _isFutureOfNull(invoke.staticType);
   }
 
   test_inference_hints() async {

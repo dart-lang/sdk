@@ -2389,12 +2389,12 @@ void ftf1(void x(int y)) {}
   void test_implicitDynamic_return() {
     addFile(r'''
 // function
-/*error:IMPLICIT_DYNAMIC_RETURN*/f0() {}
+/*error:IMPLICIT_DYNAMIC_RETURN*/f0() {return f0();}
 dynamic f1() { return 42; }
 
 // nested function
 void main() {
-  /*error:IMPLICIT_DYNAMIC_RETURN*/g0() {}
+  /*error:IMPLICIT_DYNAMIC_RETURN*/g0() {return g0();}
   dynamic g1() { return 42; }
 }
 
@@ -3246,8 +3246,10 @@ class C<T> {
     // Regression test for https://github.com/dart-lang/sdk/issues/26155
     checkFile(r'''
 void takesF(void f(int x)) {
-  takesF(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/([x]) { bool z = x.isEven; });
-  takesF(/*info:INFERRED_TYPE_CLOSURE*/(y) { bool z = y.isEven; });
+  takesF(/*info:INFERRED_TYPE_CLOSURE,
+           info:INFERRED_TYPE_CLOSURE*/([x]) { bool z = x.isEven; });
+  takesF(/*info:INFERRED_TYPE_CLOSURE,
+           info:INFERRED_TYPE_CLOSURE*/(y) { bool z = y.isEven; });
 }
     ''');
   }
@@ -3701,6 +3703,34 @@ void test() {
   foo(baz1);
   foo(baz2);
   foo(baz3);
+}
+    ''');
+  }
+
+  void test_tearOffTreatedConsistentlyAsStrictArrowNamedParam() {
+    checkFile(r'''
+typedef void Handler(String x);
+void foo({Handler f}) {}
+
+class A {
+  Null bar1(dynamic x) => null;
+  void bar2(dynamic x) => null;
+  Null bar3(String x) => null;
+  void test() {
+    foo(f: bar1);
+    foo(f: bar2);
+    foo(f: bar3);
+  }
+}
+
+
+Null baz1(dynamic x) => null;
+void baz2(dynamic x) => null;
+Null baz3(String x) => null;
+void test() {
+  foo(f: baz1);
+  foo(f: baz2);
+  foo(f: baz3);
 }
     ''');
   }

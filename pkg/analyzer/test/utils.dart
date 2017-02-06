@@ -229,6 +229,11 @@ class TypeAssertions {
   Asserter<DartType> get isMap => hasElementOf(_typeProvider.mapType);
 
   /**
+   * Primitive assertion for the Null type
+   */
+  Asserter<DartType> get isNull => isType(_typeProvider.nullType);
+
+  /**
    * Primitive assertion for the num type
    */
   Asserter<DartType> get isNum => isType(_typeProvider.numType);
