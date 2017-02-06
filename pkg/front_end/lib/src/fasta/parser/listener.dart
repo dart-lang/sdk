@@ -406,6 +406,9 @@ class Listener {
     logEvent("Member");
   }
 
+  /// This event can be used to support non-compliant (with respect to Dart
+  /// Language Specification) Dart VM native clauses. See
+  /// [dart_vm_native.dart].
   Link<Token> handleMemberName(Link<Token> identifiers) => identifiers;
 
   /// Doesn't have a corresponding begin event, use [beginMember] instead.

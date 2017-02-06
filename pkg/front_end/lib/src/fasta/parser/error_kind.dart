@@ -4,6 +4,7 @@
 
 library fasta.parser.error_kind;
 
+/// Kinds of error codes.
 enum ErrorKind {
   AsciiControlCharacter,
   EmptyNamedParameterList,
@@ -13,7 +14,12 @@ enum ErrorKind {
   ExpectedBody,
   ExpectedButGot,
   ExpectedClassBody,
+
+  /// This error code can be used to support non-compliant (with respect to
+  /// Dart Language Specification) Dart VM native clauses. See
+  /// [dart_vm_native.dart].
   ExpectedClassBodyToSkip,
+
   ExpectedDeclaration,
   ExpectedExpression,
   ExpectedFunctionBody,
