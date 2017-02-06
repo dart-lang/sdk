@@ -383,7 +383,7 @@ import 'a.dart';
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');
     provider.newFile(a, 'var a = 1;');
-    provider.newFile(a, 'var b = 2;');
+    provider.newFile(b, 'var b = 2;');
 
     driver.priorityFiles = [a];
 
