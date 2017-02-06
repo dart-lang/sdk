@@ -2715,6 +2715,7 @@ LayoutTests/fast/canvas/webgl/gl-enum-tests_t01: RuntimeError # Please triage th
 LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-object-get-calls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/renderer-and-vendor-strings_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: Skip # Times out.
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
@@ -3421,6 +3422,7 @@ LayoutTests/fast/forms/shadow-tree-exposure_t01: RuntimeError # Please triage th
 LayoutTests/fast/forms/submit-form-with-dirname-attribute-with-ancestor-dir-attribute_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/submit-form-with-dirname-attribute_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/text-control-select-blurred_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/textarea-initial-caret-position_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-maxlength_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-no-scroll-on-blur_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/textarea-paste-newline_t01: RuntimeError # Please triage this failure
@@ -4058,20 +4060,14 @@ LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JS
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 LayoutTests/fast/canvas/webgl/*: Timeout, Pass # Issue 26725
-LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/whitespace/nowrap-line-break-after-white-space_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Skip # Times out always
 LayoutTests/fast/canvas/webgl/texture-complete_t01: Skip # Times out sometimes
 LayoutTests/fast/canvas/webgl/texture-npot_t01: Skip # Times out sometimes
 LayoutTests/fast/canvas/webgl/tex-sub-image-2d-bad-args_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/textarea-initial-caret-position_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $system != linux]
-LayoutTests/fast/canvas/canvas-imageSmoothingEnabled_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/drawImage-with-valid-image_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-invalid-xml_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/4628409_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == safari ]
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t01: RuntimeError # Issue 26615
