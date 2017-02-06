@@ -213,3 +213,16 @@ bool bug371(dynamic other, dynamic productTypes) {
   if (productTypes == null || other.productTypes == null) return false;
   return true;
 }
+
+/// https://github.com/dart-lang/linter/issues/373
+void bug373(int foo) {
+  bool bar = true;
+  if (foo == 4 && bar && foo > 4) {} // LINT
+  if (foo == 4 && bar) {
+    // doSomething();
+    if (foo > 4) { // LINT
+      // ...
+    }
+    // ...
+  }
+}
