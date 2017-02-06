@@ -119,7 +119,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
   final InternalAnalysisContext context;
   final SummaryDataStore _dataStore;
 
-  _FileBasedSummaryResynthesizer _resynthesizer;
+  StoreBasedSummaryResynthesizer _resynthesizer;
 
   ResynthesizerResultProvider(this.context, this._dataStore);
 
@@ -266,7 +266,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
    * Subclasses must call this method in their constructors.
    */
   void createResynthesizer() {
-    _resynthesizer = new _FileBasedSummaryResynthesizer(context,
+    _resynthesizer = new StoreBasedSummaryResynthesizer(context,
         context.sourceFactory, context.analysisOptions.strongMode, _dataStore);
   }
 
@@ -276,6 +276,33 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
    * every bundle that would be required to provide results for the [source].
    */
   bool hasResultsForSource(Source source);
+}
+
+/**
+ * A concrete resynthesizer that serves summaries from [SummaryDataStore].
+ */
+class StoreBasedSummaryResynthesizer extends SummaryResynthesizer {
+  final SummaryDataStore _dataStore;
+
+  StoreBasedSummaryResynthesizer(AnalysisContext context,
+      SourceFactory sourceFactory, bool strongMode, this._dataStore)
+      : super(context, sourceFactory, strongMode);
+
+  @override
+  LinkedLibrary getLinkedSummary(String uri) {
+    return _dataStore.linkedMap[uri];
+  }
+
+  @override
+  UnlinkedUnit getUnlinkedSummary(String uri) {
+    return _dataStore.unlinkedMap[uri];
+  }
+
+  @override
+  bool hasLibrarySummary(String uri) {
+    LinkedLibrary linkedLibrary = _dataStore.linkedMap[uri];
+    return linkedLibrary != null;
+  }
 }
 
 /**
@@ -410,32 +437,5 @@ class SummaryDataStore {
     List<int> buffer = file.readAsBytesSync();
     PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
     addBundle(path, bundle);
-  }
-}
-
-/**
- * A concrete resynthesizer that serves summaries from given file paths.
- */
-class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
-  final SummaryDataStore _dataStore;
-
-  _FileBasedSummaryResynthesizer(AnalysisContext context,
-      SourceFactory sourceFactory, bool strongMode, this._dataStore)
-      : super(context, sourceFactory, strongMode);
-
-  @override
-  LinkedLibrary getLinkedSummary(String uri) {
-    return _dataStore.linkedMap[uri];
-  }
-
-  @override
-  UnlinkedUnit getUnlinkedSummary(String uri) {
-    return _dataStore.unlinkedMap[uri];
-  }
-
-  @override
-  bool hasLibrarySummary(String uri) {
-    LinkedLibrary linkedLibrary = _dataStore.linkedMap[uri];
-    return linkedLibrary != null;
   }
 }
