@@ -111,14 +111,14 @@ class KernelSourceTarget extends TargetImplementation {
     loader.read(uri);
   }
 
-  LibraryBuilder createLibraryBuilder(Uri uri) {
+  LibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri) {
     if (dillTarget.isLoaded) {
       var builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         return builder;
       }
     }
-    return new KernelLibraryBuilder(uri, loader);
+    return new KernelLibraryBuilder(uri, fileUri, loader);
   }
 
   void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {
@@ -267,7 +267,9 @@ class KernelSourceTarget extends TargetImplementation {
 
   Program erroneousProgram(bool isFullProgram) {
     Uri uri = loader.first?.uri ?? Uri.parse("error:error");
-    KernelLibraryBuilder library = new KernelLibraryBuilder(uri, loader);
+    Uri fileUri = loader.first?.fileUri ?? uri;
+    KernelLibraryBuilder library =
+        new KernelLibraryBuilder(uri, fileUri, loader);
     loader.first = library;
     if (isFullProgram) {
       // If this is an outline, we shouldn't add an executable main

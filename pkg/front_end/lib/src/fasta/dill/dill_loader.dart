@@ -34,7 +34,7 @@ class DillLoader extends Loader<Library> {
   DillLoader(TargetImplementation target)
       : super(target);
 
-  DillLibraryBuilder read(Uri uri) => super.read(uri);
+  DillLibraryBuilder read(Uri uri, [Uri fileUri]) => super.read(uri, fileUri);
 
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
     if (program == null) {

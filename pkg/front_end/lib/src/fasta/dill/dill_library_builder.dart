@@ -53,6 +53,8 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   get scope => internalError("Scope not supported");
 
+  Uri get fileUri => uri;
+
   void addClass(Class cls) {
     DillClassBuilder classBulder = new DillClassBuilder(cls, this);
     addBuilder(cls.name, classBulder);

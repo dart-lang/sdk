@@ -47,10 +47,28 @@ abstract class Loader<L> {
 
   Ticker get ticker => target.ticker;
 
-  LibraryBuilder read(Uri uri) {
+  /// Look up a library builder by the the name [uri], or if such doesn't
+  /// exist, create one. The canonical URI of the library is [uri], and its
+  /// actual location is [fileUri].
+  ///
+  /// Canonical URIs have schemes like "dart", or "package", and the actual
+  /// location is often a file URI.
+  LibraryBuilder read(Uri uri, [Uri fileUri]) {
     firstSourceUri ??= uri;
     LibraryBuilder builder = builders.putIfAbsent(uri, () {
-      LibraryBuilder library = target.createLibraryBuilder(uri);
+      if (fileUri == null) {
+        switch (uri.scheme) {
+          case "package":
+          case "dart":
+            fileUri = target.translateUri(uri);
+            break;
+
+          default:
+            fileUri = uri;
+            break;
+        }
+      }
+      LibraryBuilder library = target.createLibraryBuilder(uri, fileUri);
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;
       }

@@ -64,7 +64,7 @@ class DillTarget extends TargetImplementation {
     return null;
   }
 
-  DillLibraryBuilder createLibraryBuilder(Uri uri) {
+  DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri) {
     return new DillLibraryBuilder(uri, loader);
   }
 

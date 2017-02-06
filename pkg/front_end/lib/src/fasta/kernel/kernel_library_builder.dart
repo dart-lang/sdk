@@ -60,9 +60,9 @@ class KernelLibraryBuilder
 
   final List<List> argumentsWithMissingDefaultValues = <List>[];
 
-  KernelLibraryBuilder(Uri uri, Loader loader)
+  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader)
       : library = new Library(uri),
-        super(loader);
+        super(loader, fileUri);
 
   Uri get uri => library.importUri;
 
@@ -217,8 +217,6 @@ class KernelLibraryBuilder
   Library build() {
     super.build();
     library.name = name;
-    // TODO(ahe): Set fileUri.
-    // library.fileUri = "${fileUri ?? uri}";
     return library;
   }
 

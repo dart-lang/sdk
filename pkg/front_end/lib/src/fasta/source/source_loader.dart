@@ -79,14 +79,9 @@ class SourceLoader<L> extends Loader<L> {
 
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
-    Uri uri = library.fileUri ?? library.uri;
-    if (uri.scheme != "file") {
-      uri = target.translateUri(uri);
-      if (uri == null) {
-        print("Skipping ${library.uri}");
-        return null;
-      }
-      library.fileUri = uri;
+    Uri uri = library.fileUri;
+    if (uri == null || uri.scheme != "file") {
+      return inputError(library.uri, -1, "Not found: ${library.uri}.");
     }
     try {
       List<int> bytes = await readBytesFromFile(uri);

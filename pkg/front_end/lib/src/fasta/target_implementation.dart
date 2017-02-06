@@ -26,7 +26,7 @@ abstract class TargetImplementation extends Target {
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
   /// already.
-  LibraryBuilder createLibraryBuilder(Uri uri);
+  LibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri);
 
   /// Add the classes extended or implemented directly by [cls] to [set].
   void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set);

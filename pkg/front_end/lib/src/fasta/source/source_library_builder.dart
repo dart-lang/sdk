@@ -62,11 +62,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   final Scope scope = new Scope(<String, Builder>{}, null, isModifiable: false);
 
+  final Uri fileUri;
+
   String name;
 
   String partOf;
-
-  Uri fileUri;
 
   List<MetadataBuilder> metadata;
 
@@ -75,7 +75,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   // TODO(ahe): Rename this. It's not just for classes.
   List<T> classTypes;
 
-  SourceLibraryBuilder(this.loader);
+  SourceLibraryBuilder(this.loader, this.fileUri);
 
   Uri get uri;
 
@@ -133,11 +133,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     } else {
       newFileUri = resolvedUri = resolve(path);
     }
-    LibraryBuilder part = loader.read(resolvedUri);
-    if (part is SourceLibraryBuilder) {
-      part.fileUri ??= newFileUri;
-    }
-    parts.add(part);
+    parts.add(loader.read(resolvedUri, newFileUri));
   }
 
   void addPartOf(List<MetadataBuilder> metadata, String name) {

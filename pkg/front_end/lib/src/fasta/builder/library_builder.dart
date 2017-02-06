@@ -35,6 +35,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   Uri get uri;
 
+  Uri get fileUri;
+
   Map<String, Builder> get members;
 
   // TODO(ahe): Move this to SourceLibraryBuilder.
