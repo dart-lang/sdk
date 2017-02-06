@@ -1677,6 +1677,10 @@ f() {
 ''');
   }
 
+  test_closure_generic() {
+    checkLibrary('final f = <U, V>(U x, V y) => y;');
+  }
+
   test_closure_in_variable_declaration_in_part() {
     addSource('/a.dart', 'part of lib; final f = (int i) => i.toDouble();');
     checkLibrary('''
