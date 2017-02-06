@@ -262,8 +262,6 @@ class TestOutcomeLogWriter extends EventListener {
     'system',
     'vm_options',
     'use_sdk',
-    'use_repository_packages',
-    'use_public_packages',
     'builder_tag'
   ];
 

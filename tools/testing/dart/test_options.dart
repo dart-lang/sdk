@@ -340,23 +340,6 @@ Note: currently only implemented for dart2js.''',
           false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'use_public_packages',
-          'For tests using packages: Use pub.dartlang.org packages '
-          'instead the ones in the repository.',
-          ['--use-public-packages'],
-          [],
-          false,
-          type: 'bool'),
-      new _TestOptionSpecification(
-          'use_repository_packages',
-          'For tests using packages: Use pub.dartlang.org packages '
-          'but use overrides for the packages available in the '
-          'repository.',
-          ['--use-repository-packages'],
-          [],
-          false,
-          type: 'bool'),
-      new _TestOptionSpecification(
           'build_directory',
           'The name of the build directory, where products are placed.',
           ['--build-directory'],
@@ -751,12 +734,6 @@ Note: currently only implemented for dart2js.''',
       isValid = false;
       print("Error: shard index is ${config['shard']} out of "
           "${config['shards']} shards");
-    }
-
-    if (config['use_repository_packages'] && config['use_public_packages']) {
-      isValid = false;
-      print("Cannot have both --use-repository-packages and "
-          "--use-public-packages");
     }
     if ((config['runtime'] == 'flutter') && (config['flutter'] == '')) {
       isValid = false;

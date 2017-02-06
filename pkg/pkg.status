@@ -170,9 +170,6 @@ mutation_observer: Skip
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 third_party/di_tests/di_test: Pass, Slow # Issue 22896
 
-[ $use_repository_packages ]
-analyzer/test/*: PubGetError
-
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 analyzer/test/dart/ast/ast_test: Crash # Issue 24485
 analyzer/test/dart/ast/visitor_test: Crash # Issue 24485
