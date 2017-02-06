@@ -4146,6 +4146,7 @@ LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # Please triag
 LayoutTests/fast/canvas/setWidthResetAfterForcedRender_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-lost_t01: Skip
+LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Skip # Issue 28640
 LayoutTests/fast/canvas/webgl/glsl-conformance_t01: Skip # Times out 1 out of 20.
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: RuntimeError # Please triage this failure
