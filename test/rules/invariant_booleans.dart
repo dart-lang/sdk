@@ -226,3 +226,14 @@ void bug373(int foo) {
     // ...
   }
 }
+
+void bug372(bool foo) {
+  if (foo) {
+    return;
+  }
+  // doSomething();
+
+  if (foo) { // LINT
+    // doSomethingElse();
+  }
+}

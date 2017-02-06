@@ -98,7 +98,7 @@ void nestedOk5() {
 ''';
 
 Set<Expression> _findConditionsCausingReturns(
-        BinaryExpression node, Iterable<AstNode> nodesInDFS) =>
+        Expression node, Iterable<AstNode> nodesInDFS) =>
     nodesInDFS
         .where(_isAnalyzedNode)
         .where(_isConditionalStatementWithReturn(nodesInDFS))
@@ -148,7 +148,7 @@ Set<Expression> _findConditionsUnderStatementBranch(Statement statement,
   }).toSet();
 }
 
-TestedExpressions _findPreviousTestedExpressions(BinaryExpression node) {
+TestedExpressions _findPreviousTestedExpressions(Expression node) {
   Block block = node.getAncestor((a) => a is Block && a.parent is FunctionBody);
   Iterable<AstNode> nodesInDFS = DartTypeUtilities.traverseNodesInDFS(block,
       excludeCriteria: (n) => n is FunctionDeclarationStatement);
@@ -214,7 +214,7 @@ AstNodePredicate _isConditionalStatementWithReturn(
     };
 
 AstNodePredicate _noFurtherAssignmentInvalidatingCondition(
-    BinaryExpression node, Iterable<AstNode> nodesInDFS) {
+    Expression node, Iterable<AstNode> nodesInDFS) {
   Set<Identifier> identifiers = _findStatementIdentifiers(node.parent);
   return (AstNode statement) =>
       nodesInDFS
@@ -273,33 +273,25 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitDoStatement(DoStatement node) {
-    if (node.condition is BinaryExpression) {
-      _reportBinaryExpressionIfConstantValue(node.condition);
-    }
+    _reportExpressionIfConstantValue(node.condition);
   }
 
   @override
   visitForStatement(ForStatement node) {
-    if (node.condition is BinaryExpression) {
-      _reportBinaryExpressionIfConstantValue(node.condition);
-    }
+    _reportExpressionIfConstantValue(node.condition);
   }
 
   @override
   visitIfStatement(IfStatement node) {
-    if (node.condition is BinaryExpression) {
-      _reportBinaryExpressionIfConstantValue(node.condition);
-    }
+    _reportExpressionIfConstantValue(node.condition);
   }
 
   @override
   visitWhileStatement(WhileStatement node) {
-    if (node.condition is BinaryExpression) {
-      _reportBinaryExpressionIfConstantValue(node.condition);
-    }
+    _reportExpressionIfConstantValue(node.condition);
   }
 
-  _reportBinaryExpressionIfConstantValue(BinaryExpression node) {
+  _reportExpressionIfConstantValue(Expression node) {
     // Right part discards reporting a subexpression already reported.
     if (resolutionMap.bestTypeForExpression(node).name != 'bool' ||
         !_isAnalyzedNode(node.parent)) {
@@ -315,11 +307,14 @@ class _Visitor extends SimpleAstVisitor {
 
     // In dart booleanVariable == true is a valid comparison since the variable
     // can be null.
-    if (!BooleanExpressionUtilities.EQUALITY_OPERATIONS
-            .contains(node.operator.type) &&
-        (node.leftOperand is BooleanLiteral ||
-            node.rightOperand is BooleanLiteral) &&
-        node.operator.type != TokenType.QUESTION_QUESTION) {
+    final BinaryExpression binaryExpression =
+        node is BinaryExpression ? node : null;
+    if (binaryExpression != null &&
+        !BooleanExpressionUtilities.EQUALITY_OPERATIONS
+            .contains(binaryExpression.operator.type) &&
+        (binaryExpression.leftOperand is BooleanLiteral ||
+            binaryExpression.rightOperand is BooleanLiteral) &&
+        binaryExpression.operator.type != TokenType.QUESTION_QUESTION) {
       rule.reportLint(node);
     }
   }

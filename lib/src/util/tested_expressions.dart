@@ -70,14 +70,14 @@ bool _sameOperands(String eLeftOperand, String bcLeftOperand,
 typedef void _recurseCallback(Expression expression);
 
 class ContradictoryComparisons {
-  final BinaryExpression first;
-  final BinaryExpression second;
+  final Expression first;
+  final Expression second;
 
   ContradictoryComparisons(this.first, this.second);
 }
 
 class TestedExpressions {
-  final BinaryExpression testingExpression;
+  final Expression testingExpression;
   final LinkedHashSet<Expression> truths;
   final LinkedHashSet<Expression> negations;
   LinkedHashSet<ContradictoryComparisons> _contradictions;
@@ -89,15 +89,22 @@ class TestedExpressions {
       return _contradictions;
     }
 
+    final binaryExpression = testingExpression is BinaryExpression
+        ? testingExpression as BinaryExpression
+        : null;
+    var facts = binaryExpression != null
+        ? [binaryExpression.leftOperand, binaryExpression.rightOperand]
+        : [testingExpression];
     _contradictions = _findContradictoryComparisons(
-        new LinkedHashSet.from(
-            [testingExpression.leftOperand, testingExpression.rightOperand]),
-        testingExpression.operator.type);
+        new LinkedHashSet.from(facts),
+        binaryExpression != null
+            ? binaryExpression.operator.type
+            : TokenType.AMPERSAND_AMPERSAND);
 
     if (_contradictions.isEmpty) {
-      HashSet<Expression> set = _extractComparisons(testingExpression)
-        ..addAll(truths)
-        ..addAll(negations);
+      HashSet<Expression> set = (binaryExpression != null
+          ? _extractComparisons(testingExpression)
+          : [testingExpression].toSet())..addAll(truths)..addAll(negations);
       // Here and in several places we proceed only for
       // TokenType.AMPERSAND_AMPERSAND because we then know that all comparisons
       // must be true.
@@ -116,9 +123,20 @@ class TestedExpressions {
       HashSet<Expression> comparisons, TokenType tokenType) {
     final Iterable<Expression> binaryExpressions =
         comparisons.where((e) => e is BinaryExpression).toSet();
-
     LinkedHashSet<ContradictoryComparisons> contradictions =
         new LinkedHashSet.identity();
+
+    if (testingExpression is SimpleIdentifier) {
+      SimpleIdentifier identifier = testingExpression;
+      bool sameIdentifier(n) =>
+          n is SimpleIdentifier && identifier.bestElement == n.bestElement;
+      if (negations.any(sameIdentifier)) {
+        SimpleIdentifier otherIdentifier = negations.firstWhere(sameIdentifier);
+        contradictions
+            .add(new ContradictoryComparisons(otherIdentifier, identifier));
+      }
+    }
+
     binaryExpressions.forEach((Expression ex) {
       if (contradictions.isNotEmpty) {
         return;
