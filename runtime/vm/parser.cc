@@ -2666,6 +2666,11 @@ StaticCallNode* Parser::GenerateSuperConstructorCall(
   const Function& super_ctor =
       Function::ZoneHandle(Z, super_class.LookupConstructor(super_ctor_name));
   if (super_ctor.IsNull()) {
+    if (super_class.LookupFactory(super_ctor_name) != Function::null()) {
+      ReportError(supercall_pos,
+                  "illegal implicit call to factory '%s()' in super class",
+                  String::Handle(Z, super_class.Name()).ToCString());
+    }
     ReportError(supercall_pos,
                 "unresolved implicit call to super constructor '%s()'",
                 String::Handle(Z, super_class.Name()).ToCString());
@@ -2717,6 +2722,12 @@ StaticCallNode* Parser::ParseSuperInitializer(const Class& cls,
   const Function& super_ctor =
       Function::ZoneHandle(Z, super_class.LookupConstructor(ctor_name));
   if (super_ctor.IsNull()) {
+    if (super_class.LookupFactory(ctor_name) != Function::null()) {
+      ReportError(supercall_pos,
+                  "super class constructor '%s' "
+                  "must not be a factory constructor",
+                  ctor_name.ToCString());
+    }
     ReportError(supercall_pos, "super class constructor '%s' not found",
                 ctor_name.ToCString());
   }
@@ -3102,6 +3113,11 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   const Function& redirect_ctor =
       Function::ZoneHandle(Z, cls.LookupConstructor(ctor_name));
   if (redirect_ctor.IsNull()) {
+    if (cls.LookupFactory(ctor_name) != Function::null()) {
+      ReportError(
+          call_pos, "redirection constructor '%s' must not be a factory",
+          String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString());
+    }
     ReportError(call_pos, "constructor '%s' not found",
                 String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString());
   }
