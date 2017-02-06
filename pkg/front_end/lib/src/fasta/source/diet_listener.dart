@@ -13,13 +13,23 @@ import 'package:kernel/class_hierarchy.dart' show
 import 'package:kernel/core_types.dart' show
     CoreTypes;
 
-import 'package:front_end/src/fasta/parser/parser.dart' show
+import '../parser/parser.dart' show
     Parser,
     optional;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show
+import '../scanner/token.dart' show
     BeginGroupToken,
     Token;
+
+import '../parser/dart_vm_native.dart' show
+    removeNativeClause,
+    skipNativeClause;
+
+import '../parser/error_kind.dart' show
+    ErrorKind;
+
+import '../util/link.dart' show
+    Link;
 
 import '../errors.dart' show
     Crash,
@@ -60,6 +70,8 @@ class DietListener extends StackListener {
 
   final AstKind astKind;
 
+  final bool isDartLibrary;
+
   ClassBuilder currentClass;
 
   /// For top-level declarations, this is the library scope. For class members,
@@ -69,7 +81,8 @@ class DietListener extends StackListener {
   DietListener(SourceLibraryBuilder library, this.elementStore, this.hierarchy,
       this.coreTypes, this.astKind)
       : library = library,
-        memberScope = library.scope;
+        memberScope = library.scope,
+        isDartLibrary = library.uri.scheme == "dart";
 
   @override
   Uri get uri => library.uri;
@@ -454,6 +467,24 @@ class DietListener extends StackListener {
     checkEmpty();
   }
 
+  @override
+  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
+    if (isDartLibrary && kind == ErrorKind.ExpectedBlockToSkip) {
+      Token recover = skipNativeClause(token);
+      if (recover != null) {
+        assert(isTargetingDartVm);
+        return recover;
+      }
+    }
+    return super.handleUnrecoverableError(token, kind, arguments);
+  }
+
+  @override
+  Link<Token> handleMemberName(Link<Token> identifiers) {
+    if (!isDartLibrary || identifiers.isEmpty) return identifiers;
+    return removeNativeClause(identifiers);
+  }
+
   void parseFunctionBody(StackListener listener, Token token) {
     try {
       Parser parser = new Parser(listener);
@@ -527,5 +558,10 @@ class DietListener extends StackListener {
   void debugEvent(String name) {
     // print("  ${stack.join('\n  ')}");
     // print(name);
+  }
+
+  bool get isTargetingDartVm {
+    // TODO(ahe): Find a more reliable way to check if this is the Dart VM.
+    return coreTypes.getCoreLibrary("dart:_js_helper") == null;
   }
 }

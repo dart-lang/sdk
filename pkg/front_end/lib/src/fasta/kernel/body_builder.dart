@@ -25,6 +25,9 @@ import 'package:kernel/class_hierarchy.dart' show
 import 'package:kernel/core_types.dart' show
     CoreTypes;
 
+import '../parser/dart_vm_native.dart' show
+    skipNativeClause;
+
 import 'package:front_end/src/fasta/scanner/token.dart' show
     BeginGroupToken,
     Token,
@@ -124,6 +127,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   final Scope enclosingScope;
 
+  final bool isDartLibrary;
+
   Scope formalParameterScope;
 
   bool isFirstIdentifier = false;
@@ -144,9 +149,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   CloneVisitor cloner;
 
-  BodyBuilder(this.library, this.member, Scope scope, this.formalParameterScope,
-      this.hierarchy, this.coreTypes, this.classBuilder, this.isInstanceMember)
+  /// Set to true each time we parse a native function body. It is reset in
+  /// [handleInvalidFunctionBody] which is called immediately after.
+  bool lastErrorWasNativeFunctionBody = false;
+
+  BodyBuilder(KernelLibraryBuilder library, this.member, Scope scope,
+      this.formalParameterScope, this.hierarchy, this.coreTypes,
+      this.classBuilder, this.isInstanceMember)
       : enclosingScope = scope,
+        library = library,
+        isDartLibrary = library.uri.scheme == "dart",
         super(scope);
 
   bool get inConstructor {
@@ -2141,7 +2153,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
-    if (kind == ErrorKind.UnexpectedToken) {
+    if (isDartLibrary && kind == ErrorKind.ExpectedFunctionBody) {
+      Token recover = skipNativeClause(token);
+      if (recover != null) {
+        buildNative(unescapeString(token.next.value));
+        return recover;
+      }
+    } else if (kind == ErrorKind.UnexpectedToken) {
       String expected = arguments["expected"];
       const List<String> trailing = const <String>[")", "}", ";", ","];
       if (trailing.contains(token.stringValue) && trailing.contains(expected)) {
@@ -2202,6 +2220,30 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   dynamic inputError(String message, [int charOffset = -1]) {
     return errors.inputError(uri, charOffset, message);
+  }
+
+  @override
+  void handleInvalidFunctionBody(Token token) {
+    if (!lastErrorWasNativeFunctionBody) {
+      push(new Block(<Statement>[new InvalidStatement()]));
+    }
+    lastErrorWasNativeFunctionBody = false;
+  }
+
+  void buildNative(String native) {
+    lastErrorWasNativeFunctionBody = true;
+
+    // From dartk:
+    //
+    //   currentMember.isExternal = true;
+    //   currentMember.addAnnotation(new ast.ConstructorInvocation(
+    //       scope.loader.getCoreClassConstructorReference('ExternalName',
+    //           library: 'dart:_internal'),
+    //       new ast.Arguments(<ast.Expression>[
+    //         new ast.StringLiteral(body.stringLiteral.stringValue)
+    //       ]),
+    //       isConst: true));
+    push(new Block(<Statement>[new InvalidStatement()]));
   }
 
   @override

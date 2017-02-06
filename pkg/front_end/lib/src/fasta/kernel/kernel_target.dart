@@ -207,7 +207,7 @@ class KernelSourceTarget extends TargetImplementation {
       print(message);
       errors.add(message);
     }
-    program = erroneousProgram();
+    program = erroneousProgram(isFullProgram);
     return uri == null
         ? new Future<Program>.value(program)
         : writeLinkedProgram(uri, program, isFullProgram: isFullProgram);
@@ -265,15 +265,21 @@ class KernelSourceTarget extends TargetImplementation {
     }
   }
 
-  Program erroneousProgram() {
+  Program erroneousProgram(bool isFullProgram) {
     Uri uri = loader.first?.uri ?? Uri.parse("error:error");
     KernelLibraryBuilder library = new KernelLibraryBuilder(uri, loader);
-    KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(null, 0,
-        null, "main", null, null, AsyncMarker.Sync, ProcedureKind.Method);
-    library.addBuilder(mainBuilder.name, mainBuilder);
     loader.first = library;
-    mainBuilder.body = new ExpressionStatement(
-        new Throw(new StringLiteral("${errors.join('\n')}")));
+    if (isFullProgram) {
+      // If this is an outline, we shouldn't add an executable main
+      // method. Similarly considerations apply to separate compilation. It
+      // could also make sense to add a way to mark .dill files as having
+      // compile-time errors.
+      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(null, 0,
+          null, "main", null, null, AsyncMarker.Sync, ProcedureKind.Method);
+      library.addBuilder(mainBuilder.name, mainBuilder);
+      mainBuilder.body = new ExpressionStatement(
+          new Throw(new StringLiteral("${errors.join('\n')}")));
+    }
     library.build();
     return link(<Library>[library.library]);
   }

@@ -61,7 +61,9 @@ class CompilerCommandLine extends CommandLine {
   Uri get defaultOutput => Uri.base.resolve("${arguments.first}.dill");
 
   Uri get platform {
-    return options["--platform"] ?? Uri.base.resolve("platform.dill");
+    return options.containsKey("--compile-sdk")
+        ? null
+        : options["--platform"] ?? Uri.base.resolve("platform.dill");
   }
 }
 
@@ -135,4 +137,7 @@ Supported options:
 
   --dump-ir
     Print compiled libraries in Kernel source notation.
+
+  --compile-sdk
+    Compile the SDK from scratch instead of reading it from 'platform.dill'.
 """;

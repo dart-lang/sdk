@@ -79,7 +79,7 @@ class SourceLoader<L> extends Loader<L> {
 
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
-    Uri uri = library.uri;
+    Uri uri = library.fileUri ?? library.uri;
     if (uri.scheme != "file") {
       uri = target.translateUri(uri);
       if (uri == null) {

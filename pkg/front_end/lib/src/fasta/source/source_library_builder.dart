@@ -124,8 +124,20 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     imports.add(new Import(loader.read(resolve(uri)), prefix, combinators));
   }
 
-  void addPart(List<MetadataBuilder> metadata, String uri) {
-    parts.add(loader.read(resolve(uri)));
+  void addPart(List<MetadataBuilder> metadata, String path) {
+    Uri resolvedUri;
+    Uri newFileUri;
+    if (uri.scheme == "dart") {
+      resolvedUri = new Uri(scheme: "dart", path: "${uri.path}/$path");
+      newFileUri = fileUri.resolve(path);
+    } else {
+      newFileUri = resolvedUri = resolve(path);
+    }
+    LibraryBuilder part = loader.read(resolvedUri);
+    if (part is SourceLibraryBuilder) {
+      part.fileUri ??= newFileUri;
+    }
+    parts.add(part);
   }
 
   void addPartOf(List<MetadataBuilder> metadata, String name) {

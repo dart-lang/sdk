@@ -8,12 +8,15 @@ import 'package:kernel/ast.dart' show
     AsyncMarker,
     ProcedureKind;
 
-import 'package:front_end/src/fasta/parser/parser.dart' show
+import '../parser/parser.dart' show
     FormalParameterType,
     optional;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show
+import '../scanner/token.dart' show
     Token;
+
+import '../util/link.dart' show
+    Link;
 
 import '../combinator.dart' show
     Combinator;
@@ -33,6 +36,13 @@ import 'unhandled_listener.dart' show
     NullValue,
     Unhandled,
     UnhandledListener;
+
+import '../parser/error_kind.dart' show
+    ErrorKind;
+
+import '../parser/dart_vm_native.dart' show
+    removeNativeClause,
+    skipNativeClause;
 
 enum MethodBody {
   Abstract,
@@ -63,7 +73,11 @@ AsyncMarker asyncMarkerFromTokens(Token asyncToken, Token starToken) {
 class OutlineBuilder extends UnhandledListener {
   final SourceLibraryBuilder library;
 
-  OutlineBuilder(this.library);
+  final bool isDartLibrary;
+
+  OutlineBuilder(SourceLibraryBuilder library)
+      : library = library,
+        isDartLibrary = library.uri.scheme == "dart";
 
   @override
   Uri get uri => library.uri;
@@ -522,6 +536,21 @@ class OutlineBuilder extends UnhandledListener {
   void handleModifiers(int count) {
     debugEvent("Modifiers");
     push(popList(count) ?? NullValue.Modifiers);
+  }
+
+  @override
+  Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
+    if (isDartLibrary && kind == ErrorKind.ExpectedBlockToSkip) {
+      Token recover = skipNativeClause(token);
+      if (recover != null) return recover;
+    }
+    return super.handleUnrecoverableError(token, kind, arguments);
+  }
+
+  @override
+  Link<Token> handleMemberName(Link<Token> identifiers) {
+    if (!isDartLibrary || identifiers.isEmpty) return identifiers;
+    return removeNativeClause(identifiers);
   }
 
   @override
