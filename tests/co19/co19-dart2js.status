@@ -419,9 +419,6 @@ WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
 
-[ $compiler == dart2js && $fast_startup && $runtime == ff ]
-LayoutTests/fast/canvas/webgl/get-active-test_t01: RuntimeError # Dart issue 28593
-
 [ $compiler == dart2js && $fast_startup && $runtime == d8]
 LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
 
@@ -2710,6 +2707,7 @@ LayoutTests/fast/canvas/webgl/context-destroyed-crash_t01: Pass, RuntimeError # 
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Pass, RuntimeError # Issue 26898
 LayoutTests/fast/canvas/webgl/context-lost_t01: Pass, RuntimeError # Issue 26898
 LayoutTests/fast/canvas/webgl/error-reporting_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/get-active-test_t01: RuntimeError # Issue 28593
 LayoutTests/fast/canvas/webgl/gl-enum-tests_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-object-get-calls_t01: RuntimeError # Please triage this failure
