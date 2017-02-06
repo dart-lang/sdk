@@ -5,11 +5,76 @@
 library linter.src.util.tested_expressions;
 
 import 'dart:collection';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:linter/src/util/boolean_expression_utilities.dart';
 
+void _addNodeComparisons(Expression node, HashSet<Expression> comparisons) {
+  if (_isComparison(node)) {
+    comparisons.add(node);
+  } else if (_isBooleanOperation(node)) {
+    comparisons.addAll(_extractComparisons(node));
+  }
+}
+
+HashSet<Expression> _extractComparisons(BinaryExpression node) {
+  final HashSet<Expression> comparisons = new HashSet<Expression>.identity();
+  if (_isComparison(node)) {
+    comparisons.add(node);
+  }
+  if (node.operator.type != TokenType.AMPERSAND_AMPERSAND) {
+    return comparisons;
+  }
+
+  _addNodeComparisons(node.leftOperand, comparisons);
+  _addNodeComparisons(node.rightOperand, comparisons);
+
+  return comparisons;
+}
+
+bool _isBooleanOperation(Expression expression) =>
+    expression is BinaryExpression &&
+    BooleanExpressionUtilities.BOOLEAN_OPERATIONS
+        .contains(expression.operator.type);
+
+bool _isComparison(Expression expression) =>
+    expression is BinaryExpression &&
+    BooleanExpressionUtilities.COMPARISONS.contains(expression.operator.type);
+
+bool _isNegationOrComparison(
+    TokenType cOperatorType, TokenType eOperatorType, TokenType tokenType) {
+  final bool isNegationOperation =
+      cOperatorType == BooleanExpressionUtilities.NEGATIONS[eOperatorType] ||
+          BooleanExpressionUtilities.IMPLICATIONS[cOperatorType] ==
+              BooleanExpressionUtilities.NEGATIONS[eOperatorType];
+
+  final bool isTrichotomyConjunction = BooleanExpressionUtilities
+          .TRICHOTOMY_OPERATORS
+          .contains(eOperatorType) &&
+      BooleanExpressionUtilities.TRICHOTOMY_OPERATORS.contains(cOperatorType) &&
+      tokenType == TokenType.AMPERSAND_AMPERSAND;
+  final isNegationOrComparison = isNegationOperation || isTrichotomyConjunction;
+  return isNegationOrComparison;
+}
+
+bool _sameOperands(String eLeftOperand, String bcLeftOperand,
+    String eRightOperand, String bcRightOperand) {
+  final bool sameOperandsSameOrder =
+      eLeftOperand == bcLeftOperand && eRightOperand == bcRightOperand;
+  final bool sameOperandsInverted =
+      eRightOperand == bcLeftOperand && eLeftOperand == bcRightOperand;
+  return sameOperandsSameOrder || sameOperandsInverted;
+}
+
 typedef void _recurseCallback(Expression expression);
+
+class ContradictoryComparisons {
+  final BinaryExpression first;
+  final BinaryExpression second;
+
+  ContradictoryComparisons(this.first, this.second);
+}
 
 class TestedExpressions {
   final BinaryExpression testingExpression;
@@ -59,41 +124,37 @@ class TestedExpressions {
         return;
       }
 
-      BinaryExpression e = ex as BinaryExpression;
-      final String eLeftOperand = e.leftOperand.toString();
-      final String eRightOperand = e.rightOperand.toString();
-      TokenType eOperatorType = e.operator.type;
+      BinaryExpression expression = ex as BinaryExpression;
+      final String eLeftOperand = expression.leftOperand.toString();
+      final String eRightOperand = expression.rightOperand.toString();
+      final TokenType eOperatorType = expression.operator.type;
       comparisons
-          .where(
-              (c) => c != null && c.offset < e.offset && c is BinaryExpression)
+          .where((comparison) =>
+              comparison != null &&
+              comparison.offset < expression.offset &&
+              comparison is BinaryExpression)
           .forEach((Expression c) {
         if (contradictions.isNotEmpty) {
           return;
         }
 
-        BinaryExpression bc = c;
-        TokenType cOperatorType = negations.contains(c)
-            ? BooleanExpressionUtilities.NEGATIONS[bc.operator.type]
-            : bc.operator.type;
-        final String bcLeftOperand = bc.leftOperand.toString();
-        final String bcRightOperand = bc.rightOperand.toString();
-        final bool sameOperands =
-            eLeftOperand == bcLeftOperand && eRightOperand == bcRightOperand;
-        final bool sameOperandsInverted =
-            eRightOperand == bcLeftOperand && eLeftOperand == bcRightOperand;
-        final bool isNegationOperation = cOperatorType ==
-                BooleanExpressionUtilities.NEGATIONS[eOperatorType] ||
-            BooleanExpressionUtilities.IMPLICATIONS[cOperatorType] ==
-                BooleanExpressionUtilities.NEGATIONS[eOperatorType];
-        final bool isTrichotomyConjunction = BooleanExpressionUtilities
-                .TRICHOTOMY_OPERATORS
-                .contains(eOperatorType) &&
-            BooleanExpressionUtilities.TRICHOTOMY_OPERATORS
-                .contains(cOperatorType) &&
-            tokenType == TokenType.AMPERSAND_AMPERSAND;
-        if ((isNegationOperation || isTrichotomyConjunction) &&
-            (sameOperands || sameOperandsInverted)) {
-          contradictions.add(new ContradictoryComparisons(c, ex));
+        final BinaryExpression otherExpression = c;
+
+        final String bcLeftOperand = otherExpression.leftOperand.toString();
+        final String bcRightOperand = otherExpression.rightOperand.toString();
+        final bool sameOperands = _sameOperands(
+            eLeftOperand, bcLeftOperand, eRightOperand, bcRightOperand);
+
+        final TokenType cOperatorType = negations.contains(c)
+            ? BooleanExpressionUtilities
+                .NEGATIONS[otherExpression.operator.type]
+            : otherExpression.operator.type;
+        final bool isNegationOrComparison =
+            _isNegationOrComparison(cOperatorType, eOperatorType, tokenType);
+
+        if (isNegationOrComparison && sameOperands) {
+          contradictions
+              .add(new ContradictoryComparisons(otherExpression, expression));
         }
       });
     });
@@ -120,42 +181,3 @@ class TestedExpressions {
         expressions.addAll(set);
       };
 }
-
-class ContradictoryComparisons {
-  final BinaryExpression first;
-  final BinaryExpression second;
-
-  ContradictoryComparisons(this.first, this.second);
-}
-
-HashSet<Expression> _extractComparisons(BinaryExpression node) {
-  final HashSet<Expression> comparisons = new HashSet<Expression>.identity();
-  if (_isComparison(node)) {
-    comparisons.add(node);
-  }
-  if (node.operator.type != TokenType.AMPERSAND_AMPERSAND) {
-    return comparisons;
-  }
-
-  _addNodeComparisons(node.leftOperand, comparisons);
-  _addNodeComparisons(node.rightOperand, comparisons);
-
-  return comparisons;
-}
-
-void _addNodeComparisons(Expression node, HashSet<Expression> comparisons) {
-  if (_isComparison(node)) {
-    comparisons.add(node);
-  } else if (_isBooleanOperation(node)) {
-    comparisons.addAll(_extractComparisons(node));
-  }
-}
-
-bool _isComparison(Expression expression) =>
-    expression is BinaryExpression &&
-    BooleanExpressionUtilities.COMPARISONS.contains(expression.operator.type);
-
-bool _isBooleanOperation(Expression expression) =>
-    expression is BinaryExpression &&
-    BooleanExpressionUtilities.BOOLEAN_OPERATIONS
-        .contains(expression.operator.type);
