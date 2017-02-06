@@ -382,7 +382,7 @@ class AnalysisServer {
     }
     if (resourceProvider is PhysicalResourceProvider) {
       byteStore = new MemoryCachingByteStore(
-          new FileByteStore(
+          new EvictingFileByteStore(
               resourceProvider.getStateLocation('.analysis-driver').path,
               1024 * 1024 * 1024 /*1 GiB*/),
           64 * 1024 * 1024 /*64 MiB*/);

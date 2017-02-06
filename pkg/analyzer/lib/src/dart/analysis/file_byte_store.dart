@@ -10,60 +10,41 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:path/path.dart';
 
 /**
- * The request that is sent from the main isolate to the clean-up isolate.
+ * [ByteStore] that stores values as files and performs cache eviction.
+ *
+ * Only the process that manages the cache, e.g. Analysis Server, should use
+ * this class. Other processes, e.g. Analysis Server plugins, should use
+ * [FileByteStore] instead and let the main process to perform eviction.
  */
-class CacheCleanUpRequest {
-  final String cachePath;
-  final int maxSizeBytes;
-  final SendPort replyTo;
-
-  CacheCleanUpRequest(this.cachePath, this.maxSizeBytes, this.replyTo);
-}
-
-/**
- * [ByteStore] that stores values as files.
- */
-class FileByteStore implements ByteStore {
+class EvictingFileByteStore implements ByteStore {
   static bool _cleanUpSendPortShouldBePrepared = true;
   static SendPort _cleanUpSendPort;
 
   final String _cachePath;
-  final String _tempName = 'temp_$pid';
   final int _maxSizeBytes;
+  final FileByteStore _fileByteStore;
 
   int _bytesWrittenSinceCleanup = 0;
   bool _evictionIsolateIsRunning = false;
 
-  FileByteStore(this._cachePath, this._maxSizeBytes) {
+  EvictingFileByteStore(this._cachePath, this._maxSizeBytes)
+      : _fileByteStore = new FileByteStore(_cachePath) {
     _requestCacheCleanUp();
   }
 
   @override
   List<int> get(String key) {
-    try {
-      return _getFileForKey(key).readAsBytesSync();
-    } catch (_) {
-      return null;
-    }
+    return _fileByteStore.get(key);
   }
 
   @override
   void put(String key, List<int> bytes) {
-    try {
-      File tempFile = _getFileForKey(_tempName);
-      tempFile.writeAsBytesSync(bytes);
-      File file = _getFileForKey(key);
-      tempFile.renameSync(file.path);
-      // Update the current size.
-      _bytesWrittenSinceCleanup += bytes.length;
-      if (_bytesWrittenSinceCleanup > _maxSizeBytes ~/ 8) {
-        _requestCacheCleanUp();
-      }
-    } catch (_) {}
-  }
-
-  File _getFileForKey(String key) {
-    return new File(join(_cachePath, key));
+    _fileByteStore.put(key, bytes);
+    // Update the current size.
+    _bytesWrittenSinceCleanup += bytes.length;
+    if (_bytesWrittenSinceCleanup > _maxSizeBytes ~/ 8) {
+      _requestCacheCleanUp();
+    }
   }
 
   /**
@@ -85,7 +66,7 @@ class FileByteStore implements ByteStore {
       _evictionIsolateIsRunning = true;
       try {
         ReceivePort response = new ReceivePort();
-        _cleanUpSendPort.send(new CacheCleanUpRequest(
+        _cleanUpSendPort.send(new _CacheCleanUpRequest(
             _cachePath, _maxSizeBytes, response.sendPort));
         await response.first;
       } finally {
@@ -103,7 +84,7 @@ class FileByteStore implements ByteStore {
     ReceivePort port = new ReceivePort();
     initialReplyTo.send(port.sendPort);
     port.listen((request) async {
-      if (request is CacheCleanUpRequest) {
+      if (request is _CacheCleanUpRequest) {
         await _cleanUpFolder(request.cachePath, request.maxSizeBytes);
         // Let the client know that we're done.
         request.replyTo.send(true);
@@ -143,4 +124,48 @@ class FileByteStore implements ByteStore {
       currentSizeBytes -= fileStatMap[file].size;
     }
   }
+}
+
+/**
+ * [ByteStore] that stores values as files.
+ */
+class FileByteStore implements ByteStore {
+  final String _cachePath;
+  final String _tempName = 'temp_$pid';
+
+  FileByteStore(this._cachePath);
+
+  @override
+  List<int> get(String key) {
+    try {
+      return _getFileForKey(key).readAsBytesSync();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  void put(String key, List<int> bytes) {
+    try {
+      File tempFile = _getFileForKey(_tempName);
+      tempFile.writeAsBytesSync(bytes);
+      File file = _getFileForKey(key);
+      tempFile.renameSync(file.path);
+    } catch (_) {}
+  }
+
+  File _getFileForKey(String key) {
+    return new File(join(_cachePath, key));
+  }
+}
+
+/**
+ * The request that is sent from the main isolate to the clean-up isolate.
+ */
+class _CacheCleanUpRequest {
+  final String cachePath;
+  final int maxSizeBytes;
+  final SendPort replyTo;
+
+  _CacheCleanUpRequest(this.cachePath, this.maxSizeBytes, this.replyTo);
 }
