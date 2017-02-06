@@ -513,6 +513,9 @@ instanceOfOrNull(obj, type) => JS(
 instanceOf(obj, type) => JS(
     '',
     '''(() => {
+  if ($obj == null) {
+    return $type == $Null || $_isTop($type);
+  }
   let result = $strongInstanceOf($obj, $type);
   if (result !== null) return result;
   let actual = $getReifiedType($obj);

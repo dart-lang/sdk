@@ -4,6 +4,7 @@
 
 define(['dart_sdk'], function(dart_sdk) {
   const assert = chai.assert;
+  const async = dart_sdk.async;
   const core = dart_sdk.core;
   const collection = dart_sdk.collection;
   const dart = dart_sdk.dart;
@@ -211,10 +212,13 @@ define(['dart_sdk'], function(dart_sdk) {
 
     function checkType(x, type, expectedTrue, strongOnly) {
       if (expectedTrue === undefined) expectedTrue = true;
-      if (strongOnly == undefined) strongOnly = false;
+      if (strongOnly === undefined) strongOnly = false;
       if (!strongOnly) {
         assert.doesNotThrow(() => instanceOf(x, type));
-        expect(instanceOf(x, type), expectedTrue);
+        expect(instanceOf(x, type), expectedTrue,
+          '"' + x + '" ' +
+          (expectedTrue ? 'should' : 'should not') +
+          ' be an instance of "' + dart.typeName(type) + '"');
       } else {
         assert.throws(() => instanceOf(x, type), dart.StrongModeError);
         expect(expectedTrue, false);
@@ -801,25 +805,34 @@ define(['dart_sdk'], function(dart_sdk) {
     let dyn = dart.dynamic;
 
     function always(t1, t2) {
-      assert.equal(isSubtype(t1, t2), true);
+      assert.equal(isSubtype(t1, t2), true,
+          dart.toString(t1) +
+          " should always be a subtype of " +
+          dart.toString(t2));
     }
     function never(t1, t2) {
-      assert.equal(isSubtype(t1, t2), false);
+      assert.equal(isSubtype(t1, t2), false,
+          dart.toString(t1) +
+          " should never be a subtype of " +
+          dart.toString(t2));
     }
     function maybe(t1, t2) {
-      assert.equal(isSubtype(t1, t2), null);
+      assert.equal(isSubtype(t1, t2), null,
+          dart.toString(t1) +
+          " should maybe be a subtype of " +
+          dart.toString(t2));
     }
 
     function always2(t1, t2) {
-      assert.equal(isSubtype(t1, t2), true);
+      always(t1, t2);
       always(functionType(t1, [t2]), functionType(t2, [t1]));
     }
     function never2(t1, t2) {
-      assert.equal(isSubtype(t1, t2), false);
+      never(t1, t2);
       maybe(functionType(t1, [t2]), functionType(t2, [t1]));
     }
     function maybe2(t1, t2) {
-      assert.equal(isSubtype(t1, t2), null);
+      maybe(t1, t2);
       maybe(functionType(t1, [t2]), functionType(t2, [t1]));
     }
 
@@ -919,6 +932,44 @@ define(['dart_sdk'], function(dart_sdk) {
       run_test(func1, func2, func2opt, func1extra, func2extra);
     });
 
+    test('top and bottom types', () => {
+      let FutureOr = async.FutureOr$;
+      let tops = [
+        dart.dynamic,
+        core.Object,
+        dart.void,
+        FutureOr(dart.dynamic),
+        FutureOr(core.Object),
+        FutureOr(dart.void),
+        FutureOr(FutureOr(core.Object)),
+        // ... skip the (infinite) rest of the top types :D
+      ];
+      let bottoms = [dart.bottom, core.Null];
+
+      for (let top of tops) {
+        for (let bottom of bottoms) {
+          always(bottom, top);
+          always(
+              definiteFunctionType(bottom, [top]),
+              definiteFunctionType(top, [bottom]));
+        }
+      }
+
+      for (let equalTypes of [tops, bottoms]) {
+        for (let t1 of equalTypes) {
+          for (let t2 of equalTypes) {
+            always(t1, t2);
+            always(t2, t1);
+
+            let t11 = definiteFunctionType(t1, [t1]);
+            let t22 = definiteFunctionType(t2, [t2]);
+            always(t11, t22);
+            always(t22, t11);
+          }
+        }
+      }
+    });
+
     test('basic typedefs', () => {
       function func1(S) {
         return dart.typedef('Func1', () => functionType(S, []))
@@ -975,7 +1026,6 @@ define(['dart_sdk'], function(dart_sdk) {
       always(functionType(dyn, [], [dyn]), functionType(dyn, [dyn]));
       always(functionType(dyn, [], [dyn]), functionType(dyn, []));
       always(functionType(dyn, [dyn], {extra: dyn}), functionType(dyn, [dyn]));
-
     });
 
     test('void function types', () => {
@@ -1020,7 +1070,6 @@ define(['dart_sdk'], function(dart_sdk) {
       never(functionType(dart.void, [], [int]), functionType(int, [int]));
       never(functionType(dart.void, [], [int]), functionType(int, []));
       never(functionType(dart.void, [int], {extra: int}), functionType(int, [int]));
-
     });
 
     test('higher-order typedef', () => {
@@ -1060,10 +1109,7 @@ define(['dart_sdk'], function(dart_sdk) {
       maybe(AA$(functionType(dyn, [dyn])), AA$(functionType(int, [int])));
       maybe(AA$(functionType(core.Object, [core.Object])),
             AA$(functionType(int, [int])));
-
-
     });
-
   });
 
   suite('canonicalization', function() {
