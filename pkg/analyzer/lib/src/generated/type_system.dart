@@ -1554,7 +1554,6 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
         lowerBound = bound.upper;
         upperBound = bound.lower;
       }
-
       inferredTypes[i] =
           variance.passedIn && !upperBound.isDynamic || lowerBound.isBottom
               ? upperBound

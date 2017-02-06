@@ -4189,9 +4189,6 @@ class InferenceContext {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
       DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
       DartType inferred = _inferredReturn.removeLast();
-      if (inferred.isBottom || inferred.isDartCoreNull) {
-        return;
-      }
 
       if (_typeSystem.isSubtypeOf(inferred, context)) {
         setType(node, inferred);
@@ -4206,7 +4203,7 @@ class InferenceContext {
    */
   void pushReturnContext(BlockFunctionBody node) {
     _returnStack.add(getContext(node));
-    _inferredReturn.add(BottomTypeImpl.instance);
+    _inferredReturn.add(_typeProvider.nullType);
   }
 
   /**
@@ -9066,6 +9063,11 @@ abstract class TypeProvider {
   InterfaceType get futureNullType;
 
   /**
+   * Return the type representing 'FutureOr<Null>'.
+   */
+  InterfaceType get futureOrNullType;
+
+  /**
    * Return the type representing the built-in type 'FutureOr'.
    */
   InterfaceType get futureOrType;
@@ -9259,6 +9261,11 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType _futureNullType;
 
   /**
+   * The type representing 'FutureOr<Null>'.
+   */
+  InterfaceType _futureOrNullType;
+
+  /**
    * The type representing the built-in type 'FutureOr'.
    */
   InterfaceType _futureOrType;
@@ -9394,6 +9401,9 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get futureNullType => _futureNullType;
 
   @override
+  InterfaceType get futureOrNullType => _futureOrNullType;
+
+  @override
   InterfaceType get futureOrType => _futureOrType;
 
   @override
@@ -9498,6 +9508,7 @@ class TypeProviderImpl extends TypeProviderBase {
     _undefinedType = UndefinedTypeImpl.instance;
     _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
+    _futureOrNullType = _futureOrType.instantiate(<DartType>[_nullType]);
     _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
     _streamDynamicType = _streamType.instantiate(<DartType>[_dynamicType]);
   }

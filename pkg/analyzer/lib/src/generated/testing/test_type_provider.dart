@@ -66,6 +66,11 @@ class TestTypeProvider extends TypeProviderBase {
   /**
    * The type representing the built-in type 'FutureOr'
    */
+  InterfaceType _futureOrNullType;
+
+  /**
+   * The type representing the built-in type 'FutureOr'
+   */
   InterfaceType _futureOrType;
 
   /**
@@ -264,6 +269,14 @@ class TestTypeProvider extends TypeProviderBase {
       _futureNullType = futureType.instantiate(<DartType>[nullType]);
     }
     return _futureNullType;
+  }
+
+  @override
+  InterfaceType get futureOrNullType {
+    if (_futureOrNullType == null) {
+      _futureOrNullType = futureOrType.instantiate(<DartType>[nullType]);
+    }
+    return _futureOrNullType;
   }
 
   @override

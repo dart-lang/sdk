@@ -2298,7 +2298,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             return;
           }
         }
-      } else if (expectedReturnType.isDynamic || expectedReturnType.isVoid) {
+      } else if (expectedReturnType.isDynamic ||
+          expectedReturnType.isVoid ||
+          expectedReturnType.isDartCoreNull) {
         return;
       }
       _hasReturnWithoutValue = true;
@@ -2505,7 +2507,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       DartType actualStaticType,
       DartType expectedStaticType,
       ErrorCode errorCode) {
-    // TODO(leafp): Move the Downcast functionality here.
     if (!_expressionIsAssignableAtType(
         expression, actualStaticType, expectedStaticType)) {
       _errorReporter.reportTypeErrorForNode(
@@ -6238,7 +6239,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (concrete && actualStaticType is FunctionType) {
       actualStaticType =
           _typeSystem.functionTypeToConcreteType(actualStaticType);
-      // TODO(leafp): Move the Downcast functionality here.
     }
     return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType);
   }
