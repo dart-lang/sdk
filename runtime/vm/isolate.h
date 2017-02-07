@@ -696,7 +696,12 @@ class Isolate : public BaseIsolate {
     return mutator_thread()->zone();
   }
 
-  // Accessed from generated code:
+  // Accessed from generated code.
+  // ** This block of fields must come first! **
+  // For AOT cross-compilation, we rely on these members having the same offsets
+  // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
+  // We use only word-sized fields to avoid differences in struct packing on the
+  // different architectures. See also CheckOffsets in dart.cc.
   StoreBuffer* store_buffer_;
   Heap* heap_;
   uword user_tag_;
