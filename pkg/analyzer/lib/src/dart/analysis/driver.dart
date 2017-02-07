@@ -715,10 +715,14 @@ class AnalysisDriver {
           CompilationUnit resolvedUnit;
           List<int> bytes;
           if (analyzeWithoutTasks) {
-            AnalyzerImpl analyzer = new AnalyzerImpl(analysisOptions,
-                sourceFactory, _fileTracker.fsState, libraryContext.store);
-            Map<FileState, UnitAnalysisResult> results =
-                analyzer.analyze(library);
+            AnalyzerImpl analyzer = new AnalyzerImpl(
+                analysisOptions,
+                declaredVariables,
+                sourceFactory,
+                _fileTracker.fsState,
+                libraryContext.store,
+                library);
+            Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
             UnitAnalysisResult fileResult = results[file];
             resolvedUnit = fileResult.unit;
 

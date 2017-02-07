@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -34,32 +35,35 @@ import 'package:front_end/src/scanner/reader.dart';
  * Work in progress, not ready to be used.
  */
 class AnalyzerImpl {
-  final AnalysisOptions analysisOptions;
-  final SourceFactory sourceFactory;
-  final FileSystemState fsState;
-  final SummaryDataStore store;
+  final AnalysisOptions _analysisOptions;
+  final DeclaredVariables _declaredVariables;
+  final SourceFactory _sourceFactory;
+  final FileSystemState _fsState;
+  final SummaryDataStore _store;
+  final FileState _library;
 
-  AnalysisContextImpl analysisContext;
-  TypeProvider typeProvider;
-  StoreBasedSummaryResynthesizer resynthesizer;
+  TypeProvider _typeProvider;
+  AnalysisContextImpl _context;
+  StoreBasedSummaryResynthesizer _resynthesizer;
+
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
-  final List<UsedImportedElements> usedImportedElementsList = [];
-  final List<UsedLocalElements> usedLocalElementsList = [];
+  final List<UsedImportedElements> _usedImportedElementsList = [];
+  final List<UsedLocalElements> _usedLocalElementsList = [];
   final List<ConstantEvaluationTarget> _constants = [];
 
-  AnalyzerImpl(
-      this.analysisOptions, this.sourceFactory, this.fsState, this.store);
+  AnalyzerImpl(this._analysisOptions, this._declaredVariables,
+      this._sourceFactory, this._fsState, this._store, this._library);
 
   /**
-   * Compute analysis results for all units of the [library].
+   * Compute analysis results for all units of the library.
    */
-  Map<FileState, UnitAnalysisResult> analyze(FileState library) {
+  Map<FileState, UnitAnalysisResult> analyze() {
     Map<FileState, CompilationUnit> units = {};
 
     // Parse all files.
-    units[library] = _parse(library);
-    for (FileState part in library.partedFiles) {
+    units[_library] = _parse(_library);
+    for (FileState part in _library.partedFiles) {
       units[part] = _parse(part);
     }
 
@@ -71,13 +75,13 @@ class AnalyzerImpl {
     _createAnalysisContext();
 
     try {
-      resynthesizer = new StoreBasedSummaryResynthesizer(
-          analysisContext, sourceFactory, analysisOptions.strongMode, store);
-      typeProvider = resynthesizer.typeProvider;
-      analysisContext.typeProvider = typeProvider;
+      _resynthesizer = new StoreBasedSummaryResynthesizer(
+          _context, _sourceFactory, _analysisOptions.strongMode, _store);
+      _typeProvider = _resynthesizer.typeProvider;
+      _context.typeProvider = _typeProvider;
 
       units.forEach((file, unit) {
-        _resolveFile(analysisContext, library, file, unit);
+        _resolveFile(file, unit);
       });
 
       _computeConstants();
@@ -87,20 +91,20 @@ class AnalyzerImpl {
         {
           var visitor = new GatherUsedLocalElementsVisitor(libraryElement);
           unit.accept(visitor);
-          usedLocalElementsList.add(visitor.usedElements);
+          _usedLocalElementsList.add(visitor.usedElements);
         }
         {
           var visitor = new GatherUsedImportedElementsVisitor(libraryElement);
           unit.accept(visitor);
-          usedImportedElementsList.add(visitor.usedElements);
+          _usedImportedElementsList.add(visitor.usedElements);
         }
       });
 
       units.forEach((file, unit) {
-        _computeVerifyErrorsAndHints(analysisContext, library, file, unit);
+        _computeVerifyErrorsAndHints(file, unit);
       });
     } finally {
-      analysisContext.dispose();
+      _context.dispose();
     }
 
     // Return full results.
@@ -117,8 +121,8 @@ class AnalyzerImpl {
    */
   void _computeConstants() {
     ConstantEvaluationEngine evaluationEngine = new ConstantEvaluationEngine(
-        analysisContext.typeProvider, analysisContext.declaredVariables,
-        typeSystem: analysisContext.typeSystem);
+        _typeProvider, _declaredVariables,
+        typeSystem: _context.typeSystem);
 
     List<_ConstantNode> nodes = [];
     Map<ConstantEvaluationTarget, _ConstantNode> nodeMap = {};
@@ -135,8 +139,7 @@ class AnalyzerImpl {
     }
   }
 
-  void _computeVerifyErrorsAndHints(AnalysisContext analysisContext,
-      FileState libraryFile, FileState file, CompilationUnit unit) {
+  void _computeVerifyErrorsAndHints(FileState file, CompilationUnit unit) {
     RecordingErrorListener errorListener = _getErrorListener(file);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
@@ -154,11 +157,11 @@ class AnalyzerImpl {
           computer.requiredConstants;
     }
 
-    if (analysisOptions.strongMode) {
-      AnalysisOptionsImpl options = analysisOptions as AnalysisOptionsImpl;
+    if (_analysisOptions.strongMode) {
+      AnalysisOptionsImpl options = _analysisOptions as AnalysisOptionsImpl;
       CodeChecker checker = new CodeChecker(
-          typeProvider,
-          new StrongTypeSystemImpl(typeProvider,
+          _typeProvider,
+          new StrongTypeSystemImpl(_typeProvider,
               implicitCasts: options.implicitCasts,
               nonnullableTypes: options.nonnullableTypes),
           errorListener,
@@ -176,8 +179,8 @@ class AnalyzerImpl {
     //
     // Use the ConstantVerifier to compute errors.
     //
-    ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter,
-        libraryElement, typeProvider, analysisContext.declaredVariables);
+    ConstantVerifier constantVerifier = new ConstantVerifier(
+        errorReporter, libraryElement, _typeProvider, _declaredVariables);
     unit.accept(constantVerifier);
 
     //
@@ -186,9 +189,9 @@ class AnalyzerImpl {
     ErrorVerifier errorVerifier = new ErrorVerifier(
         errorReporter,
         libraryElement,
-        typeProvider,
+        _typeProvider,
         new InheritanceManager(libraryElement),
-        analysisOptions.enableSuperMixins);
+        _analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
 
     //
@@ -201,11 +204,11 @@ class AnalyzerImpl {
     //
     // Find dead code.
     //
-    unit.accept(new DeadCodeVerifier(errorReporter,
-        typeSystem: analysisContext.typeSystem));
+    unit.accept(
+        new DeadCodeVerifier(errorReporter, typeSystem: _context.typeSystem));
 
     // Dart2js analysis.
-    if (analysisOptions.dart2jsHint) {
+    if (_analysisOptions.dart2jsHint) {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
 
@@ -214,8 +217,8 @@ class AnalyzerImpl {
         includeAbstractFromSuperclasses: true);
 
     unit.accept(new BestPracticesVerifier(
-        errorReporter, typeProvider, libraryElement, inheritanceManager,
-        typeSystem: analysisContext.typeSystem));
+        errorReporter, _typeProvider, libraryElement, inheritanceManager,
+        typeSystem: _context.typeSystem));
 
     unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
 
@@ -225,7 +228,7 @@ class AnalyzerImpl {
     {
       ImportsVerifier verifier = new ImportsVerifier();
       verifier.addImports(unit);
-      usedImportedElementsList.forEach(verifier.removeUsedElements);
+      _usedImportedElementsList.forEach(verifier.removeUsedElements);
       ErrorReporter errorReporter = _getErrorReporter(file);
       verifier.generateDuplicateImportHints(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
@@ -241,7 +244,7 @@ class AnalyzerImpl {
     // Unused local elements.
     {
       UsedLocalElements usedElements =
-          new UsedLocalElements.merge(usedLocalElementsList);
+          new UsedLocalElements.merge(_usedLocalElementsList);
       UnusedLocalElementsVerifier visitor =
           new UnusedLocalElementsVerifier(errorListener, usedElements);
       unitElement.accept(visitor);
@@ -251,10 +254,11 @@ class AnalyzerImpl {
   void _createAnalysisContext() {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
-    analysisContext.analysisOptions = analysisOptions;
-    analysisContext.sourceFactory = sourceFactory.clone();
-    analysisContext.contentCache = new _ContentCacheWrapper(fsState);
-    this.analysisContext = analysisContext;
+    analysisContext.analysisOptions = _analysisOptions;
+    analysisContext.declaredVariables.addAll(_declaredVariables);
+    analysisContext.sourceFactory = _sourceFactory.clone();
+    analysisContext.contentCache = new _ContentCacheWrapper(_fsState);
+    this._context = analysisContext;
   }
 
   RecordingErrorListener _getErrorListener(FileState file) =>
@@ -275,23 +279,22 @@ class AnalyzerImpl {
 
     CharSequenceReader reader = new CharSequenceReader(file.content);
     Scanner scanner = new Scanner(file.source, reader, errorListener);
-    scanner.scanGenericMethodComments = analysisOptions.strongMode;
+    scanner.scanGenericMethodComments = _analysisOptions.strongMode;
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
     Parser parser = new Parser(file.source, errorListener);
-    parser.parseGenericMethodComments = analysisOptions.strongMode;
+    parser.parseGenericMethodComments = _analysisOptions.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;
   }
 
-  void _resolveFile(AnalysisContext analysisContext, FileState library,
-      FileState file, CompilationUnit unit) {
+  void _resolveFile(FileState file, CompilationUnit unit) {
     if (!file.exists) {
       Source source = file.source;
       var unitElement = new CompilationUnitElementImpl(source.shortName);
-      var libraryElement = new LibraryElementImpl(analysisContext, null, -1, 0);
+      var libraryElement = new LibraryElementImpl(_context, null, -1, 0);
       unitElement.source = source;
       unitElement.librarySource = source;
       libraryElement.definingCompilationUnit = unitElement;
@@ -301,9 +304,9 @@ class AnalyzerImpl {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    String libraryUri = library.uri.toString();
+    String libraryUri = _library.uri.toString();
     String unitUri = file.uri.toString();
-    CompilationUnitElement unitElement = resynthesizer.getElement(
+    CompilationUnitElement unitElement = _resynthesizer.getElement(
         new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
     LibraryElement libraryElement = unitElement.library;
 
@@ -320,7 +323,7 @@ class AnalyzerImpl {
 
     new DeclarationResolver().resolve(unit, unitElement);
 
-    if (file == library) {
+    if (file == _library) {
       // TODO(scheglov) fill these maps?
       DirectiveResolver resolver = new DirectiveResolver({}, {}, {});
       unit.accept(resolver);
@@ -329,26 +332,26 @@ class AnalyzerImpl {
     // TODO(scheglov) remove EnumMemberBuilder class
 
     new TypeParameterBoundsResolver(
-            typeProvider, libraryElement, unitElement.source, errorListener)
+            _typeProvider, libraryElement, unitElement.source, errorListener)
         .resolveTypeBounds(unit);
 
     unit.accept(new TypeResolverVisitor(
-        libraryElement, unitElement.source, typeProvider, errorListener));
+        libraryElement, unitElement.source, _typeProvider, errorListener));
 
     LibraryScope libraryScope = new LibraryScope(libraryElement);
     unit.accept(new VariableResolverVisitor(
-        libraryElement, unitElement.source, typeProvider, errorListener,
+        libraryElement, unitElement.source, _typeProvider, errorListener,
         nameScope: libraryScope));
 
     unit.accept(new PartialResolverVisitor(libraryElement, unitElement.source,
-        typeProvider, AnalysisErrorListener.NULL_LISTENER));
+        _typeProvider, AnalysisErrorListener.NULL_LISTENER));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
     unit.accept(new ResolverVisitor(
-        libraryElement, unitElement.source, typeProvider, errorListener));
+        libraryElement, unitElement.source, _typeProvider, errorListener));
 
     //
     // Find constants to compute.
@@ -374,7 +377,7 @@ class AnalyzerImpl {
       } on FormatException {
         return null;
       }
-      return sourceFactory.resolveUri(file.source, uriContent);
+      return _sourceFactory.resolveUri(file.source, uriContent);
     } else if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
       return null;
     } else if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
@@ -410,11 +413,12 @@ class AnalyzerImpl {
       FileState file, UriBasedDirectiveImpl directive) {
     Source source = directive.uriSource;
     if (source != null) {
-      if (analysisContext.exists(source)) {
+      if (_context.exists(source)) {
         return;
       }
     } else {
       // Don't report errors already reported by ParseDartTask.resolveDirective
+      // TODO(scheglov) we don't use this task here
       if (directive.validate() != null) {
         return;
       }
