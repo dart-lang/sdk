@@ -47,8 +47,7 @@ class ResultMerger {
     } else if (count == 1) {
       return partialResultList[0];
     }
-    List<AnalysisErrorFixes> mergedFixes =
-        new List<AnalysisErrorFixes>.from(partialResultList[0]);
+    List<AnalysisErrorFixes> mergedFixes = partialResultList[0].toList();
     Map<String, AnalysisErrorFixes> fixesMap = <String, AnalysisErrorFixes>{};
     for (AnalysisErrorFixes fix in mergedFixes) {
       fixesMap[computeKey(fix.error)] = fix;
@@ -63,8 +62,7 @@ class ResultMerger {
         } else {
           // If more than two plugins contribute fixes for the same error, this
           // will result in extra copy operations.
-          List<SourceChange> mergedChanges =
-              new List<SourceChange>.from(mergedFix.fixes);
+          List<SourceChange> mergedChanges = mergedFix.fixes.toList();
           mergedChanges.addAll(fix.fixes);
           AnalysisErrorFixes copiedFix =
               new AnalysisErrorFixes(mergedFix.error, fixes: mergedChanges);
@@ -143,8 +141,7 @@ class ResultMerger {
     } else if (count == 1) {
       return partialResultList[0];
     }
-    List<FoldingRegion> mergedRegions =
-        new List<FoldingRegion>.from(partialResultList[0]);
+    List<FoldingRegion> mergedRegions = partialResultList[0].toList();
 
     /**
      * Return `true` if the [newRegion] does not overlap any of the regions in
@@ -217,11 +214,9 @@ class ResultMerger {
     }
     AnalysisNavigationParams base = partialResultList[0];
     String file = base.file;
-    List<NavigationRegion> mergedRegions =
-        new List<NavigationRegion>.from(base.regions);
-    List<NavigationTarget> mergedTargets =
-        new List<NavigationTarget>.from(base.targets);
-    List<String> mergedFiles = new List<String>.from(base.files);
+    List<NavigationRegion> mergedRegions = base.regions.toList();
+    List<NavigationTarget> mergedTargets = base.targets.toList();
+    List<String> mergedFiles = base.files.toList();
 
     /**
      * Return `true` if the [newRegion] does not overlap any of the regions in
@@ -327,7 +322,7 @@ class ResultMerger {
                 // times. The likelihood seems small enough to not warrant
                 // optimizing this further.
                 //
-                mergedTargets = new List<int>.from(mergedTargets);
+                mergedTargets = mergedTargets.toList();
                 mergedTargets.add(target);
                 mergedRegion = new NavigationRegion(
                     mergedRegion.offset, mergedRegion.length, mergedTargets);
@@ -421,7 +416,7 @@ class ResultMerger {
     } else if (count == 1) {
       return partialResultList[0];
     }
-    List<Outline> mergedOutlines = new List<Outline>.from(partialResultList[0]);
+    List<Outline> mergedOutlines = partialResultList[0].toList();
     Map<String, Outline> outlineMap = <String, Outline>{};
     Map<Outline, Outline> copyMap = <Outline, Outline>{};
 
@@ -451,7 +446,7 @@ class ResultMerger {
               mergedOutline,
               () => new Outline(mergedOutline.element, mergedOutline.offset,
                   mergedOutline.length,
-                  children: new List<Outline>.from(mergedOutline.children)));
+                  children: mergedOutline.children.toList()));
           copiedOutline.children.add(newChild);
           addToMap(newChild);
         } else {
@@ -489,15 +484,15 @@ class ResultMerger {
       if (currentChildren.isEmpty) {
         return outline;
       }
-      Iterable<Outline> updatedChildren =
-          currentChildren.map((Outline child) => traverse(child));
+      List<Outline> updatedChildren =
+          currentChildren.map((Outline child) => traverse(child)).toList();
       if (currentChildren != updatedChildren) {
         if (!isCopied) {
           return new Outline(
               copiedOutline.element, copiedOutline.offset, copiedOutline.length,
-              children: updatedChildren.toList());
+              children: updatedChildren);
         }
-        copiedOutline.children = updatedChildren.toList();
+        copiedOutline.children = updatedChildren;
         return copiedOutline;
       }
       return outline;
@@ -540,14 +535,14 @@ class ResultMerger {
       List<int> coveringExpressionOffsets =
           first.coveringExpressionOffsets == null
               ? <int>[]
-              : new List<int>.from(first.coveringExpressionOffsets);
+              : first.coveringExpressionOffsets.toList();
       List<int> coveringExpressionLengths =
           first.coveringExpressionLengths == null
               ? <int>[]
-              : new List<int>.from(first.coveringExpressionLengths);
-      List<String> names = new List<String>.from(first.names);
-      List<int> offsets = new List<int>.from(first.offsets);
-      List<int> lengths = new List<int>.from(first.lengths);
+              : first.coveringExpressionLengths.toList();
+      List<String> names = first.names.toList();
+      List<int> offsets = first.offsets.toList();
+      List<int> lengths = first.lengths.toList();
       for (int i = 1; i < count; i++) {
         ExtractLocalVariableFeedback feedback = feedbacks[i];
         // TODO(brianwilkerson) This doesn't ensure that the covering data is in
@@ -577,11 +572,11 @@ class ResultMerger {
       int offset = first.offset;
       int length = first.length;
       String returnType = first.returnType;
-      List<String> names = new List<String>.from(first.names);
+      List<String> names = first.names.toList();
       bool canCreateGetter = first.canCreateGetter;
       List<RefactoringMethodParameter> parameters = first.parameters;
-      List<int> offsets = new List<int>.from(first.offsets);
-      List<int> lengths = new List<int>.from(first.lengths);
+      List<int> offsets = first.offsets.toList();
+      List<int> lengths = first.lengths.toList();
       for (int i = 1; i < count; i++) {
         ExtractMethodFeedback feedback = feedbacks[i];
         if (returnType.isEmpty) {
@@ -688,8 +683,7 @@ class ResultMerger {
       for (SourceFileEdit edit in first.edits) {
         editMap[edit.file] = edit;
       }
-      List<LinkedEditGroup> linkedEditGroups =
-          new List<LinkedEditGroup>.from(first.linkedEditGroups);
+      List<LinkedEditGroup> linkedEditGroups = first.linkedEditGroups.toList();
       Position selection = first.selection;
       for (int i = 1; i < count; i++) {
         SourceChange change = changes[i];
@@ -700,8 +694,7 @@ class ResultMerger {
           } else {
             // This doesn't detect if multiple plugins contribute the same (or
             // conflicting) edits.
-            List<SourceEdit> edits =
-                new List<SourceEdit>.from(mergedEdit.edits);
+            List<SourceEdit> edits = mergedEdit.edits.toList();
             edits.addAll(edit.edits);
             editMap[edit.file] = new SourceFileEdit(
                 mergedEdit.file, mergedEdit.fileStamp,
@@ -725,12 +718,9 @@ class ResultMerger {
       return partialResultList[0];
     }
     EditGetRefactoringResult result = partialResultList[0];
-    List<RefactoringProblem> initialProblems =
-        new List<RefactoringProblem>.from(result.initialProblems);
-    List<RefactoringProblem> optionsProblems =
-        new List<RefactoringProblem>.from(result.optionsProblems);
-    List<RefactoringProblem> finalProblems =
-        new List<RefactoringProblem>.from(result.finalProblems);
+    List<RefactoringProblem> initialProblems = result.initialProblems.toList();
+    List<RefactoringProblem> optionsProblems = result.optionsProblems.toList();
+    List<RefactoringProblem> finalProblems = result.finalProblems.toList();
     List<RefactoringFeedback> feedbacks = <RefactoringFeedback>[];
     if (result.feedback != null) {
       feedbacks.add(result.feedback);
@@ -739,7 +729,7 @@ class ResultMerger {
     if (result.change != null) {
       changes.add(result.change);
     }
-    List<String> potentialEdits = new List<String>.from(result.potentialEdits);
+    List<String> potentialEdits = result.potentialEdits.toList();
     for (int i = 1; i < count; i++) {
       EditGetRefactoringResult result = partialResultList[1];
       initialProblems.addAll(result.initialProblems);

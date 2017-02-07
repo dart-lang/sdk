@@ -49,7 +49,7 @@ class ResultCollector<E> {
    * Return an iterator producing the partial results that have been contributed
    * for the given [filePath].
    */
-  Iterable<E> getResults(String filePath) {
+  List<E> getResults(String filePath) {
     Map<String, E> partialResultMap = resultMap[filePath];
     if (partialResultMap == null) {
       return <E>[];

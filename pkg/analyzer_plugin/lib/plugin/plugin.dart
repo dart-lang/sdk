@@ -27,11 +27,6 @@ import 'package:pub_semver/pub_semver.dart';
  */
 abstract class ServerPlugin {
   /**
-   * A gigabyte.
-   */
-  static const int G = 1024 * 1024 * 1024;
-
-  /**
    * A megabyte.
    */
   static const int M = 1024 * 1024;
@@ -270,7 +265,7 @@ abstract class ServerPlugin {
         PLUGIN_REQUEST_VERSION_CHECK_VERSION, 'plugin.versionCheck');
     Version serverVersion = new Version.parse(versionString);
     _byteStore =
-        new MemoryCachingByteStore(new FileByteStore(byteStorePath, G), 64 * M);
+        new MemoryCachingByteStore(new FileByteStore(byteStorePath), 64 * M);
     return new PluginVersionCheckResult(
         isCompatibleWith(serverVersion), name, version, fileGlobsToAnalyze,
         contactInfo: contactInfo);
