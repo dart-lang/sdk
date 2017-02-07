@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Flaky failures
-gc_test: Pass, RuntimeError # Issue 26490
 get_allocation_samples_test: Pass, RuntimeError # Inconsistent stack trace
 reload_sources_test: Pass, Slow # Reload is slow on the bots
 get_retained_size_rpc_test: Pass, RuntimeError # Issue 28193
@@ -46,9 +45,6 @@ process_service_test: Pass, Fail # Issue 24344
 
 [ $compiler == precompiler ]
 *: Skip # Issue 24651
-
-[ $runtime == vm ]
-developer_extension_test: Pass, Fail # Issue 27225
 
 [ $compiler == app_jit ]
 address_mapper_test: CompileTimeError # Issue 27806
