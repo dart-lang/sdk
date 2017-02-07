@@ -83,9 +83,7 @@ main() {
     return check(code, disableTypeInference: false);
   });
 
-  // TODO(efortuna): Fix and uncomment.
-  // See bug https://github.com/dart-lang/sdk/issues/28670
-  /*test('for loop with break to label', () {
+  test('for loop with break to label', () {
     String code = '''
 var a = 0;
 main() {
@@ -100,5 +98,5 @@ main() {
   return sum;
 }''';
     return check(code, disableTypeInference: false);
-  });*/
+  });
 }
