@@ -132,6 +132,10 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
 
   Future<Null> buildOutline(LibraryBuilder library);
 
+  /// Builds all the method bodies found in the given [library].
+  ///
+  /// [astKind] determines whether or not analyzer ASTs are used as an
+  /// intermediate data structure.
   Future<Null> buildBody(LibraryBuilder library, AstKind astKind);
 
   List<InputError> collectCompileTimeErrors() {

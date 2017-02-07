@@ -34,6 +34,22 @@ main() {
 }
 
 /**
+ * Abstract base class for parser tests, which does not make assumptions about
+ * which parser is used.
+ */
+abstract class AbstractParserTestCase {
+  void set enableGenericMethodComments(bool value);
+
+  void set enableNnbd(bool value);
+
+  CompilationUnit parseCompilationUnitWithOptions(String source,
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
+
+  Expression parseExpression(String source,
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
+}
+
+/**
  * Instances of the class `AstValidator` are used to validate the correct construction of an
  * AST structure.
  */
@@ -109,14 +125,19 @@ class AstValidator extends UnifyingAstVisitor<Object> {
 }
 
 /**
+ * Tests of the analyzer parser based on [ComplexParserTestMixin].
+ */
+@reflectiveTest
+class ComplexParserTest extends ParserTestCase with ComplexParserTestMixin {}
+
+/**
  * The class `ComplexParserTest` defines parser tests that test the parsing of more complex
  * code fragments or the interactions between multiple parsing methods. For example, tests to ensure
  * that the precedence of operations is being handled correctly should be defined in this class.
  *
  * Simpler tests should be defined in the class [SimpleParserTest].
  */
-@reflectiveTest
-class ComplexParserTest extends ParserTestCase {
+abstract class ComplexParserTestMixin implements AbstractParserTestCase {
   void test_additiveExpression_normal() {
     BinaryExpression expression = parseExpression("x + y - z");
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
@@ -2953,7 +2974,11 @@ class NonErrorParserTest extends ParserTestCase {
   }
 }
 
-class ParserTestCase extends EngineTestCase {
+/**
+ * Implementation of [AbstractParserTestCase] specialized for testing the
+ * analyzer parser.
+ */
+class ParserTestCase extends EngineTestCase implements AbstractParserTestCase {
   /**
    * A flag indicating whether parser is to parse function bodies.
    */

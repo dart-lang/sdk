@@ -12,10 +12,15 @@ import '../errors.dart' show
     internalError;
 
 class Scope {
+  /// Names declared in this scope.
   final Map<String, Builder> local;
 
+  /// The scope that this scope is nested within, or `null` if this is the top
+  /// level scope.
   final Scope parent;
 
+  /// Indicates whether an attempt to declare new names in this scope should
+  /// succeed.
   final bool isModifiable;
 
   Scope(this.local, this.parent, {this.isModifiable: true});

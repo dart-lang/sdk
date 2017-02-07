@@ -449,6 +449,8 @@ class AstBuilder extends ScopeListener {
       if (builder == null) {
         internalError("Undefined name: $name");
       }
+      // TODO(paulberry,ahe): what if the type doesn't resolve to a class
+      // element?
       cls = elementStore[builder];
       assert(cls != null);
       name.staticElement = cls;
