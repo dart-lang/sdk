@@ -223,6 +223,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln(' extends RefactoringFeedback implements HasToJson {');
     } else if (impliedType.kind == 'refactoringOptions') {
       writeln(' extends RefactoringOptions implements HasToJson {');
+    } else if (impliedType.kind == 'requestParams') {
+      writeln(' implements RequestParams {');
     } else if (impliedType.kind == 'requestResult') {
       writeln(' implements ResponseResult {');
     } else {
@@ -405,6 +407,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln(' extends RefactoringFeedback {');
     } else if (impliedType.kind == 'refactoringOptions') {
       writeln(' extends RefactoringOptions {');
+    } else if (impliedType.kind == 'requestParams') {
+      writeln(' implements RequestParams {');
     } else if (impliedType.kind == 'requestResult') {
       writeln(' implements ResponseResult {');
     } else {
