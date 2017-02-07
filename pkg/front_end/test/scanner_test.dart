@@ -225,13 +225,6 @@ class ScannerTest_Fasta extends ScannerTestBase {
 
   @override
   @failingTest
-  void test_comment_single() {
-    // TODO(paulberry,ahe): See TODO comment below in _translateTokenInfoKind().
-    super.test_comment_single();
-  }
-
-  @override
-  @failingTest
   void test_double_missingDigitInExponent() {
     // TODO(paulberry,ahe): see UnimplementedError("distinguish unterminated
     // errors")
@@ -398,7 +391,13 @@ class ScannerTest_Fasta extends ScannerTestBase {
         }
       } else if (token is fasta.StringToken &&
           token.info.kind == fasta.COMMENT_TOKEN) {
-        var translatedToken = _translateToken(token, null) as CommentToken;
+        // TODO(paulberry,ahe): It would be nice if the scanner gave us an
+        // easier way to distinguish between the two types of comment.
+        var type = token.value.startsWith('/*')
+            ? TokenType.MULTI_LINE_COMMENT
+            : TokenType.SINGLE_LINE_COMMENT;
+        var translatedToken =
+            new CommentToken(type, token.value, token.charOffset);
         if (currentCommentHead == null) {
           currentCommentHead = currentCommentTail = translatedToken;
         } else {
@@ -491,16 +490,8 @@ class ScannerTest_Fasta extends ScannerTestBase {
       }
     }
 
-    Token makeCommentToken() {
-      return new CommentToken(type, token.value, offset);
-    }
-
     if (token is fasta.StringToken) {
-      if (token.info.kind == fasta.COMMENT_TOKEN) {
-        return makeCommentToken();
-      } else {
-        return makeStringToken(token.value);
-      }
+      return makeStringToken(token.value);
     } else if (token is fasta.KeywordToken) {
       return makeKeywordToken(_translateKeyword(token.keyword.syntax));
     } else if (token is fasta.SymbolToken) {
@@ -653,10 +644,6 @@ class ScannerTest_Fasta extends ScannerTestBase {
         return TokenType.GT_GT;
       case fasta.CARET_EQ_TOKEN:
         return TokenType.CARET_EQ;
-      case fasta.COMMENT_TOKEN:
-        // TODO(paulberry,ahe): how to distinguish multi-line from
-        // single-line comments?  Causes a failure in test_comment_single().
-        return TokenType.MULTI_LINE_COMMENT;
       case fasta.STRING_INTERPOLATION_IDENTIFIER_TOKEN:
         return TokenType.STRING_INTERPOLATION_IDENTIFIER;
       case fasta.QUESTION_PERIOD_TOKEN:
