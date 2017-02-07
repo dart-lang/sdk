@@ -800,7 +800,7 @@ class AnalysisFoldingParams implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisHandleWatchEventsParams implements RequestParams {
+class AnalysisHandleWatchEventsParams implements HasToJson {
   List<WatchEvent> _events;
 
   /**
@@ -1393,7 +1393,7 @@ class AnalysisOutlineParams implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisReanalyzeParams implements RequestParams {
+class AnalysisReanalyzeParams implements HasToJson {
   List<String> _roots;
 
   /**
@@ -1574,7 +1574,7 @@ class AnalysisService implements Enum {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisSetContextBuilderOptionsParams implements RequestParams {
+class AnalysisSetContextBuilderOptionsParams implements HasToJson {
   ContextBuilderOptions _options;
 
   /**
@@ -1683,7 +1683,7 @@ class AnalysisSetContextBuilderOptionsResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisSetContextRootsParams implements RequestParams {
+class AnalysisSetContextRootsParams implements HasToJson {
   List<ContextRoot> _roots;
 
   /**
@@ -1792,7 +1792,7 @@ class AnalysisSetContextRootsResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisSetPriorityFilesParams implements RequestParams {
+class AnalysisSetPriorityFilesParams implements HasToJson {
   List<String> _files;
 
   /**
@@ -1901,7 +1901,7 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisSetSubscriptionsParams implements RequestParams {
+class AnalysisSetSubscriptionsParams implements HasToJson {
   Map<AnalysisService, List<String>> _subscriptions;
 
   /**
@@ -2012,7 +2012,7 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisUpdateContentParams implements RequestParams {
+class AnalysisUpdateContentParams implements HasToJson {
   Map<String, dynamic> _files;
 
   /**
@@ -2202,7 +2202,7 @@ class ChangeContentOverlay implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class CompletionGetSuggestionsParams implements RequestParams {
+class CompletionGetSuggestionsParams implements HasToJson {
   String _file;
 
   int _offset;
@@ -3513,7 +3513,7 @@ class ConvertMethodToGetterOptions extends RefactoringOptions implements HasToJs
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class EditGetAssistsParams implements RequestParams {
+class EditGetAssistsParams implements HasToJson {
   String _file;
 
   int _offset;
@@ -3728,7 +3728,7 @@ class EditGetAssistsResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class EditGetAvailableRefactoringsParams implements RequestParams {
+class EditGetAvailableRefactoringsParams implements HasToJson {
   String _file;
 
   int _offset;
@@ -3952,7 +3952,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class EditGetFixesParams implements RequestParams {
+class EditGetFixesParams implements HasToJson {
   String _file;
 
   int _offset;
@@ -4145,7 +4145,7 @@ class EditGetFixesResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class EditGetRefactoringParams implements RequestParams {
+class EditGetRefactoringParams implements HasToJson {
   RefactoringKind _kind;
 
   String _file;
@@ -8357,7 +8357,7 @@ class PluginErrorParams implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class PluginShutdownParams implements RequestParams {
+class PluginShutdownParams {
   Request toRequest(String id) {
     return new Request(id, "plugin.shutdown", null);
   }
@@ -8414,7 +8414,7 @@ class PluginShutdownResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class PluginVersionCheckParams implements RequestParams {
+class PluginVersionCheckParams implements HasToJson {
   String _byteStorePath;
 
   String _version;
