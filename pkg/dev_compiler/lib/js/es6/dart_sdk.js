@@ -1986,6 +1986,9 @@ dart.dput = function(obj, field, value) {
   return dart.noSuchMethod(obj, new dart.InvocationImpl(field, [value], {isSetter: true}));
 };
 dart._checkApply = function(type, actuals) {
+  if (type instanceof Array) {
+    type = type[0];
+  }
   if (actuals.length < type.args.length) return false;
   let index = 0;
   for (let i = 0; i < type.args.length; ++i) {
