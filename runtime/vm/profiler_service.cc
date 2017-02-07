@@ -2419,6 +2419,8 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
       ProcessedSample* sample = samples_->At(sample_index);
       JSONObject event(&events);
       event.AddProperty("ph", "P");  // kind = sample event
+      // Add a blank name to keep about:tracing happy.
+      event.AddProperty("name", "");
       event.AddProperty64("pid", pid);
       event.AddProperty64("tid", OSThread::ThreadIdToIntPtr(sample->tid()));
       event.AddPropertyTimeMicros("ts", sample->timestamp());
