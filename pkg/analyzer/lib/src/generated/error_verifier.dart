@@ -33,7 +33,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart' as checker
-    show isKnownFunction;
+    show hasStrictArrow;
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -2298,7 +2298,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             return;
           }
         }
-      } else if (expectedReturnType.isDynamic || expectedReturnType.isVoid) {
+      } else if (expectedReturnType.isDynamic ||
+          expectedReturnType.isVoid ||
+          expectedReturnType.isDartCoreNull) {
         return;
       }
       _hasReturnWithoutValue = true;
@@ -2505,7 +2507,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       DartType actualStaticType,
       DartType expectedStaticType,
       ErrorCode errorCode) {
-    // TODO(leafp): Move the Downcast functionality here.
     if (!_expressionIsAssignableAtType(
         expression, actualStaticType, expectedStaticType)) {
       _errorReporter.reportTypeErrorForNode(
@@ -6234,11 +6235,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   bool _expressionIsAssignableAtType(Expression expression,
       DartType actualStaticType, DartType expectedStaticType) {
-    bool concrete = _options.strongMode && checker.isKnownFunction(expression);
+    bool concrete = _options.strongMode && checker.hasStrictArrow(expression);
     if (concrete && actualStaticType is FunctionType) {
       actualStaticType =
           _typeSystem.functionTypeToConcreteType(actualStaticType);
-      // TODO(leafp): Move the Downcast functionality here.
     }
     return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType);
   }

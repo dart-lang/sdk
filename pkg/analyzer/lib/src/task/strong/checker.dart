@@ -36,19 +36,11 @@ DartType getDefiniteType(
   DartType type = expression.staticType ?? DynamicTypeImpl.instance;
   if (typeSystem is StrongTypeSystemImpl &&
       type is FunctionType &&
-      _hasStrictArrow(expression)) {
+      hasStrictArrow(expression)) {
     // Remove fuzzy arrow if possible.
     return typeSystem.functionTypeToConcreteType(type);
   }
   return type;
-}
-
-bool isKnownFunction(Expression expression) {
-  var element = _getKnownElement(expression);
-  // First class functions and static methods, where we know the original
-  // declaration, will have an exact type, so we know a downcast will fail.
-  return element is FunctionElement ||
-      element is MethodElement && element.isStatic;
 }
 
 DartType _elementType(Element e) {
@@ -61,9 +53,10 @@ DartType _elementType(Element e) {
 
 Element _getKnownElement(Expression expression) {
   if (expression is ParenthesizedExpression) {
-    expression = (expression as ParenthesizedExpression).expression;
-  }
-  if (expression is FunctionExpression) {
+    return _getKnownElement(expression.expression);
+  } else if (expression is NamedExpression) {
+    return _getKnownElement(expression.expression);
+  } else if (expression is FunctionExpression) {
     return expression.element;
   } else if (expression is PropertyAccess) {
     return expression.propertyName.staticElement;
@@ -105,7 +98,7 @@ FieldElement _getMemberField(
 FunctionType _getMemberType(InterfaceType type, ExecutableElement member) =>
     _memberTypeGetter(member)(type);
 
-bool _hasStrictArrow(Expression expression) {
+bool hasStrictArrow(Expression expression) {
   var element = _getKnownElement(expression);
   return element is FunctionElement || element is MethodElement;
 }
@@ -1002,7 +995,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // a dynamic parameter type requires a dynamic call in general.
     // However, as an optimization, if we have an original definition, we know
     // dynamic is reified as Object - in this case a regular call is fine.
-    if (_hasStrictArrow(call.function)) {
+    if (hasStrictArrow(call.function)) {
       return false;
     }
     return rules.anyParameterType(ft, (pt) => pt.isDynamic);
@@ -1090,8 +1083,8 @@ class CodeChecker extends RecursiveAstVisitor {
       }
     }
 
-    if (isKnownFunction(expr)) {
-      Element e = _getKnownElement(expr);
+    Element e = _getKnownElement(expr);
+    if (e is FunctionElement || e is MethodElement && e.isStatic) {
       _recordMessage(
           expr,
           e is MethodElement

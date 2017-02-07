@@ -4,7 +4,7 @@ define(['dart_sdk'], function(dart_sdk) {
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const BenchmarkBase$ = Object.create(null);
-  let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
+  let VoidToNull = () => (VoidToNull = dart.constFn(dart.definiteFunctionType(core.Null, [])))();
   BenchmarkBase$.Expect = class Expect extends core.Object {
     static equals(expected, actual) {
       if (!dart.equals(expected, actual)) {
@@ -63,10 +63,10 @@ define(['dart_sdk'], function(dart_sdk) {
       this.setup();
       BenchmarkBase$.BenchmarkBase.measureFor(dart.fn(() => {
         this.warmup();
-      }, VoidTodynamic()), 100);
+      }, VoidToNull()), 100);
       let result = BenchmarkBase$.BenchmarkBase.measureFor(dart.fn(() => {
         this.exercise();
-      }, VoidTodynamic()), 2000);
+      }, VoidToNull()), 2000);
       this.teardown();
       return result;
     }

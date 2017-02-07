@@ -656,15 +656,9 @@ isFunctionSubtype(ft1, ft2, isCovariant) => JS(
   // Check return type last, so that arity mismatched functions can be
   // definitively rejected.
 
-  // We allow any type to subtype a void return type, but not vice versa
-  if (ret2 === $_void) return true;
-  // Dart allows void functions to subtype dynamic functions, but not
-  // other functions.
-  // TODO(jmesserly): this check does not match our compile time subtype
-  // implementation. Reconcile.
-  if (ret1 === $_void) {
-    return ret2 === $dynamic || ret2 === $FutureOr;
-  }
+  // For `void` we will give the same answer as the VM, so don't return null.
+  if (ret1 === $_void) return $_isTop(ret2);
+
   if (!$_isSubtype(ret1, ret2, $isCovariant)) return null;
   return true;
 })()''');
@@ -698,13 +692,14 @@ _subtypeMemo(f) => JS(
 final isSubtype = JS(
     '', '$_subtypeMemo((t1, t2) => (t1 === t2) || $_isSubtype(t1, t2, true))');
 
-_isBottom(type) => JS('bool', '# == #', type, bottom);
+_isBottom(type) => JS('bool', '# == # || # == #', type, bottom, type, Null);
 
 _isTop(type) {
   if (JS('bool', '# === #', getGenericClass(type), getGenericClass(FutureOr))) {
     return _isTop(JS('', '#[0]', getGenericArgs(type)));
   }
-  return JS('bool', '# == # || # == #', type, Object, type, dynamic);
+  return JS('bool', '# == # || # == # || # == #',
+      type, Object, type, dynamic, type, _void);
 }
 
 _isSubtype(t1, t2, isCovariant) => JS(

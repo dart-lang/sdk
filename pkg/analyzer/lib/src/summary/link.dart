@@ -4683,6 +4683,7 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType _functionType;
   InterfaceType _futureDynamicType;
   InterfaceType _futureNullType;
+  InterfaceType _futureOrNullType;
   InterfaceType _futureOrType;
   InterfaceType _futureType;
   InterfaceType _intType;
@@ -4731,6 +4732,10 @@ class TypeProviderForLink extends TypeProviderBase {
   @override
   InterfaceType get futureNullType =>
       _futureNullType ??= futureType.instantiate(<DartType>[nullType]);
+
+  @override
+  InterfaceType get futureOrNullType =>
+      _futureOrNullType ??= futureOrType.instantiate(<DartType>[nullType]);
 
   @override
   InterfaceType get futureOrType =>

@@ -4189,9 +4189,6 @@ class InferenceContext {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
       DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
       DartType inferred = _inferredReturn.removeLast();
-      if (inferred.isBottom || inferred.isDartCoreNull) {
-        return;
-      }
 
       if (_typeSystem.isSubtypeOf(inferred, context)) {
         setType(node, inferred);
@@ -4206,7 +4203,7 @@ class InferenceContext {
    */
   void pushReturnContext(BlockFunctionBody node) {
     _returnStack.add(getContext(node));
-    _inferredReturn.add(BottomTypeImpl.instance);
+    _inferredReturn.add(_typeProvider.nullType);
   }
 
   /**
@@ -5217,8 +5214,26 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * Returns true if this method is `Future.then` or an override thereof.
+   *
+   * If so we will apply special typing rules in strong mode, to handle the
+   * implicit union of `S | Future<S>`
+   */
+  // TODO(leafp): Eliminate this when code is switched to using FutureOr
+  bool isFutureThen(Element element) {
+    // If we are a method named then
+    if (element is MethodElement && element.name == 'then') {
+      DartType type = element.enclosingElement.type;
+      // On Future or a subtype, then we're good.
+      return (type.isDartAsyncFuture || isSubtypeOfFuture(type));
+    }
+    return false;
+  }
+
+  /**
    * Returns true if this type is any subtype of the built in Future type.
    */
+  // TODO(leafp): Eliminate this when code is switched to using FutureOr
   bool isSubtypeOfFuture(DartType type) =>
       typeSystem.isSubtypeOf(type, typeProvider.futureDynamicType);
 
@@ -6059,8 +6074,27 @@ class ResolverVisitor extends ScopedVisitor {
               matchFunctionTypeParameters(node.typeParameters, functionType);
           if (functionType is FunctionType) {
             _inferFormalParameterList(node.parameters, functionType);
-            InferenceContext.setType(
-                node.body, _computeReturnOrYieldType(functionType.returnType));
+            DartType returnType;
+            ParameterElement parameterElement =
+                resolutionMap.staticParameterElementForExpression(node);
+            if (isFutureThen(parameterElement?.enclosingElement)) {
+              var futureThenType =
+                  InferenceContext.getContext(node.parent) as FunctionType;
+
+              // TODO(leafp): Get rid of this once code has been updated to use
+              // FutureOr
+              // Introduce FutureOr<T> for backwards compatibility if it was
+              // missing in old code.
+              if (futureThenType.parameters.isNotEmpty) {
+                if (!futureThenType.parameters[0].type.isDartAsyncFutureOr) {
+                  var typeParamS =
+                      futureThenType.returnType.flattenFutures(typeSystem);
+                  returnType = _createFutureOr(typeParamS);
+                }
+              }
+            }
+            returnType ??= _computeReturnOrYieldType(functionType.returnType);
+            InferenceContext.setType(node.body, returnType);
           }
         }
         super.visitFunctionExpression(node);
@@ -9029,6 +9063,11 @@ abstract class TypeProvider {
   InterfaceType get futureNullType;
 
   /**
+   * Return the type representing 'FutureOr<Null>'.
+   */
+  InterfaceType get futureOrNullType;
+
+  /**
    * Return the type representing the built-in type 'FutureOr'.
    */
   InterfaceType get futureOrType;
@@ -9222,6 +9261,11 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType _futureNullType;
 
   /**
+   * The type representing 'FutureOr<Null>'.
+   */
+  InterfaceType _futureOrNullType;
+
+  /**
    * The type representing the built-in type 'FutureOr'.
    */
   InterfaceType _futureOrType;
@@ -9357,6 +9401,9 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get futureNullType => _futureNullType;
 
   @override
+  InterfaceType get futureOrNullType => _futureOrNullType;
+
+  @override
   InterfaceType get futureOrType => _futureOrType;
 
   @override
@@ -9461,6 +9508,7 @@ class TypeProviderImpl extends TypeProviderBase {
     _undefinedType = UndefinedTypeImpl.instance;
     _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
+    _futureOrNullType = _futureOrType.instantiate(<DartType>[_nullType]);
     _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
     _streamDynamicType = _streamType.instantiate(<DartType>[_dynamicType]);
   }
