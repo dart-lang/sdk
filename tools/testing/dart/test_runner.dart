@@ -1827,9 +1827,13 @@ class RunningProcess {
   List<String> diagnostics = <String>[];
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
+  Map configuration;
   List<String> preArguments;
 
-  RunningProcess(this.command, this.timeout, {this.preArguments});
+  RunningProcess(this.command,
+                 this.timeout,
+                 {this.configuration,
+                  this.preArguments});
 
   Future<CommandOutput> run() {
     completer = new Completer<CommandOutput>();
@@ -1908,7 +1912,11 @@ class RunningProcess {
                 executable = '/usr/bin/sample';
                 arguments = ['${process.pid}', '1', '4000', '-mayDie'];
               } else if (io.Platform.isWindows) {
-                executable = "cdb.exe";
+                bool is_x64 = command.executable.contains("X64") ||
+                              command.executable.contains("SIMARM64");
+                executable = configuration['win_sdk_path'] +
+                    "\\Debuggers\\" + (is_x64 ? "x64" : "x86") + "\\cdb.exe";
+                diagnostics.add("Using $executable to print stack traces");
                 arguments = ['-p', '${process.pid}', '-c', '!uniqstack;qd'];
               }
 
@@ -2709,14 +2717,17 @@ class CommandExecutorImpl implements CommandExecutor {
     } else if (command is VmCommand && command.needsDFERunner) {
       final runner = _getDFEProcess();
       return runner.acquire().then((port) {
-        return new RunningProcess(command, timeout, preArguments: ['-DDFE_WORKER_PORT=${port}']).run();
+        return new RunningProcess(command, timeout,
+            configuration: globalConfiguration,
+            preArguments: ['-DDFE_WORKER_PORT=${port}']).run();
       }).whenComplete(() => runner.release());
     } else if (command is VmBatchCommand) {
       var name = command.displayName;
       return _getBatchRunner(command.displayName + command.dartFile)
           .runCommand(name, command, timeout, command.arguments);
     } else {
-      return new RunningProcess(command, timeout).run();
+      return new RunningProcess(
+          command, timeout, configuration: globalConfiguration).run();
     }
   }
 

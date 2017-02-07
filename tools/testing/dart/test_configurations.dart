@@ -5,6 +5,7 @@
 library test_configurations;
 
 import "dart:async";
+import 'dart:convert';
 import 'dart:io';
 import "dart:math" as math;
 
@@ -53,6 +54,9 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('utils/tests/css'),
   new Path('utils/tests/peg'),
 ];
+
+// This file is created by gclient runhooks.
+final VS_TOOLCHAIN_FILE = new Path("build/win_toolchain.json");
 
 Future testConfigurations(List<Map> configurations) async {
   var startTime = new DateTime.now();
@@ -292,6 +296,13 @@ Future testConfigurations(List<Map> configurations) async {
   // Start all the HTTP servers required before starting the process queue.
   if (!serverFutures.isEmpty) {
     await Future.wait(serverFutures);
+  }
+
+  if (Platform.isWindows) {
+    // When running tests on Windows, use cdb from depot_tools to dump
+    // stack traces of tests timing out.
+    var text = await new File(VS_TOOLCHAIN_FILE.toNativePath()).readAsString();
+    firstConf['win_sdk_path'] = JSON.decode(text)['win_sdk'];
   }
 
   // [firstConf] is needed here, since the ProcessQueue needs to know the
