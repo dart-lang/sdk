@@ -19,6 +19,8 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
@@ -30,6 +32,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 
+import '../../../utils.dart';
 import '../../context/mock_sdk.dart';
 import 'base.dart';
 
@@ -578,6 +581,115 @@ var A2 = B1;
       expect(result.path, testFile);
       expect(_getTopLevelVarType(result.unit, 'V'), 'double');
     }
+  }
+
+  test_const_annotation_notConstConstructor() async {
+    addTestFile('''
+class A {
+  final int i;
+  A(this.i);
+}
+
+@A(5)
+class C {}
+''');
+    var result = await driver.getResult(testFile);
+    var atD = AstFinder.getClass(result.unit, 'C').metadata[0];
+    var atDI = atD.elementAnnotation as ElementAnnotationImpl;
+    var value = atDI.evaluationResult.value;
+    // That is illegal.
+    expect(value, isNull);
+  }
+
+  test_const_annotation_withArgs() async {
+    addTestFile('''
+const x = 1;
+@D(x) class C {}
+class D {
+  const D(this.value);
+  final value;
+}
+''');
+    var result = await driver.getResult(testFile);
+    var atD = AstFinder.getClass(result.unit, 'C').metadata[0];
+    var atDI = atD.elementAnnotation as ElementAnnotationImpl;
+    var value = atDI.evaluationResult.value;
+    expect(value, isNotNull);
+    expect(value.type, isNotNull);
+    expect(value.type.name, 'D');
+    expect(value.fields.keys, ['value']);
+    expect(value.getField('value').toIntValue(), 1);
+    expect(atDI.evaluationResult.errors, isEmpty);
+  }
+
+  test_const_annotation_withoutArgs() async {
+    addTestFile('''
+const x = 1;
+@x class C {}
+''');
+    var result = await driver.getResult(testFile);
+    Annotation at_x = AstFinder.getClass(result.unit, 'C').metadata[0];
+    expect(at_x.elementAnnotation.constantValue.toIntValue(), 1);
+  }
+
+  test_const_circular_reference() async {
+    addTestFile('''
+const x = y + 1;
+const y = x + 1;
+''');
+    var result = await driver.getResult(testFile);
+    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x')
+        as TopLevelVariableElementImpl;
+    _expectCircularityError(x.evaluationResult);
+  }
+
+  test_const_dependency_sameUnit() async {
+    addTestFile('''
+const x = y + 1;
+const y = 1;
+''');
+    var result = await driver.getResult(testFile);
+    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
+    var y = AstFinder.getTopLevelVariableElement(result.unit, 'y');
+    expect(x.constantValue.toIntValue(), 2);
+    expect(y.constantValue.toIntValue(), 1);
+  }
+
+  test_const_externalConstFactory() async {
+    addTestFile('''
+const x = const C.foo();
+
+class C extends B {
+  external const factory C.foo();
+}
+
+class B {}
+''');
+    var result = await driver.getResult(testFile);
+    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
+    expect(x.constantValue, isNotNull);
+  }
+
+  test_const_implicitSuperConstructorInvocation() async {
+    addTestFile('''
+class Base {}
+class Derived extends Base {
+  const Derived();
+}
+const x = const Derived();
+''');
+    var result = await driver.getResult(testFile);
+    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
+    expect(x.constantValue, isNotNull);
+  }
+
+  test_const_simple_topLevelVariable() async {
+    addTestFile('''
+const x = 1;
+''');
+    var result = await driver.getResult(testFile);
+    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
+    expect(x.constantValue.toIntValue(), 1);
   }
 
   test_errors_uriDoesNotExist_export() async {
@@ -1968,6 +2080,14 @@ var A = B;
             declaration.isExported == expectedIsExported[i];
       })));
     }
+  }
+
+  void _expectCircularityError(EvaluationResultImpl evaluationResult) {
+    expect(evaluationResult, isNotNull);
+    expect(evaluationResult.value, isNull);
+    expect(evaluationResult.errors, hasLength(1));
+    expect(evaluationResult.errors[0].errorCode,
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
   }
 
   ClassDeclaration _getClass(CompilationUnit unit, String name) {
