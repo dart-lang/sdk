@@ -225,7 +225,7 @@ package/scenarios/packages_file_strange_formatting/empty_lines_test: Crash # Iss
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Crash # Issue 28645
 package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Crash # Issue 28645
 package/scenarios/packages_option_only/packages_option_only_noimports_test: Crash # Issue 28645
-package/scenarios/packages_option_only/packages_option_only_test: Crash # Issue 28645
+package/scenarios/packages_option_only/packages_option_only_test: Crash, CompileTimeError # Issue 28645
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 io/file_lock_test: Skip  # Timeout.
