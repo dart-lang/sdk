@@ -37,10 +37,10 @@ class LibraryContext {
   final AnalysisContext _analysisContext;
 
   /**
-   * Create a [LibraryContext] which is prepared to analyze [library].
+   * Create a [LibraryContext] which is prepared to analyze [targetLibrary].
    */
   factory LibraryContext.forSingleLibrary(
-      FileState library,
+      FileState targetLibrary,
       PerformanceLog logger,
       PackageBundle sdkBundle,
       ByteStore byteStore,
@@ -80,13 +80,13 @@ class LibraryContext {
       }
 
       logger.run('Append library files', () {
-        return appendLibraryFiles(library);
+        return appendLibraryFiles(targetLibrary);
       });
 
       Set<String> libraryUrisToLink = new Set<String>();
       logger.run('Load linked bundles', () {
         for (FileState library in libraries.values) {
-          if (library.exists) {
+          if (library.exists || library == targetLibrary) {
             String key = '${library.transitiveSignature}.linked';
             List<int> bytes = byteStore.get(key);
             if (bytes != null) {

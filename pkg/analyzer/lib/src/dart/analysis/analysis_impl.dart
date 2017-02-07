@@ -291,17 +291,6 @@ class AnalyzerImpl {
   }
 
   void _resolveFile(FileState file, CompilationUnit unit) {
-    if (!file.exists) {
-      Source source = file.source;
-      var unitElement = new CompilationUnitElementImpl(source.shortName);
-      var libraryElement = new LibraryElementImpl(_context, null, -1, 0);
-      unitElement.source = source;
-      unitElement.librarySource = source;
-      libraryElement.definingCompilationUnit = unitElement;
-      unit.element = unitElement;
-      return;
-    }
-
     RecordingErrorListener errorListener = _getErrorListener(file);
 
     String libraryUri = _library.uri.toString();
