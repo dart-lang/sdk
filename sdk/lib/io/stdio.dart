@@ -120,6 +120,8 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * If disabled, input from to console will not be echoed.
    *
    * Default depends on the parent process, but usually enabled.
+   *
+   * On Windows this mode can only be enabled if [lineMode] is enabled as well.
    */
   external void set echoMode(bool enabled);
 
@@ -135,6 +137,8 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * If disabled, characters will be available as typed.
    *
    * Default depends on the parent process, but usually enabled.
+   *
+   * On Windows this mode can only be disabled if [echoMode] is disabled as well.
    */
   external void set lineMode(bool enabled);
 
