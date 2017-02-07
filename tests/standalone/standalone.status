@@ -221,6 +221,7 @@ io/socket_info_ipv6_test: RuntimeError # Issue 27876
 [ $system == windows && $compiler == dart2analyzer ]
 package/package_isolate_test: Crash # Issue 28645
 package/scenarios/empty_packages_file/empty_packages_file_noimports_test: Crash # Issue 28645
+package/scenarios/empty_packages_file/empty_packages_file_option_test: Crash, Pass # Issue 28645
 package/scenarios/packages_file_strange_formatting/empty_lines_test: Crash # Issue 28645
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Crash # Issue 28645
 package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Crash # Issue 28645
