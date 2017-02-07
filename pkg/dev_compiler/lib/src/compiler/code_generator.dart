@@ -1463,7 +1463,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     // Doing better is a bit tricky, as our current codegen strategy for the
     // mock methods encodes information about the number of arguments (and type
     // arguments) that D expects.
-    return _collectMockMethods(type).map(_implementMockMethod);
+    return _collectMockMethods(type)
+        .map((method) => _implementMockMethod(method, type));
   }
 
   /// Given a class C that implements method M from interface I, but does not
@@ -1485,7 +1486,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///       return core.bool.as(this.noSuchMethod(
   ///           new dart.InvocationImpl('eatFood', args)));
   ///     }
-  JS.Method _implementMockMethod(ExecutableElement method) {
+  JS.Method _implementMockMethod(ExecutableElement method, InterfaceType type) {
     var invocationProps = <JS.Property>[];
     addProperty(String name, JS.Expression value) {
       invocationProps.add(new JS.Property(js.string(name), value));
@@ -1536,8 +1537,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // We have a similar issue with `dgsend` helpers.
     return new JS.Method(
         _declareMemberName(method,
-            useExtension:
-                _extensionTypes.isNativeClass(method.enclosingElement)),
+            useExtension: _extensionTypes.isNativeClass(type.element)),
         _makeGenericFunction(fn),
         isGetter: method is PropertyAccessorElement && method.isGetter,
         isSetter: method is PropertyAccessorElement && method.isSetter,
@@ -3707,7 +3707,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       // arg[0] is static return type, used in `RestrictedStaticTypeAnalyzer`
       var code = args[1];
       List<AstNode> templateArgs;
-      var source;
+      String source;
       if (code is StringInterpolation) {
         if (args.length > 2) {
           throw new ArgumentError(
@@ -3725,6 +3725,28 @@ class CodeGenerator extends GeneralizingAstVisitor
       } else {
         templateArgs = args.skip(2).toList();
         source = (code as StringLiteral).stringValue;
+      }
+
+      // TODO(vsm): Constructors in dart:html and friends are trying to
+      // allocate a type defined on window/self, but this often conflicts a
+      // with the generated extenstion class in scope.  We really should
+      // qualify explicitly in dart:html itself.
+      var constructorPattern = new RegExp("new [A-Z][A-Za-z]+\\(");
+      if (constructorPattern.matchAsPrefix(source) != null) {
+        var containingClass = node.parent;
+        while (
+            containingClass != null && containingClass is! ClassDeclaration) {
+          containingClass = containingClass.parent;
+        }
+        if (containingClass is ClassDeclaration &&
+            _extensionTypes.isNativeClass(containingClass.element)) {
+          var constructorName = source.substring(4, source.indexOf('('));
+          var className = containingClass.name.name;
+          if (className == constructorName) {
+            source =
+                source.replaceFirst('new $className(', 'new self.$className(');
+          }
+        }
       }
 
       // TODO(rnystrom): The JS() calls are almost never nested, and probably

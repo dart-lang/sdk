@@ -203,6 +203,21 @@ getType(obj) => JS(
   return $obj == null ? $Object : $obj.__proto__.constructor;
 })()''');
 
+bool isJsInterop(obj) {
+  if (JS('bool', 'typeof # === "function"', obj)) {
+    // A function is a Dart function if it has runtime type information.
+    return _getRuntimeType(obj) == null;
+  }
+  // Primitive types are not JS interop types.
+  if (JS('bool', 'typeof # !== "object"', obj)) return false;
+
+  // Extension types are not considered JS interop types.
+  // Note that it is still possible to call typed JS interop methods on
+  // extension types but the calls must be statically typed.
+  if (getExtensionType(obj) != null) return false;
+  return JS('bool', '!($obj instanceof $Object)');
+}
+
 /// Get the type of a method from a type using the stored signature
 getMethodType(type, name) => JS(
     '',
@@ -217,7 +232,9 @@ getFieldType(type, name) => JS(
     '''(() => {
   let sigObj = $type[$_fieldSig];
   if (sigObj === void 0) return void 0;
-  return sigObj[$name];
+  let fieldType = sigObj[$name];
+  // workaround to handle metadata.
+  return (fieldType instanceof Array) ? fieldType[0] : fieldType;
 })()''');
 
 getSetterType(type, name) => JS(

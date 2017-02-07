@@ -41,9 +41,69 @@ dload(obj, field) {
 
     if (hasField(type, f) || hasGetter(type, f)) return JS('', '#[#]', obj, f);
     if (hasMethod(type, f)) return bind(obj, f, JS('', 'void 0'));
+
+    // Always allow for JS interop objects.
+    if (isJsInterop(obj)) return JS('', '#[#]', obj, f);
   }
   return noSuchMethod(
       obj, new InvocationImpl(field, JS('', '[]'), isGetter: true));
+}
+
+// Version of dload that matches legacy mirrors behavior for JS types.
+dloadMirror(obj, field) {
+  var f = _canonicalMember(obj, field);
+
+  _trackCall(obj);
+  if (f != null) {
+    var type = getType(obj);
+
+    if (hasField(type, f) || hasGetter(type, f)) return JS('', '#[#]', obj, f);
+    if (hasMethod(type, f)) return bind(obj, f, JS('', 'void 0'));
+
+    // Do not support calls on JS interop objects to match Dart2JS behavior.
+  }
+  return noSuchMethod(
+      obj, new InvocationImpl(field, JS('', '[]'), isGetter: true));
+}
+
+_stripGenericArguments(type) {
+  var genericClass = getGenericClass(type);
+  if (genericClass != null) return JS('', '#()', genericClass);
+  return type;
+}
+
+// Version of dput that matches legacy Dart 1 type check rules and mirrors
+// behavior for JS types.
+// TODO(jacobr): remove the type checking rules workaround when mirrors based
+// PageLoader code can generate the correct reified generic types.
+dputMirror(obj, field, value) {
+  var f = _canonicalMember(obj, field);
+  _trackCall(obj);
+  if (f != null) {
+    var objType = getType(obj);
+    var setterType = getSetterType(objType, f);
+    if (JS('bool', '# != void 0', setterType)) {
+      return JS(
+          '',
+          '#[#] = #',
+          obj,
+          f,
+          check(
+              value, _stripGenericArguments(JS('', '#.args[0]', setterType))));
+    } else {
+      var fieldType = getFieldType(objType, f);
+      // TODO(jacobr): add metadata tracking which fields are final and throw
+      // if a setter is called on a final field.
+      if (JS('bool', '# != void 0', fieldType)) {
+        return JS('', '#[#] = #', obj, f,
+            check(value, _stripGenericArguments(fieldType)));
+      }
+
+      // Do not support calls on JS interop objects to match Dart2JS behavior.
+    }
+  }
+  return noSuchMethod(
+      obj, new InvocationImpl(field, JS('', '[#]', value), isSetter: true));
 }
 
 dput(obj, field, value) {
@@ -53,21 +113,18 @@ dput(obj, field, value) {
     var objType = getType(obj);
     var setterType = getSetterType(objType, f);
     if (JS('bool', '# != void 0', setterType)) {
-      // TODO(jacobr): throw a type error instead of a NoSuchMethodError if
-      // the type of the setter doesn't match.
-      if (instanceOfOrNull(value, JS('', '#.args[0]', setterType))) {
-        return JS('', '#[#] = #', obj, f, value);
-      }
+      return JS('', '#[#] = #', obj, f,
+          check(value, JS('', '#.args[0]', setterType)));
     } else {
       var fieldType = getFieldType(objType, f);
       // TODO(jacobr): add metadata tracking which fields are final and throw
       // if a setter is called on a final field.
       if (JS('bool', '# != void 0', fieldType)) {
-        // TODO(jacobr): throw a type error instead of a NoSuchMethodError if
-        // the type of the field doesn't match.
-        if (instanceOfOrNull(value, fieldType)) {
-          return JS('', '#[#] = #', obj, f, value);
-        }
+        return JS('', '#[#] = #', obj, f, check(value, fieldType));
+      }
+      // Always allow for JS interop objects.
+      if (isJsInterop(obj)) {
+        return JS('', '#[#] = #', obj, f, value);
       }
     }
   }
