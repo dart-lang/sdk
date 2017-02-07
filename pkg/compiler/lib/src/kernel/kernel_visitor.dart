@@ -387,13 +387,13 @@ class KernelVisitor extends Object
   }
 
   ir.LabeledStatement getBreakTarget(JumpTarget target) {
-    return breakTargets.putIfAbsent(
-        target, () => new ir.LabeledStatement(null));
+    return breakTargets.putIfAbsent(target,
+        () => associateNode(new ir.LabeledStatement(null), target.statement));
   }
 
   ir.LabeledStatement getContinueTarget(JumpTarget target) {
-    return continueTargets.putIfAbsent(
-        target, () => new ir.LabeledStatement(null));
+    return continueTargets.putIfAbsent(target,
+        () => associateNode(new ir.LabeledStatement(null), target.statement));
   }
 
   ir.SwitchCase getContinueSwitchTarget(JumpTarget target) {
@@ -591,7 +591,7 @@ class KernelVisitor extends Object
       // One VariableDefinitions statement node (dart2js AST) may generate
       // multiple statements in Kernel IR so we sometimes fall through here.
     }
-    return new ir.Block(statements);
+    return associateNode(new ir.Block(statements), node);
   }
 
   @override
@@ -789,8 +789,10 @@ class KernelVisitor extends Object
         new ir.ForStatement(variables, condition, updates, body), node);
     ir.Statement result = buildBreakTarget(forStatement, node, jumpTarget);
     if (initializer != null) {
-      result = new ir.Block(
-          <ir.Statement>[new ir.ExpressionStatement(initializer), result]);
+      result = associateNode(
+          new ir.Block(
+              <ir.Statement>[new ir.ExpressionStatement(initializer), result]),
+          node.initializer);
     }
     return result;
   }
@@ -826,6 +828,7 @@ class KernelVisitor extends Object
         // its visit method (so it can build break targets correctly).
         ? statement.accept(this)
         : buildStatementInBlock(statement);
+    associateNode(result, statement);
 
     // A [LabeledStatement] isn't the actual jump target, instead, [statement]
     // is the target. This allows uniform handling of break and continue in
@@ -999,7 +1002,9 @@ class KernelVisitor extends Object
     }
     // We ignore the node's statements here, they're generated below in
     // [visitSwitchStatement] once we've set up all the jump targets.
-    return new ir.SwitchCase(expressions, null, isDefault: node.isDefaultCase);
+    return associateNode(
+        new ir.SwitchCase(expressions, null, isDefault: node.isDefaultCase),
+        node);
   }
 
   /// Returns true if [node] would let execution reach the next node (aka

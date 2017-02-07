@@ -57,12 +57,8 @@ class SwitchContinueAnalysis extends ir.Visitor<bool> {
   }
 
   bool visitIfStatement(ir.IfStatement ifStatement) {
-    if (ifStatement.then.accept(this)) {
-      if (ifStatement.otherwise != null) {
-        return ifStatement.otherwise.accept(this);
-      }
-    }
-    return false;
+    return ifStatement.then.accept(this) ||
+        (ifStatement.otherwise != null && ifStatement.otherwise.accept(this));
   }
 
   bool visitTryCatch(ir.TryCatch tryCatch) {

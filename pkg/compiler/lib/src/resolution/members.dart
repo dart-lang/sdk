@@ -4595,6 +4595,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     JumpTarget breakElement = getOrDefineTarget(node);
     Map<String, LabelDefinition> continueLabels = <String, LabelDefinition>{};
+    Set<SwitchCase> switchCasesWithContinues = new Set<SwitchCase>();
     Link<Node> cases = node.cases.nodes;
     while (!cases.isEmpty) {
       SwitchCase switchCase = cases.head;
@@ -4662,12 +4663,22 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     node.cases.accept(this);
     statementScope.exitSwitch();
 
+    continueLabels.forEach((String key, LabelDefinition label) {
+      if (label.isContinueTarget) {
+        JumpTarget targetElement = label.target;
+        SwitchCase switchCase = targetElement.statement;
+        switchCasesWithContinues.add(switchCase);
+      }
+    });
+
     // Clean-up unused labels.
     continueLabels.forEach((String key, LabelDefinition label) {
       if (!label.isContinueTarget) {
         JumpTarget targetElement = label.target;
         SwitchCase switchCase = targetElement.statement;
-        registry.undefineTarget(switchCase);
+        if (!switchCasesWithContinues.contains(switchCase)) {
+          registry.undefineTarget(switchCase);
+        }
         registry.undefineLabel(label.label);
       }
     });

@@ -716,17 +716,19 @@ class KernelJumpTarget extends JumpTarget {
 
   /// Pointer to the actual executable statements that a jump target refers to.
   /// If this jump target was not initially constructed with a LabeledStatement,
-  /// this value is identical to originalStatement.
-  // TODO(efortuna): In an ideal world the Node should be some common
-  // interface we create for both ir.Statements and ir.SwitchCase (the
-  // ContinueSwitchStatement's target is a SwitchCase) rather than general
-  // Node. Talking to Asger about this.
+  /// this value is identical to originalStatement. This Node is actually of
+  /// type either ir.Statement or ir.SwitchCase.
   ir.Node targetStatement;
 
   /// The original statement used to construct this jump target.
   /// If this jump target was not initially constructed with a LabeledStatement,
-  /// this value is identical to targetStatement.
+  /// this value is identical to targetStatement. This Node is actually of
+  /// type either ir.Statement or ir.SwitchCase.
   ir.Node originalStatement;
+
+  /// Used to provide unique numbers to labels that would otherwise be duplicate
+  /// if one JumpTarget is inside another.
+  int nestingLevel;
 
   @override
   bool isBreakTarget = false;
@@ -756,6 +758,13 @@ class KernelJumpTarget extends JumpTarget {
       labels.add(
           new LabelDefinitionX(null, 'L${index++}', this)..setBreakTarget());
       isBreakTarget = true;
+    }
+    var originalNode = adapter.getNode(originalStatement);
+    var originalTarget = adapter.elements.getTargetDefinition(originalNode);
+    if (originalTarget != null) {
+      nestingLevel = originalTarget.nestingLevel;
+    } else {
+      nestingLevel = 0;
     }
 
     if (makeContinueLabel) {
@@ -789,14 +798,6 @@ class KernelJumpTarget extends JumpTarget {
 
   @override
   String get name => 'target';
-
-  // TODO(efortuna): In the original version, this nesting level is specified at
-  // jump target construction time, by the resolver. Because these are
-  // instantiated later, we don't have that information. When we move fully over
-  // to the kernel model, we can pass the nesting level in KernelJumpTarget's
-  // constructor.
-  @override
-  int get nestingLevel => 0;
 
   @override
   ast.Node get statement => null;

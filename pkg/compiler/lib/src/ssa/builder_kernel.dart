@@ -814,7 +814,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       Local loopVariableLocal = astAdapter.getLocal(forInStatement.variable);
       localsHandler.updateLocal(loopVariableLocal, value);
       // Hint to name loop value after name of loop variable.
-      if (loopVariableLocal is !SyntheticLocal) {
+      if (loopVariableLocal is! SyntheticLocal) {
         value.sourceElement ??= loopVariableLocal;
       }
 
@@ -876,7 +876,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       HInstruction value = pop();
       localsHandler.updateLocal(loopVariableLocal, value);
       // Hint to name loop value after name of loop variable.
-      if (loopVariableLocal is !SyntheticLocal) {
+      if (loopVariableLocal is! SyntheticLocal) {
         value.sourceElement ??= loopVariableLocal;
       }
       forInStatement.body.accept(this);
@@ -1419,7 +1419,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // This is because JS does not have this same "continue label" semantics so
     // we encode it in the form of a state machine.
 
-    JumpTarget switchTarget = astAdapter.getJumpTarget(switchStatement.parent);
+    JumpTarget switchTarget = astAdapter.getJumpTarget(switchStatement);
     localsHandler.updateLocal(switchTarget, graph.addConstantNull(closedWorld));
 
     var switchCases = switchStatement.cases;
