@@ -144,6 +144,7 @@ a:focus, a:hover {
   "id": String
   "method": "plugin.versionCheck"
   "params": {
+    "<b>byteStorePath</b>": String
     "<b>version</b>": String
   }
 }</pre><br><pre>response: {
@@ -153,7 +154,7 @@ a:focus, a:hover {
     "<b>isCompatible</b>": bool
     "<b>name</b>": String
     "<b>version</b>": String
-    "<b>email</b>": <span style="color:#999999">optional</span> String
+    "<b>contactInfo</b>": <span style="color:#999999">optional</span> String
     "<b>interestingFiles</b>": List&lt;String&gt;
   }
 }</pre></div>
@@ -163,7 +164,13 @@ a:focus, a:hover {
     </p>
     
     
-  <h4>parameters:</h4><dl><dt class="field"><b>version (String)</b></dt><dd>
+  <h4>parameters:</h4><dl><dt class="field"><b>byteStorePath (String)</b></dt><dd>
+        
+        <p>
+          The path to the directory containing the on-disk byte store that is to
+          be used by any analysis drivers that are created.
+        </p>
+      </dd><dt class="field"><b>version (String)</b></dt><dd>
         
         <p>
           The version number of the plugin spec supported by the analysis server
@@ -189,11 +196,11 @@ a:focus, a:hover {
           needs to identify the plugin, either to the user or for debugging
           purposes.
         </p>
-      </dd><dt class="field"><b>email (<span style="color:#999999">optional</span> String)</b></dt><dd>
+      </dd><dt class="field"><b>contactInfo (<span style="color:#999999">optional</span> String)</b></dt><dd>
         
         <p>
-          An e-mail address that either the client or the user can use to
-          contact the maintainers of the plugin when there is a problem.
+          Information that the user can use to use to contact the maintainers of
+          the plugin when there is a problem.
         </p>
       </dd><dt class="field"><b>interestingFiles (List&lt;String&gt;)</b></dt><dd>
         

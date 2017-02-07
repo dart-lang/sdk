@@ -8408,13 +8408,31 @@ class PluginShutdownResult implements ResponseResult {
  * plugin.versionCheck params
  *
  * {
+ *   "byteStorePath": String
  *   "version": String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class PluginVersionCheckParams implements HasToJson {
+  String _byteStorePath;
+
   String _version;
+
+  /**
+   * The path to the directory containing the on-disk byte store that is to be
+   * used by any analysis drivers that are created.
+   */
+  String get byteStorePath => _byteStorePath;
+
+  /**
+   * The path to the directory containing the on-disk byte store that is to be
+   * used by any analysis drivers that are created.
+   */
+  void set byteStorePath(String value) {
+    assert(value != null);
+    this._byteStorePath = value;
+  }
 
   /**
    * The version number of the plugin spec supported by the analysis server
@@ -8431,7 +8449,8 @@ class PluginVersionCheckParams implements HasToJson {
     this._version = value;
   }
 
-  PluginVersionCheckParams(String version) {
+  PluginVersionCheckParams(String byteStorePath, String version) {
+    this.byteStorePath = byteStorePath;
     this.version = version;
   }
 
@@ -8440,13 +8459,19 @@ class PluginVersionCheckParams implements HasToJson {
       json = {};
     }
     if (json is Map) {
+      String byteStorePath;
+      if (json.containsKey("byteStorePath")) {
+        byteStorePath = jsonDecoder.decodeString(jsonPath + ".byteStorePath", json["byteStorePath"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "byteStorePath");
+      }
       String version;
       if (json.containsKey("version")) {
         version = jsonDecoder.decodeString(jsonPath + ".version", json["version"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "version");
       }
-      return new PluginVersionCheckParams(version);
+      return new PluginVersionCheckParams(byteStorePath, version);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "plugin.versionCheck params", json);
     }
@@ -8460,6 +8485,7 @@ class PluginVersionCheckParams implements HasToJson {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
+    result["byteStorePath"] = byteStorePath;
     result["version"] = version;
     return result;
   }
@@ -8474,7 +8500,8 @@ class PluginVersionCheckParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is PluginVersionCheckParams) {
-      return version == other.version;
+      return byteStorePath == other.byteStorePath &&
+          version == other.version;
     }
     return false;
   }
@@ -8482,6 +8509,7 @@ class PluginVersionCheckParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, byteStorePath.hashCode);
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -8494,7 +8522,7 @@ class PluginVersionCheckParams implements HasToJson {
  *   "isCompatible": bool
  *   "name": String
  *   "version": String
- *   "email": optional String
+ *   "contactInfo": optional String
  *   "interestingFiles": List<String>
  * }
  *
@@ -8507,7 +8535,7 @@ class PluginVersionCheckResult implements ResponseResult {
 
   String _version;
 
-  String _email;
+  String _contactInfo;
 
   List<String> _interestingFiles;
 
@@ -8559,17 +8587,17 @@ class PluginVersionCheckResult implements ResponseResult {
   }
 
   /**
-   * An e-mail address that either the client or the user can use to contact
-   * the maintainers of the plugin when there is a problem.
+   * Information that the user can use to use to contact the maintainers of the
+   * plugin when there is a problem.
    */
-  String get email => _email;
+  String get contactInfo => _contactInfo;
 
   /**
-   * An e-mail address that either the client or the user can use to contact
-   * the maintainers of the plugin when there is a problem.
+   * Information that the user can use to use to contact the maintainers of the
+   * plugin when there is a problem.
    */
-  void set email(String value) {
-    this._email = value;
+  void set contactInfo(String value) {
+    this._contactInfo = value;
   }
 
   /**
@@ -8591,11 +8619,11 @@ class PluginVersionCheckResult implements ResponseResult {
     this._interestingFiles = value;
   }
 
-  PluginVersionCheckResult(bool isCompatible, String name, String version, List<String> interestingFiles, {String email}) {
+  PluginVersionCheckResult(bool isCompatible, String name, String version, List<String> interestingFiles, {String contactInfo}) {
     this.isCompatible = isCompatible;
     this.name = name;
     this.version = version;
-    this.email = email;
+    this.contactInfo = contactInfo;
     this.interestingFiles = interestingFiles;
   }
 
@@ -8622,9 +8650,9 @@ class PluginVersionCheckResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "version");
       }
-      String email;
-      if (json.containsKey("email")) {
-        email = jsonDecoder.decodeString(jsonPath + ".email", json["email"]);
+      String contactInfo;
+      if (json.containsKey("contactInfo")) {
+        contactInfo = jsonDecoder.decodeString(jsonPath + ".contactInfo", json["contactInfo"]);
       }
       List<String> interestingFiles;
       if (json.containsKey("interestingFiles")) {
@@ -8632,7 +8660,7 @@ class PluginVersionCheckResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "interestingFiles");
       }
-      return new PluginVersionCheckResult(isCompatible, name, version, interestingFiles, email: email);
+      return new PluginVersionCheckResult(isCompatible, name, version, interestingFiles, contactInfo: contactInfo);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "plugin.versionCheck result", json);
     }
@@ -8649,8 +8677,8 @@ class PluginVersionCheckResult implements ResponseResult {
     result["isCompatible"] = isCompatible;
     result["name"] = name;
     result["version"] = version;
-    if (email != null) {
-      result["email"] = email;
+    if (contactInfo != null) {
+      result["contactInfo"] = contactInfo;
     }
     result["interestingFiles"] = interestingFiles;
     return result;
@@ -8670,7 +8698,7 @@ class PluginVersionCheckResult implements ResponseResult {
       return isCompatible == other.isCompatible &&
           name == other.name &&
           version == other.version &&
-          email == other.email &&
+          contactInfo == other.contactInfo &&
           listEqual(interestingFiles, other.interestingFiles, (String a, String b) => a == b);
     }
     return false;
@@ -8682,7 +8710,7 @@ class PluginVersionCheckResult implements ResponseResult {
     hash = JenkinsSmiHash.combine(hash, isCompatible.hashCode);
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
-    hash = JenkinsSmiHash.combine(hash, email.hashCode);
+    hash = JenkinsSmiHash.combine(hash, contactInfo.hashCode);
     hash = JenkinsSmiHash.combine(hash, interestingFiles.hashCode);
     return JenkinsSmiHash.finish(hash);
   }

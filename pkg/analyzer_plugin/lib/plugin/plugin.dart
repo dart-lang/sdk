@@ -6,6 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriverScheduler, PerformanceLog;
+import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
@@ -15,6 +16,7 @@ import 'package:analyzer_plugin/protocol/protocol_constants.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/src/utilities/null_string_sink.dart';
 import 'package:analyzer_plugin/utilities/subscription_manager.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /**
  * The abstract superclass of any class implementing a plugin for the analysis
@@ -24,6 +26,16 @@ import 'package:analyzer_plugin/utilities/subscription_manager.dart';
  * it.
  */
 abstract class ServerPlugin {
+  /**
+   * A gigabyte.
+   */
+  static const int G = 1024 * 1024 * 1024;
+
+  /**
+   * A megabyte.
+   */
+  static const int M = 1024 * 1024;
+
   /**
    * The communication channel being used to communicate with the analysis
    * server.
@@ -52,9 +64,11 @@ abstract class ServerPlugin {
       new PerformanceLog(new NullStringSink());
 
   /**
-   * The byte store used by any analysis drivers that are created.
+   * The byte store used by any analysis drivers that are created, or `null` if
+   * the cache location isn't known because the 'plugin.version' request has not
+   * yet been received.
    */
-  final ByteStore byteStore = new MemoryByteStore();
+  ByteStore _byteStore;
 
   /**
    * The file content overlay used by any analysis drivers that are created.
@@ -75,6 +89,28 @@ abstract class ServerPlugin {
    * analysis server, or `null` if the plugin has not been started.
    */
   PluginCommunicationChannel get channel => _channel;
+
+  /**
+   * Return the user visible information about how to contact the plugin authors
+   * with any problems that are found, or `null` if there is no contact info.
+   */
+  String get contactInfo => null;
+
+  /**
+   * Return a list of glob patterns selecting the files that this plugin is
+   * interested in analyzing.
+   */
+  List<String> get fileGlobsToAnalyze;
+
+  /**
+   * Return the user visible name of this plugin.
+   */
+  String get name;
+
+  /**
+   * Return the version number of this plugin, encoded as a string.
+   */
+  String get version;
 
   /**
    * Handle the fact that the file with the given [path] has been modified.
@@ -227,7 +263,25 @@ abstract class ServerPlugin {
    * Handle a 'plugin.versionCheck' request.
    */
   PluginVersionCheckResult handlePluginVersionCheck(
-      Map<String, Object> parameters);
+      Map<String, Object> parameters) {
+    String byteStorePath = validateParameter(parameters,
+        PLUGIN_REQUEST_VERSION_CHECK_BYTESTOREPATH, 'plugin.versionCheck');
+    String versionString = validateParameter(parameters,
+        PLUGIN_REQUEST_VERSION_CHECK_VERSION, 'plugin.versionCheck');
+    Version serverVersion = new Version.parse(versionString);
+    _byteStore =
+        new MemoryCachingByteStore(new FileByteStore(byteStorePath, G), 64 * M);
+    return new PluginVersionCheckResult(
+        isCompatibleWith(serverVersion), name, version, fileGlobsToAnalyze,
+        contactInfo: contactInfo);
+  }
+
+  /**
+   * Return `true` if this plugin is compatible with an analysis server that is
+   * using the given version of the plugin API.
+   */
+  bool isCompatibleWith(Version serverVersion) =>
+      serverVersion <= new Version.parse(version);
 
   /**
    * The method that is called when the analysis server closes the communication

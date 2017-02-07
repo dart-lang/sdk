@@ -30,6 +30,11 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
+   * byteStorePath (String)
+   *
+   *   The path to the directory containing the on-disk byte store that is to
+   *   be used by any analysis drivers that are created.
+   *
    * version (String)
    *
    *   The version number of the plugin spec supported by the analysis server
@@ -53,10 +58,10 @@ abstract class IntegrationTestMixin {
    *   The version of the plugin. This value is only used when the server needs
    *   to identify the plugin, either to the user or for debugging purposes.
    *
-   * email (optional String)
+   * contactInfo (optional String)
    *
-   *   An e-mail address that either the client or the user can use to contact
-   *   the maintainers of the plugin when there is a problem.
+   *   Information that the user can use to use to contact the maintainers of
+   *   the plugin when there is a problem.
    *
    * interestingFiles (List<String>)
    *
@@ -65,8 +70,8 @@ abstract class IntegrationTestMixin {
    *   Otherwise, it will be used to identify the files for which the plugin
    *   should be notified of changes.
    */
-  Future<PluginVersionCheckResult> sendPluginVersionCheck(String version) async {
-    var params = new PluginVersionCheckParams(version).toJson();
+  Future<PluginVersionCheckResult> sendPluginVersionCheck(String byteStorePath, String version) async {
+    var params = new PluginVersionCheckParams(byteStorePath, version).toJson();
     var result = await server.send("plugin.versionCheck", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new PluginVersionCheckResult.fromJson(decoder, 'result', result);

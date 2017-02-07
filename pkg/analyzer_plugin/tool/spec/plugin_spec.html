@@ -38,6 +38,13 @@
       works with the version of the analysis server that is executing it.
     </p>
     <params>
+      <field name="byteStorePath">
+        <ref>String</ref>
+        <p>
+          The path to the directory containing the on-disk byte store that is to
+          be used by any analysis drivers that are created.
+        </p>
+      </field>
       <field name="version">
         <ref>String</ref>
         <p>
@@ -70,11 +77,11 @@
           purposes.
         </p>
       </field>
-      <field name="email" optional="true">
+      <field name="contactInfo" optional="true">
         <ref>String</ref>
         <p>
-          An e-mail address that either the client or the user can use to
-          contact the maintainers of the plugin when there is a problem.
+          Information that the user can use to use to contact the maintainers of
+          the plugin when there is a problem.
         </p>
       </field>
       <field name="interestingFiles">

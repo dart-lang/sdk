@@ -17,11 +17,13 @@ import 'integration_tests.dart';
  * plugin.versionCheck params
  *
  * {
+ *   "byteStorePath": String
  *   "version": String
  * }
  */
 final Matcher isPluginVersionCheckParams = new LazyMatcher(() => new MatchesJsonObject(
   "plugin.versionCheck params", {
+    "byteStorePath": isString,
     "version": isString
   }));
 
@@ -32,7 +34,7 @@ final Matcher isPluginVersionCheckParams = new LazyMatcher(() => new MatchesJson
  *   "isCompatible": bool
  *   "name": String
  *   "version": String
- *   "email": optional String
+ *   "contactInfo": optional String
  *   "interestingFiles": List<String>
  * }
  */
@@ -43,7 +45,7 @@ final Matcher isPluginVersionCheckResult = new LazyMatcher(() => new MatchesJson
     "version": isString,
     "interestingFiles": isListOf(isString)
   }, optionalFields: {
-    "email": isString
+    "contactInfo": isString
   }));
 
 /**
