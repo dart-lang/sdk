@@ -12096,114 +12096,8 @@ void PcDescriptors::Verify(const Function& function) const {
 }
 
 
-TokenPosition CodeSourceMap::TokenPositionForPCOffset(uword pc_offset) const {
-  Iterator iterator(*this);
-
-  TokenPosition result = TokenPosition::kNoSource;
-
-  while (iterator.MoveNext()) {
-    if (iterator.PcOffset() > pc_offset) {
-      break;
-    }
-    result = iterator.TokenPos();
-  }
-
-  return result;
-}
-
-
-RawFunction* CodeSourceMap::FunctionForPCOffset(const Code& code,
-                                                const Function& function,
-                                                uword pc_offset) const {
-  GrowableArray<Function*> inlined_functions;
-  code.GetInlinedFunctionsAt(pc_offset, &inlined_functions);
-  if (inlined_functions.length() > 0) {
-    Function* inlined_function = inlined_functions[0];
-    return inlined_function->raw();
-  } else {
-    return function.raw();
-  }
-}
-
-
-RawScript* CodeSourceMap::ScriptForPCOffset(const Code& code,
-                                            const Function& function,
-                                            uword pc_offset) const {
-  const Function& func =
-      Function::Handle(FunctionForPCOffset(code, function, pc_offset));
-  return func.script();
-}
-
-
-void CodeSourceMap::Dump(const CodeSourceMap& code_source_map,
-                         const Code& code,
-                         const Function& function) {
-  const char* code_name = code.QualifiedName();
-  THR_Print("Dumping Code Source Map for %s\n", code_name);
-  if (code_source_map.Length() == 0) {
-    THR_Print("<empty>\n");
-    return;
-  }
-
-  const int addr_width = kBitsPerWord / 4;
-
-  Iterator iterator(code_source_map);
-  Function& current_function = Function::Handle();
-  Script& current_script = Script::Handle();
-  TokenPosition tp;
-  while (iterator.MoveNext()) {
-    const uword pc_offset = iterator.PcOffset();
-    tp = code_source_map.TokenPositionForPCOffset(pc_offset);
-    current_function ^=
-        code_source_map.FunctionForPCOffset(code, function, pc_offset);
-    current_script ^=
-        code_source_map.ScriptForPCOffset(code, function, pc_offset);
-    if (current_function.IsNull() || current_script.IsNull()) {
-      THR_Print("%#-*" Px "\t%s\t%s\n", addr_width, pc_offset, tp.ToCString(),
-                code_name);
-      continue;
-    }
-    const String& uri = String::Handle(current_script.url());
-    ASSERT(!uri.IsNull());
-    THR_Print("%#-*" Px "\t%s\t%s\t%s\n", addr_width, pc_offset, tp.ToCString(),
-              current_function.ToQualifiedCString(), uri.ToCString());
-  }
-}
-
-
-intptr_t CodeSourceMap::Length() const {
-  return raw_ptr()->length_;
-}
-
-
 void CodeSourceMap::SetLength(intptr_t value) const {
   StoreNonPointer(&raw_ptr()->length_, value);
-}
-
-
-void CodeSourceMap::CopyData(GrowableArray<uint8_t>* delta_encoded_data) {
-  NoSafepointScope no_safepoint;
-  uint8_t* data = UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
-  for (intptr_t i = 0; i < delta_encoded_data->length(); ++i) {
-    data[i] = (*delta_encoded_data)[i];
-  }
-}
-
-
-RawCodeSourceMap* CodeSourceMap::New(GrowableArray<uint8_t>* data) {
-  ASSERT(Object::code_source_map_class() != Class::null());
-  Thread* thread = Thread::Current();
-  CodeSourceMap& result = CodeSourceMap::Handle(thread->zone());
-  {
-    uword size = CodeSourceMap::InstanceSize(data->length());
-    RawObject* raw =
-        Object::Allocate(CodeSourceMap::kClassId, size, Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result ^= raw;
-    result.SetLength(data->length());
-    result.CopyData(data);
-  }
-  return result.raw();
 }
 
 
@@ -12224,49 +12118,7 @@ RawCodeSourceMap* CodeSourceMap::New(intptr_t length) {
 
 
 const char* CodeSourceMap::ToCString() const {
-// "*" in a printf format specifier tells it to read the field width from
-// the printf argument list.
-#define FORMAT "%#-*" Px "\t%s\n"
-  if (Length() == 0) {
-    return "empty CodeSourceMap\n";
-  }
-  // 4 bits per hex digit.
-  const int addr_width = kBitsPerWord / 4;
-  // First compute the buffer size required.
-  intptr_t len = 1;  // Trailing '\0'.
-  {
-    Iterator iter(*this);
-    while (iter.MoveNext()) {
-      len += OS::SNPrint(NULL, 0, FORMAT, addr_width, iter.PcOffset(),
-                         iter.TokenPos().ToCString());
-    }
-  }
-  // Allocate the buffer.
-  char* buffer = Thread::Current()->zone()->Alloc<char>(len);
-  // Layout the fields in the buffer.
-  intptr_t index = 0;
-  Iterator iter(*this);
-  while (iter.MoveNext()) {
-    index += OS::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
-                         iter.PcOffset(), iter.TokenPos().ToCString());
-  }
-  return buffer;
-#undef FORMAT
-}
-
-
-// Encode integer in SLEB128 format.
-void CodeSourceMap::EncodeInteger(GrowableArray<uint8_t>* data,
-                                  intptr_t value) {
-  return EncodeSLEB128(data, value);
-}
-
-
-// Decode SLEB128 encoded integer. Update byte_index to the next integer.
-intptr_t CodeSourceMap::DecodeInteger(intptr_t* byte_index) const {
-  NoSafepointScope no_safepoint;
-  const uint8_t* data = raw_ptr()->data();
-  return DecodeSLEB128(data, Length(), byte_index);
+  return "CodeSourceMap";
 }
 
 
@@ -14047,15 +13899,6 @@ bool Code::HasBreakpoint() const {
 }
 
 
-TokenPosition Code::GetTokenPositionAt(intptr_t offset) const {
-  const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
-  if (map.IsNull()) {
-    return TokenPosition::kNoSource;
-  }
-  return map.TokenPositionForPCOffset(offset);
-}
-
-
 RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
                                      ICData::DeoptReasonId* deopt_reason,
                                      uint32_t* deopt_flags) const {
@@ -14243,126 +14086,21 @@ intptr_t Code::GetPrologueOffset() const {
 }
 
 
-RawArray* Code::GetInlinedIntervals() const {
+RawArray* Code::inlined_id_to_function() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Array::null();
 #else
-  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
-  if (metadata.IsNull()) {
-    return metadata.raw();
-  }
-  return reinterpret_cast<RawArray*>(
-      metadata.At(RawCode::kInlinedIntervalsIndex));
+  return raw_ptr()->inlined_id_to_function_;
 #endif
 }
 
 
-void Code::SetInlinedIntervals(const Array& value) const {
+void Code::set_inlined_id_to_function(const Array& value) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
-  if (raw_ptr()->inlined_metadata_ == Array::null()) {
-    StorePointer(&raw_ptr()->inlined_metadata_,
-                 Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
-  }
-  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
-  ASSERT(!metadata.IsNull());
-  ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
-  metadata.SetAt(RawCode::kInlinedIntervalsIndex, value);
-#endif
-}
-
-
-RawArray* Code::GetInlinedIdToFunction() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Array::null();
-#else
-  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
-  if (metadata.IsNull()) {
-    return metadata.raw();
-  }
-  return reinterpret_cast<RawArray*>(
-      metadata.At(RawCode::kInlinedIdToFunctionIndex));
-#endif
-}
-
-
-void Code::SetInlinedIdToFunction(const Array& value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
-  if (raw_ptr()->inlined_metadata_ == Array::null()) {
-    StorePointer(&raw_ptr()->inlined_metadata_,
-                 Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
-  }
-  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
-  ASSERT(!metadata.IsNull());
-  ASSERT(metadata.IsOld());
-  ASSERT(value.IsOld());
-  metadata.SetAt(RawCode::kInlinedIdToFunctionIndex, value);
-#endif
-}
-
-
-RawArray* Code::GetInlinedIdToTokenPos() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Array::null();
-#else
-  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
-  if (metadata.IsNull()) {
-    return metadata.raw();
-  }
-  return reinterpret_cast<RawArray*>(
-      metadata.At(RawCode::kInlinedIdToTokenPosIndex));
-#endif
-}
-
-
-void Code::SetInlinedIdToTokenPos(const Array& value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
-  if (raw_ptr()->inlined_metadata_ == Array::null()) {
-    StorePointer(&raw_ptr()->inlined_metadata_,
-                 Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
-  }
-  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
-  ASSERT(!metadata.IsNull());
-  ASSERT(metadata.IsOld());
-  ASSERT(value.IsOld());
-  metadata.SetAt(RawCode::kInlinedIdToTokenPosIndex, value);
-#endif
-}
-
-
-RawArray* Code::GetInlinedCallerIdMap() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Array::null();
-#else
-  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
-  if (metadata.IsNull()) {
-    return metadata.raw();
-  }
-  return reinterpret_cast<RawArray*>(
-      metadata.At(RawCode::kInlinedCallerIdMapIndex));
-#endif
-}
-
-
-void Code::SetInlinedCallerIdMap(const Array& value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
-  if (raw_ptr()->inlined_metadata_ == Array::null()) {
-    StorePointer(&raw_ptr()->inlined_metadata_,
-                 Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
-  }
-  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
-  ASSERT(!metadata.IsNull());
-  ASSERT(metadata.IsOld());
-  ASSERT(value.IsOld());
-  metadata.SetAt(RawCode::kInlinedCallerIdMapIndex, value);
+  StorePointer(&raw_ptr()->inlined_id_to_function_, value.raw());
 #endif
 }
 
@@ -14722,126 +14460,59 @@ RawStackMap* Code::GetStackMap(uint32_t pc_offset,
 }
 
 
-intptr_t Code::GetCallerId(intptr_t inlined_id) const {
-  if (inlined_id < 0) {
-    return -1;
-  }
-  const Array& map = Array::Handle(GetInlinedCallerIdMap());
-  if (map.IsNull() || (map.Length() == 0)) {
-    return -1;
-  }
-  Smi& smi = Smi::Handle();
-  smi ^= map.At(inlined_id);
-  return smi.Value();
-}
-
-
 void Code::GetInlinedFunctionsAt(
-    intptr_t offset,
-    GrowableArray<Function*>* fs,
+    intptr_t pc_offset,
+    GrowableArray<const Function*>* functions,
     GrowableArray<TokenPosition>* token_positions) const {
-  fs->Clear();
-  if (token_positions != NULL) {
-    token_positions->Clear();
-  }
-  const Array& intervals = Array::Handle(GetInlinedIntervals());
-  if (intervals.IsNull() || (intervals.Length() == 0)) {
-    // E.g., for code stubs.
+  const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
+  if (map.IsNull()) {
+    // Stub code.
     return;
   }
-  // First find the right interval. TODO(srdjan): use binary search since
-  // intervals are sorted.
-  Smi& start = Smi::Handle();
-  Smi& end = Smi::Handle();
-  intptr_t found_interval_ix = intervals.Length() - Code::kInlIntNumEntries;
-  for (intptr_t i = 0; i < intervals.Length() - Code::kInlIntNumEntries;
-       i += Code::kInlIntNumEntries) {
-    start ^= intervals.At(i + Code::kInlIntStart);
-    if (!start.IsNull()) {
-      end ^= intervals.At(i + Code::kInlIntNumEntries + Code::kInlIntStart);
-      if ((start.Value() <= offset) && (offset < end.Value())) {
-        found_interval_ix = i;
-        break;
-      }
-    }
-  }
-
-  // Find all functions.
-  const Array& id_map = Array::Handle(GetInlinedIdToFunction());
-  const Array& token_pos_map = Array::Handle(GetInlinedIdToTokenPos());
-  Smi& temp_smi = Smi::Handle();
-  temp_smi ^= intervals.At(found_interval_ix + Code::kInlIntInliningId);
-  intptr_t inlining_id = temp_smi.Value();
-  ASSERT(inlining_id >= 0);
-  intptr_t caller_id = GetCallerId(inlining_id);
-  while (inlining_id >= 0) {
-    Function& function = Function::ZoneHandle();
-    function ^= id_map.At(inlining_id);
-    fs->Add(&function);
-    if ((token_positions != NULL) && (inlining_id < token_pos_map.Length())) {
-      temp_smi ^= token_pos_map.At(inlining_id);
-      token_positions->Add(TokenPosition(temp_smi.Value()));
-    }
-    inlining_id = caller_id;
-    caller_id = GetCallerId(inlining_id);
-  }
+  const Array& id_map = Array::Handle(inlined_id_to_function());
+  const Function& root = Function::Handle(function());
+  CodeSourceMapReader reader(map, id_map, root);
+  reader.GetInlinedFunctionsAt(pc_offset, functions, token_positions);
 }
 
 
-void Code::DumpInlinedIntervals() const {
-  LogBlock lb;
-  THR_Print("Inlined intervals:\n");
-  const Array& intervals = Array::Handle(GetInlinedIntervals());
-  if (intervals.IsNull() || (intervals.Length() == 0)) return;
-  Smi& start = Smi::Handle();
-  Smi& inlining_id = Smi::Handle();
-  GrowableArray<Function*> inlined_functions;
-  const Function& inliner = Function::Handle(function());
-  for (intptr_t i = 0; i < intervals.Length(); i += Code::kInlIntNumEntries) {
-    start ^= intervals.At(i + Code::kInlIntStart);
-    ASSERT(!start.IsNull());
-    if (start.IsNull()) continue;
-    inlining_id ^= intervals.At(i + Code::kInlIntInliningId);
-    THR_Print("  %" Px " iid: %" Pd " ; ", start.Value(), inlining_id.Value());
-    inlined_functions.Clear();
+#ifndef PRODUCT
+void Code::PrintJSONInlineIntervals(JSONObject* jsobj) const {
+  if (!is_optimized()) {
+    return;  // No inlining.
+  }
+  const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
+  const Array& id_map = Array::Handle(inlined_id_to_function());
+  const Function& root = Function::Handle(function());
+  CodeSourceMapReader reader(map, id_map, root);
+  reader.PrintJSONInlineIntervals(jsobj);
+}
+#endif
 
-    THR_Print("inlined: ");
-    GetInlinedFunctionsAt(start.Value(), &inlined_functions);
 
-    for (intptr_t j = 0; j < inlined_functions.length(); j++) {
-      const char* name = inlined_functions[j]->ToQualifiedCString();
-      THR_Print("  %s <-", name);
-    }
-    if (inlined_functions[inlined_functions.length() - 1]->raw() !=
-        inliner.raw()) {
-      THR_Print(" (ERROR, missing inliner)\n");
-    } else {
-      THR_Print("\n");
-    }
+void Code::DumpInlineIntervals() const {
+  const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
+  if (map.IsNull()) {
+    // Stub code.
+    return;
   }
-  THR_Print("Inlined ids:\n");
-  const Array& id_map = Array::Handle(GetInlinedIdToFunction());
-  Function& function = Function::Handle();
-  for (intptr_t i = 0; i < id_map.Length(); i++) {
-    function ^= id_map.At(i);
-    if (!function.IsNull()) {
-      THR_Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
-    }
+  const Array& id_map = Array::Handle(inlined_id_to_function());
+  const Function& root = Function::Handle(function());
+  CodeSourceMapReader reader(map, id_map, root);
+  reader.DumpInlineIntervals(PayloadStart());
+}
+
+
+void Code::DumpSourcePositions() const {
+  const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
+  if (map.IsNull()) {
+    // Stub code.
+    return;
   }
-  THR_Print("Inlined token pos:\n");
-  const Array& token_pos_map = Array::Handle(GetInlinedIdToTokenPos());
-  Smi& smi = Smi::Handle();
-  for (intptr_t i = 0; i < token_pos_map.Length(); i++) {
-    smi ^= token_pos_map.At(i);
-    TokenPosition tp = TokenPosition(smi.Value());
-    THR_Print("  %" Pd ": %s\n", i, tp.ToCString());
-  }
-  THR_Print("Caller Inlining Ids:\n");
-  const Array& caller_map = Array::Handle(GetInlinedCallerIdMap());
-  for (intptr_t i = 0; i < caller_map.Length(); i++) {
-    smi ^= caller_map.At(i);
-    THR_Print("  iid: %" Pd " caller iid: %" Pd "\n", i, smi.Value());
-  }
+  const Array& id_map = Array::Handle(inlined_id_to_function());
+  const Function& root = Function::Handle(function());
+  CodeSourceMapReader reader(map, id_map, root);
+  reader.DumpSourcePositions(PayloadStart());
 }
 
 

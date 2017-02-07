@@ -2449,13 +2449,13 @@ static void InsertFakeSample(SampleBuffer* sample_buffer, uword* pc_offsets) {
 
 
 static uword FindPCForTokenPosition(const Code& code,
-                                    const CodeSourceMap& code_source_map,
                                     TokenPosition tp) {
-  CodeSourceMap::Iterator it(code_source_map);
-
-  while (it.MoveNext()) {
-    if (it.TokenPos() == tp) {
-      return it.PcOffset() + code.PayloadStart();
+  GrowableArray<const Function*> functions;
+  GrowableArray<TokenPosition> token_positions;
+  for (intptr_t pc_offset = 0; pc_offset < code.Size(); pc_offset++) {
+    code.GetInlinedFunctionsAt(pc_offset, &functions, &token_positions);
+    if (token_positions[0] == tp) {
+      return code.PayloadStart() + pc_offset;
     }
   }
 
@@ -2522,34 +2522,24 @@ TEST_CASE(Profiler_GetSourceReport) {
   const Code& do_work_code = Code::Handle(do_work.CurrentCode());
   EXPECT(!do_work_code.IsNull());
 
-  const CodeSourceMap& main_code_source_map =
-      CodeSourceMap::Handle(main_code.code_source_map());
-  EXPECT(!main_code_source_map.IsNull());
-
-  const CodeSourceMap& do_work_code_source_map =
-      CodeSourceMap::Handle(do_work_code.code_source_map());
-  EXPECT(!do_work_code_source_map.IsNull());
-
   // Dump code source map.
-  CodeSourceMap::Dump(do_work_code_source_map, do_work_code, main);
-  CodeSourceMap::Dump(main_code_source_map, main_code, main);
+  do_work_code.DumpSourcePositions();
+  main_code.DumpSourcePositions();
 
   // Look up some source token position's pc.
-  uword squarePositionPc = FindPCForTokenPosition(
-      do_work_code, do_work_code_source_map, squarePosition);
+  uword squarePositionPc = FindPCForTokenPosition(do_work_code, squarePosition);
   EXPECT(squarePositionPc != 0);
 
-  uword callPositionPc =
-      FindPCForTokenPosition(main_code, main_code_source_map, callPosition);
+  uword callPositionPc = FindPCForTokenPosition(main_code, callPosition);
   EXPECT(callPositionPc != 0);
 
   // Look up some classifying token position's pc.
-  uword controlFlowPc = FindPCForTokenPosition(
-      do_work_code, do_work_code_source_map, TokenPosition::kControlFlow);
+  uword controlFlowPc =
+      FindPCForTokenPosition(do_work_code, TokenPosition::kControlFlow);
   EXPECT(controlFlowPc != 0);
 
-  uword tempMovePc = FindPCForTokenPosition(main_code, main_code_source_map,
-                                            TokenPosition::kTempMove);
+  uword tempMovePc =
+      FindPCForTokenPosition(main_code, TokenPosition::kTempMove);
   EXPECT(tempMovePc != 0);
 
   // Insert fake samples.

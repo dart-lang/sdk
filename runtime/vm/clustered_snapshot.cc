@@ -1571,7 +1571,7 @@ class CodeSerializationCluster : public SerializationCluster {
     if (s->kind() == Snapshot::kAppJIT) {
       s->Push(code->ptr()->deopt_info_array_);
       s->Push(code->ptr()->static_calls_target_table_);
-      NOT_IN_PRODUCT(s->Push(code->ptr()->inlined_metadata_));
+      NOT_IN_PRODUCT(s->Push(code->ptr()->inlined_id_to_function_));
       NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
     }
   }
@@ -1624,7 +1624,7 @@ class CodeSerializationCluster : public SerializationCluster {
       if (s->kind() == Snapshot::kAppJIT) {
         s->WriteRef(code->ptr()->deopt_info_array_);
         s->WriteRef(code->ptr()->static_calls_target_table_);
-        NOT_IN_PRODUCT(s->WriteRef(code->ptr()->inlined_metadata_));
+        NOT_IN_PRODUCT(s->WriteRef(code->ptr()->inlined_id_to_function_));
         NOT_IN_PRODUCT(s->WriteRef(code->ptr()->return_address_metadata_));
       }
 
@@ -1697,17 +1697,17 @@ class CodeDeserializationCluster : public DeserializationCluster {
         code->ptr()->static_calls_target_table_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
 #if defined(PRODUCT)
-        code->ptr()->inlined_metadata_ = Array::null();
+        code->ptr()->inlined_id_to_function_ = Array::null();
         code->ptr()->return_address_metadata_ = Object::null();
 #else
-        code->ptr()->inlined_metadata_ =
+        code->ptr()->inlined_id_to_function_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
         code->ptr()->return_address_metadata_ = d->ReadRef();
 #endif
       } else {
         code->ptr()->deopt_info_array_ = Array::null();
         code->ptr()->static_calls_target_table_ = Array::null();
-        code->ptr()->inlined_metadata_ = Array::null();
+        code->ptr()->inlined_id_to_function_ = Array::null();
         code->ptr()->return_address_metadata_ = Object::null();
       }
 

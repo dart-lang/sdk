@@ -3120,22 +3120,6 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
     function.set_usage_counter(INT_MIN);
   }
 
-  const Array& intervals = graph_compiler->inlined_code_intervals();
-  INC_STAT(thread(), total_code_size, intervals.Length() * sizeof(uword));
-  code.SetInlinedIntervals(intervals);
-
-  const Array& inlined_id_array =
-      Array::Handle(zone, graph_compiler->InliningIdToFunction());
-  INC_STAT(thread(), total_code_size,
-           inlined_id_array.Length() * sizeof(uword));
-  code.SetInlinedIdToFunction(inlined_id_array);
-
-  const Array& caller_inlining_id_map_array =
-      Array::Handle(zone, graph_compiler->CallerInliningIdMap());
-  INC_STAT(thread(), total_code_size,
-           caller_inlining_id_map_array.Length() * sizeof(uword));
-  code.SetInlinedCallerIdMap(caller_inlining_id_map_array);
-
   graph_compiler->FinalizePcDescriptors(code);
   code.set_deopt_info_array(deopt_info_array);
 
@@ -3143,6 +3127,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   graph_compiler->FinalizeVarDescriptors(code);
   graph_compiler->FinalizeExceptionHandlers(code);
   graph_compiler->FinalizeStaticCallTargetsTable(code);
+  graph_compiler->FinalizeCodeSourceMap(code);
 
   if (optimized()) {
     // Installs code while at safepoint.

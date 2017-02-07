@@ -92,12 +92,12 @@ class ReadStream : public ValueObject {
     return (end_ - current_);
   }
 
- private:
   template <typename T>
   T Read() {
     return Read<T>(kEndByteMarker);
   }
 
+ private:
   int16_t Read16() { return Read16(kEndByteMarker); }
 
   int32_t Read32() { return Read32(kEndByteMarker); }
@@ -390,7 +390,6 @@ class WriteStream : public ValueObject {
     VPrint(format, args);
   }
 
- private:
   template <typename T>
   void Write(T value) {
     T v = value;
@@ -401,6 +400,7 @@ class WriteStream : public ValueObject {
     WriteByte(static_cast<uint8_t>(v + kEndByteMarker));
   }
 
+ private:
   DART_FORCE_INLINE void WriteByte(uint8_t value) {
     if (current_ >= end_) {
       Resize(1);

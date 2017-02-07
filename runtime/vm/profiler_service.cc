@@ -1049,7 +1049,7 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
            ProcessedSample* sample,
            intptr_t frame_index,
            // Outputs:
-           GrowableArray<Function*>** inlined_functions,
+           GrowableArray<const Function*>** inlined_functions,
            GrowableArray<TokenPosition>** inlined_token_positions,
            TokenPosition* token_position) {
     const intptr_t offset = OffsetForPC(pc, code, sample, frame_index);
@@ -1065,7 +1065,7 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
  private:
   bool FindInCache(uword pc,
                    intptr_t offset,
-                   GrowableArray<Function*>** inlined_functions,
+                   GrowableArray<const Function*>** inlined_functions,
                    GrowableArray<TokenPosition>** inlined_token_positions,
                    TokenPosition* token_position) {
     // Simple linear scan.
@@ -1096,7 +1096,7 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
            ProcessedSample* sample,
            intptr_t frame_index,
            // Outputs:
-           GrowableArray<Function*>** inlined_functions,
+           GrowableArray<const Function*>** inlined_functions,
            GrowableArray<TokenPosition>** inlined_token_positions,
            TokenPosition* token_position) {
     const intptr_t offset = OffsetForPC(pc, code, sample, frame_index);
@@ -1105,22 +1105,18 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
     cache_entry->offset = offset;
     code.GetInlinedFunctionsAt(offset, &(cache_entry->inlined_functions),
                                &(cache_entry->inlined_token_positions));
-    cache_entry->token_position = code.GetTokenPositionAt(offset);
-    *token_position = (cache_entry->token_position);
     if (cache_entry->inlined_functions.length() == 0) {
       *inlined_functions = NULL;
       *inlined_token_positions = NULL;
+      *token_position = cache_entry->token_position = TokenPosition();
       return;
     }
-    // The inlined token position table does not include the token position
-    // of the final call. Insert it at the beginning because the table.
-    // is reversed.
-    cache_entry->inlined_token_positions.InsertAt(0,
-                                                  cache_entry->token_position);
 
     // Write outputs.
     *inlined_functions = &(cache_entry->inlined_functions);
     *inlined_token_positions = &(cache_entry->inlined_token_positions);
+    *token_position = cache_entry->token_position =
+        cache_entry->inlined_token_positions[0];
   }
 
   intptr_t NextFreeIndex() {
@@ -1157,7 +1153,7 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
     }
     uword pc;
     intptr_t offset;
-    GrowableArray<Function*> inlined_functions;
+    GrowableArray<const Function*> inlined_functions;
     GrowableArray<TokenPosition> inlined_token_positions;
     TokenPosition token_position;
   };
@@ -1592,7 +1588,7 @@ class ProfileBuilder : public ValueObject {
     const intptr_t code_index = profile_code->code_table_index();
     ASSERT(profile_code != NULL);
     const Code& code = Code::ZoneHandle(profile_code->code());
-    GrowableArray<Function*>* inlined_functions = NULL;
+    GrowableArray<const Function*>* inlined_functions = NULL;
     GrowableArray<TokenPosition>* inlined_token_positions = NULL;
     TokenPosition token_position = TokenPosition::kNoSource;
     if (!code.IsNull()) {
@@ -1609,8 +1605,9 @@ class ProfileBuilder : public ValueObject {
         }
       }
     }
+
     if (code.IsNull() || (inlined_functions == NULL) ||
-        (inlined_functions->length() == 0)) {
+        (inlined_functions->length() <= 1)) {
       // No inlined functions.
       if (inclusive_tree_) {
         current = AppendKind(code, current);
@@ -1626,12 +1623,12 @@ class ProfileBuilder : public ValueObject {
     ASSERT(code.is_optimized());
 
     if (inclusive_tree_) {
-      for (intptr_t i = inlined_functions->length() - 1; i >= 0; i--) {
-        Function* inlined_function = (*inlined_functions)[i];
+      for (intptr_t i = 0; i < inlined_functions->length(); i++) {
+        const Function* inlined_function = (*inlined_functions)[i];
         ASSERT(inlined_function != NULL);
         ASSERT(!inlined_function->IsNull());
         TokenPosition inlined_token_position = (*inlined_token_positions)[i];
-        const bool inliner = i == (inlined_functions->length() - 1);
+        const bool inliner = i == 0;
         if (inliner) {
           current = AppendKind(code, current);
         }
@@ -1646,12 +1643,12 @@ class ProfileBuilder : public ValueObject {
     } else {
       // Append the inlined children.
       current = AppendKind(kInlineFinish, current);
-      for (intptr_t i = 0; i < inlined_functions->length(); i++) {
-        Function* inlined_function = (*inlined_functions)[i];
+      for (intptr_t i = inlined_functions->length() - 1; i >= 0; i--) {
+        const Function* inlined_function = (*inlined_functions)[i];
         ASSERT(inlined_function != NULL);
         ASSERT(!inlined_function->IsNull());
         TokenPosition inlined_token_position = (*inlined_token_positions)[i];
-        const bool inliner = i == (inlined_functions->length() - 1);
+        const bool inliner = i == 0;
         if (inliner) {
           current = AppendKind(kInlineStart, current);
         }
@@ -1672,7 +1669,7 @@ class ProfileBuilder : public ValueObject {
       intptr_t sample_index,
       ProcessedSample* sample,
       intptr_t frame_index,
-      Function* inlined_function,
+      const Function* inlined_function,
       TokenPosition inlined_token_position,
       intptr_t code_index) {
     ProfileFunctionTable* function_table = profile_->functions_;

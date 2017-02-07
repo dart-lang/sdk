@@ -1143,7 +1143,7 @@ class RawCode : public RawObject {
   NOT_IN_PRECOMPILED(RawArray* deopt_info_array_);
   // (code-offset, function, code) triples.
   NOT_IN_PRECOMPILED(RawArray* static_calls_target_table_);
-  NOT_IN_PRECOMPILED(RawArray* inlined_metadata_);
+  NOT_IN_PRECOMPILED(RawArray* inlined_id_to_function_);
   // If return_address_metadata_ is a Smi, it is the offset to the prologue.
   // Else, return_address_metadata_ is null.
   NOT_IN_PRECOMPILED(RawObject* return_address_metadata_);
@@ -1290,13 +1290,13 @@ class RawPcDescriptors : public RawObject {
 };
 
 
-// CodeSourceMap stores a mapping between code PC ranges and source token
-// positions.
+// CodeSourceMap encodes a mapping from code PC ranges to source token
+// positions and the stack of inlined functions.
 class RawCodeSourceMap : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap);
 
-  int32_t length_;  // Number of entries.
+  int32_t length_;  // Length in bytes.
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }

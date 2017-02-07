@@ -4401,66 +4401,17 @@ class CodeSourceMap : public Object {
     return RoundedAllocationSize(sizeof(RawCodeSourceMap) + len);
   }
 
-  static RawCodeSourceMap* New(GrowableArray<uint8_t>* delta_encoded_data);
+  static RawCodeSourceMap* New(intptr_t length);
+
+  intptr_t Length() const { return raw_ptr()->length_; }
+  uint8_t* Data() const {
+    return UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
+  }
 
   void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
 
-  // Encode integer in SLEB128 format.
-  static void EncodeInteger(GrowableArray<uint8_t>* data, intptr_t value);
-
-  // Decode SLEB128 encoded integer. Update byte_index to the next integer.
-  intptr_t DecodeInteger(intptr_t* byte_index) const;
-
-  TokenPosition TokenPositionForPCOffset(uword pc_offset) const;
-  RawFunction* FunctionForPCOffset(const Code& code,
-                                   const Function& function,
-                                   uword pc_offset) const;
-  RawScript* ScriptForPCOffset(const Code& code,
-                               const Function& function,
-                               uword pc_offset) const;
-
-  static void Dump(const CodeSourceMap& code_source_map,
-                   const Code& code,
-                   const Function& function);
-
-  class Iterator : ValueObject {
-   public:
-    explicit Iterator(const CodeSourceMap& code_source_map)
-        : code_source_map_(code_source_map),
-          byte_index_(0),
-          cur_pc_offset_(0),
-          cur_token_pos_(0) {}
-
-    bool MoveNext() {
-      // Moves to the next record.
-      while (byte_index_ < code_source_map_.Length()) {
-        cur_pc_offset_ += code_source_map_.DecodeInteger(&byte_index_);
-        cur_token_pos_ += code_source_map_.DecodeInteger(&byte_index_);
-
-        return true;
-      }
-      return false;
-    }
-
-    uword PcOffset() const { return cur_pc_offset_; }
-    TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
-
-   private:
-    friend class CodeSourceMap;
-
-    const CodeSourceMap& code_source_map_;
-    intptr_t byte_index_;
-
-    intptr_t cur_pc_offset_;
-    intptr_t cur_token_pos_;
-  };
-
  private:
-  static RawCodeSourceMap* New(intptr_t length);
-
-  intptr_t Length() const;
   void SetLength(intptr_t value) const;
-  void CopyData(GrowableArray<uint8_t>* data);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap, Object);
   friend class Class;
@@ -4730,8 +4681,6 @@ class Code : public Object {
   // that are embedded inside the Code object.
   void ResetICDatas(Zone* zone) const;
 
-  TokenPosition GetTokenPositionAt(intptr_t offset) const;
-
   // Array of DeoptInfo objects.
   RawArray* deopt_info_array() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -4826,32 +4775,23 @@ class Code : public Object {
   // Returns -1 if no prologue offset is available.
   intptr_t GetPrologueOffset() const;
 
-  enum InlinedIntervalEntries {
-    kInlIntStart = 0,
-    kInlIntInliningId = 1,
-    kInlIntNumEntries = 2,
-  };
+  RawArray* inlined_id_to_function() const;
+  void set_inlined_id_to_function(const Array& value) const;
 
-  RawArray* GetInlinedIntervals() const;
-  void SetInlinedIntervals(const Array& value) const;
-
-  RawArray* GetInlinedIdToFunction() const;
-  void SetInlinedIdToFunction(const Array& value) const;
-
-  RawArray* GetInlinedIdToTokenPos() const;
-  void SetInlinedIdToTokenPos(const Array& value) const;
-
-  RawArray* GetInlinedCallerIdMap() const;
-  void SetInlinedCallerIdMap(const Array& value) const;
-
-  // If |token_positions| is not NULL it will be populated with the token
-  // positions of the inlined calls.
+  // Provides the call stack at the given pc offset, with the top-of-stack in
+  // the last element and the root function (this) as the first element, along
+  // with the corresponding source positions. Note the token position for each
+  // function except the top-of-stack is the position of the call to the next
+  // function. The stack will be empty if we lack the metadata to produce it,
+  // which happens for stub code.
   void GetInlinedFunctionsAt(
-      intptr_t offset,
-      GrowableArray<Function*>* fs,
-      GrowableArray<TokenPosition>* token_positions = NULL) const;
+      intptr_t pc_offset,
+      GrowableArray<const Function*>* functions,
+      GrowableArray<TokenPosition>* token_positions) const;
 
-  void DumpInlinedIntervals() const;
+  NOT_IN_PRODUCT(void PrintJSONInlineIntervals(JSONObject* object) const);
+  void DumpInlineIntervals() const;
+  void DumpSourcePositions() const;
 
   RawLocalVarDescriptors* var_descriptors() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -5035,9 +4975,6 @@ class Code : public Object {
     NoSafepointScope no_safepoint;
     *PointerOffsetAddrAt(index) = offset_in_instructions;
   }
-
-  // Currently slow, as it searches linearly through inlined_intervals().
-  intptr_t GetCallerId(intptr_t inlined_id) const;
 
   intptr_t BinarySearchInSCallTable(uword pc) const;
   static RawCode* LookupCodeInIsolate(Isolate* isolate, uword pc);
