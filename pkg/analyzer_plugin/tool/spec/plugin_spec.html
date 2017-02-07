@@ -597,7 +597,7 @@
     <result>
       <field name="assists">
         <list>
-          <ref>SourceChange</ref>
+          <ref>PrioritizedSourceChange</ref>
         </list>
         <p>
           The assists that are available at the given location.
@@ -891,7 +891,7 @@
         </p>
       </field>
       <field name="fixes">
-        <list><ref>SourceChange</ref></list>
+        <list><ref>PrioritizedSourceChange</ref></list>
         <p>
           The fixes associated with the error.
         </p>
@@ -1919,6 +1919,26 @@
         <ref>int</ref>
         <p>
           The offset of the position.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="PrioritizedSourceChange">
+    <p>
+      A source change that has a priority associated with it.
+    </p>
+    <object>
+      <field name="priority">
+        <ref>int</ref>
+        <p>
+          The priority of the change. The value is expected to be non-negative,
+          and zero (0) is the lowest priority.
+        </p>
+      </field>
+      <field name="change">
+        <ref>SourceChange</ref>
+        <p>
+          The change with which the relevance is associated.
         </p>
       </field>
     </object>

@@ -222,7 +222,7 @@ abstract class ServerPlugin {
    * Handle an 'edit.getAssists' request.
    */
   EditGetAssistsResult handleEditGetAssists(Map<String, Object> parameters) =>
-      new EditGetAssistsResult(const <SourceChange>[]);
+      new EditGetAssistsResult(const <PrioritizedSourceChange>[]);
 
   /**
    * Handle an 'edit.getAvailableRefactorings' request. Subclasses that override

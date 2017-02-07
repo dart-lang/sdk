@@ -341,7 +341,7 @@ class AnalysisError implements HasToJson {
  *
  * {
  *   "error": AnalysisError
- *   "fixes": List<SourceChange>
+ *   "fixes": List<PrioritizedSourceChange>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -349,7 +349,7 @@ class AnalysisError implements HasToJson {
 class AnalysisErrorFixes implements HasToJson {
   AnalysisError _error;
 
-  List<SourceChange> _fixes;
+  List<PrioritizedSourceChange> _fixes;
 
   /**
    * The error with which the fixes are associated.
@@ -367,20 +367,20 @@ class AnalysisErrorFixes implements HasToJson {
   /**
    * The fixes associated with the error.
    */
-  List<SourceChange> get fixes => _fixes;
+  List<PrioritizedSourceChange> get fixes => _fixes;
 
   /**
    * The fixes associated with the error.
    */
-  void set fixes(List<SourceChange> value) {
+  void set fixes(List<PrioritizedSourceChange> value) {
     assert(value != null);
     this._fixes = value;
   }
 
-  AnalysisErrorFixes(AnalysisError error, {List<SourceChange> fixes}) {
+  AnalysisErrorFixes(AnalysisError error, {List<PrioritizedSourceChange> fixes}) {
     this.error = error;
     if (fixes == null) {
-      this.fixes = <SourceChange>[];
+      this.fixes = <PrioritizedSourceChange>[];
     } else {
       this.fixes = fixes;
     }
@@ -397,9 +397,9 @@ class AnalysisErrorFixes implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "error");
       }
-      List<SourceChange> fixes;
+      List<PrioritizedSourceChange> fixes;
       if (json.containsKey("fixes")) {
-        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new PrioritizedSourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fixes");
       }
@@ -413,7 +413,7 @@ class AnalysisErrorFixes implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["error"] = error.toJson();
-    result["fixes"] = fixes.map((SourceChange value) => value.toJson()).toList();
+    result["fixes"] = fixes.map((PrioritizedSourceChange value) => value.toJson()).toList();
     return result;
   }
 
@@ -424,7 +424,7 @@ class AnalysisErrorFixes implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisErrorFixes) {
       return error == other.error &&
-          listEqual(fixes, other.fixes, (SourceChange a, SourceChange b) => a == b);
+          listEqual(fixes, other.fixes, (PrioritizedSourceChange a, PrioritizedSourceChange b) => a == b);
     }
     return false;
   }
@@ -3639,28 +3639,28 @@ class EditGetAssistsParams implements HasToJson {
  * edit.getAssists result
  *
  * {
- *   "assists": List<SourceChange>
+ *   "assists": List<PrioritizedSourceChange>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class EditGetAssistsResult implements ResponseResult {
-  List<SourceChange> _assists;
+  List<PrioritizedSourceChange> _assists;
 
   /**
    * The assists that are available at the given location.
    */
-  List<SourceChange> get assists => _assists;
+  List<PrioritizedSourceChange> get assists => _assists;
 
   /**
    * The assists that are available at the given location.
    */
-  void set assists(List<SourceChange> value) {
+  void set assists(List<PrioritizedSourceChange> value) {
     assert(value != null);
     this._assists = value;
   }
 
-  EditGetAssistsResult(List<SourceChange> assists) {
+  EditGetAssistsResult(List<PrioritizedSourceChange> assists) {
     this.assists = assists;
   }
 
@@ -3669,9 +3669,9 @@ class EditGetAssistsResult implements ResponseResult {
       json = {};
     }
     if (json is Map) {
-      List<SourceChange> assists;
+      List<PrioritizedSourceChange> assists;
       if (json.containsKey("assists")) {
-        assists = jsonDecoder.decodeList(jsonPath + ".assists", json["assists"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+        assists = jsonDecoder.decodeList(jsonPath + ".assists", json["assists"], (String jsonPath, Object json) => new PrioritizedSourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "assists");
       }
@@ -3689,7 +3689,7 @@ class EditGetAssistsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["assists"] = assists.map((SourceChange value) => value.toJson()).toList();
+    result["assists"] = assists.map((PrioritizedSourceChange value) => value.toJson()).toList();
     return result;
   }
 
@@ -3704,7 +3704,7 @@ class EditGetAssistsResult implements ResponseResult {
   @override
   bool operator==(other) {
     if (other is EditGetAssistsResult) {
-      return listEqual(assists, other.assists, (SourceChange a, SourceChange b) => a == b);
+      return listEqual(assists, other.assists, (PrioritizedSourceChange a, PrioritizedSourceChange b) => a == b);
     }
     return false;
   }
@@ -8810,6 +8810,106 @@ class Position implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * PrioritizedSourceChange
+ *
+ * {
+ *   "priority": int
+ *   "change": SourceChange
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class PrioritizedSourceChange implements HasToJson {
+  int _priority;
+
+  SourceChange _change;
+
+  /**
+   * The priority of the change. The value is expected to be non-negative, and
+   * zero (0) is the lowest priority.
+   */
+  int get priority => _priority;
+
+  /**
+   * The priority of the change. The value is expected to be non-negative, and
+   * zero (0) is the lowest priority.
+   */
+  void set priority(int value) {
+    assert(value != null);
+    this._priority = value;
+  }
+
+  /**
+   * The change with which the relevance is associated.
+   */
+  SourceChange get change => _change;
+
+  /**
+   * The change with which the relevance is associated.
+   */
+  void set change(SourceChange value) {
+    assert(value != null);
+    this._change = value;
+  }
+
+  PrioritizedSourceChange(int priority, SourceChange change) {
+    this.priority = priority;
+    this.change = change;
+  }
+
+  factory PrioritizedSourceChange.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      int priority;
+      if (json.containsKey("priority")) {
+        priority = jsonDecoder.decodeInt(jsonPath + ".priority", json["priority"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "priority");
+      }
+      SourceChange change;
+      if (json.containsKey("change")) {
+        change = new SourceChange.fromJson(jsonDecoder, jsonPath + ".change", json["change"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "change");
+      }
+      return new PrioritizedSourceChange(priority, change);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "PrioritizedSourceChange", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["priority"] = priority;
+    result["change"] = change.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is PrioritizedSourceChange) {
+      return priority == other.priority &&
+          change == other.change;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, priority.hashCode);
+    hash = JenkinsSmiHash.combine(hash, change.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

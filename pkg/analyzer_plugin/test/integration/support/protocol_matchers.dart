@@ -331,12 +331,12 @@ final Matcher isEditGetAssistsParams = new LazyMatcher(() => new MatchesJsonObje
  * edit.getAssists result
  *
  * {
- *   "assists": List<SourceChange>
+ *   "assists": List<PrioritizedSourceChange>
  * }
  */
 final Matcher isEditGetAssistsResult = new LazyMatcher(() => new MatchesJsonObject(
   "edit.getAssists result", {
-    "assists": isListOf(isSourceChange)
+    "assists": isListOf(isPrioritizedSourceChange)
   }));
 
 /**
@@ -483,13 +483,13 @@ final Matcher isAnalysisError = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "error": AnalysisError
- *   "fixes": List<SourceChange>
+ *   "fixes": List<PrioritizedSourceChange>
  * }
  */
 final Matcher isAnalysisErrorFixes = new LazyMatcher(() => new MatchesJsonObject(
   "AnalysisErrorFixes", {
     "error": isAnalysisError,
-    "fixes": isListOf(isSourceChange)
+    "fixes": isListOf(isPrioritizedSourceChange)
   }));
 
 /**
@@ -1114,6 +1114,20 @@ final Matcher isPosition = new LazyMatcher(() => new MatchesJsonObject(
   "Position", {
     "file": isFilePath,
     "offset": isInt
+  }));
+
+/**
+ * PrioritizedSourceChange
+ *
+ * {
+ *   "priority": int
+ *   "change": SourceChange
+ * }
+ */
+final Matcher isPrioritizedSourceChange = new LazyMatcher(() => new MatchesJsonObject(
+  "PrioritizedSourceChange", {
+    "priority": isInt,
+    "change": isSourceChange
   }));
 
 /**

@@ -513,7 +513,7 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * assists (List<SourceChange>)
+   * assists (List<PrioritizedSourceChange>)
    *
    *   The assists that are available at the given location.
    */
