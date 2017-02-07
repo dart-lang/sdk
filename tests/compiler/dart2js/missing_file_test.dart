@@ -61,15 +61,23 @@ void main() {
 
     await runTest(Uri.parse('dart:foo'), error: MessageKind.LIBRARY_NOT_FOUND);
 
-    await runTest(Uri.parse('dart:io'),
-        error: MessageKind.LIBRARY_NOT_SUPPORTED,
+    await runTest(Uri.parse('dart:_mirror_helper'),
+        error: MessageKind.INTERNAL_LIBRARY,
         info: MessageKind.DISALLOWED_LIBRARY_IMPORT);
 
     await runTest(Uri.parse('memory:bar.dart'),
         error: MessageKind.LIBRARY_NOT_FOUND);
 
-    await runTest(Uri.parse('memory:baz.dart'),
-        error: MessageKind.LIBRARY_NOT_SUPPORTED,
-        info: MessageKind.DISALLOWED_LIBRARY_IMPORT);
+    // Importing dart:io is temporarily allowed as a stopgap measure for the
+    // lack of config specific imports. Once that is added, this will be
+    // disallowed again.
+
+    //await runTest(Uri.parse('dart:io'),
+    //    error: MessageKind.LIBRARY_NOT_SUPPORTED,
+    //    info: MessageKind.DISALLOWED_LIBRARY_IMPORT);
+
+    //await runTest(Uri.parse('memory:baz.dart'),
+    //    error: MessageKind.LIBRARY_NOT_SUPPORTED,
+    //    info: MessageKind.DISALLOWED_LIBRARY_IMPORT);
   });
 }
