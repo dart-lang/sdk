@@ -502,3 +502,6 @@ regress_27572_test: StaticWarning # Warning about undefined method expected.
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649
+
+[ $compiler == dart2analyzer && $system != windows ]
+bad_raw_string_test/03: MissingCompileTimeError # Issue 28664
