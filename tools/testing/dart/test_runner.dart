@@ -1914,10 +1914,15 @@ class RunningProcess {
               } else if (io.Platform.isWindows) {
                 bool is_x64 = command.executable.contains("X64") ||
                               command.executable.contains("SIMARM64");
-                executable = configuration['win_sdk_path'] +
-                    "\\Debuggers\\" + (is_x64 ? "x64" : "x86") + "\\cdb.exe";
-                diagnostics.add("Using $executable to print stack traces");
-                arguments = ['-p', '${process.pid}', '-c', '!uniqstack;qd'];
+                var win_sdk_path = configuration['win_sdk_path'];
+                if (win_sdk_path != null) {
+                  executable = win_sdk_path +
+                      "\\Debuggers\\" + (is_x64 ? "x64" : "x86") + "\\cdb.exe";
+                  diagnostics.add("Using $executable to print stack traces");
+                  arguments = ['-p', '${process.pid}', '-c', '!uniqstack;qd'];
+                } else {
+                  diagnostics.add("win_sdk path not found");
+                }
               }
 
               if (executable != null) {
