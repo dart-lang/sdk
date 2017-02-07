@@ -13,6 +13,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -34,6 +35,7 @@
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+#include "platform/text_buffer.h"
 #include "platform/utils.h"
 
 #include "include/dart_api.h"
@@ -78,39 +80,40 @@ static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
 const char* commandline_root_certs_file = NULL;
 const char* commandline_root_certs_cache = NULL;
 
-/* Get the error messages from BoringSSL, and put them in buffer as a
- * null-terminated string. */
-static void FetchErrorString(char* buffer, int length) {
-  buffer[0] = '\0';
-  int error = ERR_get_error();
-  while (error != 0) {
-    int used = strlen(buffer);
-    int free_length = length - used;
-    if (free_length > 16) {
-      // Enough room for error code at least.
-      if (used > 0) {
-        buffer[used] = '\n';
-        buffer[used + 1] = '\0';
-        used++;
-        free_length--;
-      }
-      ERR_error_string_n(error, buffer + used, free_length);
-      // ERR_error_string_n is guaranteed to leave a null-terminated string.
+// Get the error messages from BoringSSL, and put them in buffer as a
+// null-terminated string.
+static void FetchErrorString(const SSL* ssl, TextBuffer* text_buffer) {
+  uint32_t error = 0;
+  const char* path = NULL;
+  int line = -1;
+  const char* sep = File::PathSeparator();
+  do {
+    error = ERR_get_error_line(&path, &line);
+    const char* file = strrchr(path, sep[0]);
+    path = file ? file + 1 : path;
+    if ((ssl != NULL) &&
+        (error == ERR_PACK(ERR_R_SSL_LIB, SSL_R_CERTIFICATE_VERIFY_FAILED))) {
+      intptr_t result = SSL_get_verify_result(ssl);
+      text_buffer->Printf("\n\t%s: %s (%s:%d)", ERR_reason_error_string(error),
+                          X509_verify_cert_error_string(result), path, line);
+    } else if (error != 0) {
+      text_buffer->Printf("\n\t%s (%s:%d)", ERR_reason_error_string(error),
+                          path, line);
     }
-    error = ERR_get_error();
-  }
+  } while (error != 0);
 }
 
 
-/* Handle an error reported from the BoringSSL library. */
+// Handle an error reported from the BoringSSL library.
 static void ThrowIOException(int status,
                              const char* exception_type,
-                             const char* message) {
-  char error_string[SSL_ERROR_MESSAGE_BUFFER_SIZE];
-  FetchErrorString(error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
+                             const char* message,
+                             const SSL* ssl) {
   Dart_Handle exception;
   {
-    OSError os_error_struct(status, error_string, OSError::kBoringSSL);
+    TextBuffer error_string(SSL_ERROR_MESSAGE_BUFFER_SIZE);
+    FetchErrorString(ssl, &error_string);
+    OSError os_error_struct(status, error_string.buf(), OSError::kBoringSSL);
     Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
     exception =
         DartUtils::NewDartIOException(exception_type, message, os_error);
@@ -448,7 +451,10 @@ int PasswordCallback(char* buf, int size, int rwflag, void* userdata) {
 }
 
 
-void CheckStatus(int status, const char* type, const char* message) {
+void CheckStatusSSL(int status,
+                    const char* type,
+                    const char* message,
+                    const SSL* ssl) {
   // TODO(24183): Take appropriate action on failed calls,
   // throw exception that includes all messages from the error stack.
   if (status == 1) {
@@ -461,7 +467,12 @@ void CheckStatus(int status, const char* type, const char* message) {
     ERR_error_string_n(error, error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
     Log::PrintErr("ERROR: %d %s\n", error, error_string);
   }
-  ThrowIOException(status, type, message);
+  ThrowIOException(status, type, message, ssl);
+}
+
+
+void CheckStatus(int status, const char* type, const char* message) {
+  CheckStatusSSL(status, type, message, NULL);
 }
 
 
@@ -816,7 +827,7 @@ static void LoadRootCertFile(SSLContext* context, const char* file) {
     Log::Print("Looking for trusted roots in %s\n", file);
   }
   if (!File::Exists(file)) {
-    ThrowIOException(-1, "TlsException", "Failed to find root cert file");
+    ThrowIOException(-1, "TlsException", "Failed to find root cert file", NULL);
   }
   int status = SSL_CTX_load_verify_locations(context->context(), file, NULL);
   CheckStatus(status, "TlsException", "Failure trusting builtin roots");
@@ -831,7 +842,8 @@ static void LoadRootCertCache(SSLContext* context, const char* cache) {
     Log::Print("Looking for trusted roots in %s\n", cache);
   }
   if (Directory::Exists(cache) != Directory::EXISTS) {
-    ThrowIOException(-1, "TlsException", "Failed to find root cert cache");
+    ThrowIOException(-1, "TlsException", "Failed to find root cert cache",
+                     NULL);
   }
   int status = SSL_CTX_load_verify_locations(context->context(), NULL, cache);
   CheckStatus(status, "TlsException", "Failure trusting builtin roots");
@@ -1193,11 +1205,11 @@ CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
     return result;
   } else {
     int32_t error_code = static_cast<int32_t>(ERR_peek_error());
-    char error_string[SSL_ERROR_MESSAGE_BUFFER_SIZE];
-    FetchErrorString(error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
+    TextBuffer error_string(SSL_ERROR_MESSAGE_BUFFER_SIZE);
+    FetchErrorString(filter->ssl_, &error_string);
     CObjectArray* result = new CObjectArray(CObject::NewArray(2));
     result->SetAt(0, new CObjectInt32(CObject::NewInt32(error_code)));
-    result->SetAt(1, new CObjectString(CObject::NewString(error_string)));
+    result->SetAt(1, new CObjectString(CObject::NewString(error_string.buf())));
     return result;
   }
 }
@@ -1514,7 +1526,7 @@ void SSLFilter::Connect(const char* hostname,
   BIO* ssl_side;
   status = BIO_new_bio_pair(&ssl_side, kInternalBIOSize, &socket_side_,
                             kInternalBIOSize);
-  CheckStatus(status, "TlsException", "BIO_new_bio_pair");
+  CheckStatusSSL(status, "TlsException", "BIO_new_bio_pair", ssl_);
 
   assert(context != NULL);
   ssl_ = SSL_new(context);
@@ -1532,7 +1544,7 @@ void SSLFilter::Connect(const char* hostname,
   } else {
     SetAlpnProtocolList(protocols_handle, ssl_, NULL, false);
     status = SSL_set_tlsext_host_name(ssl_, hostname);
-    CheckStatus(status, "TlsException", "Set SNI host name");
+    CheckStatusSSL(status, "TlsException", "Set SNI host name", ssl_);
     // Sets the hostname in the certificate-checking object, so it is checked
     // against the certificate presented by the server.
     X509_VERIFY_PARAM* certificate_checking_parameters = SSL_get0_param(ssl_);
@@ -1543,8 +1555,8 @@ void SSLFilter::Connect(const char* hostname,
     X509_VERIFY_PARAM_set_hostflags(certificate_checking_parameters, 0);
     status = X509_VERIFY_PARAM_set1_host(certificate_checking_parameters,
                                          hostname_, strlen(hostname_));
-    CheckStatus(status, "TlsException",
-                "Set hostname for certificate checking");
+    CheckStatusSSL(status, "TlsException",
+                   "Set hostname for certificate checking", ssl_);
   }
   // Make the connection:
   if (is_server_) {
@@ -1597,9 +1609,10 @@ void SSLFilter::Handshake() {
     in_handshake_ = true;
     return;
   }
-  CheckStatus(status, "HandshakeException", is_server_
-                                                ? "Handshake error in server"
-                                                : "Handshake error in client");
+  CheckStatusSSL(
+      status, "HandshakeException",
+      is_server_ ? "Handshake error in server" : "Handshake error in client",
+      ssl_);
   // Handshake succeeded.
   if (in_handshake_) {
     // TODO(24071): Check return value of SSL_get_verify_result, this
