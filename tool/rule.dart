@@ -6,8 +6,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
-/// Generates rule and rule test stub files (int src/rules and test/rules
-/// respectively), as well as the rule index (rules.dart).
+/// Generates rule and rule test stub files (into `src/rules` and `test/rules`
+/// respectively), as well as the rule index (`rules.dart`).
 void main([List<String> args]) {
   var parser = new ArgParser(allowTrailingOptions: true);
 
@@ -92,7 +92,6 @@ String toClassName(String libName) =>
     libName.split('_').map((bit) => capitalize(bit)).join();
 
 void updateRuleRegistry(String libName) {
-  //TODO: find right place to insert into imports and ruleMap
   print("Don't forget to update lib/rules.dart with a line like:");
   print("  ..register(new ${toClassName(libName)}())");
   print("Then run your test like so:");
@@ -100,7 +99,7 @@ void updateRuleRegistry(String libName) {
 }
 
 String _generateStub(String libName, String className) => """
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -108,6 +107,7 @@ library linter.src.rules.$libName;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = r' ';
@@ -148,7 +148,7 @@ class Visitor extends SimpleAstVisitor {
 """;
 
 String _generateTest(String libName, String className) => '''
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
