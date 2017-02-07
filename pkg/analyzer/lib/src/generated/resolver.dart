@@ -9509,12 +9509,12 @@ class TypeProviderImpl extends TypeProviderBase {
     _undefinedType = UndefinedTypeImpl.instance;
     _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
-    _futureOrNullType = _futureOrType.instantiate(<DartType>[_nullType]);
     _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
     _streamDynamicType = _streamType.instantiate(<DartType>[_dynamicType]);
     // FutureOr<T> is still fairly new, so if we're analyzing an SDK that
     // doesn't have it yet, create an element for it.
     _futureOrType ??= createPlaceholderFutureOr(_futureType, _objectType);
+    _futureOrNullType = _futureOrType.instantiate(<DartType>[_nullType]);
   }
 
   /**
