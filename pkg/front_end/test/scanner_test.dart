@@ -121,6 +121,12 @@ class KeywordStateTest {
 @reflectiveTest
 class ScannerTest extends ScannerTestBase {
   @override
+  @failingTest
+  void test_incomplete_string_interpolation() {
+    super.test_incomplete_string_interpolation();
+  }
+
+  @override
   Token _scanWithListener(String source, _ErrorListener listener,
       {bool genericMethodComments: false,
       bool lazyAssignmentOperators: false}) {
@@ -217,30 +223,6 @@ class ScannerTest_Fasta extends ScannerTestBase {
 
   @override
   @failingTest
-  void test_comment_multi_unterminated() {
-    // TODO(paulberry,ahe): see UnimplementedError("distinguish unterminated
-    // errors")
-    super.test_comment_multi_unterminated();
-  }
-
-  @override
-  @failingTest
-  void test_double_missingDigitInExponent() {
-    // TODO(paulberry,ahe): see UnimplementedError("distinguish unterminated
-    // errors")
-    super.test_double_missingDigitInExponent();
-  }
-
-  @override
-  @failingTest
-  void test_hexidecimal_missingDigit() {
-    // TODO(paulberry,ahe): see UnimplementedError("distinguish unterminated
-    // errors")
-    super.test_hexidecimal_missingDigit();
-  }
-
-  @override
-  @failingTest
   void test_index() {
     // TODO(paulberry,ahe): "[]" should be parsed as a single token.
     super.test_index();
@@ -318,20 +300,6 @@ class ScannerTest_Fasta extends ScannerTestBase {
 
   @override
   @failingTest
-  void test_string_simple_interpolation_missingIdentifier() {
-    // TODO(paulberry,ahe): bad error recovery.
-    super.test_string_simple_interpolation_missingIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_string_simple_interpolation_nonIdentifier() {
-    // TODO(paulberry,ahe): bad error recovery.
-    super.test_string_simple_interpolation_nonIdentifier();
-  }
-
-  @override
-  @failingTest
   void test_string_simple_unterminated_eof() {
     // TODO(paulberry,ahe): bad error recovery.
     super.test_string_simple_unterminated_eof();
@@ -384,7 +352,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
     CommentToken currentCommentHead;
     CommentToken currentCommentTail;
     while (true) {
-      if (token is fasta.ErrorToken) {
+      if (scanner.hasErrors && token is fasta.ErrorToken) {
         var error = _translateErrorToken(token, source.length);
         if (error != null) {
           listener.errors.add(error);
@@ -442,22 +410,40 @@ class ScannerTest_Fasta extends ScannerTestBase {
       return new _TestError(charOffset, errorLength, errorCode, arguments);
     }
 
-    if (token is fasta.UnterminatedToken) {
-      // TODO(paulberry,ahe): How to tell what kind of error to
-      // report?  It could be ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-      // ScannerErrorCode.MISSING_HEX_DIGIT, or
-      // ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT
-      return _makeError(
-          throw new UnimplementedError("distinguish unterminated errors"),
-          null);
-    } else if (token is fasta.UnmatchedToken) {
-      return null;
-    } else if (token is fasta.NonAsciiIdentifierToken) {
-      return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
-    } else if (token is fasta.NonAsciiWhitespaceToken) {
-      return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
+    var errorCode = token.errorCode;
+    switch (errorCode) {
+      case fasta.ErrorKind.UnterminatedString:
+        // TODO(paulberry,ahe): Fasta reports the error location as the entire
+        // string; analyzer expects the end of the string.
+        charOffset = endOffset;
+        return _makeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null);
+      case fasta.ErrorKind.UnmatchedToken:
+        return null;
+      case fasta.ErrorKind.UnterminatedComment:
+        // TODO(paulberry,ahe): Fasta reports the error location as the entire
+        // comment; analyzer expects the end of the comment.
+        charOffset = endOffset;
+        return _makeError(
+            ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, null);
+      case fasta.ErrorKind.MissingExponent:
+        // TODO(paulberry,ahe): Fasta reports the error location as the entire
+        // number; analyzer expects the end of the number.
+        charOffset = endOffset;
+        return _makeError(ScannerErrorCode.MISSING_DIGIT, null);
+      case fasta.ErrorKind.ExpectedHexDigit:
+        // TODO(paulberry,ahe): Fasta reports the error location as the entire
+        // number; analyzer expects the end of the number.
+        charOffset = endOffset;
+        return _makeError(ScannerErrorCode.MISSING_HEX_DIGIT, null);
+      case fasta.ErrorKind.NonAsciiIdentifier:
+      case fasta.ErrorKind.NonAsciiWhitespace:
+        return _makeError(
+            ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
+      case fasta.ErrorKind.UnexpectedDollarInString:
+        return null;
+      default:
+        throw new UnimplementedError('$errorCode');
     }
-    throw new UnimplementedError('${token.runtimeType}');
   }
 
   Keyword _translateKeyword(String syntax) =>
@@ -659,16 +645,6 @@ class ScannerTest_Fasta extends ScannerTestBase {
 }
 
 abstract class ScannerTestBase {
-  void fail_incomplete_string_interpolation() {
-    // https://code.google.com/p/dart/issues/detail?id=18073
-    _assertErrorAndTokens(
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "\"foo \${bar", [
-      new StringToken(TokenType.STRING, "\"foo ", 0),
-      new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 5),
-      new StringToken(TokenType.IDENTIFIER, "bar", 7)
-    ]);
-  }
-
   void test_ampersand() {
     _assertToken(TokenType.AMPERSAND, "&");
   }
@@ -926,6 +902,16 @@ abstract class ScannerTestBase {
 
   void test_illegalChar_notLetter() {
     _assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u0312", [0x312]);
+  }
+
+  void test_incomplete_string_interpolation() {
+    // https://code.google.com/p/dart/issues/detail?id=18073
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "\"foo \${bar", [
+      new StringToken(TokenType.STRING, "\"foo ", 0),
+      new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 5),
+      new StringToken(TokenType.IDENTIFIER, "bar", 7)
+    ]);
   }
 
   void test_index() {
