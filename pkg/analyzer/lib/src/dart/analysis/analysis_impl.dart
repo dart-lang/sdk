@@ -326,7 +326,7 @@ class AnalyzerImpl {
       unit.accept(resolver);
     }
 
-    unit.accept(new EnumMemberBuilder(typeProvider));
+    // TODO(scheglov) remove EnumMemberBuilder class
 
     new TypeParameterBoundsResolver(
             typeProvider, libraryElement, unitElement.source, errorListener)
