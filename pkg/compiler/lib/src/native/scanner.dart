@@ -4,8 +4,7 @@
 
 import '../common.dart';
 import '../parser/element_listener.dart' show ElementListener;
-import 'package:front_end/src/fasta/scanner.dart'
-    show BeginGroupToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
 import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
     show STRING_TOKEN;
 

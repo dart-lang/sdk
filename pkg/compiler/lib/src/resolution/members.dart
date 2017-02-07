@@ -2862,11 +2862,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           registry.registerStaticUse(new StaticUse.staticGet(member));
         }
         if (member.isFinal || member.isConst) {
-          reportAndCreateErroneousElement(
-              node.selector,
-              name.text,
-              MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER,
-              {'name': name});
+          reportAndCreateErroneousElement(node.selector, name.text,
+              MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER, {'name': name});
           registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
           semantics = member.isTopLevel
               ? new StaticAccess.finalTopLevelField(member)
@@ -3614,8 +3611,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitYield(Yield node) {
     if (!resolution.target.supportsAsyncAwait) {
-      reporter.reportErrorMessage(
-          reporter.spanFromToken(node.yieldToken),
+      reporter.reportErrorMessage(reporter.spanFromToken(node.yieldToken),
           MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
       if (!currentAsyncMarker.isYielding) {
@@ -3756,8 +3752,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitAwait(Await node) {
     if (!resolution.target.supportsAsyncAwait) {
-      reporter.reportErrorMessage(
-          reporter.spanFromToken(node.awaitToken),
+      reporter.reportErrorMessage(reporter.spanFromToken(node.awaitToken),
           MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
       if (!currentAsyncMarker.isAsync) {
@@ -4022,7 +4017,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (resolution.commonElements.isSymbolConstructor(constructor) &&
           !resolution.mirrorUsageAnalyzerTask
               .hasMirrorUsage(enclosingElement)) {
-        reporter.reportHintMessage(reporter.spanFromToken(node.newToken),
+        reporter.reportHintMessage(
+            reporter.spanFromToken(node.newToken),
             MessageKind.NON_CONST_BLOAT,
             {'name': commonElements.symbolClass.name});
       }
@@ -4294,13 +4290,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
     if (!resolution.target.supportsAsyncAwait) {
-      reporter.reportErrorMessage(
-          reporter.spanFromToken(node.awaitToken),
+      reporter.reportErrorMessage(reporter.spanFromToken(node.awaitToken),
           MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
       if (!currentAsyncMarker.isAsync) {
-        reporter.reportErrorMessage(
-            reporter.spanFromToken(node.awaitToken),
+        reporter.reportErrorMessage(reporter.spanFromToken(node.awaitToken),
             MessageKind.INVALID_AWAIT_FOR_IN);
       }
       registry.registerFeature(Feature.ASYNC_FOR_IN);

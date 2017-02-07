@@ -217,10 +217,6 @@ abstract class Backend extends Target {
           {bool forResolution}) =>
       const WorldImpact();
 
-  /// This method is called immediately after the [LibraryElement] [library] has
-  /// been created.
-  void onLibraryCreated(LibraryElement library) {}
-
   /// This method is called immediately after the [library] and its parts have
   /// been scanned.
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
@@ -319,11 +315,11 @@ abstract class Backend extends Target {
   // Does this element belong in the output
   bool shouldOutput(Element element) => true;
 
-  FunctionElement helperForBadMain() => null;
+  MethodElement helperForBadMain() => null;
 
-  FunctionElement helperForMissingMain() => null;
+  MethodElement helperForMissingMain() => null;
 
-  FunctionElement helperForMainArity() => null;
+  MethodElement helperForMainArity() => null;
 
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
   WorldImpact computeMainImpact(MethodElement mainMethod,

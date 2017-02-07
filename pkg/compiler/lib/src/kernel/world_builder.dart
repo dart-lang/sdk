@@ -46,7 +46,8 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   KernelWorldBuilder(this.reporter, ir.Program program)
       : _env = new KEnv(program) {
-    _commonElements = new KernelCommonElements(this);
+    _commonElements =
+        new KernelCommonElements(new KernelElementEnvironment(this));
     _typeConverter = new DartTypeConverter(this);
   }
 
@@ -65,10 +66,30 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
     });
   }
 
+  MemberEntity lookupLibraryMember(KLibrary library, String name,
+      {bool setter: false}) {
+    KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
+    ir.Member member = libraryEnv.lookupMember(name, setter: setter);
+    return member != null ? getMember(member) : null;
+  }
+
   ClassEntity lookupClass(KLibrary library, String name) {
     KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
     KClassEnv classEnv = libraryEnv.lookupClass(name);
     return _getClass(classEnv.cls, classEnv);
+  }
+
+  MemberEntity lookupClassMember(KClass cls, String name,
+      {bool setter: false}) {
+    KClassEnv classEnv = _classEnvs[cls.classIndex];
+    ir.Member member = classEnv.lookupMember(name, setter: setter);
+    return member != null ? getMember(member) : null;
+  }
+
+  ConstructorEntity lookupConstructor(KClass cls, String name) {
+    KClassEnv classEnv = _classEnvs[cls.classIndex];
+    ir.Member member = classEnv.lookupConstructor(name);
+    return member != null ? getConstructor(member) : null;
   }
 
   KClass _getClass(ir.Class node, [KClassEnv classEnv]) {
@@ -301,6 +322,7 @@ class KLibraryEnv {
   final ir.Library library;
 
   Map<String, KClassEnv> _classMap;
+  Map<String, ir.Member> _memberMap;
 
   KLibraryEnv(this.library);
 
@@ -314,6 +336,18 @@ class KLibraryEnv {
     }
     return _classMap[name];
   }
+
+  /// Return the [ir.Member] for the member [name] in [library].
+  ir.Member lookupMember(String name, {bool setter: false}) {
+    if (_memberMap == null) {
+      _memberMap = <String, ir.Member>{};
+      for (ir.Member member in library.members) {
+        // TODO(johnniwinther): Support setter vs. getter.
+        _memberMap[member.name.name] = member;
+      }
+    }
+    return _memberMap[name];
+  }
 }
 
 /// Environment for fast lookup of class members.
@@ -321,18 +355,53 @@ class KLibraryEnv {
 class KClassEnv {
   final ir.Class cls;
 
+  Map<String, ir.Member> _constructorMap;
+  Map<String, ir.Member> _memberMap;
+
   KClassEnv(this.cls);
+
+  void _ensureMaps() {
+    if (_memberMap == null) {
+      _memberMap = <String, ir.Member>{};
+      _constructorMap = <String, ir.Member>{};
+      for (ir.Member member in cls.members) {
+        if (member is ir.Procedure && member.kind == ir.ProcedureKind.Factory) {
+          _constructorMap[member.name.name] = member;
+        } else {
+          // TODO(johnniwinther): Support setter vs. getter.
+          _memberMap[member.name.name] = member;
+        }
+      }
+      for (ir.Member member in cls.constructors) {
+        _constructorMap[member.name.name] = member;
+      }
+    }
+  }
+
+  /// Return the [ir.Member] for the member [name] in [library].
+  ir.Member lookupMember(String name, {bool setter: false}) {
+    return _memberMap[name];
+  }
+
+  /// Return the [ir.Member] for the member [name] in [library].
+  ir.Member lookupConstructor(String name, {bool setter: false}) {
+    return _constructorMap[name];
+  }
 }
 
-/// [CommonElements] implementation based on [KernelWorldBuilder].
-class KernelCommonElements extends CommonElementsMixin {
+class KernelElementEnvironment implements ElementEnvironment {
   final KernelWorldBuilder worldBuilder;
 
-  KernelCommonElements(this.worldBuilder);
+  KernelElementEnvironment(this.worldBuilder);
 
   @override
-  LibraryEntity get coreLibrary {
-    return worldBuilder.lookupLibrary(Uris.dart_core);
+  InterfaceType getThisType(ClassEntity cls) {
+    return worldBuilder.getThisType(cls);
+  }
+
+  @override
+  InterfaceType getRawType(ClassEntity cls) {
+    return worldBuilder.getRawType(cls);
   }
 
   @override
@@ -342,32 +411,71 @@ class KernelCommonElements extends CommonElementsMixin {
   }
 
   @override
-  InterfaceType getRawType(ClassEntity cls) {
-    return worldBuilder.getRawType(cls);
+  ConstructorEntity lookupConstructor(ClassEntity cls, String name,
+      {bool required: false}) {
+    ConstructorEntity constructor = worldBuilder.lookupConstructor(cls, name);
+    if (constructor == null && required) {
+      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+          "The constructor $name was not found in class '${cls.name}'.");
+    }
+    return constructor;
   }
 
   @override
-  FunctionEntity findConstructor(ClassEntity cls, String name,
-      {bool required: true}) {
-    throw new UnimplementedError('KernelCommonElements.findConstructor');
+  MemberEntity lookupClassMember(ClassEntity cls, String name,
+      {bool setter: false, bool required: false}) {
+    MemberEntity member =
+        worldBuilder.lookupClassMember(cls, name, setter: setter);
+    if (member == null && required) {
+      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+          "The member '$name' was not found in ${cls.name}.");
+    }
+    return member;
   }
 
   @override
-  MemberEntity findClassMember(ClassEntity cls, String name,
-      {bool required: true}) {
-    throw new UnimplementedError('KernelCommonElements.findClassMember');
+  MemberEntity lookupLibraryMember(LibraryEntity library, String name,
+      {bool setter: false, bool required: false}) {
+    MemberEntity member =
+        worldBuilder.lookupLibraryMember(library, name, setter: setter);
+    if (member == null && required) {
+      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+          "The member '${name}' was not found in library '${library.name}'.");
+    }
+    return member;
   }
 
   @override
-  MemberEntity findLibraryMember(LibraryEntity library, String name,
-      {bool required: true}) {
-    throw new UnimplementedError('KernelCommonElements.findLibraryMember');
+  ClassEntity lookupClass(LibraryEntity library, String name,
+      {bool required: false}) {
+    ClassEntity cls = worldBuilder.lookupClass(library, name);
+    if (cls == null && required) {
+      throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+          "The class '$name'  was not found in library '${library.name}'.");
+    }
+    return cls;
   }
 
   @override
-  ClassEntity findClass(LibraryEntity library, String name,
-      {bool required: true}) {
-    return worldBuilder.lookupClass(library, name);
+  LibraryEntity lookupLibrary(Uri uri, {bool required: false}) {
+    LibraryEntity library = worldBuilder.lookupLibrary(uri);
+    if (library == null && required) {
+      throw new SpannableAssertionFailure(
+          CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
+    }
+    return library;
+  }
+}
+
+/// [CommonElements] implementation based on [KernelWorldBuilder].
+class KernelCommonElements extends CommonElementsMixin {
+  final ElementEnvironment environment;
+
+  KernelCommonElements(this.environment);
+
+  @override
+  LibraryEntity get coreLibrary {
+    return environment.lookupLibrary(Uris.dart_core, required: true);
   }
 
   @override

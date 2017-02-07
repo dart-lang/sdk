@@ -15,10 +15,8 @@ import '../elements/resolution_types.dart';
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import 'package:front_end/src/fasta/scanner.dart'
-    show BeginGroupToken, Token;
-import 'package:front_end/src/fasta/scanner.dart' as Tokens
-    show EOF_TOKEN;
+import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 import '../tree/tree.dart';
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'

@@ -5,6 +5,7 @@
 // TODO(sigmund): rename and move to common/elements.dart
 library dart2js.type_system;
 
+import 'common.dart';
 import 'elements/types.dart';
 import 'elements/entities.dart';
 
@@ -123,11 +124,15 @@ abstract class CommonElements {
   /// resolve the apply method if it hasn't been seen yet during compilation.
   bool isFunctionApplyMethod(MemberEntity element);
 
-  /// The unnamed constructor of `List`.
-  ConstructorEntity get unnamedListConstructor;
+  /// Returns `true` if [element] is the unnamed constructor of `List`. This
+  /// will not resolve the constructor if it hasn't been seen yet during
+  /// compilation.
+  bool isUnnamedListConstructor(ConstructorEntity element);
 
-  /// The 'filled' constructor of `List`.
-  ConstructorEntity get filledListConstructor;
+  /// Returns `true` if [element] is the 'filled' constructor of `List`. This
+  /// will not resolve the constructor if it hasn't been seen yet during
+  /// compilation.
+  bool isFilledListConstructor(ConstructorEntity element);
 
   /// The `dynamic` type.
   DynamicType get dynamicType;
@@ -208,33 +213,81 @@ abstract class CommonElements {
   bool isListSupertype(ClassEntity element);
 }
 
-abstract class CommonElementsMixin implements CommonElements {
+/// Interface for accessing libraries, classes and members.
+///
+/// The environment makes private and injected members directly available and
+/// should therefore not be used to determine scopes.
+abstract class ElementEnvironment {
+  LibraryEntity lookupLibrary(Uri uri, {bool required: false});
+
   /// Lookup the class [name] in [library], fail if the class is missing and
   /// [required].
-  ClassEntity findClass(LibraryEntity library, String name,
-      {bool required: true});
+  ClassEntity lookupClass(LibraryEntity library, String name,
+      {bool required: false});
 
   /// Lookup the member [name] in [library], fail if the class is missing and
   /// [required].
-  MemberEntity findLibraryMember(LibraryEntity library, String name,
-      {bool required: true});
+  MemberEntity lookupLibraryMember(LibraryEntity library, String name,
+      {bool setter: false, bool required: false});
 
   /// Lookup the member [name] in [cls], fail if the class is missing and
   /// [required].
-  MemberEntity findClassMember(ClassEntity cls, String name,
-      {bool required: true});
+  MemberEntity lookupClassMember(ClassEntity cls, String name,
+      {bool setter: false, bool required: false});
 
   /// Lookup the constructor [name] in [cls], fail if the class is missing and
   /// [required].
-  ConstructorEntity findConstructor(ClassEntity cls, String name,
-      {bool required: true});
-
-  /// Return the raw type of [cls].
-  InterfaceType getRawType(ClassEntity cls);
+  ConstructorEntity lookupConstructor(ClassEntity cls, String name,
+      {bool required: false});
 
   /// Create the instantiation of [cls] with the given [typeArguments].
   InterfaceType createInterfaceType(
       ClassEntity cls, List<DartType> typeArguments);
+
+  /// Returns the 'raw type' of [cls]. That is, the instantiation of [cls]
+  /// where all types arguments are `dynamic`.
+  InterfaceType getRawType(ClassEntity cls);
+
+  /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
+  /// where the type arguments are the type variables of [cls].
+  InterfaceType getThisType(ClassEntity cls);
+}
+
+abstract class CommonElementsMixin implements CommonElements {
+  ElementEnvironment get environment;
+
+  ClassEntity findClass(LibraryEntity library, String name,
+      {bool required: true}) {
+    return environment.lookupClass(library, name, required: required);
+  }
+
+  MemberEntity findLibraryMember(LibraryEntity library, String name,
+      {bool setter: false, bool required: true}) {
+    return environment.lookupLibraryMember(library, name,
+        setter: setter, required: required);
+  }
+
+  MemberEntity findClassMember(ClassEntity cls, String name,
+      {bool setter: false, bool required: true}) {
+    return environment.lookupClassMember(cls, name,
+        setter: setter, required: required);
+  }
+
+  ConstructorEntity findConstructor(ClassEntity cls, String name,
+      {bool required: true}) {
+    return environment.lookupConstructor(cls, name, required: required);
+  }
+
+  /// Return the raw type of [cls].
+  InterfaceType getRawType(ClassEntity cls) {
+    return environment.getRawType(cls);
+  }
+
+  /// Create the instantiation of [cls] with the given [typeArguments].
+  InterfaceType createInterfaceType(
+      ClassEntity cls, List<DartType> typeArguments) {
+    return environment.createInterfaceType(cls, typeArguments);
+  }
 
   // From dart:core
 
@@ -355,13 +408,11 @@ abstract class CommonElementsMixin implements CommonElements {
   ClassEntity get typedDataClass =>
       _typedDataClass ??= findClass(typedDataLibrary, 'NativeTypedData');
 
-  ConstructorEntity _unnamedListConstructor;
-  ConstructorEntity get unnamedListConstructor =>
-      _unnamedListConstructor ??= findConstructor(listClass, '');
+  bool isUnnamedListConstructor(ConstructorEntity element) =>
+      element.name == '' && element.enclosingClass == listClass;
 
-  ConstructorEntity _filledListConstructor;
-  ConstructorEntity get filledListConstructor =>
-      _filledListConstructor ??= findConstructor(listClass, 'filled');
+  bool isFilledListConstructor(ConstructorEntity element) =>
+      element.name == 'filled' && element.enclosingClass == listClass;
 
   // TODO(johnniwinther): Change types to `ClassEntity` when these are not
   // called with unrelated elements.

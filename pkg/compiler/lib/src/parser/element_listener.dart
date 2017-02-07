@@ -24,10 +24,9 @@ import '../native/native.dart' as native;
 import '../string_validator.dart' show StringValidator;
 import 'package:front_end/src/fasta/scanner.dart'
     show Keyword, BeginGroupToken, ErrorToken, KeywordToken, StringToken, Token;
-import 'package:front_end/src/fasta/scanner.dart' as Tokens
-    show EOF_TOKEN;
-import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence show
-    BAD_INPUT_INFO, IDENTIFIER_INFO;
+import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
+import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
+    show BAD_INPUT_INFO, IDENTIFIER_INFO;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'package:front_end/src/fasta/parser.dart'
@@ -500,13 +499,11 @@ class ElementListener extends Listener {
           // and report that something is missing *after* it.
           Token preceding = findPrecedingToken(token);
           if (preceding == token) {
-            reportErrorFromToken(
-                token, MessageKind.MISSING_TOKEN_BEFORE_THIS,
+            reportErrorFromToken(token, MessageKind.MISSING_TOKEN_BEFORE_THIS,
                 {'token': expected});
           } else {
-            reportErrorFromToken(
-                preceding, MessageKind.MISSING_TOKEN_AFTER_THIS,
-                {'token': expected});
+            reportErrorFromToken(preceding,
+                MessageKind.MISSING_TOKEN_AFTER_THIS, {'token': expected});
           }
           return token;
         } else {
@@ -520,7 +517,8 @@ class ElementListener extends Listener {
 
       case ErrorKind.ExpectedIdentifier:
         if (token is KeywordToken) {
-          reportErrorFromToken(token,
+          reportErrorFromToken(
+              token,
               MessageKind.EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
               {'keyword': token.value});
         } else if (token is ErrorToken) {
@@ -538,8 +536,7 @@ class ElementListener extends Listener {
         return null;
 
       case ErrorKind.ExpectedExpression:
-        reportFatalError(
-            reporter.spanFromToken(token),
+        reportFatalError(reporter.spanFromToken(token),
             "Expected an expression, but got '${token.value}'.");
         return null;
 
@@ -564,22 +561,19 @@ class ElementListener extends Listener {
           lastErrorWasNativeFunctionBody = true;
           return native.handleNativeFunctionBody(this, token);
         } else {
-          reportFatalError(
-              reporter.spanFromToken(token),
+          reportFatalError(reporter.spanFromToken(token),
               "Expected a function body, but got '${token.value}'.");
         }
         return null;
 
       case ErrorKind.ExpectedClassBodyToSkip:
       case ErrorKind.ExpectedClassBody:
-        reportFatalError(
-            reporter.spanFromToken(token),
+        reportFatalError(reporter.spanFromToken(token),
             "Expected a class body, but got '${token.value}'.");
         return null;
 
       case ErrorKind.ExpectedDeclaration:
-        reportFatalError(
-            reporter.spanFromToken(token),
+        reportFatalError(reporter.spanFromToken(token),
             "Expected a declaration, but got '${token.value}'.");
         return null;
 
@@ -613,8 +607,7 @@ class ElementListener extends Listener {
         break;
 
       case ErrorKind.ExpectedString:
-        reportFatalError(
-            reporter.spanFromToken(token),
+        reportFatalError(reporter.spanFromToken(token),
             "Expected a String, but got '${token.value}'.");
         return null;
 

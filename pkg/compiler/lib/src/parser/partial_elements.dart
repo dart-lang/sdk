@@ -40,8 +40,7 @@ import 'member_listener.dart' show MemberListener;
 import 'node_listener.dart' show NodeListener;
 
 class ClassElementParser extends ClassMemberParser {
-  ClassElementParser(Listener listener)
-      : super(listener);
+  ClassElementParser(Listener listener) : super(listener);
 
   Token parseFormalParameters(Token token) => skipFormalParameters(token);
 }
@@ -385,9 +384,9 @@ class PartialClassElement extends ClassElementX with PartialElement {
           Token token = parser.parseTopLevelDeclaration(beginToken);
           assert(identical(token, endToken.next));
           cachedNode = listener.popNode();
-          assert(invariant(reporter.spanFromToken(beginToken),
-                  listener.nodes.isEmpty,
-                  message: "Non-empty listener stack: ${listener.nodes}"));
+          assert(invariant(
+              reporter.spanFromToken(beginToken), listener.nodes.isEmpty,
+              message: "Non-empty listener stack: ${listener.nodes}"));
         } on ParserError {
           // TODO(ahe): Often, a ParserError is thrown while parsing the class
           // body. This means that the stack actually contains most of the

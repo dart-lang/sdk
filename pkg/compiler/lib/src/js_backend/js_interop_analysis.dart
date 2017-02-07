@@ -45,7 +45,8 @@ class JsInteropAnalysis {
     if (_inCodegen) return;
 
     if (helpers.jsAnnotationClass != null) {
-      nameField = helpers.jsAnnotationClass.lookupMember('name');
+      ClassElement cls = helpers.jsAnnotationClass;
+      nameField = cls.lookupMember('name');
       backend.compiler.libraryLoader.libraries
           .forEach(processJsInteropAnnotationsInLibrary);
     }

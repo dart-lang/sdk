@@ -21,10 +21,9 @@ main() {
 main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(CODE, uri);
-  compiler.closeResolution();
-  var closedWorld = compiler.resolutionWorldBuilder.closedWorldForTesting;
-
   asyncTest(() => compiler.run(uri).then((_) {
+        compiler.closeResolution();
+        var closedWorld = compiler.resolutionWorldBuilder.closedWorldForTesting;
         var classA = findElement(compiler, 'A');
         var classB = findElement(compiler, 'B');
         var classC = findElement(compiler, 'C');

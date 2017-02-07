@@ -213,9 +213,12 @@ abstract class Resolution implements Frontend {
 
 /// A container of commonly used dependencies for tasks that involve parsing.
 abstract class ParsingContext {
-  factory ParsingContext(DiagnosticReporter reporter, ParserTask parser,
-      ScannerTask scanner, PatchParserTask patchParser, Backend backend)
-      = _ParsingContext;
+  factory ParsingContext(
+      DiagnosticReporter reporter,
+      ParserTask parser,
+      ScannerTask scanner,
+      PatchParserTask patchParser,
+      Backend backend) = _ParsingContext;
 
   DiagnosticReporter get reporter;
   ParserTask get parser;
@@ -241,8 +244,8 @@ class _ParsingContext implements ParsingContext {
   final PatchParserTask patchParser;
   final Backend backend;
 
-  _ParsingContext(this.reporter, this.parser, this.scanner, this.patchParser,
-      this.backend);
+  _ParsingContext(
+      this.reporter, this.parser, this.scanner, this.patchParser, this.backend);
 
   @override
   measure(f()) => parser.measure(f);

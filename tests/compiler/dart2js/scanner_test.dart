@@ -8,7 +8,6 @@ import 'package:front_end/src/fasta/scanner/characters.dart';
 import 'package:front_end/src/fasta/scanner/precedence.dart';
 import 'dart:typed_data';
 
-
 Token scan(List<int> bytes) {
   List<int> zeroTerminated = new Uint8List(bytes.length + 1);
   zeroTerminated.setRange(0, bytes.length, bytes);

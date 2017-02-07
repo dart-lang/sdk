@@ -743,23 +743,23 @@ class Elements {
   }
 
   static bool isFixedListConstructorCall(
-      Element element, Send node, CommonElements commonElements) {
-    return element == commonElements.unnamedListConstructor &&
+      ConstructorEntity element, Send node, CommonElements commonElements) {
+    return commonElements.isUnnamedListConstructor(element) &&
         node.isCall &&
         !node.arguments.isEmpty &&
         node.arguments.tail.isEmpty;
   }
 
   static bool isGrowableListConstructorCall(
-      Element element, Send node, CommonElements commonElements) {
-    return element == commonElements.unnamedListConstructor &&
+      ConstructorEntity element, Send node, CommonElements commonElements) {
+    return commonElements.isUnnamedListConstructor(element) &&
         node.isCall &&
         node.arguments.isEmpty;
   }
 
   static bool isFilledListConstructorCall(
-      Element element, Send node, CommonElements commonElements) {
-    return element == commonElements.filledListConstructor &&
+      ConstructorEntity element, Send node, CommonElements commonElements) {
+    return commonElements.isFilledListConstructor(element) &&
         node.isCall &&
         !node.arguments.isEmpty &&
         !node.arguments.tail.isEmpty &&

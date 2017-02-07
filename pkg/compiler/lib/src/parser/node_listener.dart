@@ -6,10 +6,9 @@ library dart2js.parser.node_listener;
 
 import '../common.dart';
 import '../elements/elements.dart' show CompilationUnitElement;
-import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence show
-    INDEX_INFO;
-import 'package:front_end/src/fasta/scanner.dart' show
-    StringToken, Token;
+import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
+    show INDEX_INFO;
+import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'element_listener.dart' show ElementListener, ScannerOptions;
@@ -274,8 +273,8 @@ class NodeListener extends ElementListener {
   }
 
   void handleOnError(Token token, var errorInformation) {
-    reporter.internalError(reporter.spanFromToken(token),
-        "'${token.value}': ${errorInformation}");
+    reporter.internalError(
+        reporter.spanFromToken(token), "'${token.value}': ${errorInformation}");
   }
 
   @override
@@ -316,8 +315,8 @@ class NodeListener extends ElementListener {
       if (argumentSend == null) {
         // TODO(ahe): The parser should diagnose this problem, not
         // this listener.
-        reportFatalError(reporter.spanFromSpannable(argument),
-            "Expected an identifier.");
+        reportFatalError(
+            reporter.spanFromSpannable(argument), "Expected an identifier.");
       }
       if (argumentSend.receiver != null) internalError(node: argument);
       if (argument is SendSet) internalError(node: argument);
@@ -333,7 +332,8 @@ class NodeListener extends ElementListener {
           MessageKind.UNSUPPORTED_EQ_EQ_EQ, {'lhs': receiver, 'rhs': argument});
     }
     if (identical(tokenString, '!==')) {
-      reporter.reportErrorMessage(reporter.spanFromToken(token),
+      reporter.reportErrorMessage(
+          reporter.spanFromToken(token),
           MessageKind.UNSUPPORTED_BANG_EQ_EQ,
           {'lhs': receiver, 'rhs': argument});
     }
@@ -535,8 +535,7 @@ class NodeListener extends ElementListener {
   void endRethrowStatement(Token throwToken, Token endToken) {
     pushNode(new Rethrow(throwToken, endToken));
     if (identical(throwToken.stringValue, 'throw')) {
-      reporter.reportErrorMessage(
-          reporter.spanFromToken(throwToken),
+      reporter.reportErrorMessage(reporter.spanFromToken(throwToken),
           MessageKind.MISSING_EXPRESSION_IN_THROW);
     }
   }

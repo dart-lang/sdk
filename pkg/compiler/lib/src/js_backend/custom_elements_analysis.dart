@@ -54,7 +54,7 @@ class CustomElementsAnalysis {
   final CustomElementsAnalysisJoin resolutionJoin;
   final CustomElementsAnalysisJoin codegenJoin;
   bool fetchedTableAccessorMethod = false;
-  Element tableAccessorMethod;
+  MethodElement tableAccessorMethod;
 
   CustomElementsAnalysis(JavaScriptBackend backend)
       : this.backend = backend,

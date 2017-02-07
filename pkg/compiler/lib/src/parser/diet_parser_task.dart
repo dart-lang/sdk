@@ -15,8 +15,7 @@ import 'package:front_end/src/fasta/parser.dart'
     show Listener, ParserError, TopLevelParser;
 
 class PartialParser extends TopLevelParser {
-  PartialParser(Listener listener)
-      : super(listener);
+  PartialParser(Listener listener) : super(listener);
 
   Token parseFormalParameters(Token token) => skipFormalParameters(token);
 }

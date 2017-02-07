@@ -268,7 +268,7 @@ class InterceptorStubGenerator {
       bool containsArray = classes.contains(helpers.jsArrayClass);
       bool containsString = classes.contains(helpers.jsStringClass);
       bool containsJsIndexable =
-          helpers.jsIndexingBehaviorInterface.isResolved &&
+          closedWorld.isImplemented(helpers.jsIndexingBehaviorInterface) &&
               classes.any((cls) {
                 return closedWorld.isSubtypeOf(
                     cls, helpers.jsIndexingBehaviorInterface);
@@ -353,7 +353,8 @@ class InterceptorStubGenerator {
     }
 
     jsAst.Name invocationName = backend.namer.invocationName(selector);
-    String globalObject = namer.globalObjectFor(helpers.interceptorsLibrary);
+    String globalObject =
+        namer.globalObjectForLibrary(helpers.interceptorsLibrary);
 
     jsAst.Statement optimizedPath =
         _fastPathForOneShotInterceptor(selector, classes);

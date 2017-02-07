@@ -819,7 +819,8 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend, closedWorld);
 
-    String holderName = namer.globalObjectFor(helpers.interceptorsLibrary);
+    String holderName =
+        namer.globalObjectForLibrary(helpers.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
@@ -883,7 +884,8 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend, closedWorld);
 
-    String holderName = namer.globalObjectFor(helpers.interceptorsLibrary);
+    String holderName =
+        namer.globalObjectForLibrary(helpers.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);

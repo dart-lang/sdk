@@ -114,8 +114,8 @@ class FunctionInlineCache {
   static const int _canInline = 4;
   static const int _mustInline = 5;
 
-  final Map<FunctionElement, int> _cachedDecisions =
-      new Map<FunctionElement, int>();
+  final Map<MethodElement, int> _cachedDecisions =
+      new Map<MethodElement, int>();
 
   /// Returns the current cache decision. This should only be used for testing.
   int getCurrentCacheDecisionForTesting(Element element) {
@@ -124,7 +124,7 @@ class FunctionInlineCache {
 
   // Returns `true`/`false` if we have a cached decision.
   // Returns `null` otherwise.
-  bool canInline(FunctionElement element, {bool insideLoop}) {
+  bool canInline(MethodElement element, {bool insideLoop}) {
     int decision = _cachedDecisions[element];
 
     if (decision == null) {
@@ -179,7 +179,7 @@ class FunctionInlineCache {
     return null;
   }
 
-  void markAsInlinable(FunctionElement element, {bool insideLoop}) {
+  void markAsInlinable(MethodElement element, {bool insideLoop}) {
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -234,7 +234,7 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsNonInlinable(FunctionElement element, {bool insideLoop: true}) {
+  void markAsNonInlinable(MethodElement element, {bool insideLoop: true}) {
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -292,7 +292,7 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsMustInline(FunctionElement element) {
+  void markAsMustInline(MethodElement element) {
     _cachedDecisions[element] = _mustInline;
   }
 }
@@ -551,7 +551,7 @@ class JavaScriptBackend extends Backend {
 
   final NativeData nativeData = new NativeData();
 
-  final BackendHelpers helpers;
+  BackendHelpers helpers;
   final BackendImpacts impacts;
   BackendClasses backendClasses;
 
@@ -575,10 +575,11 @@ class JavaScriptBackend extends Backend {
                 ? new PositionSourceInformationStrategy()
                 : const StartEndSourceInformationStrategy())
             : const JavaScriptSourceInformationStrategy(),
-        helpers = new BackendHelpers(compiler),
         impacts = new BackendImpacts(compiler),
         frontend = new JSFrontendAccess(compiler),
         super(compiler) {
+    helpers =
+        new BackendHelpers(compiler.elementEnvironment, this, commonElements);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
     typeVariableHandler = new TypeVariableHandler(compiler);
@@ -672,11 +673,14 @@ class JavaScriptBackend extends Backend {
 
   bool _isValidBackendUse(Element element) {
     assert(invariant(element, element.isDeclaration, message: ""));
-    if (element == helpers.streamIteratorConstructor ||
+    if (element is ConstructorElement &&
+        (element == helpers.streamIteratorConstructor ||
         compiler.commonElements.isSymbolConstructor(element) ||
         helpers.isSymbolValidatedConstructor(element) ||
-        element == helpers.syncCompleterConstructor ||
-        element == commonElements.symbolClass ||
+        element == helpers.syncCompleterConstructor)) {
+    // TODO(johnniwinther): These are valid but we could be more precise.
+    return true;
+    } else if (element == commonElements.symbolClass ||
         element == helpers.objectNoSuchMethod) {
       // TODO(johnniwinther): These are valid but we could be more precise.
       return true;
@@ -1089,11 +1093,12 @@ class JavaScriptBackend extends Backend {
       computeImpactForInstantiatedConstantType(cls.thisType, impactBuilder);
     } else if (constant.isType) {
       if (isForResolution) {
+        MethodElement helper = helpers.createRuntimeType;
         impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
-            helpers.createRuntimeType,
+            helper,
             null));
-        registerBackendUse(helpers.createRuntimeType);
+        registerBackendUse(helper);
       }
       impactBuilder
           .registerTypeUse(new TypeUse.instantiation(backendClasses.typeType));
@@ -1887,10 +1892,6 @@ class JavaScriptBackend extends Backend {
     return false;
   }
 
-  void onLibraryCreated(LibraryElement library) {
-    helpers.onLibraryCreated(library);
-  }
-
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
     return super.onLibraryScanned(library, loader).then((_) {
       if (library.isPlatformLibrary &&
@@ -1906,7 +1907,6 @@ class JavaScriptBackend extends Backend {
         }
       }
     }).then((_) {
-      helpers.onLibraryScanned(library);
       Uri uri = library.canonicalUri;
       if (uri == Uris.dart_html) {
         htmlLibraryIsLoaded = true;
@@ -2169,12 +2169,14 @@ class JavaScriptBackend extends Backend {
     // As we do not think about closures as classes, yet, we have to make sure
     // their superclasses are available for reflection manually.
     if (foundClosure) {
-      reflectableMembers.add(helpers.closureClass);
+      ClassElement cls = helpers.closureClass;
+      reflectableMembers.add(cls);
     }
     Set<Element> closurizedMembers =
         compiler.resolutionWorldBuilder.closurizedMembers;
     if (closurizedMembers.any(reflectableMembers.contains)) {
-      reflectableMembers.add(helpers.boundClosureClass);
+      ClassElement cls = helpers.boundClosureClass;
+      reflectableMembers.add(cls);
     }
     // Add typedefs.
     reflectableMembers
@@ -2498,11 +2500,11 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  FunctionElement helperForBadMain() => helpers.badMain;
+  MethodElement helperForBadMain() => helpers.badMain;
 
-  FunctionElement helperForMissingMain() => helpers.missingMain;
+  MethodElement helperForMissingMain() => helpers.missingMain;
 
-  FunctionElement helperForMainArity() => helpers.mainHasTooManyParameters;
+  MethodElement helperForMainArity() => helpers.mainHasTooManyParameters;
 
   @override
   WorldImpact computeMainImpact(MethodElement mainMethod,
@@ -3004,6 +3006,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
   /// Register [type] as required for the runtime type information system.
   void registerRequiredType(ResolutionDartType type) {
+    if (!type.isInterfaceType) return;
     // If [argument] has type variables or is a type variable, this method
     // registers a RTI dependency between the class where the type variable is
     // defined (that is the enclosing class of the current element being

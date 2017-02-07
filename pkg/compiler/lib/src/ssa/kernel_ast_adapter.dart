@@ -380,7 +380,8 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
 
   TypeMask get streamIteratorConstructorType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.streamIteratorConstructor, _globalInferenceResults);
+          _backend.helpers.streamIteratorConstructor as FunctionEntity,
+          _globalInferenceResults);
 
   ir.Procedure get fallThroughError =>
       kernel.functions[_backend.helpers.fallThroughError];
@@ -484,7 +485,7 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
   }
 
   int _extractEnumIndexFromConstantValue(
-      ConstantValue constant, Element classElement) {
+      ConstantValue constant, ClassEntity classElement) {
     if (constant is ConstructedConstantValue) {
       if (constant.type.element == classElement) {
         assert(constant.fields.length == 1);

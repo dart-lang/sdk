@@ -23,7 +23,8 @@ import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
-import 'core_types.dart' show CommonElements, CommonElementsMixin;
+import 'core_types.dart'
+    show CommonElements, CommonElementsMixin, ElementEnvironment;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
@@ -52,6 +53,7 @@ import 'library_loader.dart'
         LibraryLoaderTask,
         LoadedLibraries,
         LibraryLoaderListener,
+        LibraryProvider,
         ScriptLoader;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
@@ -65,8 +67,7 @@ import 'scanner/scanner_task.dart' show ScannerTask;
 import 'script.dart' show Script;
 import 'serialization/task.dart' show SerializationTask;
 import 'ssa/nodes.dart' show HInstruction;
-import 'package:front_end/src/fasta/scanner.dart'
-    show StringToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
 import 'tokens/token_map.dart' show TokenMap;
 import 'tree/tree.dart' show Node, TypeAnnotation;
 import 'typechecker.dart' show TypeCheckerTask;
@@ -76,10 +77,7 @@ import 'universe/world_builder.dart'
     show ResolutionWorldBuilder, CodegenWorldBuilder;
 import 'universe/use.dart' show StaticUse, TypeUse;
 import 'universe/world_impact.dart'
-    show
-        ImpactStrategy,
-        WorldImpact,
-        WorldImpactBuilderImpl;
+    show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
 import 'util/util.dart' show Link, Setlet;
 import 'world.dart' show ClosedWorld, ClosedWorldRefiner, ClosedWorldImpl;
 
@@ -94,6 +92,7 @@ abstract class Compiler implements LibraryLoaderListener {
   final IdGenerator idGenerator = new IdGenerator();
   Types types;
   _CompilerCommonElements _commonElements;
+  _CompilerElementEnvironment _elementEnvironment;
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
   ParsingContext _parsingContext;
@@ -134,6 +133,7 @@ abstract class Compiler implements LibraryLoaderListener {
   MethodElement mainFunction;
 
   DiagnosticReporter get reporter => _reporter;
+  ElementEnvironment get elementEnvironment => _elementEnvironment;
   CommonElements get commonElements => _commonElements;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
@@ -208,7 +208,9 @@ abstract class Compiler implements LibraryLoaderListener {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
     _resolution = createResolution();
-    _commonElements = new _CompilerCommonElements(_resolution, reporter);
+    _elementEnvironment = new _CompilerElementEnvironment(this);
+    _commonElements =
+        new _CompilerCommonElements(_elementEnvironment, _resolution, reporter);
     types = new Types(_resolution);
 
     if (options.verbose) {
@@ -337,7 +339,6 @@ abstract class Compiler implements LibraryLoaderListener {
   /// been resolved.
   void onLibraryCreated(LibraryElement library) {
     _commonElements.onLibraryCreated(library);
-    backend.onLibraryCreated(library);
   }
 
   /// This method is called immediately after the [library] and its parts have
@@ -1111,6 +1112,8 @@ class _CompilerCommonElements extends CommonElementsMixin {
   final Resolution resolution;
   final DiagnosticReporter reporter;
 
+  final ElementEnvironment environment;
+
   LibraryElement coreLibrary;
   LibraryElement asyncLibrary;
   LibraryElement mirrorsLibrary;
@@ -1124,7 +1127,7 @@ class _CompilerCommonElements extends CommonElementsMixin {
   // specific backend.
   LibraryElement jsHelperLibrary;
 
-  _CompilerCommonElements(this.resolution, this.reporter);
+  _CompilerCommonElements(this.environment, this.resolution, this.reporter);
 
   // From dart:_js_helper
   // TODO(sigmund,johnniwinther): refactor needed: either these move to a
@@ -1159,15 +1162,38 @@ class _CompilerCommonElements extends CommonElementsMixin {
 
   @override
   MemberElement findLibraryMember(LibraryElement library, String name,
-      {bool required: true}) {
-    return _findLibraryMember(library, name, required: required);
+      {bool setter: false, bool required: true}) {
+    Element member = _findLibraryMember(library, name, required: required);
+    if (member != null && member.isAbstractField) {
+      AbstractFieldElement abstractField = member;
+      if (setter) {
+        member = abstractField.setter;
+      } else {
+        member = abstractField.getter;
+      }
+      if (member == null && required) {
+        reporter.internalError(
+            library,
+            "The library '${library.canonicalUri}' does not contain required "
+            "${setter ? 'setter' : 'getter'}: '$name'.");
+      }
+    }
+    return member;
   }
 
   @override
   MemberElement findClassMember(ClassElement cls, String name,
-      {bool required: true}) {
+      {bool setter: false, bool required: true}) {
     cls.ensureResolved(resolution);
-    MemberElement member = cls.lookupLocalMember(name);
+    Element member = cls.lookupLocalMember(name);
+    if (member != null && member.isAbstractField) {
+      AbstractFieldElement abstractField = member;
+      if (setter) {
+        member = abstractField.setter;
+      } else {
+        member = abstractField.getter;
+      }
+    }
     if (member == null && required) {
       reporter.internalError(
           cls,
@@ -1214,19 +1240,6 @@ class _CompilerCommonElements extends CommonElementsMixin {
           "element: '$name'.");
     }
     return element;
-  }
-
-  @override
-  ResolutionInterfaceType createInterfaceType(
-      ClassElement cls, List<ResolutionDartType> typeArguments) {
-    cls.ensureResolved(resolution);
-    return new ResolutionInterfaceType(cls, typeArguments);
-  }
-
-  @override
-  ResolutionInterfaceType getRawType(ClassElement cls) {
-    cls.ensureResolved(resolution);
-    return cls.rawType;
   }
 }
 
@@ -1967,4 +1980,128 @@ class _EmptyEnvironment implements Environment {
   const _EmptyEnvironment();
 
   String valueOf(String key) => null;
+}
+
+/// An element environment base on a [Compiler].
+class _CompilerElementEnvironment implements ElementEnvironment {
+  final Compiler _compiler;
+
+  _CompilerElementEnvironment(this._compiler);
+
+  LibraryProvider get _libraryProvider => _compiler.libraryLoader;
+  Resolution get _resolution => _compiler.resolution;
+
+  @override
+  ResolutionInterfaceType getThisType(ClassElement cls) {
+    cls.ensureResolved(_resolution);
+    return cls.thisType;
+  }
+
+  @override
+  ResolutionInterfaceType getRawType(ClassElement cls) {
+    cls.ensureResolved(_resolution);
+    return cls.rawType;
+  }
+
+  @override
+  ResolutionInterfaceType createInterfaceType(
+      ClassElement cls, List<ResolutionDartType> typeArguments) {
+    cls.ensureResolved(_resolution);
+    return cls.thisType.createInstantiation(typeArguments);
+  }
+
+  @override
+  MemberElement lookupClassMember(ClassElement cls, String name,
+      {bool setter: false, bool required: false}) {
+    cls.ensureResolved(_resolution);
+    Element member = cls.implementation.lookupLocalMember(name);
+    if (member != null && member.isAbstractField) {
+      AbstractFieldElement abstractField = member;
+      if (setter) {
+        member = abstractField.setter;
+      } else {
+        member = abstractField.getter;
+      }
+      if (member == null && required) {
+        throw new SpannableAssertionFailure(
+            cls,
+            "The class '${cls.name}' does not contain required "
+            "${setter ? 'setter' : 'getter'}: '$name'.");
+      }
+    }
+    if (member == null && required) {
+      throw new SpannableAssertionFailure(
+          cls,
+          "The class '${cls.name}' does not "
+          "contain required member: '$name'.");
+    }
+    return member?.declaration;
+  }
+
+  @override
+  ConstructorElement lookupConstructor(ClassElement cls, String name,
+      {bool required: false}) {
+    cls.ensureResolved(_resolution);
+    ConstructorElement constructor = cls.implementation.lookupConstructor(name);
+    if (constructor == null && required) {
+      throw new SpannableAssertionFailure(
+          cls,
+          "The class '${cls.name}' does not contain "
+          "required constructor: '$name'.");
+    }
+    return constructor?.declaration;
+  }
+
+  @override
+  MemberElement lookupLibraryMember(LibraryElement library, String name,
+      {bool setter: false, bool required: false}) {
+    Element member = library.implementation.findLocal(name);
+    if (member != null && member.isAbstractField) {
+      AbstractFieldElement abstractField = member;
+      if (setter) {
+        member = abstractField.setter;
+      } else {
+        member = abstractField.getter;
+      }
+      if (member == null && required) {
+        throw new SpannableAssertionFailure(
+            library,
+            "The library '${library.canonicalUri}' does not contain required "
+            "${setter ? 'setter' : 'getter'}: '$name'.");
+      }
+    }
+    if (member == null && required) {
+      throw new SpannableAssertionFailure(
+          member,
+          "The library '${library.libraryName}' does not "
+          "contain required member: '$name'.");
+    }
+    return member?.declaration;
+  }
+
+  @override
+  ClassElement lookupClass(LibraryElement library, String name,
+      {bool required: false}) {
+    ClassElement cls = library.implementation.findLocal(name);
+    if (cls == null && required) {
+      throw new SpannableAssertionFailure(
+          cls,
+          "The library '${library.libraryName}' does not "
+          "contain required class: '$name'.");
+    }
+    return cls?.declaration;
+  }
+
+  @override
+  LibraryElement lookupLibrary(Uri uri, {bool required: false}) {
+    LibraryElement library = _libraryProvider.lookupLibrary(uri);
+    if (library != null && library.isSynthesized) {
+      return null;
+    }
+    if (library == null && required) {
+      throw new SpannableAssertionFailure(
+          library, "The library '${uri}' was not found.");
+    }
+    return library;
+  }
 }

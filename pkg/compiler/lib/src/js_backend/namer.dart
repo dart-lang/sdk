@@ -1373,7 +1373,7 @@ class Namer {
 
   /// Property name used for `getInterceptor` or one of its specializations.
   jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
-    FunctionElement getInterceptor = helpers.getInterceptorMethod;
+    MethodElement getInterceptor = helpers.getInterceptorMethod;
     if (classes.contains(helpers.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes, we
       // need to go through the generic getInterceptorMethod, since any subclass

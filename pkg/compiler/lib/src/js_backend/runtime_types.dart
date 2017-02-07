@@ -29,7 +29,7 @@ abstract class RuntimeTypes {
   Iterable<ClassElement> get classesUsingTypeVariableExpression;
 
   void registerClassUsingTypeVariableExpression(ClassElement cls);
-  void registerRtiDependency(Element element, Element dependency);
+  void registerRtiDependency(ClassElement element, ClassElement dependency);
   void registerTypeVariableBoundsSubtypeCheck(
       ResolutionDartType typeArgument, ResolutionDartType bound);
 
@@ -142,9 +142,9 @@ class _RuntimeTypes implements RuntimeTypes {
   }
 
   @override
-  void registerRtiDependency(Element element, Element dependency) {
+  void registerRtiDependency(ClassElement element, ClassElement dependency) {
     // We're not dealing with typedef for now.
-    if (element == null || !element.isClass || !dependency.isClass) return;
+    assert(element != null);
     Set<ClassElement> classes =
         rtiDependencies.putIfAbsent(element, () => new Set<ClassElement>());
     classes.add(dependency);

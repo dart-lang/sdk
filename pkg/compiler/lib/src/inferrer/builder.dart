@@ -2912,7 +2912,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     TypeMask moveNextMask = inTreeData.typeOfIteratorMoveNext(node);
 
     js.JavaScriptBackend backend = compiler.backend;
-    Element ctor = backend.helpers.streamIteratorConstructor;
+    ConstructorElement ctor = backend.helpers.streamIteratorConstructor;
 
     /// Synthesize a call to the [StreamIterator] constructor.
     TypeInformation iteratorType = handleStaticSend(

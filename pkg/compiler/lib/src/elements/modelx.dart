@@ -20,10 +20,8 @@ import '../resolution/scope.dart'
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../resolution/typedefs.dart' show TypedefCyclicVisitor;
 import '../script.dart';
-import 'package:front_end/src/fasta/scanner.dart'
-    show ErrorToken, Token;
-import 'package:front_end/src/fasta/scanner.dart' as Tokens
-    show EOF_TOKEN;
+import 'package:front_end/src/fasta/scanner.dart' show ErrorToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 import '../tree/tree.dart';
 import '../util/util.dart';
 import 'common.dart';

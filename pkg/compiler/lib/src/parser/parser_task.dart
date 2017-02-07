@@ -36,7 +36,7 @@ class ParserTask extends CompilerTask {
         parser.parseUnit(token);
       } on ParserError catch (_) {
         assert(invariant(compiler.reporter.spanFromToken(token),
-                compiler.compilationFailed));
+            compiler.compilationFailed));
         return listener.makeNodeList(0, null, null, '\n');
       }
       Node result = listener.popNode();

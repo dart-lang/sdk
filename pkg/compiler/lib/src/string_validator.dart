@@ -99,9 +99,8 @@ class StringValidator {
   }
 
   void stringParseError(String message, Token token, int offset) {
-    reporter.reportErrorMessage(
-        reporter.spanFromToken(token), MessageKind.GENERIC,
-        {'text': "$message @ $offset"});
+    reporter.reportErrorMessage(reporter.spanFromToken(token),
+        MessageKind.GENERIC, {'text': "$message @ $offset"});
   }
 
   /**
