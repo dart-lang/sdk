@@ -222,7 +222,8 @@ class CompilerImpl extends Compiler {
             .load(options.platformConfigUri, provider)
             .then((Map<String, Uri> mapping) {
           resolvedUriTranslator.resolvedUriTranslator =
-              new ResolvedUriTranslator(mapping, reporter);
+              new ResolvedUriTranslator(
+                  mapping, reporter, options.platformConfigUri);
         });
       });
     }
@@ -392,6 +393,19 @@ class _Environment implements Environment {
       }
       return "true";
     }
+
+    // Note: we return null on `dart:io` here, even if we allow users to
+    // unconditionally import it.
+    //
+    // In the past it was invalid to import `dart:io` for client apps. We just
+    // made it valid to import it as a stopgap measure to support packages like
+    // `http`. This is temporary until we support config-imports in the
+    // language.
+    //
+    // Because it is meant to be temporary and because the returned `dart:io`
+    // implementation will throw on most APIs, we still preserve that
+    // when compiling client apps the `dart:io` library is technically not
+    // supported, and so `const bool.fromEnvironment(dart.library.io)` is false.
     return null;
   }
 }
