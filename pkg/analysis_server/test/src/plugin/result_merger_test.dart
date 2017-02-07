@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
+import 'package:analyzer_plugin/protocol/generated_protocol.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,30 +28,42 @@ class ResultMergerTest {
 
   ResultMerger merger = new ResultMerger();
 
-  AnalysisError createError(int offset) {
-    AnalysisErrorSeverity severity = AnalysisErrorSeverity.ERROR;
-    AnalysisErrorType type = AnalysisErrorType.HINT;
-    Location location = new Location('test.dart', offset, 2, 3, 4);
-    return new AnalysisError(severity, type, location, '', '');
-  }
-
   void test_mergeAnalysisErrorFixes() {
-    AnalysisError error1 = createError(10);
-    AnalysisError error2 = createError(20);
-    AnalysisError error3 = createError(30);
-    AnalysisError error4 = createError(40);
-    SourceChange change1 = new SourceChange('a');
-    SourceChange change2 = new SourceChange('b');
-    SourceChange change3 = new SourceChange('c');
-    SourceChange change4 = new SourceChange('d');
-    SourceChange change5 = new SourceChange('e');
-    AnalysisErrorFixes fix1 = new AnalysisErrorFixes(error1, fixes: [change1]);
-    AnalysisErrorFixes fix2 = new AnalysisErrorFixes(error2, fixes: [change2]);
-    AnalysisErrorFixes fix3 = new AnalysisErrorFixes(error2, fixes: [change3]);
-    AnalysisErrorFixes fix4 = new AnalysisErrorFixes(error3, fixes: [change4]);
-    AnalysisErrorFixes fix5 = new AnalysisErrorFixes(error4, fixes: [change5]);
-    AnalysisErrorFixes fix2and3 =
-        new AnalysisErrorFixes(error2, fixes: [change2, change3]);
+    plugin.AnalysisError createError(int offset) {
+      plugin.AnalysisErrorSeverity severity =
+          plugin.AnalysisErrorSeverity.ERROR;
+      plugin.AnalysisErrorType type = plugin.AnalysisErrorType.HINT;
+      plugin.Location location =
+          new plugin.Location('test.dart', offset, 2, 3, 4);
+      return new plugin.AnalysisError(severity, type, location, '', '');
+    }
+
+    plugin.AnalysisError error1 = createError(10);
+    plugin.AnalysisError error2 = createError(20);
+    plugin.AnalysisError error3 = createError(30);
+    plugin.AnalysisError error4 = createError(40);
+    plugin.PrioritizedSourceChange change1 =
+        new plugin.PrioritizedSourceChange(1, new plugin.SourceChange('a'));
+    plugin.PrioritizedSourceChange change2 =
+        new plugin.PrioritizedSourceChange(2, new plugin.SourceChange('b'));
+    plugin.PrioritizedSourceChange change3 =
+        new plugin.PrioritizedSourceChange(3, new plugin.SourceChange('c'));
+    plugin.PrioritizedSourceChange change4 =
+        new plugin.PrioritizedSourceChange(4, new plugin.SourceChange('d'));
+    plugin.PrioritizedSourceChange change5 =
+        new plugin.PrioritizedSourceChange(5, new plugin.SourceChange('e'));
+    plugin.AnalysisErrorFixes fix1 =
+        new plugin.AnalysisErrorFixes(error1, fixes: [change1]);
+    plugin.AnalysisErrorFixes fix2 =
+        new plugin.AnalysisErrorFixes(error2, fixes: [change2]);
+    plugin.AnalysisErrorFixes fix3 =
+        new plugin.AnalysisErrorFixes(error2, fixes: [change3]);
+    plugin.AnalysisErrorFixes fix4 =
+        new plugin.AnalysisErrorFixes(error3, fixes: [change4]);
+    plugin.AnalysisErrorFixes fix5 =
+        new plugin.AnalysisErrorFixes(error4, fixes: [change5]);
+    plugin.AnalysisErrorFixes fix2and3 =
+        new plugin.AnalysisErrorFixes(error2, fixes: [change2, change3]);
 
     void runTest() {
       expect(
@@ -68,6 +81,13 @@ class ResultMergerTest {
   }
 
   void test_mergeAnalysisErrors() {
+    AnalysisError createError(int offset) {
+      AnalysisErrorSeverity severity = AnalysisErrorSeverity.ERROR;
+      AnalysisErrorType type = AnalysisErrorType.HINT;
+      Location location = new Location('test.dart', offset, 2, 3, 4);
+      return new AnalysisError(severity, type, location, '', '');
+    }
+
     AnalysisError error1 = createError(10);
     AnalysisError error2 = createError(20);
     AnalysisError error3 = createError(30);
@@ -323,6 +343,31 @@ class ResultMergerTest {
             [outline3, outline4]
           ]),
           unorderedEquals([outline1, outline2and3, outline4]));
+    }
+
+    runTest();
+    runTest();
+  }
+
+  void test_mergePrioritizedSourceChanges() {
+    plugin.PrioritizedSourceChange kind1 =
+        new plugin.PrioritizedSourceChange(1, new plugin.SourceChange(''));
+    plugin.PrioritizedSourceChange kind2 =
+        new plugin.PrioritizedSourceChange(1, new plugin.SourceChange(''));
+    plugin.PrioritizedSourceChange kind3 =
+        new plugin.PrioritizedSourceChange(1, new plugin.SourceChange(''));
+    plugin.PrioritizedSourceChange kind4 =
+        new plugin.PrioritizedSourceChange(1, new plugin.SourceChange(''));
+
+    void runTest() {
+      expect(
+          merger.mergePrioritizedSourceChanges([
+            [kind3, kind2],
+            [],
+            [kind4],
+            [kind1]
+          ]),
+          unorderedEquals([kind1, kind2, kind3, kind4]));
     }
 
     runTest();

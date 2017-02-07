@@ -4,7 +4,9 @@
 
 import 'dart:collection';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide AnalysisErrorFixes;
+import 'package:analyzer_plugin/protocol/generated_protocol.dart' as plugin;
 import 'package:meta/meta.dart';
 
 /**
@@ -24,12 +26,12 @@ class ResultMerger {
    * error for which there are fixes. If two or more plugins contribute the same
    * fix for a given error, the resulting list will contain duplications.
    */
-  List<AnalysisErrorFixes> mergeAnalysisErrorFixes(
-      List<List<AnalysisErrorFixes>> partialResultList) {
+  List<plugin.AnalysisErrorFixes> mergeAnalysisErrorFixes(
+      List<List<plugin.AnalysisErrorFixes>> partialResultList) {
     /**
      * Return a key encoding the unique attributes of the given [error].
      */
-    String computeKey(AnalysisError error) {
+    String computeKey(plugin.AnalysisError error) {
       StringBuffer buffer = new StringBuffer();
       buffer.write(error.location.offset);
       buffer.write(';');
@@ -43,33 +45,37 @@ class ResultMerger {
 
     int count = partialResultList.length;
     if (count == 0) {
-      return <AnalysisErrorFixes>[];
+      return <plugin.AnalysisErrorFixes>[];
     } else if (count == 1) {
       return partialResultList[0];
     }
-    List<AnalysisErrorFixes> mergedFixes = partialResultList[0].toList();
-    Map<String, AnalysisErrorFixes> fixesMap = <String, AnalysisErrorFixes>{};
-    for (AnalysisErrorFixes fix in mergedFixes) {
+    Map<String, plugin.AnalysisErrorFixes> fixesMap =
+        <String, plugin.AnalysisErrorFixes>{};
+    for (plugin.AnalysisErrorFixes fix in partialResultList[0]) {
       fixesMap[computeKey(fix.error)] = fix;
     }
     for (int i = 1; i < count; i++) {
-      for (AnalysisErrorFixes fix in partialResultList[i]) {
+      for (plugin.AnalysisErrorFixes fix in partialResultList[i]) {
         String key = computeKey(fix.error);
-        AnalysisErrorFixes mergedFix = fixesMap[key];
+        plugin.AnalysisErrorFixes mergedFix = fixesMap[key];
         if (mergedFix == null) {
-          mergedFixes.add(fix);
           fixesMap[key] = fix;
         } else {
           // If more than two plugins contribute fixes for the same error, this
           // will result in extra copy operations.
-          List<SourceChange> mergedChanges = mergedFix.fixes.toList();
+          List<plugin.PrioritizedSourceChange> mergedChanges =
+              mergedFix.fixes.toList();
           mergedChanges.addAll(fix.fixes);
-          AnalysisErrorFixes copiedFix =
-              new AnalysisErrorFixes(mergedFix.error, fixes: mergedChanges);
-          mergedFixes[mergedFixes.indexOf(mergedFix)] = copiedFix;
+          plugin.AnalysisErrorFixes copiedFix = new plugin.AnalysisErrorFixes(
+              mergedFix.error,
+              fixes: mergedChanges);
           fixesMap[key] = copiedFix;
         }
       }
+    }
+    List<plugin.AnalysisErrorFixes> mergedFixes = fixesMap.values.toList();
+    for (plugin.AnalysisErrorFixes fixes in mergedFixes) {
+      fixes.fixes.sort((first, second) => first.priority - second.priority);
     }
     return mergedFixes;
   }
@@ -748,6 +754,30 @@ class ResultMerger {
         feedback: mergeRefactoringFeedbacks(feedbacks),
         change: mergeChanges(changes),
         potentialEdits: potentialEdits);
+  }
+
+  /**
+   * Return a list of source changes composed by merging the lists of source
+   * changes in the [partialResultList].
+   *
+   * The resulting list will contain all of the source changes from all of the
+   * plugins. If two or more plugins contribute the same source change the
+   * resulting list will contain duplications.
+   */
+  List<plugin.PrioritizedSourceChange> mergePrioritizedSourceChanges(
+      List<List<plugin.PrioritizedSourceChange>> partialResultList) {
+    int count = partialResultList.length;
+    if (count == 0) {
+      return <plugin.PrioritizedSourceChange>[];
+    } else if (count == 1) {
+      return partialResultList[0];
+    }
+    List<plugin.PrioritizedSourceChange> mergedChanges = <plugin.PrioritizedSourceChange>[];
+    for (List<plugin.PrioritizedSourceChange> partialResults in partialResultList) {
+      mergedChanges.addAll(partialResults);
+    }
+    mergedChanges.sort((first, second) => first.priority - second.priority);
+    return mergedChanges;
   }
 
   /**
