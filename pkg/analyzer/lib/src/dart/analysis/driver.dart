@@ -13,6 +13,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/analysis_impl.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
@@ -135,6 +136,11 @@ class AnalysisDriver {
   final DeclaredVariables declaredVariables = new DeclaredVariables();
 
   /**
+   * If `true`, then analysis should be done without using tasks model.
+   */
+  final bool analyzeWithoutTasks;
+
+  /**
    * The salt to mix into all hashes used as keys for serialized data.
    */
   final Uint32List _salt = new Uint32List(1 + AnalysisOptions.signatureLength);
@@ -234,7 +240,8 @@ class AnalysisDriver {
       this.name,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {PackageBundle sdkBundle})
+      {PackageBundle sdkBundle,
+      this.analyzeWithoutTasks: false})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle {
@@ -697,36 +704,35 @@ class AnalysisDriver {
       FileState file = _fileTracker.verifyApiSignature(path);
 
       // Prepare the library file - the file itself, or the known library.
-      FileState libraryFile = getLibraryFile(file);
-      if (libraryFile == null) {
+      FileState library = getLibraryFile(file);
+      if (library == null) {
         return null;
       }
 
       try {
-        LibraryContext libraryContext = _createLibraryContext(libraryFile);
+        LibraryContext libraryContext = _createLibraryContext(library);
         try {
-          var resolutionResult =
-              libraryContext.resolveUnit(libraryFile.source, file.source);
-          CompilationUnit resolvedUnit = resolutionResult.resolvedUnit;
-          List<AnalysisError> errors = resolutionResult.errors;
-          AnalysisDriverUnitIndexBuilder index = indexUnit(resolvedUnit);
-
-          // Store the result into the cache.
+          CompilationUnit resolvedUnit;
           List<int> bytes;
-          {
-            bytes = new AnalysisDriverResolvedUnitBuilder(
-                    errors: errors
-                        .map((error) => new AnalysisDriverUnitErrorBuilder(
-                            offset: error.offset,
-                            length: error.length,
-                            uniqueName: error.errorCode.uniqueName,
-                            message: error.message,
-                            correction: error.correction))
-                        .toList(),
-                    index: index)
-                .toBuffer();
-            String key = _getResolvedUnitKey(libraryFile, file);
-            _byteStore.put(key, bytes);
+          if (analyzeWithoutTasks) {
+            AnalyzerImpl analyzer = new AnalyzerImpl(analysisOptions,
+                sourceFactory, _fileTracker.fsState, libraryContext.store);
+            Map<FileState, UnitAnalysisResult> results =
+                analyzer.analyze(library);
+            UnitAnalysisResult fileResult = results[file];
+            resolvedUnit = fileResult.unit;
+
+            // Store the result into the cache.
+            bytes = _storeResolvedUnit(
+                library, file, resolvedUnit, fileResult.errors);
+          } else {
+            ResolutionResult resolutionResult =
+                libraryContext.resolveUnit(library.source, file.source);
+            resolvedUnit = resolutionResult.resolvedUnit;
+            List<AnalysisError> errors = resolutionResult.errors;
+
+            // Store the result into the cache.
+            bytes = _storeResolvedUnit(library, file, resolvedUnit, errors);
           }
 
           // Return the result, full or partial.
@@ -744,7 +750,7 @@ class AnalysisDriver {
         }
       } catch (exception, stackTrace) {
         String contextKey =
-            _storeExceptionContext(path, libraryFile, exception, stackTrace);
+            _storeExceptionContext(path, library, exception, stackTrace);
         throw new _ExceptionState(exception, stackTrace, contextKey);
       }
     });
@@ -1108,6 +1114,30 @@ class AnalysisDriver {
     } catch (_) {
       return null;
     }
+  }
+
+  /**
+   * Store the fully resolved results for the [file] in the [library] into the
+   * cache and return the stored bytes.
+   */
+  List<int> _storeResolvedUnit(FileState library, FileState file,
+      CompilationUnit resolvedUnit, List<AnalysisError> errors) {
+    AnalysisDriverUnitIndexBuilder index = indexUnit(resolvedUnit);
+
+    String key = _getResolvedUnitKey(library, file);
+    List<int> bytes = new AnalysisDriverResolvedUnitBuilder(
+            errors: errors
+                .map((error) => new AnalysisDriverUnitErrorBuilder(
+                    offset: error.offset,
+                    length: error.length,
+                    uniqueName: error.errorCode.uniqueName,
+                    message: error.message,
+                    correction: error.correction))
+                .toList(),
+            index: index)
+        .toBuffer();
+    _byteStore.put(key, bytes);
+    return bytes;
   }
 }
 

@@ -2055,8 +2055,9 @@ var A = B;
   }
 
   String _getTopLevelVarType(CompilationUnit unit, String name) {
+    VariableDeclaration variable = _getTopLevelVar(unit, name);
     return resolutionMap
-        .elementDeclaredByVariableDeclaration(_getTopLevelVar(unit, name))
+        .elementDeclaredByVariableDeclaration(variable)
         .type
         .toString();
   }

@@ -29,6 +29,8 @@ import 'package:analyzer/task/dart.dart' show LibrarySpecificUnit;
  * TODO(paulberry): make a front end API that this can make use of instead.
  */
 class LibraryContext {
+  final SummaryDataStore store;
+
   /**
    * The [AnalysisContext] which is used to do the analysis.
    */
@@ -123,11 +125,11 @@ class LibraryContext {
       var analysisContext = _createAnalysisContext(
           options, declaredVariables, sourceFactory, fileTracker, store);
 
-      return new LibraryContext._(analysisContext);
+      return new LibraryContext._(store, analysisContext);
     });
   }
 
-  LibraryContext._(this._analysisContext);
+  LibraryContext._(this.store, this._analysisContext);
 
   /**
    * Computes a [CompilationUnitElement] for the given library/unit pair.
