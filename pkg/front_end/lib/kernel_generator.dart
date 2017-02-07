@@ -183,7 +183,7 @@ void _reportErrors(List errors, ErrorHandler onError) {
 String _uriToPath(Uri uri, CompilerOptions options) {
   if (uri == null) return null;
   if (uri.scheme != 'file') {
-    throw new StateError('Only file URIs are supported');
+    throw new StateError('Only file URIs are supported: $uri');
   }
   return options.fileSystem.context.fromUri(uri);
 }

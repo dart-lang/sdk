@@ -115,16 +115,16 @@ Future<Program> generateKernel(Uri entryUri,
   var options = new CompilerOptions()
     ..strongMode = false
     ..compileSdk = compileSdk
-    ..packagesFileUri = new Uri.file('.packages')
+    ..packagesFileUri = Uri.base.resolve('.packages')
     ..onError = ((e) => print('${e.message}'));
   if (useSdkSummary) {
     // TODO(sigmund): adjust path based on the benchmark runner architecture.
     // Possibly let the runner make the file available at an architecture
     // independent location.
     options.sdkSummary =
-        new Uri.file('out/ReleaseX64/dart-sdk/lib/_internal/spec.sum');
+        Uri.base.resolve('out/ReleaseX64/dart-sdk/lib/_internal/spec.sum');
   } else {
-    options.sdkRoot = new Uri.file('sdk');
+    options.sdkRoot = Uri.base.resolve('sdk');
   }
   Program program = await kernelForProgram(entryUri, options);
   dartkTimer.stop();
