@@ -294,7 +294,10 @@ class TestOptionsParser {
           'no-tree-shake', 'Disable kernel IR tree shaking', ['--no-tree-shake'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'use-standalone-dartk', 'Generate Kernel binaries with a standalone dartk compiler', ['--use-standalone-dartk'], [], false,
+          'useDFE', 'Use Kernel Isolate', ['--use-dfe'], [], true,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'useFasta', 'Use Fasta in Kernel Isolate', ['--use-fasta'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
           'list', 'List tests only, do not run them', ['--list'], [], false,

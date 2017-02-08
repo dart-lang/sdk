@@ -68,7 +68,8 @@ abstract class CompilerConfiguration {
     bool hotReloadRollback = configuration['hot_reload_rollback'];
     bool useFastStartup = configuration['fast_startup'];
     bool verifyKernel = configuration['verify-ir'];
-    bool useStandaloneDartK = configuration['use-standalone-dartk'];
+    bool useDFE = configuration['useDFE'];
+    bool useFasta = configuration['useFasta'];
     bool treeShake = !configuration['no-tree-shake'];
 
     switch (compiler) {
@@ -101,7 +102,7 @@ abstract class CompilerConfiguration {
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android');
       case 'dartk':
-        if (useStandaloneDartK) {
+        if (!useDFE) {
           return ComposedCompilerConfiguration.createDartKConfiguration(
               isChecked: isChecked,
               isHostChecked: isHostChecked,
@@ -118,7 +119,7 @@ abstract class CompilerConfiguration {
               useSdk: useSdk,
               hotReload: hotReload,
               hotReloadRollback: hotReloadRollback,
-              useDFEIsolate: true);
+              dfeMode: useFasta ? DFEMode.Fasta : DFEMode.DartK);
 
       case 'dartkp':
         return ComposedCompilerConfiguration.createDartKPConfiguration(
@@ -197,17 +198,23 @@ abstract class CompilerConfiguration {
   }
 }
 
+enum DFEMode {
+  None,
+  DartK,
+  Fasta
+}
+
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
   final bool hotReload;
   final bool hotReloadRollback;
-  final bool useDFEIsolate;
+  final DFEMode dfeMode;
 
   NoneCompilerConfiguration(
       {bool isDebug, bool isChecked, bool isHostChecked, bool useSdk,
        bool this.hotReload,
        bool this.hotReloadRollback,
-       bool this.useDFEIsolate: false})
+       DFEMode this.dfeMode: DFEMode.None})
       : super._subclass(
             isDebug: isDebug,
             isChecked: isChecked,
@@ -225,8 +232,11 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     List<String> args = [];
-    if (useDFEIsolate) {
+    if (dfeMode != DFEMode.None) {
       args.add('--dfe=utils/kernel-service/kernel-service.dart');
+    }
+    if (dfeMode == DFEMode.Fasta) {
+      args.add('-DDFE_USE_FASTA=true');
     }
     if (isChecked) {
       args.add('--enable_asserts');

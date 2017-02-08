@@ -1,32 +1,41 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library runtime.tools.kernel_service;
 
-// This is an interface to the Dart Kernel parser and Kernel binary generator.
-//
-// It is used by the kernel-isolate to load Dart source code and generate
-// Kernel binary format.
-//
-// This is either invoked as the root script of the Kernel isolate when used
-// as a part of
-//
-//           dart --dfe=utils/kernel-service/kernel-service.dart ...
-//
-// invocation or it is invoked as a standalone script to perform batch mode
-// compilation requested via an HTTP interface
-//
-//           dart utils/kernel-service/kernel-service.dart --batch
-//
-// The port for the batch mode worker is controlled by DFE_WORKER_PORT
-// environment declarations (set by -DDFE_WORKER_PORT=... command line flag).
-// When not set (or set to 0) an ephemeral port returned by the OS is used
-// instead.
-//
-// When this script is used as a Kernel isolate root script and DFE_WORKER_PORT
-// is set to non-zero value then Kernel isolate will forward all compilation
-// requests it receives to the batch worker on the given port.
-//
+/// This is an interface to the Dart Kernel parser and Kernel binary generator.
+///
+/// It is used by the kernel-isolate to load Dart source code and generate
+/// Kernel binary format.
+///
+/// This is either invoked as the root script of the Kernel isolate when used
+/// as a part of
+///
+///           dart --dfe=utils/kernel-service/kernel-service.dart ...
+///
+/// invocation or it is invoked as a standalone script to perform batch mode
+/// compilation requested via an HTTP interface
+///
+///           dart utils/kernel-service/kernel-service.dart --batch
+///
+/// The port for the batch mode worker is controlled by DFE_WORKER_PORT
+/// environment declarations (set by -DDFE_WORKER_PORT=... command line flag).
+/// When not set (or set to 0) an ephemeral port returned by the OS is used
+/// instead.
+///
+/// When this script is used as a Kernel isolate root script and DFE_WORKER_PORT
+/// is set to non-zero value then Kernel isolate will forward all compilation
+/// requests it receives to the batch worker on the given port.
+///
+/// Set DFE_USE_FASTA environment declaration to true to use fasta front-end
+/// instead of dartk. Note: we expect patched_sdk folder to contain
+/// platform.dill file that contains patched SDK in the Kernel binary form.
+/// This file can be created using the following command line:
+///
+///   export DART_AOT_SDK=<path-to-patched_sdk>
+///   dart pkg/front_end/lib/src/fasta/bin/compile_platform.dart \
+///        ${DART_AOT_SDK}/platform.dill
+///
+library runtime.tools.kernel_service;
 
 import 'dart:async';
 import 'dart:convert';
@@ -39,8 +48,17 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 
-const bool verbose = const bool.fromEnvironment('DFE_VERBOSE') ?? false;
+import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
+import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
+import 'package:front_end/src/fasta/ticker.dart' show Ticker;
+import 'package:front_end/src/fasta/kernel/kernel_target.dart'
+    show KernelSourceTarget;
+import 'package:front_end/src/fasta/ast_kind.dart' show AstKind;
+import 'package:front_end/src/fasta/errors.dart' show InputError;
+
+const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
 const int workerPort = const int.fromEnvironment('DFE_WORKER_PORT') ?? 0;
+const bool useFasta = const bool.fromEnvironment('DFE_USE_FASTA');
 
 class DataSink implements Sink<List<int>> {
   final BytesBuilder builder = new BytesBuilder();
@@ -84,6 +102,8 @@ abstract class CompilationFail extends CompilationResult {
         return new CompilationError(m['errors']);
       case STATUS_CRASH:
         return new CompilationCrash(m['exception'], m['stack']);
+      default:
+        throw "Can't deserialize CompilationFail from ${m}.";
     }
   }
 }
@@ -135,20 +155,43 @@ Future<CompilationResult> parseScriptImpl(DartLoaderBatch batch_loader,
   }
 
   Target target = getTarget("vm", new TargetFlags(strongMode: false));
-  DartOptions dartOptions = new DartOptions(
-      strongMode: false,
-      strongModeSdk: false,
-      sdk: sdkPath,
-      packagePath: packageConfig,
-      customUriMappings: const {},
-      declaredVariables: const {});
-  DartLoader loader =
-      await batch_loader.getLoader(new Repository(), dartOptions);
-  var program = loader.loadProgram(fileName, target: target);
 
-  var errors = loader.errors;
-  if (errors.isNotEmpty) {
-    return new CompilationError(loader.errors.toList());
+  Program program;
+  if (useFasta) {
+    final uriTranslator = await TranslateUri.parse(new Uri.file(packageConfig));
+    final Ticker ticker = new Ticker(isVerbose: verbose);
+    final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
+    dillTarget.read(new Uri.directory(sdkPath).resolve('platform.dill'));
+    final KernelSourceTarget sourceTarget =
+        new KernelSourceTarget(dillTarget, uriTranslator);
+    try {
+      sourceTarget.read(fileName);
+      await dillTarget.writeOutline(null);
+      program = await sourceTarget.writeOutline(null);
+      program = await sourceTarget.writeProgram(null, AstKind.Kernel);
+      if (sourceTarget.errors.isNotEmpty) {
+        return new CompilationError(sourceTarget.errors
+            .map((err) => err.toString())
+            .toList(growable: false));
+      }
+    } on InputError catch (e) {
+      return new CompilationError(<String>[e.error]);
+    }
+  } else {
+    DartOptions dartOptions = new DartOptions(
+        strongMode: false,
+        strongModeSdk: false,
+        sdk: sdkPath,
+        packagePath: packageConfig,
+        customUriMappings: const {},
+        declaredVariables: const {});
+    DartLoader loader =
+        await batch_loader.getLoader(new Repository(), dartOptions);
+    program = loader.loadProgram(fileName, target: target);
+
+    if (loader.errors.isNotEmpty) {
+      return new CompilationError(loader.errors.toList(growable: false));
+    }
   }
 
   // Perform target-specific transformations.
@@ -212,7 +255,6 @@ Future _processLoadRequestImpl(String inputFileUrl) async {
         new DartLoaderBatch(), scriptUri, packagesUri.path, patchedSdk.path);
   }
 }
-
 
 // Process a request from the runtime. See KernelIsolate::CompileToKernel in
 // kernel_isolate.cc and Loader::SendKernelRequest in loader.cc.
