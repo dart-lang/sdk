@@ -57,7 +57,6 @@ main() => new B().foo;
 ''';
       return check(code);
     });
-
   });
 
   group('compile setters with kernel', () {
@@ -87,8 +86,8 @@ main() {
     });
   });
 
-    test('super set', () {
-      String code = '''
+  test('super set', () {
+    String code = '''
 class A {
   set ferocious(int newFerocious) {}
 }
@@ -101,11 +100,11 @@ class B extends A {
 main() {
   new B().bar();
 }''';
-      return check(code);
-    });
+    return check(code);
+  });
 
-    test('super set no such method', () {
-      String code = '''
+  test('super set no such method', () {
+    String code = '''
 class A {
   final ferocious = 0;
   noSuchMethod(_) => 42;
@@ -119,6 +118,6 @@ class B extends A {
 main() {
   new B().bar();
 }''';
-      return check(code);
-    });
+    return check(code);
+  });
 }

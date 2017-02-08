@@ -4,7 +4,6 @@
 
 library deferred_load;
 
-import 'common/backend_api.dart' show Backend;
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
@@ -157,7 +156,7 @@ class DeferredLoadTask extends CompilerTask {
     mainOutputUnit.imports.add(_fakeMainImport);
   }
 
-  Backend get backend => compiler.backend;
+  JavaScriptBackend get backend => compiler.backend;
   DiagnosticReporter get reporter => compiler.reporter;
 
   /// Returns the [OutputUnit] where [element] belongs.

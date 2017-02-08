@@ -5,8 +5,7 @@
 library dart2js.resolution.registry;
 
 import '../common.dart';
-import '../common/backend_api.dart'
-    show Backend, ForeignResolver, NativeRegistry;
+import '../common/backend_api.dart' show ForeignResolver, NativeRegistry;
 import '../common/resolution.dart' show ResolutionImpact, Target;
 import '../constants/expressions.dart';
 import '../elements/resolution_types.dart';

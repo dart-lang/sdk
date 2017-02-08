@@ -104,23 +104,29 @@ class BackendHelpers {
   }
 
   LibraryEntity _jsHelperLibrary;
-  LibraryEntity get jsHelperLibrary => _jsHelperLibrary ??= _env.lookupLibrary(DART_JS_HELPER);
+  LibraryEntity get jsHelperLibrary =>
+      _jsHelperLibrary ??= _env.lookupLibrary(DART_JS_HELPER);
 
   LibraryEntity _asyncLibrary;
-  LibraryEntity get asyncLibrary => _asyncLibrary ??= _env.lookupLibrary(Uris.dart_async);
+  LibraryEntity get asyncLibrary =>
+      _asyncLibrary ??= _env.lookupLibrary(Uris.dart_async);
 
   LibraryEntity _interceptorsLibrary;
-  LibraryEntity get interceptorsLibrary => _interceptorsLibrary ??= _env.lookupLibrary(DART_INTERCEPTORS);
+  LibraryEntity get interceptorsLibrary =>
+      _interceptorsLibrary ??= _env.lookupLibrary(DART_INTERCEPTORS);
 
   LibraryEntity _foreignLibrary;
-  LibraryEntity get foreignLibrary => _foreignLibrary ??= _env.lookupLibrary(DART_FOREIGN_HELPER);
+  LibraryEntity get foreignLibrary =>
+      _foreignLibrary ??= _env.lookupLibrary(DART_FOREIGN_HELPER);
 
   LibraryEntity _isolateHelperLibrary;
-  LibraryEntity get isolateHelperLibrary => _isolateHelperLibrary ??= _env.lookupLibrary(DART_ISOLATE_HELPER);
+  LibraryEntity get isolateHelperLibrary =>
+      _isolateHelperLibrary ??= _env.lookupLibrary(DART_ISOLATE_HELPER);
 
   /// Reference to the internal library to lookup functions to always inline.
   LibraryEntity _internalLibrary;
-  LibraryEntity get internalLibrary => _internalLibrary ??= _env.lookupLibrary(Uris.dart__internal);
+  LibraryEntity get internalLibrary =>
+      _internalLibrary ??= _env.lookupLibrary(Uris.dart__internal);
 
   FunctionEntity _assertTest;
   FunctionEntity get assertTest =>

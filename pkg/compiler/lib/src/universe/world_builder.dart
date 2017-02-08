@@ -7,7 +7,6 @@ library universe;
 import 'dart:collection';
 
 import '../common.dart';
-import '../common/backend_api.dart' show Backend;
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
 import '../core_types.dart';
@@ -15,6 +14,7 @@ import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../universe/class_set.dart';
 import '../universe/function_set.dart' show FunctionSetBuilder;
 import '../util/enumset.dart';
@@ -460,7 +460,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   /// and classes.
   bool useInstantiationMap = false;
 
-  final Backend _backend;
+  final JavaScriptBackend _backend;
   final Resolution _resolution;
   bool _closed = false;
   ClosedWorld _closedWorldCache;
@@ -480,9 +480,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   bool get isClosed => _closed;
 
   ResolutionWorldBuilderImpl(
-      Backend backend, Resolution resolution, this.selectorConstraintsStrategy)
-      : this._backend = backend,
-        this._resolution = resolution {
+      this._backend, this._resolution, this.selectorConstraintsStrategy) {
     _allFunctions = new FunctionSetBuilder();
   }
 
@@ -1119,7 +1117,7 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 }
 
 class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
-  final Backend _backend;
+  final JavaScriptBackend _backend;
   ClosedWorld __world;
 
   /// The set of all directly instantiated classes, that is, classes with a

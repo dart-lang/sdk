@@ -6,7 +6,6 @@ library dart2js.enqueue;
 
 import 'dart:collection' show Queue;
 
-import 'common/backend_api.dart' show Backend;
 import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
@@ -23,6 +22,7 @@ import 'elements/elements.dart'
 import 'elements/entities.dart';
 import 'elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
+import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'native/native.dart' as native;
 import 'universe/world_builder.dart';
 import 'universe/use.dart'
@@ -118,7 +118,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final String name;
   final Resolution _resolution;
   final CompilerOptions _options;
-  final Backend backend;
+  final JavaScriptBackend backend;
   final GlobalDependencyRegistry _globalDependencies;
   final native.NativeEnqueuer nativeEnqueuer;
 
@@ -141,7 +141,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final Queue<_DeferredAction> _deferredQueue = new Queue<_DeferredAction>();
 
   ResolutionEnqueuer(this.task, this._options, Resolution resolution,
-      this.strategy, this._globalDependencies, Backend backend,
+      this.strategy, this._globalDependencies, JavaScriptBackend backend,
       [this.name = 'resolution enqueuer'])
       : this.backend = backend,
         this._resolution = resolution,

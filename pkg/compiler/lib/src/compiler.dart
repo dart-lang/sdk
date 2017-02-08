@@ -8,7 +8,6 @@ import 'dart:async' show EventSink, Future;
 
 import '../compiler_new.dart' as api;
 import 'closure.dart' as closureMapping show ClosureTask;
-import 'common/backend_api.dart' show Backend;
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Identifiers, Uris;
 import 'common/resolution.dart'
@@ -80,8 +79,6 @@ import 'universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
 import 'util/util.dart' show Link, Setlet;
 import 'world.dart' show ClosedWorld, ClosedWorldRefiner, ClosedWorldImpl;
-
-typedef Backend MakeBackendFunction(Compiler compiler);
 
 typedef CompilerDiagnosticReporter MakeReporterFunction(
     Compiler compiler, CompilerOptions options);
@@ -163,7 +160,7 @@ abstract class Compiler implements LibraryLoaderListener {
   closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
   GlobalTypeInferenceTask globalInference;
-  Backend backend;
+  js_backend.JavaScriptBackend backend;
 
   GenericTask selfTask;
 
@@ -196,7 +193,6 @@ abstract class Compiler implements LibraryLoaderListener {
       {CompilerOptions options,
       api.CompilerOutput outputProvider,
       this.environment: const _EmptyEnvironment(),
-      MakeBackendFunction makeBackend,
       MakeReporterFunction makeReporter})
       : this.options = options,
         this.userOutputProvider = outputProvider == null
@@ -221,11 +217,7 @@ abstract class Compiler implements LibraryLoaderListener {
     // for global dependencies.
     globalDependencies = new GlobalDependencyRegistry();
 
-    if (makeBackend != null) {
-      backend = makeBackend(this);
-    } else {
-      backend = createBackend();
-    }
+    backend = createBackend();
     enqueuer = backend.makeEnqueuer();
 
     tasks = [
@@ -271,7 +263,7 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Creates the backend.
   ///
   /// Override this to mock the backend for testing.
-  Backend createBackend() {
+  js_backend.JavaScriptBackend createBackend() {
     return new js_backend.JavaScriptBackend(this,
         generateSourceMap: options.generateSourceMap,
         useStartupEmitter: options.useStartupEmitter,

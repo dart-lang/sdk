@@ -11,15 +11,11 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import '../closure.dart';
 import '../common.dart';
 import '../common/backend_api.dart'
-    show
-        Backend,
-        BackendClasses,
-        ImpactTransformer,
-        ForeignResolver,
-        NativeRegistry;
+    show BackendClasses, ImpactTransformer, ForeignResolver, NativeRegistry;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Identifiers, Uris;
-import '../common/resolution.dart' show Frontend, Resolution, ResolutionImpact;
+import '../common/resolution.dart'
+    show Frontend, Resolution, ResolutionImpact, Target;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
@@ -33,7 +29,7 @@ import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../enqueue.dart'
-    show Enqueuer, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
+    show Enqueuer, EnqueueTask, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../io/start_end_information.dart'
@@ -45,6 +41,8 @@ import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
+import '../patch_parser.dart'
+    show checkNativeAnnotation, checkJsInteropAnnotation;
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
 import '../tree/tree.dart';
@@ -304,9 +302,12 @@ enum SyntheticConstantKind {
   NAME
 }
 
-class JavaScriptBackend extends Backend {
+class JavaScriptBackend extends Target {
+  final Compiler compiler;
+
   String get patchVersion => emitter.patchVersion;
 
+  /// Returns true if the backend supports reflection.
   bool get supportsReflection => emitter.supportsReflection;
 
   final Annotations annotations;
@@ -530,17 +531,23 @@ class JavaScriptBackend extends Backend {
   /// Builds kernel representation for the program.
   KernelTask kernelTask;
 
+  /// The compiler task responsible for the compilation of constants for both
+  /// the frontend and the backend.
   JavaScriptConstantTask constantCompilerTask;
 
+  /// Backend transformation methods for the world impacts.
   JavaScriptImpactTransformer impactTransformer;
 
   PatchResolverTask patchResolverTask;
 
+  /// Whether or not `noSuchMethod` support has been enabled.
   bool enabledNoSuchMethod = false;
   bool _noSuchMethodEnabledForCodegen = false;
 
+  /// The strategy used for collecting and emitting source information.
   SourceInformationStrategy sourceInformationStrategy;
 
+  /// Interface for serialization of backend specific data.
   JavaScriptBackendSerialization serialization;
 
   StagedWorldImpactBuilder constantImpactsForResolution =
@@ -553,8 +560,11 @@ class JavaScriptBackend extends Backend {
 
   BackendHelpers helpers;
   final BackendImpacts impacts;
+
+  /// Common classes used by the backend.
   BackendClasses backendClasses;
 
+  /// Backend access to the front-end.
   final JSFrontendAccess frontend;
 
   Tracer tracer;
@@ -577,7 +587,7 @@ class JavaScriptBackend extends Backend {
             : const JavaScriptSourceInformationStrategy(),
         impacts = new BackendImpacts(compiler),
         frontend = new JSFrontendAccess(compiler),
-        super(compiler) {
+        this.compiler = compiler {
     helpers =
         new BackendHelpers(compiler.elementEnvironment, this, commonElements);
     emitter =
@@ -599,6 +609,8 @@ class JavaScriptBackend extends Backend {
     backendClasses = new JavaScriptBackendClasses(helpers);
   }
 
+  /// The [ConstantSystem] used to interpret compile-time constants for this
+  /// backend.
   ConstantSystem get constantSystem => constants.constantSystem;
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -675,11 +687,11 @@ class JavaScriptBackend extends Backend {
     assert(invariant(element, element.isDeclaration, message: ""));
     if (element is ConstructorElement &&
         (element == helpers.streamIteratorConstructor ||
-        compiler.commonElements.isSymbolConstructor(element) ||
-        helpers.isSymbolValidatedConstructor(element) ||
-        element == helpers.syncCompleterConstructor)) {
-    // TODO(johnniwinther): These are valid but we could be more precise.
-    return true;
+            compiler.commonElements.isSymbolConstructor(element) ||
+            helpers.isSymbolValidatedConstructor(element) ||
+            element == helpers.syncCompleterConstructor)) {
+      // TODO(johnniwinther): These are valid but we could be more precise.
+      return true;
     } else if (element == commonElements.symbolClass ||
         element == helpers.objectNoSuchMethod) {
       // TODO(johnniwinther): These are valid but we could be more precise.
@@ -734,6 +746,10 @@ class JavaScriptBackend extends Backend {
     return isAccessibleByReflection(element.declaration);
   }
 
+  /// Returns true if global optimizations such as type inferencing
+  /// can apply to this element. One category of elements that do not
+  /// apply is runtime helpers that the backend calls, but the
+  /// optimizations don't see those calls.
   bool canBeUsedForGlobalOptimizations(Element element) {
     return !usedByBackend(element) && !invokedReflectively(element);
   }
@@ -781,7 +797,7 @@ class JavaScriptBackend extends Backend {
     return aliasedSuperMembers.contains(member);
   }
 
-  /// Returns `true` if [element] is part of JsInterop.
+  /// Returns `true` if [element] is implemented via typed JavaScript interop.
   @override
   bool isJsInterop(Element element) => nativeData.isJsInterop(element);
 
@@ -1056,6 +1072,7 @@ class JavaScriptBackend extends Backend {
     }
   }
 
+  /// Called during codegen when [constant] has been used.
   void computeImpactForCompileTimeConstant(ConstantValue constant,
       WorldImpactBuilder impactBuilder, bool isForResolution) {
     computeImpactForCompileTimeConstantInternal(
@@ -1128,11 +1145,16 @@ class JavaScriptBackend extends Backend {
     }
   }
 
+  /// Called to notify to the backend that a class is being instantiated. Any
+  /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerInstantiatedClass(ClassElement cls,
       {bool forResolution}) {
     return _processClass(cls, forResolution: forResolution);
   }
 
+  /// Called to notify to the backend that a class is implemented by an
+  /// instantiated class. Any backend specific [WorldImpact] of this is
+  /// returned.
   WorldImpact registerImplementedClass(ClassElement cls, {bool forResolution}) {
     return _processClass(cls, forResolution: forResolution);
   }
@@ -1265,11 +1287,13 @@ class JavaScriptBackend extends Backend {
     return impactBuilder;
   }
 
+  /// Called to instruct to the backend register [type] as instantiated on
+  /// [enqueuer].
   void registerInstantiatedType(ResolutionInterfaceType type) {
     lookupMapAnalysis.registerInstantiatedType(type);
   }
 
-  @override
+  /// Compute the [WorldImpact] for backend helper methods.
   WorldImpact computeHelpersImpact() {
     assert(helpers.interceptorsLibrary != null);
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
@@ -1293,7 +1317,7 @@ class JavaScriptBackend extends Backend {
     return impactBuilder;
   }
 
-  onResolutionComplete(
+  void onResolutionComplete(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
     for (Entity entity in compiler.enqueuer.resolution.processedEntities) {
       processAnnotations(entity, closedWorldRefiner);
@@ -1304,8 +1328,7 @@ class JavaScriptBackend extends Backend {
     _registeredMetadata.clear();
   }
 
-  onTypeInferenceComplete() {
-    super.onTypeInferenceComplete();
+  void onTypeInferenceComplete() {
     noSuchMethodRegistry.onTypeInferenceComplete();
   }
 
@@ -1322,6 +1345,9 @@ class JavaScriptBackend extends Backend {
     return const WorldImpact();
   }
 
+  /// Called to instruct the backend to register that a closure exists for a
+  /// function on an instantiated generic class. Any backend specific
+  /// [WorldImpact] of this is returned.
   WorldImpact registerClosureWithFreeTypeVariables(Element closure,
       {bool forResolution}) {
     if (forResolution || methodNeedsRti(closure)) {
@@ -1330,10 +1356,14 @@ class JavaScriptBackend extends Backend {
     return const WorldImpact();
   }
 
+  /// Called to register that a member has been closurized. Any backend specific
+  /// [WorldImpact] of this is returned.
   WorldImpact registerBoundClosure() {
     return impactTransformer.createImpactFor(impacts.memberClosure);
   }
 
+  /// Called to register that a static function has been closurized. Any backend
+  /// specific [WorldImpact] of this is returned.
   WorldImpact registerGetOfStaticFunction() {
     return impactTransformer.createImpactFor(impacts.staticClosure);
   }
@@ -1348,11 +1378,14 @@ class JavaScriptBackend extends Backend {
     return impactTransformer.createImpactFor(impacts.runtimeTypeSupport);
   }
 
+  /// Register a runtime type variable bound tests between [typeArgument] and
+  /// [bound].
   void registerTypeVariableBoundsSubtypeCheck(
       ResolutionDartType typeArgument, ResolutionDartType bound) {
     rti.registerTypeVariableBoundsSubtypeCheck(typeArgument, bound);
   }
 
+  /// Returns the [WorldImpact] of enabling deferred loading.
   WorldImpact computeDeferredLoadingImpact() {
     return impactTransformer.createImpactFor(impacts.deferredLoading);
   }
@@ -1400,6 +1433,8 @@ class JavaScriptBackend extends Backend {
     return impactTransformer.createImpactFor(impacts.noSuchMethodSupport);
   }
 
+  /// Called to enable support for isolates. Any backend specific [WorldImpact]
+  /// of this is returned.
   WorldImpact enableIsolateSupport({bool forResolution}) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
     // TODO(floitsch): We should also ensure that the class IsolateMessage is
@@ -1444,6 +1479,7 @@ class JavaScriptBackend extends Backend {
 
   CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
 
+  /// Creates an [Enqueuer] for code generation specific to this backend.
   CodegenEnqueuer createCodegenEnqueuer(CompilerTask task, Compiler compiler) {
     return new CodegenEnqueuer(
         task, this, compiler.options, const TreeShakingEnqueuerStrategy());
@@ -1548,6 +1584,7 @@ class JavaScriptBackend extends Backend {
     return jsAst.prettyPrint(generatedCode[element], compiler);
   }
 
+  /// Generates the output and returns the total size of the generated code.
   int assembleProgram(ClosedWorld closedWorld) {
     int programSize = emitter.assembleProgram(namer, closedWorld);
     noSuchMethodRegistry.emitDiagnostic();
@@ -1769,6 +1806,8 @@ class JavaScriptBackend extends Backend {
     return _closedWorld.hasOnlySubclasses(classElement);
   }
 
+  /// Called to register that [element] is statically known to be used. Any
+  /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerUsedElement(MemberElement element, {bool forResolution}) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     if (element == helpers.disableTreeShakingMarker) {
@@ -1892,31 +1931,53 @@ class JavaScriptBackend extends Backend {
     return false;
   }
 
+  /// This method is called immediately after the [library] and its parts have
+  /// been scanned.
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
-    return super.onLibraryScanned(library, loader).then((_) {
-      if (library.isPlatformLibrary &&
-          // Don't patch library currently disallowed.
-          !library.isSynthesized &&
-          !library.isPatched &&
-          // Don't patch deserialized libraries.
-          !compiler.serialization.isDeserialized(library)) {
-        // Apply patch, if any.
-        Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
-        if (patchUri != null) {
-          return compiler.patchParser.patchLibrary(loader, patchUri, library);
+    if (!compiler.serialization.isDeserialized(library)) {
+      if (canLibraryUseNative(library)) {
+        library.forEachLocalMember((Element element) {
+          if (element.isClass) {
+            checkNativeAnnotation(compiler, element);
+          }
+        });
+      }
+      checkJsInteropAnnotation(compiler, library);
+      library.forEachLocalMember((Element element) {
+        checkJsInteropAnnotation(compiler, element);
+        if (element.isClass && isJsInterop(element)) {
+          ClassElement classElement = element;
+          classElement.forEachMember((_, memberElement) {
+            checkJsInteropAnnotation(compiler, memberElement);
+          });
         }
+      });
+    }
+    if (library.isPlatformLibrary &&
+        // Don't patch library currently disallowed.
+        !library.isSynthesized &&
+        !library.isPatched &&
+        // Don't patch deserialized libraries.
+        !compiler.serialization.isDeserialized(library)) {
+      // Apply patch, if any.
+      Uri patchUri = compiler.resolvePatchUri(library.canonicalUri.path);
+      if (patchUri != null) {
+        return compiler.patchParser.patchLibrary(loader, patchUri, library);
       }
-    }).then((_) {
-      Uri uri = library.canonicalUri;
-      if (uri == Uris.dart_html) {
-        htmlLibraryIsLoaded = true;
-      } else if (uri == LookupMapAnalysis.PACKAGE_LOOKUP_MAP) {
-        lookupMapAnalysis.init(library);
-      }
-      annotations.onLibraryScanned(library);
-    });
+    }
+    Uri uri = library.canonicalUri;
+    if (uri == Uris.dart_html) {
+      htmlLibraryIsLoaded = true;
+    } else if (uri == LookupMapAnalysis.PACKAGE_LOOKUP_MAP) {
+      lookupMapAnalysis.init(library);
+    }
+    annotations.onLibraryScanned(library);
+    return new Future.value();
   }
 
+  /// This method is called when all new libraries loaded through
+  /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
+  /// have been computed.
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     if (!loadedLibraries.containsLibrary(Uris.dart_core)) {
       return new Future.value();
@@ -1949,6 +2010,9 @@ class JavaScriptBackend extends Backend {
     return new Future.value();
   }
 
+  /// Called by [MirrorUsageAnalyzerTask] after it has merged all @MirrorsUsed
+  /// annotations. The arguments corresponds to the unions of the corresponding
+  /// fields of the annotations.
   void registerMirrorUsage(
       Set<String> symbols, Set<Element> targets, Set<Element> metaTargets) {
     if (symbols == null && targets == null && metaTargets == null) {
@@ -1988,26 +2052,27 @@ class JavaScriptBackend extends Backend {
     return membersNeededForReflection.contains(element);
   }
 
+  /// Returns `true` if this member element needs reflection information at
+  /// runtime.
   bool isMemberAccessibleByReflection(MemberElement element) {
     return membersNeededForReflection.contains(element);
   }
 
-  /**
-   * Returns true if the element has to be resolved due to a mirrorsUsed
-   * annotation. If we have insufficient mirrors used annotations, we only
-   * keep additional elements if treeshaking has been disabled.
-   */
+  /// Returns true if this element has to be enqueued due to
+  /// mirror usage. Might be a subset of [referencedFromMirrorSystem] if
+  /// normal tree shaking is still active ([isTreeShakingDisabled] is false).
   bool requiredByMirrorSystem(Element element) {
     return hasInsufficientMirrorsUsed && isTreeShakingDisabled ||
         matchesMirrorsMetaTarget(element) ||
         targetsUsed.contains(element);
   }
 
-  /**
-   * Returns true if the element matches a mirrorsUsed annotation. If
-   * we have insufficient mirrorsUsed information, this returns true for
-   * all elements, as they might all be potentially referenced.
-   */
+  /// Returns true if this element is covered by a mirrorsUsed annotation.
+  ///
+  /// Note that it might still be ok to tree shake the element away if no
+  /// reflection is used in the program (and thus [isTreeShakingDisabled] is
+  /// still false). Therefore _do not_ use this predicate to decide inclusion
+  /// in the tree, use [requiredByMirrorSystem] instead.
   bool referencedFromMirrorSystem(Element element, [recursive = true]) {
     Element enclosing = recursive ? element.enclosingElement : null;
 
@@ -2244,7 +2309,22 @@ class JavaScriptBackend extends Backend {
     return staticFields;
   }
 
-  /// Called when [enqueuer] is empty, but before it is closed.
+  /// Called when [enqueuer]'s queue is empty, but before it is closed.
+  ///
+  /// This is used, for example, by the JS backend to enqueue additional
+  /// elements needed for reflection. [recentClasses] is a collection of
+  /// all classes seen for the first time by the [enqueuer] since the last call
+  /// to [onQueueEmpty].
+  ///
+  /// A return value of [:true:] indicates that [recentClasses] has been
+  /// processed and its elements do not need to be seen in the next round. When
+  /// [:false:] is returned, [onQueueEmpty] will be called again once the
+  /// resolution queue has drained and [recentClasses] will be a superset of the
+  /// current value.
+  ///
+  /// There is no guarantee that a class is only present once in
+  /// [recentClasses], but every class seen by the [enqueuer] will be present in
+  /// [recentClasses] at least once.
   bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
     // Add elements used synthetically, that is, through features rather than
     // syntax, for instance custom elements.
@@ -2385,6 +2465,8 @@ class JavaScriptBackend extends Backend {
     entities.forEach(processElementMetadata);
   }
 
+  /// Called after the queue is closed. [onQueueEmpty] may be called multiple
+  /// times, but [onQueueClosed] is only called once.
   void onQueueClosed() {
     lookupMapAnalysis.onQueueClosed();
     jsInteropAnalysis.onQueueClosed();
@@ -2403,6 +2485,8 @@ class JavaScriptBackend extends Backend {
     _closedWorldCache = value;
   }
 
+  /// Called when the compiler starts running the codegen enqueuer. The
+  /// [WorldImpact] of enabled backend features is returned.
   WorldImpact onCodegenStart(ClosedWorld closedWorld) {
     _closedWorld = closedWorld;
     _namer = determineNamer(_closedWorld, compiler.codegenWorldBuilder);
@@ -2415,9 +2499,28 @@ class JavaScriptBackend extends Backend {
     return const WorldImpact();
   }
 
+  /// Called when code generation has been completed.
   void onCodegenEnd() {
     sourceInformationStrategy.onComplete();
     tracer.close();
+  }
+
+  // Does this element belong in the output
+  bool shouldOutput(Element element) => true;
+
+  /// Returns `true` if the `native` pseudo keyword is supported for [library].
+  bool canLibraryUseNative(LibraryElement library) {
+    return native.maybeEnableNative(compiler, library);
+  }
+
+  @override
+  bool isTargetSpecificLibrary(LibraryElement library) {
+    Uri canonicalUri = library.canonicalUri;
+    if (canonicalUri == BackendHelpers.DART_JS_HELPER ||
+        canonicalUri == BackendHelpers.DART_INTERCEPTORS) {
+      return true;
+    }
+    return false;
   }
 
   /// Process backend specific annotations.
@@ -2506,7 +2609,7 @@ class JavaScriptBackend extends Backend {
 
   MethodElement helperForMainArity() => helpers.mainHasTooManyParameters;
 
-  @override
+  /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
   WorldImpact computeMainImpact(MethodElement mainMethod,
       {bool forResolution}) {
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
@@ -2540,10 +2643,12 @@ class JavaScriptBackend extends Backend {
     return "${outName}_$name$extension";
   }
 
-  @override
+  /// Enable deferred loading. Returns `true` if the backend supports deferred
+  /// loading.
   bool enableDeferredLoadingIfSupported(Spannable node) => true;
 
-  @override
+  /// Enable compilation of code with compile time errors. Returns `true` if
+  /// supported by the backend.
   bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
 
   jsAst.Expression rewriteAsync(
@@ -2610,14 +2715,17 @@ class JavaScriptBackend extends Backend {
     "_internal": "_internal/js_runtime/lib/internal_patch.dart"
   };
 
-  @override
+  /// Returns the location of the patch-file associated with [libraryName]
+  /// resolved from [plaformConfigUri].
+  ///
+  /// Returns null if there is none.
   Uri resolvePatchUri(String libraryName, Uri platformConfigUri) {
     String patchLocation = _patchLocations[libraryName];
     if (patchLocation == null) return null;
     return platformConfigUri.resolve(patchLocation);
   }
 
-  @override
+  /// Creates an impact strategy to use for compilation.
   ImpactStrategy createImpactStrategy(
       {bool supportDeferredLoad: true,
       bool supportDumpInfo: true,
@@ -2627,6 +2735,8 @@ class JavaScriptBackend extends Backend {
         supportDumpInfo: supportDumpInfo,
         supportSerialization: supportSerialization);
   }
+
+  EnqueueTask makeEnqueuer() => new EnqueueTask(compiler);
 }
 
 class JSFrontendAccess implements Frontend {

@@ -5,7 +5,6 @@
 library dart2js.common.codegen;
 
 import '../common.dart';
-import '../common/backend_api.dart' show Backend;
 import '../constants/values.dart' show ConstantValue;
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
@@ -17,6 +16,7 @@ import '../elements/elements.dart'
         FunctionElement,
         LocalFunctionElement,
         ResolvedAst;
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilderImpl, WorldImpactVisitor;
@@ -225,9 +225,9 @@ class CodegenRegistry {
 class CodegenWorkItem extends WorkItem {
   CodegenRegistry registry;
   final ResolvedAst resolvedAst;
-  final Backend backend;
+  final JavaScriptBackend backend;
 
-  factory CodegenWorkItem(Backend backend, AstElement element) {
+  factory CodegenWorkItem(JavaScriptBackend backend, AstElement element) {
     // If this assertion fails, the resolution callbacks of the backend may be
     // missing call of form registry.registerXXX. Alternatively, the code
     // generation could spuriously be adding dependencies on things we know we

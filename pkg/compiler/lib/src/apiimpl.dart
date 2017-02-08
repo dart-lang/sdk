@@ -47,7 +47,7 @@ class CompilerImpl extends Compiler {
 
   CompilerImpl(this.provider, api.CompilerOutput outputProvider, this.handler,
       CompilerOptions options,
-      {MakeBackendFunction makeBackend, MakeReporterFunction makeReporter})
+      {MakeReporterFunction makeReporter})
       // NOTE: allocating measurer is done upfront to ensure the wallclock is
       // started before other computations.
       : measurer = new Measurer(enableTaskMeasurements: options.verbose),
@@ -56,7 +56,6 @@ class CompilerImpl extends Compiler {
             options: options,
             outputProvider: outputProvider,
             environment: new _Environment(options.environment),
-            makeBackend: makeBackend,
             makeReporter: makeReporter) {
     _Environment env = environment;
     env.compiler = this;

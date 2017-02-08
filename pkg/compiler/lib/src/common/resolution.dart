@@ -26,6 +26,7 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../id_generator.dart';
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../mirrors_used.dart';
 import '../options.dart' show CompilerOptions;
 import '../parser/element_listener.dart' show ScannerOptions;
@@ -218,7 +219,7 @@ abstract class ParsingContext {
       ParserTask parser,
       ScannerTask scanner,
       PatchParserTask patchParser,
-      Backend backend) = _ParsingContext;
+      JavaScriptBackend backend) = _ParsingContext;
 
   DiagnosticReporter get reporter;
   ParserTask get parser;
@@ -242,7 +243,7 @@ class _ParsingContext implements ParsingContext {
   final ParserTask parser;
   final ScannerTask scanner;
   final PatchParserTask patchParser;
-  final Backend backend;
+  final JavaScriptBackend backend;
 
   _ParsingContext(
       this.reporter, this.parser, this.scanner, this.patchParser, this.backend);

@@ -6,7 +6,6 @@ library dart2js.js.enqueue;
 
 import 'dart:collection' show Queue;
 
-import '../common/backend_api.dart' show Backend;
 import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show WorkItem;
@@ -16,6 +15,7 @@ import '../elements/resolution_types.dart'
 import '../elements/elements.dart' show MemberElement, TypedElement;
 import '../elements/entities.dart';
 import '../enqueue.dart';
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../native/native.dart' as native;
 import '../options.dart';
 import '../types/types.dart' show TypeMaskStrategy;
@@ -39,7 +39,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   bool queueIsClosed = false;
   final CompilerTask task;
   final native.NativeEnqueuer nativeEnqueuer;
-  final Backend _backend;
+  final JavaScriptBackend _backend;
   final CompilerOptions _options;
 
   WorldImpactVisitor _impactVisitor;
@@ -52,8 +52,8 @@ class CodegenEnqueuer extends EnqueuerImpl {
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('CodegenEnqueuer');
 
-  CodegenEnqueuer(
-      this.task, Backend backend, CompilerOptions options, this.strategy)
+  CodegenEnqueuer(this.task, JavaScriptBackend backend, CompilerOptions options,
+      this.strategy)
       : _universe =
             new CodegenWorldBuilderImpl(backend, const TypeMaskStrategy()),
         _workItemBuilder = new CodegenWorkItemBuilder(backend, options),
@@ -258,7 +258,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
 /// Builder that creates the work item necessary for the code generation of a
 /// [MemberElement].
 class CodegenWorkItemBuilder extends WorkItemBuilder {
-  Backend _backend;
+  JavaScriptBackend _backend;
   CompilerOptions _options;
 
   CodegenWorkItemBuilder(this._backend, this._options);
