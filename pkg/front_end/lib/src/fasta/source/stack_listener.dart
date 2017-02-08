@@ -113,8 +113,8 @@ abstract class StackListener extends Listener {
 
   @override
   void logEvent(String name) {
-    print("  ${stack.join('\n  ')}");
-    internalError("Unhandled event: $name in $runtimeType $uri.");
+    internalError("Unhandled event: $name in $runtimeType $uri:\n"
+        "  ${stack.join('\n  ')}");
   }
 
   @override
