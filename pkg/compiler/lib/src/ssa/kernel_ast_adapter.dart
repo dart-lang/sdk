@@ -176,9 +176,9 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
     return !closedWorld.getCannotThrow(function);
   }
 
-  TypeMask returnTypeOf(ir.Member node) {
+  TypeMask returnTypeOf(ir.Procedure node) {
     return TypeMaskFactory.inferredReturnTypeForElement(
-        getElement(node), _globalInferenceResults);
+        getMethod(node), _globalInferenceResults);
   }
 
   SideEffects getSideEffects(ir.Node node, ClosedWorld closedWorld) {

@@ -2751,12 +2751,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     inputs.add(receiver);
     inputs.addAll(arguments);
 
+    TypeMask typeMask;
+    if (interfaceTarget is ir.Procedure) {
+      typeMask = astAdapter.returnTypeOf(interfaceTarget);
+    } else {
+      typeMask = closedWorld.commonMasks.dynamicType;
+    }
     HInstruction instruction = new HInvokeSuper(
         astAdapter.getMember(interfaceTarget),
         astAdapter.getClass(containingClass),
         selector,
         inputs,
-        astAdapter.returnTypeOf(interfaceTarget),
+        typeMask,
         null,
         isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
