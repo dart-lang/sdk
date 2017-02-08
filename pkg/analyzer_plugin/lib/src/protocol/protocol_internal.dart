@@ -5,8 +5,8 @@
 import 'dart:collection';
 import 'dart:convert' hide JsonDecoder;
 
-import 'package:analyzer_plugin/protocol/generated_protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     new HashMap<String, RefactoringKind>();

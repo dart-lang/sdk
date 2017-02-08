@@ -11,7 +11,7 @@
  */
 import 'dart:async';
 
-import 'package:analyzer_plugin/protocol/generated_protocol.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:test/test.dart';
 

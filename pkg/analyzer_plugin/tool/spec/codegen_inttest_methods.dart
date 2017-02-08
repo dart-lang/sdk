@@ -98,7 +98,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     writeln("import 'dart:async';");
     writeln();
     writeln(
-        "import 'package:analyzer_plugin/protocol/generated_protocol.dart';");
+        "import 'package:analyzer_plugin/protocol/protocol_generated.dart';");
     writeln(
         "import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';");
     writeln("import 'package:test/test.dart';");

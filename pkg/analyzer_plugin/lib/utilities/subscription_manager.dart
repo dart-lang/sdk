@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_plugin/protocol/generated_protocol.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 
 /**
  * An object that manages the subscriptions for analysis results.

@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:analyzer_plugin/protocol/generated_protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
+import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/channel/isolate_channel.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

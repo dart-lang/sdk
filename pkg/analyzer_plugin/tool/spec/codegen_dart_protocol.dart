@@ -27,7 +27,7 @@ const Map<String, String> specialElementFlags = const {
 };
 
 final GeneratedFile target =
-    new GeneratedFile('lib/protocol/generated_protocol.dart', (String pkgPath) {
+    new GeneratedFile('lib/protocol/protocol_generated.dart', (String pkgPath) {
   CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
