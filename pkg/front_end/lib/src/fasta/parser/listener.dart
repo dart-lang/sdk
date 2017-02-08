@@ -411,7 +411,8 @@ class Listener {
   /// [dart_vm_native.dart].
   Link<Token> handleMemberName(Link<Token> identifiers) => identifiers;
 
-  /// Doesn't have a corresponding begin event, use [beginMember] instead.
+  void beginMethod(Token token, Token name) {}
+
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     logEvent("Method");
   }
@@ -518,8 +519,8 @@ class Listener {
     logEvent("TopLevelFields");
   }
 
-  /// Doesn't have a corresponding begin event, use [beginTopLevelMember]
-  /// instead.
+  void beginTopLevelMethod(Token token, Token name) {}
+
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     logEvent("TopLevelMethod");
   }

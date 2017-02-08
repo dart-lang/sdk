@@ -95,7 +95,8 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables, KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces) {
     ClassBuilder cls = new SourceClassBuilder(metadata, modifiers, className,
-        typeVariables, supertype, interfaces, classMembers, classTypes, this,
+        typeVariables, supertype, interfaces, classMembers, declarationTypes,
+        this,
         new List<ConstructorReferenceBuilder>.from(constructorReferences));
     constructorReferences.clear();
     classMembers.forEach((String name, MemberBuilder builder) {
@@ -115,7 +116,7 @@ class KernelLibraryBuilder
       KernelTypeBuilder mixinApplication, List<KernelTypeBuilder> interfaces) {
     NamedMixinApplicationBuilder builder =
         new KernelNamedMixinApplicationBuilder(metadata, name, typeVariables,
-            modifiers, mixinApplication, interfaces, classTypes, this);
+            modifiers, mixinApplication, interfaces, declarationTypes, this);
     // Nested scope began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedScope();
     return addBuilder(name, builder);
@@ -132,6 +133,9 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
       ProcedureKind kind) {
+    // Nested scope began in `OutlineBuilder.beginMethod` or
+    // `OutlineBuilder.beginTopLevelMethod`.
+    endNestedScope().resolveTypes(typeVariables);
     return addBuilder(name,
         new KernelProcedureBuilder(metadata, modifiers, returnType, name,
             typeVariables, formals, asyncModifier, kind));
@@ -159,7 +163,8 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals) {
     FunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
-        metadata, returnType, name, typeVariables, formals, classTypes, this);
+        metadata, returnType, name, typeVariables, formals, declarationTypes,
+        this);
     // Nested scope began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedScope();
     return addBuilder(name, typedef);

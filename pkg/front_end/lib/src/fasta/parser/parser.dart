@@ -1110,6 +1110,7 @@ class Parser {
 
   Token parseTopLevelMethod(Token start, Link<Token> modifiers, Token type,
       Token getOrSet, Token name) {
+    listener.beginTopLevelMethod(start, name);
     Token externalModifier;
     // TODO(johnniwinther): Move error reporting to resolution to give more
     // specific error messages.
@@ -1515,6 +1516,7 @@ class Parser {
 
   Token parseMethod(Token start, Link<Token> modifiers, Token type,
       Token getOrSet, Token name) {
+    listener.beginMethod(start, name);
     Token externalModifier;
     Token staticModifier;
     Token constModifier;

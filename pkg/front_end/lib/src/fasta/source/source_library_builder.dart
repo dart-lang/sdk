@@ -47,9 +47,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     extends LibraryBuilder<T, R> {
   final SourceLoader loader;
 
-  final Map<String, Builder> members = <String, Builder>{};
-
-  final List<T> types = <T>[];
+  final BuilderScope<T> libraryScope = new BuilderScope<T>(<String, Builder>{});
 
   final List<ConstructorReferenceBuilder> constructorReferences =
       <ConstructorReferenceBuilder>[];
@@ -70,10 +68,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   List<MetadataBuilder> metadata;
 
-  Map<String, MemberBuilder> classMembers;
-
-  // TODO(ahe): Rename this. It's not just for classes.
-  List<T> classTypes;
+  /// The current declaration that is being built. When we start parsing a
+  /// declaration (class, method, and so on), we don't have enough information
+  /// to create a builder and this object records its members and types until,
+  /// for example, [addClass] is called.
+  BuilderScope<T> innerScope;
 
   SourceLibraryBuilder(this.loader, this.fileUri);
 
@@ -81,13 +80,32 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool get isPart => partOf != null;
 
+  Map<String, Builder> get members => libraryScope.members;
+
+  List<T> get types => libraryScope.types;
+
+  BuilderScope<T> get builderScope => innerScope ?? libraryScope;
+
+  /// When parsing a class, this returns a map of its members (that have been
+  /// parsed so far).
+  Map<String, MemberBuilder> get classMembers {
+    assert(innerScope == builderScope);
+    assert(innerScope.parent == libraryScope);
+    return builderScope.members;
+  }
+
+  List<T> get declarationTypes {
+    assert(innerScope == builderScope);
+    assert(innerScope.parent == libraryScope);
+    return builderScope.types;
+  }
+
   T addInterfaceType(String name, List<T> arguments);
 
   T addMixinApplication(T supertype, List<T> mixins);
 
   T addType(T type) {
-    List<T> types = classTypes ?? this.types;
-    types.add(type);
+    builderScope.addType(type);
     return type;
   }
 
@@ -101,14 +119,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     return ref;
   }
 
-  void beginNestedScope() {
-    classMembers = <String, MemberBuilder>{};
-    classTypes = <T>[];
+  void beginNestedScope({bool hasMembers}) {
+    innerScope = new BuilderScope(<String, MemberBuilder>{}, builderScope);
   }
 
-  void endNestedScope() {
-    classMembers = null;
-    classTypes = null;
+  BuilderScope<T> endNestedScope() {
+    BuilderScope<T> previous = innerScope;
+    innerScope = innerScope.parent;
+    return previous;
   }
 
   Uri resolve(String path) => uri.resolve(path);
@@ -189,7 +207,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     // TODO(ahe): Set the parent correctly here. Could then change the
     // implementation of MemberBuilder.isTopLevel to test explicitly for a
     // LibraryBuilder.
-    if (classMembers == null) {
+    if (builderScope == libraryScope) {
       if (builder is MemberBuilder) {
         builder.parent = this;
       } else if (builder is TypeDeclarationBuilder) {
@@ -199,8 +217,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       } else {
         return internalError("Unhandled: ${builder.runtimeType}");
       }
+    } else {
+      assert(builderScope.parent == libraryScope);
     }
-    Map<String, Builder> members = classMembers ?? this.members;
+    Map<String, Builder> members = builderScope.members;
     Builder existing = members[name];
     builder.next = existing;
     if (builder is PrefixBuilder && existing is PrefixBuilder) {
@@ -339,5 +359,65 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       count += member.resolveConstructors(this);
     });
     return count;
+  }
+}
+
+/// Unlike [Scope], this scope is used during construction of builders to
+/// ensure types and members are added to and resolved in the correct location.
+class BuilderScope<T extends TypeBuilder> {
+  final BuilderScope<T> parent;
+
+  final Map<String, Builder> members;
+
+  final List<T> types = <T>[];
+
+  BuilderScope(this.members, [this.parent]);
+
+  void addMember(String name, MemberBuilder builder) {
+    if (members == null) {
+      parent.addMember(name, builder);
+    } else {
+      members[name] = builder;
+    }
+  }
+
+  MemberBuilder lookupMember(String name) {
+    return members == null ? parent.lookupMember(name) : members[name];
+  }
+
+  void addType(T type) {
+    types.add(type);
+  }
+
+  /// Resolves type variables in [types] and propagate other types to [parent].
+  void resolveTypes(List<TypeVariableBuilder> typeVariables) {
+    // TODO(ahe): The input to this method, [typeVariables], shouldn't be just
+    // type variables. It should be everything that's in scope, for example,
+    // members (of a class) or formal parameters (of a method).
+    if (typeVariables == null) {
+      // If there are no type variables in the scope, propagate our types to be
+      // resolved in the parent scope.
+      parent.types.addAll(types);
+    } else {
+      Map<String, TypeVariableBuilder> map = <String, TypeVariableBuilder>{};
+      for (TypeVariableBuilder builder in typeVariables) {
+        map[builder.name] = builder;
+      }
+      for (T type in types) {
+        String name = type.name;
+        TypeVariableBuilder builder;
+        if (name != null) {
+          builder = map[name];
+        }
+        if (builder == null) {
+          // Since name didn't resolve in this scope, propagate it to the
+          // parent scope.
+          parent.addType(type);
+        } else {
+          type.bind(builder);
+        }
+      }
+    }
+    types.clear();
   }
 }

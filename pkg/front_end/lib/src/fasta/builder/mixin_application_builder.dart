@@ -4,8 +4,12 @@
 
 library fasta.mixin_application_builder;
 
+import '../errors.dart' show
+    internalError;
+
 import 'builder.dart' show
-    TypeBuilder;
+    TypeBuilder,
+    TypeDeclarationBuilder;
 
 import 'scope.dart' show
     Scope;
@@ -17,11 +21,17 @@ abstract class MixinApplicationBuilder<T extends TypeBuilder>
 
   MixinApplicationBuilder(this.supertype, this.mixins);
 
+  String get name => null;
+
   void resolveIn(Scope scope) {
     supertype.resolveIn(scope);
     for (T t in mixins) {
       t.resolveIn(scope);
     }
+  }
+
+  void bind(TypeDeclarationBuilder builder) {
+    internalError("Internal error: can't bind a mixin application.");
   }
 
   String get debugName => "MixinApplicationBuilder";

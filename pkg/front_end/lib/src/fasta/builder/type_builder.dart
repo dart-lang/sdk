@@ -6,6 +6,7 @@ library fasta.type_builder;
 
 import 'builder.dart' show
     Builder,
+    TypeDeclarationBuilder,
     TypeVariableBuilder;
 
 import 'scope.dart' show
@@ -14,6 +15,11 @@ import 'scope.dart' show
 // TODO(ahe): Make const class.
 abstract class TypeBuilder extends Builder {
   void resolveIn(Scope scope);
+
+  void bind(TypeDeclarationBuilder builder);
+
+  /// May return null, for example, for mixin applications.
+  String get name;
 
   String get debugName;
 

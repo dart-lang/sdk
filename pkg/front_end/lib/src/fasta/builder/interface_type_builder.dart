@@ -29,6 +29,10 @@ abstract class InterfaceTypeBuilder<T extends TypeBuilder> extends TypeBuilder {
 
   InvalidTypeBuilder buildInvalidType(String name);
 
+  void bind(TypeDeclarationBuilder builder) {
+    this.builder = builder;
+  }
+
   void resolveIn(Scope scope) {
     Builder member = scope.lookup(name);
     if (member is TypeDeclarationBuilder) {

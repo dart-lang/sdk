@@ -210,6 +210,11 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void beginTopLevelMethod(Token token, Token name) {
+    library.beginNestedScope(hasMembers: false);
+  }
+
+  @override
   ProcedureBuilder endTopLevelMethod(
       Token beginToken, Token getOrSet, Token endToken) {
     debugEvent("endTopLevelMethod");
@@ -237,6 +242,11 @@ class OutlineBuilder extends UnhandledListener {
   void handleFunctionBodySkipped(Token token) {
     debugEvent("handleFunctionBodySkipped");
     push(MethodBody.Regular);
+  }
+
+  @override
+  void beginMethod(Token token, Token name) {
+    library.beginNestedScope(hasMembers: false);
   }
 
   @override
@@ -272,7 +282,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginNamedMixinApplication(Token token) {
-    library.beginNestedScope();
+    library.beginNestedScope(hasMembers: false);
   }
 
   @override
