@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -336,6 +337,155 @@ import 'a.dart';
     // Only 'b' has been analyzed, because 'a' was removed before we started.
     expect(allResults, hasLength(1));
     expect(allResults[0].path, b);
+  }
+
+  test_analyze_resolveDirectives() async {
+    var lib = _p('/test/lib.dart');
+    var part1 = _p('/test/part1.dart');
+    var part2 = _p('/test/part2.dart');
+    provider.newFile(
+        lib,
+        '''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+''');
+    provider.newFile(
+        part1,
+        '''
+part of lib;
+''');
+    provider.newFile(
+        part2,
+        '''
+part of 'lib.dart';
+''');
+
+    AnalysisResult libResult = await driver.getResult(lib);
+    AnalysisResult partResult1 = await driver.getResult(part1);
+    AnalysisResult partResult2 = await driver.getResult(part2);
+
+    CompilationUnit libUnit = libResult.unit;
+    CompilationUnit partUnit1 = partResult1.unit;
+    CompilationUnit partUnit2 = partResult2.unit;
+
+    CompilationUnitElement unitElement = libUnit.element;
+    CompilationUnitElement partElement1 = partUnit1.element;
+    CompilationUnitElement partElement2 = partUnit2.element;
+
+    LibraryElement libraryElement = unitElement.library;
+    {
+      expect(libraryElement.entryPoint, isNull);
+      expect(libraryElement.source, unitElement.source);
+      expect(libraryElement.definingCompilationUnit, unitElement);
+      expect(libraryElement.parts, hasLength(2));
+    }
+
+    expect((libUnit.directives[0] as LibraryDirective).element, libraryElement);
+    expect((libUnit.directives[1] as PartDirective).element, partElement1);
+    expect((libUnit.directives[2] as PartDirective).element, partElement2);
+
+    {
+      var partOf = partUnit1.directives.single as PartOfDirective;
+      expect(partOf.element, libraryElement);
+    }
+
+    {
+      var partOf = partUnit2.directives.single as PartOfDirective;
+      expect(partOf.element, libraryElement);
+    }
+  }
+
+  test_analyze_resolveDirectives_error_missingLibraryDirective() async {
+    var lib = _p('/test/lib.dart');
+    var part = _p('/test/part.dart');
+    provider.newFile(
+        lib,
+        '''
+part 'part.dart';
+''');
+    provider.newFile(
+        part,
+        '''
+part of lib;
+''');
+
+    driver.addFile(lib);
+
+    AnalysisResult libResult = await driver.getResult(lib);
+    List<AnalysisError> errors = libResult.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode,
+        ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
+  }
+
+  test_analyze_resolveDirectives_error_partOfDifferentLibrary_byName() async {
+    var lib = _p('/test/lib.dart');
+    var part = _p('/test/part.dart');
+    provider.newFile(
+        lib,
+        '''
+library lib;
+part 'part.dart';
+''');
+    provider.newFile(
+        part,
+        '''
+part of someOtherLib;
+''');
+
+    driver.addFile(lib);
+
+    AnalysisResult libResult = await driver.getResult(lib);
+    List<AnalysisError> errors = libResult.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY);
+  }
+
+  test_analyze_resolveDirectives_error_partOfDifferentLibrary_byUri() async {
+    var lib = _p('/test/lib.dart');
+    var part = _p('/test/part.dart');
+    provider.newFile(
+        lib,
+        '''
+library lib;
+part 'part.dart';
+''');
+    provider.newFile(
+        part,
+        '''
+part of 'other_lib.dart';
+''');
+
+    driver.addFile(lib);
+
+    AnalysisResult libResult = await driver.getResult(lib);
+    List<AnalysisError> errors = libResult.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY);
+  }
+
+  test_analyze_resolveDirectives_error_partOfNonPart() async {
+    var lib = _p('/test/lib.dart');
+    var part = _p('/test/part.dart');
+    provider.newFile(
+        lib,
+        '''
+library lib;
+part 'part.dart';
+''');
+    provider.newFile(
+        part,
+        '''
+// no part of directive
+''');
+
+    driver.addFile(lib);
+
+    AnalysisResult libResult = await driver.getResult(lib);
+    List<AnalysisError> errors = libResult.errors;
+    expect(errors, hasLength(1));
+    expect(errors[0].errorCode, CompileTimeErrorCode.PART_OF_NON_PART);
   }
 
   test_cachedPriorityResults() async {

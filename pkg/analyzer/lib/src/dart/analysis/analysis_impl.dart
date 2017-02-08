@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
@@ -45,6 +44,7 @@ class AnalyzerImpl {
   TypeProvider _typeProvider;
   AnalysisContextImpl _context;
   StoreBasedSummaryResynthesizer _resynthesizer;
+  LibraryElement _libraryElement;
 
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
@@ -67,7 +67,7 @@ class AnalyzerImpl {
       units[part] = _parse(part);
     }
 
-    // Resolve directives.
+    // Resolve URIs in directives to corresponding sources.
     units.forEach((file, unit) {
       _resolveUriBasedDirectives(file, unit);
     });
@@ -80,6 +80,10 @@ class AnalyzerImpl {
       _typeProvider = _resynthesizer.typeProvider;
       _context.typeProvider = _typeProvider;
 
+      _libraryElement = _resynthesizer.getLibraryElement(_library.uriStr);
+
+      _resolveDirectives(units);
+
       units.forEach((file, unit) {
         _resolveFile(file, unit);
       });
@@ -87,14 +91,13 @@ class AnalyzerImpl {
       _computeConstants();
 
       units.forEach((file, unit) {
-        LibraryElement libraryElement = unit.element.library;
         {
-          var visitor = new GatherUsedLocalElementsVisitor(libraryElement);
+          var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
           unit.accept(visitor);
           _usedLocalElementsList.add(visitor.usedElements);
         }
         {
-          var visitor = new GatherUsedImportedElementsVisitor(libraryElement);
+          var visitor = new GatherUsedImportedElementsVisitor(_libraryElement);
           unit.accept(visitor);
           _usedImportedElementsList.add(visitor.usedElements);
         }
@@ -142,7 +145,6 @@ class AnalyzerImpl {
   void _computeVerifyErrorsAndHints(FileState file, CompilationUnit unit) {
     RecordingErrorListener errorListener = _getErrorListener(file);
     CompilationUnitElement unitElement = unit.element;
-    LibraryElement libraryElement = unitElement.library;
 
     //
     // Use the ErrorVerifier to compute errors.
@@ -180,7 +182,7 @@ class AnalyzerImpl {
     // Use the ConstantVerifier to compute errors.
     //
     ConstantVerifier constantVerifier = new ConstantVerifier(
-        errorReporter, libraryElement, _typeProvider, _declaredVariables);
+        errorReporter, _libraryElement, _typeProvider, _declaredVariables);
     unit.accept(constantVerifier);
 
     //
@@ -188,9 +190,9 @@ class AnalyzerImpl {
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(
         errorReporter,
-        libraryElement,
+        _libraryElement,
         _typeProvider,
-        new InheritanceManager(libraryElement),
+        new InheritanceManager(_libraryElement),
         _analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
 
@@ -213,11 +215,11 @@ class AnalyzerImpl {
     }
 
     InheritanceManager inheritanceManager = new InheritanceManager(
-        libraryElement,
+        _libraryElement,
         includeAbstractFromSuperclasses: true);
 
     unit.accept(new BestPracticesVerifier(
-        errorReporter, _typeProvider, libraryElement, inheritanceManager,
+        errorReporter, _typeProvider, _libraryElement, inheritanceManager,
         typeSystem: _context.typeSystem));
 
     unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
@@ -237,7 +239,7 @@ class AnalyzerImpl {
 
     {
       GatherUsedLocalElementsVisitor visitor =
-          new GatherUsedLocalElementsVisitor(libraryElement);
+          new GatherUsedLocalElementsVisitor(_libraryElement);
       unit.accept(visitor);
     }
 
@@ -272,6 +274,31 @@ class AnalyzerImpl {
   }
 
   /**
+   * Return the name of the library that the given part is declared to be a
+   * part of, or `null` if the part does not contain a part-of directive.
+   */
+  _NameOrSource _getPartLibraryNameOrUri(Source partSource,
+      CompilationUnit partUnit, List<Directive> directivesToResolve) {
+    for (Directive directive in partUnit.directives) {
+      if (directive is PartOfDirective) {
+        directivesToResolve.add(directive);
+        LibraryIdentifier libraryName = directive.libraryName;
+        if (libraryName != null) {
+          return new _NameOrSource(libraryName.name, null);
+        }
+        String uri = directive.uri?.stringValue;
+        if (uri != null) {
+          Source librarySource = _sourceFactory.resolveUri(partSource, uri);
+          if (librarySource != null) {
+            return new _NameOrSource(null, librarySource);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Return a new parsed unresolved [CompilationUnit].
    */
   CompilationUnit _parse(FileState file) {
@@ -285,19 +312,110 @@ class AnalyzerImpl {
 
     Parser parser = new Parser(file.source, errorListener);
     parser.parseGenericMethodComments = _analysisOptions.strongMode;
+    parser.enableUriInPartOf = _analysisOptions.enableUriInPartOf;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;
   }
 
+  void _resolveDirectives(Map<FileState, CompilationUnit> units) {
+    CompilationUnit definingCompilationUnit = units[_library];
+
+    var uriToElement = <Uri, CompilationUnitElement>{};
+    for (CompilationUnitElement partElement in _libraryElement.units) {
+      uriToElement[partElement.source.uri] = partElement;
+    }
+
+    var sourceToUnit = <Source, CompilationUnit>{};
+    units.forEach((file, unit) {
+      Source source = file.source;
+      unit.element = uriToElement[source.uri];
+      sourceToUnit[source] = unit;
+    });
+
+    ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
+    LibraryIdentifier libraryNameNode = null;
+    bool hasPartDirective = false;
+    var seenPartSources = new Set<Source>();
+    var directivesToResolve = <Directive>[];
+    for (Directive directive in definingCompilationUnit.directives) {
+      if (directive is LibraryDirective) {
+        libraryNameNode = directive.name;
+        directivesToResolve.add(directive);
+      } else if (directive is PartDirective) {
+        hasPartDirective = true;
+        StringLiteral partUri = directive.uri;
+        Source partSource = directive.uriSource;
+        CompilationUnit partUnit = sourceToUnit[partSource];
+        if (partUnit != null) {
+          directive.element = partUnit.element;
+          //
+          // Validate that the part source is unique in the library.
+          //
+          if (!seenPartSources.add(partSource)) {
+            libraryErrorReporter.reportErrorForNode(
+                CompileTimeErrorCode.DUPLICATE_PART, partUri, [partSource.uri]);
+          }
+          //
+          // Validate that the part contains a part-of directive with the same
+          // name as the library.
+          //
+          if (_context.exists(partSource)) {
+            _NameOrSource nameOrSource = _getPartLibraryNameOrUri(
+                partSource, partUnit, directivesToResolve);
+            if (nameOrSource == null) {
+              libraryErrorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.PART_OF_NON_PART,
+                  partUri,
+                  [partUri.toSource()]);
+            } else {
+              String name = nameOrSource.name;
+              if (name != null) {
+                if (libraryNameNode != null && libraryNameNode.name != name) {
+                  libraryErrorReporter.reportErrorForNode(
+                      StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                      partUri,
+                      [libraryNameNode.name, name]);
+                }
+              } else {
+                Source source = nameOrSource.source;
+                if (source != _library.source) {
+                  libraryErrorReporter.reportErrorForNode(
+                      StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                      partUri,
+                      [_library.uriStr, source.uri]);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (hasPartDirective && libraryNameNode == null) {
+      libraryErrorReporter.reportErrorForOffset(
+          ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART, 0, 0);
+    }
+
+    //
+    // Resolve the relevant directives to the library element.
+    //
+    for (Directive directive in directivesToResolve) {
+      directive.element = _libraryElement;
+    }
+
+    {
+      // TODO(scheglov) fill these maps?
+      DirectiveResolver resolver = new DirectiveResolver({}, {}, {});
+      definingCompilationUnit.accept(resolver);
+    }
+  }
+
   void _resolveFile(FileState file, CompilationUnit unit) {
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    String libraryUri = _library.uri.toString();
-    String unitUri = file.uri.toString();
-    CompilationUnitElement unitElement = _resynthesizer.getElement(
-        new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
-    LibraryElement libraryElement = unitElement.library;
+    CompilationUnitElement unitElement = unit.element;
+    Source source = file.source;
 
     // TODO(scheglov) Hack: set types for top-level variables
     // Otherwise TypeResolverVisitor will set declared types, and because we
@@ -312,27 +430,21 @@ class AnalyzerImpl {
 
     new DeclarationResolver().resolve(unit, unitElement);
 
-    if (file == _library) {
-      // TODO(scheglov) fill these maps?
-      DirectiveResolver resolver = new DirectiveResolver({}, {}, {});
-      unit.accept(resolver);
-    }
-
     // TODO(scheglov) remove EnumMemberBuilder class
 
     new TypeParameterBoundsResolver(
-            _typeProvider, libraryElement, unitElement.source, errorListener)
+            _typeProvider, _libraryElement, source, errorListener)
         .resolveTypeBounds(unit);
 
     unit.accept(new TypeResolverVisitor(
-        libraryElement, unitElement.source, _typeProvider, errorListener));
+        _libraryElement, source, _typeProvider, errorListener));
 
-    LibraryScope libraryScope = new LibraryScope(libraryElement);
+    LibraryScope libraryScope = new LibraryScope(_libraryElement);
     unit.accept(new VariableResolverVisitor(
-        libraryElement, unitElement.source, _typeProvider, errorListener,
+        _libraryElement, source, _typeProvider, errorListener,
         nameScope: libraryScope));
 
-    unit.accept(new PartialResolverVisitor(libraryElement, unitElement.source,
+    unit.accept(new PartialResolverVisitor(_libraryElement, source,
         _typeProvider, AnalysisErrorListener.NULL_LISTENER));
 
     // Nothing for RESOLVED_UNIT8?
@@ -340,7 +452,7 @@ class AnalyzerImpl {
     // Nothing for RESOLVED_UNIT10?
 
     unit.accept(new ResolverVisitor(
-        libraryElement, unitElement.source, _typeProvider, errorListener));
+        _libraryElement, source, _typeProvider, errorListener));
 
     //
     // Find constants to compute.
@@ -562,4 +674,13 @@ class _ContentCacheWrapper implements ContentCache {
     String path = source.fullName;
     return fsState.getFileForPath(path);
   }
+}
+
+/**
+ * Either the name or the source associated with a part-of directive.
+ */
+class _NameOrSource {
+  final String name;
+  final Source source;
+  _NameOrSource(this.name, this.source);
 }

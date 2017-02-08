@@ -122,7 +122,9 @@ class BaseAnalysisDriverTest {
           }),
           new ResourceUriResolver(provider)
         ], null, provider),
-        new AnalysisOptionsImpl()..strongMode = true);
+        new AnalysisOptionsImpl()
+          ..strongMode = true
+          ..enableUriInPartOf = true);
     scheduler.start();
     scheduler.status.listen(allStatuses.add);
     driver.results.listen(allResults.add);
