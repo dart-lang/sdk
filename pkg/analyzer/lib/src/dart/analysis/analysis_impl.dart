@@ -462,6 +462,15 @@ class AnalyzerImpl {
       unit.accept(constantFinder);
       _constants.addAll(constantFinder.constantsToCompute);
     }
+
+    //
+    // Find constant dependencies to compute.
+    //
+    {
+      var finder = new ConstantExpressionsDependenciesFinder();
+      unit.accept(finder);
+      _constants.addAll(finder.dependencies);
+    }
   }
 
   /**
