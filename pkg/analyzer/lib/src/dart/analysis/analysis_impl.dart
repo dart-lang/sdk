@@ -331,6 +331,14 @@ class AnalyzerImpl {
   }
 
   /**
+   * Return `true` if the given [source] is a library.
+   */
+  bool _isLibrarySource(Source source) {
+    String uriStr = source.uri.toString();
+    return _store.unlinkedMap[uriStr]?.isPartOf == false;
+  }
+
+  /**
    * Return a new parsed unresolved [CompilationUnit].
    */
   CompilationUnit _parse(FileState file) {
@@ -379,6 +387,31 @@ class AnalyzerImpl {
       if (directive is LibraryDirective) {
         libraryNameNode = directive.name;
         directivesToResolve.add(directive);
+      } else if (directive is ImportDirective) {
+        for (ImportElement importElement in _libraryElement.imports) {
+          if (importElement.nameOffset == directive.offset) {
+            directive.element = importElement;
+            if (!_isLibrarySource(importElement.importedLibrary.source)) {
+              ErrorCode errorCode = importElement.isDeferred
+                  ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
+                  : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
+              libraryErrorReporter.reportErrorForNode(
+                  errorCode, directive.uri, [directive.uri]);
+            }
+          }
+        }
+      } else if (directive is ExportDirective) {
+        for (ExportElement exportElement in _libraryElement.exports) {
+          if (exportElement.nameOffset == directive.offset) {
+            directive.element = exportElement;
+            if (!_isLibrarySource(exportElement.exportedLibrary.source)) {
+              libraryErrorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+                  directive.uri,
+                  [directive.uri]);
+            }
+          }
+        }
       } else if (directive is PartDirective) {
         hasPartDirective = true;
         StringLiteral partUri = directive.uri;
@@ -441,11 +474,7 @@ class AnalyzerImpl {
       directive.element = _libraryElement;
     }
 
-    {
-      // TODO(scheglov) fill these maps?
-      DirectiveResolver resolver = new DirectiveResolver({}, {}, {});
-      definingCompilationUnit.accept(resolver);
-    }
+    // TODO(scheglov) remove DirectiveResolver class
   }
 
   void _resolveFile(FileState file, CompilationUnit unit) {
