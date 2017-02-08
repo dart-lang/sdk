@@ -39,8 +39,4 @@ class MapUriTest extends AbstractMapUriTest {}
 class MapUriTest_Driver extends AbstractMapUriTest {
   @override
   bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  Future test_mapUri() => super.test_mapUri();
 }

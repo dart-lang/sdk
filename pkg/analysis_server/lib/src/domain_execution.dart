@@ -97,10 +97,22 @@ class ExecutionDomainHandler implements RequestHandler {
       return new Response.invalidParameter(request, 'id',
           'There is no execution context with an id of $contextId');
     }
-    AnalysisContext context = server.getContainingContext(path);
-    if (context == null) {
-      return new Response.invalidExecutionContext(request, contextId);
+
+    SourceFactory sourceFactory;
+    if (server.options.enableNewAnalysisDriver) {
+      var driver = server.getAnalysisDriver(path);
+      if (driver == null) {
+        return new Response.invalidExecutionContext(request, contextId);
+      }
+      sourceFactory = driver.sourceFactory;
+    } else {
+      AnalysisContext context = server.getContainingContext(path);
+      if (context == null) {
+        return new Response.invalidExecutionContext(request, contextId);
+      }
+      sourceFactory = context.sourceFactory;
     }
+
     String file = params.file;
     String uri = params.uri;
     if (file != null) {
@@ -120,11 +132,11 @@ class ExecutionDomainHandler implements RequestHandler {
       if (source.uriKind != UriKind.FILE_URI) {
         uri = source.uri.toString();
       } else {
-        uri = context.sourceFactory.restoreUri(source).toString();
+        uri = sourceFactory.restoreUri(source).toString();
       }
       return new ExecutionMapUriResult(uri: uri).toResponse(request.id);
     } else if (uri != null) {
-      Source source = context.sourceFactory.forUri(uri);
+      Source source = sourceFactory.forUri(uri);
       if (source == null) {
         return new Response.invalidParameter(request, 'uri', 'Invalid URI');
       }
