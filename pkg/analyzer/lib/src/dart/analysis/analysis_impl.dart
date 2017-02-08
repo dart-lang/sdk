@@ -49,6 +49,7 @@ class AnalyzerImpl {
   final Map<FileState, ErrorReporter> _errorReporters = {};
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
+  final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
   final List<ConstantEvaluationTarget> _constants = [];
 
   AnalyzerImpl(this._analysisOptions, this._declaredVariables,
@@ -85,6 +86,7 @@ class AnalyzerImpl {
 
       units.forEach((file, unit) {
         _resolveFile(file, unit);
+        _computePendingMissingRequiredParameters(file, unit);
       });
 
       _computeConstants();
@@ -152,6 +154,13 @@ class AnalyzerImpl {
     AnalysisErrorListener errorListener = _getErrorListener(file);
     ErrorReporter errorReporter = _getErrorReporter(file);
 
+    //
+    // Convert the pending errors into actual errors.
+    //
+    for (PendingError pendingError in _fileToPendingErrors[file]) {
+      errorListener.onError(pendingError.toAnalysisError());
+    }
+
     unit.accept(
         new DeadCodeVerifier(errorReporter, typeSystem: _context.typeSystem));
 
@@ -192,22 +201,17 @@ class AnalyzerImpl {
     }
   }
 
+  void _computePendingMissingRequiredParameters(
+      FileState file, CompilationUnit unit) {
+    // TODO(scheglov) This can be done without "pending" if we resynthesize.
+    var computer = new RequiredConstantsComputer(file.source);
+    unit.accept(computer);
+    _constants.addAll(computer.requiredConstants);
+    _fileToPendingErrors[file] = computer.pendingErrors;
+  }
+
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
     RecordingErrorListener errorListener = _getErrorListener(file);
-    CompilationUnitElement unitElement = unit.element;
-
-    //
-    // Use the ErrorVerifier to compute errors.
-    //
-    List<PendingError> pendingErrors;
-    {
-      RequiredConstantsComputer computer =
-          new RequiredConstantsComputer(file.source);
-      unit.accept(computer);
-      pendingErrors = computer.pendingErrors;
-      List<ConstantEvaluationTarget> requiredConstants =
-          computer.requiredConstants;
-    }
 
     if (_analysisOptions.strongMode) {
       AnalysisOptionsImpl options = _analysisOptions as AnalysisOptionsImpl;
@@ -245,13 +249,6 @@ class AnalyzerImpl {
         new InheritanceManager(_libraryElement),
         _analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
-
-    //
-    // Convert the pending errors into actual errors.
-    //
-    for (PendingError pendingError in pendingErrors) {
-      errorListener.onError(pendingError.toAnalysisError());
-    }
   }
 
   void _createAnalysisContext() {
