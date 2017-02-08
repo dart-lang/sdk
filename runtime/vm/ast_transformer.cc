@@ -119,7 +119,14 @@ void AwaitTransformer::VisitLiteralNode(LiteralNode* node) {
 
 
 void AwaitTransformer::VisitTypeNode(TypeNode* node) {
-  result_ = new (Z) TypeNode(node->token_pos(), node->type());
+  if (node->is_deferred_reference()) {
+    // Deferred references must use a temporary even after loading
+    // happened, so that the number of await temps is the same as
+    // before the loading.
+    result_ = MakeName(node);
+  } else {
+    result_ = node;
+  }
 }
 
 

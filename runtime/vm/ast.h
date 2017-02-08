@@ -443,8 +443,12 @@ class LiteralNode : public AstNode {
 
 class TypeNode : public AstNode {
  public:
-  TypeNode(TokenPosition token_pos, const AbstractType& type)
-      : AstNode(token_pos), type_(type) {
+  TypeNode(TokenPosition token_pos,
+           const AbstractType& type,
+           bool is_deferred_reference = false)
+      : AstNode(token_pos),
+        type_(type),
+        is_deferred_reference_(is_deferred_reference) {
     ASSERT(type_.IsZoneHandle());
     ASSERT(!type_.IsNull());
     ASSERT(type_.IsFinalized());
@@ -466,10 +470,14 @@ class TypeNode : public AstNode {
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {}
 
+  bool is_deferred_reference() const { return is_deferred_reference_; }
+  void set_is_deferred_reference(bool value) { is_deferred_reference_ = value; }
+
   DECLARE_COMMON_NODE_FUNCTIONS(TypeNode);
 
  private:
   const AbstractType& type_;
+  bool is_deferred_reference_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(TypeNode);
 };

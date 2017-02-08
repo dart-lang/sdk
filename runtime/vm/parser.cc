@@ -11638,7 +11638,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                                ClassFinalizer::kCanonicalize);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
-          array = new (Z) TypeNode(primary_pos, type);
+          array = new (Z) TypeNode(primary_pos, type,
+                                   primary_node->is_deferred_reference());
         } else if (primary_node->primary().IsTypeParameter()) {
           array = LoadTypeParameter(primary_node);
         } else {
@@ -11733,7 +11734,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                                ClassFinalizer::kCanonicalize);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
-          selector = new (Z) TypeNode(primary_pos, type);
+          selector = new (Z) TypeNode(primary_pos, type,
+                                      primary_node->is_deferred_reference());
         } else {
           UNREACHABLE();  // Internal parser error.
         }
@@ -11760,7 +11762,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                               ClassFinalizer::kCanonicalize);
           // Type may be malbounded, but not malformed.
           ASSERT(!type.IsMalformed());
-          left = new (Z) TypeNode(primary_pos, type);
+          left = new (Z) TypeNode(primary_pos, type,
+                                  primary_node->is_deferred_reference());
         } else if (primary_node->primary().IsTypeParameter()) {
           left = LoadTypeParameter(primary_node);
         } else if (primary_node->IsSuper()) {
@@ -12720,7 +12723,8 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
                                            ClassFinalizer::kCanonicalize);
       // Type may be malbounded, but not malformed.
       ASSERT(!type.IsMalformed());
-      resolved = new (Z) TypeNode(primary_pos, type);
+      resolved =
+          new (Z) TypeNode(primary_pos, type, primary->is_deferred_reference());
     }
   }
   return resolved;
