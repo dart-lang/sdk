@@ -91,8 +91,8 @@ static void FetchErrorString(const SSL* ssl, TextBuffer* text_buffer) {
     error = ERR_get_error_line(&path, &line);
     const char* file = strrchr(path, sep[0]);
     path = file ? file + 1 : path;
-    if ((ssl != NULL) &&
-        (error == ERR_PACK(ERR_R_SSL_LIB, SSL_R_CERTIFICATE_VERIFY_FAILED))) {
+    if ((ssl != NULL) && (ERR_GET_LIB(error) == ERR_LIB_SSL) &&
+        (ERR_GET_REASON(error) == SSL_R_CERTIFICATE_VERIFY_FAILED)) {
       intptr_t result = SSL_get_verify_result(ssl);
       text_buffer->Printf("\n\t%s: %s (%s:%d)", ERR_reason_error_string(error),
                           X509_verify_cert_error_string(result), path, line);
