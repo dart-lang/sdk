@@ -49,6 +49,8 @@ abstract class String extends Object implements Comparable<String> {
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;
+  bool contains(String other, [int startIndex = 0]);
+  int indexOf(String other, [int start]);
   String toUpperCase();
   List<int> get codeUnits;
 }
@@ -94,6 +96,7 @@ class Iterator<E> {
 
 abstract class Iterable<E> {
   Iterator<E> get iterator;
+  bool contains(Object element);
   bool get isEmpty;
   bool get isNotEmpty;
   E get first;
@@ -107,6 +110,7 @@ abstract class List<E> implements Iterable<E> {
   void operator []=(int index, E value);
   Iterator<E> get iterator => null;
   void clear();
+  int indexOf(Object element);
   bool get isEmpty;
   bool get isNotEmpty;
 }
