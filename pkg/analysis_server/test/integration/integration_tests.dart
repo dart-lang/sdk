@@ -177,7 +177,9 @@ abstract class AbstractAnalysisServerIntegrationTest
    * [sourceDirectory] is created.
    */
   Future setUp() {
-    sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
+    sourceDirectory = new Directory(Directory.systemTemp
+        .createTempSync('analysisServer')
+        .resolveSymbolicLinksSync());
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
