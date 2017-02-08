@@ -1,0 +1,55 @@
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library fasta.operators;
+
+/// The user-definable operators in Dart.
+///
+/// The names have been chosen to represent their normal semantic meaning.
+enum Operator {
+  add,
+  bitwiseAnd,
+  bitwiseNot,
+  bitwiseOr,
+  bitwiseXor,
+  divide,
+  equals,
+  greaterThan,
+  greaterThanEquals,
+  index,
+  indexSet,
+  leftShift,
+  lessThan,
+  lessThanEquals,
+  multiply,
+  modulo,
+  rightShift,
+  subtract,
+  truncatingDivide,
+  unaryMinus,
+}
+
+Operator fromString(String string) {
+  if (identical("+", string)) return Operator.add;
+  if (identical("&", string)) return Operator.bitwiseAnd;
+  if (identical("~", string)) return Operator.bitwiseNot;
+  if (identical("|", string)) return Operator.bitwiseOr;
+  if (identical("^", string)) return Operator.bitwiseXor;
+  if (identical("/", string)) return Operator.divide;
+  if (identical("==", string)) return Operator.equals;
+  if (identical(">", string)) return Operator.greaterThan;
+  if (identical(">=", string)) return Operator.greaterThanEquals;
+  if (identical("[]", string)) return Operator.index;
+  if (identical("[]=", string)) return Operator.indexSet;
+  if (identical("<<", string)) return Operator.leftShift;
+  if (identical("<", string)) return Operator.lessThan;
+  if (identical("<=", string)) return Operator.lessThanEquals;
+  if (identical("*", string)) return Operator.multiply;
+  if (identical("%", string)) return Operator.modulo;
+  if (identical(">>", string)) return Operator.rightShift;
+  if (identical("-", string)) return Operator.subtract;
+  if (identical("~/", string)) return Operator.truncatingDivide;
+  if (identical("unary-", string)) return Operator.unaryMinus;
+  return null;
+}
