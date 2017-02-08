@@ -9,41 +9,28 @@ A Dart style linter.
 
 ## Installing
 
-The easiest way to install the `linter` is to [globally activate](https://www.dartlang.org/tools/pub/cmd/pub-global.html) it via `pub`:
+The linter is bundled with the Dart [SDK](https://www.dartlang.org/tools/sdk); if you have an updated Dart SDK already, you're done!
 
-    $ pub global activate linter
-
-Alternatively, clone the `linter` repo like this:
+Alternatively, if you want to contribute to the linter or examine the source, clone the `linter` repo like this:
 
     $ git clone https://github.com/dart-lang/linter.git
 
 ## Usage
 
-Linter for Dart gives you feedback to help you keep your code in line with the published [Dart Style Guide](https://www.dartlang.org/articles/style-guide/). Currently enforced lint rules (or "lints") are catalogued [here](http://dart-lang.github.io/linter/lints/).  When you run the linter all lints are enabled but don't worry, configuration, wherein you can specifically enable/disable lints, is in the [works](https://github.com/dart-lang/linter/issues/7).  While initial focus is on style lints, other lints that catch common programming errors are certainly of interest.  If you have ideas, please file a [feature request][tracker].
+The linter gives you feedback to help you catch potential errors and keep your code in line with the published [Dart Style Guide](https://www.dartlang.org/articles/style-guide/). Currently enforcable lint rules (or "lints") are catalogued [here][lints] and can be configured via an [analysis options file][options_file].  The linter is run from within the `dartanalyzer` [command-line tool](https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_cli#dartanalyzer) shipped with the Dart SDK.  Assuming you have lints configured in an `.analysis_options` file with these contents:
 
-Running the linter via `pub` looks like this:
+```
+linter:
+  rules:
+    - annotate_overrides
+    - hash_and_equals
+    - prefer_is_not_empty
+```
+you could lint your package like this:
 
-    $ pub global run linter my_project
-
-With example output will looking like this:
-
-    my_project/my_library.dart 13:8 [lint] Name non-constant identifiers using lowerCamelCase.
-      IOSink std_err = stderr;
-             ^^^^^^^
-    12 files analyzed, 1 issue found.
-
-Supported options are
-
-    -h, --help                             Shows usage information.
-    -s, --stats                            Show lint statistics.
-        --[no-]visit-transitive-closure    Visit the transitive closure of imported/exported libraries.
-    -q, --[no-]quiet                       Don't show individual lint errors.
-    -c, --config                           Use configuration from this file.
-        --dart-sdk                         Custom path to a Dart SDK.
-    -p, --package-root                     Custom package root. (Discouraged.)
-
-Note that you should not need to specify an `sdk` or `package-root`. Lint configuration file format is provisional and under [active discussion](https://github.com/dart-lang/linter/issues/41). Other configuration options are on the way.  
-
+    $ dartanalyzer --options .analysis_options .
+    
+and see any violations of the `annotate_overrides`, `hash_and_equals`, and `prefer_is_not_empty` rules in the console.  In practice you would probably configure quite a few more rules (the full list is [here][lints]). For more on configuring analysis, see the analysis option file [docs][options_file].
 
 ## Contributing
 
@@ -55,4 +42,6 @@ Feedback is, of course, greatly appreciated and contributions are welcome! Pleas
 Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/dart-lang/linter/issues
+[lints]: http://dart-lang.github.io/linter/lints/
+[options_file]: https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file
 
