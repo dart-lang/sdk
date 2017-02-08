@@ -4,7 +4,6 @@
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -13,20 +12,17 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:front_end/src/dependency_walker.dart';
-import 'package:front_end/src/scanner/reader.dart';
 
 /**
  * Analyzer of Dart files.
@@ -343,23 +339,13 @@ class AnalyzerImpl {
    */
   CompilationUnit _parse(FileState file) {
     RecordingErrorListener errorListener = _getErrorListener(file);
-
     String content = file.content;
+    CompilationUnit unit = file.parse(errorListener);
 
-    CharSequenceReader reader = new CharSequenceReader(content);
-    Scanner scanner = new Scanner(file.source, reader, errorListener);
-    scanner.scanGenericMethodComments = _analysisOptions.strongMode;
-    Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-
+    LineInfo lineInfo = unit.lineInfo;
     _fileToLineInfo[file] = lineInfo;
     _fileToIgnoreInfo[file] = IgnoreInfo.calculateIgnores(content, lineInfo);
 
-    Parser parser = new Parser(file.source, errorListener);
-    parser.parseGenericMethodComments = _analysisOptions.strongMode;
-    parser.enableUriInPartOf = _analysisOptions.enableUriInPartOf;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
     return unit;
   }
 
