@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C extends core::Object {
   constructor •() → void
     ;
-  method ==(dynamic other) → dynamic
+  operator ==(dynamic other) → dynamic
     ;
   method test() → dynamic
     ;

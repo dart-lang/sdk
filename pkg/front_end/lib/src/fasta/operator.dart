@@ -22,15 +22,15 @@ enum Operator {
   leftShift,
   lessThan,
   lessThanEquals,
-  multiply,
   modulo,
+  multiply,
   rightShift,
   subtract,
   truncatingDivide,
   unaryMinus,
 }
 
-Operator fromString(String string) {
+Operator operatorFromString(String string) {
   if (identical("+", string)) return Operator.add;
   if (identical("&", string)) return Operator.bitwiseAnd;
   if (identical("~", string)) return Operator.bitwiseNot;
@@ -45,11 +45,36 @@ Operator fromString(String string) {
   if (identical("<<", string)) return Operator.leftShift;
   if (identical("<", string)) return Operator.lessThan;
   if (identical("<=", string)) return Operator.lessThanEquals;
-  if (identical("*", string)) return Operator.multiply;
   if (identical("%", string)) return Operator.modulo;
+  if (identical("*", string)) return Operator.multiply;
   if (identical(">>", string)) return Operator.rightShift;
   if (identical("-", string)) return Operator.subtract;
   if (identical("~/", string)) return Operator.truncatingDivide;
   if (identical("unary-", string)) return Operator.unaryMinus;
   return null;
+}
+
+String operatorToString(Operator operator) {
+  switch (operator) {
+    case Operator.add: return "+";
+    case Operator.bitwiseAnd: return "&";
+    case Operator.bitwiseNot: return "~";
+    case Operator.bitwiseOr: return "|";
+    case Operator.bitwiseXor: return "^";
+    case Operator.divide: return "/";
+    case Operator.equals: return "==";
+    case Operator.greaterThan: return ">";
+    case Operator.greaterThanEquals: return ">=";
+    case Operator.index: return "[]";
+    case Operator.indexSet: return "[]=";
+    case Operator.leftShift: return "<<";
+    case Operator.lessThan: return "<";
+    case Operator.lessThanEquals: return "<=";
+    case Operator.modulo: return "%";
+    case Operator.multiply: return "*";
+    case Operator.rightShift: return ">>";
+    case Operator.subtract: return "-";
+    case Operator.truncatingDivide: return "~/";
+    case Operator.unaryMinus: return "unary-";
+  }
 }

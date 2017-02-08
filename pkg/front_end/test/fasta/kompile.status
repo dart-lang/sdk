@@ -21,6 +21,7 @@ invocations: Fail
 map: Crash
 mixin: Crash
 statements: Crash
+operators: Crash
 
 rasta/abstract_constructor: Crash
 rasta/bad_constructor_redirection: Crash

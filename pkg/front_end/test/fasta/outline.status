@@ -20,6 +20,5 @@ rasta/mixin_library: Fail
 rasta/native_is_illegal: Fail
 rasta/super: Fail
 rasta/super_mixin: Fail
-rasta/super_operator: Fail
 rasta/type_literals: Fail
 rasta/type_with_parse_error: Fail
