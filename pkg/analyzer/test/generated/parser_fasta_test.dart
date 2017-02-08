@@ -12,6 +12,7 @@ import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
 import 'package:front_end/src/fasta/parser/parser.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
+import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,6 +23,11 @@ main() {
     defineReflectiveTests(ComplexParserTest_Fasta);
   });
 }
+
+/**
+ * Type of the "parse..." methods defined in the Fasta parser.
+ */
+typedef Token ParseFunction(Token token);
 
 /**
  * Proxy implementation of [Builder] used by Fasta parser tests.
@@ -143,6 +149,13 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
+  void test_constructor_initializer_withParenthesizedExpression() {
+    // TODO(paulberry): Implement parseCompilationUnitWithOptions
+    super.test_constructor_initializer_withParenthesizedExpression();
+  }
+
+  @override
+  @failingTest
   void test_equalityExpression_normal() {
     // TODO(paulberry,ahe): bad error recovery
     super.test_equalityExpression_normal();
@@ -168,6 +181,13 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
   void test_logicalOrExpression_precedence_nullableType() {
     // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
     super.test_logicalOrExpression_precedence_nullableType();
+  }
+
+  @override
+  @failingTest
+  void test_multipleLabels_statement() {
+    // TODO(paulberry,ahe): AstBuilder doesn't implement handleLabel().
+    super.test_multipleLabels_statement();
   }
 
   @override
@@ -247,6 +267,13 @@ class FastaParserTestCase implements AbstractParserTestCase {
   }
 
   @override
+  CompilationUnit parseCompilationUnit(String source,
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
+    // TODO(paulberry): implement parseCompilationUnit
+    throw new UnimplementedError();
+  }
+
+  @override
   CompilationUnit parseCompilationUnitWithOptions(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     // TODO(paulberry): implement parseCompilationUnitWithOptions
@@ -256,6 +283,22 @@ class FastaParserTestCase implements AbstractParserTestCase {
   @override
   Expression parseExpression(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
+    return _runParser(source, (parser) => parser.parseExpression, errorCodes);
+  }
+
+  @override
+  Statement parseStatement(String source,
+      [List<ErrorCode> errorCodes = const <ErrorCode>[],
+      bool enableLazyAssignmentOperators]) {
+    return _runParser(source, (parser) => parser.parseStatement, errorCodes);
+  }
+
+  Object _runParser(String source, ParseFunction getParseFuction(Parser parser),
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
+    if (errorCodes.isNotEmpty) {
+      // TODO(paulberry): Check that the parser generates the proper errors.
+      throw new UnimplementedError();
+    }
     var scanner = new StringScanner(source);
     var token = scanner.tokenize();
     var library = new KernelLibraryBuilderProxy();
@@ -264,11 +307,11 @@ class FastaParserTestCase implements AbstractParserTestCase {
     var scope = new ScopeProxy();
     var astBuilder = new AstBuilder(library, member, elementStore, scope);
     var parser = new Parser(astBuilder);
-    var endToken = parser.parseExpression(token);
+    var parseFunction = getParseFuction(parser);
+    var endToken = parseFunction(token);
     expect(endToken.isEof, isTrue);
     expect(astBuilder.stack, hasLength(1));
-    var expression = astBuilder.pop() as Expression;
-    return expression;
+    return astBuilder.pop();
   }
 }
 

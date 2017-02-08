@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class DefinedNamesTest {
+class DefinedNamesTest extends ParserTestCase {
   test_classMemberNames() {
     DefinedNames names = _computeDefinedNames('''
 class A {
@@ -52,7 +52,7 @@ var G, H;
   }
 
   DefinedNames _computeDefinedNames(String code) {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit2(code);
+    CompilationUnit unit = parseCompilationUnit2(code);
     return computeDefinedNames(unit);
   }
 }

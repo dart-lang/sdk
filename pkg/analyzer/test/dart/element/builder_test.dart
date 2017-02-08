@@ -1030,7 +1030,7 @@ class LocalElementBuilderTest extends _BaseTest {
   }
 
   void test_buildLocalElements() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 main() {
   int v1;
   f1() {
@@ -1074,7 +1074,7 @@ main() {
   }
 
   void test_buildParameterInitializer() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit('f({p: 42}) {}');
+    CompilationUnit unit = parseCompilationUnit('f({p: 42}) {}');
     var function = unit.declarations.single as FunctionDeclaration;
     var parameter = function.functionExpression.parameters.parameters.single
         as DefaultFormalParameter;
@@ -1094,7 +1094,7 @@ main() {
   }
 
   void test_buildVariableInitializer() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit('var V = 42;');
+    CompilationUnit unit = parseCompilationUnit('var V = 42;');
     TopLevelVariableDeclaration topLevelDecl =
         unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclaration variable = topLevelDecl.variables.variables.single;
@@ -1114,7 +1114,7 @@ main() {
   }
 
   void test_visitDefaultFormalParameter_local() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit('''
+    CompilationUnit unit = parseCompilationUnit('''
 main() {
   f({bool b: false}) {}
 }
@@ -2538,7 +2538,7 @@ class A {
   }
 }
 
-abstract class _BaseTest {
+abstract class _BaseTest extends ParserTestCase {
   CompilationUnitElement compilationUnitElement;
   CompilationUnit _compilationUnit;
 
@@ -2619,7 +2619,7 @@ abstract class _BaseTest {
     TestLogger logger = new TestLogger();
     AnalysisEngine.instance.logger = logger;
     try {
-      _compilationUnit = ParserTestCase.parseCompilationUnit(code);
+      _compilationUnit = parseCompilationUnit(code);
       compilationUnit.accept(visitor);
     } finally {
       expect(logger.log, hasLength(0));

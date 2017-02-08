@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class ReferencedNamesBuilderTest {
+class ReferencedNamesBuilderTest extends ParserTestCase {
   test_class_constructor() {
     Set<String> names = _computeReferencedNames('''
 class U {
@@ -383,7 +383,7 @@ main() {
   }
 
   Set<String> _computeReferencedNames(String code) {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit2(code);
+    CompilationUnit unit = parseCompilationUnit2(code);
     return computeReferencedNames(unit);
   }
 }
