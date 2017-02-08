@@ -44,11 +44,6 @@ import '../parser/dart_vm_native.dart' show
     removeNativeClause,
     skipNativeClause;
 
-import '../operator.dart' show
-    Operator,
-    operatorFromString,
-    operatorToString;
-
 enum MethodBody {
   Abstract,
   Regular,
@@ -161,7 +156,7 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     debugEvent("OperatorName");
-    push(operatorFromString(token.stringValue));
+    push(token.stringValue);
   }
 
   @override
@@ -247,33 +242,24 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     debugEvent("Method");
-    MethodBody bodyKind = pop();
-    if (bodyKind == MethodBody.RedirectingFactoryBody) {
+    MethodBody kind = pop();
+    if (kind == MethodBody.RedirectingFactoryBody) {
       // This will cause an error later.
       pop();
     }
     AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     List<TypeVariableBuilder> typeVariables = pop();
-    dynamic nameOrOperator = pop();
-    if (Operator.Subtract == nameOrOperator && formals == null) {
-      nameOrOperator = Operator.UnaryMinus;
-    }
-    String name;
-    ProcedureKind kind;
-    if (nameOrOperator is Operator) {
-      name = operatorToString(nameOrOperator);
-      kind = ProcedureKind.Operator;
-    } else {
-      name = nameOrOperator;
-      kind = computeProcedureKind(getOrSet);
+    String name = pop();
+    if (identical("-", name) && formals == null) {
+      name = "unary-";
     }
     TypeBuilder returnType = pop();
     int modifiers = Modifier.validate(pop(),
-        isAbstract: bodyKind == MethodBody.Abstract);
+        isAbstract: kind == MethodBody.Abstract);
     List<MetadataBuilder> metadata = pop();
     library.addProcedure(metadata, modifiers, returnType, name, typeVariables,
-        formals, asyncModifier, kind);
+        formals, asyncModifier, computeProcedureKind(getOrSet));
   }
 
   @override

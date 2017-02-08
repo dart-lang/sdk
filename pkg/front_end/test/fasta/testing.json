@@ -121,6 +121,8 @@
       "../../lib/src/fasta/source",
       "../../lib/src/fasta/testing",
       "../../lib/src/fasta/util",
+      "../../../compiler/lib/src/dart2js.dart",
+      "../../../compiler/tool",
       "dart2js_test.dart",
       "parser/parser_suite.dart",
       "scanner/scanner_suite.dart",
