@@ -231,6 +231,10 @@ ct_const2_test: Pass, CompileTimeError  # VMOptions=--compile-all causes us to h
 [ $compiler == dartk || $compiler == dartkp ]
 runtime_type_function_test: RuntimeError
 
+[ $compiler == dartkp ]
+bad_raw_string_test/none: Skip # Issue 28680
+bad_raw_string_test/03: Skip # Issue 28680
+
 # Triaged checked mode failures
 [ ($compiler == dartk || $compiler == dartkp) && $checked ]
 language/regress_22728_test: Fail # Dartk Issue 28498
