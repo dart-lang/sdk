@@ -256,7 +256,7 @@ class SourceFactoryImpl implements SourceFactory {
       }
     }
 
-    return _absoluteUriToSourceCache.putIfAbsent(containedUri, () {
+    return _absoluteUriToSourceCache.putIfAbsent(actualUri, () {
       for (UriResolver resolver in resolvers) {
         Source result = resolver.resolveAbsolute(containedUri, actualUri);
         if (result != null) {
