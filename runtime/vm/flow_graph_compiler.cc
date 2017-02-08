@@ -240,10 +240,8 @@ FlowGraphCompiler::FlowGraphCompiler(
   ASSERT(assembler != NULL);
   ASSERT(!list_class_.IsNull());
 
-  bool stack_traces_only = !FLAG_profiler;
-  code_source_map_builder_ = new (zone_)
-      CodeSourceMapBuilder(stack_traces_only, caller_inline_id,
-                           inline_id_to_token_pos, inline_id_to_function);
+  code_source_map_builder_ = new (zone_) CodeSourceMapBuilder(
+      caller_inline_id, inline_id_to_token_pos, inline_id_to_function);
 }
 
 
@@ -683,25 +681,14 @@ void FlowGraphCompiler::SetNeedsStackTrace(intptr_t try_index) {
 }
 
 
-void FlowGraphCompiler::AddDescriptor(RawPcDescriptors::Kind kind,
-                                      intptr_t pc_offset,
-                                      intptr_t deopt_id,
-                                      TokenPosition token_pos,
-                                      intptr_t try_index) {
-  code_source_map_builder_->NoteDescriptor(kind, pc_offset, token_pos);
-  // When running with optimizations disabled, don't emit deopt-descriptors.
-  if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
-  pc_descriptors_list_->AddDescriptor(kind, pc_offset, deopt_id, token_pos,
-                                      try_index);
-}
-
-
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
                                              TokenPosition token_pos) {
-  AddDescriptor(kind, assembler()->CodeSize(), deopt_id, token_pos,
-                CurrentTryIndex());
+  // When running with optimizations disabled, don't emit deopt-descriptors.
+  if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
+  pc_descriptors_list()->AddDescriptor(kind, assembler()->CodeSize(), deopt_id,
+                                       token_pos, CurrentTryIndex());
 }
 
 
@@ -1040,6 +1027,9 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 
 
 void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
+#ifdef PRODUCT
+// This data is only used by the profiler.
+#else
   if (FLAG_precompiled_mode) {
     // TODO(rmacnak): Include a filtered verion of this to produce stack traces
     // with inlined frames.
@@ -1056,6 +1046,7 @@ void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
       CodeSourceMap::Handle(code_source_map_builder_->Finalize());
   INC_STAT(Thread::Current(), total_code_size, map.Length() * sizeof(uint8_t));
   code.set_code_source_map(map);
+#endif
 
 #if defined(DEBUG)
   // Force simulation through the last pc offset. This checks we can decode
@@ -1063,7 +1054,7 @@ void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
   // etc.
   GrowableArray<const Function*> fs;
   GrowableArray<TokenPosition> tokens;
-  code.GetInlinedFunctionsAtInstruction(code.Size() - 1, &fs, &tokens);
+  code.GetInlinedFunctionsAt(code.Size() - 1, &fs, &tokens);
 #endif
 }
 

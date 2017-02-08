@@ -2453,8 +2453,7 @@ static uword FindPCForTokenPosition(const Code& code,
   GrowableArray<const Function*> functions;
   GrowableArray<TokenPosition> token_positions;
   for (intptr_t pc_offset = 0; pc_offset < code.Size(); pc_offset++) {
-    code.GetInlinedFunctionsAtInstruction(pc_offset, &functions,
-                                          &token_positions);
+    code.GetInlinedFunctionsAt(pc_offset, &functions, &token_positions);
     if (token_positions[0] == tp) {
       return code.PayloadStart() + pc_offset;
     }
