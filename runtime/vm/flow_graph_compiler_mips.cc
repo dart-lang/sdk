@@ -1287,9 +1287,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     if (try_index == CatchClauseNode::kInvalidTryIndex) {
       try_index = CurrentTryIndex();
     }
-    pc_descriptors_list()->AddDescriptor(
-        RawPcDescriptors::kOther, assembler()->CodeSize(), Thread::kNoDeoptId,
-        token_pos, try_index);
+    AddDescriptor(RawPcDescriptors::kOther, assembler()->CodeSize(),
+                  Thread::kNoDeoptId, token_pos, try_index);
   } else if (is_optimizing()) {
     AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
                          token_pos);

@@ -128,26 +128,86 @@ const TokenPosition CodeSourceMapBuilder::kInitialPosition =
 
 
 CodeSourceMapBuilder::CodeSourceMapBuilder(
+    bool stack_traces_only,
     const GrowableArray<intptr_t>& caller_inline_id,
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
     const GrowableArray<const Function*>& inline_id_to_function)
-    : pc_offset_(0),
-      advance_pc_peephole_(0),
-      inline_id_stack_(),
-      token_pos_stack_(),
+    : buffered_pc_offset_(0),
+      buffered_inline_id_stack_(),
+      buffered_token_pos_stack_(),
+      written_pc_offset_(0),
+      written_inline_id_stack_(),
+      written_token_pos_stack_(),
       caller_inline_id_(caller_inline_id),
       inline_id_to_token_pos_(inline_id_to_token_pos),
       inline_id_to_function_(inline_id_to_function),
       buffer_(NULL),
-      stream_(&buffer_, zone_allocator, 64) {
-  inline_id_stack_.Add(0);
-  token_pos_stack_.Add(TokenPosition::kDartCodePrologue);
+      stream_(&buffer_, zone_allocator, 64),
+      stack_traces_only_(stack_traces_only) {
+  buffered_inline_id_stack_.Add(0);
+  buffered_token_pos_stack_.Add(kInitialPosition);
+  written_inline_id_stack_.Add(0);
+  written_token_pos_stack_.Add(kInitialPosition);
+}
+
+
+void CodeSourceMapBuilder::FlushBuffer() {
+  FlushBufferStack();
+  FlushBufferPosition();
+  FlushBufferPC();
+}
+
+
+void CodeSourceMapBuilder::FlushBufferStack() {
+  for (intptr_t i = buffered_inline_id_stack_.length() - 1; i >= 0; i--) {
+    intptr_t buffered_id = buffered_inline_id_stack_[i];
+    if (i < written_inline_id_stack_.length()) {
+      intptr_t written_id = written_inline_id_stack_[i];
+      if (buffered_id == written_id) {
+        // i is the top-most position where the buffered and written stack
+        // match.
+        while (written_inline_id_stack_.length() > i + 1) {
+          WritePop();
+        }
+        for (intptr_t j = i + 1; j < buffered_inline_id_stack_.length(); j++) {
+          TokenPosition buffered_pos = buffered_token_pos_stack_[j - 1];
+          TokenPosition written_pos = written_token_pos_stack_[j - 1];
+          if (buffered_pos != written_pos) {
+            WriteChangePosition(buffered_pos);
+          }
+          WritePush(buffered_inline_id_stack_[j]);
+        }
+        return;
+      }
+    }
+  }
+  UNREACHABLE();
+}
+
+
+void CodeSourceMapBuilder::FlushBufferPosition() {
+  ASSERT(buffered_token_pos_stack_.length() ==
+         written_token_pos_stack_.length());
+
+  intptr_t top = buffered_token_pos_stack_.length() - 1;
+  TokenPosition buffered_pos = buffered_token_pos_stack_[top];
+  TokenPosition written_pos = written_token_pos_stack_[top];
+  if (buffered_pos != written_pos) {
+    WriteChangePosition(buffered_pos);
+  }
+}
+
+
+void CodeSourceMapBuilder::FlushBufferPC() {
+  if (buffered_pc_offset_ != written_pc_offset_) {
+    WriteAdvancePC(buffered_pc_offset_ - written_pc_offset_);
+  }
 }
 
 
 void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
                                                  intptr_t inline_id) {
-  if (inline_id_stack_.Last() == inline_id) {
+  if (buffered_inline_id_stack_.Last() == inline_id) {
     // No change in function stack.
     return;
   }
@@ -156,18 +216,20 @@ void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
     return;
   }
 
+  if (!stack_traces_only_) {
+    FlushBuffer();
+  }
+
   // Find a minimal set of pops and pushes to bring us to the new function
   // stack.
 
   // Pop to a common ancestor.
   intptr_t common_parent = inline_id;
-  while (!IsOnStack(common_parent)) {
+  while (!IsOnBufferedStack(common_parent)) {
     common_parent = caller_inline_id_[common_parent];
   }
-  while (inline_id_stack_.Last() != common_parent) {
-    EmitPop();
-    inline_id_stack_.RemoveLast();
-    token_pos_stack_.RemoveLast();
+  while (buffered_inline_id_stack_.Last() != common_parent) {
+    BufferPop();
   }
 
   // Push to the new top-of-stack function.
@@ -178,23 +240,19 @@ void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
     id = caller_inline_id_[id];
   }
   for (intptr_t i = to_push.length() - 1; i >= 0; i--) {
-    intptr_t push_id = to_push[i];
+    intptr_t callee_id = to_push[i];
     TokenPosition call_token;
-    if (push_id != 0) {
+    if (callee_id != 0) {
       // TODO(rmacnak): Should make this array line up with the others.
-      call_token = inline_id_to_token_pos_[push_id - 1];
+      call_token = inline_id_to_token_pos_[callee_id - 1];
+    } else {
+      UNREACHABLE();
     }
 
     // Report caller as at the position of the call.
-    if (call_token != token_pos_stack_.Last()) {
-      EmitPosition(call_token);
-      token_pos_stack_[token_pos_stack_.length() - 1] = call_token;
-    }
+    BufferChangePosition(call_token);
 
-    // Push the callee.
-    EmitPush(push_id);
-    inline_id_stack_.Add(push_id);
-    token_pos_stack_.Add(TokenPosition::kDartCodePrologue);
+    BufferPush(callee_id);
   }
 }
 
@@ -204,15 +262,30 @@ void CodeSourceMapBuilder::BeginCodeSourceRange(int32_t pc_offset) {}
 
 void CodeSourceMapBuilder::EndCodeSourceRange(int32_t pc_offset,
                                               TokenPosition pos) {
-  if (pc_offset == pc_offset_) {
+  if (pc_offset == buffered_pc_offset_) {
     return;  // Empty intermediate instruction.
   }
-  if (pos != token_pos_stack_.Last()) {
-    EmitPosition(pos);
-    token_pos_stack_[token_pos_stack_.length() - 1] = pos;
+  if (pos != buffered_token_pos_stack_.Last()) {
+    if (!stack_traces_only_) {
+      FlushBuffer();
+    }
+    BufferChangePosition(pos);
   }
-  EmitAdvancePC(pc_offset - pc_offset_);
-  pc_offset_ = pc_offset;
+  BufferAdvancePC(pc_offset - buffered_pc_offset_);
+}
+
+
+void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
+                                          int32_t pc_offset,
+                                          TokenPosition pos) {
+  const uint8_t kCanThrow =
+      RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall |
+      RawPcDescriptors::kRuntimeCall | RawPcDescriptors::kOther;
+  if (stack_traces_only_ && ((kind & kCanThrow) != 0)) {
+    BufferChangePosition(pos);
+    BufferAdvancePC(pc_offset - buffered_pc_offset_);
+    FlushBuffer();
+  }
 }
 
 
@@ -231,7 +304,9 @@ RawArray* CodeSourceMapBuilder::InliningIdToFunction() {
 
 
 RawCodeSourceMap* CodeSourceMapBuilder::Finalize() {
-  FlushPeephole();
+  if (!stack_traces_only_) {
+    FlushBuffer();
+  }
   intptr_t length = stream_.bytes_written();
   const CodeSourceMap& map = CodeSourceMap::Handle(CodeSourceMap::New(length));
   NoSafepointScope no_safepoint;

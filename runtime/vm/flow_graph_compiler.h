@@ -307,7 +307,6 @@ class FlowGraphCompiler : public ValueObject {
 
   const FlowGraph& flow_graph() const { return flow_graph_; }
 
-  DescriptorList* pc_descriptors_list() const { return pc_descriptors_list_; }
   BlockEntryInstr* current_block() const { return current_block_; }
   void set_current_block(BlockEntryInstr* value) { current_block_ = value; }
   static bool CanOptimize();
@@ -498,6 +497,11 @@ class FlowGraphCompiler : public ValueObject {
   void AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                             intptr_t deopt_id,
                             TokenPosition token_pos);
+  void AddDescriptor(RawPcDescriptors::Kind kind,
+                     intptr_t pc_offset,
+                     intptr_t deopt_id,
+                     TokenPosition token_pos,
+                     intptr_t try_index);
 
   void RecordSafepoint(LocationSummary* locs,
                        intptr_t slow_path_argument_count = 0);

@@ -10,6 +10,7 @@
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
+#include "vm/log.h"
 
 namespace dart {
 
@@ -139,9 +140,20 @@ class ExceptionHandlerList : public ZoneAllocated {
 };
 
 
+// A CodeSourceMap maps from pc offsets to a stack of inlined functions and
+// their positions. This is encoded as a little bytecode that pushes and pops
+// functions and changes the top function's position as the PC advances.
+// Decoding happens by running this bytecode until we reach the desired PC.
+//
+// The implementation keeps track of two sets of state: one written to the byte
+// stream and one that is buffered. On the JIT, this buffering effectively gives
+// us a peephole optimization that merges adjacent advance PC bytecodes. On AOT,
+// this allows to skip encoding our position until we reach a PC where we might
+// throw.
 class CodeSourceMapBuilder : public ZoneAllocated {
  public:
   CodeSourceMapBuilder(
+      bool stack_traces_only,
       const GrowableArray<intptr_t>& caller_inline_id,
       const GrowableArray<TokenPosition>& inline_id_to_token_pos,
       const GrowableArray<const Function*>& inline_id_to_function);
@@ -159,47 +171,67 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   void StartInliningInterval(int32_t pc_offset, intptr_t inline_id);
   void BeginCodeSourceRange(int32_t pc_offset);
   void EndCodeSourceRange(int32_t pc_offset, TokenPosition pos);
+  void NoteDescriptor(RawPcDescriptors::Kind kind,
+                      int32_t pc_offset,
+                      TokenPosition pos);
 
   RawArray* InliningIdToFunction();
   RawCodeSourceMap* Finalize();
 
  private:
-  void EmitPosition(TokenPosition pos) {
-    FlushPeephole();
+  void BufferChangePosition(TokenPosition pos) {
+    buffered_token_pos_stack_.Last() = pos;
+  }
+  void WriteChangePosition(TokenPosition pos) {
     stream_.Write<uint8_t>(kChangePosition);
     stream_.Write<int32_t>(static_cast<int32_t>(pos.value()));
+    written_token_pos_stack_.Last() = pos;
   }
-  void EmitAdvancePC(int32_t distance) { advance_pc_peephole_ += distance; }
-  void FlushPeephole() {
-    if (advance_pc_peephole_ != 0) {
-      stream_.Write<uint8_t>(kAdvancePC);
-      stream_.Write<int32_t>(advance_pc_peephole_);
-      advance_pc_peephole_ = 0;
-    }
+  void BufferAdvancePC(int32_t distance) { buffered_pc_offset_ += distance; }
+  void WriteAdvancePC(int32_t distance) {
+    stream_.Write<uint8_t>(kAdvancePC);
+    stream_.Write<int32_t>(distance);
+    written_pc_offset_ += distance;
   }
-  void EmitPush(intptr_t inline_id) {
-    FlushPeephole();
+  void BufferPush(intptr_t inline_id) {
+    buffered_inline_id_stack_.Add(inline_id);
+    buffered_token_pos_stack_.Add(kInitialPosition);
+  }
+  void WritePush(intptr_t inline_id) {
     stream_.Write<uint8_t>(kPushFunction);
     stream_.Write<int32_t>(inline_id);
+    written_inline_id_stack_.Add(inline_id);
+    written_token_pos_stack_.Add(kInitialPosition);
   }
-  void EmitPop() {
-    FlushPeephole();
+  void BufferPop() {
+    buffered_inline_id_stack_.RemoveLast();
+    buffered_token_pos_stack_.RemoveLast();
+  }
+  void WritePop() {
     stream_.Write<uint8_t>(kPopFunction);
+    written_inline_id_stack_.RemoveLast();
+    written_token_pos_stack_.RemoveLast();
   }
 
-  bool IsOnStack(intptr_t inline_id) {
-    for (intptr_t i = 0; i < inline_id_stack_.length(); i++) {
-      if (inline_id_stack_[i] == inline_id) {
-        return true;
-      }
+  void FlushBuffer();
+  void FlushBufferStack();
+  void FlushBufferPosition();
+  void FlushBufferPC();
+
+  bool IsOnBufferedStack(intptr_t inline_id) {
+    for (intptr_t i = 0; i < buffered_inline_id_stack_.length(); i++) {
+      if (buffered_inline_id_stack_[i] == inline_id) return true;
     }
     return false;
   }
 
-  intptr_t pc_offset_;
-  intptr_t advance_pc_peephole_;
-  GrowableArray<intptr_t> inline_id_stack_;
-  GrowableArray<TokenPosition> token_pos_stack_;
+  intptr_t buffered_pc_offset_;
+  GrowableArray<intptr_t> buffered_inline_id_stack_;
+  GrowableArray<TokenPosition> buffered_token_pos_stack_;
+
+  intptr_t written_pc_offset_;
+  GrowableArray<intptr_t> written_inline_id_stack_;
+  GrowableArray<TokenPosition> written_token_pos_stack_;
 
   const GrowableArray<intptr_t>& caller_inline_id_;
   const GrowableArray<TokenPosition>& inline_id_to_token_pos_;
@@ -207,6 +239,8 @@ class CodeSourceMapBuilder : public ZoneAllocated {
 
   uint8_t* buffer_;
   WriteStream stream_;
+
+  const bool stack_traces_only_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeSourceMapBuilder);
 };
