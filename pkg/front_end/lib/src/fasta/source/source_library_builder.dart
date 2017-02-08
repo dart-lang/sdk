@@ -131,7 +131,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       resolvedUri = new Uri(scheme: "dart", path: "${uri.path}/$path");
       newFileUri = fileUri.resolve(path);
     } else {
-      newFileUri = resolvedUri = resolve(path);
+      resolvedUri = uri.resolve(path);
+      newFileUri = fileUri.resolve(path);
     }
     parts.add(loader.read(resolvedUri, newFileUri));
   }

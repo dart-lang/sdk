@@ -67,6 +67,10 @@ class TranslateUri {
       "web_gl": sdk.resolve("lib/web_gl/dartium/web_gl_dartium.dart"),
       "web_sql": sdk.resolve("lib/web_sql/dartium/web_sql_dartium.dart"),
       "_internal": sdk.resolve("lib/internal/internal.dart"),
+      "profiler": sdk.resolve("lib/profiler/profiler.dart"),
+      "vmservice_io": sdk.resolve("lib/vmservice_io/vmservice_io.dart"),
+      "_vmservice": sdk.resolve("lib/vmservice/vmservice.dart"),
+      "_builtin": sdk.resolve("lib/_builtin/_builtin.dart"),
     };
     uri ??= Uri.base.resolve(".packages");
     File file = new File.fromUri(uri);
