@@ -12,6 +12,7 @@
 
 #include "platform/assert.h"
 #include "vm/hash_map.h"
+#include "vm/json_stream.h"
 #include "vm/lockers.h"
 
 namespace dart {
@@ -102,15 +103,15 @@ class AddressMap : public MallocDirectChainedHashMap<AddressKeyValueTrait> {
 };
 
 
-class MallocHooksState {
+class MallocHooksState : public AllStatic {
  public:
   static void RecordAllocHook(const void* ptr, size_t size);
   static void RecordFreeHook(const void* ptr);
 
-  static bool initialized() { return initialized_; }
+  static bool Active() { return active_; }
   static void Init() {
     address_map_ = new AddressMap();
-    initialized_ = true;
+    active_ = true;
     original_pid_ = OS::ProcessId();
   }
 
@@ -128,12 +129,14 @@ class MallocHooksState {
   }
 
   static void IncrementHeapAllocatedMemoryInBytes(intptr_t size) {
+    ASSERT(malloc_hook_mutex()->IsOwnedByCurrentThread());
     ASSERT(size >= 0);
     heap_allocated_memory_in_bytes_ += size;
     ++allocation_count_;
   }
 
   static void DecrementHeapAllocatedMemoryInBytes(intptr_t size) {
+    ASSERT(malloc_hook_mutex()->IsOwnedByCurrentThread());
     ASSERT(size >= 0);
     ASSERT(heap_allocated_memory_in_bytes_ >= size);
     heap_allocated_memory_in_bytes_ -= size;
@@ -144,20 +147,22 @@ class MallocHooksState {
   static AddressMap* address_map() { return address_map_; }
 
   static void ResetStats() {
+    ASSERT(malloc_hook_mutex()->IsOwnedByCurrentThread());
     allocation_count_ = 0;
     heap_allocated_memory_in_bytes_ = 0;
     address_map_->Clear();
   }
 
   static void TearDown() {
-    initialized_ = false;
+    ASSERT(malloc_hook_mutex()->IsOwnedByCurrentThread());
+    active_ = false;
     original_pid_ = kInvalidPid;
     ResetStats();
     delete address_map_;
   }
 
  private:
-  static bool initialized_;
+  static bool active_;
   static intptr_t original_pid_;
   static Mutex* malloc_hook_mutex_;
   static intptr_t allocation_count_;
@@ -165,15 +170,12 @@ class MallocHooksState {
   static AddressMap* address_map_;
 
   static const intptr_t kInvalidPid = -1;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(MallocHooksState);
 };
 
 
 // MallocHooks state / locks.
 ThreadLocalKey MallocHookScope::in_malloc_hook_flag_ = kUnsetThreadLocalKey;
-bool MallocHooksState::initialized_ = false;
+bool MallocHooksState::active_ = false;
 intptr_t MallocHooksState::original_pid_ = MallocHooksState::kInvalidPid;
 Mutex* MallocHooksState::malloc_hook_mutex_ = new Mutex();
 
@@ -185,7 +187,7 @@ AddressMap* MallocHooksState::address_map_ = NULL;
 
 void MallocHooks::InitOnce() {
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
-  ASSERT(!MallocHooksState::initialized());
+  ASSERT(!MallocHooksState::Active());
 
   MallocHookScope::InitMallocHookFlag();
   MallocHooksState::Init();
@@ -201,7 +203,7 @@ void MallocHooks::InitOnce() {
 
 void MallocHooks::TearDown() {
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
-  ASSERT(MallocHooksState::initialized());
+  ASSERT(MallocHooksState::Active());
 
   // Remove malloc hooks.
   bool success = false;
@@ -217,14 +219,37 @@ void MallocHooks::TearDown() {
 
 void MallocHooks::ResetStats() {
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
-  ASSERT(MallocHooksState::initialized());
-
-  MallocHooksState::ResetStats();
+  if (MallocHooksState::Active()) {
+    MallocHooksState::ResetStats();
+  }
 }
 
 
-bool MallocHooks::Initialized() {
-  return MallocHooksState::initialized();
+bool MallocHooks::Active() {
+  ASSERT(MallocHooksState::malloc_hook_mutex()->IsOwnedByCurrentThread());
+  return MallocHooksState::Active();
+}
+
+
+void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
+  intptr_t allocated_memory = 0;
+  intptr_t allocation_count = 0;
+  bool add_usage = false;
+  // AddProperty may call malloc which would result in an attempt
+  // to acquire the lock recursively so we extract the values first
+  // and then add the JSON properties.
+  {
+    MutexLocker ml(MallocHooksState::malloc_hook_mutex());
+    if (Active()) {
+      allocated_memory = MallocHooksState::heap_allocated_memory_in_bytes();
+      allocation_count = MallocHooksState::allocation_count();
+      add_usage = true;
+    }
+  }
+  if (add_usage) {
+    jsobj->AddProperty("_heapAllocatedMemoryUsage", allocated_memory);
+    jsobj->AddProperty("_heapAllocationCount", allocation_count);
+  }
 }
 
 
@@ -249,9 +274,7 @@ void MallocHooksState::RecordAllocHook(const void* ptr, size_t size) {
   // again.
   MallocHookScope mhs;
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
-  ASSERT(MallocHooksState::initialized());
-
-  if (ptr != NULL) {
+  if ((ptr != NULL) && MallocHooksState::Active()) {
     MallocHooksState::IncrementHeapAllocatedMemoryInBytes(size);
     MallocHooksState::address_map()->Insert(ptr, size);
   }
@@ -267,9 +290,7 @@ void MallocHooksState::RecordFreeHook(const void* ptr) {
   // again.
   MallocHookScope mhs;
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
-  ASSERT(MallocHooksState::initialized());
-
-  if (ptr != NULL) {
+  if ((ptr != NULL) && MallocHooksState::Active()) {
     intptr_t size = 0;
     if (MallocHooksState::address_map()->Lookup(ptr, &size)) {
       MallocHooksState::DecrementHeapAllocatedMemoryInBytes(size);

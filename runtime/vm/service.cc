@@ -3802,11 +3802,7 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty64("_maxRSS", OS::MaxRSS());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
-  if (MallocHooks::Initialized()) {
-    jsobj.AddProperty("_heapAllocatedMemoryUsage",
-                      MallocHooks::heap_allocated_memory_in_bytes());
-    jsobj.AddProperty("_heapAllocationCount", MallocHooks::allocation_count());
-  }
+  MallocHooks::PrintToJSONObject(&jsobj);
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");

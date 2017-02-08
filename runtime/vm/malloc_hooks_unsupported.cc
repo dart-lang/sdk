@@ -25,8 +25,13 @@ void MallocHooks::ResetStats() {
 }
 
 
-bool MallocHooks::Initialized() {
+bool MallocHooks::Active() {
   return false;
+}
+
+
+void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
+  // Do nothing.
 }
 
 
