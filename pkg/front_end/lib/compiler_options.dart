@@ -8,7 +8,7 @@ import 'compilation_error.dart';
 import 'file_system.dart';
 import 'physical_file_system.dart';
 
-/// Default error handler used by [CompielerOptions.onError].
+/// Default error handler used by [CompilerOptions.onError].
 void defaultErrorHandler(CompilationError error) => throw error;
 
 /// Callback used to report errors encountered during compilation.
@@ -112,7 +112,7 @@ class CompilerOptions {
   /// not described in a summary as if it was explictly listed as an input.
   bool chaseDependencies = false;
 
-  /// Whether to intepret Dart sources in strong-mode.
+  /// Whether to interpret Dart sources in strong-mode.
   bool strongMode = true;
 
   // All options below are target-specific options.
