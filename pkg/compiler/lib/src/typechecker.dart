@@ -716,7 +716,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
         Name.isPrivateName(name) &&
         element.library != currentLibrary) {
       reportTypeWarning(node, MessageKind.PRIVATE_ACCESS,
-          {'name': name, 'libraryName': element.library.libraryOrScriptName});
+          {'name': name, 'libraryName': element.library.name});
     }
   }
 
@@ -812,7 +812,7 @@ class TypeCheckerVisitor extends Visitor<ResolutionDartType> {
             PrivateName privateName = member.name;
             LibraryElement library = privateName.library;
             reportMessage(node, MessageKind.PRIVATE_ACCESS,
-                {'name': name, 'libraryName': library.libraryOrScriptName},
+                {'name': name, 'libraryName': library.name},
                 isHint: isHint);
             foundPrivateMember = true;
           }

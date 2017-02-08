@@ -1522,8 +1522,7 @@ class Namer {
       if ('${library.canonicalUri}' == 'dart:html') return 'W';
       return 'P';
     }
-    return userGlobalObjects[
-        library.libraryOrScriptName.hashCode % userGlobalObjects.length];
+    return userGlobalObjects[library.name.hashCode % userGlobalObjects.length];
   }
 
   jsAst.Name deriveLazyInitializerName(jsAst.Name name) {

@@ -61,8 +61,13 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   KLibrary _getLibrary(ir.Library node, [KLibraryEnv libraryEnv]) {
     return _libraryMap.putIfAbsent(node, () {
       _libraryEnvs.add(libraryEnv ?? _env.lookupLibrary(node.importUri));
-      return new KLibrary(_libraryMap.length, node.name ?? '${node.importUri}',
-          node.name ?? node.fileUri ?? '${node.importUri}');
+      String name = node.name;
+      if (name == null) {
+        // Use the file name as script name.
+        String path = node.importUri.path;
+        name = path.substring(path.lastIndexOf('/') + 1);
+      }
+      return new KLibrary(_libraryMap.length, name);
     });
   }
 

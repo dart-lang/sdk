@@ -23,9 +23,7 @@ abstract class Entity implements Spannable {
 ///
 /// Currently only [LibraryElement] but later also kernel based Dart classes
 /// and/or Dart-in-JS classes.
-abstract class LibraryEntity extends Entity {
-  String get libraryName;
-}
+abstract class LibraryEntity extends Entity {}
 
 /// Stripped down super interface for class like entities.
 ///

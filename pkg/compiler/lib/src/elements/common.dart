@@ -174,7 +174,7 @@ abstract class LibraryElementCommon implements LibraryElement {
   bool get isInternalLibrary =>
       isPlatformLibrary && canonicalUri.path.startsWith('_');
 
-  String get libraryOrScriptName {
+  String get name {
     if (hasLibraryName) {
       return libraryName;
     } else {

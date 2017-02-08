@@ -1223,16 +1223,6 @@ class LibraryElementX extends ElementX
     return libraryTag.name.toString();
   }
 
-  String get libraryOrScriptName {
-    if (libraryTag != null) {
-      return libraryTag.name.toString();
-    } else {
-      // Use the file name as script name.
-      String path = canonicalUri.path;
-      return path.substring(path.lastIndexOf('/') + 1);
-    }
-  }
-
   Scope buildScope() => new LibraryScope(this);
 
   String toString() {

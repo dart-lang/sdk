@@ -418,9 +418,6 @@ class LibraryElementZ extends DeserializedElementZ
   Element get enclosingElement => null;
 
   @override
-  String get name => entryCompilationUnit.name;
-
-  @override
   SourceSpan get sourcePosition => entryCompilationUnit.sourcePosition;
 
   @override

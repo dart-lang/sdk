@@ -1808,7 +1808,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         node,
         name.text,
         MessageKind.PRIVATE_ACCESS,
-        {'libraryName': member.library.libraryOrScriptName, 'name': name});
+        {'libraryName': member.library.name, 'name': name});
     // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
     // member access.
     return handleErroneousAccess(
@@ -1825,7 +1825,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         node,
         name.text,
         MessageKind.PRIVATE_ACCESS,
-        {'libraryName': member.library.libraryOrScriptName, 'name': name});
+        {'libraryName': member.library.name, 'name': name});
     // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
     // member access.
     return handleUpdate(node, name, new StaticAccess.unresolved(error));

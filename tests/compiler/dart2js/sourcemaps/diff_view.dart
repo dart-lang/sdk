@@ -886,7 +886,7 @@ CodeSource codeSourceFromElement(Element element) {
   if (element.isLibrary) {
     LibraryElement library = element;
     kind = CodeKind.LIBRARY;
-    name = library.libraryOrScriptName;
+    name = library.name;
     uri = library.entryCompilationUnit.script.resourceUri;
   } else if (element.isClass) {
     kind = CodeKind.CLASS;

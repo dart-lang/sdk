@@ -11,9 +11,8 @@ class KLibrary implements LibraryEntity {
   /// Library index used for fast lookup in [KernelWorldBuilder].
   final int libraryIndex;
   final String name;
-  final String libraryName;
 
-  KLibrary(this.libraryIndex, this.name, this.libraryName);
+  KLibrary(this.libraryIndex, this.name);
 
   String toString() => 'library($name)';
 }

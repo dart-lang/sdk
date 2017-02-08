@@ -1078,13 +1078,12 @@ abstract class LibraryElement extends Element
   /// or the empty string if there is no library tag.
   String get libraryName;
 
-  /// Returns the library name (as defined by the library tag) or for script
-  /// (which have no library tag) the script file name. The latter case is used
-  /// to provide a 'library name' for scripts to use for instance in dartdoc.
+  /// Returns the library name (as defined by the library tag) or for scripts
+  /// (which have no library tag) the script file name.
   ///
   /// Note: the returned filename is still escaped ("a%20b.dart" instead of
   /// "a b.dart").
-  String get libraryOrScriptName;
+  String get name;
 }
 
 /// The implicit scope defined by a import declaration with a prefix clause.
