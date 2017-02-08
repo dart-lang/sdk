@@ -90,21 +90,27 @@ class AnalyzerImpl {
       _computeConstants();
 
       units.forEach((file, unit) {
-        {
-          var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
-          unit.accept(visitor);
-          _usedLocalElementsList.add(visitor.usedElements);
-        }
-        {
-          var visitor = new GatherUsedImportedElementsVisitor(_libraryElement);
-          unit.accept(visitor);
-          _usedImportedElementsList.add(visitor.usedElements);
-        }
+        _computeVerifyErrors(file, unit);
       });
 
-      units.forEach((file, unit) {
-        _computeVerifyErrorsAndHints(file, unit);
-      });
+      if (_analysisOptions.hint) {
+        units.forEach((file, unit) {
+          {
+            var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
+            unit.accept(visitor);
+            _usedLocalElementsList.add(visitor.usedElements);
+          }
+          {
+            var visitor =
+                new GatherUsedImportedElementsVisitor(_libraryElement);
+            unit.accept(visitor);
+            _usedImportedElementsList.add(visitor.usedElements);
+          }
+        });
+        units.forEach((file, unit) {
+          _computeHints(file, unit);
+        });
+      }
     } finally {
       _context.dispose();
     }
@@ -142,7 +148,51 @@ class AnalyzerImpl {
     }
   }
 
-  void _computeVerifyErrorsAndHints(FileState file, CompilationUnit unit) {
+  void _computeHints(FileState file, CompilationUnit unit) {
+    AnalysisErrorListener errorListener = _getErrorListener(file);
+    ErrorReporter errorReporter = _getErrorReporter(file);
+
+    unit.accept(
+        new DeadCodeVerifier(errorReporter, typeSystem: _context.typeSystem));
+
+    // Dart2js analysis.
+    if (_analysisOptions.dart2jsHint) {
+      unit.accept(new Dart2JSVerifier(errorReporter));
+    }
+
+    InheritanceManager inheritanceManager = new InheritanceManager(
+        _libraryElement,
+        includeAbstractFromSuperclasses: true);
+
+    unit.accept(new BestPracticesVerifier(
+        errorReporter, _typeProvider, _libraryElement, inheritanceManager,
+        typeSystem: _context.typeSystem));
+
+    unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
+
+    new ToDoFinder(errorReporter).findIn(unit);
+
+    // Verify imports.
+    {
+      ImportsVerifier verifier = new ImportsVerifier();
+      verifier.addImports(unit);
+      _usedImportedElementsList.forEach(verifier.removeUsedElements);
+      verifier.generateDuplicateImportHints(errorReporter);
+      verifier.generateUnusedImportHints(errorReporter);
+      verifier.generateUnusedShownNameHints(errorReporter);
+    }
+
+    // Unused local elements.
+    {
+      UsedLocalElements usedElements =
+          new UsedLocalElements.merge(_usedLocalElementsList);
+      UnusedLocalElementsVerifier visitor =
+          new UnusedLocalElementsVerifier(errorListener, usedElements);
+      unit.element.accept(visitor);
+    }
+  }
+
+  void _computeVerifyErrors(FileState file, CompilationUnit unit) {
     RecordingErrorListener errorListener = _getErrorListener(file);
     CompilationUnitElement unitElement = unit.element;
 
@@ -171,7 +221,7 @@ class AnalyzerImpl {
       checker.visitCompilationUnit(unit);
     }
 
-    var errorReporter = _getErrorReporter(file);
+    ErrorReporter errorReporter = _getErrorReporter(file);
 
     //
     // Validate the directives.
@@ -201,55 +251,6 @@ class AnalyzerImpl {
     //
     for (PendingError pendingError in pendingErrors) {
       errorListener.onError(pendingError.toAnalysisError());
-    }
-
-    //
-    // Find dead code.
-    //
-    unit.accept(
-        new DeadCodeVerifier(errorReporter, typeSystem: _context.typeSystem));
-
-    // Dart2js analysis.
-    if (_analysisOptions.dart2jsHint) {
-      unit.accept(new Dart2JSVerifier(errorReporter));
-    }
-
-    InheritanceManager inheritanceManager = new InheritanceManager(
-        _libraryElement,
-        includeAbstractFromSuperclasses: true);
-
-    unit.accept(new BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement, inheritanceManager,
-        typeSystem: _context.typeSystem));
-
-    unit.accept(new OverrideVerifier(errorReporter, inheritanceManager));
-
-    new ToDoFinder(errorReporter).findIn(unit);
-
-    // Verify imports.
-    {
-      ImportsVerifier verifier = new ImportsVerifier();
-      verifier.addImports(unit);
-      _usedImportedElementsList.forEach(verifier.removeUsedElements);
-      ErrorReporter errorReporter = _getErrorReporter(file);
-      verifier.generateDuplicateImportHints(errorReporter);
-      verifier.generateUnusedImportHints(errorReporter);
-      verifier.generateUnusedShownNameHints(errorReporter);
-    }
-
-    {
-      GatherUsedLocalElementsVisitor visitor =
-          new GatherUsedLocalElementsVisitor(_libraryElement);
-      unit.accept(visitor);
-    }
-
-    // Unused local elements.
-    {
-      UsedLocalElements usedElements =
-          new UsedLocalElements.merge(_usedLocalElementsList);
-      UnusedLocalElementsVerifier visitor =
-          new UnusedLocalElementsVerifier(errorListener, usedElements);
-      unitElement.accept(visitor);
     }
   }
 
