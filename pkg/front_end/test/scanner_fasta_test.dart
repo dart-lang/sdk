@@ -168,6 +168,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
   @failingTest
   void test_index() {
     // TODO(paulberry,ahe): "[]" should be parsed as a single token.
+    // See dartbug.com/28665.
     super.test_index();
   }
 
@@ -175,6 +176,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
   @failingTest
   void test_index_eq() {
     // TODO(paulberry,ahe): "[]=" should be parsed as a single token.
+    // See dartbug.com/28665.
     super.test_index_eq();
   }
 
