@@ -6,7 +6,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisErrorFixes;
-import 'package:analyzer_plugin/protocol/generated_protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:meta/meta.dart';
 
 /**
@@ -511,6 +511,32 @@ class ResultMerger {
   }
 
   /**
+   * Return a list of source changes composed by merging the lists of source
+   * changes in the [partialResultList].
+   *
+   * The resulting list will contain all of the source changes from all of the
+   * plugins. If two or more plugins contribute the same source change the
+   * resulting list will contain duplications.
+   */
+  List<plugin.PrioritizedSourceChange> mergePrioritizedSourceChanges(
+      List<List<plugin.PrioritizedSourceChange>> partialResultList) {
+    int count = partialResultList.length;
+    if (count == 0) {
+      return <plugin.PrioritizedSourceChange>[];
+    } else if (count == 1) {
+      return partialResultList[0];
+    }
+    List<plugin.PrioritizedSourceChange> mergedChanges =
+        <plugin.PrioritizedSourceChange>[];
+    for (List<plugin.PrioritizedSourceChange> partialResults
+        in partialResultList) {
+      mergedChanges.addAll(partialResults);
+    }
+    mergedChanges.sort((first, second) => first.priority - second.priority);
+    return mergedChanges;
+  }
+
+  /**
    * Return a refactoring feedback composed by merging the refactoring feedbacks
    * in the [partialResultList].
    *
@@ -754,30 +780,6 @@ class ResultMerger {
         feedback: mergeRefactoringFeedbacks(feedbacks),
         change: mergeChanges(changes),
         potentialEdits: potentialEdits);
-  }
-
-  /**
-   * Return a list of source changes composed by merging the lists of source
-   * changes in the [partialResultList].
-   *
-   * The resulting list will contain all of the source changes from all of the
-   * plugins. If two or more plugins contribute the same source change the
-   * resulting list will contain duplications.
-   */
-  List<plugin.PrioritizedSourceChange> mergePrioritizedSourceChanges(
-      List<List<plugin.PrioritizedSourceChange>> partialResultList) {
-    int count = partialResultList.length;
-    if (count == 0) {
-      return <plugin.PrioritizedSourceChange>[];
-    } else if (count == 1) {
-      return partialResultList[0];
-    }
-    List<plugin.PrioritizedSourceChange> mergedChanges = <plugin.PrioritizedSourceChange>[];
-    for (List<plugin.PrioritizedSourceChange> partialResults in partialResultList) {
-      mergedChanges.addAll(partialResults);
-    }
-    mergedChanges.sort((first, second) => first.priority - second.priority);
-    return mergedChanges;
   }
 
   /**
