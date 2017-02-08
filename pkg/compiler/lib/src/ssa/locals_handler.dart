@@ -251,10 +251,11 @@ class LocalsHandler {
     // and passed to the generative constructor factory function as a parameter.
     // Instead of allocating and initializing the object, the constructor
     // 'upgrades' the native subclass object by initializing the Dart fields.
-    bool isNativeUpgradeFactory =
-        element.isGenerativeConstructor && backend.isNativeOrExtendsNative(cls);
-    if (backend.isInterceptedMethod(element)) {
-      bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
+    bool isNativeUpgradeFactory = element.isGenerativeConstructor &&
+        backend.nativeData.isNativeOrExtendsNative(cls);
+    if (backend.interceptorData.isInterceptedMethod(element)) {
+      bool isInterceptorClass =
+          backend.interceptorData.isInterceptorClass(cls.declaration);
       String name = isInterceptorClass ? 'receiver' : '_';
       SyntheticLocal parameter = new SyntheticLocal(name, executableContext);
       HParameterValue value = new HParameterValue(parameter, getTypeOfThis());

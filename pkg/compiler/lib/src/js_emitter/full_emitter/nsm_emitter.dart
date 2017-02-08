@@ -142,10 +142,10 @@ class NsmEmitter extends CodeEmitterHelper {
 
     // Find out how many selectors there are with the special calling
     // convention.
-    Iterable<Selector> interceptedSelectors = trivialNsmHandlers
-        .where((Selector s) => backend.isInterceptedName(s.name));
-    Iterable<Selector> ordinarySelectors = trivialNsmHandlers
-        .where((Selector s) => !backend.isInterceptedName(s.name));
+    Iterable<Selector> interceptedSelectors = trivialNsmHandlers.where(
+        (Selector s) => backend.interceptorData.isInterceptedName(s.name));
+    Iterable<Selector> ordinarySelectors = trivialNsmHandlers.where(
+        (Selector s) => !backend.interceptorData.isInterceptedName(s.name));
 
     // Get the short names (JS names, perhaps minified).
     Iterable<jsAst.Name> interceptedShorts =

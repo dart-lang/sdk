@@ -967,7 +967,7 @@ class Namer {
   /// True if [class_] is a non-native class that inherits from a native class.
   bool _isUserClassExtendingNative(ClassElement class_) {
     return !backend.isNative(class_) &&
-        backend.isNativeOrExtendsNative(class_.superclass);
+        backend.nativeData.isNativeOrExtendsNative(class_.superclass);
   }
 
   /// Annotated name for the setter of [element].
@@ -1358,11 +1358,11 @@ class Namer {
     }
 
     List<String> names = classes
-        .where((cls) => !backend.isNativeOrExtendsNative(cls))
+        .where((cls) => !backend.nativeData.isNativeOrExtendsNative(cls))
         .map(abbreviate)
         .toList();
     // There is one dispatch mechanism for all native classes.
-    if (classes.any((cls) => backend.isNativeOrExtendsNative(cls))) {
+    if (classes.any((cls) => backend.nativeData.isNativeOrExtendsNative(cls))) {
       names.add("x");
     }
     // Sort the names of the classes after abbreviating them to ensure

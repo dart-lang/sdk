@@ -20,7 +20,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
   InterceptorEmitter(this.closedWorld);
 
   void recordMangledNameOfMemberMethod(MemberEntity member, jsAst.Name name) {
-    if (backend.isInterceptedMethod(member)) {
+    if (backend.interceptorData.isInterceptedMethod(member)) {
       interceptorInvocationNames.add(name);
     }
   }
@@ -44,7 +44,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
     parts.add(js.comment('getInterceptor methods'));
 
     Map<jsAst.Name, Set<ClassEntity>> specializedGetInterceptors =
-        backend.specializedGetInterceptors;
+        backend.interceptorData.specializedGetInterceptors;
     List<jsAst.Name> names = specializedGetInterceptors.keys.toList()..sort();
     for (jsAst.Name name in names) {
       Set<ClassEntity> classes = specializedGetInterceptors[name];
@@ -60,8 +60,8 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
   jsAst.Statement buildOneShotInterceptors() {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
-    Iterable<jsAst.Name> names = backend.oneShotInterceptors.keys.toList()
-      ..sort();
+    Iterable<jsAst.Name> names =
+        backend.interceptorData.oneShotInterceptors.keys.toList()..sort();
 
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(compiler, namer, backend, closedWorld);

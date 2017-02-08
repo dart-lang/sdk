@@ -806,7 +806,7 @@ class ProgramBuilder {
   // accessible.
   void _markEagerInterceptorClasses() {
     Map<js.Name, Set<ClassElement>> specializedGetInterceptors =
-        backend.specializedGetInterceptors;
+        backend.interceptorData.specializedGetInterceptors;
     for (Set<ClassElement> classes in specializedGetInterceptors.values) {
       for (ClassElement element in classes) {
         Class cls = _classes[element];
@@ -826,7 +826,7 @@ class ProgramBuilder {
     Holder holder = _registry.registerHolder(holderName);
 
     Map<js.Name, Set<ClassElement>> specializedGetInterceptors =
-        backend.specializedGetInterceptors;
+        backend.interceptorData.specializedGetInterceptors;
     List<js.Name> names = specializedGetInterceptors.keys.toList()..sort();
     return names.map((js.Name name) {
       Set<ClassElement> classes = specializedGetInterceptors[name];
@@ -848,14 +848,15 @@ class ProgramBuilder {
 
       int getterFlags = 0;
       if (needsGetter) {
-        if (visitStatics || !backend.fieldHasInterceptedGetter(field)) {
+        if (visitStatics ||
+            !backend.interceptorData.fieldHasInterceptedGetter(field)) {
           getterFlags = 1;
         } else {
           getterFlags += 2;
           // TODO(sra): 'isInterceptorClass' might not be the correct test
           // for methods forced to use the interceptor convention because
           // the method's class was elsewhere mixed-in to an interceptor.
-          if (!backend.isInterceptorClass(holder)) {
+          if (!backend.interceptorData.isInterceptorClass(holder)) {
             getterFlags += 1;
           }
         }
@@ -863,11 +864,12 @@ class ProgramBuilder {
 
       int setterFlags = 0;
       if (needsSetter) {
-        if (visitStatics || !backend.fieldHasInterceptedSetter(field)) {
+        if (visitStatics ||
+            !backend.interceptorData.fieldHasInterceptedSetter(field)) {
           setterFlags = 1;
         } else {
           setterFlags += 2;
-          if (!backend.isInterceptorClass(holder)) {
+          if (!backend.interceptorData.isInterceptorClass(holder)) {
             setterFlags += 1;
           }
         }
@@ -890,7 +892,8 @@ class ProgramBuilder {
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
 
-    List<js.Name> names = backend.oneShotInterceptors.keys.toList()..sort();
+    List<js.Name> names =
+        backend.interceptorData.oneShotInterceptors.keys.toList()..sort();
     return names.map((js.Name name) {
       js.Expression code = stubGenerator.generateOneShotInterceptor(name);
       return new StaticStubMethod(name, holder, code);

@@ -43,11 +43,11 @@ class BackendHelpers {
   final ElementEnvironment _env;
 
   // TODO(johnniwinther): Remove this.
-  final JavaScriptBackend backend;
+  final JavaScriptBackend _backend;
 
   final CommonElements commonElements;
 
-  BackendHelpers(this._env, this.backend, this.commonElements);
+  BackendHelpers(this._env, this._backend, this.commonElements);
 
   ClassEntity _findInterceptorsClass(String name) =>
       _findClass(interceptorsLibrary, name);

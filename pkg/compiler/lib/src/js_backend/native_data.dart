@@ -131,6 +131,16 @@ class NativeData {
     }
   }
 
+  /// Returns `true` if [element] or any of its superclasses is native.
+  bool isNativeOrExtendsNative(ClassElement element) {
+    if (element == null) return false;
+    if (isNative(element) || isJsInterop(element)) {
+      return true;
+    }
+    assert(element.isResolved);
+    return isNativeOrExtendsNative(element.superclass);
+  }
+
   /// Sets the native [name] for the member [element]. This name is used for
   /// [element] in the generated JavaScript.
   void setNativeMemberName(MemberElement element, String name) {

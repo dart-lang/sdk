@@ -21,7 +21,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CommonElements;
+import '../core_types.dart' show CommonElements, ElementEnvironment;
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
@@ -39,6 +39,7 @@ import '../js/js.dart' show js;
 import '../js/js_source_mapping.dart' show JavaScriptSourceInformationStrategy;
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../kernel/task.dart';
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
 import '../patch_parser.dart'
@@ -46,7 +47,6 @@ import '../patch_parser.dart'
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
 import '../tree/tree.dart';
-import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/feature.dart';
 import '../universe/selector.dart' show Selector;
@@ -72,8 +72,8 @@ import 'checked_mode_helpers.dart';
 import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'enqueuer.dart';
+import 'interceptor_data.dart' show InterceptorData;
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
-import '../kernel/task.dart';
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'mirrors_analysis.dart';
 import 'namer.dart';
@@ -354,56 +354,6 @@ class JavaScriptBackend extends Target {
   }
 
   /**
-   * A collection of selectors that must have a one shot interceptor
-   * generated.
-   */
-  final Map<jsAst.Name, Selector> oneShotInterceptors;
-
-  /**
-   * The members of instantiated interceptor classes: maps a member name to the
-   * list of members that have that name. This map is used by the codegen to
-   * know whether a send must be intercepted or not.
-   */
-  final Map<String, Set<Element>> interceptedElements;
-
-  /**
-   * The members of mixin classes that are mixed into an instantiated
-   * interceptor class.  This is a cached subset of [interceptedElements].
-   *
-   * Mixin methods are not specialized for the class they are mixed into.
-   * Methods mixed into intercepted classes thus always make use of the explicit
-   * receiver argument, even when mixed into non-interceptor classes.
-   *
-   * These members must be invoked with a correct explicit receiver even when
-   * the receiver is not an intercepted class.
-   */
-  final Map<String, Set<Element>> interceptedMixinElements =
-      new Map<String, Set<Element>>();
-
-  /**
-   * A map of specialized versions of the [getInterceptorMethod].
-   * Since [getInterceptorMethod] is a hot method at runtime, we're
-   * always specializing it based on the incoming type. The keys in
-   * the map are the names of these specialized versions. Note that
-   * the generic version that contains all possible type checks is
-   * also stored in this map.
-   */
-  final Map<jsAst.Name, Set<ClassElement>> specializedGetInterceptors;
-
-  /**
-   * Set of classes whose methods are intercepted.
-   */
-  final Set<ClassElement> _interceptedClasses = new Set<ClassElement>();
-
-  /**
-   * Set of classes used as mixins on intercepted (native and primitive)
-   * classes.  Methods on these classes might also be mixed in to regular Dart
-   * (unintercepted) classes.
-   */
-  final Set<ClassElement> classesMixedIntoInterceptedClasses =
-      new Set<ClassElement>();
-
-  /**
    * Set of classes whose `operator ==` methods handle `null` themselves.
    */
   final Set<ClassElement> specialOperatorEqClasses = new Set<ClassElement>();
@@ -557,6 +507,7 @@ class JavaScriptBackend extends Target {
       new StagedWorldImpactBuilder();
 
   final NativeData nativeData = new NativeData();
+  InterceptorData _interceptorData;
 
   BackendHelpers helpers;
   final BackendImpacts impacts;
@@ -574,11 +525,8 @@ class JavaScriptBackend extends Target {
       bool useStartupEmitter: false,
       bool useNewSourceInfo: false,
       bool useKernel: false})
-      : oneShotInterceptors = new Map<jsAst.Name, Selector>(),
-        interceptedElements = new Map<String, Set<Element>>(),
-        rti = new _RuntimeTypes(compiler),
+      : rti = new _RuntimeTypes(compiler),
         rtiEncoder = new _RuntimeTypesEncoder(compiler),
-        specializedGetInterceptors = new Map<jsAst.Name, Set<ClassElement>>(),
         annotations = new Annotations(compiler),
         this.sourceInformationStrategy = generateSourceMap
             ? (useNewSourceInfo
@@ -606,7 +554,9 @@ class JavaScriptBackend extends Target {
     functionCompiler =
         new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
     serialization = new JavaScriptBackendSerialization(this);
-    backendClasses = new JavaScriptBackendClasses(helpers);
+    _interceptorData = new InterceptorData(nativeData, helpers, commonElements);
+    backendClasses = new JavaScriptBackendClasses(
+        compiler.elementEnvironment, helpers, nativeData, _interceptorData);
   }
 
   /// The [ConstantSystem] used to interpret compile-time constants for this
@@ -618,6 +568,8 @@ class JavaScriptBackend extends Target {
   CommonElements get commonElements => compiler.commonElements;
 
   Resolution get resolution => compiler.resolution;
+
+  InterceptorData get interceptorData => _interceptorData;
 
   /// Returns constant environment for the JavaScript interpretation of the
   /// constants.
@@ -754,24 +706,6 @@ class JavaScriptBackend extends Target {
     return !usedByBackend(element) && !invokedReflectively(element);
   }
 
-  bool isInterceptorClass(ClassElement element) {
-    if (element == null) return false;
-    if (isNativeOrExtendsNative(element)) return true;
-    if (interceptedClasses.contains(element)) return true;
-    if (classesMixedIntoInterceptedClasses.contains(element)) return true;
-    return false;
-  }
-
-  jsAst.Name registerOneShotInterceptor(Selector selector) {
-    Set<ClassElement> classes = getInterceptedClassesOn(selector.name);
-    jsAst.Name name = namer.nameForGetOneShotInterceptor(selector, classes);
-    if (!oneShotInterceptors.containsKey(name)) {
-      registerSpecializedGetInterceptor(classes);
-      oneShotInterceptors[name] = selector;
-    }
-    return name;
-  }
-
   /**
    * Record that [method] is called from a subclass via `super`.
    */
@@ -864,129 +798,12 @@ class JavaScriptBackend extends Target {
     }
   }
 
-  bool isNativeOrExtendsNative(ClassElement element) {
-    if (element == null) return false;
-    if (isNative(element) || isJsInterop(element)) {
-      return true;
-    }
-    assert(element.isResolved);
-    return isNativeOrExtendsNative(element.superclass);
-  }
-
-  bool isInterceptedMethod(MemberElement element) {
-    if (!element.isInstanceMember) return false;
-    if (element.isGenerativeConstructorBody) {
-      return isNativeOrExtendsNative(element.enclosingClass);
-    }
-    return interceptedElements[element.name] != null;
-  }
-
-  bool fieldHasInterceptedGetter(Element element) {
-    assert(element.isField);
-    return interceptedElements[element.name] != null;
-  }
-
-  bool fieldHasInterceptedSetter(Element element) {
-    assert(element.isField);
-    return interceptedElements[element.name] != null;
-  }
-
-  bool isInterceptedName(String name) {
-    return interceptedElements[name] != null;
-  }
-
-  bool isInterceptedSelector(Selector selector) {
-    return interceptedElements[selector.name] != null;
-  }
-
-  /**
-   * Returns `true` iff [selector] matches an element defined in a class mixed
-   * into an intercepted class.  These selectors are not eligible for the 'dummy
-   * explicit receiver' optimization.
-   */
-  bool isInterceptedMixinSelector(Selector selector, TypeMask mask) {
-    Set<Element> elements =
-        interceptedMixinElements.putIfAbsent(selector.name, () {
-      Set<Element> elements = interceptedElements[selector.name];
-      if (elements == null) return null;
-      return elements
-          .where((element) => classesMixedIntoInterceptedClasses
-              .contains(element.enclosingClass))
-          .toSet();
-    });
-
-    if (elements == null) return false;
-    if (elements.isEmpty) return false;
-    return elements.any((element) {
-      return selector.applies(element) &&
-          (mask == null ||
-              mask.canHit(element as MemberElement, selector, _closedWorld));
-    });
-  }
-
-  /// True if the given class is an internal class used for type inference
-  /// and never exists at runtime.
-  bool isCompileTimeOnlyClass(ClassElement class_) {
-    return class_ == helpers.jsPositiveIntClass ||
-        class_ == helpers.jsUInt32Class ||
-        class_ == helpers.jsUInt31Class ||
-        class_ == helpers.jsFixedArrayClass ||
-        class_ == helpers.jsUnmodifiableArrayClass ||
-        class_ == helpers.jsMutableArrayClass ||
-        class_ == helpers.jsExtendableArrayClass;
-  }
-
   /// Maps compile-time classes to their runtime class.  The runtime class is
   /// always a superclass or the class itself.
   ClassElement getRuntimeClass(ClassElement class_) {
     if (class_.isSubclassOf(helpers.jsIntClass)) return helpers.jsIntClass;
     if (class_.isSubclassOf(helpers.jsArrayClass)) return helpers.jsArrayClass;
     return class_;
-  }
-
-  final Map<String, Set<ClassElement>> interceptedClassesCache =
-      new Map<String, Set<ClassElement>>();
-  final Set<ClassElement> _noClasses = new Set<ClassElement>();
-
-  /// Returns a set of interceptor classes that contain a member named [name]
-  ///
-  /// Returns an empty set if there is no class. Do not modify the returned set.
-  Set<ClassElement> getInterceptedClassesOn(String name) {
-    Set<Element> intercepted = interceptedElements[name];
-    if (intercepted == null) return _noClasses;
-    return interceptedClassesCache.putIfAbsent(name, () {
-      // Populate the cache by running through all the elements and
-      // determine if the given selector applies to them.
-      Set<ClassElement> result = new Set<ClassElement>();
-      for (Element element in intercepted) {
-        ClassElement classElement = element.enclosingClass;
-        if (isCompileTimeOnlyClass(classElement)) continue;
-        if (isNativeOrExtendsNative(classElement) ||
-            interceptedClasses.contains(classElement)) {
-          result.add(classElement);
-        }
-        if (classesMixedIntoInterceptedClasses.contains(classElement)) {
-          Set<ClassElement> nativeSubclasses =
-              nativeSubclassesOfMixin(classElement);
-          if (nativeSubclasses != null) result.addAll(nativeSubclasses);
-        }
-      }
-      return result;
-    });
-  }
-
-  Set<ClassElement> nativeSubclassesOfMixin(ClassElement mixin) {
-    Iterable<MixinApplicationElement> uses = _closedWorld.mixinUsesOf(mixin);
-    Set<ClassElement> result = null;
-    for (MixinApplicationElement use in uses) {
-      _closedWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
-        if (isNativeOrExtendsNative(subclass)) {
-          if (result == null) result = new Set<ClassElement>();
-          result.add(subclass);
-        }
-      });
-    }
-    return result;
   }
 
   bool operatorEqHandlesNullArgument(FunctionElement operatorEqfunction) {
@@ -1016,60 +833,17 @@ class JavaScriptBackend extends Target {
       {bool forResolution}) {
     if (forResolution) {
       cls.ensureResolved(resolution);
-      cls.forEachMember((ClassElement classElement, Element member) {
-        if (member.name == Identifiers.call) {
-          return;
-        }
-        if (member.isSynthesized) return;
-        // All methods on [Object] are shadowed by [Interceptor].
-        if (classElement == commonElements.objectClass) return;
-        Set<Element> set = interceptedElements.putIfAbsent(
-            member.name, () => new Set<Element>());
-        set.add(member);
-      }, includeSuperAndInjectedMembers: true);
-
-      // Walk superclass chain to find mixins.
-      for (; cls != null; cls = cls.superclass) {
-        if (cls.isMixinApplication) {
-          MixinApplicationElement mixinApplication = cls;
-          classesMixedIntoInterceptedClasses.add(mixinApplication.mixin);
-        }
-      }
+      interceptorData.addInterceptorsForNativeClassMembers(cls);
     }
   }
 
   void addInterceptors(ClassElement cls, WorldImpactBuilder impactBuilder,
       {bool forResolution}) {
     if (forResolution) {
-      if (_interceptedClasses.add(cls)) {
-        cls.ensureResolved(resolution);
-        cls.forEachMember((ClassElement classElement, Element member) {
-          // All methods on [Object] are shadowed by [Interceptor].
-          if (classElement == commonElements.objectClass) return;
-          Set<Element> set = interceptedElements.putIfAbsent(
-              member.name, () => new Set<Element>());
-          set.add(member);
-        }, includeSuperAndInjectedMembers: true);
-      }
-      _interceptedClasses.add(helpers.jsInterceptorClass);
+      cls.ensureResolved(resolution);
+      interceptorData.addInterceptors(cls);
     }
     impactTransformer.registerBackendInstantiation(impactBuilder, cls);
-  }
-
-  Set<ClassElement> get interceptedClasses {
-    assert(compiler.enqueuer.resolution.queueIsClosed);
-    return _interceptedClasses;
-  }
-
-  void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
-    jsAst.Name name = namer.nameForGetInterceptor(classes);
-    if (classes.contains(helpers.jsInterceptorClass)) {
-      // We can't use a specialized [getInterceptorMethod], so we make
-      // sure we emit the one with all checks.
-      specializedGetInterceptors[name] = interceptedClasses;
-    } else {
-      specializedGetInterceptors[name] = classes;
-    }
   }
 
   /// Called during codegen when [constant] has been used.
@@ -1189,7 +963,7 @@ class JavaScriptBackend extends Target {
       } else if (cls == helpers.boundClosureClass) {
         impactTransformer.registerBackendImpact(
             impactBuilder, impacts.boundClosureClass);
-      } else if (isNativeOrExtendsNative(cls)) {
+      } else if (nativeData.isNativeOrExtendsNative(cls)) {
         impactTransformer.registerBackendImpact(
             impactBuilder, impacts.nativeOrExtendsClass);
       } else if (cls == helpers.mapLiteralClass) {
@@ -1271,7 +1045,7 @@ class JavaScriptBackend extends Target {
     } else if (cls == helpers.jsJavaScriptFunctionClass) {
       addInterceptors(helpers.jsJavaScriptFunctionClass, impactBuilder,
           forResolution: forResolution);
-    } else if (isNativeOrExtendsNative(cls)) {
+    } else if (nativeData.isNativeOrExtendsNative(cls)) {
       addInterceptorsForNativeClassMembers(cls, forResolution: forResolution);
     } else if (cls == helpers.jsIndexingBehaviorInterface) {
       impactTransformer.registerBackendImpact(
@@ -1326,6 +1100,7 @@ class JavaScriptBackend extends Target {
     rti.computeClassesNeedingRti(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     _registeredMetadata.clear();
+    interceptorData.onResolutionComplete(closedWorld);
   }
 
   void onTypeInferenceComplete() {
@@ -1802,7 +1577,7 @@ class JavaScriptBackend extends Target {
 
     if (!type.isRaw) return false;
     ClassElement classElement = type.element;
-    if (isInterceptorClass(classElement)) return false;
+    if (interceptorData.isInterceptorClass(classElement)) return false;
     return _closedWorld.hasOnlySubclasses(classElement);
   }
 
@@ -3251,7 +3026,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (Set<ClassElement> classes in impact.specializedGetInterceptors) {
-      backend.registerSpecializedGetInterceptor(classes);
+      backend.interceptorData
+          .registerSpecializedGetInterceptor(classes, backend.namer);
     }
 
     if (impact.usesInterceptor) {
@@ -3341,9 +3117,13 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
 }
 
 class JavaScriptBackendClasses implements BackendClasses {
+  final ElementEnvironment _env;
   final BackendHelpers helpers;
+  final NativeData _nativeData;
+  final InterceptorData _interceptorData;
 
-  JavaScriptBackendClasses(this.helpers);
+  JavaScriptBackendClasses(
+      this._env, this.helpers, this._nativeData, this._interceptorData);
 
   ClassElement get intClass => helpers.jsIntClass;
   ClassElement get uint32Class => helpers.jsUInt32Class;
@@ -3360,9 +3140,7 @@ class JavaScriptBackendClasses implements BackendClasses {
   ClassElement get mapClass => helpers.mapLiteralClass;
   ClassElement get constMapClass => helpers.constMapLiteralClass;
   ClassElement get typeClass => helpers.typeLiteralClass;
-  ResolutionInterfaceType get typeType {
-    return typeClass.computeType(helpers.backend.compiler.resolution);
-  }
+  InterfaceType get typeType => _env.getRawType(typeClass);
 
   ClassElement get boolClass => helpers.jsBoolClass;
   ClassElement get nullClass => helpers.jsNullClass;
@@ -3385,16 +3163,16 @@ class JavaScriptBackendClasses implements BackendClasses {
 
   @override
   bool isInterceptorClass(ClassElement cls) {
-    return helpers.backend.isInterceptorClass(cls);
+    return _interceptorData.isInterceptorClass(cls);
   }
 
   @override
   bool isNativeClass(ClassElement element) {
-    return helpers.backend.isNative(element);
+    return _nativeData.isNative(element);
   }
 
   @override
   bool isNativeMember(MemberElement element) {
-    return helpers.backend.isNative(element);
+    return _nativeData.isNative(element);
   }
 }

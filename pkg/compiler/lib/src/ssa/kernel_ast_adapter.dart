@@ -316,11 +316,11 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
 
   bool isIntercepted(ir.Node node) {
     Selector selector = getSelector(node);
-    return _backend.isInterceptedSelector(selector);
+    return _backend.interceptorData.isInterceptedSelector(selector);
   }
 
   bool isInterceptedSelector(Selector selector) {
-    return _backend.isInterceptedSelector(selector);
+    return _backend.interceptorData.isInterceptedSelector(selector);
   }
 
   // Is the member a lazy initialized static or top-level member?

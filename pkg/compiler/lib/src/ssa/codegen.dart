@@ -1704,7 +1704,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     var isolate = new js.VariableUse(
         backend.namer.globalObjectForLibrary(helpers.interceptorsLibrary));
     Selector selector = node.selector;
-    js.Name methodName = backend.registerOneShotInterceptor(selector);
+    js.Name methodName = backend.interceptorData
+        .registerOneShotInterceptor(selector, backend.namer);
     push(js
         .propertyCall(isolate, methodName, arguments)
         .withSourceInformation(node.sourceInformation));
@@ -3055,7 +3056,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     use(node.inputs[0]);
     if (node.hasReceiver) {
-      if (backend.isInterceptorClass(element.typeDeclaration)) {
+      if (backend.interceptorData.isInterceptorClass(element.typeDeclaration)) {
         int index = element.index;
         js.Expression receiver = pop();
         js.Expression helper =

@@ -861,7 +861,8 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 
         if (method.needsTearOff) {
           MethodElement element = method.element;
-          bool isIntercepted = backend.isInterceptedMethod(element);
+          bool isIntercepted =
+              backend.interceptorData.isInterceptedMethod(element);
           data.add(new js.LiteralBool(isIntercepted));
           data.add(js.quoteName(method.tearOffName));
           data.add((method.functionType));

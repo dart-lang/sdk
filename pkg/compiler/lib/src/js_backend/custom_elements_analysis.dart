@@ -76,7 +76,7 @@ class CustomElementsAnalysis {
   void registerInstantiatedClass(ClassElement classElement,
       {bool forResolution}) {
     classElement.ensureResolved(compiler.resolution);
-    if (!backend.isNativeOrExtendsNative(classElement)) return;
+    if (!backend.nativeData.isNativeOrExtendsNative(classElement)) return;
     if (classElement.isMixinApplication) return;
     if (classElement.isAbstract) return;
     // JsInterop classes are opaque interfaces without a concrete
@@ -159,7 +159,7 @@ class CustomElementsAnalysisJoin {
     for (ClassElement classElement in instantiatedClasses) {
       bool isNative = backend.isNative(classElement);
       bool isExtension =
-          !isNative && backend.isNativeOrExtendsNative(classElement);
+          !isNative && backend.nativeData.isNativeOrExtendsNative(classElement);
       // Generate table entries for native classes that are explicitly named and
       // extensions that fix our criteria.
       if ((isNative && selectedClasses.contains(classElement)) ||

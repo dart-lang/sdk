@@ -462,7 +462,7 @@ class SsaBuilder extends ast.Visitor
       // Generative constructors of native classes should not be called directly
       // and have an extra argument that causes problems with inlining.
       if (function.isGenerativeConstructor &&
-          backend.isNativeOrExtendsNative(function.enclosingClass)) {
+          backend.nativeData.isNativeOrExtendsNative(function.enclosingClass)) {
         return false;
       }
 
@@ -1144,7 +1144,7 @@ class SsaBuilder extends ast.Visitor
         if (initializer == null) {
           // Unassigned fields of native classes are not initialized to
           // prevent overwriting pre-initialized native properties.
-          if (!backend.isNativeOrExtendsNative(classElement)) {
+          if (!backend.nativeData.isNativeOrExtendsNative(classElement)) {
             fieldValues[member] = graph.addConstantNull(closedWorld);
           }
         } else {
@@ -1179,7 +1179,7 @@ class SsaBuilder extends ast.Visitor
     functionElement = functionElement.implementation;
     ClassElement classElement = functionElement.enclosingClass.implementation;
     bool isNativeUpgradeFactory =
-        backend.isNativeOrExtendsNative(classElement) &&
+        backend.nativeData.isNativeOrExtendsNative(classElement) &&
             !backend.isJsInterop(classElement);
     ast.FunctionExpression function;
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
@@ -3406,7 +3406,8 @@ class SsaBuilder extends ast.Visitor
 
     List<HInstruction> inputs = <HInstruction>[];
     if (constructor.isGenerativeConstructor &&
-        backend.isNativeOrExtendsNative(constructor.enclosingClass) &&
+        backend.nativeData
+            .isNativeOrExtendsNative(constructor.enclosingClass) &&
         !backend.isJsInterop(constructor)) {
       // Native class generative constructors take a pre-constructed object.
       inputs.add(graph.addConstantNull(closedWorld));
@@ -3965,7 +3966,8 @@ class SsaBuilder extends ast.Visitor
     bool isOptimizableOperation(Selector selector, Element element) {
       ClassElement cls = element.enclosingClass;
       if (isOptimizableOperationOnIndexable(selector, element)) return true;
-      if (!backend.interceptedClasses.contains(cls)) return false;
+      if (!backend.interceptorData.interceptedClasses.contains(cls))
+        return false;
       if (selector.isOperator) return true;
       if (selector.isSetter) return true;
       if (selector.isIndex) return true;
@@ -3991,7 +3993,8 @@ class SsaBuilder extends ast.Visitor
 
     HInstruction receiver = arguments[0];
     List<HInstruction> inputs = <HInstruction>[];
-    bool isIntercepted = backend.isInterceptedSelector(selector);
+    bool isIntercepted =
+        backend.interceptorData.isInterceptedSelector(selector);
     if (isIntercepted) {
       inputs.add(invokeInterceptor(receiver));
     }
@@ -4157,7 +4160,7 @@ class SsaBuilder extends ast.Visitor
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     List<HInstruction> inputs = <HInstruction>[];
-    if (backend.isInterceptedSelector(selector) &&
+    if (backend.interceptorData.isInterceptedSelector(selector) &&
         // Fields don't need an interceptor; consider generating HFieldGet/Set
         // instead.
         element.kind != ElementKind.FIELD) {

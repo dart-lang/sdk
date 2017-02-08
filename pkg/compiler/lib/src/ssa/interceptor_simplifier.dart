@@ -224,8 +224,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         dominator.isCallOnInterceptor(closedWorld) &&
         node == dominator.receiver &&
         useCount(dominator, node) == 1) {
-      interceptedClasses =
-          backend.getInterceptedClassesOn(dominator.selector.name);
+      interceptedClasses = backend.interceptorData
+          .getInterceptedClassesOn(dominator.selector.name);
 
       // If we found that we need number, we must still go through all
       // uses to check if they require int, or double.
@@ -235,8 +235,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
         Set<ClassEntity> required;
         for (HInstruction user in node.usedBy) {
           if (user is! HInvoke) continue;
-          Set<ClassEntity> intercepted =
-              backend.getInterceptedClassesOn(user.selector.name);
+          Set<ClassEntity> intercepted = backend.interceptorData
+              .getInterceptedClassesOn(user.selector.name);
           if (intercepted.contains(backendClasses.intClass)) {
             // TODO(johnniwinther): Use type argument when all uses of
             // intercepted classes expect entities instead of elements.
@@ -264,18 +264,18 @@ class SsaSimplifyInterceptors extends HBaseVisitor
             user.isCallOnInterceptor(closedWorld) &&
             node == user.receiver &&
             useCount(user, node) == 1) {
-          interceptedClasses
-              .addAll(backend.getInterceptedClassesOn(user.selector.name));
+          interceptedClasses.addAll(backend.interceptorData
+              .getInterceptedClassesOn(user.selector.name));
         } else if (user is HInvokeSuper &&
             user.isCallOnInterceptor(closedWorld) &&
             node == user.receiver &&
             useCount(user, node) == 1) {
-          interceptedClasses
-              .addAll(backend.getInterceptedClassesOn(user.selector.name));
+          interceptedClasses.addAll(backend.interceptorData
+              .getInterceptedClassesOn(user.selector.name));
         } else {
           // Use a most general interceptor for other instructions, example,
           // is-checks and escaping interceptors.
-          interceptedClasses.addAll(backend.interceptedClasses);
+          interceptedClasses.addAll(backend.interceptorData.interceptedClasses);
           break;
         }
       }
