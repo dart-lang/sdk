@@ -7,8 +7,10 @@ library sort_test;
 import "package:expect/expect.dart";
 import 'sort_helper.dart';
 
+typedef int intPairToInt(int a, int b);
+
 main() {
-  var compare = (a, b) => a.compareTo(b);
+  intPairToInt compare = (a, b) => a.compareTo(b);
   var sort = (list) => list.sort(compare);
   new SortHelper(sort, compare).run();
 

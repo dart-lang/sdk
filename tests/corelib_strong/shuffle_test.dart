@@ -95,7 +95,7 @@ void testShuffle(list) {
 
 // Checks that the "random" argument to shuffle is used.
 testRandom() {
-  List randomNums = [37, 87, 42, 157, 252, 17];
+  List<int> randomNums = [37, 87, 42, 157, 252, 17];
   List numbers = new List.generate(25, (x) => x);
   List l1 = numbers.toList()..shuffle(new MockRandom(randomNums));
   for (int i = 0; i < 50; i++) {

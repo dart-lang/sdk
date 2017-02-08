@@ -58,15 +58,15 @@ main() {
   testNonExtendableList();
 }
 
-void expectIOORE(Function f) {
+void expectIOORE(void f()) {
   Expect.throws(f, (e) => e is RangeError);
 }
 
-void expectSE(Function f) {
+void expectSE(void f()) {
   Expect.throws(f, (e) => e is StateError);
 }
 
-void expectAE(Function f) {
+void expectAE(void f()) {
   Expect.throws(f, (e) => e is ArgumentError);
 }
 

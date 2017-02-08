@@ -65,10 +65,10 @@ main() {
   expectUE(() => test(const [1, 2, 3], 1, 4));
 }
 
-void expectRE(Function f) {
+void expectRE(void f()) {
   Expect.throws(f, (e) => e is RangeError);
 }
 
-void expectUE(Function f) {
+void expectUE(void f()) {
   Expect.throws(f, (e) => e is UnsupportedError);
 }

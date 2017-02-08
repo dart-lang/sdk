@@ -118,15 +118,15 @@ main() {
   Expect.isFalse(it.moveNext());
   Expect.isNull(it.current);
 
-  takeWhileFalse = set2.takeWhile((x) => false);
-  it = takeWhileFalse.iterator;
-  Expect.isNull(it.current);
-  Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
+  var dynamicTakeWhileFalse = set2.takeWhile((x) => false);
+  var dynamicIt = dynamicTakeWhileFalse.iterator;
+  Expect.isNull(dynamicIt.current);
+  Expect.isFalse(dynamicIt.moveNext());
+  Expect.isNull(dynamicIt.current);
 
-  takeEverything = set2.takeWhile((x) => true);
-  it = takeEverything.iterator;
-  Expect.isNull(it.current);
-  Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
+  var dynamicTakeEverything = set2.takeWhile((x) => true);
+  dynamicIt = dynamicTakeEverything.iterator;
+  Expect.isNull(dynamicIt.current);
+  Expect.isFalse(dynamicIt.moveNext());
+  Expect.isNull(dynamicIt.current);
 }
