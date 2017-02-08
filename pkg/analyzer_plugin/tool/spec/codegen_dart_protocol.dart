@@ -223,13 +223,16 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln(' extends RefactoringFeedback implements HasToJson {');
     } else if (impliedType.kind == 'refactoringOptions') {
       writeln(' extends RefactoringOptions implements HasToJson {');
+    } else if (impliedType.kind == 'requestParams') {
+      writeln(' implements RequestParams {');
     } else if (impliedType.kind == 'requestResult') {
       writeln(' implements ResponseResult {');
     } else {
       writeln(' {');
     }
     indent(() {
-      if (impliedType.kind == 'requestResult') {
+      if (impliedType.kind == 'requestResult' ||
+          impliedType.kind == 'requestParams') {
         emitEmptyToJsonMember();
         writeln();
       }
@@ -405,6 +408,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln(' extends RefactoringFeedback {');
     } else if (impliedType.kind == 'refactoringOptions') {
       writeln(' extends RefactoringOptions {');
+    } else if (impliedType.kind == 'requestParams') {
+      writeln(' implements RequestParams {');
     } else if (impliedType.kind == 'requestResult') {
       writeln(' implements ResponseResult {');
     } else {
@@ -910,6 +915,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    */
   bool emitToRequestMember(ImpliedType impliedType) {
     if (impliedType.kind == 'requestParams') {
+      writeln('@override');
       writeln('Request toRequest(String id) {');
       indent(() {
         String methodString =

@@ -800,7 +800,7 @@ class AnalysisFoldingParams implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisHandleWatchEventsParams implements HasToJson {
+class AnalysisHandleWatchEventsParams implements RequestParams {
   List<WatchEvent> _events;
 
   /**
@@ -849,6 +849,7 @@ class AnalysisHandleWatchEventsParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "analysis.handleWatchEvents", toJson());
   }
@@ -1393,7 +1394,7 @@ class AnalysisOutlineParams implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisReanalyzeParams implements HasToJson {
+class AnalysisReanalyzeParams implements RequestParams {
   List<String> _roots;
 
   /**
@@ -1447,6 +1448,7 @@ class AnalysisReanalyzeParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "analysis.reanalyze", toJson());
   }
@@ -1574,7 +1576,7 @@ class AnalysisService implements Enum {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisSetContextBuilderOptionsParams implements HasToJson {
+class AnalysisSetContextBuilderOptionsParams implements RequestParams {
   ContextBuilderOptions _options;
 
   /**
@@ -1623,6 +1625,7 @@ class AnalysisSetContextBuilderOptionsParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "analysis.setContextBuilderOptions", toJson());
   }
@@ -1683,7 +1686,7 @@ class AnalysisSetContextBuilderOptionsResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisSetContextRootsParams implements HasToJson {
+class AnalysisSetContextRootsParams implements RequestParams {
   List<ContextRoot> _roots;
 
   /**
@@ -1732,6 +1735,7 @@ class AnalysisSetContextRootsParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "analysis.setContextRoots", toJson());
   }
@@ -1792,7 +1796,7 @@ class AnalysisSetContextRootsResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisSetPriorityFilesParams implements HasToJson {
+class AnalysisSetPriorityFilesParams implements RequestParams {
   List<String> _files;
 
   /**
@@ -1841,6 +1845,7 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "analysis.setPriorityFiles", toJson());
   }
@@ -1901,7 +1906,7 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisSetSubscriptionsParams implements HasToJson {
+class AnalysisSetSubscriptionsParams implements RequestParams {
   Map<AnalysisService, List<String>> _subscriptions;
 
   /**
@@ -1952,6 +1957,7 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "analysis.setSubscriptions", toJson());
   }
@@ -2012,7 +2018,7 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class AnalysisUpdateContentParams implements HasToJson {
+class AnalysisUpdateContentParams implements RequestParams {
   Map<String, dynamic> _files;
 
   /**
@@ -2063,6 +2069,7 @@ class AnalysisUpdateContentParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "analysis.updateContent", toJson());
   }
@@ -2202,7 +2209,7 @@ class ChangeContentOverlay implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class CompletionGetSuggestionsParams implements HasToJson {
+class CompletionGetSuggestionsParams implements RequestParams {
   String _file;
 
   int _offset;
@@ -2274,6 +2281,7 @@ class CompletionGetSuggestionsParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "completion.getSuggestions", toJson());
   }
@@ -3513,7 +3521,7 @@ class ConvertMethodToGetterOptions extends RefactoringOptions implements HasToJs
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class EditGetAssistsParams implements HasToJson {
+class EditGetAssistsParams implements RequestParams {
   String _file;
 
   int _offset;
@@ -3608,6 +3616,7 @@ class EditGetAssistsParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "edit.getAssists", toJson());
   }
@@ -3728,7 +3737,7 @@ class EditGetAssistsResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class EditGetAvailableRefactoringsParams implements HasToJson {
+class EditGetAvailableRefactoringsParams implements RequestParams {
   String _file;
 
   int _offset;
@@ -3823,6 +3832,7 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "edit.getAvailableRefactorings", toJson());
   }
@@ -3952,7 +3962,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class EditGetFixesParams implements HasToJson {
+class EditGetFixesParams implements RequestParams {
   String _file;
 
   int _offset;
@@ -4024,6 +4034,7 @@ class EditGetFixesParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "edit.getFixes", toJson());
   }
@@ -4145,7 +4156,7 @@ class EditGetFixesResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class EditGetRefactoringParams implements HasToJson {
+class EditGetRefactoringParams implements RequestParams {
   RefactoringKind _kind;
 
   String _file;
@@ -4320,6 +4331,7 @@ class EditGetRefactoringParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "edit.getRefactoring", toJson());
   }
@@ -8357,7 +8369,11 @@ class PluginErrorParams implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class PluginShutdownParams {
+class PluginShutdownParams implements RequestParams {
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{};
+
+  @override
   Request toRequest(String id) {
     return new Request(id, "plugin.shutdown", null);
   }
@@ -8414,7 +8430,7 @@ class PluginShutdownResult implements ResponseResult {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class PluginVersionCheckParams implements HasToJson {
+class PluginVersionCheckParams implements RequestParams {
   String _byteStorePath;
 
   String _version;
@@ -8490,6 +8506,7 @@ class PluginVersionCheckParams implements HasToJson {
     return result;
   }
 
+  @override
   Request toRequest(String id) {
     return new Request(id, "plugin.versionCheck", toJson());
   }

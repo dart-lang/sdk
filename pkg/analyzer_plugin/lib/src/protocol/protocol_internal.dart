@@ -471,6 +471,14 @@ class RequestDecoder extends JsonDecoder {
   }
 }
 
+abstract class RequestParams implements HasToJson {
+  /**
+   * Return a request whose parameters are taken from this object and that has
+   * the given [id].
+   */
+  Request toRequest(String id);
+}
+
 /**
  * JsonDecoder for decoding responses from the server.  This is intended to be
  * used only for testing.  Errors are reported using bare [Exception] objects.
