@@ -42,6 +42,7 @@ linter:
     - package_names
     - package_prefixed_library_names
     - parameter_assignments
+    - prefer_const_constructors
     - prefer_final_fields
     - prefer_final_locals
 #    - prefer_is_empty # not recognized

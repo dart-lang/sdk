@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.prefer_const_constructor;
+library linter.src.rules.prefer_const_constructors;
 
+import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Prefer const with constant constructors.';
 
@@ -50,12 +49,12 @@ void accessA() {
 ```
 ''';
 
-class PreferConstConstructor extends LintRule {
+class PreferConstConstructors extends LintRule {
   _Visitor _visitor;
 
-  PreferConstConstructor()
+  PreferConstConstructors()
       : super(
-            name: 'prefer_const_constructor',
+            name: 'prefer_const_constructors',
             description: _desc,
             details: _details,
             group: Group.style) {
