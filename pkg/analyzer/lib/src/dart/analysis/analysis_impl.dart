@@ -46,6 +46,9 @@ class AnalyzerImpl {
   StoreBasedSummaryResynthesizer _resynthesizer;
   LibraryElement _libraryElement;
 
+  final Map<FileState, LineInfo> _fileToLineInfo = {};
+  final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
+
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
   final List<UsedImportedElements> _usedImportedElementsList = [];
@@ -114,6 +117,7 @@ class AnalyzerImpl {
     Map<FileState, UnitAnalysisResult> results = {};
     units.forEach((file, unit) {
       List<AnalysisError> errors = _getErrorListener(file).errors;
+      errors = _filterIgnoredErrors(file, errors);
       results[file] = new UnitAnalysisResult(file, unit, errors);
     });
     return results;
@@ -263,6 +267,34 @@ class AnalyzerImpl {
     this._context = analysisContext;
   }
 
+  /**
+   * Return a subset of the given [errors] that are not marked as ignored in
+   * the [file].
+   */
+  List<AnalysisError> _filterIgnoredErrors(
+      FileState file, List<AnalysisError> errors) {
+    if (errors.isEmpty) {
+      return errors;
+    }
+
+    IgnoreInfo ignoreInfo = _fileToIgnoreInfo[file];
+    if (!ignoreInfo.hasIgnores) {
+      return errors;
+    }
+
+    LineInfo lineInfo = _fileToLineInfo[file];
+
+    bool isIgnored(AnalysisError error) {
+      int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+      String errorCode = error.errorCode.name.toLowerCase();
+      // Ignores can be on the line or just preceding the error.
+      return ignoreInfo.ignoredAt(errorCode, errorLine) ||
+          ignoreInfo.ignoredAt(errorCode, errorLine - 1);
+    }
+
+    return errors.where((AnalysisError e) => !isIgnored(e)).toList();
+  }
+
   RecordingErrorListener _getErrorListener(FileState file) =>
       _errorListeners.putIfAbsent(file, () => new RecordingErrorListener());
 
@@ -304,11 +336,16 @@ class AnalyzerImpl {
   CompilationUnit _parse(FileState file) {
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    CharSequenceReader reader = new CharSequenceReader(file.content);
+    String content = file.content;
+
+    CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(file.source, reader, errorListener);
     scanner.scanGenericMethodComments = _analysisOptions.strongMode;
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+
+    _fileToLineInfo[file] = lineInfo;
+    _fileToIgnoreInfo[file] = IgnoreInfo.calculateIgnores(content, lineInfo);
 
     Parser parser = new Parser(file.source, errorListener);
     parser.parseGenericMethodComments = _analysisOptions.strongMode;
