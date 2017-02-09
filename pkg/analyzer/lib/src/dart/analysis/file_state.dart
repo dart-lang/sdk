@@ -388,7 +388,8 @@ class FileState {
     {
       ApiSignature signature = new ApiSignature();
       signature.addUint32List(_fsState._salt);
-      signature.addBytes(contentBytes);
+      signature.addInt(contentBytes.length);
+      signature.addString(_contentHash);
       unlinkedKey = '${signature.toHex()}.unlinked';
     }
 
