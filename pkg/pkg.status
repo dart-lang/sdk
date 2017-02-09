@@ -86,6 +86,9 @@ kernel/test/baseline_type_propagation_test: RuntimeError # Issue 28243
 kernel/test/baseline_spec_mode_test: RuntimeError # Issue 28243
 kernel/test/baseline_strong_mode_test: RuntimeError # Issue 28243
 
+[ $runtime == vm && $system == macos]
+kernel/test/baseline_type_propagation_test: Pass, Timeout # Issue 
+
 [ $compiler == dart2js ]
 analysis_server/test/integration: SkipByDesign # Analysis server integration tests don't make sense to run under dart2js, since the code under test always runs in the Dart vm as a subprocess.
 analyzer_cli/test/*: SkipByDesign # Only meant to run on vm
