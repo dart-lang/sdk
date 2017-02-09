@@ -37,10 +37,10 @@ import 'kernel_builder.dart' show
     KernelFieldBuilder,
     KernelFormalParameterBuilder,
     KernelFunctionTypeAliasBuilder,
-    KernelInterfaceTypeBuilder,
     KernelInvalidTypeBuilder,
     KernelMixinApplicationBuilder,
     KernelNamedMixinApplicationBuilder,
+    KernelNamedTypeBuilder,
     KernelProcedureBuilder,
     KernelTypeBuilder,
     KernelTypeVariableBuilder,
@@ -66,10 +66,10 @@ class KernelLibraryBuilder
 
   Uri get uri => library.importUri;
 
-  KernelTypeBuilder addInterfaceType(String name,
+  KernelTypeBuilder addNamedType(String name,
       List<KernelTypeBuilder> arguments) {
-    KernelInterfaceTypeBuilder type =
-        new KernelInterfaceTypeBuilder(name, arguments);
+    KernelNamedTypeBuilder type =
+        new KernelNamedTypeBuilder(name, arguments);
     if (identical(name, "dynamic")) {
       // TODO(ahe): Make const.
       type.builder = new DynamicTypeBuilder(const DynamicType());
@@ -87,7 +87,7 @@ class KernelLibraryBuilder
   }
 
   KernelTypeBuilder addVoidType() {
-    return new KernelInterfaceTypeBuilder("void", null);
+    return new KernelNamedTypeBuilder("void", null);
   }
 
   ClassBuilder addClass(List<MetadataBuilder> metadata,
@@ -105,8 +105,8 @@ class KernelLibraryBuilder
         builder = builder.next;
       }
     });
-    // Nested scope began in `OutlineBuilder.beginClassDeclaration`.
-    endNestedScope();
+    // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
+    endNestedDeclaration();
     return addBuilder(className, cls);
   }
 
@@ -117,8 +117,8 @@ class KernelLibraryBuilder
     NamedMixinApplicationBuilder builder =
         new KernelNamedMixinApplicationBuilder(metadata, name, typeVariables,
             modifiers, mixinApplication, interfaces, declarationTypes, this);
-    // Nested scope began in `OutlineBuilder.beginNamedMixinApplication`.
-    endNestedScope();
+    // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
+    endNestedDeclaration();
     return addBuilder(name, builder);
   }
 
@@ -133,9 +133,9 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
       ProcedureKind kind) {
-    // Nested scope began in `OutlineBuilder.beginMethod` or
+    // Nested declaration began in `OutlineBuilder.beginMethod` or
     // `OutlineBuilder.beginTopLevelMethod`.
-    endNestedScope().resolveTypes(typeVariables);
+    endNestedDeclaration().resolveTypes(typeVariables);
     return addBuilder(name,
         new KernelProcedureBuilder(metadata, modifiers, returnType, name,
             typeVariables, formals, asyncModifier, kind));
@@ -165,8 +165,8 @@ class KernelLibraryBuilder
     FunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
         metadata, returnType, name, typeVariables, formals, declarationTypes,
         this);
-    // Nested scope began in `OutlineBuilder.beginFunctionTypeAlias`.
-    endNestedScope();
+    // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
+    endNestedDeclaration();
     return addBuilder(name, typedef);
   }
 

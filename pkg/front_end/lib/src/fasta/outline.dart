@@ -21,7 +21,7 @@ import 'errors.dart' show
     inputError;
 
 import 'kernel/kernel_target.dart' show
-    KernelSourceTarget;
+    KernelTarget;
 
 import 'dill/dill_target.dart' show
     DillTarget;
@@ -44,7 +44,7 @@ CompilerCommandLine parseArguments(String programName, List<String> arguments) {
   return new CompilerCommandLine(programName, arguments);
 }
 
-Future<KernelSourceTarget> outline(List<String> arguments) async {
+Future<KernelTarget> outline(List<String> arguments) async {
   try {
     CompilerCommandLine cl = parseArguments("outline", arguments);
     if (cl.verbose) print("Building outlines for ${arguments.join(' ')}");
@@ -84,15 +84,14 @@ Future<Uri> kompile(List<String> arguments) async {
   }
 }
 
-Future<KernelSourceTarget> doOutline(CompilerCommandLine cl, Ticker ticker,
+Future<KernelTarget> doOutline(CompilerCommandLine cl, Ticker ticker,
     [Uri output]) async {
   Uri sdk = await computePatchedSdk();
   ticker.logMs("Found patched SDK");
   TranslateUri uriTranslator = await TranslateUri.parse(sdk);
   ticker.logMs("Read packages file");
   DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
-  KernelSourceTarget sourceTarget =
-      new KernelSourceTarget(dillTarget, uriTranslator);
+  KernelTarget kernelTarget = new KernelTarget(dillTarget, uriTranslator);
   Uri platform = cl.platform;
   if (platform != null) {
     dillTarget.read(platform);
@@ -101,30 +100,30 @@ Future<KernelSourceTarget> doOutline(CompilerCommandLine cl, Ticker ticker,
   Uri uri = Uri.base.resolve(argument);
   String path = uriTranslator.translate(uri)?.path ?? argument;
   if (path.endsWith(".dart")) {
-    sourceTarget.read(uri);
+    kernelTarget.read(uri);
   } else {
     inputError(uri, -1, "Unexpected input: $uri");
   }
   await dillTarget.writeOutline(null);
-  await sourceTarget.writeOutline(output);
+  await kernelTarget.writeOutline(output);
   if (cl.dumpIr && output != null) {
-    sourceTarget.dumpIr();
+    kernelTarget.dumpIr();
   }
-  return sourceTarget;
+  return kernelTarget;
 }
 
 Future<Uri> doCompile(CompilerCommandLine cl, Ticker ticker,
     AstKind kind) async {
-  KernelSourceTarget sourceTarget = await doOutline(cl, ticker);
+  KernelTarget kernelTarget = await doOutline(cl, ticker);
   if (exitCode != 0) return null;
   Uri uri = cl.output;
-  await sourceTarget.writeProgram(uri, kind);
+  await kernelTarget.writeProgram(uri, kind);
   if (cl.dumpIr) {
-    sourceTarget.dumpIr();
+    kernelTarget.dumpIr();
   }
   if (cl.verify) {
     try {
-      verifyProgram(sourceTarget.program);
+      verifyProgram(kernelTarget.program);
       ticker.logMs("Verified program");
     } catch (e, s) {
       exitCode = 1;

@@ -14,7 +14,7 @@ import '../errors.dart' show
     inputError;
 
 import 'kernel_builder.dart' show
-    KernelInterfaceTypeBuilder,
+    KernelNamedTypeBuilder,
     KernelTypeBuilder,
     TypeVariableBuilder;
 
@@ -45,7 +45,7 @@ class KernelTypeVariableBuilder
   }
 
   KernelTypeBuilder asTypeBuilder() {
-    return new KernelInterfaceTypeBuilder(name, null)
+    return new KernelNamedTypeBuilder(name, null)
         ..builder = this;
   }
 }

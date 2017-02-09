@@ -46,8 +46,8 @@ import 'kernel_builder.dart' show
     KernelConstructorBuilder,
     KernelFieldBuilder,
     KernelFormalParameterBuilder,
-    KernelInterfaceTypeBuilder,
     KernelLibraryBuilder,
+    KernelNamedTypeBuilder,
     KernelProcedureBuilder,
     KernelTypeBuilder,
     LibraryBuilder,
@@ -77,21 +77,21 @@ class KernelEnumBuilder extends SourceClassBuilder
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
     KernelTypeBuilder objectType =
-        new KernelInterfaceTypeBuilder("Object", null);
+        new KernelNamedTypeBuilder("Object", null);
     KernelTypeBuilder intType =
-        new KernelInterfaceTypeBuilder("int", null);
+        new KernelNamedTypeBuilder("int", null);
     KernelTypeBuilder stringType =
-        new KernelInterfaceTypeBuilder("String", null);
+        new KernelNamedTypeBuilder("String", null);
     List<KernelTypeBuilder> types = <KernelTypeBuilder>[
         objectType,
         intType,
         stringType];
     Class cls = new Class(name: name);
     Map<String, Builder> members = <String, Builder>{};
-    KernelInterfaceTypeBuilder selfType = new KernelInterfaceTypeBuilder(
+    KernelNamedTypeBuilder selfType = new KernelNamedTypeBuilder(
         name, null);
     KernelTypeBuilder listType =
-        new KernelInterfaceTypeBuilder("List", <KernelTypeBuilder>[selfType]);
+        new KernelNamedTypeBuilder("List", <KernelTypeBuilder>[selfType]);
     types.add(listType);
 
     /// From Dart Programming Language Specification 4th Edition/December 2015:

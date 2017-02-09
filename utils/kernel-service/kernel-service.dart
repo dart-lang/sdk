@@ -52,7 +52,7 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelSourceTarget;
+    show KernelTarget;
 import 'package:front_end/src/fasta/ast_kind.dart' show AstKind;
 import 'package:front_end/src/fasta/errors.dart' show InputError;
 
@@ -162,15 +162,15 @@ Future<CompilationResult> parseScriptImpl(DartLoaderBatch batch_loader,
     final Ticker ticker = new Ticker(isVerbose: verbose);
     final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
     dillTarget.read(new Uri.directory(sdkPath).resolve('platform.dill'));
-    final KernelSourceTarget sourceTarget =
-        new KernelSourceTarget(dillTarget, uriTranslator);
+    final KernelTarget kernelTarget =
+        new KernelTarget(dillTarget, uriTranslator);
     try {
-      sourceTarget.read(fileName);
+      kernelTarget.read(fileName);
       await dillTarget.writeOutline(null);
-      program = await sourceTarget.writeOutline(null);
-      program = await sourceTarget.writeProgram(null, AstKind.Kernel);
-      if (sourceTarget.errors.isNotEmpty) {
-        return new CompilationError(sourceTarget.errors
+      program = await kernelTarget.writeOutline(null);
+      program = await kernelTarget.writeProgram(null, AstKind.Kernel);
+      if (kernelTarget.errors.isNotEmpty) {
+        return new CompilationError(kernelTarget.errors
             .map((err) => err.toString())
             .toList(growable: false));
       }
@@ -347,7 +347,7 @@ void startBatchServer() {
       } else {
         request.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         request.response.headers.contentType = ContentType.TEXT;
-        request.response.write(JSON.encode(result.toJson()));
+        request.response.write(JSON.encode(result));
         request.response.close();
       }
     });
@@ -391,7 +391,7 @@ main([args]) {
 
 // This duplicates functionality from the Loader which we can't easily
 // access from here.
-Uri _findPackagesFile(Uri base) async {
+Future<Uri> _findPackagesFile(Uri base) async {
   var dir = new File.fromUri(base).parent;
   while (true) {
     final packagesFile = dir.uri.resolve(".packages");

@@ -19,8 +19,8 @@ export 'kernel_formal_parameter_builder.dart' show
 export 'kernel_function_type_alias_builder.dart' show
     KernelFunctionTypeAliasBuilder;
 
-export 'kernel_interface_type_builder.dart' show
-    KernelInterfaceTypeBuilder;
+export 'kernel_named_type_builder.dart' show
+    KernelNamedTypeBuilder;
 
 export 'kernel_library_builder.dart' show
     KernelLibraryBuilder;

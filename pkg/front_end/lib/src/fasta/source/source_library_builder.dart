@@ -47,7 +47,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     extends LibraryBuilder<T, R> {
   final SourceLoader loader;
 
-  final BuilderScope<T> libraryScope = new BuilderScope<T>(<String, Builder>{});
+  final DeclarationBuilder<T> libraryDeclaration =
+      new DeclarationBuilder<T>(<String, Builder>{}, null);
 
   final List<ConstructorReferenceBuilder> constructorReferences =
       <ConstructorReferenceBuilder>[];
@@ -72,40 +73,38 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   /// declaration (class, method, and so on), we don't have enough information
   /// to create a builder and this object records its members and types until,
   /// for example, [addClass] is called.
-  BuilderScope<T> innerScope;
+  DeclarationBuilder<T> currentDeclaration;
 
-  SourceLibraryBuilder(this.loader, this.fileUri);
+  SourceLibraryBuilder(this.loader, this.fileUri) {
+    currentDeclaration = libraryDeclaration;
+  }
 
   Uri get uri;
 
   bool get isPart => partOf != null;
 
-  Map<String, Builder> get members => libraryScope.members;
+  Map<String, Builder> get members => libraryDeclaration.members;
 
-  List<T> get types => libraryScope.types;
-
-  BuilderScope<T> get builderScope => innerScope ?? libraryScope;
+  List<T> get types => libraryDeclaration.types;
 
   /// When parsing a class, this returns a map of its members (that have been
   /// parsed so far).
   Map<String, MemberBuilder> get classMembers {
-    assert(innerScope == builderScope);
-    assert(innerScope.parent == libraryScope);
-    return builderScope.members;
+    assert(currentDeclaration.parent == libraryDeclaration);
+    return currentDeclaration.members;
   }
 
   List<T> get declarationTypes {
-    assert(innerScope == builderScope);
-    assert(innerScope.parent == libraryScope);
-    return builderScope.types;
+    assert(currentDeclaration.parent == libraryDeclaration);
+    return currentDeclaration.types;
   }
 
-  T addInterfaceType(String name, List<T> arguments);
+  T addNamedType(String name, List<T> arguments);
 
   T addMixinApplication(T supertype, List<T> mixins);
 
   T addType(T type) {
-    builderScope.addType(type);
+    currentDeclaration.addType(type);
     return type;
   }
 
@@ -119,13 +118,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     return ref;
   }
 
-  void beginNestedScope({bool hasMembers}) {
-    innerScope = new BuilderScope(<String, MemberBuilder>{}, builderScope);
+  void beginNestedDeclaration({bool hasMembers}) {
+    currentDeclaration =
+        new DeclarationBuilder(<String, MemberBuilder>{}, currentDeclaration);
   }
 
-  BuilderScope<T> endNestedScope() {
-    BuilderScope<T> previous = innerScope;
-    innerScope = innerScope.parent;
+  DeclarationBuilder<T> endNestedDeclaration() {
+    DeclarationBuilder<T> previous = currentDeclaration;
+    currentDeclaration = currentDeclaration.parent;
     return previous;
   }
 
@@ -207,7 +207,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     // TODO(ahe): Set the parent correctly here. Could then change the
     // implementation of MemberBuilder.isTopLevel to test explicitly for a
     // LibraryBuilder.
-    if (builderScope == libraryScope) {
+    if (currentDeclaration == libraryDeclaration) {
       if (builder is MemberBuilder) {
         builder.parent = this;
       } else if (builder is TypeDeclarationBuilder) {
@@ -218,9 +218,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         return internalError("Unhandled: ${builder.runtimeType}");
       }
     } else {
-      assert(builderScope.parent == libraryScope);
+      assert(currentDeclaration.parent == libraryDeclaration);
     }
-    Map<String, Builder> members = builderScope.members;
+    Map<String, Builder> members = currentDeclaration.members;
     Builder existing = members[name];
     builder.next = existing;
     if (builder is PrefixBuilder && existing is PrefixBuilder) {
@@ -364,14 +364,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
 /// Unlike [Scope], this scope is used during construction of builders to
 /// ensure types and members are added to and resolved in the correct location.
-class BuilderScope<T extends TypeBuilder> {
-  final BuilderScope<T> parent;
+class DeclarationBuilder<T extends TypeBuilder> {
+  final DeclarationBuilder<T> parent;
 
   final Map<String, Builder> members;
 
   final List<T> types = <T>[];
 
-  BuilderScope(this.members, [this.parent]);
+  DeclarationBuilder(this.members, [this.parent]);
 
   void addMember(String name, MemberBuilder builder) {
     if (members == null) {
@@ -396,7 +396,7 @@ class BuilderScope<T extends TypeBuilder> {
     // members (of a class) or formal parameters (of a method).
     if (typeVariables == null) {
       // If there are no type variables in the scope, propagate our types to be
-      // resolved in the parent scope.
+      // resolved in the parent declaration.
       parent.types.addAll(types);
     } else {
       Map<String, TypeVariableBuilder> map = <String, TypeVariableBuilder>{};
@@ -411,7 +411,7 @@ class BuilderScope<T extends TypeBuilder> {
         }
         if (builder == null) {
           // Since name didn't resolve in this scope, propagate it to the
-          // parent scope.
+          // parent declaration.
           parent.addType(type);
         } else {
           type.bind(builder);

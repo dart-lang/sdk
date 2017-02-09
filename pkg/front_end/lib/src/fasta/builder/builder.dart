@@ -46,8 +46,8 @@ export 'enum_builder.dart' show
 export 'type_declaration_builder.dart' show
     TypeDeclarationBuilder;
 
-export 'interface_type_builder.dart' show
-    InterfaceTypeBuilder;
+export 'named_type_builder.dart' show
+    NamedTypeBuilder;
 
 export 'constructor_reference_builder.dart' show
     ConstructorReferenceBuilder;

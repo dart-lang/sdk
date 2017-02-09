@@ -50,7 +50,7 @@ import '../translate_uri.dart' show
     TranslateUri;
 
 import '../kernel/kernel_target.dart' show
-    KernelSourceTarget;
+    KernelTarget;
 
 import '../dill/dill_target.dart' show
     DillTarget;
@@ -173,8 +173,8 @@ class Outline extends Step<TestDescription, Program, FeContext> {
     dillTarget.loader
         ..input = Uri.parse("org.dartlang:platform") // Make up a name.
         ..setProgram(platform);
-    KernelSourceTarget sourceTarget =
-        new KernelSourceTarget(dillTarget, context.uriTranslator);
+    KernelTarget sourceTarget =
+        new KernelTarget(dillTarget, context.uriTranslator);
     Program p;
     try {
       sourceTarget.read(description.uri);

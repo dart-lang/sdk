@@ -188,8 +188,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginClassDeclaration(Token token) {
-    library.beginNestedScope();
+  void beginClassDeclaration(Token begin) {
+    library.beginNestedDeclaration();
   }
 
   @override
@@ -216,7 +216,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginTopLevelMethod(Token token, Token name) {
-    library.beginNestedScope(hasMembers: false);
+    library.beginNestedDeclaration(hasMembers: false);
   }
 
   @override
@@ -251,7 +251,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginMethod(Token token, Token name) {
-    library.beginNestedScope(hasMembers: false);
+    library.beginNestedDeclaration(hasMembers: false);
   }
 
   @override
@@ -296,7 +296,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginNamedMixinApplication(Token token) {
-    library.beginNestedScope(hasMembers: false);
+    library.beginNestedDeclaration(hasMembers: false);
   }
 
   @override
@@ -325,7 +325,7 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("Type");
     List<TypeBuilder> arguments = pop();
     String name = pop();
-    push(library.addInterfaceType(name, arguments));
+    push(library.addNamedType(name, arguments));
   }
 
   @override
@@ -426,7 +426,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginFunctionTypeAlias(Token token) {
-    library.beginNestedScope();
+    library.beginNestedDeclaration(hasMembers: false);
   }
 
   @override

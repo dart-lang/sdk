@@ -14,9 +14,7 @@ import 'builder.dart' show
     TypeBuilder,
     TypeDeclarationBuilder;
 
-// TODO(ahe): This isn't really an interface type. Find better name. Possibly,
-// `NamedTypeBuilder`.
-abstract class InterfaceTypeBuilder<T extends TypeBuilder> extends TypeBuilder {
+abstract class NamedTypeBuilder<T extends TypeBuilder> extends TypeBuilder {
   final String name;
 
   final List<T> arguments;
@@ -25,7 +23,7 @@ abstract class InterfaceTypeBuilder<T extends TypeBuilder> extends TypeBuilder {
 
   void set builder(TypeDeclarationBuilder b);
 
-  InterfaceTypeBuilder(this.name, this.arguments);
+  NamedTypeBuilder(this.name, this.arguments);
 
   InvalidTypeBuilder buildInvalidType(String name);
 
@@ -55,7 +53,7 @@ abstract class InterfaceTypeBuilder<T extends TypeBuilder> extends TypeBuilder {
     builder = buildInvalidType(name);
   }
 
-  String get debugName => "InterfaceTypeBuilder";
+  String get debugName => "NamedTypeBuilder";
 
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write(name);

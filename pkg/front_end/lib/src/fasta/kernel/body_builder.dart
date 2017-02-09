@@ -733,7 +733,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {bool isPrefix: false}) {
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
       if (!isPrefix && identical(name, "dynamic") && builder == null) {
-        return new KernelInterfaceTypeBuilder(name, null);
+        return new KernelNamedTypeBuilder(name, null);
       }
       Name n = new Name(name, library.library);
       if (!isPrefix && isInstanceContext) {

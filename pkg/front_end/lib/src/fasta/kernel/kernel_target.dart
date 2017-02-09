@@ -82,25 +82,25 @@ import 'kernel_builder.dart' show
     Builder,
     ClassBuilder,
     DynamicTypeBuilder,
-    InterfaceTypeBuilder,
     InvalidTypeBuilder,
     KernelClassBuilder,
-    KernelInterfaceTypeBuilder,
     KernelLibraryBuilder,
+    KernelNamedTypeBuilder,
     KernelProcedureBuilder,
     LibraryBuilder,
     MixinApplicationBuilder,
     NamedMixinApplicationBuilder,
+    NamedTypeBuilder,
     TypeBuilder;
 
-class KernelSourceTarget extends TargetImplementation {
+class KernelTarget extends TargetImplementation {
   final DillTarget dillTarget;
   SourceLoader<Library> loader;
   Program program;
 
   final List errors = [];
 
-  KernelSourceTarget(DillTarget dillTarget, TranslateUri uriTranslator)
+  KernelTarget(DillTarget dillTarget, TranslateUri uriTranslator)
       : dillTarget = dillTarget,
         super(dillTarget.ticker, uriTranslator) {
     resetCrashReporting();
@@ -124,7 +124,7 @@ class KernelSourceTarget extends TargetImplementation {
   void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {
     if (cls == null) return;
     TypeBuilder supertype = cls.supertype;
-    add(InterfaceTypeBuilder type) {
+    add(NamedTypeBuilder type) {
       Builder builder = type.builder;
       if (builder is ClassBuilder) {
         set.add(builder);
@@ -137,16 +137,16 @@ class KernelSourceTarget extends TargetImplementation {
       // OK.
     } else if (supertype is MixinApplicationBuilder) {
       add(supertype.supertype);
-      for (InterfaceTypeBuilder t in supertype.mixins) {
+      for (NamedTypeBuilder t in supertype.mixins) {
         add(t);
       }
-    } else if (supertype is InterfaceTypeBuilder) {
+    } else if (supertype is NamedTypeBuilder) {
       add(supertype);
     } else {
       internalError("Unhandled: ${supertype.runtimeType}");
     }
     if (cls.interfaces != null) {
-      for (InterfaceTypeBuilder t in cls.interfaces) {
+      for (NamedTypeBuilder t in cls.interfaces) {
         add(t);
       }
     }
@@ -195,7 +195,7 @@ class KernelSourceTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype = new KernelInterfaceTypeBuilder("Object", null)
+    builder.supertype = new KernelNamedTypeBuilder("Object", null)
         ..builder = objectClassBuilder;
     builder.interfaces = null;
   }
@@ -398,7 +398,7 @@ class KernelSourceTarget extends TargetImplementation {
           MixinApplicationBuilder t = type;
           type = t.supertype;
         }
-        if (type is InterfaceTypeBuilder) {
+        if (type is NamedTypeBuilder) {
           supertype = type.builder;
         } else {
           internalError("Unhandled: ${type.runtimeType}");

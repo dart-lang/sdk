@@ -128,7 +128,8 @@
       "dart2js_test.dart",
       "kompile_test.dart",
       "outline_test.dart",
-      "sdk_test.dart"
+      "sdk_test.dart",
+      "../../../../utils/kernel-service/kernel-service.dart"
     ],
     "exclude": [
       "/third_party/pkg/",

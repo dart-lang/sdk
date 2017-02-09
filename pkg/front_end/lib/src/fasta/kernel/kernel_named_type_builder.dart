@@ -14,21 +14,19 @@ import '../errors.dart' show
     inputError;
 
 import 'kernel_builder.dart' show
-    InterfaceTypeBuilder,
     KernelClassBuilder,
     KernelInvalidTypeBuilder,
     KernelTypeBuilder,
+    NamedTypeBuilder,
     TypeBuilder,
     TypeDeclarationBuilder,
     TypeVariableBuilder;
 
-// TODO(ahe): This isn't really an interface type. Find better name, for
-// example, KernelNamedTypeBuilder.
-class KernelInterfaceTypeBuilder extends InterfaceTypeBuilder<KernelTypeBuilder>
+class KernelNamedTypeBuilder extends NamedTypeBuilder<KernelTypeBuilder>
     implements KernelTypeBuilder {
   TypeDeclarationBuilder<KernelTypeBuilder, DartType> builder;
 
-  KernelInterfaceTypeBuilder(String name, List<KernelTypeBuilder> arguments)
+  KernelNamedTypeBuilder(String name, List<KernelTypeBuilder> arguments)
       : super(name, arguments);
 
   KernelInvalidTypeBuilder buildInvalidType(String name) {
@@ -85,7 +83,7 @@ class KernelInterfaceTypeBuilder extends InterfaceTypeBuilder<KernelTypeBuilder>
         i++;
       }
       if (arguments != null) {
-        return new KernelInterfaceTypeBuilder(name, arguments)
+        return new KernelNamedTypeBuilder(name, arguments)
             ..builder = builder;
       }
     }
