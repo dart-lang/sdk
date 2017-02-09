@@ -123,8 +123,7 @@ void defineLinterEngineTests() {
       test('error collecting', () {
         var error = new AnalysisError(new StringSource('foo', ''), 0, 0,
             new LintCode('MockLint', 'This is a test...'));
-        var linter = new SourceLinter(new LinterOptions([]));
-        linter.onError(error);
+        var linter = new SourceLinter(new LinterOptions([]))..onError(error);
         expect(linter.errors.contains(error), isTrue);
       });
       test('pubspec visitor error handling', () {
@@ -135,9 +134,8 @@ void defineLinterEngineTests() {
         when(rule.getPubspecVisitor()).thenReturn(visitor);
 
         var reporter = new MockReporter();
-        var linter =
-            new SourceLinter(new LinterOptions([rule]), reporter: reporter);
-        linter.lintPubspecSource(contents: 'author: foo');
+        new SourceLinter(new LinterOptions([rule]), reporter: reporter)
+          ..lintPubspecSource(contents: 'author: foo');
         verify(reporter.exception(any)).called(1);
       });
     });

@@ -80,8 +80,8 @@ class Visitor extends SimpleAstVisitor {
     }
 
     // Only select getters with setter pairs
-    var candidates = getters.keys.where((id) => setters.keys.contains(id));
-    candidates.forEach((id) => _visitGetterSetter(getters[id], setters[id]));
+    getters.keys.where((id) => setters.keys.contains(id))
+      ..forEach((id) => _visitGetterSetter(getters[id], setters[id]));
   }
 
   _visitGetterSetter(MethodDeclaration getter, MethodDeclaration setter) {
@@ -89,8 +89,7 @@ class Visitor extends SimpleAstVisitor {
         isSimpleGetter(getter) &&
         !isProtected(getter) &&
         !isProtected(setter)) {
-      rule.reportLint(getter.name);
-      rule.reportLint(setter.name);
+      rule..reportLint(getter.name)..reportLint(setter.name);
     }
   }
 }

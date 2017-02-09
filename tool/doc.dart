@@ -12,9 +12,8 @@ import 'package:markdown/markdown.dart';
 
 /// Generates lint rule docs for publishing to http://dart-lang.github.io/
 void main([List<String> args]) {
-  var parser = new ArgParser(allowTrailingOptions: true);
-
-  parser.addOption('out', abbr: 'o', help: 'Specifies output directory.');
+  var parser = new ArgParser(allowTrailingOptions: true)
+    ..addOption('out', abbr: 'o', help: 'Specifies output directory.');
 
   var options;
   try {

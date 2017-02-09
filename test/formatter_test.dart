@@ -53,9 +53,8 @@ defineTests() {
       when(info.errors).thenReturn([error]);
       var out = new CollectingSink();
 
-      var reporter =
-          new SimpleFormatter([info], null, out, fileCount: 1, elapsedMs: 13);
-      reporter.write();
+      var reporter = new SimpleFormatter([info], null, out,
+          fileCount: 1, elapsedMs: 13)..write();
 
       test('count', () {
         expect(reporter.errorCount, 1);
@@ -71,9 +70,8 @@ defineTests() {
 
       test('stats', () {
         out.buffer.clear();
-        var reporter = new SimpleFormatter([info], null, out,
-            fileCount: 1, showStatistics: true, elapsedMs: 13);
-        reporter.write();
+        new SimpleFormatter([info], null, out,
+            fileCount: 1, showStatistics: true, elapsedMs: 13)..write();
         expect(out.buffer.toString(),
             startsWith('''/foo/bar/baz.dart 3:3 [test] MSG
 
@@ -115,8 +113,7 @@ mock_code                               1
 
       group('filtered', () {
         var reporter = new SimpleFormatter([info], new _RejectingFilter(), out,
-            fileCount: 1, elapsedMs: 13);
-        reporter.write();
+            fileCount: 1, elapsedMs: 13)..write();
 
         test('error count', () {
           expect(reporter.errorCount, 0);
@@ -135,9 +132,8 @@ mock_code                               1
       group('machine-ouptut', () {
         test('write', () {
           out.buffer.clear();
-          var reporter = new SimpleFormatter([info], null, out,
-              fileCount: 1, machineOutput: true, elapsedMs: 13);
-          reporter.write();
+          new SimpleFormatter([info], null, out,
+              fileCount: 1, machineOutput: true, elapsedMs: 13)..write();
 
           expect(
               out.buffer.toString().trim(),

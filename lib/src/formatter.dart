@@ -250,10 +250,11 @@ class SimpleFormatter implements ReportFormatter {
     int pad = tableWidth - longestName;
     String line = ''.padLeft(tableWidth, '-');
 
-    out.writeln();
-    out.writeln(line);
-    out.writeln('${'Timings'.padRight(longestName)}${'ms'.padLeft(pad)}');
-    out.writeln(line);
+    out
+      ..writeln()
+      ..writeln(line)
+      ..writeln('${'Timings'.padRight(longestName)}${'ms'.padLeft(pad)}')
+      ..writeln(line);
     int totalTime = 0;
     for (String name in names) {
       Stopwatch stopwatch = timers[name];
@@ -261,10 +262,11 @@ class SimpleFormatter implements ReportFormatter {
       out.writeln(
           '${name.padRight(longestName)}${stopwatch.elapsedMilliseconds.toString().padLeft(pad)}');
     }
-    out.writeln(line);
-    out.writeln(
-        '${'Total'.padRight(longestName)}${totalTime.toString().padLeft(pad)}');
-    out.writeln(line);
+    out
+      ..writeln(line)
+      ..writeln(
+          '${'Total'.padRight(longestName)}${totalTime.toString().padLeft(pad)}')
+      ..writeln(line);
   }
 
   void _recordStats(AnalysisError error) {
