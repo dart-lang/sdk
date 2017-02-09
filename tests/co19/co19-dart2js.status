@@ -144,6 +144,7 @@ Language/Variables/final_t02/01: CompileTimeError # co19 issue 77
 Language/Variables/local_variable_t01: MissingCompileTimeError # Issue 21050
 LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
 LayoutTests/fast/loader/loadInProgress_t01: Skip # Issue 23466
+LayoutTests/fast/forms/input-implicit-length-limit_t01: SkipByDesign # Test is not about Dart, but about a DOM-only webkit bug that has been fixed.
 LibTest/collection/LinkedHashSet/LinkedHashSet.from_A03_t01: RuntimeError # Please triage this failure.
 LibTest/collection/LinkedList/add_A01_t01: Pass, Slow # Slow tests that needs extra time to finish.
 LibTest/collection/ListBase/ListBase_class_A01_t01: RuntimeError # Please triage this failure
@@ -1863,7 +1864,6 @@ LayoutTests/fast/text/zero-width-characters_t01: RuntimeError # Please triage th
 WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-003_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $system == linux]
-LayoutTests/fast/forms/input-implicit-length-limit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance_t04: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-left_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: RuntimeError # Please triage this failure
@@ -3384,7 +3384,6 @@ LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: RuntimeError # Ple
 LayoutTests/fast/forms/input-appearance-maxlength_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-changing-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-file-set-value_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/input-implicit-length-limit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-maxlength-unsupported_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-text-paste-maxlength_t01: RuntimeError # Please triage this failure
@@ -7596,7 +7595,6 @@ LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: RuntimeError # Ple
 LayoutTests/fast/forms/input-appearance-maxlength_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-changing-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-file-set-value_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/input-implicit-length-limit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-maxlength-unsupported_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-maxlength_t01: RuntimeError # Please triage this failure
@@ -9549,7 +9547,6 @@ LayoutTests/fast/forms/input-appearance-elementFromPoint_t01: RuntimeError # Ple
 LayoutTests/fast/forms/input-appearance-maxlength_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-changing-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-file-set-value_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/input-implicit-length-limit_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-maxlength-unsupported_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/input-maxlength_t01: RuntimeError # Please triage this failure
