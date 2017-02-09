@@ -637,18 +637,9 @@ class ProcessStarter {
       }
       program_environment_[environment_length] = NULL;
     }
-
-    binary_vmo_ = MX_HANDLE_INVALID;
-    launchpad_ = NULL;
   }
 
   ~ProcessStarter() {
-    if (binary_vmo_ != MX_HANDLE_INVALID) {
-      mx_handle_close(binary_vmo_);
-    }
-    if (launchpad_ != NULL) {
-      launchpad_destroy(launchpad_);
-    }
     if (read_in_ != -1) {
       close(read_in_);
     }
@@ -672,27 +663,32 @@ class ProcessStarter {
     LOG_INFO("ProcessStarter: Start() set up exit_pipe_fds (%d, %d)\n",
              exit_pipe_fds[0], exit_pipe_fds[1]);
 
-    mx_status_t status = SetupLaunchpad();
+    // Set up a launchpad.
+    launchpad_t* lp = NULL;
+    mx_status_t status = SetupLaunchpad(&lp);
     if (status != NO_ERROR) {
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
       return status;
     }
+    ASSERT(lp != NULL);
 
+    // Launch it.
     LOG_INFO("ProcessStarter: Start() Calling launchpad_start\n");
-    mx_handle_t process = launchpad_start(launchpad_);
-    launchpad_destroy(launchpad_);
-    launchpad_ = NULL;
-    if (process < 0) {
+    mx_handle_t process = MX_HANDLE_INVALID;
+    const char* errormsg = NULL;
+    status = launchpad_go(lp, &process, &errormsg);
+    lp = NULL;  // launchpad_go() calls launchpad_destroy() on the launchpad.
+    if (status < 0) {
       LOG_INFO("ProcessStarter: Start() launchpad_start failed\n");
       const intptr_t kMaxMessageSize = 256;
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
       char* message = DartUtils::ScopedCString(kMaxMessageSize);
       snprintf(message, kMaxMessageSize, "%s:%d: launchpad_start failed: %s\n",
-               __FILE__, __LINE__, mx_status_get_string(process));
+               __FILE__, __LINE__, errormsg);
       *os_error_message_ = message;
-      return process;
+      return status;
     }
 
     LOG_INFO("ProcessStarter: Start() adding %ld to list with exit_pipe %d\n",
@@ -727,57 +723,36 @@ class ProcessStarter {
     return status;                                                             \
   }
 
-  mx_status_t SetupLaunchpad() {
+  mx_status_t SetupLaunchpad(launchpad_t** launchpad) {
+    // Set up a vmo for the binary.
     mx_handle_t binary_vmo = launchpad_vmo_from_file(path_);
     CHECK_FOR_ERROR(binary_vmo, "launchpad_vmo_from_file");
-    binary_vmo_ = binary_vmo;
 
-    launchpad_t* lp;
-    mx_status_t status;
-
+    // Run the child process in the same "job".
     mx_handle_t job = MX_HANDLE_INVALID;
-    status = mx_handle_duplicate(mx_job_default(), MX_RIGHT_SAME_RIGHTS, &job);
+    mx_status_t status =
+        mx_handle_duplicate(mx_job_default(), MX_RIGHT_SAME_RIGHTS, &job);
+    if (status != NO_ERROR) {
+      mx_handle_close(binary_vmo);
+    }
     CHECK_FOR_ERROR(status, "mx_handle_duplicate");
 
-    status = launchpad_create(job, program_arguments_[0], &lp);
-    CHECK_FOR_ERROR(status, "launchpad_create");
-    launchpad_ = lp;
-
-    status =
-        launchpad_arguments(lp, program_arguments_count_, program_arguments_);
-    CHECK_FOR_ERROR(status, "launchpad_arguments");
-
-    status = launchpad_environ(lp, program_environment_);
-    CHECK_FOR_ERROR(status, "launchpad_environ");
-
+    // Set up the launchpad.
+    launchpad_t* lp = NULL;
+    launchpad_create(job, program_arguments_[0], &lp);
+    launchpad_arguments(lp, program_arguments_count_, program_arguments_);
+    launchpad_environ(lp, program_environment_);
+    launchpad_clone_mxio_root(lp);
     // TODO(zra): Use the supplied working directory when launchpad adds an
     // API to set it.
-
-    status = launchpad_clone_mxio_root(lp);
-    CHECK_FOR_ERROR(status, "launchpad_clone_mxio_root");
-
-    status = launchpad_add_pipe(lp, &write_out_, 0);
-    CHECK_FOR_ERROR(status, "launchpad_add_pipe");
-
-    status = launchpad_add_pipe(lp, &read_in_, 1);
-    CHECK_FOR_ERROR(status, "launchpad_add_pipe");
-
-    status = launchpad_add_pipe(lp, &read_err_, 2);
-    CHECK_FOR_ERROR(status, "launchpad_add_pipe");
-
-    status = launchpad_add_vdso_vmo(lp);
-    CHECK_FOR_ERROR(status, "launchpad_add_vdso_vmo");
-
-    status = launchpad_elf_load(lp, binary_vmo);
-    CHECK_FOR_ERROR(status, "launchpad_elf_load");
-    binary_vmo_ = MX_HANDLE_INVALID;  // launchpad_elf_load consumes the handle.
-
-    status = launchpad_load_vdso(lp, MX_HANDLE_INVALID);
-    CHECK_FOR_ERROR(status, "launchpad_load_vdso");
-
-    status = launchpad_clone_mxio_cwd(lp);
-    CHECK_FOR_ERROR(status, "launchpad_clone_mxio_cwd");
-
+    launchpad_clone_mxio_cwd(lp);
+    launchpad_add_pipe(lp, &write_out_, 0);
+    launchpad_add_pipe(lp, &read_in_, 1);
+    launchpad_add_pipe(lp, &read_err_, 2);
+    launchpad_add_vdso_vmo(lp);
+    launchpad_elf_load(lp, binary_vmo);
+    launchpad_load_vdso(lp, MX_HANDLE_INVALID);
+    *launchpad = lp;
     return NO_ERROR;
   }
 
@@ -790,9 +765,6 @@ class ProcessStarter {
   char** program_arguments_;
   intptr_t program_arguments_count_;
   char** program_environment_;
-
-  mx_handle_t binary_vmo_;
-  launchpad_t* launchpad_;
 
   const char* path_;
   const char* working_directory_;
