@@ -1103,9 +1103,8 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
     CacheEntry* cache_entry = &cache_[NextFreeIndex()];
     cache_entry->pc = pc;
     cache_entry->offset = offset;
-    code.GetInlinedFunctionsAtInstruction(
-        offset, &(cache_entry->inlined_functions),
-        &(cache_entry->inlined_token_positions));
+    code.GetInlinedFunctionsAt(offset, &(cache_entry->inlined_functions),
+                               &(cache_entry->inlined_token_positions));
     if (cache_entry->inlined_functions.length() == 0) {
       *inlined_functions = NULL;
       *inlined_token_positions = NULL;
