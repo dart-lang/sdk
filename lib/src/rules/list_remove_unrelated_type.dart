@@ -25,7 +25,7 @@ parameter type, but this practice also should be avoided.
 ```
 void someFunction() {
   var list = <int>[];
-  if (list.contains('1')) print('someFunction'); // LINT
+  if (list.remove('1')) print('someFunction'); // LINT
 }
 ```
 
@@ -33,7 +33,7 @@ void someFunction() {
 ```
 void someFunction3() {
   List<int> list = <int>[];
-  if (list.contains('1')) print('someFunction3'); // LINT
+  if (list.remove('1')) print('someFunction3'); // LINT
 }
 ```
 
@@ -42,7 +42,7 @@ void someFunction3() {
 void someFunction8() {
   List<DerivedClass2> list = <DerivedClass2>[];
   DerivedClass3 instance;
-  if (list.contains(instance)) print('someFunction8'); // LINT
+  if (list.remove(instance)) print('someFunction8'); // LINT
 }
 ```
 
@@ -51,7 +51,7 @@ void someFunction8() {
 abstract class SomeList<E> implements List<E> {}
 
 abstract class MyClass implements SomeList<int> {
-  bool badMethod(String thing) => this.contains(thing); // LINT
+  bool badMethod(String thing) => this.remove(thing); // LINT
 }
 ```
 
@@ -59,7 +59,7 @@ abstract class MyClass implements SomeList<int> {
 ```
 void someFunction10() {
   var list = [];
-  if (list.contains(1)) print('someFunction10'); // OK
+  if (list.remove(1)) print('someFunction10'); // OK
 }
 ```
 
@@ -67,7 +67,7 @@ void someFunction10() {
 ```
 void someFunction1() {
   var list = <int>[];
-  if (list.contains(1)) print('someFunction1'); // OK
+  if (list.remove(1)) print('someFunction1'); // OK
 }
 ```
 
@@ -75,7 +75,7 @@ void someFunction1() {
 ```
 void someFunction4() {
   List<int> list = <int>[];
-  if (list.contains(1)) print('someFunction4'); // OK
+  if (list.remove(1)) print('someFunction4'); // OK
 }
 ```
 
@@ -84,7 +84,7 @@ void someFunction4() {
 void someFunction5() {
   List<ClassBase> list = <ClassBase>[];
   DerivedClass1 instance;
-  if (list.contains(instance)) print('someFunction5'); // OK
+  if (list.remove(instance)) print('someFunction5'); // OK
 }
 
 abstract class ClassBase {}
@@ -97,7 +97,7 @@ class DerivedClass1 extends ClassBase {}
 void someFunction6() {
   List<Mixin> list = <Mixin>[];
   DerivedClass2 instance;
-  if (list.contains(instance)) print('someFunction6'); // OK
+  if (list.remove(instance)) print('someFunction6'); // OK
 }
 
 abstract class ClassBase {}
@@ -112,7 +112,7 @@ class DerivedClass2 extends ClassBase with Mixin {}
 void someFunction7() {
   List<Mixin> list = <Mixin>[];
   DerivedClass3 instance;
-  if (list.contains(instance)) print('someFunction7'); // OK
+  if (list.remove(instance)) print('someFunction7'); // OK
 }
 
 abstract class ClassBase {}
