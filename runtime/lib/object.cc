@@ -20,11 +20,11 @@ DECLARE_FLAG(bool, trace_type_checks);
 // Helper function in stacktrace.cc.
 void _printCurrentStackTrace();
 
-DEFINE_NATIVE_ENTRY(DartCore_fatal, 1) {
-  // The core library code entered an unrecoverable state.
+DEFINE_NATIVE_ENTRY(DartInternal_fatal, 1) {
+  // The SDK library code entered an unrecoverable state.
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const char* msg = instance.ToCString();
-  OS::PrintErr("Fatal error in dart:core\n");
+  OS::PrintErr("Fatal error in the SDK libraries\n");
   _printCurrentStackTrace();
   FATAL(msg);
   return Object::null();

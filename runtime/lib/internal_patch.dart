@@ -43,3 +43,6 @@ bool _classRangeCheck(int cid, int lowerLimit, int upperLimit) {
 bool _classRangeCheckNegative(int cid, int lowerLimit, int upperLimit) {
   return cid < lowerLimit || cid > upperLimit;
 }
+
+// Equivalent of calling FATAL from C++ code.
+fatal(msg) native "DartInternal_fatal";
