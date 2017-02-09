@@ -1,0 +1,72 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Operators extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → dynamic
+    return null;
+  operator &(dynamic other) → dynamic
+    return null;
+  operator ~() → dynamic
+    return null;
+  operator |(dynamic other) → dynamic
+    return null;
+  operator ^(dynamic other) → dynamic
+    return null;
+  operator /(dynamic other) → dynamic
+    return null;
+  operator ==(dynamic other) → dynamic
+    return null;
+  operator >(dynamic other) → dynamic
+    return null;
+  operator >=(dynamic other) → dynamic
+    return null;
+  operator [](dynamic index) → dynamic
+    return null;
+  operator []=(dynamic index, dynamic value) → void {}
+  operator <<(dynamic other) → dynamic
+    return null;
+  operator <(dynamic other) → dynamic
+    return null;
+  operator <=(dynamic other) → dynamic
+    return null;
+  operator *(dynamic other) → dynamic
+    return null;
+  operator %(dynamic other) → dynamic
+    return null;
+  operator >>(dynamic other) → dynamic
+    return null;
+  operator -(dynamic other) → dynamic
+    return null;
+  operator ~/(dynamic other) → dynamic
+    return null;
+  operator unary-() → dynamic
+    return null;
+}
+static method main(dynamic arguments) → dynamic {
+  dynamic a = new self::Operators::•();
+  dynamic b = new self::Operators::•();
+  a.+(b);
+  a.&(b);
+  a.~();
+  a.|(b);
+  a.^(b);
+  a./(b);
+  a.==(b);
+  a.>(b);
+  a.>=(b);
+  a.[](0);
+  a.[]=(0, b);
+  a.<<(b);
+  a.<(b);
+  a.<=(b);
+  a.*(b);
+  a.%(b);
+  a.>>(b);
+  a.-(b);
+  a.~/(b);
+  a.unary-();
+}
