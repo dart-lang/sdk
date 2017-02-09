@@ -58,8 +58,9 @@ class DartTypeUtilities {
         .where((c) =>
             c is AstNode && (excludeCriteria == null || !excludeCriteria(c)))
         .forEach((c) {
-      nodes.add(c);
-      nodes.addAll(traverseNodesInDFS(c));
+      nodes
+        ..add(c)
+        ..addAll(traverseNodesInDFS(c));
     });
     return nodes;
   }

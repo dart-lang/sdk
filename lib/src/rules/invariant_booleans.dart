@@ -300,9 +300,10 @@ class _Visitor extends SimpleAstVisitor {
 
     TestedExpressions testedNodes = _findPreviousTestedExpressions(node);
     testedNodes.evaluateInvariant().forEach((ContradictoryComparisons e) {
-      _ContradictionReportRule reportRule = new _ContradictionReportRule(e);
-      reportRule.reporter = rule.reporter;
-      reportRule.reportLint(e.second);
+      final reportRule = new _ContradictionReportRule(e);
+      reportRule
+        ..reporter = rule.reporter
+        ..reportLint(e.second);
     });
 
     // In dart booleanVariable == true is a valid comparison since the variable

@@ -145,11 +145,11 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     lintOptions.enableTiming = true;
   }
 
-  lintOptions.packageConfigPath = packageConfigFile;
+  lintOptions
+    ..packageConfigPath = packageConfigFile
+    ..visitTransitiveClosure = options['visit-transitive-closure'];
 
-  lintOptions.visitTransitiveClosure = options['visit-transitive-closure'];
-
-  var linter = new DartLinter(lintOptions);
+  final linter = new DartLinter(lintOptions);
 
   List<File> filesToLint = [];
   for (var path in options.rest) {
@@ -157,8 +157,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
   }
 
   try {
-    Stopwatch timer = new Stopwatch();
-    timer.start();
+    final timer = new Stopwatch()..start();
     List<AnalysisErrorInfo> errors = linter.lintFiles(filesToLint);
     timer.stop();
 
@@ -168,15 +167,13 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
 
     var commonRoot = getRoot(options.rest);
 
-    ReportFormatter reporter = new ReportFormatter(
-        errors, lintOptions.filter, outSink,
+    new ReportFormatter(errors, lintOptions.filter, outSink,
         elapsedMs: timer.elapsedMilliseconds,
         fileCount: linter.numSourcesAnalyzed,
         fileRoot: commonRoot,
         showStatistics: stats,
         machineOutput: options['machine'],
-        quiet: options['quiet']);
-    reporter.write();
+        quiet: options['quiet'])..write();
   } catch (err, stack) {
     errorSink.writeln('''An error occurred while linting
   Please report it at: github.com/dart-lang/linter/issues

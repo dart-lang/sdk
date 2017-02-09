@@ -52,19 +52,19 @@ _VisitVariableDeclaration _buildVariableReporter(
         validators.add(containerNodes.where(f(variable)));
       });
 
-      validators.add(_findVariableAssignments(containerNodes, variable));
-      validators.add(_findNodesInvokingMethodOnVariable(
-          containerNodes, variable, predicates));
       validators
-          .add(_findMethodCallbackNodes(containerNodes, variable, predicates));
-      // If any function is invoked with our variable, we suppress lints. This
-      // is because it is not so uncommon to invoke the target method there. We
-      // might not have access to the body of such function at analysis time, so
-      // trying to infer if the close method is invoked there is not always
-      // possible.
-      // TODO: Should there be another lint more relaxed that omits this step?
-      validators.add(_findMethodInvocationsWithVariableAsArgument(
-          containerNodes, variable));
+        ..add(_findVariableAssignments(containerNodes, variable))
+        ..add(_findNodesInvokingMethodOnVariable(
+            containerNodes, variable, predicates))
+        ..add(_findMethodCallbackNodes(containerNodes, variable, predicates))
+        // If any function is invoked with our variable, we suppress lints. This
+        // is because it is not so uncommon to invoke the target method there. We
+        // might not have access to the body of such function at analysis time, so
+        // trying to infer if the close method is invoked there is not always
+        // possible.
+        // TODO: Should there be another lint more relaxed that omits this step?
+        ..add(_findMethodInvocationsWithVariableAsArgument(
+            containerNodes, variable));
 
       if (validators.every((i) => i.isEmpty)) {
         rule.reportLint(variable);
