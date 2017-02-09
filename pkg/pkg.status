@@ -64,9 +64,6 @@ analysis_server/test/socket_server_test: Skip # Pass, Slow
 [ $runtime == vm && $checked && $system == windows ]
 front_end/tool/perf_test: Slow, Pass
 
-[ $runtime == vm && $checked && $system == macos ]
-front_end/tool/perf_test: Skip # Issue 28676
-
 [ $runtime == vm && $use_sdk ]
 front_end/test/fasta/compile_test: Skip # Issue 28629
 front_end/test/fasta/kompile_test: Skip # Issue 28629
