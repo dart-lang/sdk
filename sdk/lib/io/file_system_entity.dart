@@ -359,7 +359,7 @@ abstract class FileSystemEntity {
    * with .type set to
    * FileSystemEntityType.NOT_FOUND and the other fields invalid.
    */
-  Future<FileStat> stat();
+  Future<FileStat> stat() => FileStat.stat(path);
 
   /**
    * Synchronously calls the operating system's stat() function on the
@@ -371,7 +371,7 @@ abstract class FileSystemEntity {
    * If the call fails, returns a [FileStat] object with .type set to
    * FileSystemEntityType.NOT_FOUND and the other fields invalid.
    */
-  FileStat statSync();
+  FileStat statSync() => FileStat.statSync(path);
 
   /**
    * Deletes this [FileSystemEntity].

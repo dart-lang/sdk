@@ -1811,11 +1811,11 @@ void ConstantEvaluator::VisitNot(Not* node) {
 
 
 void ConstantEvaluator::VisitPropertyGet(PropertyGet* node) {
-  const size_t kLengthLen = strlen("length");
+  const intptr_t kLengthLen = strlen("length");
 
   String* string = node->name()->string();
-  if (string->size() == kLengthLen &&
-      memcmp(string->buffer(), "length", kLengthLen) == 0) {
+  if ((string->size() == kLengthLen) &&
+      (memcmp(string->buffer(), "length", kLengthLen) == 0)) {
     node->receiver()->AcceptExpressionVisitor(this);
     if (result_.IsString()) {
       const dart::String& str =

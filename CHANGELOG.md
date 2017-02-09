@@ -1,8 +1,11 @@
 ## 1.23.0
 
 ### Core library changes
-* `dart:core`: Add `Uri.isScheme` function to check the scheme of a URI.
+* `dart:core`: Added `Uri.isScheme` function to check the scheme of a URI.
    Example: `uri.isScheme("http")`. Ignores case when comparing.
+* `dart:io`: Added functions `File.lastAccessed`, `File.lastAccessedSync`,
+  `File.setLastModified`, `File.setLastModifiedSync`, `File.setLastAccessed`,
+  and `File.setLastAccessedSync`.
 
 ## 1.22.0
 

@@ -1261,6 +1261,15 @@ class FileTest {
     });
   }
 
+  static void testLastAccessed() {
+    asyncTestStarted();
+    new File(Platform.executable).lastAccessed().then((accessed) {
+      Expect.isTrue(accessed is DateTime);
+      Expect.isTrue(accessed.isBefore(new DateTime.now()));
+      asyncTestDone("testLastAccessed");
+    });
+  }
+
   static void testDoubleAsyncOperation() {
     asyncTestStarted();
     var file = new File(Platform.executable).openSync();
@@ -1290,12 +1299,127 @@ class FileTest {
     Expect.isTrue(modified.isBefore(new DateTime.now()));
   }
 
+  static void testLastAccessedSync() {
+    var accessed = new File(Platform.executable).lastAccessedSync();
+    Expect.isTrue(accessed is DateTime);
+    Expect.isTrue(accessed.isBefore(new DateTime.now()));
+  }
+
   static void testLastModifiedSyncDirectory() {
     Directory tmp = tempDirectory.createTempSync('file_last_modified_test_');
     String dirPath = '${tmp.path}/dir';
     new Directory(dirPath).createSync();
     try {
       new File(dirPath).lastModifiedSync();
+      Expect.fail('Expected operation to throw');
+    } catch (e) {
+      if (e is! FileSystemException) {
+        print(e);
+      }
+      Expect.isTrue(e is FileSystemException);
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
+  }
+
+  static void testLastAccessedSyncDirectory() {
+    Directory tmp = tempDirectory.createTempSync('file_last_accessed_test_');
+    String dirPath = '${tmp.path}/dir';
+    new Directory(dirPath).createSync();
+    try {
+      new File(dirPath).lastAccessedSync();
+      Expect.fail('Expected operation to throw');
+    } catch (e) {
+      if (e is! FileSystemException) {
+        print(e);
+      }
+      Expect.isTrue(e is FileSystemException);
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
+  }
+
+  static void testSetLastModifiedSync() {
+    String newFilePath = '${tempDirectory.path}/set_last_modified_sync_test';
+    File file = new File(newFilePath);
+    file.createSync();
+    DateTime modifiedTime = new DateTime(2016, 1, 1);
+    file.setLastModifiedSync(modifiedTime);
+    FileStat stat = file.statSync();
+    Expect.equals(2016, stat.modified.year);
+    Expect.equals(1, stat.modified.month);
+    Expect.equals(1, stat.modified.day);
+  }
+
+
+  static testSetLastModified() async {
+    asyncTestStarted();
+    String newFilePath = '${tempDirectory.path}/set_last_modified_test';
+    File file = new File(newFilePath);
+    file.createSync();
+    DateTime modifiedTime = new DateTime(2016, 1, 1);
+    await file.setLastModified(modifiedTime);
+    FileStat stat = await file.stat();
+    Expect.equals(2016, stat.modified.year);
+    Expect.equals(1, stat.modified.month);
+    Expect.equals(1, stat.modified.day);
+    asyncTestDone("testSetLastModified");
+  }
+
+
+  static void testSetLastModifiedSyncDirectory() {
+    Directory tmp = tempDirectory.createTempSync('file_last_modified_test_');
+    String dirPath = '${tmp.path}/dir';
+    new Directory(dirPath).createSync();
+    try {
+      DateTime modifiedTime = new DateTime(2016, 1, 1);
+      new File(dirPath).setLastModifiedSync(modifiedTime);
+      Expect.fail('Expected operation to throw');
+    } catch (e) {
+      if (e is! FileSystemException) {
+        print(e);
+      }
+      Expect.isTrue(e is FileSystemException);
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
+  }
+
+  static void testSetLastAccessedSync() {
+    String newFilePath = '${tempDirectory.path}/set_last_accessed_sync_test';
+    File file = new File(newFilePath);
+    file.createSync();
+    DateTime accessedTime = new DateTime(2016, 1, 1);
+    file.setLastAccessedSync(accessedTime);
+    FileStat stat = file.statSync();
+    Expect.equals(2016, stat.accessed.year);
+    Expect.equals(1, stat.accessed.month);
+    Expect.equals(1, stat.accessed.day);
+  }
+
+
+  static testSetLastAccessed() async {
+    asyncTestStarted();
+    String newFilePath = '${tempDirectory.path}/set_last_accessed_test';
+    File file = new File(newFilePath);
+    file.createSync();
+    DateTime accessedTime = new DateTime(2016, 1, 1);
+    await file.setLastAccessed(accessedTime);
+    FileStat stat = await file.stat();
+    Expect.equals(2016, stat.accessed.year);
+    Expect.equals(1, stat.accessed.month);
+    Expect.equals(1, stat.accessed.day);
+    asyncTestDone("testSetLastAccessed");
+  }
+
+
+  static void testSetLastAccessedSyncDirectory() {
+    Directory tmp = tempDirectory.createTempSync('file_last_accessed_test_');
+    String dirPath = '${tmp.path}/dir';
+    new Directory(dirPath).createSync();
+    try {
+      DateTime accessedTime = new DateTime(2016, 1, 1);
+      new File(dirPath).setLastAccessedSync(accessedTime);
       Expect.fail('Expected operation to throw');
     } catch (e) {
       if (e is! FileSystemException) {
@@ -1481,6 +1605,7 @@ class FileTest {
     testReadAsTextSyncEmptyFile();
     testReadAsLinesSync();
     testLastModifiedSync();
+    testLastAccessedSync();
 
     createTempDirectory(() {
       testLength();
@@ -1524,7 +1649,15 @@ class FileTest {
       testRename(targetExists: true);
       testRenameSync(targetExists: true);
       testLastModified();
+      testLastAccessed();
       testLastModifiedSyncDirectory();
+      testLastAccessedSyncDirectory();
+      testSetLastModified();
+      testSetLastModifiedSync();
+      testSetLastModifiedSyncDirectory();
+      testSetLastAccessed();
+      testSetLastAccessedSync();
+      testSetLastAccessedSyncDirectory();
       testDoubleAsyncOperation();
       asyncEnd();
     });

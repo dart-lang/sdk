@@ -26,7 +26,7 @@ _exceptionFromResponse(response, String message, String path) {
   assert(_isErrorResponse(response));
   switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
     case _ILLEGAL_ARGUMENT_RESPONSE:
-      return new ArgumentError();
+      return new ArgumentError("$message: $path");
     case _OSERROR_RESPONSE:
       var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
                             response[_OSERROR_RESPONSE_ERROR_CODE]);

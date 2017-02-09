@@ -12,6 +12,7 @@
 #include <stdio.h>     // NOLINT
 #include <string.h>    // NOLINT
 #include <sys/stat.h>  // NOLINT
+#include <sys/utime.h>  // NOLINT
 #include <WinIoCtl.h>  // NOLINT
 
 #include "bin/builtin.h"
@@ -255,15 +256,23 @@ File* File::OpenStdio(int fd) {
 }
 
 
+static bool StatHelper(wchar_t* path, struct __stat64* st) {
+  int stat_status = _wstat64(path, st);
+  if (stat_status != 0) {
+    return false;
+  }
+  if ((st->st_mode & S_IFMT) != S_IFREG) {
+    SetLastError(ERROR_NOT_SUPPORTED);
+    return false;
+  }
+  return true;
+}
+
+
 bool File::Exists(const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
-  bool stat_status = _wstat64(system_name.wide(), &st);
-  if (stat_status == 0) {
-    return ((st.st_mode & S_IFMT) == S_IFREG);
-  } else {
-    return false;
-  }
+  return StatHelper(system_name.wide(), &st);
 }
 
 
@@ -442,16 +451,10 @@ bool File::Copy(const char* old_path, const char* new_path) {
 int64_t File::LengthFromPath(const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
-  int stat_status = _wstat64(system_name.wide(), &st);
-  if (stat_status == 0) {
-    if ((st.st_mode & S_IFMT) == S_IFREG) {
-      return st.st_size;
-    } else {
-      // ERROR_DIRECTORY_NOT_SUPPORTED is not always in the message table.
-      SetLastError(ERROR_NOT_SUPPORTED);
-    }
+  if (!StatHelper(system_name.wide(), &st)) {
+    return -1;
   }
-  return -1;
+  return st.st_size;
 }
 
 
@@ -539,19 +542,55 @@ void File::Stat(const char* name, int64_t* data) {
 }
 
 
+time_t File::LastAccessed(const char* name) {
+  struct __stat64 st;
+  Utf8ToWideScope system_name(name);
+  if (!StatHelper(system_name.wide(), &st)) {
+    return -1;
+  }
+  return st.st_atime;
+}
+
+
 time_t File::LastModified(const char* name) {
   struct __stat64 st;
   Utf8ToWideScope system_name(name);
-  int stat_status = _wstat64(system_name.wide(), &st);
-  if (stat_status == 0) {
-    if ((st.st_mode & S_IFMT) == S_IFREG) {
-      return st.st_mtime;
-    } else {
-      // ERROR_DIRECTORY_NOT_SUPPORTED is not always in the message table.
-      SetLastError(ERROR_NOT_SUPPORTED);
-    }
+  if (!StatHelper(system_name.wide(), &st)) {
+    return -1;
   }
-  return -1;
+  return st.st_mtime;
+}
+
+
+bool File::SetLastAccessed(const char* name, int64_t millis) {
+  // First get the current times.
+  struct __stat64 st;
+  Utf8ToWideScope system_name(name);
+  if (!StatHelper(system_name.wide(), &st)) {
+    return false;
+  }
+
+  // Set the new time:
+  struct __utimbuf64 times;
+  times.actime = millis / kMillisecondsPerSecond;
+  times.modtime = st.st_mtime;
+  return _wutime64(system_name.wide(), &times) == 0;
+}
+
+
+bool File::SetLastModified(const char* name, int64_t millis) {
+  // First get the current times.
+  struct __stat64 st;
+  Utf8ToWideScope system_name(name);
+  if (!StatHelper(system_name.wide(), &st)) {
+    return false;
+  }
+
+  // Set the new time:
+  struct __utimbuf64 times;
+  times.actime = st.st_atime;
+  times.modtime = millis / kMillisecondsPerSecond;
+  return _wutime64(system_name.wide(), &times) == 0;
 }
 
 

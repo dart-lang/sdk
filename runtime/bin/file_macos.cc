@@ -15,6 +15,7 @@
 #include <sys/mman.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>    // NOLINT
+#include <utime.h>     // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
@@ -344,18 +345,26 @@ bool File::Copy(const char* old_path, const char* new_path) {
 }
 
 
+static bool StatHelper(const char* name, struct stat* st) {
+  if (NO_RETRY_EXPECTED(stat(name, st)) != 0) {
+    return false;
+  }
+  // Signal an error if it's a directory.
+  if (S_ISDIR(st->st_mode)) {
+    errno = EISDIR;
+    return false;
+  }
+  // Otherwise assume the caller knows what it's doing.
+  return true;
+}
+
+
 int64_t File::LengthFromPath(const char* name) {
   struct stat st;
-  if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
-    // Signal an error if it's a directory.
-    if (S_ISDIR(st.st_mode)) {
-      errno = EISDIR;
-      return -1;
-    }
-    // Otherwise assume the caller knows what it's doing.
-    return st.st_size;
+  if (!StatHelper(name, &st)) {
+    return -1;
   }
-  return -1;
+  return st.st_size;
 }
 
 
@@ -393,16 +402,49 @@ void File::Stat(const char* name, int64_t* data) {
 
 time_t File::LastModified(const char* name) {
   struct stat st;
-  if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
-    // Signal an error if it's a directory.
-    if (S_ISDIR(st.st_mode)) {
-      errno = EISDIR;
-      return -1;
-    }
-    // Otherwise assume the caller knows what it's doing.
-    return st.st_mtime;
+  if (!StatHelper(name, &st)) {
+    return -1;
   }
-  return -1;
+  return st.st_mtime;
+}
+
+
+time_t File::LastAccessed(const char* name) {
+  struct stat st;
+  if (!StatHelper(name, &st)) {
+    return -1;
+  }
+  return st.st_atime;
+}
+
+
+bool File::SetLastAccessed(const char* name, int64_t millis) {
+  // First get the current times.
+  struct stat st;
+  if (!StatHelper(name, &st)) {
+    return false;
+  }
+
+  // Set the new time:
+  struct utimbuf times;
+  times.actime = millis / kMillisecondsPerSecond;
+  times.modtime = st.st_mtime;
+  return utime(name, &times) == 0;
+}
+
+
+bool File::SetLastModified(const char* name, int64_t millis) {
+  // First get the current times.
+  struct stat st;
+  if (!StatHelper(name, &st)) {
+    return false;
+  }
+
+  // Set the new time:
+  struct utimbuf times;
+  times.actime = st.st_atime;
+  times.modtime = millis / kMillisecondsPerSecond;
+  return utime(name, &times) == 0;
 }
 
 
