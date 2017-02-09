@@ -47,6 +47,7 @@
 #include "vm/type_table.h"
 #include "vm/unicode.h"
 #include "vm/weak_code.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -22332,7 +22333,7 @@ const char* StackTrace::ToCString() const {
 
 
 static void PrintStackTraceFrame(Zone* zone,
-                                 TextBuffer* buffer,
+                                 ZoneTextBuffer* buffer,
                                  const Function& function,
                                  TokenPosition token_pos,
                                  intptr_t frame_index) {
@@ -22370,7 +22371,7 @@ const char* StackTrace::ToCStringInternal(intptr_t* frame_index,
   Code& code = Code::Handle(zone);
   GrowableArray<const Function*> inlined_functions;
   GrowableArray<TokenPosition> inlined_token_positions;
-  TextBuffer buffer(1024);
+  ZoneTextBuffer buffer(zone, 1024);
 
   // Iterate through the stack frames and create C string description
   // for each frame.
@@ -22416,7 +22417,7 @@ const char* StackTrace::ToCStringInternal(intptr_t* frame_index,
     }
   }
 
-  return buffer.Steal();
+  return buffer.buffer();
 }
 
 

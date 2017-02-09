@@ -555,5 +555,7 @@
     'zone.cc',
     'zone.h',
     'zone_test.cc',
+    'zone_text_buffer.cc',
+    'zone_text_buffer.h',
   ],
 }
