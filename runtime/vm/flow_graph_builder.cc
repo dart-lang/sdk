@@ -4300,12 +4300,14 @@ void EffectGraphVisitor::VisitStopNode(StopNode* node) {
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   VMTagScope tagScope(thread(), VMTag::kCompileFlowGraphBuilderTagId,
                       FLAG_profile_vm);
-  if (FLAG_support_ast_printer && FLAG_print_ast) {
+  if (FLAG_support_ast_printer && FLAG_print_ast &&
+      FlowGraphPrinter::ShouldPrint(parsed_function().function())) {
     // Print the function ast before IL generation.
     AstPrinter ast_printer;
     ast_printer.PrintFunctionNodes(parsed_function());
   }
-  if (FLAG_support_ast_printer && FLAG_print_scopes) {
+  if (FLAG_support_ast_printer && FLAG_print_scopes &&
+      FlowGraphPrinter::ShouldPrint(parsed_function().function())) {
     AstPrinter ast_printer;
     ast_printer.PrintFunctionScope(parsed_function());
   }
