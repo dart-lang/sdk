@@ -4411,6 +4411,22 @@ C v = null;
 ''');
   }
 
+  test_nameConflict_exportedAndLocal_exported() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource(
+        '/c.dart',
+        '''
+export 'a.dart';
+class C {}
+''');
+    addLibrarySource('/d.dart', 'export "c.dart";');
+    checkLibrary('''
+import 'd.dart';
+C v = null;
+''');
+  }
+
   test_nameConflict_exportedAndParted() {
     namesThatCannotBeResolved.add('V');
     addLibrarySource('/a.dart', 'class C {}');

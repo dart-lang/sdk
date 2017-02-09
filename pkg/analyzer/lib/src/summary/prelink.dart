@@ -299,37 +299,35 @@ class _Prelinker {
    * should be computed), then names defined in [definingUnit] are ignored.
    */
   _Namespace computeExportNamespace(String relativeUri) {
-    _Namespace exportNamespace = relativeUri == null
-        ? new _Namespace()
-        : aggregatePublicNamespace(relativeUri);
-    void chaseExports(
-        NameFilter filter, String relativeUri, Set<String> seenUris) {
+    Set<String> seenUris = new Set<String>();
+    _Namespace chaseExports(String relativeUri, NameFilter filter) {
+      _Namespace exportedNamespace = relativeUri == null
+          ? new _Namespace()
+          : aggregatePublicNamespace(relativeUri);
       if (seenUris.add(relativeUri)) {
-        UnlinkedPublicNamespace exportedNamespace =
-            getImportCached(relativeUri);
-        if (exportedNamespace != null) {
-          for (UnlinkedExportPublic export in exportedNamespace.exports) {
+        UnlinkedPublicNamespace publicNamespace = getImportCached(relativeUri);
+        if (publicNamespace != null) {
+          for (UnlinkedExportPublic export in publicNamespace.exports) {
             String relativeExportUri =
                 _selectUri(export.uri, export.configurations);
             String exportUri = resolveUri(relativeUri, relativeExportUri);
             NameFilter newFilter = filter.merge(
                 new NameFilter.forUnlinkedCombinators(export.combinators));
-            aggregatePublicNamespace(exportUri)
-                .forEach((String name, _Meaning meaning) {
+            _Namespace exportNamespace = chaseExports(exportUri, newFilter);
+            exportNamespace.forEach((String name, _Meaning meaning) {
               if (newFilter.accepts(name) &&
-                  !exportNamespace.definesLibraryName(name)) {
-                exportNamespace.add(name, meaning);
+                  !exportedNamespace.definesLibraryName(name)) {
+                exportedNamespace.add(name, meaning);
               }
             });
-            chaseExports(newFilter, exportUri, seenUris);
           }
         }
         seenUris.remove(relativeUri);
       }
+      return exportedNamespace;
     }
 
-    chaseExports(NameFilter.identity, relativeUri, new Set<String>());
-    return exportNamespace;
+    return chaseExports(relativeUri, NameFilter.identity);
   }
 
   /**
