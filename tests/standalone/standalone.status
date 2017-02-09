@@ -300,9 +300,6 @@ verbose_gc_to_bmu_test: Skip
 io/platform_test: RuntimeError # Expects to be running from 'dart' instead of 'dart_precompiled_runtime'
 io/directory_list_sync_test: Timeout, Skip # Expects to find the test directory relative to the script.
 
-[ $runtime == vm && $system == windows ]
-io/process_stdin_transform_unsubscribe_test: Pass, Timeout # Issue 28707
-
 [ $runtime == vm && $system == windows && $mode == release ]
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
 io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.

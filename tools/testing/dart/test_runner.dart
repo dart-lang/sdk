@@ -1805,6 +1805,40 @@ Data removed due to excessive length
   }
 }
 
+// Helper to get a list of all child pids for a parent process.
+// The first element of the list is the parent pid.
+Future<List<int>> _getPidList(pid, diagnostics) async {
+  var pid_list = [pid];
+  var lines;
+  var start_line = 0;
+  if (io.Platform.isLinux || io.Platform.isMacOS) {
+    var result = await io.Process.run("pgrep",
+        ["-P", "${pid_list[0]}"],
+        runInShell: true);
+    lines = result.stdout.split('\n');
+  } else if (io.Platform.isWindows) {
+    var result = await io.Process.run("wmic",
+        ["process", "where" , "(ParentProcessId=${pid_list[0]})",
+         "get", "ProcessId"],
+        runInShell: true);
+    lines = result.stdout.split('\n');
+    // Skip first line containing header "ProcessId".
+    start_line = 1;
+  } else {
+    assert(false);
+  }
+  if (lines.length > start_line) {
+    for (int i = start_line; i < lines.length; ++i) {
+      var pid = int.parse(lines[i], onError: (source) => null);
+      if (pid != null) pid_list.add(pid);
+    }
+  } else {
+    diagnostics.add("Could not find child pids");
+    diagnostics.addAll(lines);
+  }
+  return pid_list;
+}
+
 /**
  * A RunningProcess actually runs a test, getting the command lines from
  * its [TestCase], starting the test process (and first, a compilation
@@ -1900,17 +1934,15 @@ class RunningProcess {
           timeoutHandler() async {
             timedOut = true;
             if (process != null) {
-              var executable, arguments;
+              var executable;
               if (io.Platform.isLinux) {
                 executable = 'eu-stack';
-                arguments = ['-p ${process.pid}'];
               } else if (io.Platform.isMacOS) {
                 // Try to print stack traces of the timed out process.
                 // `sample` is a sampling profiler but we ask it sample for 1
                 // second with a 4 second delay between samples so that we only
                 // sample the threads once.
                 executable = '/usr/bin/sample';
-                arguments = ['${process.pid}', '1', '4000', '-mayDie'];
               } else if (io.Platform.isWindows) {
                 bool is_x64 = command.executable.contains("X64") ||
                               command.executable.contains("SIMARM64");
@@ -1923,15 +1955,32 @@ class RunningProcess {
                 } else {
                   diagnostics.add("win_sdk path not found");
                 }
+              } else {
+                diagnostics.add("Capturing stack traces on"
+                                "${io.Platform.operatingSystem} not supported");
               }
-
               if (executable != null) {
-                try {
-                  var result = await io.Process.run(executable, arguments);
-                  diagnostics.addAll(result.stdout.split('\n'));
-                  diagnostics.addAll(result.stderr.split('\n'));
-                } catch (error) {
-                  diagnostics.add("Unable to capture stack traces: $error");
+                var pid_list = await _getPidList(process.pid, diagnostics);
+                diagnostics.add("Process list including children: $pid_list");
+                for (pid in pid_list) {
+                  var arguments;
+                  if (io.Platform.isLinux) {
+                    arguments = ['-p $pid'];
+                  } else if (io.Platform.isMacOS) {
+                    arguments = ['$pid', '1', '4000', '-mayDie'];
+                  } else if (io.Platform.isWindows) {
+                    arguments = ['-p', '$pid', '-c', '!uniqstack;qd'];
+                  } else {
+                    assert(false);
+                  }
+                  diagnostics.add("Trying to capture stack trace for pid $pid");
+                  try {
+                    var result = await io.Process.run(executable, arguments);
+                    diagnostics.addAll(result.stdout.split('\n'));
+                    diagnostics.addAll(result.stderr.split('\n'));
+                  } catch (error) {
+                    diagnostics.add("Unable to capture stack traces: $error");
+                  }
                 }
               }
 
