@@ -859,15 +859,14 @@ class NamespaceBuilder {
   }
 
   HashMap<String, Element> _getExportMapping(LibraryElement library) {
+    if (library.exportNamespace != null) {
+      return library.exportNamespace.definedNames;
+    }
     if (library is LibraryElementImpl) {
-      if (library.exportNamespace != null) {
-        return library.exportNamespace.definedNames;
-      } else {
-        HashMap<String, Element> exportMapping =
-            _computeExportMapping(library, new HashSet<LibraryElement>());
-        library.exportNamespace = new Namespace(exportMapping);
-        return exportMapping;
-      }
+      HashMap<String, Element> exportMapping =
+          _computeExportMapping(library, new HashSet<LibraryElement>());
+      library.exportNamespace = new Namespace(exportMapping);
+      return exportMapping;
     }
     return _computeExportMapping(library, new HashSet<LibraryElement>());
   }
