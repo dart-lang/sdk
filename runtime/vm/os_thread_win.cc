@@ -173,6 +173,21 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 }
 
 
+bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
+// On Windows stack limits for the current thread are available in
+// the thread information block (TIB). Its fields can be accessed through
+// FS segment register on x86 and GS segment register on x86_64.
+#ifdef _WIN64
+  *upper = static_cast<uword>(__readgsqword(offsetof(NT_TIB64, StackBase)));
+  *lower = static_cast<uword>(__readgsqword(offsetof(NT_TIB64, StackLimit)));
+#else
+  *upper = static_cast<uword>(__readfsdword(offsetof(NT_TIB, StackBase)));
+  *lower = static_cast<uword>(__readfsdword(offsetof(NT_TIB, StackLimit)));
+#endif
+  return true;
+}
+
+
 void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsSetValue(key, reinterpret_cast<void*>(value));

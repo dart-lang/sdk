@@ -797,51 +797,52 @@ static void CollectSample(Isolate* isolate,
 
 
 // Get |isolate|'s stack boundary and verify that |sp| and |fp| are within
-// it. Return |false| if anything looks suspicious.
-static bool GetAndValidateIsolateStackBounds(Thread* thread,
-                                             uintptr_t fp,
-                                             uintptr_t sp,
-                                             uword* stack_lower,
-                                             uword* stack_upper) {
+// it. If |get_os_thread_bounds| is true then if |isolate| stackbounds are
+// not available we fallback to using underlying OS thread bounds. This only
+// works for the current thread.
+// Return |false| if anything looks suspicious.
+static bool GetAndValidateThreadStackBounds(Thread* thread,
+                                            uintptr_t fp,
+                                            uintptr_t sp,
+                                            uword* stack_lower,
+                                            uword* stack_upper,
+                                            bool get_os_thread_bounds = false) {
   ASSERT(thread != NULL);
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
   ASSERT(stack_lower != NULL);
   ASSERT(stack_upper != NULL);
+  ASSERT(!get_os_thread_bounds || (Thread::Current() == thread));
+
 #if defined(USING_SIMULATOR)
-  const bool in_dart_code = thread->IsExecutingDartCode();
-  if (in_dart_code) {
+  const bool use_simulator_stack_bounds = thread->IsExecutingDartCode();
+  if (use_simulator_stack_bounds) {
     Isolate* isolate = thread->isolate();
     ASSERT(isolate != NULL);
     Simulator* simulator = isolate->simulator();
     *stack_lower = simulator->StackBase();
     *stack_upper = simulator->StackTop();
-  } else if (!os_thread->GetProfilerStackBounds(stack_lower, stack_upper)) {
+  }
+#else
+  const bool use_simulator_stack_bounds = false;
+#endif
+
+  if (!use_simulator_stack_bounds &&
+      !os_thread->GetProfilerStackBounds(stack_lower, stack_upper) &&
+      !(get_os_thread_bounds &&
+        OSThread::GetCurrentStackBounds(stack_lower, stack_upper))) {
     // Could not get stack boundary.
     return false;
   }
+
   if ((*stack_lower == 0) || (*stack_upper == 0)) {
     return false;
   }
-#else
-  if (!os_thread->GetProfilerStackBounds(stack_lower, stack_upper) ||
-      (*stack_lower == 0) || (*stack_upper == 0)) {
-    // Could not get stack boundary.
-    return false;
-  }
-#endif
 
-#if defined(TARGET_ARCH_DBC)
-  if (!in_dart_code && (sp > *stack_lower)) {
+  if (!use_simulator_stack_bounds && (sp > *stack_lower)) {
     // The stack pointer gives us a tighter lower bound.
     *stack_lower = sp;
   }
-#else
-  if (sp > *stack_lower) {
-    // The stack pointer gives us a tighter lower bound.
-    *stack_lower = sp;
-  }
-#endif
 
   if (*stack_lower >= *stack_upper) {
     // Stack boundary is invalid.
@@ -982,10 +983,11 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc) {
     return;
   }
 
-  if (!GetAndValidateIsolateStackBounds(thread, fp, sp, &stack_lower,
-                                        &stack_upper)) {
+  if (!GetAndValidateThreadStackBounds(thread, fp, sp, &stack_lower,
+                                       &stack_upper,
+                                       /*get_os_thread_bounds=*/true)) {
     OS::PrintErr(
-        "Stack dump aborted because GetAndValidateIsolateStackBounds.\n");
+        "Stack dump aborted because GetAndValidateThreadStackBounds.\n");
     return;
   }
 
@@ -1026,8 +1028,8 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
     return;
   }
 
-  if (!GetAndValidateIsolateStackBounds(thread, fp, sp, &stack_lower,
-                                        &stack_upper)) {
+  if (!GetAndValidateThreadStackBounds(thread, fp, sp, &stack_lower,
+                                       &stack_upper)) {
     // Could not get stack boundary.
     return;
   }
@@ -1152,8 +1154,8 @@ void Profiler::SampleThread(Thread* thread,
 
   uword stack_lower = 0;
   uword stack_upper = 0;
-  if (!GetAndValidateIsolateStackBounds(thread, fp, sp, &stack_lower,
-                                        &stack_upper)) {
+  if (!GetAndValidateThreadStackBounds(thread, fp, sp, &stack_lower,
+                                       &stack_upper)) {
     AtomicOperations::IncrementInt64By(
         &counters_.single_frame_sample_get_and_validate_stack_bounds, 1);
     // Could not get stack boundary.

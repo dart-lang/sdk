@@ -108,6 +108,8 @@ class OSThread : public BaseThread {
     return true;
   }
 
+  static bool GetCurrentStackBounds(uword* lower, uword* upper);
+
   // Used to temporarily disable or enable thread interrupts.
   void DisableThreadInterrupts();
   void EnableThreadInterrupts();
