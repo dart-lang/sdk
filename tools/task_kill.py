@@ -46,6 +46,7 @@ EXECUTABLE_NAMES = {
   },
   'macos': {
     'chrome': 'Chrome',
+    'chrome_helper': 'Chrome Helper',
     'content_shell': 'Content Shell',
     'dart': 'dart',
     'firefox': 'firefox',
@@ -210,6 +211,7 @@ def KillBrowsers():
   # We don't give error on killing chrome. It happens quite often that the
   # browser controller fails in killing chrome, so we silently do it here.
   Kill('chrome')
+  status += Kill('chrome_helper')
   status += Kill('iexplore')
   status += Kill('safari')
   status += Kill('content_shell')
