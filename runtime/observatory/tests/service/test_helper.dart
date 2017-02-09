@@ -315,7 +315,7 @@ class _ServiceTesterRunner {
 
         // Run isolate tests.
         if (isolateTests != null) {
-          var isolate = await vm.isolates.first.load();
+          var isolate = await getFirstIsolate(vm);
           var testIndex = 1;
           var totalTests = isolateTests.length;
           for (var test in isolateTests) {
@@ -340,6 +340,50 @@ class _ServiceTesterRunner {
         }
       });
     });
+  }
+
+
+
+  Future<Isolate> getFirstIsolate(WebSocketVM vm) async {
+    if (vm.isolates.isNotEmpty) {
+      var isolate = await vm.isolates.first.load();
+      if (isolate is Isolate) {
+        return isolate;
+      }
+    }
+
+    Completer completer = new Completer();
+    vm.getEventStream(VM.kIsolateStream).then((stream) {
+      var subscription;
+      subscription = stream.listen((ServiceEvent event) async {
+        if (completer == null) {
+          subscription.cancel();
+          return;
+        }
+        if (event.kind == ServiceEvent.kIsolateRunnable) {
+          if (vm.isolates.isNotEmpty) {
+            vm.isolates.first.load().then((result) {
+              if (result is Isolate) {
+                subscription.cancel();
+                completer.complete(result);
+                completer = null;
+              }
+            });
+          }
+        }
+      });
+    });
+
+    // The isolate may have started before we subscribed.
+    if (vm.isolates.isNotEmpty) {
+      vm.isolates.first.reload().then((result) async {
+        if (completer != null && result is Isolate) {
+          completer.complete(result);
+          completer = null;
+        }
+      });
+    }
+    return await completer.future;
   }
 }
 
