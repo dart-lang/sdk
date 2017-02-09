@@ -14460,7 +14460,7 @@ RawStackMap* Code::GetStackMap(uint32_t pc_offset,
 }
 
 
-void Code::GetInlinedFunctionsAt(
+void Code::GetInlinedFunctionsAtInstruction(
     intptr_t pc_offset,
     GrowableArray<const Function*>* functions,
     GrowableArray<TokenPosition>* token_positions) const {
@@ -22263,12 +22263,6 @@ intptr_t StackTrace::Length() const {
 }
 
 
-RawFunction* StackTrace::FunctionAtFrame(intptr_t frame_index) const {
-  const Code& code = Code::Handle(CodeAtFrame(frame_index));
-  return code.IsNull() ? Function::null() : code.function();
-}
-
-
 RawCode* StackTrace::CodeAtFrame(intptr_t frame_index) const {
   const Array& code_array = Array::Handle(raw_ptr()->code_array_);
   return reinterpret_cast<RawCode*>(code_array.At(frame_index));
@@ -22337,13 +22331,11 @@ const char* StackTrace::ToCString() const {
 }
 
 
-static intptr_t PrintOneStackTrace(Zone* zone,
-                                   GrowableArray<char*>* frame_strings,
-                                   uword pc,
-                                   const Function& function,
-                                   const Code& code,
-                                   intptr_t frame_index) {
-  const TokenPosition token_pos = code.GetTokenIndexOfPC(pc);
+static void PrintStackTraceFrame(Zone* zone,
+                                 TextBuffer* buffer,
+                                 const Function& function,
+                                 TokenPosition token_pos,
+                                 intptr_t frame_index) {
   const Script& script = Script::Handle(zone, function.script());
   const String& function_name =
       String::Handle(zone, function.QualifiedUserVisibleName());
@@ -22358,90 +22350,73 @@ static intptr_t PrintOneStackTrace(Zone* zone,
       script.GetTokenLocation(token_pos, &line, NULL);
     }
   }
-  char* chars = NULL;
   if (column >= 0) {
-    chars =
-        OS::SCreate(zone, "#%-6" Pd " %s (%s:%" Pd ":%" Pd ")\n", frame_index,
-                    function_name.ToCString(), url.ToCString(), line, column);
+    buffer->Printf("#%-6" Pd " %s (%s:%" Pd ":%" Pd ")\n", frame_index,
+                   function_name.ToCString(), url.ToCString(), line, column);
   } else if (line >= 0) {
-    chars = OS::SCreate(zone, "#%-6" Pd " %s (%s:%" Pd ")\n", frame_index,
-                        function_name.ToCString(), url.ToCString(), line);
+    buffer->Printf("#%-6" Pd " %s (%s:%" Pd ")\n", frame_index,
+                   function_name.ToCString(), url.ToCString(), line);
   } else {
-    chars = OS::SCreate(zone, "#%-6" Pd " %s (%s)\n", frame_index,
-                        function_name.ToCString(), url.ToCString());
+    buffer->Printf("#%-6" Pd " %s (%s)\n", frame_index,
+                   function_name.ToCString(), url.ToCString());
   }
-  frame_strings->Add(chars);
-  return strlen(chars);
 }
 
 
 const char* StackTrace::ToCStringInternal(intptr_t* frame_index,
                                           intptr_t max_frames) const {
   Zone* zone = Thread::Current()->zone();
-  Function& function = Function::Handle();
-  Code& code = Code::Handle();
+  Function& function = Function::Handle(zone);
+  Code& code = Code::Handle(zone);
+  GrowableArray<const Function*> inlined_functions;
+  GrowableArray<TokenPosition> inlined_token_positions;
+  TextBuffer buffer(1024);
+
   // Iterate through the stack frames and create C string description
   // for each frame.
-  intptr_t total_len = 0;
-  GrowableArray<char*> frame_strings;
   for (intptr_t i = 0; (i < Length()) && (*frame_index < max_frames); i++) {
-    function = FunctionAtFrame(i);
-    if (function.IsNull()) {
+    code = CodeAtFrame(i);
+    if (code.IsNull()) {
       // Check for a null function, which indicates a gap in a StackOverflow or
       // OutOfMemory trace.
-      if ((i < (Length() - 1)) &&
-          (FunctionAtFrame(i + 1) != Function::null())) {
-        const char* kTruncated = "...\n...\n";
-        intptr_t truncated_len = strlen(kTruncated) + 1;
-        char* chars = zone->Alloc<char>(truncated_len);
-        OS::SNPrint(chars, truncated_len, "%s", kTruncated);
-        frame_strings.Add(chars);
-        total_len += truncated_len;
+      if ((i < (Length() - 1)) && (CodeAtFrame(i + 1) != Code::null())) {
+        buffer.AddString("...\n...\n");
         ASSERT(PcOffsetAtFrame(i) != Smi::null());
         // To account for gap frames.
         (*frame_index) += Smi::Value(PcOffsetAtFrame(i));
       }
     } else {
-      code = CodeAtFrame(i);
-      ASSERT(function.raw() == code.function());
-      uword pc = code.PayloadStart() + Smi::Value(PcOffsetAtFrame(i));
+      // Stub code is not included in the stack trace.
+      ASSERT(code.IsFunctionCode());
+
+      intptr_t pc_offset = Smi::Value(PcOffsetAtFrame(i));
       if (code.is_optimized() && expand_inlined() &&
           !FLAG_precompiled_runtime) {
-        // Traverse inlined frames.
-        for (InlinedFunctionsIterator it(code, pc);
-             !it.Done() && (*frame_index < max_frames); it.Advance()) {
-          function = it.function();
-          if (function.is_visible() || FLAG_show_invisible_frames) {
-            code = it.code();
-            ASSERT(function.raw() == code.function());
-            uword pc = it.pc();
-            ASSERT(pc != 0);
-            ASSERT(code.PayloadStart() <= pc);
-            ASSERT(pc < (code.PayloadStart() + code.Size()));
-            total_len += PrintOneStackTrace(zone, &frame_strings, pc, function,
-                                            code, *frame_index);
-            (*frame_index)++;  // To account for inlined frames.
+        code.GetInlinedFunctionsAtReturnAddress(pc_offset, &inlined_functions,
+                                                &inlined_token_positions);
+        ASSERT(inlined_functions.length() >= 1);
+        for (intptr_t j = inlined_functions.length() - 1; j >= 0; j--) {
+          if (inlined_functions[j]->is_visible() ||
+              FLAG_show_invisible_frames) {
+            PrintStackTraceFrame(zone, &buffer, *inlined_functions[j],
+                                 inlined_token_positions[j], *frame_index);
+            (*frame_index)++;
           }
         }
       } else {
+        function = code.function();
         if (function.is_visible() || FLAG_show_invisible_frames) {
-          total_len += PrintOneStackTrace(zone, &frame_strings, pc, function,
-                                          code, *frame_index);
+          uword pc = code.PayloadStart() + pc_offset;
+          const TokenPosition token_pos = code.GetTokenIndexOfPC(pc);
+          PrintStackTraceFrame(zone, &buffer, function, token_pos,
+                               *frame_index);
           (*frame_index)++;
         }
       }
     }
   }
 
-  // Now concatenate the frame descriptions into a single C string.
-  char* chars = zone->Alloc<char>(total_len + 1);
-  intptr_t index = 0;
-  for (intptr_t i = 0; i < frame_strings.length(); i++) {
-    index += OS::SNPrint((chars + index), (total_len + 1 - index), "%s",
-                         frame_strings[i]);
-  }
-  chars[total_len] = '\0';
-  return chars;
+  return buffer.Steal();
 }
 
 

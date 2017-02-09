@@ -1578,35 +1578,41 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const class StackTrace& ex_trace) {
   const intptr_t deopt_frame_offset = -1;
 
   for (intptr_t i = 0; i < ex_trace.Length(); i++) {
-    function = ex_trace.FunctionAtFrame(i);
+    code = ex_trace.CodeAtFrame(i);
     // Pre-allocated StackTraces may include empty slots, either (a) to indicate
     // where frames were omitted in the case a stack has more frames than the
     // pre-allocated trace (such as a stack overflow) or (b) because a stack has
     // fewer frames that the pre-allocated trace (such as memory exhaustion with
     // a shallow stack).
-    if (!function.IsNull() && function.is_visible()) {
-      code = ex_trace.CodeAtFrame(i);
-      ASSERT(function.raw() == code.function());
-      uword pc = code.PayloadStart() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
-      if (code.is_optimized() && ex_trace.expand_inlined()) {
-        // Traverse inlined frames.
-        for (InlinedFunctionsIterator it(code, pc); !it.Done(); it.Advance()) {
-          function = it.function();
-          code = it.code();
-          ASSERT(function.raw() == code.function());
-          uword pc = it.pc();
-          ASSERT(pc != 0);
-          ASSERT(code.PayloadStart() <= pc);
-          ASSERT(pc < (code.PayloadStart() + code.Size()));
+    if (!code.IsNull()) {
+      ASSERT(code.IsFunctionCode());
+      function = code.function();
+      if (function.is_visible()) {
+        code = ex_trace.CodeAtFrame(i);
+        ASSERT(function.raw() == code.function());
+        uword pc =
+            code.PayloadStart() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
+        if (code.is_optimized() && ex_trace.expand_inlined()) {
+          // Traverse inlined frames.
+          for (InlinedFunctionsIterator it(code, pc); !it.Done();
+               it.Advance()) {
+            function = it.function();
+            code = it.code();
+            ASSERT(function.raw() == code.function());
+            uword pc = it.pc();
+            ASSERT(pc != 0);
+            ASSERT(code.PayloadStart() <= pc);
+            ASSERT(pc < (code.PayloadStart() + code.Size()));
 
+            ActivationFrame* activation = new ActivationFrame(
+                pc, fp, sp, code, deopt_frame, deopt_frame_offset);
+            stack_trace->AddActivation(activation);
+          }
+        } else {
           ActivationFrame* activation = new ActivationFrame(
               pc, fp, sp, code, deopt_frame, deopt_frame_offset);
           stack_trace->AddActivation(activation);
         }
-      } else {
-        ActivationFrame* activation = new ActivationFrame(
-            pc, fp, sp, code, deopt_frame, deopt_frame_offset);
-        stack_trace->AddActivation(activation);
       }
     }
   }
