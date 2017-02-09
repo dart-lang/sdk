@@ -48,6 +48,8 @@ class ThreadInterrupter : public AllStatic {
   static intptr_t interrupt_period_;
   static intptr_t current_wait_time_;
 
+  static bool IsDebuggerAttached();
+
   static bool InDeepSleep() {
     return current_wait_time_ == Monitor::kNoTimeout;
   }
