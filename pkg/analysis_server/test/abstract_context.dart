@@ -86,6 +86,7 @@ class AbstractContextTest {
     File file = newFile(path, content);
     if (enableNewAnalysisDriver) {
       driver.addFile(path);
+      driver.changeFile(path);
       _fileContentOverlay[path] = content;
       return null;
     } else {
