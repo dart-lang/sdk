@@ -783,8 +783,8 @@ class JavaScriptBackend extends Target {
       if (isNative(element)) {
         native.NativeBehavior fieldLoadBehavior =
             native.NativeBehavior.ofFieldElementLoad(element, compiler);
-        native.NativeBehavior fieldStoreBehavior = native.NativeBehavior
-            .ofFieldElementStore(element, compiler.resolution);
+        native.NativeBehavior fieldStoreBehavior =
+            native.NativeBehavior.ofFieldElementStore(element, compiler);
         nativeData.setNativeFieldLoadBehavior(element, fieldLoadBehavior);
         nativeData.setNativeFieldStoreBehavior(element, fieldStoreBehavior);
 

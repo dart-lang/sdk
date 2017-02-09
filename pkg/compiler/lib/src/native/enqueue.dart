@@ -56,11 +56,6 @@ class NativeEnqueuer {
 
   /// Emits a summary information using the [log] function.
   void logSummary(log(message)) {}
-
-  // Do not use annotations in dart2dart.
-  ClassElement get annotationCreatesClass => null;
-  ClassElement get annotationReturnsClass => null;
-  ClassElement get annotationJsNameClass => null;
 }
 
 abstract class NativeEnqueuerBase implements NativeEnqueuer {
@@ -79,10 +74,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   final Compiler compiler;
   final bool enableLiveTypeAnalysis;
-
-  ClassElement _annotationCreatesClass;
-  ClassElement _annotationReturnsClass;
-  ClassElement _annotationJsNameClass;
 
   /// Subclasses of [NativeEnqueuerBase] are constructed by the backend.
   NativeEnqueuerBase(Compiler compiler, this.enableLiveTypeAnalysis)
@@ -256,34 +247,11 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     });
   }
 
-  ClassElement get annotationCreatesClass {
-    findAnnotationClasses();
-    return _annotationCreatesClass;
-  }
-
-  ClassElement get annotationReturnsClass {
-    findAnnotationClasses();
-    return _annotationReturnsClass;
-  }
-
-  ClassElement get annotationJsNameClass {
-    findAnnotationClasses();
-    return _annotationJsNameClass;
-  }
-
-  void findAnnotationClasses() {
-    if (_annotationCreatesClass != null) return;
-
-    _annotationCreatesClass = helpers.annotationCreatesClass;
-    _annotationReturnsClass = helpers.annotationReturnsClass;
-    _annotationJsNameClass = helpers.annotationJSNameClass;
-  }
-
   /// Returns the JSName annotation string or `null` if no JSName annotation is
   /// present.
   String findJsNameFromAnnotation(Element element) {
     String name = null;
-    ClassElement annotationClass = annotationJsNameClass;
+    ClassElement annotationClass = backend.helpers.annotationJSNameClass;
     for (MetadataAnnotation annotation in element.implementation.metadata) {
       annotation.ensureResolved(resolution);
       ConstantValue value =

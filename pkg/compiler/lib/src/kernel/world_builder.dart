@@ -251,17 +251,20 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   @override
   native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
-    throw new UnimplementedError('KernelWorldBuilder.getDartType');
+    throw new UnimplementedError(
+        'KernelWorldBuilder.getNativeBehaviorForMethod');
   }
 
   @override
   native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
-    throw new UnimplementedError('KernelWorldBuilder.getDartType');
+    throw new UnimplementedError(
+        'KernelWorldBuilder.getNativeBehaviorForFieldStore');
   }
 
   @override
   native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
-    throw new UnimplementedError('KernelWorldBuilder.getDartType');
+    throw new UnimplementedError(
+        'KernelWorldBuilder.getNativeBehaviorForFieldLoad');
   }
 
   LibraryEntity getLibrary(ir.Library node) => _getLibrary(node);

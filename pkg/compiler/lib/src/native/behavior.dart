@@ -3,20 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common/backend_api.dart' show ForeignResolver;
+import '../common/backend_api.dart' show BackendClasses, ForeignResolver;
 import '../common/resolution.dart' show ParsingContext, Resolution;
 import '../compiler.dart' show Compiler;
+import '../compile_time_constants.dart' show ConstantEnvironment;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
+import '../js_backend/backend_helpers.dart';
+import '../options.dart';
 import '../tree/tree.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-import 'enqueue.dart';
 import 'js.dart';
 
 typedef dynamic /*DartType|SpecialType*/ TypeLookup(String typeString);
@@ -762,49 +766,9 @@ class NativeBehavior {
       return cls.thisType;
     }
 
-    return ofMethod(element, type, metadata, lookup, compiler,
+    BehaviorBuilder builder = new ResolverBehaviorBuilder(compiler);
+    return builder.buildMethodBehavior(type, metadata, lookup,
         isJsInterop: compiler.backend.isJsInterop(element));
-  }
-
-  static NativeBehavior ofMethod(
-      Spannable spannable,
-      ResolutionFunctionType type,
-      List<ConstantExpression> metadata,
-      TypeLookup lookupType,
-      Compiler compiler,
-      {bool isJsInterop}) {
-    var behavior = new NativeBehavior();
-    var returnType = type.returnType;
-    // Note: For dart:html and other internal libraries we maintain, we can
-    // trust the return type and use it to limit what we enqueue. We have to
-    // be more conservative about JS interop types and assume they can return
-    // anything (unless the user provides the experimental flag to trust the
-    // type of js-interop APIs). We do restrict the allocation effects and say
-    // that interop calls create only interop types (which may be unsound if
-    // an interop call returns a DOM type and declares a dynamic return type,
-    // but otherwise we would include a lot of code by default).
-    // TODO(sigmund,sra): consider doing something better for numeric types.
-    behavior.typesReturned.add(
-        !isJsInterop || compiler.options.trustJSInteropTypeAnnotations
-            ? returnType
-            : const ResolutionDynamicType());
-    if (!type.returnType.isVoid) {
-      // Declared types are nullable.
-      behavior.typesReturned.add(compiler.commonElements.nullType);
-    }
-    behavior._capture(type, compiler.resolution,
-        isInterop: isJsInterop, compiler: compiler);
-
-    for (ResolutionDartType type in type.optionalParameterTypes) {
-      behavior._escape(type, compiler.resolution);
-    }
-    for (ResolutionDartType type in type.namedParameterTypes) {
-      behavior._escape(type, compiler.resolution);
-    }
-
-    behavior._overrideWithAnnotations(
-        spannable, metadata, lookupType, compiler);
-    return behavior;
   }
 
   static NativeBehavior ofFieldElementLoad(
@@ -826,169 +790,16 @@ class NativeBehavior {
       return cls.thisType;
     }
 
-    return ofFieldLoad(element, type, metadata, lookup, compiler,
+    BehaviorBuilder builder = new ResolverBehaviorBuilder(compiler);
+    return builder.buildFieldLoadBehavior(type, metadata, lookup,
         isJsInterop: compiler.backend.isJsInterop(element));
   }
 
-  static NativeBehavior ofFieldLoad(
-      Spannable spannable,
-      ResolutionDartType type,
-      List<ConstantExpression> metadata,
-      TypeLookup lookupType,
-      Compiler compiler,
-      {bool isJsInterop}) {
-    Resolution resolution = compiler.resolution;
-    var behavior = new NativeBehavior();
-    // TODO(sigmund,sra): consider doing something better for numeric types.
-    behavior.typesReturned.add(
-        !isJsInterop || compiler.options.trustJSInteropTypeAnnotations
-            ? type
-            : const ResolutionDynamicType());
-    // Declared types are nullable.
-    behavior.typesReturned.add(resolution.commonElements.nullType);
-    behavior._capture(type, resolution,
-        isInterop: isJsInterop, compiler: compiler);
-    behavior._overrideWithAnnotations(
-        spannable, metadata, lookupType, compiler);
-    return behavior;
-  }
-
   static NativeBehavior ofFieldElementStore(
-      MemberElement field, Resolution resolution) {
-    ResolutionDartType type = field.computeType(resolution);
-    return ofFieldStore(type, resolution);
-  }
-
-  static NativeBehavior ofFieldStore(
-      ResolutionDartType type, Resolution resolution) {
-    var behavior = new NativeBehavior();
-    behavior._escape(type, resolution);
-    // We don't override the default behaviour - the annotations apply to
-    // loading the field.
-    return behavior;
-  }
-
-  void _overrideWithAnnotations(
-      Spannable spannable,
-      Iterable<ConstantExpression> metadata,
-      TypeLookup lookupType,
-      Compiler compiler) {
-    if (metadata.isEmpty) return;
-
-    NativeEnqueuer enqueuer = compiler.enqueuer.resolution.nativeEnqueuer;
-    var creates = _collect(spannable, metadata, compiler,
-        enqueuer.annotationCreatesClass, lookupType);
-    var returns = _collect(spannable, metadata, compiler,
-        enqueuer.annotationReturnsClass, lookupType);
-
-    if (creates != null) {
-      typesInstantiated
-        ..clear()
-        ..addAll(creates);
-    }
-    if (returns != null) {
-      typesReturned
-        ..clear()
-        ..addAll(returns);
-    }
-  }
-
-  /**
-   * Returns a list of type constraints from the annotations of
-   * [annotationClass].
-   * Returns `null` if no constraints.
-   */
-  static _collect(Spannable spannable, Iterable<ConstantExpression> metadata,
-      Compiler compiler, Element annotationClass, TypeLookup lookupType) {
-    DiagnosticReporter reporter = compiler.reporter;
-    var types = null;
-    for (ConstantExpression constant in metadata) {
-      ConstantValue value = compiler.constants.getConstantValue(constant);
-      if (!value.isConstructedObject) continue;
-      ConstructedConstantValue constructedObject = value;
-      if (constructedObject.type.element != annotationClass) continue;
-
-      Iterable<ConstantValue> fields = constructedObject.fields.values;
-      // TODO(sra): Better validation of the constant.
-      if (fields.length != 1 || !fields.single.isString) {
-        reporter.internalError(spannable,
-            'Annotations needs one string: ${constant.toStructuredText()}');
-      }
-      StringConstantValue specStringConstant = fields.single;
-      String specString = specStringConstant.toDartString().slowToString();
-      for (final typeString in specString.split('|')) {
-        var type = _parseType(typeString, spannable, reporter, lookupType);
-        if (types == null) types = [];
-        types.add(type);
-      }
-    }
-    return types;
-  }
-
-  /// Models the behavior of having intances of [type] escape from Dart code
-  /// into native code.
-  void _escape(ResolutionDartType type, Resolution resolution) {
-    type.computeUnaliased(resolution);
-    type = type.unaliased;
-    if (type is ResolutionFunctionType) {
-      ResolutionFunctionType functionType = type;
-      // A function might be called from native code, passing us novel
-      // parameters.
-      _escape(functionType.returnType, resolution);
-      for (ResolutionDartType parameter in functionType.parameterTypes) {
-        _capture(parameter, resolution);
-      }
-    }
-  }
-
-  /// Models the behavior of Dart code receiving instances and methods of [type]
-  /// from native code.  We usually start the analysis by capturing a native
-  /// method that has been used.
-  ///
-  /// We assume that JS-interop APIs cannot instantiate Dart types or
-  /// non-JSInterop native types.
-  void _capture(ResolutionDartType type, Resolution resolution,
-      {bool isInterop: false, Compiler compiler}) {
-    type.computeUnaliased(resolution);
-    type = type.unaliased;
-    if (type is ResolutionFunctionType) {
-      ResolutionFunctionType functionType = type;
-      _capture(functionType.returnType, resolution,
-          isInterop: isInterop, compiler: compiler);
-      for (ResolutionDartType parameter in functionType.parameterTypes) {
-        _escape(parameter, resolution);
-      }
-    } else {
-      JavaScriptBackend backend = compiler?.backend;
-      if (!isInterop) {
-        typesInstantiated.add(type);
-      } else {
-        if (type.element != null && backend.isNative(type.element)) {
-          // Any declared native or interop type (isNative implies isJsInterop)
-          // is assumed to be allocated.
-          typesInstantiated.add(type);
-        }
-
-        if (!compiler.options.trustJSInteropTypeAnnotations ||
-            type.isDynamic ||
-            type.isObject) {
-          // By saying that only JS-interop types can be created, we prevent
-          // pulling in every other native type (e.g. all of dart:html) when a
-          // JS interop API returns dynamic or when we don't trust the type
-          // annotations. This means that to some degree we still use the return
-          // type to decide whether to include native types, even if we don't
-          // trust the type annotation.
-          ClassElement cls = backend.helpers.jsJavaScriptObjectClass;
-          cls.ensureResolved(resolution);
-          typesInstantiated.add(cls.thisType);
-        } else {
-          // Otherwise, when the declared type is a Dart type, we do not
-          // register an allocation because we assume it cannot be instantiated
-          // from within the JS-interop code. It must have escaped from another
-          // API.
-        }
-      }
-    }
+      MemberElement field, Compiler compiler) {
+    BehaviorBuilder builder = new ResolverBehaviorBuilder(compiler);
+    ResolutionDartType type = field.computeType(compiler.resolution);
+    return builder.buildFieldStoreBehavior(type);
   }
 
   static dynamic /*DartType|SpecialType*/ _parseType(String typeString,
@@ -1015,4 +826,226 @@ class NativeBehavior {
         {'text': "Type '$typeString' not found."});
     return const ResolutionDynamicType();
   }
+}
+
+abstract class BehaviorBuilder {
+  CommonElements get commonElements;
+  BackendClasses get backendClasses;
+  BackendHelpers get helpers;
+  DiagnosticReporter get reporter;
+  ConstantEnvironment get constants;
+  bool get trustJSInteropTypeAnnotations;
+
+  Resolution get resolution => null;
+
+  NativeBehavior _behavior;
+
+  void _overrideWithAnnotations(
+      Iterable<ConstantExpression> metadata, TypeLookup lookupType) {
+    if (metadata.isEmpty) return;
+
+    List creates =
+        _collect(metadata, helpers.annotationCreatesClass, lookupType);
+    List returns =
+        _collect(metadata, helpers.annotationReturnsClass, lookupType);
+
+    if (creates != null) {
+      _behavior.typesInstantiated
+        ..clear()
+        ..addAll(creates);
+    }
+    if (returns != null) {
+      _behavior.typesReturned
+        ..clear()
+        ..addAll(returns);
+    }
+  }
+
+  /**
+   * Returns a list of type constraints from the annotations of
+   * [annotationClass].
+   * Returns `null` if no constraints.
+   */
+  List _collect(Iterable<ConstantExpression> metadata,
+      ClassEntity annotationClass, TypeLookup lookupType) {
+    var types = null;
+    for (ConstantExpression constant in metadata) {
+      ConstantValue value = constants.getConstantValue(constant);
+      if (!value.isConstructedObject) continue;
+      ConstructedConstantValue constructedObject = value;
+      if (constructedObject.type.element != annotationClass) continue;
+
+      Iterable<ConstantValue> fields = constructedObject.fields.values;
+      // TODO(sra): Better validation of the constant.
+      if (fields.length != 1 || !fields.single.isString) {
+        reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+            'Annotations needs one string: ${constant.toStructuredText()}');
+      }
+      StringConstantValue specStringConstant = fields.single;
+      String specString = specStringConstant.toDartString().slowToString();
+      for (final typeString in specString.split('|')) {
+        var type = NativeBehavior._parseType(
+            typeString, CURRENT_ELEMENT_SPANNABLE, reporter, lookupType);
+        if (types == null) types = [];
+        types.add(type);
+      }
+    }
+    return types;
+  }
+
+  /// Models the behavior of having intances of [type] escape from Dart code
+  /// into native code.
+  void _escape(DartType type) {
+    if (type is ResolutionDartType) {
+      type.computeUnaliased(resolution);
+    }
+    type = type.unaliased;
+    if (type is FunctionType) {
+      FunctionType functionType = type;
+      // A function might be called from native code, passing us novel
+      // parameters.
+      _escape(functionType.returnType);
+      for (DartType parameter in functionType.parameterTypes) {
+        _capture(parameter);
+      }
+    }
+  }
+
+  /// Models the behavior of Dart code receiving instances and methods of [type]
+  /// from native code.  We usually start the analysis by capturing a native
+  /// method that has been used.
+  ///
+  /// We assume that JS-interop APIs cannot instantiate Dart types or
+  /// non-JSInterop native types.
+  void _capture(DartType type, {bool isInterop: false}) {
+    if (type is ResolutionDartType) {
+      type.computeUnaliased(resolution);
+    }
+    type = type.unaliased;
+    if (type is FunctionType) {
+      FunctionType functionType = type;
+      _capture(functionType.returnType, isInterop: isInterop);
+      for (DartType parameter in functionType.parameterTypes) {
+        _escape(parameter);
+      }
+    } else {
+      if (!isInterop) {
+        _behavior.typesInstantiated.add(type);
+      } else {
+        if (type is InterfaceType &&
+            backendClasses.isNativeClass(type.element)) {
+          // Any declared native or interop type (isNative implies isJsInterop)
+          // is assumed to be allocated.
+          _behavior.typesInstantiated.add(type);
+        }
+
+        if (!trustJSInteropTypeAnnotations ||
+            type.isDynamic ||
+            type == commonElements.objectType) {
+          // By saying that only JS-interop types can be created, we prevent
+          // pulling in every other native type (e.g. all of dart:html) when a
+          // JS interop API returns dynamic or when we don't trust the type
+          // annotations. This means that to some degree we still use the return
+          // type to decide whether to include native types, even if we don't
+          // trust the type annotation.
+          ClassElement cls = helpers.jsJavaScriptObjectClass;
+          cls.ensureResolved(resolution);
+          _behavior.typesInstantiated.add(cls.thisType);
+        } else {
+          // Otherwise, when the declared type is a Dart type, we do not
+          // register an allocation because we assume it cannot be instantiated
+          // from within the JS-interop code. It must have escaped from another
+          // API.
+        }
+      }
+    }
+  }
+
+  NativeBehavior buildFieldLoadBehavior(DartType type,
+      Iterable<ConstantExpression> metadata, TypeLookup lookupType,
+      {bool isJsInterop}) {
+    _behavior = new NativeBehavior();
+    // TODO(sigmund,sra): consider doing something better for numeric types.
+    _behavior.typesReturned.add(!isJsInterop || trustJSInteropTypeAnnotations
+        ? type
+        : commonElements.dynamicType);
+    // Declared types are nullable.
+    _behavior.typesReturned.add(commonElements.nullType);
+    _capture(type, isInterop: isJsInterop);
+    _overrideWithAnnotations(metadata, lookupType);
+    return _behavior;
+  }
+
+  NativeBehavior buildFieldStoreBehavior(DartType type) {
+    _behavior = new NativeBehavior();
+    _escape(type);
+    // We don't override the default behaviour - the annotations apply to
+    // loading the field.
+    return _behavior;
+  }
+
+  NativeBehavior buildMethodBehavior(FunctionType type,
+      List<ConstantExpression> metadata, TypeLookup lookupType,
+      {bool isJsInterop}) {
+    _behavior = new NativeBehavior();
+    DartType returnType = type.returnType;
+    // Note: For dart:html and other internal libraries we maintain, we can
+    // trust the return type and use it to limit what we enqueue. We have to
+    // be more conservative about JS interop types and assume they can return
+    // anything (unless the user provides the experimental flag to trust the
+    // type of js-interop APIs). We do restrict the allocation effects and say
+    // that interop calls create only interop types (which may be unsound if
+    // an interop call returns a DOM type and declares a dynamic return type,
+    // but otherwise we would include a lot of code by default).
+    // TODO(sigmund,sra): consider doing something better for numeric types.
+    _behavior.typesReturned.add(!isJsInterop || trustJSInteropTypeAnnotations
+        ? returnType
+        : commonElements.dynamicType);
+    if (!type.returnType.isVoid) {
+      // Declared types are nullable.
+      _behavior.typesReturned.add(commonElements.nullType);
+    }
+    _capture(type, isInterop: isJsInterop);
+
+    for (DartType type in type.optionalParameterTypes) {
+      _escape(type);
+    }
+    for (DartType type in type.namedParameterTypes) {
+      _escape(type);
+    }
+
+    _overrideWithAnnotations(metadata, lookupType);
+    return _behavior;
+  }
+}
+
+class ResolverBehaviorBuilder extends BehaviorBuilder {
+  final Compiler compiler;
+
+  ResolverBehaviorBuilder(this.compiler);
+
+  @override
+  CommonElements get commonElements => compiler.commonElements;
+
+  @override
+  bool get trustJSInteropTypeAnnotations =>
+      compiler.options.trustJSInteropTypeAnnotations;
+
+  @override
+  ConstantEnvironment get constants => compiler.constants;
+
+  @override
+  DiagnosticReporter get reporter => compiler.reporter;
+
+  @override
+  BackendHelpers get helpers {
+    JavaScriptBackend backend = compiler.backend;
+    return backend.helpers;
+  }
+
+  @override
+  BackendClasses get backendClasses => compiler.backend.backendClasses;
+
+  @override
+  Resolution get resolution => compiler.resolution;
 }
