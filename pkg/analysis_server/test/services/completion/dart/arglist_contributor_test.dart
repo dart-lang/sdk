@@ -256,7 +256,8 @@ class A { const A(int one, int two, int three, {int four, String five:
 
   test_ArgumentList_imported_factory_named_param() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource('/libA.dart', 'library libA; class A{factory A({int one}) => null;}');
+    addSource(
+        '/libA.dart', 'library libA; class A{factory A({int one}) => null;}');
     addTestSource('import "/libA.dart"; main() { new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
@@ -264,7 +265,8 @@ class A { const A(int one, int two, int three, {int four, String five:
 
   test_ArgumentList_imported_factory_named_param2() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource('/libA.dart', 'library libA; abstract class A{factory A.foo({int one});}');
+    addSource('/libA.dart',
+        'library libA; abstract class A{factory A.foo({int one});}');
     addTestSource('import "/libA.dart"; main() { new A.foo(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
@@ -477,6 +479,40 @@ class A { const A(int one, int two, int three, {int four, String five:
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
         namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+  }
+
+  test_ArgumentList_local_constructor_named_fieldFormal_documentation() async {
+    addTestSource('''
+class A {
+  /// aaa
+  ///
+  /// bbb
+  /// ccc
+  int fff;
+A({this.fff}) { } }
+main() {
+  new A(^);
+}
+''');
+    await computeSuggestions();
+    expect(suggestions, hasLength(1));
+    expect(suggestions[0].docSummary, 'aaa');
+    expect(suggestions[0].docComplete, 'aaa\n\nbbb\nccc');
+  }
+
+  test_ArgumentList_local_constructor_named_fieldFormal_noDocumentation() async {
+    addTestSource('''
+class A {
+  int fff;
+A({this.fff}) { } }
+main() {
+  new A(^);
+}
+''');
+    await computeSuggestions();
+    expect(suggestions, hasLength(1));
+    expect(suggestions[0].docSummary, isNull);
+    expect(suggestions[0].docComplete, isNull);
   }
 
   test_ArgumentList_local_constructor_named_param() async {

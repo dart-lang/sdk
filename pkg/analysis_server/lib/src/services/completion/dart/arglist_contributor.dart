@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -143,7 +144,7 @@ bool _isInsertingToArgListWithSynthetic(DartCompletionRequest request) {
       // parameter list, guard first against end of list
       if (node.arguments.length == argIndex + 1 ||
           node.arguments.getRange(argIndex + 1, argIndex + 2).first
-          is NamedExpression) {
+              is NamedExpression) {
         return true;
       }
     }
@@ -226,10 +227,10 @@ class ArgListContributor extends DartCompletionContributor {
       [bool appendComma = false]) {
     bool appendColon = !_isInNamedExpression(request);
     Iterable<String> namedArgs = _namedArgs(request);
-    for (ParameterElement param in parameters) {
-      if (param.parameterKind == ParameterKind.NAMED) {
-        _addNamedParameterSuggestion(request, namedArgs, param.name,
-            param.type?.displayName, appendColon, appendComma);
+    for (ParameterElement parameter in parameters) {
+      if (parameter.parameterKind == ParameterKind.NAMED) {
+        _addNamedParameterSuggestion(
+            request, namedArgs, parameter, appendColon, appendComma);
       }
     }
   }
@@ -237,10 +238,11 @@ class ArgListContributor extends DartCompletionContributor {
   void _addNamedParameterSuggestion(
       DartCompletionRequest request,
       List<String> namedArgs,
-      String name,
-      String paramType,
+      ParameterElement parameter,
       bool appendColon,
       bool appendComma) {
+    String name = parameter.name;
+    String type = parameter.type?.displayName;
     if (name != null && name.length > 0 && !namedArgs.contains(name)) {
       String completion = name;
       if (appendColon) {
@@ -249,7 +251,7 @@ class ArgListContributor extends DartCompletionContributor {
       if (appendComma) {
         completion += ',';
       }
-      suggestions.add(new CompletionSuggestion(
+      CompletionSuggestion suggestion = new CompletionSuggestion(
           CompletionSuggestionKind.NAMED_ARGUMENT,
           DART_RELEVANCE_NAMED_PARAMETER,
           completion,
@@ -258,7 +260,11 @@ class ArgListContributor extends DartCompletionContributor {
           false,
           false,
           parameterName: name,
-          parameterType: paramType));
+          parameterType: type);
+      if (parameter is FieldFormalParameterElement) {
+        _setDocumentation(suggestion, parameter.field.documentationComment);
+      }
+      suggestions.add(suggestion);
     }
   }
 
@@ -282,6 +288,19 @@ class ArgListContributor extends DartCompletionContributor {
       _addDefaultParamSuggestions(parameters, true);
     } else if (_isInsertingToArgListWithSynthetic(request)) {
       _addDefaultParamSuggestions(parameters);
+    }
+  }
+
+  /**
+   * If the given [comment] is not `null`, fill the [suggestion] documentation
+   * fields.
+   */
+  static void _setDocumentation(
+      CompletionSuggestion suggestion, String comment) {
+    if (comment != null) {
+      String doc = removeDartDocDelimiters(comment);
+      suggestion.docComplete = doc;
+      suggestion.docSummary = getDartDocSummary(doc);
     }
   }
 }
