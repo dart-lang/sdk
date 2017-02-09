@@ -2186,7 +2186,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Expression buildCompileTimeError(error, [int charOffset = -1]) {
     String message = new InputError(uri, charOffset, error).format();
     print(message);
-    return new Throw(new StringLiteral(message));
+    // TODO(ahe): Use a method on TargetImplementation for looking up the
+    // constructor.
+    final Constructor constructor = coreTypes.getCoreClass(
+        "dart:core", "_CompileTimeError").constructors.first;
+    return new Throw(new ConstructorInvocation(
+        constructor,
+        new Arguments(<Expression>[new StringLiteral(message)])));
   }
 
   Statement buildCompileTimeErrorStatement(error, [int charOffset = -1]) {
