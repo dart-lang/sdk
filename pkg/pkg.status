@@ -27,7 +27,7 @@ front_end/test/fasta/rasta/*: SkipByDesign
 # way.
 front_end/test/fasta/sdk_test: SkipByDesign
 
-front_end/test/fasta/compile: Pass, Slow
+front_end/test/fasta/compile_test: Pass, Slow
 
 [ $runtime != vm || $mode != release || $system == windows ]
 front_end/test/fasta/*: Skip
