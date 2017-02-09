@@ -1401,10 +1401,7 @@ var B1 = A1;
     // Update "a" so that "A1" is now "double".
     // Get result for "a".
     //
-    // Even though we have not notified the driver about the change,
-    // we still get "double" for "A1", because getResult() re-read the content.
-    //
-    // We also get "double" for "A2", even though "A2" has the type from "b".
+    // We get "double" for "A2", even though "A2" has the type from "b".
     // That's because we check for "a" API signature consistency, and because
     // it has changed, we invalidated the dependency cache, relinked libraries
     // and recomputed types.
@@ -1415,6 +1412,8 @@ import 'b.dart';
 var A1 = 1.2;
 var A2 = B1;
 ''');
+    driver.changeFile(a);
+
     {
       AnalysisResult result = await driver.getResult(a);
       expect(_getTopLevelVarType(result.unit, 'A1'), 'double');

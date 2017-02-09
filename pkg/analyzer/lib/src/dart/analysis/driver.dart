@@ -542,10 +542,10 @@ class AnalysisDriver {
    * If the driver has the cached analysis result for the file, it is returned.
    *
    * Otherwise causes the analysis state to transition to "analyzing" (if it is
-   * not in that state already), the driver will read the file and produce the
-   * analysis result for it, which is consistent with the current file state
-   * (including the new state of the file), prior to the next time the analysis
-   * state transitions to "idle".
+   * not in that state already), the driver will produce the analysis result for
+   * it, which is consistent with the current file state (including new states
+   * of the files previously reported using [changeFile]), prior to the next
+   * time the analysis state transitions to "idle".
    */
   Future<AnalysisResult> getResult(String path) {
     if (!_fileTracker.fsState.hasUri(path)) {
@@ -701,7 +701,7 @@ class AnalysisDriver {
 
     // We need the fully resolved unit, or the result is not cached.
     return _logger.run('Compute analysis result for $path', () {
-      FileState file = _fileTracker.verifyApiSignature(path);
+      FileState file = fsState.getFileForPath(path);
 
       // Prepare the library file - the file itself, or the known library.
       FileState library = getLibraryFile(file);
