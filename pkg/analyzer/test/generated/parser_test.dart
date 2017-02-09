@@ -2997,18 +2997,6 @@ class ParserTestCase extends EngineTestCase implements AbstractParserTestCase {
   Parser parser;
 
   /**
-   * Return a CommentAndMetadata object with the given values that can be used for testing.
-   *
-   * @param comment the comment to be wrapped in the object
-   * @param annotations the annotations to be wrapped in the object
-   * @return a CommentAndMetadata object that can be used for testing
-   */
-  CommentAndMetadata commentAndMetadata(Comment comment,
-      [List<Annotation> annotations]) {
-    return new CommentAndMetadata(comment, annotations);
-  }
-
-  /**
    * Create the [parser] and [listener] used by a test. The [parser] will be
    * prepared to parse the tokens scanned from the given [content].
    */
@@ -9941,16 +9929,12 @@ void''');
   }
 
   void test_parseFunctionDeclaration_function() {
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    TypeName returnType =
-        astFactory.typeName(astFactory.simpleIdentifier(null), null);
-    createParser('f() {}');
-    FunctionDeclaration declaration = parser.parseFunctionDeclaration(
-        commentAndMetadata(comment), null, returnType);
+    createParser('/// Doc\nT f() {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(declaration);
     listener.assertNoErrors();
-    expect(declaration.documentationComment, comment);
-    expect(declaration.returnType, returnType);
+    _expectCommentText(declaration.documentationComment, '/// Doc');
+    expect((declaration.returnType as TypeName).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -9961,16 +9945,12 @@ void''');
   }
 
   void test_parseFunctionDeclaration_functionWithTypeParameters() {
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    TypeName returnType =
-        astFactory.typeName(astFactory.simpleIdentifier(null), null);
-    createParser('f<E>() {}');
-    FunctionDeclaration declaration = parser.parseFunctionDeclaration(
-        commentAndMetadata(comment), null, returnType);
+    createParser('/// Doc\nT f<E>() {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(declaration);
     listener.assertNoErrors();
-    expect(declaration.documentationComment, comment);
-    expect(declaration.returnType, returnType);
+    _expectCommentText(declaration.documentationComment, '/// Doc');
+    expect((declaration.returnType as TypeName).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -9982,16 +9962,12 @@ void''');
 
   void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
     enableGenericMethodComments = true;
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    TypeName returnType =
-        astFactory.typeName(astFactory.simpleIdentifier(null), null);
-    createParser('f/*<E>*/() {}');
-    FunctionDeclaration declaration = parser.parseFunctionDeclaration(
-        commentAndMetadata(comment), null, returnType);
+    createParser('/// Doc\nT f/*<E>*/() {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(declaration);
     listener.assertNoErrors();
-    expect(declaration.documentationComment, comment);
-    expect(declaration.returnType, returnType);
+    _expectCommentText(declaration.documentationComment, '/// Doc');
+    expect((declaration.returnType as TypeName).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -10002,16 +9978,12 @@ void''');
   }
 
   void test_parseFunctionDeclaration_getter() {
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    TypeName returnType =
-        astFactory.typeName(astFactory.simpleIdentifier(null), null);
-    createParser('get p => 0;');
-    FunctionDeclaration declaration = parser.parseFunctionDeclaration(
-        commentAndMetadata(comment), null, returnType);
+    createParser('/// Doc\nT get p => 0;');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(declaration);
     listener.assertNoErrors();
-    expect(declaration.documentationComment, comment);
-    expect(declaration.returnType, returnType);
+    _expectCommentText(declaration.documentationComment, '/// Doc');
+    expect((declaration.returnType as TypeName).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -10022,16 +9994,12 @@ void''');
   }
 
   void test_parseFunctionDeclaration_setter() {
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    TypeName returnType =
-        astFactory.typeName(astFactory.simpleIdentifier(null), null);
-    createParser('set p(v) {}');
-    FunctionDeclaration declaration = parser.parseFunctionDeclaration(
-        commentAndMetadata(comment), null, returnType);
+    createParser('/// Doc\nT set p(v) {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(declaration);
     listener.assertNoErrors();
-    expect(declaration.documentationComment, comment);
-    expect(declaration.returnType, returnType);
+    _expectCommentText(declaration.documentationComment, '/// Doc');
+    expect((declaration.returnType as TypeName).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -10152,45 +10120,36 @@ void''');
   }
 
   void test_parseGetter_nonStatic() {
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    TypeName returnType =
-        astFactory.typeName(astFactory.simpleIdentifier(null), null);
-    createParser('get a;');
-    MethodDeclaration method =
-        parser.parseGetter(commentAndMetadata(comment), null, null, returnType);
+    createParser('/// Doc\nT get a;');
+    MethodDeclaration method = parser.parseClassMember('C');
     expectNotNullIfNoErrors(method);
     listener.assertNoErrors();
     expect(method.body, isNotNull);
-    expect(method.documentationComment, comment);
+    _expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.parameters, isNull);
     expect(method.propertyKeyword, isNotNull);
-    expect(method.returnType, returnType);
+    expect((method.returnType as TypeName).name.name, 'T');
   }
 
   void test_parseGetter_static() {
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
-    TypeName returnType =
-        astFactory.typeName(astFactory.simpleIdentifier(null), null);
-    createParser('get a => 42;');
-    MethodDeclaration method = parser.parseGetter(
-        commentAndMetadata(comment), null, staticKeyword, returnType);
+    createParser('/// Doc\nstatic T get a => 42;');
+    MethodDeclaration method = parser.parseClassMember('C');
     expectNotNullIfNoErrors(method);
     listener.assertNoErrors();
     expect(method.body, isNotNull);
-    expect(method.documentationComment, comment);
+    _expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, staticKeyword);
+    expect(method.modifierKeyword.lexeme, 'static');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNull);
     expect(method.propertyKeyword, isNotNull);
-    expect(method.returnType, returnType);
+    expect((method.returnType as TypeName).name.name, 'T');
   }
 
   void test_parseIdentifierList_multiple() {
@@ -10415,41 +10374,32 @@ void''');
   }
 
   void test_parseInitializedIdentifierList_type() {
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
-    TypeName type =
-        astFactory.typeName(astFactory.simpleIdentifier(null), null);
-    createParser("a = 1, b, c = 3;");
-    FieldDeclaration declaration = parser.parseInitializedIdentifierList(
-        commentAndMetadata(comment), staticKeyword, null, null, type);
+    createParser("/// Doc\nstatic T a = 1, b, c = 3;");
+    FieldDeclaration declaration = parser.parseClassMember('C');
     expectNotNullIfNoErrors(declaration);
     listener.assertNoErrors();
-    expect(declaration.documentationComment, comment);
+    _expectCommentText(declaration.documentationComment, '/// Doc');
     VariableDeclarationList fields = declaration.fields;
     expect(fields, isNotNull);
     expect(fields.keyword, isNull);
-    expect(fields.type, type);
+    expect((fields.type as TypeName).name.name, 'T');
     expect(fields.variables, hasLength(3));
-    expect(declaration.staticKeyword, staticKeyword);
+    expect(declaration.staticKeyword.lexeme, 'static');
     expect(declaration.semicolon, isNotNull);
   }
 
   void test_parseInitializedIdentifierList_var() {
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
-    Token varKeyword = TokenFactory.tokenFromKeyword(Keyword.VAR);
-    createParser('a = 1, b, c = 3;');
-    FieldDeclaration declaration = parser.parseInitializedIdentifierList(
-        commentAndMetadata(comment), staticKeyword, null, varKeyword, null);
+    createParser('/// Doc\nstatic var a = 1, b, c = 3;');
+    FieldDeclaration declaration = parser.parseClassMember('C');
     expectNotNullIfNoErrors(declaration);
     listener.assertNoErrors();
-    expect(declaration.documentationComment, comment);
+    _expectCommentText(declaration.documentationComment, '/// Doc');
     VariableDeclarationList fields = declaration.fields;
     expect(fields, isNotNull);
-    expect(fields.keyword, varKeyword);
+    expect(fields.keyword.lexeme, 'var');
     expect(fields.type, isNull);
     expect(fields.variables, hasLength(3));
-    expect(declaration.staticKeyword, staticKeyword);
+    expect(declaration.staticKeyword.lexeme, 'static');
     expect(declaration.semicolon, isNotNull);
   }
 
@@ -11660,16 +11610,12 @@ void''');
   }
 
   void test_parseOperator() {
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    TypeName returnType =
-        astFactory.typeName(astFactory.simpleIdentifier(null), null);
-    createParser('operator +(A a);');
-    MethodDeclaration method =
-        parser.parseOperator(commentAndMetadata(comment), null, returnType);
+    createParser('/// Doc\nT operator +(A a);');
+    MethodDeclaration method = parser.parseClassMember('C');
     expectNotNullIfNoErrors(method);
     listener.assertNoErrors();
     expect(method.body, isNotNull);
-    expect(method.documentationComment, comment);
+    _expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.name, isNotNull);
@@ -11677,7 +11623,7 @@ void''');
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNull);
-    expect(method.returnType, returnType);
+    expect((method.returnType as TypeName).name.name, 'T');
   }
 
   void test_parseOptionalReturnType() {
@@ -12377,16 +12323,12 @@ void''');
   }
 
   void test_parseSetter_nonStatic() {
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    TypeName returnType =
-        astFactory.typeName(astFactory.simpleIdentifier(null), null);
-    createParser('set a(var x);');
-    MethodDeclaration method =
-        parser.parseSetter(commentAndMetadata(comment), null, null, returnType);
+    createParser('/// Doc\nT set a(var x);');
+    MethodDeclaration method = parser.parseClassMember('C');
     expectNotNullIfNoErrors(method);
     listener.assertNoErrors();
     expect(method.body, isNotNull);
-    expect(method.documentationComment, comment);
+    _expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.name, isNotNull);
@@ -12394,29 +12336,24 @@ void''');
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNotNull);
-    expect(method.returnType, returnType);
+    expect((method.returnType as TypeName).name.name, 'T');
   }
 
   void test_parseSetter_static() {
-    Comment comment = astFactory.documentationComment(new List<Token>(0));
-    Token staticKeyword = TokenFactory.tokenFromKeyword(Keyword.STATIC);
-    TypeName returnType =
-        astFactory.typeName(astFactory.simpleIdentifier(null), null);
-    createParser('set a(var x) {}');
-    MethodDeclaration method = parser.parseSetter(
-        commentAndMetadata(comment), null, staticKeyword, returnType);
+    createParser('/// Doc\nstatic T set a(var x) {}');
+    MethodDeclaration method = parser.parseClassMember('C');
     expectNotNullIfNoErrors(method);
     listener.assertNoErrors();
     expect(method.body, isNotNull);
-    expect(method.documentationComment, comment);
+    _expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, staticKeyword);
+    expect(method.modifierKeyword.lexeme, 'static');
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNotNull);
-    expect(method.returnType, returnType);
+    expect((method.returnType as TypeName).name.name, 'T');
   }
 
   void test_parseShiftExpression_normal() {
@@ -14424,6 +14361,11 @@ void''');
     String value = parser.computeStringValue(lexeme, first, last);
     listener.assertNoErrors();
     return value;
+  }
+
+  void _expectCommentText(Comment comment, String expectedText) {
+    expect(comment.beginToken, same(comment.endToken));
+    expect(comment.beginToken.lexeme, expectedText);
   }
 
   void _expectDottedName(DottedName name, List<String> expectedComponents) {
