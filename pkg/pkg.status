@@ -69,6 +69,11 @@ front_end/test/fasta/compile_test: Skip # Issue 28629
 front_end/test/fasta/kompile_test: Skip # Issue 28629
 front_end/test/fasta/outline_test: Skip # Issue 28629
 
+[ $runtime == vm && $use_sdk == false ]
+front_end/test/incremental_kernel_generator_test: Skip # Issue 28698
+front_end/test/incremental_resolved_ast_generator_test: Skip # Issue 28698
+front_end/tool/perf_test: Skip # Issue 28698
+
 [ $runtime == vm && $system == windows]
 analysis_server/*: Skip # Issue 27557
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
