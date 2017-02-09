@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.utilities.change_builder_dart;
+import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart' hide ElementKind;
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
@@ -14,7 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -24,18 +24,20 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 class DartChangeBuilderImpl extends ChangeBuilderImpl
     implements DartChangeBuilder {
   /**
-   * The analysis context in which the files being edited were analyzed.
+   * The analysis driver in which the files being edited were analyzed.
    */
-  final AnalysisContext context;
+  final AnalysisDriver driver;
 
   /**
    * Initialize a newly created change builder.
    */
-  DartChangeBuilderImpl(this.context);
+  DartChangeBuilderImpl(this.driver);
 
   @override
-  DartFileEditBuilderImpl createFileEditBuilder(Source source, int fileStamp) {
-    return new DartFileEditBuilderImpl(this, source, fileStamp);
+  Future<DartFileEditBuilderImpl> createFileEditBuilder(
+      String path, int fileStamp) async {
+    AnalysisResult result = await driver.getResult(path);
+    return new DartFileEditBuilderImpl(this, path, fileStamp, result.unit);
   }
 }
 
@@ -466,17 +468,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /**
    * Initialize a newly created builder to build a source file edit within the
    * change being built by the given [changeBuilder]. The file being edited has
-   * the given [source] and [timeStamp].
+   * the given [source] and [timeStamp], and the given fully resolved [unit].
    */
-  DartFileEditBuilderImpl(
-      DartChangeBuilderImpl changeBuilder, Source source, int timeStamp)
-      : super(changeBuilder, source, timeStamp) {
-    AnalysisContext context = changeBuilder.context;
-    List<Source> librariesContaining = context.getLibrariesContaining(source);
-    if (librariesContaining.length < 1) {
-      throw new StateError('Cannot build edits for ${source.fullName}');
-    }
-    unit = context.resolveCompilationUnit2(source, librariesContaining[0]);
+  DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder, String path,
+      int timeStamp, this.unit)
+      : super(changeBuilder, path, timeStamp) {
     utils = new CorrectionUtils(unit);
   }
 
