@@ -10,6 +10,17 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:path/path.dart';
 
 /**
+ * The request that is sent from the main isolate to the clean-up isolate.
+ */
+class CacheCleanUpRequest {
+  final String cachePath;
+  final int maxSizeBytes;
+  final SendPort replyTo;
+
+  CacheCleanUpRequest(this.cachePath, this.maxSizeBytes, this.replyTo);
+}
+
+/**
  * [ByteStore] that stores values as files and performs cache eviction.
  *
  * Only the process that manages the cache, e.g. Analysis Server, should use
@@ -66,7 +77,7 @@ class EvictingFileByteStore implements ByteStore {
       _evictionIsolateIsRunning = true;
       try {
         ReceivePort response = new ReceivePort();
-        _cleanUpSendPort.send(new _CacheCleanUpRequest(
+        _cleanUpSendPort.send(new CacheCleanUpRequest(
             _cachePath, _maxSizeBytes, response.sendPort));
         await response.first;
       } finally {
@@ -84,7 +95,7 @@ class EvictingFileByteStore implements ByteStore {
     ReceivePort port = new ReceivePort();
     initialReplyTo.send(port.sendPort);
     port.listen((request) async {
-      if (request is _CacheCleanUpRequest) {
+      if (request is CacheCleanUpRequest) {
         await _cleanUpFolder(request.cachePath, request.maxSizeBytes);
         // Let the client know that we're done.
         request.replyTo.send(true);
@@ -157,15 +168,4 @@ class FileByteStore implements ByteStore {
   File _getFileForKey(String key) {
     return new File(join(_cachePath, key));
   }
-}
-
-/**
- * The request that is sent from the main isolate to the clean-up isolate.
- */
-class _CacheCleanUpRequest {
-  final String cachePath;
-  final int maxSizeBytes;
-  final SendPort replyTo;
-
-  _CacheCleanUpRequest(this.cachePath, this.maxSizeBytes, this.replyTo);
 }
