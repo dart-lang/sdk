@@ -2279,6 +2279,20 @@ void Intrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler) {
   __ ret();
 }
 
+
+void Intrinsifier::ClearAsyncThreadStackTrace(Assembler* assembler) {
+  __ LoadObject(RAX, Object::null_object());
+  __ movq(Address(THR, Thread::async_stack_trace_offset()), RAX);
+  __ ret();
+}
+
+
+void Intrinsifier::SetAsyncThreadStackTrace(Assembler* assembler) {
+  __ movq(Address(THR, Thread::async_stack_trace_offset()), RAX);
+  __ LoadObject(RAX, Object::null_object());
+  __ ret();
+}
+
 #undef __
 
 }  // namespace dart

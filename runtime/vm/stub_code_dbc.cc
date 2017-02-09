@@ -95,6 +95,11 @@ void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
+  __ Trap();
+}
+
+
 // Print the stop message.
 DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
   OS::Print("Stop message: %s\n", message);

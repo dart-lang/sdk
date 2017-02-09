@@ -9,6 +9,7 @@
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
+#include "vm/resolver.h"
 #include "vm/symbols.h"
 #include "vm/visitor.h"
 
@@ -93,6 +94,8 @@ ObjectStore::ObjectStore()
       simple_instance_of_function_(Function::null()),
       simple_instance_of_true_function_(Function::null()),
       simple_instance_of_false_function_(Function::null()),
+      async_clear_thread_stack_trace_(Function::null()),
+      async_set_thread_stack_trace_(Function::null()),
       library_load_error_table_(Array::null()),
       unique_dynamic_targets_(Array::null()),
       token_objects_(GrowableObjectArray::null()),
@@ -236,6 +239,21 @@ void ObjectStore::InitKnownObjects() {
   cls = async_lib.LookupClass(Symbols::StreamIterator());
   ASSERT(!cls.IsNull());
   set_stream_iterator_class(cls);
+
+  String& function_name = String::Handle(zone);
+  Function& function = Function::Handle(zone);
+  function_name ^= async_lib.PrivateName(Symbols::SetAsyncThreadStackTrace());
+  ASSERT(!function_name.IsNull());
+  function ^= Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                      function_name, 1, Object::null_array());
+  set_async_set_thread_stack_trace(function);
+
+  function_name ^= async_lib.PrivateName(Symbols::ClearAsyncThreadStackTrace());
+  ASSERT(!function_name.IsNull());
+  function ^= Resolver::ResolveStatic(async_lib, Object::null_string(),
+                                      function_name, 0, Object::null_array());
+  ASSERT(!function.IsNull());
+  set_async_clear_thread_stack_trace(function);
 
   const Library& internal_lib = Library::Handle(_internal_library());
   cls = internal_lib.LookupClass(Symbols::Symbol());

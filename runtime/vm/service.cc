@@ -1340,6 +1340,8 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   }
   ASSERT(isolate->compilation_allowed());
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+  DebuggerStackTrace* async_causal_stack =
+      isolate->debugger()->AsyncCausalStackTrace();
   // Do we want the complete script object and complete local variable objects?
   // This is true for dump requests.
   const bool full = BoolParameter::Parse(js->LookupParam("_full"), false);
@@ -1351,6 +1353,17 @@ static bool GetStack(Thread* thread, JSONStream* js) {
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
+      JSONObject jsobj(&jsarr);
+      frame->PrintToJSONObject(&jsobj, full);
+      jsobj.AddProperty("index", i);
+    }
+  }
+
+  if (async_causal_stack != NULL) {
+    JSONArray jsarr(&jsobj, "asyncCausalFrames");
+    intptr_t num_frames = async_causal_stack->Length();
+    for (intptr_t i = 0; i < num_frames; i++) {
+      ActivationFrame* frame = async_causal_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
       frame->PrintToJSONObject(&jsobj, full);
       jsobj.AddProperty("index", i);

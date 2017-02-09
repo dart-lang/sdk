@@ -3571,10 +3571,16 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     ASSERT(!func.is_generated_body());
     // The code of an async function is synthesized. Disable debugging.
     func.set_is_debuggable(false);
+    // In order to collect causal asynchronous stacks efficiently we rely on
+    // this function not being inlined.
+    func.set_is_inlinable(!FLAG_causal_async_stacks);
     generated_body_closure = OpenAsyncFunction(func.token_pos());
   } else if (func.IsAsyncClosure()) {
     // The closure containing the body of an async function is debuggable.
     ASSERT(func.is_debuggable());
+    // In order to collect causal asynchronous stacks efficiently we rely on
+    // this function not being inlined.
+    func.set_is_inlinable(!FLAG_causal_async_stacks);
     OpenAsyncClosure();
   } else if (func.IsSyncGenerator()) {
     // The code of a sync generator is synthesized. Disable debugging.
@@ -3586,10 +3592,16 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     async_temp_scope_ = current_block_->scope;
   } else if (func.IsAsyncGenerator()) {
     func.set_is_debuggable(false);
+    // In order to collect causal asynchronous stacks efficiently we rely on
+    // this function not being inlined.
+    func.set_is_inlinable(!FLAG_causal_async_stacks);
     generated_body_closure = OpenAsyncGeneratorFunction(func.token_pos());
   } else if (func.IsAsyncGenClosure()) {
     // The closure containing the body of an async* function is debuggable.
     ASSERT(func.is_debuggable());
+    // In order to collect causal asynchronous stacks efficiently we rely on
+    // this function not being inlined.
+    func.set_is_inlinable(!FLAG_causal_async_stacks);
     OpenAsyncGeneratorClosure();
   }
 
@@ -7037,6 +7049,7 @@ void Parser::AddAsyncClosureVariables() {
   //   var :async_then_callback;
   //   var :async_catch_error_callback;
   //   var :async_completer;
+  //   var :async_stack_trace;
   LocalVariable* async_op_var =
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                             Symbols::AsyncOperation(), Object::dynamic_type());
@@ -7053,6 +7066,10 @@ void Parser::AddAsyncClosureVariables() {
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                             Symbols::AsyncCompleter(), Object::dynamic_type());
   current_block_->scope->AddVariable(async_completer);
+  LocalVariable* async_stack_trace = new (Z)
+      LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                    Symbols::AsyncStackTraceVar(), Object::dynamic_type());
+  current_block_->scope->AddVariable(async_stack_trace);
 }
 
 
@@ -7065,6 +7082,7 @@ void Parser::AddAsyncGeneratorVariables() {
   //   var :async_op;
   //   var :async_then_callback;
   //   var :async_catch_error_callback;
+  //   var :async_stack_trace;
   // These variables are used to store the async generator closure containing
   // the body of the async* function. They are used by the await operator.
   LocalVariable* controller_var =
@@ -7083,6 +7101,10 @@ void Parser::AddAsyncGeneratorVariables() {
       LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                     Symbols::AsyncCatchErrorCallback(), Object::dynamic_type());
   current_block_->scope->AddVariable(async_catch_error_callback_var);
+  LocalVariable* async_stack_trace = new (Z)
+      LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                    Symbols::AsyncStackTraceVar(), Object::dynamic_type());
+  current_block_->scope->AddVariable(async_stack_trace);
 }
 
 
@@ -7180,6 +7202,9 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
   existing_var = closure_body->scope()->LookupVariable(
       Symbols::AsyncCatchErrorCallback(), false);
   ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var = closure_body->scope()->LookupVariable(
+      Symbols::AsyncStackTraceVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
 
   const Library& async_lib = Library::Handle(Library::AsyncLibrary());
 
@@ -7198,6 +7223,28 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
       LiteralNode(TokenPosition::kNoSource, Smi::ZoneHandle(Smi::New(-1)));
   current_block_->statements->Add(
       new (Z) StoreLocalNode(TokenPosition::kNoSource, jump_var, init_value));
+
+  TokenPosition token_pos = TokenPosition::kNoSource;
+
+  if (FLAG_causal_async_stacks) {
+    // Add to AST:
+    //   :async_stack_trace = _asyncStackTraceHelper();
+    const Function& async_stack_trace_helper = Function::ZoneHandle(
+        Z,
+        async_lib.LookupFunctionAllowPrivate(Symbols::AsyncStackTraceHelper()));
+    ASSERT(!async_stack_trace_helper.IsNull());
+    ArgumentListNode* async_stack_trace_helper_args =
+        new (Z) ArgumentListNode(TokenPosition::kNoSource);
+    StaticCallNode* async_stack_trace_helper_call = new (Z) StaticCallNode(
+        token_pos, async_stack_trace_helper, async_stack_trace_helper_args);
+    LocalVariable* async_stack_trace_var =
+        current_block_->scope->LookupVariable(Symbols::AsyncStackTraceVar(),
+                                              false);
+    StoreLocalNode* store_async_stack_trace = new (Z) StoreLocalNode(
+        token_pos, async_stack_trace_var, async_stack_trace_helper_call);
+    current_block_->statements->Add(store_async_stack_trace);
+  }
+
 
   // Add to AST:
   //   :async_op = <closure>;  (containing the original body)
@@ -7342,6 +7389,9 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   existing_var =
       closure_body->scope()->LookupVariable(Symbols::AsyncCompleter(), false);
   ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var = closure_body->scope()->LookupVariable(
+      Symbols::AsyncStackTraceVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
 
   // Create and return a new future that executes a closure with the current
   // body.
@@ -7394,6 +7444,26 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   current_block_->statements->Add(store_async_op);
 
   const Library& async_lib = Library::Handle(Library::AsyncLibrary());
+
+  if (FLAG_causal_async_stacks) {
+    // Add to AST:
+    //   :async_stack_trace = _asyncStackTraceHelper();
+    const Function& async_stack_trace_helper = Function::ZoneHandle(
+        Z,
+        async_lib.LookupFunctionAllowPrivate(Symbols::AsyncStackTraceHelper()));
+    ASSERT(!async_stack_trace_helper.IsNull());
+    ArgumentListNode* async_stack_trace_helper_args =
+        new (Z) ArgumentListNode(token_pos);
+    StaticCallNode* async_stack_trace_helper_call = new (Z) StaticCallNode(
+        token_pos, async_stack_trace_helper, async_stack_trace_helper_args);
+    LocalVariable* async_stack_trace_var =
+        current_block_->scope->LookupVariable(Symbols::AsyncStackTraceVar(),
+                                              false);
+    StoreLocalNode* store_async_stack_trace = new (Z) StoreLocalNode(
+        token_pos, async_stack_trace_var, async_stack_trace_helper_call);
+    current_block_->statements->Add(store_async_stack_trace);
+  }
+
   // :async_then_callback = _asyncThenWrapperHelper(:async_op)
   const Function& async_then_wrapper_helper = Function::ZoneHandle(
       Z,

@@ -4405,11 +4405,13 @@ class ServiceMetric extends ServiceObject implements M.Metric {
 }
 
 class Frame extends ServiceObject implements M.Frame {
+  M.FrameKind kind = M.FrameKind.regular;
   int index;
   ServiceFunction function;
   SourceLocation location;
   Code code;
   List<ServiceMap> variables = <ServiceMap>[];
+  String marker;
 
   Frame._empty(ServiceObject owner) : super._empty(owner);
 
@@ -4417,14 +4419,37 @@ class Frame extends ServiceObject implements M.Frame {
     assert(!mapIsRef);
     _loaded = true;
     _upgradeCollection(map, owner);
+    this.kind = _fromString(map['kind']);
+    this.marker = map['marker'];
     this.index = map['index'];
     this.function = map['function'];
     this.location = map['location'];
     this.code = map['code'];
-    this.variables = map['vars'];
+    this.variables = map['vars'] ?? [];
   }
 
-  String toString() => "Frame(${function.qualifiedName} $location)";
+  M.FrameKind _fromString(String frameKind) {
+    if (frameKind == null) {
+      return M.FrameKind.regular;
+    }
+    switch (frameKind) {
+      case 'kRegular': return M.FrameKind.regular;
+      case 'kAsyncCausal': return M.FrameKind.asyncCausal;
+      case 'kAsyncSuspensionMarker': return M.FrameKind.asyncSuspensionMarker;
+      default:
+        throw new UnsupportedError('Unknown FrameKind: $frameKind');
+    }
+  }
+
+  String toString() {
+    if (function != null) {
+      return "Frame([$kind] ${function.qualifiedName} $location)";
+    } else if (location != null) {
+      return "Frame([$kind] $location)";
+    } else {
+      return "Frame([$kind])";
+    }
+  }
 }
 
 class ServiceMessage extends ServiceObject {

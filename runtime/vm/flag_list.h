@@ -132,6 +132,7 @@
   R(profiler, false, bool, !USING_DBC && !USING_FUCHSIA,                       \
     "Enable the profiler.")                                                    \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
+  R(causal_async_stacks, false, bool, true, "Improved async stacks")           \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
   C(support_debugger, false, false, bool, true, "Support the debugger.")       \

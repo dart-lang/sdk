@@ -5114,6 +5114,11 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
     if (Symbols::DartIsVM().Equals(name)) {
       return Symbols::True().raw();
     }
+    if (FLAG_causal_async_stacks) {
+      if (Symbols::DartDeveloperCausalAsyncStacks().Equals(name)) {
+        return Symbols::True().raw();
+      }
+    }
   }
   return result.raw();
 }

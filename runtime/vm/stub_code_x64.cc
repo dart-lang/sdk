@@ -2268,6 +2268,11 @@ void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
   __ int3();
 }
 
+
+void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
+  __ int3();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

@@ -6,6 +6,8 @@
 
 #include "platform/address_sanitizer.h"
 
+#include "lib/stacktrace.h"
+
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -18,6 +20,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+
 
 namespace dart {
 
@@ -369,18 +372,7 @@ static RawField* LookupStackTraceField(const Instance& instance) {
 
 
 RawStackTrace* Exceptions::CurrentStackTrace() {
-  Zone* zone = Thread::Current()->zone();
-  RegularStackTraceBuilder frame_builder(zone);
-  BuildStackTrace(&frame_builder);
-
-  // Create arrays for code and pc_offset tuples of each frame.
-  const Array& full_code_array =
-      Array::Handle(zone, Array::MakeArray(frame_builder.code_list()));
-  const Array& full_pc_offset_array =
-      Array::Handle(zone, Array::MakeArray(frame_builder.pc_offset_list()));
-  const StackTrace& full_stacktrace = StackTrace::Handle(
-      StackTrace::New(full_code_array, full_pc_offset_array));
-  return full_stacktrace.raw();
+  return GetStackTraceForException();
 }
 
 

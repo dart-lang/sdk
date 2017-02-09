@@ -190,3 +190,14 @@ class _AsyncStarStreamController {
 }
 
 @patch void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
+
+
+/// Returns a [StackTrace] object containing the synchronous prefix for this
+/// asynchronous method.
+Object _asyncStackTraceHelper() native "StackTrace_asyncStackTraceHelper";
+
+void _clearAsyncThreadStackTrace()
+    native "StackTrace_clearAsyncThreadStackTrace";
+
+void _setAsyncThreadStackTrace(StackTrace stackTrace) native
+    "StackTrace_setAsyncThreadStackTrace";

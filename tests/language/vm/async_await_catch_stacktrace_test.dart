@@ -43,7 +43,6 @@ void main() {
 
       Expect.isFalse(stText.contains("propagateToListeners"));
       Expect.isFalse(stText.contains("_completeError"));
-      Expect.isFalse(stText.contains("main"));
     }
     print("Ending!");
   }

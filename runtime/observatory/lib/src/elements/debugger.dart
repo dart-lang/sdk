@@ -604,6 +604,11 @@ class SetCommand extends DebuggerCommand {
       _setUpIsDown,
       (debugger, _) => debugger.upIsDown
     ],
+    'causal-async-stacks': [
+      _boolValues,
+      _setSaneAsyncStacks,
+      (debugger, _) => debugger.saneAsyncStacks
+    ],
   };
 
   static Future _setBreakOnException(debugger, name, value) async {
@@ -622,6 +627,16 @@ class SetCommand extends DebuggerCommand {
     } else {
       debugger.upIsDown = false;
     }
+    debugger.console.print('${name} = ${value}');
+  }
+
+  static Future _setSaneAsyncStacks(debugger, name, value) async {
+    if (value == 'true') {
+      debugger.saneAsyncStacks = true;
+    } else {
+      debugger.saneAsyncStacks = false;
+    }
+    debugger.refreshStack();
     debugger.console.print('${name} = ${value}');
   }
 
@@ -1381,6 +1396,17 @@ class ObservatoryDebugger extends Debugger {
 
   bool _upIsDown;
 
+  bool get saneAsyncStacks => _saneAsyncStacks;
+  void set saneAsyncStacks(bool value) {
+    settings.set('causal-async-stacks', value);
+    _saneAsyncStacks = value;
+  }
+
+  bool _saneAsyncStacks;
+
+  static const String kAsyncCausalStackFrames = 'asyncCausalFrames';
+  static const String kStackFrames = 'frames';
+
   void upFrame(int count) {
     if (_upIsDown) {
       currentFrame += count;
@@ -1397,7 +1423,33 @@ class ObservatoryDebugger extends Debugger {
     }
   }
 
-  int get stackDepth => stack['frames'].length;
+  int get stackDepth {
+    if (saneAsyncStacks) {
+      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
+      var stackFrames = stack[kStackFrames];
+      if (asyncCausalStackFrames == null) {
+        // No causal frames.
+        return stackFrames.length;
+      }
+      return asyncCausalStackFrames.length;
+    } else {
+      return stack[kStackFrames].length;
+    }
+  }
+
+  List get stackFrames {
+    if (saneAsyncStacks) {
+      var asyncCausalStackFrames = stack[kAsyncCausalStackFrames];
+      var stackFrames = stack[kStackFrames];
+      if (asyncCausalStackFrames == null) {
+        // No causal frames.
+        return stackFrames ?? [];
+      }
+      return asyncCausalStackFrames;
+    } else {
+      return stack[kStackFrames] ?? [];
+    }
+  }
 
   static final _history = [''];
 
@@ -1434,6 +1486,7 @@ class ObservatoryDebugger extends Debugger {
 
   void _loadSettings() {
     _upIsDown = settings.get('up-is-down');
+    _saneAsyncStacks = settings.get('causal-async-stacks') ?? true;
   }
 
   S.VM get vm => page.app.vm;
@@ -2257,7 +2310,13 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 
   void updateStackFrames(S.ServiceMap newStack) {
     List frameElements = _frameList.children;
-    List newFrames = newStack['frames'];
+    List newFrames;
+    if (_debugger.saneAsyncStacks &&
+        (newStack[ObservatoryDebugger.kAsyncCausalStackFrames] != null)) {
+      newFrames = newStack[ObservatoryDebugger.kAsyncCausalStackFrames];
+    } else {
+      newFrames = newStack[ObservatoryDebugger.kStackFrames];
+    }
 
     // Remove any frames whose functions don't match, starting from
     // bottom of stack.
@@ -2385,7 +2444,11 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   bool _expanded = false;
 
   void setCurrent(bool value) {
-    _frame.function.load().then((func) {
+    Future load =
+        (_frame.function != null) ?
+        _frame.function.load() :
+        new Future.value(null);
+    load.then((func) {
       _current = value;
       if (_current) {
         _expand();
@@ -2437,6 +2500,18 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
       classes.add('current');
     } else {
       classes.remove('current');
+    }
+    if ((_frame.kind == M.FrameKind.asyncSuspensionMarker) ||
+        (_frame.kind == M.FrameKind.asyncCausal)) {
+      classes.add('causalFrame');
+    }
+    if (_frame.kind == M.FrameKind.asyncSuspensionMarker) {
+      final content = <Element>[
+        new SpanElement()
+          ..children = _createMarkerHeader(_frame.marker)
+      ];
+      children = content;
+      return;
     }
     ButtonElement expandButton;
     final content = <Element>[
@@ -2540,6 +2615,24 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
     children = content;
   }
 
+  List<Element> _createMarkerHeader(String marker) {
+    final content = [
+      new DivElement()
+        ..classes = ['frameSummaryText']
+        ..children = [
+          new DivElement()
+            ..classes = ['frameId']
+            ..text = 'Frame ${_frame.index}',
+          new SpanElement()..text = '$marker',
+        ]
+    ];
+    return [
+      new DivElement()
+        ..classes = ['frameSummary']
+        ..children = content
+      ];
+  }
+
   List<Element> _createHeader() {
     final content = [
       new DivElement()
@@ -2584,6 +2677,12 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   }
 
   bool matchFrame(S.Frame newFrame) {
+    if (newFrame.kind != _frame.kind) {
+      return false;
+    }
+    if (newFrame.function == null) {
+      return frame.function == null;
+    }
     return (newFrame.function.id == _frame.function.id &&
             newFrame.location.script.id ==
             frame.location.script.id);

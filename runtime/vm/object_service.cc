@@ -1469,7 +1469,7 @@ void StackTrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("kind", "StackTrace");
   jsobj.AddServiceId(*this);
   intptr_t idx = 0;
-  jsobj.AddProperty("valueAsString", ToCStringInternal(&idx));
+  jsobj.AddProperty("valueAsString", ToCStringInternal(*this, &idx));
 }
 
 

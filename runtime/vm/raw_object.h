@@ -2141,8 +2141,9 @@ class RawStackTrace : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(StackTrace);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->code_array_);
+    return reinterpret_cast<RawObject**>(&ptr()->async_link_);
   }
+  RawStackTrace* async_link_;  // Link to parent async stack trace.
   RawArray* code_array_;       // Code object for each frame in the stack trace.
   RawArray* pc_offset_array_;  // Offset of PC for each frame.
   RawObject** to() {

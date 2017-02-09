@@ -438,6 +438,20 @@ class ObjectStore {
   RawFunction* simple_instance_of_false_function() const {
     return simple_instance_of_false_function_;
   }
+  RawFunction* async_clear_thread_stack_trace() const {
+    return async_clear_thread_stack_trace_;
+  }
+  void set_async_clear_thread_stack_trace(const Function& func) {
+    async_clear_thread_stack_trace_ = func.raw();
+    ASSERT(async_clear_thread_stack_trace_ != Object::null());
+  }
+  RawFunction* async_set_thread_stack_trace() const {
+    return async_set_thread_stack_trace_;
+  }
+  void set_async_set_thread_stack_trace(const Function& func) {
+    async_set_thread_stack_trace_ = func.raw();
+    ASSERT(async_set_thread_stack_trace_ != Object::null());
+  }
 
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -540,6 +554,8 @@ class ObjectStore {
   V(RawFunction*, simple_instance_of_function_)                                \
   V(RawFunction*, simple_instance_of_true_function_)                           \
   V(RawFunction*, simple_instance_of_false_function_)                          \
+  V(RawFunction*, async_clear_thread_stack_trace_)                             \
+  V(RawFunction*, async_set_thread_stack_trace_)                               \
   V(RawArray*, library_load_error_table_)                                      \
   V(RawArray*, unique_dynamic_targets_)                                        \
   V(RawGrowableObjectArray*, token_objects_)                                   \

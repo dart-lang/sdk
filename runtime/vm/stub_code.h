@@ -67,7 +67,8 @@ class SnapshotWriter;
   V(Subtype2TestCache)                                                         \
   V(Subtype3TestCache)                                                         \
   V(CallClosureNoSuchMethod)                                                   \
-  V(FrameAwaitingMaterialization)
+  V(FrameAwaitingMaterialization)                                              \
+  V(AsynchronousGapMarker)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \
@@ -79,7 +80,8 @@ class SnapshotWriter;
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \
   V(DeoptimizeLazyFromThrow)                                                   \
-  V(FrameAwaitingMaterialization)
+  V(FrameAwaitingMaterialization)                                              \
+  V(AsynchronousGapMarker)
 
 #endif  // !defined(TARGET_ARCH_DBC)
 

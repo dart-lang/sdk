@@ -8388,14 +8388,19 @@ class StackTrace : public Instance {
 
   intptr_t Length() const;
 
-  RawFunction* FunctionAtFrame(intptr_t frame_index) const;
+  RawStackTrace* async_link() const { return raw_ptr()->async_link_; }
+  void set_async_link(const StackTrace& async_link) const;
+  void set_expand_inlined(bool value) const;
 
+  RawArray* code_array() const { return raw_ptr()->code_array_; }
   RawCode* CodeAtFrame(intptr_t frame_index) const;
   void SetCodeAtFrame(intptr_t frame_index, const Code& code) const;
 
+  RawFunction* FunctionAtFrame(intptr_t frame_index) const;
+
+  RawArray* pc_offset_array() const { return raw_ptr()->pc_offset_array_; }
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
   void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
-  void set_expand_inlined(bool value) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStackTrace));
@@ -8404,9 +8409,15 @@ class StackTrace : public Instance {
                             const Array& pc_offset_array,
                             Heap::Space space = Heap::kNew);
 
+  static RawStackTrace* New(const Array& code_array,
+                            const Array& pc_offset_array,
+                            const StackTrace& async_link,
+                            Heap::Space space = Heap::kNew);
+
   // The argument 'max_frames' limits the number of printed frames.
-  const char* ToCStringInternal(intptr_t* frame_index,
-                                intptr_t max_frames = kMaxInt32) const;
+  static const char* ToCStringInternal(const StackTrace& stack_trace,
+                                       intptr_t* frame_index,
+                                       intptr_t max_frames = kMaxInt32);
 
  private:
   void set_code_array(const Array& code_array) const;

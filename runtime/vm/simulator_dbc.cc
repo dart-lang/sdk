@@ -434,6 +434,24 @@ class SimulatorHelpers {
     return true;
   }
 
+  static bool ClearAsyncThreadStack(Thread* thread,
+                                    RawObject** FP,
+                                    RawObject** result) {
+    thread->clear_async_stack_trace();
+    *result = Object::null();
+    return true;
+  }
+
+  static bool SetAsyncThreadStackTrace(Thread* thread,
+                                       RawObject** FP,
+                                       RawObject** result) {
+    RawObject** args = FrameArguments(FP, 1);
+    thread->set_raw_async_stack_trace(
+        reinterpret_cast<RawStackTrace*>(args[0]));
+    *result = Object::null();
+    return true;
+  }
+
   DART_FORCE_INLINE static RawCode* FrameCode(RawObject** FP) {
     ASSERT(GetClassId(FP[kPcMarkerSlotFromFp]) == kCodeCid);
     return static_cast<RawCode*>(FP[kPcMarkerSlotFromFp]);
@@ -504,6 +522,10 @@ void Simulator::InitOnce() {
   intrinsics_[kDouble_equalIntrinsic] = SimulatorHelpers::Double_equal;
   intrinsics_[kDouble_lessEqualThanIntrinsic] =
       SimulatorHelpers::Double_lessEqualThan;
+  intrinsics_[kClearAsyncThreadStackTraceIntrinsic] =
+      SimulatorHelpers::ClearAsyncThreadStack;
+  intrinsics_[kSetAsyncThreadStackTraceIntrinsic] =
+      SimulatorHelpers::SetAsyncThreadStackTrace;
 }
 
 

@@ -118,9 +118,13 @@ class ObjectPointerVisitor;
   V(AsyncOperationErrorParam, ":async_error_param")                            \
   V(AsyncOperationStackTraceParam, ":async_stack_trace_param")                 \
   V(AsyncSavedTryCtxVarPrefix, ":async_saved_try_ctx_var_")                    \
+  V(AsyncStackTraceVar, ":async_stack_trace")                                  \
+  V(ClearAsyncThreadStackTrace, "_clearAsyncThreadStackTrace")                 \
+  V(SetAsyncThreadStackTrace, "_setAsyncThreadStackTrace")                     \
   V(AsyncCatchHelper, "_asyncCatchHelper")                                     \
   V(AsyncThenWrapperHelper, "_asyncThenWrapperHelper")                         \
   V(AsyncErrorWrapperHelper, "_asyncErrorWrapperHelper")                       \
+  V(AsyncStackTraceHelper, "_asyncStackTraceHelper")                           \
   V(AsyncAwaitHelper, "_awaitHelper")                                          \
   V(Await, "await")                                                            \
   V(AwaitTempVarPrefix, ":await_temp_var_")                                    \
@@ -424,7 +428,8 @@ class ObjectPointerVisitor;
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
   V(GetRuntimeType, "get:runtimeType")                                         \
-  V(HaveSameRuntimeType, "_haveSameRuntimeType")
+  V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
+  V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

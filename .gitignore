@@ -36,6 +36,7 @@
 *.iml
 .idea
 CMakeLists.txt
+.clang_complete
 
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt
