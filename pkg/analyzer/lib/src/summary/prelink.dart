@@ -284,6 +284,8 @@ class _Prelinker {
       }
     }
 
+    aggregated.rememberLibraryNames();
+
     dependencyToPublicNamespace.add(aggregated);
     return aggregated;
   }
@@ -314,7 +316,8 @@ class _Prelinker {
                 new NameFilter.forUnlinkedCombinators(export.combinators));
             aggregatePublicNamespace(exportUri)
                 .forEach((String name, _Meaning meaning) {
-              if (newFilter.accepts(name)) {
+              if (newFilter.accepts(name) &&
+                  !exportNamespace.definesLibraryName(name)) {
                 exportNamespace.add(name, meaning);
               }
             });

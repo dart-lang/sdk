@@ -4396,6 +4396,43 @@ class C {
     checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
   }
 
+  test_nameConflict_exportedAndLocal() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource(
+        '/c.dart',
+        '''
+export 'a.dart';
+class C {}
+''');
+    checkLibrary('''
+import 'c.dart';
+C v = null;
+''');
+  }
+
+  test_nameConflict_exportedAndParted() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource(
+        '/b.dart',
+        '''
+part of lib;
+class C {}
+''');
+    addLibrarySource(
+        '/c.dart',
+        '''
+library lib;
+export 'a.dart';
+part 'b.dart';
+''');
+    checkLibrary('''
+import 'c.dart';
+C v = null;
+''');
+  }
+
   test_nested_generic_functions_in_generic_class_with_function_typed_params() {
     checkLibrary('''
 class C<T, U> {
