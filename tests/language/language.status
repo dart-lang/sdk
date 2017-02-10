@@ -188,6 +188,7 @@ super_call4_test: SkipByDesign
 super_getter_setter_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
 regress_28255_test: SkipByDesign
+vm/causal_async_exception_stack_test: SkipByDesign
 
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587

@@ -330,6 +330,7 @@ no_support_il_printer_test: SkipByDesign
 no_support_service_test: SkipByDesign
 no_support_timeline_test: SkipByDesign
 io/stdio_implicit_close_test: Skip # SkipByDesign
+dart_developer_env_test: SkipByDesign
 
 # Following tests are skipped on dart_app as package mapping is not supported.
 [ $runtime == dart_precompiled || $compiler == app_jit ]

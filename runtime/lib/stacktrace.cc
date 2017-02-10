@@ -16,11 +16,10 @@ namespace dart {
 
 DECLARE_FLAG(bool, show_invisible_frames);
 
-static RawStackTrace* CurrentSyncStackTrace(Thread* thread) {
+static RawStackTrace* CurrentSyncStackTrace(Thread* thread,
+                                            intptr_t skip_frames = 1) {
   Zone* zone = thread->zone();
   const Function& null_function = Function::ZoneHandle(zone);
-  // Skip the Dart exit frame.
-  const intptr_t skip_frames = 1;
 
   // Determine how big the stack trace is.
   const intptr_t stack_trace_length =
@@ -49,7 +48,7 @@ static RawStackTrace* CurrentStackTrace(
     bool causal_async_stacks = FLAG_causal_async_stacks) {
   if (!causal_async_stacks) {
     // Return the synchronous stack trace.
-    return CurrentSyncStackTrace(thread);
+    return CurrentSyncStackTrace(thread, skip_frames);
   }
 
   Zone* zone = thread->zone();
