@@ -1,11 +1,6 @@
 .buildlog
 .DS_Store
 .idea
-/.packages
 .project
-.pub/
 .settings/
-analyzer_cli.iml
 build/
-packages
-pubspec.lock
