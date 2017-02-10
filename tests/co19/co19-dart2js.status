@@ -948,7 +948,7 @@ LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError #
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-family-trailing-bracket-gunk_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError, Timeout # Timeout: issue 28722. Runtime error not triaged
 LayoutTests/fast/css/fontfaceset-events_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontfaceset-loadingdone_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css/getComputedStyle/computed-style-border-image_t01: RuntimeError # co19 issue 14
