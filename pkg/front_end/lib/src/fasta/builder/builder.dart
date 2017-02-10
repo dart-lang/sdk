@@ -89,16 +89,16 @@ abstract class Builder {
 
   /// Resolve types (lookup names in scope) recorded in this builder and return
   /// the number of types resolved.
-  int resolveTypes(Builder parent) => 0;
+  int resolveTypes(covariant Builder parent) => 0;
 
   /// Resolve constructors (lookup names in scope) recorded in this builder and
   /// return the number of constructors resolved.
-  int resolveConstructors(Builder parent) => 0;
+  int resolveConstructors(covariant Builder parent) => 0;
 
   /// Look for methods with the same name as their enclosing class and convert
   /// them to constructors. Return the number of methods converted to
   /// constructors.
-  int convertConstructors(Builder parent) => 0;
+  int convertConstructors(covariant Builder parent) => 0;
 
   /// This builder and [other] has been imported into [library] using [name].
   ///

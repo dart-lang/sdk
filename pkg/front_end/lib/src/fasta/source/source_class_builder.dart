@@ -100,7 +100,9 @@ class SourceClassBuilder extends KernelClassBuilder {
 
   int convertConstructors(KernelLibraryBuilder library) {
     List<String> oldConstructorNames = <String>[];
-    members.forEach((String name, MemberBuilder builder) {
+    // TODO(sigmund): should be `covariant MemberBuilder`
+    members.forEach((String name, dynamic b) {
+      MemberBuilder builder = b;
       if (isConstructorName(name, this.name)) {
         oldConstructorNames.add(name);
         String newName = "";

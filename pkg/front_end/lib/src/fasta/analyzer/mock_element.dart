@@ -4,12 +4,14 @@
 
 library fasta.analyzer.mock_element;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../errors.dart' show
     internalError;
 
-abstract class MockElement implements Element {
+abstract class MockElement implements Element, LocalElement {
   final ElementKind kind;
 
   MockElement(this.kind);
@@ -60,13 +62,13 @@ abstract class MockElement implements Element {
 
   get unit => internalError("not supported.");
 
-  accept(visitor) => internalError("not supported.");
+  accept<T>(visitor) => internalError("not supported.");
 
   String computeDocumentationComment() => internalError("not supported.");
 
   computeNode() => internalError("not supported.");
 
-  Element getAncestor(predicate) => internalError("not supported.");
+  getAncestor<E>(predicate) => internalError("not supported.");
 
   String getExtendedDisplayName(String shortName) {
     return internalError("not supported.");
@@ -84,13 +86,7 @@ abstract class MockElement implements Element {
 
   int get uriOffset => internalError("not supported.");
 
-  get type => null;
-
-  get typeParameters => internalError("not supported.");
-
   List<ParameterElement> get parameters => internalError("not supported.");
-
-  get returnType => internalError("not supported.");
 
   List<FunctionElement> get functions => internalError("not supported.");
 
@@ -118,8 +114,6 @@ abstract class MockElement implements Element {
 
   get visibleRange => internalError("not supported.");
 
-  get constantValue => internalError("not supported.");
-
   bool get hasImplicitType => internalError("not supported.");
 
   FunctionElement get initializer => internalError("not supported.");
@@ -131,8 +125,6 @@ abstract class MockElement implements Element {
   bool get isPotentiallyMutatedInClosure => internalError("not supported.");
 
   bool get isPotentiallyMutatedInScope => internalError("not supported.");
-
-  computeConstantValue() => internalError("not supported.");
 }
 
 abstract class MockLibraryElement extends MockElement
@@ -202,6 +194,8 @@ abstract class MockCompilationUnitElement extends MockElement
     return internalError("not supported.");
   }
 
+  LibraryElement get enclosingElement => internalError("not supported.");
+
   List<ClassElement> get enums => internalError("not supported.");
 
   List<FunctionElement> get functions => internalError("not supported.");
@@ -223,6 +217,8 @@ abstract class MockCompilationUnitElement extends MockElement
   ClassElement getEnum(String name) => internalError("not supported.");
 
   ClassElement getType(String name) => internalError("not supported.");
+
+  CompilationUnit computeNode() => internalError("not supported.");
 }
 
 abstract class MockClassElement extends MockElement implements ClassElement {
@@ -258,6 +254,8 @@ abstract class MockClassElement extends MockElement implements ClassElement {
   bool get isProxy => internalError("not supported.");
 
   bool get isValidMixin => internalError("not supported.");
+
+  get typeParameters => internalError("not supported.");
 
   List<MethodElement> get methods => internalError("not supported.");
 
@@ -325,6 +323,10 @@ abstract class MockClassElement extends MockElement implements ClassElement {
       String setterName, LibraryElement library) {
     return internalError("not supported.");
   }
+
+  NamedCompilationUnitMember computeNode() => internalError("not supported.");
+
+  InterfaceType get type => internalError("not supported.");
 }
 
 abstract class MockFunctionElement extends MockElement
@@ -333,6 +335,13 @@ abstract class MockFunctionElement extends MockElement
       : super(ElementKind.FUNCTION);
 
   bool get isEntryPoint => internalError("not supported.");
+
+  get typeParameters => internalError("not supported.");
+
+  FunctionType get type => internalError("not supported.");
+  DartType get returnType => internalError("not supported.");
+
+  FunctionDeclaration computeNode() => internalError("not supported.");
 }
 
 abstract class MockParameterElement extends MockElement
@@ -350,11 +359,17 @@ abstract class MockParameterElement extends MockElement
 
   List<ParameterElement> get parameters => internalError("not supported.");
 
-  List<TypeParameterElement> get typeParameters {
-    return internalError("not supported.");
-  }
+  get type => null;
+
+  get typeParameters => internalError("not supported.");
+
+  get constantValue => internalError("not supported.");
+
+  computeConstantValue() => internalError("not supported.");
 
   void appendToWithoutDelimiters(StringBuffer buffer) {
     return internalError("not supported.");
   }
+
+  FormalParameter computeNode() => internalError("not supported.");
 }

@@ -18,7 +18,6 @@ import '../loader.dart' show
 
 import 'builder.dart' show
     Builder,
-    InvalidTypeBuilder,
     TypeBuilder;
 
 import 'scope.dart' show
@@ -60,7 +59,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   void addToScope(String name, Builder member);
 
-  InvalidTypeBuilder buildAmbiguousBuilder(
+  Builder buildAmbiguousBuilder(
       String name, Builder builder, Builder other);
 
   int finishStaticInvocations() => 0;

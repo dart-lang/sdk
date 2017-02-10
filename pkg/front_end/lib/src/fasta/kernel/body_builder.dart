@@ -236,13 +236,16 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   Block popBlock(int count) {
-    List<Statement> statements = popList(count) ?? <Statement>[];
+    List<dynamic /*Statement | List<Statement>*/> statements =
+      popList(count) ?? <Statement>[];
     List<Statement> copy;
     for (int i = 0; i < statements.length; i++) {
       var statement = statements[i];
       if (statement is List) {
         copy ??= new List<Statement>.from(statements.getRange(0, i));
-        copy.addAll(statement);
+        // TODO(sigmund): remove this assignment (issue #28651)
+        Iterable subStatements = statement;
+        copy.addAll(subStatements);
       } else if (copy != null) {
         copy.add(statement);
       }
@@ -505,7 +508,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void endSend(Token token) {
     debugEvent("Send");
     Arguments arguments = pop();
-    List typeArguments = pop();
+    List<DartType> typeArguments = pop();
     Object receiver = pop();
     if (arguments != null && typeArguments != null) {
       arguments.types.addAll(typeArguments);
@@ -993,7 +996,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       assert(conditionStatement is EmptyStatement);
     }
     List<VariableDeclaration> variables = <VariableDeclaration>[];
-    var variableOrExpression = pop();
+    dynamic variableOrExpression = pop();
     Statement begin;
     if (variableOrExpression is BuilderAccessor) {
       variableOrExpression = variableOrExpression.buildForEffect();
@@ -1001,7 +1004,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (variableOrExpression is VariableDeclaration) {
       variables.add(variableOrExpression);
     } else if (variableOrExpression is List) {
-      variables.addAll(variableOrExpression);
+      // TODO(sigmund): remove this assignment (see issue #28651)
+      Iterable vars = variableOrExpression;
+      variables.addAll(vars);
     } else if (variableOrExpression == null) {
       // Do nothing.
     } else if (variableOrExpression is Expression) {
@@ -1161,7 +1166,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     // TODO(ahe): The scope is wrong for return types of generic functions.
     debugEvent("Type");
     List<DartType> arguments = pop();
-    var name = pop();
+    dynamic name = pop();
     if (name is List) {
       if (name.length != 2) {
         return internalError("Unexpected: $name.length");
@@ -1275,7 +1280,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     ignore(Unhandled.Metadata);
     VariableDeclaration variable;
     if (!inCatchClause && functionNestingLevel == 0) {
-      var builder = formalParameterScope.lookup(name.name);
+      dynamic builder = formalParameterScope.lookup(name.name);
       if (builder == null) {
         return inputError("'${name.name}' isn't a field in this class.",
             name.fileOffset);
@@ -1504,7 +1509,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Identifier suffix = popIfNotNull(periodBeforeName);
     Identifier identifier;
     List<DartType> typeArguments = pop();
-    var type = pop();
+    dynamic type = pop();
     if (type is List) {
       var prefix = type[0];
       identifier = type[1];
@@ -1621,7 +1626,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("NewExpression");
     Arguments arguments = pop();
     String name = pop();
-    List typeArguments = pop();
+    List<DartType> typeArguments = pop();
     var type = pop();
 
     if (typeArguments != null) {
@@ -1636,6 +1641,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (b == null) {
         // Not found. Reported below.
       } else if (b.isConstructor) {
+        // TODO(sigmund): change to type.isAbtract.
         if (type.cls.isAbstract) {
           // TODO(ahe): Generate abstract instantiation error.
         } else {
@@ -1656,7 +1662,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
                 target, arguments, isConst: optional("const", token)));
         return;
       } else {
-        errorName = debugName(type.cls.name, name);
+        errorName = debugName(type.name, name);
       }
     } else {
       errorName = debugName(getNodeName(type), name);
@@ -1743,7 +1749,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       exitLocalScope();
     }
     FormalParameters formals = pop();
-    List typeParameters = pop();
+    List<TypeParameter> typeParameters = pop();
     push(formals.addToFunction(new FunctionNode(body,
                 typeParameters: typeParameters, asyncMarker: asyncModifier)));
     functionNestingLevel--;
@@ -1769,7 +1775,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     AsyncMarker asyncModifier = pop();
     exitLocalScope();
     FormalParameters formals = pop();
-    List typeParameters = pop();
+    List<TypeParameter> typeParameters = pop();
     FunctionNode function = formals.addToFunction(new FunctionNode(body,
             typeParameters: typeParameters, asyncMarker: asyncModifier));
     push(new FunctionExpression(function));

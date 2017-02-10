@@ -40,8 +40,8 @@ class Link<T> implements Iterable<T> {
   }
 
   /// Lazily maps over this linked list, returning an [Iterable].
-  Iterable map(dynamic fn(T item)) {
-    return new MappedLinkIterable<T, dynamic>(this, fn);
+  Iterable<K> map<K>(K fn(T item)) {
+    return new MappedLinkIterable<T, K>(this, fn);
   }
 
   /// Invokes `fn` for every item in the linked list and returns the results
@@ -94,7 +94,7 @@ class Link<T> implements Iterable<T> {
   int slowLength() => 0;
 
   // TODO(ahe): Remove this method?
-  bool contains(T element) {
+  bool contains(Object element) {
     for (Link<T> link = this; !link.isEmpty; link = link.tail) {
       if (link.head == element) return true;
     }
@@ -131,9 +131,11 @@ class Link<T> implements Iterable<T> {
   //
   bool any(bool f(T e)) => _unsupported('any');
   T elementAt(int i) => _unsupported('elementAt');
-  Iterable expand(Iterable f(T e)) => _unsupported('expand');
+  Iterable<K> expand<K>(Iterable<K> f(T e)) => _unsupported('expand');
   T firstWhere(bool f(T e), {T orElse()}) => _unsupported('firstWhere');
-  fold(initialValue, combine(value, T element)) => _unsupported('fold');
+  K fold<K>(K initialValue, K combine(K value, T element)) {
+    return _unsupported('fold');
+  }
   T get last => _unsupported('get:last');
   T lastWhere(bool f(T e), {T orElse()}) => _unsupported('lastWhere');
   String join([separator = '']) => _unsupported('join');
@@ -151,7 +153,7 @@ class Link<T> implements Iterable<T> {
 /// Builder object for creating linked lists using [Link] or fixed-length [List]
 /// objects.
 abstract class LinkBuilder<T> {
-  factory LinkBuilder() = LinkBuilderImplementation;
+  factory LinkBuilder() = LinkBuilderImplementation<T>;
 
   /// Prepends all elements added to the builder to [tail]. The resulting list
   /// is returned and the builder is cleared.

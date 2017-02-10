@@ -119,7 +119,7 @@ class ElementStoreImplementation implements ElementStore {
     return internalError("not supported.");
   }
 
-  Class getClassReference(KernelClassElement cls) => cls.builder.cls;
+  Class getClassReference(covariant KernelClassElement cls) => cls.builder.cls;
 
   Member getMemberReference(Element element) {
     if (element is KernelFunctionElement) {
@@ -258,6 +258,12 @@ class AnalyzerLocalVariableElemment extends MockElement with Builder
   bool get isConst => false; // TODO(ahe): implement this.
 
   analyzer.VariableDeclaration get target => variable;
+
+  get type => null;
+
+  get constantValue => internalError("not supported.");
+
+  computeConstantValue() => internalError("not supported.");
 }
 
 /// Both an [Element] and [Builder] to using memory to store local elements in

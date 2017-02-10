@@ -54,7 +54,7 @@ Token defaultRecoveryStrategy(
   Token beforeGoodTail;
 
   recoverIdentifier(NonAsciiIdentifierToken first) {
-    List codeUnits = <int>[];
+    List<int> codeUnits = <int>[];
 
     // True if the previous good token is an identifier and ends right where
     // [first] starts. This is the case for input like `blåbærgrød`. In this

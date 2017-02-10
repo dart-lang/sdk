@@ -97,7 +97,7 @@ abstract class BuilderAccessor implements Accessor {
         isSetter: true);
   }
 
-  Expression doInvocation(int charOffset, Arguments arguments);
+  TreeNode doInvocation(int charOffset, Arguments arguments);
 
   buildPropertyAccess(IncompleteSend send, bool isNullAware) {
     if (send is SendAccessor) {

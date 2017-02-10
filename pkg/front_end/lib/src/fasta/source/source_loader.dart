@@ -197,7 +197,9 @@ class SourceLoader<L> extends Loader<L> {
   }
 
   void debugPrintExports() {
-    builders.forEach((Uri uri, SourceLibraryBuilder library) {
+    // TODO(sigmund): should be `covarint SourceLibraryBuilder`.
+    builders.forEach((Uri uri, dynamic l) {
+      SourceLibraryBuilder library = l;
       Set<Builder> members = new Set<Builder>();
       library.members.forEach((String name, Builder member) {
         while (member != null) {

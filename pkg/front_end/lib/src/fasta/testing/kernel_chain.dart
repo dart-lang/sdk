@@ -188,7 +188,7 @@ class Kernel extends Step<TestDescription, Program, TestContext> {
 }
 
 
-class Print extends Step<Program, Program, dynamic> {
+class Print extends Step<Program, Program, TestContext> {
   const Print();
 
   String get name => "print";
@@ -207,7 +207,7 @@ class Print extends Step<Program, Program, dynamic> {
   }
 }
 
-class Verify extends Step<Program, Program, dynamic> {
+class Verify extends Step<Program, Program, TestContext> {
   final bool fullCompile;
 
   const Verify(this.fullCompile);
@@ -225,7 +225,7 @@ class Verify extends Step<Program, Program, dynamic> {
   }
 }
 
-class MatchExpectation extends Step<Program, Program, dynamic> {
+class MatchExpectation extends Step<Program, Program, TestContext> {
   final String suffix;
 
   // TODO(ahe): This is true by default which doesn't match well with the class
@@ -274,7 +274,7 @@ $buffer""");
   }
 }
 
-class WriteDill extends Step<Program, Uri, dynamic> {
+class WriteDill extends Step<Program, Uri, TestContext> {
   const WriteDill();
 
   String get name => "write .dill";
@@ -296,7 +296,7 @@ class WriteDill extends Step<Program, Uri, dynamic> {
   }
 }
 
-class ReadDill extends Step<Uri, Uri, dynamic> {
+class ReadDill extends Step<Uri, Uri, TestContext> {
   const ReadDill();
 
   String get name => "read .dill";
@@ -311,7 +311,7 @@ class ReadDill extends Step<Uri, Uri, dynamic> {
   }
 }
 
-class Copy extends Step<Program, Program, dynamic> {
+class Copy extends Step<Program, Program, TestContext> {
   const Copy();
 
   String get name => "copy program";

@@ -136,7 +136,9 @@ class KernelEnumBuilder extends SourceClassBuilder
     KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(metadata,
         name, members, types, cls, constants, toStringMap, intType, stringType,
         parent);
-    members.forEach((String name, MemberBuilder builder) {
+    // TODO(sigmund): dynamic should be `covariant MemberBuilder`.
+    members.forEach((String name, dynamic b) {
+      MemberBuilder builder = b;
       builder.parent = enumBuilder;
     });
     selfType.builder = enumBuilder;

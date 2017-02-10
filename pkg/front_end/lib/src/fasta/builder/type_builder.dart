@@ -28,4 +28,6 @@ abstract class TypeBuilder extends Builder {
   String toString() => "$debugName(${printOn(new StringBuffer())})";
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) => this;
+
+  build();
 }

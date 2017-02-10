@@ -38,6 +38,8 @@ class DillMemberBuilder extends MemberBuilder {
 
   Member get target => member;
 
+  String get name => member.name.name;
+
   bool get isConstructor => member is Constructor;
 
   bool get isFactory {

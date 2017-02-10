@@ -54,7 +54,7 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
 
   bool get isFactory => identical(ProcedureKind.Factory, kind);
 
-  void set body(statement);
+  void set body(covariant statement);
 
   /// This is the formal parameter scope as specified in the Dart Programming
   /// Language Specifiction, 4th ed, section 9.2.

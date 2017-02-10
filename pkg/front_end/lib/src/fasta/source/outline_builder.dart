@@ -394,7 +394,10 @@ class OutlineBuilder extends UnhandledListener {
     if (formals != null && formals.isNotEmpty) {
       var last = formals.last;
       if (last is List) {
-        var newList =
+        // TODO(sigmund): change `List newList` back to `var` (this is a
+        // workaround for issue #28651). Eventually, make optional
+        // formals a separate stack entry (#28673).
+        List newList =
             new List<FormalParameterBuilder>(formals.length - 1 + last.length);
         newList.setRange(0, formals.length - 1, formals);
         newList.setRange(formals.length - 1, newList.length, last);

@@ -21,7 +21,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder> extends TypeBuilder {
 
   TypeDeclarationBuilder get builder;
 
-  void set builder(TypeDeclarationBuilder b);
+  void set builder(covariant TypeDeclarationBuilder b);
 
   NamedTypeBuilder(this.name, this.arguments);
 

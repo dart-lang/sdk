@@ -53,7 +53,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   final List<ConstructorReferenceBuilder> constructorReferences =
       <ConstructorReferenceBuilder>[];
 
-  final List<LibraryBuilder> parts = <LibraryBuilder>[];
+  final List<SourceLibraryBuilder<T, R>> parts = <SourceLibraryBuilder<T, R>>[];
 
   final List<Import> imports = <Import>[];
 
@@ -264,12 +264,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void includeParts() {
-    for (LibraryBuilder part in parts.toList()) {
+    for (SourceLibraryBuilder<T, R> part in parts.toList()) {
       includePart(part);
     }
   }
 
-  void includePart(SourceLibraryBuilder part) {
+  void includePart(SourceLibraryBuilder<T, R> part) {
     if (name != null) {
       if (part.partOf == null) {
         print("${part.uri} has no 'part of' declaration but is used as a part "

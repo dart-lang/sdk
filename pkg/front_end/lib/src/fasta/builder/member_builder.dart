@@ -12,6 +12,8 @@ import 'builder.dart' show
 abstract class MemberBuilder extends ModifierBuilder {
   Builder parent;
 
+  String get name;
+
   bool get isInstanceMember => isClassMember && !isStatic;
 
   bool get isClassMember => parent is ClassBuilder;
