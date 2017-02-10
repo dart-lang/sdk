@@ -1571,7 +1571,8 @@ class CodeSerializationCluster : public SerializationCluster {
     if (s->kind() == Snapshot::kAppJIT) {
       s->Push(code->ptr()->deopt_info_array_);
       s->Push(code->ptr()->static_calls_target_table_);
-      NOT_IN_PRODUCT(s->Push(code->ptr()->inlined_id_to_function_));
+      s->Push(code->ptr()->inlined_id_to_function_);
+      s->Push(code->ptr()->code_source_map_);
       NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
     }
   }
@@ -1624,7 +1625,8 @@ class CodeSerializationCluster : public SerializationCluster {
       if (s->kind() == Snapshot::kAppJIT) {
         s->WriteRef(code->ptr()->deopt_info_array_);
         s->WriteRef(code->ptr()->static_calls_target_table_);
-        NOT_IN_PRODUCT(s->WriteRef(code->ptr()->inlined_id_to_function_));
+        s->WriteRef(code->ptr()->inlined_id_to_function_);
+        s->WriteRef(code->ptr()->code_source_map_);
         NOT_IN_PRODUCT(s->WriteRef(code->ptr()->return_address_metadata_));
       }
 
@@ -1696,23 +1698,24 @@ class CodeDeserializationCluster : public DeserializationCluster {
             reinterpret_cast<RawArray*>(d->ReadRef());
         code->ptr()->static_calls_target_table_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
-#if defined(PRODUCT)
-        code->ptr()->inlined_id_to_function_ = Array::null();
-        code->ptr()->return_address_metadata_ = Object::null();
-#else
         code->ptr()->inlined_id_to_function_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
+        code->ptr()->code_source_map_ =
+            reinterpret_cast<RawCodeSourceMap*>(d->ReadRef());
+#if defined(PRODUCT)
+        code->ptr()->return_address_metadata_ = Object::null();
+#else
         code->ptr()->return_address_metadata_ = d->ReadRef();
 #endif
       } else {
         code->ptr()->deopt_info_array_ = Array::null();
         code->ptr()->static_calls_target_table_ = Array::null();
         code->ptr()->inlined_id_to_function_ = Array::null();
+        code->ptr()->code_source_map_ = CodeSourceMap::null();
         code->ptr()->return_address_metadata_ = Object::null();
       }
 
       code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
-      code->ptr()->code_source_map_ = CodeSourceMap::null();
       code->ptr()->comments_ = Array::null();
 
       code->ptr()->compile_timestamp_ = 0;
@@ -4545,6 +4548,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ObjectPoolSerializationCluster();
     case kPcDescriptorsCid:
       return new (Z) RODataSerializationCluster(kPcDescriptorsCid);
+    case kCodeSourceMapCid:
+      return new (Z) RODataSerializationCluster(kCodeSourceMapCid);
     case kStackMapCid:
       return new (Z) RODataSerializationCluster(kStackMapCid);
     case kExceptionHandlersCid:
@@ -4910,6 +4915,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case kObjectPoolCid:
       return new (Z) ObjectPoolDeserializationCluster();
     case kPcDescriptorsCid:
+    case kCodeSourceMapCid:
     case kStackMapCid:
       return new (Z) RODataDeserializationCluster();
     case kExceptionHandlersCid:

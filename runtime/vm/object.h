@@ -4784,10 +4784,20 @@ class Code : public Object {
   // function except the top-of-stack is the position of the call to the next
   // function. The stack will be empty if we lack the metadata to produce it,
   // which happens for stub code.
-  void GetInlinedFunctionsAt(
+  // The pc offset is interpreted as an instruction address (as needed by the
+  // disassembler or the top frame of a profiler sample).
+  void GetInlinedFunctionsAtInstruction(
       intptr_t pc_offset,
       GrowableArray<const Function*>* functions,
       GrowableArray<TokenPosition>* token_positions) const;
+  // Same as above, expect the pc is intepreted as a return address (as needed
+  // for a stack trace or the bottom frames of a profiler sample).
+  void GetInlinedFunctionsAtReturnAddress(
+      intptr_t pc_offset,
+      GrowableArray<const Function*>* functions,
+      GrowableArray<TokenPosition>* token_positions) const {
+    GetInlinedFunctionsAtInstruction(pc_offset - 1, functions, token_positions);
+  }
 
   NOT_IN_PRODUCT(void PrintJSONInlineIntervals(JSONObject* object) const);
   void DumpInlineIntervals() const;
@@ -8395,8 +8405,6 @@ class StackTrace : public Instance {
   RawArray* code_array() const { return raw_ptr()->code_array_; }
   RawCode* CodeAtFrame(intptr_t frame_index) const;
   void SetCodeAtFrame(intptr_t frame_index, const Code& code) const;
-
-  RawFunction* FunctionAtFrame(intptr_t frame_index) const;
 
   RawArray* pc_offset_array() const { return raw_ptr()->pc_offset_array_; }
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;

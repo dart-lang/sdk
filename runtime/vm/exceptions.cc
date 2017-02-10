@@ -101,7 +101,7 @@ void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
     dropped_frames_++;
     // Add an empty slot to indicate the overflow so that the toString
     // method can account for the overflow.
-    if (stacktrace_.FunctionAtFrame(null_slot) != Function::null()) {
+    if (stacktrace_.CodeAtFrame(null_slot) != Code::null()) {
       stacktrace_.SetCodeAtFrame(null_slot, frame_code);
       // We drop an extra frame here too.
       dropped_frames_++;

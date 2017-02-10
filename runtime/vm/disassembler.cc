@@ -129,7 +129,8 @@ void Disassembler::Disassemble(uword start,
       char str[4000];
       BufferFormatter f(str, sizeof(str));
       // Comment emitted, emit inlining information.
-      code.GetInlinedFunctionsAt(offset, &inlined_functions, &token_positions);
+      code.GetInlinedFunctionsAtInstruction(offset, &inlined_functions,
+                                            &token_positions);
       // Skip top scope function printing (last entry in 'inlined_functions').
       bool first = true;
       for (intptr_t i = 1; i < inlined_functions.length(); i++) {
