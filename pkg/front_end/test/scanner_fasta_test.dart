@@ -39,49 +39,10 @@ class ScannerTest_Fasta extends ScannerTestBase {
     // Dart, remove this flag.
     var scanner = new fasta.StringScanner(source, includeComments: true);
     var token = scanner.tokenize();
-    var analyzerTokenHead = new Token(null, 0);
-    analyzerTokenHead.previous = analyzerTokenHead;
-    var analyzerTokenTail = analyzerTokenHead;
-    // TODO(paulberry,ahe): Fasta includes comments directly in the token
-    // stream, rather than pointing to them via a "precedingComment" pointer, as
-    // analyzer does.  This seems like it will complicate parsing and other
-    // operations.
-    CommentToken currentCommentHead;
-    CommentToken currentCommentTail;
-    while (true) {
-      if (scanner.hasErrors && token is fasta.ErrorToken) {
-        var error = _translateErrorToken(token, source.length);
-        if (error != null) {
-          listener.errors.add(error);
-        }
-      } else if (token is fasta.StringToken &&
-          token.info.kind == fasta.COMMENT_TOKEN) {
-        // TODO(paulberry,ahe): It would be nice if the scanner gave us an
-        // easier way to distinguish between the two types of comment.
-        var type = token.value.startsWith('/*')
-            ? TokenType.MULTI_LINE_COMMENT
-            : TokenType.SINGLE_LINE_COMMENT;
-        var translatedToken =
-            new CommentToken(type, token.value, token.charOffset);
-        if (currentCommentHead == null) {
-          currentCommentHead = currentCommentTail = translatedToken;
-        } else {
-          currentCommentTail.setNext(translatedToken);
-          currentCommentTail = translatedToken;
-        }
-      } else {
-        var translatedToken = toAnalyzerToken(token, currentCommentHead);
-        translatedToken.setNext(translatedToken);
-        currentCommentHead = currentCommentTail = null;
-        analyzerTokenTail.setNext(translatedToken);
-        translatedToken.previous = analyzerTokenTail;
-        analyzerTokenTail = translatedToken;
-      }
-      if (token.isEof) {
-        return analyzerTokenHead.next;
-      }
-      token = token.next;
-    }
+    return toAnalyzerTokenStream(token,
+        (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      listener.errors.add(new TestError(offset, errorCode, arguments));
+    });
   }
 
   @override
@@ -217,56 +178,5 @@ class ScannerTest_Fasta extends ScannerTestBase {
   void test_string_simple_unterminated_interpolation_identifier() {
     // TODO(paulberry,ahe): bad error recovery.
     super.test_string_simple_unterminated_interpolation_identifier();
-  }
-
-  TestError _translateErrorToken(fasta.ErrorToken token, int inputLength) {
-    int charOffset = token.charOffset;
-    // TODO(paulberry,ahe): why is endOffset sometimes null?
-    int endOffset = token.endOffset ?? charOffset;
-    TestError _makeError(ScannerErrorCode errorCode, List<Object> arguments) {
-      if (charOffset == inputLength) {
-        // Analyzer never generates an error message past the end of the input,
-        // since such an error would not be visible in an editor.
-        // TODO(paulberry,ahe): would it make sense to replicate this behavior
-        // in fasta, or move it elsewhere in analyzer?
-        charOffset--;
-      }
-      return new TestError(charOffset, errorCode, arguments);
-    }
-
-    var errorCode = token.errorCode;
-    switch (errorCode) {
-      case fasta.ErrorKind.UnterminatedString:
-        // TODO(paulberry,ahe): Fasta reports the error location as the entire
-        // string; analyzer expects the end of the string.
-        charOffset = endOffset;
-        return _makeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null);
-      case fasta.ErrorKind.UnmatchedToken:
-        return null;
-      case fasta.ErrorKind.UnterminatedComment:
-        // TODO(paulberry,ahe): Fasta reports the error location as the entire
-        // comment; analyzer expects the end of the comment.
-        charOffset = endOffset;
-        return _makeError(
-            ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, null);
-      case fasta.ErrorKind.MissingExponent:
-        // TODO(paulberry,ahe): Fasta reports the error location as the entire
-        // number; analyzer expects the end of the number.
-        charOffset = endOffset;
-        return _makeError(ScannerErrorCode.MISSING_DIGIT, null);
-      case fasta.ErrorKind.ExpectedHexDigit:
-        // TODO(paulberry,ahe): Fasta reports the error location as the entire
-        // number; analyzer expects the end of the number.
-        charOffset = endOffset;
-        return _makeError(ScannerErrorCode.MISSING_HEX_DIGIT, null);
-      case fasta.ErrorKind.NonAsciiIdentifier:
-      case fasta.ErrorKind.NonAsciiWhitespace:
-        return _makeError(
-            ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
-      case fasta.ErrorKind.UnexpectedDollarInString:
-        return null;
-      default:
-        throw new UnimplementedError('$errorCode');
-    }
   }
 }

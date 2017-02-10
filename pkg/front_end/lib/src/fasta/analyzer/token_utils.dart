@@ -4,6 +4,12 @@
 
 library fasta.analyzer.token_utils;
 
+import 'package:front_end/src/fasta/parser/error_kind.dart' show
+    ErrorKind;
+
+import 'package:front_end/src/fasta/scanner/error_token.dart' show
+    ErrorToken;
+
 import 'package:front_end/src/fasta/scanner/token.dart' show
     KeywordToken,
     Token;
@@ -20,11 +26,138 @@ import 'package:front_end/src/scanner/token.dart' as analyzer show
     Token,
     TokenWithComment;
 
+import 'package:front_end/src/scanner/errors.dart' as analyzer show
+    ScannerErrorCode;
+
 import 'package:analyzer/dart/ast/token.dart' show
     TokenType;
 
 import '../errors.dart' show
     internalError;
+
+/// Converts a stream of Fasta tokens (starting with [token] and continuing to
+/// EOF) to a stream of analyzer tokens.
+///
+/// If any error tokens are found in the stream, they are reported using the
+/// [reportError] callback.
+analyzer.Token toAnalyzerTokenStream(
+    Token token,
+    void reportError(analyzer.ScannerErrorCode errorCode, int offset,
+        List<Object> arguments)) {
+  var analyzerTokenHead = new analyzer.Token(null, 0);
+  analyzerTokenHead.previous = analyzerTokenHead;
+  var analyzerTokenTail = analyzerTokenHead;
+  // TODO(paulberry,ahe): Fasta includes comments directly in the token
+  // stream, rather than pointing to them via a "precedingComment" pointer, as
+  // analyzer does.  This seems like it will complicate parsing and other
+  // operations.
+  analyzer.CommentToken currentCommentHead;
+  analyzer.CommentToken currentCommentTail;
+  while (true) {
+    if (token.info.kind == BAD_INPUT_TOKEN) {
+      ErrorToken errorToken = token;
+      _translateErrorToken(errorToken, reportError);
+    } else if (token.info.kind == COMMENT_TOKEN) {
+      // TODO(paulberry,ahe): It would be nice if the scanner gave us an
+      // easier way to distinguish between the two types of comment.
+      var type = token.value.startsWith('/*')
+          ? TokenType.MULTI_LINE_COMMENT
+          : TokenType.SINGLE_LINE_COMMENT;
+      var translatedToken =
+          new analyzer.CommentToken(type, token.value, token.charOffset);
+      if (currentCommentHead == null) {
+        currentCommentHead = currentCommentTail = translatedToken;
+      } else {
+        currentCommentTail.setNext(translatedToken);
+        currentCommentTail = translatedToken;
+      }
+    } else {
+      var translatedToken = toAnalyzerToken(token, currentCommentHead);
+      translatedToken.setNext(translatedToken);
+      currentCommentHead = currentCommentTail = null;
+      analyzerTokenTail.setNext(translatedToken);
+      translatedToken.previous = analyzerTokenTail;
+      analyzerTokenTail = translatedToken;
+    }
+    if (token.isEof) {
+      return analyzerTokenHead.next;
+    }
+    token = token.next;
+  }
+}
+
+/// Determines whether the given [charOffset], which came from the non-EOF token
+/// [token], represents the end of the input.
+bool _isAtEnd(Token token, int charOffset) {
+  while (true) {
+    // Skip to the next token.
+    token = token.next;
+    // If we've found an EOF token, its charOffset indicates where the end of
+    // the input is.
+    if (token.isEof) return token.charOffset == charOffset;
+    // If we've found a non-error token, then we know there is additional input
+    // text after [charOffset].
+    if (token.info.kind != BAD_INPUT_TOKEN) return false;
+    // Otherwise keep looking.
+  }
+}
+
+/// Translates the given error [token] into an analyzer error and reports it
+/// using [reportError].
+void _translateErrorToken(
+    ErrorToken token,
+    void reportError(analyzer.ScannerErrorCode errorCode, int offset,
+        List<Object> arguments)) {
+  int charOffset = token.charOffset;
+  // TODO(paulberry,ahe): why is endOffset sometimes null?
+  int endOffset = token.endOffset ?? charOffset;
+  void _makeError(analyzer.ScannerErrorCode errorCode, List<Object> arguments) {
+    if (_isAtEnd(token, charOffset)) {
+      // Analyzer never generates an error message past the end of the input,
+      // since such an error would not be visible in an editor.
+      // TODO(paulberry,ahe): would it make sense to replicate this behavior
+      // in fasta, or move it elsewhere in analyzer?
+      charOffset--;
+    }
+    reportError(errorCode, charOffset, arguments);
+  }
+
+  var errorCode = token.errorCode;
+  switch (errorCode) {
+    case ErrorKind.UnterminatedString:
+      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // string; analyzer expects the end of the string.
+      charOffset = endOffset;
+      return _makeError(
+          analyzer.ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null);
+    case ErrorKind.UnmatchedToken:
+      return null;
+    case ErrorKind.UnterminatedComment:
+      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // comment; analyzer expects the end of the comment.
+      charOffset = endOffset;
+      return _makeError(
+          analyzer.ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, null);
+    case ErrorKind.MissingExponent:
+      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // number; analyzer expects the end of the number.
+      charOffset = endOffset;
+      return _makeError(analyzer.ScannerErrorCode.MISSING_DIGIT, null);
+    case ErrorKind.ExpectedHexDigit:
+      // TODO(paulberry,ahe): Fasta reports the error location as the entire
+      // number; analyzer expects the end of the number.
+      charOffset = endOffset;
+      return _makeError(analyzer.ScannerErrorCode.MISSING_HEX_DIGIT, null);
+    case ErrorKind.NonAsciiIdentifier:
+    case ErrorKind.NonAsciiWhitespace:
+      return _makeError(
+          analyzer.ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
+    case ErrorKind.UnexpectedDollarInString:
+      return null;
+    default:
+      throw new UnimplementedError('$errorCode');
+  }
+}
 
 analyzer.Token toAnalyzerToken(Token token,
     [analyzer.CommentToken commentToken]) {

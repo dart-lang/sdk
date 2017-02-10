@@ -47,6 +47,7 @@ final subpackageRules = {
     'lib/src/fasta/builder',
     'lib/src/fasta/dill',
     'lib/src/fasta/kernel',
+    'lib/src/fasta/parser',
     'lib/src/fasta/scanner',
     'lib/src/fasta/source',
   ]),
