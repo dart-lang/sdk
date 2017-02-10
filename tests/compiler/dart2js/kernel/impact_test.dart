@@ -184,6 +184,8 @@ main() {
   testNativeMethodCreates();
   testNativeMethodReturns();
   testNativeField(null);
+  testMixinInstantiation();
+  testNamedMixinInstantiation();
 }
 
 testEmpty() {}
@@ -626,6 +628,8 @@ class NativeClass {
   factory NativeClass._() { throw new UnsupportedError("Not supported"); }
 }
 testNativeField(NativeClass c) => c.field;
+testMixinInstantiation() => new Sub();
+testNamedMixinInstantiation() => new NamedMixin();
 ''',
   'sdk/tests/compiler/dart2js_native/helper.dart': '''
 import 'dart:_js_helper';
@@ -643,6 +647,12 @@ class GenericClass<X, Y> {
 }
 typedef Typedef();
 typedef X GenericTypedef<X, Y>(Y y);
+
+class Super {}
+class Mixin1 {}
+class Mixin2 {}
+class Sub extends Super with Mixin1, Mixin2 {}
+class NamedMixin = Super with Mixin1, Mixin2;
 
 const String _serializedScriptValue =
     'num|String|bool|'

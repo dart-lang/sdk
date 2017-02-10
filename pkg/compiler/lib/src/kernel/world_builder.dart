@@ -806,4 +806,19 @@ class WorldDeconstructionForTesting {
 
   KLibrary getLibraryForField(KField field) =>
       _getLibrary(field, builder._fieldMap);
+
+  KClass getSuperclassForClass(KClass cls) {
+    KClassEnv env = builder._classEnvs[cls.classIndex];
+    ir.Supertype supertype = env.cls.supertype;
+    if (supertype == null) return null;
+    return builder.getClass(supertype.classNode);
+  }
+
+  InterfaceType getMixinTypeForClass(KClass cls) {
+    KClassEnv env = builder._classEnvs[cls.classIndex];
+    ir.Supertype mixedInType = env.cls.mixedInType;
+    if (mixedInType == null) return null;
+    return builder.createInterfaceType(
+        mixedInType.classNode, mixedInType.typeArguments);
+  }
 }

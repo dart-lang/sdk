@@ -663,6 +663,29 @@ class KernelEquivalence {
         return false;
       case ElementKind.CLASS:
         if (b is KClass) {
+          List<InterfaceType> aMixinTypes = [];
+          List<InterfaceType> bMixinTypes = [];
+          ClassElement aClass = a;
+          while (aClass.isMixinApplication) {
+            MixinApplicationElement aMixinApplication = aClass;
+            aMixinTypes.add(aMixinApplication.mixinType);
+            aClass = aMixinApplication.superclass;
+          }
+          KClass bClass = b;
+          while (bClass != null) {
+            InterfaceType mixinType = testing.getMixinTypeForClass(bClass);
+            if (mixinType == null) break;
+            bMixinTypes.add(mixinType);
+            bClass = testing.getSuperclassForClass(bClass);
+          }
+          if (aMixinTypes.isNotEmpty || aMixinTypes.isNotEmpty) {
+            if (aClass.isNamedMixinApplication &&
+                !strategy.test(a, b, 'name', a.name, b.name)) {
+              return false;
+            }
+            return strategy.testTypeLists(
+                a, b, 'mixinTypes', aMixinTypes, bMixinTypes);
+          }
           return strategy.test(a, b, 'name', a.name, b.name) &&
               strategy.testElements(
                   a, b, 'library', a.library, testing.getLibraryForClass(b));
