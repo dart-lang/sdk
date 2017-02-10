@@ -1,3 +1,7 @@
+## 0.5.3+1
+
+- Improved the stability of `ConstantInfo.id`.
+
 ## 0.5.3
 
 - Made IDs in the JSON format stable. Improves plain text diffing.

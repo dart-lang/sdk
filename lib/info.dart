@@ -53,7 +53,7 @@ abstract class Info {
 // TODO(sigmund): add more:
 //  - inputSize: bytes used in the Dart source program
 abstract class BasicInfo implements Info {
-  static Set<int> _ids = new Set<int>();
+  static final Set<int> _ids = new Set<int>();
   final InfoKind kind;
 
   int _id;
@@ -65,7 +65,16 @@ abstract class BasicInfo implements Info {
           this is OutputUnitInfo ||
           this.parent != null);
 
-      _id = longName(this, useLibraryUri: true).hashCode;
+      if (this is ConstantInfo) {
+        // No name and no parent, so `longName` isn't helpful
+        assert(this.name == null);
+        assert(this.parent == null);
+        assert((this as ConstantInfo).code != null);
+        // Instead, use the content of the code.
+        _id = (this as ConstantInfo).code.hashCode;
+      } else {
+        _id = longName(this, useLibraryUri: true).hashCode;
+      }
       while (!_ids.add(_id)) {
         _id++;
       }
