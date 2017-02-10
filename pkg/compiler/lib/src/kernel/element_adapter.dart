@@ -23,6 +23,9 @@ abstract class KernelElementAdapter {
   /// Access to the commonly used elements and types.
   CommonElements get commonElements;
 
+  // Access to backend helpers.
+  BackendHelpers get helpers;
+
   /// [ElementEnvironment] for library, class and member lookup.
   ElementEnvironment get elementEnvironment;
 
@@ -122,6 +125,11 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
   DiagnosticReporter get reporter;
   FunctionType getFunctionType(ir.FunctionNode node);
   native.BehaviorBuilder get nativeBehaviorBuilder;
+  BackendHelpers _helpers;
+
+  @override
+  BackendHelpers get helpers =>
+      _helpers ??= new BackendHelpers(elementEnvironment, commonElements);
 
   @override
   Name getName(ir.Name name) {
@@ -211,7 +219,7 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
     for (ir.Expression annotation in node.annotations) {
       if (annotation is ir.ConstructorInvocation) {
         FunctionEntity target = getConstructor(annotation.target);
-        if (target.enclosingClass == commonElements.nativeAnnotationClass) {
+        if (target.enclosingClass == helpers.nativeAnnotationClass) {
           return true;
         }
       }
@@ -455,6 +463,16 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
         'Unimplemented constant expression $node (${node.runtimeType})');
   }
 
+  List<ConstantExpression> _computeList(List<ir.Expression> expressions) {
+    List<ConstantExpression> list = <ConstantExpression>[];
+    for (ir.Expression expression in expressions) {
+      ConstantExpression constant = expression.accept(this);
+      if (constant == null) return null;
+      list.add(constant);
+    }
+    return list;
+  }
+
   List<ConstantExpression> _computeArguments(ir.Arguments node) {
     List<ConstantExpression> arguments = <ConstantExpression>[];
     for (ir.Expression argument in node.positional) {
@@ -509,6 +527,11 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   @override
   ConstantExpression visitStringLiteral(ir.StringLiteral node) {
     return new StringConstantExpression(node.value);
+  }
+
+  @override
+  ConstantExpression visitStringConcatenation(ir.StringConcatenation node) {
+    return new ConcatenateConstantExpression(_computeList(node.expressions));
   }
 
   /// Compute the [ConstantConstructor] corresponding to the const constructor

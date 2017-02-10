@@ -42,12 +42,9 @@ class BackendHelpers {
 
   final ElementEnvironment _env;
 
-  // TODO(johnniwinther): Remove this.
-  final JavaScriptBackend _backend;
-
   final CommonElements commonElements;
 
-  BackendHelpers(this._env, this._backend, this.commonElements);
+  BackendHelpers(this._env, this.commonElements);
 
   ClassEntity _findInterceptorsClass(String name) =>
       _findClass(interceptorsLibrary, name);
@@ -794,4 +791,16 @@ class BackendHelpers {
 
   FunctionEntity get hashCodeForNativeObject =>
       _findHelperFunction('hashCodeForNativeObject');
+
+  ClassEntity _patchAnnotationClass;
+
+  /// The class for patch annotations defined in dart:_js_helper.
+  ClassEntity get patchAnnotationClass =>
+      _patchAnnotationClass ??= _findHelperClass('_Patch');
+
+  ClassEntity _nativeAnnotationClass;
+
+  /// The class for native annotations defined in dart:_js_helper.
+  ClassEntity get nativeAnnotationClass =>
+      _nativeAnnotationClass ??= _findHelperClass('Native');
 }

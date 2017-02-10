@@ -156,9 +156,12 @@ class KSetter extends KFunction {
 }
 
 class KField extends KMember implements FieldEntity {
+  /// Field index used for fast lookup in [KernelWorldBuilder].
+  final int fieldIndex;
   final bool isAssignable;
 
-  KField(KClass enclosingClass, Name name, {bool isStatic, this.isAssignable})
+  KField(this.fieldIndex, KClass enclosingClass, Name name,
+      {bool isStatic, this.isAssignable})
       : super(enclosingClass, name, isStatic: isStatic);
 
   @override

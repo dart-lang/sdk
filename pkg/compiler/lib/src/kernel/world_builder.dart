@@ -57,7 +57,14 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
       <KConstructor, ConstantConstructor>{};
 
   Map<ir.Procedure, KFunction> _methodMap = <ir.Procedure, KFunction>{};
+
   Map<ir.Field, KField> _fieldMap = <ir.Field, KField>{};
+  // TODO(johnniwinther): Change this to a list of 'KFieldData' class
+  // holding the [ConstantExpression] if we need more data for fields.
+  List<ir.Field> _fieldList = <ir.Field>[];
+  Map<KField, ConstantExpression> _fieldConstantMap =
+      <KField, ConstantExpression>{};
+
   Map<ir.TreeNode, KLocalFunction> _localFunctionMap =
       <ir.TreeNode, KLocalFunction>{};
 
@@ -65,18 +72,19 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
       : _env = new KEnv(program) {
     _elementEnvironment = new KernelElementEnvironment(this);
     _commonElements = new KernelCommonElements(_elementEnvironment);
-    BackendHelpers helpers =
-        new BackendHelpers(_elementEnvironment, null, _commonElements);
     ConstantEnvironment constants = new KernelConstantEnvironment(this);
     _nativeBehaviorBuilder =
         new KernelBehaviorBuilder(_commonElements, helpers, constants);
     _typeConverter = new DartTypeConverter(this);
   }
 
+  @override
   CommonElements get commonElements => _commonElements;
 
+  @override
   ElementEnvironment get elementEnvironment => _elementEnvironment;
 
+  @override
   native.BehaviorBuilder get nativeBehaviorBuilder => _nativeBehaviorBuilder;
 
   LibraryEntity lookupLibrary(Uri uri) {
@@ -205,11 +213,13 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   KField _getField(ir.Field node) {
     return _fieldMap.putIfAbsent(node, () {
+      int fieldIndex = _fieldList.length;
       KClass enclosingClass =
           node.enclosingClass != null ? _getClass(node.enclosingClass) : null;
       Name name = getName(node.name);
       bool isStatic = node.isStatic;
-      return new KField(enclosingClass, name,
+      _fieldList.add(node);
+      return new KField(fieldIndex, enclosingClass, name,
           isStatic: isStatic, isAssignable: node.isMutable);
     });
   }
@@ -356,8 +366,23 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
       if (node is ir.Constructor && node.isConst) {
         return new Constantifier(this).computeConstantConstructor(node);
       }
-      throw new SpannableAssertionFailure(constructor,
-          "Unexpected constructor $constructor in KernelWorldBuilder._getConstructorConstant");
+      throw new SpannableAssertionFailure(
+          constructor,
+          "Unexpected constructor $constructor in "
+          "KernelWorldBuilder._getConstructorConstant");
+    });
+  }
+
+  ConstantExpression _getFieldConstant(KField field) {
+    return _fieldConstantMap.putIfAbsent(field, () {
+      ir.Field node = _fieldList[field.fieldIndex];
+      if (node.isConst) {
+        return node.initializer.accept(new Constantifier(this));
+      }
+      throw new SpannableAssertionFailure(
+          field,
+          "Unexpected field $field in "
+          "KernelWorldBuilder._getConstructorConstant");
     });
   }
 }
@@ -734,7 +759,7 @@ class _EvaluationEnvironment implements Environment {
 
   @override
   ConstantExpression getFieldConstant(FieldEntity field) {
-    throw new UnimplementedError("_EvaluationEnvironment.getFieldConstant");
+    return _worldBuilder._getFieldConstant(field);
   }
 
   @override

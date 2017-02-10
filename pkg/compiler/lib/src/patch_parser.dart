@@ -421,7 +421,7 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
     ResolutionDartType annotationType =
         constant.getType(compiler.commonElements);
     if (annotationType.element !=
-        compiler.commonElements.nativeAnnotationClass) {
+        compiler.backend.helpers.nativeAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
       reporter.internalError(annotation, 'Invalid @Native(...) annotation.');
     }
@@ -491,7 +491,7 @@ class PatchAnnotationHandler implements EagerAnnotationHandler<PatchVersion> {
     ResolutionDartType annotationType =
         constant.getType(compiler.commonElements);
     if (annotationType.element !=
-        compiler.commonElements.patchAnnotationClass) {
+        compiler.backend.helpers.patchAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
       reporter.internalError(annotation, 'Invalid patch annotation.');
     }

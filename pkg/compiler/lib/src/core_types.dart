@@ -77,13 +77,6 @@ abstract class CommonElements {
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity get typedDataClass;
 
-  // TODO(johnniwinther): Move this to the JavaScriptBackend.
-  /// The class for patch annotation defined in dart:_js_helper.
-  ClassEntity get patchAnnotationClass;
-
-  // TODO(johnniwinther): Move this to the JavaScriptBackend.
-  ClassEntity get nativeAnnotationClass;
-
   /// Constructor of the `Symbol` class. This getter will ensure that `Symbol`
   /// is resolved and lookup the constructor on demand.
   ConstructorEntity get symbolConstructor;

@@ -536,8 +536,7 @@ class JavaScriptBackend extends Target {
         impacts = new BackendImpacts(compiler),
         frontend = new JSFrontendAccess(compiler),
         this.compiler = compiler {
-    helpers =
-        new BackendHelpers(compiler.elementEnvironment, this, commonElements);
+    helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
     typeVariableHandler = new TypeVariableHandler(compiler);

@@ -183,6 +183,7 @@ main() {
   testNativeMethod();
   testNativeMethodCreates();
   testNativeMethodReturns();
+  testNativeField(null);
 }
 
 testEmpty() {}
@@ -616,8 +617,18 @@ testNativeMethod() native;
 testNativeMethodCreates() native;
 @Returns('String|Null|JSArray')
 testNativeMethodReturns() native;
+
+@Native("NativeClass")
+class NativeClass {
+  @annotation_Creates_SerializedScriptValue
+  final Object field;
+
+  factory NativeClass._() { throw new UnsupportedError("Not supported"); }
+}
+testNativeField(NativeClass c) => c.field;
 ''',
   'sdk/tests/compiler/dart2js_native/helper.dart': '''
+import 'dart:_js_helper';
 class Class {
   const Class.generative();
   factory Class.fact() => null;
@@ -632,7 +643,12 @@ class GenericClass<X, Y> {
 }
 typedef Typedef();
 typedef X GenericTypedef<X, Y>(Y y);
-''',
+
+const String _serializedScriptValue =
+    'num|String|bool|'
+    'JSExtendableArray|=Object';
+const annotation_Creates_SerializedScriptValue =
+    const Creates(_serializedScriptValue);''',
 };
 
 main(List<String> args) {
@@ -657,14 +673,10 @@ main(List<String> args) {
 
     checkLibrary(compiler, kernelElementAdapter, compiler.mainApp,
         fullTest: fullTest);
-    if (fullTest) {
-      // TODO(johnniwinther): Handle all libraries for `!fullTest`.
-      compiler.libraryLoader.libraries.forEach((LibraryElement library) {
-        if (library == compiler.mainApp) return;
-        checkLibrary(compiler, kernelElementAdapter, library,
-            fullTest: fullTest);
-      });
-    }
+    compiler.libraryLoader.libraries.forEach((LibraryElement library) {
+      if (library == compiler.mainApp) return;
+      checkLibrary(compiler, kernelElementAdapter, library, fullTest: fullTest);
+    });
   });
 }
 
@@ -689,33 +701,8 @@ void checkLibrary(Compiler compiler, KernelElementAdapter kernelElementAdapter,
 void checkElement(Compiler compiler, KernelElementAdapter kernelElementAdapter,
     AstElement element,
     {bool fullTest: false}) {
-  if (!fullTest) {
-    if (element.library.isPlatformLibrary) {
-      // TODO(johnniwinther): Enqueue these elements for `!fullTest`.
-      // Test only selected elements in web-related platform libraries since
-      // this unittest otherwise takes too long to run.
-      switch (element.library.canonicalUri.path) {
-        case 'html':
-          if ('$element' ==
-              'function(_ValidatingTreeSanitizer#_sanitizeUntrustedElement)') {
-            break;
-          }
-          return;
-        case 'web_gl':
-          if ('$element' ==
-              'function(RenderingContext#getFramebufferAttachmentParameter)') {
-            break;
-          }
-          return;
-        case 'indexed_db':
-          if ('$element' == 'field(ObjectStore#keyPath)') {
-            break;
-          }
-          return;
-        case 'web_audio':
-          return;
-      }
-    }
+  if (!fullTest && element.library.isPlatformLibrary) {
+    return;
   }
   if (element.isConstructor) {
     ConstructorElement constructor = element;

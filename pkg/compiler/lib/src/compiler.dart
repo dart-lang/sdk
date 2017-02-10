@@ -1111,28 +1111,7 @@ class _CompilerCommonElements extends CommonElementsMixin {
   LibraryElement mirrorsLibrary;
   LibraryElement typedDataLibrary;
 
-  // TODO(sigmund): possibly move this to target-specific collection of
-  // elements, or refactor the library so that the helpers we need are in a
-  // target-agnostic place.  Currently we are using @patch and @Native from
-  // here. We hope we can make those independent of the backend and generic
-  // enough so the patching algorithm can work without being configured for a
-  // specific backend.
-  LibraryElement jsHelperLibrary;
-
   _CompilerCommonElements(this.environment, this.resolution, this.reporter);
-
-  // From dart:_js_helper
-  // TODO(sigmund,johnniwinther): refactor needed: either these move to a
-  // backend-specific collection of helpers, or the helper code moves to a
-  // backend agnostic library (see commend above on [jsHelperLibrary].
-
-  ClassElement _patchAnnotationClass;
-  ClassElement get patchAnnotationClass =>
-      _patchAnnotationClass ??= _findLibraryMember(jsHelperLibrary, '_Patch');
-
-  ClassElement _nativeAnnotationClass;
-  ClassElement get nativeAnnotationClass =>
-      _nativeAnnotationClass ??= _findLibraryMember(jsHelperLibrary, 'Native');
 
   @override
   ResolutionDynamicType get dynamicType => const ResolutionDynamicType();
@@ -1147,8 +1126,6 @@ class _CompilerCommonElements extends CommonElementsMixin {
       typedDataLibrary = library;
     } else if (uri == Uris.dart_mirrors) {
       mirrorsLibrary = library;
-    } else if (uri == js_backend.BackendHelpers.DART_JS_HELPER) {
-      jsHelperLibrary = library;
     }
   }
 
