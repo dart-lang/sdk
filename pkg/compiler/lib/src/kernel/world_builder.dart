@@ -107,7 +107,10 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   ClassEntity lookupClass(KLibrary library, String name) {
     KLibraryEnv libraryEnv = _libraryEnvs[library.libraryIndex];
     KClassEnv classEnv = libraryEnv.lookupClass(name);
-    return _getClass(classEnv.cls, classEnv);
+    if (classEnv != null) {
+      return _getClass(classEnv.cls, classEnv);
+    }
+    return null;
   }
 
   MemberEntity lookupClassMember(KClass cls, String name,

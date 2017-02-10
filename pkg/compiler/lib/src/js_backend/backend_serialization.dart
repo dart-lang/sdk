@@ -160,9 +160,9 @@ class NativeBehaviorSerialization {
     if (type is DartType) {
       // TODO(johnniwinther): Remove this when annotation are no longer resolved
       // to this-types.
-      if (type is GenericType &&
-          type.isGeneric &&
-          type == type.element.thisType) {
+      if (type is InterfaceType &&
+          type.typeArguments.isNotEmpty &&
+          type.typeArguments.first is TypeVariableType) {
         return THIS_TYPE;
       }
       return NORMAL_TYPE;

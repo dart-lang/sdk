@@ -33,6 +33,7 @@ const Map<String, String> SOURCE = const <String, String>{
   'sdk/tests/compiler/dart2js_native/main.dart': r'''
 import 'dart:_foreign_helper';
 import 'dart:_js_helper';
+import 'dart:_interceptors';
 import 'helper.dart';
 import 'dart:html';
 
@@ -180,6 +181,8 @@ main() {
   testDynamicPrivateMethodInvoke();
   testJSCall();
   testNativeMethod();
+  testNativeMethodCreates();
+  testNativeMethodReturns();
 }
 
 testEmpty() {}
@@ -609,6 +612,10 @@ testDynamicPrivateMethodInvoke([o]) => o._privateMethod();
 testJSCall() => JS('int|bool', '#', null);
 @JSName('foo')
 testNativeMethod() native;
+@Creates('int|Null|JSArray')
+testNativeMethodCreates() native;
+@Returns('String|Null|JSArray')
+testNativeMethodReturns() native;
 ''',
   'sdk/tests/compiler/dart2js_native/helper.dart': '''
 class Class {

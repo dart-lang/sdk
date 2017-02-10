@@ -4,46 +4,19 @@
 
 library dart2js.backend_api;
 
-import 'dart:async' show Future;
-
 import '../common.dart';
 import '../common/codegen.dart' show CodegenImpact;
-import '../common/resolution.dart' show ResolutionImpact, Frontend, Target;
-import '../compile_time_constants.dart'
-    show BackendConstantEnvironment, ConstantCompilerTask;
-import '../compiler.dart' show Compiler;
-import '../constants/constant_system.dart' show ConstantSystem;
+import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/expressions.dart' show ConstantExpression;
-import '../constants/values.dart' show ConstantValue;
 import '../elements/types.dart';
 import '../elements/resolution_types.dart'
     show ResolutionDartType, ResolutionInterfaceType;
-import '../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        FunctionElement,
-        MemberElement,
-        MethodElement,
-        LibraryElement;
 import '../elements/entities.dart';
-import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
-import '../io/code_output.dart' show CodeBuffer;
-import '../io/source_information.dart' show SourceInformationStrategy;
-import '../js_backend/backend_helpers.dart' as js_backend show BackendHelpers;
-import '../js_backend/js_backend.dart' as js_backend;
-import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
-import '../native/native.dart' as native show NativeEnqueuer, maybeEnableNative;
-import '../patch_parser.dart'
-    show checkNativeAnnotation, checkJsInteropAnnotation;
+import '../enqueue.dart' show ResolutionEnqueuer;
 import '../serialization/serialization.dart'
     show DeserializerPlugin, SerializerPlugin;
 import '../tree/tree.dart' show Node;
-import '../universe/world_impact.dart'
-    show ImpactStrategy, WorldImpact, WorldImpactBuilder;
-import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
-import 'codegen.dart' show CodegenWorkItem;
-import 'tasks.dart' show CompilerTask;
+import '../universe/world_impact.dart' show WorldImpact;
 
 /// Interface for resolving native data for a target specific element.
 abstract class NativeRegistry {

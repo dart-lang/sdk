@@ -246,7 +246,7 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
   // the `ForeignResolver`.
   // TODO(johnniwinther): Cache the result to avoid redundant lookups?
   native.TypeLookup typeLookup({bool resolveAsRaw: true}) {
-    return (String typeName) {
+    DartType lookup(String typeName, {bool required}) {
       DartType findIn(Uri uri) {
         LibraryEntity library = elementEnvironment.lookupLibrary(uri);
         if (library != null) {
@@ -270,8 +270,14 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
       type ??= findIn(Uris.dart_svg);
       type ??= findIn(Uris.dart_web_audio);
       type ??= findIn(Uris.dart_web_gl);
+      if (type == null && required) {
+        reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
+            MessageKind.GENERIC, {'text': "Type '$typeName' not found."});
+      }
       return type;
-    };
+    }
+
+    return lookup;
   }
 
   String _getStringArgument(ir.StaticInvocation node, int index) {

@@ -23,7 +23,8 @@ import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
 import 'js.dart';
 
-typedef dynamic /*DartType|SpecialType*/ TypeLookup(String typeString);
+typedef dynamic /*DartType|SpecialType*/ TypeLookup(String typeString,
+    {bool required});
 
 /// This class is a temporary work-around until we get a more powerful DartType.
 class SpecialType {
@@ -317,7 +318,7 @@ class NativeBehavior {
         return;
       }
       for (final typeString in typesString.split('|')) {
-        onType(_parseType(typeString.trim(), spannable, reporter, lookupType));
+        onType(_parseType(typeString.trim(), lookupType));
       }
     }
 
@@ -499,8 +500,18 @@ class NativeBehavior {
 
   /// Returns a [TypeLookup] that uses [resolver] to perform lookup and [node]
   /// as position for errors.
-  static TypeLookup _typeLookup(Node node, ForeignResolver resolver) {
-    return (String name) => resolver.resolveTypeFromString(node, name);
+  static TypeLookup _typeLookup(
+      Node node, DiagnosticReporter reporter, ForeignResolver resolver) {
+    ResolutionDartType lookup(String name, {bool required}) {
+      ResolutionDartType type = resolver.resolveTypeFromString(node, name);
+      if (type == null && required) {
+        reporter.reportErrorMessage(
+            node, MessageKind.GENERIC, {'text': "Type '$name' not found."});
+      }
+      return type;
+    }
+
+    return lookup;
   }
 
   /// Compute the [NativeBehavior] for a [Send] node calling the 'JS' function.
@@ -533,8 +544,13 @@ class NativeBehavior {
     String specString = specArgument.dartString.slowToString();
     String codeString = codeArgument.dartString.slowToString();
 
-    return ofJsCall(specString, codeString, _typeLookup(specArgument, resolver),
-        specArgument, reporter, commonElements);
+    return ofJsCall(
+        specString,
+        codeString,
+        _typeLookup(specArgument, reporter, resolver),
+        specArgument,
+        reporter,
+        commonElements);
   }
 
   /// Compute the [NativeBehavior] for a call to the 'JS' function with the
@@ -659,8 +675,12 @@ class NativeBehavior {
 
     String specString = specLiteral.dartString.slowToString();
 
-    return ofJsBuiltinCall(specString, _typeLookup(jsBuiltinCall, resolver),
-        jsBuiltinCall, reporter, commonElements);
+    return ofJsBuiltinCall(
+        specString,
+        _typeLookup(jsBuiltinCall, reporter, resolver),
+        jsBuiltinCall,
+        reporter,
+        commonElements);
   }
 
   static NativeBehavior ofJsBuiltinCall(
@@ -724,7 +744,7 @@ class NativeBehavior {
 
     return ofJsEmbeddedGlobalCall(
         specString,
-        _typeLookup(jsEmbeddedGlobalCall, resolver),
+        _typeLookup(jsEmbeddedGlobalCall, reporter, resolver),
         jsEmbeddedGlobalCall,
         reporter,
         commonElements);
@@ -757,17 +777,9 @@ class NativeBehavior {
       metadata.add(annotation.constant);
     }
 
-    ResolutionDartType lookup(String name) {
-      Element e = element.buildScope().lookup(name);
-      if (e == null) return null;
-      if (e is! ClassElement) return null;
-      ClassElement cls = e;
-      cls.ensureResolved(compiler.resolution);
-      return cls.thisType;
-    }
-
     BehaviorBuilder builder = new ResolverBehaviorBuilder(compiler);
-    return builder.buildMethodBehavior(type, metadata, lookup,
+    return builder.buildMethodBehavior(
+        type, metadata, lookupFromElement(compiler.resolution, element),
         isJsInterop: compiler.backend.isJsInterop(element));
   }
 
@@ -781,17 +793,9 @@ class NativeBehavior {
       metadata.add(annotation.constant);
     }
 
-    ResolutionDartType lookup(String name) {
-      Element e = element.buildScope().lookup(name);
-      if (e == null) return null;
-      if (e is! ClassElement) return null;
-      ClassElement cls = e;
-      cls.ensureResolved(compiler.resolution);
-      return cls.thisType;
-    }
-
     BehaviorBuilder builder = new ResolverBehaviorBuilder(compiler);
-    return builder.buildFieldLoadBehavior(type, metadata, lookup,
+    return builder.buildFieldLoadBehavior(
+        type, metadata, lookupFromElement(resolution, element),
         isJsInterop: compiler.backend.isJsInterop(element));
   }
 
@@ -802,28 +806,41 @@ class NativeBehavior {
     return builder.buildFieldStoreBehavior(type);
   }
 
-  static dynamic /*DartType|SpecialType*/ _parseType(String typeString,
-      Spannable spannable, DiagnosticReporter reporter, TypeLookup lookupType) {
+  static TypeLookup lookupFromElement(Resolution resolution, Element element) {
+    ResolutionDartType lookup(String name, {bool required}) {
+      Element e = element.buildScope().lookup(name);
+      if (e == null || e is! ClassElement) {
+        if (required) {
+          resolution.reporter.reportErrorMessage(element, MessageKind.GENERIC,
+              {'text': "Type '$name' not found."});
+        }
+        return null;
+      }
+      ClassElement cls = e;
+      cls.ensureResolved(resolution);
+      return cls.thisType;
+    }
+
+    return lookup;
+  }
+
+  static dynamic /*DartType|SpecialType*/ _parseType(
+      String typeString, TypeLookup lookupType) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
       return const ResolutionDynamicType();
     }
-    var type = lookupType(typeString);
+    int index = typeString.indexOf('<');
+    var type = lookupType(typeString, required: index == -1);
     if (type != null) return type;
 
-    int index = typeString.indexOf('<');
-    if (index < 1) {
-      reporter.reportErrorMessage(spannable, MessageKind.GENERIC,
-          {'text': "Type '$typeString' not found."});
-      return const ResolutionDynamicType();
+    if (index != -1) {
+      type = lookupType(typeString.substring(0, index), required: true);
+      if (type != null) {
+        // TODO(sra): Parse type parameters.
+        return type;
+      }
     }
-    type = lookupType(typeString.substring(0, index));
-    if (type != null) {
-      // TODO(sra): Parse type parameters.
-      return type;
-    }
-    reporter.reportErrorMessage(spannable, MessageKind.GENERIC,
-        {'text': "Type '$typeString' not found."});
     return const ResolutionDynamicType();
   }
 }
@@ -884,8 +901,7 @@ abstract class BehaviorBuilder {
       StringConstantValue specStringConstant = fields.single;
       String specString = specStringConstant.toDartString().slowToString();
       for (final typeString in specString.split('|')) {
-        var type = NativeBehavior._parseType(
-            typeString, CURRENT_ELEMENT_SPANNABLE, reporter, lookupType);
+        var type = NativeBehavior._parseType(typeString, lookupType);
         if (types == null) types = [];
         types.add(type);
       }
