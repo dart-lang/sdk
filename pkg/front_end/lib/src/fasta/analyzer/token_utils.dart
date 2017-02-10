@@ -5,41 +5,147 @@
 library fasta.analyzer.token_utils;
 
 import 'package:front_end/src/fasta/scanner/token.dart' show
+    KeywordToken,
     Token;
 
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 
-import 'package:analyzer/dart/ast/token.dart' as analyzer show
-    Token;
+import 'package:front_end/src/scanner/token.dart' as analyzer show
+    CommentToken,
+    Keyword,
+    KeywordToken,
+    KeywordTokenWithComment,
+    StringToken,
+    StringTokenWithComment,
+    Token,
+    TokenWithComment;
 
 import 'package:analyzer/dart/ast/token.dart' show
     TokenType;
 
-import 'package:analyzer/src/dart/ast/token.dart' as analyzer show
-    StringToken;
-
 import '../errors.dart' show
     internalError;
 
-analyzer.Token toAnalyzerToken(Token token) {
+analyzer.Token toAnalyzerToken(Token token,
+    [analyzer.CommentToken commentToken]) {
   if (token == null) return null;
+  analyzer.Token makeStringToken(TokenType tokenType) {
+    if (commentToken == null) {
+      return new analyzer.StringToken(tokenType, token.value, token.charOffset);
+    } else {
+      return new analyzer.StringTokenWithComment(
+          tokenType, token.value, token.charOffset, commentToken);
+    }
+  }
+
   switch (token.kind) {
-    case STRING_TOKEN:
-      return new analyzer.StringToken(
-          TokenType.STRING, token.value, token.charOffset);
+    case DOUBLE_TOKEN:
+      return makeStringToken(TokenType.DOUBLE);
+
+    case HEXADECIMAL_TOKEN:
+      return makeStringToken(TokenType.HEXADECIMAL);
 
     case IDENTIFIER_TOKEN:
-      return new analyzer.StringToken(
-          TokenType.IDENTIFIER, token.value, token.charOffset);
+      return makeStringToken(TokenType.IDENTIFIER);
 
     case INT_TOKEN:
-      return new analyzer.StringToken(
-          TokenType.INT, token.value, token.charOffset);
+      return makeStringToken(TokenType.INT);
+
+    case KEYWORD_TOKEN:
+      KeywordToken keywordToken = token;
+      var syntax = keywordToken.keyword.syntax;
+      // TODO(paulberry): if the map lookup proves to be too slow, consider
+      // using a switch statement, or perhaps a string of
+      // "if (identical(syntax, "foo"))" checks.  (Note that identical checks
+      // should be safe because the Fasta scanner uses string literals for
+      // the values of keyword.syntax.)
+      var keyword = _keywordMap[syntax];
+      if (keyword == null) {
+        if (_pseudoKeywords.contains(syntax)) {
+          // TODO(paulberry,ahe): fasta scans "async", "await", and "sync" as
+          // keywords.  They need to be identifiers since their meaning is only
+          // special in certain contexts.
+          return makeStringToken(TokenType.IDENTIFIER);
+        } else {
+          return internalError('Unknown keyword: $syntax');
+        }
+      }
+      if (commentToken == null) {
+        return new analyzer.KeywordToken(keyword, token.charOffset);
+      } else {
+        return new analyzer.KeywordTokenWithComment(
+            keyword, token.charOffset, commentToken);
+      }
+      break;
+
+    case STRING_TOKEN:
+      return makeStringToken(TokenType.STRING);
 
     default:
-      return new analyzer.Token(getTokenType(token), token.charOffset);
+      if (commentToken == null) {
+        return new analyzer.Token(getTokenType(token), token.charOffset);
+      } else {
+        return new analyzer.TokenWithComment(
+            getTokenType(token), token.charOffset, commentToken);
+      }
+      break;
   }
 }
+
+final _keywordMap = {
+  "assert": analyzer.Keyword.ASSERT,
+  "break": analyzer.Keyword.BREAK,
+  "case": analyzer.Keyword.CASE,
+  "catch": analyzer.Keyword.CATCH,
+  "class": analyzer.Keyword.CLASS,
+  "const": analyzer.Keyword.CONST,
+  "continue": analyzer.Keyword.CONTINUE,
+  "default": analyzer.Keyword.DEFAULT,
+  "do": analyzer.Keyword.DO,
+  "else": analyzer.Keyword.ELSE,
+  "enum": analyzer.Keyword.ENUM,
+  "extends": analyzer.Keyword.EXTENDS,
+  "false": analyzer.Keyword.FALSE,
+  "final": analyzer.Keyword.FINAL,
+  "finally": analyzer.Keyword.FINALLY,
+  "for": analyzer.Keyword.FOR,
+  "if": analyzer.Keyword.IF,
+  "in": analyzer.Keyword.IN,
+  "new": analyzer.Keyword.NEW,
+  "null": analyzer.Keyword.NULL,
+  "rethrow": analyzer.Keyword.RETHROW,
+  "return": analyzer.Keyword.RETURN,
+  "super": analyzer.Keyword.SUPER,
+  "switch": analyzer.Keyword.SWITCH,
+  "this": analyzer.Keyword.THIS,
+  "throw": analyzer.Keyword.THROW,
+  "true": analyzer.Keyword.TRUE,
+  "try": analyzer.Keyword.TRY,
+  "var": analyzer.Keyword.VAR,
+  "void": analyzer.Keyword.VOID,
+  "while": analyzer.Keyword.WHILE,
+  "with": analyzer.Keyword.WITH,
+  "is": analyzer.Keyword.IS,
+  "abstract": analyzer.Keyword.ABSTRACT,
+  "as": analyzer.Keyword.AS,
+  "covariant": analyzer.Keyword.COVARIANT,
+  "dynamic": analyzer.Keyword.DYNAMIC,
+  "export": analyzer.Keyword.EXPORT,
+  "external": analyzer.Keyword.EXTERNAL,
+  "factory": analyzer.Keyword.FACTORY,
+  "get": analyzer.Keyword.GET,
+  "implements": analyzer.Keyword.IMPLEMENTS,
+  "import": analyzer.Keyword.IMPORT,
+  "library": analyzer.Keyword.LIBRARY,
+  "operator": analyzer.Keyword.OPERATOR,
+  "part": analyzer.Keyword.PART,
+  "set": analyzer.Keyword.SET,
+  "static": analyzer.Keyword.STATIC,
+  "typedef": analyzer.Keyword.TYPEDEF,
+  "deferred": analyzer.Keyword.DEFERRED,
+};
+
+final _pseudoKeywords = new Set<String>.from(['async', 'await', 'sync']);
 
 TokenType getTokenType(Token token) {
   switch (token.kind) {
@@ -109,8 +215,8 @@ TokenType getTokenType(Token token) {
     case SLASH_EQ_TOKEN: return TokenType.SLASH_EQ;
     case STAR_TOKEN: return TokenType.STAR;
     case STAR_EQ_TOKEN: return TokenType.STAR_EQ;
-    // case STRING_INTERPOLATION_EXPRESSION_TOKEN:
-    //   return TokenType.STRING_INTERPOLATION_EXPRESSION;
+    case STRING_INTERPOLATION_TOKEN:
+      return TokenType.STRING_INTERPOLATION_EXPRESSION;
     case STRING_INTERPOLATION_IDENTIFIER_TOKEN:
       return TokenType.STRING_INTERPOLATION_IDENTIFIER;
     case TILDE_TOKEN: return TokenType.TILDE;

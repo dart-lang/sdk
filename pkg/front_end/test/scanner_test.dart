@@ -165,6 +165,14 @@ abstract class ScannerTestBase {
     _assertToken(TokenType.AMPERSAND_EQ, "&=");
   }
 
+  void test_async_star() {
+    Token token = _scan("async*");
+    expect(token.type, TokenType.IDENTIFIER);
+    expect(token.lexeme, 'async');
+    expect(token.next.type, TokenType.STAR);
+    expect(token.next.next.type, TokenType.EOF);
+  }
+
   void test_at() {
     _assertToken(TokenType.AT, "@");
   }
@@ -445,6 +453,14 @@ abstract class ScannerTestBase {
     _assertKeywordToken("assert");
   }
 
+  void test_keyword_async() {
+    _assertIdentifierToken("async");
+  }
+
+  void test_keyword_await() {
+    _assertIdentifierToken("await");
+  }
+
   void test_keyword_break() {
     _assertKeywordToken("break");
   }
@@ -587,6 +603,10 @@ abstract class ScannerTestBase {
 
   void test_keyword_switch() {
     _assertKeywordToken("switch");
+  }
+
+  void test_keyword_sync() {
+    _assertIdentifierToken("sync");
   }
 
   void test_keyword_this() {
@@ -1013,6 +1033,14 @@ abstract class ScannerTestBase {
     ]);
   }
 
+  void test_sync_star() {
+    Token token = _scan("sync*");
+    expect(token.type, TokenType.IDENTIFIER);
+    expect(token.lexeme, 'sync');
+    expect(token.next.type, TokenType.STAR);
+    expect(token.next.next.type, TokenType.EOF);
+  }
+
   void test_tilde() {
     _assertToken(TokenType.TILDE, "~");
   }
@@ -1091,6 +1119,26 @@ abstract class ScannerTestBase {
     listener
         .assertErrors([new TestError(expectedOffset, 1, expectedError, null)]);
     _checkTokens(token, expectedTokens);
+  }
+
+  /**
+   * Assert that when scanned the given [source] contains a single identifier
+   * token with the same lexeme as the original source.
+   */
+  void _assertIdentifierToken(String source) {
+    void check(String s, int expectedOffset) {
+      Token token = _scan(s);
+      expect(token, isNotNull);
+      expect(token.type, TokenType.IDENTIFIER);
+      expect(token.offset, expectedOffset);
+      expect(token.length, source.length);
+      expect(token.lexeme, source);
+      expect(token.value(), source);
+      expect(token.next.type, TokenType.EOF);
+    }
+
+    check(source, 0);
+    check(' $source ', 1);
   }
 
   /**
