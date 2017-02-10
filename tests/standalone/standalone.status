@@ -12,6 +12,8 @@ io/http_close_test: Pass, RuntimeError # Issue 28380
 
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip   # contains no tests.
+dart_developer_disabled_env_test: Skip # Issue 28718
+dart_developer_env_test: Skip # Issue 28718
 
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Fail, OK # CompileTimeErrors intentionally
