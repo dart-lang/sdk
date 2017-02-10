@@ -433,7 +433,7 @@ abstract class FileSystemEntity {
    * being listened to, not when the call to [watch] is issued.
    *
    * The returned value is an endless broadcast [Stream], that only stops when
-   * one of the following happends:
+   * one of the following happens:
    *
    *   * The [Stream] is canceled, e.g. by calling `cancel` on the
    *      [StreamSubscription].

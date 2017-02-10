@@ -582,7 +582,7 @@ abstract class RandomAccessFile {
    * bytes will be filled into [buffer] from at index [start], otherwise index
    * 0. If [end] is present, the [end] - [start] bytes will be read into
    * [buffer], otherwise up to [buffer.length]. If [end] == [start] nothing
-   * happends.
+   * happens.
    *
    * Returns a [:Future<int>:] that completes with the number of bytes read.
    */
@@ -593,7 +593,7 @@ abstract class RandomAccessFile {
    * present, the bytes will be filled into [buffer] from at index [start],
    * otherwise index 0.  If [end] is present, the [end] - [start] bytes will be
    * read into [buffer], otherwise up to [buffer.length]. If [end] == [start]
-   * nothing happends.
+   * nothing happens.
    *
    * Throws a [FileSystemException] if the operation fails.
    */
