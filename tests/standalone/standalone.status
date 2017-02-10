@@ -352,6 +352,8 @@ link_natives_lazily_test: SkipByDesign
 # SIMDBC interpreter doesn't support --no_lazy_dispatchers
 no_lazy_dispatchers_test: SkipByDesign
 
+io/secure_unauthorized_test: Pass, RuntimeError # Issue 28719
+
 [ $system == android ]
 # Issue 26376
 io/platform_resolved_executable_test: RuntimeError
