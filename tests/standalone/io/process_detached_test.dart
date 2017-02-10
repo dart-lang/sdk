@@ -47,7 +47,7 @@ void testWithStdio() {
     Expect.isNull(process.exitCode);
     var message = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     process.stdin.add(message);
-    process.stdin.close();
+    process.stdin.flush().then((_) => process.stdin.close());
     var f1 = process.stdout.fold([], (p, e) => p..addAll(e));
     var f2 = process.stderr.fold([], (p, e) => p..addAll(e));
     Future.wait([f1, f2])

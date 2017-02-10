@@ -54,6 +54,7 @@ class StdioProcess {
     });
     if (input != null) {
       process.stdin.write(input);
+      await process.stdin.flush();
     }
     Future closeFuture = process.stdin.close();
     Future<List<String>> stdoutFuture =

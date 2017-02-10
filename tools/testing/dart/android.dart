@@ -55,6 +55,7 @@ Future<AdbCommandResult> _executeCommand(
   return Process.start(executable, args).then((Process process) async {
     if (stdin != null && stdin != '') {
       process.stdin.write(stdin);
+      await process.stdin.flush();
     }
     process.stdin.close();
 

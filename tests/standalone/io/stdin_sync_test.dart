@@ -17,7 +17,7 @@ void testReadByte() {
                   [script]..addAll(
                       expected.map(JSON.encode))).then((process) {
       process.stdin.write(line);
-      process.stdin.close();
+      process.stdin.flush().then((_) => process.stdin.close());
       process.stderr
           .transform(UTF8.decoder)
           .transform(new LineSplitter())
