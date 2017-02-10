@@ -22422,7 +22422,7 @@ const char* StackTrace::ToCStringInternal(const StackTrace& stack_trace_in,
         ASSERT(code.IsFunctionCode());
         intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
         if (code.is_optimized() && stack_trace.expand_inlined() &&
-            !FLAG_precompiled_runtime) {
+            !FLAG_precompiled_mode) {
           code.GetInlinedFunctionsAtReturnAddress(pc_offset, &inlined_functions,
                                                   &inlined_token_positions);
           ASSERT(inlined_functions.length() >= 1);
