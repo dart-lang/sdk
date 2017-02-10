@@ -224,7 +224,6 @@ class ScannerTest_Fasta extends ScannerTestBase {
     // TODO(paulberry,ahe): why is endOffset sometimes null?
     int endOffset = token.endOffset ?? charOffset;
     TestError _makeError(ScannerErrorCode errorCode, List<Object> arguments) {
-      int errorLength = endOffset - charOffset;
       if (charOffset == inputLength) {
         // Analyzer never generates an error message past the end of the input,
         // since such an error would not be visible in an editor.
@@ -232,14 +231,7 @@ class ScannerTest_Fasta extends ScannerTestBase {
         // in fasta, or move it elsewhere in analyzer?
         charOffset--;
       }
-      if (errorLength == 0) {
-        // Analyzer never generates an error message of length zero,
-        // since such an error would not be visible in an editor.
-        // TODO(paulberry,ahe): would it make sense to replicate this behavior
-        // in fasta, or move it elsewhere in analyzer?
-        errorLength = 1;
-      }
-      return new TestError(charOffset, errorLength, errorCode, arguments);
+      return new TestError(charOffset, errorCode, arguments);
     }
 
     var errorCode = token.errorCode;

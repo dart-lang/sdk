@@ -1132,7 +1132,7 @@ abstract class ScannerTestBase {
     ErrorListener listener = new ErrorListener();
     scanWithListener(source, listener);
     listener.assertErrors(
-        [new TestError(expectedOffset, 1, expectedError, arguments)]);
+        [new TestError(expectedOffset, expectedError, arguments)]);
   }
 
   /**
@@ -1148,8 +1148,7 @@ abstract class ScannerTestBase {
       String source, List<Token> expectedTokens) {
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener(source, listener);
-    listener
-        .assertErrors([new TestError(expectedOffset, 1, expectedError, null)]);
+    listener.assertErrors([new TestError(expectedOffset, expectedError, null)]);
     _checkTokens(token, expectedTokens);
   }
 
@@ -1295,15 +1294,14 @@ abstract class ScannerTestBase {
 
 class TestError {
   final int offset;
-  final int length;
   final ErrorCode errorCode;
   final List<Object> arguments;
 
-  TestError(this.offset, this.length, this.errorCode, this.arguments);
+  TestError(this.offset, this.errorCode, this.arguments);
 
   @override
   get hashCode {
-    var h = new JenkinsSmiHash()..add(offset)..add(length)..add(errorCode);
+    var h = new JenkinsSmiHash()..add(offset)..add(errorCode);
     if (arguments != null) {
       for (Object argument in arguments) {
         h.add(argument);
@@ -1316,7 +1314,6 @@ class TestError {
   operator ==(Object other) {
     if (other is TestError &&
         offset == other.offset &&
-        length == other.length &&
         errorCode == other.errorCode) {
       if (arguments == null) return other.arguments == null;
       if (other.arguments == null) return false;
@@ -1331,9 +1328,8 @@ class TestError {
 
   @override
   toString() {
-    var end = offset + length;
     var argString = arguments == null ? '' : '(${arguments.join(', ')})';
-    return 'Error($offset..$end, $errorCode$argString)';
+    return 'Error($offset, $errorCode$argString)';
   }
 }
 
@@ -1414,7 +1410,7 @@ class _TestScanner extends Scanner {
   void reportError(
       ScannerErrorCode errorCode, int offset, List<Object> arguments) {
     if (listener != null) {
-      listener.errors.add(new TestError(offset, 1, errorCode, arguments));
+      listener.errors.add(new TestError(offset, errorCode, arguments));
     }
   }
 }
