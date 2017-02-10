@@ -12,6 +12,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -99,8 +100,9 @@ class ExecutionDomainHandler implements RequestHandler {
     }
 
     SourceFactory sourceFactory;
+    AnalysisDriver driver;
     if (server.options.enableNewAnalysisDriver) {
-      var driver = server.getAnalysisDriver(path);
+      driver = server.getAnalysisDriver(path);
       if (driver == null) {
         return new Response.invalidExecutionContext(request, contextId);
       }
@@ -127,8 +129,14 @@ class ExecutionDomainHandler implements RequestHandler {
         return new Response.invalidParameter(
             request, 'file', 'Must not refer to a directory');
       }
-      ContextSourcePair contextSource = server.getContextSourcePair(file);
-      Source source = contextSource.source;
+
+      Source source;
+      if (server.options.enableNewAnalysisDriver) {
+        source = driver.fsState.getFileForPath(file).source;
+      } else {
+        ContextSourcePair contextSource = server.getContextSourcePair(file);
+        source = contextSource.source;
+      }
       if (source.uriKind != UriKind.FILE_URI) {
         uri = source.uri.toString();
       } else {
