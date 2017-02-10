@@ -1951,7 +1951,6 @@ class RunningProcess {
                   executable = win_sdk_path +
                       "\\Debuggers\\" + (is_x64 ? "x64" : "x86") + "\\cdb.exe";
                   diagnostics.add("Using $executable to print stack traces");
-                  arguments = ['-p', '${process.pid}', '-c', '!uniqstack;qd'];
                 } else {
                   diagnostics.add("win_sdk path not found");
                 }
