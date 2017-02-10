@@ -262,7 +262,8 @@ class ArgListContributor extends DartCompletionContributor {
           parameterName: name,
           parameterType: type);
       if (parameter is FieldFormalParameterElement) {
-        _setDocumentation(suggestion, parameter.field.documentationComment);
+        _setDocumentation(suggestion, parameter.field?.documentationComment);
+        suggestion.element = convertElement(parameter);
       }
       suggestions.add(suggestion);
     }

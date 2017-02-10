@@ -482,37 +482,57 @@ class A { const A(int one, int two, int three, {int four, String five:
   }
 
   test_ArgumentList_local_constructor_named_fieldFormal_documentation() async {
-    addTestSource('''
+    String content = '''
 class A {
   /// aaa
   ///
   /// bbb
   /// ccc
   int fff;
-A({this.fff}) { } }
+  A({this.fff});
+}
 main() {
   new A(^);
 }
-''');
+''';
+    addTestSource(content);
     await computeSuggestions();
     expect(suggestions, hasLength(1));
-    expect(suggestions[0].docSummary, 'aaa');
-    expect(suggestions[0].docComplete, 'aaa\n\nbbb\nccc');
+
+    CompletionSuggestion suggestion = suggestions[0];
+    expect(suggestion.docSummary, 'aaa');
+    expect(suggestion.docComplete, 'aaa\n\nbbb\nccc');
+
+    Element element = suggestion.element;
+    expect(element, isNotNull);
+    expect(element.kind, ElementKind.PARAMETER);
+    expect(element.name, 'fff');
+    expect(element.location.offset, content.indexOf('fff})'));
   }
 
   test_ArgumentList_local_constructor_named_fieldFormal_noDocumentation() async {
-    addTestSource('''
+    String content = '''
 class A {
   int fff;
-A({this.fff}) { } }
+  A({this.fff});
+}
 main() {
   new A(^);
 }
-''');
+''';
+    addTestSource(content);
     await computeSuggestions();
     expect(suggestions, hasLength(1));
-    expect(suggestions[0].docSummary, isNull);
-    expect(suggestions[0].docComplete, isNull);
+
+    CompletionSuggestion suggestion = suggestions[0];
+    expect(suggestion.docSummary, isNull);
+    expect(suggestion.docComplete, isNull);
+
+    Element element = suggestion.element;
+    expect(element, isNotNull);
+    expect(element.kind, ElementKind.PARAMETER);
+    expect(element.name, 'fff');
+    expect(element.location.offset, content.indexOf('fff})'));
   }
 
   test_ArgumentList_local_constructor_named_param() async {

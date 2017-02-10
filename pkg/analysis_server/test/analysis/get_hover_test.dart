@@ -308,6 +308,48 @@ class A {
     expect(hover.parameter, isNull);
   }
 
+  test_expression_parameter_fieldFormal_declaration() async {
+    addTestFile('''
+class A {
+  /// The field documentation.
+  final int fff;
+  A({this.fff});
+}
+main() {
+  new A(fff: 42);
+}
+''');
+    HoverInformation hover = await prepareHover('fff});');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, 'The field documentation.');
+    expect(hover.elementDescription, '{int fff}');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int');
+  }
+
+  test_expression_parameter_fieldFormal_use() async {
+    addTestFile('''
+class A {
+  /// The field documentation.
+  final int fff;
+  A({this.fff});
+}
+main() {
+  new A(fff: 42);
+}
+''');
+    HoverInformation hover = await prepareHover('fff: 42');
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, 'The field documentation.');
+    expect(hover.elementDescription, '{int fff}');
+    expect(hover.elementKind, 'parameter');
+    expect(hover.staticType, 'int');
+  }
+
   test_expression_syntheticGetter_invocation() async {
     addTestFile('''
 library my.library;
