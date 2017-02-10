@@ -75,7 +75,9 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
   }
 
   @override
-  void enterNode(Node, int startPosition) {}
+  void enterNode(Node node, int startPosition) {
+    codePositionListener.onStartPosition(node, startPosition);
+  }
 
   @override
   void exitNode(

@@ -25,8 +25,15 @@ class JavaScriptSourceInformationStrategy extends SourceInformationStrategy {
 class CodePositionListener {
   const CodePositionListener();
 
+  /// Called to associate [node] with the provided start position.
+  ///
+  /// The nodes are seen in pre-traversal order.
+  void onStartPosition(Node node, int startPosition) {}
+
   /// Called to associate [node] with the provided start, end and closing
   /// positions.
+  ///
+  /// The nodes are seen in post-traversal order.
   void onPositions(
       Node node, int startPosition, int endPosition, int closingPosition) {}
 }

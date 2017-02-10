@@ -425,7 +425,7 @@ enum CodePositionKind {
 
 /// Processor that associates [SourceLocation]s from [SourceInformation] on
 /// [js.Node]s with the target offsets in a [SourceMapper].
-class PositionSourceInformationProcessor implements SourceInformationProcessor {
+class PositionSourceInformationProcessor extends SourceInformationProcessor {
   final CodePositionRecorder codePositionRecorder = new CodePositionRecorder();
   CodePositionMap codePositionMap;
   List<TraceListener> traceListeners;
