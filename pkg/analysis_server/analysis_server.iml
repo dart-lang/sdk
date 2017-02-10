@@ -28,7 +28,6 @@
       <excludeFolder url="file://$MODULE_DIR$/test/services/correction/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/services/dependencies/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/services/index/packages" />
-      <excludeFolder url="file://$MODULE_DIR$/test/services/index/store/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/services/linter/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/services/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/services/refactoring/packages" />
@@ -54,5 +53,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Dart SDK" level="application" />
+    <orderEntry type="library" name="Dart SDK" level="project" />
+    <orderEntry type="library" name="Dart Packages" level="project" />
   </component>
 </module>
