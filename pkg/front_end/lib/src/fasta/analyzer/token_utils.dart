@@ -54,22 +54,22 @@ analyzer.Token toAnalyzerToken(Token token,
     case KEYWORD_TOKEN:
       KeywordToken keywordToken = token;
       var syntax = keywordToken.keyword.syntax;
+      if (keywordToken.keyword.isPseudo) {
+        // TODO(paulberry,ahe): Fasta considers "deferred" be a "pseudo-keyword"
+        // (ordinary identifier which has special meaning under circumstances),
+        // but analyzer and the spec consider it to be a built-in identifier
+        // (identifier which can't be used in type names).
+        if (!identical(syntax, 'deferred')) {
+          return makeStringToken(TokenType.IDENTIFIER);
+        }
+      }
       // TODO(paulberry): if the map lookup proves to be too slow, consider
       // using a switch statement, or perhaps a string of
       // "if (identical(syntax, "foo"))" checks.  (Note that identical checks
       // should be safe because the Fasta scanner uses string literals for
       // the values of keyword.syntax.)
-      var keyword = _keywordMap[syntax];
-      if (keyword == null) {
-        if (_pseudoKeywords.contains(syntax)) {
-          // TODO(paulberry,ahe): fasta scans "async", "await", and "sync" as
-          // keywords.  They need to be identifiers since their meaning is only
-          // special in certain contexts.
-          return makeStringToken(TokenType.IDENTIFIER);
-        } else {
-          return internalError('Unknown keyword: $syntax');
-        }
-      }
+      var keyword =
+          _keywordMap[syntax] ?? internalError('Unknown keyword: $syntax');
       if (commentToken == null) {
         return new analyzer.KeywordToken(keyword, token.charOffset);
       } else {
@@ -144,8 +144,6 @@ final _keywordMap = {
   "typedef": analyzer.Keyword.TYPEDEF,
   "deferred": analyzer.Keyword.DEFERRED,
 };
-
-final _pseudoKeywords = new Set<String>.from(['async', 'await', 'sync']);
 
 TokenType getTokenType(Token token) {
   switch (token.kind) {

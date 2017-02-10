@@ -541,6 +541,10 @@ abstract class ScannerTestBase {
     _assertKeywordToken("get");
   }
 
+  void test_keyword_hide() {
+    _assertIdentifierToken("hide");
+  }
+
   void test_keyword_if() {
     _assertKeywordToken("if");
   }
@@ -565,6 +569,10 @@ abstract class ScannerTestBase {
     _assertKeywordToken("library");
   }
 
+  void test_keyword_native() {
+    _assertIdentifierToken("native");
+  }
+
   void test_keyword_new() {
     _assertKeywordToken("new");
   }
@@ -573,12 +581,24 @@ abstract class ScannerTestBase {
     _assertKeywordToken("null");
   }
 
+  void test_keyword_of() {
+    _assertIdentifierToken("of");
+  }
+
+  void test_keyword_on() {
+    _assertIdentifierToken("on");
+  }
+
   void test_keyword_operator() {
     _assertKeywordToken("operator");
   }
 
   void test_keyword_part() {
     _assertKeywordToken("part");
+  }
+
+  void test_keyword_patch() {
+    _assertIdentifierToken("patch");
   }
 
   void test_keyword_rethrow() {
@@ -591,6 +611,14 @@ abstract class ScannerTestBase {
 
   void test_keyword_set() {
     _assertKeywordToken("set");
+  }
+
+  void test_keyword_show() {
+    _assertIdentifierToken("show");
+  }
+
+  void test_keyword_source() {
+    _assertIdentifierToken("source");
   }
 
   void test_keyword_static() {
@@ -643,6 +671,10 @@ abstract class ScannerTestBase {
 
   void test_keyword_with() {
     _assertKeywordToken("with");
+  }
+
+  void test_keyword_yield() {
+    _assertIdentifierToken("yield");
   }
 
   void test_lt() {
