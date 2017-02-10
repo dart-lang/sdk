@@ -1929,10 +1929,12 @@ class PkgBuildTestSuite extends TestSuite {
         var cacheDir = new Path(checkoutDir).append("pub-cache").toNativePath();
 
         // Build all commands
+        // In order to debug timeouts on the buildbots, We run `pub get` with
+        // "--verbose". See https://github.com/dart-lang/sdk/issues/28734.
         var commands = [
           CommandBuilder.instance.getCopyCommand(directory, checkoutDir),
           CommandBuilder.instance.getPubCommand(
-              "get", pubPath, checkoutDir, cacheDir)
+              "get", pubPath, checkoutDir, cacheDir, arguments: ['--verbose'])
         ];
 
         bool containsWebDirectory = dirExists(directoryPath.append('web'));

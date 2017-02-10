@@ -452,11 +452,11 @@ class PubCommand extends ProcessCommand {
   final String command;
 
   PubCommand._(String pubCommand, String pubExecutable,
-      String pubspecYamlDirectory, String pubCacheDirectory)
+      String pubspecYamlDirectory, String pubCacheDirectory, List<String> args)
       : super._(
             'pub_$pubCommand',
             new io.File(pubExecutable).absolute.path,
-            [pubCommand],
+            [pubCommand]..addAll(args),
             {'PUB_CACHE': pubCacheDirectory},
             pubspecYamlDirectory),
         command = pubCommand;
@@ -695,9 +695,11 @@ class CommandBuilder {
   }
 
   Command getPubCommand(String pubCommand, String pubExecutable,
-      String pubspecYamlDirectory, String pubCacheDirectory) {
+      String pubspecYamlDirectory, String pubCacheDirectory,
+      {List<String> arguments: const <String>[]}) {
     var command = new PubCommand._(
-        pubCommand, pubExecutable, pubspecYamlDirectory, pubCacheDirectory);
+        pubCommand, pubExecutable, pubspecYamlDirectory, pubCacheDirectory,
+        arguments);
     return _getUniqueCommand(command);
   }
 
