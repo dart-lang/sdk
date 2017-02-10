@@ -190,11 +190,6 @@ class Server {
   List<String> _analysisRootIncludes = <String>[];
 
   /**
-   * The analysis roots that are excluded.
-   */
-  List<String> _analysisRootExcludes = <String>[];
-
-  /**
    * A list containing the paths of files for which an overlay has been created.
    */
   List<String> filesWithOverlays = <String>[];
@@ -448,7 +443,6 @@ class Server {
       List<String> included, List<String> excluded,
       {Map<String, String> packageRoots}) {
     _analysisRootIncludes = included;
-    _analysisRootExcludes = excluded;
     var params = new AnalysisSetAnalysisRootsParams(included, excluded,
             packageRoots: packageRoots)
         .toJson();
