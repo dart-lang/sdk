@@ -55,7 +55,7 @@ vars = {
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.1",
   "csslib_tag" : "@0.13.2",
-  "dart2js_info_tag" : "@0.5.3",
+  "dart2js_info_tag" : "@0.5.3+1",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.16",
   "dartdoc_tag" : "@v0.9.8+1",
