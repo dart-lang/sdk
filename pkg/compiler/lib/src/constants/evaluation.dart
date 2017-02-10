@@ -4,10 +4,9 @@
 
 library dart2js.constants.evaluation;
 
-import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
+import '../common/backend_api.dart' show BackendClasses;
+import '../core_types.dart' show CommonElements;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import 'constructors.dart';
@@ -17,7 +16,9 @@ import 'expressions.dart';
 abstract class Environment {
   // TODO(johnniwinther): Replace this with [CommonElements] and maybe
   // [Backend].
-  Compiler get compiler;
+  CommonElements get commonElements;
+
+  BackendClasses get backendClasses;
 
   /// Read environments string passed in using the '-Dname=value' option.
   String readFromEnvironment(String name);

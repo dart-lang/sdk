@@ -189,7 +189,8 @@ class CustomElementsAnalysisJoin {
 
   TypeConstantValue makeTypeConstant(ClassElement element) {
     ResolutionDartType elementType = element.rawType;
-    return backend.constantSystem.createType(compiler, elementType);
+    return backend.constantSystem.createType(
+        compiler.commonElements, compiler.backend.backendClasses, elementType);
   }
 
   List<ConstructorElement> computeEscapingConstructors(

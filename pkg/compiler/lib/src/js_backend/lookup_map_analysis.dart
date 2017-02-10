@@ -233,8 +233,10 @@ class LookupMapAnalysis {
       key.isPrimitive || _inUse.contains(key) || _overridesEquals(key);
 
   void _addClassUse(ClassElement cls) {
-    ConstantValue key = _typeConstants.putIfAbsent(cls,
-        () => backend.constantSystem.createType(backend.compiler, cls.rawType));
+    ConstantValue key = _typeConstants.putIfAbsent(
+        cls,
+        () => backend.constantSystem.createType(
+            backend.commonElements, backend.backendClasses, cls.rawType));
     _addUse(key);
   }
 

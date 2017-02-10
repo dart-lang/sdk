@@ -3175,4 +3175,27 @@ class JavaScriptBackendClasses implements BackendClasses {
   bool isNativeMember(MemberElement element) {
     return _nativeData.isNative(element);
   }
+
+  InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
+      {bool hasProtoKey: false, bool onlyStringKeys: false}) {
+    ClassElement classElement = onlyStringKeys
+        ? (hasProtoKey
+            ? helpers.constantProtoMapClass
+            : helpers.constantStringMapClass)
+        : helpers.generalConstantMapClass;
+    List<DartType> typeArgument = sourceType.typeArguments;
+    if (sourceType.treatAsRaw) {
+      return _env.getRawType(classElement);
+    } else {
+      return _env.createInterfaceType(classElement, typeArgument);
+    }
+  }
+
+  @override
+  FieldEntity get symbolField => helpers.symbolImplementationField;
+
+  @override
+  InterfaceType get symbolType {
+    return _env.getRawType(helpers.symbolImplementationClass);
+  }
 }

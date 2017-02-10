@@ -441,6 +441,14 @@ class BackendHelpers {
   ClassEntity get symbolImplementationClass =>
       _symbolImplementationClass ??= _findClass(internalLibrary, 'Symbol');
 
+  FieldEntity _symbolImplementationField;
+
+  /// Returns the field that holds the internal name in the implementation class
+  /// for `Symbol`.
+  FieldEntity get symbolImplementationField => _symbolImplementationField ??=
+      _env.lookupClassMember(symbolImplementationClass, '_name',
+          required: true);
+
   ConstructorEntity _symbolValidatedConstructor;
 
   bool isSymbolValidatedConstructor(ConstructorEntity element) {

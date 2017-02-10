@@ -112,7 +112,8 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     if (kernel.syntheticNodes.contains(node)) {
-      return _backend.constantSystem.createSymbol(_compiler, node.value);
+      return _backend.constantSystem.createSymbol(
+          _compiler.commonElements, _backend.backendClasses, node.value);
     }
     ast.Node astNode = getNode(node);
     ConstantValue constantValue = _backend.constants
@@ -311,7 +312,8 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
 
   ConstantValue getConstantForType(ir.DartType irType) {
     ResolutionDartType type = getDartType(irType);
-    return _backend.constantSystem.createType(_compiler, type.asRaw());
+    return _backend.constantSystem.createType(
+        _compiler.commonElements, _backend.backendClasses, type.asRaw());
   }
 
   bool isIntercepted(ir.Node node) {

@@ -4,6 +4,7 @@
 
 library dart2js.compile_time_constant_evaluator;
 
+import 'common/backend_api.dart' show BackendClasses;
 import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common.dart';
@@ -506,7 +507,11 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
         node,
         new MapConstantExpression(type, keyExpressions, valueExpressions),
         constantSystem.createMap(
-            compiler, type, keyValues, map.values.toList()));
+            compiler.commonElements,
+            compiler.backend.backendClasses,
+            type,
+            keyValues,
+            map.values.toList()));
   }
 
   AstConstant visitLiteralNull(LiteralNull node) {
@@ -601,7 +606,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   }
 
   ConstantValue makeTypeConstant(ResolutionDartType elementType) {
-    return constantSystem.createType(compiler, elementType);
+    return constantSystem.createType(
+        compiler.commonElements, compiler.backend.backendClasses, elementType);
   }
 
   /// Returns true if the prefix of the send resolves to a deferred import
@@ -1442,13 +1448,19 @@ class ErroneousAstConstant extends AstConstant {
 }
 
 class _CompilerEnvironment implements Environment {
-  final Compiler compiler;
+  final Compiler _compiler;
 
-  _CompilerEnvironment(this.compiler);
+  _CompilerEnvironment(this._compiler);
+
+  @override
+  BackendClasses get backendClasses => _compiler.backend.backendClasses;
+
+  @override
+  CommonElements get commonElements => _compiler.commonElements;
 
   @override
   String readFromEnvironment(String name) {
-    return compiler.fromEnvironment(name);
+    return _compiler.fromEnvironment(name);
   }
 
   @override

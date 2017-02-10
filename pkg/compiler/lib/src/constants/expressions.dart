@@ -482,8 +482,12 @@ class MapConstantExpression extends ConstantExpression {
       ConstantValue value = values[index].evaluate(environment, constantSystem);
       valueMap[key] = value;
     }
-    return constantSystem.createMap(environment.compiler, type,
-        valueMap.keys.toList(), valueMap.values.toList());
+    return constantSystem.createMap(
+        environment.commonElements,
+        environment.backendClasses,
+        type,
+        valueMap.keys.toList(),
+        valueMap.values.toList());
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
@@ -734,7 +738,8 @@ class SymbolConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return constantSystem.createSymbol(environment.compiler, name);
+    return constantSystem.createSymbol(
+        environment.commonElements, environment.backendClasses, name);
   }
 
   @override
@@ -769,7 +774,8 @@ class TypeConstantExpression extends ConstantExpression {
   @override
   ConstantValue evaluate(
       Environment environment, ConstantSystem constantSystem) {
-    return constantSystem.createType(environment.compiler, type);
+    return constantSystem.createType(
+        environment.commonElements, environment.backendClasses, type);
   }
 
   @override

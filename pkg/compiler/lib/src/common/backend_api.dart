@@ -209,4 +209,17 @@ abstract class BackendClasses {
 
   /// Returns `true` if [element] is a native member of a native class.
   bool isNativeMember(MemberEntity element);
+
+  /// Returns the type of the constant map implementation for a const map
+  /// literal of [sourceType]. If [hasProtoKey] the map contains key of value
+  /// '__proto__' and if [onlyStringKeys] all keys are string constants.
+  InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
+      {bool hasProtoKey: false, bool onlyStringKeys: false});
+
+  /// Returns the type of the constant symbol implementation class.
+  InterfaceType get symbolType;
+
+  /// Returns the field of the constant symbol implementation class that holds
+  /// its internal name.
+  FieldEntity get symbolField;
 }
