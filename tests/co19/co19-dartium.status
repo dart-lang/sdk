@@ -1218,7 +1218,7 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Skip # 
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Skip # Timesout sporadically
 
 [ $compiler == none && $runtime == dartium ]
-LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # Issue 28724
+LayoutTests/fast/css/font-face-unicode-range-monospace_t01: Pass, RuntimeError # Issue 28724
 
 [ $compiler == none && $runtime == dartium && $system == linux ]
 language/mixin_illegal_constructor_test/01: Skip # Issue 43
