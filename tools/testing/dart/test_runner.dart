@@ -3257,7 +3257,7 @@ class ProcessQueue {
           eventFinishedTestCase(finishedTestCase);
         }
       }, onDone: () {
-        // Wait until the commandQueue/execturo is done (it may need to stop
+        // Wait until the commandQueue/exectutor is done (it may need to stop
         // batch runners, browser controllers, ....)
         commandQueue.done.then((_) {
           cancelDebugTimer();

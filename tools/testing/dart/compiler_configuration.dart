@@ -789,8 +789,8 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       : super._subclass(isDebug: isDebug, isChecked: isChecked);
 
   int computeTimeoutMultiplier() {
-    int multiplier = 2;
-    if (isDebug) multiplier *= 4;
+    int multiplier = 1;
+    if (isDebug) multiplier *= 2;
     if (isChecked) multiplier *= 2;
     return multiplier;
   }
