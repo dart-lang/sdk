@@ -9,11 +9,8 @@
 
 io/raw_socket_test: Pass, RuntimeError # Issue 28288
 io/http_close_test: Pass, RuntimeError # Issue 28380
-
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip   # contains no tests.
-dart_developer_disabled_env_test: Skip # Issue 28718
-dart_developer_env_test: Skip # Issue 28718
 
 package/invalid_uri_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Fail, OK # CompileTimeErrors intentionally
@@ -86,6 +83,7 @@ map_insert_remove_oom_test: Skip  # Issue 24571
 verbose_gc_to_bmu_test: Skip
 regress_26031_test: SkipByDesign # Standalone only test
 env_test: Skip # This is testing a vm command line parsing scenario.
+dart_developer_disabled_env_test: SkipByDesign # Dartium does not respect VMOptions
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
@@ -127,6 +125,8 @@ unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 regress_25335_test: Skip # Int64List not supported.
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
+dart_developer_env_test: SkipByDesign # Unsupported by dart2js
+dart_developer_disabled_env_test: SkipByDesign # Unsupported by dart2js
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
