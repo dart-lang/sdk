@@ -3867,6 +3867,13 @@ C c;
 ''');
   }
 
+  test_instantiateToBounds_functionTypeAlias_simple() {
+    checkLibrary('''
+typedef F<T extends num>(T p);
+F f;
+''');
+  }
+
   test_instantiateToBounds_simple() {
     checkLibrary('''
 class C<T extends num> {}

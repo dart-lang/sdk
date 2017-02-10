@@ -1289,22 +1289,20 @@ class _ReferenceInfo {
       if (numTypeParameters == 0) {
         return element.type;
       } else if (numTypeArguments == numTypeParameters) {
-        typeArguments = new List<DartType>(numTypeParameters);
-        for (int i = 0; i < numTypeParameters; i++) {
-          typeArguments[i] = getTypeArgument(i);
-        }
+        typeArguments = _buildTypeArguments(numTypeArguments, getTypeArgument);
       }
       InterfaceTypeImpl type =
           new InterfaceTypeImpl.elementWithNameAndArgs(element, name, () {
         if (typeArguments == null) {
-          typeArguments = new List<DartType>.filled(
-              element.typeParameters.length, DynamicTypeImpl.instance);
           if (libraryResynthesizer.summaryResynthesizer.strongMode &&
               instantiateToBoundsAllowed) {
             InterfaceType instantiatedToBounds = libraryResynthesizer
                 .summaryResynthesizer.context.typeSystem
                 .instantiateToBounds(element.type) as InterfaceType;
             return instantiatedToBounds.typeArguments;
+          } else {
+            return new List<DartType>.filled(
+                numTypeParameters, DynamicTypeImpl.instance);
           }
         }
         return typeArguments;
@@ -1317,33 +1315,45 @@ class _ReferenceInfo {
       // Done.
       return type;
     } else if (element is FunctionTypedElement) {
-      int numTypeArguments;
-      FunctionTypedElementComputer computer;
-      if (implicitFunctionTypeIndices.isNotEmpty) {
-        numTypeArguments = numTypeParameters;
-        computer = () {
-          FunctionTypedElement element = this.element;
-          for (int index in implicitFunctionTypeIndices) {
-            element = element.parameters[index].type.element;
-          }
-          return element;
-        };
-      } else if (element is FunctionTypeAliasElementHandle) {
+      if (element is FunctionTypeAliasElementHandle) {
+        List<DartType> typeArguments;
+        if (numTypeArguments == numTypeParameters) {
+          typeArguments =
+              _buildTypeArguments(numTypeArguments, getTypeArgument);
+        } else if (libraryResynthesizer.summaryResynthesizer.strongMode &&
+            instantiateToBoundsAllowed) {
+          FunctionType instantiatedToBounds = libraryResynthesizer
+              .summaryResynthesizer.context.typeSystem
+              .instantiateToBounds(element.type) as FunctionType;
+          typeArguments = instantiatedToBounds.typeArguments;
+        } else {
+          typeArguments = new List<DartType>.filled(
+              numTypeParameters, DynamicTypeImpl.instance);
+        }
         return new FunctionTypeImpl.elementWithNameAndArgs(
-            element,
-            name,
-            _buildTypeArguments(numTypeParameters, getTypeArgument),
-            numTypeParameters != 0);
+            element, name, typeArguments, numTypeParameters != 0);
       } else {
-        // For a type that refers to a generic executable, the type arguments are
-        // not supposed to include the arguments to the executable itself.
-        numTypeArguments = enclosing == null ? 0 : enclosing.numTypeParameters;
-        computer = () => this.element as FunctionTypedElement;
+        FunctionTypedElementComputer computer;
+        if (implicitFunctionTypeIndices.isNotEmpty) {
+          numTypeArguments = numTypeParameters;
+          computer = () {
+            FunctionTypedElement element = this.element;
+            for (int index in implicitFunctionTypeIndices) {
+              element = element.parameters[index].type.element;
+            }
+            return element;
+          };
+        } else {
+          // For a type that refers to a generic executable, the type arguments are
+          // not supposed to include the arguments to the executable itself.
+          numTypeArguments = enclosing?.numTypeParameters ?? 0;
+          computer = () => this.element as FunctionTypedElement;
+        }
+        // TODO(paulberry): Is it a bug that we have to pass `false` for
+        // isInstantiated?
+        return new DeferredFunctionTypeImpl(computer, null,
+            _buildTypeArguments(numTypeArguments, getTypeArgument), false);
       }
-      // TODO(paulberry): Is it a bug that we have to pass `false` for
-      // isInstantiated?
-      return new DeferredFunctionTypeImpl(computer, null,
-          _buildTypeArguments(numTypeArguments, getTypeArgument), false);
     } else {
       return null;
     }
@@ -1357,9 +1367,9 @@ class _ReferenceInfo {
       int numTypeArguments, DartType getTypeArgument(int i)) {
     List<DartType> typeArguments = const <DartType>[];
     if (numTypeArguments != 0) {
-      typeArguments = <DartType>[];
+      typeArguments = new List<DartType>(numTypeArguments);
       for (int i = 0; i < numTypeArguments; i++) {
-        typeArguments.add(getTypeArgument(i));
+        typeArguments[i] = getTypeArgument(i);
       }
     }
     return typeArguments;
