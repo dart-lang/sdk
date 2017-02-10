@@ -107,9 +107,9 @@ Future testConnect(InternetAddress bindAddress,
                                    sourceAddress: sourceAddress);
       closeDestroyFunction(s);
     } else {
-      // Cannot use an IPv6 source address to connect to IPv6 if
+      // Cannot use an IPv4 source address to connect to IPv6 if
       // v6Only is specified.
-      await throws(() => connectFunction(InternetAddress.LOOPBACK_IP_V4,
+      await throws(() => connectFunction(InternetAddress.LOOPBACK_IP_V6,
                                          server.port,
                                          sourceAddress: sourceAddress),
                    (e) => e is SocketException);
@@ -125,7 +125,7 @@ Future testConnect(InternetAddress bindAddress,
       closeDestroyFunction(s);
     } else {
       // Cannot use an IPv6 source address to connect to IPv4.
-      await throws(() => connectFunction(InternetAddress.LOOPBACK_IP_V6,
+      await throws(() => connectFunction(InternetAddress.LOOPBACK_IP_V4,
                                          server.port,
                                          sourceAddress: sourceAddress),
                    (e) => e is SocketException);
