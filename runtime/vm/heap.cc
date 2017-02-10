@@ -17,6 +17,7 @@
 #include "vm/scavenger.h"
 #include "vm/service.h"
 #include "vm/service_event.h"
+#include "vm/service_isolate.h"
 #include "vm/stack_frame.h"
 #include "vm/tags.h"
 #include "vm/timeline.h"
@@ -722,7 +723,8 @@ void Heap::RecordAfterGC(Space space) {
   ASSERT((space == kNew && gc_new_space_in_progress_) ||
          (space == kOld && gc_old_space_in_progress_));
 #ifndef PRODUCT
-  if (FLAG_support_service && Service::gc_stream.enabled()) {
+  if (FLAG_support_service && Service::gc_stream.enabled() &&
+      !ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current())) {
     ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);
     Service::HandleEvent(&event);
