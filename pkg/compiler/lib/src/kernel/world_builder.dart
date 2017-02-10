@@ -5,11 +5,20 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
+import '../common/backend_api.dart';
 import '../common/names.dart';
+import '../compile_time_constants.dart';
+import '../constants/constant_system.dart';
+import '../constants/constructors.dart';
+import '../constants/evaluation.dart';
+import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../core_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../js_backend/backend_helpers.dart';
+import '../js_backend/constant_system_javascript.dart';
 import '../native/native.dart' as native;
 import 'element_adapter.dart';
 import 'elements.dart';
@@ -19,8 +28,9 @@ import 'elements.dart';
 // TODO(johnniwinther): Implement [ResolutionWorldBuilder].
 class KernelWorldBuilder extends KernelElementAdapterMixin {
   CommonElements _commonElements;
+  native.BehaviorBuilder _nativeBehaviorBuilder;
   final DiagnosticReporter reporter;
-
+  ElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
 
   /// Library environment. Used for fast lookup.
@@ -38,7 +48,14 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   Map<ir.Class, KClass> _classMap = <ir.Class, KClass>{};
   Map<ir.TypeParameter, KTypeVariable> _typeVariableMap =
       <ir.TypeParameter, KTypeVariable>{};
+
   Map<ir.Member, KConstructor> _constructorMap = <ir.Member, KConstructor>{};
+  // TODO(johnniwinther): Change this to a list of 'KConstructorData' class
+  // holding the [ConstantConstructor] if we need more data for constructors.
+  List<ir.Member> _constructorList = <ir.Member>[];
+  Map<KConstructor, ConstantConstructor> _constructorConstantMap =
+      <KConstructor, ConstantConstructor>{};
+
   Map<ir.Procedure, KFunction> _methodMap = <ir.Procedure, KFunction>{};
   Map<ir.Field, KField> _fieldMap = <ir.Field, KField>{};
   Map<ir.TreeNode, KLocalFunction> _localFunctionMap =
@@ -46,12 +63,21 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   KernelWorldBuilder(this.reporter, ir.Program program)
       : _env = new KEnv(program) {
-    _commonElements =
-        new KernelCommonElements(new KernelElementEnvironment(this));
+    _elementEnvironment = new KernelElementEnvironment(this);
+    _commonElements = new KernelCommonElements(_elementEnvironment);
+    BackendHelpers helpers =
+        new BackendHelpers(_elementEnvironment, null, _commonElements);
+    ConstantEnvironment constants = new KernelConstantEnvironment(this);
+    _nativeBehaviorBuilder =
+        new KernelBehaviorBuilder(_commonElements, helpers, constants);
     _typeConverter = new DartTypeConverter(this);
   }
 
   CommonElements get commonElements => _commonElements;
+
+  ElementEnvironment get elementEnvironment => _elementEnvironment;
+
+  native.BehaviorBuilder get nativeBehaviorBuilder => _nativeBehaviorBuilder;
 
   LibraryEntity lookupLibrary(Uri uri) {
     KLibraryEnv libraryEnv = _env.lookupLibrary(uri);
@@ -139,13 +165,17 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   KConstructor _getConstructor(ir.Member node) {
     return _constructorMap.putIfAbsent(node, () {
+      int constructorIndex = _constructorList.length;
+      KConstructor constructor;
       if (node is ir.Constructor) {
-        return new KGenerativeConstructor(
+        constructor = new KGenerativeConstructor(constructorIndex,
             _getClass(node.enclosingClass), getName(node.name));
       } else {
-        return new KFactoryConstructor(
+        constructor = new KFactoryConstructor(constructorIndex,
             _getClass(node.enclosingClass), getName(node.name));
       }
+      _constructorList.add(node);
+      return constructor;
     });
   }
 
@@ -232,13 +262,21 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
     return list;
   }
 
-  @override
-  InterfaceType getThisType(ClassEntity cls) {
-    throw new UnimplementedError('KernelWorldBuilder.getThisType');
+  InterfaceType _getThisType(KClass cls) {
+    KClassEnv env = _classEnvs[cls.classIndex];
+    ir.Class node = env.cls;
+    // TODO(johnniwinther): Add the type argument to the list literal when we
+    // no longer use resolution types.
+    return new InterfaceType(
+        cls,
+        new List/*<DartType>*/ .generate(node.typeParameters.length,
+            (int index) {
+          return new TypeVariableType(
+              _getTypeVariable(node.typeParameters[index]));
+        }));
   }
 
-  @override
-  InterfaceType getRawType(KClass cls) {
+  InterfaceType _getRawType(KClass cls) {
     KClassEnv env = _classEnvs[cls.classIndex];
     ir.Class node = env.cls;
     // TODO(johnniwinther): Add the type argument to the list literal when we
@@ -250,21 +288,27 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
   }
 
   @override
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
-    throw new UnimplementedError(
-        'KernelWorldBuilder.getNativeBehaviorForMethod');
-  }
-
-  @override
-  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
-    throw new UnimplementedError(
-        'KernelWorldBuilder.getNativeBehaviorForFieldStore');
-  }
-
-  @override
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
-    throw new UnimplementedError(
-        'KernelWorldBuilder.getNativeBehaviorForFieldLoad');
+  FunctionType getFunctionType(ir.FunctionNode node) {
+    DartType returnType = getDartType(node.returnType);
+    List<DartType> parameterTypes = /*<DartType>*/ [];
+    List<DartType> optionalParameterTypes = /*<DartType>*/ [];
+    for (ir.VariableDeclaration variable in node.positionalParameters) {
+      if (parameterTypes.length == node.requiredParameterCount) {
+        optionalParameterTypes.add(getDartType(variable.type));
+      } else {
+        parameterTypes.add(getDartType(variable.type));
+      }
+    }
+    List<String> namedParameters = <String>[];
+    List<DartType> namedParameterTypes = /*<DartType>*/ [];
+    List<ir.VariableDeclaration> sortedNamedParameters =
+        node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
+    for (ir.VariableDeclaration variable in sortedNamedParameters) {
+      namedParameters.add(variable.name);
+      namedParameterTypes.add(getDartType(variable.type));
+    }
+    return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
+        namedParameters, namedParameterTypes);
   }
 
   LibraryEntity getLibrary(ir.Library node) => _getLibrary(node);
@@ -302,6 +346,17 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
 
   @override
   FunctionEntity getConstructor(ir.Member node) => _getConstructor(node);
+
+  ConstantConstructor _getConstructorConstant(KConstructor constructor) {
+    return _constructorConstantMap.putIfAbsent(constructor, () {
+      ir.Member node = _constructorList[constructor.constructorIndex];
+      if (node is ir.Constructor && node.isConst) {
+        return new Constantifier(this).computeConstantConstructor(node);
+      }
+      throw new SpannableAssertionFailure(constructor,
+          "Unexpected constructor $constructor in KernelWorldBuilder._getConstructorConstant");
+    });
+  }
 }
 
 /// Environment for fast lookup of program libraries.
@@ -388,11 +443,13 @@ class KClassEnv {
 
   /// Return the [ir.Member] for the member [name] in [library].
   ir.Member lookupMember(String name, {bool setter: false}) {
+    _ensureMaps();
     return _memberMap[name];
   }
 
   /// Return the [ir.Member] for the member [name] in [library].
   ir.Member lookupConstructor(String name, {bool setter: false}) {
+    _ensureMaps();
     return _constructorMap[name];
   }
 }
@@ -404,12 +461,12 @@ class KernelElementEnvironment implements ElementEnvironment {
 
   @override
   InterfaceType getThisType(ClassEntity cls) {
-    return worldBuilder.getThisType(cls);
+    return worldBuilder._getThisType(cls);
   }
 
   @override
   InterfaceType getRawType(ClassEntity cls) {
-    return worldBuilder.getRawType(cls);
+    return worldBuilder._getRawType(cls);
   }
 
   @override
@@ -582,6 +639,109 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     }
     // Nested invalid types are treated as `dynamic`.
     return const DynamicType();
+  }
+}
+
+/// [native.BehaviorBuilder] for kernel based elements.
+class KernelBehaviorBuilder extends native.BehaviorBuilder {
+  final CommonElements commonElements;
+  final BackendHelpers helpers;
+  final ConstantEnvironment constants;
+
+  KernelBehaviorBuilder(this.commonElements, this.helpers, this.constants);
+
+  @override
+  bool get trustJSInteropTypeAnnotations {
+    throw new UnimplementedError(
+        "KernelNativeBehaviorComputer.trustJSInteropTypeAnnotations");
+  }
+
+  @override
+  DiagnosticReporter get reporter {
+    throw new UnimplementedError("KernelNativeBehaviorComputer.reporter");
+  }
+
+  @override
+  BackendClasses get backendClasses {
+    throw new UnimplementedError("KernelNativeBehaviorComputer.backendClasses");
+  }
+}
+
+/// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
+/// [_EvaluationEnvironment] for the evaluation.
+class KernelConstantEnvironment implements ConstantEnvironment {
+  KernelWorldBuilder _worldBuilder;
+  Map<ConstantExpression, ConstantValue> _valueMap =
+      <ConstantExpression, ConstantValue>{};
+
+  KernelConstantEnvironment(this._worldBuilder);
+
+  @override
+  ConstantSystem get constantSystem => const JavaScriptConstantSystem();
+
+  @override
+  ConstantValue getConstantValueForVariable(VariableElement element) {
+    throw new UnimplementedError(
+        "KernelConstantEnvironment.getConstantValueForVariable");
+  }
+
+  @override
+  ConstantValue getConstantValue(ConstantExpression expression) {
+    return _valueMap.putIfAbsent(expression, () {
+      return expression.evaluate(
+          new _EvaluationEnvironment(_worldBuilder), constantSystem);
+    });
+  }
+
+  @override
+  bool hasConstantValue(ConstantExpression expression) {
+    throw new UnimplementedError("KernelConstantEnvironment.hasConstantValue");
+  }
+}
+
+/// Evaluation environment used for computing [ConstantValue]s for
+/// kernel based [ConstantExpression]s.
+class _EvaluationEnvironment implements Environment {
+  final KernelWorldBuilder _worldBuilder;
+
+  _EvaluationEnvironment(this._worldBuilder);
+
+  @override
+  CommonElements get commonElements {
+    throw new UnimplementedError("_EvaluationEnvironment.commonElements");
+  }
+
+  @override
+  BackendClasses get backendClasses {
+    throw new UnimplementedError("_EvaluationEnvironment.backendClasses");
+  }
+
+  @override
+  InterfaceType substByContext(InterfaceType base, InterfaceType target) {
+    if (base.typeArguments.isNotEmpty) {
+      throw new UnimplementedError("_EvaluationEnvironment.substByContext");
+    }
+    return base;
+  }
+
+  @override
+  ConstantConstructor getConstructorConstant(ConstructorEntity constructor) {
+    return _worldBuilder._getConstructorConstant(constructor);
+  }
+
+  @override
+  ConstantExpression getFieldConstant(FieldEntity field) {
+    throw new UnimplementedError("_EvaluationEnvironment.getFieldConstant");
+  }
+
+  @override
+  ConstantExpression getLocalConstant(Local local) {
+    throw new UnimplementedError("_EvaluationEnvironment.getLocalConstant");
+  }
+
+  @override
+  String readFromEnvironment(String name) {
+    throw new UnimplementedError("_EvaluationEnvironment.readFromEnvironment");
   }
 }
 

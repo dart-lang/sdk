@@ -79,7 +79,11 @@ abstract class KFunction extends KMember implements FunctionEntity {
 }
 
 abstract class KConstructor extends KFunction implements ConstructorEntity {
-  KConstructor(KClass enclosingClass, Name name) : super(enclosingClass, name);
+  /// Constructor index used for fast lookup in [KernelWorldBuilder].
+  final int constructorIndex;
+
+  KConstructor(this.constructorIndex, KClass enclosingClass, Name name)
+      : super(enclosingClass, name);
 
   @override
   bool get isConstructor => true;
@@ -97,8 +101,8 @@ abstract class KConstructor extends KFunction implements ConstructorEntity {
 }
 
 class KGenerativeConstructor extends KConstructor {
-  KGenerativeConstructor(KClass enclosingClass, Name name)
-      : super(enclosingClass, name);
+  KGenerativeConstructor(int constructorIndex, KClass enclosingClass, Name name)
+      : super(constructorIndex, enclosingClass, name);
 
   @override
   bool get isFactoryConstructor => false;
@@ -108,8 +112,8 @@ class KGenerativeConstructor extends KConstructor {
 }
 
 class KFactoryConstructor extends KConstructor {
-  KFactoryConstructor(KClass enclosingClass, Name name)
-      : super(enclosingClass, name);
+  KFactoryConstructor(int constructorIndex, KClass enclosingClass, Name name)
+      : super(constructorIndex, enclosingClass, name);
 
   @override
   bool get isFactoryConstructor => true;

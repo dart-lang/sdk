@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../common/names.dart';
+import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../core_types.dart';
 import '../elements/elements.dart';
@@ -21,6 +22,9 @@ import 'kernel_debug.dart';
 abstract class KernelElementAdapter {
   /// Access to the commonly used elements and types.
   CommonElements get commonElements;
+
+  /// [ElementEnvironment] for library, class and member lookup.
+  ElementEnvironment get elementEnvironment;
 
   /// Returns the [DartType] corresponding to [type].
   DartType getDartType(ir.DartType type);
@@ -116,12 +120,8 @@ enum ForeignKind {
 
 abstract class KernelElementAdapterMixin implements KernelElementAdapter {
   DiagnosticReporter get reporter;
-  CommonElements get commonElements;
-
-  LibraryEntity lookupLibrary(Uri uri);
-  ClassEntity lookupClass(LibraryEntity library, String name);
-  InterfaceType getRawType(ClassEntity cls);
-  InterfaceType getThisType(ClassEntity cls);
+  FunctionType getFunctionType(ir.FunctionNode node);
+  native.BehaviorBuilder get nativeBehaviorBuilder;
 
   @override
   Name getName(ir.Name name) {
@@ -142,18 +142,20 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
     // PropertyGet and SuperPropertyGet (and same for *Get). Talk to kernel
     // folks.
     if (node is ir.PropertyGet) {
-      return getGetterSelector((node as ir.PropertyGet).name);
+      return getGetterSelector(node.name);
     }
     if (node is ir.SuperPropertyGet) {
-      return getGetterSelector((node as ir.SuperPropertyGet).name);
+      return getGetterSelector(node.name);
     }
     if (node is ir.PropertySet) {
-      return getSetterSelector((node as ir.PropertySet).name);
+      return getSetterSelector(node.name);
     }
     if (node is ir.SuperPropertySet) {
-      return getSetterSelector((node as ir.SuperPropertySet).name);
+      return getSetterSelector(node.name);
     }
-    if (node is ir.InvocationExpression) return getInvocationSelector(node);
+    if (node is ir.InvocationExpression) {
+      return getInvocationSelector(node);
+    }
     throw new SpannableAssertionFailure(
         CURRENT_ELEMENT_SPANNABLE,
         "Can only get the selector for a property get or an invocation: "
@@ -246,12 +248,14 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
   native.TypeLookup typeLookup({bool resolveAsRaw: true}) {
     return (String typeName) {
       DartType findIn(Uri uri) {
-        LibraryEntity library = lookupLibrary(uri);
+        LibraryEntity library = elementEnvironment.lookupLibrary(uri);
         if (library != null) {
-          ClassEntity cls = lookupClass(library, typeName);
+          ClassEntity cls = elementEnvironment.lookupClass(library, typeName);
           if (cls != null) {
             // TODO(johnniwinther): Align semantics.
-            return resolveAsRaw ? getRawType(cls) : getThisType(cls);
+            return resolveAsRaw
+                ? elementEnvironment.getRawType(cls)
+                : elementEnvironment.getThisType(cls);
           }
         }
         return null;
@@ -384,6 +388,35 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
     }
     return null;
   }
+
+  /// Computes the native behavior for reading the native [field].
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
+    DartType type = getDartType(field.type);
+    List<ConstantExpression> metadata = getMetadata(field.annotations);
+    // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+    return nativeBehaviorBuilder.buildFieldLoadBehavior(
+        type, metadata, typeLookup(resolveAsRaw: false),
+        isJsInterop: false);
+  }
+
+  /// Computes the native behavior for writing to the native [field].
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
+    DartType type = getDartType(field.type);
+    return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
+  }
+
+  /// Computes the native behavior for calling [procedure].
+  // TODO(johnniwinther): Cache this for later use.
+  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
+    DartType type = getFunctionType(procedure.function);
+    List<ConstantExpression> metadata = getMetadata(procedure.annotations);
+    // TODO(johnniwinther): Provide the correct value for [isJsInterop].
+    return nativeBehaviorBuilder.buildMethodBehavior(
+        type, metadata, typeLookup(resolveAsRaw: false),
+        isJsInterop: false);
+  }
 }
 
 /// Visitor that converts string literals and concatenations of string literals
@@ -411,29 +444,55 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
 
   Constantifier(this.elementAdapter);
 
-  @override
-  ConstantExpression visitConstructorInvocation(ir.ConstructorInvocation node) {
+  ConstantExpression defaultExpression(ir.Expression node) {
+    throw new UnimplementedError(
+        'Unimplemented constant expression $node (${node.runtimeType})');
+  }
+
+  List<ConstantExpression> _computeArguments(ir.Arguments node) {
     List<ConstantExpression> arguments = <ConstantExpression>[];
-    List<String> argumentNames = <String>[];
-    for (ir.Expression argument in node.arguments.positional) {
+    for (ir.Expression argument in node.positional) {
       ConstantExpression constant = argument.accept(this);
       if (constant == null) return null;
       arguments.add(constant);
     }
-    for (ir.NamedExpression argument in node.arguments.named) {
-      argumentNames.add(argument.name);
+    for (ir.NamedExpression argument in node.named) {
       ConstantExpression constant = argument.value.accept(this);
       if (constant == null) return null;
       arguments.add(constant);
     }
+    return arguments;
+  }
+
+  ConstructedConstantExpression _computeConstructorInvocation(
+      ir.Constructor target, ir.Arguments arguments) {
     return new ConstructedConstantExpression(
         elementAdapter.createInterfaceType(
-            node.target.enclosingClass, node.arguments.types),
-        elementAdapter.getConstructor(node.target),
-        new CallStructure(
-            node.arguments.positional.length + argumentNames.length,
-            argumentNames),
-        arguments);
+            target.enclosingClass, arguments.types),
+        elementAdapter.getConstructor(target),
+        elementAdapter.getCallStructure(arguments),
+        _computeArguments(arguments));
+  }
+
+  @override
+  ConstantExpression visitConstructorInvocation(ir.ConstructorInvocation node) {
+    return _computeConstructorInvocation(node.target, node.arguments);
+  }
+
+  @override
+  ConstantExpression visitVariableGet(ir.VariableGet node) {
+    if (node.variable.parent is ir.FunctionNode) {
+      ir.FunctionNode function = node.variable.parent;
+      int index = function.positionalParameters.indexOf(node.variable);
+      if (index != -1) {
+        return new PositionalArgumentReference(index);
+      } else {
+        assert(function.namedParameters.contains(node.variable));
+        return new NamedArgumentReference(node.variable.name);
+      }
+    }
+    throw new UnimplementedError(
+        'Unimplemented constant expression $node (${node.runtimeType})');
   }
 
   @override
@@ -444,5 +503,69 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   @override
   ConstantExpression visitStringLiteral(ir.StringLiteral node) {
     return new StringConstantExpression(node.value);
+  }
+
+  /// Compute the [ConstantConstructor] corresponding to the const constructor
+  /// [node].
+  ConstantConstructor computeConstantConstructor(ir.Constructor node) {
+    assert(node.isConst);
+    ir.Class cls = node.enclosingClass;
+    InterfaceType type = elementAdapter.elementEnvironment
+        .getThisType(elementAdapter.getClass(cls));
+
+    Map<dynamic, ConstantExpression> defaultValues =
+        <dynamic, ConstantExpression>{};
+    int parameterIndex = 0;
+    node.function.positionalParameters
+        .forEach((ir.VariableDeclaration parameter) {
+      if (parameter.initializer != null) {
+        defaultValues[parameterIndex] = parameter.initializer.accept(this);
+      }
+      parameterIndex++;
+    });
+    node.function.namedParameters.forEach((ir.VariableDeclaration parameter) {
+      defaultValues[parameter.name] = parameter.initializer.accept(this);
+    });
+
+    bool isRedirecting = node.initializers.length == 1 &&
+        node.initializers.single is ir.RedirectingInitializer;
+
+    Map<FieldEntity, ConstantExpression> fieldMap =
+        <FieldEntity, ConstantExpression>{};
+
+    void registerField(ir.Field field, ConstantExpression constant) {
+      fieldMap[elementAdapter.getField(field)] = constant;
+    }
+
+    if (!isRedirecting) {
+      for (ir.Field field in cls.fields) {
+        if (field.initializer != null) {
+          registerField(field, field.initializer.accept(this));
+        }
+      }
+    }
+
+    ConstructedConstantExpression superConstructorInvocation;
+    for (ir.Initializer initializer in node.initializers) {
+      if (initializer is ir.FieldInitializer) {
+        registerField(initializer.field, initializer.value.accept(this));
+      } else if (initializer is ir.SuperInitializer) {
+        superConstructorInvocation = _computeConstructorInvocation(
+            initializer.target, initializer.arguments);
+      } else if (initializer is ir.RedirectingInitializer) {
+        superConstructorInvocation = _computeConstructorInvocation(
+            initializer.target, initializer.arguments);
+      } else {
+        throw new UnsupportedError(
+            'Unexpected initializer $node (${node.runtimeType})');
+      }
+    }
+    if (isRedirecting) {
+      return new RedirectingGenerativeConstantConstructor(
+          defaultValues, superConstructorInvocation);
+    } else {
+      return new GenerativeConstantConstructor(
+          type, defaultValues, fieldMap, superConstructorInvocation);
+    }
   }
 }

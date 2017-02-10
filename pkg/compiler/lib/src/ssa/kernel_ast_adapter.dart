@@ -25,7 +25,6 @@ import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
 import '../types/types.dart';
-import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
@@ -58,8 +57,12 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
   /// constructing the field values). We keep track of this with a stack.
   final List<ResolvedAst> _resolvedAstStack = <ResolvedAst>[];
 
+  final native.BehaviorBuilder nativeBehaviorBuilder;
+
   KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
-      this._nodeToAst, this._nodeToElement) {
+      this._nodeToAst, this._nodeToElement)
+      : nativeBehaviorBuilder =
+            new native.ResolverBehaviorBuilder(_backend.compiler) {
     KernelJumpTarget.index = 0;
     // TODO(het): Maybe just use all of the kernel maps directly?
     for (FieldElement fieldElement in kernel.fields.keys) {
@@ -83,7 +86,11 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
     _typeConverter = new DartTypeConverter(this);
   }
 
+  @override
   CommonElements get commonElements => _compiler.commonElements;
+
+  @override
+  ElementEnvironment get elementEnvironment => _compiler.elementEnvironment;
 
   /// Push the existing resolved AST on the stack and shift the current resolved
   /// AST to the AST that this kernel node points to.
@@ -567,59 +574,8 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
   }
 
   @override
-  LibraryEntity lookupLibrary(Uri uri) {
-    return _compiler.libraryLoader.lookupLibrary(uri);
-  }
-
-  @override
-  ClassElement lookupClass(LibraryElement library, String name) {
-    Element element = library.find(name);
-    if (element != null && element.isClass) {
-      return element;
-    }
-    return null;
-  }
-
-  @override
-  InterfaceType getRawType(ClassElement cls) {
-    return cls.rawType;
-  }
-
-  @override
-  InterfaceType getThisType(ClassElement cls) {
-    return cls.thisType;
-  }
-
-  native.BehaviorBuilder get nativeBehaviorBuilder =>
-      new native.ResolverBehaviorBuilder(_compiler);
-
-  /// Computes the native behavior for reading the native [field].
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
-    ResolutionDartType type = getDartType(field.type);
-    List<ConstantExpression> metadata = getMetadata(field.annotations);
-    // TODO(johnniwinther): Provide the correct value for [isJsInterop].
-    return nativeBehaviorBuilder.buildFieldLoadBehavior(
-        type, metadata, typeLookup(resolveAsRaw: false),
-        isJsInterop: false);
-  }
-
-  /// Computes the native behavior for writing to the native [field].
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
-    DartType type = getDartType(field.type);
-    return nativeBehaviorBuilder.buildFieldStoreBehavior(type);
-  }
-
-  /// Computes the native behavior for calling [procedure].
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
-    DartType type = getFunctionType(procedure.function);
-    List<ConstantExpression> metadata = getMetadata(procedure.annotations);
-    // TODO(johnniwinther): Provide the correct value for [isJsInterop].
-    return nativeBehaviorBuilder.buildMethodBehavior(
-        type, metadata, typeLookup(resolveAsRaw: false),
-        isJsInterop: false);
+  InterfaceType getThisType(ir.Class cls) {
+    return getClass(cls).thisType;
   }
 
   MemberEntity getConstructorBodyEntity(ir.Constructor constructor) {

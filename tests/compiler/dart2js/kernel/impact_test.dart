@@ -29,8 +29,10 @@ import '../memory_compiler.dart';
 import '../serialization/test_helper.dart';
 
 const Map<String, String> SOURCE = const <String, String>{
-  'main.dart': r'''
+  // Pretend this is a dart2js_native test to allow use of 'native' keyword.
+  'sdk/tests/compiler/dart2js_native/main.dart': r'''
 import 'dart:_foreign_helper';
+import 'dart:_js_helper';
 import 'helper.dart';
 import 'dart:html';
 
@@ -177,6 +179,7 @@ main() {
   testInstanceGenericMethod();
   testDynamicPrivateMethodInvoke();
   testJSCall();
+  testNativeMethod();
 }
 
 testEmpty() {}
@@ -604,8 +607,10 @@ testInstanceGenericMethod() {
 
 testDynamicPrivateMethodInvoke([o]) => o._privateMethod();
 testJSCall() => JS('int|bool', '#', null);
+@JSName('foo')
+testNativeMethod() native;
 ''',
-  'helper.dart': '''
+  'sdk/tests/compiler/dart2js_native/helper.dart': '''
 class Class {
   const Class.generative();
   factory Class.fact() => null;
@@ -627,7 +632,8 @@ main(List<String> args) {
   bool fullTest = args.contains('--full');
   asyncTest(() async {
     enableDebugMode();
-    Uri entryPoint = Uri.parse('memory:main.dart');
+    Uri entryPoint =
+        Uri.parse('memory:sdk/tests/compiler/dart2js_native/main.dart');
     Compiler compiler = compilerFor(
         entryPoint: entryPoint,
         memorySourceFiles: SOURCE,
@@ -637,7 +643,7 @@ main(List<String> args) {
           Flags.enableAssertMessage
         ]);
     compiler.resolution.retainCachesForTesting = true;
-    await compiler.run(entryPoint);
+    Expect.isTrue(await compiler.run(entryPoint));
     JavaScriptBackend backend = compiler.backend;
     KernelElementAdapter kernelElementAdapter =
         new KernelWorldBuilder(compiler.reporter, backend.kernelTask.program);
