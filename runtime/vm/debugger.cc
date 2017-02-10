@@ -196,7 +196,8 @@ intptr_t BreakpointLocation::ColumnNumber() {
 
 
 void Breakpoint::set_bpt_location(BreakpointLocation* new_bpt_location) {
-  ASSERT(bpt_location_->IsLatent());  // Only reason to move.
+  // Only latent breakpoints can be moved.
+  ASSERT((new_bpt_location == NULL) || bpt_location_->IsLatent());
   bpt_location_ = new_bpt_location;
 }
 
@@ -1353,6 +1354,7 @@ Debugger::Debugger()
       async_causal_stack_trace_(NULL),
       stepping_fp_(0),
       skip_next_step_(false),
+      needs_breakpoint_cleanup_(false),
       synthetic_async_breakpoint_(NULL),
       exc_pause_info_(kNoPauseOnExceptions) {}
 
@@ -2792,6 +2794,9 @@ void Debugger::Pause(ServiceEvent* event) {
     }
   }
 
+  if (needs_breakpoint_cleanup_) {
+    RemoveUnlinkedCodeBreakpoints();
+  }
   pause_event_ = NULL;
   obj_cache_ = NULL;  // Zone allocated
 }
@@ -3282,10 +3287,8 @@ RawError* Debugger::PauseBreakpoint() {
   }
 
   if (FLAG_verbose_debug) {
-    OS::Print(">>> hit %s breakpoint at %s:%" Pd
-              " "
-              "(token %s) (address %#" Px ")\n",
-              cbpt->IsInternal() ? "internal" : "user",
+    OS::Print(">>> hit breakpoint at %s:%" Pd " (token %s) (address %#" Px
+              ")\n",
               String::Handle(cbpt->SourceUrl()).ToCString(), cbpt->LineNumber(),
               cbpt->token_pos().ToCString(), top_frame->pc());
   }
@@ -3296,9 +3299,6 @@ RawError* Debugger::PauseBreakpoint() {
   // point will be at the exact same pc.  Skip it.
   HandleSteppingRequest(stack_trace_, true /* skip next step */);
   ClearCachedStackTraces();
-  if (cbpt->IsInternal()) {
-    RemoveInternalBreakpoints();
-  }
 
   // If any error occurred while in the debug message loop, return it here.
   const Error& error = Error::Handle(Thread::Current()->sticky_error());
@@ -3675,46 +3675,58 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
           prev_bpt->set_next(curr_bpt->next());
         }
 
+        // Send event to client before the breakpoint's fields are
+        // poisoned and deleted.
         SendBreakpointEvent(ServiceEvent::kBreakpointRemoved, curr_bpt);
 
-        // Remove references from the current debugger pause event.
+        curr_bpt->set_next(NULL);
+        curr_bpt->set_bpt_location(NULL);
+        // Remove possible references to the breakpoint.
         if (pause_event_ != NULL && pause_event_->breakpoint() == curr_bpt) {
           pause_event_->set_breakpoint(NULL);
         }
-        break;
+        if (synthetic_async_breakpoint_ == curr_bpt) {
+          synthetic_async_breakpoint_ = NULL;
+        }
+        delete curr_bpt;
+        curr_bpt = NULL;
+
+        // Delete the breakpoint location object if there are no more
+        // breakpoints at that location.
+        if (curr_loc->breakpoints() == NULL) {
+          if (prev_loc == NULL) {
+            breakpoint_locations_ = curr_loc->next();
+          } else {
+            prev_loc->set_next(curr_loc->next());
+          }
+
+          // Remove references from code breakpoints to this breakpoint
+          // location and disable them.
+          UnlinkCodeBreakpoints(curr_loc);
+          BreakpointLocation* next_loc = curr_loc->next();
+          delete curr_loc;
+          curr_loc = next_loc;
+        }
+
+        // The code breakpoints will be deleted when the VM resumes
+        // after the pause event.
+        return;
       }
 
       prev_bpt = curr_bpt;
       curr_bpt = curr_bpt->next();
     }
-
-    if (curr_loc->breakpoints() == NULL) {
-      if (prev_loc == NULL) {
-        breakpoint_locations_ = curr_loc->next();
-      } else {
-        prev_loc->set_next(curr_loc->next());
-      }
-
-      // Remove references from code breakpoints to this source breakpoint,
-      // and disable the code breakpoints.
-      UnlinkCodeBreakpoints(curr_loc);
-      BreakpointLocation* next_loc = curr_loc->next();
-      delete curr_loc;
-      curr_loc = next_loc;
-    } else {
-      prev_loc = curr_loc;
-      curr_loc = curr_loc->next();
-    }
+    prev_loc = curr_loc;
+    curr_loc = curr_loc->next();
   }
-  // bpt is not a registered breakpoint, nothing to do.
+  // breakpoint with bp_id does not exist, nothing to do.
 }
 
 
-// Turn code breakpoints associated with the given source breakpoint into
-// internal breakpoints. They will later be deleted when control
-// returns from the user-defined breakpoint callback. Also, disable the
-// breakpoint so it no longer fires if it should be hit before it gets
-// deleted.
+// Unlink code breakpoints from the the given breakpoint location.
+// They will later be deleted when control returns from the pause event
+// callback. Also, disable the breakpoint so it no longer fires if it
+// should be hit before it gets deleted.
 void Debugger::UnlinkCodeBreakpoints(BreakpointLocation* bpt_location) {
   ASSERT(bpt_location != NULL);
   CodeBreakpoint* curr_bpt = code_breakpoints_;
@@ -3722,15 +3734,16 @@ void Debugger::UnlinkCodeBreakpoints(BreakpointLocation* bpt_location) {
     if (curr_bpt->bpt_location() == bpt_location) {
       curr_bpt->Disable();
       curr_bpt->set_bpt_location(NULL);
+      needs_breakpoint_cleanup_ = true;
     }
     curr_bpt = curr_bpt->next();
   }
 }
 
 
-// Remove and delete internal breakpoints, i.e. breakpoints that
-// are not associated with a source breakpoint.
-void Debugger::RemoveInternalBreakpoints() {
+// Remove and delete unlinked code breakpoints, i.e. breakpoints that
+// are not associated with a breakpoint location.
+void Debugger::RemoveUnlinkedCodeBreakpoints() {
   CodeBreakpoint* prev_bpt = NULL;
   CodeBreakpoint* curr_bpt = code_breakpoints_;
   while (curr_bpt != NULL) {
@@ -3749,6 +3762,7 @@ void Debugger::RemoveInternalBreakpoints() {
       curr_bpt = curr_bpt->next();
     }
   }
+  needs_breakpoint_cleanup_ = false;
 }
 
 

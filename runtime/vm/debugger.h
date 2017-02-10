@@ -204,7 +204,6 @@ class CodeBreakpoint {
   RawFunction* function() const;
   uword pc() const { return pc_; }
   TokenPosition token_pos() const { return token_pos_; }
-  bool IsInternal() const { return bpt_location_ == NULL; }
 
   RawScript* SourceCode();
   RawString* SourceUrl();
@@ -611,7 +610,7 @@ class Debugger {
                                     TokenPosition last_token_pos,
                                     intptr_t requested_line,
                                     intptr_t requested_column);
-  void RemoveInternalBreakpoints();
+  void RemoveUnlinkedCodeBreakpoints();
   void UnlinkCodeBreakpoints(BreakpointLocation* bpt_location);
   BreakpointLocation* GetLatentBreakpoint(const String& url,
                                           intptr_t line,
@@ -725,6 +724,8 @@ class Debugger {
   // We use this field to let us skip the next single-step after a
   // breakpoint.
   bool skip_next_step_;
+
+  bool needs_breakpoint_cleanup_;
 
   // We keep this breakpoint alive until after the debugger does the step over
   // async continuation machinery so that we can report that we've stopped
