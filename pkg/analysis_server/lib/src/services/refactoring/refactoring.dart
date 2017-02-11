@@ -397,7 +397,7 @@ abstract class RenameRefactoring implements Refactoring {
       return new RenameLibraryRefactoringImpl(searchEngine, element);
     }
     if (element is LocalElement) {
-      return new RenameLocalRefactoringImpl(searchEngine, element);
+      return new RenameLocalRefactoringImpl(searchEngine, astProvider, element);
     }
     if (element.enclosingElement is ClassElement) {
       return new RenameClassMemberRefactoringImpl(searchEngine, element);
@@ -431,4 +431,34 @@ abstract class RenameRefactoring implements Refactoring {
    * level of checking.
    */
   RefactoringStatus checkNewName();
+}
+
+/**
+ * Cache for accessing resolved [CompilationUnit]s by [Element]s.
+ *
+ * Must by short-lived.
+ *
+ * TODO(scheglov) consider moving to request-bound object.
+ */
+class ResolvedUnitCache {
+  final AstProvider _astProvider;
+  final Map<CompilationUnitElement, CompilationUnit> _map = {};
+
+  ResolvedUnitCache(this._astProvider, [CompilationUnit unit]) {
+    if (unit != null) {
+      _map[unit.element] = unit;
+    }
+  }
+
+  Future<CompilationUnit> getUnit(Element element) async {
+    CompilationUnitElement unitElement =
+        element.getAncestor((e) => e is CompilationUnitElement)
+            as CompilationUnitElement;
+    CompilationUnit unit = _map[unitElement];
+    if (unit == null) {
+      unit = await _astProvider.getResolvedUnitForElement(element);
+      _map[unitElement] = unit;
+    }
+    return unit;
+  }
 }

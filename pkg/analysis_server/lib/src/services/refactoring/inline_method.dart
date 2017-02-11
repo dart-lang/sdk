@@ -200,7 +200,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   final AstProvider astProvider;
   final CompilationUnit unit;
   final int offset;
-  _UnitCache _unitCache;
+  ResolvedUnitCache _unitCache;
   CorrectionUtils utils;
   SourceChange change;
 
@@ -223,7 +223,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   InlineMethodRefactoringImpl(
       this.searchEngine, this.astProvider, this.unit, this.offset) {
-    _unitCache = new _UnitCache(astProvider, unit);
+    _unitCache = new ResolvedUnitCache(astProvider, unit);
     utils = new CorrectionUtils(unit);
   }
 
@@ -786,26 +786,6 @@ class _SourcePart {
     }
     range = rangeFromBase(range, _base);
     ranges.add(range);
-  }
-}
-
-class _UnitCache {
-  final AstProvider astProvider;
-  final Map<CompilationUnitElement, CompilationUnit> map = {};
-
-  _UnitCache(this.astProvider, CompilationUnit unit) {
-    map[unit.element] = unit;
-  }
-
-  Future<CompilationUnit> getUnit(Element element) async {
-    Element unitElement =
-        element.getAncestor((e) => e is CompilationUnitElement);
-    CompilationUnit unit = map[unitElement];
-    if (unit == null) {
-      unit = await astProvider.getResolvedUnitForElement(element);
-      map[unitElement] = unit;
-    }
-    return unit;
   }
 }
 
