@@ -680,20 +680,15 @@ class _ConstantNode extends Node<_ConstantNode> {
   final Map<ConstantEvaluationTarget, _ConstantNode> nodeMap;
   final ConstantEvaluationTarget constant;
 
-  List<_ConstantNode> _dependencies = null;
-
   bool isEvaluated = false;
 
   _ConstantNode(this.evaluationEngine, this.nodeMap, this.constant);
 
   @override
   List<_ConstantNode> computeDependencies() {
-    if (_dependencies == null) {
-      List<ConstantEvaluationTarget> targets = [];
-      evaluationEngine.computeDependencies(constant, targets.add);
-      _dependencies = targets.map(_getNode).toList();
-    }
-    return _dependencies;
+    List<ConstantEvaluationTarget> targets = [];
+    evaluationEngine.computeDependencies(constant, targets.add);
+    return targets.map(_getNode).toList();
   }
 
   _ConstantNode _getNode(ConstantEvaluationTarget constant) {
