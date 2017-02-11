@@ -668,31 +668,21 @@ class AnalysisDriver {
    */
   AnalysisResult _computeAnalysisResult(String path,
       {bool withUnit: false, bool asIsIfPartWithoutLibrary: false}) {
-    /**
-     * If the [file] is a library, return the [file] itself.
-     * If the [file] is a part, return a library it is known to be a part of.
-     * If there is no such library, return `null`.
-     */
-    FileState getLibraryFile(FileState file) {
-      FileState libraryFile = file.isPart ? file.library : file;
-      if (libraryFile == null && asIsIfPartWithoutLibrary) {
-        libraryFile = file;
+    FileState file = _fileTracker.fsState.getFileForPath(path);
+
+    // Prepare the library - the file itself, or the known library.
+    FileState library = file.isPart ? file.library : file;
+    if (library == null) {
+      if (asIsIfPartWithoutLibrary) {
+        library = file;
+      } else {
+        return null;
       }
-      return libraryFile;
     }
 
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      FileState file = _fileTracker.fsState.getFileForPath(path);
-
-      // Prepare the library file - the file itself, or the known library.
-      FileState libraryFile = getLibraryFile(file);
-      if (libraryFile == null) {
-        return null;
-      }
-
-      // Check for the cached result.
-      String key = _getResolvedUnitKey(libraryFile, file);
+      String key = _getResolvedUnitKey(library, file);
       List<int> bytes = _byteStore.get(key);
       if (bytes != null) {
         return _getAnalysisResultFromBytes(file, bytes);
@@ -701,14 +691,6 @@ class AnalysisDriver {
 
     // We need the fully resolved unit, or the result is not cached.
     return _logger.run('Compute analysis result for $path', () {
-      FileState file = fsState.getFileForPath(path);
-
-      // Prepare the library file - the file itself, or the known library.
-      FileState library = getLibraryFile(file);
-      if (library == null) {
-        return null;
-      }
-
       try {
         LibraryContext libraryContext = _createLibraryContext(library);
         try {
