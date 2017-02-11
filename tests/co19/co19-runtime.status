@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[$runtime == vm && $compiler == none && $system == fuchsia]
+*: Skip  # Tests not included in the image.
+
 [ $runtime == vm || $runtime == dart_precompiled ]
 
 # Failures ok in tests below. VM moves super initializer to end of list.

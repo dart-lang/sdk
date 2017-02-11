@@ -21,6 +21,9 @@ package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTim
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
+[$runtime == vm && $compiler == none && $system == fuchsia]
+*: Skip  # Not yet triaged.
+
 [ ($runtime != vm && $runtime != dart_precompiled) && ($runtime != drt || $compiler != none) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
 env_test: Skip # This is testing a vm command line parsing scenario.
