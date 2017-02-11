@@ -4,12 +4,14 @@
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -19,6 +21,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -113,6 +116,12 @@ class AnalyzerImpl {
           _computeHints(file, unit);
         });
       }
+
+      if (_analysisOptions.lint) {
+        units.forEach((file, unit) {
+          _computeLints(file, unit);
+        });
+      }
     } finally {
       _context.dispose();
     }
@@ -199,6 +208,27 @@ class AnalyzerImpl {
           new UnusedLocalElementsVerifier(errorListener, usedElements);
       unit.element.accept(visitor);
     }
+  }
+
+  void _computeLints(FileState file, CompilationUnit unit) {
+    ErrorReporter errorReporter = _getErrorReporter(file);
+
+    List<AstVisitor> visitors = <AstVisitor>[];
+    for (Linter linter in _analysisOptions.lintRules) {
+      AstVisitor visitor = linter.getVisitor();
+      if (visitor != null) {
+        linter.reporter = errorReporter;
+        if (_analysisOptions.enableTiming) {
+          visitor = new TimedAstVisitor(visitor, lintRegistry.getTimer(linter));
+        }
+        visitors.add(visitor);
+      }
+    }
+
+    AstVisitor visitor = new ExceptionHandlingDelegatingAstVisitor(
+        visitors, ExceptionHandlingDelegatingAstVisitor.logException);
+
+    unit.accept(visitor);
   }
 
   void _computePendingMissingRequiredParameters(
