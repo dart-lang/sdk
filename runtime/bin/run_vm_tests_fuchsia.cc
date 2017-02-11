@@ -252,7 +252,7 @@ static int run_test(mx_handle_t binary_vmo,
   drain_fd(stderr_pipe, test_stderr);
 
   mx_status_t r =
-      mx_handle_wait_one(p, MX_PROCESS_SIGNALED, MX_TIME_INFINITE, NULL);
+      mx_object_wait_one(p, MX_PROCESS_SIGNALED, MX_TIME_INFINITE, NULL);
   RETURN_IF_ERROR(r);
 
   mx_info_process_t proc_info;

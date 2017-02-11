@@ -236,15 +236,15 @@ class ExitCodeHandler {
     item_count_ = 1;
 
     while (!do_shutdown_) {
-      LOG_INFO("ExitCodeHandler Calling mx_handle_wait_many: %ld items\n",
+      LOG_INFO("ExitCodeHandler Calling mx_object_wait_many: %ld items\n",
                item_count_);
       mx_status_t status =
-          mx_handle_wait_many(items_, item_count_, MX_TIME_INFINITE);
+          mx_object_wait_many(items_, item_count_, MX_TIME_INFINITE);
       if (status < 0) {
         FATAL1("Exit code handler handle wait failed: %s\n",
                mx_status_get_string(status));
       }
-      LOG_INFO("ExitCodeHandler mx_handle_wait_many returned\n");
+      LOG_INFO("ExitCodeHandler mx_object_wait_many returned\n");
 
       bool have_interrupt = false;
       intptr_t remove_count = 0;
