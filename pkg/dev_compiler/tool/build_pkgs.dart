@@ -22,9 +22,9 @@ void main(List<String> arguments) {
   compileModule('async_helper');
   compileModule('expect', libs: ['minitest']);
   compileModule('js', libs: ['js_util']);
+  compileModule('meta');
   if (!test) {
     compileModule('lookup_map');
-    compileModule('meta');
     compileModule('microlytics', libs: ['html_channels']);
     compileModule('typed_mock');
   }
