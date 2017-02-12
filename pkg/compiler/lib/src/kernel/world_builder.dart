@@ -377,7 +377,7 @@ class KernelWorldBuilder extends KernelElementAdapterMixin {
     return _fieldConstantMap.putIfAbsent(field, () {
       ir.Field node = _fieldList[field.fieldIndex];
       if (node.isConst) {
-        return node.initializer.accept(new Constantifier(this));
+        return new Constantifier(this).visit(node.initializer);
       }
       throw new SpannableAssertionFailure(
           field,

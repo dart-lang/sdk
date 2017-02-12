@@ -203,7 +203,7 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
   List<ConstantExpression> getMetadata(List<ir.Expression> annotations) {
     List<ConstantExpression> metadata = <ConstantExpression>[];
     annotations.forEach((ir.Expression node) {
-      ConstantExpression constant = node.accept(new Constantifier(this));
+      ConstantExpression constant = new Constantifier(this).visit(node);
       if (constant == null) {
         throw new UnsupportedError(
             'No constant for ${DebugPrinter.prettyPrint(node)}');
@@ -269,15 +269,23 @@ abstract class KernelElementAdapterMixin implements KernelElementAdapter {
         return null;
       }
 
+      // TODO(johnniwinther): Narrow the set of lookups base on the depending
+      // library.
       DartType type = findIn(Uris.dart_core);
       type ??= findIn(BackendHelpers.DART_JS_HELPER);
       type ??= findIn(BackendHelpers.DART_INTERCEPTORS);
       type ??= findIn(BackendHelpers.DART_ISOLATE_HELPER);
+      type ??= findIn(Uris.dart__native_typed_data);
       type ??= findIn(Uris.dart_collection);
+      type ??= findIn(Uris.dart_math);
       type ??= findIn(Uris.dart_html);
+      type ??= findIn(Uris.dart_html_common);
       type ??= findIn(Uris.dart_svg);
       type ??= findIn(Uris.dart_web_audio);
       type ??= findIn(Uris.dart_web_gl);
+      type ??= findIn(Uris.dart_web_sql);
+      type ??= findIn(Uris.dart_indexed_db);
+      type ??= findIn(Uris.dart_typed_data);
       if (type == null && required) {
         reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
             MessageKind.GENERIC, {'text': "Type '$typeName' not found."});
@@ -454,9 +462,19 @@ class Stringifier extends ir.ExpressionVisitor<String> {
 /// Visitor that converts a kernel constant expression into a
 /// [ConstantExpression].
 class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
+  final bool requireConstant;
   final KernelElementAdapter elementAdapter;
 
-  Constantifier(this.elementAdapter);
+  Constantifier(this.elementAdapter, {this.requireConstant: true});
+
+  ConstantExpression visit(ir.Expression node) {
+    ConstantExpression constant = node.accept(this);
+    if (constant == null && requireConstant) {
+      throw new UnsupportedError(
+          "No constant computed for $node (${node.runtimeType})");
+    }
+    return constant;
+  }
 
   ConstantExpression defaultExpression(ir.Expression node) {
     throw new UnimplementedError(
@@ -466,7 +484,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   List<ConstantExpression> _computeList(List<ir.Expression> expressions) {
     List<ConstantExpression> list = <ConstantExpression>[];
     for (ir.Expression expression in expressions) {
-      ConstantExpression constant = expression.accept(this);
+      ConstantExpression constant = visit(expression);
       if (constant == null) return null;
       list.add(constant);
     }
@@ -476,12 +494,12 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
   List<ConstantExpression> _computeArguments(ir.Arguments node) {
     List<ConstantExpression> arguments = <ConstantExpression>[];
     for (ir.Expression argument in node.positional) {
-      ConstantExpression constant = argument.accept(this);
+      ConstantExpression constant = visit(argument);
       if (constant == null) return null;
       arguments.add(constant);
     }
     for (ir.NamedExpression argument in node.named) {
-      ConstantExpression constant = argument.value.accept(this);
+      ConstantExpression constant = visit(argument.value);
       if (constant == null) return null;
       arguments.add(constant);
     }
@@ -547,8 +565,12 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     int parameterIndex = 0;
     node.function.positionalParameters
         .forEach((ir.VariableDeclaration parameter) {
-      if (parameter.initializer != null) {
-        defaultValues[parameterIndex] = parameter.initializer.accept(this);
+      if (parameterIndex >= node.function.requiredParameterCount) {
+        if (parameter.initializer != null) {
+          defaultValues[parameterIndex] = parameter.initializer.accept(this);
+        } else {
+          defaultValues[parameterIndex] = new NullConstantExpression();
+        }
       }
       parameterIndex++;
     });

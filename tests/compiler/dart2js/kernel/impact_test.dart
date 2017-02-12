@@ -34,8 +34,14 @@ const Map<String, String> SOURCE = const <String, String>{
 import 'dart:_foreign_helper';
 import 'dart:_js_helper';
 import 'dart:_interceptors';
-import 'helper.dart';
+import 'dart:_native_typed_data';
+import 'dart:indexed_db';
 import 'dart:html';
+import 'dart:html_common';
+import 'dart:math';
+import 'dart:typed_data';
+import 'dart:web_sql';
+import 'helper.dart';
 
 main() {
   testEmpty();
@@ -614,8 +620,10 @@ testInstanceGenericMethod() {
 }
 
 testDynamicPrivateMethodInvoke([o]) => o._privateMethod();
-testJSCall() => JS('int|bool', '#', null);
+testJSCall() => JS('int|bool|NativeUint8List|Rectangle|IdbFactory|'
+    'SqlDatabase|TypedData|ContextAttributes', '#', null);
 @JSName('foo')
+@SupportedBrowser(SupportedBrowser.CHROME)
 testNativeMethod() native;
 @Creates('int|Null|JSArray')
 testNativeMethodCreates() native;
@@ -665,12 +673,7 @@ class GenericSub<X4, Y4> extends GenericSuper<X4, Y4>
     with GenericMixin1<X4, Y4>, GenericMixin2<X4, Y4> {}
 class GenericNamedMixin<X5, Y5> = GenericSuper<X5, Y5>
     with GenericMixin1<X5, Y5>, GenericMixin2<X5, Y5>;
-
-const String _serializedScriptValue =
-    'num|String|bool|'
-    'JSExtendableArray|=Object';
-const annotation_Creates_SerializedScriptValue =
-    const Creates(_serializedScriptValue);''',
+''',
 };
 
 main(List<String> args) {
