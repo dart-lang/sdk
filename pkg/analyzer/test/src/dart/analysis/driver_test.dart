@@ -1540,8 +1540,9 @@ main() {
 ''';
     addTestFile(content);
 
-    CompilationUnitElement unitElement = await driver.getUnitElement(testFile);
-    expect(unitElement, isNotNull);
+    UnitElementResult unitResult = await driver.getUnitElement(testFile);
+    expect(unitResult, isNotNull);
+    CompilationUnitElement unitElement = unitResult.element;
     expect(unitElement.source.fullName, testFile);
     expect(unitElement.functions.map((c) => c.name),
         unorderedEquals(['foo', 'main']));
@@ -1550,9 +1551,9 @@ main() {
   test_getUnitElement_notDart() async {
     var path = _p('/test.txt');
     provider.newFile(path, 'class A {}');
-    CompilationUnitElement unit = await driver.getUnitElement(path);
-    expect(unit, isNotNull);
-    expect(unit.types.map((e) => e.name), ['A']);
+    UnitElementResult unitResult = await driver.getUnitElement(path);
+    expect(unitResult, isNotNull);
+    expect(unitResult.element.types.map((e) => e.name), ['A']);
   }
 
   test_hasFilesToAnalyze() async {

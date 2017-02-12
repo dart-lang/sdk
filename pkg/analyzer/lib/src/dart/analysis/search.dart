@@ -47,9 +47,9 @@ class Search {
 
     List<String> files = await _driver.getFilesDefiningClassMemberName(name);
     for (String file in files) {
-      CompilationUnitElement unitElement = await _driver.getUnitElement(file);
-      if (unitElement != null) {
-        for (ClassElement clazz in unitElement.types) {
+      UnitElementResult unitResult = await _driver.getUnitElement(file);
+      if (unitResult != null) {
+        for (ClassElement clazz in unitResult.element.types) {
           clazz.accessors.forEach(addElement);
           clazz.fields.forEach(addElement);
           clazz.methods.forEach(addElement);
@@ -132,9 +132,9 @@ class Search {
     }
 
     for (FileState file in _driver.fsState.knownFiles) {
-      CompilationUnitElement unitElement =
-          await _driver.getUnitElement(file.path);
-      if (unitElement != null) {
+      UnitElementResult unitResult = await _driver.getUnitElement(file.path);
+      if (unitResult != null) {
+        CompilationUnitElement unitElement = unitResult.element;
         unitElement.accessors.forEach(addElement);
         unitElement.enums.forEach(addElement);
         unitElement.functions.forEach(addElement);
@@ -171,7 +171,7 @@ class Search {
               IndexRelationKind.IS_READ_WRITTEN_BY: SearchResultKind.READ_WRITE,
               IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION
             },
-            () => _driver.getUnitElement(file));
+            () => _getUnitElement(file));
         results.addAll(fileResults);
       }
     }
@@ -227,11 +227,16 @@ class Search {
       _IndexRequest request = new _IndexRequest(index);
       int elementId = request.findElementId(element);
       if (elementId != -1) {
-        List<SearchResult> fileResults = await request.getRelations(elementId,
-            relationToResultKind, () => _driver.getUnitElement(file));
+        List<SearchResult> fileResults = await request.getRelations(
+            elementId, relationToResultKind, () => _getUnitElement(file));
         results.addAll(fileResults);
       }
     }
+  }
+
+  Future<CompilationUnitElement> _getUnitElement(String file) async {
+    UnitElementResult result = await _driver.getUnitElement(file);
+    return result?.element;
   }
 
   Future<List<SearchResult>> _searchReferences(Element element) async {

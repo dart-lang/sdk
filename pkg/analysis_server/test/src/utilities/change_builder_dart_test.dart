@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_dart.dart';
@@ -10,6 +12,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -62,7 +65,7 @@ class DartEditBuilderImplTest extends AbstractContextTest {
   test_writeClassDeclaration_interfaces() async {
     String path = '/test.dart';
     addSource(path, 'class A {}');
-    DartType typeA = (await driver.getUnitElement(path)).getType('A').type;
+    DartType typeA = await _getType(path, 'A');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -111,7 +114,7 @@ class DartEditBuilderImplTest extends AbstractContextTest {
   test_writeClassDeclaration_mixins_noSuperclass() async {
     String path = '/test.dart';
     addSource(path, 'class A {}');
-    DartType typeA = (await driver.getUnitElement(path)).getType('A').type;
+    DartType typeA = await _getType(path, 'A');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -128,8 +131,8 @@ class DartEditBuilderImplTest extends AbstractContextTest {
   test_writeClassDeclaration_mixins_superclass() async {
     String path = '/test.dart';
     addSource(path, 'class A {} class B {}');
-    DartType typeA = (await driver.getUnitElement(path)).getType('A').type;
-    DartType typeB = (await driver.getUnitElement(path)).getType('B').type;
+    DartType typeA = await _getType(path, 'A');
+    DartType typeB = await _getType(path, 'B');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -168,7 +171,7 @@ class DartEditBuilderImplTest extends AbstractContextTest {
   test_writeClassDeclaration_superclass() async {
     String path = '/test.dart';
     addSource(path, 'class B {}');
-    DartType typeB = (await driver.getUnitElement(path)).getType('B').type;
+    DartType typeB = await _getType(path, 'B');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -289,7 +292,7 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     String path = '/test.dart';
     String content = 'class A {} class B {}';
     addSource(path, content);
-    DartType typeA = (await driver.getUnitElement(path)).getType('A').type;
+    DartType typeA = await _getType(path, 'A');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -374,7 +377,7 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     String path = '/test.dart';
     String content = 'class A {} class B {}';
     addSource(path, content);
-    DartType typeA = (await driver.getUnitElement(path)).getType('A').type;
+    DartType typeA = await _getType(path, 'A');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -405,7 +408,7 @@ class A {
 class B extends A {
 }''';
     addSource(path, content);
-    ClassElement classA = (await driver.getUnitElement(path)).getType('A');
+    ClassElement classA = await _getClassElement(path, 'A');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -536,7 +539,7 @@ f(int i, String s) {
     String path = '/test.dart';
     String content = 'class A {}';
     addSource(path, content);
-    DartType typeA = (await driver.getUnitElement(path)).getType('A').type;
+    DartType typeA = await _getType(path, 'A');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -572,8 +575,8 @@ f(int i, String s) {
     String path = '/test.dart';
     String content = 'class A {} class B<E> {}';
     addSource(path, content);
-    InterfaceType typeA = (await driver.getUnitElement(path)).getType('A').type;
-    InterfaceType typeB = (await driver.getUnitElement(path)).getType('B').type;
+    InterfaceType typeA = await _getType(path, 'A');
+    InterfaceType typeB = await _getType(path, 'B');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -589,7 +592,7 @@ f(int i, String s) {
     String path = '/test.dart';
     String content = 'class A {} class B extends A {} class C extends B {}';
     addSource(path, content);
-    DartType typeC = (await driver.getUnitElement(path)).getType('C').type;
+    DartType typeC = await _getType(path, 'C');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -611,7 +614,7 @@ f(int i, String s) {
     String path = '/test.dart';
     String content = 'class A {} class B extends A {} class C extends B {}';
     addSource(path, content);
-    DartType typeC = (await driver.getUnitElement(path)).getType('C').type;
+    DartType typeC = await _getType(path, 'C');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -681,7 +684,7 @@ f(int i, String s) {
     String path = '/test.dart';
     String content = 'class A {}';
     addSource(path, content);
-    DartType typeA = (await driver.getUnitElement(path)).getType('A').type;
+    DartType typeA = await _getType(path, 'A');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -712,7 +715,7 @@ f(int i, String s) {
     String path = '/test.dart';
     String content = 'class A {}';
     addSource(path, content);
-    DartType typeA = (await driver.getUnitElement(path)).getType('A').type;
+    DartType typeA = await _getType(path, 'A');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -743,8 +746,8 @@ f(int i, String s) {
     String path = '/test.dart';
     String content = 'class A {} class B {}';
     addSource(path, content);
-    DartType typeA = (await driver.getUnitElement(path)).getType('A').type;
-    DartType typeB = (await driver.getUnitElement(path)).getType('B').type;
+    DartType typeA = await _getType(path, 'A');
+    DartType typeB = await _getType(path, 'B');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -775,8 +778,8 @@ f(int i, String s) {
     String path = '/test.dart';
     String content = 'class A {} class B {}';
     addSource(path, content);
-    DartType typeA = (await driver.getUnitElement(path)).getType('A').type;
-    DartType typeB = (await driver.getUnitElement(path)).getType('B').type;
+    DartType typeA = await _getType(path, 'A');
+    DartType typeB = await _getType(path, 'B');
 
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(driver);
     await builder.addFileEdit(path, 1, (FileEditBuilder builder) {
@@ -787,6 +790,16 @@ f(int i, String s) {
     });
     SourceEdit edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
+  }
+
+  Future<ClassElement> _getClassElement(String path, String name) async {
+    UnitElementResult result = await driver.getUnitElement(path);
+    return result.element.getType(name);
+  }
+
+  Future<DartType> _getType(String path, String name) async {
+    ClassElement classElement = await _getClassElement(path, name);
+    return classElement.type;
   }
 }
 

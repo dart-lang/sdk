@@ -179,11 +179,11 @@ class AnalysisDriver {
       <String, List<Completer<AnalysisDriverUnitIndex>>>{};
 
   /**
-   * The mapping from the files for which the index was requested using
-   * [getIndex] to the [Completer]s to report the result.
+   * The mapping from the files for which the unit element was requested using
+   * [getUnitElement] to the [Completer]s to report the result.
    */
   final _unitElementRequestedFiles =
-      <String, List<Completer<CompilationUnitElement>>>{};
+      <String, List<Completer<UnitElementResult>>>{};
 
   /**
    * The mapping from the files for which analysis was requested using
@@ -597,16 +597,16 @@ class AnalysisDriver {
   }
 
   /**
-   * Return a [Future] that completes with the [CompilationUnitElement] for the
+   * Return a [Future] that completes with the [UnitElementResult] for the
    * file with the given [path], or with `null` if the file cannot be analyzed.
    */
-  Future<CompilationUnitElement> getUnitElement(String path) {
+  Future<UnitElementResult> getUnitElement(String path) {
     if (!_fileTracker.fsState.hasUri(path)) {
       return new Future.value();
     }
-    var completer = new Completer<CompilationUnitElement>();
+    var completer = new Completer<UnitElementResult>();
     _unitElementRequestedFiles
-        .putIfAbsent(path, () => <Completer<CompilationUnitElement>>[])
+        .putIfAbsent(path, () => <Completer<UnitElementResult>>[])
         .add(completer);
     _scheduler.notify(this);
     return completer.future;
@@ -748,16 +748,19 @@ class AnalysisDriver {
     return analysisResult._index;
   }
 
-  CompilationUnitElement _computeUnitElement(String path) {
+  UnitElementResult _computeUnitElement(String path) {
     FileState file = _fileTracker.fsState.getFileForPath(path);
-    FileState libraryFile = file.library ?? file;
+    FileState library = file.library ?? file;
 
     // Create the AnalysisContext to resynthesize elements in.
-    LibraryContext libraryContext = _createLibraryContext(libraryFile);
+    LibraryContext libraryContext = _createLibraryContext(library);
 
     // Resynthesize the CompilationUnitElement in the context.
     try {
-      return libraryContext.computeUnitElement(libraryFile.source, file.source);
+      CompilationUnitElement element =
+          libraryContext.computeUnitElement(library.source, file.source);
+      String key = _getResolvedUnitKey(library, file);
+      return new UnitElementResult(path, file.contentHash, key, element);
     } finally {
       libraryContext.dispose();
     }
@@ -925,9 +928,9 @@ class AnalysisDriver {
     // Process a unit request.
     if (_unitElementRequestedFiles.isNotEmpty) {
       String path = _unitElementRequestedFiles.keys.first;
-      CompilationUnitElement unitElement = _computeUnitElement(path);
+      UnitElementResult result = _computeUnitElement(path);
       _unitElementRequestedFiles.remove(path).forEach((completer) {
-        completer.complete(unitElement);
+        completer.complete(result);
       });
       return;
     }
@@ -1581,6 +1584,42 @@ class PerformanceLogSection {
     int ms = _timer.elapsedMilliseconds;
     _logger.writeln('--- $_msg in $ms ms.');
   }
+}
+
+/**
+ * The result with the [CompilationUnitElement] of a single file.
+ *
+ * These results are self-consistent, i.e. all elements and types accessible
+ * through [element], including defined in other files, correspond to each
+ * other. But none of the results is guaranteed to be consistent with the state
+ * of the files.
+ *
+ * Every result is independent, and is not guaranteed to be consistent with
+ * any previously returned result, even inside of the same library.
+ */
+class UnitElementResult {
+  /**
+   * The path of the file, absolute and normalized.
+   */
+  final String path;
+
+  /**
+   * The MD5 hash of the file content.
+   */
+  final String contentHash;
+
+  /**
+   * The key of the [element] based on the transitive closure of files imported
+   * and exported by the requested file.
+   */
+  final String key;
+
+  /**
+   * The element of the file.
+   */
+  final CompilationUnitElement element;
+
+  UnitElementResult(this.path, this.contentHash, this.key, this.element);
 }
 
 /**
