@@ -186,6 +186,8 @@ main() {
   testNativeField(null);
   testMixinInstantiation();
   testNamedMixinInstantiation();
+  testGenericMixinInstantiation();
+  testGenericNamedMixinInstantiation();
 }
 
 testEmpty() {}
@@ -630,6 +632,8 @@ class NativeClass {
 testNativeField(NativeClass c) => c.field;
 testMixinInstantiation() => new Sub();
 testNamedMixinInstantiation() => new NamedMixin();
+testGenericMixinInstantiation() => new GenericSub<int, String>();
+testGenericNamedMixinInstantiation() => new GenericNamedMixin<int, String>();
 ''',
   'sdk/tests/compiler/dart2js_native/helper.dart': '''
 import 'dart:_js_helper';
@@ -653,6 +657,14 @@ class Mixin1 {}
 class Mixin2 {}
 class Sub extends Super with Mixin1, Mixin2 {}
 class NamedMixin = Super with Mixin1, Mixin2;
+
+class GenericSuper<X1, Y1> {}
+class GenericMixin1<X2, Y2> {}
+class GenericMixin2<X3, Y3> {}
+class GenericSub<X4, Y4> extends GenericSuper<X4, Y4>
+    with GenericMixin1<X4, Y4>, GenericMixin2<X4, Y4> {}
+class GenericNamedMixin<X5, Y5> = GenericSuper<X5, Y5>
+    with GenericMixin1<X5, Y5>, GenericMixin2<X5, Y5>;
 
 const String _serializedScriptValue =
     'num|String|bool|'

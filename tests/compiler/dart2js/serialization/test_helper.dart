@@ -16,6 +16,7 @@ import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/kernel/elements.dart';
 import 'package:compiler/src/kernel/world_builder.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
+import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
 import 'test_data.dart';
 
@@ -636,6 +637,14 @@ List<String> testSegment(int index, int count, int skip) {
 class KernelEquivalence {
   final WorldDeconstructionForTesting testing;
 
+  /// Set of mixin applications assumed to be equivalent.
+  ///
+  /// We need co-inductive reasoning because mixin applications are compared
+  /// structurally and therefore, in the case of generic mixin applications,
+  /// meet themselves through the equivalence check of their type variables.
+  Set<Pair<ClassEntity, ClassEntity>> assumedMixinApplications =
+      new Set<Pair<ClassEntity, ClassEntity>>();
+
   KernelEquivalence(KernelWorldBuilder builder)
       : testing = new WorldDeconstructionForTesting(builder);
 
@@ -683,8 +692,17 @@ class KernelEquivalence {
                 !strategy.test(a, b, 'name', a.name, b.name)) {
               return false;
             }
-            return strategy.testTypeLists(
-                a, b, 'mixinTypes', aMixinTypes, bMixinTypes);
+            Pair<ClassEntity, ClassEntity> pair =
+                new Pair<ClassEntity, ClassEntity>(aClass, bClass);
+            if (assumedMixinApplications.contains(pair)) {
+              return true;
+            } else {
+              assumedMixinApplications.add(pair);
+              bool result = strategy.testTypeLists(
+                  a, b, 'mixinTypes', aMixinTypes, bMixinTypes);
+              assumedMixinApplications.remove(pair);
+              return result;
+            }
           }
           return strategy.test(a, b, 'name', a.name, b.name) &&
               strategy.testElements(
