@@ -66,6 +66,12 @@ class ResultCollector<E> {
   }
 
   /**
+   * Return `true` if this collector is collecting results associated with the
+   * given [filePath].
+   */
+  bool isCollectingFor(String filePath) => resultMap.containsKey(filePath);
+
+  /**
    * Record the [partialResults] as having been contributed for the given
    * [filePath] by the plugin with the given [pluginId].
    */
