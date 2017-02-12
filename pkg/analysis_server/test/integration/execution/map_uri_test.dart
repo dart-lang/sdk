@@ -15,7 +15,7 @@ main() {
   });
 }
 
-class AbstractMapUriTest extends AbstractAnalysisServerIntegrationTest {
+abstract class AbstractMapUriTest extends AbstractAnalysisServerIntegrationTest {
   test_mapUri() async {
     String pathname = sourcePath('lib/main.dart');
     writeFile(pathname, '// dummy');

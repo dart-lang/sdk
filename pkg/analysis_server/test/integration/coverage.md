@@ -42,8 +42,8 @@ This file is validated by `coverage_test.dart`.
 - [ ] edit.organizeDirectives
 
 ## execution domain
-- [ ] execution.createContext
-- [ ] execution.deleteContext
+- [x] execution.createContext
+- [x] execution.deleteContext
 - [x] execution.mapUri
 - [ ] execution.setSubscriptions
 

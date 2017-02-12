@@ -280,6 +280,17 @@ abstract class AbstractAnalysisServerIntegrationTest
 }
 
 /**
+ * An error result from a server request.
+ */
+class ServerErrorMessage {
+  final Map message;
+
+  ServerErrorMessage(this.message);
+
+  dynamic get error => message['error'];
+}
+
+/**
  * Wrapper class for Matcher which doesn't create the underlying Matcher object
  * until it is needed.  This is necessary in order to create matchers that can
  * refer to themselves (so that recursive data structures can be represented).
@@ -577,9 +588,7 @@ class Server {
           _pendingCommands.remove(id);
         }
         if (messageAsMap.containsKey('error')) {
-          // TODO(paulberry): propagate the error info to the completer.
-          completer.completeError(new UnimplementedError(
-              'Server responded with an error: ${JSON.encode(message)}'));
+          completer.completeError(new ServerErrorMessage(messageAsMap));
         } else {
           completer.complete(messageAsMap['result']);
         }
