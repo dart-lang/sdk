@@ -3,11 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/analyzer/token_utils.dart';
-import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/keyword.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/string_scanner.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
-import 'package:front_end/src/fasta/scanner/token_constants.dart' as fasta;
 import 'package:front_end/src/scanner/errors.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
