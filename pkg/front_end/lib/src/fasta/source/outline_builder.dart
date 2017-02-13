@@ -193,7 +193,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginClassDeclaration(Token begin) {
+  void beginClassDeclaration(Token begin, Token name) {
     library.beginNestedDeclaration();
   }
 
@@ -301,7 +301,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void beginNamedMixinApplication(Token token) {
+  void beginNamedMixinApplication(Token begin, Token name) {
     library.beginNestedDeclaration(hasMembers: false);
   }
 

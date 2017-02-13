@@ -712,45 +712,44 @@ class Parser {
       abstractKeyword = token;
       token = token.next;
     }
-    Token classKeyword = token;
-    var isMixinApplication = optional('=', peekAfterType(token.next));
-    if (isMixinApplication) {
-      listener.beginNamedMixinApplication(begin);
-    } else {
-      listener.beginClassDeclaration(begin);
-    }
-
     int modifierCount = 0;
     if (abstractKeyword != null) {
       parseModifier(abstractKeyword);
       modifierCount++;
     }
     listener.handleModifiers(modifierCount);
+    bool isMixinApplication = optional('=', peekAfterType(token));
+    Token name = token.next;
+    token = parseIdentifier(name);
 
     if (isMixinApplication) {
-      token = parseIdentifier(token.next);
-      token = parseTypeVariablesOpt(token);
-      token = expect('=', token);
-      return parseNamedMixinApplication(token, classKeyword);
+      listener.beginNamedMixinApplication(begin, name);
     } else {
-      return parseClass(begin, classKeyword);
+      listener.beginClassDeclaration(begin, name);
+    }
+
+    token = parseTypeVariablesOpt(token);
+
+    if (optional('=', token)) {
+      token = expect('=', token);
+      return parseNamedMixinApplication(token, begin, name);
+    } else {
+      return parseClass(token, begin, name);
     }
   }
 
-  Token parseNamedMixinApplication(Token token, Token classKeyword) {
+  Token parseNamedMixinApplication(Token token, Token begin, Token name) {
     token = parseMixinApplication(token);
     Token implementsKeyword = null;
     if (optional('implements', token)) {
       implementsKeyword = token;
       token = parseTypeList(token.next);
     }
-    listener.endNamedMixinApplication(classKeyword, implementsKeyword, token);
+    listener.endNamedMixinApplication(begin, implementsKeyword, token);
     return expect(';', token);
   }
 
-  Token parseClass(Token begin, Token classKeyword) {
-    Token token = parseIdentifier(classKeyword.next);
-    token = parseTypeVariablesOpt(token);
+  Token parseClass(Token token, Token begin, Token name) {
     Token extendsKeyword;
     if (optional('extends', token)) {
       extendsKeyword = token;

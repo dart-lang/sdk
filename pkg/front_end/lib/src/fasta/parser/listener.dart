@@ -67,7 +67,7 @@ class Listener {
     logEvent("ClassBody");
   }
 
-  void beginClassDeclaration(Token token) {}
+  void beginClassDeclaration(Token beginToken, Token name) {}
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
       Token extendsKeyword, Token implementsKeyword, Token endToken) {
@@ -236,10 +236,10 @@ class Listener {
     logEvent("MixinApplication");
   }
 
-  void beginNamedMixinApplication(Token token) {}
+  void beginNamedMixinApplication(Token beginToken, Token name) {}
 
   void endNamedMixinApplication(
-      Token classKeyword, Token implementsKeyword, Token endToken) {
+      Token begin, Token implementsKeyword, Token endToken) {
     logEvent("NamedMixinApplication");
   }
 
