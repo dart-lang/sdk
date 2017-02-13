@@ -176,6 +176,8 @@
     'exceptions.h',
     'exceptions_test.cc',
     'find_code_object_test.cc',
+    'fixed_cache.h',
+    'fixed_cache_test.cc',
     'flag_list.h',
     'flags.cc',
     'flags.h',

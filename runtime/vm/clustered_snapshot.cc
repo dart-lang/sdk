@@ -1985,8 +1985,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
       s->WriteRef(handlers->ptr()->handled_types_data_);
 
       uint8_t* data = reinterpret_cast<uint8_t*>(handlers->ptr()->data());
-      intptr_t length_in_bytes =
-          length * sizeof(RawExceptionHandlers::HandlerInfo);
+      intptr_t length_in_bytes = length * sizeof(ExceptionHandlerInfo);
       s->WriteBytes(data, length_in_bytes);
     }
   }
@@ -2029,8 +2028,7 @@ class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
           reinterpret_cast<RawArray*>(d->ReadRef());
 
       uint8_t* data = reinterpret_cast<uint8_t*>(handlers->ptr()->data());
-      intptr_t length_in_bytes =
-          length * sizeof(RawExceptionHandlers::HandlerInfo);
+      intptr_t length_in_bytes = length * sizeof(ExceptionHandlerInfo);
       d->ReadBytes(data, length_in_bytes);
     }
   }

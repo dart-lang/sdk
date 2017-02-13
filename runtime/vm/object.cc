@@ -12385,7 +12385,7 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        bool has_catch_all) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
   NoSafepointScope no_safepoint;
-  RawExceptionHandlers::HandlerInfo* info =
+  ExceptionHandlerInfo* info =
       UnsafeMutableNonPointer(&raw_ptr()->data()[try_index]);
   info->outer_try_index = outer_try_index;
   // Some C compilers warn about the comparison always being true when using <=
@@ -12397,9 +12397,8 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
   info->has_catch_all = has_catch_all;
 }
 
-void ExceptionHandlers::GetHandlerInfo(
-    intptr_t try_index,
-    RawExceptionHandlers::HandlerInfo* info) const {
+void ExceptionHandlers::GetHandlerInfo(intptr_t try_index,
+                                       ExceptionHandlerInfo* info) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
   ASSERT(info != NULL);
   *info = raw_ptr()->data()[try_index];
@@ -12509,7 +12508,7 @@ const char* ExceptionHandlers::ToCString() const {
   }
   Array& handled_types = Array::Handle();
   Type& type = Type::Handle();
-  RawExceptionHandlers::HandlerInfo info;
+  ExceptionHandlerInfo info;
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < num_entries(); i++) {

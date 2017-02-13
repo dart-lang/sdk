@@ -1949,7 +1949,7 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
     }
     const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(zone, optimized_code.exception_handlers());
-    RawExceptionHandlers::HandlerInfo info;
+    ExceptionHandlerInfo info;
     for (intptr_t i = 0; i < handlers.num_entries(); ++i) {
       handlers.GetHandlerInfo(i, &info);
       const uword patch_pc = instrs.PayloadStart() + info.handler_pc_offset;

@@ -4493,8 +4493,7 @@ class ExceptionHandlers : public Object {
 
   intptr_t num_entries() const;
 
-  void GetHandlerInfo(intptr_t try_index,
-                      RawExceptionHandlers::HandlerInfo* info) const;
+  void GetHandlerInfo(intptr_t try_index, ExceptionHandlerInfo* info) const;
 
   uword HandlerPCOffset(intptr_t try_index) const;
   intptr_t OuterTryIndex(intptr_t try_index) const;
@@ -4516,9 +4515,8 @@ class ExceptionHandlers : public Object {
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(
-        sizeof(RawExceptionHandlers) +
-        (len * sizeof(RawExceptionHandlers::HandlerInfo)));
+    return RoundedAllocationSize(sizeof(RawExceptionHandlers) +
+                                 (len * sizeof(ExceptionHandlerInfo)));
   }
 
   static RawExceptionHandlers* New(intptr_t num_handlers);

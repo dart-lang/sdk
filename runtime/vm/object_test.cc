@@ -2809,7 +2809,7 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(code.exception_handlers());
   EXPECT_EQ(kNumEntries, handlers.num_entries());
-  RawExceptionHandlers::HandlerInfo info;
+  ExceptionHandlerInfo info;
   handlers.GetHandlerInfo(0, &info);
   EXPECT_EQ(-1, handlers.OuterTryIndex(0));
   EXPECT_EQ(-1, info.outer_try_index);

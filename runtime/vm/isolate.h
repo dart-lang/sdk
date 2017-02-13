@@ -10,6 +10,8 @@
 #include "vm/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
+#include "vm/exceptions.h"
+#include "vm/fixed_cache.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
@@ -122,6 +124,10 @@ class NoReloadScope : public StackResource {
   Isolate* isolate_;
   DISALLOW_COPY_AND_ASSIGN(NoReloadScope);
 };
+
+
+// Fixed cache for exception handler lookup.
+typedef FixedCache<intptr_t, ExceptionHandlerInfo, 16> HandlerInfoCache;
 
 
 class Isolate : public BaseIsolate {
@@ -642,6 +648,8 @@ class Isolate : public BaseIsolate {
     return reload_every_n_stack_overflow_checks_;
   }
 
+  HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
+
   void MaybeIncreaseReloadEveryNStackOverflowChecks();
 
  private:
@@ -835,6 +843,8 @@ class Isolate : public BaseIsolate {
   int64_t last_reload_timestamp_;
   // Should we pause in the debug message loop after this request?
   bool should_pause_post_service_request_;
+
+  HandlerInfoCache handler_info_cache_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;

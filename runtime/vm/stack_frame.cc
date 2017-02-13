@@ -257,6 +257,14 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   if (code.IsNull()) {
     return false;  // Stub frames do not have exception handlers.
   }
+  HandlerInfoCache* cache = thread->isolate()->handler_info_cache();
+  ExceptionHandlerInfo* info = cache->Lookup(pc());
+  if (info != NULL) {
+    *handler_pc = code.PayloadStart() + info->handler_pc_offset;
+    *needs_stacktrace = info->needs_stacktrace;
+    *has_catch_all = info->has_catch_all;
+    return true;
+  }
   uword pc_offset = pc() - code.PayloadStart();
 
   REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(thread);
@@ -274,11 +282,12 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   while (iter.MoveNext()) {
     const intptr_t current_try_index = iter.TryIndex();
     if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {
-      RawExceptionHandlers::HandlerInfo handler_info;
+      ExceptionHandlerInfo handler_info;
       handlers.GetHandlerInfo(current_try_index, &handler_info);
       *handler_pc = code.PayloadStart() + handler_info.handler_pc_offset;
       *needs_stacktrace = handler_info.needs_stacktrace;
       *has_catch_all = handler_info.has_catch_all;
+      cache->Insert(pc(), handler_info);
       return true;
     }
   }

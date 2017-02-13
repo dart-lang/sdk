@@ -1403,16 +1403,6 @@ class RawLocalVarDescriptors : public RawObject {
 
 
 class RawExceptionHandlers : public RawObject {
- public:
-  // The index into the ExceptionHandlers table corresponds to
-  // the try_index of the handler.
-  struct HandlerInfo {
-    uint32_t handler_pc_offset;  // PC offset value of handler.
-    int16_t outer_try_index;     // Try block index of enclosing try block.
-    int8_t needs_stacktrace;     // True if a stacktrace is needed.
-    int8_t has_catch_all;        // Catches all exceptions.
-  };
-
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
@@ -1424,8 +1414,12 @@ class RawExceptionHandlers : public RawObject {
   RawArray* handled_types_data_;
 
   // Exception handler info of length [num_entries_].
-  const HandlerInfo* data() const { OPEN_ARRAY_START(HandlerInfo, intptr_t); }
-  HandlerInfo* data() { OPEN_ARRAY_START(HandlerInfo, intptr_t); }
+  const ExceptionHandlerInfo* data() const {
+    OPEN_ARRAY_START(ExceptionHandlerInfo, intptr_t);
+  }
+  ExceptionHandlerInfo* data() {
+    OPEN_ARRAY_START(ExceptionHandlerInfo, intptr_t);
+  }
 
   friend class Object;
 };

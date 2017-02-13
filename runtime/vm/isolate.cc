@@ -845,7 +845,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
       reload_context_(NULL),
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
-      should_pause_post_service_request_(false) {
+      should_pause_post_service_request_(false),
+      handler_info_cache_() {
   NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to

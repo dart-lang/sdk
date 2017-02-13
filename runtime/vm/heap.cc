@@ -403,6 +403,8 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     RecordAfterGC(kOld);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
+    // Some Code objects may have been collected so invalidate handler cache.
+    thread->isolate()->handler_info_cache()->Clear();
     EndOldSpaceGC();
   }
 }
