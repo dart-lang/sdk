@@ -167,8 +167,6 @@ class AstBuilder {
         return TokenType.INDEX;
       case "[]=":
         return TokenType.INDEX_EQ;
-      case "is":
-        return TokenType.IS;
       case "<":
         return TokenType.LT;
       case "<=":

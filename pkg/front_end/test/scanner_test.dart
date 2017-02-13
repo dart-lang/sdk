@@ -1358,7 +1358,6 @@ class TokenTypeTest {
     expect(TokenType.GT_GT_EQ.isOperator, isTrue);
     expect(TokenType.INDEX.isOperator, isTrue);
     expect(TokenType.INDEX_EQ.isOperator, isTrue);
-    expect(TokenType.IS.isOperator, isTrue);
     expect(TokenType.LT.isOperator, isTrue);
     expect(TokenType.LT_EQ.isOperator, isTrue);
     expect(TokenType.LT_LT.isOperator, isTrue);

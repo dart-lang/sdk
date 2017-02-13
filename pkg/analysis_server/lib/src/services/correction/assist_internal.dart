@@ -876,7 +876,7 @@ class AssistProcessor {
     }
     // strip !()
     if (getExpressionParentPrecedence(prefExpression) >=
-        TokenType.IS.precedence) {
+        TokenClass.RELATIONAL_OPERATOR.precedence) {
       _addRemoveEdit(rangeToken(prefExpression.operator));
     } else {
       _addRemoveEdit(
@@ -925,7 +925,7 @@ class AssistProcessor {
     }
     // strip !()
     if (getExpressionParentPrecedence(prefExpression) >=
-        TokenType.IS.precedence) {
+        TokenClass.RELATIONAL_OPERATOR.precedence) {
       _addRemoveEdit(rangeToken(prefExpression.operator));
     } else {
       _addRemoveEdit(
