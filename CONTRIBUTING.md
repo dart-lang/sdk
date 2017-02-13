@@ -23,21 +23,43 @@ All submissions, including submissions by project members, require review.
 ### File headers
 All files in the project must start with the following header.
 
-    // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+    // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
 
 ### Mechanics
 Contributing code is easy.
 
-  1. Get the source: `git clone https://github.com/dart-lang/linter.git`.
-  2. Create a topic branch: `git checkout -B my_lint_contribution`.
-  3. (Hack; commit changes.)
-  4. Upload your CL for review: `git cl upload`.
-  5. Add a reviewer.
-  6. Once accepted, land your change: `git cl land`.
+ * First, get the source by forking `https://github.com/dart-lang/linter` into your own GitHub account.
+ * If you haven't configured your machine with an SSH key that's known to github then follow the directions here: https://help.github.com/articles/generating-ssh-keys/.
+ * `git clone git@github.com:<your_name_here>/linter.git`
+ * `cd linter`
+ * `git remote add upstream git@github.com:dart-lang/linter/linter.git` (So that you fetch from the master repository, not your clone, when running git fetch et al.)
 
-Alternatively, you can create a pull request.
+To start working on a patch:
+
+ * `git fetch upstream`
+ * `git checkout upstream/master -b name_of_your_branch`
+ * Hack away.
+ * `git commit -a -m "<your informative commit message>"`
+ * `git push origin name_of_your_branch`
+
+To send us a pull request:
+
+ * `git pull-request` (if you are using [Hub](http://github.com/github/hub/)) or
+  go to `https://github.com/dart-lang/linter` and click the
+  "Compare & pull request" button
+ * either explicitly name a reviewer in the github UI or add their guithub name in the pull request message body
+
+Please make sure all your checkins have detailed commit messages explaining the patch and if a PR is *not* ready to land, consider making it clear in the description and/or prefixing the title with "WIP".
+  
+Once you've gotten an LGTM from a project maintainer, submit your changes to the
+`master` branch using one of the following methods:
+
+* Wait for one of the project maintainers to submit it for you.
+* Click the green "Merge pull request" button on the GitHub UI of your pull
+  request (requires commit access)
+* `git push upstream name_of_your_branch:master` (requires commit access)
 
 ### The small print
 Contributions made by corporations are covered by a different agreement than the
