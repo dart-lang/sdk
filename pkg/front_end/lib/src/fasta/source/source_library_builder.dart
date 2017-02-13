@@ -112,9 +112,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     return ref;
   }
 
-  void beginNestedDeclaration({bool hasMembers}) {
+  void beginNestedDeclaration(String name, {bool hasMembers}) {
     currentDeclaration =
-        new DeclarationBuilder(<String, MemberBuilder>{}, currentDeclaration);
+        new DeclarationBuilder(<String, MemberBuilder>{}, name, currentDeclaration);
   }
 
   DeclarationBuilder<T> endNestedDeclaration() {
@@ -179,7 +179,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers, T returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
-      ProcedureKind kind, int charOffset);
+      ProcedureKind kind, int charOffset, {bool isTopLevel});
 
   void addEnum(List<MetadataBuilder> metadata, String name,
       List<String> constants, int charOffset);
@@ -370,7 +370,9 @@ class DeclarationBuilder<T extends TypeBuilder> {
 
   final List<T> types = <T>[];
 
-  DeclarationBuilder(this.members, [this.parent]);
+  final String name;
+
+  DeclarationBuilder(this.members, this.name, [this.parent]);
 
   void addMember(String name, MemberBuilder builder) {
     if (members == null) {

@@ -135,7 +135,7 @@ class KernelLibraryBuilder
       int modifiers, KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
-      ProcedureKind kind, int charOffset) {
+      ProcedureKind kind, int charOffset, {bool isTopLevel}) {
     // Nested declaration began in `OutlineBuilder.beginMethod` or
     // `OutlineBuilder.beginTopLevelMethod`.
     endNestedDeclaration().resolveTypes(typeVariables);

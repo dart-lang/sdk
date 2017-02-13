@@ -194,7 +194,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginClassDeclaration(Token begin, Token name) {
-    library.beginNestedDeclaration();
+    library.beginNestedDeclaration(name.value);
   }
 
   @override
@@ -221,7 +221,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginTopLevelMethod(Token token, Token name) {
-    library.beginNestedDeclaration(hasMembers: false);
+    library.beginNestedDeclaration(name.value, hasMembers: false);
   }
 
   @override
@@ -240,7 +240,7 @@ class OutlineBuilder extends UnhandledListener {
     checkEmpty();
     library.addProcedure(metadata, modifiers, returnType, name,
         typeVariables, formals, asyncModifier, computeProcedureKind(getOrSet),
-        beginToken.charOffset);
+        beginToken.charOffset, isTopLevel: true);
   }
 
   @override
@@ -257,7 +257,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginMethod(Token token, Token name) {
-    library.beginNestedDeclaration(hasMembers: false);
+    library.beginNestedDeclaration(name.value, hasMembers: false);
   }
 
   @override
@@ -289,7 +289,7 @@ class OutlineBuilder extends UnhandledListener {
         isAbstract: bodyKind == MethodBody.Abstract);
     List<MetadataBuilder> metadata = pop();
     library.addProcedure(metadata, modifiers, returnType, name, typeVariables,
-        formals, asyncModifier, kind, beginToken.charOffset);
+        formals, asyncModifier, kind, beginToken.charOffset, isTopLevel: false);
   }
 
   @override
@@ -302,7 +302,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginNamedMixinApplication(Token begin, Token name) {
-    library.beginNestedDeclaration(hasMembers: false);
+    library.beginNestedDeclaration(name.value, hasMembers: false);
   }
 
   @override
@@ -437,7 +437,7 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void beginFunctionTypeAlias(Token token) {
-    library.beginNestedDeclaration(hasMembers: false);
+    library.beginNestedDeclaration(null, hasMembers: false);
   }
 
   @override
