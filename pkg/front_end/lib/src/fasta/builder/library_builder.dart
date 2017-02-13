@@ -8,7 +8,8 @@ import '../combinator.dart' show
     Combinator;
 
 import '../errors.dart' show
-    InputError;
+    InputError,
+    internalError;
 
 import '../export.dart' show
     Export;
@@ -69,6 +70,34 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
       String name, Builder builder, Builder other, int charOffset);
 
   int finishStaticInvocations() => 0;
+
+  /// Looks up [constructorName] in the class named [className]. It's an error
+  /// if no such class is exported by this library, or if the class doesn't
+  /// have a matching constructor (or factory).
+  ///
+  /// If [constructorName] is null or the empty string, it's assumed to be an
+  /// unnamed constructor.
+  Builder getConstructor(String className,
+      {String constructorName, bool isPrivate: false}) {
+    constructorName ??= "";
+    Builder cls = (isPrivate ? members : exports)[className];
+    if (cls is ClassBuilder) {
+      // TODO(ahe): This code is similar to code in `handleNewExpression` in
+      // `body_builder.dart`, try to share it.
+      Builder constructor = cls.findConstructorOrFactory(constructorName);
+      if (constructor == null) {
+        // Fall-through to internal error below.
+      } else if (constructor.isConstructor) {
+        if (!cls.isAbstract) {
+          return constructor;
+        }
+      } else if (constructor.isFactory) {
+        return constructor;
+      }
+    }
+    throw internalError("Internal error: No constructor named"
+        " '$className::$constructorName' in '$uri'.");
+  }
 
   int finishTypeVariables(ClassBuilder object) => 0;
 }

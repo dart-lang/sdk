@@ -14,6 +14,7 @@ import 'ast_kind.dart' show
     AstKind;
 
 import 'builder/builder.dart' show
+    Builder,
     LibraryBuilder;
 
 import 'errors.dart' show
@@ -147,6 +148,8 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
     }
     return errors;
   }
+
+  Builder getCompileTimeError() => target.getCompileTimeError(this);
 }
 
 String format(double d, int fractionDigits, int width) {

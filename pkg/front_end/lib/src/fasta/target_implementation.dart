@@ -5,8 +5,12 @@
 library fasta.target_implementation;
 
 import 'builder/builder.dart' show
+    Builder,
     ClassBuilder,
     LibraryBuilder;
+
+import 'loader.dart' show
+    Loader;
 
 import 'target.dart' show
     Target;
@@ -20,6 +24,7 @@ import 'translate_uri.dart' show
 /// Provides the implementation details used by a loader for a target.
 abstract class TargetImplementation extends Target {
   final TranslateUri uriTranslator;
+  Builder cachedCompileTimeError;
 
   TargetImplementation(Ticker ticker, this.uriTranslator)
       : super(ticker);
@@ -40,4 +45,13 @@ abstract class TargetImplementation extends Target {
   void breakCycle(ClassBuilder cls);
 
   Uri translateUri(Uri uri) => uriTranslator.translate(uri);
+
+  /// Returns a reference to the constructor used for creating a compile-time
+  /// error. The constructor is expected to accept a single argument of type
+  /// String, which is the compile-time error message.
+  Builder getCompileTimeError(Loader loader) {
+    if (cachedCompileTimeError != null) return cachedCompileTimeError;
+    return cachedCompileTimeError =
+        loader.coreLibrary.getConstructor("_CompileTimeError", isPrivate: true);
+  }
 }
