@@ -581,7 +581,11 @@ template("dart_executable") {
     }
 
     sources = [
+                "error_exit.cc",
+                "error_exit.h",
                 "main.cc",
+                "snapshot_utils.cc",
+                "snapshot_utils.h",
                 "vmservice_impl.cc",
                 "vmservice_impl.h",
                 "$target_gen_dir/resources_gen.cc",
