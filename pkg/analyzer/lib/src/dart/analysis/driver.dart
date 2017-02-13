@@ -179,6 +179,12 @@ class AnalysisDriver {
       <String, List<Completer<AnalysisDriverUnitIndex>>>{};
 
   /**
+   * The mapping from the files for which the unit element key was requested
+   * using [getUnitElementSignature] to the [Completer]s to report the result.
+   */
+  final _unitElementSignatureRequests = <String, List<Completer<String>>>{};
+
+  /**
    * The mapping from the files for which the unit element was requested using
    * [getUnitElement] to the [Completer]s to report the result.
    */
@@ -368,6 +374,9 @@ class AnalysisDriver {
       return AnalysisDriverPriority.interactive;
     }
     if (_indexRequestedFiles.isNotEmpty) {
+      return AnalysisDriverPriority.interactive;
+    }
+    if (_unitElementSignatureRequests.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
     if (_unitElementRequestedFiles.isNotEmpty) {
@@ -613,6 +622,27 @@ class AnalysisDriver {
   }
 
   /**
+   * Return a [Future] that completes with the signature for the
+   * [UnitElementResult] for the file with the given [path], or with `null` if
+   * the file cannot be analyzed.
+   *
+   * The signature is based on the content of the file, and the transitive
+   * closure of files imported and exported by the the library of the requested
+   * file.
+   */
+  Future<String> getUnitElementSignature(String path) {
+    if (!_fileTracker.fsState.hasUri(path)) {
+      return new Future.value();
+    }
+    var completer = new Completer<String>();
+    _unitElementSignatureRequests
+        .putIfAbsent(path, () => <Completer<String>>[])
+        .add(completer);
+    _scheduler.notify(this);
+    return completer.future;
+  }
+
+  /**
    * Return a [Future] that completes with a [ParseResult] for the file
    * with the given [path].
    *
@@ -759,11 +789,17 @@ class AnalysisDriver {
     try {
       CompilationUnitElement element =
           libraryContext.computeUnitElement(library.source, file.source);
-      String key = _getResolvedUnitKey(library, file);
-      return new UnitElementResult(path, file.contentHash, key, element);
+      String signature = _getResolvedUnitSignature(library, file);
+      return new UnitElementResult(path, file.contentHash, signature, element);
     } finally {
       libraryContext.dispose();
     }
+  }
+
+  String _computeUnitElementSignature(String path) {
+    FileState file = _fileTracker.fsState.getFileForPath(path);
+    FileState library = file.library ?? file;
+    return _getResolvedUnitSignature(library, file);
   }
 
   /**
@@ -850,15 +886,23 @@ class AnalysisDriver {
 
   /**
    * Return the key to store fully resolved results for the [file] in the
-   * [library] into the cache. Return `null` if the dependency signature is
-   * not known yet.
+   * [library] into the cache.
    */
   String _getResolvedUnitKey(FileState library, FileState file) {
+    String signature = _getResolvedUnitSignature(library, file);
+    return '$signature.resolved';
+  }
+
+  /**
+   * Return the signature that identifies fully resolved results for the [file]
+   * in the [library], e.g. element model, errors, index, etc.
+   */
+  String _getResolvedUnitSignature(FileState library, FileState file) {
     ApiSignature signature = new ApiSignature();
     signature.addUint32List(_salt);
     signature.addString(library.transitiveSignature);
     signature.addString(file.contentHash);
-    return '${signature.toHex()}.resolved';
+    return signature.toHex();
   }
 
   /**
@@ -925,7 +969,17 @@ class AnalysisDriver {
       return;
     }
 
-    // Process a unit request.
+    // Process a unit element key request.
+    if (_unitElementSignatureRequests.isNotEmpty) {
+      String path = _unitElementSignatureRequests.keys.first;
+      String signature = _computeUnitElementSignature(path);
+      _unitElementSignatureRequests.remove(path).forEach((completer) {
+        completer.complete(signature);
+      });
+      return;
+    }
+
+    // Process a unit element request.
     if (_unitElementRequestedFiles.isNotEmpty) {
       String path = _unitElementRequestedFiles.keys.first;
       UnitElementResult result = _computeUnitElement(path);
@@ -1609,17 +1663,18 @@ class UnitElementResult {
   final String contentHash;
 
   /**
-   * The key of the [element] based on the transitive closure of files imported
-   * and exported by the requested file.
+   * The signature of the [element] based on the content of the file, and the
+   * transitive closure of files imported and exported by the the library of
+   * the requested file.
    */
-  final String key;
+  final String signature;
 
   /**
    * The element of the file.
    */
   final CompilationUnitElement element;
 
-  UnitElementResult(this.path, this.contentHash, this.key, this.element);
+  UnitElementResult(this.path, this.contentHash, this.signature, this.element);
 }
 
 /**

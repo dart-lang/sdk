@@ -1556,6 +1556,26 @@ main() {
     expect(unitResult.element.types.map((e) => e.name), ['A']);
   }
 
+  test_getUnitElementSignature() async {
+    var a = _p('/test/lib/a.dart');
+
+    provider.newFile(a, 'foo() {}');
+
+    String signature = await driver.getUnitElementSignature(a);
+    expect(signature, isNotNull);
+
+    UnitElementResult unitResult = await driver.getUnitElement(a);
+    expect(unitResult.path, a);
+    expect(unitResult.signature, signature);
+
+    provider.updateFile(a, 'bar() {}');
+    driver.changeFile(a);
+
+    String signature2 = await driver.getUnitElementSignature(a);
+    expect(signature2, isNotNull);
+    expect(signature2, isNot(signature));
+  }
+
   test_hasFilesToAnalyze() async {
     // No files yet, nothing to analyze.
     expect(driver.hasFilesToAnalyze, isFalse);
