@@ -46,15 +46,16 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   LibraryBuilder(Uri fileUri)
       : super(null, -1, fileUri);
 
-  Builder addBuilder(String name, Builder builder);
+  Builder addBuilder(String name, Builder builder, int charOffset);
 
   void addExporter(LibraryBuilder exporter, List<Combinator> combinators,
       int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
-  void addCompileTimeError(int charOffset, Object message) {
-    InputError error = new InputError(uri, charOffset, message);
+  void addCompileTimeError(int charOffset, Object message, [Uri fileUri]) {
+    fileUri ??= this.fileUri;
+    InputError error = new InputError(fileUri, charOffset, message);
     compileTimeErrors.add(error);
     print(error.format());
   }

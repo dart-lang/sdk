@@ -108,7 +108,7 @@ class KernelLibraryBuilder
     });
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     endNestedDeclaration();
-    addBuilder(className, cls);
+    addBuilder(className, cls, charOffset);
   }
 
   void addNamedMixinApplication(
@@ -122,13 +122,13 @@ class KernelLibraryBuilder
             charOffset);
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration();
-    addBuilder(name, builder);
+    addBuilder(name, builder, charOffset);
   }
 
   void addField(List<MetadataBuilder> metadata,
       int modifiers, KernelTypeBuilder type, String name, int charOffset) {
     addBuilder(name, new KernelFieldBuilder(
-            metadata, type, name, modifiers, this, charOffset));
+            metadata, type, name, modifiers, this, charOffset), charOffset);
   }
 
   void addProcedure(List<MetadataBuilder> metadata,
@@ -141,7 +141,8 @@ class KernelLibraryBuilder
     endNestedDeclaration().resolveTypes(typeVariables);
     addBuilder(name,
         new KernelProcedureBuilder(metadata, modifiers, returnType, name,
-            typeVariables, formals, asyncModifier, kind, this, charOffset));
+            typeVariables, formals, asyncModifier, kind, this, charOffset),
+        charOffset);
   }
 
   void addFactoryMethod(List<MetadataBuilder> metadata,
@@ -153,13 +154,14 @@ class KernelLibraryBuilder
     addBuilder(name,
         new KernelProcedureBuilder(metadata, staticMask, null, name, null,
             formals, asyncModifier, ProcedureKind.Factory, this, charOffset,
-            redirectionTarget));
+            redirectionTarget), charOffset);
   }
 
   void addEnum(List<MetadataBuilder> metadata, String name,
       List<String> constants, int charOffset) {
     addBuilder(name,
-        new KernelEnumBuilder(metadata, name, constants, this, charOffset));
+        new KernelEnumBuilder(metadata, name, constants, this, charOffset),
+        charOffset);
   }
 
   void addFunctionTypeAlias(List<MetadataBuilder> metadata,
@@ -171,7 +173,7 @@ class KernelLibraryBuilder
         this, charOffset);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration();
-    addBuilder(name, typedef);
+    addBuilder(name, typedef, charOffset);
   }
 
   KernelFormalParameterBuilder addFormalParameter(

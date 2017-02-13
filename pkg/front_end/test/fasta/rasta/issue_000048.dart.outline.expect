@@ -13,15 +13,12 @@ class M1 extends core::Object {
   constructor •() → void
     ;
 }
-class C extends self::A+M1#0 {
+class C extends self::A&M1 {
   constructor •(core::bool v1, core::num v2) → void
+    : super self::A::•(v1, v2)
     ;
 }
-abstract class A+M1#0 extends self::A implements self::M1 {
-  field core::num v2;
-  constructor •(core::bool v1, core::num v2) → void
-    ;
+abstract class A&M1 = self::A with self::M1 {
 }
 static method main() → dynamic
   ;
-

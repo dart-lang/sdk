@@ -155,7 +155,7 @@ abstract class TestContext extends ChainContext {
     Uri vm = computeDartVm(sdk);
     Uri packages = Uri.base.resolve(".packages");
     bool strongMode = false;
-    bool updateExpectations = environment["updateExpectations"] != "false";
+    bool updateExpectations = environment["updateExpectations"] == "true";
     return constructor(suite, environment, sdk, vm, packages, strongMode,
         createDartSdk(sdk.toFilePath(), strongMode: strongMode),
         updateExpectations);
@@ -232,7 +232,7 @@ class MatchExpectation extends Step<Program, Program, TestContext> {
   // name.
   final bool updateExpectations;
 
-  const MatchExpectation(this.suffix, {this.updateExpectations: true});
+  const MatchExpectation(this.suffix, {this.updateExpectations: false});
 
   String get name => "match expectations";
 
@@ -243,12 +243,6 @@ class MatchExpectation extends Step<Program, Program, TestContext> {
     StringBuffer buffer = new StringBuffer();
     new Printer(buffer).writeLibraryFile(library);
 
-    bool updateExpectations = this.updateExpectations;
-    if (uri.path.contains("/test/fasta/rasta/")) {
-      // TODO(ahe): Remove this. Short term, we don't want to automatically
-      // update rasta expectations, as we have too many failures.
-      updateExpectations = false;
-    }
     File expectedFile = new File("${uri.toFilePath()}$suffix");
     if (await expectedFile.exists()) {
       String expected = await expectedFile.readAsString();

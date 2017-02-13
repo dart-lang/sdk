@@ -1,7 +1,9 @@
 library;
 import self as self;
+import "dart:core" as core;
 
 static method main() → dynamic {
-  throw "pkg/fasta/test/rasta/bad_continue.dart:239: \u0027[31mError: Can't find label 'here'.\u0027[0m";
-  invalid-statement;
+  throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/bad_continue.dart:239: \u0027[31mError: Can't find label 'here'.\u0027[0m");
+  #L1:
+  break #L1;
 }

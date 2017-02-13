@@ -58,7 +58,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   void addClass(Class cls) {
     DillClassBuilder classBulder = new DillClassBuilder(cls, this);
-    addBuilder(cls.name, classBulder);
+    addBuilder(cls.name, classBulder, cls.fileOffset);
     cls.procedures.forEach(classBulder.addMember);
     cls.constructors.forEach(classBulder.addMember);
     for (Field field in cls.fields) {
@@ -91,11 +91,11 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
       // [compile_platform.dart](../compile_platform.dart).
       print("$uri: _exports# not implemented yet.");
     } else {
-      addBuilder(name, new DillMemberBuilder(member, this));
+      addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
     }
   }
 
-  Builder addBuilder(String name, Builder builder) {
+  Builder addBuilder(String name, Builder builder, int charOffset) {
     if (name == null || name.isEmpty) return null;
     members[name] = builder;
     if (!name.startsWith("_")) {

@@ -11,14 +11,12 @@ rasta/issue_000044: Fail
 rasta/issue_000045: Fail
 rasta/issue_000046: Fail
 rasta/issue_000047: Fail
-rasta/issue_000048: Fail
 rasta/issue_000067: Fail
 rasta/issue_000068: Fail
 rasta/issue_000070: Fail
 rasta/mandatory_parameter_initializer: Fail
 rasta/mixin_library: Fail
 rasta/native_is_illegal: Fail
-rasta/super: Fail
 rasta/super_mixin: Fail
 rasta/type_literals: Fail
 rasta/type_with_parse_error: Fail

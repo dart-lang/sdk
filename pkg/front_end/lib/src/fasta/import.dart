@@ -56,7 +56,7 @@ class Import {
       add(name, member);
     });
     if (prefix != null) {
-      Builder existing = importer.addBuilder(prefix.name, prefix);
+      Builder existing = importer.addBuilder(prefix.name, prefix, charOffset);
       if (existing == prefix) {
         importer.addToScope(prefix.name, prefix);
       }

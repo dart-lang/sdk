@@ -282,7 +282,7 @@ class KernelTarget extends TargetImplementation {
       KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(null, 0,
           null, "main", null, null, AsyncMarker.Sync, ProcedureKind.Method,
           library, -1);
-      library.addBuilder(mainBuilder.name, mainBuilder);
+      library.addBuilder(mainBuilder.name, mainBuilder, -1);
       mainBuilder.body = new ExpressionStatement(
           new Throw(new StringLiteral("${errors.join('\n')}")));
     }

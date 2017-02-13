@@ -38,9 +38,6 @@ import '../errors.dart' show
     InputError,
     internalError;
 
-import '../errors.dart' as errors show
-    inputError;
-
 import '../source/scope_listener.dart' show
     JumpTargetKind,
     NullValue,
@@ -422,7 +419,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (member is KernelConstructorBuilder) {
       member.addInitializer(initializer);
     } else {
-      inputError("Can't have initializers: ${member.name}", token.charOffset);
+      addCompileTimeError(token.charOffset,
+          "Can't have initializers: ${member.name}");
     }
   }
 
@@ -444,8 +442,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (builder is KernelConstructorBuilder) {
       if (asyncModifier != AsyncMarker.Sync) {
         // TODO(ahe): Change this to a null check.
-        inputError("Can't be marked as ${asyncModifier}: ${builder.name}",
-            body?.fileOffset);
+        addCompileTimeError(body?.fileOffset,
+            "Can't be marked as ${asyncModifier}: ${builder.name}");
       }
     } else if (builder is KernelProcedureBuilder) {
       builder.asyncModifier = asyncModifier;
@@ -1175,7 +1173,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     dynamic name = pop();
     if (name is List) {
       if (name.length != 2) {
-        return internalError("Unexpected: $name.length");
+        internalError("Unexpected: $name.length");
       }
       var prefix = name[0];
       if (prefix is Identifier) {
@@ -1194,9 +1192,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (builder is PrefixBuilder) {
         name = builder.exports[suffix];
       } else {
-        return inputError(
-            "Can't be used as a type: '${debugName(prefix, suffix)}'.",
-            beginToken.charOffset);
+        push(const DynamicType());
+        addCompileTimeError(beginToken.charOffset,
+            "Can't be used as a type: '${debugName(prefix, suffix)}'.");
+        return;
       }
     }
     if (name is Identifier) {
@@ -1278,8 +1277,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     int charOffset = thisKeyword?.charOffset;
     if (thisKeyword != null) {
       if (!inConstructor) {
-        return inputError("'this' parameters can only be used on constructors.",
-            thisKeyword.charOffset);
+        addCompileTimeError(thisKeyword.charOffset,
+            "'this' parameters can only be used on constructors.");
+        thisKeyword = null;
       }
     }
     Identifier name = pop();
@@ -1290,10 +1290,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (!inCatchClause && functionNestingLevel == 0) {
       dynamic builder = formalParameterScope.lookup(name.name, charOffset, uri);
       if (builder == null) {
-        return inputError("'${name.name}' isn't a field in this class.",
-            name.fileOffset);
-      }
-      if (thisKeyword == null) {
+        if (thisKeyword == null) {
+          internalError("Internal error: formal missing for '${name.name}'");
+        } else {
+          addCompileTimeError(thisKeyword.charOffset,
+              "'${name.name}' isn't a field in this class.");
+          thisKeyword = null;
+        }
+      } else if (thisKeyword == null) {
         variable = builder.build();
         variable.initializer = name.initializer;
       } else if (builder.isField && builder.parent == classBuilder) {
@@ -1306,13 +1310,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         variable = new VariableDeclaration(name.name, type: type,
             initializer: name.initializer);
       } else {
-        return inputError("'${name.name}' isn't a field in this class.",
-            name.fileOffset);
+        addCompileTimeError(name.fileOffset,
+            "'${name.name}' isn't a field in this class.");
       }
-    } else {
-      variable = new VariableDeclaration(name.name,
-          type: type ?? const DynamicType(), initializer: name.initializer);
     }
+    variable ??= new VariableDeclaration(name.name,
+        type: type ?? const DynamicType(), initializer: name.initializer);
     push(variable);
   }
 
@@ -1862,8 +1865,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
                   new VariableGet(variable), voidContext: true)),
           body);
     } else {
-      throw inputError("Expected lvalue, but got ${lvalue}",
-          forToken.next.next.charOffset);
+      variable = new VariableDeclaration.forValue(
+          buildCompileTimeError("Expected lvalue, but got ${lvalue}",
+              forToken.next.next.charOffset));
     }
     Statement result = new ForInStatement(variable, expression, body,
         isAsync: awaitToken != null);
@@ -2246,8 +2250,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new Operator(token.stringValue)..fileOffset = token.charOffset);
   }
 
-  dynamic inputError(String message, [int charOffset = -1]) {
-    return errors.inputError(uri, charOffset, message);
+  dynamic addCompileTimeError(int charOffset, String message) {
+    return library.addCompileTimeError(charOffset, message, uri);
   }
 
   @override

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   constructor •() → void
-    : final dynamic #t1 = throw "pkg/fasta/test/rasta/bad_setter_initializer.dart:237: \u0027[31mError: Can't use field here.\u0027[0m", super core::Object::•()
+    : final dynamic #t1 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/bad_setter_initializer.dart:237: \u0027[31mError: Can't use field here.\u0027[0m"), super core::Object::•()
     ;
   set field(dynamic value) → dynamic {}
 }

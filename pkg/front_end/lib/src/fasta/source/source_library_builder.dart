@@ -12,7 +12,6 @@ import '../combinator.dart' show
     Combinator;
 
 import '../errors.dart' show
-    inputError,
     internalError;
 
 import '../import.dart' show
@@ -201,7 +200,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   TypeVariableBuilder addTypeVariable(String name, T bound, int charOffset);
 
-  Builder addBuilder(String name, Builder builder) {
+  Builder addBuilder(String name, Builder builder, int charOffset) {
     // TODO(ahe): Set the parent correctly here. Could then change the
     // implementation of MemberBuilder.isTopLevel to test explicitly for a
     // LibraryBuilder.
@@ -234,7 +233,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     } else if (existing != null && (existing.next != null ||
             ((!existing.isGetter || !builder.isSetter) &&
                 (!existing.isSetter || !builder.isGetter)))) {
-      return inputError(uri, -1, "Duplicated definition of $name");
+      addCompileTimeError(charOffset, "Duplicated definition of '$name'.");
     }
     return members[name] = builder;
   }
@@ -282,7 +281,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         return;
       }
     }
-    part.members.forEach(addBuilder);
+    part.members.forEach((String name, Builder builder) {
+      addBuilder(name, builder, -1);
+    });
     types.addAll(part.types);
     constructorReferences.addAll(part.constructorReferences);
     part.partOfLibrary = this;
