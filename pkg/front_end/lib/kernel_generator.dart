@@ -38,17 +38,11 @@ import 'package:source_span/source_span.dart' show SourceSpan;
 /// needed to access the contents of method bodies).
 Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
   var loader = await _createLoader(options, entry: source);
-  // TODO(sigmund): delete this. At this time we have no need to explicitly list
-  // VM libraries, since they are normally found by chasing dependencies.
-  // `dart:_builtin` is an exception because it is used by the kernel
-  // transformers to inform the VM about where the main entrypoint is. This is
-  // expected to change, and we should be able to remove these lines at that
-  // point. We check for the presense of `dart:developer` in the targetPatches
-  // to ensure we only load this library while running on the VM.
-  if (options.compileSdk &&
-      options.targetPatches.containsKey(Uri.parse('dart:developer'))) {
-    loader.loadLibrary(Uri.parse('dart:_builtin'));
+
+  if (options.compileSdk) {
+    options.additionalLibraries.forEach(loader.loadLibrary);
   }
+
   // TODO(sigmund): merge what we have in loadEverything and the logic below in
   // kernelForBuildUnit so there is a single place where we crawl for
   // dependencies.

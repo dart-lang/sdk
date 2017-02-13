@@ -127,4 +127,10 @@ class CompilerOptions {
   /// either absolute or relative URIs. Absolute URIs are read directly, while
   /// relative URIs are resolved from the [sdkRoot].
   Map<Uri, List<Uri>> targetPatches = {};
+
+  /// Additional core libraries to be loaded when building a program.
+  // TODO(sigmund): delete. Ideally building a program only needs what's
+  // reachable and we can use kernelForBuildUnit when creating a snapshot of the
+  // SDK itself.
+  List<Uri> additionalLibraries = [];
 }
