@@ -13,3 +13,4 @@ class Foo extends core::Object {
   method toString() → core::String
     return const <core::int, core::String>{0: "Foo.ec1", 1: "Foo.ec2"}.[](this.{=self::Foo::index});
 }
+static method main() → dynamic {}

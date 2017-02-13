@@ -26,7 +26,6 @@ rasta/constant_get_and_invoke: Fail
 rasta/deferred_lib: Fail
 rasta/deferred_load: Fail
 rasta/duplicated_mixin: Fail
-rasta/enum: Fail
 rasta/export: Fail
 rasta/foo: Fail
 rasta/for_loop: Fail

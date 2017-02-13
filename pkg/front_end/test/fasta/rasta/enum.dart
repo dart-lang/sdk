@@ -6,3 +6,5 @@ enum Foo {
   ec1,
   ec2,
 }
+
+main() {}

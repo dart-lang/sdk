@@ -31,6 +31,7 @@ import '../builder/builder.dart' show
     MemberBuilder,
     MetadataBuilder,
     PrefixBuilder,
+    ProcedureBuilder,
     TypeBuilder,
     TypeDeclarationBuilder,
     TypeVariableBuilder,
@@ -196,6 +197,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   TypeVariableBuilder addTypeVariable(String name, T bound, int charOffset);
 
   Builder addBuilder(String name, Builder builder, int charOffset) {
+    if (name.indexOf(".") != -1) {
+      addCompileTimeError(charOffset, "Only constructors and factories can have"
+          " names containing a period ('.'): $name");
+    }
     // TODO(ahe): Set the parent correctly here. Could then change the
     // implementation of MemberBuilder.isTopLevel to test explicitly for a
     // LibraryBuilder.
@@ -339,14 +344,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     return typeCount;
   }
 
-  int convertConstructors(_) {
-    int count = 0;
-    members.forEach((String name, Builder member) {
-      count += member.convertConstructors(this);
-    });
-    return count;
-  }
-
   int resolveConstructors(_) {
     int count = 0;
     members.forEach((String name, Builder member) {
@@ -354,6 +351,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     });
     return count;
   }
+
+  List<TypeVariableBuilder> copyTypeVariables(
+      List<TypeVariableBuilder> original);
 }
 
 /// Unlike [Scope], this scope is used during construction of builders to
@@ -366,6 +366,9 @@ class DeclarationBuilder<T extends TypeBuilder> {
   final List<T> types = <T>[];
 
   final String name;
+
+  final Map<ProcedureBuilder, DeclarationBuilder<T>> factoryDeclarations =
+      <ProcedureBuilder, DeclarationBuilder<T>>{};
 
   DeclarationBuilder(this.members, this.name, [this.parent]);
 
@@ -386,15 +389,26 @@ class DeclarationBuilder<T extends TypeBuilder> {
   }
 
   /// Resolves type variables in [types] and propagate other types to [parent].
-  void resolveTypes(List<TypeVariableBuilder> typeVariables) {
+  void resolveTypes(List<TypeVariableBuilder> typeVariables,
+      SourceLibraryBuilder library) {
     // TODO(ahe): The input to this method, [typeVariables], shouldn't be just
     // type variables. It should be everything that's in scope, for example,
     // members (of a class) or formal parameters (of a method).
     if (typeVariables == null) {
       // If there are no type variables in the scope, propagate our types to be
       // resolved in the parent declaration.
+      factoryDeclarations.forEach((_, DeclarationBuilder<T> declaration) {
+        parent.types.addAll(declaration.types);
+      });
       parent.types.addAll(types);
     } else {
+      factoryDeclarations.forEach(
+          (ProcedureBuilder procedure, DeclarationBuilder<T> declaration) {
+        assert(procedure.typeVariables.isEmpty);
+        procedure.typeVariables.addAll(
+            library.copyTypeVariables(typeVariables));
+        declaration.resolveTypes(procedure.typeVariables, library);
+      });
       Map<String, TypeVariableBuilder> map = <String, TypeVariableBuilder>{};
       for (TypeVariableBuilder builder in typeVariables) {
         map[builder.name] = builder;
@@ -415,5 +429,13 @@ class DeclarationBuilder<T extends TypeBuilder> {
       }
     }
     types.clear();
+  }
+
+  /// Called to register [procedure] as a factory whose types are collected in
+  /// [factoryDeclaration]. Later, once the class has been built, we can
+  /// synthesize type variables on the factory matching the class'.
+  void addFactoryDeclaration(
+      ProcedureBuilder procedure, DeclarationBuilder<T> factoryDeclaration) {
+    factoryDeclarations[procedure] = factoryDeclaration;
   }
 }

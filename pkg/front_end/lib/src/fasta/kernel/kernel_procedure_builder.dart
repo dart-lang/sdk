@@ -37,8 +37,6 @@ import 'package:kernel/type_algebra.dart' show
 import '../errors.dart' show
     internalError;
 
-import '../modifier.dart' show
-    abstractMask;
 
 import '../util/relativize.dart' show
     relativizeUri;
@@ -53,7 +51,6 @@ import 'kernel_builder.dart' show
     KernelTypeVariableBuilder,
     MetadataBuilder,
     ProcedureBuilder,
-    TypeBuilder,
     TypeVariableBuilder,
     memberError;
 
@@ -198,62 +195,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.name = new Name(name, library);
     }
     return procedure;
-  }
-
-  KernelFunctionBuilder toConstructor(String name,
-      List<TypeVariableBuilder> classTypeVariables) {
-    assert(procedure.name == null);
-    assert(actualBody == null);
-    if (isFactory) {
-      if (this.typeVariables != null) {
-        return memberError(target, "Factories can't be generic.");
-      }
-      List<KernelTypeVariableBuilder> typeVariables;
-      KernelTypeBuilder returnType = this.returnType;
-      List<FormalParameterBuilder> formals;
-      if (classTypeVariables != null) {
-        typeVariables = <KernelTypeVariableBuilder>[];
-        for (KernelTypeVariableBuilder variable in classTypeVariables) {
-          typeVariables.add(new KernelTypeVariableBuilder(
-                  variable.name, null, -1));
-        }
-        Map<TypeVariableBuilder, TypeBuilder> substitution =
-            <TypeVariableBuilder, TypeBuilder>{};
-        int i = 0;
-        for (KernelTypeVariableBuilder variable in classTypeVariables) {
-          substitution[variable] = typeVariables[i++].asTypeBuilder();
-        }
-        i = 0;
-        for (KernelTypeVariableBuilder variable in classTypeVariables) {
-          typeVariables[i++].bound = variable?.bound?.subst(substitution);
-        }
-        returnType = returnType?.subst(substitution);
-        i = 0;
-        if (this.formals != null) {
-          for (KernelFormalParameterBuilder formal in this.formals) {
-            KernelTypeBuilder type = formal.type?.subst(substitution);
-            if (type != formal.type) {
-              formals ??= this.formals.toList();
-              formals[i] = new KernelFormalParameterBuilder(formal.metadata,
-                  formal.modifiers, type, formal.name, formal.hasThis, null,
-                  -1);
-            }
-            i++;
-          }
-        }
-      }
-      formals ??= this.formals;
-      KernelProcedureBuilder factory = new KernelProcedureBuilder(
-          metadata, modifiers, returnType, name, typeVariables, formals,
-          actualAsyncModifier, kind, null, -1, redirectionTarget)
-          ..parent = parent;
-      factory.procedure.fileUri = procedure.fileUri;
-      return factory;
-    } else {
-      return new KernelConstructorBuilder(metadata, modifiers & ~abstractMask,
-          returnType, name, typeVariables, formals, null, -1)
-          ..parent = parent;
-    }
   }
 
   Procedure get target => procedure;

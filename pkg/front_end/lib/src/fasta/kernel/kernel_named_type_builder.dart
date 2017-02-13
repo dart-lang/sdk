@@ -66,7 +66,6 @@ class KernelNamedTypeBuilder extends NamedTypeBuilder<KernelTypeBuilder>
   }
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
-    assert(builder != null);
     TypeBuilder result = substitution[builder];
     if (result != null) {
       assert(builder is TypeVariableBuilder);

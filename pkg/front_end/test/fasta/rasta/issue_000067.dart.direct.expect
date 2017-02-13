@@ -6,18 +6,18 @@ import "package:expect/expect.dart" as exp;
 class A extends core::Object {
   constructor •() → void
     : super core::Object::•() {}
-  method m() → core::int {}
   static factory foo() → self::A
     invalid-statement;
+  method m() → core::int {}
 }
 class C extends self::A {
   constructor •() → void
     : super self::A::•() {}
+  static factory bar() → self::D
+    throw "Missing constructor: D";
   method m() → core::int {
     return 1;
   }
-  static factory bar() → self::C
-    throw "Missing constructor: D";
 }
 class D extends self::C {
   constructor •() → void

@@ -41,7 +41,6 @@ rasta/constant_get_and_invoke: Crash
 rasta/deferred_lib: Fail
 rasta/deferred_load: Crash
 rasta/duplicated_mixin: Crash
-rasta/enum: Fail
 rasta/export: Fail
 rasta/external_factory_redirection: Crash
 rasta/foo: Fail

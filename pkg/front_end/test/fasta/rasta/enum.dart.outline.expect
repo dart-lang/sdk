@@ -10,8 +10,8 @@ class Foo extends core::Object {
   const constructor •(core::int index) → void
     : self::Foo::index = index
     ;
-  constructor •() → void
-    ;
   method toString() → core::String
     return const <core::int, core::String>{0: "Foo.ec1", 1: "Foo.ec2"}.[](this.{=self::Foo::index});
 }
+static method main() → dynamic
+  ;

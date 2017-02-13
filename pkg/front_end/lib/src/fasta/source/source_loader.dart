@@ -230,14 +230,6 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved $typeCount types");
   }
 
-  void convertConstructors() {
-    int count = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      count += library.convertConstructors(null);
-    });
-    ticker.logMs("Converted $count constructors");
-  }
-
   void finishStaticInvocations() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {

@@ -12,8 +12,7 @@ import 'package:kernel/ast.dart' show
     setParents;
 
 import '../errors.dart' show
-    internalError,
-    inputError;
+    internalError;
 
 import '../kernel/kernel_builder.dart' show
     Builder,
@@ -22,11 +21,9 @@ import '../kernel/kernel_builder.dart' show
     KernelFieldBuilder,
     KernelFunctionBuilder,
     KernelLibraryBuilder,
-    KernelProcedureBuilder,
     KernelTypeBuilder,
     KernelTypeVariableBuilder,
     LibraryBuilder,
-    MemberBuilder,
     MetadataBuilder,
     ProcedureBuilder,
     TypeVariableBuilder;
@@ -50,7 +47,7 @@ Class initializeClass(Class cls, String name, LibraryBuilder parent,
 class SourceClassBuilder extends KernelClassBuilder {
   final Class cls;
 
-  final Map<String, Builder> constructors = <String, Builder>{};
+  final Map<String, Builder> constructors;
 
   final Map<String, Builder> membersInScope;
 
@@ -62,7 +59,8 @@ class SourceClassBuilder extends KernelClassBuilder {
       Map<String, Builder> members, LibraryBuilder parent,
       this.constructorReferences, int charOffset, [Class cls])
       : cls = initializeClass(cls, name, parent, charOffset),
-        membersInScope = computeMembersInScope(members, name),
+        membersInScope = computeMembersInScope(members),
+        constructors = computeConstructors(members),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             members, parent, charOffset);
 
@@ -112,40 +110,6 @@ class SourceClassBuilder extends KernelClassBuilder {
     return cls;
   }
 
-  int convertConstructors(KernelLibraryBuilder library) {
-    List<String> oldConstructorNames = <String>[];
-    // TODO(sigmund): should be `covariant MemberBuilder`
-    members.forEach((String name, dynamic b) {
-      MemberBuilder builder = b;
-      if (isConstructorName(name, this.name)) {
-        oldConstructorNames.add(name);
-        String newName = "";
-        int index = name.indexOf(".");
-        if (index != -1) {
-          newName = name.substring(index + 1);
-        }
-        if (builder is KernelProcedureBuilder) {
-          Builder constructor = builder.toConstructor(newName, typeVariables);
-          Builder other = members[newName];
-          if (other != null) {
-            return inputError(null, null, "Constructor name '$newName' "
-                "conflicts with other declaration.");
-          }
-          constructors[newName] = constructor;
-        } else {
-          return inputError(null, null, "Expected a constructor or factory.");
-        }
-      }
-    });
-    for (String name in oldConstructorNames) {
-      members.remove(name);
-    }
-    constructors.forEach((String name, Builder builder) {
-      members[name] = builder;
-    });
-    return oldConstructorNames.length;
-  }
-
   Builder findConstructorOrFactory(String name) => constructors[name];
 
   void addSyntheticConstructor(Constructor constructor) {
@@ -158,26 +122,24 @@ class SourceClassBuilder extends KernelClassBuilder {
   }
 }
 
-bool isConstructorName(String name, String className) {
-  if (name.startsWith(className)) {
-    if (name.length == className.length) return true;
-    if (name.startsWith(".", className.length)) return true;
-  }
-  return false;
-}
-
-Map<String, Builder> computeMembersInScope(Map<String, Builder> members,
-    String className) {
+Map<String, Builder> computeMembersInScope(Map<String, Builder> members) {
   Map<String, Builder> membersInScope = <String, Builder>{};
   members.forEach((String name, Builder builder) {
     if (builder is ProcedureBuilder) {
-      if (isConstructorName(builder.name, className)) return;
-    }
-    if (name.indexOf(".") != -1) {
-      inputError(null, null, "Only constructors and factories can have names "
-          "containing a period ('.'): $name");
+      if (builder.isConstructor || builder.isFactory) return;
     }
     membersInScope[name] = builder;
   });
   return membersInScope;
+}
+
+Map<String, Builder> computeConstructors(Map<String, Builder> members) {
+  Map<String, Builder> constructors = <String, Builder>{};
+  members.forEach((String name, Builder builder) {
+    if (builder is ProcedureBuilder &&
+        (builder.isConstructor || builder.isFactory)) {
+      constructors[name] = builder;
+    }
+  });
+  return constructors;
 }

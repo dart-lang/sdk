@@ -15,14 +15,14 @@ class A<N extends core::Object, S extends core::Object, U extends core::Object> 
   const constructor c(self::A::U u, self::A::S s) → void
     : self::A::field = const <dynamic>[null], super core::Object::•()
     ;
-  get getter() → core::List<self::A::U> {
-    return this.field;
-  }
-  set setter(self::A::S s) → void {}
   static factory f<N extends core::Object, S extends core::Object, U extends core::Object>(self::A::f::S s) → self::A<self::A::f::N, self::A::f::S, self::A::f::U> {
     exp::Expect::isTrue(s is self::A::f::S, null);
     return new self::A::empty<dynamic, dynamic, dynamic>();
   }
+  get getter() → core::List<self::A::U> {
+    return this.field;
+  }
+  set setter(self::A::S s) → void {}
 }
 abstract class J<Aa extends core::Object, B extends core::Object> extends core::Object {
   constructor •() → void

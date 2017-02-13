@@ -29,4 +29,6 @@ abstract class TypeVariableBuilder<T extends TypeBuilder, R>
   }
 
   String toString() => "${printOn(new StringBuffer())}";
+
+  T asTypeBuilder();
 }

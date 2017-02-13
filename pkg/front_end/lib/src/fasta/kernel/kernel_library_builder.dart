@@ -16,9 +16,11 @@ import '../loader.dart' show
     Loader;
 
 import '../modifier.dart' show
+    abstractMask,
     staticMask;
 
 import '../source/source_library_builder.dart' show
+    DeclarationBuilder,
     SourceLibraryBuilder;
 
 import '../source/source_class_builder.dart' show
@@ -34,6 +36,7 @@ import 'kernel_builder.dart' show
     DynamicTypeBuilder,
     FormalParameterBuilder,
     FunctionTypeAliasBuilder,
+    KernelConstructorBuilder,
     KernelEnumBuilder,
     KernelFieldBuilder,
     KernelFormalParameterBuilder,
@@ -50,6 +53,8 @@ import 'kernel_builder.dart' show
     MixedAccessor,
     NamedMixinApplicationBuilder,
     PrefixBuilder,
+    ProcedureBuilder,
+    TypeBuilder,
     TypeVariableBuilder;
 
 class KernelLibraryBuilder
@@ -106,7 +111,7 @@ class KernelLibraryBuilder
       }
     });
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    endNestedDeclaration().resolveTypes(typeVariables);
+    endNestedDeclaration().resolveTypes(typeVariables, this);
     addBuilder(className, cls, charOffset);
   }
 
@@ -119,7 +124,7 @@ class KernelLibraryBuilder
         new KernelNamedMixinApplicationBuilder(metadata, name, typeVariables,
             modifiers, mixinApplication, interfaces, this, charOffset);
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
-    endNestedDeclaration().resolveTypes(typeVariables);
+    endNestedDeclaration().resolveTypes(typeVariables, this);
     addBuilder(name, builder, charOffset);
   }
 
@@ -136,11 +141,19 @@ class KernelLibraryBuilder
       ProcedureKind kind, int charOffset, {bool isTopLevel}) {
     // Nested declaration began in `OutlineBuilder.beginMethod` or
     // `OutlineBuilder.beginTopLevelMethod`.
-    endNestedDeclaration().resolveTypes(typeVariables);
-    addBuilder(name,
-        new KernelProcedureBuilder(metadata, modifiers, returnType, name,
-            typeVariables, formals, asyncModifier, kind, this, charOffset),
-        charOffset);
+    endNestedDeclaration().resolveTypes(typeVariables, this);
+    ProcedureBuilder procedure;
+    if (!isTopLevel && isConstructorName(name, currentDeclaration.name)) {
+      int index = name.indexOf(".");
+      name = index == -1 ? "" : name.substring(index + 1);
+      procedure = new KernelConstructorBuilder(metadata,
+          modifiers & ~abstractMask, returnType, name, typeVariables, formals,
+          this, charOffset);
+    } else {
+      procedure = new KernelProcedureBuilder(metadata, modifiers, returnType,
+          name, typeVariables, formals, asyncModifier, kind, this, charOffset);
+    }
+    addBuilder(name, procedure, charOffset);
   }
 
   void addFactoryMethod(List<MetadataBuilder> metadata,
@@ -148,13 +161,17 @@ class KernelLibraryBuilder
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget, int charOffset) {
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
-    endNestedDeclaration().resolveTypes(null);
+    DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
+        endNestedDeclaration();
     String name = constructorName.name;
+    int index = name.indexOf(".");
+    name = index == -1 ? "" : name.substring(index + 1);
     assert(constructorName.suffix == null);
-    addBuilder(name,
-        new KernelProcedureBuilder(metadata, staticMask, null, name, null,
-            formals, asyncModifier, ProcedureKind.Factory, this, charOffset,
-            redirectionTarget), charOffset);
+    KernelProcedureBuilder procedure = new KernelProcedureBuilder(metadata,
+        staticMask, null, name, <TypeVariableBuilder>[], formals, asyncModifier,
+        ProcedureKind.Factory, this, charOffset, redirectionTarget);
+    currentDeclaration.addFactoryDeclaration(procedure, factoryDeclaration);
+    addBuilder(name, procedure, charOffset);
   }
 
   void addEnum(List<MetadataBuilder> metadata, String name,
@@ -171,7 +188,7 @@ class KernelLibraryBuilder
     FunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
         metadata, returnType, name, typeVariables, formals, this, charOffset);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
-    endNestedDeclaration().resolveTypes(typeVariables);
+    endNestedDeclaration().resolveTypes(typeVariables, this);
     addBuilder(name, typedef, charOffset);
   }
 
@@ -286,4 +303,33 @@ class KernelLibraryBuilder
     }
     return argumentsWithMissingDefaultValues.length;
   }
+
+  List<TypeVariableBuilder> copyTypeVariables(
+      List<TypeVariableBuilder> original) {
+    List<TypeVariableBuilder> copy = <TypeVariableBuilder>[];
+    for (KernelTypeVariableBuilder variable in original) {
+      var newVariable = new KernelTypeVariableBuilder(
+          variable.name, this, variable.charOffset);
+      copy.add(newVariable);
+    }
+    Map<TypeVariableBuilder, TypeBuilder> substitution =
+        <TypeVariableBuilder, TypeBuilder>{};
+    int i = 0;
+    for (KernelTypeVariableBuilder variable in original) {
+      substitution[variable] = copy[i++].asTypeBuilder();
+    }
+    i = 0;
+    for (KernelTypeVariableBuilder variable in original) {
+      copy[i++].bound = variable.bound?.subst(substitution);
+    }
+    return copy;
+  }
+}
+
+bool isConstructorName(String name, String className) {
+  if (name.startsWith(className)) {
+    if (name.length == className.length) return true;
+    if (name.startsWith(".", className.length)) return true;
+  }
+  return false;
 }

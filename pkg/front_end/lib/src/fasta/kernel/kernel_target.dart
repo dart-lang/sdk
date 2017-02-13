@@ -251,7 +251,6 @@ class KernelTarget extends TargetImplementation {
       loader.resolveParts();
       loader.computeLibraryScopes();
       loader.resolveTypes();
-      loader.convertConstructors();
       loader.buildProgram();
       loader.checkSemantics();
       List<SourceClassBuilder> sourceClasses = collectAllSourceClasses();

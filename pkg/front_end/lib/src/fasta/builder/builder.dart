@@ -104,11 +104,6 @@ abstract class Builder {
   /// return the number of constructors resolved.
   int resolveConstructors(covariant Builder parent) => 0;
 
-  /// Look for methods with the same name as their enclosing class and convert
-  /// them to constructors. Return the number of methods converted to
-  /// constructors.
-  int convertConstructors(covariant Builder parent) => 0;
-
   /// This builder and [other] has been imported into [library] using [name].
   ///
   /// This method handles this case according to the Dart language

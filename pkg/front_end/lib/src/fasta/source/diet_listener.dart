@@ -56,7 +56,7 @@ import '../ast_kind.dart' show
 import 'source_library_builder.dart' show
     SourceLibraryBuilder;
 
-import 'source_class_builder.dart' show
+import '../kernel/kernel_library_builder.dart' show
     isConstructorName;
 
 class DietListener extends StackListener {
