@@ -257,6 +257,7 @@ class KernelTarget extends TargetImplementation {
       installDefaultSupertypes(sourceClasses);
       installDefaultConstructors(sourceClasses);
       loader.resolveConstructors();
+      loader.finishTypeVariables(objectClassBuilder);
       program = link(new List<Library>.from(loader.libraries));
       if (uri == null) return program;
       return await writeLinkedProgram(uri, program, isFullProgram: false);

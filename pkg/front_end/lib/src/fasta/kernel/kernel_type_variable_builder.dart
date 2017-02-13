@@ -6,7 +6,6 @@ library fasta.kernel_type_variable_builder;
 
 import 'package:kernel/ast.dart' show
     DartType,
-    DynamicType,
     TypeParameter,
     TypeParameterType;
 
@@ -14,6 +13,7 @@ import '../errors.dart' show
     inputError;
 
 import 'kernel_builder.dart' show
+    KernelClassBuilder,
     KernelLibraryBuilder,
     KernelNamedTypeBuilder,
     KernelTypeBuilder,
@@ -25,7 +25,7 @@ class KernelTypeVariableBuilder
 
   KernelTypeVariableBuilder(String name, KernelLibraryBuilder compilationUnit,
       int charOffset, [KernelTypeBuilder bound])
-      : parameter = new TypeParameter(name, const DynamicType()),
+      : parameter = new TypeParameter(name, null),
         super(name, bound, compilationUnit, charOffset);
 
   DartType buildType(List<KernelTypeBuilder> arguments) {
@@ -49,5 +49,9 @@ class KernelTypeVariableBuilder
   KernelTypeBuilder asTypeBuilder() {
     return new KernelNamedTypeBuilder(name, null, -1, null)
         ..builder = this;
+  }
+
+  void finish(KernelClassBuilder object) {
+    parameter.bound = bound?.build() ?? object.buildType(null);
   }
 }

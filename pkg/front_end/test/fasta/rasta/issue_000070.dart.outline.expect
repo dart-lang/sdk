@@ -10,11 +10,11 @@ class A<N extends core::Object, S extends core::Object, U extends core::Object> 
     ;
   const constructor c(self::A::U u, self::A::S s) → void
     ;
+  static factory f<N extends core::Object, S extends core::Object, U extends core::Object>(self::A::f::S s) → self::A<self::A::f::N, self::A::f::S, self::A::f::U>
+    ;
   get getter() → core::List<self::A::U>
     ;
   set setter(self::A::S s) → void
-    ;
-  static factory f<N extends core::Object, S extends core::Object, U extends core::Object>(self::A::f::S s) → self::A<self::A::f::N, self::A::f::S, self::A::f::U>
     ;
 }
 abstract class J<Aa extends core::Object, B extends core::Object> extends core::Object {

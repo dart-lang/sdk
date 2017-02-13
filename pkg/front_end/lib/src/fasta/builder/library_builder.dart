@@ -18,6 +18,7 @@ import '../loader.dart' show
 
 import 'builder.dart' show
     Builder,
+    ClassBuilder,
     TypeBuilder;
 
 import 'scope.dart' show
@@ -68,4 +69,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
       String name, Builder builder, Builder other, int charOffset);
 
   int finishStaticInvocations() => 0;
+
+  int finishTypeVariables(ClassBuilder object) => 0;
 }

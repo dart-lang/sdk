@@ -65,6 +65,9 @@ class KernelLibraryBuilder
 
   final List<List> argumentsWithMissingDefaultValues = <List>[];
 
+  final List<KernelTypeVariableBuilder> boundlessTypeVariables =
+      <KernelTypeVariableBuilder>[];
+
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader)
       : library = new Library(uri, fileUri: relativizeUri(fileUri)),
         super(loader, fileUri);
@@ -201,7 +204,9 @@ class KernelLibraryBuilder
 
   KernelTypeVariableBuilder addTypeVariable(String name,
       KernelTypeBuilder bound, int charOffset) {
-    return new KernelTypeVariableBuilder(name, this, charOffset, bound);
+    var builder = new KernelTypeVariableBuilder(name, this, charOffset, bound);
+    boundlessTypeVariables.add(builder);
+    return builder;
   }
 
   void buildBuilder(Builder builder) {
@@ -311,6 +316,7 @@ class KernelLibraryBuilder
       var newVariable = new KernelTypeVariableBuilder(
           variable.name, this, variable.charOffset);
       copy.add(newVariable);
+      boundlessTypeVariables.add(newVariable);
     }
     Map<TypeVariableBuilder, TypeBuilder> substitution =
         <TypeVariableBuilder, TypeBuilder>{};
@@ -323,6 +329,22 @@ class KernelLibraryBuilder
       copy[i++].bound = variable.bound?.subst(substitution);
     }
     return copy;
+  }
+
+  int finishTypeVariables(ClassBuilder object) {
+    int count = boundlessTypeVariables.length;
+    for (KernelTypeVariableBuilder builder in boundlessTypeVariables) {
+      builder.finish(object);
+    }
+    boundlessTypeVariables.clear();
+    return count;
+  }
+
+  @override
+  void includePart(KernelLibraryBuilder part) {
+    super.includePart(part);
+    boundlessTypeVariables.addAll(part.boundlessTypeVariables);
+    mixinApplicationClasses.addAll(part.mixinApplicationClasses);
   }
 }
 

@@ -246,6 +246,14 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved $count constructors");
   }
 
+  void finishTypeVariables(ClassBuilder object) {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      count += library.finishTypeVariables(object);
+    });
+    ticker.logMs("Resolved $count type-variable bounds");
+  }
+
   /// Returns all the supertypes (including interfaces) of [cls]
   /// transitively. Includes [cls].
   Set<ClassBuilder> allSupertypes(ClassBuilder cls) {
