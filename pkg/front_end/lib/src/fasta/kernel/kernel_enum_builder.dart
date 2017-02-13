@@ -65,35 +65,27 @@ class KernelEnumBuilder extends SourceClassBuilder
   final KernelTypeBuilder stringType;
 
   KernelEnumBuilder.internal(List<MetadataBuilder> metadata, String name,
-      Map<String, Builder> members, List<KernelTypeBuilder> types, Class cls,
-      this.constants, this.toStringMap, this.intType, this.stringType,
-      LibraryBuilder parent, int charOffset)
-      : super(metadata, 0, name, null, null, null, members, types, parent, null,
+      Map<String, Builder> members, Class cls, this.constants, this.toStringMap,
+      this.intType, this.stringType, LibraryBuilder parent, int charOffset)
+      : super(metadata, 0, name, null, null, null, members, parent, null,
           charOffset, cls);
 
   factory KernelEnumBuilder(List<MetadataBuilder> metadata, String name,
-      List<String> constants, LibraryBuilder parent, int charOffset) {
+      List<String> constants, KernelLibraryBuilder parent, int charOffset) {
     constants ??= const <String>[];
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
-    KernelTypeBuilder objectType =
-        new KernelNamedTypeBuilder("Object", null, charOffset, parent.fileUri);
-    KernelTypeBuilder intType =
-        new KernelNamedTypeBuilder("int", null, charOffset, parent.fileUri);
-    KernelTypeBuilder stringType =
-        new KernelNamedTypeBuilder("String", null, charOffset, parent.fileUri);
-    List<KernelTypeBuilder> types = <KernelTypeBuilder>[
-        objectType,
-        intType,
-        stringType];
+    KernelTypeBuilder intType = parent.addType(
+        new KernelNamedTypeBuilder("int", null, charOffset, parent.fileUri));
+    KernelTypeBuilder stringType = parent.addType(
+        new KernelNamedTypeBuilder("String", null, charOffset, parent.fileUri));
     Class cls = new Class(name: name);
     Map<String, Builder> members = <String, Builder>{};
     KernelNamedTypeBuilder selfType = new KernelNamedTypeBuilder(
         name, null, charOffset, parent.fileUri);
-    KernelTypeBuilder listType =
+    KernelTypeBuilder listType = parent.addType(
         new KernelNamedTypeBuilder(
-            "List", <KernelTypeBuilder>[selfType], charOffset, parent.fileUri);
-    types.add(listType);
+            "List", <KernelTypeBuilder>[selfType], charOffset, parent.fileUri));
 
     /// From Dart Programming Language Specification 4th Edition/December 2015:
     ///     metadata class E {
@@ -137,7 +129,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     }
     MapLiteral toStringMap = new MapLiteral(toStringEntries, isConst: true);
     KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(metadata,
-        name, members, types, cls, constants, toStringMap, intType, stringType,
+        name, members, cls, constants, toStringMap, intType, stringType,
         parent, charOffset);
     // TODO(sigmund): dynamic should be `covariant MemberBuilder`.
     members.forEach((String name, dynamic b) {

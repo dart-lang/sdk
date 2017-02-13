@@ -29,7 +29,7 @@ class DillClassBuilder extends KernelClassBuilder {
   DillClassBuilder(Class cls, DillLibraryBuilder parent)
       : cls = cls,
         super(null, null, cls.name, null, null, null, <String, Builder>{},
-            null, parent, cls.fileOffset);
+            parent, cls.fileOffset);
 
   void addMember(Member member) {
     DillMemberBuilder builder = new DillMemberBuilder(member, this);

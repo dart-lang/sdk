@@ -18,11 +18,9 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   final String name;
 
-  final List<T> types;
-
   Builder parent;
 
-  TypeDeclarationBuilder(this.metadata, this.modifiers, this.name, this.types,
+  TypeDeclarationBuilder(this.metadata, this.modifiers, this.name,
       Builder parent, int charOffset, [Uri fileUri])
       : parent = parent, super(parent, charOffset, fileUri ?? parent?.fileUri);
 

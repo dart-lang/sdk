@@ -38,10 +38,9 @@ abstract class KernelClassBuilder
       List<MetadataBuilder> metadata, int modifiers,
       String name, List<TypeVariableBuilder> typeVariables,
       KernelTypeBuilder supertype, List<KernelTypeBuilder> interfaces,
-      Map<String, Builder> members, List<KernelTypeBuilder> types,
-      LibraryBuilder parent, int charOffset)
+      Map<String, Builder> members, LibraryBuilder parent, int charOffset)
       : super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-          members, types, parent, charOffset);
+          members, parent, charOffset);
 
   Class get cls;
 

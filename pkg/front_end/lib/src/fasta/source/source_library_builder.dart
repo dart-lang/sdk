@@ -88,11 +88,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     return currentDeclaration.members;
   }
 
-  List<T> get declarationTypes {
-    assert(currentDeclaration.parent == libraryDeclaration);
-    return currentDeclaration.types;
-  }
-
   T addNamedType(String name, List<T> arguments, int charOffset);
 
   T addMixinApplication(T supertype, List<T> mixins, int charOffset);

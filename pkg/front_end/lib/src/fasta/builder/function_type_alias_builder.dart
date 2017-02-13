@@ -12,9 +12,6 @@ import 'builder.dart' show
     TypeDeclarationBuilder,
     TypeVariableBuilder;
 
-import 'scope.dart' show
-    Scope;
-
 abstract class FunctionTypeAliasBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
   final T returnType;
@@ -25,28 +22,9 @@ abstract class FunctionTypeAliasBuilder<T extends TypeBuilder, R>
 
   FunctionTypeAliasBuilder(
       List<MetadataBuilder> metadata, this.returnType,
-      String name, this.typeVariables, this.formals, List<T> types,
+      String name, this.typeVariables, this.formals,
       LibraryBuilder parent, int charOffset)
-      : super(metadata, null, name, types, parent, charOffset);
+      : super(metadata, null, name, parent, charOffset);
 
   LibraryBuilder get parent => super.parent;
-
-  int resolveTypes(LibraryBuilder library) {
-    assert(library == parent || library == parent.partOfLibrary);
-    // TODO(ahe): Only create nested scope if typeVariables != null. It should
-    // be safe here, but for constructor field initializers, use the enclosing
-    // scope to lookup fields.
-    Scope scope = library.scope.createNestedScope();
-    if (typeVariables != null) {
-      for (TypeVariableBuilder t in typeVariables) {
-        scope[t.name] = t;
-      }
-    }
-    if (types != null) {
-      for (T t in types) {
-        t.resolveIn(scope);
-      }
-    }
-    return types.length;
-  }
 }

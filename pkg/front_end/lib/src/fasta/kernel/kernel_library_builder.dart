@@ -95,8 +95,7 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables, KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces, int charOffset) {
     ClassBuilder cls = new SourceClassBuilder(metadata, modifiers, className,
-        typeVariables, supertype, interfaces, classMembers, declarationTypes,
-        this,
+        typeVariables, supertype, interfaces, classMembers, this,
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
         charOffset);
     constructorReferences.clear();
@@ -107,7 +106,7 @@ class KernelLibraryBuilder
       }
     });
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    endNestedDeclaration();
+    endNestedDeclaration().resolveTypes(typeVariables);
     addBuilder(className, cls, charOffset);
   }
 
@@ -118,10 +117,9 @@ class KernelLibraryBuilder
       int charOffset) {
     NamedMixinApplicationBuilder builder =
         new KernelNamedMixinApplicationBuilder(metadata, name, typeVariables,
-            modifiers, mixinApplication, interfaces, declarationTypes, this,
-            charOffset);
+            modifiers, mixinApplication, interfaces, this, charOffset);
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
-    endNestedDeclaration();
+    endNestedDeclaration().resolveTypes(typeVariables);
     addBuilder(name, builder, charOffset);
   }
 
@@ -149,6 +147,8 @@ class KernelLibraryBuilder
       ConstructorReferenceBuilder constructorName,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget, int charOffset) {
+    // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
+    endNestedDeclaration().resolveTypes(null);
     String name = constructorName.name;
     assert(constructorName.suffix == null);
     addBuilder(name,
@@ -169,10 +169,9 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, int charOffset) {
     FunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
-        metadata, returnType, name, typeVariables, formals, declarationTypes,
-        this, charOffset);
+        metadata, returnType, name, typeVariables, formals, this, charOffset);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
-    endNestedDeclaration();
+    endNestedDeclaration().resolveTypes(typeVariables);
     addBuilder(name, typedef, charOffset);
   }
 

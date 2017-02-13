@@ -503,6 +503,11 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void beginFactoryMethod(Token token) {
+    library.beginNestedDeclaration(null, hasMembers: false);
+  }
+
+  @override
   void endFactoryMethod(Token beginToken, Token endToken) {
     debugEvent("FactoryMethod");
     MethodBody kind = pop();

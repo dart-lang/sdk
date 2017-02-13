@@ -59,13 +59,12 @@ class SourceClassBuilder extends KernelClassBuilder {
   SourceClassBuilder(List<MetadataBuilder> metadata, int modifiers,
       String name, List<TypeVariableBuilder> typeVariables,
       KernelTypeBuilder supertype, List<KernelTypeBuilder>interfaces,
-      Map<String, Builder> members, List<KernelTypeBuilder> types,
-      LibraryBuilder parent, this.constructorReferences, int charOffset,
-      [Class cls])
+      Map<String, Builder> members, LibraryBuilder parent,
+      this.constructorReferences, int charOffset, [Class cls])
       : cls = initializeClass(cls, name, parent, charOffset),
         membersInScope = computeMembersInScope(members, name),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            members, types, parent, charOffset);
+            members, parent, charOffset);
 
   int resolveTypes(LibraryBuilder library) {
     int count = 0;

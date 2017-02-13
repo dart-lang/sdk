@@ -30,27 +30,14 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   ClassBuilder(
       List<MetadataBuilder> metadata, int modifiers,
       String name, this.typeVariables, this.supertype, this.interfaces,
-      this.members, List<T> types, LibraryBuilder parent, int charOffset)
-      : super(metadata, modifiers, name, types, parent, charOffset);
+      this.members, LibraryBuilder parent, int charOffset)
+      : super(metadata, modifiers, name, parent, charOffset);
 
   List<ConstructorReferenceBuilder> get constructorReferences => null;
 
   Map<String, Builder> get constructors;
 
   Map<String, Builder> get membersInScope => members;
-
-  int resolveTypes(LibraryBuilder library) {
-    Scope scope;
-    int count = 0;
-    if (types != null) {
-      scope = computeInstanceScope(library.scope);
-      for (T t in types) {
-        t.resolveIn(scope);
-      }
-      count += types.length;
-    }
-    return count;
-  }
 
   int resolveConstructors(LibraryBuilder library) {
     if (constructorReferences == null) return 0;
