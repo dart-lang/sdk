@@ -25,4 +25,6 @@ abstract class MemberBuilder extends ModifierBuilder {
   bool get isClassMember => parent is ClassBuilder;
 
   bool get isTopLevel => !isClassMember;
+
+  bool get isNative => false;
 }

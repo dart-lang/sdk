@@ -49,6 +49,9 @@ import '../operator.dart' show
     operatorFromString,
     operatorToString;
 
+import '../quote.dart' show
+    unescapeString;
+
 enum MethodBody {
   Abstract,
   Regular,
@@ -79,6 +82,8 @@ class OutlineBuilder extends UnhandledListener {
   final SourceLibraryBuilder library;
 
   final bool isDartLibrary;
+
+  String nativeMethodName;
 
   OutlineBuilder(SourceLibraryBuilder library)
       : library = library,
@@ -240,7 +245,8 @@ class OutlineBuilder extends UnhandledListener {
     checkEmpty();
     library.addProcedure(metadata, modifiers, returnType, name,
         typeVariables, formals, asyncModifier, computeProcedureKind(getOrSet),
-        beginToken.charOffset, isTopLevel: true);
+        beginToken.charOffset, nativeMethodName, isTopLevel: true);
+    nativeMethodName = null;
   }
 
   @override
@@ -289,7 +295,9 @@ class OutlineBuilder extends UnhandledListener {
         isAbstract: bodyKind == MethodBody.Abstract);
     List<MetadataBuilder> metadata = pop();
     library.addProcedure(metadata, modifiers, returnType, name, typeVariables,
-        formals, asyncModifier, kind, beginToken.charOffset, isTopLevel: false);
+        formals, asyncModifier, kind, beginToken.charOffset, nativeMethodName,
+        isTopLevel: false);
+    nativeMethodName = null;
   }
 
   @override
@@ -520,7 +528,8 @@ class OutlineBuilder extends UnhandledListener {
     var name = pop();
     List<MetadataBuilder> metadata = pop();
     library.addFactoryMethod(metadata, name, formals, asyncModifier,
-        redirectionTarget, beginToken.charOffset);
+        redirectionTarget, beginToken.charOffset, nativeMethodName);
+    nativeMethodName = null;
   }
 
   @override
@@ -555,6 +564,7 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void endMember() {
     debugEvent("Member");
+    assert(nativeMethodName == null);
   }
 
   @override
@@ -584,7 +594,10 @@ class OutlineBuilder extends UnhandledListener {
   Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
     if (isDartLibrary && kind == ErrorKind.ExpectedBlockToSkip) {
       Token recover = skipNativeClause(token);
-      if (recover != null) return recover;
+      if (recover != null) {
+        nativeMethodName = unescapeString(token.next.value);
+        return recover;
+      }
     }
     return super.handleUnrecoverableError(token, kind, arguments);
   }

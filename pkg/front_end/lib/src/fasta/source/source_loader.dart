@@ -254,6 +254,14 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Resolved $count type-variable bounds");
   }
 
+  void finishNativeMethods() {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      count += library.finishNativeMethods();
+    });
+    ticker.logMs("Finished $count native methods");
+  }
+
   /// Returns all the supertypes (including interfaces) of [cls]
   /// transitively. Includes [cls].
   Set<ClassBuilder> allSupertypes(ClassBuilder cls) {

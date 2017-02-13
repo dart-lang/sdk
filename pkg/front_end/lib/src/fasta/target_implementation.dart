@@ -25,6 +25,7 @@ import 'translate_uri.dart' show
 abstract class TargetImplementation extends Target {
   final TranslateUri uriTranslator;
   Builder cachedCompileTimeError;
+  Builder cachedNativeAnnotation;
 
   TargetImplementation(Ticker ticker, this.uriTranslator)
       : super(ticker);
@@ -53,5 +54,14 @@ abstract class TargetImplementation extends Target {
     if (cachedCompileTimeError != null) return cachedCompileTimeError;
     return cachedCompileTimeError =
         loader.coreLibrary.getConstructor("_CompileTimeError", isPrivate: true);
+  }
+
+  /// Returns a reference to the constructor used for creating `native`
+  /// annotations. The constructor is expected to accept a single argument of
+  /// type String, which is the name of the native method.
+  Builder getNativeAnnotation(Loader loader) {
+    if (cachedNativeAnnotation != null) return cachedNativeAnnotation;
+    LibraryBuilder internal = loader.read(Uri.parse("dart:_internal"));
+    return cachedNativeAnnotation = internal.getConstructor("ExternalName");
   }
 }

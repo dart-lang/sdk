@@ -175,7 +175,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers, T returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
-      ProcedureKind kind, int charOffset, {bool isTopLevel});
+      ProcedureKind kind, int charOffset, String nativeMethodName,
+      {bool isTopLevel});
 
   void addEnum(List<MetadataBuilder> metadata, String name,
       List<String> constants, int charOffset);
@@ -188,7 +189,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   void addFactoryMethod(List<MetadataBuilder> metadata,
       ConstructorReferenceBuilder name, List<FormalParameterBuilder> formals,
       AsyncMarker asyncModifier, ConstructorReferenceBuilder redirectionTarget,
-      int charOffset);
+      int charOffset, String nativeMethodName);
 
   FormalParameterBuilder addFormalParameter(
       List<MetadataBuilder> metadata, int modifiers,

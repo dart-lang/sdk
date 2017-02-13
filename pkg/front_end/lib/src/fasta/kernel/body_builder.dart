@@ -146,10 +146,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   CloneVisitor cloner;
 
-  /// Set to true each time we parse a native function body. It is reset in
-  /// [handleInvalidFunctionBody] which is called immediately after.
-  bool lastErrorWasNativeFunctionBody = false;
-
   BodyBuilder(KernelLibraryBuilder library, this.member, Scope scope,
       this.formalParameterScope, this.hierarchy, this.coreTypes,
       this.classBuilder, this.isInstanceMember)
@@ -2180,10 +2176,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
     if (isDartLibrary && kind == ErrorKind.ExpectedFunctionBody) {
       Token recover = skipNativeClause(token);
-      if (recover != null) {
-        buildNative(unescapeString(token.next.value));
-        return recover;
-      }
+      if (recover != null) return recover;
     } else if (kind == ErrorKind.UnexpectedToken) {
       String expected = arguments["expected"];
       const List<String> trailing = const <String>[")", "}", ";", ","];
@@ -2253,26 +2246,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void handleInvalidFunctionBody(Token token) {
-    if (!lastErrorWasNativeFunctionBody) {
+    if (member.isNative) {
+      push(NullValue.FunctionBody);
+    } else {
       push(new Block(<Statement>[new InvalidStatement()]));
     }
-    lastErrorWasNativeFunctionBody = false;
-  }
-
-  void buildNative(String native) {
-    lastErrorWasNativeFunctionBody = true;
-
-    // From dartk:
-    //
-    //   currentMember.isExternal = true;
-    //   currentMember.addAnnotation(new ast.ConstructorInvocation(
-    //       scope.loader.getCoreClassConstructorReference('ExternalName',
-    //           library: 'dart:_internal'),
-    //       new ast.Arguments(<ast.Expression>[
-    //         new ast.StringLiteral(body.stringLiteral.stringValue)
-    //       ]),
-    //       isConst: true));
-    push(new Block(<Statement>[new InvalidStatement()]));
   }
 
   @override

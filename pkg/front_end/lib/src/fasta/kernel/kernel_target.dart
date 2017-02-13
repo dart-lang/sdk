@@ -230,6 +230,7 @@ class KernelTarget extends TargetImplementation {
       await loader.buildBodies(astKind);
       loader.finishStaticInvocations();
       finishAllConstructors();
+      loader.finishNativeMethods();
       transformMixinApplications();
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
       if (errors.isNotEmpty) {

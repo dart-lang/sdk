@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart' show
     Arguments,
     AsyncMarker,
     Constructor,
+    ConstructorInvocation,
     DartType,
     DynamicType,
     EmptyStatement,
@@ -23,6 +24,8 @@ import 'package:kernel/ast.dart' show
     ProcedureKind,
     RedirectingInitializer,
     Statement,
+    StaticInvocation,
+    StringLiteral,
     SuperInitializer,
     TypeParameter,
     VariableDeclaration,
@@ -37,11 +40,14 @@ import 'package:kernel/type_algebra.dart' show
 import '../errors.dart' show
     internalError;
 
+import '../loader.dart' show
+    Loader;
 
 import '../util/relativize.dart' show
     relativizeUri;
 
 import 'kernel_builder.dart' show
+    Builder,
     ClassBuilder,
     ConstructorReferenceBuilder,
     FormalParameterBuilder,
@@ -56,16 +62,18 @@ import 'kernel_builder.dart' show
 
 abstract class KernelFunctionBuilder
     extends ProcedureBuilder<KernelTypeBuilder> {
+  final String nativeMethodName;
+
   FunctionNode function;
 
   Statement actualBody;
 
-  KernelFunctionBuilder(
-      List<MetadataBuilder> metadata,
-      int modifiers, KernelTypeBuilder returnType, String name,
+  KernelFunctionBuilder(List<MetadataBuilder> metadata, int modifiers,
+      KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
-      KernelLibraryBuilder compilationUnit, int charOffset)
+      KernelLibraryBuilder compilationUnit, int charOffset,
+      this.nativeMethodName)
       : super(metadata, modifiers, returnType, name, typeVariables, formals,
           compilationUnit, charOffset);
 
@@ -81,6 +89,8 @@ abstract class KernelFunctionBuilder
   }
 
   Statement get body => actualBody ??= new EmptyStatement();
+
+  bool get isNative => nativeMethodName != null;
 
   FunctionNode buildFunction() {
     assert(function == null);
@@ -142,6 +152,22 @@ abstract class KernelFunctionBuilder
   }
 
   Member build(Library library);
+
+  void becomeNative(Loader loader) {
+    target.isExternal = true;
+    Builder constructor = loader.getNativeAnnotation();
+    Arguments arguments =
+        new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
+    Expression annotation;
+    if (constructor.isConstructor) {
+      annotation = new ConstructorInvocation(constructor.target, arguments)
+          ..isConst = true;
+    } else {
+      annotation = new StaticInvocation(constructor.target, arguments)
+          ..isConst = true;
+    }
+    target.addAnnotation(annotation);
+  }
 }
 
 class KernelProcedureBuilder extends KernelFunctionBuilder {
@@ -157,11 +183,11 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, this.actualAsyncModifier,
       ProcedureKind kind, KernelLibraryBuilder compilationUnit, int charOffset,
-      [this.redirectionTarget])
+      [String nativeMethodName, this.redirectionTarget])
       : procedure = new Procedure(null, kind, null,
             fileUri: relativizeUri(compilationUnit?.fileUri)),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
-            compilationUnit, charOffset);
+            compilationUnit, charOffset, nativeMethodName);
 
   ProcedureKind get kind => procedure.kind;
 
@@ -215,9 +241,10 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       int modifiers, KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
-      KernelLibraryBuilder compilationUnit, int charOffset)
+      KernelLibraryBuilder compilationUnit, int charOffset,
+      [String nativeMethodName])
       : super(metadata, modifiers, returnType, name, typeVariables, formals,
-          compilationUnit, charOffset);
+          compilationUnit, charOffset, nativeMethodName);
 
   bool get isInstanceMember => false;
 

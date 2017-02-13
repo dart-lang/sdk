@@ -65,6 +65,8 @@ class KernelLibraryBuilder
 
   final List<List> argumentsWithMissingDefaultValues = <List>[];
 
+  final List<KernelProcedureBuilder> nativeMethods = <KernelProcedureBuilder>[];
+
   final List<KernelTypeVariableBuilder> boundlessTypeVariables =
       <KernelTypeVariableBuilder>[];
 
@@ -141,7 +143,8 @@ class KernelLibraryBuilder
       int modifiers, KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
-      ProcedureKind kind, int charOffset, {bool isTopLevel}) {
+      ProcedureKind kind, int charOffset, String nativeMethodName,
+      {bool isTopLevel}) {
     // Nested declaration began in `OutlineBuilder.beginMethod` or
     // `OutlineBuilder.beginTopLevelMethod`.
     endNestedDeclaration().resolveTypes(typeVariables, this);
@@ -151,18 +154,23 @@ class KernelLibraryBuilder
       name = index == -1 ? "" : name.substring(index + 1);
       procedure = new KernelConstructorBuilder(metadata,
           modifiers & ~abstractMask, returnType, name, typeVariables, formals,
-          this, charOffset);
+          this, charOffset, nativeMethodName);
     } else {
       procedure = new KernelProcedureBuilder(metadata, modifiers, returnType,
-          name, typeVariables, formals, asyncModifier, kind, this, charOffset);
+          name, typeVariables, formals, asyncModifier, kind, this, charOffset,
+          nativeMethodName);
     }
     addBuilder(name, procedure, charOffset);
+    if (nativeMethodName != null) {
+      addNativeMethod(procedure);
+    }
   }
 
   void addFactoryMethod(List<MetadataBuilder> metadata,
       ConstructorReferenceBuilder constructorName,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
-      ConstructorReferenceBuilder redirectionTarget, int charOffset) {
+      ConstructorReferenceBuilder redirectionTarget, int charOffset,
+      String nativeMethodName) {
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
         endNestedDeclaration();
@@ -172,9 +180,13 @@ class KernelLibraryBuilder
     assert(constructorName.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(metadata,
         staticMask, null, name, <TypeVariableBuilder>[], formals, asyncModifier,
-        ProcedureKind.Factory, this, charOffset, redirectionTarget);
+        ProcedureKind.Factory, this, charOffset, nativeMethodName,
+        redirectionTarget);
     currentDeclaration.addFactoryDeclaration(procedure, factoryDeclaration);
     addBuilder(name, procedure, charOffset);
+    if (nativeMethodName != null) {
+      addNativeMethod(procedure);
+    }
   }
 
   void addEnum(List<MetadataBuilder> metadata, String name,
@@ -309,6 +321,17 @@ class KernelLibraryBuilder
     return argumentsWithMissingDefaultValues.length;
   }
 
+  void addNativeMethod(KernelProcedureBuilder method) {
+    nativeMethods.add(method);
+  }
+
+  int finishNativeMethods() {
+    for (KernelProcedureBuilder method in nativeMethods) {
+      method.becomeNative(loader);
+    }
+    return nativeMethods.length;
+  }
+
   List<TypeVariableBuilder> copyTypeVariables(
       List<TypeVariableBuilder> original) {
     List<TypeVariableBuilder> copy = <TypeVariableBuilder>[];
@@ -343,6 +366,7 @@ class KernelLibraryBuilder
   @override
   void includePart(KernelLibraryBuilder part) {
     super.includePart(part);
+    nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
     mixinApplicationClasses.addAll(part.mixinApplicationClasses);
   }

@@ -71,6 +71,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   int finishStaticInvocations() => 0;
 
+  int finishNativeMethods() => 0;
+
   /// Looks up [constructorName] in the class named [className]. It's an error
   /// if no such class is exported by this library, or if the class doesn't
   /// have a matching constructor (or factory).
