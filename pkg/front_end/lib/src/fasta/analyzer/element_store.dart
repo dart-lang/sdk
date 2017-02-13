@@ -244,7 +244,7 @@ class KernelParameterElement extends MockParameterElement {
 
 /// Both an [Element] and [Builder] to using memory to store local elements in
 /// [ElementStore].
-class AnalyzerLocalVariableElemment extends MockElement with Builder
+class AnalyzerLocalVariableElemment extends MockElement
     implements LocalVariableElement {
   final analyzer.VariableDeclaration variable;
 
@@ -268,7 +268,7 @@ class AnalyzerLocalVariableElemment extends MockElement with Builder
 
 /// Both an [Element] and [Builder] to using memory to store local elements in
 /// [ElementStore].
-class AnalyzerParameterElement extends MockParameterElement with Builder {
+class AnalyzerParameterElement extends MockParameterElement {
   final analyzer.FormalParameter parameter;
 
   AnalyzerParameterElement(this.parameter);

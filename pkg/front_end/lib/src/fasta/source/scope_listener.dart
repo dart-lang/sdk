@@ -36,13 +36,19 @@ abstract class ScopeListener<J> extends UnhandledListener {
 
   ScopeListener(this.scope);
 
-  J createJumpTarget(JumpTargetKind kind);
+  J createJumpTarget(JumpTargetKind kind, int charOffset);
 
-  J createBreakTarget() => createJumpTarget(JumpTargetKind.Break);
+  J createBreakTarget(int charOffset) {
+    return createJumpTarget(JumpTargetKind.Break, charOffset);
+  }
 
-  J createContinueTarget() => createJumpTarget(JumpTargetKind.Continue);
+  J createContinueTarget(int charOffset) {
+    return createJumpTarget(JumpTargetKind.Continue, charOffset);
+  }
 
-  J createGotoTarget() => createJumpTarget(JumpTargetKind.Goto);
+  J createGotoTarget(int charOffset) {
+    return createJumpTarget(JumpTargetKind.Goto, charOffset);
+  }
 
   void enterLocalScope([Scope newScope]) {
     push(scope);
@@ -55,14 +61,14 @@ abstract class ScopeListener<J> extends UnhandledListener {
     assert(scope != null);
   }
 
-  void enterBreakTarget([J target]) {
+  void enterBreakTarget(int charOffset, [J target]) {
     push(breakTarget ?? NullValue.BreakTarget);
-    breakTarget = target ?? createBreakTarget();
+    breakTarget = target ?? createBreakTarget(charOffset);
   }
 
-  void enterContinueTarget([J target]) {
+  void enterContinueTarget(int charOffset, [J target]) {
     push(continueTarget ?? NullValue.ContinueTarget);
-    continueTarget = target ?? createContinueTarget();
+    continueTarget = target ?? createContinueTarget(charOffset);
   }
 
   J exitBreakTarget() {
@@ -77,9 +83,9 @@ abstract class ScopeListener<J> extends UnhandledListener {
     return current;
   }
 
-  void enterLoop() {
-    enterBreakTarget();
-    enterContinueTarget();
+  void enterLoop(int charOffset) {
+    enterBreakTarget(charOffset);
+    enterContinueTarget(charOffset);
   }
 
   @override
@@ -91,7 +97,7 @@ abstract class ScopeListener<J> extends UnhandledListener {
   @override
   void beginForStatement(Token token) {
     debugEvent("beginForStatement");
-    enterLoop();
+    enterLoop(token.charOffset);
     enterLocalScope();
   }
 
@@ -105,19 +111,19 @@ abstract class ScopeListener<J> extends UnhandledListener {
   void beginSwitchBlock(Token token) {
     debugEvent("beginSwitchBlock");
     enterLocalScope();
-    enterBreakTarget();
+    enterBreakTarget(token.charOffset);
   }
 
   @override
   void beginDoWhileStatement(Token token) {
     debugEvent("beginDoWhileStatement");
-    enterLoop();
+    enterLoop(token.charOffset);
   }
 
   @override
   void beginWhileStatement(Token token) {
     debugEvent("beginWhileStatement");
-    enterLoop();
+    enterLoop(token.charOffset);
   }
 
   @override

@@ -195,7 +195,10 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype = new KernelNamedTypeBuilder("Object", null)
+    builder.supertype =
+        new KernelNamedTypeBuilder(
+            "Object", null, builder.charOffset,
+            builder.fileUri ?? Uri.parse(cls.fileUri))
         ..builder = objectClassBuilder;
     builder.interfaces = null;
   }
@@ -277,7 +280,8 @@ class KernelTarget extends TargetImplementation {
       // could also make sense to add a way to mark .dill files as having
       // compile-time errors.
       KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(null, 0,
-          null, "main", null, null, AsyncMarker.Sync, ProcedureKind.Method);
+          null, "main", null, null, AsyncMarker.Sync, ProcedureKind.Method,
+          library, -1);
       library.addBuilder(mainBuilder.name, mainBuilder);
       mainBuilder.body = new ExpressionStatement(
           new Throw(new StringLiteral("${errors.join('\n')}")));

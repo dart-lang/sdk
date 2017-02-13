@@ -8,6 +8,7 @@ import 'package:front_end/src/fasta/parser/parser.dart' show
     FormalParameterType;
 
 import 'builder.dart' show
+    LibraryBuilder,
     MetadataBuilder,
     ModifierBuilder,
     TypeBuilder;
@@ -28,7 +29,8 @@ abstract class FormalParameterBuilder<T extends TypeBuilder>
   FormalParameterType kind = FormalParameterType.REQUIRED;
 
   FormalParameterBuilder(this.metadata, this.modifiers, this.type, this.name,
-      this.hasThis);
+      this.hasThis, LibraryBuilder compilationUnit, int charOffset)
+      : super(compilationUnit, charOffset);
 
   bool get isRequired => kind.isRequired;
 

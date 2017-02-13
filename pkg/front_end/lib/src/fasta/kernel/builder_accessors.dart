@@ -340,7 +340,7 @@ class SendAccessor extends IncompleteSend {
     }
     Expression result;
     if (receiver is KernelClassBuilder) {
-      Builder builder = receiver.findStaticBuilder(name.name);
+      Builder builder = receiver.findStaticBuilder(name.name, charOffset, uri);
       if (builder == null) {
         return buildThrowNoSuchMethodError(arguments);
       }
@@ -422,11 +422,12 @@ class IncompletePropertyAccessor extends IncompleteSend {
           prefix.exports[name.name], name.name, charOffset);
     }
     if (receiver is KernelClassBuilder) {
-      Builder builder = receiver.findStaticBuilder(name.name);
+      Builder builder = receiver.findStaticBuilder(name.name, charOffset, uri);
       Member getter = builder?.target;
       Member setter;
       if (builder == null) {
-        builder = receiver.findStaticBuilder(name.name, isSetter: true);
+        builder = receiver.findStaticBuilder(
+            name.name, charOffset, uri, isSetter: true);
         if (builder == null) {
           return buildThrowNoSuchMethodError(null);
         }
@@ -441,7 +442,8 @@ class IncompletePropertyAccessor extends IncompleteSend {
         }
       } else if (getter is Procedure) {
         if (getter.isGetter) {
-          builder = receiver.findStaticBuilder(name.name, isSetter: true);
+          builder = receiver.findStaticBuilder(
+              name.name, charOffset, uri, isSetter: true);
           if (builder != null && !builder.hasProblem) {
             setter = builder.target;
           }

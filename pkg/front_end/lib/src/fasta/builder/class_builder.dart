@@ -30,8 +30,8 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   ClassBuilder(
       List<MetadataBuilder> metadata, int modifiers,
       String name, this.typeVariables, this.supertype, this.interfaces,
-      this.members, List<T> types, LibraryBuilder parent)
-      : super(metadata, modifiers, name, types, parent);
+      this.members, List<T> types, LibraryBuilder parent, int charOffset)
+      : super(metadata, modifiers, name, types, parent, charOffset);
 
   List<ConstructorReferenceBuilder> get constructorReferences => null;
 
@@ -73,7 +73,8 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   }
 
   /// Used to lookup a static member of this class.
-  Builder findStaticBuilder(String name, {bool isSetter: false}) {
+  Builder findStaticBuilder(String name, int charOffset, Uri fileUri,
+      {bool isSetter: false}) {
     Builder builder = members[name];
     if (builder?.next != null) {
       Builder getterBuilder;
@@ -85,7 +86,7 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
         } else if (current.isSetter && setterBuilder == null) {
           setterBuilder = current;
         } else {
-          return new AmbiguousBuilder(builder);
+          return new AmbiguousBuilder(builder, charOffset, fileUri);
         }
         current = current.next;
       }

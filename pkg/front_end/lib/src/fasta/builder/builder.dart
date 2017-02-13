@@ -87,6 +87,15 @@ abstract class Builder {
   // this a const class.
   Builder next;
 
+  /// The values of [parent], [charOffset], and [fileUri] aren't stored. We
+  /// need to evaluate the memory impact of doing so, but want to ensure the
+  /// information is always provided.
+  Builder(Builder parent, int charOffset, Uri fileUri);
+
+  int get charOffset => -1;
+
+  Uri get fileUri => null;
+
   /// Resolve types (lookup names in scope) recorded in this builder and return
   /// the number of types resolved.
   int resolveTypes(covariant Builder parent) => 0;
@@ -125,7 +134,7 @@ abstract class Builder {
     } else {
       print("${library.uri}: Note: '$name' is imported from both "
           "'${getUri(this)}' and '${getUri(other)}'.");
-      return library.buildAmbiguousBuilder(name, this, other);
+      return library.buildAmbiguousBuilder(name, this, other, charOffset);
     }
     if (isLocal) {
       print("${library.uri}: Note: local definition of '$name' hides imported "

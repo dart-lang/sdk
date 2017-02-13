@@ -29,37 +29,44 @@ class Scope {
     return new Scope(<String, Builder>{}, this, isModifiable: isModifiable);
   }
 
-  Builder lookup(String name) {
+  Builder lookup(String name, int charOffset, Uri fileUri) {
     Builder builder = local[name];
     if (builder != null) {
-      if (builder.next != null) return lookupAmbiguous(name, builder, false);
-      return builder.isSetter ? new AccessErrorBuilder(builder) : builder;
+      if (builder.next != null) {
+        return lookupAmbiguous(name, builder, false, charOffset, fileUri);
+      }
+      return builder.isSetter
+          ? new AccessErrorBuilder(builder, charOffset, fileUri)
+          : builder;
     } else {
-      return parent?.lookup(name);
+      return parent?.lookup(name, charOffset, fileUri);
     }
   }
 
-  Builder lookupSetter(String name) {
+  Builder lookupSetter(String name, int charOffset, Uri fileUri) {
     Builder builder = local[name];
     if (builder != null) {
-      if (builder.next != null) return lookupAmbiguous(name, builder, true);
+      if (builder.next != null) {
+        return lookupAmbiguous(name, builder, true, charOffset, fileUri);
+      }
       if (builder.isField) {
         if (builder.isFinal) {
-          return new AccessErrorBuilder(builder);
+          return new AccessErrorBuilder(builder, charOffset, fileUri);
         } else {
           return builder;
         }
       } else if (builder.isSetter) {
         return builder;
       } else {
-        return new AccessErrorBuilder(builder);
+        return new AccessErrorBuilder(builder, charOffset, fileUri);
       }
     } else {
-      return parent?.lookupSetter(name);
+      return parent?.lookupSetter(name, charOffset, fileUri);
     }
   }
 
-  Builder lookupAmbiguous(String name, Builder builder, bool setter) {
+  Builder lookupAmbiguous(String name, Builder builder, bool setter,
+      int charOffset, Uri fileUri) {
     assert(builder.next != null);
     if (builder is MixedAccessor) {
       return setter ? builder.setter : builder.getter;
@@ -73,7 +80,7 @@ class Scope {
       } else if (current.isSetter && setterBuilder == null) {
         setterBuilder = current;
       } else {
-        return new AmbiguousBuilder(builder);
+        return new AmbiguousBuilder(builder, charOffset, fileUri);
       }
       current = current.next;
     }
@@ -95,7 +102,8 @@ class Scope {
 class AccessErrorBuilder extends Builder {
   final Builder builder;
 
-  AccessErrorBuilder(this.builder);
+  AccessErrorBuilder(this.builder, int charOffset, Uri fileUri)
+      : super(null, charOffset, fileUri);
 
   Builder get parent => builder;
 
@@ -127,7 +135,8 @@ class AccessErrorBuilder extends Builder {
 class AmbiguousBuilder extends Builder {
   final Builder builder;
 
-  AmbiguousBuilder(this.builder);
+  AmbiguousBuilder(this.builder, int charOffset, Uri fileUri)
+      : super(null, charOffset, fileUri);
 
   get target => null;
 

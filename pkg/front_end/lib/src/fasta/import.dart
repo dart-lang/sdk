@@ -15,6 +15,9 @@ import 'combinator.dart' show
 typedef void AddToScope(String name, Builder member);
 
 class Import {
+  /// The library that is importing [imported];
+  final LibraryBuilder importer;
+
   /// The library being imported.
   final LibraryBuilder imported;
 
@@ -22,7 +25,14 @@ class Import {
 
   final List<Combinator> combinators;
 
-  Import(this.imported, this.prefix, this.combinators);
+  final int charOffset;
+
+  final int prefixCharOffset;
+
+  Import(this.importer, this.imported, this.prefix, this.combinators,
+      this.charOffset, this.prefixCharOffset);
+
+  Uri get fileUri => importer.fileUri;
 
   void finalizeImports(LibraryBuilder importer) {
     AddToScope add;
@@ -30,7 +40,8 @@ class Import {
     if (this.prefix == null) {
       add = importer.addToScope;
     } else {
-      prefix = new PrefixBuilder(this.prefix, <String, Builder>{}, importer);
+      prefix = new PrefixBuilder(
+          this.prefix, <String, Builder>{}, importer, prefixCharOffset);
       add = (String name, Builder member) {
         prefix.exports[name] = member;
       };

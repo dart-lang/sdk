@@ -43,10 +43,14 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   Map<String, Builder> get exports;
 
+  LibraryBuilder(Uri fileUri)
+      : super(null, -1, fileUri);
+
   Builder addBuilder(String name, Builder builder);
 
-  void addExporter(LibraryBuilder exporter, List<Combinator> combinators) {
-    exporters.add(new Export(exporter, this, combinators));
+  void addExporter(LibraryBuilder exporter, List<Combinator> combinators,
+      int charOffset) {
+    exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
   void addCompileTimeError(int charOffset, Object message) {
@@ -60,7 +64,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   void addToScope(String name, Builder member);
 
   Builder buildAmbiguousBuilder(
-      String name, Builder builder, Builder other);
+      String name, Builder builder, Builder other, int charOffset);
 
   int finishStaticInvocations() => 0;
 }

@@ -49,7 +49,8 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   Library library;
 
-  DillLibraryBuilder(this.uri, this.loader);
+  DillLibraryBuilder(Uri uri, this.loader)
+      : uri = uri, super(uri);
 
   get scope => internalError("Scope not supported");
 
@@ -112,7 +113,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   KernelInvalidTypeBuilder buildAmbiguousBuilder(
-      String name, Builder builder, Builder other) {
-    return new KernelInvalidTypeBuilder(name, this);
+      String name, Builder builder, Builder other, int charOffset) {
+    return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }
 }

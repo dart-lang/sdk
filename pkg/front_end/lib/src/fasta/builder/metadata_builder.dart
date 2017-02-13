@@ -12,15 +12,20 @@ import 'constructor_reference_builder.dart' show
     ConstructorReferenceBuilder;
 
 abstract class MetadataBuilder<T extends TypeBuilder> extends Builder {
-  MetadataBuilder();
+  MetadataBuilder(Builder parent, int charOffset)
+      : super(parent, -1, parent.fileUri);
 
   factory MetadataBuilder.fromConstructor(
-      ConstructorReferenceBuilder constructorReference, List arguments) {
-    return new ConstructorMetadataBuilder(constructorReference, arguments);
+      ConstructorReferenceBuilder constructorReference, List arguments,
+      Builder parent, int charOffset) {
+    return new ConstructorMetadataBuilder(constructorReference, arguments,
+        parent, charOffset);
   }
 
-  factory MetadataBuilder.fromExpression(String expression, String postfix) {
-    return new ExpressionMetadataBuilder(expression, postfix);
+  factory MetadataBuilder.fromExpression(String expression, String postfix,
+      Builder parent, int charOffset) {
+    return new ExpressionMetadataBuilder(
+        expression, postfix, parent, charOffset);
   }
 }
 
@@ -30,7 +35,9 @@ class ConstructorMetadataBuilder<T extends TypeBuilder>
 
   final List arguments;
 
-  ConstructorMetadataBuilder(this.constructorReference, this.arguments);
+  ConstructorMetadataBuilder(this.constructorReference, this.arguments,
+      Builder parent, int charOffset)
+      : super(parent, charOffset);
 }
 
 /// Expression metadata (without arguments).
@@ -44,5 +51,7 @@ class ExpressionMetadataBuilder<T extends TypeBuilder>
 
   final String identifier;
 
-  ExpressionMetadataBuilder(this.qualified, this.identifier);
+  ExpressionMetadataBuilder(this.qualified, this.identifier, Builder parent,
+      int charOffset)
+      : super(parent, charOffset);
 }

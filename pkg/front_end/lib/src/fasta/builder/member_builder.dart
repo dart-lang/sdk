@@ -10,9 +10,15 @@ import 'builder.dart' show
     ModifierBuilder;
 
 abstract class MemberBuilder extends ModifierBuilder {
+  /// For top-level members, the parent is set correctly during
+  /// construction. However, for class members, the parent is initially the
+  /// library and updated later.
   Builder parent;
 
   String get name;
+
+  MemberBuilder(Builder parent, int charOffset)
+      : parent = parent, super(parent, charOffset);
 
   bool get isInstanceMember => isClassMember && !isStatic;
 

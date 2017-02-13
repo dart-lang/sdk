@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart' show
 
 import 'kernel_builder.dart' show
     FormalParameterBuilder,
+    KernelLibraryBuilder,
     KernelTypeBuilder,
     MetadataBuilder;
 
@@ -19,8 +20,9 @@ class KernelFormalParameterBuilder
 
   KernelFormalParameterBuilder(List<MetadataBuilder> metadata,
       int modifiers, KernelTypeBuilder type, String name,
-      bool hasThis)
-      : super (metadata, modifiers, type, name, hasThis);
+      bool hasThis, KernelLibraryBuilder compilationUnit, int charOffset)
+      : super (metadata, modifiers, type, name, hasThis, compilationUnit,
+          charOffset);
 
   VariableDeclaration build() {
     return declaration ??= new VariableDeclaration(

@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart' show
 import 'builder.dart' show
     Builder,
     FormalParameterBuilder,
+    LibraryBuilder,
     MemberBuilder,
     MetadataBuilder,
     TypeBuilder,
@@ -36,7 +37,9 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
   final List<FormalParameterBuilder> formals;
 
   ProcedureBuilder(this.metadata, this.modifiers, this.returnType, this.name,
-      this.typeVariables, this.formals);
+      this.typeVariables, this.formals, LibraryBuilder compilationUnit,
+      int charOffset)
+      : super(compilationUnit, charOffset);
 
   AsyncMarker get asyncModifier;
 

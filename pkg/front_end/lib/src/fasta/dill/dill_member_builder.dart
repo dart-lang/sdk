@@ -30,11 +30,10 @@ class DillMemberBuilder extends MemberBuilder {
 
   final Member member;
 
-  final Builder parent;
-
-  DillMemberBuilder(Member member, this.parent)
+  DillMemberBuilder(Member member, Builder parent)
       : modifiers = computeModifiers(member),
-        member = member;
+        member = member,
+        super(parent, member.fileOffset);
 
   Member get target => member;
 

@@ -20,7 +20,9 @@ class Export {
 
   final List<Combinator> combinators;
 
-  Export(this.exporter, this.exported, this.combinators);
+  Export(this.exporter, this.exported, this.combinators, int charOffset);
+
+  Uri get fileUri => exporter.fileUri;
 
   bool addToExportScope(String name, Builder member) {
     if (combinators != null) {

@@ -17,9 +17,9 @@ abstract class NamedMixinApplicationBuilder<T extends TypeBuilder, R>
   NamedMixinApplicationBuilder(
       List<MetadataBuilder> metadata, String name,
       List<TypeVariableBuilder> typeVariables, int modifiers, T supertype,
-      List<T> interfaces, List<T> types, LibraryBuilder parent)
+      List<T> interfaces, List<T> types, LibraryBuilder parent, int charOffset)
       : super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-          <String, Builder>{}, types, parent);
+          <String, Builder>{}, types, parent, charOffset);
 
   T get mixinApplication => supertype;
 }

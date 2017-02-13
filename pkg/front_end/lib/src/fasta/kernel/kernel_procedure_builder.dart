@@ -40,11 +40,15 @@ import '../errors.dart' show
 import '../modifier.dart' show
     abstractMask;
 
+import '../util/relativize.dart' show
+    relativizeUri;
+
 import 'kernel_builder.dart' show
     ClassBuilder,
     ConstructorReferenceBuilder,
     FormalParameterBuilder,
     KernelFormalParameterBuilder,
+    KernelLibraryBuilder,
     KernelTypeBuilder,
     KernelTypeVariableBuilder,
     MetadataBuilder,
@@ -63,8 +67,10 @@ abstract class KernelFunctionBuilder
       List<MetadataBuilder> metadata,
       int modifiers, KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals)
-      : super(metadata, modifiers, returnType, name, typeVariables, formals);
+      List<FormalParameterBuilder> formals,
+      KernelLibraryBuilder compilationUnit, int charOffset)
+      : super(metadata, modifiers, returnType, name, typeVariables, formals,
+          compilationUnit, charOffset);
 
   void set body(Statement newBody) {
     if (isAbstract && newBody != null) {
@@ -153,9 +159,12 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       int modifiers, KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, this.actualAsyncModifier,
-      ProcedureKind kind, [this.redirectionTarget])
-      : procedure = new Procedure(null, kind, null),
-        super(metadata, modifiers, returnType, name, typeVariables, formals);
+      ProcedureKind kind, KernelLibraryBuilder compilationUnit, int charOffset,
+      [this.redirectionTarget])
+      : procedure = new Procedure(null, kind, null,
+            fileUri: relativizeUri(compilationUnit?.fileUri)),
+        super(metadata, modifiers, returnType, name, typeVariables, formals,
+            compilationUnit, charOffset);
 
   ProcedureKind get kind => procedure.kind;
 
@@ -205,7 +214,8 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       if (classTypeVariables != null) {
         typeVariables = <KernelTypeVariableBuilder>[];
         for (KernelTypeVariableBuilder variable in classTypeVariables) {
-          typeVariables.add(new KernelTypeVariableBuilder(variable.name));
+          typeVariables.add(new KernelTypeVariableBuilder(
+                  variable.name, null, -1));
         }
         Map<TypeVariableBuilder, TypeBuilder> substitution =
             <TypeVariableBuilder, TypeBuilder>{};
@@ -225,20 +235,23 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
             if (type != formal.type) {
               formals ??= this.formals.toList();
               formals[i] = new KernelFormalParameterBuilder(formal.metadata,
-                  formal.modifiers, type, formal.name, formal.hasThis);
+                  formal.modifiers, type, formal.name, formal.hasThis, null,
+                  -1);
             }
             i++;
           }
         }
       }
       formals ??= this.formals;
-      return new KernelProcedureBuilder(
+      KernelProcedureBuilder factory = new KernelProcedureBuilder(
           metadata, modifiers, returnType, name, typeVariables, formals,
-          actualAsyncModifier, kind, redirectionTarget)
+          actualAsyncModifier, kind, null, -1, redirectionTarget)
           ..parent = parent;
+      factory.procedure.fileUri = procedure.fileUri;
+      return factory;
     } else {
       return new KernelConstructorBuilder(metadata, modifiers & ~abstractMask,
-          returnType, name, typeVariables, formals)
+          returnType, name, typeVariables, formals, null, -1)
           ..parent = parent;
     }
   }
@@ -260,8 +273,10 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       List<MetadataBuilder> metadata,
       int modifiers, KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals)
-      : super(metadata, modifiers, returnType, name, typeVariables, formals);
+      List<FormalParameterBuilder> formals,
+      KernelLibraryBuilder compilationUnit, int charOffset)
+      : super(metadata, modifiers, returnType, name, typeVariables, formals,
+          compilationUnit, charOffset);
 
   bool get isInstanceMember => false;
 

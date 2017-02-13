@@ -14,6 +14,7 @@ import '../errors.dart' show
     inputError;
 
 import 'kernel_builder.dart' show
+    KernelLibraryBuilder,
     KernelNamedTypeBuilder,
     KernelTypeBuilder,
     TypeVariableBuilder;
@@ -22,9 +23,10 @@ class KernelTypeVariableBuilder
     extends TypeVariableBuilder<KernelTypeBuilder, DartType> {
   final TypeParameter parameter;
 
-  KernelTypeVariableBuilder(String name, [KernelTypeBuilder bound])
+  KernelTypeVariableBuilder(String name, KernelLibraryBuilder compilationUnit,
+      int charOffset, [KernelTypeBuilder bound])
       : parameter = new TypeParameter(name, const DynamicType()),
-        super(name, bound);
+        super(name, bound, compilationUnit, charOffset);
 
   DartType buildType(List<KernelTypeBuilder> arguments) {
     if (arguments != null) {
@@ -45,7 +47,7 @@ class KernelTypeVariableBuilder
   }
 
   KernelTypeBuilder asTypeBuilder() {
-    return new KernelNamedTypeBuilder(name, null)
+    return new KernelNamedTypeBuilder(name, null, -1, null)
         ..builder = this;
   }
 }

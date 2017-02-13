@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart' show
     Class,
     Constructor,
     Supertype,
+    TreeNode,
     setParents;
 
 import '../errors.dart' show
@@ -33,6 +34,19 @@ import '../kernel/kernel_builder.dart' show
 import '../dill/dill_member_builder.dart' show
     DillMemberBuilder;
 
+import '../util/relativize.dart' show
+    relativizeUri;
+
+Class initializeClass(Class cls, String name, LibraryBuilder parent,
+    int charOffset) {
+  cls ??= new Class(name: name);
+  cls.fileUri ??= relativizeUri(parent.fileUri);
+  if (cls.fileOffset != TreeNode.noOffset) {
+    cls.fileOffset = charOffset;
+  }
+  return cls;
+}
+
 class SourceClassBuilder extends KernelClassBuilder {
   final Class cls;
 
@@ -46,11 +60,12 @@ class SourceClassBuilder extends KernelClassBuilder {
       String name, List<TypeVariableBuilder> typeVariables,
       KernelTypeBuilder supertype, List<KernelTypeBuilder>interfaces,
       Map<String, Builder> members, List<KernelTypeBuilder> types,
-      LibraryBuilder parent, this.constructorReferences, [Class cls])
-      : cls = cls ?? new Class(name: name),
+      LibraryBuilder parent, this.constructorReferences, int charOffset,
+      [Class cls])
+      : cls = initializeClass(cls, name, parent, charOffset),
         membersInScope = computeMembersInScope(members, name),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            members, types, parent);
+            members, types, parent, charOffset);
 
   int resolveTypes(LibraryBuilder library) {
     int count = 0;

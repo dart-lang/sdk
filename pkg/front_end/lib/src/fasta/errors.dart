@@ -20,6 +20,9 @@ import 'dart:io' show
 import 'colors.dart' show
     red;
 
+import 'util/relativize.dart' show
+    relativizeUri;
+
 const String defaultServerAddress = "http://127.0.0.1:59410/";
 
 /// Tracks if there has been a crash reported through [reportCrash]. Should be
@@ -56,13 +59,8 @@ class InputError {
     // Windows.
     String message = red("Error: ${safeToString(error)}");
     if (uri != null) {
-      String uri = "${this.uri}";
-      String base = "${Uri.base}";
-      if (uri.startsWith(base)) {
-        uri = uri.substring(base.length);
-      }
       String position = charOffset == -1 ? "" : "$charOffset:";
-      return "${uri}:$position $message";
+      return "${relativizeUri(uri)}:$position $message";
     } else {
       return message;
     }

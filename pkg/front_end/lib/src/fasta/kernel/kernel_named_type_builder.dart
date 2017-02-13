@@ -26,24 +26,24 @@ class KernelNamedTypeBuilder extends NamedTypeBuilder<KernelTypeBuilder>
     implements KernelTypeBuilder {
   TypeDeclarationBuilder<KernelTypeBuilder, DartType> builder;
 
-  KernelNamedTypeBuilder(String name, List<KernelTypeBuilder> arguments)
-      : super(name, arguments);
+  KernelNamedTypeBuilder(String name, List<KernelTypeBuilder> arguments,
+      int charOffset, Uri fileUri)
+      : super(name, arguments, charOffset, fileUri);
 
   KernelInvalidTypeBuilder buildInvalidType(String name) {
-    // TODO(ahe): Report error somewhere.
-    print("Type not found: $name");
-    return new KernelInvalidTypeBuilder(name, null);
+    // TODO(ahe): Record error instead of printing.
+    print("$fileUri:$charOffset: Type not found: $name");
+    return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }
 
   DartType handleMissingType() {
-    // TODO(ahe): Fix this.
-    print("No type for: $name");
+    // TODO(ahe): Record error instead of printing.
+    print("$fileUri:$charOffset: No type for: $name");
     return const DynamicType();
   }
 
   Supertype handleMissingSuperType() {
-    // TODO(ahe): Fix this.
-    return inputError(null, null, "No type for: $name");
+    throw inputError(fileUri, charOffset, "No type for: $name");
   }
 
   DartType build() {
@@ -83,7 +83,7 @@ class KernelNamedTypeBuilder extends NamedTypeBuilder<KernelTypeBuilder>
         i++;
       }
       if (arguments != null) {
-        return new KernelNamedTypeBuilder(name, arguments)
+        return new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri)
             ..builder = builder;
       }
     }

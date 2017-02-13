@@ -23,7 +23,9 @@ class ConstructorReferenceBuilder extends Builder {
 
   Builder target;
 
-  ConstructorReferenceBuilder(this.name, this.typeArguments, this.suffix);
+  ConstructorReferenceBuilder(this.name, this.typeArguments, this.suffix,
+      Builder parent, int charOffset)
+      : super(parent, charOffset, parent.fileUri);
 
   String get fullNameForErrors => "$name${suffix == null ? '' : '.$suffix'}";
 
@@ -31,11 +33,11 @@ class ConstructorReferenceBuilder extends Builder {
     int index = name.indexOf(".");
     Builder builder;
     if (index == -1) {
-      builder = scope.lookup(name);
+      builder = scope.lookup(name, charOffset, fileUri);
     } else {
       String prefix = name.substring(0, index);
       String middle = name.substring(index + 1);
-      builder = scope.lookup(prefix);
+      builder = scope.lookup(prefix, charOffset, fileUri);
       if (builder is PrefixBuilder) {
         PrefixBuilder prefix = builder;
         builder = prefix.exports[middle];

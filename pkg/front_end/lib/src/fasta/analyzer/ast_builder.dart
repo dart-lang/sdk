@@ -66,9 +66,9 @@ class AstBuilder extends ScopeListener {
   AstBuilder(this.library, this.member, this.elementStore, Scope scope)
       : super(scope);
 
-  Uri get uri => library.uri;
+  Uri get uri => library.fileUri ?? library.uri;
 
-  createJumpTarget(JumpTargetKind kind) {
+  createJumpTarget(JumpTargetKind kind, int charOffset) {
     // TODO(ahe): Implement jump targets.
     return null;
   }
@@ -142,7 +142,7 @@ class AstBuilder extends ScopeListener {
     String name = token.value;
     SimpleIdentifier identifier = ast.simpleIdentifier(toAnalyzerToken(token));
     if (isFirstIdentifier) {
-      Builder builder = scope.lookup(name);
+      Builder builder = scope.lookup(name, token.charOffset, uri);
       if (builder != null) {
         Element element = elementStore[builder];
         assert(element != null);
@@ -445,7 +445,7 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier name = pop();
     KernelClassElement cls = name.staticElement;
     if (cls == null) {
-      Builder builder = scope.lookup(name.name);
+      Builder builder = scope.lookup(name.name, beginToken.charOffset, uri);
       if (builder == null) {
         internalError("Undefined name: $name");
       }

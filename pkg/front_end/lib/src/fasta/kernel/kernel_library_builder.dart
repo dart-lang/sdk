@@ -24,6 +24,9 @@ import '../source/source_library_builder.dart' show
 import '../source/source_class_builder.dart' show
     SourceClassBuilder;
 
+import '../util/relativize.dart' show
+    relativizeUri;
+
 import 'kernel_builder.dart' show
     Builder,
     ClassBuilder,
@@ -61,18 +64,18 @@ class KernelLibraryBuilder
   final List<List> argumentsWithMissingDefaultValues = <List>[];
 
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader)
-      : library = new Library(uri),
+      : library = new Library(uri, fileUri: relativizeUri(fileUri)),
         super(loader, fileUri);
 
   Uri get uri => library.importUri;
 
   KernelTypeBuilder addNamedType(String name,
-      List<KernelTypeBuilder> arguments) {
+      List<KernelTypeBuilder> arguments, int charOffset) {
     KernelNamedTypeBuilder type =
-        new KernelNamedTypeBuilder(name, arguments);
+        new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri);
     if (identical(name, "dynamic")) {
-      // TODO(ahe): Make const.
-      type.builder = new DynamicTypeBuilder(const DynamicType());
+      type.builder =
+          new DynamicTypeBuilder(const DynamicType(), this, charOffset);
     } else {
       addType(type);
     }
@@ -80,24 +83,25 @@ class KernelLibraryBuilder
   }
 
   KernelTypeBuilder addMixinApplication(KernelTypeBuilder supertype,
-      List<KernelTypeBuilder> mixins) {
-    KernelTypeBuilder type =
-        new KernelMixinApplicationBuilder(supertype, mixins);
+      List<KernelTypeBuilder> mixins, int charOffset) {
+    KernelTypeBuilder type = new KernelMixinApplicationBuilder(
+        supertype, mixins, charOffset, fileUri);
     return addType(type);
   }
 
-  KernelTypeBuilder addVoidType() {
-    return new KernelNamedTypeBuilder("void", null);
+  KernelTypeBuilder addVoidType(int charOffset) {
+    return new KernelNamedTypeBuilder("void", null, charOffset, fileUri);
   }
 
   ClassBuilder addClass(List<MetadataBuilder> metadata,
       int modifiers, String className,
       List<TypeVariableBuilder> typeVariables, KernelTypeBuilder supertype,
-      List<KernelTypeBuilder> interfaces) {
+      List<KernelTypeBuilder> interfaces, int charOffset) {
     ClassBuilder cls = new SourceClassBuilder(metadata, modifiers, className,
         typeVariables, supertype, interfaces, classMembers, declarationTypes,
         this,
-        new List<ConstructorReferenceBuilder>.from(constructorReferences));
+        new List<ConstructorReferenceBuilder>.from(constructorReferences),
+        charOffset);
     constructorReferences.clear();
     classMembers.forEach((String name, MemberBuilder builder) {
       while (builder != null) {
@@ -113,58 +117,61 @@ class KernelLibraryBuilder
   NamedMixinApplicationBuilder addNamedMixinApplication(
       List<MetadataBuilder> metadata, String name,
       List<TypeVariableBuilder> typeVariables, int modifiers,
-      KernelTypeBuilder mixinApplication, List<KernelTypeBuilder> interfaces) {
+      KernelTypeBuilder mixinApplication, List<KernelTypeBuilder> interfaces,
+      int charOffset) {
     NamedMixinApplicationBuilder builder =
         new KernelNamedMixinApplicationBuilder(metadata, name, typeVariables,
-            modifiers, mixinApplication, interfaces, declarationTypes, this);
+            modifiers, mixinApplication, interfaces, declarationTypes, this,
+            charOffset);
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration();
     return addBuilder(name, builder);
   }
 
   FieldBuilder addField(List<MetadataBuilder> metadata,
-      int modifiers, KernelTypeBuilder type, String name) {
-    return addBuilder(name,
-        new KernelFieldBuilder(metadata, type, name, modifiers));
+      int modifiers, KernelTypeBuilder type, String name, int charOffset) {
+    return addBuilder(name, new KernelFieldBuilder(
+            metadata, type, name, modifiers, this, charOffset));
   }
 
   ProcedureBuilder addProcedure(List<MetadataBuilder> metadata,
       int modifiers, KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
-      ProcedureKind kind) {
+      ProcedureKind kind, int charOffset) {
     // Nested declaration began in `OutlineBuilder.beginMethod` or
     // `OutlineBuilder.beginTopLevelMethod`.
     endNestedDeclaration().resolveTypes(typeVariables);
     return addBuilder(name,
         new KernelProcedureBuilder(metadata, modifiers, returnType, name,
-            typeVariables, formals, asyncModifier, kind));
+            typeVariables, formals, asyncModifier, kind, this, charOffset));
   }
 
   void addFactoryMethod(List<MetadataBuilder> metadata,
       ConstructorReferenceBuilder constructorName,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
-      ConstructorReferenceBuilder redirectionTarget) {
+      ConstructorReferenceBuilder redirectionTarget, int charOffset) {
     String name = constructorName.name;
     assert(constructorName.suffix == null);
     addBuilder(name,
         new KernelProcedureBuilder(metadata, staticMask, null, name, null,
-            formals, asyncModifier, ProcedureKind.Factory, redirectionTarget));
+            formals, asyncModifier, ProcedureKind.Factory, this, charOffset,
+            redirectionTarget));
   }
 
   EnumBuilder addEnum(List<MetadataBuilder> metadata, String name,
-      List<String> constants) {
+      List<String> constants, int charOffset) {
     return addBuilder(name,
-        new KernelEnumBuilder(metadata, name, constants, this));
+        new KernelEnumBuilder(metadata, name, constants, this, charOffset));
   }
 
   FunctionTypeAliasBuilder addFunctionTypeAlias(List<MetadataBuilder> metadata,
       KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals) {
+      List<FormalParameterBuilder> formals, int charOffset) {
     FunctionTypeAliasBuilder typedef = new KernelFunctionTypeAliasBuilder(
         metadata, returnType, name, typeVariables, formals, declarationTypes,
-        this);
+        this, charOffset);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration();
     return addBuilder(name, typedef);
@@ -172,14 +179,14 @@ class KernelLibraryBuilder
 
   KernelFormalParameterBuilder addFormalParameter(
       List<MetadataBuilder> metadata, int modifiers,
-      KernelTypeBuilder type, String name, bool hasThis) {
+      KernelTypeBuilder type, String name, bool hasThis, int charOffset) {
     return new KernelFormalParameterBuilder(
-        metadata, modifiers, type, name, hasThis);
+        metadata, modifiers, type, name, hasThis, this, charOffset);
   }
 
   KernelTypeVariableBuilder addTypeVariable(String name,
-      KernelTypeBuilder bound) {
-    return new KernelTypeVariableBuilder(name, bound);
+      KernelTypeBuilder bound, int charOffset) {
+    return new KernelTypeVariableBuilder(name, this, charOffset, bound);
   }
 
   void buildBuilder(Builder builder) {
@@ -226,15 +233,15 @@ class KernelLibraryBuilder
   }
 
   Builder buildAmbiguousBuilder(
-      String name, Builder builder, Builder other) {
+      String name, Builder builder, Builder other, int charOffset) {
     if (builder.next == null && other.next == null) {
       if (builder.isGetter && other.isSetter) {
-        return new MixedAccessor(builder, other);
+        return new MixedAccessor(builder, other, this);
       } else if (builder.isSetter && other.isGetter) {
-        return new MixedAccessor(other, builder);
+        return new MixedAccessor(other, builder, this);
       }
     }
-    return new KernelInvalidTypeBuilder(name, this);
+    return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }
 
   void addArgumentsWithMissingDefaultValues(Arguments arguments,

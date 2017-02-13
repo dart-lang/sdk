@@ -36,9 +36,9 @@ class KernelFunctionTypeAliasBuilder
       KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, List<KernelTypeBuilder> types,
-      LibraryBuilder parent)
+      LibraryBuilder parent, int charOffset)
       : super(metadata, returnType, name, typeVariables, formals, types,
-          parent);
+          parent, charOffset);
 
   DartType buildThisType() {
     if (thisType != null) {

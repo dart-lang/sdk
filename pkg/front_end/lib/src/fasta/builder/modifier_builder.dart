@@ -15,6 +15,9 @@ import 'builder.dart' show
     Builder;
 
 abstract class ModifierBuilder extends Builder {
+  ModifierBuilder(Builder parent, int charOffset, [Uri fileUri])
+      : super(parent, charOffset, fileUri ?? parent?.fileUri);
+
   int get modifiers;
 
   bool get isAbstract => (modifiers & abstractMask) != 0;

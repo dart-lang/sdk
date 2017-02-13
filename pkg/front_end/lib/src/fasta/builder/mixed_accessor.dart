@@ -5,14 +5,17 @@
 library fasta.mixed_accessor;
 
 import 'builder.dart' show
-    Builder;
+    Builder,
+    LibraryBuilder;
 
 /// Represents the import of a getter and setter from two different libraries.
 class MixedAccessor extends Builder {
   final Builder getter;
   final Builder setter;
 
-  MixedAccessor(this.getter, this.setter) {
+  MixedAccessor(this.getter, this.setter, LibraryBuilder parent)
+      : super(parent, -1, // Synthetic element has no charOffset.
+          parent.fileUri) {
     next = getter;
   }
 }

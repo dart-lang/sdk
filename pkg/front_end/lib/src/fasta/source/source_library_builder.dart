@@ -75,7 +75,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   /// for example, [addClass] is called.
   DeclarationBuilder<T> currentDeclaration;
 
-  SourceLibraryBuilder(this.loader, this.fileUri) {
+  SourceLibraryBuilder(this.loader, Uri fileUri)
+      : fileUri = fileUri, super(fileUri) {
     currentDeclaration = libraryDeclaration;
   }
 
@@ -99,21 +100,21 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     return currentDeclaration.types;
   }
 
-  T addNamedType(String name, List<T> arguments);
+  T addNamedType(String name, List<T> arguments, int charOffset);
 
-  T addMixinApplication(T supertype, List<T> mixins);
+  T addMixinApplication(T supertype, List<T> mixins, int charOffset);
 
   T addType(T type) {
     currentDeclaration.addType(type);
     return type;
   }
 
-  T addVoidType();
+  T addVoidType(int charOffset);
 
   ConstructorReferenceBuilder addConstructorReference(
-      String name, List<T> typeArguments, String suffix) {
-    ConstructorReferenceBuilder ref =
-        new ConstructorReferenceBuilder(name, typeArguments, suffix);
+      String name, List<T> typeArguments, String suffix, int charOffset) {
+    ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(name,
+        typeArguments, suffix, this, charOffset);
     constructorReferences.add(ref);
     return ref;
   }
@@ -132,14 +133,15 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   Uri resolve(String path) => uri.resolve(path);
 
   void addExport(List<MetadataBuilder> metadata, String uri,
-      Unhandled conditionalUris, List<Combinator> combinators) {
-    loader.read(resolve(uri)).addExporter(this, combinators);
+      Unhandled conditionalUris, List<Combinator> combinators, int charOffset) {
+    loader.read(resolve(uri)).addExporter(this, combinators, charOffset);
   }
 
   void addImport(List<MetadataBuilder> metadata, String uri,
       Unhandled conditionalUris, String prefix, List<Combinator> combinators,
-      bool deferred) {
-    imports.add(new Import(loader.read(resolve(uri)), prefix, combinators));
+      bool deferred, int charOffset, int prefixCharOffset) {
+    imports.add(new Import(this, loader.read(resolve(uri)), prefix, combinators,
+            charOffset, prefixCharOffset));
   }
 
   void addPart(List<MetadataBuilder> metadata, String path) {
@@ -162,20 +164,21 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   ClassBuilder addClass(List<MetadataBuilder> metadata,
       int modifiers, String name,
       List<TypeVariableBuilder> typeVariables, T supertype,
-      List<T> interfaces);
+      List<T> interfaces, int charOffset);
 
   NamedMixinApplicationBuilder addNamedMixinApplication(
       List<MetadataBuilder> metadata, String name,
       List<TypeVariableBuilder> typeVariables, int modifiers,
-      T mixinApplication, List<T> interfaces);
+      T mixinApplication, List<T> interfaces, int charOffset);
 
   FieldBuilder addField(List<MetadataBuilder> metadata,
-      int modifiers, T type, String name);
+      int modifiers, T type, String name, int charOffset);
 
   void addFields(List<MetadataBuilder> metadata, int modifiers,
       T type, List<String> names) {
     for (String name in names) {
-      addField(metadata, modifiers, type, name);
+      // TODO(ahe): Get charOffset of name.
+      addField(metadata, modifiers, type, name, -1);
     }
   }
 
@@ -183,25 +186,26 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers, T returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
-      ProcedureKind kind);
+      ProcedureKind kind, int charOffset);
 
   EnumBuilder addEnum(List<MetadataBuilder> metadata, String name,
-      List<String> constants);
+      List<String> constants, int charOffset);
 
   FunctionTypeAliasBuilder addFunctionTypeAlias(List<MetadataBuilder> metadata,
       T returnType, String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals);
+      List<FormalParameterBuilder> formals, int charOffset);
 
   void addFactoryMethod(List<MetadataBuilder> metadata,
       ConstructorReferenceBuilder name, List<FormalParameterBuilder> formals,
-      AsyncMarker asyncModifier, ConstructorReferenceBuilder redirectionTarget);
+      AsyncMarker asyncModifier, ConstructorReferenceBuilder redirectionTarget,
+      int charOffset);
 
   FormalParameterBuilder addFormalParameter(
       List<MetadataBuilder> metadata, int modifiers,
-      T type, String name, bool hasThis);
+      T type, String name, bool hasThis, int charOffset);
 
-  TypeVariableBuilder addTypeVariable(String name, T bound);
+  TypeVariableBuilder addTypeVariable(String name, T bound, int charOffset);
 
   Builder addBuilder(String name, Builder builder) {
     // TODO(ahe): Set the parent correctly here. Could then change the
@@ -310,7 +314,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   void addToScope(String name, Builder member) {
-    Builder existing = scope.lookup(name);
+    Builder existing = scope.lookup(name, member.charOffset, fileUri);
     if (existing != null) {
       if (existing != member) {
         scope.local[name] = existing.combineAmbiguousImport(name, member, this);

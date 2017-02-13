@@ -188,7 +188,8 @@ class Library extends TreeNode implements Comparable<Library> {
       this.isExternal: false,
       List<Class> classes,
       List<Procedure> procedures,
-      List<Field> fields})
+      List<Field> fields,
+      this.fileUri})
       : this.classes = classes ?? <Class>[],
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[] {

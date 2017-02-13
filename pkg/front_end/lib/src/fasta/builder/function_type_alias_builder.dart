@@ -26,8 +26,8 @@ abstract class FunctionTypeAliasBuilder<T extends TypeBuilder, R>
   FunctionTypeAliasBuilder(
       List<MetadataBuilder> metadata, this.returnType,
       String name, this.typeVariables, this.formals, List<T> types,
-      LibraryBuilder parent)
-      : super(metadata, null, name, types, parent);
+      LibraryBuilder parent, int charOffset)
+      : super(metadata, null, name, types, parent, charOffset);
 
   LibraryBuilder get parent => super.parent;
 

@@ -12,6 +12,9 @@ import 'kernel_builder.dart' show
     TypeBuilder;
 
 abstract class KernelTypeBuilder extends TypeBuilder {
+  KernelTypeBuilder(int charOffset, Uri fileUri)
+      : super(charOffset, fileUri);
+
   DartType build();
 
   Supertype buildSupertype();

@@ -25,9 +25,9 @@ class KernelNamedMixinApplicationBuilder extends SourceClassBuilder
       String name, List<TypeVariableBuilder> typeVariables,
       int modifiers, KernelTypeBuilder mixinApplication,
       List<KernelTypeBuilder> interfaces, List<KernelTypeBuilder> types,
-      LibraryBuilder parent)
+      LibraryBuilder parent, int charOffset)
       : super(metadata, modifiers, name, typeVariables, mixinApplication,
-          interfaces, <String, Builder>{}, types, parent, null);
+          interfaces, <String, Builder>{}, types, parent, null, charOffset);
 
   KernelTypeBuilder get mixinApplication => supertype;
 }

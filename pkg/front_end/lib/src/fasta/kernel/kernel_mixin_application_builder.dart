@@ -13,14 +13,23 @@ import 'kernel_builder.dart' show
     KernelTypeBuilder,
     MixinApplicationBuilder;
 
+import '../util/relativize.dart' show
+    relativizeUri;
+
 class KernelMixinApplicationBuilder
     extends MixinApplicationBuilder<KernelTypeBuilder>
     implements KernelTypeBuilder {
+  final int charOffset;
+
+  final String relativeFileUri;
+
   Supertype builtType;
 
   KernelMixinApplicationBuilder(KernelTypeBuilder supertype,
-      List<KernelTypeBuilder> mixins)
-      : super(supertype, mixins);
+      List<KernelTypeBuilder> mixins, int charOffset, Uri fileUri)
+      : charOffset = charOffset,
+        relativeFileUri = relativizeUri(fileUri),
+        super(supertype, mixins, charOffset, fileUri);
 
   InterfaceType build() => buildSupertype().asInterfaceType;
 
@@ -41,7 +50,9 @@ class KernelMixinApplicationBuilder
           isAbstract: true,
           supertype: supertype,
           mixedInType: mixin,
-          typeParameters: null); // TODO(ahe): Compute these.
+          typeParameters: null, // TODO(ahe): Compute these.
+          fileUri: relativeFileUri);
+      application.fileOffset = charOffset;
       // TODO(ahe): Use asThisSupertype instead and translate type variables.
       supertype = application.asRawSupertype;
     }

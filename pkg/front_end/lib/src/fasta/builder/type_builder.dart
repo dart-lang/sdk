@@ -14,6 +14,9 @@ import 'scope.dart' show
 
 // TODO(ahe): Make const class.
 abstract class TypeBuilder extends Builder {
+  TypeBuilder(int charOffset, Uri fileUri)
+      : super(null, charOffset, fileUri);
+
   void resolveIn(Scope scope);
 
   void bind(TypeDeclarationBuilder builder);

@@ -25,7 +25,8 @@ class PrefixBuilder extends Builder {
 
   final LibraryBuilder parent;
 
-  PrefixBuilder(this.name, this.exports, this.parent);
+  PrefixBuilder(this.name, this.exports, LibraryBuilder parent, int charOffset)
+      : parent = parent, super(parent, charOffset, parent.fileUri);
 
   Member findTopLevelMember(String name) {
     // TODO(ahe): Move this to KernelPrefixBuilder.

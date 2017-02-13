@@ -11,6 +11,6 @@ import 'builder.dart' show
 
 abstract class InvalidTypeBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
-  InvalidTypeBuilder(String name, Builder parent)
-      : super(null, 0, name, null, parent);
+  InvalidTypeBuilder(String name, Builder parent, int charOffset, [Uri fileUri])
+      : super(null, 0, name, null, parent, charOffset, fileUri);
 }

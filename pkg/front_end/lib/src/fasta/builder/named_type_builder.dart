@@ -23,7 +23,8 @@ abstract class NamedTypeBuilder<T extends TypeBuilder> extends TypeBuilder {
 
   void set builder(covariant TypeDeclarationBuilder b);
 
-  NamedTypeBuilder(this.name, this.arguments);
+  NamedTypeBuilder(this.name, this.arguments, int charOffset, Uri fileUri)
+      : super(charOffset, fileUri);
 
   InvalidTypeBuilder buildInvalidType(String name);
 
@@ -32,7 +33,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder> extends TypeBuilder {
   }
 
   void resolveIn(Scope scope) {
-    Builder member = scope.lookup(name);
+    Builder member = scope.lookup(name, charOffset, fileUri);
     if (member is TypeDeclarationBuilder) {
       builder = member;
       return;
@@ -41,7 +42,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder> extends TypeBuilder {
       int index = name.lastIndexOf(".");
       String first = name.substring(0, index);
       String last = name.substring(name.lastIndexOf(".") + 1);
-      var prefix = scope.lookup(first);
+      var prefix = scope.lookup(first, charOffset, fileUri);
       if (prefix is PrefixBuilder) {
         member = prefix.exports[last];
       }

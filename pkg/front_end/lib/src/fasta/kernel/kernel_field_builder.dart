@@ -5,24 +5,31 @@
 library fasta.kernel_field_builder;
 
 import 'package:kernel/ast.dart' show
-    DynamicType,
     Expression,
     Field,
     Library,
     Name;
 
 import 'kernel_builder.dart' show
+    Builder,
     FieldBuilder,
     KernelTypeBuilder,
     MetadataBuilder;
 
+import '../util/relativize.dart' show
+    relativizeUri;
+
 class KernelFieldBuilder extends FieldBuilder<Expression> {
-  Field field;
+  final Field field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
 
-  KernelFieldBuilder(this.metadata, this.type, String name, int modifiers)
-      : super(name, modifiers);
+  KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
+      Builder compilationUnit, int charOffset)
+      : field =
+            new Field(null, fileUri: relativizeUri(compilationUnit?.fileUri))
+                ..fileOffset = charOffset,
+        super(name, modifiers, compilationUnit, charOffset);
 
   void set initializer(Expression value) {
     field.initializer = value
@@ -30,9 +37,17 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   }
 
   Field build(Library library) {
-    return field ??= new Field(new Name(name, library),
-        type: type?.build() ?? const DynamicType(),
-        isFinal: isFinal, isConst: isConst, isStatic: isStatic || isTopLevel);
+    field.name ??= new Name(name, library);
+    if (type != null) {
+      field.type = type.build();
+    }
+    bool isInstanceMember = !isStatic && !isTopLevel;
+    return field
+        ..isFinal = isFinal
+        ..isConst = isConst
+        ..hasImplicitGetter = isInstanceMember
+        ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
+        ..isStatic = !isInstanceMember;
   }
 
   Field get target => field;

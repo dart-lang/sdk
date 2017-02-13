@@ -283,7 +283,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Uri get uri => library.fileUri ?? library.uri;
 
   @override
-  JumpTarget createJumpTarget(JumpTargetKind kind) => new JumpTarget(kind);
+  JumpTarget createJumpTarget(JumpTargetKind kind, int charOffset) {
+    return new JumpTarget(kind, member, charOffset);
+  }
 
   @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
@@ -709,9 +711,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     isFirstIdentifier = true;
   }
 
-  Builder computeSetter(Builder builder, Scope scope, String name) {
+  Builder computeSetter(
+      Builder builder, Scope scope, String name, int charOffset) {
     if (builder.isSetter) return builder;
-    if (builder.isGetter) return scope.lookupSetter(name);
+    if (builder.isGetter) return scope.lookupSetter(name, charOffset, uri);
     return builder.isField ? (builder.isFinal ? null : builder) : null;
   }
 
@@ -724,7 +727,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           this.scope.parent == enclosingScope);
       // This deals with this kind of initializer: `C(a) : a = a;`
       Scope scope = inInitializer ? enclosingScope : this.scope;
-      Builder builder = scope.lookup(name);
+      Builder builder = scope.lookup(name, token.charOffset, uri);
       push(builderToFirstExpression(builder, name, token.charOffset));
     } else {
       push(new Identifier(name)..fileOffset = token.charOffset);
@@ -736,7 +739,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       {bool isPrefix: false}) {
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
       if (!isPrefix && identical(name, "dynamic") && builder == null) {
-        return new KernelNamedTypeBuilder(name, null);
+        return new KernelNamedTypeBuilder(name, null, charOffset, uri);
       }
       Name n = new Name(name, library.library);
       if (!isPrefix && isInstanceContext) {
@@ -771,7 +774,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       Member getter = builder.target.hasGetter ? builder.target : null;
       Member setter = builder.target.hasSetter ? builder.target : null;
-      setter ??= computeSetter(builder, scope, name)?.target;
+      setter ??= computeSetter(builder, scope, name, charOffset)?.target;
       return
           new StaticAccessor(this, charOffset, getter, setter);
     }
@@ -910,7 +913,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       internalError("unhandled identifier: ${node.runtimeType}");
     }
     push(variable);
-    scope[variable.name] = new KernelVariableBuilder(variable);
+    scope[variable.name] = new KernelVariableBuilder(variable,
+        // TODO(ahe): This should be `member ?? classBuilder ?? part`, but we
+        // don't have an object representing the current part.
+        member ?? classBuilder);
   }
 
   @override
@@ -962,14 +968,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void enterLoop() {
+  void enterLoop(int charOffset) {
     if (peek() is LabelTarget) {
       LabelTarget target = peek();
-      enterBreakTarget(target.breakTarget);
-      enterContinueTarget(target.continueTarget);
+      enterBreakTarget(charOffset, target.breakTarget);
+      enterContinueTarget(charOffset, target.continueTarget);
     } else{
-      enterBreakTarget();
-      enterContinueTarget();
+      enterBreakTarget(charOffset);
+      enterContinueTarget(charOffset);
     }
   }
 
@@ -1145,10 +1151,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new SymbolLiteral(value));
   }
 
-  DartType toKernelType(String name, List<DartType> arguments) {
+  DartType toKernelType(String name, List<DartType> arguments, int charOffset) {
     if (identical(name, "void")) return const VoidType();
     if (identical(name, "dynamic")) return const DynamicType();
-    Builder builder = scope.lookup(name);
+    Builder builder = scope.lookup(name, charOffset, uri);
     if (builder is TypeDeclarationBuilder) {
       return builder.buildTypesWithBuiltArguments(arguments);
     }
@@ -1183,7 +1189,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (prefix is Builder) {
         builder = prefix;
       } else {
-        builder = scope.lookup(prefix);
+        builder = scope.lookup(prefix, beginToken.charOffset, uri);
       }
       if (builder is PrefixBuilder) {
         name = builder.exports[suffix];
@@ -1209,7 +1215,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (name is TypeBuilder) {
       push(name.build());
     } else {
-      push(toKernelType(name, arguments));
+      push(toKernelType(name, arguments, beginToken.charOffset));
     }
     if (peek() is TypeParameterType) {
       TypeParameterType type = peek();
@@ -1268,6 +1274,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endFormalParameter(Token thisKeyword) {
     debugEvent("FormalParameter");
+    // TODO(ahe): Need beginToken here.
+    int charOffset = thisKeyword?.charOffset;
     if (thisKeyword != null) {
       if (!inConstructor) {
         return inputError("'this' parameters can only be used on constructors.",
@@ -1280,7 +1288,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     ignore(Unhandled.Metadata);
     VariableDeclaration variable;
     if (!inCatchClause && functionNestingLevel == 0) {
-      dynamic builder = formalParameterScope.lookup(name.name);
+      dynamic builder = formalParameterScope.lookup(name.name, charOffset, uri);
       if (builder == null) {
         return inputError("'${name.name}' isn't a field in this class.",
             name.fileOffset);
@@ -1358,7 +1366,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         popList(count) ?? <VariableDeclaration>[], optional);
     push(formals);
     if (inCatchClause || functionNestingLevel != 0) {
-      enterLocalScope(formals.computeFormalParameterScope(scope));
+      enterLocalScope(formals.computeFormalParameterScope(
+              scope, member ?? classBuilder ?? library));
     }
   }
 
@@ -1724,7 +1733,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         name.name, isFinal: true);
     push(new FunctionDeclaration(variable,
             new FunctionNode(new InvalidStatement())));
-    scope[variable.name] = new KernelVariableBuilder(variable);
+    scope[variable.name] = new KernelVariableBuilder(variable,
+        // TODO(ahe): This should be `member ?? classBuilder ?? part`, but we
+        // don't have an object representing the current part.
+        member ?? classBuilder);
     enterLocalScope();
   }
 
@@ -1874,7 +1886,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("beginLabeledStatement");
     List<Label> labels = popList(labelCount);
     enterLocalScope();
-    LabelTarget target = new LabelTarget();
+    LabelTarget target = new LabelTarget(member, token.charOffset);
     for (Label label in labels) {
       scope[label.name] = target;
     }
@@ -1959,7 +1971,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("beginSwitchBlock");
     enterLocalScope();
     enterSwitchScope();
-    enterBreakTarget();
+    enterBreakTarget(token.charOffset);
   }
 
   @override
@@ -1981,7 +1993,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     for (Label label in labels) {
       Builder existing = scope.local[label.name];
       if (existing == null) {
-        scope[label.name] = createGotoTarget();
+        scope[label.name] = createGotoTarget(firstToken.charOffset);
       } else {
         // TODO(ahe): Should validate this is a goto target and not duplicated.
       }
@@ -2023,7 +2035,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       List<Label> labels = pop();
       SwitchCase current = cases[i] = pop();
       for (Label label in labels) {
-        JumpTarget target = switchScope.lookup(label.name);
+        JumpTarget target =
+            switchScope.lookup(label.name, label.fileOffset, uri);
         if (target != null) {
           target.resolveGotos(current);
         }
@@ -2057,7 +2070,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (hasTarget) {
       Identifier identifier = pop();
       name = identifier.name;
-      target = scope.lookup(identifier.name);
+      target = scope.lookup(
+          identifier.name, breakKeyword.next.charOffset, uri);
     }
     if (target == null && name == null) {
       push(compileTimeErrorInLoopOrSwitch =
@@ -2084,7 +2098,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (hasTarget) {
       Identifier identifier = pop();
       name = identifier.name;
-      target = scope.lookup(identifier.name);
+      target = scope.lookup(
+          identifier.name, continueKeyword.next.charOffset, uri);
       if (target != null && target is! JumpTarget) {
         push(compileTimeErrorInLoopOrSwitch =
             buildCompileTimeErrorStatement(
@@ -2098,7 +2113,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
                   continueKeyword.next.charOffset));
           return;
         }
-        switchScope[identifier.name] = target = createGotoTarget();
+        switchScope[identifier.name] = target =
+            createGotoTarget(identifier.fileOffset);
       }
       if (target.isGotoTarget) {
         ContinueSwitchStatement statement = new ContinueSwitchStatement(null);
@@ -2491,7 +2507,8 @@ class JumpTarget extends Builder {
 
   final JumpTargetKind kind;
 
-  JumpTarget(this.kind);
+  JumpTarget(this.kind, MemberBuilder member, int charOffset)
+      : super(member, charOffset, member.fileUri);
 
   bool get isBreakTarget => kind == JumpTargetKind.Break;
 
@@ -2542,11 +2559,15 @@ class JumpTarget extends Builder {
 }
 
 class LabelTarget extends Builder implements JumpTarget {
-  final JumpTarget breakTarget = new JumpTarget(JumpTargetKind.Break);
+  final JumpTarget breakTarget;
 
-  final JumpTarget continueTarget = new JumpTarget(JumpTargetKind.Continue);
+  final JumpTarget continueTarget;
 
-  LabelTarget();
+  LabelTarget(MemberBuilder member, int charOffset)
+      : breakTarget = new JumpTarget(JumpTargetKind.Break, member, charOffset),
+        continueTarget =
+            new JumpTarget(JumpTargetKind.Continue, member, charOffset),
+        super(member, charOffset, member.fileUri);
 
   bool get hasUsers => breakTarget.hasUsers || continueTarget.hasUsers;
 
@@ -2640,15 +2661,15 @@ class FormalParameters {
         requiredParameterCount: requiredParameterCount);
   }
 
-  Scope computeFormalParameterScope(Scope parent) {
+  Scope computeFormalParameterScope(Scope parent, Builder builder) {
     if (required.length == 0 && optional == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
     for (VariableDeclaration parameter in required) {
-      local[parameter.name] = new KernelVariableBuilder(parameter);
+      local[parameter.name] = new KernelVariableBuilder(parameter, builder);
     }
     if (optional != null) {
       for (VariableDeclaration parameter in optional.formals) {
-        local[parameter.name] = new KernelVariableBuilder(parameter);
+        local[parameter.name] = new KernelVariableBuilder(parameter, builder);
       }
     }
     return new Scope(local, parent, isModifiable: false);

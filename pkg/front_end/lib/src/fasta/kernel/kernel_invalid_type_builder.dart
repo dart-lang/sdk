@@ -9,14 +9,13 @@ import 'package:kernel/ast.dart' show
     DynamicType;
 
 import 'kernel_builder.dart' show
-    Builder,
     InvalidTypeBuilder,
     KernelTypeBuilder;
 
 class KernelInvalidTypeBuilder
     extends InvalidTypeBuilder<KernelTypeBuilder, DartType> {
-  KernelInvalidTypeBuilder(String name, Builder parent)
-      : super(name, parent);
+  KernelInvalidTypeBuilder(String name, int charOffset, Uri fileUri)
+      : super(name, null, charOffset, fileUri);
 
   DartType buildType(List<KernelTypeBuilder> arguments) {
     // TODO(ahe): Implement error handling.

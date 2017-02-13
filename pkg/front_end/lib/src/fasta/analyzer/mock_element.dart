@@ -8,13 +8,18 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
+import '../builder/builder.dart' show
+    Builder;
+
 import '../errors.dart' show
     internalError;
 
-abstract class MockElement implements Element, LocalElement {
+abstract class MockElement extends Builder
+    implements Element, LocalElement {
   final ElementKind kind;
 
-  MockElement(this.kind);
+  MockElement(this.kind)
+      : super(null, -1, null);
 
   get librarySource => internalError("not supported.");
 
