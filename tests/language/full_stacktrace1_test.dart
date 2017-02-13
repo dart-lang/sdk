@@ -15,6 +15,7 @@ void func3() {
     func2();
   } on Object catch(e, s) {
     var fullTrace = s.toString();
+    print(fullTrace);
     Expect.isTrue(fullTrace.contains("func1"));
     Expect.isTrue(fullTrace.contains("func2"));
     Expect.isTrue(fullTrace.contains("func3"));

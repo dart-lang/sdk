@@ -1040,12 +1040,6 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 
 
 void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
-  if (FLAG_precompiled_mode) {
-    // TODO(rmacnak): Include a filtered verion of this to produce stack traces
-    // with inlined frames.
-    return;
-  }
-
   const Array& inlined_id_array =
       Array::Handle(zone(), code_source_map_builder_->InliningIdToFunction());
   INC_STAT(Thread::Current(), total_code_size,

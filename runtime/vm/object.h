@@ -3576,6 +3576,7 @@ class Script : public Object {
 
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
+  intptr_t GetTokenLineUsingLineStarts(TokenPosition token_pos) const;
   void GetTokenLocation(TokenPosition token_pos,
                         intptr_t* line,
                         intptr_t* column,
@@ -4408,6 +4409,14 @@ class CodeSourceMap : public Object {
     return UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
   }
 
+  bool Equals(const CodeSourceMap& other) const {
+    if (Length() != other.Length()) {
+      return false;
+    }
+    NoSafepointScope no_safepoint;
+    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(Length())) == 0;
+  }
+
   void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
 
  private:
@@ -4659,20 +4668,12 @@ class Code : public Object {
   }
 
   RawCodeSourceMap* code_source_map() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return CodeSourceMap::null();
-#else
     return raw_ptr()->code_source_map_;
-#endif
   }
 
   void set_code_source_map(const CodeSourceMap& code_source_map) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
     ASSERT(code_source_map.IsOld());
     StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
-#endif
   }
 
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas

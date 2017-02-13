@@ -1139,12 +1139,12 @@ class RawCode : public RawObject {
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   RawArray* stackmaps_;
+  RawArray* inlined_id_to_function_;
+  RawCodeSourceMap* code_source_map_;
   NOT_IN_PRECOMPILED(RawInstructions* active_instructions_);
   NOT_IN_PRECOMPILED(RawArray* deopt_info_array_);
   // (code-offset, function, code) triples.
   NOT_IN_PRECOMPILED(RawArray* static_calls_target_table_);
-  NOT_IN_PRECOMPILED(RawArray* inlined_id_to_function_);
-  NOT_IN_PRECOMPILED(RawCodeSourceMap* code_source_map_);
   // If return_address_metadata_ is a Smi, it is the offset to the prologue.
   // Else, return_address_metadata_ is null.
   NOT_IN_PRECOMPILED(RawObject* return_address_metadata_);

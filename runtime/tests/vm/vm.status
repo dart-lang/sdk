@@ -149,7 +149,8 @@ dart/simd128float32_test: Skip # compilers not aware of Simd128
 
 [ $compiler == dart2js ]
 # The source positions do not match with dart2js.
-dart/optimized_stacktrace_test: RuntimeError
+dart/optimized_stacktrace_line_test: RuntimeError
+dart/optimized_stacktrace_line_and_column_test: RuntimeError
 
 # Methods can be missing in dart2js stack traces due to inlining.  Also when
 # minifying they can be renamed, which is issue 7953.
@@ -169,7 +170,8 @@ cc/Int8ListLengthMaxElements: Skip # Issue 23536, uses 1 GB memory.
 cc/FindCodeObject: SkipSlow # Takes more than 8 minutes. Issue 17440
 
 [ $compiler == dart2analyzer ]
-dart/optimized_stacktrace_test: StaticWarning
+dart/optimized_stacktrace_line_test: StaticWarning
+dart/optimized_stacktrace_line_and_column_test: StaticWarning
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649
@@ -256,14 +258,12 @@ cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 
-[ $runtime == dart_precompiled ]
-# StackTraces in precompilation omit inlined frames.
-dart/inline_stack_frame_test: Pass, RuntimeError
-dart/optimized_stacktrace_test: Pass, RuntimeError
-dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+[ $compiler == app_jit ]
+dart/optimized_stacktrace_line_and_column_test: RuntimeError,OK # app-jit lacks column information
 
-[ $compiler == app_jit || $compiler == precompiler ]
-dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
+[ $runtime == dart_precompiled ]
+dart/optimized_stacktrace_line_and_column_test: RuntimeError,OK # AOT lacks column information
+dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 
 [ $runtime == vm && $mode == product ]
 cc/IsolateSetCheckedMode: Fail,OK  # Expects exact type name.

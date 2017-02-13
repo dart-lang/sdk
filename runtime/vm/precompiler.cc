@@ -495,6 +495,7 @@ void Precompiler::DoCompileAll(
 
     ShareMegamorphicBuckets();
     DedupStackMaps();
+    DedupCodeSourceMaps();
     DedupLists();
 
     if (FLAG_dedup_instructions) {
@@ -983,6 +984,13 @@ void Precompiler::AddCalleesOf(const Function& function) {
         AddTypeArguments(TypeArguments::Cast(entry));
       }
     }
+  }
+
+  const Array& inlined_functions =
+      Array::Handle(Z, code.inlined_id_to_function());
+  for (intptr_t i = 0; i < inlined_functions.Length(); i++) {
+    target ^= inlined_functions.At(i);
+    AddTypesOf(target);
   }
 }
 
@@ -2341,6 +2349,50 @@ void Precompiler::DedupStackMaps() {
 }
 
 
+void Precompiler::DedupCodeSourceMaps() {
+  class DedupCodeSourceMapsVisitor : public FunctionVisitor {
+   public:
+    explicit DedupCodeSourceMapsVisitor(Zone* zone)
+        : zone_(zone),
+          canonical_code_source_maps_(),
+          code_(Code::Handle(zone)),
+          code_source_map_(CodeSourceMap::Handle(zone)) {}
+
+    void Visit(const Function& function) {
+      if (!function.HasCode()) {
+        return;
+      }
+      code_ = function.CurrentCode();
+      code_source_map_ = code_.code_source_map();
+      ASSERT(!code_source_map_.IsNull());
+      code_source_map_ = DedupCodeSourceMap(code_source_map_);
+      code_.set_code_source_map(code_source_map_);
+    }
+
+    RawCodeSourceMap* DedupCodeSourceMap(const CodeSourceMap& code_source_map) {
+      const CodeSourceMap* canonical_code_source_map =
+          canonical_code_source_maps_.LookupValue(&code_source_map);
+      if (canonical_code_source_map == NULL) {
+        canonical_code_source_maps_.Insert(
+            &CodeSourceMap::ZoneHandle(zone_, code_source_map.raw()));
+        return code_source_map.raw();
+      } else {
+        return canonical_code_source_map->raw();
+      }
+    }
+
+   private:
+    Zone* zone_;
+    CodeSourceMapSet canonical_code_source_maps_;
+    Code& code_;
+    CodeSourceMap& code_source_map_;
+  };
+
+  DedupCodeSourceMapsVisitor visitor(Z);
+  ProgramVisitor::VisitFunctions(&visitor);
+}
+
+
 void Precompiler::DedupLists() {
   class DedupListsVisitor : public FunctionVisitor {
    public:
@@ -2357,6 +2409,11 @@ void Precompiler::DedupLists() {
         if (!list_.IsNull()) {
           list_ = DedupList(list_);
           code_.set_stackmaps(list_);
+        }
+        list_ = code_.inlined_id_to_function();
+        if (!list_.IsNull()) {
+          list_ = DedupList(list_);
+          code_.set_inlined_id_to_function(list_);
         }
       }
 

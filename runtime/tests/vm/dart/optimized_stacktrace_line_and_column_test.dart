@@ -19,8 +19,9 @@ test1() {
     Expect.fail("Unreachable");
   } catch (e, stacktrace) {
     String s = stacktrace.toString();
-    Expect.isFalse(s.contains("-1:-1"));
-    Expect.isTrue(s.contains("11:18"));
+    print(s);
+    Expect.isFalse(s.contains("-1:-1"), "A");
+    Expect.isTrue(s.contains("optimized_stacktrace_line_and_column_test.dart:11:18"), "B");
   }
 
   // Optimized.
@@ -30,8 +31,9 @@ test1() {
     Expect.fail("Unreachable");
   } catch (e, stacktrace) {
     String s = stacktrace.toString();
-    Expect.isFalse(s.contains("-1:-1"));
-    Expect.isTrue(s.contains("11:18"));
+    print(s);
+    Expect.isFalse(s.contains("-1:-1"), "C");
+    Expect.isTrue(s.contains("optimized_stacktrace_line_and_column_test.dart:11:18"), "D");
   }
 }
 
@@ -56,9 +58,9 @@ test2() {
   } catch (e, stacktrace) {
     String s = stacktrace.toString();
     print(s);
-    Expect.isTrue(s.contains("maximus"));
-    Expect.isTrue(s.contains("moritz"));
-    Expect.isFalse(s.contains("-1:-1"));
+    Expect.isTrue(s.contains("maximus"), "E");
+    Expect.isTrue(s.contains("moritz"), "F");
+    Expect.isFalse(s.contains("-1:-1"), "G");
   }
 
   try {
@@ -66,9 +68,9 @@ test2() {
   } catch (e, stacktrace) {
     String s = stacktrace.toString();
     print(s);
-    Expect.isTrue(s.contains("maximus"));
-    Expect.isTrue(s.contains("moritz"));
-    Expect.isFalse(s.contains("-1:-1"));
+    Expect.isTrue(s.contains("maximus"), "H");
+    Expect.isTrue(s.contains("moritz"), "I");
+    Expect.isFalse(s.contains("-1:-1"), "J");
   }
 }
 

@@ -10,8 +10,7 @@ namespace dart {
 // Count the number of frames that are on the stack.
 intptr_t StackTraceUtils::CountFrames(Thread* thread,
                                       int skip_frames,
-                                      const Function& async_function,
-                                      bool count_invisible_frames) {
+                                      const Function& async_function) {
   Zone* zone = thread->zone();
   intptr_t frame_count = 0;
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
@@ -27,9 +26,7 @@ intptr_t StackTraceUtils::CountFrames(Thread* thread,
       } else {
         code = frame->LookupDartCode();
         function = code.function();
-        if (function.is_visible() || count_invisible_frames) {
-          frame_count++;
-        }
+        frame_count++;
         if (!async_function_is_null &&
             (async_function.raw() == function.parent_function())) {
           return frame_count;
@@ -49,8 +46,7 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
                                         const Array& pc_offset_array,
                                         intptr_t array_offset,
                                         intptr_t count,
-                                        int skip_frames,
-                                        bool collect_invisible_frames) {
+                                        int skip_frames) {
   Zone* zone = thread->zone();
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
@@ -66,13 +62,11 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
       } else {
         code = frame->LookupDartCode();
         function = code.function();
-        if (function.is_visible() || collect_invisible_frames) {
-          offset = Smi::New(frame->pc() - code.PayloadStart());
-          code_array.SetAt(array_offset, code);
-          pc_offset_array.SetAt(array_offset, offset);
-          array_offset++;
-          collected_frames_count++;
-        }
+        offset = Smi::New(frame->pc() - code.PayloadStart());
+        code_array.SetAt(array_offset, code);
+        pc_offset_array.SetAt(array_offset, offset);
+        array_offset++;
+        collected_frames_count++;
       }
     }
     frame = frames.NextFrame();

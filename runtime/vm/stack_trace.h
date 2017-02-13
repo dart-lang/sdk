@@ -19,24 +19,20 @@ class StackTraceUtils : public AllStatic {
   /// Skips over the first |skip_frames|.
   /// If |async_function| is not null, stops at the function that has
   /// |async_function| as its parent.
-  static intptr_t CountFrames(
-      Thread* thread,
-      int skip_frames,
-      const Function& async_function,
-      bool count_invisible_frames = FLAG_show_invisible_frames);
+  static intptr_t CountFrames(Thread* thread,
+                              int skip_frames,
+                              const Function& async_function);
 
   /// Collects |count| frames into |code_array| and |pc_offset_array|.
   /// Writing begins at |array_offset|.
   /// Skips over the first |skip_frames|.
   /// Returns the number of frames collected.
-  static intptr_t CollectFrames(
-      Thread* thread,
-      const Array& code_array,
-      const Array& pc_offset_array,
-      intptr_t array_offset,
-      intptr_t count,
-      int skip_frames,
-      bool collect_invisible_frames = FLAG_show_invisible_frames);
+  static intptr_t CollectFrames(Thread* thread,
+                                const Array& code_array,
+                                const Array& pc_offset_array,
+                                intptr_t array_offset,
+                                intptr_t count,
+                                int skip_frames);
 
   /// If |thread| has no async_stack_trace, does nothing.
   /// Populates |async_function| with the top function of the async stack

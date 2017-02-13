@@ -1567,12 +1567,12 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->ptr()->exception_handlers_);
     s->Push(code->ptr()->pc_descriptors_);
     s->Push(code->ptr()->stackmaps_);
+    s->Push(code->ptr()->inlined_id_to_function_);
+    s->Push(code->ptr()->code_source_map_);
 
     if (s->kind() == Snapshot::kAppJIT) {
       s->Push(code->ptr()->deopt_info_array_);
       s->Push(code->ptr()->static_calls_target_table_);
-      s->Push(code->ptr()->inlined_id_to_function_);
-      s->Push(code->ptr()->code_source_map_);
       NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
     }
   }
@@ -1621,12 +1621,12 @@ class CodeSerializationCluster : public SerializationCluster {
       s->WriteRef(code->ptr()->exception_handlers_);
       s->WriteRef(code->ptr()->pc_descriptors_);
       s->WriteRef(code->ptr()->stackmaps_);
+      s->WriteRef(code->ptr()->inlined_id_to_function_);
+      s->WriteRef(code->ptr()->code_source_map_);
 
       if (s->kind() == Snapshot::kAppJIT) {
         s->WriteRef(code->ptr()->deopt_info_array_);
         s->WriteRef(code->ptr()->static_calls_target_table_);
-        s->WriteRef(code->ptr()->inlined_id_to_function_);
-        s->WriteRef(code->ptr()->code_source_map_);
         NOT_IN_PRODUCT(s->WriteRef(code->ptr()->return_address_metadata_));
       }
 
@@ -1691,6 +1691,10 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->pc_descriptors_ =
           reinterpret_cast<RawPcDescriptors*>(d->ReadRef());
       code->ptr()->stackmaps_ = reinterpret_cast<RawArray*>(d->ReadRef());
+      code->ptr()->inlined_id_to_function_ =
+          reinterpret_cast<RawArray*>(d->ReadRef());
+      code->ptr()->code_source_map_ =
+          reinterpret_cast<RawCodeSourceMap*>(d->ReadRef());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() == Snapshot::kAppJIT) {
@@ -1698,10 +1702,6 @@ class CodeDeserializationCluster : public DeserializationCluster {
             reinterpret_cast<RawArray*>(d->ReadRef());
         code->ptr()->static_calls_target_table_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
-        code->ptr()->inlined_id_to_function_ =
-            reinterpret_cast<RawArray*>(d->ReadRef());
-        code->ptr()->code_source_map_ =
-            reinterpret_cast<RawCodeSourceMap*>(d->ReadRef());
 #if defined(PRODUCT)
         code->ptr()->return_address_metadata_ = Object::null();
 #else
@@ -1710,8 +1710,6 @@ class CodeDeserializationCluster : public DeserializationCluster {
       } else {
         code->ptr()->deopt_info_array_ = Array::null();
         code->ptr()->static_calls_target_table_ = Array::null();
-        code->ptr()->inlined_id_to_function_ = Array::null();
-        code->ptr()->code_source_map_ = CodeSourceMap::null();
         code->ptr()->return_address_metadata_ = Object::null();
       }
 

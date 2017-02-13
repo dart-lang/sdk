@@ -153,18 +153,6 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 vm/regress_27671_test: Skip # Unsupported
 
-[ $runtime == dart_precompiled ]
-# Stacktraces in precompilation omit inlined frames.
-full_stacktrace1_test: Pass, RuntimeError
-full_stacktrace2_test: Pass, RuntimeError
-full_stacktrace3_test: Pass, RuntimeError
-stack_trace_test: Pass, RuntimeError
-stacktrace_rethrow_error_test: Pass, RuntimeError
-stacktrace_rethrow_nonerror_test: Pass, RuntimeError
-stacktrace_test: Pass, RuntimeError
-vm/regress_28325_test: RuntimeError  # Missing source position in AOT.
-
-
 [ $runtime == dart_precompiled || $mode == product ]
 # Imports dart:mirrors
 const_evaluation_test: SkipByDesign

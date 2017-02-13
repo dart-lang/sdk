@@ -182,11 +182,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   void BufferChangePosition(TokenPosition pos) {
     buffered_token_pos_stack_.Last() = pos;
   }
-  void WriteChangePosition(TokenPosition pos) {
-    stream_.Write<uint8_t>(kChangePosition);
-    stream_.Write<int32_t>(static_cast<int32_t>(pos.value()));
-    written_token_pos_stack_.Last() = pos;
-  }
+  void WriteChangePosition(TokenPosition pos);
   void BufferAdvancePC(int32_t distance) { buffered_pc_offset_ += distance; }
   void WriteAdvancePC(int32_t distance) {
     stream_.Write<uint8_t>(kAdvancePC);

@@ -9077,6 +9077,54 @@ void Script::SetLocationOffset(intptr_t line_offset,
 }
 
 
+// Specialized for AOT compilation, which does this lookup for every token
+// position that could be part of a stack trace.
+intptr_t Script::GetTokenLineUsingLineStarts(
+    TokenPosition target_token_pos) const {
+  Zone* zone = Thread::Current()->zone();
+  Array& line_starts_array = Array::Handle(zone, line_starts());
+  Smi& token_pos = Smi::Handle(zone);
+  if (line_starts_array.IsNull()) {
+    ASSERT(kind() != RawScript::kKernelTag);
+    GrowableObjectArray& line_starts_list =
+        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+    const TokenStream& tkns = TokenStream::Handle(zone, tokens());
+    TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
+                               TokenStream::Iterator::kAllTokens);
+    intptr_t cur_line = line_offset() + 1;
+    token_pos = Smi::New(0);
+    line_starts_list.Add(token_pos);
+    while (tkit.CurrentTokenKind() != Token::kEOS) {
+      if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+        cur_line++;
+        token_pos = Smi::New(tkit.CurrentPosition().value() + 1);
+        line_starts_list.Add(token_pos);
+      }
+      tkit.Advance();
+    }
+    line_starts_array = Array::MakeArray(line_starts_list);
+    set_line_starts(line_starts_array);
+  }
+
+  ASSERT(line_starts_array.Length() > 0);
+  intptr_t offset = target_token_pos.value();
+  intptr_t min = 0;
+  intptr_t max = line_starts_array.Length() - 1;
+
+  // Binary search to find the line containing this offset.
+  while (min < max) {
+    int midpoint = (max - min + 1) / 2 + min;
+    token_pos ^= line_starts_array.At(midpoint);
+    if (token_pos.Value() > offset) {
+      max = midpoint - 1;
+    } else {
+      min = midpoint;
+    }
+  }
+  return min + 1;  // Line numbers start at 1.
+}
+
+
 void Script::GetTokenLocation(TokenPosition token_pos,
                               intptr_t* line,
                               intptr_t* column,
@@ -9085,7 +9133,7 @@ void Script::GetTokenLocation(TokenPosition token_pos,
   Zone* zone = Thread::Current()->zone();
 
   if (kind() == RawScript::kKernelTag) {
-    const Array& line_starts_array = Array::Handle(line_starts());
+    const Array& line_starts_array = Array::Handle(zone, line_starts());
     if (line_starts_array.IsNull()) {
       // Scripts in the AOT snapshot do not have a line starts array.
       *line = -1;
@@ -9099,13 +9147,13 @@ void Script::GetTokenLocation(TokenPosition token_pos,
     }
     ASSERT(line_starts_array.Length() > 0);
     intptr_t offset = token_pos.value();
-    int min = 0;
-    int max = line_starts_array.Length() - 1;
+    intptr_t min = 0;
+    intptr_t max = line_starts_array.Length() - 1;
 
     // Binary search to find the line containing this offset.
-    Smi& smi = Smi::Handle();
+    Smi& smi = Smi::Handle(zone);
     while (min < max) {
-      int midpoint = (max - min + 1) / 2 + min;
+      intptr_t midpoint = (max - min + 1) / 2 + min;
 
       smi ^= line_starts_array.At(midpoint);
       if (smi.Value() > offset) {
@@ -9114,7 +9162,7 @@ void Script::GetTokenLocation(TokenPosition token_pos,
         min = midpoint;
       }
     }
-    *line = min + 1;
+    *line = min + 1;  // Line numbers start at 1.
     smi ^= line_starts_array.At(min);
     if (column != NULL) {
       *column = offset - smi.Value() + 1;
@@ -14087,21 +14135,13 @@ intptr_t Code::GetPrologueOffset() const {
 
 
 RawArray* Code::inlined_id_to_function() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Array::null();
-#else
   return raw_ptr()->inlined_id_to_function_;
-#endif
 }
 
 
 void Code::set_inlined_id_to_function(const Array& value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
   ASSERT(value.IsOld());
   StorePointer(&raw_ptr()->inlined_id_to_function_, value.raw());
-#endif
 }
 
 
@@ -14466,8 +14506,8 @@ void Code::GetInlinedFunctionsAtInstruction(
     GrowableArray<TokenPosition>* token_positions) const {
   const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
   if (map.IsNull()) {
-    // Stub code.
-    return;
+    ASSERT(!IsFunctionCode());
+    return;  // VM stub or allocation stub.
   }
   const Array& id_map = Array::Handle(inlined_id_to_function());
   const Function& root = Function::Handle(function());
@@ -22367,11 +22407,15 @@ static void PrintStackTraceFrame(Zone* zone,
       zone, script.IsNull() ? String::New("Kernel") : script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (!script.IsNull() && token_pos.IsReal()) {
-    if (script.HasSource() || script.kind() == RawScript::kKernelTag) {
-      script.GetTokenLocation(token_pos, &line, &column);
-    } else {
-      script.GetTokenLocation(token_pos, &line, NULL);
+  if (FLAG_precompiled_mode) {
+    line = token_pos.value();
+  } else {
+    if (!script.IsNull() && token_pos.IsReal()) {
+      if (script.HasSource() || script.kind() == RawScript::kKernelTag) {
+        script.GetTokenLocation(token_pos, &line, &column);
+      } else {
+        script.GetTokenLocation(token_pos, &line, NULL);
+      }
     }
   }
   if (column >= 0) {
@@ -22420,8 +22464,7 @@ const char* StackTrace::ToCStringInternal(const StackTrace& stack_trace_in,
       } else {
         ASSERT(code.IsFunctionCode());
         intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
-        if (code.is_optimized() && stack_trace.expand_inlined() &&
-            !FLAG_precompiled_mode) {
+        if (code.is_optimized() && stack_trace.expand_inlined()) {
           code.GetInlinedFunctionsAtReturnAddress(pc_offset, &inlined_functions,
                                                   &inlined_token_positions);
           ASSERT(inlined_functions.length() >= 1);
