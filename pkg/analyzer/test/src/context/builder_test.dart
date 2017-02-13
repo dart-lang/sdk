@@ -6,6 +6,7 @@ library analyzer.test.src.context.context_builder_test;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -329,6 +330,25 @@ bar:$barUri
         contains(predicate((r) => r is BazelFileUriResolver)));
     expect(factory.resolvers,
         contains(predicate((r) => r is BazelPackageUriResolver)));
+  }
+
+  void test_createSourceFactory_bazelWorkspace_withPackagesFile() {
+    String _p(String path) => resourceProvider.convertPath(path);
+
+    String projectPath = _p('/workspace/my/module');
+    resourceProvider.newFile(_p('/workspace/WORKSPACE'), '');
+    resourceProvider.newFolder(_p('/workspace/bazel-bin'));
+    resourceProvider.newFolder(_p('/workspace/bazel-genfiles'));
+    resourceProvider.newFolder(projectPath);
+    resourceProvider.newFile(_p(path.join(projectPath, '.packages')), '');
+
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    SourceFactoryImpl factory =
+        builder.createSourceFactory(projectPath, options);
+    expect(factory.resolvers,
+        contains(predicate((r) => r is ResourceUriResolver)));
+    expect(factory.resolvers,
+        contains(predicate((r) => r is PackageMapUriResolver)));
   }
 
   void test_createSourceFactory_noProvider_packages_embedder_extensions() {

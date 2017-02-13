@@ -252,6 +252,11 @@ class ContextBuilder {
   }
 
   Workspace createWorkspace(String rootPath) {
+    if (_hasPackageFileInPath(rootPath)) {
+      // Bazel workspaces that include package files are treated like normal
+      // (non-Bazel) directories.
+      return _BasicWorkspace.find(resourceProvider, rootPath, this);
+    }
     Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
     workspace ??= GnWorkspace.find(resourceProvider, rootPath);
     return workspace ?? _BasicWorkspace.find(resourceProvider, rootPath, this);
@@ -553,6 +558,22 @@ class ContextBuilder {
     }
     return null;
   }
+
+  /**
+   * Return `true` if either the directory at [rootPath] or a parent of that
+   * directory contains a `.packages` file.
+   */
+  bool _hasPackageFileInPath(String rootPath) {
+    Folder folder = resourceProvider.getFolder(rootPath);
+    while (folder != null) {
+      File file = folder.getChildAssumingFile('.packages');
+      if (file.exists) {
+        return true;
+      }
+      folder = folder.parent;
+    }
+    return false;
+  }
 }
 
 /**
@@ -736,14 +757,14 @@ class _BasicWorkspace extends Workspace {
   _BasicWorkspace._(this.provider, this.root, this._builder);
 
   @override
+  // Alternately, we could check the pubspec for "sdk: flutter"
+  bool get hasFlutterDependency => packageMap.containsKey('flutter');
+
+  @override
   Map<String, List<Folder>> get packageMap {
     _packageMap ??= _builder.convertPackagesToMap(packages);
     return _packageMap;
   }
-
-  @override
-  // Alternately, we could check the pubspec for "sdk: flutter"
-  bool get hasFlutterDependency => packageMap.containsKey('flutter');
 
   Packages get packages {
     _packages ??= _builder.createPackageMap(root);
