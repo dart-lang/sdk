@@ -678,6 +678,10 @@ Library* Library::ReadFrom(Reader* reader) {
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
 
+  int num_imports = reader->ReadUInt();
+  if (num_imports != 0) {
+    FATAL("Deferred imports not implemented in VM");
+  }
   int num_classes = reader->ReadUInt();
   classes().EnsureInitialized(num_classes);
   for (int i = 0; i < num_classes; i++) {

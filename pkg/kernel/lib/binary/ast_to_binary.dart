@@ -24,6 +24,7 @@ class BinaryPrinter extends Visitor {
   final GlobalIndexer _globalIndexer;
   final StringIndexer _stringIndexer = new StringIndexer();
   final StringIndexer _sourceUriIndexer = new StringIndexer();
+  Map<DeferredImport, int> _deferredImportIndexer = <DeferredImport, int>{};
 
   final BufferedSink _sink;
 
@@ -175,6 +176,14 @@ class BinaryPrinter extends Visitor {
     writeUInt30(index);
   }
 
+  void writeDeferredImportReference(DeferredImport node) {
+    int index = _deferredImportIndexer[node];
+    if (index == null) {
+      throw 'Reference to deferred import $node out of scope';
+    }
+    writeUInt30(index);
+  }
+
   void writeClassIndex(Class node) {
     writeUInt30(_globalIndexer[node]);
   }
@@ -269,9 +278,27 @@ class BinaryPrinter extends Visitor {
     writeStringReference('${node.importUri}');
     // TODO(jensj): We save (almost) the same URI twice.
     writeUriReference(node.fileUri ?? '');
+    writeDeferredImports(node);
     writeNodeList(node.classes);
     writeNodeList(node.fields);
     writeNodeList(node.procedures);
+  }
+
+  void writeDeferredImports(Library library) {
+    _deferredImportIndexer = library.deferredImports.isEmpty
+        ? const <DeferredImport, int>{}
+        : <DeferredImport, int>{};
+    writeUInt30(library.deferredImports.length);
+    for (int i = 0; i < library.deferredImports.length; ++i) {
+      var importNode = library.deferredImports[i];
+      _deferredImportIndexer[importNode] = i;
+      writeDeferredImport(importNode);
+    }
+  }
+
+  void writeDeferredImport(DeferredImport node) {
+    writeLibraryReference(node.importedLibrary);
+    writeStringReference(node.name);
   }
 
   void writeAnnotation(Expression annotation) {
@@ -715,6 +742,16 @@ class BinaryPrinter extends Visitor {
     --_variableIndexer.stackHeight;
   }
 
+  visitLoadLibrary(LoadLibrary node) {
+    writeByte(Tag.LoadLibrary);
+    writeDeferredImportReference(node.import);
+  }
+
+  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    writeByte(Tag.CheckLibraryIsLoaded);
+    writeDeferredImportReference(node.import);
+  }
+
   writeStatementOrEmpty(Statement node) {
     if (node == null) {
       writeByte(Tag.EmptyStatement);
@@ -1099,6 +1136,10 @@ class StringIndexer extends RecursiveVisitor<Null> {
     putOptional(node.name);
     put('${node.importUri}');
     node.visitChildren(this);
+  }
+
+  visitDeferredImport(DeferredImport node) {
+    put(node.name);
   }
 
   visitClass(Class node) {

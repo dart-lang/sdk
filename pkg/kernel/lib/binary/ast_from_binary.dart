@@ -187,8 +187,7 @@ class BinaryBuilder {
       readLibrary();
     }
     var mainMethod = readMemberReference(allowNull: true);
-    return new Program(importTable, uriToSource)
-      ..mainMethod = mainMethod;
+    return new Program(importTable, uriToSource)..mainMethod = mainMethod;
   }
 
   Map<String, Source> readUriToSource() {
@@ -224,6 +223,11 @@ class BinaryBuilder {
   Library readLibraryReference() {
     int index = readUInt();
     return importTable[index];
+  }
+
+  DeferredImport readDeferredImportReference() {
+    int index = readUInt();
+    return _currentLibrary.deferredImports[index];
   }
 
   Class readClassReference({bool allowNull: false}) {
@@ -292,6 +296,7 @@ class BinaryBuilder {
     // TODO(jensj): We currently save (almost the same) uri twice.
     _currentLibrary.fileUri = readUriReference();
 
+    _readDeferredImports(_currentLibrary);
     _fillLazilyLoadedList(_currentLibrary.classes, (int tag, int index) {
       readClass(loader.getClassReference(_currentLibrary, tag, index), tag);
     });
@@ -304,6 +309,19 @@ class BinaryBuilder {
           loader.getLibraryMemberReference(_currentLibrary, tag, index), tag);
     });
     debugPath.removeLast();
+  }
+
+  void _readDeferredImports(Library library) {
+    int count = readUInt();
+    library.deferredImports.length = count;
+    for (int i = 0; i < count; ++i) {
+      var importNode = _readDeferredImport();
+      library.deferredImports.add(importNode..parent = library);
+    }
+  }
+
+  DeferredImport _readDeferredImport() {
+    return new DeferredImport(readLibraryReference(), readStringReference());
   }
 
   void readClass(Class node, int tag) {
@@ -528,6 +546,10 @@ class BinaryBuilder {
         ? tagByte
         : (tagByte & Tag.SpecializedTagMask);
     switch (tag) {
+      case Tag.LoadLibrary:
+        return new LoadLibrary(readDeferredImportReference());
+      case Tag.CheckLibraryIsLoaded:
+        return new CheckLibraryIsLoaded(readDeferredImportReference());
       case Tag.InvalidExpression:
         return new InvalidExpression();
       case Tag.VariableGet:
