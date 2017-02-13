@@ -10,8 +10,16 @@ import 'package:front_end/src/fasta/parser/error_kind.dart' show
 import 'package:front_end/src/fasta/scanner/error_token.dart' show
     ErrorToken;
 
+import 'package:front_end/src/fasta/scanner/keyword.dart' show
+    Keyword;
+
+import 'package:front_end/src/fasta/scanner/precedence.dart';
+
 import 'package:front_end/src/fasta/scanner/token.dart' show
+    BeginGroupToken,
     KeywordToken,
+    StringToken,
+    SymbolToken,
     Token;
 
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
@@ -83,6 +91,207 @@ analyzer.Token toAnalyzerTokenStream(
       return analyzerTokenHead.next;
     }
     token = token.next;
+  }
+}
+
+/// Converts a stream of Analyzer tokens (starting with [token] and continuing
+/// to EOF) to a stream of Fasta tokens.
+///
+/// TODO(paulberry): Analyzer tokens do not record error conditions, so a round
+/// trip through this function and [toAnalyzerTokenStream] will lose error
+/// information.
+Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
+  Token tokenHead = new SymbolToken(EOF_INFO, -1);
+  Token tokenTail = tokenHead;
+  analyzer.Token translateAndAppend(analyzer.Token analyzerToken) {
+    var token = fromAnalyzerToken(analyzerToken);
+    tokenTail.next = token;
+    tokenTail = token;
+    return analyzerToken.next;
+  }
+
+  while (true) {
+    analyzer.Token commentToken = analyzerToken.precedingComments;
+    while (commentToken != null) {
+      commentToken = translateAndAppend(commentToken);
+    }
+    // TODO(paulberry): join up begingroup/endgroup.
+    if (analyzerToken.type == TokenType.EOF) {
+      tokenTail.next = new SymbolToken(EOF_INFO, analyzerToken.offset);
+      return tokenHead.next;
+    }
+    analyzerToken = translateAndAppend(analyzerToken);
+  }
+}
+
+/// Converts a single analyzer token into a Fasta token.
+Token fromAnalyzerToken(analyzer.Token token) {
+  Token beginGroup(PrecedenceInfo info) =>
+      new BeginGroupToken(info, token.offset);
+  Token string(PrecedenceInfo info) =>
+      new StringToken.fromString(info, token.lexeme, token.offset);
+  Token symbol(PrecedenceInfo info) => new SymbolToken(info, token.offset);
+  switch (token.type) {
+    case TokenType.DOUBLE:
+      return string(DOUBLE_INFO);
+    case TokenType.HEXADECIMAL:
+      return string(HEXADECIMAL_INFO);
+    case TokenType.IDENTIFIER:
+      // Certain identifiers have special grammatical meanings even though they
+      // are neither keywords nor built-in identifiers (e.g. "async").  Analyzer
+      // represents these as identifiers.  Fasta represents them as keywords
+      // with the "isPseudo" property.
+      var keyword = Keyword.keywords[token.lexeme];
+      if (keyword != null) {
+        assert(keyword.isPseudo);
+        return new KeywordToken(keyword, token.offset);
+      } else {
+        return string(IDENTIFIER_INFO);
+      }
+      break;
+    case TokenType.INT:
+      return string(INT_INFO);
+    case TokenType.KEYWORD:
+      var keyword = Keyword.keywords[token.lexeme];
+      if (keyword != null) {
+        return new KeywordToken(keyword, token.offset);
+      } else {
+        return internalError("Unrecognized keyword: '${token.lexeme}'.");
+      }
+      break;
+    case TokenType.MULTI_LINE_COMMENT:
+      return string(COMMENT_INFO);
+    // case TokenType.SCRIPT_TAG
+    case TokenType.SINGLE_LINE_COMMENT:
+      return string(COMMENT_INFO);
+    case TokenType.STRING:
+      return string(STRING_INFO);
+    case TokenType.AMPERSAND:
+      return symbol(AMPERSAND_INFO);
+    case TokenType.AMPERSAND_AMPERSAND:
+      return symbol(AMPERSAND_AMPERSAND_INFO);
+    // case TokenType.AMPERSAND_AMPERSAND_EQ
+    case TokenType.AMPERSAND_EQ:
+      return symbol(AMPERSAND_EQ_INFO);
+    case TokenType.AT:
+      return symbol(AT_INFO);
+    case TokenType.BANG:
+      return symbol(BANG_INFO);
+    case TokenType.BANG_EQ:
+      return symbol(BANG_EQ_INFO);
+    case TokenType.BAR:
+      return symbol(BAR_INFO);
+    case TokenType.BAR_BAR:
+      return symbol(BAR_BAR_INFO);
+    // case TokenType.BAR_BAR_EQ
+    case TokenType.BAR_EQ:
+      return symbol(BAR_EQ_INFO);
+    case TokenType.COLON:
+      return symbol(COLON_INFO);
+    case TokenType.COMMA:
+      return symbol(COMMA_INFO);
+    case TokenType.CARET:
+      return symbol(CARET_INFO);
+    case TokenType.CARET_EQ:
+      return symbol(CARET_EQ_INFO);
+    case TokenType.CLOSE_CURLY_BRACKET:
+      return symbol(CLOSE_CURLY_BRACKET_INFO);
+    case TokenType.CLOSE_PAREN:
+      return symbol(CLOSE_PAREN_INFO);
+    case TokenType.CLOSE_SQUARE_BRACKET:
+      return symbol(CLOSE_SQUARE_BRACKET_INFO);
+    case TokenType.EQ:
+      return symbol(EQ_INFO);
+    case TokenType.EQ_EQ:
+      return symbol(EQ_EQ_INFO);
+    case TokenType.FUNCTION:
+      return symbol(FUNCTION_INFO);
+    case TokenType.GT:
+      return symbol(GT_INFO);
+    case TokenType.GT_EQ:
+      return symbol(GT_EQ_INFO);
+    case TokenType.GT_GT:
+      return symbol(GT_GT_INFO);
+    case TokenType.GT_GT_EQ:
+      return symbol(GT_GT_EQ_INFO);
+    case TokenType.HASH:
+      return symbol(HASH_INFO);
+    case TokenType.INDEX:
+      return symbol(INDEX_INFO);
+    case TokenType.INDEX_EQ:
+      return symbol(INDEX_EQ_INFO);
+    case TokenType.LT:
+      return symbol(LT_INFO);
+    case TokenType.LT_EQ:
+      return symbol(LT_EQ_INFO);
+    case TokenType.LT_LT:
+      return symbol(LT_LT_INFO);
+    case TokenType.LT_LT_EQ:
+      return symbol(LT_LT_EQ_INFO);
+    case TokenType.MINUS:
+      return symbol(MINUS_INFO);
+    case TokenType.MINUS_EQ:
+      return symbol(MINUS_EQ_INFO);
+    case TokenType.MINUS_MINUS:
+      return symbol(MINUS_MINUS_INFO);
+    case TokenType.OPEN_CURLY_BRACKET:
+      return beginGroup(OPEN_CURLY_BRACKET_INFO);
+    case TokenType.OPEN_PAREN:
+      return beginGroup(OPEN_PAREN_INFO);
+    case TokenType.OPEN_SQUARE_BRACKET:
+      return beginGroup(OPEN_SQUARE_BRACKET_INFO);
+    case TokenType.PERCENT:
+      return symbol(PERCENT_INFO);
+    case TokenType.PERCENT_EQ:
+      return symbol(PERCENT_EQ_INFO);
+    case TokenType.PERIOD:
+      return symbol(PERIOD_INFO);
+    case TokenType.PERIOD_PERIOD:
+      return symbol(PERIOD_PERIOD_INFO);
+    case TokenType.PLUS:
+      return symbol(PLUS_INFO);
+    case TokenType.PLUS_EQ:
+      return symbol(PLUS_EQ_INFO);
+    case TokenType.PLUS_PLUS:
+      return symbol(PLUS_PLUS_INFO);
+    case TokenType.QUESTION:
+      return symbol(QUESTION_INFO);
+    case TokenType.QUESTION_PERIOD:
+      return symbol(QUESTION_PERIOD_INFO);
+    case TokenType.QUESTION_QUESTION:
+      return symbol(QUESTION_QUESTION_INFO);
+    case TokenType.QUESTION_QUESTION_EQ:
+      return symbol(QUESTION_QUESTION_EQ_INFO);
+    case TokenType.SEMICOLON:
+      return symbol(SEMICOLON_INFO);
+    case TokenType.SLASH:
+      return symbol(SLASH_INFO);
+    case TokenType.SLASH_EQ:
+      return symbol(SLASH_EQ_INFO);
+    case TokenType.STAR:
+      return symbol(STAR_INFO);
+    case TokenType.STAR_EQ:
+      return symbol(STAR_EQ_INFO);
+    case TokenType.STRING_INTERPOLATION_EXPRESSION:
+      return beginGroup(STRING_INTERPOLATION_INFO);
+    case TokenType.STRING_INTERPOLATION_IDENTIFIER:
+      return symbol(STRING_INTERPOLATION_IDENTIFIER_INFO);
+    case TokenType.TILDE:
+      return symbol(TILDE_INFO);
+    case TokenType.TILDE_SLASH:
+      return symbol(TILDE_SLASH_INFO);
+    case TokenType.TILDE_SLASH_EQ:
+      return symbol(TILDE_SLASH_EQ_INFO);
+    case TokenType.BACKPING:
+      return symbol(BACKPING_INFO);
+    case TokenType.BACKSLASH:
+      return symbol(BACKSLASH_INFO);
+    case TokenType.PERIOD_PERIOD_PERIOD:
+      return symbol(PERIOD_PERIOD_PERIOD_INFO);
+    // case TokenType.GENERIC_METHOD_TYPE_ASSIGN
+    // case TokenType.GENERIC_METHOD_TYPE_LIST
+    default:
+      return internalError('Unhandled token type ${token.type}');
   }
 }
 

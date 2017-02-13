@@ -366,6 +366,10 @@ abstract class ScannerTestBase {
     _assertToken(TokenType.EQ_EQ, "==");
   }
 
+  void test_function() {
+    _assertToken(TokenType.FUNCTION, "=>");
+  }
+
   void test_gt() {
     _assertToken(TokenType.GT, ">");
   }
