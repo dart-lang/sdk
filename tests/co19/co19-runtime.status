@@ -40,6 +40,9 @@ LibTest/isolate/Isolate/spawn_A04_t03: Skip # Flaky, Issue 15974
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
+[ $compiler == precompiler && $runtime == dart_precompiled && $mode == debug ]
+Language/Expressions/Function_Invocation/async_invokation_t06: Crash # Issue 28759
+
 [ $runtime == vm || $runtime == dart_precompiled ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
