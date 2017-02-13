@@ -28,11 +28,9 @@ import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:front_end/src/dependency_walker.dart';
 
 /**
- * Analyzer of Dart files.
- *
- * Work in progress, not ready to be used.
+ * Analyzer of a single library.
  */
-class AnalyzerImpl {
+class LibraryAnalyzer {
   final AnalysisOptions _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
@@ -55,7 +53,7 @@ class AnalyzerImpl {
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
   final List<ConstantEvaluationTarget> _constants = [];
 
-  AnalyzerImpl(this._analysisOptions, this._declaredVariables,
+  LibraryAnalyzer(this._analysisOptions, this._declaredVariables,
       this._sourceFactory, this._fsState, this._store, this._library);
 
   /**
