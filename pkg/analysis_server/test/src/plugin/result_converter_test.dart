@@ -318,8 +318,6 @@ class ResultConverterTest {
           server.RefactoringKind.EXTRACT_METHOD,
       plugin.RefactoringKind.INLINE_LOCAL_VARIABLE:
           server.RefactoringKind.INLINE_LOCAL_VARIABLE,
-      plugin.RefactoringKind.INLINE_LOCAL_VARIABLE:
-          server.RefactoringKind.INLINE_LOCAL_VARIABLE,
       plugin.RefactoringKind.MOVE_FILE: server.RefactoringKind.MOVE_FILE,
       plugin.RefactoringKind.RENAME: server.RefactoringKind.RENAME,
       plugin.RefactoringKind.SORT_MEMBERS: server.RefactoringKind.SORT_MEMBERS,
