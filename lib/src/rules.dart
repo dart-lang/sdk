@@ -62,6 +62,7 @@ import 'package:linter/src/rules/unawaited_futures.dart';
 import 'package:linter/src/rules/unnecessary_brace_in_string_interp.dart';
 import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 import 'package:linter/src/rules/unnecessary_null_aware_assignment.dart';
+import 'package:linter/src/rules/unnecessary_null_in_if_null_operator.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
 import 'package:linter/src/rules/valid_regexps.dart';
 
@@ -123,6 +124,7 @@ void registerLintRules() {
     ..register(new UnawaitedFutures())
     ..registerDefault(new UnnecessaryBraceInStringInterp())
     ..registerDefault(new UnnecessaryNullAwareAssignment())
+    ..registerDefault(new UnnecessaryNullInIfNullOperator())
     // Disabled pending fix: https://github.com/dart-lang/linter/issues/35
     //..register(new UnnecessaryGetters())
     ..register(new UnnecessaryGettersSetters())
