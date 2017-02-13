@@ -333,6 +333,9 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
   @override
   final uri = Uri.parse('file:///test.dart');
 
+  @override
+  Uri get fileUri => uri;
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -345,7 +348,8 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
 class ScopeProxy implements Scope {
   final _locals = <String, Builder>{};
 
-  Builder lookup(String name) =>
+  @override
+  Builder lookup(String name, int charOffset, Uri fileUri) =>
       _locals.putIfAbsent(name, () => new BuilderProxy());
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
