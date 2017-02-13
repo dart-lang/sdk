@@ -340,6 +340,7 @@ Future<CompilerOutcome> batchMain(
       program = loader.loadProgram(fileUri, target: target);
     } else {
       var library = loader.loadLibrary(fileUri);
+      loader.loadSdkInterface(program, target);
       assert(library ==
           repository.getLibraryReference(applicationRoot.relativeUri(fileUri)));
       program = new Program(repository.libraries);

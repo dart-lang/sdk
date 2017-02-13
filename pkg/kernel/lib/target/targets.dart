@@ -4,11 +4,11 @@
 library kernel.target.targets;
 
 import '../ast.dart';
-
+import '../core_types.dart';
+import '../transformations/treeshaker.dart' show ProgramRoot;
+import 'flutter.dart';
 import 'vm.dart';
 import 'vmcc.dart';
-import 'flutter.dart';
-import '../transformations/treeshaker.dart' show ProgramRoot;
 
 final List<String> targetNames = targets.keys.toList();
 
@@ -50,6 +50,10 @@ abstract class Target {
   /// and those provided on the command-line take precedence over those defined
   /// by the target.
   Map<String, String> get extraDeclaredVariables => const <String, String>{};
+
+  /// Classes from the SDK whose interface is required for the modular
+  /// transformations.
+  Map<String, List<String>> get requiredSdkClasses => CoreTypes.requiredClasses;
 
   bool get strongMode;
 

@@ -27,6 +27,33 @@ class CoreTypes {
   Class functionClass;
   Class invocationClass;
 
+  static final Map<String, List<String>> requiredClasses = {
+    'dart:core': [
+      'Object',
+      'Null',
+      'bool',
+      'int',
+      'num',
+      'double',
+      'String',
+      'List',
+      'Map',
+      'Iterable',
+      'Iterator',
+      'Symbol',
+      'Type',
+      'Function',
+      'Invocation',
+    ],
+    'dart:_internal': [
+      'Symbol',
+    ],
+    'dart:async': [
+      'Future',
+      'Stream',
+    ]
+  };
+
   Library getCoreLibrary(String uri) => _dartLibraries[uri]?.library;
 
   Class getCoreClass(String libraryUri, String className) {

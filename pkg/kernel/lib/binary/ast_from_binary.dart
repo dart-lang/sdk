@@ -324,9 +324,8 @@ class BinaryBuilder {
     node.fileOffset = readOffset();
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
-    node.level = _currentLibrary.isExternal
-        ? (flags & 0x2 != 0) ? ClassLevel.Type : ClassLevel.Hierarchy
-        : ClassLevel.Body;
+    int levelIndex = (flags >> 1) & 0x3;
+    node.level = ClassLevel.values[levelIndex + 1];
     node.name = readStringOrNullIfEmpty();
     node.fileUri = readUriReference();
     node.annotations = readAnnotationList(node);
@@ -351,9 +350,8 @@ class BinaryBuilder {
     node.fileOffset = readOffset();
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
-    node.level = _currentLibrary.isExternal
-        ? (flags & 0x2 != 0) ? ClassLevel.Type : ClassLevel.Hierarchy
-        : ClassLevel.Body;
+    int levelIndex = (flags >> 1) & 0x3;
+    node.level = ClassLevel.values[levelIndex];
     node.name = readStringOrNullIfEmpty();
     node.fileUri = readUriReference();
     node.annotations = readAnnotationList(node);

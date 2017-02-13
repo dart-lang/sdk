@@ -275,6 +275,18 @@ enum ClassLevel {
   /// members needed to detect override constraints.
   Hierarchy,
 
+  /// All instance members of the class have their body loaded, and their
+  /// annotations are present.
+  ///
+  /// All supertypes of this class are at [Hierarchy] level or higher.
+  ///
+  /// If this class is a mixin application, then its mixin is loaded at [Mixin]
+  /// level or higher.
+  ///
+  /// This level exists so the contents of a mixin can be cloned into a
+  /// mixin application.
+  Mixin,
+
   /// All members of the class are fully loaded and are in the correct order.
   ///
   /// Annotations are present on classes and members.

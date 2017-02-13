@@ -283,11 +283,14 @@ class BinaryPrinter extends Visitor {
     writeList(annotations, writeAnnotation);
   }
 
+  int _encodeClassFlags(bool isAbstract, ClassLevel level) {
+    int abstactFlag = isAbstract ? 1 : 0;
+    int levelFlags = (level.index - 1) << 1;
+    return abstactFlag | levelFlags;
+  }
+
   visitClass(Class node) {
-    int flags = node.isAbstract ? 1 : 0;
-    if (node.level == ClassLevel.Type) {
-      flags |= 0x2;
-    }
+    int flags = _encodeClassFlags(node.isAbstract, node.level);
     if (node.isMixinApplication) {
       writeByte(Tag.MixinClass);
       writeOffset(node, node.fileOffset);

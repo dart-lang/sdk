@@ -184,6 +184,8 @@ abstract type Node {
   Byte tag;
 }
 
+enum ClassLevel { Type = 0, Hierarchy = 1, Mixin = 2, Body = 3, }
+
 // A class can be represented at one of three levels: type, hierarchy, or body.
 //
 // If the enclosing library is external, a class is either at type or
@@ -197,7 +199,7 @@ abstract type Class extends Node {}
 type NormalClass extends Class {
   Byte tag = 2;
   FileOffset fileOffset;
-  Byte flags (isAbstract, isTypeLevel);
+  Byte flags (isAbstract, xx); // Where xx is index into ClassLevel
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
