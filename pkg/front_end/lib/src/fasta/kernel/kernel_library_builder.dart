@@ -32,8 +32,6 @@ import 'kernel_builder.dart' show
     ClassBuilder,
     ConstructorReferenceBuilder,
     DynamicTypeBuilder,
-    EnumBuilder,
-    FieldBuilder,
     FormalParameterBuilder,
     FunctionTypeAliasBuilder,
     KernelEnumBuilder,
@@ -52,7 +50,6 @@ import 'kernel_builder.dart' show
     MixedAccessor,
     NamedMixinApplicationBuilder,
     PrefixBuilder,
-    ProcedureBuilder,
     TypeVariableBuilder;
 
 class KernelLibraryBuilder
@@ -93,7 +90,7 @@ class KernelLibraryBuilder
     return new KernelNamedTypeBuilder("void", null, charOffset, fileUri);
   }
 
-  ClassBuilder addClass(List<MetadataBuilder> metadata,
+  void addClass(List<MetadataBuilder> metadata,
       int modifiers, String className,
       List<TypeVariableBuilder> typeVariables, KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces, int charOffset) {
@@ -111,10 +108,10 @@ class KernelLibraryBuilder
     });
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     endNestedDeclaration();
-    return addBuilder(className, cls);
+    addBuilder(className, cls);
   }
 
-  NamedMixinApplicationBuilder addNamedMixinApplication(
+  void addNamedMixinApplication(
       List<MetadataBuilder> metadata, String name,
       List<TypeVariableBuilder> typeVariables, int modifiers,
       KernelTypeBuilder mixinApplication, List<KernelTypeBuilder> interfaces,
@@ -125,16 +122,16 @@ class KernelLibraryBuilder
             charOffset);
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration();
-    return addBuilder(name, builder);
+    addBuilder(name, builder);
   }
 
-  FieldBuilder addField(List<MetadataBuilder> metadata,
+  void addField(List<MetadataBuilder> metadata,
       int modifiers, KernelTypeBuilder type, String name, int charOffset) {
-    return addBuilder(name, new KernelFieldBuilder(
+    addBuilder(name, new KernelFieldBuilder(
             metadata, type, name, modifiers, this, charOffset));
   }
 
-  ProcedureBuilder addProcedure(List<MetadataBuilder> metadata,
+  void addProcedure(List<MetadataBuilder> metadata,
       int modifiers, KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
@@ -142,7 +139,7 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginMethod` or
     // `OutlineBuilder.beginTopLevelMethod`.
     endNestedDeclaration().resolveTypes(typeVariables);
-    return addBuilder(name,
+    addBuilder(name,
         new KernelProcedureBuilder(metadata, modifiers, returnType, name,
             typeVariables, formals, asyncModifier, kind, this, charOffset));
   }
@@ -159,13 +156,13 @@ class KernelLibraryBuilder
             redirectionTarget));
   }
 
-  EnumBuilder addEnum(List<MetadataBuilder> metadata, String name,
+  void addEnum(List<MetadataBuilder> metadata, String name,
       List<String> constants, int charOffset) {
-    return addBuilder(name,
+    addBuilder(name,
         new KernelEnumBuilder(metadata, name, constants, this, charOffset));
   }
 
-  FunctionTypeAliasBuilder addFunctionTypeAlias(List<MetadataBuilder> metadata,
+  void addFunctionTypeAlias(List<MetadataBuilder> metadata,
       KernelTypeBuilder returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, int charOffset) {
@@ -174,7 +171,7 @@ class KernelLibraryBuilder
         this, charOffset);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration();
-    return addBuilder(name, typedef);
+    addBuilder(name, typedef);
   }
 
   KernelFormalParameterBuilder addFormalParameter(

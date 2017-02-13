@@ -225,7 +225,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  ProcedureBuilder endTopLevelMethod(
+  void endTopLevelMethod(
       Token beginToken, Token getOrSet, Token endToken) {
     debugEvent("endTopLevelMethod");
     MethodBody kind = pop();
@@ -238,7 +238,7 @@ class OutlineBuilder extends UnhandledListener {
         isAbstract: kind == MethodBody.Abstract);
     List<MetadataBuilder> metadata = pop();
     checkEmpty();
-    return library.addProcedure(metadata, modifiers, returnType, name,
+    library.addProcedure(metadata, modifiers, returnType, name,
         typeVariables, formals, asyncModifier, computeProcedureKind(getOrSet),
         beginToken.charOffset);
   }

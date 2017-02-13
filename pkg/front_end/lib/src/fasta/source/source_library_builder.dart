@@ -26,18 +26,12 @@ import '../builder/scope.dart' show
 
 import '../builder/builder.dart' show
     Builder,
-    ClassBuilder,
     ConstructorReferenceBuilder,
-    EnumBuilder,
-    FieldBuilder,
     FormalParameterBuilder,
-    FunctionTypeAliasBuilder,
     LibraryBuilder,
     MemberBuilder,
     MetadataBuilder,
-    NamedMixinApplicationBuilder,
     PrefixBuilder,
-    ProcedureBuilder,
     TypeBuilder,
     TypeDeclarationBuilder,
     TypeVariableBuilder,
@@ -161,17 +155,17 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     partOf = name;
   }
 
-  ClassBuilder addClass(List<MetadataBuilder> metadata,
+  void addClass(List<MetadataBuilder> metadata,
       int modifiers, String name,
       List<TypeVariableBuilder> typeVariables, T supertype,
       List<T> interfaces, int charOffset);
 
-  NamedMixinApplicationBuilder addNamedMixinApplication(
+  void addNamedMixinApplication(
       List<MetadataBuilder> metadata, String name,
       List<TypeVariableBuilder> typeVariables, int modifiers,
       T mixinApplication, List<T> interfaces, int charOffset);
 
-  FieldBuilder addField(List<MetadataBuilder> metadata,
+  void addField(List<MetadataBuilder> metadata,
       int modifiers, T type, String name, int charOffset);
 
   void addFields(List<MetadataBuilder> metadata, int modifiers,
@@ -182,16 +176,16 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
-  ProcedureBuilder addProcedure(List<MetadataBuilder> metadata,
+  void addProcedure(List<MetadataBuilder> metadata,
       int modifiers, T returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
       ProcedureKind kind, int charOffset);
 
-  EnumBuilder addEnum(List<MetadataBuilder> metadata, String name,
+  void addEnum(List<MetadataBuilder> metadata, String name,
       List<String> constants, int charOffset);
 
-  FunctionTypeAliasBuilder addFunctionTypeAlias(List<MetadataBuilder> metadata,
+  void addFunctionTypeAlias(List<MetadataBuilder> metadata,
       T returnType, String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals, int charOffset);
