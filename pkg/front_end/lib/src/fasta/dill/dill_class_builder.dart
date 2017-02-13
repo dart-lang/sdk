@@ -15,6 +15,9 @@ import '../kernel/kernel_builder.dart' show
     Builder,
     KernelClassBuilder;
 
+import '../modifier.dart' show
+    abstractMask;
+
 import 'dill_member_builder.dart' show
     DillMemberBuilder;
 
@@ -28,8 +31,8 @@ class DillClassBuilder extends KernelClassBuilder {
 
   DillClassBuilder(Class cls, DillLibraryBuilder parent)
       : cls = cls,
-        super(null, null, cls.name, null, null, null, <String, Builder>{},
-            parent, cls.fileOffset);
+        super(null, computeModifiers(cls), cls.name, null, null, null,
+            <String, Builder>{}, parent, cls.fileOffset);
 
   void addMember(Member member) {
     DillMemberBuilder builder = new DillMemberBuilder(member, this);
@@ -48,4 +51,8 @@ class DillClassBuilder extends KernelClassBuilder {
   }
 
   Builder findConstructorOrFactory(String name) => constructors[name];
+}
+
+int computeModifiers(Class cls) {
+  return cls.isAbstract ? abstractMask : 0;
 }

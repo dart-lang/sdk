@@ -1653,8 +1653,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (b == null) {
         // Not found. Reported below.
       } else if (b.isConstructor) {
-        // TODO(sigmund): change to type.isAbtract.
-        if (type.cls.isAbstract) {
+        if (type.isAbstract) {
           // TODO(ahe): Generate abstract instantiation error.
         } else {
           target = b.target;
