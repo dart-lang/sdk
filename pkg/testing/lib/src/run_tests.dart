@@ -38,9 +38,6 @@ import 'run.dart' show
     SuiteRunner,
     runProgram;
 
-import 'suite.dart' show
-    Suite;
-
 class CommandLine {
   final Set<String> options;
   final List<String> arguments;
@@ -167,18 +164,15 @@ main(List<String> arguments) => withErrorHandling(() async {
     print("Use --verbose to display more details.");
   }
   TestRoot root = await TestRoot.fromUri(configuration);
-  Set<String> skip = cl.skip;
-  Set<String> selectedSuites = cl.selectedSuites;
-  List<Suite> suites = root.suites.where((s) {
-    return !skip.contains(s.name) &&
-        (selectedSuites.isEmpty || selectedSuites.contains(s.name));
-  }).toList();
-  SuiteRunner runner = new SuiteRunner(suites, environment, cl.selectors);
+  SuiteRunner runner = new SuiteRunner(root.suites, environment, cl.selectors,
+      cl.selectedSuites, cl.skip);
   String program = await runner.generateDartProgram();
-  await runner.analyze(root.packages);
+  bool hasAnalyzerSuites = await runner.analyze(root.packages);
   Stopwatch sw = new Stopwatch()..start();
   if (program == null) {
-    fail("No tests configured.");
+    if (!hasAnalyzerSuites) {
+      fail("No tests configured.");
+    }
   } else {
     await runProgram(program, root.packages);
   }

@@ -119,7 +119,8 @@ Future<Null> run(
     TestRoot root = await computeTestRoot(configurationPath, Uri.base);
     List<Suite> suites = root.suites.where(
         (Suite suite) => suiteNames.contains(suite.name)).toList();
-    SuiteRunner runner = new SuiteRunner(suites, <String, String>{}, null);
+    SuiteRunner runner = new SuiteRunner(suites, <String, String>{}, null,
+        new Set<String>(), new Set<String>());
     String program = await runner.generateDartProgram();
     await runner.analyze(root.packages);
     if (program != null) {
@@ -158,40 +159,51 @@ class SuiteRunner {
 
   final List<String> selectors;
 
-  List<Uri> testUris;
+  final Set<String> selectedSuites;
 
-  SuiteRunner(this.suites, this.environment, Iterable<String> selectors)
+  final Set<String> skippedSuites;
+
+  final List<Uri> testUris = <Uri>[];
+
+  SuiteRunner(this.suites, this.environment, Iterable<String> selectors,
+      this.selectedSuites, this.skippedSuites)
       : selectors = selectors.toList(growable: false);
 
+  bool shouldRunSuite(Suite suite) {
+    return !skippedSuites.contains(suite.name) &&
+        (selectedSuites.isEmpty || selectedSuites.contains(suite.name));
+  }
+
   Future<String> generateDartProgram() async {
-    List<TestDescription> descriptions = await list().toList();
-    testUris = <Uri>[];
+    testUris.clear();
     StringBuffer imports = new StringBuffer();
     StringBuffer dart = new StringBuffer();
     StringBuffer chain = new StringBuffer();
+    bool hasRunnableTests = false;
 
-    for (TestDescription description in descriptions) {
-      testUris.add(await Isolate.resolvePackageUri(description.uri));
+    await for (TestDescription description in listDescriptions()) {
+      hasRunnableTests = true;
       description.writeImportOn(imports);
       description.writeClosureOn(dart);
     }
 
-    for (Chain suite in suites.where((Suite suite) => suite is Chain)) {
-      testUris.add(await Isolate.resolvePackageUri(suite.source));
+    await for (Chain suite in listChainSuites()) {
+      hasRunnableTests = true;
       suite.writeImportOn(imports);
       suite.writeClosureOn(chain);
     }
 
-    bool hasTestDartSuite = false;
-    for (TestDart suite in suites.where((Suite suite) => suite is TestDart)) {
-      if (!hasTestDartSuite) {
+    bool isFirstTestDartSuite = true;
+    for (TestDart suite in listTestDartSuites()) {
+      hasRunnableTests = true;
+      if (!isFirstTestDartSuite) {
         suite.writeFirstImportOn(imports);
       }
-      hasTestDartSuite = true;
+      isFirstTestDartSuite = true;
       suite.writeRunCommandOn(chain);
     }
 
-    if (testUris.isEmpty && !hasTestDartSuite) return null;
+    if (hasRunnableTests) return null;
 
     return """
 library testing.generated;
@@ -220,22 +232,45 @@ Future<Null> main() async {
 """;
   }
 
-  Future<Null> analyze(Uri packages) async {
-    for (Analyze suite in suites.where((Suite suite) => suite is Analyze)) {
+  Future<bool> analyze(Uri packages) async {
+    bool hasAnalyzerSuites = false;
+    for (Analyze suite in listAnalyzerSuites()) {
+      hasAnalyzerSuites = true;
       await suite.run(packages, testUris);
     }
+    return hasAnalyzerSuites;
   }
 
-  Stream<TestDescription> list() async* {
+  Stream<TestDescription> listDescriptions() async* {
     for (Dart suite in suites.where((Suite suite) => suite is Dart)) {
       await for (TestDescription description in
                      listTests(<Uri>[suite.uri], pattern: "")) {
-        String path = description.file.uri.path;
-        if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
-        if (suite.pattern.any((RegExp r) => path.contains(r))) {
-          yield description;
+        testUris.add(await Isolate.resolvePackageUri(description.uri));
+        if (shouldRunSuite(suite)) {
+          String path = description.file.uri.path;
+          if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
+          if (suite.pattern.any((RegExp r) => path.contains(r))) {
+            yield description;
+          }
         }
       }
     }
+  }
+
+  Stream<Chain> listChainSuites() async* {
+    for (Chain suite in suites.where((Suite suite) => suite is Chain)) {
+      testUris.add(await Isolate.resolvePackageUri(suite.source));
+      if (shouldRunSuite(suite)) {
+        yield suite;
+      }
+    }
+  }
+
+  Iterable<Suite> listTestDartSuites() {
+    return suites.where((Suite suite) => suite is TestDart);
+  }
+
+  Iterable<Suite> listAnalyzerSuites() {
+    return suites.where((Suite suite) => suite is Analyze);
   }
 }
