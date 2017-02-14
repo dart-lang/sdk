@@ -50,7 +50,8 @@
       ],
       "exclude": [
         "/test/.*_test\\.dart$",
-        "/test/.*_suite\\.dart$"
+        "/test/.*_suite\\.dart$",
+        "/test/fasta/top_level_accessors_part\\.dart$"
       ]
     },
 
@@ -65,7 +66,8 @@
       ],
       "exclude": [
         "/test/.*_test\\.dart$",
-        "/test/.*_suite\\.dart$"
+        "/test/.*_suite\\.dart$",
+        "/test/fasta/top_level_accessors_part\\.dart$"
       ]
     },
 
@@ -80,7 +82,8 @@
       ],
       "exclude": [
         "/test/.*_test\\.dart$",
-        "/test/.*_suite\\.dart$"
+        "/test/.*_suite\\.dart$",
+        "/test/fasta/top_level_accessors_part\\.dart$"
       ]
     },
 

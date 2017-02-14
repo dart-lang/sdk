@@ -283,7 +283,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       }
     }
     part.members.forEach((String name, Builder builder) {
-      addBuilder(name, builder, -1);
+      if (builder.next != null) {
+        assert(builder.next.next == null);
+        addBuilder(name, builder.next, builder.next.charOffset);
+      }
+      addBuilder(name, builder, builder.charOffset);
     });
     types.addAll(part.types);
     constructorReferences.addAll(part.constructorReferences);
