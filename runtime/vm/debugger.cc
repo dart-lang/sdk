@@ -1702,6 +1702,10 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
       if (async_stack_trace.CodeAtFrame(i) ==
           StubCode::AsynchronousGapMarker_entry()->code()) {
         stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
+        // The frame immediately below the asynchronous gap marker is the
+        // identical to the frame above the marker. Skip the frame to enhance
+        // the readability of the trace.
+        i++;
       } else {
         code = Code::RawCast(async_stack_trace.CodeAtFrame(i));
         offset = Smi::RawCast(async_stack_trace.PcOffsetAtFrame(i));

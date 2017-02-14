@@ -349,11 +349,11 @@ class ActivationFrame : public ZoneAllocated {
   static const char* KindToCString(Kind kind) {
     switch (kind) {
       case kRegular:
-        return "kRegular";
+        return "Regular";
       case kAsyncCausal:
-        return "kAsyncCausal";
+        return "AsyncCausal";
       case kAsyncSuspensionMarker:
-        return "kAsyncSuspensionMarker";
+        return "AsyncSuspensionMarker";
       default:
         UNREACHABLE();
         return "";
