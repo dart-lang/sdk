@@ -4,6 +4,9 @@
 
 library fasta.target_implementation;
 
+import 'package:kernel/target/vm.dart' show
+    VmTarget;
+
 import 'builder/builder.dart' show
     Builder,
     ClassBuilder,
@@ -63,5 +66,11 @@ abstract class TargetImplementation extends Target {
     if (cachedNativeAnnotation != null) return cachedNativeAnnotation;
     LibraryBuilder internal = loader.read(Uri.parse("dart:_internal"));
     return cachedNativeAnnotation = internal.getConstructor("ExternalName");
+  }
+
+  void loadExtraRequiredLibraries(Loader loader) {
+    for (String uri in new VmTarget(null).extraRequiredLibraries) {
+      loader.read(Uri.parse(uri));
+    }
   }
 }

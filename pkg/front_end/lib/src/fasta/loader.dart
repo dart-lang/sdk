@@ -72,6 +72,7 @@ abstract class Loader<L> {
       LibraryBuilder library = target.createLibraryBuilder(uri, fileUri);
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;
+        target.loadExtraRequiredLibraries(this);
       }
       first ??= library;
       if (library.loader == this) {

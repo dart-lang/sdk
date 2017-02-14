@@ -13,8 +13,6 @@ Program transformProgram(Program program,
     {String libraryUri: 'dart:_builtin'}) {
   Procedure mainMethod = program.mainMethod;
 
-  if (mainMethod == null) return program;
-
   Library builtinLibrary;
   for (Library library in program.libraries) {
     if (library.importUri.toString() == libraryUri) {
@@ -39,9 +37,14 @@ Program transformProgram(Program program,
     throw new Exception('Could not find "_getMainClosure" in "$libraryUri"');
   }
 
-  var returnMainStatement = new ReturnStatement(new StaticGet(mainMethod));
-  getMainClosure.body = returnMainStatement;
-  returnMainStatement.parent = getMainClosure;
+  if (mainMethod != null) {
+    var returnMainStatement = new ReturnStatement(new StaticGet(mainMethod));
+    getMainClosure.body = returnMainStatement;
+    returnMainStatement.parent = getMainClosure;
+  } else {
+    // TODO(ahe): This should throw no such method error.
+    getMainClosure.body = null;
+  }
 
   return program;
 }

@@ -28,13 +28,10 @@ import 'package:kernel/ast.dart' show
     Name,
     NamedExpression,
     NullLiteral,
-    Procedure,
     ProcedureKind,
     Program,
     RedirectingInitializer,
-    ReturnStatement,
     Source,
-    StaticGet,
     StringLiteral,
     SuperInitializer,
     Throw,
@@ -51,6 +48,9 @@ import 'package:kernel/text/ast_to_text.dart' show
 import 'package:kernel/transformations/mixin_full_resolution.dart' show
     MixinFullResolution;
 
+import 'package:kernel/transformations/setup_builtin_library.dart' as
+    setup_builtin_library;
+
 import '../source/source_loader.dart' show
     SourceLoader;
 
@@ -65,9 +65,6 @@ import '../translate_uri.dart' show
 
 import '../dill/dill_target.dart' show
     DillTarget;
-
-import '../dill/dill_member_builder.dart' show
-    DillMemberBuilder;
 
 import '../ast_kind.dart' show
     AstKind;
@@ -318,20 +315,7 @@ class KernelTarget extends TargetImplementation {
         program.mainMethod = builder.procedure;
       }
     }
-    // TODO(ahe): This is kinda hackish. Use the transformer instead.
-    LibraryBuilder builtin =
-        dillTarget.loader.builders[Uri.parse("dart:_builtin")];
-    if (builtin != null) {
-      DillMemberBuilder builder = builtin.members["_getMainClosure"];
-      if (builder != null) {
-        Expression getMain = program.mainMethod == null
-            ? new Throw(new StringLiteral("No main method."))
-            : new StaticGet(program.mainMethod);
-        Procedure procedure = builder.member;
-        procedure.function = new FunctionNode(new ReturnStatement(getMain));
-        procedure.function.parent = procedure;
-      }
-    }
+    setup_builtin_library.transformProgram(program);
     ticker.logMs("Linked program");
     return program;
   }

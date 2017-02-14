@@ -8,8 +8,7 @@ import 'package:front_end/src/fasta/parser/error_kind.dart' show
     ErrorKind;
 
 import 'package:front_end/src/fasta/scanner/error_token.dart' show
-    ErrorToken,
-    UnmatchedToken;
+    ErrorToken;
 
 import 'package:front_end/src/fasta/scanner/keyword.dart' show
     Keyword;

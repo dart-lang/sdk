@@ -126,16 +126,17 @@ class FeContext extends TestContext {
           "vm", new TargetFlags(strongMode: options.strongMode));
       Program program = loader.loadProgram(
           Uri.base.resolve("pkg/fasta/test/platform.dart"), target: target);
-      target.performModularTransformations(program);
-      target.performGlobalTransformations(program);
       if (loader.errors.isNotEmpty) {
         throw loader.errors.join("\n");
       }
       Library mainLibrary = program.mainMethod.enclosingLibrary;
       program.uriToSource.remove(mainLibrary.fileUri);
-      return new Program(
+      program = new Program(
           program.libraries.where((Library l) => l != mainLibrary).toList(),
           program.uriToSource);
+      target.performModularTransformations(program);
+      target.performGlobalTransformations(program);
+      return program;
     });
   }
 
