@@ -20,8 +20,9 @@ implicit_this: Crash
 invocations: Fail
 map: Crash
 mixin: Crash
-statements: Crash
 operators: Crash
+statements: Crash
+typedef: Crash
 
 rasta/abstract_constructor: Crash
 rasta/bad_constructor_redirection: Crash

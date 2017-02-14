@@ -34,7 +34,7 @@ abstract class FormalParameterBuilder<T extends TypeBuilder>
 
   bool get isRequired => kind.isRequired;
 
-  bool get isPositional => kind.isPositional;
+  bool get isPositional => kind.isPositional || kind.isRequired;
 
   bool get isNamed => kind.isNamed;
 
