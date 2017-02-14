@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
-import 'package:stack_trace/stack_trace.dart';
 import 'service_test_common.dart';
 
 /// Will be set to the http address of the VM's service protocol before
@@ -282,19 +281,19 @@ class _ServiceTesterRunner {
             bool useAuthToken: false}) {
     var process = new _ServiceTesteeLauncher();
     bool testsDone = false;
-    process.launch(pause_on_start, pause_on_exit,
+    runZoned(() {
+      process.launch(pause_on_start, pause_on_exit,
                    pause_on_unhandled_exceptions,
                    testeeControlsServer,
                    useAuthToken, extraArgs).then((Uri serverAddress) async {
-      if (mainArgs.contains("--gdb")) {
-        var pid = process.process.pid;
-        var wait = new Duration(seconds: 10);
-        print("Testee has pid $pid, waiting $wait before continuing");
-        sleep(wait);
-      }
-      setupAddresses(serverAddress);
-      var name = Platform.script.pathSegments.last;
-      Chain.capture(() async {
+        if (mainArgs.contains("--gdb")) {
+          var pid = process.process.pid;
+          var wait = new Duration(seconds: 10);
+          print("Testee has pid $pid, waiting $wait before continuing");
+          sleep(wait);
+        }
+        setupAddresses(serverAddress);
+        var name = Platform.script.pathSegments.last;
         var vm =
             new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
         print('Loading VM...');
@@ -329,20 +328,19 @@ class _ServiceTesterRunner {
         print('All service tests completed successfully.');
         testsDone = true;
         await process.requestExit();
-      }, onError: (error, stackTrace) {
-        if (testsDone) {
-          print('Ignoring late exception during process exit:\n'
-                '$error\n#stackTrace');
-        } else {
-          process.requestExit();
-          print('Unexpected exception in service tests: $error\n$stackTrace');
-          throw error;
-        }
       });
+    }, onError: (error, stackTrace) async {
+      print('onERROR FIRED!');
+      if (testsDone) {
+        print('Ignoring late exception during process exit:\n'
+              '$error\n#stackTrace');
+      } else {
+        await process.requestExit();
+        print('Unexpected exception in service tests: $error\n$stackTrace');
+        throw error;
+      }
     });
   }
-
-
 
   Future<Isolate> getFirstIsolate(WebSocketVM vm) async {
     if (vm.isolates.isNotEmpty) {
