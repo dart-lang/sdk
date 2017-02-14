@@ -305,12 +305,14 @@ class ConstantEvaluationEngine {
         bool defaultSuperInvocationNeeded = true;
         List<ConstructorInitializer> initializers =
             constant.constantInitializers;
-        for (ConstructorInitializer initializer in initializers) {
-          if (initializer is SuperConstructorInvocation ||
-              initializer is RedirectingConstructorInvocation) {
-            defaultSuperInvocationNeeded = false;
+        if (initializers != null) {
+          for (ConstructorInitializer initializer in initializers) {
+            if (initializer is SuperConstructorInvocation ||
+                initializer is RedirectingConstructorInvocation) {
+              defaultSuperInvocationNeeded = false;
+            }
+            initializer.accept(referenceFinder);
           }
-          initializer.accept(referenceFinder);
         }
         if (defaultSuperInvocationNeeded) {
           // No explicit superconstructor invocation found, so we need to

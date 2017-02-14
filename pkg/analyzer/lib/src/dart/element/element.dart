@@ -2006,6 +2006,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
       UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
       : super.forSerialized(serializedExecutable, enclosingClass);
 
+  /**
+   * Return the constant initializers for this element, which will be empty if
+   * there are no initializers, or `null` if there was an error in the source.
+   */
   List<ConstructorInitializer> get constantInitializers {
     if (serializedExecutable != null && _constantInitializers == null) {
       _constantInitializers ??= serializedExecutable.constantInitializers
