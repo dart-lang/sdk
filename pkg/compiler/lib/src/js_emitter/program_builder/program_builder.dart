@@ -183,7 +183,7 @@ class ProgramBuilder {
     List<js.TokenFinalizer> finalizers = [_task.metadataCollector];
     if (backend.namer is js.TokenFinalizer) {
       var namingFinalizer = backend.namer;
-      finalizers.add(namingFinalizer);
+      finalizers.add(namingFinalizer as js.TokenFinalizer);
     }
 
     return new Program(fragments, holders, _buildLoadMap(), _symbolsMap,
@@ -232,9 +232,8 @@ class ProgramBuilder {
   js.Statement _buildInvokeMain() {
     if (_compiler.isMockCompilation) return js.js.comment("Mock compilation");
 
-    MainCallStubGenerator generator = new MainCallStubGenerator(
-        backend, backend.emitter,
-        hasIncrementalSupport: _compiler.options.hasIncrementalSupport);
+    MainCallStubGenerator generator =
+        new MainCallStubGenerator(backend, backend.emitter);
     return generator.generateInvokeMain(_compiler.mainFunction);
   }
 
@@ -492,23 +491,6 @@ class ProgramBuilder {
         library, uri, statics, classes, staticFieldsForReflection);
   }
 
-  /// HACK for Incremental Compilation.
-  ///
-  /// Returns a class that contains the fields of a class.
-  Class buildFieldsHackForIncrementalCompilation(ClassElement element) {
-    assert(_compiler.options.hasIncrementalSupport);
-
-    List<Field> instanceFields = _buildFields(element, false);
-    js.Name name = namer.className(element);
-
-    return new Class(
-        element, name, null, [], instanceFields, [], [], [], [], [], [], null,
-        isDirectlyInstantiated: true,
-        hasRtiField: backend.classNeedsRtiField(element),
-        onlyForRti: false,
-        isNative: backend.isNative(element));
-  }
-
   Class _buildClass(ClassElement element) {
     bool onlyForRti = collector.classesOnlyNeededForRti.contains(element);
     bool hasRtiField = backend.classNeedsRtiField(element);
@@ -673,25 +655,12 @@ class ProgramBuilder {
   }
 
   bool _methodCanBeReflected(FunctionElement method) {
-    return backend.isAccessibleByReflection(method) ||
-        // During incremental compilation, we have to assume that reflection
-        // *might* get enabled.
-        _compiler.options.hasIncrementalSupport;
+    return backend.isAccessibleByReflection(method);
   }
 
   bool _methodCanBeApplied(FunctionElement method) {
     return backend.hasFunctionApplySupport &&
         closedWorld.getMightBePassedToApply(method);
-  }
-
-  // TODO(herhut): Refactor incremental compilation and remove method.
-  Method buildMethodHackForIncrementalCompilation(FunctionElement element) {
-    assert(_compiler.options.hasIncrementalSupport);
-    if (element.isInstanceMember) {
-      return _buildMethod(element);
-    } else {
-      return _buildStaticMethod(element);
-    }
   }
 
   /* Map | List */ _computeParameterDefaultValues(FunctionSignature signature) {
@@ -837,7 +806,7 @@ class ProgramBuilder {
   // accessible.
   void _markEagerInterceptorClasses() {
     Map<js.Name, Set<ClassElement>> specializedGetInterceptors =
-        backend.specializedGetInterceptors;
+        backend.interceptorData.specializedGetInterceptors;
     for (Set<ClassElement> classes in specializedGetInterceptors.values) {
       for (ClassElement element in classes) {
         Class cls = _classes[element];
@@ -850,13 +819,14 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend, closedWorld);
 
-    String holderName = namer.globalObjectFor(helpers.interceptorsLibrary);
+    String holderName =
+        namer.globalObjectForLibrary(helpers.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
 
     Map<js.Name, Set<ClassElement>> specializedGetInterceptors =
-        backend.specializedGetInterceptors;
+        backend.interceptorData.specializedGetInterceptors;
     List<js.Name> names = specializedGetInterceptors.keys.toList()..sort();
     return names.map((js.Name name) {
       Set<ClassElement> classes = specializedGetInterceptors[name];
@@ -878,14 +848,15 @@ class ProgramBuilder {
 
       int getterFlags = 0;
       if (needsGetter) {
-        if (visitStatics || !backend.fieldHasInterceptedGetter(field)) {
+        if (visitStatics ||
+            !backend.interceptorData.fieldHasInterceptedGetter(field)) {
           getterFlags = 1;
         } else {
           getterFlags += 2;
           // TODO(sra): 'isInterceptorClass' might not be the correct test
           // for methods forced to use the interceptor convention because
           // the method's class was elsewhere mixed-in to an interceptor.
-          if (!backend.isInterceptorClass(holder)) {
+          if (!backend.interceptorData.isInterceptorClass(holder)) {
             getterFlags += 1;
           }
         }
@@ -893,11 +864,12 @@ class ProgramBuilder {
 
       int setterFlags = 0;
       if (needsSetter) {
-        if (visitStatics || !backend.fieldHasInterceptedSetter(field)) {
+        if (visitStatics ||
+            !backend.interceptorData.fieldHasInterceptedSetter(field)) {
           setterFlags = 1;
         } else {
           setterFlags += 2;
-          if (!backend.isInterceptorClass(holder)) {
+          if (!backend.interceptorData.isInterceptorClass(holder)) {
             setterFlags += 1;
           }
         }
@@ -914,12 +886,14 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(_compiler, namer, backend, closedWorld);
 
-    String holderName = namer.globalObjectFor(helpers.interceptorsLibrary);
+    String holderName =
+        namer.globalObjectForLibrary(helpers.interceptorsLibrary);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
 
-    List<js.Name> names = backend.oneShotInterceptors.keys.toList()..sort();
+    List<js.Name> names =
+        backend.interceptorData.oneShotInterceptors.keys.toList()..sort();
     return names.map((js.Name name) {
       js.Expression code = stubGenerator.generateOneShotInterceptor(name);
       return new StaticStubMethod(name, holder, code);

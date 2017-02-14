@@ -44,10 +44,12 @@ class RawObject;
 class RawCode;
 class RawError;
 class RawGrowableObjectArray;
+class RawStackTrace;
 class RawString;
 class RuntimeEntry;
 class Smi;
 class StackResource;
+class StackTrace;
 class String;
 class TimelineStream;
 class TypeArguments;
@@ -505,6 +507,14 @@ class Thread : public BaseThread {
   void set_sticky_error(const Error& value);
   void clear_sticky_error();
 
+  RawStackTrace* async_stack_trace() const;
+  void set_async_stack_trace(const StackTrace& stack_trace);
+  void set_raw_async_stack_trace(RawStackTrace* raw_stack_trace);
+  void clear_async_stack_trace();
+  static intptr_t async_stack_trace_offset() {
+    return OFFSET_OF(Thread, async_stack_trace_);
+  }
+
   CompilerStats* compiler_stats() { return compiler_stats_; }
 
 #if defined(DEBUG)
@@ -673,7 +683,12 @@ class Thread : public BaseThread {
   template <class T>
   T* AllocateReusableHandle();
 
-  // Accessed from generated code:
+  // Accessed from generated code.
+  // ** This block of fields must come first! **
+  // For AOT cross-compilation, we rely on these members having the same offsets
+  // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
+  // We use only word-sized fields to avoid differences in struct packing on the
+  // different architectures. See also CheckOffsets in dart.cc.
   uword stack_limit_;
   uword stack_overflow_flags_;
   Isolate* isolate_;
@@ -682,6 +697,7 @@ class Thread : public BaseThread {
   StoreBufferBlock* store_buffer_block_;
   uword vm_tag_;
   TaskKind task_kind_;
+  RawStackTrace* async_stack_trace_;
 // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;

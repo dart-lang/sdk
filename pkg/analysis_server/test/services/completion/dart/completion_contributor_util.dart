@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl, ReplacementRange;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/dart.dart';
@@ -465,7 +466,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     }
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         analysisResult,
-        enableNewAnalysisDriver ? null: context,
+        enableNewAnalysisDriver ? null : context,
         provider,
         searchEngine,
         testSource,
@@ -547,7 +548,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  Future/*<E>*/ performAnalysis/*<E>*/(int times, Completer/*<E>*/ completer) async {
+  Future/*<E>*/ performAnalysis/*<E>*/(
+      int times, Completer/*<E>*/ completer) async {
     if (completer.isCompleted) {
       return completer.future;
     }
@@ -579,7 +581,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     index = createMemoryIndex();
-    searchEngine = new SearchEngineImpl(index);
+    searchEngine =
+        new SearchEngineImpl(index, (_) => new AstProviderForContext(context));
     contributor = createContributor();
   }
 }

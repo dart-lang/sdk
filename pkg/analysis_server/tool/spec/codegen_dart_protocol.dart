@@ -216,7 +216,14 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         toHtmlVisitor.write(disclaimer);
       });
     }));
-    writeln('class $className {');
+    write('class $className');
+    if (impliedType.kind == 'refactoringFeedback') {
+      writeln(' extends RefactoringFeedback {');
+    } else if (impliedType.kind == 'refactoringOptions') {
+      writeln(' extends RefactoringOptions {');
+    } else {
+      writeln(' {');
+    }
     indent(() {
       if (emitToRequestMember(impliedType)) {
         writeln();
@@ -378,12 +385,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     }));
     write('class $className');
     if (impliedType.kind == 'refactoringFeedback') {
-      write(' extends RefactoringFeedback');
+      writeln(' extends RefactoringFeedback {');
+    } else if (impliedType.kind == 'refactoringOptions') {
+      writeln(' extends RefactoringOptions {');
+    } else {
+      writeln(' implements HasToJson {');
     }
-    if (impliedType.kind == 'refactoringOptions') {
-      write(' extends RefactoringOptions');
-    }
-    writeln(' implements HasToJson {');
     indent(() {
       if (emitSpecialStaticMembers(className)) {
         writeln();

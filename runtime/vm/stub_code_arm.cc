@@ -1339,11 +1339,10 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ Bind(&ok);
 #endif
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Update counter.
+    // Update counter, ignore overflow.
     const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
     __ LoadFromOffset(kWord, R1, R8, count_offset);
     __ adds(R1, R1, Operand(Smi::RawValue(1)));
-    __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
     __ StoreIntoSmiField(Address(R8, count_offset), R1);
   }
   __ Ret();
@@ -1367,7 +1366,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     Token::Kind kind,
     bool optimized) {
   __ CheckCodePointer();
-  ASSERT(num_args > 0);
+  ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
     Label ok;
@@ -1403,59 +1402,60 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Load arguments descriptor into R4.
   __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
-  Label loop, update, test, found;
+  Label loop, found, miss;
   // R9: IC data object (preserved).
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
   // R8: ic_data_array with check entries: classes and target functions.
-  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
-  // R8: points directly to the first ic data array element.
+  const int kIcDataOffset = Array::data_offset() - kHeapObjectTag;
+  // R8: points at the IC data array.
 
   // Get the receiver's class ID (first read number of arguments from
   // arguments descriptor array and then access the receiver from the stack).
   __ ldr(NOTFP, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
   __ sub(NOTFP, NOTFP, Operand(Smi::RawValue(1)));
-  __ ldr(R0, Address(SP, NOTFP, LSL, 1));  // NOTFP (argument_count - 1) is smi.
-  __ LoadTaggedClassIdMayBeSmi(R0, R0);
   // NOTFP: argument_count - 1 (smi).
-  // R0: receiver's class ID (smi).
-  __ ldr(R1, Address(R8, 0));  // First class id (smi) to check.
-  __ b(&test);
 
   __ Comment("ICData loop");
+
+  __ ldr(R0, Address(SP, NOTFP, LSL, 1));  // NOTFP (argument_count - 1) is Smi.
+  __ LoadTaggedClassIdMayBeSmi(R0, R0);
+  if (num_args == 2) {
+    __ sub(R1, NOTFP, Operand(Smi::RawValue(1)));
+    __ ldr(R1, Address(SP, R1, LSL, 1));  // R1 (argument_count - 2) is Smi.
+    __ LoadTaggedClassIdMayBeSmi(R1, R1);
+  }
+
+  // We unroll the generic one that is generated once more than the others.
+  const bool optimize = kind == Token::kILLEGAL;
+
   __ Bind(&loop);
-  for (int i = 0; i < num_args; i++) {
-    if (i > 0) {
-      // If not the first, load the next argument's class ID.
-      __ AddImmediate(R0, NOTFP, Smi::RawValue(-i));
-      __ ldr(R0, Address(SP, R0, LSL, 1));
-      __ LoadTaggedClassIdMayBeSmi(R0, R0);
-      // R0: next argument class ID (smi).
-      __ LoadFromOffset(kWord, R1, R8, i * kWordSize);
-      // R1: next class ID to check (smi).
-    }
-    __ cmp(R0, Operand(R1));  // Class id match?
-    if (i < (num_args - 1)) {
+  for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {
+    Label update;
+
+    __ ldr(R2, Address(R8, kIcDataOffset));
+    __ cmp(R0, Operand(R2));  // Class id match?
+    if (num_args == 2) {
       __ b(&update, NE);  // Continue.
+      __ ldr(R2, Address(R8, kIcDataOffset + kWordSize));
+      __ cmp(R1, Operand(R2));  // Class id match?
+    }
+    __ b(&found, EQ);  // Break.
+
+    __ Bind(&update);
+
+    const intptr_t entry_size =
+        ICData::TestEntryLengthFor(num_args) * kWordSize;
+    __ AddImmediate(R8, entry_size);  // Next entry.
+
+    __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));  // Done?
+    if (unroll == 0) {
+      __ b(&loop, NE);
     } else {
-      // Last check, all checks before matched.
-      __ b(&found, EQ);  // Break.
+      __ b(&miss, EQ);
     }
   }
-  __ Bind(&update);
-  // Reload receiver class ID.  It has not been destroyed when num_args == 1.
-  if (num_args > 1) {
-    __ ldr(R0, Address(SP, NOTFP, LSL, 1));
-    __ LoadTaggedClassIdMayBeSmi(R0, R0);
-  }
 
-  const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
-  __ AddImmediate(R8, entry_size);  // Next entry.
-  __ ldr(R1, Address(R8, 0));       // Next class ID.
-
-  __ Bind(&test);
-  __ CompareImmediate(R1, Smi::RawValue(kIllegalCid));  // Done?
-  __ b(&loop, NE);
-
+  __ Bind(&miss);
   __ Comment("IC miss");
   // Compute address of arguments.
   // NOTFP: argument_count - 1 (smi).
@@ -1494,14 +1494,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // R8: pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  __ LoadFromOffset(kWord, R0, R8, target_offset);
+  __ LoadFromOffset(kWord, R0, R8, kIcDataOffset + target_offset);
 
   if (FLAG_optimization_counter_threshold >= 0) {
     __ Comment("Update caller's counter");
-    __ LoadFromOffset(kWord, R1, R8, count_offset);
+    __ LoadFromOffset(kWord, R1, R8, kIcDataOffset + count_offset);
+    // Ignore overflow.
     __ adds(R1, R1, Operand(Smi::RawValue(1)));
-    __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
-    __ StoreIntoSmiField(Address(R8, count_offset), R1);
+    __ StoreIntoSmiField(Address(R8, kIcDataOffset + count_offset), R1);
   }
 
   __ Comment("Call target");
@@ -1627,10 +1627,9 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Increment count for this call.
+    // Increment count for this call, ignore overflow.
     __ LoadFromOffset(kWord, R1, R8, count_offset);
     __ adds(R1, R1, Operand(Smi::RawValue(1)));
-    __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
     __ StoreIntoSmiField(Address(R8, count_offset), R1);
   }
 
@@ -2282,6 +2281,11 @@ void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
 
 
 void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
+  __ bkpt(0);
+}
+
+
+void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ bkpt(0);
 }
 

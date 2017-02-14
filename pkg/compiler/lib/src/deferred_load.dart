@@ -4,7 +4,6 @@
 
 library deferred_load;
 
-import 'common/backend_api.dart' show Backend;
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
@@ -40,7 +39,7 @@ import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'util/setlet.dart' show Setlet;
 import 'util/uri_extras.dart' as uri_extras;
-import 'util/util.dart' show Link, makeUnique;
+import 'util/util.dart' show makeUnique;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.
@@ -157,7 +156,7 @@ class DeferredLoadTask extends CompilerTask {
     mainOutputUnit.imports.add(_fakeMainImport);
   }
 
-  Backend get backend => compiler.backend;
+  JavaScriptBackend get backend => compiler.backend;
   DiagnosticReporter get reporter => compiler.reporter;
 
   /// Returns the [OutputUnit] where [element] belongs.

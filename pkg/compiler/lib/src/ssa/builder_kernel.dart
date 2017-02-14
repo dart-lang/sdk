@@ -16,9 +16,9 @@ import '../constants/values.dart'
         InterceptorConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../elements/entities.dart' show MemberEntity;
+import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
@@ -26,12 +26,12 @@ import '../kernel/kernel.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
-import '../tree/nodes.dart' show Node, BreakStatement;
+import '../tree/nodes.dart' show Node;
 import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
-import '../universe/use.dart' show StaticUse;
+import '../universe/use.dart' show DynamicUse, StaticUse;
 import '../world.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
@@ -663,7 +663,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       returnStatement.expression.accept(this);
       value = pop();
       if (_targetFunction.asyncMarker == ir.AsyncMarker.Async) {
-        var returnType = astAdapter.getDartType(_targetFunction.returnType);
         if (compiler.options.enableTypeAssertions &&
             !isValidAsyncReturnType(_targetFunction.returnType)) {
           generateTypeError(
@@ -755,8 +754,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     HInstruction originalLength = null; // Set for growable lists.
 
     HInstruction buildGetLength() {
-      HFieldGet result = new HFieldGet(
-          astAdapter.jsIndexableLength, array, commonMasks.positiveIntType,
+      HGetLength result = new HGetLength(array, commonMasks.positiveIntType,
           isAssignable: !isFixed);
       add(result);
       return result;
@@ -813,8 +811,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       HInstruction value = new HIndex(array, index, null, type);
       add(value);
 
-      localsHandler.updateLocal(
-          astAdapter.getLocal(forInStatement.variable), value);
+      Local loopVariableLocal = astAdapter.getLocal(forInStatement.variable);
+      localsHandler.updateLocal(loopVariableLocal, value);
+      // Hint to name loop value after name of loop variable.
+      if (loopVariableLocal is! SyntheticLocal) {
+        value.sourceElement ??= loopVariableLocal;
+      }
 
       forInStatement.body.accept(this);
     }
@@ -870,8 +872,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       TypeMask mask = astAdapter.typeOfIteratorCurrent(forInStatement);
       _pushDynamicInvocation(forInStatement, mask, [iterator],
           selector: Selectors.current);
-      localsHandler.updateLocal(
-          astAdapter.getLocal(forInStatement.variable), pop());
+      Local loopVariableLocal = astAdapter.getLocal(forInStatement.variable);
+      HInstruction value = pop();
+      localsHandler.updateLocal(loopVariableLocal, value);
+      // Hint to name loop value after name of loop variable.
+      if (loopVariableLocal is! SyntheticLocal) {
+        value.sourceElement ??= loopVariableLocal;
+      }
       forInStatement.body.accept(this);
     }
 
@@ -1309,11 +1316,11 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     int switchIndex = 1;
     bool hasDefault = false;
     for (ir.SwitchCase switchCase in switchStatement.cases) {
+      if (_isDefaultCase(switchCase)) {
+        hasDefault = true;
+      }
       if (SwitchContinueAnalysis.containsContinue(switchCase.body)) {
         hasContinue = true;
-      }
-      if (switchCase.isDefault) {
-        hasDefault = true;
       }
       caseIndex[switchCase] = switchIndex;
       switchIndex++;
@@ -1412,7 +1419,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     // This is because JS does not have this same "continue label" semantics so
     // we encode it in the form of a state machine.
 
-    JumpTarget switchTarget = astAdapter.getJumpTarget(switchStatement.parent);
+    JumpTarget switchTarget = astAdapter.getJumpTarget(switchStatement);
     localsHandler.updateLocal(switchTarget, graph.addConstantNull(closedWorld));
 
     var switchCases = switchStatement.cases;
@@ -1898,6 +1905,25 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     pop();
     stack.add(value);
+  }
+
+  @override
+  void visitSuperPropertySet(ir.SuperPropertySet propertySet) {
+    propertySet.value.accept(this);
+    HInstruction value = pop();
+
+    if (propertySet.interfaceTarget == null) {
+      _generateSuperNoSuchMethod(
+          propertySet,
+          astAdapter.getSelector(propertySet).name + "=",
+          <HInstruction>[value]);
+    } else {
+      _buildInvokeSuper(
+          astAdapter.getSelector(propertySet),
+          _containingClass(propertySet),
+          propertySet.interfaceTarget,
+          <HInstruction>[value]);
+    }
   }
 
   @override
@@ -2627,32 +2653,143 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return null;
   }
 
-  @override
-  void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
+  /// Find the applicable NoSuchMethod method for an object of this particular
+  /// class.
+  ir.Procedure _findNoSuchMethodInClass(ir.Class cls) {
+    // TODO(efortuna): If we find ourselves doing this sort of calculation
+    // often, rewrite what is done with the original element class where we call
+    // lookupSuperMember.
+    ir.Procedure noSuchMethod = null;
+    while (cls != null && cls != astAdapter.objectClass) {
+      for (ir.Procedure procedure in cls.procedures) {
+        // TODO(efortuna): Do we need to check mixin classes as well?
+        if (procedure.name.name == Identifiers.noSuchMethod_ &&
+            Selectors.noSuchMethod_
+                .signatureApplies(astAdapter.getElement(procedure))) {
+          noSuchMethod = procedure;
+        }
+      }
+      cls = cls.superclass;
+    }
+
+    if (noSuchMethod == null) {
+      // There is no matching overloaded NoSuchMethod function in the containing
+      // class. Look on the Object class itself.
+      for (ir.Procedure procedure in astAdapter.objectClass.procedures) {
+        if (procedure.name.name == Identifiers.noSuchMethod_) {
+          noSuchMethod = procedure;
+        }
+      }
+    }
+    assert(noSuchMethod != null);
+    return noSuchMethod;
+  }
+
+  void _generateSuperNoSuchMethod(ir.Expression invocation, String publicName,
+      List<HInstruction> arguments) {
     Selector selector = astAdapter.getSelector(invocation);
-    List<HInstruction> arguments = _visitArgumentsForStaticTarget(
-        invocation.interfaceTarget.function, invocation.arguments);
+    ir.Class cls = _containingClass(invocation).superclass;
+    assert(cls != null);
+    ir.Procedure noSuchMethod = _findNoSuchMethodInClass(cls);
+    if (backend.hasInvokeOnSupport &&
+        _containingClass(noSuchMethod) != astAdapter.objectClass) {
+      // Register the call as dynamic if [noSuchMethod] on the super
+      // class is _not_ the default implementation from [Object] (it might be
+      // overridden in the super class, but it might have a different number of
+      // arguments), in case the [noSuchMethod] implementation calls
+      // [JSInvocationMirror._invokeOn].
+      // TODO(johnniwinther): Register this more precisely.
+      registry?.registerDynamicUse(new DynamicUse(selector, null));
+    }
+
+    ConstantValue nameConstant =
+        backend.constantSystem.createString(new DartString.literal(publicName));
+
+    js.Name internalName = backend.namer.invocationName(selector);
+
+    var argumentsInstruction =
+        new HLiteralList(arguments, commonMasks.extendableArrayType);
+    add(argumentsInstruction);
+
+    var argumentNames = new List<HInstruction>();
+    for (String argumentName in selector.namedArguments) {
+      ConstantValue argumentNameConstant = backend.constantSystem
+          .createString(new DartString.literal(argumentName));
+      argumentNames.add(graph.addConstant(argumentNameConstant, closedWorld));
+    }
+    var argumentNamesInstruction =
+        new HLiteralList(argumentNames, commonMasks.extendableArrayType);
+    add(argumentNamesInstruction);
+
+    ConstantValue kindConstant =
+        backend.constantSystem.createInt(selector.invocationMirrorKind);
+
+    _pushStaticInvocation(
+        astAdapter.createInvocationMirror,
+        [
+          graph.addConstant(nameConstant, closedWorld),
+          graph.addConstantStringFromName(internalName, closedWorld),
+          graph.addConstant(kindConstant, closedWorld),
+          argumentsInstruction,
+          argumentNamesInstruction
+        ],
+        commonMasks.dynamicType);
+
+    _buildInvokeSuper(Selectors.noSuchMethod_, _containingClass(invocation),
+        noSuchMethod, <HInstruction>[pop()]);
+  }
+
+  HInstruction _buildInvokeSuper(Selector selector, ir.Class containingClass,
+      ir.Member interfaceTarget, List<HInstruction> arguments) {
+    // TODO(efortuna): Add source information.
     HInstruction receiver = localsHandler.readThis();
-    ir.Class surroundingClass = _containingClass(invocation);
 
     List<HInstruction> inputs = <HInstruction>[];
-    if (astAdapter.isIntercepted(invocation)) {
+    if (astAdapter.isInterceptedSelector(selector)) {
       inputs.add(_interceptorFor(receiver));
     }
     inputs.add(receiver);
     inputs.addAll(arguments);
 
+    TypeMask typeMask;
+    if (interfaceTarget is ir.Procedure) {
+      typeMask = astAdapter.returnTypeOf(interfaceTarget);
+    } else {
+      typeMask = closedWorld.commonMasks.dynamicType;
+    }
     HInstruction instruction = new HInvokeSuper(
-        astAdapter.getMethod(invocation.interfaceTarget),
-        astAdapter.getClass(surroundingClass),
+        astAdapter.getMember(interfaceTarget),
+        astAdapter.getClass(containingClass),
         selector,
         inputs,
-        astAdapter.returnTypeOf(invocation.interfaceTarget),
+        typeMask,
         null,
         isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
         closedWorld.getSideEffectsOfSelector(selector, null);
     push(instruction);
+    return instruction;
+  }
+
+  @override
+  void visitSuperPropertyGet(ir.SuperPropertyGet propertyGet) {
+    if (propertyGet.interfaceTarget == null) {
+      _generateSuperNoSuchMethod(propertyGet,
+          astAdapter.getSelector(propertyGet).name, const <HInstruction>[]);
+    } else {
+      _buildInvokeSuper(
+          astAdapter.getSelector(propertyGet),
+          _containingClass(propertyGet),
+          propertyGet.interfaceTarget, const <HInstruction>[]);
+    }
+  }
+
+  @override
+  void visitSuperMethodInvocation(ir.SuperMethodInvocation invocation) {
+    List<HInstruction> arguments = _visitArgumentsForStaticTarget(
+        invocation.interfaceTarget.function, invocation.arguments);
+    _buildInvokeSuper(astAdapter.getSelector(invocation),
+        _containingClass(invocation), invocation.interfaceTarget, arguments);
   }
 
   @override

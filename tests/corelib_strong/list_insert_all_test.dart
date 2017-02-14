@@ -75,10 +75,10 @@ main() {
   expectUE(() => test([1, 2, 3].toList(growable: false), 0, [4, 5]));
 }
 
-void expectRE(Function f) {
+void expectRE(void f()) {
   Expect.throws(f, (e) => e is RangeError);
 }
 
-void expectUE(Function f) {
+void expectUE(void f()) {
   Expect.throws(f, (e) => e is UnsupportedError);
 }

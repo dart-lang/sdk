@@ -50,7 +50,7 @@ class ObjectIdRingTestHelper {
 
 
 // Test that serial number wrapping works.
-VM_TEST_CASE(ObjectIdRingSerialWrapTest) {
+ISOLATE_UNIT_TEST_CASE(ObjectIdRingSerialWrapTest) {
   Isolate* isolate = Isolate::Current();
   ObjectIdRing* ring = isolate->object_id_ring();
   ObjectIdRingTestHelper::SetCapacityAndMaxSerial(ring, 2, 4);
@@ -190,7 +190,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
 
 
 // Test that the ring table is updated with nulls when the old GC collects.
-VM_TEST_CASE(ObjectIdRingOldGCTest) {
+ISOLATE_UNIT_TEST_CASE(ObjectIdRingOldGCTest) {
   Isolate* isolate = thread->isolate();
   Heap* heap = isolate->heap();
   ObjectIdRing* ring = isolate->object_id_ring();
@@ -244,7 +244,7 @@ VM_TEST_CASE(ObjectIdRingOldGCTest) {
 
 // Test that the ring table correctly reports an entry as expired when it is
 // overridden by new entries.
-VM_TEST_CASE(ObjectIdRingExpiredEntryTest) {
+ISOLATE_UNIT_TEST_CASE(ObjectIdRingExpiredEntryTest) {
   Isolate* isolate = Isolate::Current();
   ObjectIdRing* ring = isolate->object_id_ring();
 

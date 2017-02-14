@@ -1,0 +1,6 @@
+library;
+import self as self;
+
+static field dynamic list;
+static method main() → dynamic
+  ;

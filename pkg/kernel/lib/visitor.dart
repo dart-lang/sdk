@@ -51,6 +51,9 @@ abstract class ExpressionVisitor<R> {
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
+  R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
+      defaultExpression(node);
 }
 
 abstract class StatementVisitor<R> {
@@ -155,6 +158,9 @@ class TreeVisitor<R>
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
+  R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
+      defaultExpression(node);
 
   // Statements
   R defaultStatement(Statement node) => defaultTreeNode(node);
@@ -204,6 +210,7 @@ class TreeVisitor<R>
 
   // Other tree nodes
   R visitLibrary(Library node) => defaultTreeNode(node);
+  R visitDeferredImport(DeferredImport node) => defaultTreeNode(node);
   R visitTypeParameter(TypeParameter node) => defaultTreeNode(node);
   R visitFunctionNode(FunctionNode node) => defaultTreeNode(node);
   R visitArguments(Arguments node) => defaultTreeNode(node);

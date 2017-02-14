@@ -10,6 +10,7 @@ import 'compiler_options.dart';
 import 'dart:async';
 
 import 'package:analyzer/src/generated/source.dart' show SourceKind;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummarySource;
 // TODO(sigmund): move loader logic under front_end/lib/src/kernel/
@@ -37,6 +38,11 @@ import 'package:source_span/source_span.dart' show SourceSpan;
 /// needed to access the contents of method bodies).
 Future<Program> kernelForProgram(Uri source, CompilerOptions options) async {
   var loader = await _createLoader(options, entry: source);
+
+  if (options.compileSdk) {
+    options.additionalLibraries.forEach(loader.loadLibrary);
+  }
+
   // TODO(sigmund): merge what we have in loadEverything and the logic below in
   // kernelForBuildUnit so there is a single place where we crawl for
   // dependencies.
@@ -131,8 +137,21 @@ Future<DartLoader> _createLoader(CompilerOptions options,
   var packages = await createPackages(
       _uriToPath(options.packagesFileUri, options),
       discoveryPath: entry?.path);
-  return new DartLoader(
+  var loader = new DartLoader(
       repository ?? new Repository(), kernelOptions, packages);
+  var patchPaths = <String, List<String>>{};
+
+  // TODO(sigmund,paulberry): use ProcessedOptions so that we can resolve the
+  // URIs correctly even if sdkRoot is inferred and not specified explicitly.
+  String resolve(Uri patch) =>
+    options.fileSystem.context.fromUri(options.sdkRoot.resolveUri(patch));
+
+  options.targetPatches.forEach((uri, patches) {
+    patchPaths['$uri'] = patches.map(resolve).toList();
+  });
+  AnalysisOptionsImpl analysisOptions = loader.context.analysisOptions;
+  analysisOptions.patchPaths = patchPaths;
+  return loader;
 }
 
 DartOptions _convertOptions(CompilerOptions options) {
@@ -144,6 +163,7 @@ DartOptions _convertOptions(CompilerOptions options) {
       sdkSummary:
           options.compileSdk ? null : _uriToPath(options.sdkSummary, options),
       packagePath: _uriToPath(options.packagesFileUri, options),
+      customUriMappings: options.uriOverride,
       declaredVariables: options.declaredVariables);
 }
 
@@ -157,7 +177,7 @@ void _reportErrors(List errors, ErrorHandler onError) {
 String _uriToPath(Uri uri, CompilerOptions options) {
   if (uri == null) return null;
   if (uri.scheme != 'file') {
-    throw new StateError('Only file URIs are supported');
+    throw new StateError('Only file URIs are supported: $uri');
   }
   return options.fileSystem.context.fromUri(uri);
 }

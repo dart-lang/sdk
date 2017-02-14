@@ -5961,6 +5961,16 @@ int foo(int a, String b) => 0;
     ]);
   }
 
+  test_executable_param_isFinal() {
+    String text = 'f(x, final y) {}';
+    UnlinkedExecutable executable = serializeExecutableText(text);
+    expect(executable.parameters, hasLength(2));
+    expect(executable.parameters[0].name, 'x');
+    expect(executable.parameters[0].isFinal, isFalse);
+    expect(executable.parameters[1].name, 'y');
+    expect(executable.parameters[1].isFinal, isTrue);
+  }
+
   test_executable_param_kind_named() {
     UnlinkedExecutable executable = serializeExecutableText('f({x}) {}');
     UnlinkedParam param = executable.parameters[0];
@@ -6019,16 +6029,6 @@ int foo(int a, String b) => 0;
     if (includeInformative) {
       expect(executable.parameters[0].nameOffset, text.indexOf('x'));
     }
-  }
-
-  test_executable_param_isFinal() {
-    String text = 'f(x, final y) {}';
-    UnlinkedExecutable executable = serializeExecutableText(text);
-    expect(executable.parameters, hasLength(2));
-    expect(executable.parameters[0].name, 'x');
-    expect(executable.parameters[0].isFinal, isFalse);
-    expect(executable.parameters[1].name, 'y');
-    expect(executable.parameters[1].isFinal, isTrue);
   }
 
   test_executable_param_no_flags() {
@@ -6479,6 +6479,14 @@ class B extends A {}
     expect(unlinkedExports, hasLength(1));
     expect(unlinkedExports[0].uri, 'a.dart');
     expect(unlinkedExports[0].configurations, isEmpty);
+  }
+
+  test_export_uri_invalid() {
+    String uriString = '[invalid uri]';
+    String libraryText = 'export "$uriString";';
+    serializeLibraryText(libraryText);
+    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].uri, uriString);
   }
 
   test_export_uri_nullStringValue() {
@@ -7500,6 +7508,19 @@ final v = ((a, b) => 42)(1, 2);
         ]);
   }
 
+  test_expr_invalid_typeParameter_asPrefix() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    var c = serializeClassText('''
+class C<T> {
+  final f = T.k;
+}
+''');
+    assertUnlinkedConst(c.fields[0].initializer.bodyExpr,
+        isValidConst: false, operators: []);
+  }
+
   test_expr_invokeMethod_instance() {
     if (skipNonConstInitializers) {
       return;
@@ -7707,6 +7728,30 @@ final v = f<int, String>();
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'int'),
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'String')
         ]);
+  }
+
+  test_expr_super() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = super;
+''');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushSuper,
+    ]);
+  }
+
+  test_expr_this() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = this;
+''');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushThis,
+    ]);
   }
 
   test_expr_throwException() {
@@ -8365,6 +8410,15 @@ class D extends p.C {} // Prevent "unused import" warning
     // Second import is the implicit import of dart:core
     expect(unlinkedUnits[0].imports, hasLength(2));
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
+  }
+
+  test_import_uri_invalid() {
+    String uriString = '[invalid uri]';
+    String libraryText = 'import "$uriString";';
+    serializeLibraryText(libraryText);
+    // Second import is the implicit import of dart:core
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].uri, uriString);
   }
 
   test_import_uri_nullStringValue() {
@@ -9192,6 +9246,28 @@ D d;''');
     checkAnnotationA(unlinkedUnits[0].imports[0].annotations);
   }
 
+  test_metadata_invalid_instanceCreation_argument_super() {
+    List<UnlinkedExpr> annotations = serializeClassText('''
+class A {
+  const A(_);
+}
+
+@A(super)
+class C {}
+''').annotations;
+    expect(annotations, hasLength(1));
+    assertUnlinkedConst(annotations[0], operators: [
+      UnlinkedExprOperation.pushSuper,
+      UnlinkedExprOperation.invokeConstructor,
+    ], ints: [
+      0,
+      1
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'A',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
   test_metadata_invalid_instanceCreation_argument_this() {
     List<UnlinkedExpr> annotations = serializeClassText('''
 class A {
@@ -9495,6 +9571,17 @@ f(x) => 42;
     _assertParameterZeroVisibleRange(p);
   }
 
+  test_parameter_visibleRange_invalid_fieldFormalParameter() {
+    UnlinkedExecutable m =
+        findExecutable('m', executables: serializeClassText(r'''
+class C {
+  int foo;
+  void m(this.foo) {}
+}
+''').executables);
+    _assertParameterZeroVisibleRange(m.parameters[0]);
+  }
+
   test_parameter_visibleRange_typedef() {
     UnlinkedTypedef type = serializeTypedefText('typedef F(x);');
     _assertParameterZeroVisibleRange(type.parameters[0]);
@@ -9530,6 +9617,14 @@ part "${'a'}.dart"; // <-part
     serializeLibraryText('library foo; part "a.dart";');
     expect(unlinkedUnits[0].isPartOf, isFalse);
     expect(unlinkedUnits[1].isPartOf, isTrue);
+  }
+
+  test_part_uri_invalid() {
+    String uriString = '[invalid uri]';
+    String libraryText = 'part "$uriString";';
+    serializeLibraryText(libraryText);
+    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.parts[0], uriString);
   }
 
   test_parts_defining_compilation_unit() {
@@ -9840,6 +9935,17 @@ void f<T, U>(bool b) {
 
   test_type_dynamic() {
     checkDynamicTypeRef(serializeTypeText('dynamic'));
+  }
+
+  test_type_invalid_typeParameter_asPrefix() {
+    UnlinkedClass c = serializeClassText('''
+class C<T> {
+  m(T.K p) {}
+}
+''');
+    UnlinkedExecutable m = c.executables[0];
+    expect(m.name, 'm');
+    checkTypeRef(m.parameters[0].type, null, null, 'dynamic');
   }
 
   test_type_param_codeRange() {

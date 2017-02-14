@@ -142,8 +142,8 @@ class SsaInstructionSelection extends HBaseVisitor {
     HInstruction receiverArgument = node.inputs[1];
 
     if (interceptor.nonCheck() == receiverArgument.nonCheck()) {
-      if (backend.isInterceptedSelector(selector) &&
-          !backend.isInterceptedMixinSelector(selector, mask)) {
+      if (backend.interceptorData.isInterceptedSelector(selector) &&
+          !backend.interceptorData.isInterceptedMixinSelector(selector, mask)) {
         ConstantValue constant = new SyntheticConstantValue(
             SyntheticConstantKind.DUMMY_INTERCEPTOR,
             receiverArgument.instructionType);
@@ -283,6 +283,11 @@ class SsaTypeKnownRemover extends HBaseVisitor {
   }
 
   void visitTypeKnown(HTypeKnown instruction) {
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HTypeConversion) {
+        user.inputType = instruction.instructionType;
+      }
+    }
     instruction.block.rewrite(instruction, instruction.checkedInput);
     instruction.block.remove(instruction);
   }

@@ -33,6 +33,12 @@ class _AssertionError extends Error implements AssertionError {
     native "AssertionError_throwNew";
 
   static _evaluateAssertion(condition) {
+    if (identical(condition, true) || identical(condition, false)) {
+      return condition;
+    }
+    if (condition is _Closure) {
+      return condition();
+    }
     if (condition is Function) {
       condition = condition();
     }

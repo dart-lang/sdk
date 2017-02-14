@@ -43,7 +43,7 @@
                 Map<String, dynamic> namedArguments)
       native "Object_noSuchMethod";
 
-  @patch noSuchMethod(Invocation invocation) {
+  @patch dynamic noSuchMethod(Invocation invocation) {
     return _noSuchMethod(invocation.isMethod,
                          internal.Symbol.getName(invocation.memberName),
                          invocation._type,

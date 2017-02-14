@@ -54,7 +54,7 @@ class TestCompiler extends apiimpl.CompilerImpl {
   }
 
   @override
-  Backend createBackend() {
+  JavaScriptBackend createBackend() {
     return new TestBackend(this);
   }
 

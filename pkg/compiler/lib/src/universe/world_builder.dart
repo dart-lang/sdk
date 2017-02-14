@@ -6,23 +6,20 @@ library universe;
 
 import 'dart:collection';
 
-import '../cache_strategy.dart';
 import '../common.dart';
-import '../common/backend_api.dart' show Backend;
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart' show Resolution;
-import '../compiler.dart' show Compiler;
 import '../core_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../universe/class_set.dart';
 import '../universe/function_set.dart' show FunctionSetBuilder;
 import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart' show World, ClosedWorld, ClosedWorldImpl, OpenWorld;
-import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 
@@ -463,7 +460,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   /// and classes.
   bool useInstantiationMap = false;
 
-  final Backend _backend;
+  final JavaScriptBackend _backend;
   final Resolution _resolution;
   bool _closed = false;
   ClosedWorld _closedWorldCache;
@@ -480,18 +477,10 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       <ClassElement, ClassHierarchyNode>{};
   final Map<ClassElement, ClassSet> _classSets = <ClassElement, ClassSet>{};
 
-  final Set<Element> alreadyPopulated;
-
-  final CacheStrategy cacheStrategy;
-
   bool get isClosed => _closed;
 
-  ResolutionWorldBuilderImpl(Backend backend, Resolution resolution,
-      CacheStrategy cacheStrategy, this.selectorConstraintsStrategy)
-      : this._backend = backend,
-        this._resolution = resolution,
-        this.cacheStrategy = cacheStrategy,
-        alreadyPopulated = cacheStrategy.newSet() {
+  ResolutionWorldBuilderImpl(
+      this._backend, this._resolution, this.selectorConstraintsStrategy) {
     _allFunctions = new FunctionSetBuilder();
   }
 
@@ -797,24 +786,6 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     }
   }
 
-  void forgetEntity(Entity entity, Compiler compiler) {
-    allClosures.remove(entity);
-    slowDirectlyNestedClosures(entity).forEach(compiler.forgetElement);
-    closurizedMembers.remove(entity);
-    fieldSetters.remove(entity);
-    _instantiationInfo.remove(entity);
-
-    void removeUsage(Set<_MemberUsage> set, Entity entity) {
-      if (set == null) return;
-      set.removeAll(
-          set.where((_MemberUsage usage) => usage.entity == entity).toList());
-    }
-
-    _processedClasses.remove(entity);
-    removeUsage(_instanceMembersByName[entity.name], entity);
-    removeUsage(_instanceFunctionsByName[entity.name], entity);
-  }
-
   // TODO(ahe): Replace this method with something that is O(1), for example,
   // by using a map.
   List<LocalFunctionElement> slowDirectlyNestedClosures(Element element) {
@@ -1034,9 +1005,6 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       if (!info.hasInstantiation) {
         return;
       }
-      if (cacheStrategy.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
-        return;
-      }
       assert(cls.isDeclaration);
       if (!cls.isResolved) {
         reporter.internalError(cls, 'Class "${cls.name}" is not resolved.');
@@ -1149,7 +1117,7 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 }
 
 class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
-  final Backend _backend;
+  final JavaScriptBackend _backend;
   ClosedWorld __world;
 
   /// The set of all directly instantiated classes, that is, classes with a
@@ -1503,24 +1471,6 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
         break;
     }
     memberUsed(usage.entity, useSet);
-  }
-
-  void forgetElement(Element element, Compiler compiler) {
-    _processedClasses.remove(element);
-    _directlyInstantiatedClasses.remove(element);
-    if (element is ClassElement) {
-      assert(invariant(element, element.thisType.isRaw,
-          message: 'Generic classes not supported (${element.thisType}).'));
-      _instantiatedTypes..remove(element.rawType)..remove(element.thisType);
-    }
-    removeFromSet(_instanceMembersByName, element);
-    removeFromSet(_instanceFunctionsByName, element);
-    if (element is MemberElement) {
-      for (Element closure in element.nestedClosures) {
-        removeFromSet(_instanceMembersByName, closure);
-        removeFromSet(_instanceFunctionsByName, closure);
-      }
-    }
   }
 
   void processClassMembers(ClassElement cls, MemberUsedCallback memberUsed) {
@@ -1981,11 +1931,4 @@ class _StaticFunctionUsage extends _StaticMemberUsage {
 
   @override
   EnumSet<MemberUse> get _originalUse => MemberUses.ALL_STATIC;
-}
-
-void removeFromSet(Map<String, Set<_MemberUsage>> map, Element element) {
-  Set<_MemberUsage> set = map[element.name];
-  if (set == null) return;
-  set.removeAll(
-      set.where((_MemberUsage usage) => usage.entity == element).toList());
 }

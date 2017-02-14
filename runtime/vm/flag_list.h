@@ -45,7 +45,7 @@
     "Run optimizing compilation in background")                                \
   R(background_compilation_stop_alot, false, bool, false,                      \
     "Stress test system: stop background compiler often.")                     \
-  P(background_finalization, bool, USING_MULTICORE,                            \
+  P(background_finalization, bool, false,                                      \
     "Run weak handle finalizers in background")                                \
   R(break_at_isolate_spawn, false, bool, false,                                \
     "Insert a one-time breakpoint at the entrypoint for all spawned isolates") \
@@ -122,6 +122,8 @@
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
   C(precompiled_runtime, true, false, bool, false, "Precompiled runtime mode") \
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
+  P(print_benchmarking_metrics, bool, false,                                   \
+    "Print additional memory and latency metrics for benchmarking.")           \
   R(print_ssa_liveranges, false, bool, false,                                  \
     "Print live ranges after allocation.")                                     \
   C(print_stop_message, false, false, bool, false, "Print stop message.")      \
@@ -130,6 +132,7 @@
   R(profiler, false, bool, !USING_DBC && !USING_FUCHSIA,                       \
     "Enable the profiler.")                                                    \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
+  R(causal_async_stacks, false, bool, true, "Improved async stacks")           \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
   C(support_debugger, false, false, bool, true, "Support the debugger.")       \

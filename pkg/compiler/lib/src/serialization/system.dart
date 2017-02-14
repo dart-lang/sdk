@@ -11,10 +11,9 @@ import '../common/resolution.dart';
 import '../compiler.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../scanner/scanner.dart';
 import '../script.dart';
 import '../serialization/impact_serialization.dart';
-import '../tokens/token.dart';
+import 'package:front_end/src/fasta/scanner.dart';
 import '../universe/call_structure.dart';
 import '../universe/use.dart';
 import '../universe/world_impact.dart';
@@ -315,7 +314,7 @@ class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
             'No source file found for $uri in:\n ${scripts.keys.join('\n ')}');
       }
       if (script.isSynthesized) return null;
-      return new Scanner(script.file).tokenize();
+      return parsingContext.scanner.scanFile(script.file);
     });
     if (beginToken == null) return null;
     return ResolvedAstDeserializer.findTokenInStream(beginToken, offset);

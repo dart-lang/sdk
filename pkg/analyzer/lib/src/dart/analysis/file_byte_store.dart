@@ -21,49 +21,41 @@ class CacheCleanUpRequest {
 }
 
 /**
- * [ByteStore] that stores values as files.
+ * [ByteStore] that stores values as files and performs cache eviction.
+ *
+ * Only the process that manages the cache, e.g. Analysis Server, should use
+ * this class. Other processes, e.g. Analysis Server plugins, should use
+ * [FileByteStore] instead and let the main process to perform eviction.
  */
-class FileByteStore implements ByteStore {
+class EvictingFileByteStore implements ByteStore {
   static bool _cleanUpSendPortShouldBePrepared = true;
   static SendPort _cleanUpSendPort;
 
   final String _cachePath;
-  final String _tempName = 'temp_$pid';
   final int _maxSizeBytes;
+  final FileByteStore _fileByteStore;
 
   int _bytesWrittenSinceCleanup = 0;
   bool _evictionIsolateIsRunning = false;
 
-  FileByteStore(this._cachePath, this._maxSizeBytes) {
+  EvictingFileByteStore(this._cachePath, this._maxSizeBytes)
+      : _fileByteStore = new FileByteStore(_cachePath) {
     _requestCacheCleanUp();
   }
 
   @override
   List<int> get(String key) {
-    try {
-      return _getFileForKey(key).readAsBytesSync();
-    } catch (_) {
-      return null;
-    }
+    return _fileByteStore.get(key);
   }
 
   @override
   void put(String key, List<int> bytes) {
-    try {
-      File tempFile = _getFileForKey(_tempName);
-      tempFile.writeAsBytesSync(bytes);
-      File file = _getFileForKey(key);
-      tempFile.renameSync(file.path);
-      // Update the current size.
-      _bytesWrittenSinceCleanup += bytes.length;
-      if (_bytesWrittenSinceCleanup > _maxSizeBytes ~/ 8) {
-        _requestCacheCleanUp();
-      }
-    } catch (_) {}
-  }
-
-  File _getFileForKey(String key) {
-    return new File(join(_cachePath, key));
+    _fileByteStore.put(key, bytes);
+    // Update the current size.
+    _bytesWrittenSinceCleanup += bytes.length;
+    if (_bytesWrittenSinceCleanup > _maxSizeBytes ~/ 8) {
+      _requestCacheCleanUp();
+    }
   }
 
   /**
@@ -142,5 +134,38 @@ class FileByteStore implements ByteStore {
       } catch (_) {}
       currentSizeBytes -= fileStatMap[file].size;
     }
+  }
+}
+
+/**
+ * [ByteStore] that stores values as files.
+ */
+class FileByteStore implements ByteStore {
+  final String _cachePath;
+  final String _tempName = 'temp_$pid';
+
+  FileByteStore(this._cachePath);
+
+  @override
+  List<int> get(String key) {
+    try {
+      return _getFileForKey(key).readAsBytesSync();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  void put(String key, List<int> bytes) {
+    try {
+      File tempFile = _getFileForKey(_tempName);
+      tempFile.writeAsBytesSync(bytes);
+      File file = _getFileForKey(key);
+      tempFile.renameSync(file.path);
+    } catch (_) {}
+  }
+
+  File _getFileForKey(String key) {
+    return new File(join(_cachePath, key));
   }
 }

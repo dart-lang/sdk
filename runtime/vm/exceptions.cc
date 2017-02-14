@@ -6,6 +6,8 @@
 
 #include "platform/address_sanitizer.h"
 
+#include "lib/stacktrace.h"
+
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -18,6 +20,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+
 
 namespace dart {
 
@@ -98,7 +101,7 @@ void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
     dropped_frames_++;
     // Add an empty slot to indicate the overflow so that the toString
     // method can account for the overflow.
-    if (stacktrace_.FunctionAtFrame(null_slot) != Function::null()) {
+    if (stacktrace_.CodeAtFrame(null_slot) != Code::null()) {
       stacktrace_.SetCodeAtFrame(null_slot, frame_code);
       // We drop an extra frame here too.
       dropped_frames_++;
@@ -369,18 +372,7 @@ static RawField* LookupStackTraceField(const Instance& instance) {
 
 
 RawStackTrace* Exceptions::CurrentStackTrace() {
-  Zone* zone = Thread::Current()->zone();
-  RegularStackTraceBuilder frame_builder(zone);
-  BuildStackTrace(&frame_builder);
-
-  // Create arrays for code and pc_offset tuples of each frame.
-  const Array& full_code_array =
-      Array::Handle(zone, Array::MakeArray(frame_builder.code_list()));
-  const Array& full_pc_offset_array =
-      Array::Handle(zone, Array::MakeArray(frame_builder.pc_offset_list()));
-  const StackTrace& full_stacktrace = StackTrace::Handle(
-      StackTrace::New(full_code_array, full_pc_offset_array));
-  return full_stacktrace.raw();
+  return GetStackTraceForException();
 }
 
 
@@ -421,7 +413,10 @@ static void ThrowExceptionHelper(Thread* thread,
     }
     stacktrace ^= isolate->object_store()->preallocated_stack_trace();
     PreallocatedStackTraceBuilder frame_builder(stacktrace);
-    if (handler_needs_stacktrace) {
+    ASSERT(existing_stacktrace.IsNull() ||
+           (existing_stacktrace.raw() == stacktrace.raw()));
+    ASSERT(existing_stacktrace.IsNull() || is_rethrow);
+    if (handler_needs_stacktrace && existing_stacktrace.IsNull()) {
       BuildStackTrace(&frame_builder);
     }
   } else {

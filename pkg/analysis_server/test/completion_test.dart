@@ -869,8 +869,7 @@ main() { null.!1 }''',
         'testCommentSnippets085',
         '''
 class List{}class Map{}class Z extends List with !1Ma!2p {}''',
-        <String>["1+List", "1+Map", "2+Map", "2-List"],
-        failingTests: '12');
+        <String>["1+List", "1+Map", "2+Map", "2-List"]);
 
     buildTests(
         'testCommentSnippets086',
@@ -883,8 +882,7 @@ class Q{f(){xy() {!2};x!1y();}}''',
         'testCommentSnippets087',
         '''
 class Map{}class Q extends Object with !1Map {}''',
-        <String>["1+Map", "1-HashMap"],
-        failingTests: '1');
+        <String>["1+Map", "1-HashMap"]);
 
     buildTests(
         'testCommentSnippets088',
@@ -2445,7 +2443,7 @@ class Fclass extends Bclass !6with !7 Eclass {}''',
           "7-Dclass",
           "7-Ctype",
         ],
-        failingTests: '23467');
+        failingTests: '2346');
 
     // keywords
     buildTests(
@@ -2600,7 +2598,7 @@ class Q {
           "K+else",
           "L+return"
         ],
-        failingTests: '3BCK');
+        failingTests: '3CK');
 
     // operators in function
     buildTests('test015', '''f(a,b,c) => a + b * c !1;''', <String>["1+=="],

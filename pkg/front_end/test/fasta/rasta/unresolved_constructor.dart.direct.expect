@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •(dynamic x, dynamic y) → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  throw new core::NoSuchMethodError::•(null, #, <dynamic>[], <dynamic, dynamic>{}, null);
+  throw new core::NoSuchMethodError::•(null, #Foo.notHere, <dynamic>[], <dynamic, dynamic>{}, null);
+}

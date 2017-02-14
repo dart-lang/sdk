@@ -636,7 +636,8 @@ main() {
 
   void _createRefactoring(String search) {
     int offset = findOffset(search);
-    refactoring = new InlineLocalRefactoring(searchEngine, testUnit, offset);
+    refactoring =
+        new InlineLocalRefactoring(searchEngine, astProvider, testUnit, offset);
   }
 }
 

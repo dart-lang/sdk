@@ -133,7 +133,7 @@ abstract class Uri {
    *
    * ```
    * // http://example.org/path?q=dart.
-   * new Uri.http("google.com", "/search", { "q" : "dart" });
+   * new Uri.http("example.org", "/path", { "q" : "dart" });
    *
    * // http://user:pass@localhost:8080
    * new Uri.http("user:pass@localhost:8080", "");
@@ -181,23 +181,24 @@ abstract class Uri {
    * This path is interpreted using either Windows or non-Windows
    * semantics.
    *
-   * With non-Windows semantics the slash ("/") is used to separate
-   * path segments.
+   * With non-Windows semantics the slash (`/`) is used to separate
+   * path segments in the input [path].
    *
-   * With Windows semantics, backslash ("\\") and forward-slash ("/")
-   * are used to separate path segments, except if the path starts
-   * with "\\\\?\\" in which case, only backslash ("\\") separates path
-   * segments.
+   * With Windows semantics, backslash (`\`) and forward-slash (`/`)
+   * are used to separate path segments in the input [path],
+   * except if the path starts with `\\?\` in which case
+   * only backslash (`\`) separates path segments in [path].
    *
-   * If the path starts with a path separator an absolute URI is
-   * created. Otherwise a relative URI is created. One exception from
-   * this rule is that when Windows semantics is used and the path
-   * starts with a drive letter followed by a colon (":") and a
-   * path separator then an absolute URI is created.
+   * If the path starts with a path separator, an absolute URI (with the
+   * `file` scheme and an empty authority) is created.
+   * Otherwise a relative URI reference with no scheme or authority is created.
+   * One exception from this rule is that when Windows semantics is used
+   * and the path starts with a drive letter followed by a colon (":") and a
+   * path separator, then an absolute URI is created.
    *
    * The default for whether to use Windows or non-Windows semantics
    * determined from the platform Dart is running on. When running in
-   * the standalone VM this is detected by the VM based on the
+   * the standalone VM, this is detected by the VM based on the
    * operating system. When running in a browser non-Windows semantics
    * is always used.
    *
@@ -220,7 +221,7 @@ abstract class Uri {
    * // file:///xxx/yyy/
    * new Uri.file("/xxx/yyy/", windows: false);
    *
-   * // C:
+   * // C%3A
    * new Uri.file("C:", windows: false);
    * ```
    *
@@ -242,7 +243,8 @@ abstract class Uri {
    * // file:///C:/xxx/yyy
    * new Uri.file(r"C:\xxx\yyy", windows: true);
    *
-   * // This throws an error. A path with a drive letter is not absolute.
+   * // This throws an error. A path with a drive letter, but no following
+   * // path, is not allowed.
    * new Uri.file(r"C:", windows: true);
    *
    * // This throws an error. A path with a drive letter is not absolute.
@@ -252,7 +254,7 @@ abstract class Uri {
    * new Uri.file(r"\\server\share\file", windows: true);
    * ```
    *
-   * If the path passed is not a legal file path [ArgumentError] is thrown.
+   * If the path passed is not a valid file path, an error is thrown.
    */
   factory Uri.file(String path, {bool windows}) = _Uri.file;
 
@@ -512,6 +514,21 @@ abstract class Uri {
    */
   String get origin;
 
+  /// Whether the scheme of this [Uri] is [scheme].
+  ///
+  /// The [scheme] should be the same as the one returned by [Uri.scheme],
+  /// but doesn't have to be case-normalized to lower-case characters.
+  ///
+  /// Example:
+  /// ```dart
+  /// var uri = Uri.parse("http://example.com/");
+  /// print(uri.isScheme("HTTP"));  // Prints true.
+  /// ```
+  ///
+  /// A `null` or empty [scheme] string matches a URI with no scheme
+  /// (one where [hasScheme] returns false).
+  bool isScheme(String scheme);
+
   /**
    * Returns the file path from a file URI.
    *
@@ -563,7 +580,7 @@ abstract class Uri {
    *     Uri.parse("xxx/yyy");  // xxx\yyy
    *     Uri.parse("xxx/yyy/");  // xxx\yyy\
    *     Uri.parse("file:///xxx/yyy");  // \xxx\yyy
-   *     Uri.parse("file:///xxx/yyy/");  // \xxx\yyy/
+   *     Uri.parse("file:///xxx/yyy/");  // \xxx\yyy\
    *     Uri.parse("file:///C:/xxx/yyy");  // C:\xxx\yyy
    *     Uri.parse("file:C:xxx/yyy");  // Throws as a path segment
    *                                   // cannot contain colon on Windows.
@@ -620,10 +637,10 @@ abstract class Uri {
    *
    *     Uri uri1 = Uri.parse("a://b@c:4/d/e?f#g");
    *     Uri uri2 = uri1.replace(scheme: "A", path: "D/E/E", fragment: "G");
-   *     print(uri2);  // prints "A://b@c:4/D/E/E/?f#G"
+   *     print(uri2);  // prints "a://b@c:4/D/E/E?f#G"
    *
    * This method acts similarly to using the `new Uri` constructor with
-   * some of the arguments taken from this `Uri` . Example:
+   * some of the arguments taken from this `Uri`. Example:
    *
    *     Uri uri3 = new Uri(
    *         scheme: "A",
@@ -633,7 +650,7 @@ abstract class Uri {
    *         path: "D/E/E",
    *         query: uri1.query,
    *         fragment: "G");
-   *     print(uri3);  // prints "A://b@c:4/D/E/E/?f#G"
+   *     print(uri3);  // prints "a://b@c:4/D/E/E?f#G"
    *     print(uri2 == uri3);  // prints true.
    *
    * Using this method can be seen as a shorthand for the `Uri` constructor
@@ -1531,6 +1548,44 @@ class _Uri implements Uri {
   String get query => _query ?? "";
 
   String get fragment => _fragment ?? "";
+
+  bool isScheme(String scheme) {
+    String thisScheme = this.scheme;
+    if (scheme == null) return thisScheme.isEmpty;
+    if (scheme.length != thisScheme.length) return false;
+    return _compareScheme(scheme, thisScheme);
+  }
+
+  /// Compares scheme characters in [scheme] and at the start of [uri].
+  ///
+  /// Returns `true` if [scheme] represents the same scheme as the start of
+  /// [uri]. That means having the same characters, but possibly different case
+  /// for letters.
+  ///
+  /// This function doesn't check that the characters are valid URI scheme
+  /// characters. The [uri] is assumed to be valid, so if [scheme] matches
+  /// it, it has to be valid too.
+  ///
+  /// The length should be tested before calling this function,
+  /// so the scheme part of [uri] is known to have the same length as [scheme].
+  static bool _compareScheme(String scheme, String uri) {
+    for (int i = 0; i < scheme.length; i++) {
+      int schemeChar = scheme.codeUnitAt(i);
+      int uriChar = uri.codeUnitAt(i);
+      int delta = schemeChar ^ uriChar;
+      if (delta != 0) {
+        if (delta == 0x20) {
+          // Might be a case difference.
+          int lowerChar = uriChar | delta;
+          if (0x61 /*a*/ <= lowerChar && lowerChar <= 0x7a /*z*/) {
+            continue;
+          }
+        }
+        return false;
+      }
+    }
+    return true;
+  }
 
   // Report a parse failure.
   static void _fail(String uri, int index, String message) {
@@ -4071,6 +4126,7 @@ class _SimpleUri implements Uri {
   bool get _isHttp => _schemeEnd == 4 && _uri.startsWith("http");
   bool get _isHttps => _schemeEnd == 5 && _uri.startsWith("https");
   bool get _isPackage => _schemeEnd == 7 && _uri.startsWith("package");
+  /// Like [isScheme] but expects argument to be case normalized.
   bool _isScheme(String scheme) =>
     _schemeEnd == scheme.length && _uri.startsWith(scheme);
 
@@ -4078,6 +4134,12 @@ class _SimpleUri implements Uri {
   bool get hasEmptyPath => _pathStart == _queryStart;
 
   bool get isAbsolute => hasScheme && !hasFragment;
+
+  bool isScheme(String scheme) {
+    if (scheme == null || scheme.isEmpty) return _schemeEnd < 0;
+    if (scheme.length != _schemeEnd) return false;
+    return _Uri._compareScheme(scheme, _uri);
+  }
 
   String get scheme {
     if (_schemeEnd <= 0) return "";

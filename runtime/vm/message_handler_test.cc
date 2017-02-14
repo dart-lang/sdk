@@ -117,7 +117,7 @@ void TestEndFunction(uword data) {
 }
 
 
-UNIT_TEST_CASE(MessageHandler_PostMessage) {
+VM_UNIT_TEST_CASE(MessageHandler_PostMessage) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
   EXPECT_EQ(0, handler.notify_count());
@@ -148,7 +148,7 @@ UNIT_TEST_CASE(MessageHandler_PostMessage) {
 }
 
 
-UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
+VM_UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
 
@@ -181,7 +181,7 @@ UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
 }
 
 
-UNIT_TEST_CASE(MessageHandler_ClosePort) {
+VM_UNIT_TEST_CASE(MessageHandler_ClosePort) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
   Message* message1 = new Message(1, NULL, 0, Message::kNormalPriority);
@@ -199,7 +199,7 @@ UNIT_TEST_CASE(MessageHandler_ClosePort) {
 }
 
 
-UNIT_TEST_CASE(MessageHandler_CloseAllPorts) {
+VM_UNIT_TEST_CASE(MessageHandler_CloseAllPorts) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
   Message* message1 = new Message(1, NULL, 0, Message::kNormalPriority);
@@ -214,7 +214,7 @@ UNIT_TEST_CASE(MessageHandler_CloseAllPorts) {
 }
 
 
-UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
+VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
   Dart_Port port1 = PortMap::CreatePort(&handler);
@@ -240,7 +240,7 @@ UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
 }
 
 
-UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
+VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
   TestMessageHandler handler;
   MessageHandler::MessageStatus results[] = {
       MessageHandler::kError,  // oob_message1
@@ -270,7 +270,7 @@ UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
 }
 
 
-UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
+VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
   TestMessageHandler handler;
   MessageHandler::MessageStatus results[] = {
       MessageHandler::kOK,        // oob_message1
@@ -308,7 +308,7 @@ UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
 }
 
 
-UNIT_TEST_CASE(MessageHandler_HandleOOBMessages) {
+VM_UNIT_TEST_CASE(MessageHandler_HandleOOBMessages) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
   Dart_Port port1 = PortMap::CreatePort(&handler);
@@ -353,7 +353,7 @@ static void SendMessages(uword param) {
 }
 
 
-UNIT_TEST_CASE(MessageHandler_Run) {
+VM_UNIT_TEST_CASE(MessageHandler_Run) {
   ThreadPool pool;
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);

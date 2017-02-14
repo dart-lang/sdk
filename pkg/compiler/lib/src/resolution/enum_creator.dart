@@ -9,10 +9,9 @@ import '../core_types.dart' show CommonElements;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
-import '../tokens/keyword.dart' show Keyword;
-import '../tokens/precedence.dart';
-import '../tokens/precedence_constants.dart' as Precedence;
-import '../tokens/token.dart';
+import 'package:front_end/src/fasta/scanner.dart';
+import 'package:front_end/src/fasta/scanner/precedence.dart';
+import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence;
 import '../tree/tree.dart';
 import '../util/util.dart';
 

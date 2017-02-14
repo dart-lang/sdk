@@ -68,6 +68,9 @@ abstract class CompilerConfiguration {
     bool hotReloadRollback = configuration['hot_reload_rollback'];
     bool useFastStartup = configuration['fast_startup'];
     bool verifyKernel = configuration['verify-ir'];
+    bool useDFE = configuration['useDFE'];
+    bool useFasta = configuration['useFasta'];
+    bool treeShake = !configuration['no-tree-shake'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -99,12 +102,25 @@ abstract class CompilerConfiguration {
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android');
       case 'dartk':
-        return ComposedCompilerConfiguration.createDartKConfiguration(
-            isChecked: isChecked,
-            isHostChecked: isHostChecked,
-            useSdk: useSdk,
-            verify: verifyKernel,
-            strong: isStrong);
+        if (!useDFE) {
+          return ComposedCompilerConfiguration.createDartKConfiguration(
+              isChecked: isChecked,
+              isHostChecked: isHostChecked,
+              useSdk: useSdk,
+              verify: verifyKernel,
+              strong: isStrong,
+              treeShake: treeShake);
+        }
+
+        return new NoneCompilerConfiguration(
+              isDebug: isDebug,
+              isChecked: isChecked,
+              isHostChecked: isHostChecked,
+              useSdk: useSdk,
+              hotReload: hotReload,
+              hotReloadRollback: hotReloadRollback,
+              dfeMode: useFasta ? DFEMode.Fasta : DFEMode.DartK);
+
       case 'dartkp':
         return ComposedCompilerConfiguration.createDartKPConfiguration(
             isChecked: isChecked,
@@ -114,7 +130,8 @@ abstract class CompilerConfiguration {
             isAndroid: configuration['system'] == 'android',
             useSdk: useSdk,
             verify: verifyKernel,
-            strong: isStrong);
+            strong: isStrong,
+            treeShake: treeShake);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug,
@@ -181,22 +198,28 @@ abstract class CompilerConfiguration {
   }
 }
 
+enum DFEMode {
+  None,
+  DartK,
+  Fasta
+}
+
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
   final bool hotReload;
   final bool hotReloadRollback;
+  final DFEMode dfeMode;
 
   NoneCompilerConfiguration(
       {bool isDebug, bool isChecked, bool isHostChecked, bool useSdk,
-       bool hotReload,
-       bool hotReloadRollback})
+       bool this.hotReload,
+       bool this.hotReloadRollback,
+       DFEMode this.dfeMode: DFEMode.None})
       : super._subclass(
             isDebug: isDebug,
             isChecked: isChecked,
             isHostChecked: isHostChecked,
-            useSdk: useSdk),
-        this.hotReload = hotReload,
-        this.hotReloadRollback = hotReloadRollback;
+            useSdk: useSdk);
 
   bool get hasCompiler => false;
 
@@ -209,6 +232,12 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     List<String> args = [];
+    if (dfeMode != DFEMode.None) {
+      args.add('--dfe=utils/kernel-service/kernel-service.dart');
+    }
+    if (dfeMode == DFEMode.Fasta) {
+      args.add('-DDFE_USE_FASTA=true');
+    }
     if (isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
@@ -227,10 +256,10 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 
 /// The "dartk" compiler.
 class DartKCompilerConfiguration extends CompilerConfiguration {
-  final bool verify, strong;
+  final bool verify, strong, treeShake;
 
   DartKCompilerConfiguration({bool isChecked, bool isHostChecked, bool useSdk,
-        this.verify, this.strong})
+        this.verify, this.strong, this.treeShake})
       : super._subclass(isChecked: isChecked, isHostChecked: isHostChecked,
                         useSdk: useSdk);
 
@@ -250,6 +279,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
       '$buildDir/patched_sdk',
       '--link',
       '--target=vm',
+      treeShake ? '--tree-shake' : null,
       strong ? '--strong' : null,
       verify ? '--verify-ir' : null,
       '--out',
@@ -406,14 +436,14 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
   static ComposedCompilerConfiguration createDartKPConfiguration(
       {bool isChecked, bool isHostChecked, String arch, bool useBlobs,
-       bool isAndroid, bool useSdk, bool verify, bool strong}) {
+       bool isAndroid, bool useSdk, bool verify, bool strong, bool treeShake}) {
     var nested = [];
 
     // Compile with dartk.
     nested.add(new PipelineCommand.runWithGlobalArguments(
         new DartKCompilerConfiguration(isChecked: isChecked,
             isHostChecked: isHostChecked, useSdk: useSdk, verify: verify,
-            strong: strong)));
+            strong: strong, treeShake: treeShake)));
 
     // Run the normal precompiler.
     nested.add(new PipelineCommand.runWithPreviousKernelOutput(
@@ -426,14 +456,14 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
   static ComposedCompilerConfiguration createDartKConfiguration(
       {bool isChecked, bool isHostChecked, bool useSdk, bool verify,
-       bool strong}) {
+       bool strong, bool treeShake}) {
     var nested = [];
 
     // Compile with dartk.
     nested.add(new PipelineCommand.runWithGlobalArguments(
         new DartKCompilerConfiguration(isChecked: isChecked,
             isHostChecked: isHostChecked, useSdk: useSdk,
-            verify: verify, strong: strong)));
+            verify: verify, strong: strong, treeShake: treeShake)));
 
     return new ComposedCompilerConfiguration(nested);
   }
@@ -759,8 +789,8 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       : super._subclass(isDebug: isDebug, isChecked: isChecked);
 
   int computeTimeoutMultiplier() {
-    int multiplier = 2;
-    if (isDebug) multiplier *= 4;
+    int multiplier = 1;
+    if (isDebug) multiplier *= 2;
     if (isChecked) multiplier *= 2;
     return multiplier;
   }

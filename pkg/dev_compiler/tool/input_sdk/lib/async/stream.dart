@@ -1607,7 +1607,7 @@ abstract class StreamSink<S> implements EventSink<S>, StreamConsumer<S> {
    * Returns the same future as [done].
    *
    * The stream sink may close before the [close] method is called, either due
-   * to an error or because it is itself provding events to someone who has
+   * to an error or because it is itself providing events to someone who has
    * stopped listening. In that case, the [done] future is completed first,
    * and the `close` method will return the `done` future when called.
    *

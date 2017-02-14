@@ -4,15 +4,26 @@
 
 library entities;
 
-import 'elements.dart' show Entity;
+import '../common.dart';
+
+/// Abstract interface for entities.
+///
+/// Implement this directly if the entity is not a Dart language entity.
+/// Entities defined within the Dart language should implement [Element].
+///
+/// For instance, the JavaScript backend need to create synthetic variables for
+/// calling intercepted classes and such variables do not correspond to an
+/// entity in the Dart source code nor in the terminology of the Dart language
+/// and should therefore implement [Entity] directly.
+abstract class Entity implements Spannable {
+  String get name;
+}
 
 /// Stripped down super interface for library like entities.
 ///
 /// Currently only [LibraryElement] but later also kernel based Dart classes
 /// and/or Dart-in-JS classes.
-abstract class LibraryEntity extends Entity {
-  String get libraryName;
-}
+abstract class LibraryEntity extends Entity {}
 
 /// Stripped down super interface for class like entities.
 ///
@@ -53,6 +64,41 @@ abstract class FieldEntity extends MemberEntity {}
 
 /// Stripped down super interface for function like entities.
 ///
-/// Currently only [FieldElement] but later also kernel based Dart constructors
+/// Currently only [MethodElement] but later also kernel based Dart constructors
 /// and methods and/or Dart-in-JS function-like properties.
 abstract class FunctionEntity extends MemberEntity {}
+
+/// Stripped down super interface for constructor like entities.
+///
+/// Currently only [ConstructorElement] but later also kernel based Dart
+/// constructors and/or Dart-in-JS constructor-like properties.
+// TODO(johnniwinther): Remove factory constructors from the set of
+// constructors.
+abstract class ConstructorEntity extends FunctionEntity {
+  bool get isGenerativeConstructor;
+  bool get isFactoryConstructor;
+}
+
+/// An entity that defines a local entity (memory slot) in generated code.
+///
+/// Parameters, local variables and local functions (can) define local entity
+/// and thus implement [Local] through [LocalElement]. For non-element locals,
+/// like `this` and boxes, specialized [Local] classes are created.
+///
+/// Type variables can introduce locals in factories and constructors
+/// but since one type variable can introduce different locals in different
+/// factories and constructors it is not itself a [Local] but instead
+/// a non-element [Local] is created through a specialized class.
+// TODO(johnniwinther): Should [Local] have `isAssignable` or `type`?
+abstract class Local extends Entity {
+  /// The context in which this local is defined.
+  Entity get executableContext;
+
+  /// The outermost member that contains this element.
+  ///
+  /// For top level, static or instance members, the member context is the
+  /// element itself. For parameters, local variables and nested closures, the
+  /// member context is the top level, static or instance member in which it is
+  /// defined.
+  MemberEntity get memberContext;
+}

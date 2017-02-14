@@ -22,7 +22,7 @@ namespace dart {
 
 DEFINE_FLAG(bool,
             use_corelib_source_files,
-            kDefaultCorelibSourceFlag,
+            false,
             "Attempt to use source files directly when loading in the core "
             "libraries during the bootstrap process");
 

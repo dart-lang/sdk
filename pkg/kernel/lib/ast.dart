@@ -179,6 +179,7 @@ class Library extends TreeNode implements Comparable<Library> {
   bool isExternal;
 
   String name;
+  final List<DeferredImport> deferredImports;
   final List<Class> classes;
   final List<Procedure> procedures;
   final List<Field> fields;
@@ -186,10 +187,13 @@ class Library extends TreeNode implements Comparable<Library> {
   Library(this.importUri,
       {this.name,
       this.isExternal: false,
+      List<DeferredImport> imports,
       List<Class> classes,
       List<Procedure> procedures,
-      List<Field> fields})
-      : this.classes = classes ?? <Class>[],
+      List<Field> fields,
+      this.fileUri})
+      : this.deferredImports = imports ?? <DeferredImport>[],
+        this.classes = classes ?? <Class>[],
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[] {
     setParents(this.classes, this);
@@ -248,6 +252,22 @@ class Library extends TreeNode implements Comparable<Library> {
   }
 }
 
+/// An import of form: `import <url> deferred as <name>;`.
+class DeferredImport extends TreeNode {
+  Library importedLibrary;
+  String name;
+
+  DeferredImport(this.importedLibrary, this.name);
+
+  Library get enclosingLibrary => parent;
+
+  accept(TreeVisitor v) => v.visitDeferredImport(this);
+
+  visitChildren(Visitor v) {}
+
+  transformChildren(Transformer v) {}
+}
+
 /// The degree to which the contents of a class have been loaded into memory.
 ///
 /// Each level imply the requirements of the previous ones.
@@ -273,6 +293,18 @@ enum ClassLevel {
   /// This level exists so supertypes of a fully loaded class contain all the
   /// members needed to detect override constraints.
   Hierarchy,
+
+  /// All instance members of the class have their body loaded, and their
+  /// annotations are present.
+  ///
+  /// All supertypes of this class are at [Hierarchy] level or higher.
+  ///
+  /// If this class is a mixin application, then its mixin is loaded at [Mixin]
+  /// level or higher.
+  ///
+  /// This level exists so the contents of a mixin can be cloned into a
+  /// mixin application.
+  Mixin,
 
   /// All members of the class are fully loaded and are in the correct order.
   ///
@@ -1517,7 +1549,7 @@ class DirectPropertySet extends Expression {
 }
 
 /// Directly call an instance method, bypassing ordinary dispatch.
-class DirectMethodInvocation extends Expression {
+class DirectMethodInvocation extends InvocationExpression {
   Expression receiver;
   Procedure target;
   Arguments arguments;
@@ -1526,6 +1558,8 @@ class DirectMethodInvocation extends Expression {
     receiver?.parent = this;
     arguments?.parent = this;
   }
+
+  Name get name => target?.name;
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
@@ -1830,7 +1864,7 @@ class SuperMethodInvocation extends InvocationExpression {
   Name name;
   Arguments arguments;
 
-  Member interfaceTarget;
+  Procedure interfaceTarget;
 
   SuperMethodInvocation(this.name, this.arguments, this.interfaceTarget) {
     arguments?.parent = this;
@@ -2432,6 +2466,51 @@ class Let extends Expression {
       body?.parent = this;
     }
   }
+}
+
+/// Attempt to load the library referred to by a deferred import.
+///
+/// This instruction is concerned with:
+/// - keeping track whether the deferred import is marked as 'loaded'
+/// - keeping track of whether the library code has already been downloaded
+/// - actually downloading and linking the library
+///
+/// Should return a future.  The value in this future will be the same value
+/// seen by callers of `loadLibrary` functions.
+///
+/// On backends that link the entire program eagerly, this instruction needs
+/// to mark the deferred import as 'loaded' and return a future.
+class LoadLibrary extends Expression {
+  /// Reference to a deferred import in the enclosing library.
+  DeferredImport import;
+
+  LoadLibrary(this.import);
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.futureType(const DynamicType());
+  }
+
+  accept(ExpressionVisitor v) => v.visitLoadLibrary(this);
+
+  visitChildren(Visitor v) {}
+  transformChildren(Transformer v) {}
+}
+
+/// Checks that the given deferred import has been marked as 'loaded'.
+class CheckLibraryIsLoaded extends Expression {
+  /// Reference to a deferred import in the enclosing library.
+  DeferredImport import;
+
+  CheckLibraryIsLoaded(this.import);
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.objectType;
+  }
+
+  accept(ExpressionVisitor v) => v.visitCheckLibraryIsLoaded(this);
+
+  visitChildren(Visitor v) {}
+  transformChildren(Transformer v) {}
 }
 
 // ------------------------------------------------------------------------

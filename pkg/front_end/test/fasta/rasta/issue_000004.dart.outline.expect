@@ -1,0 +1,12 @@
+library;
+import self as self;
+
+static field dynamic global;
+static method fact4() → dynamic
+  ;
+static method fact5() → dynamic
+  ;
+static method fact6() → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -47,7 +47,8 @@ main() async {
     process.kill();
   });
   process.stdin.writeln(script);
-  process.stdin.close();
+  await process.stdin.flush();
+  await process.stdin.close();
 
   int status = await process.exitCode;
   if (!stdinWriteFailed) {

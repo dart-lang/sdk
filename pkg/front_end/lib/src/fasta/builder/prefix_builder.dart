@@ -1,0 +1,64 @@
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library fasta.prefix_builder;
+
+import 'builder.dart' show
+    Builder,
+    LibraryBuilder,
+    MemberBuilder;
+
+import 'package:kernel/ast.dart' show
+    Member;
+
+import '../dill/dill_member_builder.dart' show
+    DillMemberBuilder;
+
+import '../errors.dart' show
+    internalError;
+
+class PrefixBuilder extends Builder {
+  final String name;
+
+  final Map<String, Builder> exports;
+
+  final LibraryBuilder parent;
+
+  PrefixBuilder(this.name, this.exports, LibraryBuilder parent, int charOffset)
+      : parent = parent, super(parent, charOffset, parent.fileUri);
+
+  Member findTopLevelMember(String name) {
+    // TODO(ahe): Move this to KernelPrefixBuilder.
+    Builder builder = exports[name];
+    if (builder == null) {
+      // TODO(ahe): Report error?
+      print("${this.name} has no member named $name");
+    }
+    if (builder is DillMemberBuilder) {
+      return builder.member.isInstanceMember
+          ? internalError("Unexpected instance member in export scope")
+          : builder.member;
+    } else if (builder is MemberBuilder) {
+      return builder.target;
+    } else {
+      return null;
+    }
+  }
+
+  Builder combineAmbiguousImport(String name, Builder other,
+      LibraryBuilder library) {
+    if (other is PrefixBuilder) {
+      /// Handles the case where the same prefix is used for different imports.
+      other.exports.forEach((String name, Builder member) {
+        Builder existing = exports[name];
+        if (existing != null) {
+          member = existing.combineAmbiguousImport(name, member, library);
+        }
+        exports[name] = member;
+      });
+      return this;
+    }
+    return super.combineAmbiguousImport(name, other, library);
+  }
+}

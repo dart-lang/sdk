@@ -44,7 +44,7 @@ least_upper_bound_expansive_test/*: Fail, OK
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 multiline_strings_test: Fail # Issue 23020
 
-deferred_redirecting_factory_test: Fail # Issue 23408
+deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
 async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
@@ -66,6 +66,7 @@ vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
+generalized_function_type_test: SkipSlow # Times out in checked mode. Generated test is too large.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478
@@ -152,18 +153,6 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 vm/regress_27671_test: Skip # Unsupported
 
-[ $runtime == dart_precompiled ]
-# Stacktraces in precompilation omit inlined frames.
-full_stacktrace1_test: Pass, RuntimeError
-full_stacktrace2_test: Pass, RuntimeError
-full_stacktrace3_test: Pass, RuntimeError
-stack_trace_test: Pass, RuntimeError
-stacktrace_rethrow_error_test: Pass, RuntimeError
-stacktrace_rethrow_nonerror_test: Pass, RuntimeError
-stacktrace_test: Pass, RuntimeError
-vm/regress_28325_test: RuntimeError  # Missing source position in AOT.
-
-
 [ $runtime == dart_precompiled || $mode == product ]
 # Imports dart:mirrors
 const_evaluation_test: SkipByDesign
@@ -187,21 +176,26 @@ super_call4_test: SkipByDesign
 super_getter_setter_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
 regress_28255_test: SkipByDesign
+# Causal async stacks are not supported in product mode
+vm/causal_async_exception_stack_test: SkipByDesign
+vm/causal_async_exception_stack2_test: SkipByDesign
 
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
-regress_23408_test: Fail
-deferred_inheritance_constraints_test/redirecting_constructor: Fail
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
 deferred_not_loaded_check_test: Fail
 vm/regress_27201_test: Fail
 
+[ $compiler == app_jit ]
+deferred_inheritance_constraints_test/redirecting_constructor: Crash
+
 [ $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
 deferred_global_test: Fail
 vm/regress_27201_test: Fail
+regress_23408_test: RuntimeError
 
 [ $compiler == precompiler ]
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
@@ -272,6 +266,7 @@ deferred_only_constant_test: Crash # Requires deferred libraries
 deferred_optimized_test: Crash # Requires deferred libraries
 deferred_redirecting_factory_test: Crash # Requires deferred libraries
 deferred_regression_22995_test: Crash # Requires deferred libraries
+deferred_regression_28678_test: Crash # Requires deferred libraries
 deferred_shadow_load_library_test: Crash # Requires deferred libraries
 deferred_shared_and_unshared_classes_test: Crash # Requires deferred libraries
 deferred_static_seperate_test: Crash # Requires deferred libraries
@@ -311,9 +306,10 @@ vm/optimized_stacktrace_test: Pass, Crash # Issue 28276
 # Use package:unittest
 async_await_test: RuntimeError
 async_star_test: RuntimeError
+vm/causal_async_exception_stack_test: RuntimeError
 # TODO(zra): Investigate
 vm/regress_28325_test: RuntimeError
-closure_cycles_test: Crash
+closure_cycles_test: Pass, Crash
 
 [$compiler == dart2analyzer]
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.

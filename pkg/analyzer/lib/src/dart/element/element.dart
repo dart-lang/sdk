@@ -730,7 +730,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _interfaces = _unlinkedClass.interfaces
           .map((EntityRef t) => context.resolveTypeRef(t, this))
-          .where((DartType type) => type is InterfaceType)
+          .where(_isClassInterfaceType)
           .toList(growable: false);
     }
     return _interfaces ?? const <InterfaceType>[];
@@ -837,7 +837,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       ResynthesizerContext context = enclosingUnit.resynthesizerContext;
       _mixins = _unlinkedClass.mixins
           .map((EntityRef t) => context.resolveTypeRef(t, this))
-          .where((DartType type) => type is InterfaceType)
+          .where(_isClassInterfaceType)
           .toList(growable: false);
     }
     return _mixins ?? const <InterfaceType>[];
@@ -871,7 +871,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       if (_unlinkedClass.supertype != null) {
         DartType type = enclosingUnit.resynthesizerContext
             .resolveTypeRef(_unlinkedClass.supertype, this);
-        if (type is InterfaceType) {
+        if (_isClassInterfaceType(type)) {
           _supertype = type;
         } else {
           _supertype = context.typeProvider.objectType;
@@ -1208,16 +1208,6 @@ class ClassElementImpl extends AbstractClassElementImpl
         PropertyAccessorElementImpl accessor =
             new PropertyAccessorElementImpl.forSerialized(e, this);
         explicitAccessors.add(accessor);
-        // Prepare the field type.
-        DartType fieldType;
-        if (e.kind == UnlinkedExecutableKind.getter) {
-          fieldType = accessor.returnType;
-        } else {
-          List<ParameterElement> parameters = accessor.parameters;
-          fieldType = parameters.isNotEmpty
-              ? parameters[0].type
-              : DynamicTypeImpl.instance;
-        }
         // Create or update the implicit field.
         String fieldName = accessor.displayName;
         FieldElementImpl field = implicitFields[fieldName];
@@ -1227,7 +1217,6 @@ class ClassElementImpl extends AbstractClassElementImpl
           field.enclosingElement = this;
           field.isSynthetic = true;
           field.isFinal = e.kind == UnlinkedExecutableKind.getter;
-          field.type = fieldType;
           field.isStatic = e.isStatic;
         } else {
           field.isFinal = false;
@@ -1274,6 +1263,13 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
     }
     return false;
+  }
+
+  /**
+   * Return `true` if the given [type] is a class [InterfaceType].
+   */
+  static bool _isClassInterfaceType(DartType type) {
+    return type is InterfaceType && !type.element.isEnum;
   }
 }
 
@@ -3875,7 +3871,8 @@ abstract class ExecutableElementImpl extends ElementImpl
           serializedExecutable.inferredReturnTypeSlot, typeParameterContext);
       _declaredReturnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
           serializedExecutable.returnType, typeParameterContext,
-          defaultVoid: isSetter && context.analysisOptions.strongMode);
+          defaultVoid: isSetter && context.analysisOptions.strongMode,
+          declaredType: true);
     }
     return _returnType ?? _declaredReturnType;
   }
@@ -4317,13 +4314,14 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   @override
   FieldElement get field {
     if (_unlinkedParam != null && _field == null) {
-      Element enclosing = enclosingElement?.enclosingElement;
-      while (enclosing != null) {
-        if (enclosing is ClassElement) {
-          _field = enclosing.getField(_unlinkedParam.name);
-          break;
-        } else {
-          enclosing = enclosing.enclosingElement;
+      Element enclosingConstructor = enclosingElement;
+      if (enclosingConstructor is ConstructorElement) {
+        Element enclosingClass = enclosingConstructor.enclosingElement;
+        if (enclosingClass is ClassElement) {
+          FieldElement field = enclosingClass.getField(_unlinkedParam.name);
+          if (field != null && !field.isSynthetic) {
+            _field = field;
+          }
         }
       }
     }
@@ -4747,8 +4745,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   @override
   DartType get returnType {
     if (_unlinkedTypedef != null && _returnType == null) {
-      _returnType = enclosingUnit.resynthesizerContext
-          .resolveTypeRef(_unlinkedTypedef.returnType, this);
+      _returnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+          _unlinkedTypedef.returnType, this,
+          declaredType: true);
     }
     return _returnType;
   }
@@ -6894,12 +6893,14 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     if (_unlinkedVariable != null && _declaredType == null && _type == null) {
       _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
           _unlinkedVariable.inferredTypeSlot, typeParameterContext);
-      _declaredType = enclosingUnit.resynthesizerContext
-          .resolveTypeRef(_unlinkedVariable.type, typeParameterContext);
+      _declaredType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+          _unlinkedVariable.type, typeParameterContext,
+          declaredType: true);
     }
     return super.type;
   }
 
+  @override
   void set type(DartType type) {
     _assertNotResynthesized(_unlinkedVariable);
     _type = type;
@@ -7382,8 +7383,9 @@ class ParameterElementImpl extends VariableElementImpl
       } else {
         _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
             _unlinkedParam.inferredTypeSlot, typeParameterContext);
-        _declaredType = enclosingUnit.resynthesizerContext
-            .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
+        _declaredType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+            _unlinkedParam.type, typeParameterContext,
+            declaredType: true);
       }
     }
   }
@@ -7880,6 +7882,23 @@ abstract class PropertyInducingElementImpl
     _assertNotResynthesized(_unlinkedVariable);
     _propagatedType = propagatedType;
   }
+
+  @override
+  DartType get type {
+    if (isSynthetic && _type == null) {
+      if (getter != null) {
+        _type = getter.returnType;
+      } else if (setter != null) {
+        List<ParameterElement> parameters = setter.parameters;
+        _type = parameters.isNotEmpty
+            ? parameters[0].type
+            : DynamicTypeImpl.instance;
+      } else {
+        _type = DynamicTypeImpl.instance;
+      }
+    }
+    return super.type;
+  }
 }
 
 /**
@@ -7941,7 +7960,9 @@ abstract class ResynthesizerContext {
    */
   DartType resolveTypeRef(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
-      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true});
+      {bool defaultVoid: false,
+      bool instantiateToBoundsAllowed: true,
+      bool declaredType: false});
 }
 
 /**
@@ -8141,7 +8162,7 @@ class TypeParameterElementImpl extends ElementImpl
       }
       return _bound ??= enclosingUnit.resynthesizerContext.resolveTypeRef(
           _unlinkedTypeParam.bound, enclosingElement,
-          instantiateToBoundsAllowed: false);
+          instantiateToBoundsAllowed: false, declaredType: true);
     }
     return _bound;
   }

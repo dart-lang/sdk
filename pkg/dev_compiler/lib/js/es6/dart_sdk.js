@@ -1986,6 +1986,9 @@ dart.dput = function(obj, field, value) {
   return dart.noSuchMethod(obj, new dart.InvocationImpl(field, [value], {isSetter: true}));
 };
 dart._checkApply = function(type, actuals) {
+  if (type instanceof Array) {
+    type = type[0];
+  }
   if (actuals.length < type.args.length) return false;
   let index = 0;
   for (let i = 0; i < type.args.length; ++i) {
@@ -25728,13 +25731,13 @@ collection._LinkedHashSetIterator$ = dart.generic(E => {
       this[_modifications] = modifications;
       this[_cell] = null;
       this[_current] = null;
-      this[_cell] = collection._LinkedHashSetCell._check(dart.dload(this[_set], _first));
+      this[_cell] = this[_set][_first];
     }
     get current() {
       return this[_current];
     }
     moveNext() {
-      if (!dart.equals(this[_modifications], dart.dload(this[_set], _modifications))) {
+      if (this[_modifications] != this[_set][_modifications]) {
         dart.throw(new core.ConcurrentModificationError(this[_set]));
       } else if (this[_cell] == null) {
         this[_current] = null;
@@ -25749,9 +25752,9 @@ collection._LinkedHashSetIterator$ = dart.generic(E => {
   dart.addTypeTests(_LinkedHashSetIterator);
   _LinkedHashSetIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(_LinkedHashSetIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._LinkedHashSetIterator$(E), [dart.dynamic, core.int])}),
+    constructors: () => ({new: dart.definiteFunctionType(collection._LinkedHashSetIterator$(E), [collection._LinkedHashSet, core.int])}),
     fields: () => ({
-      [_set]: dart.dynamic,
+      [_set]: collection._LinkedHashSet,
       [_modifications]: core.int,
       [_cell]: collection._LinkedHashSetCell,
       [_current]: E
@@ -99196,7 +99199,7 @@ html_common._StructuredClone = class _StructuredClone extends core.Object {
     let copy = this.newJsList(length);
     this.writeSlot(slot, copy);
     for (; i < dart.notNull(length); i++) {
-      dart.dsetindex(copy, i, this.walk(e[dartx._get](i)));
+      copy[dartx._set](i, this.walk(e[dartx._get](i)));
     }
     return copy;
   }
@@ -99217,7 +99220,7 @@ dart.setSignature(html_common._StructuredClone, {
     writeSlot: dart.definiteFunctionType(dart.dynamic, [core.int, dart.dynamic]),
     cleanupSlots: dart.definiteFunctionType(dart.dynamic, []),
     walk: dart.definiteFunctionType(dart.dynamic, [dart.dynamic]),
-    copyList: dart.definiteFunctionType(dart.dynamic, [core.List, core.int]),
+    copyList: dart.definiteFunctionType(core.List, [core.List, core.int]),
     convertDartToNative_PrepareForStructuredClone: dart.definiteFunctionType(dart.dynamic, [dart.dynamic])
   })
 });
@@ -99266,14 +99269,15 @@ html_common._AcceptStructuredClone = class _AcceptStructuredClone extends core.O
       return copy;
     }
     if (dart.test(html_common.isJavaScriptArray(e))) {
-      let slot = this.findSlot(e);
+      let l = e;
+      let slot = this.findSlot(l);
       let copy = this.readSlot(slot);
       if (copy != null) return copy;
-      let length = core.int._check(dart.dload(e, 'length'));
-      copy = dart.test(this.mustCopy) ? this.newDartList(length) : e;
+      let length = l[dartx.length];
+      copy = dart.test(this.mustCopy) ? this.newDartList(length) : l;
       this.writeSlot(slot, copy);
       for (let i = 0; i < dart.notNull(length); i++) {
-        dart.dsetindex(copy, i, this.walk(dart.dindex(e, i)));
+        copy[dartx._set](i, this.walk(l[dartx._get](i)));
       }
       return copy;
     }
@@ -99434,7 +99438,7 @@ dart.setSignature(html_common._StructuredCloneDart2Js, {
   methods: () => ({
     newJsMap: dart.definiteFunctionType(dart.dynamic, []),
     putIntoMap: dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]),
-    newJsList: dart.definiteFunctionType(dart.dynamic, [dart.dynamic]),
+    newJsList: dart.definiteFunctionType(core.List, [dart.dynamic]),
     cloneNotRequired: dart.definiteFunctionType(core.bool, [dart.dynamic])
   })
 });
@@ -99459,10 +99463,10 @@ html_common._AcceptStructuredCloneDart2Js = class _AcceptStructuredCloneDart2Js 
 };
 dart.setSignature(html_common._AcceptStructuredCloneDart2Js, {
   methods: () => ({
-    newJsList: dart.definiteFunctionType(dart.dynamic, [dart.dynamic]),
-    newDartList: dart.definiteFunctionType(dart.dynamic, [dart.dynamic]),
+    newJsList: dart.definiteFunctionType(core.List, [dart.dynamic]),
+    newDartList: dart.definiteFunctionType(core.List, [dart.dynamic]),
     identicalInJs: dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic]),
-    forEachJsField: dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic])
+    forEachJsField: dart.definiteFunctionType(dart.void, [dart.dynamic, dynamicAnddynamicTodynamic()])
   })
 });
 html_common.isJavaScriptDate = function(value) {

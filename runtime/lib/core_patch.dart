@@ -10,9 +10,6 @@ import "dart:math";
 import "dart:typed_data";
 import 'dart:_internal' as internal;
 
-// Equivalent of calling FATAL from C++ code.
-_fatal(msg) native "DartCore_fatal";
-
 // The members of this class are cloned and added to each class that
 // represents an enum type.
 class _EnumHelper {

@@ -37,7 +37,7 @@ import '../elements/modelx.dart'
         TypedefElementX;
 import '../enqueue.dart';
 import '../options.dart';
-import '../tokens/token.dart'
+import 'package:front_end/src/fasta/scanner.dart'
     show
         isBinaryOperator,
         isMinusOperator,
@@ -47,7 +47,7 @@ import '../tokens/token.dart'
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/feature.dart' show Feature;
-import '../universe/use.dart' show StaticUse, TypeUse;
+import '../universe/use.dart' show StaticUse;
 import '../universe/world_impact.dart' show WorldImpact;
 import '../util/util.dart' show Link, Setlet;
 import '../world.dart';
@@ -518,7 +518,6 @@ class ResolverTask extends CompilerTask {
       ResolvedAst resolvedAst = factory.resolvedAst;
       assert(invariant(node, resolvedAst != null,
           message: 'No ResolvedAst for $factory.'));
-      FunctionExpression functionNode = resolvedAst.node;
       RedirectingFactoryBody redirectionNode = resolvedAst.body;
       ResolutionDartType factoryType =
           resolvedAst.elements.getType(redirectionNode);
@@ -1083,8 +1082,8 @@ class ResolverTask extends CompilerTask {
               switch (constant.kind) {
                 case ConstantExpressionKind.CONSTRUCTED:
                   ConstructedConstantExpression constructedConstant = constant;
-                  if (constructedConstant.type.isGeneric &&
-                      !constructedConstant.type.isRaw) {
+                  ResolutionInterfaceType type = constructedConstant.type;
+                  if (type.isGeneric && !type.isRaw) {
                     // Const constructor calls cannot have type arguments.
                     // TODO(24312): Remove this.
                     reporter.reportErrorMessage(
@@ -1092,7 +1091,7 @@ class ResolverTask extends CompilerTask {
                     constant = new ErroneousConstantExpression();
                   }
                   break;
-                case ConstantExpressionKind.VARIABLE:
+                case ConstantExpressionKind.FIELD:
                 case ConstantExpressionKind.ERRONEOUS:
                   break;
                 default:

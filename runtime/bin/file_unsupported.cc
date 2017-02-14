@@ -108,6 +108,24 @@ void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_LastAccessed)(Dart_NativeArguments args) {
+  Dart_ThrowException(
+      DartUtils::NewInternalError("File is not supported on this platform"));
+}
+
+
+void FUNCTION_NAME(File_SetLastModified)(Dart_NativeArguments args) {
+  Dart_ThrowException(
+      DartUtils::NewInternalError("File is not supported on this platform"));
+}
+
+
+void FUNCTION_NAME(File_SetLastAccessed)(Dart_NativeArguments args) {
+  Dart_ThrowException(
+      DartUtils::NewInternalError("File is not supported on this platform"));
+}
+
+
 void FUNCTION_NAME(File_Flush)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("File is not supported on this platform"));

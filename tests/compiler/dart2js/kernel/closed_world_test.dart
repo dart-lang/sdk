@@ -92,7 +92,6 @@ main(List<String> args) {
         const TreeShakingEnqueuerStrategy(),
         compiler.globalDependencies,
         backend,
-        compiler.cacheStrategy,
         'enqueuer from kernel');
     // TODO(johnniwinther): Store backend info separately. This replacement is
     // made to reset a field in [TypeVariableHandler] that prevents it from

@@ -138,8 +138,7 @@ class RecordingSourceMapper implements SourceMapper {
 
 /// A wrapper of [SourceInformationProcessor] that records source locations and
 /// code positions.
-class RecordingSourceInformationProcessor
-    implements SourceInformationProcessor {
+class RecordingSourceInformationProcessor extends SourceInformationProcessor {
   final RecordingSourceInformationStrategy wrapper;
   final SourceInformationProcessor processor;
   final CodePositionRecorder codePositions;

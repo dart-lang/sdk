@@ -40,7 +40,7 @@ A f(var p) {
     return null;
   }
 }''';
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(source);
+    CompilationUnit unit = parseCompilationUnit(source);
     List<AstNode> nodes = new List<AstNode>();
     BreadthFirstVisitor<Object> visitor =
         new _BreadthFirstVisitorTestHelper(nodes);

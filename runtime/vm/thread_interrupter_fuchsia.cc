@@ -11,6 +11,10 @@
 
 namespace dart {
 
+bool ThreadInterrupter::IsDebuggerAttached() {
+  return false;
+}
+
 void ThreadInterrupter::InterruptThread(OSThread* thread) {
   UNIMPLEMENTED();
 }

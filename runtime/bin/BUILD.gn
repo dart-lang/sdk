@@ -297,6 +297,10 @@ executable("gen_snapshot") {
 
   include_dirs = [ ".." ]
 
+  if (dart_use_tcmalloc) {
+    deps += [ "//third_party/tcmalloc" ]
+  }
+
   if (is_mac) {
     libs = [
       "CoreFoundation.framework",
@@ -574,11 +578,14 @@ template("dart_executable") {
 
     if (dart_use_tcmalloc) {
       deps += [ "//third_party/tcmalloc" ]
-      defines += [ "DART_USE_TCMALLOC" ]
     }
 
     sources = [
+                "error_exit.cc",
+                "error_exit.h",
                 "main.cc",
+                "snapshot_utils.cc",
+                "snapshot_utils.h",
                 "vmservice_impl.cc",
                 "vmservice_impl.h",
                 "$target_gen_dir/resources_gen.cc",

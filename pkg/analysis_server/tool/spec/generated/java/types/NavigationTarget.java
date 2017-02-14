@@ -54,12 +54,12 @@ public class NavigationTarget {
   private final int fileIndex;
 
   /**
-   * The offset of the region from which the user can navigate.
+   * The offset of the region to which the user can navigate.
    */
   private final int offset;
 
   /**
-   * The length of the region from which the user can navigate.
+   * The length of the region to which the user can navigate.
    */
   private final int length;
 
@@ -143,14 +143,14 @@ public class NavigationTarget {
   }
 
   /**
-   * The length of the region from which the user can navigate.
+   * The length of the region to which the user can navigate.
    */
   public int getLength() {
     return length;
   }
 
   /**
-   * The offset of the region from which the user can navigate.
+   * The offset of the region to which the user can navigate.
    */
   public int getOffset() {
     return offset;

@@ -719,7 +719,6 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
         .test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment();
   }
 
-  @override
   LibraryElementImpl _checkSource(
       SummaryResynthesizer resynthesizer, Source source) {
     LibraryElementImpl resynthesized =
@@ -883,7 +882,7 @@ abstract class _AstResynthesizeTestMixin
   }
 
   void _serializeLibrary(Source librarySource) {
-    if (librarySource.isInSystemLibrary) {
+    if (librarySource == null || librarySource.isInSystemLibrary) {
       return;
     }
     if (!serializedSources.add(librarySource)) {

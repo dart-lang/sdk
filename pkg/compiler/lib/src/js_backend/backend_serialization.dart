@@ -5,8 +5,9 @@
 library js_backend.serialization;
 
 import '../common/backend_api.dart' show BackendSerialization;
-import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../native/native.dart';
 import '../serialization/keys.dart';
@@ -156,12 +157,12 @@ class NativeBehaviorSerialization {
   static const int SPECIAL_TYPE = 2;
 
   static int getTypeKind(var type) {
-    if (type is ResolutionDartType) {
+    if (type is DartType) {
       // TODO(johnniwinther): Remove this when annotation are no longer resolved
       // to this-types.
-      if (type is GenericType &&
-          type.isGeneric &&
-          type == type.element.thisType) {
+      if (type is InterfaceType &&
+          type.typeArguments.isNotEmpty &&
+          type.typeArguments.first is TypeVariableType) {
         return THIS_TYPE;
       }
       return NORMAL_TYPE;

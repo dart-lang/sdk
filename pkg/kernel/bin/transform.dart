@@ -15,6 +15,7 @@ import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/transformations/closure_conversion.dart' as closures;
 import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
 
+import 'util.dart';
 import 'batch_util.dart';
 
 ArgParser parser = new ArgParser()
@@ -29,6 +30,10 @@ ArgParser parser = new ArgParser()
       negatable: false,
       help: 'Be verbose (e.g. prints transformed main library).',
       defaultsTo: false)
+  ..addOption('embedder-entry-points-manifest',
+      allowMultiple: true,
+      help: 'A path to a file describing entrypoints '
+          '(lines of the form `<library>,<class>,<member>`).')
   ..addOption('transformation',
       abbr: 't',
       help: 'The transformation to apply.',
@@ -62,6 +67,11 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     output = '${input.substring(0, input.lastIndexOf('.'))}.transformed.dill';
   }
 
+  List<String> embedderEntryPointManifests =
+      options['embedder-entry-points-manifest'] as List<String>;
+  List<treeshaker.ProgramRoot> programRoots =
+      parseProgramRoots(embedderEntryPointManifests);
+
   var program = loadProgramFromBinary(input);
   switch (options['transformation']) {
     case 'continuation':
@@ -77,7 +87,8 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       program = closures.transformProgram(program);
       break;
     case 'treeshake':
-      program = treeshaker.transformProgram(program);
+      program =
+          treeshaker.transformProgram(program, programRoots: programRoots);
       break;
     default:
       throw 'Unknown transformation';

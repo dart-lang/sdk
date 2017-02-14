@@ -745,7 +745,8 @@ void main() {
     JavaScriptBackend backend = compiler.backend;
     BackendHelpers helpers = backend.helpers;
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    helpers.interceptorsLibrary.forEachLocalMember((element) {
+    LibraryElement interceptorsLibrary = helpers.interceptorsLibrary;
+    interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
         element.ensureResolved(compiler.resolution);
         impactBuilder

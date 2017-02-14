@@ -476,6 +476,9 @@ class _ConstExprBuilder {
           Expression expression = _pop();
           _push(AstTestFactory.awaitExpression(expression));
           break;
+        case UnlinkedExprOperation.pushSuper:
+          _push(AstTestFactory.superExpression());
+          break;
         case UnlinkedExprOperation.pushThis:
           _push(AstTestFactory.thisExpression());
           break;
@@ -1191,6 +1194,11 @@ class _ReferenceInfo {
   final String name;
 
   /**
+   * Is `true` if the [element] can be used as a declared type.
+   */
+  final bool isDeclarableType;
+
+  /**
    * The element referred to by this reference, or `null` if there is no
    * associated element (e.g. because it is a reference to an undefined
    * entity).
@@ -1218,8 +1226,14 @@ class _ReferenceInfo {
    * the type itself.  Otherwise, pass `null` and the type will be computed
    * when appropriate.
    */
-  _ReferenceInfo(this.libraryResynthesizer, this.enclosing, this.name,
-      this.element, DartType specialType, this.numTypeParameters) {
+  _ReferenceInfo(
+      this.libraryResynthesizer,
+      this.enclosing,
+      this.name,
+      this.isDeclarableType,
+      this.element,
+      DartType specialType,
+      this.numTypeParameters) {
     if (specialType != null) {
       type = specialType;
     } else {
@@ -1248,9 +1262,7 @@ class _ReferenceInfo {
             : _buildType(instantiateToBoundsAllowed, numTypeArguments,
                 getTypeArgument, implicitFunctionTypeIndices);
     if (result == null) {
-      // TODO(paulberry): figure out how to handle this case (which should
-      // only occur in the event of erroneous code).
-      throw new UnimplementedError();
+      return DynamicTypeImpl.instance;
     }
     return result;
   }
@@ -1277,22 +1289,20 @@ class _ReferenceInfo {
       if (numTypeParameters == 0) {
         return element.type;
       } else if (numTypeArguments == numTypeParameters) {
-        typeArguments = new List<DartType>(numTypeParameters);
-        for (int i = 0; i < numTypeParameters; i++) {
-          typeArguments[i] = getTypeArgument(i);
-        }
+        typeArguments = _buildTypeArguments(numTypeArguments, getTypeArgument);
       }
       InterfaceTypeImpl type =
           new InterfaceTypeImpl.elementWithNameAndArgs(element, name, () {
         if (typeArguments == null) {
-          typeArguments = new List<DartType>.filled(
-              element.typeParameters.length, DynamicTypeImpl.instance);
           if (libraryResynthesizer.summaryResynthesizer.strongMode &&
               instantiateToBoundsAllowed) {
             InterfaceType instantiatedToBounds = libraryResynthesizer
                 .summaryResynthesizer.context.typeSystem
                 .instantiateToBounds(element.type) as InterfaceType;
             return instantiatedToBounds.typeArguments;
+          } else {
+            return new List<DartType>.filled(
+                numTypeParameters, DynamicTypeImpl.instance);
           }
         }
         return typeArguments;
@@ -1305,33 +1315,45 @@ class _ReferenceInfo {
       // Done.
       return type;
     } else if (element is FunctionTypedElement) {
-      int numTypeArguments;
-      FunctionTypedElementComputer computer;
-      if (implicitFunctionTypeIndices.isNotEmpty) {
-        numTypeArguments = numTypeParameters;
-        computer = () {
-          FunctionTypedElement element = this.element;
-          for (int index in implicitFunctionTypeIndices) {
-            element = element.parameters[index].type.element;
-          }
-          return element;
-        };
-      } else if (element is FunctionTypeAliasElementHandle) {
+      if (element is FunctionTypeAliasElementHandle) {
+        List<DartType> typeArguments;
+        if (numTypeArguments == numTypeParameters) {
+          typeArguments =
+              _buildTypeArguments(numTypeArguments, getTypeArgument);
+        } else if (libraryResynthesizer.summaryResynthesizer.strongMode &&
+            instantiateToBoundsAllowed) {
+          FunctionType instantiatedToBounds = libraryResynthesizer
+              .summaryResynthesizer.context.typeSystem
+              .instantiateToBounds(element.type) as FunctionType;
+          typeArguments = instantiatedToBounds.typeArguments;
+        } else {
+          typeArguments = new List<DartType>.filled(
+              numTypeParameters, DynamicTypeImpl.instance);
+        }
         return new FunctionTypeImpl.elementWithNameAndArgs(
-            element,
-            name,
-            _buildTypeArguments(numTypeParameters, getTypeArgument),
-            numTypeParameters != 0);
+            element, name, typeArguments, numTypeParameters != 0);
       } else {
-        // For a type that refers to a generic executable, the type arguments are
-        // not supposed to include the arguments to the executable itself.
-        numTypeArguments = enclosing == null ? 0 : enclosing.numTypeParameters;
-        computer = () => this.element as FunctionTypedElement;
+        FunctionTypedElementComputer computer;
+        if (implicitFunctionTypeIndices.isNotEmpty) {
+          numTypeArguments = numTypeParameters;
+          computer = () {
+            FunctionTypedElement element = this.element;
+            for (int index in implicitFunctionTypeIndices) {
+              element = element.parameters[index].type.element;
+            }
+            return element;
+          };
+        } else {
+          // For a type that refers to a generic executable, the type arguments are
+          // not supposed to include the arguments to the executable itself.
+          numTypeArguments = enclosing?.numTypeParameters ?? 0;
+          computer = () => this.element as FunctionTypedElement;
+        }
+        // TODO(paulberry): Is it a bug that we have to pass `false` for
+        // isInstantiated?
+        return new DeferredFunctionTypeImpl(computer, null,
+            _buildTypeArguments(numTypeArguments, getTypeArgument), false);
       }
-      // TODO(paulberry): Is it a bug that we have to pass `false` for
-      // isInstantiated?
-      return new DeferredFunctionTypeImpl(computer, null,
-          _buildTypeArguments(numTypeArguments, getTypeArgument), false);
     } else {
       return null;
     }
@@ -1345,9 +1367,9 @@ class _ReferenceInfo {
       int numTypeArguments, DartType getTypeArgument(int i)) {
     List<DartType> typeArguments = const <DartType>[];
     if (numTypeArguments != 0) {
-      typeArguments = <DartType>[];
+      typeArguments = new List<DartType>(numTypeArguments);
       for (int i = 0; i < numTypeArguments; i++) {
-        typeArguments.add(getTypeArgument(i));
+        typeArguments[i] = getTypeArgument(i);
       }
     }
     return typeArguments;
@@ -1408,10 +1430,13 @@ class _ResynthesizerContext implements ResynthesizerContext {
   @override
   DartType resolveTypeRef(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
-      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
+      {bool defaultVoid: false,
+      bool instantiateToBoundsAllowed: true,
+      bool declaredType: false}) {
     return _unitResynthesizer.buildType(type, typeParameterContext,
         defaultVoid: defaultVoid,
-        instantiateToBoundsAllowed: instantiateToBoundsAllowed);
+        instantiateToBoundsAllowed: instantiateToBoundsAllowed,
+        declaredType: declaredType);
   }
 }
 
@@ -1591,7 +1616,9 @@ class _UnitResynthesizer {
    */
   DartType buildType(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
-      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
+      {bool defaultVoid: false,
+      bool instantiateToBoundsAllowed: true,
+      bool declaredType: false}) {
     if (type == null) {
       if (defaultVoid) {
         return VoidTypeImpl.instance;
@@ -1608,13 +1635,17 @@ class _UnitResynthesizer {
     } else {
       DartType getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
-          return buildType(type.typeArguments[i], typeParameterContext);
+          return buildType(type.typeArguments[i], typeParameterContext,
+              declaredType: declaredType);
         } else {
           return DynamicTypeImpl.instance;
         }
       }
 
       _ReferenceInfo referenceInfo = getReferenceInfo(type.reference);
+      if (declaredType && !referenceInfo.isDeclarableType) {
+        return DynamicTypeImpl.instance;
+      }
       return referenceInfo.buildType(
           instantiateToBoundsAllowed,
           type.typeArguments.length,
@@ -1714,19 +1745,24 @@ class _UnitResynthesizer {
           : null;
       Element element;
       DartType type;
+      bool isDeclarableType = false;
       int numTypeParameters = linkedReference.numTypeParameters;
       if (linkedReference.kind == ReferenceKind.unresolved) {
         type = UndefinedTypeImpl.instance;
         element = null;
+        isDeclarableType = true;
       } else if (name == 'dynamic') {
         type = DynamicTypeImpl.instance;
         element = type.element;
+        isDeclarableType = true;
       } else if (name == 'void') {
         type = VoidTypeImpl.instance;
         element = type.element;
+        isDeclarableType = true;
       } else if (name == '*bottom*') {
         type = BottomTypeImpl.instance;
         element = null;
+        isDeclarableType = true;
       } else {
         List<String> locationComponents;
         if (enclosingInfo != null && enclosingInfo.element is ClassElement) {
@@ -1755,6 +1791,7 @@ class _UnitResynthesizer {
         switch (linkedReference.kind) {
           case ReferenceKind.classOrEnum:
             element = new ClassElementHandle(summaryResynthesizer, location);
+            isDeclarableType = true;
             break;
           case ReferenceKind.constructor:
             assert(location.components.length == 4);
@@ -1781,6 +1818,7 @@ class _UnitResynthesizer {
           case ReferenceKind.typedef:
             element = new FunctionTypeAliasElementHandle(
                 summaryResynthesizer, location);
+            isDeclarableType = true;
             break;
           case ReferenceKind.variable:
             Element enclosingElement = enclosingInfo.element;
@@ -1810,7 +1848,7 @@ class _UnitResynthesizer {
         }
       }
       result = new _ReferenceInfo(libraryResynthesizer, enclosingInfo, name,
-          element, type, numTypeParameters);
+          isDeclarableType, element, type, numTypeParameters);
       referenceInfos[index] = result;
     }
     return result;

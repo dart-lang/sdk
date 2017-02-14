@@ -17,6 +17,7 @@
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/kernel_isolate.h"
+#include "vm/malloc_hooks.h"
 #include "vm/message_handler.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
@@ -91,7 +92,7 @@ static void CheckOffsets() {
   // (compiler) and arm (runtime) to agree.
   CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
-  CHECK_OFFSET(Thread::object_null_offset(), 36);
+  CHECK_OFFSET(Thread::object_null_offset(), 40);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
   CHECK_OFFSET(Isolate::object_store_offset(), 28);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
@@ -101,7 +102,7 @@ static void CheckOffsets() {
   // (compiler) and mips (runtime) to agree.
   CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
-  CHECK_OFFSET(Thread::object_null_offset(), 36);
+  CHECK_OFFSET(Thread::object_null_offset(), 40);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
   CHECK_OFFSET(Isolate::object_store_offset(), 28);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
@@ -111,7 +112,7 @@ static void CheckOffsets() {
   // (compiler) and arm64 (runtime) to agree.
   CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
   CHECK_OFFSET(Thread::stack_limit_offset(), 8);
-  CHECK_OFFSET(Thread::object_null_offset(), 72);
+  CHECK_OFFSET(Thread::object_null_offset(), 80);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 28);
   CHECK_OFFSET(Isolate::object_store_offset(), 56);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 208));
@@ -151,6 +152,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::InitOnce();
   OSThread::InitOnce();
+  MallocHooks::InitOnce();
   if (FLAG_support_timeline) {
     Timeline::InitOnce();
   }
@@ -477,7 +479,7 @@ const char* Dart::Cleanup() {
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", UptimeMillis());
   }
-
+  MallocHooks::TearDown();
   return NULL;
 }
 
@@ -608,15 +610,18 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     I->class_table()->Print();
   }
 
+  bool is_kernel_isolate = false;
 #ifndef DART_PRECOMPILED_RUNTIME
   KernelIsolate::InitCallback(I);
+  is_kernel_isolate = KernelIsolate::IsKernelIsolate(I);
 #endif
   ServiceIsolate::MaybeMakeServiceIsolate(I);
-  if (!ServiceIsolate::IsServiceIsolate(I)) {
+  if (!ServiceIsolate::IsServiceIsolate(I) && !is_kernel_isolate) {
     I->message_handler()->set_should_pause_on_start(
         FLAG_pause_isolates_on_start);
     I->message_handler()->set_should_pause_on_exit(FLAG_pause_isolates_on_exit);
   }
+
   ServiceIsolate::SendIsolateStartupMessage();
   if (FLAG_support_debugger) {
     I->debugger()->NotifyIsolateCreated();

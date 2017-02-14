@@ -8,9 +8,10 @@ import 'dart:collection';
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
+import 'package:analyzer/src/generated/workspace.dart';
 import 'package:path/path.dart';
 
 /**
@@ -125,14 +126,14 @@ class GnPackageUriResolver extends UriResolver {
 
     String sourcePath = context.relative(path, from: _packages[package]);
 
-    return FastUri.parse('package:$package/$sourcePath');
+    return Uri.parse('package:$package/$sourcePath');
   }
 }
 
 /**
  * Information about a Gn workspace.
  */
-class GnWorkspace {
+class GnWorkspace extends Workspace {
   /**
    * The name of the directory that identifies the root of the workspace.
    */
@@ -156,15 +157,27 @@ class GnWorkspace {
 
   GnWorkspace._(this.provider, this.root, this.packages);
 
-  /**
-   * Return a map of package sources.
-   */
+  @override
   Map<String, List<Folder>> get packageMap {
     Map<String, List<Folder>> result = new HashMap<String, List<Folder>>();
     packages.forEach((package, sourceDir) {
       result[package] = [provider.getFolder(sourceDir)];
     });
     return result;
+  }
+
+  @override
+  UriResolver get packageUriResolver => new GnPackageUriResolver(this);
+
+  @override
+  SourceFactory createSourceFactory(DartSdk sdk) {
+    List<UriResolver> resolvers = <UriResolver>[];
+    if (sdk != null) {
+      resolvers.add(new DartUriResolver(sdk));
+    }
+    resolvers.add(packageUriResolver);
+    resolvers.add(new GnFileUriResolver(this));
+    return new SourceFactory(resolvers, null, provider);
   }
 
   /**

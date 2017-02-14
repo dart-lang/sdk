@@ -8,14 +8,17 @@ import '../common.dart';
 import '../elements/elements.dart' show MetadataAnnotation;
 import '../resolution/secret_tree_element.dart'
     show NullTreeElementMixin, StoredTreeElementMixin;
-import '../tokens/precedence_constants.dart' as Precedence show FUNCTION_INFO;
-import '../tokens/token.dart' show BeginGroupToken, Token;
-import '../tokens/token_constants.dart' as Tokens show PLUS_TOKEN;
-import '../util/characters.dart';
+import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
+    show FUNCTION_INFO;
+import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
+import 'package:front_end/src/fasta/scanner/token_constants.dart' as Tokens
+    show PLUS_TOKEN;
+import 'package:front_end/src/fasta/scanner/characters.dart';
 import '../util/util.dart';
 import 'dartstring.dart';
 import 'prettyprint.dart';
 import 'unparser.dart';
+import 'package:front_end/src/fasta/parser.dart' show ErrorKind;
 
 abstract class Visitor<R> {
   const Visitor();
@@ -478,7 +481,7 @@ class ClassNode extends Node {
     if (token == null) {
       token = name.getEndToken();
     }
-    assert(invariant(beginToken, token != null));
+    assert(token != null);
     return token;
   }
 
@@ -3086,17 +3089,19 @@ class IsInterpolationVisitor extends Visitor<bool> {
 class ErrorNode extends Node
     implements FunctionExpression, VariableDefinitions, Typedef {
   final Token token;
-  final String reason;
+  final ErrorKind kind;
+  final Map arguments;
   final Identifier name;
   final NodeList definitions;
 
-  ErrorNode.internal(this.token, this.reason, this.name, this.definitions);
+  ErrorNode.internal(
+      this.token, this.kind, this.arguments, this.name, this.definitions);
 
-  factory ErrorNode(Token token, String reason) {
+  factory ErrorNode(Token token, ErrorKind kind, Map arguments) {
     Identifier name = new Identifier(token);
     NodeList definitions =
         new NodeList(null, const Link<Node>().prepend(name), null, null);
-    return new ErrorNode.internal(token, reason, name, definitions);
+    return new ErrorNode.internal(token, kind, arguments, name, definitions);
   }
 
   Token get beginToken => token;

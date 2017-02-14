@@ -22,7 +22,8 @@ class CheckedModeHelper {
     JavaScriptBackend backend = compiler.backend;
     // TODO(johnniwinther): Refactor this to avoid looking up directly in the
     // js helper library but instead access helpers directly on backend helpers.
-    MethodElement method = backend.helpers.jsHelperLibrary.find(name);
+    LibraryElement jsHelperLibrary = backend.helpers.jsHelperLibrary;
+    MethodElement method = jsHelperLibrary.find(name);
     return new StaticUse.staticInvoke(method, callStructure);
   }
 

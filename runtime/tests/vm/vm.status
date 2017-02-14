@@ -149,7 +149,8 @@ dart/simd128float32_test: Skip # compilers not aware of Simd128
 
 [ $compiler == dart2js ]
 # The source positions do not match with dart2js.
-dart/optimized_stacktrace_test: RuntimeError
+dart/optimized_stacktrace_line_test: RuntimeError
+dart/optimized_stacktrace_line_and_column_test: RuntimeError
 
 # Methods can be missing in dart2js stack traces due to inlining.  Also when
 # minifying they can be renamed, which is issue 7953.
@@ -169,7 +170,11 @@ cc/Int8ListLengthMaxElements: Skip # Issue 23536, uses 1 GB memory.
 cc/FindCodeObject: SkipSlow # Takes more than 8 minutes. Issue 17440
 
 [ $compiler == dart2analyzer ]
-dart/optimized_stacktrace_test: StaticWarning
+dart/optimized_stacktrace_line_test: StaticWarning
+dart/optimized_stacktrace_line_and_column_test: StaticWarning
+
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
 
 [ $compiler == app_jit ]
 dart/snapshot_version_test: Fail,OK # Expects to find script snapshot relative to Dart source.
@@ -187,8 +192,6 @@ cc/Dart2JSCompileAll: SkipSlow  # Timeout.
 cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
 [ $builder_tag == asan && $arch == x64 ]
-cc/Debug_DeleteBreakpoint: Fail # Issue 28348
-
 cc/IsolateReload_ChangeInstanceFormat7: Fail # Issue 28349
 cc/IsolateReload_ClassAdded: Fail # Issue 28349
 cc/IsolateReload_ComplexInheritanceChange: Fail # Issue 28349
@@ -255,14 +258,12 @@ cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 
-[ $runtime == dart_precompiled ]
-# StackTraces in precompilation omit inlined frames.
-dart/inline_stack_frame_test: Pass, RuntimeError
-dart/optimized_stacktrace_test: Pass, RuntimeError
-dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+[ $compiler == app_jit ]
+dart/optimized_stacktrace_line_and_column_test: RuntimeError,OK # app-jit lacks column information
 
-[ $compiler == app_jit || $compiler == precompiler ]
-dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
+[ $runtime == dart_precompiled ]
+dart/optimized_stacktrace_line_and_column_test: RuntimeError,OK # AOT lacks column information
+dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 
 [ $runtime == vm && $mode == product ]
 cc/IsolateSetCheckedMode: Fail,OK  # Expects exact type name.
@@ -295,3 +296,8 @@ cc/UseDartApi: Pass,Crash # Issue 28499
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
+
+[ $arch == simdbc  || $arch == simdbc64 ]
+cc/Debugger_RewindOneFrame_Unoptimized: Skip # Issue 27878
+cc/Debugger_RewindTwoFrames_Unoptimized: Skip # Issue 27878
+cc/Debugger_Rewind_Optimized: Skip # Issue 27878

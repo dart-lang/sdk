@@ -966,7 +966,7 @@ class FragmentEmitter {
     bool isIntercepted = false;
     if (method is InstanceMethod) {
       MethodElement element = method.element;
-      isIntercepted = backend.isInterceptedMethod(element);
+      isIntercepted = backend.interceptorData.isInterceptedMethod(element);
     }
     int requiredParameterCount = 0;
     js.Expression optionalParameterDefaultValues = new js.LiteralNull();

@@ -9,7 +9,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(BitFields) {
+VM_UNIT_TEST_CASE(BitFields) {
   class TestBitFields : public BitField<uword, int32_t, 1, 8> {};
   EXPECT(TestBitFields::is_valid(16));
   EXPECT(!TestBitFields::is_valid(256));

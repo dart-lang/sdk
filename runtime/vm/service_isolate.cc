@@ -102,7 +102,7 @@ Dart_Port ServiceIsolate::origin_ = ILLEGAL_PORT;
 Dart_IsolateCreateCallback ServiceIsolate::create_callback_ = NULL;
 uint8_t* ServiceIsolate::exit_message_ = NULL;
 intptr_t ServiceIsolate::exit_message_length_ = 0;
-Monitor* ServiceIsolate::monitor_ = NULL;
+Monitor* ServiceIsolate::monitor_ = new Monitor();
 bool ServiceIsolate::initializing_ = true;
 bool ServiceIsolate::shutting_down_ = false;
 char* ServiceIsolate::server_address_ = NULL;
@@ -483,9 +483,6 @@ class RunServiceTask : public ThreadPool::Task {
 
 
 void ServiceIsolate::Run() {
-  ASSERT(monitor_ == NULL);
-  monitor_ = new Monitor();
-  ASSERT(monitor_ != NULL);
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
   create_callback_ = Isolate::CreateCallback();

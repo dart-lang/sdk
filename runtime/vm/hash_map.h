@@ -33,6 +33,7 @@ class BaseDirectChainedHashMap : public B {
   }
 
   void Insert(typename KeyValueTrait::Pair kv);
+  bool Remove(typename KeyValueTrait::Key key);
 
   typename KeyValueTrait::Value LookupValue(
       typename KeyValueTrait::Key key) const;
@@ -305,6 +306,68 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
            KeyValueTrait::ValueOf(lists_[array_[pos].next].kv) != kNoValue);
     array_[pos].next = new_element_pos;
   }
+}
+
+
+template <typename KeyValueTrait, typename B, typename Allocator>
+bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
+    typename KeyValueTrait::Key key) {
+  uword pos = Bound(static_cast<uword>(KeyValueTrait::Hashcode(key)));
+
+  // Check to see if the first element in the bucket is the one we want to
+  // remove.
+  if (KeyValueTrait::KeyOf(array_[pos].kv) == key) {
+    if (array_[pos].next == kNil) {
+      array_[pos] = HashMapListElement();
+    } else {
+      intptr_t next = array_[pos].next;
+      array_[pos] = lists_[next];
+      lists_[next] = HashMapListElement();
+      lists_[next].next = free_list_head_;
+      free_list_head_ = next;
+    }
+    count_--;
+    return true;
+  }
+
+  intptr_t current = array_[pos].next;
+
+  // If there's only the single element in the bucket and it does not match the
+  // key to be removed, just return.
+  if (current == kNil) {
+    return false;
+  }
+
+  // Check the case where the second element in the bucket is the one to be
+  // removed.
+  if (KeyValueTrait::KeyOf(lists_[current].kv) == key) {
+    array_[pos].next = lists_[current].next;
+    lists_[current] = HashMapListElement();
+    lists_[current].next = free_list_head_;
+    free_list_head_ = current;
+    count_--;
+    return true;
+  }
+
+  // Finally, iterate through the rest of the bucket to see if we can find the
+  // entry that matches our key.
+  intptr_t previous;
+  while (KeyValueTrait::KeyOf(lists_[current].kv) != key) {
+    previous = current;
+    current = lists_[current].next;
+
+    if (current == kNil) {
+      // Could not find entry with provided key to remove.
+      return false;
+    }
+  }
+
+  lists_[previous].next = lists_[current].next;
+  lists_[current] = HashMapListElement();
+  lists_[current].next = free_list_head_;
+  free_list_head_ = current;
+  count_--;
+  return true;
 }
 
 

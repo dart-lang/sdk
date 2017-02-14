@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•() {}
+  static factory foo() → self::A
+    invalid-statement;
+  method m() → core::int {}
+}
+class C extends self::A {
+  constructor •() → void
+    : super self::A::•() {}
+  static factory bar() → self::D
+    throw "Missing constructor: D";
+  method m() → core::int {
+    return 1;
+  }
+}
+class D extends self::C {
+  constructor •() → void
+    : super self::C::•()
+    ;
+  method m() → core::int {
+    return 2;
+  }
+}
+static method main() → dynamic {
+  self::A a = self::C::bar();
+  exp::Expect::equals(2, a.m(), null);
+}

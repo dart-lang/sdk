@@ -7,31 +7,30 @@ import "package:expect/expect.dart";
 
 class A {
   A();
-  A.circular() = B.circular;  /// 01: compile-time error
-  const A.circular2() = B.circular2;  /// 02: compile-time error
+  factory A.circular() = B.circular;
+  const factory A.circular2() = B.circular2;
 }
-class B {
+class B implements A {
   B();
-  B.circular() = C.circular;  /// 01: continued
-  const B.circular2() = C.circular2;  /// 02: continued
+  factory B.circular() = C.circular;
+  const factory B.circular2() = C.circular2;
 }
-class C {
-  C();
-  C.circular() = A.circular;  /// 01: continued
-  const C.circular2() = A.circular2;  /// 02: continued
+class C implements B {
+  const C();
+  factory C.circular()
+  /* /// 01: compile-time error
+     = C;
+  */ = A.circular; /// 01: continued
+
+  const factory C.circular2()
+  /* /// 02: compile-time error
+     = C;
+  */ = A.circular2; /// 02: continued
 }
 
 main() {
   ClassMirror cm = reflectClass(A);
 
-  new A.circular();  /// 01: continued
-  new A.circular2();  /// 02: continued
-
-  Expect.throws(() => cm.newInstance(#circular, []),
-                (e) => e is NoSuchMethodError,
-                'Should disallow circular redirection (non-const)');
-
-  Expect.throws(() => cm.newInstance(#circular2, []),
-                (e) => e is NoSuchMethodError,
-                'Should disallow circular redirection (const)');
+  new A.circular();
+  new A.circular2();
 }

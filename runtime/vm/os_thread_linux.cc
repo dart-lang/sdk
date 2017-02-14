@@ -234,6 +234,26 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 }
 
 
+bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
+  pthread_attr_t attr;
+  if (pthread_getattr_np(pthread_self(), &attr)) {
+    return false;
+  }
+
+  void* base;
+  size_t size;
+  int error = pthread_attr_getstack(&attr, &base, &size);
+  pthread_attr_destroy(&attr);
+  if (error) {
+    return false;
+  }
+
+  *lower = reinterpret_cast<uword>(base);
+  *upper = *lower + size;
+  return true;
+}
+
+
 Mutex::Mutex() {
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);

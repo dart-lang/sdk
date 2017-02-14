@@ -262,7 +262,7 @@ import 'dart:async';
 import '/libA.dart';
 class B { }
 String bar(f()) => true;
-void main() {bar(^);}''');
+void main() {boo(){} bar(^);}''');
     await computeSuggestions();
 
     expect(replacementOffset, completionOffset);
@@ -271,6 +271,45 @@ void main() {bar(^);}''');
     assertSuggestFunction('bar', 'String',
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertSuggestFunction('boo', 'dynamic',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertNotSuggested('hasLength');
+    assertNotSuggested('identical');
+    assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
+    assertNotSuggested('A');
+    assertNotSuggested('Object');
+    assertNotSuggested('main');
+    assertNotSuggested('baz');
+    assertNotSuggested('print');
+  }
+
+  test_ArgumentList_MethodInvocation_functionalArg2() async {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addSource(
+        '/libA.dart',
+        '''
+library A;
+class A { A(f()) { } }
+bool hasLength(int expected) { }
+void baz() { }''');
+    addTestSource('''
+import 'dart:async';
+import '/libA.dart';
+class B { }
+String bar({inc()}) => true;
+void main() {boo(){} bar(inc: ^);}''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
+    assertSuggestFunction('bar', 'String',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION + DART_RELEVANCE_INCREMENT);
+    assertSuggestFunction('boo', 'dynamic',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION + DART_RELEVANCE_INCREMENT);
     assertNotSuggested('hasLength');
     assertNotSuggested('identical');
     assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);

@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method add(dynamic x) → dynamic
+    return x;
+}
+static method main() → dynamic {
+  dynamic a = new self::A::•();
+  function f(dynamic x) → dynamic
+    return x;
+  let final dynamic #t1 = a in let final dynamic #t2 = #t1.add(f).call("WHAT") in #t1;
+}

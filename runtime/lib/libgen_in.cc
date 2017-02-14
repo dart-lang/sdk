@@ -8,6 +8,7 @@
 
 // This file is used to generate the mapping of libraries which have
 // dart:<name> handles to the corresponding files that implement them.
+{{SOURCE_ARRAYS}}
 const char* {{VAR_NAME}}[] = {
 {{LIBRARY_SOURCE_MAP}}
 {{PART_SOURCE_MAP}}

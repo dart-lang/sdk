@@ -1,0 +1,11 @@
+library;
+import self as self;
+
+class A {
+}
+class B {
+}
+class C {
+}
+class D {
+}

@@ -185,7 +185,7 @@ void testCommandRunNotFound() {
   RootCommand cmd = new RootCommand([new TestCommand(out, 'alpha', [])]);
 
   cmd.runCommand('goose').catchError(expectAsync((e) {
-      expect(e, equals('No such command'));
+    expect(e.toString(), equals("No such command: 'goose'"));
   }));
 }
 
@@ -196,7 +196,8 @@ void testCommandRunAmbiguous() {
                                      new TestCommand(out, 'ankle', [])]);
 
   cmd.runCommand('a 55').catchError(expectAsync((e) {
-      expect(e, equals('Ambiguous command'));
+      expect(e.toString(),
+             equals("Command 'a 55' is ambiguous: [alpha, ankle]"));
       out.clear();
       cmd.runCommand('ankl 55').then(expectAsync((_) {
           expect(out.toString(), equals('executing ankle([55])\n'));

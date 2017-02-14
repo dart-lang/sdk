@@ -10,7 +10,7 @@ import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
 import '../elements/elements.dart'
-    show ClassElement, Entity, FieldElement, MethodElement;
+    show ClassElement, FieldElement, MethodElement;
 import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../js/js.dart' as js;
@@ -85,9 +85,13 @@ class SsaOptimizerTask extends CompilerTask {
         // updated because they now have different inputs.
         new SsaTypePropagator(compiler, closedWorld),
         codeMotion = new SsaCodeMotion(),
-        new SsaLoadElimination(compiler, closedWorld),
+        new SsaLoadElimination(backend, compiler, closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
+        // After GVN and load elimination the same value may be used in code
+        // controlled by a test on the value, so redo 'conversion insertion' to
+        // learn from the refined type.
+        new SsaTypeConversionInserter(closedWorld),
         new SsaTypePropagator(compiler, closedWorld),
         new SsaValueRangeAnalyzer(backend.helpers, closedWorld, this),
         // Previous optimizations may have generated new
@@ -142,8 +146,8 @@ bool isFixedLength(mask, ClosedWorld closedWorld) {
     return true;
   }
   // TODO(sra): Recognize any combination of fixed length indexables.
-  if (mask.containsOnly(closedWorld.backendClasses.fixedListImplementation) ||
-      mask.containsOnly(closedWorld.backendClasses.constListImplementation) ||
+  if (mask.containsOnly(closedWorld.backendClasses.fixedListClass) ||
+      mask.containsOnly(closedWorld.backendClasses.constListClass) ||
       mask.containsOnlyString(closedWorld) ||
       closedWorld.commonMasks.isTypedArray(mask)) {
     return true;
@@ -345,7 +349,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
         ListConstantValue constant = constantInput.constant;
         return graph.addConstantInt(constant.length, closedWorld);
       }
-      MemberEntity element = helpers.jsIndexableLength;
       bool isFixed = isFixedLength(actualReceiver.instructionType, closedWorld);
       TypeMask actualType = node.instructionType;
       TypeMask resultType = closedWorld.commonMasks.positiveIntType;
@@ -357,8 +360,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           actualType, helpers.jsUInt32Class, closedWorld)) {
         resultType = closedWorld.commonMasks.uint32Type;
       }
-      HFieldGet result = new HFieldGet(element, actualReceiver, resultType,
-          isAssignable: !isFixed);
+      HGetLength result =
+          new HGetLength(actualReceiver, resultType, isAssignable: !isFixed);
       return result;
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
@@ -865,35 +868,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitFieldGet(HFieldGet node) {
     if (node.isNullCheck) return node;
     var receiver = node.receiver;
-    if (node.element == helpers.jsIndexableLength) {
-      if (graph.allocatedFixedLists.contains(receiver)) {
-        // TODO(ngeoffray): checking if the second input is an integer
-        // should not be necessary but it currently makes it easier for
-        // other optimizations to reason about a fixed length constructor
-        // that we know takes an int.
-        if (receiver.inputs[0].isInteger(closedWorld)) {
-          return receiver.inputs[0];
-        }
-      } else if (receiver.isConstantList() || receiver.isConstantString()) {
-        return graph.addConstantInt(receiver.constant.length, closedWorld);
-      } else {
-        var type = receiver.instructionType;
-        if (type.isContainer && type.length != null) {
-          HInstruction constant =
-              graph.addConstantInt(type.length, closedWorld);
-          if (type.isNullable) {
-            // If the container can be null, we update all uses of the
-            // length access to use the constant instead, but keep the
-            // length access in the graph, to ensure we still have a
-            // null check.
-            node.block.rewrite(node, constant);
-            return node;
-          } else {
-            return constant;
-          }
-        }
-      }
-    }
 
     // HFieldGet of a constructed constant can be replaced with the constant's
     // field.
@@ -909,6 +883,37 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
     }
 
+    return node;
+  }
+
+  HInstruction visitGetLength(HGetLength node) {
+    var receiver = node.receiver;
+    if (graph.allocatedFixedLists.contains(receiver)) {
+      // TODO(ngeoffray): checking if the second input is an integer
+      // should not be necessary but it currently makes it easier for
+      // other optimizations to reason about a fixed length constructor
+      // that we know takes an int.
+      if (receiver.inputs[0].isInteger(closedWorld)) {
+        return receiver.inputs[0];
+      }
+    } else if (receiver.isConstantList() || receiver.isConstantString()) {
+      return graph.addConstantInt(receiver.constant.length, closedWorld);
+    } else {
+      var type = receiver.instructionType;
+      if (type.isContainer && type.length != null) {
+        HInstruction constant = graph.addConstantInt(type.length, closedWorld);
+        if (type.isNullable) {
+          // If the container can be null, we update all uses of the
+          // length access to use the constant instead, but keep the
+          // length access in the graph, to ensure we still have a
+          // null check.
+          node.block.rewrite(node, constant);
+          return node;
+        } else {
+          return constant;
+        }
+      }
+    }
     return node;
   }
 
@@ -1344,8 +1349,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
   HBoundsCheck insertBoundsCheck(
       HInstruction indexNode, HInstruction array, HInstruction indexArgument) {
-    HFieldGet length = new HFieldGet(helpers.jsIndexableLength, array,
-        closedWorld.commonMasks.positiveIntType,
+    HGetLength length = new HGetLength(
+        array, closedWorld.commonMasks.positiveIntType,
         isAssignable: !isFixedLength(array.instructionType, closedWorld));
     indexNode.block.addBefore(indexNode, length);
 
@@ -2241,13 +2246,14 @@ class SsaTypeConversionInserter extends HBaseVisitor
  * location.
  */
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
+  final JavaScriptBackend backend;
   final Compiler compiler;
   final ClosedWorld closedWorld;
   final String name = "SsaLoadElimination";
   MemorySet memorySet;
   List<MemorySet> memories;
 
-  SsaLoadElimination(this.compiler, this.closedWorld);
+  SsaLoadElimination(this.backend, this.compiler, this.closedWorld);
 
   void visitGraph(HGraph graph) {
     memories = new List<MemorySet>(graph.blocks.length);
@@ -2302,8 +2308,18 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
 
   void visitFieldGet(HFieldGet instruction) {
     if (instruction.isNullCheck) return;
-    MemberEntity element = instruction.element;
+    FieldEntity element = instruction.element;
     HInstruction receiver = instruction.getDartReceiver(closedWorld).nonCheck();
+    _visitFieldGet(element, receiver, instruction);
+  }
+
+  void visitGetLength(HGetLength instruction) {
+    _visitFieldGet(backend.helpers.jsIndexableLength,
+        instruction.receiver.nonCheck(), instruction);
+  }
+
+  void _visitFieldGet(
+      MemberEntity element, HInstruction receiver, HInstruction instruction) {
     HInstruction existing = memorySet.lookupFieldValue(element, receiver);
     if (existing != null) {
       instruction.block.rewriteWithBetterUser(instruction, existing);
@@ -2460,6 +2476,10 @@ class MemorySet {
   /**
    * Maps a field to a map of receiver to value.
    */
+  // The key is [MemberEntity] rather than [FieldEntity] so that HGetLength can
+  // be modeled as the JSIndexable.length abstract getter.
+  // TODO(25544): Split length effects from other effects and model lengths
+  // separately.
   final Map<MemberEntity, Map<HInstruction, HInstruction>> fieldValues =
       <MemberEntity, Map<HInstruction, HInstruction>>{};
 

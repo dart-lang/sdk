@@ -189,7 +189,11 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 
 
 intptr_t OS::ActivationFrameAlignment() {
-#ifdef _WIN64
+#if defined(TARGET_ARCH_ARM64)
+  return 16;
+#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+  return 8;
+#elif defined(_WIN64)
   // Windows 64-bit ABI requires the stack to be 16-byte aligned.
   return 16;
 #else
@@ -201,7 +205,14 @@ intptr_t OS::ActivationFrameAlignment() {
 
 intptr_t OS::PreferredCodeAlignment() {
   ASSERT(32 <= OS::kMaxPreferredCodeAlignment);
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
   return 32;
+#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+  return 16;
+#else
+#error Unsupported architecture.
+#endif
 }
 
 

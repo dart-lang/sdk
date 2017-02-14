@@ -16,31 +16,40 @@ from optparse import OptionParser
 HOST_OS = utils.GuessOS()
 
 
-def makeString(input_file):
-  # TODO(iposva): For now avoid creating overly long strings on Windows.
-  if HOST_OS == 'win32':
-    return 'NULL'
-  result = '"'
+def makeString(input_file, var_name):
+  result = 'static const char ' + var_name + '[] = {\n '
   fileHandle = open(input_file, 'rb')
   lineCounter = 0
   for byte in fileHandle.read():
-    result += '\\x%02x' % ord(byte)
+    result += '\'\\x%02x' % ord(byte) + '\', '
     lineCounter += 1
     if lineCounter == 19:
-      result += '"\n "'
+      result += '\n '
       lineCounter = 0
-  result += '"'
+  result += '0};\n'
   return result
 
+def makeSourceArrays(in_files):
+  result = '';
+  file_count = 0;
+  for string_file in in_files:
+    if string_file.endswith('.dart'):
+      file_count += 1
+      file_string = makeString(string_file, "source_array_" + str(file_count))
+      result += file_string
+  return result
 
 def makeFile(output_file, input_cc_file, include, var_name, lib_name, in_files):
   part_index = [ ]
   bootstrap_cc_text = open(input_cc_file).read()
+  bootstrap_cc_text = bootstrap_cc_text.replace("{{SOURCE_ARRAYS}}", makeSourceArrays(in_files))
   bootstrap_cc_text = bootstrap_cc_text.replace("{{INCLUDE}}", include)
   bootstrap_cc_text = bootstrap_cc_text.replace("{{VAR_NAME}}", var_name)
   main_file_found = False
+  file_count = 0
   for string_file in in_files:
     if string_file.endswith('.dart'):
+      file_count += 1
       if (not main_file_found):
         inpt = open(string_file, 'r')
         for line in inpt:
@@ -51,7 +60,7 @@ def makeFile(output_file, input_cc_file, include, var_name, lib_name, in_files):
                  "{{LIBRARY_SOURCE_MAP}}",
                  ' "' + lib_name + '",\n "' +
                  os.path.abspath(string_file).replace('\\', '\\\\') + '",\n' +
-                 ' ' + makeString(string_file) + ',\n')
+                 ' source_array_' + str(file_count) + ',\n')
         inpt.close()
         if (main_file_found):
           continue
@@ -59,13 +68,12 @@ def makeFile(output_file, input_cc_file, include, var_name, lib_name, in_files):
           os.path.basename(string_file).replace('\\', '\\\\') + '",\n')
       part_index.append(' "' +
           os.path.abspath(string_file).replace('\\', '\\\\') + '",\n')
-      part_index.append(' ' + makeString(string_file) + ',\n\n')
+      part_index.append(' source_array_' + str(file_count) + ',\n\n')
   bootstrap_cc_text = bootstrap_cc_text.replace("{{LIBRARY_SOURCE_MAP}}", '')
   bootstrap_cc_text = bootstrap_cc_text.replace("{{PART_SOURCE_MAP}}",
                                                 ''.join(part_index))
   open(output_file, 'w').write(bootstrap_cc_text)
   return True
-
 
 def main(args):
   try:

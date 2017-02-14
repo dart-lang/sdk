@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class M1 extends core::Object {
+  constructor •() → void
+    ;
+  method m() → dynamic
+    ;
+}
+abstract class M2 extends core::Object {
+  constructor •() → void
+    ;
+  method m() → dynamic
+    ;
+}
+class C extends self::Object&M1&M2 {
+  constructor •() → void
+    ;
+}
+abstract class Object&M1 = core::Object with self::M1 {
+}
+abstract class Object&M1&M2 = self::Object&M1 with self::M2 {
+}
+static method main() → dynamic
+  ;

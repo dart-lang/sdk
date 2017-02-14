@@ -26,7 +26,6 @@ import 'package:analyzer/src/summary/summarize_ast.dart'
     show serializeAstUnlinked;
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
@@ -241,7 +240,7 @@ class PubSummaryManager {
       String pathInLib = path.substring(libPath.length);
       String uriPath = pathos.posix.joinAll(pathContext.split(pathInLib));
       String uriStr = 'package:${package.name}/$uriPath';
-      return FastUri.parse(uriStr);
+      return Uri.parse(uriStr);
     }
 
     /**
@@ -689,7 +688,7 @@ class _LinkNode {
       Set<_LinkNode> dependencies = new Set<_LinkNode>();
 
       void appendDependency(String uriStr) {
-        Uri uri = FastUri.parse(uriStr);
+        Uri uri = Uri.parse(uriStr);
         if (!uri.hasScheme) {
           // A relative path in this package, skip it.
         } else if (uri.scheme == 'dart') {

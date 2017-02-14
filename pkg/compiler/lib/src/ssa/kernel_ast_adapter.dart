@@ -6,18 +6,18 @@ import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
+import '../core_types.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
-import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart';
+import '../kernel/element_adapter.dart';
 import '../kernel/kernel.dart';
 import '../kernel/kernel_debug.dart';
 import '../native/native.dart' as native;
@@ -25,7 +25,6 @@ import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
 import '../types/types.dart';
-import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
 import '../world.dart';
@@ -34,92 +33,10 @@ import 'jump_handler.dart' show SwitchCaseJumpHandler;
 import 'locals_handler.dart';
 import 'types.dart';
 
-/// Interface that translates between Kernel IR nodes and entities.
-abstract class KernelWorldBuilder {
-  /// Returns the [DartType] corresponding to [type].
-  DartType getDartType(ir.DartType type);
-
-  /// Returns the list of [DartType]s corresponding to [types].
-  List<DartType> getDartTypes(List<ir.DartType> types);
-
-  /// Returns the [InterfaceType] corresponding to [type].
-  InterfaceType getInterfaceType(ir.InterfaceType type);
-
-  /// Return the [InterfaceType] corresponding to the [cls] with the given
-  /// [typeArguments].
-  InterfaceType createInterfaceType(
-      ir.Class cls, List<ir.DartType> typeArguments);
-
-  /// Returns the [CallStructure] corresponding to the [arguments].
-  CallStructure getCallStructure(ir.Arguments arguments);
-
-  /// Returns the [Selector] corresponding to the invocation or getter/setter
-  /// access of [node].
-  Selector getSelector(ir.Expression node);
-
-  /// Returns the [FunctionEntity] corresponding to the generative or factory
-  /// constructor [node].
-  FunctionEntity getConstructor(ir.Member node);
-
-  /// Returns the [MemberEntity] corresponding to the member [node].
-  MemberEntity getMember(ir.Member node);
-
-  /// Returns the [FunctionEntity] corresponding to the procedure [node].
-  FunctionEntity getMethod(ir.Procedure node);
-
-  /// Returns the [FieldEntity] corresponding to the field [node].
-  FieldEntity getField(ir.Field node);
-
-  /// Returns the [ClassEntity] corresponding to the class [node].
-  ClassEntity getClass(ir.Class node);
-
-  /// Returns the [Local] corresponding to the [node]. The node must be either
-  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
-  Local getLocalFunction(ir.Node node);
-
-  /// Returns the [Name] corresponding to [name].
-  Name getName(ir.Name name);
-
-  /// Returns `true` is [node] has a `@Native(...)` annotation.
-  bool isNativeClass(ir.Class node);
-
-  /// Return `true` if [node] is the `dart:_foreign_helper` library.
-  bool isForeignLibrary(ir.Library node);
-
-  /// Computes the native behavior for reading the native [field].
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field);
-
-  /// Computes the native behavior for writing to the native [field].
-  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field);
-
-  /// Computes the native behavior for calling [procedure].
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure);
-
-  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
-
-  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
-  /// function.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node);
-
-  /// Computes the [native.NativeBehavior] for a call to the
-  /// [JS_EMBEDDED_GLOBAL] function.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
-      ir.StaticInvocation node);
-
-  /// Compute the kind of foreign helper function called by [node], if any.
-  ForeignKind getForeignKind(ir.StaticInvocation node);
-
-  /// Computes the [InterfaceType] referenced by a call to the
-  /// [JS_INTERCEPTOR_CONSTANT] function, if any.
-  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node);
-}
-
 /// A helper class that abstracts all accesses of the AST from Kernel nodes.
 ///
 /// The goal is to remove all need for the AST from the Kernel SSA builder.
-class KernelAstAdapter implements KernelWorldBuilder {
+class KernelAstAdapter extends KernelElementAdapterMixin {
   final Kernel kernel;
   final JavaScriptBackend _backend;
   final Map<ir.Node, ast.Node> _nodeToAst;
@@ -140,8 +57,12 @@ class KernelAstAdapter implements KernelWorldBuilder {
   /// constructing the field values). We keep track of this with a stack.
   final List<ResolvedAst> _resolvedAstStack = <ResolvedAst>[];
 
+  final native.BehaviorBuilder nativeBehaviorBuilder;
+
   KernelAstAdapter(this.kernel, this._backend, this._resolvedAst,
-      this._nodeToAst, this._nodeToElement) {
+      this._nodeToAst, this._nodeToElement)
+      : nativeBehaviorBuilder =
+            new native.ResolverBehaviorBuilder(_backend.compiler) {
     KernelJumpTarget.index = 0;
     // TODO(het): Maybe just use all of the kernel maps directly?
     for (FieldElement fieldElement in kernel.fields.keys) {
@@ -164,6 +85,12 @@ class KernelAstAdapter implements KernelWorldBuilder {
     }
     _typeConverter = new DartTypeConverter(this);
   }
+
+  @override
+  CommonElements get commonElements => _compiler.commonElements;
+
+  @override
+  ElementEnvironment get elementEnvironment => _compiler.elementEnvironment;
 
   /// Push the existing resolved AST on the stack and shift the current resolved
   /// AST to the AST that this kernel node points to.
@@ -192,7 +119,8 @@ class KernelAstAdapter implements KernelWorldBuilder {
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     if (kernel.syntheticNodes.contains(node)) {
-      return _backend.constantSystem.createSymbol(_compiler, node.value);
+      return _backend.constantSystem.createSymbol(
+          _compiler.commonElements, _backend.backendClasses, node.value);
     }
     ast.Node astNode = getNode(node);
     ConstantValue constantValue = _backend.constants
@@ -221,7 +149,9 @@ class KernelAstAdapter implements KernelWorldBuilder {
 
   ClassElement getClass(ir.Class node) => getElement(node).declaration;
 
-  LocalFunctionElement getLocalFunction(ir.Node node) => getElement(node);
+  LibraryElement getLibrary(ir.Library node) => getElement(node).declaration;
+
+  LocalFunctionElement getLocalFunction(ir.TreeNode node) => getElement(node);
 
   ast.Node getNode(ir.Node node) {
     ast.Node result = _nodeToAst[node];
@@ -254,72 +184,21 @@ class KernelAstAdapter implements KernelWorldBuilder {
     return !closedWorld.getCannotThrow(function);
   }
 
-  TypeMask returnTypeOf(ir.Member node) {
+  TypeMask returnTypeOf(ir.Procedure node) {
     return TypeMaskFactory.inferredReturnTypeForElement(
-        getElement(node), _globalInferenceResults);
+        getMethod(node), _globalInferenceResults);
   }
 
   SideEffects getSideEffects(ir.Node node, ClosedWorld closedWorld) {
     return closedWorld.getSideEffectsOfElement(getElement(node));
   }
 
-  CallStructure getCallStructure(ir.Arguments arguments) {
-    int argumentCount = arguments.positional.length + arguments.named.length;
-    List<String> namedArguments = arguments.named.map((e) => e.name).toList();
-    return new CallStructure(argumentCount, namedArguments);
-  }
-
   FunctionSignature getFunctionSignature(ir.FunctionNode function) {
     return getElement(function).asFunctionElement().functionSignature;
   }
 
-  Name getName(ir.Name name) {
-    return new Name(
-        name.name, name.isPrivate ? getElement(name.library) : null);
-  }
-
   ir.Field getFieldFromElement(FieldElement field) {
     return kernel.fields[field];
-  }
-
-  Selector getSelector(ir.Expression node) {
-    if (node is ir.PropertyGet) return getGetterSelector(node);
-    if (node is ir.PropertySet) return getSetterSelector(node);
-    if (node is ir.InvocationExpression) return getInvocationSelector(node);
-    _compiler.reporter.internalError(getNode(node),
-        "Can only get the selector for a property get or an invocation.");
-    return null;
-  }
-
-  Selector getInvocationSelector(ir.InvocationExpression invocation) {
-    Name name = getName(invocation.name);
-    SelectorKind kind;
-    if (Elements.isOperatorName(invocation.name.name)) {
-      if (name == Names.INDEX_NAME || name == Names.INDEX_SET_NAME) {
-        kind = SelectorKind.INDEX;
-      } else {
-        kind = SelectorKind.OPERATOR;
-      }
-    } else {
-      kind = SelectorKind.CALL;
-    }
-
-    CallStructure callStructure = getCallStructure(invocation.arguments);
-    return new Selector(kind, name, callStructure);
-  }
-
-  Selector getGetterSelector(ir.PropertyGet getter) {
-    ir.Name irName = getter.name;
-    Name name = new Name(
-        irName.name, irName.isPrivate ? getElement(irName.library) : null);
-    return new Selector.getter(name);
-  }
-
-  Selector getSetterSelector(ir.PropertySet setter) {
-    ir.Name irName = setter.name;
-    Name name = new Name(
-        irName.name, irName.isPrivate ? getElement(irName.library) : null);
-    return new Selector.setter(name);
   }
 
   TypeMask typeOfInvocation(ir.MethodInvocation send, ClosedWorld closedWorld) {
@@ -384,8 +263,8 @@ class KernelAstAdapter implements KernelWorldBuilder {
       return true;
     }
     // TODO(sra): Recognize any combination of fixed length indexables.
-    if (mask.containsOnly(closedWorld.backendClasses.fixedListImplementation) ||
-        mask.containsOnly(closedWorld.backendClasses.constListImplementation) ||
+    if (mask.containsOnly(closedWorld.backendClasses.fixedListClass) ||
+        mask.containsOnly(closedWorld.backendClasses.constListClass) ||
         mask.containsOnlyString(closedWorld) ||
         closedWorld.commonMasks.isTypedArray(mask)) {
       return true;
@@ -440,16 +319,17 @@ class KernelAstAdapter implements KernelWorldBuilder {
 
   ConstantValue getConstantForType(ir.DartType irType) {
     ResolutionDartType type = getDartType(irType);
-    return _backend.constantSystem.createType(_compiler, type.asRaw());
+    return _backend.constantSystem.createType(
+        _compiler.commonElements, _backend.backendClasses, type.asRaw());
   }
 
   bool isIntercepted(ir.Node node) {
     Selector selector = getSelector(node);
-    return _backend.isInterceptedSelector(selector);
+    return _backend.interceptorData.isInterceptedSelector(selector);
   }
 
   bool isInterceptedSelector(Selector selector) {
-    return _backend.isInterceptedSelector(selector);
+    return _backend.interceptorData.isInterceptedSelector(selector);
   }
 
   // Is the member a lazy initialized static or top-level member?
@@ -474,6 +354,9 @@ class KernelAstAdapter implements KernelWorldBuilder {
           makeContinueLabel: isContinueTarget);
     });
   }
+
+  ir.Procedure get createInvocationMirror =>
+      kernel.functions[_backend.helpers.createInvocationMirror];
 
   ir.Class get mapLiteralClass =>
       kernel.classes[_backend.helpers.mapLiteralClass];
@@ -506,7 +389,8 @@ class KernelAstAdapter implements KernelWorldBuilder {
 
   TypeMask get streamIteratorConstructorType =>
       TypeMaskFactory.inferredReturnTypeForElement(
-          _backend.helpers.streamIteratorConstructor, _globalInferenceResults);
+          _backend.helpers.streamIteratorConstructor as FunctionEntity,
+          _globalInferenceResults);
 
   ir.Procedure get fallThroughError =>
       kernel.functions[_backend.helpers.fallThroughError];
@@ -517,8 +401,6 @@ class KernelAstAdapter implements KernelWorldBuilder {
 
   ir.Procedure get mapLiteralUntypedMaker =>
       kernel.functions[_backend.helpers.mapLiteralUntypedMaker];
-
-  MemberElement get jsIndexableLength => _backend.helpers.jsIndexableLength;
 
   ir.Procedure get checkConcurrentModificationError =>
       kernel.functions[_backend.helpers.checkConcurrentModificationError];
@@ -612,7 +494,7 @@ class KernelAstAdapter implements KernelWorldBuilder {
   }
 
   int _extractEnumIndexFromConstantValue(
-      ConstantValue constant, Element classElement) {
+      ConstantValue constant, ClassEntity classElement) {
     if (constant is ConstructedConstantValue) {
       if (constant.type.element == classElement) {
         assert(constant.fields.length == 1);
@@ -691,229 +573,9 @@ class KernelAstAdapter implements KernelWorldBuilder {
         getClass(cls), getDartTypes(typeArguments));
   }
 
-  /// Converts [annotations] into a list of [ConstantExpression]s.
-  List<ConstantExpression> getMetadata(List<ir.Expression> annotations) {
-    List<ConstantExpression> metadata = <ConstantExpression>[];
-    annotations.forEach((ir.Expression node) {
-      ConstantExpression constant = node.accept(new Constantifier(this));
-      if (constant == null) {
-        throw new UnsupportedError(
-            'No constant for ${DebugPrinter.prettyPrint(node)}');
-      }
-      metadata.add(constant);
-    });
-    return metadata;
-  }
-
-  /// Compute the kind of foreign helper function called by [node], if any.
-  ForeignKind getForeignKind(ir.StaticInvocation node) {
-    if (isForeignLibrary(node.target.enclosingLibrary)) {
-      switch (node.target.name.name) {
-        case BackendHelpers.JS:
-          return ForeignKind.JS;
-        case BackendHelpers.JS_BUILTIN:
-          return ForeignKind.JS_BUILTIN;
-        case BackendHelpers.JS_EMBEDDED_GLOBAL:
-          return ForeignKind.JS_EMBEDDED_GLOBAL;
-        case BackendHelpers.JS_INTERCEPTOR_CONSTANT:
-          return ForeignKind.JS_INTERCEPTOR_CONSTANT;
-      }
-    }
-    return ForeignKind.NONE;
-  }
-
-  /// Return `true` if [node] is the `dart:_foreign_helper` library.
-  bool isForeignLibrary(ir.Library node) {
-    return node.importUri == BackendHelpers.DART_FOREIGN_HELPER;
-  }
-
-  /// Looks up [typeName] for use in the spec-string of a `JS` called.
-  // TODO(johnniwinther): Use this in [native.NativeBehavior] instead of calling
-  // the `ForeignResolver`.
-  // TODO(johnniwinther): Cache the result to avoid redundant lookups?
-  native.TypeLookup _typeLookup({bool resolveAsRaw: true}) {
-    return (String typeName) {
-      ResolutionDartType findIn(Uri uri) {
-        LibraryElement library = _compiler.libraryLoader.lookupLibrary(uri);
-        if (library != null) {
-          Element element = library.find(typeName);
-          if (element != null && element.isClass) {
-            ClassElement cls = element;
-            // TODO(johnniwinther): Align semantics.
-            return resolveAsRaw ? cls.rawType : cls.thisType;
-          }
-        }
-        return null;
-      }
-
-      ResolutionDartType type = findIn(Uris.dart_core);
-      type ??= findIn(BackendHelpers.DART_JS_HELPER);
-      type ??= findIn(BackendHelpers.DART_INTERCEPTORS);
-      type ??= findIn(BackendHelpers.DART_ISOLATE_HELPER);
-      type ??= findIn(Uris.dart_collection);
-      type ??= findIn(Uris.dart_html);
-      type ??= findIn(Uris.dart_svg);
-      type ??= findIn(Uris.dart_web_audio);
-      type ??= findIn(Uris.dart_web_gl);
-      return type;
-    };
-  }
-
-  String _getStringArgument(ir.StaticInvocation node, int index) {
-    return node.arguments.positional[index].accept(new Stringifier());
-  }
-
-  /// Computes the [native.NativeBehavior] for a call to the [JS] function.
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
-    if (node.arguments.positional.length < 2 ||
-        node.arguments.named.isNotEmpty) {
-      reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
-      return new native.NativeBehavior();
-    }
-    String specString = _getStringArgument(node, 0);
-    if (specString == null) {
-      reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
-      return new native.NativeBehavior();
-    }
-
-    String codeString = _getStringArgument(node, 1);
-    if (codeString == null) {
-      reporter.reportErrorMessage(
-          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
-      return new native.NativeBehavior();
-    }
-
-    return native.NativeBehavior.ofJsCall(
-        specString,
-        codeString,
-        _typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
-        reporter,
-        _compiler.commonElements);
-  }
-
-  /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]
-  /// function.
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsBuiltinCall(
-      ir.StaticInvocation node) {
-    if (node.arguments.positional.length < 1) {
-      reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
-      return new native.NativeBehavior();
-    }
-    if (node.arguments.positional.length < 2) {
-      reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
-      return new native.NativeBehavior();
-    }
-    String specString = _getStringArgument(node, 0);
-    if (specString == null) {
-      reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return new native.NativeBehavior();
-    }
-    return native.NativeBehavior.ofJsBuiltinCall(
-        specString,
-        _typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
-        reporter,
-        _compiler.commonElements);
-  }
-
-  /// Computes the [native.NativeBehavior] for a call to the
-  /// [JS_EMBEDDED_GLOBAL] function.
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
-      ir.StaticInvocation node) {
-    if (node.arguments.positional.length < 1) {
-      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-          "JS embedded global expression has no type.");
-      return new native.NativeBehavior();
-    }
-    if (node.arguments.positional.length < 2) {
-      reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "JS embedded global is missing name.");
-      return new native.NativeBehavior();
-    }
-    if (node.arguments.positional.length > 2 ||
-        node.arguments.named.isNotEmpty) {
-      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-          "JS embedded global has more than 2 arguments.");
-      return new native.NativeBehavior();
-    }
-    String specString = _getStringArgument(node, 0);
-    if (specString == null) {
-      reporter.internalError(
-          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
-      return new native.NativeBehavior();
-    }
-    return native.NativeBehavior.ofJsEmbeddedGlobalCall(
-        specString,
-        _typeLookup(resolveAsRaw: true),
-        CURRENT_ELEMENT_SPANNABLE,
-        reporter,
-        _compiler.commonElements);
-  }
-
-  /// Computes the [InterfaceType] referenced by a call to the
-  /// [JS_INTERCEPTOR_CONSTANT] function, if any.
-  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
-    if (node.arguments.positional.length != 1 ||
-        node.arguments.named.isNotEmpty) {
-      reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
-          MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
-    }
-    ir.Node argument = node.arguments.positional.first;
-    if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
-      return getInterfaceType(argument.type);
-    }
-    return null;
-  }
-
-  /// Returns `true` is [node] has a `@Native(...)` annotation.
-  // TODO(johnniwinther): Cache this for later use.
-  bool isNativeClass(ir.Class node) {
-    for (ir.Expression annotation in node.annotations) {
-      if (annotation is ir.ConstructorInvocation) {
-        ConstructorElement target = getElement(annotation.target).declaration;
-        if (target.enclosingClass ==
-            _compiler.commonElements.nativeAnnotationClass) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /// Computes the native behavior for reading the native [field].
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
-    ResolutionDartType type = getDartType(field.type);
-    List<ConstantExpression> metadata = getMetadata(field.annotations);
-    return native.NativeBehavior.ofFieldLoad(CURRENT_ELEMENT_SPANNABLE, type,
-        metadata, _typeLookup(resolveAsRaw: false), _compiler,
-        isJsInterop: false);
-  }
-
-  /// Computes the native behavior for writing to the native [field].
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
-    ResolutionDartType type = getDartType(field.type);
-    return native.NativeBehavior.ofFieldStore(type, _compiler.resolution);
-  }
-
-  /// Computes the native behavior for calling [procedure].
-  // TODO(johnniwinther): Cache this for later use.
-  native.NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
-    ResolutionDartType type = getFunctionType(procedure.function);
-    List<ConstantExpression> metadata = getMetadata(procedure.annotations);
-    return native.NativeBehavior.ofMethod(CURRENT_ELEMENT_SPANNABLE, type,
-        metadata, _typeLookup(resolveAsRaw: false), _compiler,
-        isJsInterop: false);
+  @override
+  InterfaceType getThisType(ir.Class cls) {
+    return getClass(cls).thisType;
   }
 
   MemberEntity getConstructorBodyEntity(ir.Constructor constructor) {
@@ -923,15 +585,6 @@ class KernelAstAdapter implements KernelWorldBuilder {
     assert(constructorBody != null);
     return constructorBody;
   }
-}
-
-/// Kinds of foreign functions.
-enum ForeignKind {
-  JS,
-  JS_BUILTIN,
-  JS_EMBEDDED_GLOBAL,
-  JS_INTERCEPTOR_CONSTANT,
-  NONE,
 }
 
 /// Visitor that converts kernel dart types into [ResolutionDartType].
@@ -996,7 +649,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
 
   @override
   ResolutionDartType visitInterfaceType(ir.InterfaceType node) {
-    ClassElement cls = astAdapter.getElement(node.classNode);
+    ClassElement cls = astAdapter.getClass(node.classNode);
     return new ResolutionInterfaceType(cls, visitTypes(node.typeArguments));
   }
 
@@ -1021,94 +674,24 @@ class DartTypeConverter extends ir.DartTypeVisitor<ResolutionDartType> {
   }
 }
 
-/// Visitor that converts string literals and concatenations of string literals
-/// into the string value.
-class Stringifier extends ir.ExpressionVisitor<String> {
-  @override
-  String visitStringLiteral(ir.StringLiteral node) => node.value;
-
-  @override
-  String visitStringConcatenation(ir.StringConcatenation node) {
-    StringBuffer sb = new StringBuffer();
-    for (ir.Expression expression in node.expressions) {
-      String value = expression.accept(this);
-      if (value == null) return null;
-      sb.write(value);
-    }
-    return sb.toString();
-  }
-}
-
-/// Visitor that converts a kernel constant expression into a
-/// [ConstantExpression].
-class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
-  final KernelAstAdapter astAdapter;
-
-  Constantifier(this.astAdapter);
-
-  @override
-  ConstantExpression visitConstructorInvocation(ir.ConstructorInvocation node) {
-    ConstructorElement constructor =
-        astAdapter.getElement(node.target).declaration;
-    List<ResolutionDartType> typeArguments = <ResolutionDartType>[];
-    for (ir.DartType type in node.arguments.types) {
-      typeArguments.add(astAdapter.getDartType(type));
-    }
-    List<ConstantExpression> arguments = <ConstantExpression>[];
-    List<String> argumentNames = <String>[];
-    for (ir.Expression argument in node.arguments.positional) {
-      ConstantExpression constant = argument.accept(this);
-      if (constant == null) return null;
-      arguments.add(constant);
-    }
-    for (ir.NamedExpression argument in node.arguments.named) {
-      argumentNames.add(argument.name);
-      ConstantExpression constant = argument.value.accept(this);
-      if (constant == null) return null;
-      arguments.add(constant);
-    }
-    return new ConstructedConstantExpression(
-        constructor.enclosingClass.thisType.createInstantiation(typeArguments),
-        constructor,
-        new CallStructure(
-            node.arguments.positional.length + argumentNames.length,
-            argumentNames),
-        arguments);
-  }
-
-  @override
-  ConstantExpression visitStaticGet(ir.StaticGet node) {
-    Element element = astAdapter.getMember(node.target);
-    if (element.isField) {
-      return new VariableConstantExpression(element);
-    }
-    astAdapter.reporter.internalError(
-        CURRENT_ELEMENT_SPANNABLE, "Unexpected constant target: $element.");
-    return null;
-  }
-
-  @override
-  ConstantExpression visitStringLiteral(ir.StringLiteral node) {
-    return new StringConstantExpression(node.value);
-  }
-}
-
 class KernelJumpTarget extends JumpTarget {
   static int index = 0;
 
   /// Pointer to the actual executable statements that a jump target refers to.
   /// If this jump target was not initially constructed with a LabeledStatement,
-  /// this value is identical to originalStatement.
-  // TODO(efortuna): In an ideal world the Node should be some common
-  // interface we create for both ir.Statements and ir.SwitchCase (the
-  // ContinueSwitchStatement's target is a SwitchCase) rather than general
-  // Node. Talking to Asger about this.
+  /// this value is identical to originalStatement. This Node is actually of
+  /// type either ir.Statement or ir.SwitchCase.
   ir.Node targetStatement;
 
   /// The original statement used to construct this jump target.
   /// If this jump target was not initially constructed with a LabeledStatement,
-  /// this value is identical to targetStatement.
+  /// this value is identical to targetStatement. This Node is actually of
+  /// type either ir.Statement or ir.SwitchCase.
   ir.Node originalStatement;
+
+  /// Used to provide unique numbers to labels that would otherwise be duplicate
+  /// if one JumpTarget is inside another.
+  int nestingLevel;
 
   @override
   bool isBreakTarget = false;
@@ -1139,6 +722,13 @@ class KernelJumpTarget extends JumpTarget {
           new LabelDefinitionX(null, 'L${index++}', this)..setBreakTarget());
       isBreakTarget = true;
     }
+    var originalNode = adapter.getNode(originalStatement);
+    var originalTarget = adapter.elements.getTargetDefinition(originalNode);
+    if (originalTarget != null) {
+      nestingLevel = originalTarget.nestingLevel;
+    } else {
+      nestingLevel = 0;
+    }
 
     if (makeContinueLabel) {
       labels.add(
@@ -1158,6 +748,9 @@ class KernelJumpTarget extends JumpTarget {
   ExecutableElement get executableContext => null;
 
   @override
+  MemberElement get memberContext => null;
+
+  @override
   bool get isSwitch => targetStatement is ir.SwitchStatement;
 
   @override
@@ -1168,14 +761,6 @@ class KernelJumpTarget extends JumpTarget {
 
   @override
   String get name => 'target';
-
-  // TODO(efortuna): In the original version, this nesting level is specified at
-  // jump target construction time, by the resolver. Because these are
-  // instantiated later, we don't have that information. When we move fully over
-  // to the kernel model, we can pass the nesting level in KernelJumpTarget's
-  // constructor.
-  @override
-  int get nestingLevel => 0;
 
   @override
   ast.Node get statement => null;

@@ -4,7 +4,6 @@
 
 import '../compiler.dart';
 import '../io/source_information.dart';
-import '../js_backend/js_backend.dart';
 import '../tree/tree.dart' as ast;
 
 import 'graph_builder.dart';

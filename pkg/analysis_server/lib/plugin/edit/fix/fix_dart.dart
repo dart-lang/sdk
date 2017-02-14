@@ -13,7 +13,9 @@ import 'package:analysis_server/src/services/correction/namespace.dart'
     show getExportedElement;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart' show LIBRARY_ELEMENT4;
@@ -30,6 +32,11 @@ typedef Future<List<TopLevelDeclarationInSource>> GetTopLevelDeclarations(
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class DartFixContext implements FixContext {
+  /**
+   * The provider for parsed or resolved ASTs.
+   */
+  AstProvider get astProvider;
+
   /**
    * The function to get top-level declarations from.
    */
@@ -65,7 +72,10 @@ abstract class DartFixContributor implements FixContributor {
       return Fix.EMPTY_LIST;
     }
     DartFixContext dartContext = new DartFixContextImpl(
-        context, _getTopLevelDeclarations(analysisContext), unit);
+        context,
+        _getTopLevelDeclarations(analysisContext),
+        new AstProviderForContext(analysisContext),
+        unit);
     return internalComputeFixes(dartContext);
   }
 

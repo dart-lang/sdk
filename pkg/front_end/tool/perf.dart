@@ -6,7 +6,7 @@
 library front_end.tool.perf;
 
 import 'dart:async';
-import 'dart:io' show exit;
+import 'dart:io' show Directory, File, Platform, exit;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
@@ -30,6 +30,7 @@ import 'package:front_end/src/scanner/scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:kernel/kernel.dart' hide Source;
 import 'package:package_config/discovery.dart';
+import 'package:path/path.dart' as path;
 
 main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
@@ -92,6 +93,16 @@ int inputSize = 0;
 /// Factory to load and resolve app, packages, and sdk sources.
 SourceFactory sources;
 
+/// File URI of the root of the SDK source tree.
+final _repoUri = Platform.script.resolve('../../../');
+
+/// Path to the root of the built SDK that is being used to execute this script.
+final _sdkPath = _findSdkPath();
+
+/// File URI to the root of the built SDK that is being used to execute this
+/// script.
+final _sdkUri = new Uri.directory(_sdkPath);
+
 /// Add to [files] all sources reachable from [start].
 void collectSources(Source start, Set<Source> files) {
   if (!files.add(start)) return;
@@ -115,16 +126,12 @@ Future<Program> generateKernel(Uri entryUri,
   var options = new CompilerOptions()
     ..strongMode = false
     ..compileSdk = compileSdk
-    ..packagesFileUri = new Uri.file('.packages')
+    ..packagesFileUri = _repoUri.resolve('.packages')
     ..onError = ((e) => print('${e.message}'));
   if (useSdkSummary) {
-    // TODO(sigmund): adjust path based on the benchmark runner architecture.
-    // Possibly let the runner make the file available at an architecture
-    // independent location.
-    options.sdkSummary =
-        new Uri.file('out/ReleaseX64/dart-sdk/lib/_internal/spec.sum');
+    options.sdkSummary = _sdkUri.resolve('lib/_internal/spec.sum');
   } else {
-    options.sdkRoot = new Uri.file('sdk');
+    options.sdkRoot = _sdkUri;
   }
   Program program = await kernelForProgram(entryUri, options);
   dartkTimer.stop();
@@ -299,7 +306,7 @@ Future setup(Uri entryUri) async {
     new ResourceUriResolver(provider),
     new PackageMapUriResolver(provider, packageMap),
     new DartUriResolver(
-        new FolderBasedDartSdk(provider, provider.getFolder('sdk'))),
+        new FolderBasedDartSdk(provider, provider.getFolder(_sdkPath))),
   ]);
 }
 
@@ -320,6 +327,22 @@ UnlinkedUnitBuilder unlinkedSummarize(Source source) {
   var unlinkedUnit = serializeAstUnlinked(unit);
   unlinkedSummarizeTimer.stop();
   return unlinkedUnit;
+}
+
+String _findSdkPath() {
+  var executable = Platform.resolvedExecutable;
+  var executableDir = path.dirname(executable);
+  for (var candidate in [
+    path.dirname(executableDir),
+    path.join(executableDir, 'dart-sdk')
+  ]) {
+    if (new File(path.join(candidate, 'lib', 'dart_server.platform'))
+        .existsSync()) {
+      return candidate;
+    }
+  }
+  // Not found; guess "sdk" relative to the current directory.
+  return new Directory('sdk').absolute.path;
 }
 
 /// Simple container for a mapping from URI string to an unlinked summary.

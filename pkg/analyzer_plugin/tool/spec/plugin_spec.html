@@ -1,0 +1,2807 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <title>Analysis Server Plugin API Specification</title>
+</head>
+<body>
+<h1>Analysis Server Plugin API Specification</h1>
+<h1 style="color:#999999">Version
+  <version>1.0.0-alpha.0</version>
+</h1>
+<p>
+  This document contains a specification of the API used by the analysis
+  server to communicate with analysis server plugins. Changes to the API will be
+  accompanied by an update to the protocol version number according to the
+  principles of semantic versioning
+  (<a href="http://semver.org/">semver.org</a>).
+</p>
+<h2>Overview</h2>
+<p>
+  TBD
+</p>
+<domain name="plugin">
+  <p>
+    The plugin domain contains API’s related to the execution of a plugin.
+  </p>
+  <p>
+    TODO: Provide notifications by which plugins can report instrumentation
+    and/or DartSilo data.
+  </p>
+  <p>
+    TODO: Add a notification to the server protocol to inform the client of
+    problems related to the execution of plugins.
+  </p>
+  <request method="versionCheck">
+    <p>
+      Used to request that the plugin perform a version check to confirm that it
+      works with the version of the analysis server that is executing it.
+    </p>
+    <params>
+      <field name="byteStorePath">
+        <ref>String</ref>
+        <p>
+          The path to the directory containing the on-disk byte store that is to
+          be used by any analysis drivers that are created.
+        </p>
+      </field>
+      <field name="version">
+        <ref>String</ref>
+        <p>
+          The version number of the plugin spec supported by the analysis server
+          that is executing the plugin.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="isCompatible">
+        <ref>bool</ref>
+        <p>
+          A flag indicating whether the plugin supports the same version of the
+          plugin spec as the analysis server. If the value is <tt>false</tt>,
+          then the plugin is expected to shutdown after returning the response.
+        </p>
+      </field>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the plugin. This value is only used when the server needs
+          to identify the plugin, either to the user or for debugging purposes.
+        </p>
+      </field>
+      <field name="version">
+        <ref>String</ref>
+        <p>
+          The version of the plugin. This value is only used when the server
+          needs to identify the plugin, either to the user or for debugging
+          purposes.
+        </p>
+      </field>
+      <field name="contactInfo" optional="true">
+        <ref>String</ref>
+        <p>
+          Information that the user can use to use to contact the maintainers of
+          the plugin when there is a problem.
+        </p>
+      </field>
+      <field name="interestingFiles">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The glob patterns of the files for which the plugin will provide
+          information. This value is ignored if the <tt>isCompatible</tt>
+          field is <tt>false</tt>. Otherwise, it will be used to identify
+          the files for which the plugin should be notified of changes.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="shutdown">
+    <p>
+      Used to request that the plugin exit. The server will not send any other
+      requests after this request. The plugin should not send any responses or
+      notifications after sending the response to this request.
+    </p>
+  </request>
+  <notification event="error">
+    <p>
+      Used to report that an unexpected error has occurred while executing the
+      plugin. This notification is not used for problems with specific requests
+      (which should be returned as part of the response) but is used for
+      exceptions that occur while performing other tasks, such as analysis or
+      preparing notifications.
+    </p>
+    <params>
+      <field name="isFatal">
+        <ref>bool</ref>
+        <p>
+          A flag indicating whether the error is a fatal error, meaning that the
+          plugin will shutdown automatically after sending this notification. If
+          <tt>true</tt>, the server will not expect any other responses or
+          notifications from the plugin.
+        </p>
+      </field>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          The error message indicating what kind of error was encountered.
+        </p>
+      </field>
+      <field name="stackTrace">
+        <ref>String</ref>
+        <p>
+          The stack trace associated with the generation of the error, used for
+          debugging the plugin.
+        </p>
+      </field>
+    </params>
+  </notification>
+</domain>
+<domain name="analysis">
+  <p>
+    The analysis domain contains API’s related to the analysis of files.
+  </p>
+  <request method="handleWatchEvents">
+    <p>
+      Used to inform the plugin of changes to files in the file system. Only
+      events associated with files that match the <tt>interestingFiles</tt> glob
+      patterns will be forwarded to the plugin.
+    </p>
+    <params>
+      <field name="events">
+        <list>
+          <ref>WatchEvent</ref>
+        </list>
+        <p>
+          The watch events that the plugin should handle.
+        </p>
+      </field>
+    </params>
+  </request>
+  <request method="reanalyze">
+    <p>
+      Used to force the re-analysis of everything contained in the specified
+      context roots. This should cause all previously computed analysis results
+      to be discarded and recomputed, and should cause all subscribed
+      notifications to be re-sent.
+    </p>
+    <params>
+      <field name="roots" optional="true">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          A list of the context roots that are to be re-analyzed.
+        </p>
+        <p>
+          If no context roots are provided, then all current context roots
+          should be re-analyzed.
+        </p>
+      </field>
+    </params>
+  </request>
+  <request method="setContextBuilderOptions">
+    <p>
+      Used to set the options used to build analysis contexts. This request will
+      be sent exactly once before any context roots have been specified.
+    </p>
+    <params>
+      <field name="options">
+        <ref>ContextBuilderOptions</ref>
+        <p>
+          The options used to build the analysis contexts.
+        </p>
+      </field>
+    </params>
+  </request>
+  <request method="setContextRoots">
+    <p>
+      Set the list of context roots that should be analyzed.
+    </p>
+    <params>
+      <field name="roots">
+        <list>
+          <ref>ContextRoot</ref>
+        </list>
+        <p>
+          A list of the context roots that should be analyzed.
+        </p>
+      </field>
+    </params>
+  </request>
+  <request method="setPriorityFiles">
+    <p>
+      Used to set the priority files to the files in the given list. A priority
+      file is a file that should be given priority when scheduling which
+      analysis work to do first. The list typically contains those files that
+      are visible to the user and those for which analysis results will have the
+      biggest impact on the user experience. The order of the files within the
+      list is significant: the first file will be given higher priority than
+      the second, the second higher priority than the third, and so on.
+    </p>
+    <params>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The files that are to be a priority for analysis.
+        </p>
+      </field>
+    </params>
+  </request>
+  <request method="setSubscriptions">
+    <p>
+      Used to subscribe for services that are specific to individual files. All
+      previous subscriptions should be replaced by the current set of
+      subscriptions. If a given service is not included as a key in the map then
+      no files should be subscribed to the service, exactly as if the service
+      had been included in the map with an explicit empty list of files.
+    </p>
+    <params>
+      <field name="subscriptions">
+        <map>
+          <key>
+            <ref>AnalysisService</ref>
+          </key>
+          <value>
+            <list>
+              <ref>FilePath</ref>
+            </list>
+          </value>
+        </map>
+        <p>
+          A table mapping services to a list of the files being subscribed to
+          the service.
+        </p>
+      </field>
+    </params>
+  </request>
+  <request method="updateContent">
+    <p>
+      Used to update the content of one or more files. Files that were
+      previously updated but not included in this update remain unchanged. This
+      effectively represents an overlay of the filesystem. The files whose
+      content is overridden are therefore seen by the plugin as being files with
+      the given content, even if the files do not exist on the filesystem or if
+      the file path represents the path to a directory on the filesystem.
+    </p>
+    <params>
+      <field name="files">
+        <map>
+          <key>
+            <ref>FilePath</ref>
+          </key>
+          <value>
+            <union field="type">
+              <ref>AddContentOverlay</ref>
+              <ref>ChangeContentOverlay</ref>
+              <ref>RemoveContentOverlay</ref>
+            </union>
+          </value>
+        </map>
+        <p>
+          A table mapping the files whose content has changed to a description
+          of the content change.
+        </p>
+      </field>
+    </params>
+  </request>
+  <notification event="errors">
+    <p>
+      Used to report the errors associated with a given file. The set of errors
+      included in the notification is always a complete list that supersedes any
+      previously reported errors.
+    </p>
+    <p>
+      TODO: Decide whether we need to support the '--no-error-notification'
+      option.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the errors.
+        </p>
+      </field>
+      <field name="errors">
+        <list>
+          <ref>AnalysisError</ref>
+        </list>
+        <p>
+          The errors contained in the file.
+        </p>
+      </field>
+    </params>
+  </notification>
+  <notification event="folding">
+    <p>
+      Used to report the folding regions associated with a given file. Folding
+      regions can be nested, but cannot be overlapping. Nesting occurs when a
+      foldable element, such as a method, is nested inside another foldable
+      element such as a class.
+    </p>
+    <p>
+      Folding regions that overlap a folding region computed by the server, or
+      by one of the other plugins that are currently running, might be dropped
+      by the server in order to present a consistent view to the client.
+    </p>
+    <p>
+      This notification should only be sent if the server has subscribed to it
+      by including the value <tt>"FOLDING"</tt> in the list of services
+      passed in an analysis.setSubscriptions request.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the folding regions.
+        </p>
+      </field>
+      <field name="regions">
+        <list>
+          <ref>FoldingRegion</ref>
+        </list>
+        <p>
+          The folding regions contained in the file.
+        </p>
+      </field>
+    </params>
+  </notification>
+  <notification event="highlights">
+    <p>
+      Used to report the highlight regions associated with a given file. Each
+      highlight region represents a particular syntactic or semantic meaning
+      associated with some range. Note that the highlight regions that are
+      returned can overlap other highlight regions if there is more than one
+      meaning associated with a particular region.
+    </p>
+    <p>
+      This notification should only be sent if the server has subscribed to it
+      by including the value <tt>"HIGHLIGHTS"</tt> in the list of services
+      passed in an analysis.setSubscriptions request.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the highlight regions.
+        </p>
+      </field>
+      <field name="regions">
+        <list>
+          <ref>HighlightRegion</ref>
+        </list>
+        <p>
+          The highlight regions contained in the file.
+        </p>
+      </field>
+    </params>
+  </notification>
+  <notification event="navigation">
+    <p>
+      Used to report the navigation regions associated with a given file. Each
+      navigation region represents a list of targets associated with some range.
+      The lists will usually contain a single target, but can contain more in
+      the case of a part that is included in multiple libraries or in Dart code
+      that is compiled against multiple versions of a package. Note that the
+      navigation regions that are returned should not overlap other navigation
+      regions.
+    </p>
+    <p>
+      Navigation regions that overlap a navigation region computed by the
+      server, or by one of the other plugins that are currently running, might
+      be dropped or modified by the server in order to present a consistent view
+      to the client.
+    </p>
+    <p>
+      This notification should only be sent if the server has subscribed to it
+      by including the value <tt>"NAVIGATION"</tt> in the list of services
+      passed in an analysis.setSubscriptions request.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the navigation regions.
+        </p>
+      </field>
+      <field name="regions">
+        <list>
+          <ref>NavigationRegion</ref>
+        </list>
+        <p>
+          The navigation regions contained in the file.
+        </p>
+      </field>
+      <field name="targets">
+        <list>
+          <ref>NavigationTarget</ref>
+        </list>
+        <p>
+          The navigation targets referenced in the file. They are referenced by
+          <a href="#type_NavigationRegion">NavigationRegion</a>s by their index
+          in this array.
+        </p>
+      </field>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The files containing navigation targets referenced in the file. They
+          are referenced by
+          <a href="#type_NavigationTarget">NavigationTarget</a>s by their index
+          in this array.
+        </p>
+      </field>
+    </params>
+  </notification>
+  <notification event="occurrences">
+    <p>
+      Used to report the occurrences of references to elements within a single
+      file. None of the occurrence regions should overlap.
+    </p>
+    <p>
+      Occurrence regions that overlap an occurrence region computed by the
+      server, or by one of the other plugins that are currently running, might
+      be dropped or modified by the server in order to present a consistent view
+      to the client.
+    </p>
+    <p>
+      This notification should only be sent if the server has subscribed to it
+      by including the value <tt>"OCCURRENCES"</tt> in the list of services
+      passed in an analysis.setSubscriptions request.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file in which the references occur.
+        </p>
+      </field>
+      <field name="occurrences">
+        <list>
+          <ref>Occurrences</ref>
+        </list>
+        <p>
+          The occurrences of references to elements within the file.
+        </p>
+      </field>
+    </params>
+  </notification>
+  <notification event="outline">
+    <p>
+      Used to report the outline fragments associated with a single file.
+    </p>
+    <p>
+      The outline fragments will be merged with any outline produced by the
+      server and with any fragments produced by other plugins. If the server
+      cannot create a coherent outline, some fragments might be dropped.
+    </p>
+    <p>
+      This notification should only be sent if the server has subscribed to it
+      by including the value <tt>"OUTLINE"</tt> in the list of services
+      passed in an analysis.setSubscriptions request.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file with which the outline is associated.
+        </p>
+      </field>
+      <field name="outline">
+        <list>
+          <ref>Outline</ref>
+        </list>
+        <p>
+          The outline fragments associated with the file.
+        </p>
+      </field>
+    </params>
+  </notification>
+</domain>
+<domain name="completion">
+  <p>
+    The code completion domain contains API's related to getting code completion
+    suggestions.
+  </p>
+  <request method="getSuggestions">
+    <p>
+      Used to request that completion suggestions for the given offset in the
+      given file be returned.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the point at which suggestions are to be made.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset within the file at which suggestions are to be made.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="replacementOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the start of the text to be replaced. This will be
+          different than the offset used to request the completion suggestions
+          if there was a portion of an identifier before the original offset. In
+          particular, the replacementOffset will be the offset of the beginning
+          of said identifier.
+        </p>
+      </field>
+      <field name="replacementLength">
+        <ref>int</ref>
+        <p>
+          The length of the text to be replaced if the remainder of the
+          identifier containing the cursor is to be replaced when the suggestion
+          is applied (that is, the number of characters in the existing
+          identifier).
+        </p>
+      </field>
+      <field name="results">
+        <list>
+          <ref>CompletionSuggestion</ref>
+        </list>
+        <p>
+          The completion suggestions being reported. The notification contains
+          all possible completions at the requested cursor position, even those
+          that do not match the characters the user has already typed. This
+          allows the client to respond to further keystrokes from the user
+          without having to make additional requests.
+        </p>
+      </field>
+    </result>
+  </request>
+</domain>
+<domain name="edit">
+  <p>
+    The edit domain contains API's related to edits that can be applied to the
+    code.
+  </p>
+  <request method="getAssists">
+    <p>
+      Used to request the set of assists that are available at the given
+      location. An assist is distinguished from a refactoring primarily by the
+      fact that it affects a single file and does not require user input in
+      order to be performed.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code for which assists are being requested.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the code for which assists are being requested.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the code for which assists are being requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="assists">
+        <list>
+          <ref>PrioritizedSourceChange</ref>
+        </list>
+        <p>
+          The assists that are available at the given location.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="getAvailableRefactorings">
+    <p>
+      Used to request a list of the kinds of refactorings that are valid for the
+      given selection in the given file.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code on which the refactoring would be based.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the code on which the refactoring would be based.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the code on which the refactoring would be based.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="kinds">
+        <list>
+          <ref>RefactoringKind</ref>
+        </list>
+        <p>
+          The kinds of refactorings that are valid for the given selection.
+        </p>
+        <p>
+          The list of refactoring kinds is currently limited to those defined by
+          the server API, preventing plugins from adding their own refactorings.
+          However, plugins can support pre-defined refactorings, such as a
+          rename refactoring, at locations not supported by server.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="getFixes">
+    <p>
+      Used to request the set of fixes that are available for the errors at a
+      given offset in a given file.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the errors for which fixes are being requested.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset used to select the errors for which fixes will be returned.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="fixes">
+        <list>
+          <ref>AnalysisErrorFixes</ref>
+        </list>
+        <p>
+          The fixes that are available for the errors at the given offset.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="getRefactoring">
+    <p>
+      Used to request the changes required to perform a refactoring.
+    </p>
+    <params>
+      <field name="kind">
+        <ref>RefactoringKind</ref>
+        <p>
+          The kind of refactoring to be performed.
+        </p>
+      </field>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code involved in the refactoring.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the region involved in the refactoring.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the region involved in the refactoring.
+        </p>
+      </field>
+      <field name="validateOnly">
+        <ref>bool</ref>
+        <p>
+          True if the client is only requesting that the values of the options
+          be validated and no change be generated.
+        </p>
+      </field>
+      <field name="options" optional="true">
+        <ref>RefactoringOptions</ref>
+        <p>
+          Data used to provide values provided by the user. The structure of the
+          data is dependent on the kind of refactoring being performed. The data
+          that is expected is documented in the section titled
+          <a href="#refactorings">Refactorings</a>, labeled as "Options". This
+          field can be omitted if the refactoring does not require any options
+          or if the values of those options are not known.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="initialProblems">
+        <list>
+          <ref>RefactoringProblem</ref>
+        </list>
+        <p>
+          The initial status of the refactoring, that is, problems related to
+          the context in which the refactoring is requested. The list should be
+          empty if there are no known problems.
+        </p>
+      </field>
+      <field name="optionsProblems">
+        <list>
+          <ref>RefactoringProblem</ref>
+        </list>
+        <p>
+          The options validation status, that is, problems in the given options,
+          such as light-weight validation of a new name, flags compatibility,
+          etc. The list should be empty if there are no known problems.
+        </p>
+      </field>
+      <field name="finalProblems">
+        <list>
+          <ref>RefactoringProblem</ref>
+        </list>
+        <p>
+          The final status of the refactoring, that is, problems identified in
+          the result of a full, potentially expensive validation and / or change
+          creation. The list should be empty if there are no known problems.
+        </p>
+      </field>
+      <field name="feedback" optional="true">
+        <ref>RefactoringFeedback</ref>
+        <p>
+          Data used to provide feedback to the user. The structure of the data
+          is dependent on the kind of refactoring being created. The data that
+          is returned is documented in the section titled
+          <a href="#refactorings">Refactorings</a>, labeled as "Feedback".
+        </p>
+      </field>
+      <field name="change" optional="true">
+        <ref>SourceChange</ref>
+        <p>
+          The changes that are to be applied to affect the refactoring. This
+          field can be omitted if there are problems that prevent a set of
+          changes from being computed, such as having no options specified for a
+          refactoring that requires them, or if only validation was requested.
+        </p>
+      </field>
+      <field name="potentialEdits" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The ids of source edits that are not known to be valid. An edit is not
+          known to be valid if there was insufficient type information for the
+          plugin to be able to determine whether or not the code needs to be
+          modified, such as when a member is being renamed and there is a
+          reference to a member from an unknown type. This field can be omitted
+          if the change field is omitted or if there are no potential edits for
+          the refactoring.
+        </p>
+      </field>
+    </result>
+  </request>
+</domain>
+<types>
+  <h2 class="domain"><a name="types">Types</a></h2>
+  <p>
+    This section contains descriptions of the data types referenced in the API’s
+    of the various domains.
+  </p>
+  <type name="AddContentOverlay">
+    <p>
+      A directive to begin overlaying the contents of a file. The supplied
+      content will be used for analysis in place of the file contents in the
+      filesystem.
+    </p>
+    <p>
+      If this directive is used on a file that already has a file content
+      overlay, the old overlay is discarded and replaced with the new one.
+    </p>
+    <object>
+      <field name="type" value="add"><ref>String</ref></field>
+      <field name="content">
+        <ref>String</ref>
+        <p>
+          The new content of the file.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="AnalysisError">
+    <p>
+      An indication of an error, warning, or hint that was produced by the
+      analysis.
+    </p>
+    <object>
+      <field name="severity">
+        <ref>AnalysisErrorSeverity</ref>
+        <p>
+          The severity of the error.
+        </p>
+      </field>
+      <field name="type">
+        <ref>AnalysisErrorType</ref>
+        <p>
+          The type of the error.
+        </p>
+      </field>
+      <field name="location">
+        <ref>Location</ref>
+        <p>
+          The location associated with the error.
+        </p>
+      </field>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          The message to be displayed for this error. The message should
+          indicate what is wrong with the code and why it is wrong.
+        </p>
+      </field>
+      <field name="correction" optional="true">
+        <ref>String</ref>
+        <p>
+          The correction message to be displayed for this error. The correction
+          message should indicate how the user can fix the error. The field is
+          omitted if there is no correction message associated with the error
+          code.
+        </p>
+      </field>
+      <field name="code">
+        <ref>String</ref>
+        <p>
+          The name, as a string, of the error code associated with this error.
+        </p>
+      </field>
+      <field name="hasFix" optional="true">
+        <ref>bool</ref>
+        <p>
+          A hint to indicate to interested clients that this error has an
+          associated fix (or fixes). The absence of this field implies there
+          are not known to be fixes. Note that since the operation to calculate
+          whether fixes apply needs to be performant it is possible that
+          complicated tests will be skipped and a false negative returned. For
+          this reason, this attribute should be treated as a "hint". Despite the
+          possibility of false negatives, no false positives should be returned.
+          If a client sees this flag set they can proceed with the confidence
+          that there are in fact associated fixes.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="AnalysisErrorFixes">
+    <p>
+      A list of fixes associated with a specific error
+    </p>
+    <object>
+      <field name="error">
+        <ref>AnalysisError</ref>
+        <p>
+          The error with which the fixes are associated.
+        </p>
+      </field>
+      <field name="fixes">
+        <list><ref>PrioritizedSourceChange</ref></list>
+        <p>
+          The fixes associated with the error.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="AnalysisErrorSeverity">
+    <p>
+      An enumeration of the possible severities of analysis errors.
+    </p>
+    <enum>
+      <value><code>INFO</code></value>
+      <value><code>WARNING</code></value>
+      <value><code>ERROR</code></value>
+    </enum>
+  </type>
+  <type name="AnalysisErrorType">
+    <p>
+      An enumeration of the possible types of analysis errors.
+    </p>
+    <enum>
+      <value><code>CHECKED_MODE_COMPILE_TIME_ERROR</code></value>
+      <value><code>COMPILE_TIME_ERROR</code></value>
+      <value><code>HINT</code></value>
+      <value><code>LINT</code></value>
+      <value><code>STATIC_TYPE_WARNING</code></value>
+      <value><code>STATIC_WARNING</code></value>
+      <value><code>SYNTACTIC_ERROR</code></value>
+      <value><code>TODO</code></value>
+    </enum>
+  </type>
+  <type name="AnalysisService">
+    <p>
+      An enumeration of the services provided by the analysis domain that are
+      related to a specific list of files.
+    </p>
+    <enum>
+      <value><code>FOLDING</code></value>
+      <value><code>HIGHLIGHTS</code></value>
+      <value><code>NAVIGATION</code></value>
+      <value><code>OCCURRENCES</code></value>
+      <value><code>OUTLINE</code></value>
+    </enum>
+  </type>
+  <type name="ChangeContentOverlay">
+    <p>
+      A directive to modify an existing file content overlay. One or more ranges
+      of text are deleted from the old file content overlay and replaced with
+      new text.
+    </p>
+    <p>
+      The edits are applied in the order in which they occur in the list. This
+      means that the offset of each edit must be correct under the assumption
+      that all previous edits have been applied.
+    </p>
+    <p>
+      It is an error to use this overlay on a file that does not yet have a file
+      content overlay or that has had its overlay removed via
+      <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
+    </p>
+    <p>
+      If any of the edits cannot be applied due to its offset or length being
+      out of range, an <tt>INVALID_OVERLAY_CHANGE</tt> error will be reported.
+    </p>
+    <object>
+      <field name="type" value="change"><ref>String</ref></field>
+      <field name="edits">
+        <list><ref>SourceEdit</ref></list>
+        <p>
+          The edits to be applied to the file.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="CompletionSuggestion">
+    <p>
+      A suggestion for how to complete partially entered text. Many of the
+      fields are optional, depending on the kind of element being suggested.
+    </p>
+    <object>
+      <field name="kind">
+        <ref>CompletionSuggestionKind</ref>
+        <p>
+          The kind of element being suggested.
+        </p>
+      </field>
+      <field name="relevance">
+        <ref>int</ref>
+        <p>
+          The relevance of this completion suggestion where a higher number
+          indicates a higher relevance.
+        </p>
+      </field>
+      <field name="completion">
+        <ref>String</ref>
+        <p>
+          The identifier to be inserted if the suggestion is selected. If the
+          suggestion is for a method or function, the client might want to
+          additionally insert a template for the parameters. The information
+          required in order to do so is contained in other fields.
+        </p>
+      </field>
+      <field name="selectionOffset">
+        <ref>int</ref>
+        <p>
+          The offset, relative to the beginning of the completion, of where the
+          selection should be placed after insertion.
+        </p>
+      </field>
+      <field name="selectionLength">
+        <ref>int</ref>
+        <p>
+          The number of characters that should be selected after insertion.
+        </p>
+      </field>
+      <field name="isDeprecated">
+        <ref>bool</ref>
+        <p>
+          True if the suggested element is deprecated.
+        </p>
+      </field>
+      <field name="isPotential">
+        <ref>bool</ref>
+        <p>
+          True if the element is not known to be valid for the target. This
+          happens if the type of the target is dynamic.
+        </p>
+      </field>
+      <field name="docSummary" optional="true">
+        <ref>String</ref>
+        <p>
+          An abbreviated version of the Dartdoc associated with the element
+          being suggested, This field is omitted if there is no Dartdoc
+          associated with the element.
+        </p>
+      </field>
+      <field name="docComplete" optional="true">
+        <ref>String</ref>
+        <p>
+          The Dartdoc associated with the element being suggested. This field is
+          omitted if there is no Dartdoc associated with the element.
+        </p>
+      </field>
+      <field name="declaringType" optional="true">
+        <ref>String</ref>
+        <p>
+          The class that declares the element being suggested. This field is
+          omitted if the suggested element is not a member of a class.
+        </p>
+      </field>
+      <field name="element" optional="true">
+        <ref>Element</ref>
+        <p>
+          Information about the element reference being suggested.
+        </p>
+      </field>
+      <field name="returnType" optional="true">
+        <ref>String</ref>
+        <p>
+          The return type of the getter, function or method or the type of the
+          field being suggested. This field is omitted if the suggested element
+          is not a getter, function or method.
+        </p>
+      </field>
+      <field name="parameterNames" optional="true">
+        <list><ref>String</ref></list>
+        <p>
+          The names of the parameters of the function or method being suggested.
+          This field is omitted if the suggested element is not a setter,
+          function or method.
+        </p>
+      </field>
+      <field name="parameterTypes" optional="true">
+        <list><ref>String</ref></list>
+        <p>
+          The types of the parameters of the function or method being suggested.
+          This field is omitted if the parameterNames field is omitted.
+        </p>
+      </field>
+      <field name="requiredParameterCount" optional="true">
+        <ref>int</ref>
+        <p>
+          The number of required parameters for the function or method being
+          suggested. This field is omitted if the parameterNames field is
+          omitted.
+        </p>
+      </field>
+      <field name="hasNamedParameters" optional="true">
+        <ref>bool</ref>
+        <p>
+          True if the function or method being suggested has at least one named
+          parameter. This field is omitted if the parameterNames field is
+          omitted.
+        </p>
+      </field>
+      <field name="parameterName" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the optional parameter being suggested. This field is
+          omitted if the suggestion is not the addition of an optional argument
+          within an argument list.
+        </p>
+      </field>
+      <field name="parameterType" optional="true">
+        <ref>String</ref>
+        <p>
+          The type of the options parameter being suggested. This field is
+          omitted if the parameterName field is omitted.
+        </p>
+      </field>
+      <field name="importUri" optional="true">
+        <ref>String</ref>
+        <p>
+          The import to be added if the suggestion is out of scope and needs
+          an import to be added to be in scope.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="CompletionSuggestionKind">
+    <p>
+      An enumeration of the kinds of elements that can be included in a
+      completion suggestion.
+    </p>
+    <enum>
+      <value>
+        <code>ARGUMENT_LIST</code>
+        <p>
+          A list of arguments for the method or function that is being
+          invoked. For this suggestion kind, the completion field is a
+          textual representation of the invocation and the parameterNames,
+          parameterTypes, and requiredParameterCount attributes are defined.
+        </p>
+      </value>
+      <value><code>IMPORT</code></value>
+      <value>
+        <code>IDENTIFIER</code>
+        <p>
+          The element identifier should be inserted at the completion
+          location. For example "someMethod" in <tt>import 'myLib.dart' show
+          someMethod;</tt>. For suggestions of this kind, the element
+          attribute is defined and the completion field is the element's
+          identifier.
+        </p>
+      </value>
+      <value>
+        <code>INVOCATION</code>
+        <p>
+          The element is being invoked at the completion location. For
+          example, 'someMethod' in <tt>x.someMethod();</tt>. For suggestions
+          of this kind, the element attribute is defined and the completion
+          field is the element's identifier.
+        </p>
+      </value>
+      <value>
+        <code>KEYWORD</code>
+        <p>
+          A keyword is being suggested. For suggestions of this kind, the
+          completion is the keyword.
+        </p>
+      </value>
+      <value>
+        <code>NAMED_ARGUMENT</code>
+        <p>
+          A named argument for the current call site is being suggested. For
+          suggestions of this kind, the completion is the named argument
+          identifier including a trailing ':' and a space.
+        </p>
+      </value>
+      <value><code>OPTIONAL_ARGUMENT</code></value>
+      <value><code>PARAMETER</code></value>
+    </enum>
+  </type>
+  <type name="ContextBuilderOptions">
+    <p>
+      The options used to build an analysis context.
+    </p>
+    <object>
+      <field name="dartSdkSummaryPath" optional="true">
+        <ref>String</ref>
+        <p>
+          The file path of the file containing the summary of the SDK that
+          should be used to "analyze" the SDK. The field will be omitted if the
+          summary should be found in the SDK.
+        </p>
+      </field>
+      <field name="defaultAnalysisOptionsFilePath" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The file path of the analysis options file that should be used in
+          place of any file in the root directory or a parent of the root
+          directory. The field will be omitted if the normal lookup mechanism
+          should be used.
+        </p>
+      </field>
+      <field name="declaredVariables" optional="true">
+        <map>
+          <key>
+            <ref>String</ref>
+          </key>
+          <value>
+            <ref>String</ref>
+          </value>
+        </map>
+        <p>
+          A table mapping variable names to values for the declared variables.
+          The field will be omitted if no additional variables need to be
+          declared.
+        </p>
+      </field>
+      <!--
+      TODO(brianwilkerson) Figure out how to handle analysis options.
+      <field name="defaultOptions" optional="true">
+        <ref>AnalysisOptions</ref>
+        <p>
+          The default analysis options that should be used unless some or all of
+          them are overridden in the analysis options file. The field will be
+          omitted if the default defaults should be used.
+        </p>
+      </field>
+      -->
+      <field name="defaultPackageFilePath" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The file path of the .packages file that should be used in place of
+          any file found using the normal (Package Specification DEP) lookup
+          mechanism. The field will be omitted if the normal lookup mechanism
+          should be used.
+        </p>
+      </field>
+      <field name="defaultPackagesDirectoryPath" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The file path of the packages directory that should be used in place
+          of any file found using the normal (Package Specification DEP) lookup
+          mechanism. The field will be omitted if the normal lookup mechanism
+          should be used.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="ContextRoot">
+    <p>
+      A description of an analysis context.
+    </p>
+    <object>
+      <field name="root">
+        <ref>String</ref>
+        <p>
+          The absolute path of the root directory containing the files to be
+          analyzed.
+        </p>
+      </field>
+      <field name="exclude">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          A list of the absolute paths of files and directories within the root
+          directory that should not be analyzed.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="Element">
+    <p>
+      Information about an element (something that can be declared in code).
+    </p>
+    <object>
+      <field name="kind">
+        <ref>ElementKind</ref>
+        <p>
+          The kind of the element.
+        </p>
+      </field>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the element. This is typically used as the label in the outline.
+        </p>
+      </field>
+      <field name="location" optional="true">
+        <ref>Location</ref>
+        <p>
+          The location of the name in the declaration of the element.
+        </p>
+      </field>
+      <field name="flags">
+        <ref>int</ref>
+        <p>
+          A bit-map containing the following flags:
+        </p>
+        <ul>
+          <li>
+            0x01 - set if the element is explicitly or implicitly abstract
+          </li>
+          <li>
+            0x02 - set if the element was declared to be ‘const’
+          </li>
+          <li>
+            0x04 - set if the element was declared to be ‘final’
+          </li>
+          <li>
+            0x08 - set if the element is a static member of a class or is a
+            top-level function or field
+          </li>
+          <li>
+            0x10 - set if the element is private
+          </li>
+          <li>
+            0x20 - set if the element is deprecated
+          </li>
+        </ul>
+      </field>
+      <field name="parameters" optional="true">
+        <ref>String</ref>
+        <p>
+          The parameter list for the element. If the element is not a method or
+          function this field will not be defined. If the element doesn't have
+          parameters (e.g. getter), this field will not be defined. If the
+          element has zero parameters, this field will have a value of "()".
+        </p>
+      </field>
+      <field name="returnType" optional="true">
+        <ref>String</ref>
+        <p>
+          The return type of the element. If the element is not a method or
+          function this field will not be defined. If the element does not have
+          a declared return type, this field will contain an empty string.
+        </p>
+      </field>
+      <field name="typeParameters" optional="true">
+        <ref>String</ref>
+        <p>
+          The type parameter list for the element. If the element doesn't have
+          type parameters, this field will not be defined.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="ElementKind">
+    <p>
+      An enumeration of the kinds of elements.
+    </p>
+    <enum>
+      <value><code>CLASS</code></value>
+      <value><code>CLASS_TYPE_ALIAS</code></value>
+      <value><code>COMPILATION_UNIT</code></value>
+      <value><code>CONSTRUCTOR</code></value>
+      <value><code>ENUM</code></value>
+      <value><code>ENUM_CONSTANT</code></value>
+      <value><code>FIELD</code></value>
+      <value><code>FILE</code></value>
+      <value><code>FUNCTION</code></value>
+      <value><code>FUNCTION_TYPE_ALIAS</code></value>
+      <value><code>GETTER</code></value>
+      <value><code>LABEL</code></value>
+      <value><code>LIBRARY</code></value>
+      <value><code>LOCAL_VARIABLE</code></value>
+      <value><code>METHOD</code></value>
+      <value><code>PARAMETER</code></value>
+      <value><code>PREFIX</code></value>
+      <value><code>SETTER</code></value>
+      <value><code>TOP_LEVEL_VARIABLE</code></value>
+      <value><code>TYPE_PARAMETER</code></value>
+      <value><code>UNKNOWN</code></value>
+    </enum>
+  </type>
+  <type name="FilePath">
+    <ref>String</ref>
+    <p>
+      The absolute, normalized path of a file.
+    </p>
+    <p>
+      If the format of a file path in a request is not valid, e.g. the path is
+      not absolute or is not normalized, then an error of type
+      <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
+    </p>
+  </type>
+  <type name="FoldingKind">
+    <p>
+      An enumeration of the kinds of folding regions.
+    </p>
+    <enum>
+      <value><code>COMMENT</code></value>
+      <value><code>CLASS_MEMBER</code></value>
+      <value><code>DIRECTIVES</code></value>
+      <value><code>DOCUMENTATION_COMMENT</code></value>
+      <value><code>TOP_LEVEL_DECLARATION</code></value>
+    </enum>
+  </type>
+  <type name="FoldingRegion">
+    <p>
+      A description of a region that can be folded.
+    </p>
+    <object>
+      <field name="kind">
+        <ref>FoldingKind</ref>
+        <p>
+          The kind of the region.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the region to be folded.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the region to be folded.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="HighlightRegion">
+    <p>
+      A description of a region that could have special highlighting associated
+      with it.
+    </p>
+    <object>
+      <field name="type">
+        <ref>HighlightRegionType</ref>
+        <p>
+          The type of highlight associated with the region.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the region to be highlighted.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the region to be highlighted.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="HighlightRegionType">
+    <p>
+      An enumeration of the kinds of highlighting that can be applied to files.
+    </p>
+    <enum>
+      <value><code>ANNOTATION</code></value>
+      <value><code>BUILT_IN</code></value>
+      <value><code>CLASS</code></value>
+      <value><code>COMMENT_BLOCK</code></value>
+      <value><code>COMMENT_DOCUMENTATION</code></value>
+      <value><code>COMMENT_END_OF_LINE</code></value>
+      <value><code>CONSTRUCTOR</code></value>
+      <value><code>DIRECTIVE</code></value>
+      <value>
+        <code>DYNAMIC_TYPE</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value>
+        <code>DYNAMIC_LOCAL_VARIABLE_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>DYNAMIC_LOCAL_VARIABLE_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>DYNAMIC_PARAMETER_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>DYNAMIC_PARAMETER_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value><code>ENUM</code></value>
+      <value><code>ENUM_CONSTANT</code></value>
+      <value>
+        <code>FIELD</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value>
+        <code>FIELD_STATIC</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value>
+        <code>FUNCTION</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value>
+        <code>FUNCTION_DECLARATION</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value><code>FUNCTION_TYPE_ALIAS</code></value>
+      <value>
+        <code>GETTER_DECLARATION</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value><code>IDENTIFIER_DEFAULT</code></value>
+      <value><code>IMPORT_PREFIX</code></value>
+      <value>
+        <code>INSTANCE_FIELD_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>INSTANCE_FIELD_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>INSTANCE_GETTER_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>INSTANCE_GETTER_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>INSTANCE_METHOD_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>INSTANCE_METHOD_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>INSTANCE_SETTER_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>INSTANCE_SETTER_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>INVALID_STRING_ESCAPE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value><code>KEYWORD</code></value>
+      <value><code>LABEL</code></value>
+      <value>
+        <code>LIBRARY_NAME</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value><code>LITERAL_BOOLEAN</code></value>
+      <value><code>LITERAL_DOUBLE</code></value>
+      <value><code>LITERAL_INTEGER</code></value>
+      <value><code>LITERAL_LIST</code></value>
+      <value><code>LITERAL_MAP</code></value>
+      <value><code>LITERAL_STRING</code></value>
+      <value>
+        <code>LOCAL_FUNCTION_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>LOCAL_FUNCTION_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>LOCAL_VARIABLE</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value><code>LOCAL_VARIABLE_DECLARATION</code></value>
+      <value>
+        <code>LOCAL_VARIABLE_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>METHOD</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value>
+        <code>METHOD_DECLARATION</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value>
+        <code>METHOD_DECLARATION_STATIC</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value>
+        <code>METHOD_STATIC</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value>
+        <code>PARAMETER</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value>
+        <code>SETTER_DECLARATION</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value>
+        <code>TOP_LEVEL_VARIABLE</code>
+        <p>Only for version 1 of highlight.</p>
+      </value>
+      <value>
+        <code>PARAMETER_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>PARAMETER_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>STATIC_FIELD_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>STATIC_GETTER_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>STATIC_GETTER_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>STATIC_METHOD_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>STATIC_METHOD_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>STATIC_SETTER_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>STATIC_SETTER_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>TOP_LEVEL_FUNCTION_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>TOP_LEVEL_FUNCTION_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>TOP_LEVEL_GETTER_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>TOP_LEVEL_GETTER_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>TOP_LEVEL_SETTER_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>TOP_LEVEL_SETTER_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>TOP_LEVEL_VARIABLE_DECLARATION</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value><code>TYPE_NAME_DYNAMIC</code></value>
+      <value><code>TYPE_PARAMETER</code></value>
+      <value>
+        <code>UNRESOLVED_INSTANCE_MEMBER_REFERENCE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+      <value>
+        <code>VALID_STRING_ESCAPE</code>
+        <p>Only for version 2 of highlight.</p>
+      </value>
+    </enum>
+  </type>
+  <type name="LinkedEditGroup">
+    <p>
+      A collection of positions that should be linked (edited simultaneously)
+      for the purposes of updating code after a source change. For example, if a
+      set of edits introduced a new variable name, the group would contain all
+      of the positions of the variable name so that if the client wanted to let
+      the user edit the variable name after the operation, all occurrences of
+      the name could be edited simultaneously.
+    </p>
+    <object>
+      <field name="positions">
+        <list><ref>Position</ref></list>
+        <p>
+          The positions of the regions that should be edited simultaneously.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the regions that should be edited simultaneously.
+        </p>
+      </field>
+      <field name="suggestions">
+        <list><ref>LinkedEditSuggestion</ref></list>
+        <p>
+          Pre-computed suggestions for what every region might want to be
+          changed to.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="LinkedEditSuggestion">
+    <p>
+      A suggestion of a value that could be used to replace all of the linked
+      edit regions in a <a href="#type_LinkedEditGroup">LinkedEditGroup</a>.
+    </p>
+    <object>
+      <field name="value">
+        <ref>String</ref>
+        <p>
+          The value that could be used to replace all of the linked edit
+          regions.
+        </p>
+      </field>
+      <field name="kind">
+        <ref>LinkedEditSuggestionKind</ref>
+        <p>
+          The kind of value being proposed.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="LinkedEditSuggestionKind">
+    <p>
+      An enumeration of the kind of values that can be suggested for a linked
+      edit.
+    </p>
+    <enum>
+      <value><code>METHOD</code></value>
+      <value><code>PARAMETER</code></value>
+      <value><code>TYPE</code></value>
+      <value><code>VARIABLE</code></value>
+    </enum>
+  </type>
+  <type name="Location">
+    <p>
+      A location (character range) within a file.
+    </p>
+    <object>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the range.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the range.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the range.
+        </p>
+      </field>
+      <field name="startLine">
+        <ref>int</ref>
+        <p>
+          The one-based index of the line containing the first character of the
+          range.
+        </p>
+      </field>
+      <field name="startColumn">
+        <ref>int</ref>
+        <p>
+          The one-based index of the column containing the first character of
+          the range.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="NavigationRegion">
+    <p>
+      A description of a region from which the user can navigate to the
+      declaration of an element.
+    </p>
+    <object>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the region from which the user can navigate.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the region from which the user can navigate.
+        </p>
+      </field>
+      <field name="targets">
+        <list><ref>int</ref></list>
+        <p>
+          The indexes of the targets (in the enclosing navigation response) to
+          which the given region is bound. By opening the target, clients can
+          implement one form of navigation. This list cannot be empty.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="NavigationTarget">
+    <p>
+      A description of a target to which the user can navigate.
+    </p>
+    <object>
+      <field name="kind">
+        <ref>ElementKind</ref>
+        <p>
+          The kind of the element.
+        </p>
+      </field>
+      <field name="fileIndex">
+        <ref>int</ref>
+        <p>
+          The index of the file (in the enclosing navigation response) to
+          navigate to.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the region to which the user can navigate.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the region to which the user can navigate.
+        </p>
+      </field>
+      <field name="startLine">
+        <ref>int</ref>
+        <p>
+          The one-based index of the line containing the first character of the
+          region.
+        </p>
+      </field>
+      <field name="startColumn">
+        <ref>int</ref>
+        <p>
+          The one-based index of the column containing the first character of
+          the region.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="Occurrences">
+    <p>
+      A description of the references to a single element within a single file.
+    </p>
+    <object>
+      <field name="element">
+        <ref>Element</ref>
+        <p>
+          The element that was referenced.
+        </p>
+      </field>
+      <field name="offsets">
+        <list><ref>int</ref></list>
+        <p>
+          The offsets of the name of the referenced element within the file.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the name of the referenced element.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="Outline">
+    <p>
+      An node in the outline structure of a file.
+    </p>
+    <object>
+      <field name="element">
+        <ref>Element</ref>
+        <p>
+          A description of the element represented by this node.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the element. This is different
+          than the offset in the Element, which is the offset of the name of the
+          element. It can be used, for example, to map locations in the file
+          back to an outline.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the element.
+        </p>
+      </field>
+      <field name="children" optional="true">
+        <list><ref>Outline</ref></list>
+        <p>
+          The children of the node. The field will be omitted if the node has no
+          children.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="Position">
+    <p>
+      A position within a file.
+    </p>
+    <object>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the position.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the position.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="PrioritizedSourceChange">
+    <p>
+      A source change that has a priority associated with it.
+    </p>
+    <object>
+      <field name="priority">
+        <ref>int</ref>
+        <p>
+          The priority of the change. The value is expected to be non-negative,
+          and zero (0) is the lowest priority.
+        </p>
+      </field>
+      <field name="change">
+        <ref>SourceChange</ref>
+        <p>
+          The change with which the relevance is associated.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RefactoringFeedback">
+    <p>
+      An abstract superclass of all refactoring feedbacks.
+    </p>
+    <object>
+    </object>
+  </type>
+  <type name="RefactoringKind">
+    <p>
+      An enumeration of the kinds of refactorings that can be created.
+    </p>
+    <enum>
+      <value><code>CONVERT_GETTER_TO_METHOD</code></value>
+      <value><code>CONVERT_METHOD_TO_GETTER</code></value>
+      <value><code>EXTRACT_LOCAL_VARIABLE</code></value>
+      <value><code>EXTRACT_METHOD</code></value>
+      <value><code>INLINE_LOCAL_VARIABLE</code></value>
+      <value><code>INLINE_METHOD</code></value>
+      <value><code>MOVE_FILE</code></value>
+      <value><code>RENAME</code></value>
+      <value><code>SORT_MEMBERS</code></value>
+    </enum>
+  </type>
+  <type name="RefactoringMethodParameter">
+    <!-- This type does not appear to be referenced yet. -->
+    <p>
+      A description of a parameter in a method refactoring.
+    </p>
+    <object>
+      <field name="id" optional="true">
+        <ref>String</ref>
+        <p>
+          The unique identifier of the parameter. Clients may omit this field
+          for the parameters they want to add.
+        </p>
+      </field>
+      <field name="kind">
+        <ref>RefactoringMethodParameterKind</ref>
+        <p>
+          The kind of the parameter.
+        </p>
+      </field>
+      <field name="type">
+        <ref>String</ref>
+        <p>
+          The type that should be given to the parameter, or the return type of
+          the parameter's function type.
+        </p>
+      </field>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name that should be given to the parameter.
+        </p>
+      </field>
+      <field name="parameters" optional="true">
+        <ref>String</ref>
+        <p>
+          The parameter list of the parameter's function type. If the parameter
+          is not of a function type, this field will not be defined. If the
+          function type has zero parameters, this field will have a value of
+          '()'.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RefactoringOptions">
+    <p>
+      An abstract superclass of all refactoring options.
+    </p>
+    <object>
+    </object>
+  </type>
+  <type name="RefactoringMethodParameterKind">
+    <p>
+      An enumeration of the kinds of parameters.
+    </p>
+    <enum>
+      <value><code>REQUIRED</code></value>
+      <value><code>POSITIONAL</code></value>
+      <value><code>NAMED</code></value>
+    </enum>
+  </type>
+  <type name="RefactoringProblem">
+    <p>
+      A description of a problem related to a refactoring.
+    </p>
+    <object>
+      <field name="severity">
+        <ref>RefactoringProblemSeverity</ref>
+        <p>
+          The severity of the problem being represented.
+        </p>
+      </field>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          A human-readable description of the problem being represented.
+        </p>
+      </field>
+      <field name="location" optional="true">
+        <ref>Location</ref>
+        <p>
+          The location of the problem being represented. This field is omitted
+          unless there is a specific location associated with the problem (such
+          as a location where an element being renamed will be shadowed).
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RefactoringProblemSeverity">
+    <p>
+      An enumeration of the severities of problems that can be returned by the
+      refactoring requests.
+    </p>
+    <enum>
+      <value>
+        <code>INFO</code>
+        <p>
+          A minor code problem. No example, because it is not used yet.
+        </p>
+      </value>
+      <value>
+        <code>WARNING</code>
+        <p>
+          A minor code problem. For example names of local variables should be
+          camel case and start with a lower case letter. Staring the name of a
+          variable with an upper case is OK from the language point of view, but
+          it is nice to warn the user.
+        </p>
+      </value>
+      <value>
+        <code>ERROR</code>
+        <p>
+          The refactoring technically can be performed, but there is a logical
+          problem. For example the name of a local variable being extracted
+          conflicts with another name in the scope, or duplicate parameter names
+          in the method being extracted, or a conflict between a parameter name
+          and a local variable, etc. In some cases the location of the problem
+          is also provided, so the IDE can show user the location and the
+          problem, and let the user decide whether they want to perform the
+          refactoring. For example the name conflict might be expected, and the
+          user wants to fix it afterwards.
+        </p>
+      </value>
+      <value>
+        <code>FATAL</code>
+        <p>
+          A fatal error, which prevents performing the refactoring. For example
+          the name of a local variable being extracted is not a valid
+          identifier, or selection is not a valid expression.
+        </p>
+      </value>
+    </enum>
+  </type>
+  <type name="RemoveContentOverlay">
+    <p>
+      A directive to remove an existing file content overlay. After processing
+      this directive, the file contents will once again be read from the file
+      system.
+    </p>
+    <p>
+      If this directive is used on a file that doesn't currently have a content
+      overlay, it has no effect.
+    </p>
+    <object>
+      <field name="type" value="remove"><ref>String</ref></field>
+    </object>
+  </type>
+  <type name="RequestError">
+    <p>
+      An indication of a problem with the execution of the server,
+      typically in response to a request.
+    </p>
+    <object>
+      <field name="code">
+        <ref>RequestErrorCode</ref>
+        <p>
+          A code that uniquely identifies the error that occurred.
+        </p>
+      </field>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          A short description of the error.
+        </p>
+      </field>
+      <field name="stackTrace" optional="true">
+        <ref>String</ref>
+        <p>
+          The stack trace associated with processing the request, used for
+          debugging the plugin.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RequestErrorCode">
+    <p>
+      An enumeration of the types of errors that can occur in the execution of
+      the plugin.
+    </p>
+    <enum>
+      <value>
+        <code>INVALID_OVERLAY_CHANGE</code>
+        <p>
+          An "analysis.updateContent" request contained a
+          <a href="#type_ChangeContentOverlay">ChangeContentOverlay</a> object
+          that can't be applied. This can happen for two reasons:
+        </p>
+        <ul>
+          <li>
+            there was no preceding
+            <a href="#type_AddContentOverlay">AddContentOverlay</a> and hence no
+            content to which the edits could be applied, or
+          </li>
+          <li>
+            one or more of the specified edits have an offset or length that is
+            out of range.
+          </li>
+        </ul>
+      </value>
+      <value>
+        <code>INVALID_PARAMETER</code>
+        <p>
+          One of the method parameters was invalid.
+        </p>
+      </value>
+      <value>
+        <code>PLUGIN_ERROR</code>
+        <p>
+          An internal error occurred in the plugin while attempting to respond
+          to a request. Also see the plugin.error notification for errors that
+          occur outside of handling a request.
+        </p>
+      </value>
+      <value>
+        <code>UNKNOWN_REQUEST</code>
+        <p>
+          A request was received that the plugin does not recognize, or cannot
+          handle in its current configuration.
+        </p>
+      </value>
+      <!--
+      <value>
+        <code>CONTENT_MODIFIED</code>
+        <p>
+          An "analysis.getErrors" or "analysis.getNavigation" request could
+          not be satisfied because the content of the file changed before
+          the requested results could be computed.
+        </p>
+      </value>
+      <value>
+        <code>FILE_NOT_ANALYZED</code>
+        <p>
+          A request specified a FilePath which does not match a file in
+          an analysis root, or the requested operation is not available
+          for the file.
+        </p>
+      </value>
+      <value>
+        <code>FORMAT_WITH_ERRORS</code>
+        <p>
+          An "edit.format" request specified a file that contains syntax
+          errors.
+        </p>
+      </value>
+      <value>
+        <code>GET_ERRORS_INVALID_FILE</code>
+        <p>
+          An "analysis.getErrors" request specified a FilePath
+          which does not match a file currently subject to
+          analysis.
+        </p>
+      </value>
+      <value>
+        <code>GET_NAVIGATION_INVALID_FILE</code>
+        <p>
+          An "analysis.getNavigation" request specified a FilePath
+          which does not match a file currently subject to
+          analysis.
+        </p>
+      </value>
+      <value>
+        <code>GET_REACHABLE_SOURCES_INVALID_FILE</code>
+        <p>
+          An "analysis.getReachableSources" request specified a FilePath
+          which does not match a file currently subject to
+          analysis.
+        </p>
+      </value>
+      <value>
+        <code>INVALID_ANALYSIS_ROOT</code>
+        <p>
+          A path passed as an argument to a request (such as
+          analysis.reanalyze) is required to be an analysis root, but isn't.
+        </p>
+      </value>
+      <value>
+        <code>INVALID_EXECUTION_CONTEXT</code>
+        <p>
+          The context root used to create an execution context does not
+          exist.
+        </p>
+      </value>
+      <value>
+        <code>INVALID_FILE_PATH_FORMAT</code>
+        <p>
+          The format of the given file path is invalid, that is, it is not
+          absolute and normalized.
+        </p>
+      </value>
+      <value>
+        <code>INVALID_REQUEST</code>
+        <p>
+          A malformed request was received.
+        </p>
+      </value>
+      <value>
+        <code>REFACTORING_REQUEST_CANCELLED</code>
+        <p>
+          Another refactoring request was received during processing of
+          this one.
+        </p>
+      </value>
+      <value>
+        <code>UNANALYZED_PRIORITY_FILES</code>
+        <p>
+          An "analysis.setPriorityFiles" request includes one or
+          more files that are not being analyzed.
+        </p>
+        <p>
+          This is a legacy error; it will be removed before the
+          API reaches version 1.0.
+        </p>
+      </value>
+      <value>
+        <code>UNKNOWN_SOURCE</code>
+        <p>
+          The analysis server was requested to perform an action
+          on a source that does not exist.
+        </p>
+      </value>
+      <value>
+        <code>UNSUPPORTED_FEATURE</code>
+        <p>
+          The plugin received a requested to perform an action that is not
+          supported.
+        </p>
+      </value>
+      -->
+    </enum>
+  </type>
+  <type name="SourceChange">
+    <p>
+      A description of a set of edits that implement a single conceptual change.
+    </p>
+    <object>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          A human-readable description of the change to be applied.
+        </p>
+      </field>
+      <field name="edits">
+        <list><ref>SourceFileEdit</ref></list>
+        <p>
+          A list of the edits used to effect the change, grouped by file.
+        </p>
+      </field>
+      <field name="linkedEditGroups">
+        <list><ref>LinkedEditGroup</ref></list>
+        <p>
+          A list of the linked editing groups used to customize the changes that
+          were made.
+        </p>
+      </field>
+      <field name="selection" optional="true">
+        <ref>Position</ref>
+        <p>
+          The position that should be selected after the edits have been
+          applied.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="SourceEdit">
+    <p>
+      A description of a single change to a single file.
+    </p>
+    <object>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the region to be modified.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the region to be modified.
+        </p>
+      </field>
+      <field name="replacement">
+        <ref>String</ref>
+        <p>
+          The code that is to replace the specified region in the original code.
+        </p>
+      </field>
+      <field name="id" optional="true">
+        <ref>String</ref>
+        <p>
+          An identifier that uniquely identifies this source edit from other
+          edits in the same response. This field is omitted unless a containing
+          structure needs to be able to identify the edit for some reason.
+        </p>
+        <p>
+          For example, some refactoring operations can produce edits that might
+          not be appropriate (referred to as potential edits). Such edits will
+          have an id so that they can be referenced. Edits in the same response
+          that do not need to be referenced will not have an id.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="SourceFileEdit">
+    <p>
+      A description of a set of changes to a single file.
+    </p>
+    <object>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code to be modified.
+        </p>
+      </field>
+      <field name="fileStamp">
+        <ref>long</ref>
+        <p>
+          The modification stamp of the file at the moment when the change was
+          created, in milliseconds since the "Unix epoch". Will be -1 if the
+          file did not exist and should be created. The client may use this
+          field to make sure that the file was not changed since then, so it is
+          safe to apply the change.
+        </p>
+      </field>
+      <field name="edits">
+        <list><ref>SourceEdit</ref></list>
+        <p>
+          A list of the edits used to effect the change.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="WatchEvent">
+    <p>
+      A watch event sent by the server when the file system has been modified.
+    </p>
+    <object>
+      <field name="type">
+        <ref>WatchEventType</ref>
+        <p>
+          The type of change represented by this event.
+        </p>
+      </field>
+      <field name="path">
+        <ref>String</ref>
+        <p>
+          The absolute path of the file or directory that changed.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="WatchEventType">
+    <p>
+      An indication of the type of change associated with a watch event.
+    </p>
+    <enum>
+      <value>
+        <code>ADD</code>
+        <p>
+          An indication that the file or directory was added.
+        </p>
+      </value>
+      <value>
+        <code>MODIFY</code>
+        <p>
+          An indication that the file was modified.
+        </p>
+      </value>
+      <value>
+        <code>REMOVE</code>
+        <p>
+          An indication that the file or directory was removed.
+        </p>
+      </value>
+    </enum>
+  </type>
+</types>
+<refactorings>
+  <h2><a name="refactorings">Refactorings</a></h2>
+  <p>
+    This section contains additional information for each kind of refactoring.
+    In addition to a brief description of the refactoring, there is a
+    specification of the feedback that is provided when a refactoring is
+    requested using the
+    <a href="request_edit.getRefactoring">edit.getRefactoring</a> request
+    (designed to improve the UX) and the options that may be provided to
+    <a href="request_edit.getRefactoring">edit.getRefactoring</a>.
+  </p>
+  <refactoring kind="CONVERT_GETTER_TO_METHOD">
+    <p>
+      Convert a getter into a method by removing the keyword get and adding an
+      empty parameter list.
+    </p>
+    <p>
+      It is an error if the range contains anything other than all or part of
+      the name of a single getter.
+    </p>
+  </refactoring>
+  <refactoring kind="CONVERT_METHOD_TO_GETTER">
+    <p>
+      Convert a method into a getter by adding the keyword get and removing the
+      parameter list.
+    </p>
+    <p>
+      It is an error if the range contains anything other than all or part of
+      the name of a single method or if the method has a non-empty parameter
+      list.
+    </p>
+  </refactoring>
+  <refactoring kind="EXTRACT_LOCAL_VARIABLE">
+    <p>
+      Create a local variable initialized by the expression that covers the
+      specified selection.
+    </p>
+    <p>
+      It is an error if the selection range is not covered by a complete
+      expression.
+    </p>
+    <feedback>
+      <field name="coveringExpressionOffsets" optional="true">
+        <list><ref>int</ref></list>
+        <p>
+          The offsets of the expressions that cover the specified selection,
+          from the down most to the up most.
+        </p>
+      </field>
+      <field name="coveringExpressionLengths" optional="true">
+        <list><ref>int</ref></list>
+        <p>
+          The lengths of the expressions that cover the specified selection,
+          from the down most to the up most.
+        </p>
+      </field>
+      <field name="names">
+        <list><ref>String</ref></list>
+        <p>
+          The proposed names for the local variable.
+        </p>
+      </field>
+      <field name="offsets">
+        <list><ref>int</ref></list>
+        <p>
+          The offsets of the expressions that would be replaced by a reference
+          to the variable.
+        </p>
+      </field>
+      <field name="lengths">
+        <list><ref>int</ref></list>
+        <p>
+          The lengths of the expressions that would be replaced by a reference
+          to the variable. The lengths correspond to the offsets. In other
+          words, for a given expression, if the offset of that expression is
+          offsets[i], then the length of that expression is lengths[i].
+        </p>
+      </field>
+    </feedback>
+    <options>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name that the local variable should be given.
+        </p>
+      </field>
+      <field name="extractAll">
+        <ref>bool</ref>
+        <p>
+          True if all occurrences of the expression within the scope in which
+          the variable will be defined should be replaced by a reference to the
+          local variable. The expression used to initiate the refactoring will
+          always be replaced.
+        </p>
+      </field>
+    </options>
+  </refactoring>
+  <refactoring kind="EXTRACT_METHOD">
+    <p>
+      Create a method whose body is the specified expression or list of
+      statements, possibly augmented with a return statement.
+    </p>
+    <p>
+      It is an error if the range contains anything other than a complete
+      expression (no partial expressions are allowed) or a complete sequence of
+      statements.
+    </p>
+    <feedback>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset to the beginning of the expression or statements that will
+          be extracted.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the expression or statements that will be extracted.
+        </p>
+      </field>
+      <field name="returnType">
+        <ref>String</ref>
+        <p>
+          The proposed return type for the method. If the returned element does
+          not have a declared return type, this field will contain an empty
+          string.
+        </p>
+      </field>
+      <field name="names">
+        <list><ref>String</ref></list>
+        <p>
+          The proposed names for the method.
+        </p>
+      </field>
+      <field name="canCreateGetter">
+        <ref>bool</ref>
+        <p>
+          True if a getter could be created rather than a method.
+        </p>
+      </field>
+      <field name="parameters">
+        <list><ref>RefactoringMethodParameter</ref></list>
+        <p>
+          The proposed parameters for the method.
+        </p>
+      </field>
+      <field name="offsets">
+        <list><ref>int</ref></list>
+        <p>
+          The offsets of the expressions or statements that would be replaced by
+          an invocation of the method.
+        </p>
+      </field>
+      <field name="lengths">
+        <list><ref>int</ref></list>
+        <p>
+          The lengths of the expressions or statements that would be replaced by
+          an invocation of the method. The lengths correspond to the offsets. In
+          other words, for a given expression (or block of statements), if the
+          offset of that expression is offsets[i], then the length of that
+          expression is lengths[i].
+        </p>
+      </field>
+    </feedback>
+    <options>
+      <field name="returnType">
+        <ref>String</ref>
+        <p>
+          The return type that should be defined for the method.
+        </p>
+      </field>
+      <field name="createGetter">
+        <ref>bool</ref>
+        <p>
+          True if a getter should be created rather than a method. It is an
+          error if this field is true and the list of parameters is non-empty.
+        </p>
+      </field>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name that the method should be given.
+        </p>
+      </field>
+      <field name="parameters">
+        <list><ref>RefactoringMethodParameter</ref></list>
+        <p>
+          The parameters that should be defined for the method.
+        </p>
+        <p>
+          It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
+          parameter. It is an error if a REQUIRED or POSITIONAL parameter
+          follows a NAMED parameter.
+        </p>
+        <ul>
+          <li>
+            To change the order and/or update proposed parameters, add
+            parameters with the same identifiers as proposed.
+          </li>
+          <li>
+            To add new parameters, omit their identifier.
+          </li>
+          <li>
+            To remove some parameters, omit them in this list.
+          </li>
+        </ul>
+      </field>
+      <field name="extractAll">
+        <ref>bool</ref>
+        <p>
+          True if all occurrences of the expression or statements should be
+          replaced by an invocation of the method. The expression or statements
+          used to initiate the refactoring will always be replaced.
+        </p>
+      </field>
+    </options>
+  </refactoring>
+  <refactoring kind="INLINE_LOCAL_VARIABLE">
+    <p>
+      Inline the initializer expression of a local variable in place of any
+      references to that variable.
+    </p>
+    <p>
+      It is an error if the range contains anything other than all or part of
+      the name of a single local variable.
+    </p>
+    <feedback>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the variable being inlined.
+        </p>
+      </field>
+      <field name="occurrences">
+        <ref>int</ref>
+        <p>
+          The number of times the variable occurs.
+        </p>
+      </field>
+    </feedback>
+  </refactoring>
+  <refactoring kind="INLINE_METHOD">
+    <p>
+      Inline a method in place of one or all references to that method.
+    </p>
+    <p>
+      It is an error if the range contains anything other than all or part of
+      the name of a single method.
+    </p>
+    <feedback>
+      <field name="className" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the class enclosing the method being inlined. If not a
+          class member is being inlined, this field will be absent.
+        </p>
+      </field>
+      <field name="methodName">
+        <ref>String</ref>
+        <p>
+          The name of the method (or function) being inlined.
+        </p>
+      </field>
+      <field name="isDeclaration">
+        <ref>bool</ref>
+        <p>
+          True if the declaration of the method is selected and all references
+          should be inlined.
+        </p>
+      </field>
+    </feedback>
+    <options>
+      <field name="deleteSource">
+        <ref>bool</ref>
+        <p>
+          True if the method being inlined should be removed. It is an error if
+          this field is true and inlineAll is false.
+        </p>
+      </field>
+      <field name="inlineAll">
+        <ref>bool</ref>
+        <p>
+          True if all invocations of the method should be inlined, or false if
+          only the invocation site used to create this refactoring should be
+          inlined.
+        </p>
+      </field>
+    </options>
+  </refactoring>
+  <refactoring kind="MOVE_FILE">
+    <p>
+      Move the given file and update all of the references to that file and from
+      it. The move operation is supported in general case - for renaming a file
+      in the same folder, moving it to a different folder or both.
+    </p>
+    <p>
+      The refactoring must be activated before an actual file moving operation
+      is performed.
+    </p>
+    <p>
+      The "offset" and "length" fields from the request are ignored, but the
+      file specified in the request specifies the file to be moved.
+    </p>
+    <options>
+      <field name="newFile">
+        <ref>FilePath</ref>
+        <p>
+          The new file path to which the given file is being moved.
+        </p>
+      </field>
+    </options>
+  </refactoring>
+  <refactoring kind="RENAME">
+    <p>
+      Rename a given element and all of the references to that element.
+    </p>
+    <p>
+      It is an error if the range contains anything other than all or part of
+      the name of a single function (including methods, getters and setters),
+      variable (including fields, parameters and local variables), class or
+      function type.
+    </p>
+    <feedback>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset to the beginning of the name selected to be renamed.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the name selected to be renamed.
+        </p>
+      </field>
+      <field name="elementKindName">
+        <ref>String</ref>
+        <p>
+          The human-readable description of the kind of element being renamed
+          (such as “class” or “function type alias”).
+        </p>
+      </field>
+      <field name="oldName">
+        <ref>String</ref>
+        <p>
+          The old name of the element before the refactoring.
+        </p>
+      </field>
+    </feedback>
+    <options>
+      <field name="newName">
+        <ref>String</ref>
+        <p>
+          The name that the element should have after the refactoring.
+        </p>
+      </field>
+    </options>
+  </refactoring>
+</refactorings>
+<h2 class="domain"><a name="index">Index</a></h2>
+<index></index>
+</body>
+</html>

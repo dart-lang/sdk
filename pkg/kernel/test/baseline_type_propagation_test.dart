@@ -24,8 +24,13 @@ class TypePropagationTest extends TestTarget {
   bool get strongMode => false;
 
   @override
-  List<String> transformProgram(Program program) {
+  List<String> performModularTransformations(Program program) {
     new MixinFullResolution().transform(program);
+    return const <String>[];
+  }
+
+  @override
+  List<String> performGlobalTransformations(Program program) {
     var visualizer = new Visualizer(program);
     var builder = new Builder(program, visualizer: visualizer);
     var solver = new Solver(builder);

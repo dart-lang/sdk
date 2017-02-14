@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import '../util/characters.dart';
+import 'package:front_end/src/fasta/scanner/characters.dart';
 
 /**
  * The [DartString] type represents a Dart string value as a sequence of Unicode

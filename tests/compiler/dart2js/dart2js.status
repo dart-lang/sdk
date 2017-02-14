@@ -40,7 +40,6 @@ patch_test/bug: RuntimeError # Issue 21132
 
 quarantined/http_test: Pass, Slow
 
-# Source information is not correct due to inlining.
 sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_invokes_test: Pass, Slow
 
@@ -69,6 +68,7 @@ uri_retention_test: Pass, Slow
 value_range_test: Pass, Slow
 jsinterop/world_test: Pass, Slow
 sourcemaps/stacktrace_test: Pass, Slow
+kernel/visitor_test: Pass, Slow
 
 [ $mode == debug ]
 check_elements_invariants_test: Skip # Slow and only needs to be run in one

@@ -418,8 +418,8 @@ abstract class Future<T> {
    * If [f] returns a non-[Future], iteration continues immediately. Otherwise
    * it waits for the returned [Future] to complete.
    */
-  static Future forEach(Iterable input, f(element)) {
-    Iterator iterator = input.iterator;
+  static Future forEach<T>(Iterable<T> input, f(T element)) {
+    var iterator = input.iterator;
     return doWhile(() {
       if (!iterator.moveNext()) return false;
       return new Future.sync(() => f(iterator.current)).then((_) => true);

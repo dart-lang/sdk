@@ -4,6 +4,8 @@
 
 #include "vm/code_descriptors.h"
 
+#include "vm/log.h"
+
 namespace dart {
 
 void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
@@ -38,25 +40,6 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
     return Object::empty_descriptors().raw();
   }
   return PcDescriptors::New(&encoded_data_);
-}
-
-
-void CodeSourceMapBuilder::AddEntry(intptr_t pc_offset,
-                                    TokenPosition token_pos) {
-  // Require pc offset to monotonically increase.
-  ASSERT((prev_pc_offset < pc_offset) ||
-         ((prev_pc_offset == 0) && (pc_offset == 0)));
-  CodeSourceMap::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
-  CodeSourceMap::EncodeInteger(&encoded_data_,
-                               token_pos.value() - prev_token_pos);
-
-  prev_pc_offset = pc_offset;
-  prev_token_pos = token_pos.value();
-}
-
-
-RawCodeSourceMap* CodeSourceMapBuilder::Finalize() {
-  return CodeSourceMap::New(&encoded_data_);
 }
 
 
@@ -131,5 +114,437 @@ RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
   return handlers.raw();
 }
 
+
+static uint8_t* zone_allocator(uint8_t* ptr,
+                               intptr_t old_size,
+                               intptr_t new_size) {
+  Zone* zone = Thread::Current()->zone();
+  return zone->Realloc<uint8_t>(ptr, old_size, new_size);
+}
+
+
+const TokenPosition CodeSourceMapBuilder::kInitialPosition =
+    TokenPosition::kDartCodePrologue;
+
+
+CodeSourceMapBuilder::CodeSourceMapBuilder(
+    bool stack_traces_only,
+    const GrowableArray<intptr_t>& caller_inline_id,
+    const GrowableArray<TokenPosition>& inline_id_to_token_pos,
+    const GrowableArray<const Function*>& inline_id_to_function)
+    : buffered_pc_offset_(0),
+      buffered_inline_id_stack_(),
+      buffered_token_pos_stack_(),
+      written_pc_offset_(0),
+      written_inline_id_stack_(),
+      written_token_pos_stack_(),
+      caller_inline_id_(caller_inline_id),
+      inline_id_to_token_pos_(inline_id_to_token_pos),
+      inline_id_to_function_(inline_id_to_function),
+      buffer_(NULL),
+      stream_(&buffer_, zone_allocator, 64),
+      stack_traces_only_(stack_traces_only) {
+  buffered_inline_id_stack_.Add(0);
+  buffered_token_pos_stack_.Add(kInitialPosition);
+  written_inline_id_stack_.Add(0);
+  written_token_pos_stack_.Add(kInitialPosition);
+}
+
+
+void CodeSourceMapBuilder::FlushBuffer() {
+  FlushBufferStack();
+  FlushBufferPosition();
+  FlushBufferPC();
+}
+
+
+void CodeSourceMapBuilder::FlushBufferStack() {
+  for (intptr_t i = buffered_inline_id_stack_.length() - 1; i >= 0; i--) {
+    intptr_t buffered_id = buffered_inline_id_stack_[i];
+    if (i < written_inline_id_stack_.length()) {
+      intptr_t written_id = written_inline_id_stack_[i];
+      if (buffered_id == written_id) {
+        // i is the top-most position where the buffered and written stack
+        // match.
+        while (written_inline_id_stack_.length() > i + 1) {
+          WritePop();
+        }
+        for (intptr_t j = i + 1; j < buffered_inline_id_stack_.length(); j++) {
+          TokenPosition buffered_pos = buffered_token_pos_stack_[j - 1];
+          TokenPosition written_pos = written_token_pos_stack_[j - 1];
+          if (buffered_pos != written_pos) {
+            WriteChangePosition(buffered_pos);
+          }
+          WritePush(buffered_inline_id_stack_[j]);
+        }
+        return;
+      }
+    }
+  }
+  UNREACHABLE();
+}
+
+
+void CodeSourceMapBuilder::FlushBufferPosition() {
+  ASSERT(buffered_token_pos_stack_.length() ==
+         written_token_pos_stack_.length());
+
+  intptr_t top = buffered_token_pos_stack_.length() - 1;
+  TokenPosition buffered_pos = buffered_token_pos_stack_[top];
+  TokenPosition written_pos = written_token_pos_stack_[top];
+  if (buffered_pos != written_pos) {
+    WriteChangePosition(buffered_pos);
+  }
+}
+
+
+void CodeSourceMapBuilder::FlushBufferPC() {
+  if (buffered_pc_offset_ != written_pc_offset_) {
+    WriteAdvancePC(buffered_pc_offset_ - written_pc_offset_);
+  }
+}
+
+
+void CodeSourceMapBuilder::StartInliningInterval(int32_t pc_offset,
+                                                 intptr_t inline_id) {
+  if (buffered_inline_id_stack_.Last() == inline_id) {
+    // No change in function stack.
+    return;
+  }
+  if (inline_id == -1) {
+    // Basic blocking missing an inline_id.
+    return;
+  }
+
+  if (!stack_traces_only_) {
+    FlushBuffer();
+  }
+
+  // Find a minimal set of pops and pushes to bring us to the new function
+  // stack.
+
+  // Pop to a common ancestor.
+  intptr_t common_parent = inline_id;
+  while (!IsOnBufferedStack(common_parent)) {
+    common_parent = caller_inline_id_[common_parent];
+  }
+  while (buffered_inline_id_stack_.Last() != common_parent) {
+    BufferPop();
+  }
+
+  // Push to the new top-of-stack function.
+  GrowableArray<intptr_t> to_push;
+  intptr_t id = inline_id;
+  while (id != common_parent) {
+    to_push.Add(id);
+    id = caller_inline_id_[id];
+  }
+  for (intptr_t i = to_push.length() - 1; i >= 0; i--) {
+    intptr_t callee_id = to_push[i];
+    TokenPosition call_token;
+    if (callee_id != 0) {
+      // TODO(rmacnak): Should make this array line up with the others.
+      call_token = inline_id_to_token_pos_[callee_id - 1];
+    } else {
+      UNREACHABLE();
+    }
+
+    // Report caller as at the position of the call.
+    BufferChangePosition(call_token);
+
+    BufferPush(callee_id);
+  }
+}
+
+
+void CodeSourceMapBuilder::BeginCodeSourceRange(int32_t pc_offset) {}
+
+
+void CodeSourceMapBuilder::EndCodeSourceRange(int32_t pc_offset,
+                                              TokenPosition pos) {
+  if (pc_offset == buffered_pc_offset_) {
+    return;  // Empty intermediate instruction.
+  }
+  if (pos != buffered_token_pos_stack_.Last()) {
+    if (!stack_traces_only_) {
+      FlushBuffer();
+    }
+    BufferChangePosition(pos);
+  }
+  BufferAdvancePC(pc_offset - buffered_pc_offset_);
+}
+
+
+void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
+                                          int32_t pc_offset,
+                                          TokenPosition pos) {
+  const uint8_t kCanThrow =
+      RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall |
+      RawPcDescriptors::kRuntimeCall | RawPcDescriptors::kOther;
+  if (stack_traces_only_ && ((kind & kCanThrow) != 0)) {
+    BufferChangePosition(pos);
+    BufferAdvancePC(pc_offset - buffered_pc_offset_);
+    FlushBuffer();
+  }
+}
+
+
+RawArray* CodeSourceMapBuilder::InliningIdToFunction() {
+  if (inline_id_to_function_.length() <= 1) {
+    // Not optimizing, or optimizing and nothing inlined.
+    return Object::empty_array().raw();
+  }
+  const Array& res =
+      Array::Handle(Array::New(inline_id_to_function_.length(), Heap::kOld));
+  for (intptr_t i = 0; i < inline_id_to_function_.length(); i++) {
+    res.SetAt(i, *inline_id_to_function_[i]);
+  }
+  return res.raw();
+}
+
+
+RawCodeSourceMap* CodeSourceMapBuilder::Finalize() {
+  if (!stack_traces_only_) {
+    FlushBuffer();
+  }
+  intptr_t length = stream_.bytes_written();
+  const CodeSourceMap& map = CodeSourceMap::Handle(CodeSourceMap::New(length));
+  NoSafepointScope no_safepoint;
+  memmove(map.Data(), buffer_, length);
+  return map.raw();
+}
+
+
+void CodeSourceMapBuilder::WriteChangePosition(TokenPosition pos) {
+  stream_.Write<uint8_t>(kChangePosition);
+  if (FLAG_precompiled_mode) {
+    intptr_t line = -1;
+    intptr_t inline_id = buffered_inline_id_stack_.Last();
+    if (inline_id < inline_id_to_function_.length()) {
+      const Function* function = inline_id_to_function_[inline_id];
+      Script& script = Script::Handle(function->script());
+      line = script.GetTokenLineUsingLineStarts(pos);
+    }
+    stream_.Write<int32_t>(static_cast<int32_t>(line));
+  } else {
+    stream_.Write<int32_t>(static_cast<int32_t>(pos.value()));
+  }
+  written_token_pos_stack_.Last() = pos;
+}
+
+
+void CodeSourceMapReader::GetInlinedFunctionsAt(
+    int32_t pc_offset,
+    GrowableArray<const Function*>* function_stack,
+    GrowableArray<TokenPosition>* token_positions) {
+  function_stack->Clear();
+  token_positions->Clear();
+
+  NoSafepointScope no_safepoint;
+  ReadStream stream(map_.Data(), map_.Length());
+
+  int32_t current_pc_offset = 0;
+  function_stack->Add(&root_);
+  token_positions->Add(CodeSourceMapBuilder::kInitialPosition);
+
+  while (stream.PendingBytes() > 0) {
+    uint8_t opcode = stream.Read<uint8_t>();
+    switch (opcode) {
+      case CodeSourceMapBuilder::kChangePosition: {
+        int32_t position = stream.Read<int32_t>();
+        (*token_positions)[token_positions->length() - 1] =
+            TokenPosition(position);
+        break;
+      }
+      case CodeSourceMapBuilder::kAdvancePC: {
+        int32_t delta = stream.Read<int32_t>();
+        current_pc_offset += delta;
+        if (current_pc_offset > pc_offset) {
+          return;
+        }
+        break;
+      }
+      case CodeSourceMapBuilder::kPushFunction: {
+        int32_t func = stream.Read<int32_t>();
+        function_stack->Add(
+            &Function::Handle(Function::RawCast(functions_.At(func))));
+        token_positions->Add(CodeSourceMapBuilder::kInitialPosition);
+        break;
+      }
+      case CodeSourceMapBuilder::kPopFunction: {
+        // We never pop the root function.
+        ASSERT(function_stack->length() > 1);
+        ASSERT(token_positions->length() > 1);
+        function_stack->RemoveLast();
+        token_positions->RemoveLast();
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+  }
+}
+
+
+#ifndef PRODUCT
+void CodeSourceMapReader::PrintJSONInlineIntervals(JSONObject* jsobj) {
+  {
+    JSONArray inlined_functions(jsobj, "_inlinedFunctions");
+    Function& function = Function::Handle();
+    for (intptr_t i = 0; i < functions_.Length(); i++) {
+      function ^= functions_.At(i);
+      ASSERT(!function.IsNull());
+      inlined_functions.AddValue(function);
+    }
+  }
+
+  GrowableArray<intptr_t> function_stack;
+  JSONArray inline_intervals(jsobj, "_inlinedIntervals");
+  NoSafepointScope no_safepoint;
+  ReadStream stream(map_.Data(), map_.Length());
+
+  int32_t current_pc_offset = 0;
+  function_stack.Add(0);
+
+  while (stream.PendingBytes() > 0) {
+    uint8_t opcode = stream.Read<uint8_t>();
+    switch (opcode) {
+      case CodeSourceMapBuilder::kChangePosition: {
+        stream.Read<int32_t>();
+        break;
+      }
+      case CodeSourceMapBuilder::kAdvancePC: {
+        int32_t delta = stream.Read<int32_t>();
+        // Format: [start, end, inline functions...]
+        JSONArray inline_interval(&inline_intervals);
+        inline_interval.AddValue(static_cast<intptr_t>(current_pc_offset));
+        inline_interval.AddValue(
+            static_cast<intptr_t>(current_pc_offset + delta - 1));
+        for (intptr_t i = 0; i < function_stack.length(); i++) {
+          inline_interval.AddValue(function_stack[i]);
+        }
+        current_pc_offset += delta;
+        break;
+      }
+      case CodeSourceMapBuilder::kPushFunction: {
+        int32_t func = stream.Read<int32_t>();
+        function_stack.Add(func);
+        break;
+      }
+      case CodeSourceMapBuilder::kPopFunction: {
+        // We never pop the root function.
+        ASSERT(function_stack.length() > 1);
+        function_stack.RemoveLast();
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+  }
+}
+#endif  // !PRODUCT
+
+
+void CodeSourceMapReader::DumpInlineIntervals(uword start) {
+  GrowableArray<const Function*> function_stack;
+  LogBlock lb;
+  NoSafepointScope no_safepoint;
+  ReadStream stream(map_.Data(), map_.Length());
+
+  int32_t current_pc_offset = 0;
+  function_stack.Add(&root_);
+
+  THR_Print("Inline intervals {\n");
+  while (stream.PendingBytes() > 0) {
+    uint8_t opcode = stream.Read<uint8_t>();
+    switch (opcode) {
+      case CodeSourceMapBuilder::kChangePosition: {
+        stream.Read<int32_t>();
+        break;
+      }
+      case CodeSourceMapBuilder::kAdvancePC: {
+        int32_t delta = stream.Read<int32_t>();
+        THR_Print("%" Px "-%" Px ": ", start + current_pc_offset,
+                  start + current_pc_offset + delta - 1);
+        for (intptr_t i = 0; i < function_stack.length(); i++) {
+          THR_Print("%s ", function_stack[i]->ToCString());
+        }
+        THR_Print("\n");
+        current_pc_offset += delta;
+        break;
+      }
+      case CodeSourceMapBuilder::kPushFunction: {
+        int32_t func = stream.Read<int32_t>();
+        function_stack.Add(
+            &Function::Handle(Function::RawCast(functions_.At(func))));
+        break;
+      }
+      case CodeSourceMapBuilder::kPopFunction: {
+        // We never pop the root function.
+        ASSERT(function_stack.length() > 1);
+        function_stack.RemoveLast();
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+  }
+  THR_Print("}\n");
+}
+
+
+void CodeSourceMapReader::DumpSourcePositions(uword start) {
+  GrowableArray<const Function*> function_stack;
+  GrowableArray<TokenPosition> token_positions;
+  LogBlock lb;
+  NoSafepointScope no_safepoint;
+  ReadStream stream(map_.Data(), map_.Length());
+
+  int32_t current_pc_offset = 0;
+  function_stack.Add(&root_);
+  token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
+
+  THR_Print("Source positions {\n");
+  while (stream.PendingBytes() > 0) {
+    uint8_t opcode = stream.Read<uint8_t>();
+    switch (opcode) {
+      case CodeSourceMapBuilder::kChangePosition: {
+        int32_t position = stream.Read<int32_t>();
+        token_positions[token_positions.length() - 1] = TokenPosition(position);
+        break;
+      }
+      case CodeSourceMapBuilder::kAdvancePC: {
+        int32_t delta = stream.Read<int32_t>();
+        THR_Print("%" Px "-%" Px ": ", start + current_pc_offset,
+                  start + current_pc_offset + delta - 1);
+        for (intptr_t i = 0; i < function_stack.length(); i++) {
+          THR_Print("%s@%" Pd " ", function_stack[i]->ToCString(),
+                    token_positions[i].value());
+        }
+        THR_Print("\n");
+        current_pc_offset += delta;
+        break;
+      }
+      case CodeSourceMapBuilder::kPushFunction: {
+        int32_t func = stream.Read<int32_t>();
+        function_stack.Add(
+            &Function::Handle(Function::RawCast(functions_.At(func))));
+        token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
+        break;
+      }
+      case CodeSourceMapBuilder::kPopFunction: {
+        // We never pop the root function.
+        ASSERT(function_stack.length() > 1);
+        ASSERT(token_positions.length() > 1);
+        function_stack.RemoveLast();
+        token_positions.RemoveLast();
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+  }
+  THR_Print("}\n");
+}
 
 }  // namespace dart

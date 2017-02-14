@@ -2252,6 +2252,9 @@ class Function : public Object {
   }
   void set_type_parameters(const TypeArguments& value) const;
   intptr_t NumTypeParameters(Thread* thread) const;
+  intptr_t NumTypeParameters() const {
+    return NumTypeParameters(Thread::Current());
+  }
 
   // Return a TypeParameter if the type_name is a type parameter of this
   // function or of one of its parent functions.
@@ -3557,6 +3560,12 @@ class Script : public Object {
 
   void set_line_starts(const Array& value) const;
 
+  void set_debug_positions(const Array& value) const;
+
+  void set_yield_positions(const Array& value) const;
+
+  RawArray* yield_positions() const { return raw_ptr()->yield_positions_; }
+
   void Tokenize(const String& private_key, bool use_shared_tokens = true) const;
 
   RawLibrary* FindLibrary() const;
@@ -3570,6 +3579,7 @@ class Script : public Object {
 
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
+  intptr_t GetTokenLineUsingLineStarts(TokenPosition token_pos) const;
   void GetTokenLocation(TokenPosition token_pos,
                         intptr_t* line,
                         intptr_t* column,
@@ -3607,6 +3617,7 @@ class Script : public Object {
   void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
   RawArray* line_starts() const { return raw_ptr()->line_starts_; }
+  RawArray* debug_positions() const { return raw_ptr()->debug_positions_; }
 
   static RawScript* New();
 
@@ -4394,66 +4405,25 @@ class CodeSourceMap : public Object {
     return RoundedAllocationSize(sizeof(RawCodeSourceMap) + len);
   }
 
-  static RawCodeSourceMap* New(GrowableArray<uint8_t>* delta_encoded_data);
+  static RawCodeSourceMap* New(intptr_t length);
+
+  intptr_t Length() const { return raw_ptr()->length_; }
+  uint8_t* Data() const {
+    return UnsafeMutableNonPointer(&raw_ptr()->data()[0]);
+  }
+
+  bool Equals(const CodeSourceMap& other) const {
+    if (Length() != other.Length()) {
+      return false;
+    }
+    NoSafepointScope no_safepoint;
+    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(Length())) == 0;
+  }
 
   void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
 
-  // Encode integer in SLEB128 format.
-  static void EncodeInteger(GrowableArray<uint8_t>* data, intptr_t value);
-
-  // Decode SLEB128 encoded integer. Update byte_index to the next integer.
-  intptr_t DecodeInteger(intptr_t* byte_index) const;
-
-  TokenPosition TokenPositionForPCOffset(uword pc_offset) const;
-  RawFunction* FunctionForPCOffset(const Code& code,
-                                   const Function& function,
-                                   uword pc_offset) const;
-  RawScript* ScriptForPCOffset(const Code& code,
-                               const Function& function,
-                               uword pc_offset) const;
-
-  static void Dump(const CodeSourceMap& code_source_map,
-                   const Code& code,
-                   const Function& function);
-
-  class Iterator : ValueObject {
-   public:
-    explicit Iterator(const CodeSourceMap& code_source_map)
-        : code_source_map_(code_source_map),
-          byte_index_(0),
-          cur_pc_offset_(0),
-          cur_token_pos_(0) {}
-
-    bool MoveNext() {
-      // Moves to the next record.
-      while (byte_index_ < code_source_map_.Length()) {
-        cur_pc_offset_ += code_source_map_.DecodeInteger(&byte_index_);
-        cur_token_pos_ += code_source_map_.DecodeInteger(&byte_index_);
-
-        return true;
-      }
-      return false;
-    }
-
-    uword PcOffset() const { return cur_pc_offset_; }
-    TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
-
-   private:
-    friend class CodeSourceMap;
-
-    const CodeSourceMap& code_source_map_;
-    intptr_t byte_index_;
-
-    intptr_t cur_pc_offset_;
-    intptr_t cur_token_pos_;
-  };
-
  private:
-  static RawCodeSourceMap* New(intptr_t length);
-
-  intptr_t Length() const;
   void SetLength(intptr_t value) const;
-  void CopyData(GrowableArray<uint8_t>* data);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap, Object);
   friend class Class;
@@ -4535,8 +4505,7 @@ class ExceptionHandlers : public Object {
 
   intptr_t num_entries() const;
 
-  void GetHandlerInfo(intptr_t try_index,
-                      RawExceptionHandlers::HandlerInfo* info) const;
+  void GetHandlerInfo(intptr_t try_index, ExceptionHandlerInfo* info) const;
 
   uword HandlerPCOffset(intptr_t try_index) const;
   intptr_t OuterTryIndex(intptr_t try_index) const;
@@ -4558,9 +4527,8 @@ class ExceptionHandlers : public Object {
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(
-        sizeof(RawExceptionHandlers) +
-        (len * sizeof(RawExceptionHandlers::HandlerInfo)));
+    return RoundedAllocationSize(sizeof(RawExceptionHandlers) +
+                                 (len * sizeof(ExceptionHandlerInfo)));
   }
 
   static RawExceptionHandlers* New(intptr_t num_handlers);
@@ -4703,27 +4671,17 @@ class Code : public Object {
   }
 
   RawCodeSourceMap* code_source_map() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return CodeSourceMap::null();
-#else
     return raw_ptr()->code_source_map_;
-#endif
   }
 
   void set_code_source_map(const CodeSourceMap& code_source_map) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
     ASSERT(code_source_map.IsOld());
     StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
-#endif
   }
 
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
   // that are embedded inside the Code object.
   void ResetICDatas(Zone* zone) const;
-
-  TokenPosition GetTokenPositionAt(intptr_t offset) const;
 
   // Array of DeoptInfo objects.
   RawArray* deopt_info_array() const {
@@ -4819,32 +4777,33 @@ class Code : public Object {
   // Returns -1 if no prologue offset is available.
   intptr_t GetPrologueOffset() const;
 
-  enum InlinedIntervalEntries {
-    kInlIntStart = 0,
-    kInlIntInliningId = 1,
-    kInlIntNumEntries = 2,
-  };
+  RawArray* inlined_id_to_function() const;
+  void set_inlined_id_to_function(const Array& value) const;
 
-  RawArray* GetInlinedIntervals() const;
-  void SetInlinedIntervals(const Array& value) const;
+  // Provides the call stack at the given pc offset, with the top-of-stack in
+  // the last element and the root function (this) as the first element, along
+  // with the corresponding source positions. Note the token position for each
+  // function except the top-of-stack is the position of the call to the next
+  // function. The stack will be empty if we lack the metadata to produce it,
+  // which happens for stub code.
+  // The pc offset is interpreted as an instruction address (as needed by the
+  // disassembler or the top frame of a profiler sample).
+  void GetInlinedFunctionsAtInstruction(
+      intptr_t pc_offset,
+      GrowableArray<const Function*>* functions,
+      GrowableArray<TokenPosition>* token_positions) const;
+  // Same as above, expect the pc is intepreted as a return address (as needed
+  // for a stack trace or the bottom frames of a profiler sample).
+  void GetInlinedFunctionsAtReturnAddress(
+      intptr_t pc_offset,
+      GrowableArray<const Function*>* functions,
+      GrowableArray<TokenPosition>* token_positions) const {
+    GetInlinedFunctionsAtInstruction(pc_offset - 1, functions, token_positions);
+  }
 
-  RawArray* GetInlinedIdToFunction() const;
-  void SetInlinedIdToFunction(const Array& value) const;
-
-  RawArray* GetInlinedIdToTokenPos() const;
-  void SetInlinedIdToTokenPos(const Array& value) const;
-
-  RawArray* GetInlinedCallerIdMap() const;
-  void SetInlinedCallerIdMap(const Array& value) const;
-
-  // If |token_positions| is not NULL it will be populated with the token
-  // positions of the inlined calls.
-  void GetInlinedFunctionsAt(
-      intptr_t offset,
-      GrowableArray<Function*>* fs,
-      GrowableArray<TokenPosition>* token_positions = NULL) const;
-
-  void DumpInlinedIntervals() const;
+  NOT_IN_PRODUCT(void PrintJSONInlineIntervals(JSONObject* object) const);
+  void DumpInlineIntervals() const;
+  void DumpSourcePositions() const;
 
   RawLocalVarDescriptors* var_descriptors() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -5028,9 +4987,6 @@ class Code : public Object {
     NoSafepointScope no_safepoint;
     *PointerOffsetAddrAt(index) = offset_in_instructions;
   }
-
-  // Currently slow, as it searches linearly through inlined_intervals().
-  intptr_t GetCallerId(intptr_t inlined_id) const;
 
   intptr_t BinarySearchInSCallTable(uword pc) const;
   static RawCode* LookupCodeInIsolate(Isolate* isolate, uword pc);
@@ -6168,6 +6124,7 @@ class TypeParameter : public AbstractType {
   static RawTypeParameter* New(const Class& parameterized_class,
                                const Function& parameterized_function,
                                intptr_t index,
+                               intptr_t parent_level,
                                const String& name,
                                const AbstractType& bound,
                                TokenPosition token_pos);
@@ -6180,7 +6137,7 @@ class TypeParameter : public AbstractType {
   void set_parameterized_function(const Function& value) const;
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
-  void set_parent_level(uint8_t value) const;
+  void set_parent_level(intptr_t value) const;
   void set_type_state(int8_t state) const;
 
   static RawTypeParameter* New();
@@ -8444,14 +8401,17 @@ class StackTrace : public Instance {
 
   intptr_t Length() const;
 
-  RawFunction* FunctionAtFrame(intptr_t frame_index) const;
+  RawStackTrace* async_link() const { return raw_ptr()->async_link_; }
+  void set_async_link(const StackTrace& async_link) const;
+  void set_expand_inlined(bool value) const;
 
+  RawArray* code_array() const { return raw_ptr()->code_array_; }
   RawCode* CodeAtFrame(intptr_t frame_index) const;
   void SetCodeAtFrame(intptr_t frame_index, const Code& code) const;
 
+  RawArray* pc_offset_array() const { return raw_ptr()->pc_offset_array_; }
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
   void SetPcOffsetAtFrame(intptr_t frame_index, const Smi& pc_offset) const;
-  void set_expand_inlined(bool value) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStackTrace));
@@ -8460,9 +8420,15 @@ class StackTrace : public Instance {
                             const Array& pc_offset_array,
                             Heap::Space space = Heap::kNew);
 
+  static RawStackTrace* New(const Array& code_array,
+                            const Array& pc_offset_array,
+                            const StackTrace& async_link,
+                            Heap::Space space = Heap::kNew);
+
   // The argument 'max_frames' limits the number of printed frames.
-  const char* ToCStringInternal(intptr_t* frame_index,
-                                intptr_t max_frames = kMaxInt32) const;
+  static const char* ToCStringInternal(const StackTrace& stack_trace,
+                                       intptr_t* frame_index,
+                                       intptr_t max_frames = kMaxInt32);
 
  private:
   void set_code_array(const Array& code_array) const;

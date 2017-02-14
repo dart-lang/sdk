@@ -175,14 +175,27 @@ type Library {
   StringReference importUri;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
+  List<DeferredImport> deferredImports;
   List<Class> classes;
   List<Field> fields;
   List<Procedure> procedures;
 }
 
+type DeferredImport {
+  LibraryReference importedLibrary;
+  StringReference name;
+}
+
+type DeferredImportReference {
+  // Index into deferredImports in the enclosing Library.
+  UInt index;
+}
+
 abstract type Node {
   Byte tag;
 }
+
+enum ClassLevel { Type = 0, Hierarchy = 1, Mixin = 2, Body = 3, }
 
 // A class can be represented at one of three levels: type, hierarchy, or body.
 //
@@ -197,7 +210,7 @@ abstract type Class extends Node {}
 type NormalClass extends Class {
   Byte tag = 2;
   FileOffset fileOffset;
-  Byte flags (isAbstract, isTypeLevel);
+  Byte flags (isAbstract, xx); // Where xx is index into ClassLevel
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
@@ -662,6 +675,16 @@ type Let extends Expression {
   Byte tag = 53;
   VariableDeclaration variable;
   Expression body;
+}
+
+type LoadLibrary extends Expression {
+  Byte tag = 14;
+  DeferredImportReference import;
+}
+
+type CheckLibraryIsLoaded extends Expression {
+  Byte tag = 13;
+  DeferredImportReference import;
 }
 
 abstract type Statement extends Node {}

@@ -27,6 +27,12 @@ bool ShouldCaptureStdout();
 // Should Stderr events be captured?
 bool ShouldCaptureStderr();
 
+// Set the executable name used by Platform.executable.
+void SetExecutableName(const char* executable_name);
+
+// Set the arguments used by Platform.executableArguments.
+void SetExecutableArguments(int script_index, char** argv);
+
 }  // namespace bin
 }  // namespace dart
 

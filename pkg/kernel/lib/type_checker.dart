@@ -680,6 +680,16 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitLoadLibrary(LoadLibrary node) {
+    return environment.futureType(const DynamicType());
+  }
+
+  @override
+  DartType visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    return environment.objectType;
+  }
+
+  @override
   visitAssertStatement(AssertStatement node) {
     visitExpression(node.condition);
     if (node.message != null) {

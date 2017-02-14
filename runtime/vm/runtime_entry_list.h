@@ -18,7 +18,6 @@ namespace dart {
   V(FixAllocationStubTarget)                                                   \
   V(InlineCacheMissHandlerOneArg)                                              \
   V(InlineCacheMissHandlerTwoArgs)                                             \
-  V(InlineCacheMissHandlerThreeArgs)                                           \
   V(StaticCallMissHandlerOneArg)                                               \
   V(StaticCallMissHandlerTwoArgs)                                              \
   V(Instanceof)                                                                \

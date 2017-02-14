@@ -23,7 +23,6 @@ template <typename T>
 class GrowableArray;
 class ParsedFunction;
 
-
 class ParallelMoveResolver : public ValueObject {
  public:
   explicit ParallelMoveResolver(FlowGraphCompiler* compiler);
@@ -308,7 +307,6 @@ class FlowGraphCompiler : public ValueObject {
 
   const FlowGraph& flow_graph() const { return flow_graph_; }
 
-  DescriptorList* pc_descriptors_list() const { return pc_descriptors_list_; }
   BlockEntryInstr* current_block() const { return current_block_; }
   void set_current_block(BlockEntryInstr* value) { current_block_ = value; }
   static bool CanOptimize();
@@ -499,6 +497,11 @@ class FlowGraphCompiler : public ValueObject {
   void AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                             intptr_t deopt_id,
                             TokenPosition token_pos);
+  void AddDescriptor(RawPcDescriptors::Kind kind,
+                     intptr_t pc_offset,
+                     intptr_t deopt_id,
+                     TokenPosition token_pos,
+                     intptr_t try_index);
 
   void RecordSafepoint(LocationSummary* locs,
                        intptr_t slow_path_argument_count = 0);
@@ -526,6 +529,7 @@ class FlowGraphCompiler : public ValueObject {
   void FinalizeStackMaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeStaticCallTargetsTable(const Code& code);
+  void FinalizeCodeSourceMap(const Code& code);
 
   const Class& double_class() const { return double_class_; }
   const Class& mint_class() const { return mint_class_; }
@@ -578,26 +582,12 @@ class FlowGraphCompiler : public ValueObject {
 
   void AddStubCallTarget(const Code& code);
 
-  const Array& inlined_code_intervals() const {
-    return inlined_code_intervals_;
-  }
-
   RawArray* edge_counters_array() const { return edge_counters_array_.raw(); }
 
   RawArray* InliningIdToFunction() const;
-  RawArray* InliningIdToTokenPos() const;
-  RawArray* CallerInliningIdMap() const;
-
-  CodeSourceMapBuilder* code_source_map_builder() {
-    if (code_source_map_builder_ == NULL) {
-      code_source_map_builder_ = new CodeSourceMapBuilder();
-    }
-    ASSERT(code_source_map_builder_ != NULL);
-    return code_source_map_builder_;
-  }
 
   void BeginCodeSourceRange();
-  bool EndCodeSourceRange(TokenPosition token_pos);
+  void EndCodeSourceRange(TokenPosition token_pos);
 
 #if defined(TARGET_ARCH_DBC)
   enum CallResult {
@@ -776,7 +766,6 @@ class FlowGraphCompiler : public ValueObject {
   DescriptorList* pc_descriptors_list_;
   StackMapTableBuilder* stackmap_table_builder_;
   CodeSourceMapBuilder* code_source_map_builder_;
-  intptr_t saved_code_size_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
@@ -809,11 +798,6 @@ class FlowGraphCompiler : public ValueObject {
   ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
 
   Array& edge_counters_array_;
-
-  Array& inlined_code_intervals_;
-  const GrowableArray<const Function*>& inline_id_to_function_;
-  const GrowableArray<TokenPosition>& inline_id_to_token_pos_;
-  const GrowableArray<intptr_t>& caller_inline_id_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

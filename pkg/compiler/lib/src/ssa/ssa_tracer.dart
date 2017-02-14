@@ -238,6 +238,10 @@ class HInstructionStringifier implements HVisitor<String> {
     }
   }
 
+  String visitGetLength(HGetLength node) {
+    return 'GetLength: ${temporaryId(node.receiver)}';
+  }
+
   String visitLocalGet(HLocalGet node) {
     String localName = node.variable.name;
     return 'LocalGet: ${temporaryId(node.local)}.$localName';

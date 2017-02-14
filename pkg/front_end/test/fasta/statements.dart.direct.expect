@@ -1,0 +1,150 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → dynamic {
+  try {
+    return;
+  }
+  finally {
+    core::print("Hello from finally block!");
+  }
+}
+static method bar() → dynamic async {
+  await for (dynamic x in <dynamic>[]) {
+    yield x;
+    yield* x;
+  }
+}
+static method main() → dynamic {
+  do {
+    core::print("Hello from do-while!");
+  }
+  while (false)
+  do
+    dynamic x = core::print("Hello from do-while!");
+  while (false)
+  for (core::String s in <dynamic>["Hello from for-in!"]) {
+    core::print(s);
+  }
+  for (core::String s in <dynamic>["Hello from for-in without block!"])
+    core::print(s);
+  dynamic s;
+  for (final dynamic #t1 in <dynamic>["Hello from for-in without decl!"]) {
+    s = #t1;
+    core::print(s);
+  }
+  for (final dynamic #t2 in <dynamic>["Hello from for-in without decl and block!"]) {
+    s = #t2;
+    core::print(s);
+  }
+  core::print("Hello from labeled statement!");
+  try {
+    try {
+      throw "Hello from rethrow!";
+    }
+    on dynamic catch(dynamic e) {
+      rethrow;
+    }
+  }
+  on dynamic catch(dynamic e) {
+    core::print(e);
+  }
+  self::foo();
+  core::bool done = false;
+  while (!done) {
+    done = true;
+    core::print("Hello from while!");
+  }
+  ;
+  assert(true);
+  assert(true, "Hello from assert!");
+  try {
+    assert(false, "Hello from assert!");
+  }
+  on dynamic catch(dynamic e) {
+    core::print(e);
+  }
+  #L1:
+  switch(1) {
+    #L2:
+    case 1:
+    case 2:
+      {
+        core::print("Hello from switch case!");
+        break #L1;
+      }
+    #L3:
+    default:
+      {
+        break #L1;
+      }
+  }
+  #L4:
+  switch(4) {
+    #L5:
+    case 2:
+      {
+        core::print("Hello from case 2!");
+        break #L4;
+      }
+    #L6:
+    case 1:
+      {
+        core::print("Hello from case 1!");
+        continue #L5;
+      }
+    #L7:
+    case 0:
+      {
+        core::print("Hello from case 0!");
+        continue #L6;
+      }
+    #L8:
+    case 4:
+      {
+        core::print("Hello from case 4!");
+        continue #L9;
+      }
+    #L9:
+    default:
+      {
+        continue #L7;
+      }
+  }
+  #L10:
+  switch(4) {
+    #L11:
+    case 1:
+      {
+        core::print("Hello from next case 1");
+        break #L10;
+      }
+    #L12:
+    default:
+      {
+        continue #L11;
+      }
+  }
+  core::int i = 0;
+  #L13:
+  do
+    #L14:
+    {
+      core::print("Hello from do-while!");
+      if((i = i.+(1)).<(3))
+        break #L14;
+      break #L13;
+    }
+  while (true)
+  i = 0;
+  #L15:
+  while (true)
+    #L16:
+    {
+      core::print("Hello from while!");
+      if((i = i.+(1)).<(3))
+        break #L16;
+      break #L15;
+    }
+}

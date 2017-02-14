@@ -145,7 +145,6 @@ var tests = [
     } on ServerRpcException catch (e, st) {
       expect(e.code, equals(ServiceExtensionResponse.extensionError));
       expect(e.message, stringContainsInOrder([
-          'Error in extension `ext..languageError`:',
           'developer_extension_test.dart',
           'semicolon expected']));
     }

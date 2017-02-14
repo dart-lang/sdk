@@ -2441,6 +2441,51 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
     verify([source]);
   }
 
+  test_genericFunctionTypedParameter() async {
+    // Once dartbug.com/28515 is fixed, this syntax should no longer generate an
+    // error.
+    // TODO(paulberry): When dartbug.com/28515 is fixed, convert this into a
+    // NonErrorResolverTest.
+    Source source = addSource('void g(T f<T>(T x)) {}');
+    await computeAnalysisResult(source);
+    var expectedErrorCodes = <ErrorCode>[
+      CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED
+    ];
+    if (enableNewAnalysisDriver) {
+      // Due to dartbug.com/28515, some additional errors appear when using the
+      // new analysis driver.
+      expectedErrorCodes.addAll([
+        StaticWarningCode.UNDEFINED_CLASS,
+        StaticWarningCode.UNDEFINED_CLASS
+      ]);
+    }
+    assertErrors(source, expectedErrorCodes);
+    verify([source]);
+  }
+
+  test_genericFunctionTypedParameter_commentSyntax() async {
+    // Once dartbug.com/28515 is fixed, this syntax should no longer generate an
+    // error.
+    // TODO(paulberry): When dartbug.com/28515 is fixed, convert this into a
+    // NonErrorResolverTest.
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    Source source = addSource('void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}');
+    await computeAnalysisResult(source);
+    var expectedErrorCodes = <ErrorCode>[
+      CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED
+    ];
+    if (enableNewAnalysisDriver) {
+      // Due to dartbug.com/28515, some additional errors appear when using the
+      // new analysis driver.
+      expectedErrorCodes.addAll([
+        StaticWarningCode.UNDEFINED_CLASS,
+        StaticWarningCode.UNDEFINED_CLASS
+      ]);
+    }
+    assertErrors(source, expectedErrorCodes);
+    verify([source]);
+  }
+
   test_getterAndMethodWithSameName() async {
     Source source = addSource(r'''
 class A {

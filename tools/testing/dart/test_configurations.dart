@@ -5,6 +5,7 @@
 library test_configurations;
 
 import "dart:async";
+import 'dart:convert';
 import 'dart:io';
 import "dart:math" as math;
 
@@ -53,6 +54,9 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('utils/tests/css'),
   new Path('utils/tests/peg'),
 ];
+
+// This file is created by gclient runhooks.
+final VS_TOOLCHAIN_FILE = new Path("build/win_toolchain.json");
 
 Future testConfigurations(List<Map> configurations) async {
   var startTime = new DateTime.now();
@@ -208,12 +212,6 @@ Future testConfigurations(List<Map> configurations) async {
         } else if (conf['compiler'] == 'none' &&
             conf['runtime'] == 'vm' &&
             key == 'pkgbuild') {
-          if (!conf['use_repository_packages'] &&
-              !conf['use_public_packages']) {
-            print("You need to use either --use-repository-packages or "
-                "--use-public-packages with the pkgbuild test suite!");
-            exit(1);
-          }
           if (!conf['use_sdk']) {
             print("Running the 'pkgbuild' test suite requires "
                 "passing the '--use-sdk' to test.py");
@@ -272,7 +270,7 @@ Future testConfigurations(List<Map> configurations) async {
     eventListener.add(new TestOutcomeLogWriter());
   }
   if (firstConf['copy_coredumps']) {
-    eventListener.add(new UnexpectedCrashDumpArchiver());
+    eventListener.add(new UnexpectedCrashLogger());
   }
 
   // The only progress indicator when listing tests should be the
@@ -298,6 +296,13 @@ Future testConfigurations(List<Map> configurations) async {
   // Start all the HTTP servers required before starting the process queue.
   if (!serverFutures.isEmpty) {
     await Future.wait(serverFutures);
+  }
+
+  if (Platform.isWindows) {
+    // When running tests on Windows, use cdb from depot_tools to dump
+    // stack traces of tests timing out.
+    var text = await new File(VS_TOOLCHAIN_FILE.toNativePath()).readAsString();
+    firstConf['win_sdk_path'] = JSON.decode(text)['win_sdk'];
   }
 
   // [firstConf] is needed here, since the ProcessQueue needs to know the

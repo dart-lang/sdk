@@ -6,7 +6,6 @@ library elements;
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../compiler.dart' show Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../core_types.dart' show CommonElements;
@@ -14,11 +13,11 @@ import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/scope.dart' show Scope;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../script.dart';
-import '../tokens/token.dart'
+import 'package:front_end/src/fasta/scanner.dart'
     show Token, isUserDefinableOperator, isMinusOperator;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart';
-import '../util/characters.dart' show $_;
+import 'package:front_end/src/fasta/scanner/characters.dart' show $_;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'entities.dart';
@@ -116,19 +115,6 @@ class ElementKind {
       const ElementKind('error', ElementCategory.NONE);
 
   toString() => id;
-}
-
-/// Abstract interface for entities.
-///
-/// Implement this directly if the entity is not a Dart language entity.
-/// Entities defined within the Dart language should implement [Element].
-///
-/// For instance, the JavaScript backend need to create synthetic variables for
-/// calling intercepted classes and such variables do not correspond to an
-/// entity in the Dart source code nor in the terminology of the Dart language
-/// and should therefore implement [Entity] directly.
-abstract class Entity implements Spannable {
-  String get name;
 }
 
 /**
@@ -757,23 +743,23 @@ class Elements {
   }
 
   static bool isFixedListConstructorCall(
-      Element element, Send node, CommonElements commonElements) {
-    return element == commonElements.unnamedListConstructor &&
+      ConstructorEntity element, Send node, CommonElements commonElements) {
+    return commonElements.isUnnamedListConstructor(element) &&
         node.isCall &&
         !node.arguments.isEmpty &&
         node.arguments.tail.isEmpty;
   }
 
   static bool isGrowableListConstructorCall(
-      Element element, Send node, CommonElements commonElements) {
-    return element == commonElements.unnamedListConstructor &&
+      ConstructorEntity element, Send node, CommonElements commonElements) {
+    return commonElements.isUnnamedListConstructor(element) &&
         node.isCall &&
         node.arguments.isEmpty;
   }
 
   static bool isFilledListConstructorCall(
-      Element element, Send node, CommonElements commonElements) {
-    return element == commonElements.filledListConstructor &&
+      ConstructorEntity element, Send node, CommonElements commonElements) {
+    return commonElements.isFilledListConstructor(element) &&
         node.isCall &&
         !node.arguments.isEmpty &&
         !node.arguments.tail.isEmpty &&
@@ -1092,13 +1078,12 @@ abstract class LibraryElement extends Element
   /// or the empty string if there is no library tag.
   String get libraryName;
 
-  /// Returns the library name (as defined by the library tag) or for script
-  /// (which have no library tag) the script file name. The latter case is used
-  /// to provide a 'library name' for scripts to use for instance in dartdoc.
+  /// Returns the library name (as defined by the library tag) or for scripts
+  /// (which have no library tag) the script file name.
   ///
   /// Note: the returned filename is still escaped ("a%20b.dart" instead of
   /// "a b.dart").
-  String get libraryOrScriptName;
+  String get name;
 }
 
 /// The implicit scope defined by a import declaration with a prefix clause.
@@ -1171,7 +1156,9 @@ abstract class MemberElement extends Element
 
 /// A function, variable or parameter defined in an executable context.
 abstract class LocalElement extends Element
-    implements AstElement, TypedElement, Local {}
+    implements AstElement, TypedElement, Local {
+  ExecutableElement get executableContext;
+}
 
 /// A top level, static or instance field, a formal parameter or local variable.
 abstract class VariableElement extends ExecutableElement {
@@ -1188,24 +1175,6 @@ abstract class VariableElement extends ExecutableElement {
   /// [ErroneousConstantExpression], otherwise, the value is null when the
   /// initializer isn't a constant expression.
   ConstantExpression get constant;
-}
-
-/// An entity that defines a local entity (memory slot) in generated code.
-///
-/// Parameters, local variables and local functions (can) define local entity
-/// and thus implement [Local] through [LocalElement]. For non-element locals,
-/// like `this` and boxes, specialized [Local] classes are created.
-///
-/// Type variables can introduce locals in factories and constructors
-/// but since one type variable can introduce different locals in different
-/// factories and constructors it is not itself a [Local] but instead
-/// a non-element [Local] is created through a specialized class.
-// TODO(johnniwinther): Should [Local] have `isAssignable` or `type`?
-// TODO(johnniwinther): Move this to 'entities.dart' when it does not refer
-// to [ExecutableElement].
-abstract class Local extends Entity {
-  /// The context in which this local is defined.
-  ExecutableElement get executableContext;
 }
 
 /// A variable or parameter that is local to an executable context.
@@ -1416,7 +1385,8 @@ abstract class LocalFunctionElement extends FunctionElement
     implements LocalElement {}
 
 /// A constructor.
-abstract class ConstructorElement extends MethodElement {
+abstract class ConstructorElement extends MethodElement
+    implements ConstructorEntity {
   /// Returns `true` if [effectiveTarget] has been computed for this
   /// constructor.
   bool get hasEffectiveTarget;

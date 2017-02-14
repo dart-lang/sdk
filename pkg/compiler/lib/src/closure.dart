@@ -12,12 +12,13 @@ import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
 import 'elements/resolution_types.dart';
 import 'elements/elements.dart';
+import 'elements/entities.dart';
 import 'elements/modelx.dart'
     show BaseFunctionElementX, ClassElementX, ElementX;
 import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/tree_elements.dart' show TreeElements;
-import 'tokens/token.dart' show Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import 'tree/tree.dart';
 import 'util/util.dart';
 import 'world.dart' show ClosedWorldRefiner;
@@ -113,19 +114,6 @@ class ClosureTask extends CompilerTask {
         return _closureMappingCache[element];
       });
     });
-  }
-
-  void forgetElement(var closure) {
-    ClosureClassElement cls;
-    if (closure is ClosureFieldElement) {
-      cls = closure.closureClass;
-    } else if (closure is SynthesizedCallMethodElementX) {
-      cls = closure.closureClass;
-    } else {
-      throw new SpannableAssertionFailure(
-          closure, 'Not a closure: $closure (${closure.runtimeType}).');
-    }
-    compiler.enqueuer.codegen.forgetEntity(cls, compiler);
   }
 }
 
@@ -286,6 +274,9 @@ class BoxLocal extends Local {
 
   BoxLocal(this.name, this.executableContext);
 
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
+
   String toString() => 'BoxLocal($name)';
 }
 
@@ -358,6 +349,9 @@ class ThisLocal extends Local {
   final hashCode = ElementX.newHashCode();
 
   ThisLocal(this.executableContext);
+
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
 
   String get name => 'this';
 
@@ -1201,6 +1195,9 @@ class TypeVariableLocal implements Local {
   final ExecutableElement executableContext;
 
   TypeVariableLocal(this.typeVariable, this.executableContext);
+
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
 
   String get name => typeVariable.name;
 

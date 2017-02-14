@@ -41,7 +41,7 @@ main() {
   testNegativeIndices();
 }
 
-void expectIOORE(Function f) {
+void expectIOORE(void f()) {
   Expect.throws(f, (e) => e is RangeError);
 }
 

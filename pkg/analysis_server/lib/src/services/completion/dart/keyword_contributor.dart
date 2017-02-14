@@ -88,6 +88,20 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitBlock(Block node) {
+    Statement prevStmt = OpType.getPreviousStatement(node, entity);
+    if (prevStmt is TryStatement) {
+      if (prevStmt.finallyBlock == null) {
+        _addSuggestion2('on');
+        _addSuggestion(Keyword.CATCH);
+        _addSuggestion(Keyword.FINALLY);
+        if (prevStmt.catchClauses.isEmpty) {
+          // If try statement with no catch, on, or finally
+          // then only suggest these keywords
+          return;
+        }
+      }
+    }
+
     if (entity is ExpressionStatement) {
       Expression expression = (entity as ExpressionStatement).expression;
       if (expression is SimpleIdentifier) {
@@ -411,6 +425,18 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitTryStatement(TryStatement node) {
+    var obj = entity;
+    if (obj is CatchClause ||
+        (obj is KeywordToken && obj.value() == Keyword.FINALLY)) {
+      _addSuggestion2('on');
+      _addSuggestion(Keyword.CATCH);
+      return null;
+    }
+    return visitStatement(node);
+  }
+
+  @override
   visitVariableDeclaration(VariableDeclaration node) {
     if (entity == node.initializer) {
       _addExpressionKeywords(node);
@@ -467,7 +493,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.TRUE,
     ]);
     if (_inClassMemberBody(node)) {
-      _addSuggestions([Keyword.SUPER, Keyword.THIS,]);
+      _addSuggestions([Keyword.SUPER, Keyword.THIS]);
     }
     if (_inAsyncMethodOrFunction(node)) {
       _addSuggestion2(AWAIT);
@@ -497,7 +523,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   void _addStatementKeywords(AstNode node) {
     if (_inClassMemberBody(node)) {
-      _addSuggestions([Keyword.SUPER, Keyword.THIS,]);
+      _addSuggestions([Keyword.SUPER, Keyword.THIS]);
     }
     if (_inAsyncMethodOrFunction(node)) {
       _addSuggestion2(AWAIT);

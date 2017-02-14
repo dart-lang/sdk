@@ -38,9 +38,7 @@ class ResolveRelativeUriTest {
     _validate('a/b.dart', '../c.dart', 'c.dart');
     _validate('a.dart', '../b.dart', '../b.dart');
     _validate('a.dart', '../../b.dart', '../../b.dart');
-    // TODO(scheglov) After https://github.com/dart-lang/sdk/issues/27447
-    // TODO(scheglov) include also this, currently failing test.
-//    _validate('a/b.dart', '../../c.dart', '../c.dart');
+    _validate('a/b.dart', '../../c.dart', '../c.dart');
   }
 
   void _validate(String base, String contained, String expected) {

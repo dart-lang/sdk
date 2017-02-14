@@ -31,6 +31,8 @@ class MixinFullResolution {
     // the mixin and constructors from the base class.
     var processedClasses = new Set<Class>();
     for (var library in program.libraries) {
+      if (library.isExternal) continue;
+
       for (var class_ in library.classes) {
         transformClass(processedClasses, transformedClasses, class_);
       }
@@ -41,6 +43,8 @@ class MixinFullResolution {
 
     // Resolve all super call expressions and super initializers.
     for (var library in program.libraries) {
+      if (library.isExternal) continue;
+
       for (var class_ in library.classes) {
         final bool hasTransformedSuperclass =
             transformedClasses.contains(class_.superclass);
@@ -74,13 +78,20 @@ class MixinFullResolution {
     if (!processedClasses.add(class_)) return;
 
     // Ensure super classes have been transformed before this class.
-    if (class_.superclass != null) {
+    if (class_.superclass != null &&
+        class_.superclass.level.index >= ClassLevel.Mixin.index) {
       transformClass(processedClasses, transformedClasses, class_.superclass);
     }
 
     // If this is not a mixin application we don't need to make forwarding
     // constructors in this class.
     if (!class_.isMixinApplication) return;
+
+    if (class_.mixedInClass.level.index < ClassLevel.Mixin.index) {
+      throw new Exception(
+          'Class "${class_.name}" mixes in "${class_.mixedInClass.name}" from'
+          ' an external library.  Did you forget --link?');
+    }
 
     transformedClasses.add(class_);
 
@@ -179,7 +190,7 @@ class SuperCallResolutionTransformer extends Transformer {
       return new DirectPropertyGet(new ThisExpression(), target);
     } else {
       return _callNoSuchMethod(node.name.name, new Arguments.empty(), node,
-          isGetter: true);
+          isGetter: true, isSuper: true);
     }
   }
 
@@ -195,7 +206,7 @@ class SuperCallResolutionTransformer extends Transformer {
           new VariableDeclaration.forValue(visit(node.value));
       Expression result = _callNoSuchMethod(
           node.name.name, new Arguments([new VariableGet(rightHandSide)]), node,
-          isSetter: true);
+          isSetter: true, isSuper: true);
       VariableDeclaration call = new VariableDeclaration.forValue(result);
       return new Let(
           rightHandSide, new Let(call, new VariableGet(rightHandSide)));

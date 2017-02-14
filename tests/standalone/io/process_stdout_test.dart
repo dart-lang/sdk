@@ -48,7 +48,7 @@ void test(Future<Process> future, int expectedExitCode) {
 
     process.stderr.listen((_) {});
     process.stdin.add(data);
-    process.stdin.close();
+    process.stdin.flush().then((_) => process.stdin.close());
     process.stdout.listen(readData);
   });
 }

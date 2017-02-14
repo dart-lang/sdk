@@ -204,17 +204,17 @@ main() {
   Expect.isFalse(it.moveNext());
   Expect.isNull(it.current);
 
-  take0 = set2.take(0);
-  it = take0.iterator;
-  Expect.isNull(it.current);
-  Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
+  var dynamicTake0 = set2.take(0);
+  var dynamicIt = dynamicTake0.iterator;
+  Expect.isNull(dynamicIt.current);
+  Expect.isFalse(dynamicIt.moveNext());
+  Expect.isNull(dynamicIt.current);
 
-  take1 = set2.take(1);
-  it = take1.iterator;
-  Expect.isNull(it.current);
-  Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
+  var dynamicTake1 = set2.take(1);
+  dynamicIt = dynamicTake1.iterator;
+  Expect.isNull(dynamicIt.current);
+  Expect.isFalse(dynamicIt.moveNext());
+  Expect.isNull(dynamicIt.current);
 
   Expect.throws(() => list1.skip(-1), (e) => e is RangeError);
   Expect.throws(() => list2.skip(-1), (e) => e is RangeError);

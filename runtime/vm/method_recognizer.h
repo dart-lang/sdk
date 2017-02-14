@@ -346,7 +346,14 @@ namespace dart {
   V(::, _isDartStreamEnabled, Timeline_isDartStreamEnabled, Dynamic,           \
     0x72f13f7a)                                                                \
 
+#define ASYNC_LIB_INTRINSIC_LIST(V)                                            \
+  V(::, _clearAsyncThreadStackTrace, ClearAsyncThreadStackTrace,               \
+    Dynamic, 0x2d287286)                                                       \
+  V(::, _setAsyncThreadStackTrace, SetAsyncThreadStackTrace,                   \
+    Dynamic, 0x1d12fcc8)
+
 #define ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                  \
+  ASYNC_LIB_INTRINSIC_LIST(V)                                                  \
   CORE_LIB_INTRINSIC_LIST(V)                                                   \
   DEVELOPER_LIB_INTRINSIC_LIST(V)                                              \
   MATH_LIB_INTRINSIC_LIST(V)                                                   \

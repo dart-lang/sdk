@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  dynamic list = let final dynamic #t1 = <dynamic>[1] in let final dynamic #t2 = #t1.add(2) in let final dynamic #t3 = #t1.add(3) in let final dynamic #t4 = #t1.addAll(<dynamic>[4, 5]) in #t1;
+  core::print(list);
+  let final dynamic #t5 = list in let final dynamic #t6 = #t5.add(2) in let final dynamic #t7 = #t5.length in let final dynamic #t8 = #t5.length = 0 in #t5;
+  core::print(list);
+  let final dynamic #t9 = list in let final dynamic #t10 = #t9.add(2) in let final dynamic #t11 = #t9.[](0) in let final dynamic #t12 = let final dynamic #t13 = #t9 in let final dynamic #t14 = 0 in let final dynamic #t15 = 87 in let final dynamic #t16 = #t13.[]=(#t14, #t15) in #t15 in #t9;
+  core::print(list);
+  list = let final dynamic #t17 = <dynamic>[<dynamic>[1]] in let final dynamic #t18 = #t17.first.last.toString() in let final dynamic #t19 = #t17.first.[](0).toString() in let final dynamic #t20 = #t17.[](0).last.toString() in #t17;
+  core::print(list);
+}

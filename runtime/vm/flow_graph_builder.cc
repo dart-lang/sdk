@@ -1131,6 +1131,21 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     }
   }
 
+  if (FLAG_causal_async_stacks &&
+      (function.IsAsyncClosure() || function.IsAsyncGenClosure())) {
+    // We are returning from an asynchronous closure. Before we do that, be
+    // sure to clear the thread's asynchronous stack trace.
+    const Function& async_clear_thread_stack_trace = Function::ZoneHandle(
+        Z, isolate()->object_store()->async_clear_thread_stack_trace());
+    ZoneGrowableArray<PushArgumentInstr*>* no_arguments =
+        new (Z) ZoneGrowableArray<PushArgumentInstr*>(0);
+    StaticCallInstr* call_async_clear_thread_stack_trace = new (Z)
+        StaticCallInstr(node->token_pos().ToSynthetic(),
+                        async_clear_thread_stack_trace, Object::null_array(),
+                        no_arguments, owner()->ic_data_array());
+    Do(call_async_clear_thread_stack_trace);
+  }
+
   // Async functions contain two types of return statements:
   // 1) Returns that should complete the completer once all finally blocks have
   //    been inlined (call: :async_completer.complete(return_value)). These
@@ -3792,6 +3807,34 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
+  if (FLAG_causal_async_stacks && is_top_level_sequence &&
+      (function.IsAsyncClosure() || function.IsAsyncGenClosure())) {
+    LocalScope* top_scope = node->scope();
+    // Fetch the :async_stack_trace variable and store it into the thread.
+    LocalVariable* async_stack_trace_var =
+        top_scope->LookupVariable(Symbols::AsyncStackTraceVar(), false);
+    ASSERT((async_stack_trace_var != NULL) &&
+           async_stack_trace_var->is_captured());
+    // Load :async_stack_trace
+    Value* async_stack_trace_value = Bind(BuildLoadLocal(
+        *async_stack_trace_var, node->token_pos().ToSynthetic()));
+    // Setup arguments for _asyncSetThreadStackTrace.
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new (Z) ZoneGrowableArray<PushArgumentInstr*>(1);
+    arguments->Add(PushArgument(async_stack_trace_value));
+
+    const Function& async_set_thread_stack_trace = Function::ZoneHandle(
+        Z, isolate()->object_store()->async_set_thread_stack_trace());
+    ASSERT(!async_set_thread_stack_trace.IsNull());
+    // Call _asyncSetThreadStackTrace
+    StaticCallInstr* call_async_set_thread_stack_trace = new (Z)
+        StaticCallInstr(node->token_pos().ToSynthetic(),
+                        async_set_thread_stack_trace, Object::null_array(),
+                        arguments, owner()->ic_data_array());
+    Do(call_async_set_thread_stack_trace);
+  }
+
+
   if (FLAG_support_debugger && is_top_level_sequence &&
       function.is_debuggable()) {
     // Place a debug check at method entry to ensure breaking on a method always
@@ -4300,12 +4343,14 @@ void EffectGraphVisitor::VisitStopNode(StopNode* node) {
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   VMTagScope tagScope(thread(), VMTag::kCompileFlowGraphBuilderTagId,
                       FLAG_profile_vm);
-  if (FLAG_support_ast_printer && FLAG_print_ast) {
+  if (FLAG_support_ast_printer && FLAG_print_ast &&
+      FlowGraphPrinter::ShouldPrint(parsed_function().function())) {
     // Print the function ast before IL generation.
     AstPrinter ast_printer;
     ast_printer.PrintFunctionNodes(parsed_function());
   }
-  if (FLAG_support_ast_printer && FLAG_print_scopes) {
+  if (FLAG_support_ast_printer && FLAG_print_scopes &&
+      FlowGraphPrinter::ShouldPrint(parsed_function().function())) {
     AstPrinter ast_printer;
     ast_printer.PrintFunctionScope(parsed_function());
   }

@@ -6,7 +6,6 @@ import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../enqueue.dart' show Enqueuer;
 import '../universe/use.dart' show StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
@@ -55,7 +54,7 @@ class CustomElementsAnalysis {
   final CustomElementsAnalysisJoin resolutionJoin;
   final CustomElementsAnalysisJoin codegenJoin;
   bool fetchedTableAccessorMethod = false;
-  Element tableAccessorMethod;
+  MethodElement tableAccessorMethod;
 
   CustomElementsAnalysis(JavaScriptBackend backend)
       : this.backend = backend,
@@ -77,7 +76,7 @@ class CustomElementsAnalysis {
   void registerInstantiatedClass(ClassElement classElement,
       {bool forResolution}) {
     classElement.ensureResolved(compiler.resolution);
-    if (!backend.isNativeOrExtendsNative(classElement)) return;
+    if (!backend.nativeData.isNativeOrExtendsNative(classElement)) return;
     if (classElement.isMixinApplication) return;
     if (classElement.isAbstract) return;
     // JsInterop classes are opaque interfaces without a concrete
@@ -160,7 +159,7 @@ class CustomElementsAnalysisJoin {
     for (ClassElement classElement in instantiatedClasses) {
       bool isNative = backend.isNative(classElement);
       bool isExtension =
-          !isNative && backend.isNativeOrExtendsNative(classElement);
+          !isNative && backend.nativeData.isNativeOrExtendsNative(classElement);
       // Generate table entries for native classes that are explicitly named and
       // extensions that fix our criteria.
       if ((isNative && selectedClasses.contains(classElement)) ||
@@ -190,7 +189,8 @@ class CustomElementsAnalysisJoin {
 
   TypeConstantValue makeTypeConstant(ClassElement element) {
     ResolutionDartType elementType = element.rawType;
-    return backend.constantSystem.createType(compiler, elementType);
+    return backend.constantSystem.createType(
+        compiler.commonElements, compiler.backend.backendClasses, elementType);
   }
 
   List<ConstructorElement> computeEscapingConstructors(

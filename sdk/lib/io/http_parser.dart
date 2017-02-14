@@ -1039,7 +1039,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
   }
 
   void _closeIncoming([bool closing = false]) {
-    // Ignore multiple close (can happend in re-entrance).
+    // Ignore multiple close (can happen in re-entrance).
     if (_incoming == null) return;
     var tmp = _incoming;
     tmp.close(closing);

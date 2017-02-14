@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Mixin extends core::Object {
+  field dynamic field = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo() → dynamic
+    return 87;
+}
+class Foo extends self::Object&Mixin {
+  constructor •() → void
+    : super self::Object&Mixin::•()
+    ;
+  method foo() → dynamic
+    return this.{=self::Object&Mixin::foo}();
+  method bar() → dynamic
+    return this.{=self::Object&Mixin::field};
+}
+abstract class Object&Mixin extends core::Object implements self::Mixin {
+  field dynamic field = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo() → dynamic
+    return 87;
+}
+static method main() → dynamic {
+  dynamic f = new self::Foo::•();
+  f.field = 42;
+  core::print(f.bar());
+}

@@ -403,6 +403,7 @@ class Parser : public ValueObject {
   bool IsPatchAnnotation(TokenPosition pos);
   void SkipTypeArguments();
   void SkipType(bool allow_void);
+  void SkipTypeOrFunctionType(bool allow_void);
   void SkipInitializers();
   void SkipExpr();
   void SkipNestedExpr();
@@ -513,8 +514,9 @@ class Parser : public ValueObject {
   void ParseLibraryImportObsoleteSyntax();
   void ParseLibraryIncludeObsoleteSyntax();
 
-  void ResolveType(ClassFinalizer::FinalizationKind finalization,
-                   AbstractType* type);
+  void ResolveSignature(const Function& signature);
+  void ResolveType(AbstractType* type);
+  RawAbstractType* CanonicalizeType(const AbstractType& type);
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization,
                              bool allow_deferred_type = false,
                              bool consume_unresolved_prefix = true);
@@ -522,7 +524,11 @@ class Parser : public ValueObject {
                              bool allow_deferred_type,
                              bool consume_unresolved_prefix,
                              LibraryPrefix* prefix);
-
+  RawType* ParseFunctionType(const AbstractType& result_type,
+                             ClassFinalizer::FinalizationKind finalization);
+  RawAbstractType* ParseTypeOrFunctionType(
+      bool allow_void,
+      ClassFinalizer::FinalizationKind finalization);
   void ParseTypeParameters(bool parameterizing_class);
   RawTypeArguments* ParseTypeArguments(
       ClassFinalizer::FinalizationKind finalization);
@@ -531,13 +537,16 @@ class Parser : public ValueObject {
   void CheckMemberNameConflict(ClassDesc* members, MemberDesc* member);
   void ParseClassMemberDefinition(ClassDesc* members,
                                   TokenPosition metadata_pos);
+  void ParseParameterType(ParamList* params);
   void ParseFormalParameter(bool allow_explicit_default_value,
                             bool evaluate_metadata,
                             ParamList* params);
-  void ParseFormalParameters(bool allow_explicit_default_values,
+  void ParseFormalParameters(bool use_function_type_syntax,
+                             bool allow_explicit_default_values,
                              bool evaluate_metadata,
                              ParamList* params);
-  void ParseFormalParameterList(bool allow_explicit_default_values,
+  void ParseFormalParameterList(bool use_function_type_syntax,
+                                bool allow_explicit_default_values,
                                 bool evaluate_metadata,
                                 ParamList* params);
   void CheckFieldsInitialized(const Class& cls);
@@ -601,6 +610,7 @@ class Parser : public ValueObject {
   ClosureNode* CreateImplicitClosureNode(const Function& func,
                                          TokenPosition token_pos,
                                          AstNode* receiver);
+  void FinalizeFormalParameterTypes(const ParamList* params);
   void AddFormalParamsToFunction(const ParamList* params, const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
@@ -749,15 +759,15 @@ class Parser : public ValueObject {
   bool IsIdentifier();
   bool IsSymbol(const String& symbol);
   bool IsSimpleLiteral(const AbstractType& type, Instance* value);
-  bool IsFunctionTypeAliasName();
+  bool IsFunctionTypeSymbol();
+  bool IsFunctionTypeAliasName(bool* use_function_type_syntax);
   bool TryParseQualIdent();
   bool TryParseTypeParameters();
   bool TryParseTypeArguments();
   bool IsTypeParameters();
   bool IsArgumentPart();
   bool IsParameterPart();
-  bool TryParseOptionalType();
-  bool TryParseReturnType();
+  bool TryParseType(bool allow_void);
   bool IsVariableDeclaration();
   bool IsFunctionReturnType();
   bool IsFunctionDeclaration();

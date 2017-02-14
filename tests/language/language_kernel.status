@@ -11,14 +11,14 @@ large_class_declaration_test: SkipSlow  # KernelVM Issue 28312
 ###############################################################################
 
 [ $compiler == dartk || $compiler == dartkp ]
-conditional_import_string_test: DartkCompileTimeError
-conditional_import_test: DartkCompileTimeError
-conflicting_type_variable_and_setter_test: DartkCompileTimeError
+bad_raw_string_test/03: MissingCompileTimeError
+conditional_import_string_test: CompileTimeError
+conditional_import_test: CompileTimeError
+conflicting_type_variable_and_setter_test: CompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/03: MissingCompileTimeError
 deep_nesting1_negative_test: DartkCrash
 deep_nesting2_negative_test: DartkCrash
-enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
 external_test/21: MissingCompileTimeError
 external_test/24: MissingCompileTimeError
@@ -27,39 +27,33 @@ final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
-metadata_test: DartkCompileTimeError
-multiline_newline_test/01: DartkCompileTimeError
-multiline_newline_test/02: DartkCompileTimeError
-multiline_newline_test/03: DartkCompileTimeError
+generic_local_functions_test: CompileTimeError # Issue 28515
+generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
+main_not_a_function_test/01: Pass # Fails if tree shaking is disabled
+metadata_test: CompileTimeError
+mixin_illegal_syntax_test/00: DartkCrash
+multiline_newline_test/01: CompileTimeError
+multiline_newline_test/02: CompileTimeError
+multiline_newline_test/03: CompileTimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
-not_enough_positional_arguments_test/01: DartkCompileTimeError
 regress_27617_test/1: MissingCompileTimeError
 type_variable_conflict2_test/02: MissingCompileTimeError
-vm/debug_break_enabled_vm_test/01: DartkCompileTimeError
-vm/debug_break_enabled_vm_test/none: DartkCompileTimeError
-vm/reflect_core_vm_test: DartkCompileTimeError
-vm/regress_27201_test: DartkCompileTimeError
+vm/debug_break_enabled_vm_test/01: CompileTimeError
+vm/debug_break_enabled_vm_test/none: CompileTimeError
+vm/reflect_core_vm_test: CompileTimeError
+vm/regress_27201_test: CompileTimeError
 vm/regress_28325_test: RuntimeError  # Issue 28055.
-
-# dartk: temporary failure
-mixin_illegal_syntax_test/00: DartkCrash
-
-# Passing for the wrong reason
-language/main_not_a_function_test/01: Pass # Fails if tree shaking is disabled
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
 config_import_corelib_test: RuntimeError
-reify_typevar_static_test/00: MissingCompileTimeError
-type_variable_conflict2_test/06: MissingCompileTimeError
-type_variable_conflict2_test/08: MissingCompileTimeError
-type_variable_conflict2_test/10: MissingCompileTimeError
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 config_import_corelib_test: RuntimeError
+not_enough_positional_arguments_test/01: DartkCompileTimeError # Issue 28590
 
 ###############################################################################
 # VM Entries
@@ -168,27 +162,20 @@ getter_setter_in_lib_test: RuntimeError
 inferrer_closure_test: RuntimeError
 initializing_formal_final_test: RuntimeError
 is_not_class2_test: RuntimeError
-issue13474_test: RuntimeError
 issue_1751477_test: RuntimeError
 library_env_test/has_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 list_literal4_test: RuntimeError
 malformed_test/none: RuntimeError
 map_literal3_test: RuntimeError
-map_literal4_test: RuntimeError  # VM checked mode Issue 28420
 map_literal6_test: RuntimeError
 method_override_test: RuntimeError
 mixin_type_parameters_super_extends_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
 multiline_newline_test/none: RuntimeError
-named_parameters_type_test/01: MissingRuntimeError
-named_parameters_type_test/02: MissingRuntimeError
-named_parameters_type_test/03: MissingRuntimeError
 not_enough_positional_arguments_test/02: MissingRuntimeError  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: MissingRuntimeError  # Dartk Issue 28301
 number_identifier_test/05: RuntimeError
-positional_parameters_type_test/01: MissingRuntimeError
-positional_parameters_type_test/02: MissingRuntimeError
 prefix10_negative_test: Fail
 prefix21_test: RuntimeError
 redirecting_constructor_initializer_test: RuntimeError
@@ -202,7 +189,6 @@ static_setter_get_test/01: RuntimeError  # Dartk Issue 28417
 switch7_negative_test: Fail  # Dartk Issue 28416
 try_catch_on_syntax_test/10: MissingRuntimeError  # Dartk Issue 28410
 try_catch_on_syntax_test/11: MissingRuntimeError  # Dartk Issue 28410
-type_checks_in_factory_method_test: RuntimeError
 type_variable_function_type_test: RuntimeError
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test: RuntimeError
@@ -212,8 +198,14 @@ vm/type_vm_test: RuntimeError
 const_locals_test: RuntimeError
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 const_string_test: RuntimeError  # Dartk Issue 28306
+deferred_regression_28678_test: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
+main_not_a_function_test/01: Crash
 redirecting_factory_reflection_test: RuntimeError
+
+# Casual async stack traces are not implemented for Kernel.
+vm/causal_async_exception_stack_test: RuntimeError
+vm/causal_async_exception_stack2_test: RuntimeError
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
@@ -222,13 +214,13 @@ not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-if_null_assignment_static_test/35: Crash  # Dartk Issue 28302
+deferred_regression_28678_test: RuntimeError # Issue 28335
+enum_syntax_test/05: MissingCompileTimeError
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
-
 
 # New failures after respecting VMOptions in test files
 [ $compiler == dartk || $compiler == dartkp ]
@@ -242,23 +234,14 @@ hello_dart_test: Crash  # error: expected: cls.is_type_finalized()
 [ $compiler == dartk && $runtime == vm ]
 hello_dart_test: CompileTimeError  # VMOptions=--compile-all causes us to hit "native function VMServiceIO_Shutdown cannot be resolved"
 ct_const2_test: Pass, CompileTimeError  # VMOptions=--compile-all causes us to hit "native function VMServiceIO_Shutdown cannot be resolved"
-disassemble_test: Pass, Crash  # Multitest via multiple VMOptions!
 
 # Failures during Gardening shift: To be triaged!
 [ $compiler == dartk || $compiler == dartkp ]
 runtime_type_function_test: RuntimeError
 
-# Failures during Gardening shift: To be triaged!
-[ $compiler == dartkp && $runtime == dart_precompiled ]
-assert_with_type_test_or_cast_test: Pass, Crash  # Multitest via multiple VMOptions.
-named_parameters_type_test/01: Crash
-named_parameters_type_test/02: Crash
-named_parameters_type_test/03: Crash
-positional_parameters_type_test/01: Crash
-positional_parameters_type_test/02: Crash
-type_checks_in_factory_method_test: Crash
-vm/regress_27671_test: Crash
-vm/type_vm_test: Crash
+[ $compiler == dartkp ]
+bad_raw_string_test/none: Skip # Issue 28680
+bad_raw_string_test/03: Skip # Issue 28680
 
 # Triaged checked mode failures
 [ ($compiler == dartk || $compiler == dartkp) && $checked ]

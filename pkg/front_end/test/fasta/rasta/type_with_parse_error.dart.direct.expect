@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → self::A
+    : super core::Object::•();
+  method foo() → dynamic {
+    throw core::_malformedTypeError("'B' is not a type.");
+  }
+}
+class B extends core::Object {
+  constructor •() → self::B
+    : super core::Object::•();
+}
+static method main() → dynamic {
+  throw core::_malformedTypeError("'B' is not a type.");
+}

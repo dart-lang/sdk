@@ -101,6 +101,10 @@ class TargetRepository implements M.TargetRepository {
   }
 
   static String _networkAddressOfDefaultTarget() {
+    if (!identical(1, 1.0)) {
+      // Dartium, assume we are developing.
+      return 'ws://127.0.0.1:8181/ws';
+    }
     Uri serverAddress = Uri.parse(window.location.toString());
     return 'ws://${serverAddress.authority}${serverAddress.path}ws';
   }

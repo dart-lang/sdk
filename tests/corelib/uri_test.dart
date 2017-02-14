@@ -33,10 +33,21 @@ testUri(String uriText, bool isAbsolute) {
                   Uri.parse(uriText + "#fragment").removeFragment());
   }
 
-  // Test uri.replace on uri with fragment
-  uri = Uri.parse('http://hello.com/fake#fragment');
-  uri = uri.replace(path: "D/E/E");
-  Expect.stringEquals('http://hello.com/D/E/E#fragment', uri.toString());
+  Expect.isTrue(uri.isScheme(uri.scheme));
+  Expect.isTrue(uri.isScheme(uri.scheme.toLowerCase()));
+  Expect.isTrue(uri.isScheme(uri.scheme.toUpperCase()));
+  if (uri.hasScheme) {
+    // Capitalize
+    Expect.isTrue(uri.isScheme(
+        uri.scheme[0].toUpperCase()+uri.scheme.substring(1)));
+    Expect.isFalse(uri.isScheme(
+        uri.scheme.substring(0, uri.scheme.length - 1)));
+    Expect.isFalse(uri.isScheme(uri.scheme + ":"));
+    Expect.isFalse(uri.isScheme(uri.scheme + "\x00"));
+  } else {
+    Expect.isTrue(uri.isScheme(null));
+    Expect.isFalse(uri.isScheme(":"));
+  }
 }
 
 testEncodeDecode(String orig, String encoded) {
@@ -753,6 +764,11 @@ void testReplace() {
   Expect.equals("s://a:1/b/c?#e", uri.replace(query: "").toString());
   Expect.equals("s://a:1?d#e", uri.replace(path: "").toString());
   Expect.equals("s://:1/b/c?d#e", uri.replace(host: "").toString());
+
+  // Test uri.replace on uri with fragment
+  uri = Uri.parse('http://hello.com/fake#fragment');
+  uri = uri.replace(path: "D/E/E");
+  Expect.stringEquals('http://hello.com/D/E/E#fragment', uri.toString());
 }
 
 void testRegression28359() {

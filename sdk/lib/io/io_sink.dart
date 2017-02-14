@@ -123,6 +123,10 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
 
   /**
    * Close the target consumer.
+   *
+   * NOTE: Writes to the [IOSink] may be buffered, and may not be flushed by
+   * a call to `close()`. To flush all buffered writes, call `flush()` before
+   * calling `close()`.
    */
   Future close();
 

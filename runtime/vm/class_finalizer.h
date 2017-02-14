@@ -35,6 +35,9 @@ class ClassFinalizer : public AllStatic {
                                        FinalizationKind finalization,
                                        PendingTypes* pending_types = NULL);
 
+  // Finalize the types in the functions's signature while parsing class cls.
+  static void FinalizeSignature(const Class& cls, const Function& function);
+
   // Allocate, finalize, and return a new malformed type as if it was declared
   // in class cls at the given token position.
   // If not null, prepend prev_error to the error message built from the format
@@ -152,7 +155,6 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeUpperBounds(const Class& cls,
                                   FinalizationKind finalization);
   static void ResolveSignature(const Class& cls, const Function& function);
-  static void FinalizeSignature(const Class& cls, const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);
   static void PrintClassInformation(const Class& cls);
   static void CollectInterfaces(const Class& cls,

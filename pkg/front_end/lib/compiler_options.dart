@@ -8,7 +8,7 @@ import 'compilation_error.dart';
 import 'file_system.dart';
 import 'physical_file_system.dart';
 
-/// Default error handler used by [CompielerOptions.onError].
+/// Default error handler used by [CompilerOptions.onError].
 void defaultErrorHandler(CompilationError error) => throw error;
 
 /// Callback used to report errors encountered during compilation.
@@ -85,14 +85,6 @@ class CompilerOptions {
   /// generated files.
   List<Uri> multiRoots = [];
 
-  /// Sets the platform bit, which determines which patch files should be
-  /// applied to the SDK.
-  ///
-  /// The value should be a power of two, and should match the `PLATFORM` bit
-  /// flags in sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart.  If
-  /// zero, no patch files will be applied.
-  int platformBit;
-
   /// The declared variables for use by configurable imports and constant
   /// evaluation.
   Map<String, String> declaredVariables;
@@ -120,6 +112,25 @@ class CompilerOptions {
   /// not described in a summary as if it was explictly listed as an input.
   bool chaseDependencies = false;
 
-  /// Whether to intepret Dart sources in strong-mode.
+  /// Whether to interpret Dart sources in strong-mode.
   bool strongMode = true;
+
+  // All options below are target-specific options.
+  //
+  // TODO(sigmund): revisit the right layout for these options. We might want to
+  // split them out into a separate bag of options or provide factories for
+  // common combinations of these options.
+
+  /// Patch files to apply on the core libraries for a specific target platform.
+  ///
+  /// Keys on this map are expected to be `dart:*` URIs. The values can be
+  /// either absolute or relative URIs. Absolute URIs are read directly, while
+  /// relative URIs are resolved from the [sdkRoot].
+  Map<Uri, List<Uri>> targetPatches = {};
+
+  /// Additional core libraries to be loaded when building a program.
+  // TODO(sigmund): delete. Ideally building a program only needs what's
+  // reachable and we can use kernelForBuildUnit when creating a snapshot of the
+  // SDK itself.
+  List<Uri> additionalLibraries = [];
 }

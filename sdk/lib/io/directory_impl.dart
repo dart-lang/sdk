@@ -68,10 +68,6 @@ class _Directory extends FileSystemEntity implements Directory {
 
   Directory get absolute => new Directory(_absolutePath);
 
-  Future<FileStat> stat() => FileStat.stat(path);
-
-  FileStat statSync() => FileStat.statSync(path);
-
   Future<Directory> create({bool recursive: false}) {
     if (recursive) {
       return exists().then((exists) {

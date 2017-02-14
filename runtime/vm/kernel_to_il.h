@@ -474,6 +474,18 @@ class ConstantEvaluator : public ExpressionVisitor {
                                           const Function& constructor,
                                           const Object& argument);
 
+  void AssertBoolInCheckedMode() {
+    if (isolate_->type_checks() && !result_.IsBool()) {
+      translation_helper_.ReportError("Expected boolean expression.");
+    }
+  }
+
+  bool EvaluateBooleanExpression(Expression* expression) {
+    EvaluateExpression(expression);
+    AssertBoolInCheckedMode();
+    return result_.raw() == Bool::True().raw();
+  }
+
   // TODO(27590): Instead of using [dart::kernel::TreeNode]s as keys we
   // should use [TokenPosition]s as well as the existing functionality in
   // `Parser::CacheConstantValue`.
@@ -627,7 +639,6 @@ class ScopeBuilder : public RecursiveVisitor {
   void HandleSpecialLoad(LocalVariable** variable, const dart::String& symbol);
   void LookupCapturedVariableByName(LocalVariable** variable,
                                     const dart::String& name);
-
 
   struct DepthState {
     explicit DepthState(intptr_t function)
@@ -867,6 +878,17 @@ class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
   Fragment BuildImplicitClosureCreation(const Function& target);
   Fragment GuardFieldLength(const dart::Field& field, intptr_t deopt_id);
   Fragment GuardFieldClass(const dart::Field& field, intptr_t deopt_id);
+
+  Fragment EvaluateAssertion();
+  Fragment CheckReturnTypeInCheckedMode();
+  Fragment CheckVariableTypeInCheckedMode(VariableDeclaration* variable);
+  Fragment CheckBooleanInCheckedMode();
+  Fragment CheckAssignableInCheckedMode(const dart::AbstractType& dst_type,
+                                        const dart::String& dst_name);
+
+  Fragment AssertBool();
+  Fragment AssertAssignable(const dart::AbstractType& dst_type,
+                            const dart::String& dst_name);
 
   dart::RawFunction* LookupMethodByMember(Member* target,
                                           const dart::String& method_name);

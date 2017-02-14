@@ -9,7 +9,7 @@ dependencies:
   analyzer: ^0.28.0
   args: '>=0.13.0 <0.14.0'
   dart_style: '>=0.2.0 <0.3.0'
-  isolate: ^0.2.2
+  isolate: '>=0.2.2 <2.0.0'
   linter: ^0.1.16
   logging: any
   package_config: '>=0.1.5 <2.0.0'

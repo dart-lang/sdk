@@ -27,6 +27,8 @@
 % - An await-for loop only pauses the subscription if it does something async.
 % - Assert statements may now also include a "message" operand.
 % - The Null type is now considered a subtype of all types in most cases.
+% - Specify what NEWLINE means in multiline strings.
+% - Specified the FutureOf type.
 %
 % 1.14
 % - The call "C()" where "C" is a class name, is a now compile-time error.
@@ -2807,7 +2809,7 @@ This decision was made for compatibility with web browsers and Javascript. Earli
 \end{grammar}
 
 \LMHash{}
-A string can be either a sequence of single line strings or a multiline string.
+A string can be a sequence of single line strings and multiline strings.
 
 \begin{grammar}
  {\bf singleLineString:}`{\escapegrammar \code{"}}' stringContentDQ* `{\escapegrammar \code{"}}';
@@ -2828,10 +2830,7 @@ Hence, `abc' and ``abc'' are both legal strings, as are `He said ``To be or not 
 }
 
 \LMHash{}
-Adjacent
-%single line
-strings are implicitly concatenated to form a single string literal.
-%, and so are adjacent multiline strings, but the two forms may not be mixed.
+Adjacent strings are implicitly concatenated to form a single string literal.
 
 
 \commentary{Here is an example}
@@ -2851,7 +2850,7 @@ print("A simple sum: 2 + 2 = " +
 \end{dartCode}
 
 \rationale{ which this prints  'A simple sum: 2 + 2 = 22' rather than 'A simple sum: 2 + 2 = 4'.
-However, the use the concatenation operation is still  discouraged for efficiency reasons. Instead, the recommended Dart idiom is to use string interpolation.
+However, the use of the concatenation operation is still discouraged for efficiency reasons. Instead, the recommended Dart idiom is to use string interpolation.
 }
 
 \begin{dartCode}
@@ -2876,22 +2875,22 @@ print("A simple sum: 2 + 2 =  \$\{2+2\}");
 
 
 \begin{grammar}
- {\bf multilineString:}`{\escapegrammar \texttt{"""}}' stringContentTDQ*   `{\escapegrammar \texttt{"""}}';
-      `{\escapegrammar \code{'}\code{'}\code{'}}' stringContentTSQ* `{\escapegrammar \code{'}\code{'}\code{'}}';
-      `r' `{\escapegrammar \texttt{"""}}'  (\~{} `{\escapegrammar \texttt{"""}}')*   `{\escapegrammar \texttt{"""}}';
-      `r' `{\escapegrammar \code{'}\code{'}\code{'}}' (\~{} `{\escapegrammar \code{'}\code{'}\code{'}}')* `{\escapegrammar \code{'}\code{'}\code{'}}'
-    .
+  {\bf multilineString:}`{\escapegrammar \texttt{"""}}' stringContentTDQ* `{\escapegrammar \texttt{"""}}';
+    `{\escapegrammar \code{'}\code{'}\code{'}}' stringContentTSQ* `{\escapegrammar \code{'}\code{'}\code{'}}';
+    `r' `{\escapegrammar \texttt{"""}}' (\~{} `{\escapegrammar \texttt{"""}}')* `{\escapegrammar \texttt{"""}}';
+    `r' `{\escapegrammar \code{'}\code{'}\code{'}}' (\~{} `{\escapegrammar \code{'}\code{'}\code{'}}')* `{\escapegrammar \code{'}\code{'}\code{'}}'
+  .
 
 
-    {\bf ESCAPE\_SEQUENCE:} `$\backslash$ n';
+  {\bf ESCAPE\_SEQUENCE:}`$\backslash$ n';
     `$\backslash$ r';
-   `$\backslash$ f';
-   `$\backslash$ b';
-  `$\backslash$ t';
-   `$\backslash$ v';
-  `$\backslash$ x' HEX\_DIGIT HEX\_DIGIT;
-   `$\backslash$ u' HEX\_DIGIT HEX\_DIGIT HEX\_DIGIT HEX\_DIGIT;
-   `$\backslash$ u\{' HEX\_DIGIT\_SEQUENCE `\}'
+    `$\backslash$ f';
+    `$\backslash$ b';
+    `$\backslash$ t';
+    `$\backslash$ v';
+    `$\backslash$ x' HEX\_DIGIT HEX\_DIGIT;
+    `$\backslash$ u' HEX\_DIGIT HEX\_DIGIT HEX\_DIGIT HEX\_DIGIT;
+    `$\backslash$ u\{' HEX\_DIGIT\_SEQUENCE `\}'
   .
 
 {\bf HEX\_DIGIT\_SEQUENCE:}
@@ -2901,12 +2900,11 @@ print("A simple sum: 2 + 2 =  \$\{2+2\}");
 \end{grammar}
 
 \LMHash{}
-Multiline strings are delimited by either matching triples of single quotes or matching triples of double quotes. If the first line of a multiline string consists solely of the whitespace characters defined by the production {\em WHITESPACE}  \ref{lexicalRules}), possibly prefixed by $\backslash$, then that line is ignored, including the new line at its end.
+Multiline strings are delimited by either matching triples of single quotes or matching triples of double quotes. If the first line of a multiline string consists solely of the whitespace characters defined by the production {\em WHITESPACE} \ref{lexicalRules}), possibly prefixed by $\backslash$, then that line is ignored, including the line break at its end.
 
-
- \rationale{
- The idea is to ignore whitespace, where whitespace is defined as tabs, spaces and newlines. These can be represented directly, but since for most characters prefixing by backslash is an identity, we allow those forms as well.
- }
+\rationale{
+The idea is to ignore a whitespace-only first line of a multiline string, where whitespace is defined as tabs, spaces and the final line break. These can be represented directly, but since for most characters prefixing by backslash is an identity in a non-raw string, we allow those forms as well.
+}
 
  % could be clearer. Is the first line in  """\t
  %    """ ignored not. It depends if we mean whitespace before escapes are interpreted,
@@ -2915,7 +2913,7 @@ Multiline strings are delimited by either matching triples of single quotes or m
 \LMHash{}
 Strings support escape sequences for special characters. The escapes are:
 \begin{itemize}
-\item  $\backslash$n for newline, equivalent to $\backslash$x0A.
+\item $\backslash$n for newline, equivalent to $\backslash$x0A.
 \item $\backslash$r for carriage return, equivalent to $\backslash$x0D.
 \item $\backslash$f for form feed, equivalent to $\backslash$x0C.
 \item $\backslash$b for backspace, equivalent to $\backslash$x08.
@@ -2932,6 +2930,10 @@ $\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$\}.
 
 \LMHash{}
 Any string may be prefixed with the character `r', indicating that it is a {\em raw string}, in which case no escapes or interpolations are recognized.
+
+\LMHash{}
+Line breaks in a multiline string are represented by the {\em NEWLINE} production.
+A line break introduces a single newline character into the string value.
 
 \LMHash{}
 It is a compile-time error if a non-raw string literal contains a character sequence of the form $\backslash$x that is not followed by a sequence of two hexadecimal digits. It is a compile-time error if a non-raw string literal  contains a character sequence of the form $\backslash$u that is not followed by either a sequence of four hexadecimal digits, or by curly brace delimited sequence of hexadecimal digits.
@@ -2959,7 +2961,8 @@ It is a compile-time error if a non-raw string literal contains a character sequ
     .
 
 {\bf NEWLINE:}$\backslash$ n;
-      $\backslash$ r
+      $\backslash$ r;
+      $\backslash$ r $\backslash$ n
     .
 
  \end{grammar}
@@ -7226,11 +7229,11 @@ Static type annotations are used in variable declarations (\ref{variables}) (inc
     .
 
 {\bf typeArguments:}
-      '<' typeList '>'
+      `<' typeList `>'
     .
 
 {\bf typeList:}
-      type (',' type)*
+      type (`,' type)*
     .
  \end{grammar}
 
@@ -7651,6 +7654,29 @@ What of static checking? Surely we would want to flag (2) when users have explic
 \LMHash{}
 The name \DYNAMIC{} denotes a \cd{Type} object even though \DYNAMIC{} is not a class.
 
+\LMHash{}
+The built-in type declaration \code{FutureOr},
+which is declared in the library \code{dart:async},
+defines a generic type with one type parameter (\ref{generics}).
+If the \code{FutureOr} type, optionally followed by type arguments,
+is used as a type, it denotes the \DYNAMIC{} type.
+As such, the \code{FutureOr} type cannot be used where \DYNAMIC{} cannot be
+used as a type.
+If the type arguments applied to \code{FutureOr} would issue static warnings
+if applied to a normal generic class with one type parameter,
+the same warnings are issued for \code{FutureOr},
+even though the type arguments are otherwise ignored.
+The name \code{FutureOr} as an expression
+denotes the same \cd{Type} object as \DYNAMIC{}.
+
+\rationale{
+The \code{FutureOr} type is reserved for future use,
+for cases where a value can be either an instance of the type \metavar{type}
+or the type \code{Future<\metavar{type}>}. Such cases occur naturally
+in asynchronous code.
+Using \code{FutureOr} instead of \DYNAMIC{} will allow some tools
+to provide a more precise type analysis.
+}
 %\rationale {
 %Type objects reify the runtime types of instances. No instance ever has type \DYNAMIC{}.
 %}

@@ -16,7 +16,7 @@ namespace dart {
 namespace bin {
 
 // This list must be kept in sync with the list in sdk/lib/io/io_service.dart
-// In this modified version, though, the request 39 for SSLFilter::ProcessFilter
+// In this modified version, though, the request 42 for SSLFilter::ProcessFilter
 // is removed, for use in contexts in which secure sockets are not enabled.
 #define IO_SERVICE_REQUEST_LIST(V)                                             \
   V(File, Exists, 0)                                                           \
@@ -32,32 +32,35 @@ namespace bin {
   V(File, Truncate, 10)                                                        \
   V(File, Length, 11)                                                          \
   V(File, LengthFromPath, 12)                                                  \
-  V(File, LastModified, 13)                                                    \
-  V(File, Flush, 14)                                                           \
-  V(File, ReadByte, 15)                                                        \
-  V(File, WriteByte, 16)                                                       \
-  V(File, Read, 17)                                                            \
-  V(File, ReadInto, 18)                                                        \
-  V(File, WriteFrom, 19)                                                       \
-  V(File, CreateLink, 20)                                                      \
-  V(File, DeleteLink, 21)                                                      \
-  V(File, RenameLink, 22)                                                      \
-  V(File, LinkTarget, 23)                                                      \
-  V(File, Type, 24)                                                            \
-  V(File, Identical, 25)                                                       \
-  V(File, Stat, 26)                                                            \
-  V(File, Lock, 27)                                                            \
-  V(Socket, Lookup, 28)                                                        \
-  V(Socket, ListInterfaces, 29)                                                \
-  V(Socket, ReverseLookup, 30)                                                 \
-  V(Directory, Create, 31)                                                     \
-  V(Directory, Delete, 32)                                                     \
-  V(Directory, Exists, 33)                                                     \
-  V(Directory, CreateTemp, 34)                                                 \
-  V(Directory, ListStart, 35)                                                  \
-  V(Directory, ListNext, 36)                                                   \
-  V(Directory, ListStop, 37)                                                   \
-  V(Directory, Rename, 38)
+  V(File, LastAccessed, 13)                                                    \
+  V(File, SetLastAccessed, 14)                                                 \
+  V(File, LastModified, 15)                                                    \
+  V(File, SetLastModified, 16)                                                 \
+  V(File, Flush, 17)                                                           \
+  V(File, ReadByte, 18)                                                        \
+  V(File, WriteByte, 19)                                                       \
+  V(File, Read, 20)                                                            \
+  V(File, ReadInto, 21)                                                        \
+  V(File, WriteFrom, 22)                                                       \
+  V(File, CreateLink, 23)                                                      \
+  V(File, DeleteLink, 24)                                                      \
+  V(File, RenameLink, 25)                                                      \
+  V(File, LinkTarget, 26)                                                      \
+  V(File, Type, 27)                                                            \
+  V(File, Identical, 28)                                                       \
+  V(File, Stat, 29)                                                            \
+  V(File, Lock, 30)                                                            \
+  V(Socket, Lookup, 31)                                                        \
+  V(Socket, ListInterfaces, 32)                                                \
+  V(Socket, ReverseLookup, 33)                                                 \
+  V(Directory, Create, 34)                                                     \
+  V(Directory, Delete, 35)                                                     \
+  V(Directory, Exists, 36)                                                     \
+  V(Directory, CreateTemp, 37)                                                 \
+  V(Directory, ListStart, 38)                                                  \
+  V(Directory, ListNext, 39)                                                   \
+  V(Directory, ListStop, 40)                                                   \
+  V(Directory, Rename, 41)
 
 #define DECLARE_REQUEST(type, method, id) k##type##method##Request = id,
 

@@ -369,10 +369,11 @@ class CE implements Comparable<CE> {
   String toString() => "CE($id)";
 }
 
+typedef int CECompare(CE e1, CE e2);
 // Equality of Id objects based on id modulo value.
 Function customEq(int mod) => (CE e1, CE e2) => ((e1.id - e2.id) % mod) == 0;
 Function customHash(int mod) => (CE e) => e.id % mod;
-Function customCompare(int mod) => (CE e1, CE e2) =>
+CECompare customCompare(int mod) => (CE e1, CE e2) =>
     (e1.id % mod) - (e2.id % mod);
 bool validKey(Object o) => o is CE;
 final customId = new Map.identity();

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'batch_util.dart';
+import 'util.dart';
 
 import 'package:args/args.dart';
 import 'package:kernel/analyzer/loader.dart';
@@ -15,6 +16,7 @@ import 'package:kernel/verifier.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/treeshaker.dart';
 import 'package:path/path.dart' as path;
 
 // Returns the path to the current sdk based on `Platform.resolvedExecutable`.
@@ -56,6 +58,10 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
   ..addOption('url-mapping',
       allowMultiple: true,
       help: 'A custom url mapping of the form `<scheme>:<name>::<uri>`.')
+  ..addOption('embedder-entry-points-manifest',
+      allowMultiple: true,
+      help: 'A path to a file describing entrypoints '
+          '(lines of the form `<library>,<class>,<member>`).')
   ..addFlag('verbose',
       abbr: 'v',
       negatable: false,
@@ -77,7 +83,9 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       help: 'When printing a library as text, also print its dependencies\n'
           'on external libraries.')
   ..addFlag('show-offsets',
-      help: 'When printing a library as text, also print node offsets');
+      help: 'When printing a library as text, also print node offsets')
+  ..addFlag('tree-shake',
+      defaultsTo: false, help: 'Enable tree-shaking if the target supports it');
 
 String getUsage() => """
 Usage: dartk [options] FILE
@@ -280,6 +288,12 @@ Future<CompilerOutcome> batchMain(
 
   List<String> urlMapping = options['url-mapping'] as List<String>;
   var customUriMappings = parseCustomUriMappings(urlMapping);
+
+  List<String> embedderEntryPointManifests =
+      options['embedder-entry-points-manifest'] as List<String>;
+  List<ProgramRoot> programRoots =
+      parseProgramRoots(embedderEntryPointManifests);
+
   var repository = new Repository();
 
   Program program;
@@ -288,7 +302,10 @@ Future<CompilerOutcome> batchMain(
   List<String> loadedFiles;
   Function getLoadedFiles;
   List errors = const [];
-  TargetFlags targetFlags = new TargetFlags(strongMode: options['strong']);
+  TargetFlags targetFlags = new TargetFlags(
+      strongMode: options['strong'],
+      treeShake: options['tree-shake'],
+      programRoots: programRoots);
   Target target = getTarget(options['target'], targetFlags);
 
   var declaredVariables = <String, String>{};
@@ -323,6 +340,7 @@ Future<CompilerOutcome> batchMain(
       program = loader.loadProgram(fileUri, target: target);
     } else {
       var library = loader.loadLibrary(fileUri);
+      loader.loadSdkInterface(program, target);
       assert(library ==
           repository.getLibraryReference(applicationRoot.relativeUri(fileUri)));
       program = new Program(repository.libraries);
@@ -362,9 +380,13 @@ Future<CompilerOutcome> batchMain(
   }
 
   // Apply target-specific transformations.
-  if (target != null && options['link'] && canContinueCompilation) {
-    target.transformProgram(program);
+  if (target != null && canContinueCompilation) {
+    target.performModularTransformations(program);
     runVerifier();
+    if (options['link']) {
+      target.performGlobalTransformations(program);
+      runVerifier();
+    }
   }
 
   if (options['no-output']) {
@@ -398,6 +420,10 @@ Future<CompilerOutcome> batchMain(
   if (shouldReportMetrics) {
     int flushTime = watch.elapsedMilliseconds - time;
     print('writer.flush_time = $flushTime ms');
+  }
+
+  if (options['tolerant']) {
+    return CompilerOutcome.Ok;
   }
 
   return errors.length > 0 ? CompilerOutcome.Fail : CompilerOutcome.Ok;

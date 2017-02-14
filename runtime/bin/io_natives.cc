@@ -50,6 +50,9 @@ namespace bin {
   V(File_LengthFromPath, 1)                                                    \
   V(File_Stat, 1)                                                              \
   V(File_LastModified, 1)                                                      \
+  V(File_SetLastModified, 2)                                                   \
+  V(File_LastAccessed, 1)                                                      \
+  V(File_SetLastAccessed, 2)                                                   \
   V(File_Flush, 1)                                                             \
   V(File_Lock, 4)                                                              \
   V(File_Create, 1)                                                            \

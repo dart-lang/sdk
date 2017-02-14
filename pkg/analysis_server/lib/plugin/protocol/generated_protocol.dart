@@ -12555,12 +12555,12 @@ class NavigationTarget implements HasToJson {
   }
 
   /**
-   * The offset of the region from which the user can navigate.
+   * The offset of the region to which the user can navigate.
    */
   int get offset => _offset;
 
   /**
-   * The offset of the region from which the user can navigate.
+   * The offset of the region to which the user can navigate.
    */
   void set offset(int value) {
     assert(value != null);
@@ -12568,12 +12568,12 @@ class NavigationTarget implements HasToJson {
   }
 
   /**
-   * The length of the region from which the user can navigate.
+   * The length of the region to which the user can navigate.
    */
   int get length => _length;
 
   /**
-   * The length of the region from which the user can navigate.
+   * The length of the region to which the user can navigate.
    */
   void set length(int value) {
     assert(value != null);
@@ -15537,7 +15537,7 @@ class TypeHierarchyItem implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ConvertGetterToMethodFeedback {
+class ConvertGetterToMethodFeedback extends RefactoringFeedback {
   @override
   bool operator==(other) {
     if (other is ConvertGetterToMethodFeedback) {
@@ -15556,7 +15556,7 @@ class ConvertGetterToMethodFeedback {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ConvertGetterToMethodOptions {
+class ConvertGetterToMethodOptions extends RefactoringOptions {
   @override
   bool operator==(other) {
     if (other is ConvertGetterToMethodOptions) {
@@ -15575,7 +15575,7 @@ class ConvertGetterToMethodOptions {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ConvertMethodToGetterFeedback {
+class ConvertMethodToGetterFeedback extends RefactoringFeedback {
   @override
   bool operator==(other) {
     if (other is ConvertMethodToGetterFeedback) {
@@ -15594,7 +15594,7 @@ class ConvertMethodToGetterFeedback {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ConvertMethodToGetterOptions {
+class ConvertMethodToGetterOptions extends RefactoringOptions {
   @override
   bool operator==(other) {
     if (other is ConvertMethodToGetterOptions) {
@@ -15622,7 +15622,7 @@ class ConvertMethodToGetterOptions {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
+class ExtractLocalVariableFeedback extends RefactoringFeedback {
   List<int> _coveringExpressionOffsets;
 
   List<int> _coveringExpressionLengths;
@@ -15804,7 +15804,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJson {
+class ExtractLocalVariableOptions extends RefactoringOptions {
   String _name;
 
   bool _extractAll;
@@ -15918,7 +15918,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
+class ExtractMethodFeedback extends RefactoringFeedback {
   int _offset;
 
   int _length;
@@ -16182,7 +16182,7 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
+class ExtractMethodOptions extends RefactoringOptions {
   String _returnType;
 
   bool _createGetter;
@@ -16383,7 +16383,7 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
+class InlineLocalVariableFeedback extends RefactoringFeedback {
   String _name;
 
   int _occurrences;
@@ -16474,7 +16474,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJs
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class InlineLocalVariableOptions {
+class InlineLocalVariableOptions extends RefactoringOptions {
   @override
   bool operator==(other) {
     if (other is InlineLocalVariableOptions) {
@@ -16500,7 +16500,7 @@ class InlineLocalVariableOptions {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
+class InlineMethodFeedback extends RefactoringFeedback {
   String _className;
 
   String _methodName;
@@ -16625,7 +16625,7 @@ class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class InlineMethodOptions extends RefactoringOptions implements HasToJson {
+class InlineMethodOptions extends RefactoringOptions {
   bool _deleteSource;
 
   bool _inlineAll;
@@ -16725,7 +16725,7 @@ class InlineMethodOptions extends RefactoringOptions implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class MoveFileFeedback {
+class MoveFileFeedback extends RefactoringFeedback {
   @override
   bool operator==(other) {
     if (other is MoveFileFeedback) {
@@ -16749,7 +16749,7 @@ class MoveFileFeedback {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class MoveFileOptions extends RefactoringOptions implements HasToJson {
+class MoveFileOptions extends RefactoringOptions {
   String _newFile;
 
   /**
@@ -16828,7 +16828,7 @@ class MoveFileOptions extends RefactoringOptions implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class RenameFeedback extends RefactoringFeedback implements HasToJson {
+class RenameFeedback extends RefactoringFeedback {
   int _offset;
 
   int _length;
@@ -16976,7 +16976,7 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class RenameOptions extends RefactoringOptions implements HasToJson {
+class RenameOptions extends RefactoringOptions {
   String _newName;
 
   /**

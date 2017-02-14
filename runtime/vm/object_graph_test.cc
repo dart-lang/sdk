@@ -38,7 +38,7 @@ class CounterVisitor : public ObjectGraph::Visitor {
 };
 
 
-VM_TEST_CASE(ObjectGraph) {
+ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
   Isolate* isolate = thread->isolate();
   // Create a simple object graph with objects a, b, c, d:
   //  a+->b+->c

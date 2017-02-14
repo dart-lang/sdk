@@ -229,7 +229,10 @@ class Driver implements CommandLineStarter {
     var libUris = <Uri>[];
     var parts = <Source>[];
     for (Source source in sourcesToAnalyze) {
-      if (context.computeKindOf(source) == SourceKind.PART) {
+      SourceKind sourceKind = analysisDriver != null
+          ? await analysisDriver.getSourceKind(source.fullName)
+          : context.computeKindOf(source);
+      if (sourceKind == SourceKind.PART) {
         parts.add(source);
         continue;
       }

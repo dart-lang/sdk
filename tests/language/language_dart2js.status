@@ -15,9 +15,6 @@ async_star_cancel_while_paused_test: RuntimeError # Issue 22853
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
 
-deep_nesting1_negative_test: Crash # Issue 25557
-deep_nesting2_negative_test: Crash # Issue 25557
-
 call_function_apply_test: RuntimeError # Issue 23873
 mixin_supertype_subclass_test: CompileTimeError # Issue 23773
 mixin_supertype_subclass2_test: CompileTimeError # Issue 23773

@@ -46,7 +46,7 @@ class InterceptorStubGenerator {
      */
     jsAst.Statement buildInterceptorCheck(ClassEntity cls) {
       jsAst.Expression condition;
-      assert(backend.isInterceptorClass(cls));
+      assert(backend.interceptorData.isInterceptorClass(cls));
       if (cls == helpers.jsBoolClass) {
         condition = js('(typeof receiver) == "boolean"');
       } else if (cls == helpers.jsIntClass ||
@@ -108,7 +108,7 @@ class InterceptorStubGenerator {
         // unresolved PlainJavaScriptObject by testing for anyNativeClasses.
 
         if (anyNativeClasses) {
-          if (backend.isNativeOrExtendsNative(cls)) hasNative = true;
+          if (backend.nativeData.isNativeOrExtendsNative(cls)) hasNative = true;
         }
       }
     }
@@ -117,7 +117,7 @@ class InterceptorStubGenerator {
     }
     if (hasInt) hasNumber = true;
 
-    if (classes.containsAll(backend.interceptedClasses)) {
+    if (classes.containsAll(backend.interceptorData.interceptedClasses)) {
       // I.e. this is the general interceptor.
       hasNative = anyNativeClasses;
     }
@@ -268,7 +268,7 @@ class InterceptorStubGenerator {
       bool containsArray = classes.contains(helpers.jsArrayClass);
       bool containsString = classes.contains(helpers.jsStringClass);
       bool containsJsIndexable =
-          helpers.jsIndexingBehaviorInterface.isResolved &&
+          closedWorld.isImplemented(helpers.jsIndexingBehaviorInterface) &&
               classes.any((cls) {
                 return closedWorld.isSubtypeOf(
                     cls, helpers.jsIndexingBehaviorInterface);
@@ -337,8 +337,9 @@ class InterceptorStubGenerator {
   }
 
   jsAst.Expression generateOneShotInterceptor(jsAst.Name name) {
-    Selector selector = backend.oneShotInterceptors[name];
-    Set<ClassEntity> classes = backend.getInterceptedClassesOn(selector.name);
+    Selector selector = backend.interceptorData.oneShotInterceptors[name];
+    Set<ClassEntity> classes =
+        backend.interceptorData.getInterceptedClassesOn(selector.name);
     jsAst.Name getInterceptorName = namer.nameForGetInterceptor(classes);
 
     List<String> parameterNames = <String>[];
@@ -353,7 +354,8 @@ class InterceptorStubGenerator {
     }
 
     jsAst.Name invocationName = backend.namer.invocationName(selector);
-    String globalObject = namer.globalObjectFor(helpers.interceptorsLibrary);
+    String globalObject =
+        namer.globalObjectForLibrary(helpers.interceptorsLibrary);
 
     jsAst.Statement optimizedPath =
         _fastPathForOneShotInterceptor(selector, classes);
@@ -404,7 +406,7 @@ class InterceptorStubGenerator {
         //
         // We expect most of the time the map will be a singleton.
         var properties = [];
-        for (FunctionEntity member in analysis.constructors(classElement)) {
+        for (ConstructorEntity member in analysis.constructors(classElement)) {
           properties.add(new jsAst.Property(js.string(member.name),
               backend.emitter.staticFunctionAccess(member)));
         }

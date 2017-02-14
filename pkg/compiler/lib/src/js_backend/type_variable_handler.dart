@@ -8,12 +8,10 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
-import '../enqueue.dart' show Enqueuer;
 import '../js/js.dart' as jsAst;
 import '../js_emitter/js_emitter.dart'
     show CodeEmitterTask, MetadataCollector, Placeholder;
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/use.dart' show StaticUse;
 import '../universe/world_impact.dart';
 import '../util/util.dart';
 import 'backend.dart';
@@ -101,7 +99,6 @@ class TypeVariableHandler {
     // Do not process classes twice.
     if (_typeVariables.containsKey(cls)) return;
 
-    ResolutionInterfaceType typeVariableType = _typeVariableClass.thisType;
     List<jsAst.Expression> constants = <jsAst.Expression>[];
 
     for (ResolutionTypeVariableType currentTypeVariable in cls.typeVariables) {
@@ -111,13 +108,11 @@ class TypeVariableHandler {
           _metadataCollector.reifyType(typeVariableElement.bound);
       ConstantValue boundValue = new SyntheticConstantValue(
           SyntheticConstantKind.TYPEVARIABLE_REFERENCE, boundIndex);
-      ConstantExpression boundExpression =
-          new SyntheticConstantExpression(boundValue);
       ConstantExpression constant = new ConstructedConstantExpression(
           _typeVariableConstructor.enclosingClass.thisType,
           _typeVariableConstructor,
           const CallStructure.unnamed(3), [
-        new TypeConstantExpression(cls.rawType),
+        new TypeConstantExpression(cls.rawType, cls.name),
         new StringConstantExpression(currentTypeVariable.name),
         new SyntheticConstantExpression(boundValue)
       ]);

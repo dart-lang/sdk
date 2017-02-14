@@ -425,7 +425,7 @@ enum CodePositionKind {
 
 /// Processor that associates [SourceLocation]s from [SourceInformation] on
 /// [js.Node]s with the target offsets in a [SourceMapper].
-class PositionSourceInformationProcessor implements SourceInformationProcessor {
+class PositionSourceInformationProcessor extends SourceInformationProcessor {
   final CodePositionRecorder codePositionRecorder = new CodePositionRecorder();
   CodePositionMap codePositionMap;
   List<TraceListener> traceListeners;
@@ -542,7 +542,9 @@ class PositionTraceListener extends TraceListener
     switch (kind) {
       case StepKind.FUN_ENTRY:
         // TODO(johnniwinther): Remove this when fully transitioned to the
-        // new source info system.
+        // new source info system. Verify that tools no longer expect JS
+        // function signatures to map to the origin. The main method may still
+        // need mapping to enable breakpoints before calling main.
         registerPosition(SourcePositionKind.START);
         break;
       case StepKind.FUN_EXIT:

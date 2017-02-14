@@ -1,0 +1,6 @@
+library;
+import self as self;
+
+static const field dynamic c;
+static method main() → dynamic
+  ;

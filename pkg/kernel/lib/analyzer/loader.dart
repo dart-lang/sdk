@@ -82,6 +82,9 @@ abstract class ReferenceLevelLoader {
   ast.Class getSharedMixinApplicationClass(
       ast.Library library, ast.Class supertype, ast.Class mixin);
   bool get strongMode;
+
+  /// Whether or not to include redirecting factories in the output.
+  bool get ignoreRedirectingFactories;
 }
 
 class DartLoader implements ReferenceLevelLoader {
@@ -103,12 +106,18 @@ class DartLoader implements ReferenceLevelLoader {
   /// so as not to expose partially initialized classes.
   final List<ast.Class> temporaryClassWorklist = [];
 
+  final Map<LibraryElement, List<ClassElement>> mixinLibraryWorklist = {};
+
+  final bool ignoreRedirectingFactories;
+
   LibraryElement _libraryBeingLoaded = null;
 
   bool get strongMode => context.analysisOptions.strongMode;
 
   DartLoader(this.repository, DartOptions options, Packages packages,
-      {DartSdk dartSdk, AnalysisContext context})
+      {DartSdk dartSdk,
+      AnalysisContext context,
+      this.ignoreRedirectingFactories: true})
       : this.context =
             context ?? createContext(options, packages, dartSdk: dartSdk),
         this.applicationRoot = options.applicationRoot;
@@ -193,7 +202,7 @@ class DartLoader implements ReferenceLevelLoader {
       }
     }
     libraryElements.add(element);
-    _iterateWorklist();
+    _iterateTemporaryClassWorklist();
     // Ensure everything is stored in the original declaration order.
     library.classes
       ..clear()
@@ -382,15 +391,43 @@ class DartLoader implements ReferenceLevelLoader {
     }
   }
 
-  void promoteToBodyLevel(ast.Class classNode, ClassElement element,
+  void promoteToMixinLevel(ast.Class classNode, ClassElement element,
       NamedCompilationUnitMember astNode) {
-    if (classNode.level == ast.ClassLevel.Body) return;
+    if (classNode.level.index >= ast.ClassLevel.Mixin.index) return;
     promoteToHierarchyLevel(classNode);
-    classNode.level = ast.ClassLevel.Body;
+    classNode.level = ast.ClassLevel.Mixin;
     // Clear out the member references that were put in the class.
     // The AST builder will load them all put back in the right order.
     classNode..fields.clear()..procedures.clear()..constructors.clear();
     new ClassBodyBuilder(this, classNode, element).build(astNode);
+
+    // Ensure mixed-in classes are available.
+    for (var mixin in element.mixins) {
+      _ensureMixinBecomesLoaded(mixin.element);
+    }
+  }
+
+  /// Ensures that [element] eventually becomes loaded at least at mixin level.
+  void _ensureMixinBecomesLoaded(ClassElement element) {
+    if (isLibraryBeingLoaded(element.library)) {
+      return;
+    }
+    var class_ = getClassReference(element);
+    if (class_.level.index >= ast.ClassLevel.Mixin.index) {
+      return;
+    }
+    var list = mixinLibraryWorklist[element.library] ??= <ClassElement>[];
+    list.add(element);
+  }
+
+  void promoteToBodyLevel(ast.Class classNode, ClassElement element,
+      NamedCompilationUnitMember astNode) {
+    if (classNode.level == ast.ClassLevel.Body) return;
+    promoteToMixinLevel(classNode, element, astNode);
+    classNode.level = ast.ClassLevel.Body;
+    // This frontend delivers the same contents for classes at body and mixin
+    // levels, even though as specified, the mixin level does not require all
+    // the static members to be present.  So no additional work is needed.
   }
 
   ast.TypeParameter tryGetClassTypeParameter(TypeParameterElement element) {
@@ -611,6 +648,11 @@ class DartLoader implements ReferenceLevelLoader {
   }
 
   void ensureLibraryIsLoaded(ast.Library node) {
+    _ensureLibraryIsLoaded(node);
+    _iterateMixinLibraryWorklist();
+  }
+
+  void _ensureLibraryIsLoaded(ast.Library node) {
     if (!node.isExternal) return;
     node.isExternal = false;
     var source = context.sourceFactory
@@ -641,6 +683,23 @@ class DartLoader implements ReferenceLevelLoader {
         errors.add(formatErrorMessage(error, source.shortName, lines));
       }
     }
+  }
+
+  void loadSdkInterface(ast.Program program, Target target) {
+    var requiredSdkMembers = target.requiredSdkClasses;
+    for (var libraryUri in requiredSdkMembers.keys) {
+      var source = context.sourceFactory.forUri2(Uri.parse(libraryUri));
+      var libraryElement = context.computeLibraryElement(source);
+      for (var member in requiredSdkMembers[libraryUri]) {
+        var type = libraryElement.getType(member);
+        if (type == null) {
+          throw 'Could not find $member in $libraryUri';
+        }
+        promoteToTypeLevel(getClassReference(type));
+      }
+    }
+    _iterateTemporaryClassWorklist();
+    _iterateMixinLibraryWorklist();
   }
 
   void loadEverything({Target target, bool compileSdk}) {
@@ -682,11 +741,27 @@ class DartLoader implements ReferenceLevelLoader {
     return list;
   }
 
-  void _iterateWorklist() {
+  void _iterateTemporaryClassWorklist() {
     while (temporaryClassWorklist.isNotEmpty) {
       var element = temporaryClassWorklist.removeLast();
       promoteToTypeLevel(element);
     }
+  }
+
+  void _iterateMixinLibraryWorklist() {
+    // The worklist groups classes in the same library together so that we
+    // request resolved ASTs for each library only once.
+    while (mixinLibraryWorklist.isNotEmpty) {
+      LibraryElement library = mixinLibraryWorklist.keys.first;
+      _libraryBeingLoaded = library;
+      List<ClassElement> classes = mixinLibraryWorklist.remove(library);
+      for (var class_ in classes) {
+        var classNode = getClassReference(class_);
+        promoteToMixinLevel(classNode, class_, class_.computeNode());
+      }
+      _libraryBeingLoaded = null;
+    }
+    _iterateTemporaryClassWorklist();
   }
 
   ast.Procedure _getMainMethod(Uri uri) {
@@ -708,8 +783,7 @@ class DartLoader implements ReferenceLevelLoader {
         ast.ProcedureKind.Method,
         new ast.FunctionNode(new ast.ExpressionStatement(new ast.Throw(
             new ast.StringLiteral('Program has no main method')))),
-        isStatic: true)
-      ..fileUri = library.fileUri;
+        isStatic: true)..fileUri = library.fileUri;
     library.addMember(main);
     return main;
   }

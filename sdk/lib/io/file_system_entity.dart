@@ -359,7 +359,7 @@ abstract class FileSystemEntity {
    * with .type set to
    * FileSystemEntityType.NOT_FOUND and the other fields invalid.
    */
-  Future<FileStat> stat();
+  Future<FileStat> stat() => FileStat.stat(path);
 
   /**
    * Synchronously calls the operating system's stat() function on the
@@ -371,7 +371,7 @@ abstract class FileSystemEntity {
    * If the call fails, returns a [FileStat] object with .type set to
    * FileSystemEntityType.NOT_FOUND and the other fields invalid.
    */
-  FileStat statSync();
+  FileStat statSync() => FileStat.statSync(path);
 
   /**
    * Deletes this [FileSystemEntity].
@@ -433,7 +433,7 @@ abstract class FileSystemEntity {
    * being listened to, not when the call to [watch] is issued.
    *
    * The returned value is an endless broadcast [Stream], that only stops when
-   * one of the following happends:
+   * one of the following happens:
    *
    *   * The [Stream] is canceled, e.g. by calling `cancel` on the
    *      [StreamSubscription].
@@ -653,8 +653,7 @@ abstract class FileSystemEntity {
   }
 
   /**
-   * The directory containing [this].  If [this] is a root
-   * directory, returns [this].
+   * The directory containing [this].
    */
   Directory get parent => new Directory(parentOf(path));
 

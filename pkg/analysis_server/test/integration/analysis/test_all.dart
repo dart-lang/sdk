@@ -9,10 +9,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'analysis_options_test.dart' as analysis_options_test;
 import 'error_driver_test.dart' as error_driver_test;
 import 'error_test.dart' as error_test;
-import 'get_errors_after_analysis_test.dart' as get_errors_after_analysis_test;
-import 'get_errors_before_analysis_test.dart'
-    as get_errors_before_analysis_test;
 import 'get_errors_nonStandard_sdk.dart' as get_errors_nonStandard_sdk;
+import 'get_errors_test.dart' as get_errors_test;
 import 'get_hover_test.dart' as get_hover_test;
 import 'highlights_test.dart' as highlights_test;
 import 'highlights_test2.dart' as highlights_test2;
@@ -37,8 +35,7 @@ main() {
     analysis_options_test.main();
     error_driver_test.main();
     error_test.main();
-    get_errors_after_analysis_test.main();
-    get_errors_before_analysis_test.main();
+    get_errors_test.main();
     get_errors_nonStandard_sdk.main();
     get_hover_test.main();
     highlights_test.main();

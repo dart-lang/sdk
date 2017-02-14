@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
-import 'package:stack_trace/stack_trace.dart';
 import 'service_test_common.dart';
 
 /// Will be set to the http address of the VM's service protocol before
@@ -281,19 +280,20 @@ class _ServiceTesterRunner {
             bool testeeControlsServer: false,
             bool useAuthToken: false}) {
     var process = new _ServiceTesteeLauncher();
-    process.launch(pause_on_start, pause_on_exit,
+    bool testsDone = false;
+    runZoned(() {
+      process.launch(pause_on_start, pause_on_exit,
                    pause_on_unhandled_exceptions,
                    testeeControlsServer,
                    useAuthToken, extraArgs).then((Uri serverAddress) async {
-      if (mainArgs.contains("--gdb")) {
-        var pid = process.process.pid;
-        var wait = new Duration(seconds: 10);
-        print("Testee has pid $pid, waiting $wait before continuing");
-        sleep(wait);
-      }
-      setupAddresses(serverAddress);
-      var name = Platform.script.pathSegments.last;
-      Chain.capture(() async {
+        if (mainArgs.contains("--gdb")) {
+          var pid = process.process.pid;
+          var wait = new Duration(seconds: 10);
+          print("Testee has pid $pid, waiting $wait before continuing");
+          sleep(wait);
+        }
+        setupAddresses(serverAddress);
+        var name = Platform.script.pathSegments.last;
         var vm =
             new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
         print('Loading VM...');
@@ -314,7 +314,7 @@ class _ServiceTesterRunner {
 
         // Run isolate tests.
         if (isolateTests != null) {
-          var isolate = await vm.isolates.first.load();
+          var isolate = await getFirstIsolate(vm);
           var testIndex = 1;
           var totalTests = isolateTests.length;
           for (var test in isolateTests) {
@@ -325,13 +325,63 @@ class _ServiceTesterRunner {
           }
         }
 
+        print('All service tests completed successfully.');
+        testsDone = true;
         await process.requestExit();
-      }, onError: (error, stackTrace) {
-        process.requestExit();
+      });
+    }, onError: (error, stackTrace) async {
+      print('onERROR FIRED!');
+      if (testsDone) {
+        print('Ignoring late exception during process exit:\n'
+              '$error\n#stackTrace');
+      } else {
+        await process.requestExit();
         print('Unexpected exception in service tests: $error\n$stackTrace');
         throw error;
+      }
+    });
+  }
+
+  Future<Isolate> getFirstIsolate(WebSocketVM vm) async {
+    if (vm.isolates.isNotEmpty) {
+      var isolate = await vm.isolates.first.load();
+      if (isolate is Isolate) {
+        return isolate;
+      }
+    }
+
+    Completer completer = new Completer();
+    vm.getEventStream(VM.kIsolateStream).then((stream) {
+      var subscription;
+      subscription = stream.listen((ServiceEvent event) async {
+        if (completer == null) {
+          subscription.cancel();
+          return;
+        }
+        if (event.kind == ServiceEvent.kIsolateRunnable) {
+          if (vm.isolates.isNotEmpty) {
+            vm.isolates.first.load().then((result) {
+              if (result is Isolate) {
+                subscription.cancel();
+                completer.complete(result);
+                completer = null;
+              }
+            });
+          }
+        }
       });
     });
+
+    // The isolate may have started before we subscribed.
+    if (vm.isolates.isNotEmpty) {
+      vm.isolates.first.reload().then((result) async {
+        if (completer != null && result is Isolate) {
+          completer.complete(result);
+          completer = null;
+        }
+      });
+    }
+    return await completer.future;
   }
 }
 

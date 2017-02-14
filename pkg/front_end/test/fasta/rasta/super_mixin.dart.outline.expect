@@ -1,0 +1,111 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "./mixin_library.dart" as mix;
+
+class Super<S extends core::Object> extends core::Object {
+  constructor •() → void
+    ;
+  method foo() → dynamic
+    ;
+  method f() → dynamic
+    ;
+}
+class C<V extends core::Object> extends self::Super+Mixin#3<self::C::V, self::C::V> {
+  constructor •() → void
+    ;
+}
+class D extends self::Super+Mixin#2<dynamic> {
+  constructor •() → void
+    ;
+}
+class C2<V extends core::Object> extends self::Super+Mixin#1<self::C2::V, self::C2::V> {
+  constructor •() → void
+    ;
+}
+class D2 extends self::Super+Mixin#0<dynamic> {
+  constructor •() → void
+    ;
+}
+abstract class Super+Mixin#0<T extends core::Object> extends self::Super<dynamic> implements mix::Mixin<dynamic> {
+  field self::Super+Mixin#0::T t;
+  field dynamic z;
+  field dynamic y;
+  field dynamic x;
+  constructor •() → void
+    ;
+  method publicMethod() → dynamic
+    ;
+  method _privateMethod() → dynamic
+    ;
+  method l() → dynamic
+    ;
+  method h() → dynamic
+    ;
+  method g(self::Super+Mixin#0::T a) → self::Super+Mixin#0::T
+    ;
+  method foo() → dynamic
+    ;
+}
+abstract class Super+Mixin#1<T extends core::Object, V extends core::Object> extends self::Super<self::Super+Mixin#1::V> implements mix::Mixin<self::Super+Mixin#1::V> {
+  field self::Super+Mixin#1::T t;
+  field dynamic z;
+  field dynamic y;
+  field dynamic x;
+  constructor •() → void
+    ;
+  method publicMethod() → dynamic
+    ;
+  method _privateMethod() → dynamic
+    ;
+  method l() → dynamic
+    ;
+  method h() → dynamic
+    ;
+  method g(self::Super+Mixin#1::T a) → self::Super+Mixin#1::T
+    ;
+  method foo() → dynamic
+    ;
+}
+abstract class Super+Mixin#2<T extends core::Object> extends self::Super<dynamic> implements mix::Mixin<dynamic> {
+  field self::Super+Mixin#2::T t;
+  field dynamic z;
+  field dynamic y;
+  field dynamic x;
+  constructor •() → void
+    ;
+  method publicMethod() → dynamic
+    ;
+  method _privateMethod() → dynamic
+    ;
+  method l() → dynamic
+    ;
+  method h() → dynamic
+    ;
+  method g(self::Super+Mixin#2::T a) → self::Super+Mixin#2::T
+    ;
+  method foo() → dynamic
+    ;
+}
+abstract class Super+Mixin#3<T extends core::Object, V extends core::Object> extends self::Super<self::Super+Mixin#3::V> implements mix::Mixin<self::Super+Mixin#3::V> {
+  field self::Super+Mixin#3::T t;
+  field dynamic z;
+  field dynamic y;
+  field dynamic x;
+  constructor •() → void
+    ;
+  method publicMethod() → dynamic
+    ;
+  method _privateMethod() → dynamic
+    ;
+  method l() → dynamic
+    ;
+  method h() → dynamic
+    ;
+  method g(self::Super+Mixin#3::T a) → self::Super+Mixin#3::T
+    ;
+  method foo() → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

@@ -117,6 +117,8 @@ void genericTypeTest() {
   Expect.isFalse(map is SplayTreeMap<String, dynamic>);
   Expect.isFalse(map is SplayTreeMap<dynamic, int>);
 }
+typedef String intToString(int v);
+typedef bool intToBool(int v);
 
 // Test in checked mode with explicitly given types.
 void typedTest() {
@@ -124,11 +126,11 @@ void typedTest() {
   assert((isCheckedMode = true));
   if (!isCheckedMode) return;
 
-  // Assign functions to untyped function variables.
-  Function key = (int v) => "$v";
-  Function value = (int v) => v.isOdd;
+  // Assign functions to typed function variables.
+  intToString key = (int v) => "$v";
+  intToBool value = (int v) => v.isOdd;
   Function id = (int i) => i;
-
+  
   Expect.throws(() {
     new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
       key: key
@@ -145,7 +147,7 @@ void typedTest() {
 
   Expect.throws(() {
     new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
-      key: id,     // wrong type.
+      key: id as dynamic,     // wrong type.
       value: value
     );
   });
@@ -153,7 +155,7 @@ void typedTest() {
   Expect.throws(() {
     new SplayTreeMap<String,bool>.fromIterable(<int>[1, 2, 3],
       key: key,
-      value: id    // wrong type.
+      value: id as dynamic   // wrong type.
     );
   });
 

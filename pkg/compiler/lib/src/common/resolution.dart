@@ -6,7 +6,6 @@ library dart2js.common.resolution;
 
 import '../common.dart';
 import '../compile_time_constants.dart';
-import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
 import '../core_types.dart' show CommonElements;
@@ -16,7 +15,6 @@ import '../elements/elements.dart'
         AstElement,
         ClassElement,
         Element,
-        Entity,
         ExecutableElement,
         FunctionElement,
         FunctionSignature,
@@ -25,12 +23,15 @@ import '../elements/elements.dart'
         MethodElement,
         ResolvedAst,
         TypedefElement;
+import '../elements/entities.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../id_generator.dart';
+import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../mirrors_used.dart';
 import '../options.dart' show CompilerOptions;
 import '../parser/element_listener.dart' show ScannerOptions;
 import '../parser/parser_task.dart';
+import '../scanner/scanner_task.dart';
 import '../patch_parser.dart';
 import '../resolution/resolution.dart';
 import '../tree/tree.dart' show Send, TypeAnnotation;
@@ -206,8 +207,6 @@ abstract class Resolution implements Frontend {
   /// impact.
   void emptyCache();
 
-  void forgetElement(Element element);
-
   /// Returns `true` if [value] is the top-level [proxy] annotation from the
   /// core library.
   bool isProxyConstant(ConstantValue value);
@@ -215,11 +214,16 @@ abstract class Resolution implements Frontend {
 
 /// A container of commonly used dependencies for tasks that involve parsing.
 abstract class ParsingContext {
-  factory ParsingContext(DiagnosticReporter reporter, ParserTask parser,
-      PatchParserTask patchParser, Backend backend) = _ParsingContext;
+  factory ParsingContext(
+      DiagnosticReporter reporter,
+      ParserTask parser,
+      ScannerTask scanner,
+      PatchParserTask patchParser,
+      JavaScriptBackend backend) = _ParsingContext;
 
   DiagnosticReporter get reporter;
   ParserTask get parser;
+  ScannerTask get scanner;
   PatchParserTask get patchParser;
 
   /// Use [patchParser] directly instead.
@@ -237,10 +241,12 @@ abstract class ParsingContext {
 class _ParsingContext implements ParsingContext {
   final DiagnosticReporter reporter;
   final ParserTask parser;
+  final ScannerTask scanner;
   final PatchParserTask patchParser;
-  final Backend backend;
+  final JavaScriptBackend backend;
 
-  _ParsingContext(this.reporter, this.parser, this.patchParser, this.backend);
+  _ParsingContext(
+      this.reporter, this.parser, this.scanner, this.patchParser, this.backend);
 
   @override
   measure(f()) => parser.measure(f);

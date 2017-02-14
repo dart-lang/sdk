@@ -9,9 +9,46 @@ import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../type_environment.dart';
 
-Program transformProgram(Program program) {
-  new TreeShaker(program).transform(program);
+Program transformProgram(Program program, {List<ProgramRoot> programRoots}) {
+  new TreeShaker(program, programRoots: programRoots).transform(program);
   return program;
+}
+
+enum ProgramRootKind {
+  /// The root is a class which will be instantiated by
+  /// external / non-Dart code.
+  ExternallyInstantiatedClass,
+
+  /// The root is a setter function or a field.
+  Setter,
+
+  /// The root is a getter function or a field.
+  Getter,
+
+  /// The root is some kind of constructor.
+  Constructor,
+
+  /// The root is a field, normal procedure or constructor.
+  Other,
+}
+
+/// A program root which the vm or embedder uses and needs to be retained.
+class ProgramRoot {
+  /// The library the root is contained in.
+  final String library;
+
+  /// The name of the class inside the library (optional).
+  final String klass;
+
+  /// The name of the member inside the library (or class, optional).
+  final String member;
+
+  /// The kind of this program root.
+  final ProgramRootKind kind;
+
+  ProgramRoot(this.library, this.klass, this.member, this.kind);
+
+  String toString() => "ProgramRoot($library, $klass, $member, $kind)";
 }
 
 /// Tree shaking based on class hierarchy analysis.
@@ -30,13 +67,13 @@ Program transformProgram(Program program) {
 ///
 /// If the `dart:mirrors` library is used then nothing will be tree-shaken.
 //
-// TODO(asgerf): Shake off parts of the core libraries based on the Target.
 // TODO(asgerf): Tree shake unused instance fields.
 class TreeShaker {
   final Program program;
   final ClassHierarchy hierarchy;
   final CoreTypes coreTypes;
   final bool strongMode;
+  final List<ProgramRoot> programRoots;
 
   /// Map from classes to set of names that have been dispatched with that class
   /// as the static receiver type (meaning any subtype of that class can be
@@ -107,10 +144,17 @@ class TreeShaker {
   /// Set to true if any use of the `dart:mirrors` API is found.
   bool isUsingMirrors = false;
 
+  /// If we have roots, we will shake, even if we encounter some elements from
+  /// the mirrors library.
+  bool get forceShaking => programRoots != null && programRoots.isNotEmpty;
+
   TreeShaker(Program program,
-      {ClassHierarchy hierarchy, CoreTypes coreTypes, bool strongMode: false})
+      {ClassHierarchy hierarchy,
+      CoreTypes coreTypes,
+      bool strongMode: false,
+      List<ProgramRoot> programRoots})
       : this._internal(program, hierarchy ?? new ClassHierarchy(program),
-            coreTypes ?? new CoreTypes(program), strongMode);
+            coreTypes ?? new CoreTypes(program), strongMode, programRoots);
 
   bool isMemberBodyUsed(Member member) {
     return _usedMembers.containsKey(member);
@@ -145,8 +189,8 @@ class TreeShaker {
     new _TreeShakingTransformer(this).transform(program);
   }
 
-  TreeShaker._internal(
-      this.program, ClassHierarchy hierarchy, this.coreTypes, this.strongMode)
+  TreeShaker._internal(this.program, ClassHierarchy hierarchy, this.coreTypes,
+      this.strongMode, this.programRoots)
       : this.hierarchy = hierarchy,
         this._dispatchedNames = new List<Set<Name>>(hierarchy.classes.length),
         this._usedMembersWithHost =
@@ -179,6 +223,8 @@ class TreeShaker {
     _addDispatchedName(hierarchy.rootClass, new Name('noSuchMethod'));
     _addPervasiveUses();
     _addUsedMember(null, program.mainMethod);
+    programRoots?.forEach(_addUsedRoot);
+
     _iterateWorklist();
 
     // Mark overridden members in order to preserve abstract members as
@@ -370,6 +416,49 @@ class TreeShaker {
     visitList(classNode.annotations, _visitor);
   }
 
+  /// Registers the given root as being used.
+  void _addUsedRoot(ProgramRoot root) {
+    Library rootLibrary = _findLibraryRoot(root, program);
+
+    if (root.kind == ProgramRootKind.ExternallyInstantiatedClass) {
+      Class rootClass = _findClassRoot(root, rootLibrary);
+
+      // This is a class which will be instantiated by non-Dart code (whether it
+      // has a valid generative construtor or not).
+      _addInstantiatedClass(rootClass);
+
+      // We keep all the constructors of externally instantiated classes.
+      // Sometimes the runtime might do a constructor call and sometimes it
+      // might just allocate the class without invoking the constructor.
+      // So we try to be on the safe side here!
+      for (var constructor in rootClass.constructors) {
+        _addUsedMember(rootClass, constructor);
+      }
+
+      // We keep all factory constructors as well for the same reason.
+      for (var member in rootClass.procedures) {
+        if (member.isStatic && member.kind == ProcedureKind.Factory) {
+          _addUsedMember(rootClass, member);
+        }
+      }
+    } else {
+      if (root.klass != null) {
+        // For class members we mark the Field/Procedure/Constructor as used.
+        // We also mark it as instantiated if it's a constructor.
+        Class rootClass = _findClassRoot(root, rootLibrary);
+        Member rootMember = _findMemberRoot(root, rootClass.members);
+        _addUsedMember(rootClass, rootMember);
+        if (rootMember is Constructor) {
+          _addInstantiatedClass(rootClass);
+        }
+      } else {
+        // For library members we mark the Field/Procedure as used.
+        Member rootMember = _findMemberRoot(root, rootLibrary.members);
+        _addUsedMember(null, rootMember);
+      }
+    }
+  }
+
   /// Registers the given class as being used in a type annotation.
   void _addClassUsedInType(Class classNode) {
     int index = hierarchy.getClassIndex(classNode);
@@ -400,7 +489,7 @@ class TreeShaker {
   ///   the initializer list of another constructor.
   /// - Procedures are used if they can be invoked or torn off.
   void _addUsedMember(Class host, Member member) {
-    if (member.enclosingLibrary == _mirrorsLibrary) {
+    if (!forceShaking && member.enclosingLibrary == _mirrorsLibrary) {
       throw new _UsingMirrorsException();
     }
     if (host != null) {
@@ -808,7 +897,7 @@ class _TreeShakingTransformer extends Transformer {
 
   void transform(Program program) {
     for (var library in program.libraries) {
-      if (library.importUri.scheme == 'dart') {
+      if (!shaker.forceShaking && library.importUri.scheme == 'dart') {
         // The backend expects certain things to be present in the core
         // libraries, so we currently don't shake off anything there.
         continue;
@@ -979,3 +1068,53 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
 /// Exception that is thrown to stop the tree shaking analysis when a use
 /// of `dart:mirrors` is found.
 class _UsingMirrorsException {}
+
+Library _findLibraryRoot(ProgramRoot root, Program program) {
+  for (var library in program.libraries) {
+    if (library.importUri.toString() == root.library) {
+      return library;
+    }
+  }
+
+  throw "$root not found!";
+}
+
+Class _findClassRoot(ProgramRoot root, Library rootLibrary) {
+  for (var klass in rootLibrary.classes) {
+    if (klass.name == root.klass) {
+      return klass;
+    }
+  }
+  throw "$root not found!";
+}
+
+Member _findMemberRoot(ProgramRoot root, Iterable<Member> membersToSearch) {
+  for (var member in membersToSearch) {
+    if (member.name.name == root.member) {
+      switch (root.kind) {
+        case ProgramRootKind.Constructor:
+          if (member is Procedure && member.kind == ProcedureKind.Factory ||
+              member is Constructor) {
+            return member;
+          }
+          break;
+        case ProgramRootKind.Setter:
+          if (member is Procedure && member.kind == ProcedureKind.Setter ||
+              member is Field) {
+            return member;
+          }
+          break;
+        case ProgramRootKind.Getter:
+          if (member is Procedure && member.kind == ProcedureKind.Getter ||
+              member is Field) {
+            return member;
+          }
+          break;
+        case ProgramRootKind.Other:
+          return member;
+        default:
+      }
+    }
+  }
+  throw "$root not found!";
+}

@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  const constructor constant() → void
+    ;
+  constructor missingFactoryKeyword() → void
+    ;
+  static factory good() → self::C
+    ;
+  method notEvenAConstructor(dynamic a) → self::C
+    ;
+}
+static method b() → dynamic
+  ;
+static method main() → dynamic
+  ;

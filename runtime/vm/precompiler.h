@@ -87,6 +87,27 @@ class StackMapKeyValueTrait {
 typedef DirectChainedHashMap<StackMapKeyValueTrait> StackMapSet;
 
 
+class CodeSourceMapKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const CodeSourceMap* Key;
+  typedef const CodeSourceMap* Value;
+  typedef const CodeSourceMap* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) { return key->Length(); }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->Equals(*key);
+  }
+};
+
+typedef DirectChainedHashMap<CodeSourceMapKeyValueTrait> CodeSourceMapSet;
+
+
 class ArrayKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -461,6 +482,7 @@ class Precompiler : public ValueObject {
   void SwitchICCalls();
   void ShareMegamorphicBuckets();
   void DedupStackMaps();
+  void DedupCodeSourceMaps();
   void DedupLists();
   void DedupInstructions();
   void ResetPrecompilerState();

@@ -8,7 +8,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:test/test.dart';
@@ -286,7 +285,7 @@ class _SourceMock implements Source {
   final Uri uri;
   final String fullName;
 
-  _SourceMock(String uriStr, this.fullName) : uri = FastUri.parse(uriStr);
+  _SourceMock(String uriStr, this.fullName) : uri = Uri.parse(uriStr);
 
   @override
   Source get librarySource => null;

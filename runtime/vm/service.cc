@@ -16,6 +16,7 @@
 #include "vm/debugger.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
+#include "vm/malloc_hooks.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
@@ -840,13 +841,18 @@ void Service::InvokeMethod(Isolate* I,
     ASSERT(!param_values.IsNull());
     ASSERT(param_keys.Length() == param_values.Length());
 
-    if (!reply_port.IsSendPort()) {
+    // We expect a reply port unless there is a null sequence id,
+    // which indicates that no reply should be sent.  We use this in
+    // tests.
+    if (!seq.IsNull() && !reply_port.IsSendPort()) {
       FATAL("SendPort expected.");
     }
 
     JSONStream js;
-    js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(), seq, method_name,
-             param_keys, param_values, parameters_are_dart_objects);
+    Dart_Port reply_port_id =
+        (reply_port.IsNull() ? ILLEGAL_PORT : SendPort::Cast(reply_port).Id());
+    js.Setup(zone.GetZone(), reply_port_id, seq, method_name, param_keys,
+             param_values, parameters_are_dart_objects);
 
     // RPC came in with a custom service id zone.
     const char* id_zone_param = js.LookupParam("_idZone");
@@ -1334,6 +1340,8 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   }
   ASSERT(isolate->compilation_allowed());
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
+  DebuggerStackTrace* async_causal_stack =
+      isolate->debugger()->AsyncCausalStackTrace();
   // Do we want the complete script object and complete local variable objects?
   // This is true for dump requests.
   const bool full = BoolParameter::Parse(js->LookupParam("_full"), false);
@@ -1345,6 +1353,17 @@ static bool GetStack(Thread* thread, JSONStream* js) {
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
+      JSONObject jsobj(&jsarr);
+      frame->PrintToJSONObject(&jsobj, full);
+      jsobj.AddProperty("index", i);
+    }
+  }
+
+  if (async_causal_stack != NULL) {
+    JSONArray jsarr(&jsobj, "asyncCausalFrames");
+    intptr_t num_frames = async_causal_stack->Length();
+    for (intptr_t i = 0; i < num_frames; i++) {
+      ActivationFrame* frame = async_causal_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
       frame->PrintToJSONObject(&jsobj, full);
       jsobj.AddProperty("index", i);
@@ -3790,10 +3809,13 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddProperty("version", Version::String());
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
+  jsobj.AddProperty("_nativeZoneMemoryUsage",
+                    ApiNativeScope::current_memory_usage());
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddProperty64("_maxRSS", OS::MaxRSS());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
+  MallocHooks::PrintToJSONObject(&jsobj);
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");

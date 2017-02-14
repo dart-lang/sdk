@@ -234,14 +234,6 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     metadataConstantMap[metadata] = constant;
     return constant;
   }
-
-  void forgetElement(Element element) {
-    super.forgetElement(element);
-    const ForgetConstantElementVisitor().visit(element, this);
-    if (element is AstElement && element.hasNode) {
-      element.node.accept(new ForgetConstantNodeVisitor(this));
-    }
-  }
 }
 
 class ForgetConstantElementVisitor

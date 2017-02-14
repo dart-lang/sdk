@@ -19,6 +19,13 @@ dependencies:
     path: ../../third_party/pkg/dart2js_info
   lookup_map:
     path: ../lookup_map
+  front_end:
+    path: ../front_end
+dependency_overrides:
+  front_end:
+    path: ../front_end
+  analyzer:
+    path: ../analyzer
 
 # Uncomment if running gclient, so you can depend directly on the downloaded
 # versions of dart2js's transitive dependencies:

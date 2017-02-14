@@ -11,7 +11,7 @@ abstract class Name {
   /// Create a [Name] for an identifier [text]. If [text] begins with '_' a
   /// private name with respect to [library] is created. If [isSetter] is `true`
   /// the created name represents the setter name 'text='.
-  factory Name(String text, LibraryElement library, {bool isSetter: false}) {
+  factory Name(String text, LibraryEntity library, {bool isSetter: false}) {
     if (isPrivateName(text)) {
       return new PrivateName(text, library, isSetter: isSetter);
     }
@@ -109,5 +109,5 @@ class PrivateName extends PublicName {
     return super == (other) && library == other.library;
   }
 
-  String toString() => '${library.libraryName}#${super.toString()}';
+  String toString() => '${library.name}#${super.toString()}';
 }

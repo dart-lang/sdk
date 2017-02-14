@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  operator ==(dynamic other) → dynamic
+    return throw "x";
+  method test() → dynamic {
+    this.{=core::Object::==}(null);
+  }
+}
+static method main() → dynamic {
+  new self::C::•().test();
+}

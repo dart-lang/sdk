@@ -4,15 +4,15 @@
 
 library dart2js.util;
 
-import 'characters.dart';
-import 'util_implementation.dart';
+import 'package:front_end/src/fasta/scanner/characters.dart';
+import 'package:front_end/src/fasta/util/link.dart';
 
 export 'emptyset.dart';
 export 'maplet.dart';
 export 'setlet.dart';
+export 'package:front_end/src/fasta/util/link.dart';
 
 part 'indentation.dart';
-part 'link.dart';
 
 /// Helper functions for creating hash codes.
 class Hashing {

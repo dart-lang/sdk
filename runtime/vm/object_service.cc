@@ -408,8 +408,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   } else {
     jsobj.AddProperty("_guardLength", guarded_list_length());
   }
-  const Class& origin_cls = Class::Handle(Origin());
-  const class Script& script = Script::Handle(origin_cls.script());
+  const class Script& script = Script::Handle(Script());
   if (!script.IsNull()) {
     jsobj.AddLocation(script, token_pos());
   }
@@ -865,47 +864,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     JSONObject desc(&jsobj, "_descriptors");
     descriptors.PrintToJSONObject(&desc, false);
   }
-  const Array& inlined_function_table = Array::Handle(GetInlinedIdToFunction());
-  if (!inlined_function_table.IsNull() &&
-      (inlined_function_table.Length() > 0)) {
-    JSONArray inlined_functions(&jsobj, "_inlinedFunctions");
-    Function& function = Function::Handle();
-    for (intptr_t i = 0; i < inlined_function_table.Length(); i++) {
-      function ^= inlined_function_table.At(i);
-      ASSERT(!function.IsNull());
-      inlined_functions.AddValue(function);
-    }
-  }
-  const Array& intervals = Array::Handle(GetInlinedIntervals());
-  if (!intervals.IsNull() && (intervals.Length() > 0)) {
-    Smi& start = Smi::Handle();
-    Smi& end = Smi::Handle();
-    Smi& temp_smi = Smi::Handle();
-    JSONArray inline_intervals(&jsobj, "_inlinedIntervals");
-    for (intptr_t i = 0; i < intervals.Length() - Code::kInlIntNumEntries;
-         i += Code::kInlIntNumEntries) {
-      start ^= intervals.At(i + Code::kInlIntStart);
-      if (start.IsNull()) {
-        continue;
-      }
-      end ^= intervals.At(i + Code::kInlIntNumEntries + Code::kInlIntStart);
 
-      // Format: [start, end, inline functions...]
-      JSONArray inline_interval(&inline_intervals);
-      inline_interval.AddValue(start.Value());
-      inline_interval.AddValue(end.Value());
-
-      temp_smi ^= intervals.At(i + Code::kInlIntInliningId);
-      intptr_t inlining_id = temp_smi.Value();
-      ASSERT(inlining_id >= 0);
-      intptr_t caller_id = GetCallerId(inlining_id);
-      while (inlining_id >= 0) {
-        inline_interval.AddValue(inlining_id);
-        inlining_id = caller_id;
-        caller_id = GetCallerId(inlining_id);
-      }
-    }
-  }
+  PrintJSONInlineIntervals(&jsobj);
 }
 
 
@@ -1509,7 +1469,7 @@ void StackTrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("kind", "StackTrace");
   jsobj.AddServiceId(*this);
   intptr_t idx = 0;
-  jsobj.AddProperty("valueAsString", ToCStringInternal(&idx));
+  jsobj.AddProperty("valueAsString", ToCStringInternal(*this, &idx));
 }
 
 

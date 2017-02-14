@@ -6,7 +6,6 @@ import '../common.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart' as ast;
 
-import 'builder.dart';
 import 'graph_builder.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';

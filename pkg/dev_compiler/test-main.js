@@ -52,6 +52,7 @@ require.config({
     expect: 'gen/codegen_output/pkg/expect',
     js: 'gen/codegen_output/pkg/js',
     matcher: 'gen/codegen_output/pkg/matcher',
+    meta: 'gen/codegen_output/pkg/meta',
     minitest: 'gen/codegen_output/pkg/minitest',
     path: 'gen/codegen_output/pkg/path',
     stack_trace: 'gen/codegen_output/pkg/stack_trace',

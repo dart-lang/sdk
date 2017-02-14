@@ -200,7 +200,14 @@ class SummaryTypeProvider extends TypeProviderBase {
   @override
   InterfaceType get futureOrType {
     assert(_asyncLibrary != null);
-    _futureOrType ??= _getType(_asyncLibrary, "FutureOr");
+    try {
+      _futureOrType ??= _getType(_asyncLibrary, "FutureOr");
+    } on StateError {
+      // FutureOr<T> is still fairly new, so if we're analyzing an SDK that
+      // doesn't have it yet, create an element for it.
+      _futureOrType =
+          TypeProviderImpl.createPlaceholderFutureOr(futureType, objectType);
+    }
     return _futureOrType;
   }
 

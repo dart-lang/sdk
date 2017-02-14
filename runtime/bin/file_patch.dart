@@ -17,6 +17,11 @@
   @patch static _copy(String oldPath, String newPath) native "File_Copy";
   @patch static _lengthFromPath(String path) native "File_LengthFromPath";
   @patch static _lastModified(String path) native "File_LastModified";
+  @patch static _setLastModified(String path, int millis)
+      native "File_SetLastModified";
+  @patch static _lastAccessed(String path) native "File_LastAccessed";
+  @patch static _setLastAccessed(String path, int millis)
+      native "File_SetLastAccessed";
   @patch static _open(String path, int mode) native "File_Open";
   @patch static int _openStdio(int fd) native "File_OpenStdio";
 }

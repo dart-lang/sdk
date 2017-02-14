@@ -50,6 +50,8 @@ var blacklist = [
   // Don't call private methods in dart.async as they may circumvent the zoned
   // error handling below.
   new RegExp(r"^dart\.async\._.*$"),
+
+  'dart._internal.fatal',
 ];
 
 bool isBlacklisted(Symbol qualifiedSymbol) {

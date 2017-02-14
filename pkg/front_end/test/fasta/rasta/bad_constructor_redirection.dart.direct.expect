@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  const constructor •() → void
+    : invalid-initializer;
+  const constructor x() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  new self::C::•();
+  const self::C::•();
+}

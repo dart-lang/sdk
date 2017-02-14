@@ -5,9 +5,9 @@
 // TODO(sigmund): rename and move to common/elements.dart
 library dart2js.type_system;
 
+import 'common.dart';
 import 'elements/types.dart';
 import 'elements/entities.dart';
-import 'elements/elements.dart' show Entity;
 
 /// The common elements and types in Dart.
 abstract class CommonElements {
@@ -77,19 +77,13 @@ abstract class CommonElements {
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity get typedDataClass;
 
-  // TODO(johnniwinther): Move this to the JavaScriptBackend.
-  /// The class for patch annotation defined in dart:_js_helper.
-  ClassEntity get patchAnnotationClass;
-
-  // TODO(johnniwinther): Move this to the JavaScriptBackend.
-  ClassEntity get nativeAnnotationClass;
-
   /// Constructor of the `Symbol` class. This getter will ensure that `Symbol`
   /// is resolved and lookup the constructor on demand.
-  FunctionEntity get symbolConstructor;
+  ConstructorEntity get symbolConstructor;
 
   /// Whether [element] is the same as [symbolConstructor]. Used to check
   /// for the constructor without computing it until it is likely to be seen.
+  // TODO(johnniwinther): Change type of [e] to [MemberEntity].
   bool isSymbolConstructor(Entity e);
 
   /// The `MirrorSystem` class in dart:mirrors.
@@ -106,7 +100,7 @@ abstract class CommonElements {
   /// Whether [element] is the constructor of the `MirrorsUsed` class. Used to
   /// check for the constructor without forcing the resolution of the
   /// `MirrorsUsed` class until it is necessary.
-  bool isMirrorsUsedConstructor(FunctionEntity element);
+  bool isMirrorsUsedConstructor(ConstructorEntity element);
 
   /// The `DeferredLibrary` annotation in dart:async that was used before the
   /// deferred import syntax was introduced.
@@ -123,11 +117,15 @@ abstract class CommonElements {
   /// resolve the apply method if it hasn't been seen yet during compilation.
   bool isFunctionApplyMethod(MemberEntity element);
 
-  /// The unnamed constructor of `List`.
-  FunctionEntity get unnamedListConstructor;
+  /// Returns `true` if [element] is the unnamed constructor of `List`. This
+  /// will not resolve the constructor if it hasn't been seen yet during
+  /// compilation.
+  bool isUnnamedListConstructor(ConstructorEntity element);
 
-  /// The 'filled' constructor of `List`.
-  FunctionEntity get filledListConstructor;
+  /// Returns `true` if [element] is the 'filled' constructor of `List`. This
+  /// will not resolve the constructor if it hasn't been seen yet during
+  /// compilation.
+  bool isFilledListConstructor(ConstructorEntity element);
 
   /// The `dynamic` type.
   DynamicType get dynamicType;
@@ -206,4 +204,298 @@ abstract class CommonElements {
 
   /// Returns `true` if [element] is a superclass of `List`.
   bool isListSupertype(ClassEntity element);
+}
+
+/// Interface for accessing libraries, classes and members.
+///
+/// The environment makes private and injected members directly available and
+/// should therefore not be used to determine scopes.
+abstract class ElementEnvironment {
+  LibraryEntity lookupLibrary(Uri uri, {bool required: false});
+
+  /// Lookup the class [name] in [library], fail if the class is missing and
+  /// [required].
+  ClassEntity lookupClass(LibraryEntity library, String name,
+      {bool required: false});
+
+  /// Lookup the member [name] in [library], fail if the class is missing and
+  /// [required].
+  MemberEntity lookupLibraryMember(LibraryEntity library, String name,
+      {bool setter: false, bool required: false});
+
+  /// Lookup the member [name] in [cls], fail if the class is missing and
+  /// [required].
+  MemberEntity lookupClassMember(ClassEntity cls, String name,
+      {bool setter: false, bool required: false});
+
+  /// Lookup the constructor [name] in [cls], fail if the class is missing and
+  /// [required].
+  ConstructorEntity lookupConstructor(ClassEntity cls, String name,
+      {bool required: false});
+
+  /// Create the instantiation of [cls] with the given [typeArguments].
+  InterfaceType createInterfaceType(
+      ClassEntity cls, List<DartType> typeArguments);
+
+  /// Returns the 'raw type' of [cls]. That is, the instantiation of [cls]
+  /// where all types arguments are `dynamic`.
+  InterfaceType getRawType(ClassEntity cls);
+
+  /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
+  /// where the type arguments are the type variables of [cls].
+  InterfaceType getThisType(ClassEntity cls);
+}
+
+abstract class CommonElementsMixin implements CommonElements {
+  ElementEnvironment get environment;
+
+  ClassEntity findClass(LibraryEntity library, String name,
+      {bool required: true}) {
+    return environment.lookupClass(library, name, required: required);
+  }
+
+  MemberEntity findLibraryMember(LibraryEntity library, String name,
+      {bool setter: false, bool required: true}) {
+    return environment.lookupLibraryMember(library, name,
+        setter: setter, required: required);
+  }
+
+  MemberEntity findClassMember(ClassEntity cls, String name,
+      {bool setter: false, bool required: true}) {
+    return environment.lookupClassMember(cls, name,
+        setter: setter, required: required);
+  }
+
+  ConstructorEntity findConstructor(ClassEntity cls, String name,
+      {bool required: true}) {
+    return environment.lookupConstructor(cls, name, required: required);
+  }
+
+  /// Return the raw type of [cls].
+  InterfaceType getRawType(ClassEntity cls) {
+    return environment.getRawType(cls);
+  }
+
+  /// Create the instantiation of [cls] with the given [typeArguments].
+  InterfaceType createInterfaceType(
+      ClassEntity cls, List<DartType> typeArguments) {
+    return environment.createInterfaceType(cls, typeArguments);
+  }
+
+  // From dart:core
+
+  ClassEntity _objectClass;
+  ClassEntity get objectClass =>
+      _objectClass ??= findClass(coreLibrary, 'Object');
+
+  ClassEntity _boolClass;
+  ClassEntity get boolClass => _boolClass ??= findClass(coreLibrary, 'bool');
+
+  ClassEntity _numClass;
+  ClassEntity get numClass => _numClass ??= findClass(coreLibrary, 'num');
+
+  ClassEntity _intClass;
+  ClassEntity get intClass => _intClass ??= findClass(coreLibrary, 'int');
+
+  ClassEntity _doubleClass;
+  ClassEntity get doubleClass =>
+      _doubleClass ??= findClass(coreLibrary, 'double');
+
+  ClassEntity _stringClass;
+  ClassEntity get stringClass =>
+      _stringClass ??= findClass(coreLibrary, 'String');
+
+  ClassEntity _functionClass;
+  ClassEntity get functionClass =>
+      _functionClass ??= findClass(coreLibrary, 'Function');
+
+  FunctionEntity _functionApplyMethod;
+  FunctionEntity get functionApplyMethod =>
+      _functionApplyMethod ??= findClassMember(functionClass, 'apply');
+
+  bool isFunctionApplyMethod(MemberEntity element) =>
+      element.name == 'apply' && element.enclosingClass == functionClass;
+
+  ClassEntity _nullClass;
+  ClassEntity get nullClass => _nullClass ??= findClass(coreLibrary, 'Null');
+
+  ClassEntity _listClass;
+  ClassEntity get listClass => _listClass ??= findClass(coreLibrary, 'List');
+
+  ClassEntity _typeClass;
+  ClassEntity get typeClass => _typeClass ??= findClass(coreLibrary, 'Type');
+
+  ClassEntity _mapClass;
+  ClassEntity get mapClass => _mapClass ??= findClass(coreLibrary, 'Map');
+
+  ClassEntity _symbolClass;
+  ClassEntity get symbolClass =>
+      _symbolClass ??= findClass(coreLibrary, 'Symbol');
+
+  ConstructorEntity _symbolConstructor;
+  ConstructorEntity get symbolConstructor =>
+      _symbolConstructor ??= findConstructor(symbolClass, '');
+
+  bool isSymbolConstructor(Entity e) => e == symbolConstructor;
+
+  ClassEntity _stackTraceClass;
+  ClassEntity get stackTraceClass =>
+      _stackTraceClass ??= findClass(coreLibrary, 'StackTrace');
+
+  ClassEntity _iterableClass;
+  ClassEntity get iterableClass =>
+      _iterableClass ??= findClass(coreLibrary, 'Iterable');
+
+  ClassEntity _resourceClass;
+  ClassEntity get resourceClass =>
+      _resourceClass ??= findClass(coreLibrary, 'Resource');
+
+  FunctionEntity _identicalFunction;
+  FunctionEntity get identicalFunction =>
+      _identicalFunction ??= findLibraryMember(coreLibrary, 'identical');
+
+  // From dart:async
+
+  ClassEntity _futureClass;
+  ClassEntity get futureClass =>
+      _futureClass ??= findClass(asyncLibrary, 'Future');
+
+  ClassEntity _streamClass;
+  ClassEntity get streamClass =>
+      _streamClass ??= findClass(asyncLibrary, 'Stream');
+
+  ClassEntity _deferredLibraryClass;
+  ClassEntity get deferredLibraryClass =>
+      _deferredLibraryClass ??= findClass(asyncLibrary, "DeferredLibrary");
+
+  // From dart:mirrors
+
+  ClassEntity _mirrorSystemClass;
+  ClassEntity get mirrorSystemClass => _mirrorSystemClass ??=
+      findClass(mirrorsLibrary, 'MirrorSystem', required: false);
+
+  FunctionEntity _mirrorSystemGetNameFunction;
+  bool isMirrorSystemGetNameFunction(MemberEntity element) {
+    if (_mirrorSystemGetNameFunction == null) {
+      if (!element.isFunction || mirrorsLibrary == null) return false;
+      ClassEntity cls = mirrorSystemClass;
+      if (element.enclosingClass != cls) return false;
+      if (cls != null) {
+        _mirrorSystemGetNameFunction =
+            findClassMember(cls, 'getName', required: false);
+      }
+    }
+    return element == _mirrorSystemGetNameFunction;
+  }
+
+  ClassEntity _mirrorsUsedClass;
+  ClassEntity get mirrorsUsedClass => _mirrorsUsedClass ??=
+      findClass(mirrorsLibrary, 'MirrorsUsed', required: false);
+
+  bool isMirrorsUsedConstructor(ConstructorEntity element) =>
+      mirrorsLibrary != null && mirrorsUsedClass == element.enclosingClass;
+
+  // From dart:typed_data
+
+  ClassEntity _typedDataClass;
+  ClassEntity get typedDataClass =>
+      _typedDataClass ??= findClass(typedDataLibrary, 'NativeTypedData');
+
+  bool isUnnamedListConstructor(ConstructorEntity element) =>
+      element.name == '' && element.enclosingClass == listClass;
+
+  bool isFilledListConstructor(ConstructorEntity element) =>
+      element.name == 'filled' && element.enclosingClass == listClass;
+
+  // TODO(johnniwinther): Change types to `ClassEntity` when these are not
+  // called with unrelated elements.
+  bool isNumberOrStringSupertype(/*Class*/ Entity element) {
+    return element == findClass(coreLibrary, 'Comparable', required: false);
+  }
+
+  bool isStringOnlySupertype(/*Class*/ Entity element) {
+    return element == findClass(coreLibrary, 'Pattern', required: false);
+  }
+
+  bool isListSupertype(/*Class*/ Entity element) => element == iterableClass;
+
+  @override
+  InterfaceType get objectType => getRawType(objectClass);
+
+  @override
+  InterfaceType get boolType => getRawType(boolClass);
+
+  @override
+  InterfaceType get doubleType => getRawType(doubleClass);
+
+  @override
+  InterfaceType get functionType => getRawType(functionClass);
+
+  @override
+  InterfaceType get intType => getRawType(intClass);
+
+  @override
+  InterfaceType get resourceType => getRawType(resourceClass);
+
+  @override
+  InterfaceType listType([DartType elementType]) {
+    if (elementType == null) {
+      return getRawType(listClass);
+    }
+    return createInterfaceType(listClass, [elementType]);
+  }
+
+  @override
+  InterfaceType mapType([DartType keyType, DartType valueType]) {
+    if (keyType == null && valueType == null) {
+      return getRawType(mapClass);
+    } else if (keyType == null) {
+      keyType = dynamicType;
+    } else if (valueType == null) {
+      valueType = dynamicType;
+    }
+    return createInterfaceType(mapClass, [keyType, valueType]);
+  }
+
+  @override
+  InterfaceType get nullType => getRawType(nullClass);
+
+  @override
+  InterfaceType get numType => getRawType(numClass);
+
+  @override
+  InterfaceType get stringType => getRawType(stringClass);
+
+  @override
+  InterfaceType get symbolType => getRawType(symbolClass);
+
+  @override
+  InterfaceType get typeType => getRawType(typeClass);
+
+  @override
+  InterfaceType get stackTraceType => getRawType(stackTraceClass);
+
+  @override
+  InterfaceType iterableType([DartType elementType]) {
+    if (elementType == null) {
+      return getRawType(iterableClass);
+    }
+    return createInterfaceType(iterableClass, [elementType]);
+  }
+
+  @override
+  InterfaceType futureType([DartType elementType]) {
+    if (elementType == null) {
+      return getRawType(futureClass);
+    }
+    return createInterfaceType(futureClass, [elementType]);
+  }
+
+  @override
+  InterfaceType streamType([DartType elementType]) {
+    if (elementType == null) {
+      return getRawType(streamClass);
+    }
+    return createInterfaceType(streamClass, [elementType]);
+  }
 }

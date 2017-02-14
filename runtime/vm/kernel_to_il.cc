@@ -366,6 +366,20 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       // will forward the call to the real function.
       //     -> see BuildGraphOfImplicitClosureFunction
       if (!function.IsImplicitClosureFunction()) {
+        // TODO(jensj): HACK: Push the begin token to after any parameters to
+        // avoid crash when breaking on definition line of async method in
+        // debugger. It seems that another scope needs to be added
+        // in which captures are made, but I can't make that work.
+        // This 'solution' doesn't crash, but I cannot see the parameters at
+        // that particular breakpoint either.
+        // Also push the end token to after the "}" to avoid crashing on
+        // stepping past the last line (to the "}" character).
+        if (node->body() != NULL && node->body()->position().IsReal()) {
+          scope_->set_begin_token_pos(node->body()->position());
+        }
+        if (scope_->end_token_pos().IsReal()) {
+          scope_->set_end_token_pos(scope_->end_token_pos().Next());
+        }
         node_->AcceptVisitor(this);
       }
       break;
@@ -1769,8 +1783,7 @@ void ConstantEvaluator::VisitStringConcatenation(StringConcatenation* node) {
 
 void ConstantEvaluator::VisitConditionalExpression(
     ConditionalExpression* node) {
-  EvaluateExpression(node->condition());
-  if (Bool::Cast(result_).value()) {
+  if (EvaluateBooleanExpression(node->condition())) {
     EvaluateExpression(node->then());
   } else {
     EvaluateExpression(node->otherwise());
@@ -1780,34 +1793,29 @@ void ConstantEvaluator::VisitConditionalExpression(
 
 void ConstantEvaluator::VisitLogicalExpression(LogicalExpression* node) {
   if (node->op() == LogicalExpression::kAnd) {
-    EvaluateExpression(node->left());
-    if (Bool::Cast(result_).value()) {
-      EvaluateExpression(node->right());
+    if (EvaluateBooleanExpression(node->left())) {
+      EvaluateBooleanExpression(node->right());
     }
   } else {
     ASSERT(node->op() == LogicalExpression::kOr);
-    EvaluateExpression(node->left());
-    if (!Bool::Cast(result_).value()) {
-      EvaluateExpression(node->right());
+    if (!EvaluateBooleanExpression(node->left())) {
+      EvaluateBooleanExpression(node->right());
     }
   }
 }
 
 
 void ConstantEvaluator::VisitNot(Not* node) {
-  EvaluateExpression(node->expression());
-  ASSERT(result_.IsBool());
-  result_ =
-      Bool::Cast(result_).value() ? Bool::False().raw() : Bool::True().raw();
+  result_ ^= Bool::Get(!EvaluateBooleanExpression(node->expression())).raw();
 }
 
 
 void ConstantEvaluator::VisitPropertyGet(PropertyGet* node) {
-  const size_t kLengthLen = strlen("length");
+  const intptr_t kLengthLen = strlen("length");
 
   String* string = node->name()->string();
-  if (string->size() == kLengthLen &&
-      memcmp(string->buffer(), "length", kLengthLen) == 0) {
+  if ((string->size() == kLengthLen) &&
+      (memcmp(string->buffer(), "length", kLengthLen) == 0)) {
     node->receiver()->AcceptExpressionVisitor(this);
     if (result_.IsString()) {
       const dart::String& str =
@@ -2533,12 +2541,26 @@ Fragment FlowGraphBuilder::PushArgument() {
 
 
 Fragment FlowGraphBuilder::Return(TokenPosition position) {
+  Fragment instructions;
+
+  instructions += CheckReturnTypeInCheckedMode();
+
   Value* value = Pop();
   ASSERT(stack_ == NULL);
-  ReturnInstr* return_instr =
-      new (Z) ReturnInstr(TokenPosition::kNoSource, value);
+
+  const Function& function = parsed_function_->function();
+  if (FLAG_support_debugger && position.IsDebugPause() &&
+      !function.is_native()) {
+    instructions <<=
+        new (Z) DebugStepCheckInstr(position, RawPcDescriptors::kRuntimeCall);
+  }
+
+  ReturnInstr* return_instr = new (Z) ReturnInstr(position, value);
   if (exit_collector_ != NULL) exit_collector_->AddExit(return_instr);
-  return Fragment(return_instr).closed();
+
+  instructions <<= return_instr;
+
+  return instructions.closed();
 }
 
 
@@ -2609,15 +2631,24 @@ Fragment FlowGraphBuilder::StoreInstanceField(
     const dart::Field& field,
     bool is_initialization_store,
     StoreBarrierType emit_store_barrier) {
+  Fragment instructions;
+
+  const AbstractType& dst_type = AbstractType::ZoneHandle(Z, field.type());
+  instructions += CheckAssignableInCheckedMode(
+      dst_type, dart::String::ZoneHandle(Z, field.name()));
+
   Value* value = Pop();
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;
   }
+
   StoreInstanceFieldInstr* store = new (Z)
       StoreInstanceFieldInstr(MayCloneField(Z, field), Pop(), value,
                               emit_store_barrier, TokenPosition::kNoSource);
   store->set_is_initialization(is_initialization_store);
-  return Fragment(store);
+  instructions <<= store;
+
+  return instructions;
 }
 
 
@@ -2662,6 +2693,17 @@ Fragment FlowGraphBuilder::StoreLocal(TokenPosition position,
         StoreInstanceField(Context::variable_offset(variable->index()));
   } else {
     Value* value = Pop();
+    if (FLAG_support_debugger && position.IsDebugPause() &&
+        !variable->IsInternal()) {
+      if (value->definition()->IsConstant() ||
+          value->definition()->IsAllocateObject() ||
+          (value->definition()->IsLoadLocal() &&
+           !value->definition()->AsLoadLocal()->local().IsInternal())) {
+        instructions <<= new (Z)
+            DebugStepCheckInstr(position, RawPcDescriptors::kRuntimeCall);
+      }
+    }
+
     StoreLocalInstr* store =
         new (Z) StoreLocalInstr(*variable, value, position);
     instructions <<= store;
@@ -3093,6 +3135,26 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
     body = Fragment(body.entry, non_null_entry);
   }
 
+  // If we run in checked mode, we have to check the type of the passed
+  // arguments.
+  if (I->type_checks()) {
+    List<VariableDeclaration>& positional = function->positional_parameters();
+    List<VariableDeclaration>& named = function->named_parameters();
+
+    for (intptr_t i = 0; i < positional.length(); i++) {
+      VariableDeclaration* variable = positional[i];
+      body += LoadLocal(LookupVariable(variable));
+      body += CheckVariableTypeInCheckedMode(variable);
+      body += Drop();
+    }
+    for (intptr_t i = 0; i < named.length(); i++) {
+      VariableDeclaration* variable = named[i];
+      body += LoadLocal(LookupVariable(variable));
+      body += CheckVariableTypeInCheckedMode(variable);
+      body += Drop();
+    }
+  }
+
   if (dart_function.is_native()) {
     body += NativeFunctionBody(function, dart_function);
   } else if (function->body() != NULL) {
@@ -3173,6 +3235,32 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
     body = dispatch;
 
     context_depth_ = current_context_depth;
+  }
+
+  if (FLAG_support_debugger && function->position().IsDebugPause() &&
+      !dart_function.is_native() && dart_function.is_debuggable()) {
+    // If a switch was added above: Start the switch by injecting a debugable
+    // safepoint so stepping over an await works.
+    // If not, still start the body with a debugable safepoint to ensure
+    // breaking on a method always happens, even if there are no
+    // assignments/calls/runtimecalls in the first basic block.
+    // Place this check at the last parameter to ensure parameters
+    // are in scope in the debugger at method entry.
+    const int num_params = dart_function.NumParameters();
+    TokenPosition check_pos = TokenPosition::kNoSource;
+    if (num_params > 0) {
+      LocalScope* scope = parsed_function_->node_sequence()->scope();
+      const LocalVariable& parameter = *scope->VariableAt(num_params - 1);
+      check_pos = parameter.token_pos();
+    }
+    if (!check_pos.IsDebugPause()) {
+      // No parameters or synthetic parameters.
+      check_pos = function->position();
+      ASSERT(check_pos.IsDebugPause());
+    }
+    Fragment check(
+        new (Z) DebugStepCheckInstr(check_pos, RawPcDescriptors::kRuntimeCall));
+    body = check + body;
   }
 
   normal_entry->LinkTo(body.entry);
@@ -3462,6 +3550,97 @@ Fragment FlowGraphBuilder::GuardFieldLength(const dart::Field& field,
 Fragment FlowGraphBuilder::GuardFieldClass(const dart::Field& field,
                                            intptr_t deopt_id) {
   return Fragment(new (Z) GuardFieldClassInstr(Pop(), field, deopt_id));
+}
+
+
+Fragment FlowGraphBuilder::CheckVariableTypeInCheckedMode(
+    VariableDeclaration* variable) {
+  if (I->type_checks()) {
+    const AbstractType& dst_type = T.TranslateType(variable->type());
+    if (dst_type.IsMalformed()) {
+      return ThrowTypeError();
+    }
+    return CheckAssignableInCheckedMode(dst_type,
+                                        H.DartSymbol(variable->name()));
+  }
+  return Fragment();
+}
+
+
+Fragment FlowGraphBuilder::EvaluateAssertion() {
+  const dart::Class& klass = dart::Class::ZoneHandle(
+      Z, dart::Library::LookupCoreClass(Symbols::AssertionError()));
+  ASSERT(!klass.IsNull());
+  const dart::Function& target =
+      dart::Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
+                                        H.DartSymbol("_evaluateAssertion")));
+  ASSERT(!target.IsNull());
+  return StaticCall(TokenPosition::kNoSource, target, 1);
+}
+
+
+Fragment FlowGraphBuilder::CheckReturnTypeInCheckedMode() {
+  if (I->type_checks()) {
+    const AbstractType& return_type =
+        AbstractType::Handle(Z, parsed_function_->function().result_type());
+    return CheckAssignableInCheckedMode(return_type, Symbols::FunctionResult());
+  }
+  return Fragment();
+}
+
+
+Fragment FlowGraphBuilder::CheckBooleanInCheckedMode() {
+  Fragment instructions;
+  if (I->type_checks()) {
+    LocalVariable* top_of_stack = MakeTemporary();
+    instructions += LoadLocal(top_of_stack);
+    instructions += AssertBool();
+    instructions += Drop();
+  }
+  return instructions;
+}
+
+
+Fragment FlowGraphBuilder::CheckAssignableInCheckedMode(
+    const dart::AbstractType& dst_type,
+    const dart::String& dst_name) {
+  Fragment instructions;
+  if (I->type_checks() && !dst_type.IsDynamicType() &&
+      !dst_type.IsObjectType()) {
+    LocalVariable* top_of_stack = MakeTemporary();
+    instructions += LoadLocal(top_of_stack);
+    instructions += AssertAssignable(dst_type, dst_name);
+    instructions += Drop();
+  }
+  return instructions;
+}
+
+
+Fragment FlowGraphBuilder::AssertBool() {
+  Value* value = Pop();
+  AssertBooleanInstr* instr =
+      new (Z) AssertBooleanInstr(TokenPosition::kNoSource, value);
+  Push(instr);
+  return Fragment(instr);
+}
+
+
+Fragment FlowGraphBuilder::AssertAssignable(const dart::AbstractType& dst_type,
+                                            const dart::String& dst_name) {
+  Fragment instructions;
+  Value* value = Pop();
+
+  instructions += LoadInstantiatorTypeArguments();
+  Value* type_args = Pop();
+
+  AssertAssignableInstr* instr = new (Z)
+      AssertAssignableInstr(TokenPosition::kNoSource, value, type_args,
+                            dst_type, dst_name, H.thread()->GetNextDeoptId());
+  Push(instr);
+
+  instructions += Fragment(instr);
+
+  return instructions;
 }
 
 
@@ -3906,10 +4085,14 @@ Fragment FlowGraphBuilder::TranslateStatement(Statement* statement) {
 Fragment FlowGraphBuilder::TranslateCondition(Expression* expression,
                                               bool* negate) {
   *negate = expression->IsNot();
+  Fragment instructions;
   if (*negate) {
-    return TranslateExpression(Not::Cast(expression)->expression());
+    instructions += TranslateExpression(Not::Cast(expression)->expression());
+  } else {
+    instructions += TranslateExpression(expression);
   }
-  return TranslateExpression(expression);
+  instructions += CheckBooleanInCheckedMode();
+  return instructions;
 }
 
 
@@ -4300,6 +4483,7 @@ void FlowGraphBuilder::VisitVariableGet(VariableGet* node) {
 
 void FlowGraphBuilder::VisitVariableSet(VariableSet* node) {
   Fragment instructions = TranslateExpression(node->expression());
+  instructions += CheckVariableTypeInCheckedMode(node->variable());
   instructions +=
       StoreLocal(node->position(), LookupVariable(node->variable()));
   fragment_ = instructions;
@@ -4349,7 +4533,10 @@ void FlowGraphBuilder::VisitStaticSet(StaticSet* node) {
     Field* kernel_field = Field::Cast(target);
     const dart::Field& field =
         dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(kernel_field));
+    const AbstractType& dst_type = AbstractType::ZoneHandle(Z, field.type());
     Fragment instructions = TranslateExpression(node->expression());
+    instructions += CheckAssignableInCheckedMode(
+        dst_type, dart::String::ZoneHandle(Z, field.name()));
     LocalVariable* variable = MakeTemporary();
     instructions += LoadLocal(variable);
     fragment_ = instructions + StoreStaticField(field);
@@ -4620,6 +4807,41 @@ void FlowGraphBuilder::VisitConstructorInvocation(ConstructorInvocation* node) {
       dart::Class::ZoneHandle(Z, H.LookupClassByKernelClass(kernel_class));
 
   Fragment instructions;
+
+  // Check for malbounded-ness of type.
+  if (I->type_checks()) {
+    List<DartType>& kernel_type_arguments = node->arguments()->types();
+    const TypeArguments& type_arguments = T.TranslateInstantiatedTypeArguments(
+        klass, kernel_type_arguments.raw_array(),
+        kernel_type_arguments.length());
+
+    AbstractType& type = AbstractType::Handle(
+        Z, Type::New(klass, type_arguments, TokenPosition::kNoSource));
+    type = ClassFinalizer::FinalizeType(klass, type,
+                                        ClassFinalizer::kCanonicalize);
+
+    if (type.IsMalbounded()) {
+      // Evaluate expressions for correctness.
+      List<Expression>& positional = node->arguments()->positional();
+      List<NamedExpression>& named = node->arguments()->named();
+      for (intptr_t i = 0; i < positional.length(); ++i) {
+        instructions += TranslateExpression(positional[i]);
+        instructions += Drop();
+      }
+      for (intptr_t i = 0; i < named.length(); ++i) {
+        instructions += TranslateExpression(named[i]->expression());
+        instructions += Drop();
+      }
+
+      // Throw an error & keep the [Value] on the stack.
+      instructions += ThrowTypeError();
+
+      // Bail out early.
+      fragment_ = instructions;
+      return;
+    }
+  }
+
   if (klass.NumTypeArguments() > 0) {
     List<DartType>& kernel_type_arguments = node->arguments()->types();
     const TypeArguments& type_arguments = T.TranslateInstantiatedTypeArguments(
@@ -4824,7 +5046,9 @@ void FlowGraphBuilder::VisitLogicalExpression(LogicalExpression* node) {
 
 void FlowGraphBuilder::VisitNot(Not* node) {
   Fragment instructions = TranslateExpression(node->expression());
-  fragment_ = instructions + BooleanNegate();
+  instructions += CheckBooleanInCheckedMode();
+  instructions += BooleanNegate();
+  fragment_ = instructions;
 }
 
 
@@ -5084,6 +5308,7 @@ void FlowGraphBuilder::VisitVariableDeclaration(VariableDeclaration* node) {
       instructions += Constant(constant_value);
     } else {
       instructions += TranslateExpression(initializer);
+      instructions += CheckVariableTypeInCheckedMode(node);
     }
   }
   instructions += StoreLocal(variable->token_pos(), variable);
@@ -5548,10 +5773,20 @@ void FlowGraphBuilder::VisitAssertStatement(AssertStatement* node) {
   TargetEntryInstr* then;
   TargetEntryInstr* otherwise;
 
-  bool negate;
   Fragment instructions;
-  instructions += TranslateCondition(node->condition(), &negate);
-  instructions += BranchIfTrue(&then, &otherwise, negate);
+  // Asserts can be of the following two kinds:
+  //
+  //    * `assert(expr)`
+  //    * `assert(() { ... })`
+  //
+  // The call to `_AssertionError._evaluateAssertion()` will take care of both
+  // and returns a boolean.
+  instructions += TranslateExpression(node->condition());
+  instructions += PushArgument();
+  instructions += EvaluateAssertion();
+  instructions += CheckBooleanInCheckedMode();
+  instructions += Constant(Bool::True());
+  instructions += BranchIfEqual(&then, &otherwise, false);
 
   const dart::Class& klass = dart::Class::ZoneHandle(
       Z, dart::Library::LookupCoreClass(Symbols::AssertionError()));
@@ -5574,10 +5809,7 @@ void FlowGraphBuilder::VisitAssertStatement(AssertStatement* node) {
   otherwise_fragment += LoadLocal(instance);
   otherwise_fragment += PushArgument();  // this
 
-  otherwise_fragment +=
-      node->message() != NULL
-          ? TranslateExpression(node->message())
-          : Constant(H.DartString("<no message>", Heap::kOld));
+  otherwise_fragment += Constant(H.DartString("<no message>", Heap::kOld));
   otherwise_fragment += PushArgument();  // failedAssertion
 
   otherwise_fragment += Constant(url);
@@ -5589,7 +5821,10 @@ void FlowGraphBuilder::VisitAssertStatement(AssertStatement* node) {
   otherwise_fragment += IntConstant(0);
   otherwise_fragment += PushArgument();  // column
 
-  otherwise_fragment += Constant(H.DartString("<no message>", Heap::kOld));
+  otherwise_fragment +=
+      node->message() != NULL
+          ? TranslateExpression(node->message())
+          : Constant(H.DartString("<no message>", Heap::kOld));
   otherwise_fragment += PushArgument();  // message
 
   otherwise_fragment += StaticCall(TokenPosition::kNoSource, constructor, 6);

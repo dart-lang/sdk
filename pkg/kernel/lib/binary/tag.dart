@@ -20,6 +20,8 @@ class Tag {
   static const int RedirectingInitializer = 10;
   static const int LocalInitializer = 11;
 
+  static const int CheckLibraryIsLoaded = 13;
+  static const int LoadLibrary = 14;
   static const int DirectPropertyGet = 15;
   static const int DirectPropertySet = 16;
   static const int DirectMethodInvocation = 17;

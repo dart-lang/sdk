@@ -97,8 +97,8 @@ class _AsyncStarStreamController {
   // suspend;
   // if (controller.isCancelled) return;
   bool add(event) {
-    if (!onListenReceived) _fatal("yield before stream is listened to!");
-    if (isSuspendedAtYield) _fatal("unexpected yield");
+    if (!onListenReceived) fatal("yield before stream is listened to!");
+    if (isSuspendedAtYield) fatal("unexpected yield");
     // If stream is cancelled, tell caller to exit the async generator.
     if (!controller.hasListener) {
       return true;
@@ -115,7 +115,7 @@ class _AsyncStarStreamController {
   // Returns true if the caller should terminate
   // execution of the generator.
   bool addStream(Stream stream) {
-    if (!onListenReceived) _fatal("yield before stream is listened to!");
+    if (!onListenReceived) fatal("yield before stream is listened to!");
     // If stream is cancelled, tell caller to exit the async generator.
     if (!controller.hasListener) return true;
     isAdding = true;
@@ -190,3 +190,14 @@ class _AsyncStarStreamController {
 }
 
 @patch void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
+
+
+/// Returns a [StackTrace] object containing the synchronous prefix for this
+/// asynchronous method.
+Object _asyncStackTraceHelper() native "StackTrace_asyncStackTraceHelper";
+
+void _clearAsyncThreadStackTrace()
+    native "StackTrace_clearAsyncThreadStackTrace";
+
+void _setAsyncThreadStackTrace(StackTrace stackTrace) native
+    "StackTrace_setAsyncThreadStackTrace";

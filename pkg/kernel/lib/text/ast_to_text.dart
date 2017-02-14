@@ -302,6 +302,9 @@ class Printer extends Visitor<Null> {
         endLine('import "$importPath" as $prefix;');
       }
     }
+    for (var import in library.deferredImports) {
+      import.accept(this);
+    }
     endLine();
     var inner = new Printer._inner(this, imports);
     library.classes.forEach(inner.writeNode);
@@ -396,10 +399,14 @@ class Printer extends Visitor<Null> {
   }
 
   void writeNode(Node node) {
-    if (showOffsets && node is TreeNode) {
-      writeWord("[${node.fileOffset}]");
+    if (node == null) {
+      writeSymbol("<Null>");
+    } else {
+      if (showOffsets && node is TreeNode) {
+        writeWord("[${node.fileOffset}]");
+      }
+      node.accept(this);
     }
-    node.accept(this);
   }
 
   void writeOptionalNode(Node node) {
@@ -985,6 +992,30 @@ class Printer extends Visitor<Null> {
     writeExpression(node.body);
   }
 
+  visitLoadLibrary(LoadLibrary node) {
+    writeWord('LoadLibrary');
+    writeSymbol('(');
+    writeWord(node.import.name);
+    writeSymbol(')');
+    state = WORD;
+  }
+
+  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+    writeWord('CheckLibraryIsLoaded');
+    writeSymbol('(');
+    writeWord(node.import.name);
+    writeSymbol(')');
+    state = WORD;
+  }
+
+  visitDeferredImport(DeferredImport node) {
+    write('import "');
+    write('${node.importedLibrary.importUri}');
+    write('" deferred as ');
+    write(node.name);
+    endLine(';');
+  }
+
   defaultExpression(Expression node) {
     writeWord('${node.runtimeType}');
   }
@@ -1162,6 +1193,9 @@ class Printer extends Visitor<Null> {
 
   visitForInStatement(ForInStatement node) {
     writeIndentation();
+    if (node.isAsync) {
+      writeSpaced('await');
+    }
     writeSpaced('for');
     writeSymbol('(');
     writeVariableDeclaration(node.variable, useVarKeyword: true);

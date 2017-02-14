@@ -243,6 +243,9 @@ async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696
 async/slow_consumer_test: Pass, Timeout # Issue 22696
 async/catch_errors11_test: Pass, Timeout # Issue 22696
 
+[ $runtime == chrome && $system == linux ]
+mirrors/native_class_test: Pass, Slow
+
 [ $runtime == chrome || $runtime == ff ]
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
@@ -280,6 +283,49 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
 async/future_or_strong_test: RuntimeError, OK
+
+[ $runtime == vm && $system == fuchsia ]
+# These use package:unittest
+async/first_regression_test: RuntimeError
+async/future_timeout_test: RuntimeError
+async/multiple_timer_test: RuntimeError
+async/schedule_microtask2_test: RuntimeError
+async/schedule_microtask3_test: RuntimeError
+async/schedule_microtask5_test: RuntimeError
+async/stream_controller_async_test: RuntimeError
+async/stream_first_where_test: RuntimeError
+async/stream_from_iterable_test: RuntimeError
+async/stream_iterator_test: RuntimeError
+async/stream_join_test: RuntimeError
+async/stream_last_where_test: RuntimeError
+async/stream_periodic2_test: RuntimeError
+async/stream_periodic3_test: RuntimeError
+async/stream_periodic4_test: RuntimeError
+async/stream_periodic5_test: RuntimeError
+async/stream_periodic6_test: RuntimeError
+async/stream_periodic_test: RuntimeError
+async/stream_single_test: RuntimeError
+async/stream_single_to_multi_subscriber_test: RuntimeError
+async/stream_state_nonzero_timer_test: RuntimeError
+async/stream_state_test: RuntimeError
+async/stream_subscription_as_future_test: RuntimeError
+async/stream_subscription_cancel_test: RuntimeError
+async/stream_timeout_test: RuntimeError
+async/stream_transform_test: RuntimeError
+async/stream_transformation_broadcast_test: RuntimeError
+async/timer_cancel1_test: RuntimeError
+async/timer_cancel2_test: RuntimeError
+async/timer_cancel_test: RuntimeError
+async/timer_isActive_test: RuntimeError
+async/timer_repeat_test: RuntimeError
+async/timer_test: RuntimeError
+convert/json_lib_test: RuntimeError
+math/point_test: RuntimeError
+math/rectangle_test: RuntimeError
+mirrors/library_uri_io_test: RuntimeError
+mirrors/library_uri_package_test: RuntimeError
+# fstat bug, MG-479.
+mirrors/invocation_fuzz_test: Crash
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 async/future_or_bad_type_test/implements: Pass # Issue 28084
@@ -340,6 +386,9 @@ profiler/metrics_num_test: Fail # Issue 20309
 [ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
 
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
+
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 async/*deferred*: Pass,RuntimeError # Issue 17458
 mirrors/*deferred*: Pass,RuntimeError # Issue 17458
@@ -389,7 +438,6 @@ mirrors/parameter_annotation_mirror_test: Pass, Fail # Issue 25501.  Depends on 
 *: Skip # Issue 25761
 
 [ $compiler == dart2js && $host_checked ]
-mirrors/circular_factory_redirection_test/02: Crash # Assertion failure: Constant constructor already computed for generative_constructor(A#circular2).  Issue 25911
 mirrors/metadata_allowed_values_test/28: Crash # Issue 25911
 mirrors/metadata_allowed_values_test/29: Crash # Issue 25911
 mirrors/metadata_allowed_values_test/30: Crash # Issue 25911

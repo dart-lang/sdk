@@ -105,19 +105,6 @@ void ThreadRegistry::PrintJSON(JSONStream* stream) const {
 #endif
 
 
-bool ThreadRegistry::IsValidHandle(Dart_Handle handle) const {
-  MonitorLocker ml(threads_lock());
-  Thread* current = active_list_;
-  while (current != NULL) {
-    if (current->IsValidHandle(handle)) {
-      return true;
-    }
-    current = current->next_;
-  }
-  return false;
-}
-
-
 intptr_t ThreadRegistry::CountZoneHandles() const {
   MonitorLocker ml(threads_lock());
   intptr_t count = 0;

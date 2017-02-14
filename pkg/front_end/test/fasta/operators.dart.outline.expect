@@ -1,0 +1,50 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Operators extends core::Object {
+  constructor •() → void
+    ;
+  operator +(dynamic other) → dynamic
+    ;
+  operator &(dynamic other) → dynamic
+    ;
+  operator ~() → dynamic
+    ;
+  operator |(dynamic other) → dynamic
+    ;
+  operator ^(dynamic other) → dynamic
+    ;
+  operator /(dynamic other) → dynamic
+    ;
+  operator ==(dynamic other) → dynamic
+    ;
+  operator >(dynamic other) → dynamic
+    ;
+  operator >=(dynamic other) → dynamic
+    ;
+  operator [](dynamic index) → dynamic
+    ;
+  operator []=(dynamic index, dynamic value) → void
+    ;
+  operator <<(dynamic other) → dynamic
+    ;
+  operator <(dynamic other) → dynamic
+    ;
+  operator <=(dynamic other) → dynamic
+    ;
+  operator *(dynamic other) → dynamic
+    ;
+  operator %(dynamic other) → dynamic
+    ;
+  operator >>(dynamic other) → dynamic
+    ;
+  operator -(dynamic other) → dynamic
+    ;
+  operator ~/(dynamic other) → dynamic
+    ;
+  operator unary-() → dynamic
+    ;
+}
+static method main(dynamic arguments) → dynamic
+  ;

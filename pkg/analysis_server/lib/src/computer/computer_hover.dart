@@ -82,7 +82,9 @@ class DartUnitHoverComputer {
         AstNode parent = expression.parent;
         DartType staticType = null;
         DartType propagatedType = expression.propagatedType;
-        if (element == null || element is VariableElement) {
+        if (element is ParameterElement) {
+          staticType = element.type;
+        } else if (element == null || element is VariableElement) {
           staticType = expression.staticType;
         }
         if (parent is MethodInvocation && parent.methodName == expression) {
@@ -106,6 +108,9 @@ class DartUnitHoverComputer {
   }
 
   String _computeDocumentation(Element element) {
+    if (element is FieldFormalParameterElement) {
+      element = (element as FieldFormalParameterElement).field;
+    }
     if (element is ParameterElement) {
       element = element.enclosingElement;
     }

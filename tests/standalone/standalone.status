@@ -9,7 +9,6 @@
 
 io/raw_socket_test: Pass, RuntimeError # Issue 28288
 io/http_close_test: Pass, RuntimeError # Issue 28380
-
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip   # contains no tests.
 
@@ -21,6 +20,9 @@ package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeEr
 package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
+
+[$runtime == vm && $compiler == none && $system == fuchsia]
+*: Skip  # Not yet triaged.
 
 [ ($runtime != vm && $runtime != dart_precompiled) && ($runtime != drt || $compiler != none) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
@@ -84,6 +86,7 @@ map_insert_remove_oom_test: Skip  # Issue 24571
 verbose_gc_to_bmu_test: Skip
 regress_26031_test: SkipByDesign # Standalone only test
 env_test: Skip # This is testing a vm command line parsing scenario.
+dart_developer_disabled_env_test: SkipByDesign # Dartium does not respect VMOptions
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
@@ -93,6 +96,9 @@ io/file_constructor_test: fail
 
 # This is runtime test.
 io/process_exit_negative_test: Skip
+
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
 
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
@@ -122,6 +128,8 @@ unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 regress_25335_test: Skip # Int64List not supported.
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
+dart_developer_env_test: SkipByDesign # Unsupported by dart2js
+dart_developer_disabled_env_test: SkipByDesign # Unsupported by dart2js
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
@@ -205,13 +213,26 @@ package/scenarios/invalid/invalid_package_name_test: Crash, OK # Analyzer exits 
 package/scenarios/invalid/same_package_twice_test: Crash, OK # Analyzer exits on invalid package config
 
 [ $system == windows ]
-io/skipping_dart2js_compilations_test: Fail # Issue 19551.
 verbose_gc_to_bmu_test: Skip
-io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 io/process_sync_test: Pass, Timeout # Issue 24596
 io/sleep_test: Pass, Fail # Issue 25757
-io/socket_info_ipv6_test: RuntimeError # Issue 27876
 io/http_server_early_client_close2_test: Pass, Crash  # Issue 28197
+io/process_stdin_transform_unsubscribe_test: Pass, Timeout # Issue #28558
+
+[ $system == windows && $compiler != dart2analyzer ]
+io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
+io/skipping_dart2js_compilations_test: Fail # Issue 19551.
+io/socket_info_ipv6_test: RuntimeError # Issue 27876
+
+[ $system == windows && $compiler == dart2analyzer ]
+package/package_isolate_test: Crash # Issue 28645
+package/scenarios/empty_packages_file/empty_packages_file_noimports_test: Crash # Issue 28645
+package/scenarios/empty_packages_file/empty_packages_file_option_test: Crash, Pass # Issue 28645
+package/scenarios/packages_file_strange_formatting/empty_lines_test: Crash # Issue 28645
+package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Crash # Issue 28645
+package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Crash # Issue 28645
+package/scenarios/packages_option_only/packages_option_only_noimports_test: Crash # Issue 28645
+package/scenarios/packages_option_only/packages_option_only_test: Crash, CompileTimeError # Issue 28645
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 io/file_lock_test: Skip  # Timeout.
@@ -229,8 +250,6 @@ no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 link_natives_lazily_test: SkipByDesign # Not supported.
 
 [ $compiler == precompiler ]
-# Stacktraces in precompilation omit inlined frames.
-assert_test: Pass, RuntimeError
 map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 io/web_socket_test: Pass, RuntimeError # Issue 24674
 
@@ -315,6 +334,7 @@ no_support_il_printer_test: SkipByDesign
 no_support_service_test: SkipByDesign
 no_support_timeline_test: SkipByDesign
 io/stdio_implicit_close_test: Skip # SkipByDesign
+dart_developer_env_test: SkipByDesign
 
 # Following tests are skipped on dart_app as package mapping is not supported.
 [ $runtime == dart_precompiled || $compiler == app_jit ]
@@ -333,6 +353,8 @@ link_natives_lazily_test: SkipByDesign
 
 # SIMDBC interpreter doesn't support --no_lazy_dispatchers
 no_lazy_dispatchers_test: SkipByDesign
+
+io/secure_unauthorized_test: Pass, RuntimeError # Issue 28719
 
 [ $system == android ]
 # Issue 26376

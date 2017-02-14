@@ -28,6 +28,28 @@ main() {
 
 @reflectiveTest
 class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
+  test_ArgumentList_constructor_named_param_label() async {
+    addTestFile('main() { new A(^);}'
+        'class A { A({one, two}) {} }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
+  test_ArgumentList_factory_named_param_label() async {
+    addTestFile('main() { new A(^);}'
+        'class A { factory A({one, two}) => null; }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
   test_ArgumentList_imported_function_named_param() async {
     addTestFile('main() { int.parse("16", ^);}');
     await getSuggestions();
@@ -74,6 +96,76 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
         relevance: DART_RELEVANCE_NAMED_PARAMETER);
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ',
         relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
+  test_catch() async {
+    addTestFile('main() {try {} ^}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'finally',
+        relevance: DART_RELEVANCE_KEYWORD);
+    expect(suggestions, hasLength(3));
+  }
+
+  test_catch2() async {
+    addTestFile('main() {try {} on Foo {} ^}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'finally',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for',
+        relevance: DART_RELEVANCE_KEYWORD);
+    suggestions.firstWhere(
+        (CompletionSuggestion suggestion) =>
+            suggestion.kind != CompletionSuggestionKind.KEYWORD, orElse: () {
+      fail('Expected suggestions other than keyword suggestions');
+    });
+  }
+
+  test_catch3() async {
+    addTestFile('main() {try {} catch (e) {} finally {} ^}');
+    await getSuggestions();
+    assertNoResult('on');
+    assertNoResult('catch');
+    assertNoResult('finally');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for',
+        relevance: DART_RELEVANCE_KEYWORD);
+    suggestions.firstWhere(
+        (CompletionSuggestion suggestion) =>
+            suggestion.kind != CompletionSuggestionKind.KEYWORD, orElse: () {
+      fail('Expected suggestions other than keyword suggestions');
+    });
+  }
+
+  test_catch4() async {
+    addTestFile('main() {try {} finally {} ^}');
+    await getSuggestions();
+    assertNoResult('on');
+    assertNoResult('catch');
+    assertNoResult('finally');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'for',
+        relevance: DART_RELEVANCE_KEYWORD);
+    suggestions.firstWhere(
+        (CompletionSuggestion suggestion) =>
+            suggestion.kind != CompletionSuggestionKind.KEYWORD, orElse: () {
+      fail('Expected suggestions other than keyword suggestions');
+    });
+  }
+
+  test_catch5() async {
+    addTestFile('main() {try {} ^ finally {}}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
+        relevance: DART_RELEVANCE_KEYWORD);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'catch',
+        relevance: DART_RELEVANCE_KEYWORD);
     expect(suggestions, hasLength(2));
   }
 

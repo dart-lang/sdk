@@ -24,9 +24,14 @@ class StrongModeTest extends TestTarget {
   bool get strongMode => true;
 
   @override
-  List<String> transformProgram(Program program) {
-    List<String> errors = <String>[];
+  List<String> performModularTransformations(Program program) {
     new MixinFullResolution().transform(program);
+    return const <String>[];
+  }
+
+  @override
+  List<String> performGlobalTransformations(Program program) {
+    List<String> errors = <String>[];
     new InsertTypeChecks().transformProgram(program);
     new InsertCovarianceChecks().transformProgram(program);
     new TestTypeChecker(

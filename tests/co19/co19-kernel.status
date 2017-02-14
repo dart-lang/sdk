@@ -6,7 +6,7 @@
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
-LibTest/isolate/*: Skip # No support for isolates ATM.
+LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
 Language/Metadata/before_export_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_import_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
@@ -36,7 +36,7 @@ Language/Functions/Formal_Parameters/Optional_Formals/syntax_t14: Pass
 ###############################################################################
 
 [ $compiler == dartk || $compiler == dartkp ]
-Language/Classes/Getters/static_getter_t02: DartkCompileTimeError
+Language/Classes/Getters/static_getter_t02: CompileTimeError
 Language/Enums/syntax_t08: MissingCompileTimeError
 Language/Enums/syntax_t09: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
@@ -55,13 +55,13 @@ Language/Expressions/Identifier_Reference/built_in_not_dynamic_t29: MissingCompi
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t30: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t31: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t32: MissingCompileTimeError
-Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: DartkCompileTimeError
-Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: DartkCompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t04: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t05: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/syntax_t06: MissingCompileTimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: DartkCompileTimeError
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t03: MissingCompileTimeError
 Language/Libraries_and_Scripts/definition_syntax_t04: MissingCompileTimeError
@@ -113,18 +113,17 @@ Language/Variables/final_t04: MissingCompileTimeError
 Language/Variables/final_t05: MissingCompileTimeError
 Language/Variables/final_t06: MissingCompileTimeError
 Language/Variables/final_t07: MissingCompileTimeError
-Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError # Missing compile-time error from analyzer
-Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
-Language/Expressions/Constants/exception_t01: MissingCompileTimeError
-Language/Expressions/Constants/exception_t02: MissingCompileTimeError
-Language/Expressions/Identifier_Reference/evaluation_type_parameter_t02: MissingCompileTimeError
+Language/Expressions/Constants/exception_t01: Crash
+Language/Expressions/Constants/exception_t02: Crash
 Language/Mixins/Mixin_Application/syntax_t16: DartkCrash
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
+Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError
+Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 
 ###############################################################################
 # VM Entries
@@ -132,39 +131,39 @@ Language/Mixins/Mixin_Application/syntax_t16: DartkCrash
 
 # dartk: Shared JIT & Precompiled failures
 [ ($compiler == dartk && $runtime == vm) || ($compiler == dartkp && $runtime == dart_precompiled) ]
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: RuntimeError
-Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: RuntimeError
-Language/Classes/definition_t23: CompileTimeError
-Language/Expressions/Function_Invocation/Function_Expression_Invocation/not_a_function_expression_t01: RuntimeError
-Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t03: RuntimeError
-Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t04: RuntimeError
-Language/Expressions/Function_Invocation/Unqualified_Invocation/static_method_invocation_t02: RuntimeError
-Language/Expressions/Identifier_Reference/built_in_identifier_t35: Pass
-Language/Expressions/Identifier_Reference/built_in_identifier_t36: Pass
-Language/Expressions/Identifier_Reference/built_in_identifier_t37: Pass
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: Pass
-Language/Expressions/Identifier_Reference/evaluation_property_extraction_t03: RuntimeError
-Language/Expressions/Instance_Creation/New/evaluation_t12: RuntimeError
-Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError
-Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
-Language/Expressions/Lookup/Method_Lookup/superclass_t08: RuntimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/accessible_instance_member_t05: RuntimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t07: RuntimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t18: RuntimeError
-Language/Expressions/Type_Test/evaluation_t10: RuntimeError
-Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError
-Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Pass
-Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: MissingRuntimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass
-Language/Libraries_and_Scripts/Parts/syntax_t06: Pass
-Language/Statements/Labels/syntax_t03: Pass
-Language/Statements/Switch/syntax_t02: Pass
-Language/Statements/Try/catch_scope_t01: RuntimeError
-Language/Types/Static_Types/deferred_type_t01: RuntimeError
-Language/Variables/final_t01/01: MissingRuntimeError
-Language/Variables/final_t02/01: MissingRuntimeError
+Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: RuntimeError # Dartk Issue 28566
+Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: RuntimeError # Dartk Issue 28566
+Language/Classes/definition_t23: CompileTimeError # Dartk Issue 28567
+Language/Expressions/Function_Invocation/Function_Expression_Invocation/not_a_function_expression_t01: RuntimeError # Dartk Issue 28562
+Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t03: RuntimeError # Dartk Issue 28562
+Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_invocation_t04: RuntimeError # Dartk Issue 28562
+Language/Expressions/Function_Invocation/Unqualified_Invocation/static_method_invocation_t02: RuntimeError # Dartk Issue 28563
+Language/Expressions/Identifier_Reference/evaluation_property_extraction_t03: RuntimeError # Dartk Issue 28563
+Language/Expressions/Instance_Creation/New/evaluation_t12: RuntimeError # Dartk Issue 28564
+Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Kernel Issue 28335 (deferred libraries)
+Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Kernel Issue 28335 (deferred libraries)
+Language/Expressions/Lookup/Method_Lookup/superclass_t08: RuntimeError # Dartk Issue 28563
+Language/Expressions/Method_Invocation/Ordinary_Invocation/accessible_instance_member_t05: RuntimeError # Dartk Issue 28562
+Language/Expressions/Method_Invocation/Ordinary_Invocation/evaluation_t07: RuntimeError # Dartk Issue 28562
+Language/Expressions/Method_Invocation/Ordinary_Invocation/method_lookup_failed_t18: RuntimeError # Dartk Issue 28562
+Language/Expressions/Type_Test/evaluation_t10: RuntimeError # Kernel Issue 28335 (deferred libraries)
+Language/Functions/External_Functions/not_connected_to_a_body_t01: RuntimeError # Dartk Issue 28565
+Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError # Kernel Issue 28335 (deferred libraries)
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: MissingRuntimeError # Kernel Issue 28335 (deferred libraries)
+Language/Statements/Try/catch_scope_t01: RuntimeError # Dartk Issue 28410
+Language/Types/Static_Types/deferred_type_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
+Language/Variables/final_t01/01: MissingRuntimeError # Dartk Issue 28566
+Language/Variables/final_t02/01: MissingRuntimeError # Dartk Issue 28566
+Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Pass # OK
+Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass # OK
+Language/Libraries_and_Scripts/Parts/syntax_t06: Pass # OK
+Language/Statements/Labels/syntax_t03: Pass # OK
+Language/Statements/Switch/syntax_t02: Pass # OK
+Language/Expressions/Identifier_Reference/built_in_identifier_t35: Pass # OK, Issue 25732
+Language/Expressions/Identifier_Reference/built_in_identifier_t36: Pass # OK, Issue 25732
+Language/Expressions/Identifier_Reference/built_in_identifier_t37: Pass # OK, Issue 25732
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: Pass # OK, Issue 25732
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]

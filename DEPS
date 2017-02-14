@@ -27,10 +27,8 @@ vars = {
   # Only use this temporarily while waiting for a mirror for a new package.
   "github_dartlang": "https://github.com/dart-lang/%s.git",
 
-  "github_testing": "https://github.com/peter-ahe-google/testing.git",
-
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@cf831f58ac65f68f14824c0b1515f6b7814d94b8",
+  "co19_rev": "@4af9ef149be554216c5bb16cbac8e50d4c28cdf1",
 
   # Revisions of GN related dependencies.
   "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",
@@ -57,7 +55,7 @@ vars = {
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.1",
   "csslib_tag" : "@0.13.2",
-  "dart2js_info_tag" : "@0.5.0",
+  "dart2js_info_tag" : "@0.5.3+1",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.16",
   "dartdoc_tag" : "@v0.9.8+1",
@@ -72,7 +70,7 @@ vars = {
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
   "initialize_tag": "@v0.6.2+2",
   "intl_tag": "@0.14.0",
-  "isolate_tag": "@0.2.3",
+  "isolate_tag": "@1.0.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.2",
   "linter_rev": "@89f93362c5b48ef5192d77e9a28cf9590542669b",
@@ -111,7 +109,6 @@ vars = {
   "stream_channel_tag": "@1.5.0",
   "string_scanner_tag": "@1.0.0",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "testing_rev": "@2e196d51c147411a93a949109656be93626bda49",
   "test_reflective_loader_tag": "@0.1.0",
   "test_tag": "@0.12.15+6",
   "typed_data_tag": "@1.1.3",
@@ -318,8 +315,6 @@ deps = {
       Var("sunflower_rev"),
   Var("dart_root") + "/third_party/pkg/test":
       (Var("github_mirror") % "test") + Var("test_tag"),
-  Var("dart_root") + "/third_party/testing":
-      Var("github_testing") + Var("testing_rev"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       (Var("github_mirror") % "test_reflective_loader") +
       Var("test_reflective_loader_tag"),

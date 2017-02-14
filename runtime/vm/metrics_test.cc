@@ -15,7 +15,7 @@ namespace dart {
 
 #ifndef PRODUCT
 
-UNIT_TEST_CASE(Metric_Simple) {
+VM_UNIT_TEST_CASE(Metric_Simple) {
   Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
                      bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
   {
@@ -44,7 +44,7 @@ class MyMetric : public Metric {
   int64_t LeakyValue() const { return Value(); }
 };
 
-UNIT_TEST_CASE(Metric_OnDemand) {
+VM_UNIT_TEST_CASE(Metric_OnDemand) {
   Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
                      bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
   {

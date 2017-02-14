@@ -25,6 +25,9 @@ void test(Future<Process> future, int expectedExitCode) {
     process.stdout.listen((_) {});
     process.stderr.listen((_) {});
     process.stdin.writeln("Line1");
+    process.stdin.flush().then((_) {
+      print("flush completed");
+    });
   });
 }
 

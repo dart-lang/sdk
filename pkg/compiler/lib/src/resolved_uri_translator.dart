@@ -10,8 +10,9 @@ import 'util/emptyset.dart';
 /// system readable URIs.
 abstract class ResolvedUriTranslator {
   factory ResolvedUriTranslator(
-          Map<String, Uri> sdkLibraries, DiagnosticReporter reporter) =
-      _ResolvedUriTranslator;
+      Map<String, Uri> sdkLibraries,
+      DiagnosticReporter reporter,
+      Uri platformConfigUri) = _ResolvedUriTranslator;
 
   /// The set of platform libraries reported as unsupported.
   ///
@@ -76,11 +77,13 @@ class ForwardingResolvedUriTranslator implements ResolvedUriTranslator {
 class _ResolvedUriTranslator implements ResolvedUriTranslator {
   final Map<String, Uri> _sdkLibraries;
   final DiagnosticReporter _reporter;
+  final Uri _platformConfigUri;
 
   Set<Uri> disallowedLibraryUris = new Set<Uri>();
   bool mockableLibraryUsed = false;
 
-  _ResolvedUriTranslator(this._sdkLibraries, this._reporter);
+  _ResolvedUriTranslator(
+      this._sdkLibraries, this._reporter, this._platformConfigUri);
 
   Map<String, Uri> get sdkLibraries => _sdkLibraries;
 
@@ -136,9 +139,27 @@ class _ResolvedUriTranslator implements ResolvedUriTranslator {
     }
 
     if (location.scheme == "unsupported") {
-      _reporter.reportErrorMessage(spannable, MessageKind.LIBRARY_NOT_SUPPORTED,
-          {'resolvedUri': resolvedUri});
-      registerDisallowedLibraryUse(resolvedUri);
+      if (location.path == "") {
+        _reporter.reportErrorMessage(spannable,
+            MessageKind.LIBRARY_NOT_SUPPORTED, {'resolvedUri': resolvedUri});
+        registerDisallowedLibraryUse(resolvedUri);
+      } else {
+        // If the specification includes a path, we treat it as "partially"
+        // unsupported: it is allowed to be imported unconditionally, but we
+        // will not expose it as being supported in the const variable
+        // `dart.library.name`.
+        //
+        // This is a stopgap measure to support packages like `http` that need
+        // to import `dart:io` conditionally. Once config-imports are supported
+        // in the language, we can make it an error again to import it
+        // unconditionally.
+        //
+        // The plaform configuration files contain a URI of the form
+        // `unsupported:path/to/library.dart` to indicate this partially
+        // supported mode. We resolve the path with respect to the configuration
+        // file.
+        return _platformConfigUri.resolve(location.path);
+      }
       return null;
     }
 

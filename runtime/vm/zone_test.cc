@@ -10,7 +10,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(AllocateZone) {
+VM_UNIT_TEST_CASE(AllocateZone) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
@@ -72,7 +72,7 @@ UNIT_TEST_CASE(AllocateZone) {
 }
 
 
-UNIT_TEST_CASE(AllocGeneric_Success) {
+VM_UNIT_TEST_CASE(AllocGeneric_Success) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
@@ -96,7 +96,7 @@ UNIT_TEST_CASE(AllocGeneric_Success) {
 
 
 // This test is expected to crash.
-UNIT_TEST_CASE(AllocGeneric_Overflow) {
+VM_UNIT_TEST_CASE(AllocGeneric_Overflow) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
@@ -115,7 +115,7 @@ UNIT_TEST_CASE(AllocGeneric_Overflow) {
 }
 
 
-UNIT_TEST_CASE(ZoneAllocated) {
+VM_UNIT_TEST_CASE(ZoneAllocated) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
@@ -171,7 +171,7 @@ TEST_CASE(PrintToString) {
 
 
 #ifndef PRODUCT
-UNIT_TEST_CASE(PrintZoneMemoryInfoToJSON) {
+VM_UNIT_TEST_CASE(PrintZoneMemoryInfoToJSON) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
@@ -229,7 +229,7 @@ UNIT_TEST_CASE(PrintZoneMemoryInfoToJSON) {
 #endif
 
 
-UNIT_TEST_CASE(NativeScopeZoneAllocation) {
+VM_UNIT_TEST_CASE(NativeScopeZoneAllocation) {
   ASSERT(ApiNativeScope::Current() == NULL);
   ASSERT(Thread::Current() == NULL);
   EXPECT_EQ(0, ApiNativeScope::current_memory_usage());

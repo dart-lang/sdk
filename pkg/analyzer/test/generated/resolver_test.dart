@@ -1040,8 +1040,7 @@ f() {
   }
 }''';
     CompilationUnit unit = await resolveSource(code);
-    DartType t =
-        findMarkedIdentifier(code, unit, "; // marker").propagatedType;
+    DartType t = findMarkedIdentifier(code, unit, "; // marker").propagatedType;
     expect(typeProvider.intType.isSubtypeOf(t), isTrue);
     expect(typeProvider.stringType.isSubtypeOf(t), isTrue);
   }
@@ -1074,8 +1073,7 @@ f() {
   }
 }''';
     CompilationUnit unit = await resolveSource(code);
-    DartType t =
-        findMarkedIdentifier(code, unit, "; // marker").propagatedType;
+    DartType t = findMarkedIdentifier(code, unit, "; // marker").propagatedType;
     expect(typeProvider.intType.isSubtypeOf(t), isTrue);
     expect(typeProvider.stringType.isSubtypeOf(t), isTrue);
   }
@@ -2083,8 +2081,7 @@ main() {
       expect(identifier.propagatedType, null);
     }
     {
-      SimpleIdentifier identifier =
-          findMarkedIdentifier(code, unit, "v = '';");
+      SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v = '';");
       expect(identifier.propagatedType, typeProvider.stringType);
     }
   }
@@ -2425,7 +2422,8 @@ class TypeProviderImplTest extends EngineTestCase {
     InterfaceType doubleType = _classElement("double", numType).type;
     InterfaceType functionType = _classElement("Function", objectType).type;
     InterfaceType futureType = _classElement("Future", objectType, ["T"]).type;
-    InterfaceType futureOrType = _classElement("FutureOr", objectType, ["T"]).type;
+    InterfaceType futureOrType =
+        _classElement("FutureOr", objectType, ["T"]).type;
     InterfaceType intType = _classElement("int", numType).type;
     InterfaceType iterableType =
         _classElement("Iterable", objectType, ["T"]).type;
@@ -2454,7 +2452,11 @@ class TypeProviderImplTest extends EngineTestCase {
     ];
     CompilationUnitElementImpl asyncUnit =
         new CompilationUnitElementImpl("async.dart");
-    asyncUnit.types = <ClassElement>[futureType.element, futureOrType.element, streamType.element];
+    asyncUnit.types = <ClassElement>[
+      futureType.element,
+      futureOrType.element,
+      streamType.element
+    ];
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
         context, AstTestFactory.libraryIdentifier2(["dart.core"]));
@@ -2512,7 +2514,7 @@ class TypeProviderImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class TypeResolverVisitorTest {
+class TypeResolverVisitorTest extends ParserTestCase {
   /**
    * The error listener to which errors will be reported.
    */
@@ -2573,7 +2575,7 @@ class TypeResolverVisitorTest {
   }
 
   test_modeApi() async {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 class C extends A with A implements A {
   A f = new A();
   A m() {
@@ -3567,7 +3569,7 @@ A v = new A();
    */
   void _resolveTypeModeLocal(
       String code, AstNode getNodeToResolve(CompilationUnit unit)) {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit2(code);
+    CompilationUnit unit = parseCompilationUnit2(code);
     var unitElement = new CompilationUnitElementImpl('/test.dart');
 
     // Build API elements.

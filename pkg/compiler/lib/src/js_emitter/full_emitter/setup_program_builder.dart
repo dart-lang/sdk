@@ -111,8 +111,6 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'deferredAction': namer.deferredAction,
     'hasIsolateSupport': program.hasIsolateSupport,
     'fieldNamesProperty': js.string(Emitter.FIELD_NAMES_PROPERTY_NAME),
-    'hasIncrementalSupport': compiler.options.hasIncrementalSupport,
-    'incrementalHelper': namer.accessIncrementalHelper,
     'createNewIsolateFunction': createNewIsolateFunctionAccess,
     'isolateName': namer.isolateName,
     'classIdExtractor': classIdExtractorAccess,
@@ -256,10 +254,6 @@ function $setupProgramName(programData, typesOffset) {
       return str;
     }
 
-    if (#hasIncrementalSupport) {
-      #incrementalHelper.defineClass = defineClass;
-    }
-
     if (#hasIsolateSupport) {
       #createNewIsolateFunction = function() { return new #isolateName(); };
 
@@ -317,10 +311,6 @@ function $setupProgramName(programData, typesOffset) {
           return object;
         };
       }();
-
-     if (#hasIncrementalSupport) {
-       #incrementalHelper.inheritFrom = inheritFrom;
-     }
 
     // Class descriptions are collected in a JS object.
     // 'finishClasses' takes all collected descriptions and sets up
@@ -760,10 +750,6 @@ function $setupProgramName(programData, typesOffset) {
       #jsInteropBoostrap
     }
     #tearOffCode;
-  }
-
-  if (#hasIncrementalSupport) {
-    #incrementalHelper.addStubs = addStubs;
   }
 
   var functionCounter = 0;

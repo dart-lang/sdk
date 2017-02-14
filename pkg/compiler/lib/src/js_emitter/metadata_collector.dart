@@ -116,8 +116,7 @@ class _MetadataList extends jsAst.DeferredExpression {
   jsAst.Expression _value;
 
   void setExpression(jsAst.Expression value) {
-    // TODO(herhut): Enable the below assertion once incremental mode is gone.
-    // assert(_value == null);
+    assert(_value == null);
     assert(value.precedenceLevel == this.precedenceLevel);
     _value = value;
   }
@@ -155,12 +154,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   /// A map used to canonicalize the entries of types.
   Map<OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>> _typesMap =
       <OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>>{};
-
-  // To support incremental compilation, we have to be able to eagerly emit
-  // metadata and add metadata later on. We use the below two counters for
-  // this.
-  int _globalMetadataCounter = 0;
-  int _globalTypesCounter = 0;
 
   MetadataCollector(this._compiler, this._emitter) {
     _globalMetadataMap = new Map<String, _BoundMetadataEntry>();
@@ -320,11 +313,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     String printed =
         jsAst.prettyPrint(node, _compiler, renamerForNames: nameToKey);
     return _globalMetadataMap.putIfAbsent(printed, () {
-      _BoundMetadataEntry result = new _BoundMetadataEntry(node);
-      if (_compiler.options.hasIncrementalSupport) {
-        result.finalize(_globalMetadataCounter++);
-      }
-      return result;
+      return new _BoundMetadataEntry(node);
     });
   }
 
@@ -356,13 +345,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
           new Map<ResolutionDartType, _BoundMetadataEntry>();
     }
     return _typesMap[outputUnit].putIfAbsent(type, () {
-      _BoundMetadataEntry result = new _BoundMetadataEntry(
-          _computeTypeRepresentation(type,
-              ignoreTypeVariables: ignoreTypeVariables));
-      if (_compiler.options.hasIncrementalSupport) {
-        result.finalize(_globalTypesCounter++);
-      }
-      return result;
+      return new _BoundMetadataEntry(_computeTypeRepresentation(type,
+          ignoreTypeVariables: ignoreTypeVariables));
     });
   }
 
@@ -399,11 +383,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     }
 
     jsAst.ArrayInitializer finalizeMap(Map<dynamic, _BoundMetadataEntry> map) {
-      // When in incremental mode, we allocate entries eagerly.
-      if (_compiler.options.hasIncrementalSupport) {
-        return new jsAst.ArrayInitializer(map.values.toList());
-      }
-
       bool isUsed(_BoundMetadataEntry entry) => entry.isUsed;
       List<_BoundMetadataEntry> entries = map.values.where(isUsed).toList();
       entries.sort();

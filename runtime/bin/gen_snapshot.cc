@@ -385,6 +385,7 @@ static void WriteSnapshotFile(const char* filename,
     Log::PrintErr("Error: Unable to write snapshot file: %s\n\n", filename);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
+    Dart_Cleanup();
     exit(kErrorExitCode);
   }
   if (!file->WriteFully(buffer, size)) {
@@ -447,7 +448,7 @@ static Dart_Handle LoadUrlContents(const char* uri_string) {
     result = Dart_NewStringFromUTF8(payload, payload_length);
     free(payload);
   } else {
-    result = DartUtils::NewString(result_string);
+    result = Dart_NewApiError(result_string);
     free(result_string);
   }
   return result;

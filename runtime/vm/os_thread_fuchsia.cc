@@ -203,6 +203,11 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 }
 
 
+bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
+  return false;
+}
+
+
 Mutex::Mutex() {
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);

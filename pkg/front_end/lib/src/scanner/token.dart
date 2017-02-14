@@ -1000,9 +1000,6 @@ class TokenType {
   static const TokenType INDEX_EQ =
       const TokenType._('INDEX_EQ', TokenClass.UNARY_POSTFIX_OPERATOR, '[]=');
 
-  static const TokenType IS =
-      const TokenType._('IS', TokenClass.RELATIONAL_OPERATOR, 'is');
-
   static const TokenType LT =
       const TokenType._('LT', TokenClass.RELATIONAL_OPERATOR, '<');
 

@@ -17,7 +17,6 @@ import '../constants/values.dart'
         NullConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../elements/resolution_types.dart' show ResolutionDartType;
 import '../elements/resolution_types.dart' show ResolutionInterfaceType;
 import '../elements/elements.dart'
     show ClassElement, FieldElement, LibraryElement, VariableElement;
@@ -234,8 +233,10 @@ class LookupMapAnalysis {
       key.isPrimitive || _inUse.contains(key) || _overridesEquals(key);
 
   void _addClassUse(ClassElement cls) {
-    ConstantValue key = _typeConstants.putIfAbsent(cls,
-        () => backend.constantSystem.createType(backend.compiler, cls.rawType));
+    ConstantValue key = _typeConstants.putIfAbsent(
+        cls,
+        () => backend.constantSystem.createType(
+            backend.commonElements, backend.backendClasses, cls.rawType));
     _addUse(key);
   }
 
@@ -285,8 +286,7 @@ class LookupMapAnalysis {
         // type_lookup_map/generic_type_test
         // TODO(sigmund): can we get rid of this?
         backend.computeImpactForInstantiatedConstantType(
-            backend.backendClasses.typeImplementation.rawType,
-            impactBuilderForCodegen);
+            backend.backendClasses.typeType, impactBuilderForCodegen);
         _addGenerics(arg);
       }
     }

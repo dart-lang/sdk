@@ -18,7 +18,7 @@ bool IsZero(char* begin, char* end) {
 }
 
 
-UNIT_TEST_CASE(AllocateVirtualMemory) {
+VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
   const intptr_t kVirtualMemoryBlockSize = 64 * KB;
   VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
   EXPECT(vm != NULL);
@@ -52,7 +52,7 @@ UNIT_TEST_CASE(AllocateVirtualMemory) {
 }
 
 
-UNIT_TEST_CASE(FreeVirtualMemory) {
+VM_UNIT_TEST_CASE(FreeVirtualMemory) {
   // Reservations should always be handed back to OS upon destruction.
   const intptr_t kVirtualMemoryBlockSize = 10 * MB;
   const intptr_t kIterations = 900;  // Enough to exhaust 32-bit address space.
@@ -89,7 +89,7 @@ UNIT_TEST_CASE(FreeVirtualMemory) {
 }
 
 
-UNIT_TEST_CASE(VirtualMemoryCommitPartial) {
+VM_UNIT_TEST_CASE(VirtualMemoryCommitPartial) {
   const intptr_t kVirtualMemoryBlockSize = 3 * MB;
   VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
   EXPECT(vm != NULL);

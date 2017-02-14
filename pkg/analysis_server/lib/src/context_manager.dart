@@ -705,10 +705,12 @@ class ContextManagerImpl implements ContextManager {
     var analyzer = options[AnalyzerOptions.analyzer];
     if (analyzer is Map) {
       // Set ignore patterns.
-      YamlList exclude = analyzer[AnalyzerOptions.exclude];
-      List<String> excludeList = toStringList(exclude);
-      if (excludeList != null) {
-        setIgnorePatternsForContext(info, excludeList);
+      var exclude = analyzer[AnalyzerOptions.exclude];
+      if (exclude is YamlList) {
+        List<String> excludeList = toStringList(exclude);
+        if (excludeList != null) {
+          setIgnorePatternsForContext(info, excludeList);
+        }
       }
     }
   }

@@ -47,7 +47,7 @@ class CompilerImpl extends Compiler {
 
   CompilerImpl(this.provider, api.CompilerOutput outputProvider, this.handler,
       CompilerOptions options,
-      {MakeBackendFunction makeBackend, MakeReporterFunction makeReporter})
+      {MakeReporterFunction makeReporter})
       // NOTE: allocating measurer is done upfront to ensure the wallclock is
       // started before other computations.
       : measurer = new Measurer(enableTaskMeasurements: options.verbose),
@@ -56,7 +56,6 @@ class CompilerImpl extends Compiler {
             options: options,
             outputProvider: outputProvider,
             environment: new _Environment(options.environment),
-            makeBackend: makeBackend,
             makeReporter: makeReporter) {
     _Environment env = environment;
     env.compiler = this;
@@ -222,10 +221,12 @@ class CompilerImpl extends Compiler {
             .load(options.platformConfigUri, provider)
             .then((Map<String, Uri> mapping) {
           resolvedUriTranslator.resolvedUriTranslator =
-              new ResolvedUriTranslator(mapping, reporter);
+              new ResolvedUriTranslator(
+                  mapping, reporter, options.platformConfigUri);
         });
       });
     }
+    // TODO(johnniwinther): This does not apply anymore.
     // The incremental compiler sets up the sdk before run.
     // Therefore this will be called a second time.
     return future;
@@ -391,6 +392,19 @@ class _Environment implements Environment {
       }
       return "true";
     }
+
+    // Note: we return null on `dart:io` here, even if we allow users to
+    // unconditionally import it.
+    //
+    // In the past it was invalid to import `dart:io` for client apps. We just
+    // made it valid to import it as a stopgap measure to support packages like
+    // `http`. This is temporary until we support config-imports in the
+    // language.
+    //
+    // Because it is meant to be temporary and because the returned `dart:io`
+    // implementation will throw on most APIs, we still preserve that
+    // when compiling client apps the `dart:io` library is technically not
+    // supported, and so `const bool.fromEnvironment(dart.library.io)` is false.
     return null;
   }
 }

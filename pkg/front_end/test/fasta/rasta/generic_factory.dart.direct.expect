@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class A<T extends core::Object> extends core::Object {
+  constructor internal() → void
+    : super core::Object::•()
+    ;
+  static factory a<T extends core::Object>() → self::A<self::A::a::T>
+    invalid-statement;
+  static factory b<T extends core::Object>() → self::A<self::A::b::T>
+    invalid-statement;
+  static factory c<T extends core::Object>() → self::A<self::A::c::T>
+    throw "Missing constructor: Missing";
+}
+class B<S extends core::Object> extends self::A<self::B::S> {
+  constructor internal() → void
+    : super self::A::internal()
+    ;
+  static factory a<S extends core::Object>() → self::B<self::B::a::S>
+    invalid-statement;
+  static factory b<S extends core::Object>() → self::B<self::B::b::S>
+    invalid-statement;
+}
+class C<U extends core::Object> extends self::B<self::C::U> {
+  constructor •() → void
+    : super self::B::internal()
+    ;
+}
+static method main() → dynamic {
+  new self::C::•<self::C3>();
+  new self::C::•<self::C1>();
+  new self::C::•<self::C3>();
+  new self::C::•<self::C2>();
+  self::A::c<self::C3>();
+}

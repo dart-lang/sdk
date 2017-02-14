@@ -137,6 +137,11 @@ dput(obj, field, value) {
 _checkApply(type, actuals) => JS(
     '',
     '''(() => {
+  // TODO(vsm): Remove when we no longer need mirrors metadata.
+  // An array is used to encode annotations attached to the type.
+  if ($type instanceof Array) {
+    $type = type[0];
+  }
   if ($actuals.length < $type.args.length) return false;
   let index = 0;
   for(let i = 0; i < $type.args.length; ++i) {

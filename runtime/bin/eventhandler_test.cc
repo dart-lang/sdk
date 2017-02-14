@@ -9,7 +9,7 @@
 namespace dart {
 namespace bin {
 
-UNIT_TEST_CASE(CircularLinkedList) {
+VM_UNIT_TEST_CASE(CircularLinkedList) {
   CircularLinkedList<int> list;
 
   EXPECT(!list.HasHead());

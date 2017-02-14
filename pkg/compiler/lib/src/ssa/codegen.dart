@@ -12,7 +12,6 @@ import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
 import '../elements/elements.dart'
     show
-        Entity,
         JumpTarget,
         LabelDefinition,
         Name,
@@ -1638,7 +1637,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Name name =
           backend.namer.nameForGetInterceptor(node.interceptedClasses);
       var isolate = new js.VariableUse(
-          backend.namer.globalObjectFor(helpers.interceptorsLibrary));
+          backend.namer.globalObjectForLibrary(helpers.interceptorsLibrary));
       use(node.receiver);
       List<js.Expression> arguments = <js.Expression>[pop()];
       push(js
@@ -1703,9 +1702,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitOneShotInterceptor(HOneShotInterceptor node) {
     List<js.Expression> arguments = visitArguments(node.inputs);
     var isolate = new js.VariableUse(
-        backend.namer.globalObjectFor(helpers.interceptorsLibrary));
+        backend.namer.globalObjectForLibrary(helpers.interceptorsLibrary));
     Selector selector = node.selector;
-    js.Name methodName = backend.registerOneShotInterceptor(selector);
+    js.Name methodName = backend.interceptorData
+        .registerOneShotInterceptor(selector, backend.namer);
     push(js
         .propertyCall(isolate, methodName, arguments)
         .withSourceInformation(node.sourceInformation));
@@ -1937,21 +1937,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitFieldGet(HFieldGet node) {
     use(node.receiver);
-    MemberEntity element = node.element;
     if (node.isNullCheck) {
       // We access a JavaScript member we know all objects besides
       // null and undefined have: V8 does not like accessing a member
       // that does not exist.
       push(new js.PropertyAccess.field(pop(), 'toString')
           .withSourceInformation(node.sourceInformation));
-    } else if (element == helpers.jsIndexableLength) {
-      // We're accessing a native JavaScript property called 'length'
-      // on a JS String or a JS array. Therefore, the name of that
-      // property should not be mangled.
-      push(new js.PropertyAccess.field(pop(), 'length')
-          .withSourceInformation(node.sourceInformation));
     } else {
-      FieldEntity field = element;
+      FieldEntity field = node.element;
       js.Name name = backend.namer.instanceFieldPropertyName(field);
       push(new js.PropertyAccess(pop(), name)
           .withSourceInformation(node.sourceInformation));
@@ -1960,13 +1953,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
-    MemberEntity element = node.element;
+    FieldEntity element = node.element;
     registry.registerStaticUse(new StaticUse.fieldSet(element));
     js.Name name = backend.namer.instanceFieldPropertyName(element);
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.value);
     push(new js.Assignment(new js.PropertyAccess(receiver, name), pop())
+        .withSourceInformation(node.sourceInformation));
+  }
+
+  visitGetLength(HGetLength node) {
+    use(node.receiver);
+    push(new js.PropertyAccess.field(pop(), 'length')
         .withSourceInformation(node.sourceInformation));
   }
 
@@ -2809,15 +2808,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         negative: negative);
   }
 
-  js.Expression generateReceiverOrArgumentTypeTest(
-      HInstruction input, TypeMask checkedType) {
-    TypeMask inputType = input.instructionType;
+  js.Expression generateReceiverOrArgumentTypeTest(HTypeConversion node) {
+    HInstruction input = node.checkedInput;
+    TypeMask inputType = node.inputType ?? input.instructionType;
+    TypeMask checkedType = node.checkedType;
     // Figure out if it is beneficial to turn this into a null check.
     // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
     bool isIntCheck = checkedType.containsOnlyInt(closedWorld);
-    bool turnIntoNumCheck = isIntCheck && input.isIntegerOrNull(closedWorld);
+    bool turnIntoNumCheck =
+        isIntCheck && inputType.containsOnlyInt(closedWorld);
     bool turnIntoNullCheck = !turnIntoNumCheck &&
         (checkedType.nullable() == inputType) &&
         (isIntCheck ||
@@ -2850,13 +2851,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeConversion(HTypeConversion node) {
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
-      // An int check if the input is not int or null, is not
-      // sufficient for doing an argument or receiver check.
-      assert(compiler.options.trustTypeAnnotations ||
-          !node.checkedType.containsOnlyInt(closedWorld) ||
-          node.checkedInput.isIntegerOrNull(closedWorld));
-      js.Expression test = generateReceiverOrArgumentTypeTest(
-          node.checkedInput, node.checkedType);
+      js.Expression test = generateReceiverOrArgumentTypeTest(node);
       js.Block oldContainer = currentContainer;
       js.Statement body = new js.Block.empty();
       currentContainer = body;
@@ -3061,7 +3056,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     use(node.inputs[0]);
     if (node.hasReceiver) {
-      if (backend.isInterceptorClass(element.typeDeclaration)) {
+      if (backend.interceptorData.isInterceptorClass(element.typeDeclaration)) {
         int index = element.index;
         js.Expression receiver = pop();
         js.Expression helper =

@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    ;
+  static factory foo() → self::A
+    invalid-statement;
+  method m() → core::int
+    ;
+}
+class C extends self::A {
+  constructor •() → void
+    ;
+  static factory bar() → self::D
+    throw "Missing constructor: D";
+  method m() → core::int
+    ;
+}
+class D extends self::C {
+  constructor •() → void
+    ;
+  method m() → core::int
+    ;
+}
+static method main() → dynamic
+  ;

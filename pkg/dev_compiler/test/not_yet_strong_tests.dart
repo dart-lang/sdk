@@ -784,6 +784,7 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/generic_field_mixin6_test_01_multi',
   'language/generic_field_mixin6_test_none_multi',
   'language/generic_list_checked_test',
+  'language/generic_tearoff_test',
   'language/generic_test',
   'language/generics_test',
   'language/get_set_syntax_test_00_multi',

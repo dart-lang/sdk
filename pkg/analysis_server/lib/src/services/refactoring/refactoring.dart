@@ -27,13 +27,9 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-/**
- * Completes with the resolved [CompilationUnit] that contains the [element].
- */
-typedef Future<CompilationUnit> GetResolvedUnit(Element element);
 
 /**
  * [Refactoring] to convert getters into normal [MethodDeclaration]s.
@@ -43,9 +39,10 @@ abstract class ConvertGetterToMethodRefactoring implements Refactoring {
    * Returns a new [ConvertMethodToGetterRefactoring] instance for converting
    * [element] and all the corresponding hierarchy elements.
    */
-  factory ConvertGetterToMethodRefactoring(
-      SearchEngine searchEngine, PropertyAccessorElement element) {
-    return new ConvertGetterToMethodRefactoringImpl(searchEngine, element);
+  factory ConvertGetterToMethodRefactoring(SearchEngine searchEngine,
+      AstProvider astProvider, PropertyAccessorElement element) {
+    return new ConvertGetterToMethodRefactoringImpl(
+        searchEngine, astProvider, element);
   }
 }
 
@@ -58,9 +55,9 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
    * [element] and all the corresponding hierarchy elements.
    */
   factory ConvertMethodToGetterRefactoring(SearchEngine searchEngine,
-      GetResolvedUnit getResolvedUnit, ExecutableElement element) {
+      AstProvider astProvider, ExecutableElement element) {
     return new ConvertMethodToGetterRefactoringImpl(
-        searchEngine, getResolvedUnit, element);
+        searchEngine, astProvider, element);
   }
 }
 
@@ -231,9 +228,10 @@ abstract class InlineLocalRefactoring implements Refactoring {
   /**
    * Returns a new [InlineLocalRefactoring] instance.
    */
-  factory InlineLocalRefactoring(
-      SearchEngine searchEngine, CompilationUnit unit, int offset) {
-    return new InlineLocalRefactoringImpl(searchEngine, unit, offset);
+  factory InlineLocalRefactoring(SearchEngine searchEngine,
+      AstProvider astProvider, CompilationUnit unit, int offset) {
+    return new InlineLocalRefactoringImpl(
+        searchEngine, astProvider, unit, offset);
   }
 
   /**
@@ -255,9 +253,9 @@ abstract class InlineMethodRefactoring implements Refactoring {
    * Returns a new [InlineMethodRefactoring] instance.
    */
   factory InlineMethodRefactoring(SearchEngine searchEngine,
-      GetResolvedUnit getResolvedUnit, CompilationUnit unit, int offset) {
+      AstProvider astProvider, CompilationUnit unit, int offset) {
     return new InlineMethodRefactoringImpl(
-        searchEngine, getResolvedUnit, unit, offset);
+        searchEngine, astProvider, unit, offset);
   }
 
   /**
@@ -374,7 +372,8 @@ abstract class RenameRefactoring implements Refactoring {
    * maybe `null` if there is no support for renaming [Element]s of the given
    * type.
    */
-  factory RenameRefactoring(SearchEngine searchEngine, Element element) {
+  factory RenameRefactoring(
+      SearchEngine searchEngine, AstProvider astProvider, Element element) {
     if (element == null) {
       return null;
     }
@@ -385,7 +384,8 @@ abstract class RenameRefactoring implements Refactoring {
       return new RenameUnitMemberRefactoringImpl(searchEngine, element);
     }
     if (element is ConstructorElement) {
-      return new RenameConstructorRefactoringImpl(searchEngine, element);
+      return new RenameConstructorRefactoringImpl(
+          searchEngine, astProvider, element);
     }
     if (element is ImportElement) {
       return new RenameImportRefactoringImpl(searchEngine, element);
@@ -397,7 +397,7 @@ abstract class RenameRefactoring implements Refactoring {
       return new RenameLibraryRefactoringImpl(searchEngine, element);
     }
     if (element is LocalElement) {
-      return new RenameLocalRefactoringImpl(searchEngine, element);
+      return new RenameLocalRefactoringImpl(searchEngine, astProvider, element);
     }
     if (element.enclosingElement is ClassElement) {
       return new RenameClassMemberRefactoringImpl(searchEngine, element);
@@ -431,4 +431,34 @@ abstract class RenameRefactoring implements Refactoring {
    * level of checking.
    */
   RefactoringStatus checkNewName();
+}
+
+/**
+ * Cache for accessing resolved [CompilationUnit]s by [Element]s.
+ *
+ * Must by short-lived.
+ *
+ * TODO(scheglov) consider moving to request-bound object.
+ */
+class ResolvedUnitCache {
+  final AstProvider _astProvider;
+  final Map<CompilationUnitElement, CompilationUnit> _map = {};
+
+  ResolvedUnitCache(this._astProvider, [CompilationUnit unit]) {
+    if (unit != null) {
+      _map[unit.element] = unit;
+    }
+  }
+
+  Future<CompilationUnit> getUnit(Element element) async {
+    CompilationUnitElement unitElement =
+        element.getAncestor((e) => e is CompilationUnitElement)
+            as CompilationUnitElement;
+    CompilationUnit unit = _map[unitElement];
+    if (unit == null) {
+      unit = await _astProvider.getResolvedUnitForElement(element);
+      _map[unitElement] = unit;
+    }
+    return unit;
+  }
 }

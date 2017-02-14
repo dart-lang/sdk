@@ -156,6 +156,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     element.localVariables = holder.localVariables;
     element.parameters = holder.parameters;
     element.isConst = node.constKeyword != null;
+    element.isCycleFree = element.isConst;
     if (body.isAsynchronous) {
       element.asynchronous = true;
     }
@@ -230,18 +231,14 @@ class ApiElementBuilder extends _BaseElementBuilder {
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
-      FieldElement field =
-          _fieldMap == null ? null : _fieldMap[parameterName.name];
       FieldFormalParameterElementImpl parameter =
           new FieldFormalParameterElementImpl.forNode(parameterName);
       _setCodeRange(parameter, node);
+      _setFieldParameterField(node, parameter);
       parameter.isConst = node.isConst;
       parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
       parameter.parameterKind = node.kind;
-      if (field != null) {
-        parameter.field = field;
-      }
       _currentHolder.addParameter(parameter);
       parameterName.staticElement = parameter;
     }
@@ -733,10 +730,13 @@ class ApiElementBuilder extends _BaseElementBuilder {
   }
 
   @override
-  void _setFieldParameterField(FieldFormalParameterElementImpl parameter) {
-    FieldElement field = _fieldMap == null ? null : _fieldMap[parameter.name];
-    if (field != null) {
-      parameter.field = field;
+  void _setFieldParameterField(
+      FormalParameter node, FieldFormalParameterElementImpl element) {
+    if (node.parent?.parent is ConstructorDeclaration) {
+      FieldElement field = _fieldMap == null ? null : _fieldMap[element.name];
+      if (field != null) {
+        element.field = field;
+      }
     }
   }
 }
@@ -1388,7 +1388,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     if (normalParameter is FieldFormalParameter) {
       DefaultFieldFormalParameterElementImpl fieldParameter =
           new DefaultFieldFormalParameterElementImpl.forNode(parameterName);
-      _setFieldParameterField(fieldParameter);
+      _setFieldParameterField(node, fieldParameter);
       parameter = fieldParameter;
     } else {
       parameter = new DefaultParameterElementImpl.forNode(parameterName);
@@ -1515,7 +1515,8 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     element.setCodeRange(node.offset, node.length);
   }
 
-  void _setFieldParameterField(FieldFormalParameterElementImpl parameter) {}
+  void _setFieldParameterField(
+      FormalParameter node, FieldFormalParameterElementImpl element) {}
 
   /**
    * Sets the visible source range for formal parameter.

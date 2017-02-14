@@ -13,7 +13,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(Mutex) {
+VM_UNIT_TEST_CASE(Mutex) {
   // This unit test case needs a running isolate.
   Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
                      bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
@@ -35,7 +35,7 @@ UNIT_TEST_CASE(Mutex) {
 }
 
 
-UNIT_TEST_CASE(Monitor) {
+VM_UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
   Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
                      bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
@@ -173,7 +173,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
 };
 
 
-VM_TEST_CASE(ManyTasksWithZones) {
+ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
   const int kTaskCount = 100;
   Monitor sync[kTaskCount];
   bool done[kTaskCount];
@@ -554,7 +554,7 @@ TEST_CASE(SafepointTestDart) {
 // - main thread in VM code,
 // organized by
 // - helpers.
-VM_TEST_CASE(SafepointTestVM) {
+ISOLATE_UNIT_TEST_CASE(SafepointTestVM) {
   Isolate* isolate = thread->isolate();
   Monitor monitor;
   intptr_t expected_count = 0;
@@ -575,7 +575,7 @@ VM_TEST_CASE(SafepointTestVM) {
 
 
 // Test case for recursive safepoint operations.
-VM_TEST_CASE(RecursiveSafepointTest1) {
+ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest1) {
   intptr_t count = 0;
   {
     SafepointOperationScope safepoint_scope(thread);
@@ -593,7 +593,7 @@ VM_TEST_CASE(RecursiveSafepointTest1) {
 }
 
 
-VM_TEST_CASE(ThreadIterator_Count) {
+ISOLATE_UNIT_TEST_CASE(ThreadIterator_Count) {
   intptr_t thread_count_0 = 0;
   intptr_t thread_count_1 = 0;
 
@@ -621,7 +621,7 @@ VM_TEST_CASE(ThreadIterator_Count) {
 }
 
 
-VM_TEST_CASE(ThreadIterator_FindSelf) {
+ISOLATE_UNIT_TEST_CASE(ThreadIterator_FindSelf) {
   OSThread* current = OSThread::Current();
   EXPECT(OSThread::IsThreadInList(current->id()));
 }
@@ -682,7 +682,7 @@ TEST_CASE(ThreadIterator_AddFindRemove) {
 // organized by
 // - main thread, and
 // - helpers.
-VM_TEST_CASE(SafepointTestVM2) {
+ISOLATE_UNIT_TEST_CASE(SafepointTestVM2) {
   Isolate* isolate = thread->isolate();
   Monitor monitor;
   intptr_t expected_count = 0;
@@ -714,7 +714,7 @@ VM_TEST_CASE(SafepointTestVM2) {
 
 // Test recursive safepoint operation scopes with other threads trying
 // to also start a safepoint operation scope.
-VM_TEST_CASE(RecursiveSafepointTest2) {
+ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest2) {
   Isolate* isolate = thread->isolate();
   Monitor monitor;
   intptr_t expected_count = 0;
@@ -785,7 +785,7 @@ class AllocAndGCTask : public ThreadPool::Task {
 };
 
 
-VM_TEST_CASE(HelperAllocAndGC) {
+ISOLATE_UNIT_TEST_CASE(HelperAllocAndGC) {
   Monitor done_monitor;
   bool done = false;
   Isolate* isolate = thread->isolate();

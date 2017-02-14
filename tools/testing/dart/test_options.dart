@@ -291,6 +291,15 @@ class TestOptionsParser {
           'verify-ir', 'Verify kernel IR', ['--verify-ir'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
+          'no-tree-shake', 'Disable kernel IR tree shaking', ['--no-tree-shake'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'useDFE', 'Use Kernel Isolate', ['--use-dfe'], [], true,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'useFasta', 'Use Fasta in Kernel Isolate', ['--use-fasta'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
           'list', 'List tests only, do not run them', ['--list'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
@@ -330,23 +339,6 @@ option, the compiler or runtime in PRODUCT_DIR/dart-sdk/bin is tested.
 
 Note: currently only implemented for dart2js.''',
           ['--use-sdk'],
-          [],
-          false,
-          type: 'bool'),
-      new _TestOptionSpecification(
-          'use_public_packages',
-          'For tests using packages: Use pub.dartlang.org packages '
-          'instead the ones in the repository.',
-          ['--use-public-packages'],
-          [],
-          false,
-          type: 'bool'),
-      new _TestOptionSpecification(
-          'use_repository_packages',
-          'For tests using packages: Use pub.dartlang.org packages '
-          'but use overrides for the packages available in the '
-          'repository.',
-          ['--use-repository-packages'],
           [],
           false,
           type: 'bool'),
@@ -745,12 +737,6 @@ Note: currently only implemented for dart2js.''',
       isValid = false;
       print("Error: shard index is ${config['shard']} out of "
           "${config['shards']} shards");
-    }
-
-    if (config['use_repository_packages'] && config['use_public_packages']) {
-      isValid = false;
-      print("Cannot have both --use-repository-packages and "
-          "--use-public-packages");
     }
     if ((config['runtime'] == 'flutter') && (config['flutter'] == '')) {
       isValid = false;

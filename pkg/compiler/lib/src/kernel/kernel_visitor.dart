@@ -387,25 +387,29 @@ class KernelVisitor extends Object
   }
 
   ir.LabeledStatement getBreakTarget(JumpTarget target) {
-    return breakTargets.putIfAbsent(
-        target, () => new ir.LabeledStatement(null));
+    return breakTargets.putIfAbsent(target,
+        () => associateNode(new ir.LabeledStatement(null), target.statement));
   }
 
   ir.LabeledStatement getContinueTarget(JumpTarget target) {
-    return continueTargets.putIfAbsent(
-        target, () => new ir.LabeledStatement(null));
+    return continueTargets.putIfAbsent(target,
+        () => associateNode(new ir.LabeledStatement(null), target.statement));
   }
 
   ir.SwitchCase getContinueSwitchTarget(JumpTarget target) {
     return continueSwitchTargets[target];
   }
 
+  /// The optional positional parameter isBreakTarget can be added in cases
+  /// where a break statement was added but the element model and underlying
+  /// JumpTargets don't know about it.
   ir.Statement buildBreakTarget(
-      ir.Statement statement, Node node, JumpTarget jumpTarget) {
+      ir.Statement statement, Node node, JumpTarget jumpTarget,
+      [bool isBreakTarget = false]) {
     assert(node.isValidBreakTarget());
     assert(jumpTarget == elements.getTargetDefinition(node));
     associateNode(statement, node);
-    if (jumpTarget != null && jumpTarget.isBreakTarget) {
+    if (jumpTarget != null && (jumpTarget.isBreakTarget || isBreakTarget)) {
       ir.LabeledStatement breakTarget = getBreakTarget(jumpTarget);
       breakTarget.body = statement;
       statement.parent = breakTarget;
@@ -587,7 +591,7 @@ class KernelVisitor extends Object
       // One VariableDefinitions statement node (dart2js AST) may generate
       // multiple statements in Kernel IR so we sometimes fall through here.
     }
-    return new ir.Block(statements);
+    return associateNode(new ir.Block(statements), node);
   }
 
   @override
@@ -785,8 +789,10 @@ class KernelVisitor extends Object
         new ir.ForStatement(variables, condition, updates, body), node);
     ir.Statement result = buildBreakTarget(forStatement, node, jumpTarget);
     if (initializer != null) {
-      result = new ir.Block(
-          <ir.Statement>[new ir.ExpressionStatement(initializer), result]);
+      result = associateNode(
+          new ir.Block(
+              <ir.Statement>[new ir.ExpressionStatement(initializer), result]),
+          node.initializer);
     }
     return result;
   }
@@ -822,6 +828,7 @@ class KernelVisitor extends Object
         // its visit method (so it can build break targets correctly).
         ? statement.accept(this)
         : buildStatementInBlock(statement);
+    associateNode(result, statement);
 
     // A [LabeledStatement] isn't the actual jump target, instead, [statement]
     // is the target. This allows uniform handling of break and continue in
@@ -995,7 +1002,9 @@ class KernelVisitor extends Object
     }
     // We ignore the node's statements here, they're generated below in
     // [visitSwitchStatement] once we've set up all the jump targets.
-    return new ir.SwitchCase(expressions, null, isDefault: node.isDefaultCase);
+    return associateNode(
+        new ir.SwitchCase(expressions, null, isDefault: node.isDefaultCase),
+        node);
   }
 
   /// Returns true if [node] would let execution reach the next node (aka
@@ -1011,6 +1020,7 @@ class KernelVisitor extends Object
   ir.Statement visitSwitchStatement(SwitchStatement node) {
     ir.Expression expression = visitForValue(node.expression);
     List<ir.SwitchCase> cases = <ir.SwitchCase>[];
+    bool switchIsBreakTarget = elements.getTargetDefinition(node).isBreakTarget;
     for (SwitchCase caseNode in node.cases.nodes) {
       cases.add(caseNode.accept(this));
       JumpTarget jumpTarget = elements.getTargetDefinition(caseNode);
@@ -1032,17 +1042,18 @@ class KernelVisitor extends Object
       }
       ir.SwitchCase irCase = casesIterator.current;
       List<ir.Statement> statements = <ir.Statement>[];
-      bool hasVariableDeclaration = false;
       for (Statement statement in caseNode.statements.nodes) {
-        if (buildStatement(statement, statements)) {
-          hasVariableDeclaration = true;
-        }
+        buildStatement(statement, statements);
       }
       if (statements.isEmpty || fallsThrough(statements.last)) {
         if (isLastCase) {
           if (!caseNode.isDefaultCase) {
             statements.add(new ir.BreakStatement(
                 getBreakTarget(elements.getTargetDefinition(node))));
+            // Because we "helpfully" add a break here, in the underlying
+            // element model the jump target doesn't actually know it's a break
+            // target, so we have to pass that information.
+            switchIsBreakTarget = true;
           }
         } else {
           statements.add(new ir.ExpressionStatement(new ir.Throw(
@@ -1058,7 +1069,7 @@ class KernelVisitor extends Object
     assert(!casesIterator.moveNext());
 
     return buildBreakTarget(new ir.SwitchStatement(expression, cases), node,
-        elements.getTargetDefinition(node));
+        elements.getTargetDefinition(node), switchIsBreakTarget);
   }
 
   @override
@@ -2107,7 +2118,6 @@ class KernelVisitor extends Object
       // [body] must be `null`.
     } else if (function.isConstructor) {
       // TODO(johnniwinther): Clean this up pending kernel issue #28.
-      ConstructorElement constructor = function;
       if (bodyNode == null || bodyNode.asEmptyStatement() != null) {
         body = new ir.EmptyStatement();
       } else {

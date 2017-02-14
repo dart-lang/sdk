@@ -15,14 +15,14 @@ main() {
   compare = (a, b) => -a.compareTo(b);
   new SortHelper(sort, compare).run();
 
-  compare = (a, b) => a.compareTo(b);
+  var intCompare = (int a, int b) => a.compareTo(b);
 
   // Pivot-canditate indices: 7, 15, 22, 29, 37
   // Test dutch flag partitioning (canditates 2 and 4 are the same).
   var list = [0, 0, 0, 0, 0, 0, 0, 0/**/, 0, 0, 0, 0, 0, 0, 0,
               1/**/, 1, 1, 1, 1, 1, 1, 1/**/, 1, 1, 1, 1, 1, 1, 1/**/,
               2, 2, 2, 2, 2, 2, 2, 2/**/, 2, 2, 2, 2, 2, 2, 2];
-  list.sort(compare);
+  list.sort(intCompare);
   Expect.listEquals(list, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
@@ -30,7 +30,7 @@ main() {
   list = [0, 0, 0, 0, 0, 0, 0, 1/**/, 0, 0, 0, 0, 0, 0, 0,
           0/**/, 1, 1, 1, 1, 1, 1, 0/**/, 1, 1, 1, 1, 1, 1, 0/**/,
           2/**/, 2, 2, 2, 2, 2, 2, 2/**/, 2, 2, 2, 2, 2, 2, 2];
-  list.sort(compare);
+  list.sort(intCompare);
   Expect.listEquals(list, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                            0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
@@ -41,7 +41,7 @@ main() {
   list = [0, 9, 0, 9, 3, 9, 0, 1/**/, 1, 0, 1, 9, 8, 2, 1,
           1/**/, 4, 5, 2, 5, 0, 1, 8/**/, 8, 8, 5, 2, 2, 9, 8/**/,
           8, 4, 4, 1, 5, 3, 2, 8/**/, 5, 1, 2, 8, 5, 6, 8];
-  list.sort(compare);
+  list.sort(intCompare);
   Expect.listEquals(list, [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2,
                            2, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5,
                            6, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9]);

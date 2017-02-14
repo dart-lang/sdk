@@ -5,6 +5,7 @@
 #include "vm/kernel_isolate.h"
 
 #include "vm/compiler.h"
+#include "include/dart_native_api.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/isolate.h"
@@ -33,7 +34,7 @@ DEFINE_FLAG(bool,
             false,
             "Parse scripts with Dart-to-Kernel parser");
 
-const char* KernelIsolate::kName = "kernel-service";
+const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 Dart_IsolateCreateCallback KernelIsolate::create_callback_ = NULL;
 Monitor* KernelIsolate::monitor_ = new Monitor();
 Isolate* KernelIsolate::isolate_ = NULL;
@@ -73,9 +74,8 @@ class RunKernelTask : public ThreadPool::Task {
     isolate = reinterpret_cast<Isolate*>(create_callback(
         KernelIsolate::kName, NULL, NULL, NULL, &api_flags, NULL, &error));
     if (isolate == NULL) {
-      if (FLAG_trace_kernel) {
-        OS::PrintErr("kernel-service: Isolate creation error: %s\n", error);
-      }
+      OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Isolate creation error: %s\n",
+                   error);
       KernelIsolate::SetKernelIsolate(NULL);
       KernelIsolate::FinishedInitializing();
       return;
@@ -104,7 +104,7 @@ class RunKernelTask : public ThreadPool::Task {
  protected:
   static void ShutdownIsolate(uword parameter) {
     if (FLAG_trace_kernel) {
-      OS::Print("kernel-service: ShutdownIsolate\n");
+      OS::Print(DART_KERNEL_ISOLATE_NAME ": ShutdownIsolate\n");
     }
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
     ASSERT(KernelIsolate::IsKernelIsolate(I));
@@ -123,18 +123,20 @@ class RunKernelTask : public ThreadPool::Task {
       Error& error = Error::Handle(Z);
       error = T->sticky_error();
       if (!error.IsNull() && !error.IsUnwindError()) {
-        OS::PrintErr("kernel-service: Error: %s\n", error.ToErrorCString());
+        OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Error: %s\n",
+                     error.ToErrorCString());
       }
       error = I->sticky_error();
       if (!error.IsNull() && !error.IsUnwindError()) {
-        OS::PrintErr("kernel-service: Error: %s\n", error.ToErrorCString());
+        OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Error: %s\n",
+                     error.ToErrorCString());
       }
       Dart::RunShutdownCallback();
     }
     // Shut the isolate down.
     Dart::ShutdownIsolate(I);
     if (FLAG_trace_kernel) {
-      OS::Print("kernel-service: Shutdown.\n");
+      OS::Print(DART_KERNEL_ISOLATE_NAME ": Shutdown.\n");
     }
   }
 
@@ -147,9 +149,8 @@ class RunKernelTask : public ThreadPool::Task {
     const Library& root_library =
         Library::Handle(Z, I->object_store()->root_library());
     if (root_library.IsNull()) {
-      if (FLAG_trace_kernel) {
-        OS::Print("kernel-service: Embedder did not install a script.");
-      }
+      OS::Print(DART_KERNEL_ISOLATE_NAME
+                ": Embedder did not install a script.");
       // Kernel isolate is not supported by embedder.
       return false;
     }
@@ -160,9 +161,8 @@ class RunKernelTask : public ThreadPool::Task {
         Z, root_library.LookupFunctionAllowPrivate(entry_name));
     if (entry.IsNull()) {
       // Kernel isolate is not supported by embedder.
-      if (FLAG_trace_kernel) {
-        OS::Print("kernel-service: Embedder did not provide a main function.");
-      }
+      OS::Print(DART_KERNEL_ISOLATE_NAME
+                ": Embedder did not provide a main function.");
       return false;
     }
     ASSERT(!entry.IsNull());
@@ -171,11 +171,10 @@ class RunKernelTask : public ThreadPool::Task {
     ASSERT(!result.IsNull());
     if (result.IsError()) {
       // Kernel isolate did not initialize properly.
-      if (FLAG_trace_kernel) {
-        const Error& error = Error::Cast(result);
-        OS::Print("kernel-service: Calling main resulted in an error: %s",
-                  error.ToErrorCString());
-      }
+      const Error& error = Error::Cast(result);
+      OS::Print(DART_KERNEL_ISOLATE_NAME
+                ": Calling main resulted in an error: %s",
+                error.ToErrorCString());
       return false;
     }
     ASSERT(result.IsReceivePort());
@@ -203,13 +202,13 @@ void KernelIsolate::InitCallback(Isolate* I) {
   ASSERT(I != NULL);
   ASSERT(I->name() != NULL);
   if (!FLAG_use_dart_frontend ||
-      (strstr(I->name(), "kernel-service") == NULL)) {
+      (strstr(I->name(), DART_KERNEL_ISOLATE_NAME) == NULL)) {
     // Not kernel isolate.
     return;
   }
   ASSERT(!Exists());
   if (FLAG_trace_kernel) {
-    OS::Print("kernel-service: InitCallback for %s.\n", I->name());
+    OS::Print(DART_KERNEL_ISOLATE_NAME ": InitCallback for %s.\n", I->name());
   }
   SetKernelIsolate(I);
 }
@@ -238,10 +237,12 @@ void KernelIsolate::SetKernelIsolate(Isolate* isolate) {
   isolate_ = isolate;
 }
 
+
 void KernelIsolate::SetLoadPort(Dart_Port port) {
   MonitorLocker ml(monitor_);
   kernel_port_ = port;
 }
+
 
 void KernelIsolate::FinishedInitializing() {
   MonitorLocker ml(monitor_);
@@ -260,6 +261,181 @@ Dart_Port KernelIsolate::WaitForKernelPort() {
   }
   return kernel_port_;
 }
+
+
+class KernelCompilationRequest : public ValueObject {
+ public:
+  KernelCompilationRequest()
+      : monitor_(new Monitor()),
+        port_(Dart_NewNativePort("kernel-compilation-port",
+                                 &HandleResponse,
+                                 false)),
+        next_(NULL),
+        prev_(NULL) {
+    ASSERT(port_ != ILLEGAL_PORT);
+    RegisterRequest(this);
+    result_.status = Dart_KernelCompilationStatus_Unknown;
+    result_.error = NULL;
+    result_.kernel = NULL;
+    result_.kernel_size = 0;
+  }
+
+  ~KernelCompilationRequest() {
+    UnregisterRequest(this);
+    Dart_CloseNativePort(port_);
+    delete monitor_;
+  }
+
+  Dart_KernelCompilationResult SendAndWaitForResponse(Dart_Port kernel_port,
+                                                      const char* script_uri) {
+    // Build the [null, send_port, script_uri] message for the Kernel isolate:
+    // null tag tells it that request came from this code, instead of Loader
+    // so that it can given a more informative response.
+    Dart_CObject tag;
+    tag.type = Dart_CObject_kNull;
+
+    Dart_CObject send_port;
+    send_port.type = Dart_CObject_kSendPort;
+    send_port.value.as_send_port.id = port_;
+    send_port.value.as_send_port.origin_id = ILLEGAL_PORT;
+
+    Dart_CObject uri;
+    uri.type = Dart_CObject_kString;
+    uri.value.as_string = const_cast<char*>(script_uri);
+
+    static const intptr_t kMessageLen = 3;
+    Dart_CObject* message_arr[kMessageLen] = {&tag, &send_port, &uri};
+
+    Dart_CObject message;
+    message.type = Dart_CObject_kArray;
+    message.value.as_array.length = kMessageLen;
+    message.value.as_array.values = message_arr;
+
+    // Send the message.
+    Dart_PostCObject(kernel_port, &message);
+
+    // Wait for reply to arrive.
+    MonitorLocker ml(monitor_);
+    while (result_.status == Dart_KernelCompilationStatus_Unknown) {
+      ml.Wait();
+    }
+
+    return result_;
+  }
+
+ private:
+  // Possible responses from the Kernel isolate:
+  //
+  //     [Ok, Uint8List KernelBinary]
+  //     [Error, String error]
+  //     [Crash, String error]
+  //
+  void HandleResponseImpl(Dart_CObject* message) {
+    ASSERT(message->type == Dart_CObject_kArray);
+    ASSERT(message->value.as_array.length >= 1);
+
+    Dart_CObject** response = message->value.as_array.values;
+
+    MonitorLocker ml(monitor_);
+
+    ASSERT(response[0]->type == Dart_CObject_kInt32);
+    result_.status = static_cast<Dart_KernelCompilationStatus>(
+        message->value.as_array.values[0]->value.as_int32);
+
+    if (result_.status == Dart_KernelCompilationStatus_Ok) {
+      ASSERT(response[1]->type == Dart_CObject_kTypedData);
+      ASSERT(response[1]->value.as_typed_data.type == Dart_TypedData_kUint8);
+
+      result_.kernel_size = response[1]->value.as_typed_data.length;
+      result_.kernel = static_cast<uint8_t*>(malloc(result_.kernel_size));
+      memmove(result_.kernel, response[1]->value.as_typed_data.values,
+              result_.kernel_size);
+    } else {
+      ASSERT(result_.status == Dart_KernelCompilationStatus_Crash ||
+             result_.status == Dart_KernelCompilationStatus_Error);
+      // This is an error.
+      ASSERT(response[1]->type == Dart_CObject_kString);
+      result_.error = strdup(response[1]->value.as_string);
+    }
+    ml.Notify();
+  }
+
+  static void HandleResponse(Dart_Port port, Dart_CObject* message) {
+    MonitorLocker locker(requests_monitor_);
+    KernelCompilationRequest* rq = FindRequestLocked(port);
+    if (rq == NULL) {
+      return;
+    }
+    rq->HandleResponseImpl(message);
+  }
+
+  static void RegisterRequest(KernelCompilationRequest* rq) {
+    MonitorLocker locker(requests_monitor_);
+    rq->next_ = requests_;
+    if (requests_ != NULL) {
+      requests_->prev_ = rq;
+    }
+    requests_ = rq;
+  }
+
+  static void UnregisterRequest(KernelCompilationRequest* rq) {
+    MonitorLocker locker(requests_monitor_);
+    if (rq->next_ != NULL) {
+      rq->next_->prev_ = rq->prev_;
+    }
+    if (rq->prev_ != NULL) {
+      rq->prev_->next_ = rq->next_;
+    } else {
+      requests_ = rq->next_;
+    }
+  }
+
+  // Note: Caller must hold requests_monitor_.
+  static KernelCompilationRequest* FindRequestLocked(Dart_Port port) {
+    for (KernelCompilationRequest* rq = requests_; rq != NULL; rq = rq->next_) {
+      if (rq->port_ == port) {
+        return rq;
+      }
+    }
+    return NULL;
+  }
+
+  // This monitor must be held whenever linked list of requests is accessed.
+  static Monitor* requests_monitor_;
+
+  // Linked list of all active requests. Used to find a request by port number.
+  // Guarded by requests_monitor_ lock.
+  static KernelCompilationRequest* requests_;
+
+  Monitor* monitor_;
+  Dart_Port port_;
+
+  // Linked list of active requests. Guarded by requests_monitor_ lock.
+  KernelCompilationRequest* next_;
+  KernelCompilationRequest* prev_;
+
+  Dart_KernelCompilationResult result_;
+};
+
+Monitor* KernelCompilationRequest::requests_monitor_ = new Monitor();
+KernelCompilationRequest* KernelCompilationRequest::requests_ = NULL;
+
+Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
+    const char* script_uri) {
+  // This must be the main script to be loaded. Wait for Kernel isolate
+  // to finish initialization.
+  Dart_Port kernel_port = WaitForKernelPort();
+  if (kernel_port == ILLEGAL_PORT) {
+    Dart_KernelCompilationResult result;
+    result.status = Dart_KernelCompilationStatus_Unknown;
+    result.error = strdup("Error while initializing Kernel isolate");
+    return result;
+  }
+
+  KernelCompilationRequest request;
+  return request.SendAndWaitForResponse(kernel_port, script_uri);
+}
+
 
 #endif  // DART_PRECOMPILED_RUNTIME
 

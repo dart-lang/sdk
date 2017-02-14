@@ -90,6 +90,15 @@ class Exceptions : AllStatic {
   DISALLOW_COPY_AND_ASSIGN(Exceptions);
 };
 
+// The index into the ExceptionHandlers table corresponds to
+// the try_index of the handler.
+struct ExceptionHandlerInfo {
+  uint32_t handler_pc_offset;  // PC offset value of handler.
+  int16_t outer_try_index;     // Try block index of enclosing try block.
+  int8_t needs_stacktrace;     // True if a stacktrace is needed.
+  int8_t has_catch_all;        // Catches all exceptions.
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_EXCEPTIONS_H_

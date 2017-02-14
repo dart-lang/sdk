@@ -10,3 +10,6 @@
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # Issue 25761
+
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649

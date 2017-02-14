@@ -132,9 +132,10 @@ class AnalyzerImpl {
       for (Source source in sources) {
         if (analysisDriver != null) {
           String path = source.fullName;
-          AnalysisResult analysisResult = await analysisDriver.getResult(path);
+          analysisDriver.addFile(path);
+          ErrorsResult errorsResult = await analysisDriver.getErrors(path);
           errorInfos.add(new AnalysisErrorInfoImpl(
-              analysisResult.errors, analysisResult.lineInfo));
+              errorsResult.errors, errorsResult.lineInfo));
         } else {
           context.computeErrors(source);
           errorInfos.add(context.getErrors(source));
@@ -164,10 +165,13 @@ class AnalyzerImpl {
 
   Future<ErrorSeverity> _analyze(int printMode) async {
     // Don't try to analyze parts.
-    if (context.computeKindOf(librarySource) == SourceKind.PART) {
+    String path = librarySource.fullName;
+    SourceKind librarySourceKind = analysisDriver != null
+        ? await analysisDriver.getSourceKind(path)
+        : context.computeKindOf(librarySource);
+    if (librarySourceKind == SourceKind.PART) {
       stderr.writeln("Only libraries can be analyzed.");
-      stderr.writeln(
-          "${librarySource.fullName} is a part and can not be analyzed.");
+      stderr.writeln("${path} is a part and can not be analyzed.");
       return ErrorSeverity.ERROR;
     }
 

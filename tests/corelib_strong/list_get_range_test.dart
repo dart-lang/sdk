@@ -67,6 +67,6 @@ main() {
   Expect.equals(2, iterable.length);
 }
 
-void expectRE(Function f) {
+void expectRE(void f()) {
   Expect.throws(f, (e) => e is RangeError);
 }

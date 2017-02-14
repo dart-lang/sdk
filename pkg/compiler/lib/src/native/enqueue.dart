@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection' show Queue;
-
 import '../common.dart';
 import '../common/backend_api.dart' show ForeignResolver;
 import '../common/resolution.dart' show Resolution;
@@ -17,8 +15,8 @@ import '../elements/resolution_types.dart';
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import '../tokens/token.dart' show BeginGroupToken, Token;
-import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN;
+import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
+import 'package:front_end/src/fasta/scanner.dart' as Tokens show EOF_TOKEN;
 import '../tree/tree.dart';
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
@@ -58,11 +56,6 @@ class NativeEnqueuer {
 
   /// Emits a summary information using the [log] function.
   void logSummary(log(message)) {}
-
-  // Do not use annotations in dart2dart.
-  ClassElement get annotationCreatesClass => null;
-  ClassElement get annotationReturnsClass => null;
-  ClassElement get annotationJsNameClass => null;
 }
 
 abstract class NativeEnqueuerBase implements NativeEnqueuer {
@@ -75,8 +68,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   final Set<ClassElement> _registeredClasses = new Set<ClassElement>();
   final Set<ClassElement> _unusedClasses = new Set<ClassElement>();
 
-  final Set<LibraryElement> processedLibraries;
-
   bool get hasInstantiatedNativeClasses => !_registeredClasses.isEmpty;
 
   final Set<ClassElement> nativeClassesAndSubclasses = new Set<ClassElement>();
@@ -84,14 +75,9 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   final Compiler compiler;
   final bool enableLiveTypeAnalysis;
 
-  ClassElement _annotationCreatesClass;
-  ClassElement _annotationReturnsClass;
-  ClassElement _annotationJsNameClass;
-
   /// Subclasses of [NativeEnqueuerBase] are constructed by the backend.
   NativeEnqueuerBase(Compiler compiler, this.enableLiveTypeAnalysis)
-      : this.compiler = compiler,
-        processedLibraries = compiler.cacheStrategy.newSet();
+      : this.compiler = compiler;
 
   JavaScriptBackend get backend => compiler.backend;
   BackendHelpers get helpers => backend.helpers;
@@ -114,12 +100,6 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   void _processNativeClasses(
       WorldImpactBuilder impactBuilder, Iterable<LibraryElement> libraries) {
-    if (compiler.options.hasIncrementalSupport) {
-      // Since [Set.add] returns bool if an element was added, this restricts
-      // [libraries] to ones that haven't already been processed. This saves
-      // time during incremental compiles.
-      libraries = libraries.where(processedLibraries.add);
-    }
     libraries.forEach(processNativeClassesInLibrary);
     if (helpers.isolateHelperLibrary != null) {
       processNativeClassesInLibrary(helpers.isolateHelperLibrary);
@@ -267,34 +247,11 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     });
   }
 
-  ClassElement get annotationCreatesClass {
-    findAnnotationClasses();
-    return _annotationCreatesClass;
-  }
-
-  ClassElement get annotationReturnsClass {
-    findAnnotationClasses();
-    return _annotationReturnsClass;
-  }
-
-  ClassElement get annotationJsNameClass {
-    findAnnotationClasses();
-    return _annotationJsNameClass;
-  }
-
-  void findAnnotationClasses() {
-    if (_annotationCreatesClass != null) return;
-
-    _annotationCreatesClass = helpers.annotationCreatesClass;
-    _annotationReturnsClass = helpers.annotationReturnsClass;
-    _annotationJsNameClass = helpers.annotationJSNameClass;
-  }
-
   /// Returns the JSName annotation string or `null` if no JSName annotation is
   /// present.
   String findJsNameFromAnnotation(Element element) {
     String name = null;
-    ClassElement annotationClass = annotationJsNameClass;
+    ClassElement annotationClass = backend.helpers.annotationJSNameClass;
     for (MetadataAnnotation annotation in element.implementation.metadata) {
       annotation.ensureResolved(resolution);
       ConstantValue value =
@@ -437,21 +394,15 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         continue;
       }
       if (type is ResolutionInterfaceType) {
-        if (type == commonElements.intType) {
-          registerInstantiation(type);
-        } else if (type == commonElements.doubleType) {
-          registerInstantiation(type);
-        } else if (type == commonElements.numType) {
+        if (type == commonElements.numType) {
           registerInstantiation(commonElements.doubleType);
           registerInstantiation(commonElements.intType);
-        } else if (type == commonElements.stringType) {
-          registerInstantiation(type);
-        } else if (type == commonElements.nullType) {
-          registerInstantiation(type);
-        } else if (type == commonElements.boolType) {
-          registerInstantiation(type);
-        } else if (compiler.types.isSubtype(
-            type, backend.backendClasses.listImplementation.rawType)) {
+        } else if (type == commonElements.intType ||
+            type == commonElements.doubleType ||
+            type == commonElements.stringType ||
+            type == commonElements.nullType ||
+            type == commonElements.boolType ||
+            type.asInstanceOf(backend.backendClasses.listClass) != null) {
           registerInstantiation(type);
         }
         // TODO(johnniwinther): Improve spec string precision to handle type

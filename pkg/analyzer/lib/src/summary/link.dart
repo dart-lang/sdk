@@ -146,8 +146,17 @@ Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
       <String, LinkedLibraryBuilder>{};
   for (String absoluteUri in libraryUris) {
     Uri uri = Uri.parse(absoluteUri);
-    UnlinkedUnit getRelativeUnit(String relativeUri) =>
-        getUnit(resolveRelativeUri(uri, Uri.parse(relativeUri)).toString());
+
+    UnlinkedUnit getRelativeUnit(String relativeUriStr) {
+      Uri relativeUri;
+      try {
+        relativeUri = Uri.parse(relativeUriStr);
+      } on FormatException {
+        return new UnlinkedUnitBuilder();
+      }
+      return getUnit(resolveRelativeUri(uri, relativeUri).toString());
+    }
+
     linkedLibraries[absoluteUri] = prelink(
         getUnit(absoluteUri),
         getRelativeUnit,
@@ -539,6 +548,9 @@ class ClassElementForLink_Class extends ClassElementForLink
       _unlinkedClass.interfaces.map(_computeInterfaceType).toList();
 
   @override
+  bool get isEnum => false;
+
+  @override
   bool get isMixinApplication => _unlinkedClass.isMixinApplication;
 
   @override
@@ -668,7 +680,7 @@ class ClassElementForLink_Class extends ClassElementForLink
   InterfaceType _computeInterfaceType(EntityRef typeRef) {
     if (typeRef != null) {
       DartType type = enclosingElement.resolveTypeRef(typeRef, this);
-      if (type is InterfaceType) {
+      if (type is InterfaceType && !type.element.isEnum) {
         return type;
       }
       // In the event that the `typeRef` isn't an interface type (which may
@@ -730,6 +742,9 @@ class ClassElementForLink_Enum extends ClassElementForLink
 
   @override
   List<InterfaceType> get interfaces => const [];
+
+  @override
+  bool get isEnum => true;
 
   @override
   bool get isObject => false;
@@ -1055,7 +1070,9 @@ abstract class CompilationUnitElementForLink
   @override
   DartType resolveTypeRef(
       EntityRef type, TypeParameterizedElementMixin typeParameterContext,
-      {bool defaultVoid: false, bool instantiateToBoundsAllowed: true}) {
+      {bool defaultVoid: false,
+      bool instantiateToBoundsAllowed: true,
+      bool declaredType: false}) {
     if (type == null) {
       if (defaultVoid) {
         return VoidTypeImpl.instance;
@@ -1974,6 +1991,10 @@ class ExprTypeComputer {
       // return type.  Assume `dynamic`.
       return DynamicTypeImpl.instance;
     }
+    // If no operations, we cannot compute the type.  Assume `dynamic`.
+    if (unlinkedConst.operations.isEmpty) {
+      return DynamicTypeImpl.instance;
+    }
     // Perform RPN evaluation of the constant, using a stack of inferred types.
     for (UnlinkedExprOperation operation in unlinkedConst.operations) {
       switch (operation) {
@@ -2007,6 +2028,12 @@ class ExprTypeComputer {
           break;
         case UnlinkedExprOperation.pushNull:
           stack.add(typeProvider.nullType);
+          break;
+        case UnlinkedExprOperation.pushSuper:
+          stack.add(DynamicTypeImpl.instance);
+          break;
+        case UnlinkedExprOperation.pushThis:
+          stack.add(DynamicTypeImpl.instance);
           break;
         case UnlinkedExprOperation.pushReference:
           _doPushReference();
@@ -3294,8 +3321,11 @@ abstract class LibraryElementForLink<
   Element get enclosingElement => null;
 
   @override
-  List<LibraryElementForLink> get exportedLibraries => _exportedLibraries ??=
-      _linkedLibrary.exportDependencies.map(_getDependency).toList();
+  List<LibraryElementForLink> get exportedLibraries =>
+      _exportedLibraries ??= _linkedLibrary.exportDependencies
+          .map(_getDependency)
+          .where((library) => library != null)
+          .toList();
 
   @override
   String get identifier => _absoluteUri.toString();
@@ -3330,11 +3360,19 @@ abstract class LibraryElementForLink<
       ];
       int numParts = definingUnit.parts.length;
       for (int i = 0; i < numParts; i++) {
-        // TODO(paulberry): make sure we handle the case where Uri.parse fails.
         // TODO(paulberry): make sure we handle the case where
         // resolveRelativeUri fails.
+        String partRelativeUriStr = definingUnit.publicNamespace.parts[i];
+
+        Uri partRelativeUri;
+        try {
+          partRelativeUri = Uri.parse(partRelativeUriStr);
+        } on FormatException {
+          continue;
+        }
+
         String partAbsoluteUri = resolveRelativeUri(
-                _absoluteUri, Uri.parse(definingUnit.publicNamespace.parts[i]))
+                _absoluteUri, partRelativeUri)
             .toString();
         UnlinkedUnit partUnit = _linker.getUnit(partAbsoluteUri);
         _units.add(_makeUnitElement(
@@ -3377,10 +3415,18 @@ abstract class LibraryElementForLink<
   LibraryElementForLink _getDependency(int index) {
     LibraryElementForLink result = _dependencies[index];
     if (result == null) {
-      String relativeUri = _linkedLibrary.dependencies[index].uri;
-      Uri absoluteUri = relativeUri.isEmpty
+      String relativeUriStr = _linkedLibrary.dependencies[index].uri;
+
+      Uri relativeUri;
+      try {
+        relativeUri = Uri.parse(relativeUriStr);
+      } on FormatException {
+        return null;
+      }
+
+      Uri absoluteUri = relativeUriStr.isEmpty
           ? _absoluteUri
-          : resolveRelativeUri(_absoluteUri, Uri.parse(relativeUri));
+          : resolveRelativeUri(_absoluteUri, relativeUri);
       result = _linker.getLibrary(absoluteUri);
       _dependencies[index] = result;
     }

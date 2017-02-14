@@ -857,6 +857,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               [node.identifier]);
         }
       }
+
+      // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
+      if (node.typeParameters != null) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED,
+            node);
+      }
+
       return super.visitFunctionTypedFormalParameter(node);
     } finally {
       _isInFunctionTypedFormalParameter = old;
@@ -2574,6 +2582,39 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Verifies that the class is not named `Function` and that it doesn't
+   * extends/implements/mixes in `Function`.
+   */
+  void _checkForBadFunctionUse(ClassDeclaration node) {
+    ExtendsClause extendsClause = node.extendsClause;
+    WithClause withClause = node.withClause;
+
+    if (node.name.name == "Function") {
+      _errorReporter.reportErrorForNode(
+          HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION, node.name);
+    }
+
+    if (extendsClause != null) {
+      InterfaceType superclassType = _enclosingClass.supertype;
+      ClassElement superclassElement = superclassType?.element;
+      if (superclassElement != null && superclassElement.name == "Function") {
+        _errorReporter.reportErrorForNode(
+            HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
+      }
+    }
+
+    if (withClause != null) {
+      for (TypeName type in withClause.mixinTypes) {
+        Element mixinElement = type.name.staticElement;
+        if (mixinElement != null && mixinElement.name == "Function") {
+          _errorReporter.reportErrorForNode(
+              HintCode.DEPRECATED_MIXIN_FUNCTION, type);
+        }
+      }
+    }
+  }
+
+  /**
    * Verify that the given [identifier] is not a keyword, and generates the
    * given [errorCode] on the identifier if it is a keyword.
    *
@@ -2938,40 +2979,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           } else {
             memberHashMap[name.name] = member;
           }
-        }
-      }
-    }
-  }
-
-  /**
-   * Verifies that the class is not named `Function` and that it doesn't
-   * extends/implements/mixes in `Function`.
-   */
-  void _checkForBadFunctionUse(ClassDeclaration node) {
-    ExtendsClause extendsClause = node.extendsClause;
-    ImplementsClause implementsClause = node.implementsClause;
-    WithClause withClause = node.withClause;
-
-    if (node.name.name == "Function") {
-      _errorReporter.reportErrorForNode(
-          HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION, node.name);
-    }
-
-    if (extendsClause != null) {
-      InterfaceType superclassType = _enclosingClass.supertype;
-      ClassElement superclassElement = superclassType?.element;
-      if (superclassElement != null && superclassElement.name == "Function") {
-        _errorReporter.reportErrorForNode(
-            HintCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
-      }
-    }
-
-    if (withClause != null) {
-      for (TypeName type in withClause.mixinTypes) {
-        Element mixinElement = type.name.staticElement;
-        if (mixinElement != null && mixinElement.name == "Function") {
-          _errorReporter.reportErrorForNode(
-              HintCode.DEPRECATED_MIXIN_FUNCTION, type);
         }
       }
     }
@@ -4000,7 +4007,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     DartType invokeType = node.staticInvokeType;
     DartType declaredType = node.function.staticType;
-    if (invokeType is FunctionType && declaredType is FunctionType) {
+    if (invokeType is FunctionType &&
+        declaredType is FunctionType &&
+        declaredType.typeFormals.isNotEmpty) {
       Iterable<DartType> typeArgs =
           FunctionTypeImpl.recoverTypeArguments(declaredType, invokeType);
       if (typeArgs.any((t) => t.isDynamic)) {
@@ -5895,6 +5904,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   void _checkForValidField(FieldFormalParameter parameter) {
+    AstNode parent2 = parameter.parent?.parent;
+    if (parent2 is! ConstructorDeclaration &&
+        parent2?.parent is! ConstructorDeclaration) {
+      return;
+    }
     ParameterElement element = parameter.element;
     if (element is FieldFormalParameterElement) {
       FieldElement fieldElement = element.field;

@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+import "dart:typed_data" as typ;
+
+class Foo extends core::Object {
+  final field dynamic value;
+  constructor •(dynamic value) → dynamic
+    : self::Foo::value = value, super core::Object::•() {}
+  static factory fac(dynamic value) → self::Foo {
+    return new self::Foo::•(value);
+  }
+}
+static field dynamic list = <dynamic>[1, 2, 3];
+static method main() → dynamic {
+  exp::Expect::isTrue(typ::Uint8List::fromList(self::list).[](1).==(2));
+  exp::Expect::isTrue(self::Foo::fac(10).value.==(10));
+}

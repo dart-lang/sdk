@@ -6264,8 +6264,4 @@ class A {
   Future<Null> _check_wrongNumberOfParametersForOperator1(String name) async {
     await _check_wrongNumberOfParametersForOperator(name, "a");
   }
-
-  Future<CompilationUnit> _getResolvedLibraryUnit(Source source) async {
-    return analysisContext.getResolvedCompilationUnit2(source, source);
-  }
 }

@@ -225,8 +225,7 @@ const b = null;
   }
 
   test_metadata_libraryDirective_resynthesized() async {
-    CompilationUnit unit =
-        await resolveSource('@a library L; const a = null;');
+    CompilationUnit unit = await resolveSource('@a library L; const a = null;');
     expect(unit.directives.single.metadata.single.name.name, 'a');
     var unitElement = unit.element as CompilationUnitElementImpl;
     // Damage the unit element - as if "setAnnotations" were not called.
@@ -272,6 +271,38 @@ const b = null;
     addNamedSource('/foo.dart', 'part of L;');
     await setupCode('library L; @a part "foo.dart";');
     checkMetadata('part');
+  }
+
+  test_metadata_partDirective_resynthesized() async {
+    addNamedSource('/part_a.dart', 'part of L;');
+    addNamedSource('/part_b.dart', 'part of L;');
+
+    CompilationUnit unit = await resolveSource(r'''
+library L;
+
+@a
+part "part_a.dart";
+
+@b
+part "part_b.dart";
+
+const a = null;
+const b = null;
+''');
+    expect(unit.directives[1].metadata.single.name.name, 'a');
+    expect(unit.directives[2].metadata.single.name.name, 'b');
+    var unitElement = unit.element as CompilationUnitElementImpl;
+    // Damage the unit element - as if "setAnnotations" were not called.
+    // The ImportElement(s) still have the metadata, we should use it.
+    unitElement.setAnnotations(unit.directives[1].offset, []);
+    unitElement.setAnnotations(unit.directives[2].offset, []);
+    expect(unitElement.library.parts[0].metadata, hasLength(1));
+    expect(unitElement.library.parts[1].metadata, hasLength(1));
+    // DeclarationResolver on the clone should succeed.
+    CompilationUnit clonedUnit = AstCloner.clone(unit);
+    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    expect(unit.directives[1].metadata.single.name.name, 'a');
+    expect(unit.directives[2].metadata.single.name.name, 'b');
   }
 
   test_metadata_simpleFormalParameter() async {

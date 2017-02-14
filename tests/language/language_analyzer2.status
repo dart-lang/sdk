@@ -4,6 +4,9 @@
 
 [ $compiler == dart2analyzer ]
 
+generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
+generic_local_functions_test: CompileTimeError # Issue 28515
+
 regress_26668_test: Fail # Issue 26678
 regress_27617_test/1: MissingCompileTimeError
 
@@ -496,3 +499,9 @@ for_in_side_effects_test: StaticWarning, OK # Test uses custom class that does n
 initializing_formal_type_test: StaticWarning # Issue 26658
 
 regress_27572_test: StaticWarning # Warning about undefined method expected.
+
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
+
+[ $compiler == dart2analyzer && $system != windows ]
+bad_raw_string_test/03: MissingCompileTimeError # Issue 28664

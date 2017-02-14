@@ -7,12 +7,16 @@ library dart2js.constants.expressions.evaluate_test;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/common/backend_api.dart';
+import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/evaluation.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/constant_system_dart.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/core_types.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'memory_compiler.dart';
 
 class TestData {
@@ -36,13 +40,40 @@ class ConstantData {
 }
 
 class MemoryEnvironment implements Environment {
-  final Compiler compiler;
+  final Compiler _compiler;
   final Map<String, String> env;
 
-  MemoryEnvironment(this.compiler, [this.env = const <String, String>{}]);
+  MemoryEnvironment(this._compiler, [this.env = const <String, String>{}]);
 
   @override
   String readFromEnvironment(String name) => env[name];
+
+  @override
+  ResolutionInterfaceType substByContext(
+      ResolutionInterfaceType base, ResolutionInterfaceType target) {
+    return base.substByContext(target);
+  }
+
+  @override
+  ConstantConstructor getConstructorConstant(ConstructorElement constructor) {
+    return constructor.constantConstructor;
+  }
+
+  @override
+  ConstantExpression getFieldConstant(FieldElement field) {
+    return field.constant;
+  }
+
+  @override
+  ConstantExpression getLocalConstant(LocalVariableElement local) {
+    return local.constant;
+  }
+
+  @override
+  CommonElements get commonElements => _compiler.commonElements;
+
+  @override
+  BackendClasses get backendClasses => _compiler.backend.backendClasses;
 }
 
 const List<TestData> DATA = const [

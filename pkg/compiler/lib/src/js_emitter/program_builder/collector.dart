@@ -78,7 +78,7 @@ class Collector {
     // Go over specialized interceptors and then constants to know which
     // interceptors are needed.
     Set<ClassElement> needed = new Set<ClassElement>();
-    backend.specializedGetInterceptors
+    backend.interceptorData.specializedGetInterceptors
         .forEach((_, Iterable<ClassElement> elements) {
       needed.addAll(elements);
     });
@@ -87,7 +87,8 @@ class Collector {
     needed.addAll(computeInterceptorsReferencedFromConstants());
 
     // Add unneeded interceptors to the [unneededClasses] set.
-    for (ClassElement interceptor in backend.interceptedClasses) {
+    for (ClassElement interceptor
+        in backend.interceptorData.interceptedClasses) {
       if (!needed.contains(interceptor) &&
           interceptor != commonElements.objectClass) {
         unneededClasses.add(interceptor);
@@ -145,10 +146,8 @@ class Collector {
     }
 
     JavaScriptConstantCompiler handler = backend.constants;
-    List<ConstantValue> constants = handler.getConstantsForEmission(
-        compiler.options.hasIncrementalSupport
-            ? null
-            : emitter.compareConstants);
+    List<ConstantValue> constants =
+        handler.getConstantsForEmission(emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 
@@ -245,7 +244,7 @@ class Collector {
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
 
     for (ClassElement element in sortedClasses) {
-      if (backend.isNativeOrExtendsNative(element) &&
+      if (backend.nativeData.isNativeOrExtendsNative(element) &&
           !classesOnlyNeededForRti.contains(element)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClassesAndSubclasses.add(element);
@@ -281,7 +280,6 @@ class Collector {
   }
 
   void computeNeededStaticNonFinalFields() {
-    JavaScriptConstantCompiler handler = backend.constants;
     addToOutputUnit(Element element) {
       List<VariableElement> list = outputStaticNonFinalFieldLists.putIfAbsent(
           compiler.deferredLoadTask.outputUnitForElement(element),

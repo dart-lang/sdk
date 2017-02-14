@@ -370,7 +370,7 @@ class NodeLocator2Test extends ParserTestCase {
   void test_onlyStartOffset() {
     String code = ' int vv; ';
     //             012345678
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
+    CompilationUnit unit = parseCompilationUnit(code);
     TopLevelVariableDeclaration declaration = unit.declarations[0];
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as TypeName).name;
@@ -391,7 +391,7 @@ class NodeLocator2Test extends ParserTestCase {
   void test_startEndOffset() {
     String code = ' int vv; ';
     //             012345678
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
+    CompilationUnit unit = parseCompilationUnit(code);
     TopLevelVariableDeclaration declaration = unit.declarations[0];
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as TypeName).name;
@@ -412,8 +412,7 @@ class NodeLocator2Test extends ParserTestCase {
 @reflectiveTest
 class NodeLocatorTest extends ParserTestCase {
   void test_range() {
-    CompilationUnit unit =
-        ParserTestCase.parseCompilationUnit("library myLib;");
+    CompilationUnit unit = parseCompilationUnit("library myLib;");
     _assertLocate(
         unit, 4, 10, (node) => node is LibraryDirective, LibraryDirective);
   }
@@ -424,14 +423,13 @@ class NodeLocatorTest extends ParserTestCase {
   }
 
   void test_searchWithin_offset() {
-    CompilationUnit unit =
-        ParserTestCase.parseCompilationUnit("library myLib;");
+    CompilationUnit unit = parseCompilationUnit("library myLib;");
     _assertLocate(
         unit, 10, 10, (node) => node is SimpleIdentifier, SimpleIdentifier);
   }
 
   void test_searchWithin_offsetAfterNode() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 class A {}
 class B {}''');
     NodeLocator locator = new NodeLocator(1024, 1024);
@@ -440,7 +438,7 @@ class B {}''');
   }
 
   void test_searchWithin_offsetBeforeNode() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+    CompilationUnit unit = parseCompilationUnit(r'''
 class A {}
 class B {}''');
     NodeLocator locator = new NodeLocator(0, 0);

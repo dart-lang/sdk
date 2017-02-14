@@ -12,7 +12,7 @@ import '../diagnostics/messages.dart' show MessageTemplate;
 import '../elements/elements.dart' show ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
-import '../tokens/token.dart' show Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import '../tree/tree.dart' show Node;
 import 'source_file.dart';
 import 'source_information.dart';
@@ -129,7 +129,26 @@ class StartEndSourceInformationProcessor extends SourceInformationProcessor {
   /// registered for the top-most node with source information.
   bool hasRegisteredRoot = false;
 
+  /// The root of the tree. Used to add a [NoSourceLocationMarker] to the start
+  /// of the output.
+  js.Node root;
+
+  /// The root of the current subtree with source information. Used to add
+  /// [NoSourceLocationMarker] after areas with source information.
+  js.Node subRoot;
+
   StartEndSourceInformationProcessor(this.sourceMapper);
+
+  void onStartPosition(js.Node node, int startPosition) {
+    if (root == null) {
+      root = node;
+      sourceMapper.register(
+          node, startPosition, const NoSourceLocationMarker());
+    }
+    if (subRoot == null && node.sourceInformation != null) {
+      subRoot = node;
+    }
+  }
 
   @override
   void onPositions(
@@ -144,6 +163,11 @@ class StartEndSourceInformationProcessor extends SourceInformationProcessor {
       if (!hasRegisteredRoot) {
         sourceMapper.register(node, endPosition, null);
         hasRegisteredRoot = true;
+      }
+      if (node == subRoot) {
+        sourceMapper.register(
+            node, endPosition, const NoSourceLocationMarker());
+        subRoot = null;
       }
     }
   }

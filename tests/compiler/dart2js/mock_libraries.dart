@@ -98,7 +98,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
   'Resource': 'class Resource {}',
   'StackTrace': 'abstract class StackTrace {}',
   'String': 'class String implements Pattern {}',
-  'Symbol': 'class Symbol { final name; const Symbol(this.name); }',
+  'Symbol': 'class Symbol { final _name; const Symbol(this._name); }',
   'Type': 'class Type {}',
   'Pattern': 'abstract class Pattern {}',
   '_genericNoSuchMethod': '_genericNoSuchMethod(a,b,c,d,e) {}',

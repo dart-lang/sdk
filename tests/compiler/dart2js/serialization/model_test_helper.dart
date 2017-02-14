@@ -16,6 +16,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';

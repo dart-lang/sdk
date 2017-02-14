@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic a, {dynamic b, dynamic c}) → core::int
+  ;
+static method main() → dynamic
+  ;

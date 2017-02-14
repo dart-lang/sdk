@@ -4448,7 +4448,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       Element staticElement = identifier.staticElement;
       if (staticElement is PropertyAccessorElement && staticElement.isGetter) {
         PropertyInducingElement variable = staticElement.variable;
-        int value = variable?.constantValue?.toIntValue();
+        int value = variable?.computeConstantValue()?.toIntValue();
         if (value != null && value >= low && value <= high) return value;
       }
       return null;

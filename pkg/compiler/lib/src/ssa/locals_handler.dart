@@ -7,6 +7,7 @@ import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
@@ -250,10 +251,11 @@ class LocalsHandler {
     // and passed to the generative constructor factory function as a parameter.
     // Instead of allocating and initializing the object, the constructor
     // 'upgrades' the native subclass object by initializing the Dart fields.
-    bool isNativeUpgradeFactory =
-        element.isGenerativeConstructor && backend.isNativeOrExtendsNative(cls);
-    if (backend.isInterceptedMethod(element)) {
-      bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
+    bool isNativeUpgradeFactory = element.isGenerativeConstructor &&
+        backend.nativeData.isNativeOrExtendsNative(cls);
+    if (backend.interceptorData.isInterceptedMethod(element)) {
+      bool isInterceptorClass =
+          backend.interceptorData.isInterceptorClass(cls.declaration);
       String name = isInterceptorClass ? 'receiver' : '_';
       SyntheticLocal parameter = new SyntheticLocal(name, executableContext);
       HParameterValue value = new HParameterValue(parameter, getTypeOfThis());
@@ -486,7 +488,6 @@ class LocalsHandler {
     Map<Local, HInstruction> savedDirectLocals =
         new Map<Local, HInstruction>.from(directLocals);
 
-    JavaScriptBackend backend = _compiler.backend;
     // Create phis for all elements in the definitions environment.
     savedDirectLocals.forEach((Local local, HInstruction instruction) {
       if (isAccessedDirectly(local)) {
@@ -670,6 +671,9 @@ class SyntheticLocal extends Local {
   static int _nextHashCode = 0;
 
   SyntheticLocal(this.name, this.executableContext);
+
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
 
   toString() => 'SyntheticLocal($name)';
 }

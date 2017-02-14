@@ -2903,26 +2903,54 @@ void Assembler::SmiUntagOrCheckClass(Register object,
 
 
 void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
-  ASSERT(result != object);
-  static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
+  if (result == object) {
+    Label smi, join;
 
-  // Make a dummy "Object" whose cid is kSmiCid.
-  movl(result, Immediate(reinterpret_cast<int32_t>(&kSmiCidSource) + 1));
+    testl(object, Immediate(kSmiTagMask));
+    j(EQUAL, &smi, Assembler::kNearJump);
+    LoadClassId(result, object);
+    jmp(&join, Assembler::kNearJump);
 
-  // Check if object (in tmp) is a Smi.
-  testl(object, Immediate(kSmiTagMask));
+    Bind(&smi);
+    movl(result, Immediate(kSmiCid));
 
-  // If the object is not a Smi, use the original object to load the cid.
-  // Otherwise, the dummy object is used, and the result is kSmiCid.
-  cmovne(result, object);
-  LoadClassId(result, result);
+    Bind(&join);
+  } else {
+    ASSERT(result != object);
+    static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
+
+    // Make a dummy "Object" whose cid is kSmiCid.
+    movl(result, Immediate(reinterpret_cast<int32_t>(&kSmiCidSource) + 1));
+
+    // Check if object (in tmp) is a Smi.
+    testl(object, Immediate(kSmiTagMask));
+
+    // If the object is not a Smi, use the original object to load the cid.
+    // Otherwise, the dummy object is used, and the result is kSmiCid.
+    cmovne(result, object);
+    LoadClassId(result, result);
+  }
 }
 
 
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
-  LoadClassIdMayBeSmi(result, object);
-  // Tag the result.
-  SmiTag(result);
+  if (result == object) {
+    Label smi, join;
+
+    testl(object, Immediate(kSmiTagMask));
+    j(EQUAL, &smi, Assembler::kNearJump);
+    LoadClassId(result, object);
+    SmiTag(result);
+    jmp(&join, Assembler::kNearJump);
+
+    Bind(&smi);
+    movl(result, Immediate(Smi::RawValue(kSmiCid)));
+
+    Bind(&join);
+  } else {
+    LoadClassIdMayBeSmi(result, object);
+    SmiTag(result);
+  }
 }
 
 

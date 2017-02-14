@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /**
@@ -339,8 +340,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitPartDirective(PartDirective node) {
     super.visitPartDirective(node);
-    _resolveAnnotations(
-        node, node.metadata, _enclosingUnit.getAnnotations(node.offset));
+    List<ElementAnnotation> annotations =
+        _enclosingUnit.getAnnotations(node.offset);
+    if (annotations.isEmpty && node.metadata.isNotEmpty) {
+      int index = (node.parent as CompilationUnit)
+          .directives
+          .where((directive) => directive is PartDirective)
+          .toList()
+          .indexOf(node);
+      annotations = _walker.element.library.parts[index].metadata;
+    }
+    _resolveAnnotations(node, node.metadata, annotations);
     return null;
   }
 
@@ -386,6 +396,14 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitTypeParameter(TypeParameter node) {
+    if (node.parent.parent is FunctionTypedFormalParameter) {
+      // Work around dartbug.com/28515.
+      // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
+      var element = new TypeParameterElementImpl.forNode(node.name);
+      element.type = new TypeParameterTypeImpl(element);
+      node.name?.staticElement = element;
+      return null;
+    }
     Element element = _match(node.name, _walker.getTypeParameter());
     super.visitTypeParameter(node);
     _resolveMetadata(node, node.metadata, element);

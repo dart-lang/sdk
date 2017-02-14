@@ -8,7 +8,6 @@ import '../common.dart';
 import '../common/resolution.dart';
 import '../elements/modelx.dart' show LocalVariableElementX, VariableList;
 import '../tree/tree.dart';
-import '../universe/use.dart' show TypeUse;
 import '../universe/feature.dart';
 import '../util/util.dart' show Link;
 import 'members.dart' show ResolverVisitor;

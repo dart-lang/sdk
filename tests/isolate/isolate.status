@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[$runtime == vm && $compiler == none && $system == fuchsia]
+*: Skip  # Not yet triaged.
+
 [ $runtime == vm || $runtime == dart_precompiled ]
 browser/*: SkipByDesign  # Browser specific tests
 isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be able to pass when we have wrapper-less tests.
@@ -165,6 +168,9 @@ browser/package_resolve_browser_test: Skip # Temporarily disabled working on CL 
 [ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
+
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
 
 [ $compiler == none && $runtime == vm ]
 scenarios/short_package/short_package_test: Fail, OK  # We do not plan to support the tested behavior anyway.

@@ -346,7 +346,8 @@ class NativeEmitter {
   }
 
   bool isSupertypeOfNativeClass(ClassEntity element) {
-    if (backend.classesMixedIntoInterceptedClasses.contains(element)) {
+    if (backend.interceptorData.classesMixedIntoInterceptedClasses
+        .contains(element)) {
       return true;
     }
 
@@ -361,7 +362,7 @@ class NativeEmitter {
     // the type info.  i.e the criteria for whether or not to use an interceptor
     // is whether the receiver can be native, not the type of the test.
     ClassEntity cls = element;
-    if (backend.isNativeOrExtendsNative(cls)) return true;
+    if (backend.nativeData.isNativeOrExtendsNative(cls)) return true;
     return isSupertypeOfNativeClass(element);
   }
 }

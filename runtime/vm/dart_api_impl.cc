@@ -536,11 +536,13 @@ Dart_Handle Api::AcquiredError(Isolate* isolate) {
 
 bool Api::IsValid(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
   CHECK_ISOLATE(isolate);
 
   // Check against all of the handles in the current isolate as well as the
   // read-only handles.
-  return isolate->thread_registry()->IsValidHandle(handle) ||
+  return thread->IsValidHandle(handle) ||
          isolate->api_state()->IsActivePersistentHandle(
              reinterpret_cast<Dart_PersistentHandle>(handle)) ||
          isolate->api_state()->IsActiveWeakPersistentHandle(
@@ -5112,6 +5114,11 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
     if (Symbols::DartIsVM().Equals(name)) {
       return Symbols::True().raw();
     }
+    if (FLAG_causal_async_stacks) {
+      if (Symbols::DartDeveloperCausalAsyncStacks().Equals(name)) {
+        return Symbols::True().raw();
+      }
+    }
   }
   return result.raw();
 }
@@ -5408,7 +5415,6 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
     return Api::NewHandle(T, tmp.raw());
   }
   library ^= tmp.raw();
-  library.set_debuggable(false);
   I->object_store()->set_root_library(library);
   return Api::NewHandle(T, library.raw());
 #endif
@@ -6013,14 +6019,6 @@ DART_EXPORT bool Dart_KernelIsolateIsRunning() {
 }
 
 
-DART_EXPORT Dart_Port Dart_ServiceWaitForKernelPort() {
-#ifdef DART_PRECOMPILED_RUNTIME
-  return ILLEGAL_PORT;
-#else
-  return KernelIsolate::WaitForKernelPort();
-#endif
-}
-
 DART_EXPORT Dart_Port Dart_KernelPort() {
 #ifdef DART_PRECOMPILED_RUNTIME
   return false;
@@ -6029,6 +6027,18 @@ DART_EXPORT Dart_Port Dart_KernelPort() {
 #endif
 }
 
+
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileToKernel(const char* script_uri) {
+#ifdef DART_PRECOMPILED_RUNTIME
+  Dart_KernelCompilationResult result;
+  result.status = Dart_KernelCompilationStatus_Unknown;
+  result.error = strdup("Dart_CompileToKernel is unsupported.");
+  return result;
+#else
+  return KernelIsolate::CompileToKernel(script_uri);
+#endif
+}
 
 // --- Service support ---
 

@@ -43,6 +43,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   Set<String> variablesWithNotConstInitializers = new Set<String>();
 
   /**
+   * Names that cannot be resolved, e.g. because of duplicate declaration.
+   */
+  Set<String> namesThatCannotBeResolved = new Set<String>();
+
+  /**
    * Tests may set this to `true` to indicate that a missing file at the time of
    * summary resynthesis shouldn't trigger an error.
    */
@@ -381,7 +386,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         compareConstAsts(r, o.expression, desc);
       } else if (o is SimpleIdentifier && r is SimpleIdentifier) {
         expect(r.name, o.name, reason: desc);
-        compareElements(r.staticElement, o.staticElement, desc);
+        if (namesThatCannotBeResolved.contains(r.name)) {
+          expect(r.staticElement, isNull);
+        } else {
+          compareElements(r.staticElement, o.staticElement, desc);
+        }
       } else if (o is PrefixedIdentifier && r is SimpleIdentifier) {
         // We don't resynthesize prefixed identifiers when the prefix refers to
         // a PrefixElement or a ClassElement.  We use simple identifiers with
@@ -440,6 +449,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         checkElidablePrefix(oTarget.prefix);
         checkElidablePrefix(oTarget.identifier);
         compareConstAsts(r, o.propertyName, desc);
+      } else if (o is SuperExpression && r is SuperExpression) {
+        // Nothing to compare.
       } else if (o is ThisExpression && r is ThisExpression) {
         // Nothing to compare.
       } else if (o is NullLiteral) {
@@ -1666,6 +1677,10 @@ f() {
 ''');
   }
 
+  test_closure_generic() {
+    checkLibrary('final f = <U, V>(U x, V y) => y;');
+  }
+
   test_closure_in_variable_declaration_in_part() {
     addSource('/a.dart', 'part of lib; final f = (int i) => i.toDouble();');
     checkLibrary('''
@@ -2362,6 +2377,18 @@ const vComplement = ~1;
 ''');
   }
 
+  test_const_topLevel_super() {
+    checkLibrary(r'''
+const vSuper = super;
+''');
+  }
+
+  test_const_topLevel_this() {
+    checkLibrary(r'''
+const vThis = this;
+''');
+  }
+
   test_const_topLevel_typedList() {
     checkLibrary(r'''
 const vNull = const <Null>[];
@@ -2922,6 +2949,28 @@ enum E {
     checkLibrary('enum E1 { v1 } enum E2 { v2 }');
   }
 
+  test_error_extendsEnum() {
+    checkLibrary('''
+enum E {a, b, c}
+
+class M {}
+
+class A extends E {
+  foo() {}
+}
+
+class B implements E, M {
+  foo() {}
+}
+
+class C extends Object with E, M {
+  foo() {}
+}
+
+class D = Object with M, E;
+''');
+  }
+
   test_executable_parameter_type_typedef() {
     checkLibrary(r'''
 typedef F(int p);
@@ -3080,6 +3129,15 @@ class B extends A {}
     addLibrarySource('/a.dart', 'library a;');
     addLibrarySource('/b.dart', 'library b;');
     checkLibrary('export "a.dart"; export "b.dart";');
+  }
+
+  test_expr_invalid_typeParameter_asPrefix() {
+    variablesWithNotConstInitializers.add('f');
+    checkLibrary('''
+class C<T> {
+  final f = T.k;
+}
+''');
   }
 
   test_field_covariant() {
@@ -3809,6 +3867,13 @@ C c;
 ''');
   }
 
+  test_instantiateToBounds_functionTypeAlias_simple() {
+    checkLibrary('''
+typedef F<T extends num>(T p);
+F f;
+''');
+  }
+
   test_instantiateToBounds_simple() {
     checkLibrary('''
 class C<T extends num> {}
@@ -3843,6 +3908,89 @@ class C {
 import "a.dart";
 @C.named
 class D {}
+''');
+  }
+
+  test_invalid_importPrefix_asTypeArgument() {
+    checkLibrary('''
+import 'dart:async' as ppp;
+class C {
+  List<ppp> v;
+}
+''');
+  }
+
+  test_invalid_nameConflict_imported() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'V() {}');
+    addLibrarySource('/b.dart', 'V() {}');
+    checkLibrary('''
+import 'a.dart';
+import 'b.dart';
+foo([p = V]) {}
+''');
+  }
+
+  test_invalid_nameConflict_imported_exported() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'V() {}');
+    addLibrarySource('/b.dart', 'V() {}');
+    addLibrarySource(
+        '/c.dart',
+        r'''
+export 'a.dart';
+export 'b.dart';
+''');
+    checkLibrary('''
+import 'c.dart';
+foo([p = V]) {}
+''');
+  }
+
+  test_invalid_nameConflict_local() {
+    namesThatCannotBeResolved.add('V');
+    checkLibrary('''
+foo([p = V]) {}
+V() {}
+var V;
+''');
+  }
+
+  test_invalid_setterParameter_fieldFormalParameter() {
+    checkLibrary('''
+class C {
+  int foo;
+  void set bar(this.foo) {}
+}
+''');
+  }
+
+  test_invalid_setterParameter_fieldFormalParameter_self() {
+    checkLibrary('''
+class C {
+  set x(this.x) {}
+}
+''');
+  }
+
+  test_invalidUris() {
+    allowMissingFiles = true;
+    checkLibrary(r'''
+import '[invalid uri]';
+import '[invalid uri]:foo.dart';
+import 'a1.dart';
+import '[invalid uri]';
+import '[invalid uri]:foo.dart';
+
+export '[invalid uri]';
+export '[invalid uri]:foo.dart';
+export 'a2.dart';
+export '[invalid uri]';
+export '[invalid uri]:foo.dart';
+
+part '[invalid uri]';
+part 'a3.dart';
+part '[invalid uri]';
 ''');
   }
 
@@ -4255,6 +4403,59 @@ class C {
     checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
   }
 
+  test_nameConflict_exportedAndLocal() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource(
+        '/c.dart',
+        '''
+export 'a.dart';
+class C {}
+''');
+    checkLibrary('''
+import 'c.dart';
+C v = null;
+''');
+  }
+
+  test_nameConflict_exportedAndLocal_exported() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource(
+        '/c.dart',
+        '''
+export 'a.dart';
+class C {}
+''');
+    addLibrarySource('/d.dart', 'export "c.dart";');
+    checkLibrary('''
+import 'd.dart';
+C v = null;
+''');
+  }
+
+  test_nameConflict_exportedAndParted() {
+    namesThatCannotBeResolved.add('V');
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource(
+        '/b.dart',
+        '''
+part of lib;
+class C {}
+''');
+    addLibrarySource(
+        '/c.dart',
+        '''
+library lib;
+export 'a.dart';
+part 'b.dart';
+''');
+    checkLibrary('''
+import 'c.dart';
+C v = null;
+''');
+  }
+
   test_nested_generic_functions_in_generic_class_with_function_typed_params() {
     checkLibrary('''
 class C<T, U> {
@@ -4596,6 +4797,37 @@ bool f() => true;
     checkLibrary('dynamic d;');
   }
 
+  test_type_invalid_topLevelVariableElement_asType() {
+    checkLibrary(
+        '''
+class C<T extends V> {}
+typedef V F(V p);
+V f(V p) {}
+V V2 = null;
+int V = 0;
+''',
+        allowErrors: true);
+  }
+
+  test_type_invalid_topLevelVariableElement_asTypeArgument() {
+    checkLibrary(
+        '''
+var V;
+static List<V> V2;
+''',
+        allowErrors: true);
+  }
+
+  test_type_invalid_typeParameter_asPrefix() {
+    checkLibrary(
+        '''
+class C<T> {
+  m(T.K p) {}
+}
+''',
+        allowErrors: true);
+  }
+
   test_type_reference_lib_to_lib() {
     checkLibrary('class C {} enum E { v } typedef F(); C c; E e; F f;');
   }
@@ -4781,6 +5013,21 @@ typedef F();''');
 
   test_typedefs() {
     checkLibrary('f() {} g() {}');
+  }
+
+  @failingTest
+  test_unresolved_annotation_instanceCreation_argument_super() {
+    // TODO(scheglov) fix https://github.com/dart-lang/sdk/issues/28553
+    checkLibrary(
+        '''
+class A {
+  const A(_);
+}
+
+@A(super)
+class C {}
+''',
+        allowErrors: true);
   }
 
   test_unresolved_annotation_instanceCreation_argument_this() {

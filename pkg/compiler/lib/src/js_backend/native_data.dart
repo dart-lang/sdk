@@ -6,13 +6,8 @@ library js_backend.native_data;
 
 import '../common.dart';
 import '../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        Entity,
-        FieldElement,
-        FunctionElement,
-        MemberElement;
+    show ClassElement, Element, FieldElement, FunctionElement, MemberElement;
+import '../elements/entities.dart';
 import '../native/behavior.dart' show NativeBehavior;
 
 /// Additional element information for native classes and methods and js-interop
@@ -134,6 +129,16 @@ class NativeData {
     } else {
       return nativeMemberName.containsKey(element.declaration);
     }
+  }
+
+  /// Returns `true` if [element] or any of its superclasses is native.
+  bool isNativeOrExtendsNative(ClassElement element) {
+    if (element == null) return false;
+    if (isNative(element) || isJsInterop(element)) {
+      return true;
+    }
+    assert(element.isResolved);
+    return isNativeOrExtendsNative(element.superclass);
   }
 
   /// Sets the native [name] for the member [element]. This name is used for

@@ -1,0 +1,29 @@
+{
+"":"Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file",
+"":"for details. All rights reserved. Use of this source code is governed by a",
+"":"BSD-style license that can be found in the LICENSE.md file.",
+  "packages": "../../../../../.packages",
+  "suites": [
+    {
+      "name": "scanner",
+      "kind": "Chain",
+      "source": "scanner_suite.dart",
+      "path": "../../../../../",
+      "status": "scanner.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": [
+      ]
+    }
+  ],
+  "analyze": {
+    "uris": [
+      "../../../lib/src/fasta/scanner/",
+      "../../../lib/src/fasta/scanner/bin/",
+      "../../../lib/src/fasta/scanner/testing/"
+    ],
+    "exclude": [
+    ]
+  }
+}

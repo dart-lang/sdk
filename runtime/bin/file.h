@@ -163,6 +163,9 @@ class File : public ReferenceCounted<File> {
   static int64_t LengthFromPath(const char* path);
   static void Stat(const char* path, int64_t* data);
   static time_t LastModified(const char* path);
+  static bool SetLastModified(const char* path, int64_t millis);
+  static time_t LastAccessed(const char* path);
+  static bool SetLastAccessed(const char* path, int64_t millis);
   static bool IsAbsolutePath(const char* path);
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
@@ -190,6 +193,9 @@ class File : public ReferenceCounted<File> {
   static CObject* LengthRequest(const CObjectArray& request);
   static CObject* LengthFromPathRequest(const CObjectArray& request);
   static CObject* LastModifiedRequest(const CObjectArray& request);
+  static CObject* SetLastModifiedRequest(const CObjectArray& request);
+  static CObject* LastAccessedRequest(const CObjectArray& request);
+  static CObject* SetLastAccessedRequest(const CObjectArray& request);
   static CObject* FlushRequest(const CObjectArray& request);
   static CObject* ReadByteRequest(const CObjectArray& request);
   static CObject* WriteByteRequest(const CObjectArray& request);

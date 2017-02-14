@@ -1567,11 +1567,12 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->ptr()->exception_handlers_);
     s->Push(code->ptr()->pc_descriptors_);
     s->Push(code->ptr()->stackmaps_);
+    s->Push(code->ptr()->inlined_id_to_function_);
+    s->Push(code->ptr()->code_source_map_);
 
     if (s->kind() == Snapshot::kAppJIT) {
       s->Push(code->ptr()->deopt_info_array_);
       s->Push(code->ptr()->static_calls_target_table_);
-      NOT_IN_PRODUCT(s->Push(code->ptr()->inlined_metadata_));
       NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
     }
   }
@@ -1620,11 +1621,12 @@ class CodeSerializationCluster : public SerializationCluster {
       s->WriteRef(code->ptr()->exception_handlers_);
       s->WriteRef(code->ptr()->pc_descriptors_);
       s->WriteRef(code->ptr()->stackmaps_);
+      s->WriteRef(code->ptr()->inlined_id_to_function_);
+      s->WriteRef(code->ptr()->code_source_map_);
 
       if (s->kind() == Snapshot::kAppJIT) {
         s->WriteRef(code->ptr()->deopt_info_array_);
         s->WriteRef(code->ptr()->static_calls_target_table_);
-        NOT_IN_PRODUCT(s->WriteRef(code->ptr()->inlined_metadata_));
         NOT_IN_PRODUCT(s->WriteRef(code->ptr()->return_address_metadata_));
       }
 
@@ -1689,6 +1691,10 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->pc_descriptors_ =
           reinterpret_cast<RawPcDescriptors*>(d->ReadRef());
       code->ptr()->stackmaps_ = reinterpret_cast<RawArray*>(d->ReadRef());
+      code->ptr()->inlined_id_to_function_ =
+          reinterpret_cast<RawArray*>(d->ReadRef());
+      code->ptr()->code_source_map_ =
+          reinterpret_cast<RawCodeSourceMap*>(d->ReadRef());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() == Snapshot::kAppJIT) {
@@ -1697,22 +1703,17 @@ class CodeDeserializationCluster : public DeserializationCluster {
         code->ptr()->static_calls_target_table_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
 #if defined(PRODUCT)
-        code->ptr()->inlined_metadata_ = Array::null();
         code->ptr()->return_address_metadata_ = Object::null();
 #else
-        code->ptr()->inlined_metadata_ =
-            reinterpret_cast<RawArray*>(d->ReadRef());
         code->ptr()->return_address_metadata_ = d->ReadRef();
 #endif
       } else {
         code->ptr()->deopt_info_array_ = Array::null();
         code->ptr()->static_calls_target_table_ = Array::null();
-        code->ptr()->inlined_metadata_ = Array::null();
         code->ptr()->return_address_metadata_ = Object::null();
       }
 
       code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
-      code->ptr()->code_source_map_ = CodeSourceMap::null();
       code->ptr()->comments_ = Array::null();
 
       code->ptr()->compile_timestamp_ = 0;
@@ -1982,8 +1983,7 @@ class ExceptionHandlersSerializationCluster : public SerializationCluster {
       s->WriteRef(handlers->ptr()->handled_types_data_);
 
       uint8_t* data = reinterpret_cast<uint8_t*>(handlers->ptr()->data());
-      intptr_t length_in_bytes =
-          length * sizeof(RawExceptionHandlers::HandlerInfo);
+      intptr_t length_in_bytes = length * sizeof(ExceptionHandlerInfo);
       s->WriteBytes(data, length_in_bytes);
     }
   }
@@ -2026,8 +2026,7 @@ class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
           reinterpret_cast<RawArray*>(d->ReadRef());
 
       uint8_t* data = reinterpret_cast<uint8_t*>(handlers->ptr()->data());
-      intptr_t length_in_bytes =
-          length * sizeof(RawExceptionHandlers::HandlerInfo);
+      intptr_t length_in_bytes = length * sizeof(ExceptionHandlerInfo);
       d->ReadBytes(data, length_in_bytes);
     }
   }
@@ -4545,6 +4544,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ObjectPoolSerializationCluster();
     case kPcDescriptorsCid:
       return new (Z) RODataSerializationCluster(kPcDescriptorsCid);
+    case kCodeSourceMapCid:
+      return new (Z) RODataSerializationCluster(kCodeSourceMapCid);
     case kStackMapCid:
       return new (Z) RODataSerializationCluster(kStackMapCid);
     case kExceptionHandlersCid:
@@ -4910,6 +4911,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case kObjectPoolCid:
       return new (Z) ObjectPoolDeserializationCluster();
     case kPcDescriptorsCid:
+    case kCodeSourceMapCid:
     case kStackMapCid:
       return new (Z) RODataDeserializationCluster();
     case kExceptionHandlersCid:

@@ -248,10 +248,6 @@ class _File extends FileSystemEntity implements File {
 
   File get absolute => new File(_absolutePath);
 
-  Future<FileStat> stat() => FileStat.stat(path);
-
-  FileStat statSync() => FileStat.statSync(path);
-
   Future<File> create({bool recursive: false}) {
     var result = recursive ? parent.create(recursive: true)
                            : new Future.value(null);
@@ -380,6 +376,49 @@ class _File extends FileSystemEntity implements File {
     return result;
   }
 
+  Future<DateTime> lastAccessed() {
+    return _IOService._dispatch(_FILE_LAST_ACCESSED, [path]).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+                                     "Cannot retrieve access time",
+                                     path);
+      }
+      return new DateTime.fromMillisecondsSinceEpoch(response);
+    });
+  }
+
+  external static _lastAccessed(String path);
+
+  DateTime lastAccessedSync() {
+    var ms = _lastAccessed(path);
+    throwIfError(ms, "Cannot retrieve access time", path);
+    return new DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  Future setLastAccessed(DateTime time) {
+    int millis = time.millisecondsSinceEpoch;
+    return _IOService._dispatch(_FILE_SET_LAST_ACCESSED, [path, millis])
+                     .then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+                                     "Cannot set access time",
+                                     path);
+      }
+      return null;
+    });
+  }
+
+  external static _setLastAccessed(String path, int millis);
+
+  void setLastAccessedSync(DateTime time) {
+    int millis = time.millisecondsSinceEpoch;
+    var result = _setLastAccessed(path, millis);
+    if (result is OSError) {
+      throw new FileSystemException("Failed to set file access time",
+          path, result);
+    }
+  }
+
   Future<DateTime> lastModified() {
     return _IOService._dispatch(_FILE_LAST_MODIFIED, [path]).then((response) {
       if (_isErrorResponse(response)) {
@@ -397,6 +436,30 @@ class _File extends FileSystemEntity implements File {
     var ms = _lastModified(path);
     throwIfError(ms, "Cannot retrieve modification time", path);
     return new DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  Future setLastModified(DateTime time) {
+    int millis = time.millisecondsSinceEpoch;
+    return _IOService._dispatch(_FILE_SET_LAST_MODIFIED, [path, millis])
+                     .then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+                                     "Cannot set modification time",
+                                     path);
+      }
+      return null;
+    });
+  }
+
+  external static _setLastModified(String path, int millis);
+
+  void setLastModifiedSync(DateTime time) {
+    int millis = time.millisecondsSinceEpoch;
+    var result = _setLastModified(path, millis);
+    if (result is OSError) {
+      throw new FileSystemException("Failed to set file modification time",
+          path, result);
+    }
   }
 
   external static _open(String path, int mode);

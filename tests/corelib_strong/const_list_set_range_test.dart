@@ -10,7 +10,7 @@ main() {
   testImmutable(const [1, 2]);
 }
 
-void expectUOE(Function f) {
+void expectUOE(f()) {
   Expect.throws(f, (e) => e is UnsupportedError);
 }
 

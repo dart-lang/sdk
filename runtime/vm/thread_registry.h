@@ -40,7 +40,6 @@ class ThreadRegistry {
   // Calculates the sum of the max memory usage in bytes of each thread.
   uintptr_t ThreadHighWatermarksTotalLocked() const;
 
-  bool IsValidHandle(Dart_Handle handle) const;
   intptr_t CountZoneHandles() const;
   intptr_t CountScopedHandles() const;
 
@@ -69,6 +68,8 @@ class ThreadRegistry {
   // - Dart_RunLoop()
   // - IsolateSaver in Dart_NewNativePort
   // - Isolate spawn (function/uri) under FLAG_i_like_slow_isolate_spawn
+  // Similarly, tracking async_stack_trace requires that we always reschedule
+  // on the same thread.
   // We probably need a mechanism to return to the specific thread only
   // for these specific cases. We should also determine if the embedder
   // should allow exiting an isolate with live state in zones/handles in

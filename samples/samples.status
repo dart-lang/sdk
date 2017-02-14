@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[$runtime == vm && $compiler == none && $system == fuchsia]
+*: Skip  # Not yet triaged.
+
 [ $browser ]
 # Skip tests that uses dart:io
 build_dart: Skip
@@ -16,6 +19,9 @@ sample_extension: Crash # Unable to compile UnsupportedError.message.
 
 [ $compiler == dart2analyzer ]
 build_dart: Skip
+
+[ $compiler == dart2analyzer && $builder_tag == strong ]
+*: Skip # Issue 28649
 
 [ $arch == arm ]
 sample_extension/test/*: Skip # Issue 14705

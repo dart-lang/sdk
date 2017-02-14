@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method m() → dynamic {
+    core::print("Called m");
+  }
+  method testC() → dynamic {
+    this.m();
+  }
+}
+class D extends self::C {
+  constructor •() → void
+    : super self::C::•()
+    ;
+  method testD() → dynamic {
+    this.m();
+  }
+}
+static method main() → dynamic {
+  new self::C::•().testC();
+  new self::D::•().testD();
+}

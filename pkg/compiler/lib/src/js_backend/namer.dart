@@ -11,7 +11,6 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
-import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
 import '../elements/resolution_types.dart';
@@ -24,7 +23,7 @@ import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
-import '../util/characters.dart';
+import 'package:front_end/src/fasta/scanner/characters.dart';
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 import 'backend.dart';
@@ -968,7 +967,7 @@ class Namer {
   /// True if [class_] is a non-native class that inherits from a native class.
   bool _isUserClassExtendingNative(ClassElement class_) {
     return !backend.isNative(class_) &&
-        backend.isNativeOrExtendsNative(class_.superclass);
+        backend.nativeData.isNativeOrExtendsNative(class_.superclass);
   }
 
   /// Annotated name for the setter of [element].
@@ -1359,11 +1358,11 @@ class Namer {
     }
 
     List<String> names = classes
-        .where((cls) => !backend.isNativeOrExtendsNative(cls))
+        .where((cls) => !backend.nativeData.isNativeOrExtendsNative(cls))
         .map(abbreviate)
         .toList();
     // There is one dispatch mechanism for all native classes.
-    if (classes.any((cls) => backend.isNativeOrExtendsNative(cls))) {
+    if (classes.any((cls) => backend.nativeData.isNativeOrExtendsNative(cls))) {
       names.add("x");
     }
     // Sort the names of the classes after abbreviating them to ensure
@@ -1374,7 +1373,7 @@ class Namer {
 
   /// Property name used for `getInterceptor` or one of its specializations.
   jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
-    FunctionElement getInterceptor = helpers.getInterceptorMethod;
+    MethodElement getInterceptor = helpers.getInterceptorMethod;
     if (classes.contains(helpers.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes, we
       // need to go through the generic getInterceptorMethod, since any subclass
@@ -1523,8 +1522,7 @@ class Namer {
       if ('${library.canonicalUri}' == 'dart:html') return 'W';
       return 'P';
     }
-    return userGlobalObjects[
-        library.libraryOrScriptName.hashCode % userGlobalObjects.length];
+    return userGlobalObjects[library.name.hashCode % userGlobalObjects.length];
   }
 
   jsAst.Name deriveLazyInitializerName(jsAst.Name name) {
@@ -1710,18 +1708,6 @@ class Namer {
     } else {
       return name;
     }
-  }
-
-  String get incrementalHelperName => r'$dart_unsafe_incremental_support';
-
-  jsAst.Expression get accessIncrementalHelper {
-    return js('self.${incrementalHelperName}');
-  }
-
-  void forgetElement(Element element) {
-    jsAst.Name globalName = userGlobals[element];
-    invariant(element, globalName != null, message: 'No global name.');
-    userGlobals.remove(element);
   }
 }
 

@@ -38,8 +38,6 @@ Thread::~Thread() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
-  // All zone allocated memory should be free by this point.
-  ASSERT(current_thread_memory_ == 0);
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -72,6 +70,7 @@ Thread::Thread(Isolate* isolate)
       store_buffer_block_(NULL),
       vm_tag_(0),
       task_kind_(kUnknownTask),
+      async_stack_trace_(StackTrace::null()),
       dart_stream_(NULL),
       os_thread_(NULL),
       thread_lock_(new Monitor()),
@@ -134,6 +133,19 @@ Thread::Thread(Isolate* isolate)
     if (FLAG_compiler_benchmark) {
       compiler_stats_->EnableBenchmark();
     }
+  }
+  // This thread should not yet own any zones. If it does, we need to make sure
+  // we've accounted for any memory it has already allocated.
+  if (zone_ == NULL) {
+    ASSERT(current_thread_memory_ == 0);
+  } else {
+    Zone* current = zone_;
+    uintptr_t total_zone_capacity = 0;
+    while (current != NULL) {
+      total_zone_capacity += static_cast<uintptr_t>(current->CapacityInBytes());
+      current = current->previous();
+    }
+    ASSERT(current_thread_memory_ == total_zone_capacity);
   }
 }
 
@@ -289,6 +301,27 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
       UNREACHABLE();
       return "";
   }
+}
+
+
+RawStackTrace* Thread::async_stack_trace() const {
+  return async_stack_trace_;
+}
+
+
+void Thread::set_async_stack_trace(const StackTrace& stack_trace) {
+  ASSERT(!stack_trace.IsNull());
+  async_stack_trace_ = stack_trace.raw();
+}
+
+
+void Thread::set_raw_async_stack_trace(RawStackTrace* raw_stack_trace) {
+  async_stack_trace_ = raw_stack_trace;
+}
+
+
+void Thread::clear_async_stack_trace() {
+  async_stack_trace_ = StackTrace::null();
 }
 
 
@@ -670,6 +703,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_exception_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&async_stack_trace_));
 
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;

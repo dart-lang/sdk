@@ -196,7 +196,6 @@ FlowGraphCompiler::FlowGraphCompiler(
       pc_descriptors_list_(NULL),
       stackmap_table_builder_(NULL),
       code_source_map_builder_(NULL),
-      saved_code_size_(0),
       block_info_(block_order_.length()),
       deopt_infos_(),
       static_calls_target_table_(),
@@ -217,11 +216,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       parallel_move_resolver_(this),
       pending_deoptimization_env_(NULL),
       deopt_id_to_ic_data_(NULL),
-      edge_counters_array_(Array::ZoneHandle()),
-      inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
-      inline_id_to_function_(inline_id_to_function),
-      inline_id_to_token_pos_(inline_id_to_token_pos),
-      caller_inline_id_(caller_inline_id) {
+      edge_counters_array_(Array::ZoneHandle()) {
   ASSERT(flow_graph->parsed_function().function().raw() ==
          parsed_function.function().raw());
   if (!is_optimizing) {
@@ -244,6 +239,11 @@ FlowGraphCompiler::FlowGraphCompiler(
   }
   ASSERT(assembler != NULL);
   ASSERT(!list_class_.IsNull());
+
+  bool stack_traces_only = !FLAG_profiler;
+  code_source_map_builder_ = new (zone_)
+      CodeSourceMapBuilder(stack_traces_only, caller_inline_id,
+                           inline_id_to_token_pos, inline_id_to_function);
 }
 
 
@@ -463,22 +463,6 @@ static void LoopInfoComment(
 }
 
 
-// We collect intervals while generating code.
-struct IntervalStruct {
-  // 'start' is the pc-offsets where the inlined code started.
-  // 'pos' is the token position where the inlined call occured.
-  intptr_t start;
-  TokenPosition pos;
-  intptr_t inlining_id;
-  IntervalStruct(intptr_t s, TokenPosition tp, intptr_t id)
-      : start(s), pos(tp), inlining_id(id) {}
-  void Dump() {
-    THR_Print("start: 0x%" Px " iid: %" Pd " pos: %s", start, inlining_id,
-              pos.ToCString());
-  }
-};
-
-
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
   const ZoneGrowableArray<BlockEntryInstr*>* loop_headers = NULL;
@@ -488,12 +472,6 @@ void FlowGraphCompiler::VisitBlocks() {
     ASSERT(loop_headers != NULL);
   }
 
-  // For collecting intervals of inlined code.
-  GrowableArray<IntervalStruct> intervals;
-  intptr_t prev_offset = 0;
-  intptr_t prev_inlining_id = 0;
-  TokenPosition prev_inlining_pos = parsed_function_.function().token_pos();
-  intptr_t max_inlining_id = 0;
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
     BlockEntryInstr* entry = block_order()[i];
@@ -523,24 +501,8 @@ void FlowGraphCompiler::VisitBlocks() {
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
       // Compose intervals.
-      if (instr->has_inlining_id() && is_optimizing()) {
-        if (prev_inlining_id != instr->inlining_id()) {
-          intervals.Add(
-              IntervalStruct(prev_offset, prev_inlining_pos, prev_inlining_id));
-          prev_offset = assembler()->CodeSize();
-          prev_inlining_id = instr->inlining_id();
-          if (prev_inlining_id < inline_id_to_token_pos_.length()) {
-            prev_inlining_pos = inline_id_to_token_pos_[prev_inlining_id];
-          } else {
-            // We will add this token position later when generating the
-            // profile.
-            prev_inlining_pos = TokenPosition::kNoSource;
-          }
-          if (prev_inlining_id > max_inlining_id) {
-            max_inlining_id = prev_inlining_id;
-          }
-        }
-      }
+      code_source_map_builder_->StartInliningInterval(assembler()->CodeSize(),
+                                                      instr->inlining_id());
       if (FLAG_code_comments || FLAG_disassemble ||
           FLAG_disassemble_optimized) {
         if (FLAG_source_lines) {
@@ -573,53 +535,7 @@ void FlowGraphCompiler::VisitBlocks() {
 #endif
   }
 
-  if (is_optimizing()) {
-    LogBlock lb;
-    intervals.Add(
-        IntervalStruct(prev_offset, prev_inlining_pos, prev_inlining_id));
-    inlined_code_intervals_ =
-        Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);
-    Smi& start_h = Smi::Handle();
-    Smi& caller_inline_id = Smi::Handle();
-    Smi& inline_id = Smi::Handle();
-    for (intptr_t i = 0; i < intervals.length(); i++) {
-      if (FLAG_trace_inlining_intervals && is_optimizing()) {
-        const Function& function =
-            *inline_id_to_function_.At(intervals[i].inlining_id);
-        intervals[i].Dump();
-        THR_Print(" parent iid %" Pd " %s\n",
-                  caller_inline_id_[intervals[i].inlining_id],
-                  function.ToQualifiedCString());
-      }
-
-      const intptr_t id = intervals[i].inlining_id;
-      start_h = Smi::New(intervals[i].start);
-      inline_id = Smi::New(id);
-      caller_inline_id = Smi::New(caller_inline_id_[intervals[i].inlining_id]);
-
-      const intptr_t p = i * Code::kInlIntNumEntries;
-      inlined_code_intervals_.SetAt(p + Code::kInlIntStart, start_h);
-      inlined_code_intervals_.SetAt(p + Code::kInlIntInliningId, inline_id);
-    }
-  }
   set_current_block(NULL);
-  if (FLAG_trace_inlining_intervals && is_optimizing()) {
-    LogBlock lb;
-    THR_Print("Intervals:\n");
-    for (intptr_t cc = 0; cc < caller_inline_id_.length(); cc++) {
-      THR_Print("  iid: %" Pd " caller iid: %" Pd "\n", cc,
-                caller_inline_id_[cc]);
-    }
-    Smi& temp = Smi::Handle();
-    for (intptr_t i = 0; i < inlined_code_intervals_.Length();
-         i += Code::kInlIntNumEntries) {
-      temp ^= inlined_code_intervals_.At(i + Code::kInlIntStart);
-      ASSERT(!temp.IsNull());
-      THR_Print("% " Pd " start: 0x%" Px " ", i, temp.Value());
-      temp ^= inlined_code_intervals_.At(i + Code::kInlIntInliningId);
-      THR_Print("iid: %" Pd " ", temp.Value());
-    }
-  }
 }
 
 
@@ -767,14 +683,25 @@ void FlowGraphCompiler::SetNeedsStackTrace(intptr_t try_index) {
 }
 
 
+void FlowGraphCompiler::AddDescriptor(RawPcDescriptors::Kind kind,
+                                      intptr_t pc_offset,
+                                      intptr_t deopt_id,
+                                      TokenPosition token_pos,
+                                      intptr_t try_index) {
+  code_source_map_builder_->NoteDescriptor(kind, pc_offset, token_pos);
+  // When running with optimizations disabled, don't emit deopt-descriptors.
+  if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
+  pc_descriptors_list_->AddDescriptor(kind, pc_offset, deopt_id, token_pos,
+                                      try_index);
+}
+
+
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
                                              TokenPosition token_pos) {
-  // When running with optimizations disabled, don't emit deopt-descriptors.
-  if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
-  pc_descriptors_list()->AddDescriptor(kind, assembler()->CodeSize(), deopt_id,
-                                       token_pos, CurrentTryIndex());
+  AddDescriptor(kind, assembler()->CodeSize(), deopt_id, token_pos,
+                CurrentTryIndex());
 }
 
 
@@ -1109,6 +1036,29 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
   code.set_static_calls_target_table(targets);
   INC_STAT(Thread::Current(), total_code_size,
            targets.Length() * sizeof(uword));
+}
+
+
+void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
+  const Array& inlined_id_array =
+      Array::Handle(zone(), code_source_map_builder_->InliningIdToFunction());
+  INC_STAT(Thread::Current(), total_code_size,
+           inlined_id_array.Length() * sizeof(uword));
+  code.set_inlined_id_to_function(inlined_id_array);
+
+  const CodeSourceMap& map =
+      CodeSourceMap::Handle(code_source_map_builder_->Finalize());
+  INC_STAT(Thread::Current(), total_code_size, map.Length() * sizeof(uint8_t));
+  code.set_code_source_map(map);
+
+#if defined(DEBUG)
+  // Force simulation through the last pc offset. This checks we can decode
+  // the whole CodeSourceMap without hitting an unknown opcode, stack underflow,
+  // etc.
+  GrowableArray<const Function*> fs;
+  GrowableArray<TokenPosition> tokens;
+  code.GetInlinedFunctionsAtInstruction(code.Size() - 1, &fs, &tokens);
+#endif
 }
 
 
@@ -1788,70 +1738,14 @@ const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
 }
 
 
-RawArray* FlowGraphCompiler::InliningIdToFunction() const {
-  if (inline_id_to_function_.length() == 0) {
-    return Object::empty_array().raw();
-  }
-  const Array& res =
-      Array::Handle(Array::New(inline_id_to_function_.length(), Heap::kOld));
-  for (intptr_t i = 0; i < inline_id_to_function_.length(); i++) {
-    res.SetAt(i, *inline_id_to_function_[i]);
-  }
-  return res.raw();
-}
-
-
-RawArray* FlowGraphCompiler::InliningIdToTokenPos() const {
-  if (inline_id_to_token_pos_.length() == 0) {
-    return Object::empty_array().raw();
-  }
-  const Array& res = Array::Handle(
-      zone(), Array::New(inline_id_to_token_pos_.length(), Heap::kOld));
-  Smi& smi = Smi::Handle(zone());
-  for (intptr_t i = 0; i < inline_id_to_token_pos_.length(); i++) {
-    smi = Smi::New(inline_id_to_token_pos_[i].value());
-    res.SetAt(i, smi);
-  }
-  return res.raw();
-}
-
-
-RawArray* FlowGraphCompiler::CallerInliningIdMap() const {
-  if (caller_inline_id_.length() == 0) {
-    return Object::empty_array().raw();
-  }
-  const Array& res =
-      Array::Handle(Array::New(caller_inline_id_.length(), Heap::kOld));
-  Smi& smi = Smi::Handle();
-  for (intptr_t i = 0; i < caller_inline_id_.length(); i++) {
-    smi = Smi::New(caller_inline_id_[i]);
-    res.SetAt(i, smi);
-  }
-  return res.raw();
-}
-
-
 void FlowGraphCompiler::BeginCodeSourceRange() {
-#if !defined(PRODUCT)
-  // Remember how many bytes of code we emitted so far. This function
-  // is called before we call into an instruction's EmitNativeCode.
-  saved_code_size_ = assembler()->CodeSize();
-#endif  // !defined(PRODUCT)
+  code_source_map_builder_->BeginCodeSourceRange(assembler()->CodeSize());
 }
 
 
-bool FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
-#if !defined(PRODUCT)
-  // This function is called after each instructions' EmitNativeCode.
-  if (saved_code_size_ < assembler()->CodeSize()) {
-    // We emitted more code, now associate the emitted code chunk with
-    // |token_pos|.
-    code_source_map_builder()->AddEntry(saved_code_size_, token_pos);
-    BeginCodeSourceRange();
-    return true;
-  }
-#endif  // !defined(PRODUCT)
-  return false;
+void FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
+  code_source_map_builder_->EndCodeSourceRange(assembler()->CodeSize(),
+                                               token_pos);
 }
 
 

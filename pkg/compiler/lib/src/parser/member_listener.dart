@@ -8,7 +8,7 @@ import '../common.dart';
 import '../elements/elements.dart' show Element, ElementKind, Elements;
 import '../elements/modelx.dart'
     show ClassElementX, ElementX, FieldElementX, VariableList;
-import '../tokens/token.dart' show Token;
+import 'package:front_end/src/fasta/scanner.dart' show Token;
 import '../tree/tree.dart';
 import 'element_listener.dart' show ScannerOptions;
 import 'node_listener.dart' show NodeListener;
@@ -67,6 +67,7 @@ class MemberListener extends NodeListener {
     }
   }
 
+  @override
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     super.endMethod(getOrSet, beginToken, endToken);
     FunctionExpression method = popNode();
@@ -76,7 +77,7 @@ class MemberListener extends NodeListener {
     Element memberElement;
     if (isConstructor) {
       if (getOrSet != null) {
-        recoverableError(getOrSet, 'illegal modifier');
+        recoverableError(reporter.spanFromToken(getOrSet), 'illegal modifier');
       }
       memberElement = new PartialConstructorElement(name, beginToken, endToken,
           ElementKind.GENERATIVE_CONSTRUCTOR, method.modifiers, enclosingClass);
@@ -88,6 +89,7 @@ class MemberListener extends NodeListener {
     addMember(memberElement);
   }
 
+  @override
   void endFactoryMethod(Token beginToken, Token endToken) {
     super.endFactoryMethod(beginToken, endToken);
     FunctionExpression method = popNode();
@@ -112,6 +114,7 @@ class MemberListener extends NodeListener {
     addMember(memberElement);
   }
 
+  @override
   void endFields(int count, Token beginToken, Token endToken) {
     bool hasParseError = memberErrors.head;
     super.endFields(count, beginToken, endToken);
@@ -127,12 +130,14 @@ class MemberListener extends NodeListener {
         enclosingClass, buildFieldElement, beginToken, endToken, hasParseError);
   }
 
-  void endInitializer(Token assignmentOperator) {
+  @override
+  void endFieldInitializer(Token assignmentOperator) {
     pushNode(null); // Super expects an expression, but
     // ClassElementParser just skips expressions.
-    super.endInitializer(assignmentOperator);
+    super.endFieldInitializer(assignmentOperator);
   }
 
+  @override
   void endInitializers(int count, Token beginToken, Token endToken) {
     pushNode(null);
   }
@@ -146,6 +151,7 @@ class MemberListener extends NodeListener {
     enclosingClass.addMember(memberElement, reporter);
   }
 
+  @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     super.endMetadata(beginToken, periodBeforeName, endToken);
     pushMetadata(new PartialMetadataAnnotation(beginToken, endToken));

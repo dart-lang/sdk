@@ -35,9 +35,16 @@ static int run_matches = 0;
 
 
 void TestCase::Run() {
-  fprintf(stdout, "Running test: %s\n", name());
+  OS::Print("Running test: %s\n", name());
   (*run_)();
-  fprintf(stdout, "Done: %s\n", name());
+  OS::Print("Done: %s\n", name());
+}
+
+
+void RawTestCase::Run() {
+  OS::Print("Running test: %s\n", name());
+  (*run_)();
+  OS::Print("Done: %s\n", name());
 }
 
 
@@ -46,7 +53,7 @@ void TestCaseBase::RunTest() {
     this->Run();
     run_matches++;
   } else if (run_filter == kList) {
-    fprintf(stdout, "%s\n", this->name());
+    OS::Print("%s\n", this->name());
     run_matches++;
   }
 }
@@ -60,18 +67,18 @@ void Benchmark::RunBenchmark() {
               this->score());
     run_matches++;
   } else if (run_filter == kList) {
-    fprintf(stdout, "%s\n", this->name());
+    OS::Print("%s\n", this->name());
     run_matches++;
   }
 }
 
 
 static void PrintUsage() {
-  fprintf(stderr,
-          "run_vm_tests [--list | --benchmarks | "
-          "<test name> | <benchmark name>]\n");
-  fprintf(stderr, "run_vm_tests [vm-flags ...] <test name>\n");
-  fprintf(stderr, "run_vm_tests [vm-flags ...] <benchmark name>\n");
+  OS::PrintErr(
+      "run_vm_tests [--list | --benchmarks | "
+      "<test name> | <benchmark name>]\n");
+  OS::PrintErr("run_vm_tests [vm-flags ...] <test name>\n");
+  OS::PrintErr("run_vm_tests [vm-flags ...] <benchmark name>\n");
 }
 
 
@@ -90,6 +97,7 @@ static int Main(int argc, const char** argv) {
       // List all tests and benchmarks and exit without initializing the VM.
       TestCaseBase::RunAll();
       Benchmark::RunAll(argv[0]);
+      TestCaseBase::RunAllRaw();
       fflush(stdout);
       return 0;
     } else if (strcmp(argv[1], "--benchmarks") == 0) {
@@ -122,9 +130,10 @@ static int Main(int argc, const char** argv) {
   err_msg = Dart::Cleanup();
   ASSERT(err_msg == NULL);
 
+  TestCaseBase::RunAllRaw();
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
-    fprintf(stderr, "No tests matched: %s\n", run_filter);
+    OS::PrintErr("No tests matched: %s\n", run_filter);
     return 1;
   }
   if (DynamicAssertionHelper::failed()) {

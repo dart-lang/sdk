@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    ;
+  operator +(core::String s) → dynamic
+    ;
+  operator [](dynamic i) → dynamic
+    ;
+  operator []=(dynamic i, dynamic val) → dynamic
+    ;
+}
+class B extends self::A {
+  constructor •() → void
+    ;
+  operator +(core::String s) → dynamic
+    ;
+  operator [](dynamic i) → dynamic
+    ;
+  operator []=(dynamic i, dynamic val) → dynamic
+    ;
+}
+class Autobianchi extends core::Object {
+  constructor •() → void
+    ;
+  method g() → dynamic
+    ;
+}

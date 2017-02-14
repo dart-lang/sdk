@@ -44,11 +44,11 @@ var tests = [
     expect(result['type'], equals('_Ports'));
     expect(result['ports'], isList);
     var ports = result['ports'];
-    // There are three ports: the two created in warmup and the stdin listener
-    // created by the test harness.
-    expect(ports.length, equals(3));
-    expect(countHandlerMatches(ports, nullMatcher), equals(1));
-    expect(countHandlerMatches(ports, closureMatcher), equals(2));
+    // There are at least two ports: the two created in warm up. Some OSes
+    // will have other ports open but we do not try and test for these.
+    expect(ports.length, greaterThanOrEqualTo(2));
+    expect(countHandlerMatches(ports, nullMatcher), greaterThanOrEqualTo(1));
+    expect(countHandlerMatches(ports, closureMatcher), greaterThanOrEqualTo(1));
   },
 ];
 

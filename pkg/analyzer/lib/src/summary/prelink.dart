@@ -53,7 +53,7 @@ typedef UnlinkedUnit GetPartCallback(String relativeUri);
  * A [_Meaning] representing a class.
  */
 class _ClassMeaning extends _Meaning {
-  final Map<String, _Meaning> namespace;
+  final _Namespace namespace;
 
   _ClassMeaning(int unit, int dependency, int numTypeParameters, this.namespace)
       : super(unit, ReferenceKind.classOrEnum, dependency, numTypeParameters);
@@ -109,10 +109,74 @@ class _Meaning {
 }
 
 /**
+ * Mapping from names to corresponding unique [_Meaning]s.
+ */
+class _Namespace {
+  final Set<String> namesWithConflictingDefinitions = new Set<String>();
+  final Set<String> libraryNames = new Set<String>();
+  final Map<String, _Meaning> map = <String, _Meaning>{};
+
+  /**
+   * Return the [_Meaning] of the name, or `null` is not defined.
+   */
+  _Meaning operator [](String name) {
+    return map[name];
+  }
+
+  /**
+   * Define that the [name] has the given [value].  If the [name] already been
+   * defined with a different value, then it becomes undefined.
+   */
+  void add(String name, _Meaning value) {
+    // Already determined to be a conflict.
+    if (namesWithConflictingDefinitions.contains(name)) {
+      return;
+    }
+
+    _Meaning currentValue = map[name];
+    if (currentValue == null) {
+      map[name] = value;
+    } else if (currentValue == value) {
+      // The same value, ignore.
+    } else {
+      // A conflict, remember it, and un-define the name.
+      namesWithConflictingDefinitions.add(name);
+      map.remove(name);
+    }
+  }
+
+  /**
+   * Return `true` if the [name] was defined before [rememberLibraryNames]
+   * invocation.
+   */
+  bool definesLibraryName(String name) => libraryNames.contains(name);
+
+  /**
+   * Return `true` if the [name] is already defined.
+   */
+  bool definesName(String name) => map.containsKey(name);
+
+  /**
+   * Apply [f] to each name-meaning pair.
+   */
+  void forEach(void f(String key, _Meaning value)) {
+    map.forEach(f);
+  }
+
+  /**
+   * This method should be invoked after defining all names that are defined
+   * in a library, before defining imported names.
+   */
+  void rememberLibraryNames() {
+    libraryNames.addAll(map.keys);
+  }
+}
+
+/**
  * A [_Meaning] representing a prefix introduced by an import directive.
  */
 class _PrefixMeaning extends _Meaning {
-  final Map<String, _Meaning> namespace = <String, _Meaning>{};
+  final _Namespace namespace = new _Namespace();
 
   _PrefixMeaning() : super(0, ReferenceKind.prefix, 0, 0);
 }
@@ -144,10 +208,9 @@ class _Prelinker {
   /**
    * Names defined inside the library being prelinked.
    */
-  final Map<String, _Meaning> privateNamespace = <String, _Meaning>{
-    'dynamic': new _Meaning(0, ReferenceKind.classOrEnum, 0, 0),
-    'void': new _Meaning(0, ReferenceKind.classOrEnum, 0, 0)
-  };
+  final _Namespace privateNamespace = new _Namespace()
+    ..add('dynamic', new _Meaning(0, ReferenceKind.classOrEnum, 0, 0))
+    ..add('void', new _Meaning(0, ReferenceKind.classOrEnum, 0, 0));
 
   /**
    * List of dependencies of the library being prelinked.  This will be output
@@ -166,8 +229,7 @@ class _Prelinker {
   /**
    * List of public namespaces corresponding to each entry in [dependencies].
    */
-  final List<Map<String, _Meaning>> dependencyToPublicNamespace =
-      <Map<String, _Meaning>>[null];
+  final List<_Namespace> dependencyToPublicNamespace = <_Namespace>[null];
 
   _Prelinker(this.definingUnit, this.getPart, this.getImport,
       this.getDeclaredVariable) {
@@ -180,7 +242,7 @@ class _Prelinker {
    * [definingUnit] via [relativeUri], by aggregating together public namespace
    * information from all of its parts.
    */
-  Map<String, _Meaning> aggregatePublicNamespace(String relativeUri) {
+  _Namespace aggregatePublicNamespace(String relativeUri) {
     if (uriToDependency.containsKey(relativeUri)) {
       return dependencyToPublicNamespace[uriToDependency[relativeUri]];
     }
@@ -192,7 +254,7 @@ class _Prelinker {
         uri: relativeUri, parts: unitUris.sublist(1));
     dependencies.add(linkedDependency);
 
-    Map<String, _Meaning> aggregated = <String, _Meaning>{};
+    _Namespace aggregated = new _Namespace();
 
     for (int unitNum = 0; unitNum < unitUris.length; unitNum++) {
       String unitUri = unitUris[unitNum];
@@ -201,21 +263,28 @@ class _Prelinker {
         continue;
       }
       for (UnlinkedPublicName name in importedNamespace.names) {
-        aggregated.putIfAbsent(name.name, () {
-          if (name.kind == ReferenceKind.classOrEnum) {
-            Map<String, _Meaning> namespace = <String, _Meaning>{};
-            name.members.forEach((executable) {
-              namespace[executable.name] = new _Meaning(
-                  unitNum, executable.kind, 0, executable.numTypeParameters);
-            });
-            return new _ClassMeaning(
-                unitNum, dependency, name.numTypeParameters, namespace);
-          }
-          return new _Meaning(
-              unitNum, name.kind, dependency, name.numTypeParameters);
-        });
+        if (name.kind == ReferenceKind.classOrEnum) {
+          _Namespace namespace = new _Namespace();
+          name.members.forEach((executable) {
+            namespace.add(
+                executable.name,
+                new _Meaning(
+                    unitNum, executable.kind, 0, executable.numTypeParameters));
+          });
+          aggregated.add(
+              name.name,
+              new _ClassMeaning(
+                  unitNum, dependency, name.numTypeParameters, namespace));
+        } else {
+          aggregated.add(
+              name.name,
+              new _Meaning(
+                  unitNum, name.kind, dependency, name.numTypeParameters));
+        }
       }
     }
+
+    aggregated.rememberLibraryNames();
 
     dependencyToPublicNamespace.add(aggregated);
     return aggregated;
@@ -229,38 +298,36 @@ class _Prelinker {
    * If [relativeUri] is `null` (meaning the export namespace of [definingUnit]
    * should be computed), then names defined in [definingUnit] are ignored.
    */
-  Map<String, _Meaning> computeExportNamespace(String relativeUri) {
-    Map<String, _Meaning> exportNamespace = relativeUri == null
-        ? <String, _Meaning>{}
-        : aggregatePublicNamespace(relativeUri);
-    void chaseExports(
-        NameFilter filter, String relativeUri, Set<String> seenUris) {
+  _Namespace computeExportNamespace(String relativeUri) {
+    Set<String> seenUris = new Set<String>();
+    _Namespace chaseExports(String relativeUri, NameFilter filter) {
+      _Namespace exportedNamespace = relativeUri == null
+          ? new _Namespace()
+          : aggregatePublicNamespace(relativeUri);
       if (seenUris.add(relativeUri)) {
-        UnlinkedPublicNamespace exportedNamespace =
-            getImportCached(relativeUri);
-        if (exportedNamespace != null) {
-          for (UnlinkedExportPublic export in exportedNamespace.exports) {
+        UnlinkedPublicNamespace publicNamespace = getImportCached(relativeUri);
+        if (publicNamespace != null) {
+          for (UnlinkedExportPublic export in publicNamespace.exports) {
             String relativeExportUri =
                 _selectUri(export.uri, export.configurations);
             String exportUri = resolveUri(relativeUri, relativeExportUri);
             NameFilter newFilter = filter.merge(
                 new NameFilter.forUnlinkedCombinators(export.combinators));
-            aggregatePublicNamespace(exportUri)
-                .forEach((String name, _Meaning meaning) {
+            _Namespace exportNamespace = chaseExports(exportUri, newFilter);
+            exportNamespace.forEach((String name, _Meaning meaning) {
               if (newFilter.accepts(name) &&
-                  !exportNamespace.containsKey(name)) {
-                exportNamespace[name] = meaning;
+                  !exportedNamespace.definesLibraryName(name)) {
+                exportedNamespace.add(name, meaning);
               }
             });
-            chaseExports(newFilter, exportUri, seenUris);
           }
         }
         seenUris.remove(relativeUri);
       }
+      return exportedNamespace;
     }
 
-    chaseExports(NameFilter.identity, relativeUri, new Set<String>());
-    return exportNamespace;
+    return chaseExports(relativeUri, NameFilter.identity);
   }
 
   /**
@@ -270,51 +337,47 @@ class _Prelinker {
    */
   void extractPrivateNames(UnlinkedUnit unit, int unitNum) {
     for (UnlinkedClass cls in unit.classes) {
-      privateNamespace.putIfAbsent(cls.name, () {
-        Map<String, _Meaning> namespace = <String, _Meaning>{};
-        cls.fields.forEach((field) {
-          if (field.isStatic && field.isConst) {
-            namespace[field.name] =
-                new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0);
-          }
-        });
-        cls.executables.forEach((executable) {
-          ReferenceKind kind = null;
-          if (executable.kind == UnlinkedExecutableKind.constructor) {
-            kind = ReferenceKind.constructor;
-          } else if (executable.kind ==
-                  UnlinkedExecutableKind.functionOrMethod &&
-              executable.isStatic) {
-            kind = ReferenceKind.method;
-          } else if (executable.kind == UnlinkedExecutableKind.getter &&
-              executable.isStatic) {
-            kind = ReferenceKind.propertyAccessor;
-          }
-          if (kind != null && executable.name.isNotEmpty) {
-            namespace[executable.name] = new _Meaning(
-                unitNum, kind, 0, executable.typeParameters.length);
-          }
-        });
-        return new _ClassMeaning(
-            unitNum, 0, cls.typeParameters.length, namespace);
+      _Namespace namespace = new _Namespace();
+      cls.fields.forEach((field) {
+        if (field.isStatic && field.isConst) {
+          namespace.add(field.name,
+              new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0));
+        }
       });
+      cls.executables.forEach((executable) {
+        ReferenceKind kind = null;
+        if (executable.kind == UnlinkedExecutableKind.constructor) {
+          kind = ReferenceKind.constructor;
+        } else if (executable.kind == UnlinkedExecutableKind.functionOrMethod &&
+            executable.isStatic) {
+          kind = ReferenceKind.method;
+        } else if (executable.kind == UnlinkedExecutableKind.getter &&
+            executable.isStatic) {
+          kind = ReferenceKind.propertyAccessor;
+        }
+        if (kind != null && executable.name.isNotEmpty) {
+          namespace.add(executable.name,
+              new _Meaning(unitNum, kind, 0, executable.typeParameters.length));
+        }
+      });
+      privateNamespace.add(cls.name,
+          new _ClassMeaning(unitNum, 0, cls.typeParameters.length, namespace));
     }
     for (UnlinkedEnum enm in unit.enums) {
-      privateNamespace.putIfAbsent(enm.name, () {
-        Map<String, _Meaning> namespace = <String, _Meaning>{};
-        enm.values.forEach((UnlinkedEnumValue value) {
-          namespace[value.name] =
-              new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0);
-        });
-        namespace['values'] =
-            new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0);
-        return new _ClassMeaning(unitNum, 0, 0, namespace);
+      _Namespace namespace = new _Namespace();
+      enm.values.forEach((UnlinkedEnumValue value) {
+        namespace.add(value.name,
+            new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0));
       });
+      namespace.add('values',
+          new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0));
+      privateNamespace.add(
+          enm.name, new _ClassMeaning(unitNum, 0, 0, namespace));
     }
     for (UnlinkedExecutable executable in unit.executables) {
-      privateNamespace.putIfAbsent(
+      privateNamespace.add(
           executable.name,
-          () => new _Meaning(
+          new _Meaning(
               unitNum,
               executable.kind == UnlinkedExecutableKind.functionOrMethod
                   ? ReferenceKind.topLevelFunction
@@ -323,20 +386,18 @@ class _Prelinker {
               executable.typeParameters.length));
     }
     for (UnlinkedTypedef typedef in unit.typedefs) {
-      privateNamespace.putIfAbsent(
+      privateNamespace.add(
           typedef.name,
-          () => new _Meaning(unitNum, ReferenceKind.typedef, 0,
+          new _Meaning(unitNum, ReferenceKind.typedef, 0,
               typedef.typeParameters.length));
     }
     for (UnlinkedVariable variable in unit.variables) {
-      privateNamespace.putIfAbsent(
-          variable.name,
-          () => new _Meaning(
-              unitNum, ReferenceKind.topLevelPropertyAccessor, 0, 0));
+      privateNamespace.add(variable.name,
+          new _Meaning(unitNum, ReferenceKind.topLevelPropertyAccessor, 0, 0));
       if (!(variable.isConst || variable.isFinal)) {
-        privateNamespace.putIfAbsent(
+        privateNamespace.add(
             variable.name + '=',
-            () => new _Meaning(
+            new _Meaning(
                 unitNum, ReferenceKind.topLevelPropertyAccessor, 0, 0));
       }
     }
@@ -349,8 +410,8 @@ class _Prelinker {
    * already exist in [result] are not overwritten.
    */
   void filterExportNamespace(String relativeUri,
-      List<UnlinkedCombinator> combinators, Map<String, _Meaning> result) {
-    Map<String, _Meaning> exportNamespace = computeExportNamespace(relativeUri);
+      List<UnlinkedCombinator> combinators, _Namespace result) {
+    _Namespace exportNamespace = computeExportNamespace(relativeUri);
     if (result == null) {
       // This can happen if the import prefix was shadowed by a local name, so
       // the imported symbols are inaccessible.
@@ -358,8 +419,8 @@ class _Prelinker {
     }
     NameFilter filter = new NameFilter.forUnlinkedCombinators(combinators);
     exportNamespace.forEach((String name, _Meaning meaning) {
-      if (filter.accepts(name) && !result.containsKey(name)) {
-        result[name] = meaning;
+      if (filter.accepts(name) && !result.definesLibraryName(name)) {
+        result.add(name, meaning);
       }
     });
   }
@@ -405,7 +466,7 @@ class _Prelinker {
     String uri = import.isImplicit
         ? 'dart:core'
         : _selectUri(import.uri, import.configurations);
-    Map<String, _Meaning> targetNamespace = null;
+    _Namespace targetNamespace = null;
     if (import.prefixReference != 0) {
       // The name introduced by an import declaration can't have a prefix of
       // its own.
@@ -431,12 +492,11 @@ class _Prelinker {
     if (unit == null) {
       return new LinkedUnitBuilder();
     }
-    Map<int, Map<String, _Meaning>> prefixNamespaces =
-        <int, Map<String, _Meaning>>{};
+    Map<int, _Namespace> prefixNamespaces = <int, _Namespace>{};
     List<LinkedReferenceBuilder> references = <LinkedReferenceBuilder>[];
     for (int i = 0; i < unit.references.length; i++) {
       UnlinkedReference reference = unit.references[i];
-      Map<String, _Meaning> namespace;
+      _Namespace namespace;
       if (reference.prefixReference == 0) {
         namespace = privateNamespace;
       } else {
@@ -444,7 +504,7 @@ class _Prelinker {
         assert(reference.prefixReference < i);
         namespace = prefixNamespaces[reference.prefixReference];
         // Expressions like 'a.b.c.d' cannot be prelinked.
-        namespace ??= const <String, _Meaning>{};
+        namespace ??= new _Namespace();
       }
       _Meaning meaning = namespace[reference.name];
       if (meaning != null) {
@@ -485,7 +545,7 @@ class _Prelinker {
     // exports.
     List<LinkedExportNameBuilder> exportNames = <LinkedExportNameBuilder>[];
     computeExportNamespace(null).forEach((String name, _Meaning meaning) {
-      if (!privateNamespace.containsKey(name)) {
+      if (!privateNamespace.definesName(name)) {
         exportNames.add(meaning.encodeExportName(name));
       }
     });
@@ -493,11 +553,16 @@ class _Prelinker {
     // Fill in prefixes defined in import declarations.
     for (UnlinkedImport import in units[0].imports) {
       if (import.prefixReference != 0) {
-        privateNamespace.putIfAbsent(
-            units[0].references[import.prefixReference].name,
-            () => new _PrefixMeaning());
+        String name = units[0].references[import.prefixReference].name;
+        if (!privateNamespace.definesName(name)) {
+          privateNamespace.add(name, new _PrefixMeaning());
+        }
       }
     }
+
+    // All the names defined so far are library local, they take precedence
+    // over anything imported from other libraries.
+    privateNamespace.rememberLibraryNames();
 
     // Fill in imported and exported names.
     List<int> importDependencies =

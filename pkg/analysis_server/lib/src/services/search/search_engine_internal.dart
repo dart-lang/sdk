@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
@@ -22,12 +23,18 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /**
+ * The type of a function that returns the [AstProvider] managing the [file].
+ */
+typedef AstProvider GetAstProvider(String file);
+
+/**
  * A [SearchEngine] implementation.
  */
 class SearchEngineImpl implements SearchEngine {
   final Index _index;
+  final GetAstProvider _getAstProvider;
 
-  SearchEngineImpl(this._index);
+  SearchEngineImpl(this._index, this._getAstProvider);
 
   @override
   Future<Set<ClassElement>> searchAllSubtypes(ClassElement type) async {
@@ -254,8 +261,9 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> _searchReferences_Local(
       Element element, bool isRootNode(AstNode n)) async {
     _LocalReferencesVisitor visitor = new _LocalReferencesVisitor(element);
-    AstNode node = element.computeNode();
-    AstNode enclosingNode = node?.getAncestor(isRootNode);
+    AstProvider astProvider = _getAstProvider(element.source.fullName);
+    AstNode name = await astProvider.getResolvedNameForElement(element);
+    AstNode enclosingNode = name?.getAncestor(isRootNode);
     enclosingNode?.accept(visitor);
     return visitor.matches;
   }

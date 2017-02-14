@@ -3,17 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'package:compiler/src/scanner/utf8_bytes_scanner.dart';
-import 'package:compiler/src/tokens/precedence_constants.dart';
-import 'package:compiler/src/tokens/token.dart';
-import 'package:compiler/src/util/characters.dart';
+import 'package:front_end/src/fasta/scanner.dart';
+import 'package:front_end/src/fasta/scanner/characters.dart';
+import 'package:front_end/src/fasta/scanner/precedence.dart';
 import 'dart:typed_data';
 
 Token scan(List<int> bytes) {
   List<int> zeroTerminated = new Uint8List(bytes.length + 1);
   zeroTerminated.setRange(0, bytes.length, bytes);
   zeroTerminated[bytes.length] = 0;
-  return new Utf8BytesScanner.fromBytes(zeroTerminated).tokenize();
+  return new Utf8BytesScanner(zeroTerminated).tokenize();
 }
 
 Token scanUTF8(List<int> bytes) {
@@ -26,7 +25,7 @@ Token scanUTF8(List<int> bytes) {
   for (int i = 0; i < l; i++) {
     stringLiteral[i + 1] = bytes[i];
   }
-  return new Utf8BytesScanner.fromBytes(stringLiteral).tokenize();
+  return new Utf8BytesScanner(stringLiteral).tokenize();
 }
 
 bool isRunningOnJavaScript() => identical(1, 1.0);

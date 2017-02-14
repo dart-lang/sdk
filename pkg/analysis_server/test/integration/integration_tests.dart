@@ -177,7 +177,9 @@ abstract class AbstractAnalysisServerIntegrationTest
    * [sourceDirectory] is created.
    */
   Future setUp() {
-    sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
+    sourceDirectory = new Directory(Directory.systemTemp
+        .createTempSync('analysisServer')
+        .resolveSymbolicLinksSync());
 
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
@@ -275,6 +277,17 @@ abstract class AbstractAnalysisServerIntegrationTest
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
   }
+}
+
+/**
+ * An error result from a server request.
+ */
+class ServerErrorMessage {
+  final Map message;
+
+  ServerErrorMessage(this.message);
+
+  dynamic get error => message['error'];
 }
 
 /**
@@ -575,9 +588,7 @@ class Server {
           _pendingCommands.remove(id);
         }
         if (messageAsMap.containsKey('error')) {
-          // TODO(paulberry): propagate the error info to the completer.
-          completer.completeError(new UnimplementedError(
-              'Server responded with an error: ${JSON.encode(message)}'));
+          completer.completeError(new ServerErrorMessage(messageAsMap));
         } else {
           completer.complete(messageAsMap['result']);
         }
@@ -643,6 +654,7 @@ class Server {
       bool debugServer: false,
       int diagnosticPort,
       bool enableNewAnalysisDriver: false,
+      bool noErrorNotification: false,
       bool profileServer: false,
       String sdkPath,
       int servicesPort,
@@ -698,8 +710,11 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    if (enableNewAnalysisDriver) {
-      arguments.add('--enable-new-analysis-driver');
+    if (!enableNewAnalysisDriver) {
+      arguments.add('--disable-new-analysis-driver');
+    }
+    if (noErrorNotification) {
+      arguments.add('--no-error-notification');
     }
 //    print('Launching $serverPath');
 //    print('$dartBinary ${arguments.join(' ')}');

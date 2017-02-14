@@ -10,7 +10,7 @@
 
 namespace dart {
 
-UNIT_TEST_CASE(FetchAndIncrement) {
+VM_UNIT_TEST_CASE(FetchAndIncrement) {
   uintptr_t v = 42;
   EXPECT_EQ(static_cast<uintptr_t>(42),
             AtomicOperations::FetchAndIncrement(&v));
@@ -18,7 +18,7 @@ UNIT_TEST_CASE(FetchAndIncrement) {
 }
 
 
-UNIT_TEST_CASE(FetchAndDecrement) {
+VM_UNIT_TEST_CASE(FetchAndDecrement) {
   uintptr_t v = 42;
   EXPECT_EQ(static_cast<uintptr_t>(42),
             AtomicOperations::FetchAndDecrement(&v));
@@ -26,7 +26,7 @@ UNIT_TEST_CASE(FetchAndDecrement) {
 }
 
 
-UNIT_TEST_CASE(FetchAndIncrementSigned) {
+VM_UNIT_TEST_CASE(FetchAndIncrementSigned) {
   intptr_t v = -42;
   EXPECT_EQ(static_cast<intptr_t>(-42),
             AtomicOperations::FetchAndIncrement(&v));
@@ -34,7 +34,7 @@ UNIT_TEST_CASE(FetchAndIncrementSigned) {
 }
 
 
-UNIT_TEST_CASE(FetchAndDecrementSigned) {
+VM_UNIT_TEST_CASE(FetchAndDecrementSigned) {
   intptr_t v = -42;
   EXPECT_EQ(static_cast<intptr_t>(-42),
             AtomicOperations::FetchAndDecrement(&v));
@@ -42,21 +42,21 @@ UNIT_TEST_CASE(FetchAndDecrementSigned) {
 }
 
 
-UNIT_TEST_CASE(IncrementBy) {
+VM_UNIT_TEST_CASE(IncrementBy) {
   intptr_t v = 42;
   AtomicOperations::IncrementBy(&v, 100);
   EXPECT_EQ(static_cast<intptr_t>(142), v);
 }
 
 
-UNIT_TEST_CASE(DecrementBy) {
+VM_UNIT_TEST_CASE(DecrementBy) {
   intptr_t v = 42;
   AtomicOperations::DecrementBy(&v, 41);
   EXPECT_EQ(static_cast<intptr_t>(1), v);
 }
 
 
-UNIT_TEST_CASE(LoadRelaxed) {
+VM_UNIT_TEST_CASE(LoadRelaxed) {
   uword v = 42;
   EXPECT_EQ(static_cast<uword>(42), AtomicOperations::LoadRelaxed(&v));
 }

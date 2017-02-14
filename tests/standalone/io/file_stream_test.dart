@@ -29,7 +29,7 @@ void testPauseResumeCancelStream() {
             close();
           }
         }, onDone: () {
-          Expect.fail('the stream was canceled, onDone should not happend');
+          Expect.fail('the stream was canceled, onDone should not happen');
         });
       });
   });

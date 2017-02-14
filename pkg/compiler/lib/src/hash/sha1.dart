@@ -78,7 +78,6 @@ int _rotl32(int val, int shift) {
 // functions.
 abstract class _HashBase implements Hash {
   final int _chunkSizeInWords;
-  final int _digestSizeInWords;
   final bool _bigEndianWords;
   final List<int> _currentChunk;
   final List<int> _h;
@@ -91,8 +90,7 @@ abstract class _HashBase implements Hash {
       : _pendingData = [],
         _currentChunk = new List(chunkSizeInWords),
         _h = new List(digestSizeInWords),
-        _chunkSizeInWords = chunkSizeInWords,
-        _digestSizeInWords = digestSizeInWords;
+        _chunkSizeInWords = chunkSizeInWords;
 
   // Update the hasher with more data.
   void add(List<int> data) {

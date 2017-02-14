@@ -2424,6 +2424,21 @@ var fe1 = (int x) => x;
     check(implicitDynamic: false);
   }
 
+  void test_implicitDynamic_static() {
+    addFile(r'''
+class C {
+  static void test(int body()) {}
+}
+
+void main() {
+  C.test(/*info:INFERRED_TYPE_CLOSURE*/()  {
+    return 42;
+  });
+}
+''');
+    check(implicitDynamic: false);
+  }
+
   void test_implicitDynamic_type() {
     addFile(r'''
 class C<T> {}
