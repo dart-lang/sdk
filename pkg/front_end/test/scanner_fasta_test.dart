@@ -18,6 +18,8 @@ import 'scanner_test.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ScannerTest_Fasta);
+    defineReflectiveTests(ScannerTest_Fasta_Direct);
+    defineReflectiveTests(ScannerTest_Fasta_Roundtrip);
   });
 }
 
@@ -194,5 +196,189 @@ class ScannerTest_Fasta extends ScannerTestBase {
   void test_string_simple_unterminated_interpolation_identifier() {
     // TODO(paulberry,ahe): bad error recovery.
     super.test_string_simple_unterminated_interpolation_identifier();
+  }
+}
+
+/// Base class for scanner tests that examine the token stream in Fasta format.
+abstract class ScannerTest_Fasta_Base {
+  fasta.Token scan(String source);
+
+  void test_match_angle_brackets() {
+    var x = scan('x<y>');
+    var lessThan = x.next as fasta.BeginGroupToken;
+    var y = lessThan.next;
+    var greaterThan = y.next;
+    expect(greaterThan.next.isEof, isTrue);
+    expect(lessThan.endGroup, same(greaterThan));
+  }
+
+  void test_match_angle_brackets_gt_gt() {
+    // When a ">>" appears in the token stream, Fasta's scanner matches it to
+    // the outer "<".  The inner "<" is left unmatched.
+    var x = scan('x<y<z>>');
+    var lessThan1 = x.next as fasta.BeginGroupToken;
+    var y = lessThan1.next;
+    var lessThan2 = y.next as fasta.BeginGroupToken;
+    var z = lessThan2.next;
+    var greaterThans = z.next;
+    expect(greaterThans.next.isEof, isTrue);
+    expect(lessThan1.endGroup, same(greaterThans));
+    expect(lessThan2.endGroup, isNull);
+  }
+
+  void test_match_angle_brackets_interrupted_by_close_brace() {
+    // A "}" appearing in the token stream interrupts matching of "<" and ">".
+    var openBrace = scan('{x<y}>z') as fasta.BeginGroupToken;
+    var x = openBrace.next;
+    var lessThan = x.next as fasta.BeginGroupToken;
+    var y = lessThan.next;
+    var closeBrace = y.next;
+    var greaterThan = closeBrace.next;
+    var z = greaterThan.next;
+    expect(z.next.isEof, isTrue);
+    expect(openBrace.endGroup, same(closeBrace));
+    expect(lessThan.endGroup, isNull);
+  }
+
+  void test_match_angle_brackets_interrupted_by_close_bracket() {
+    // A "]" appearing in the token stream interrupts matching of "<" and ">".
+    var openBracket = scan('[x<y]>z') as fasta.BeginGroupToken;
+    var x = openBracket.next;
+    var lessThan = x.next as fasta.BeginGroupToken;
+    var y = lessThan.next;
+    var closeBracket = y.next;
+    var greaterThan = closeBracket.next;
+    var z = greaterThan.next;
+    expect(z.next.isEof, isTrue);
+    expect(openBracket.endGroup, same(closeBracket));
+    expect(lessThan.endGroup, isNull);
+  }
+
+  void test_match_angle_brackets_interrupted_by_close_paren() {
+    // A ")" appearing in the token stream interrupts matching of "<" and ">".
+    var openParen = scan('(x<y)>z') as fasta.BeginGroupToken;
+    var x = openParen.next;
+    var lessThan = x.next as fasta.BeginGroupToken;
+    var y = lessThan.next;
+    var closeParen = y.next;
+    var greaterThan = closeParen.next;
+    var z = greaterThan.next;
+    expect(z.next.isEof, isTrue);
+    expect(openParen.endGroup, same(closeParen));
+    expect(lessThan.endGroup, isNull);
+  }
+
+  void test_match_angle_brackets_interrupted_by_interpolation_expr() {
+    // A "${" appearing in the token stream interrupts matching of "<" and ">".
+    var x = scan(r'x<"${y>z}"');
+    var lessThan = x.next as fasta.BeginGroupToken;
+    var beginString = lessThan.next;
+    var beginInterpolation = beginString.next as fasta.BeginGroupToken;
+    var y = beginInterpolation.next;
+    var greaterThan = y.next;
+    var z = greaterThan.next;
+    var endInterpolation = z.next;
+    var endString = endInterpolation.next;
+    expect(endString.next.isEof, isTrue);
+    expect(lessThan.endGroup, isNull);
+    expect(beginInterpolation.endGroup, same(endInterpolation));
+  }
+
+  void test_match_angle_brackets_interrupted_by_open_brace() {
+    // A "{" appearing in the token stream interrupts matching of "<" and ">".
+    var x = scan('x<{y>z}');
+    var lessThan = x.next as fasta.BeginGroupToken;
+    var openBrace = lessThan.next as fasta.BeginGroupToken;
+    var y = openBrace.next;
+    var greaterThan = y.next;
+    var z = greaterThan.next;
+    var closeBrace = z.next;
+    expect(closeBrace.next.isEof, isTrue);
+    expect(lessThan.endGroup, isNull);
+    expect(openBrace.endGroup, same(closeBrace));
+  }
+
+  void test_match_angle_brackets_interrupted_by_open_bracket() {
+    // A "[" appearing in the token stream interrupts matching of "<" and ">".
+    var x = scan('x<y[z>a]');
+    var lessThan = x.next as fasta.BeginGroupToken;
+    var y = lessThan.next;
+    var openBracket = y.next as fasta.BeginGroupToken;
+    var z = openBracket.next;
+    var greaterThan = z.next;
+    var a = greaterThan.next;
+    var closeBracket = a.next;
+    expect(closeBracket.next.isEof, isTrue);
+    expect(lessThan.endGroup, isNull);
+    expect(openBracket.endGroup, same(closeBracket));
+  }
+
+  void test_match_angle_brackets_interrupted_by_open_paren() {
+    // A "(" appearing in the token stream interrupts matching of "<" and ">".
+    var x = scan('x<y(z>a)');
+    var lessThan = x.next as fasta.BeginGroupToken;
+    var y = lessThan.next;
+    var openParen = y.next as fasta.BeginGroupToken;
+    var z = openParen.next;
+    var greaterThan = z.next;
+    var a = greaterThan.next;
+    var closeParen = a.next;
+    expect(closeParen.next.isEof, isTrue);
+    expect(lessThan.endGroup, isNull);
+    expect(openParen.endGroup, same(closeParen));
+  }
+
+  void test_match_angle_brackets_nested() {
+    var x = scan('x<y<z>,a>');
+    var lessThan1 = x.next as fasta.BeginGroupToken;
+    var y = lessThan1.next;
+    var lessThan2 = y.next as fasta.BeginGroupToken;
+    var z = lessThan2.next;
+    var greaterThan1 = z.next;
+    var comma = greaterThan1.next;
+    var a = comma.next;
+    var greaterThan2 = a.next;
+    expect(greaterThan2.next.isEof, isTrue);
+    expect(lessThan1.endGroup, same(greaterThan2));
+    expect(lessThan2.endGroup, same(greaterThan1));
+  }
+
+  void test_match_angle_brackets_unmatched_gt_gt() {
+    // When a ">>" appears in the token stream and there is no outer "<",
+    // Fasta's scanner leaves the inner "<" unmatched.
+    var x = scan('x<y>>z');
+    var lessThan = x.next as fasta.BeginGroupToken;
+    var y = lessThan.next;
+    var greaterThans = y.next;
+    var z = greaterThans.next;
+    expect(z.next.isEof, isTrue);
+    expect(lessThan.endGroup, isNull);
+  }
+}
+
+/// Scanner tests that exercise the Fasta scanner directly.
+@reflectiveTest
+class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
+  @override
+  fasta.Token scan(String source) {
+    var scanner = new fasta.StringScanner(source, includeComments: true);
+    return scanner.tokenize();
+  }
+}
+
+/// Scanner tests that exercise the Fasta scanner, then convert the tokens to
+/// analyzer tokens, then convert back to Fasta tokens before checking
+/// assertions.
+@reflectiveTest
+class ScannerTest_Fasta_Roundtrip extends ScannerTest_Fasta_Base {
+  @override
+  fasta.Token scan(String source) {
+    var scanner = new fasta.StringScanner(source, includeComments: true);
+    var fastaTokenStream = scanner.tokenize();
+    var analyzerTokenStream = toAnalyzerTokenStream(fastaTokenStream,
+        (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      fail('Unexpected error: $errorCode, $offset, $arguments');
+    });
+    return fromAnalyzerTokenStream(analyzerTokenStream);
   }
 }

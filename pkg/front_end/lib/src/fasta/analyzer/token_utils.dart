@@ -134,23 +134,36 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
   // so that we don't have to check if they're empty.
   var beginTokenStack = <BeginGroupToken>[null];
   var endTokenStack = <analyzer.Token>[null];
+  var angleBracketStack = <BeginGroupToken>[];
   void matchGroups(analyzer.Token analyzerToken, Token translatedToken) {
     // If this token closes a group, set the corresponding opener token to point
     // to it.
     if (identical(endTokenStack.last, analyzerToken)) {
+      angleBracketStack.clear();
       beginTokenStack.last.endGroup = translatedToken;
       beginTokenStack.removeLast();
       endTokenStack.removeLast();
+    } else if (translatedToken.info.kind == LT_TOKEN) {
+      BeginGroupToken beginGroupToken = translatedToken;
+      angleBracketStack.add(beginGroupToken);
+    } else if (translatedToken.info.kind == GT_TOKEN &&
+        angleBracketStack.isNotEmpty) {
+      angleBracketStack.removeLast().endGroup = translatedToken;
+    } else if (translatedToken.info.kind == GT_GT_TOKEN &&
+        angleBracketStack.isNotEmpty) {
+      angleBracketStack.removeLast();
+      if (angleBracketStack.isNotEmpty) {
+        angleBracketStack.removeLast().endGroup = translatedToken;
+      }
     }
     // If this token opens a group, and there is a matching closer, put it on
     // the stack.
     // TODO(paulberry): generate synthetic closer tokens and "UnmatchedToken"
     // tokens as appropriate.
-    // TODO(paulberry): match up "<" and ">"/">>" (analyzer doesn't match
-    // these).
     if (translatedToken is BeginGroupToken &&
         analyzerToken is analyzer.BeginToken &&
         analyzerToken.endToken != null) {
+      angleBracketStack.clear();
       beginTokenStack.add(translatedToken);
       endTokenStack.add(analyzerToken.endToken);
     }
@@ -275,7 +288,7 @@ Token fromAnalyzerToken(analyzer.Token token) {
     case TokenType.INDEX_EQ:
       return symbol(INDEX_EQ_INFO);
     case TokenType.LT:
-      return symbol(LT_INFO);
+      return beginGroup(LT_INFO);
     case TokenType.LT_EQ:
       return symbol(LT_EQ_INFO);
     case TokenType.LT_LT:
