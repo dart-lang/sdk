@@ -426,7 +426,7 @@ class FileState {
     _topLevelDeclarations = null;
 
     // Prepare API signature.
-    List<int> newApiSignature = _unlinked.apiSignature;
+    List<int> newApiSignature = new Uint8List.fromList(_unlinked.apiSignature);
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
