@@ -89,7 +89,6 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     if (name == "_exports#") {
       // This is a hack / work around for storing exports in dill files. See
       // [compile_platform.dart](../compile_platform.dart).
-      print("$uri: _exports# not implemented yet.");
     } else {
       addBuilder(name, new DillMemberBuilder(member, this), member.fileOffset);
     }
