@@ -113,6 +113,6 @@ class StringCanonicalizer {
   }
 
   clear() {
-    _nodes = new List<Node>(size);
+    _nodes = new List<Node>(_size);
   }
 }
