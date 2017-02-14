@@ -227,7 +227,7 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
     type_parameters = TypeArguments::New(num_type_parameters);
     for (intptr_t i = 0; i < num_type_parameters; i++) {
       parameter = dart::TypeParameter::New(
-          *klass, Function::Handle(Z), i,
+          *klass, Function::Handle(Z), i, 0,
           H.DartSymbol(kernel_klass->type_parameters()[i]->name()), null_bound,
           TokenPosition::kNoSource);
       type_parameters.SetTypeAt(i, parameter);

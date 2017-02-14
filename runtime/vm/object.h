@@ -2252,6 +2252,9 @@ class Function : public Object {
   }
   void set_type_parameters(const TypeArguments& value) const;
   intptr_t NumTypeParameters(Thread* thread) const;
+  intptr_t NumTypeParameters() const {
+    return NumTypeParameters(Thread::Current());
+  }
 
   // Return a TypeParameter if the type_name is a type parameter of this
   // function or of one of its parent functions.
@@ -6121,6 +6124,7 @@ class TypeParameter : public AbstractType {
   static RawTypeParameter* New(const Class& parameterized_class,
                                const Function& parameterized_function,
                                intptr_t index,
+                               intptr_t parent_level,
                                const String& name,
                                const AbstractType& bound,
                                TokenPosition token_pos);
@@ -6133,7 +6137,7 @@ class TypeParameter : public AbstractType {
   void set_parameterized_function(const Function& value) const;
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
-  void set_parent_level(uint8_t value) const;
+  void set_parent_level(intptr_t value) const;
   void set_type_state(int8_t state) const;
 
   static RawTypeParameter* New();

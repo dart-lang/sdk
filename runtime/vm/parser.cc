@@ -54,7 +54,14 @@ DEFINE_FLAG(bool,
             conditional_directives,
             true,
             "Enable conditional directives");
-DEFINE_FLAG(bool, generic_method_syntax, true, "Enable generic functions.");
+DEFINE_FLAG(bool,
+            generic_method_syntax,
+            true,
+            "Enable generic function syntax.");
+DEFINE_FLAG(bool,
+            generic_method_semantics,
+            true,
+            "Enable generic function semantics (not yet supported).");
 DEFINE_FLAG(bool,
             initializing_formal_access,
             true,
@@ -5505,24 +5512,13 @@ void Parser::ParseTypeParameters(bool parameterizing_class) {
         // Postpone resolution in order to avoid resolving the owner and its
         // type parameters, as they are not fully parsed yet.
         type_parameter_bound = ParseType(ClassFinalizer::kDoNotResolve);
-        if (!parameterizing_class) {
-          // TODO(regis): Resolve and finalize function type parameter bounds in
-          // class finalizer. For now, ignore parsed bounds to avoid unresolved
-          // bounds while writing snapshots.
-          type_parameter_bound = I->object_store()->object_type();
-        }
       } else {
         type_parameter_bound = I->object_store()->object_type();
       }
       type_parameter = TypeParameter::New(
           parameterizing_class ? current_class() : Class::Handle(Z),
           parameterizing_class ? Function::Handle(Z) : innermost_function(),
-          index, type_parameter_name, type_parameter_bound, declaration_pos);
-      if (!parameterizing_class) {
-        // TODO(regis): Resolve and finalize function type parameter in
-        // class finalizer. For now, already mark as finalized.
-        type_parameter.SetIsFinalized();
-      }
+          index, 0, type_parameter_name, type_parameter_bound, declaration_pos);
       type_parameters_array.Add(
           &AbstractType::ZoneHandle(Z, type_parameter.raw()));
       if (FLAG_enable_mirrors && metadata_pos.IsReal()) {
@@ -5543,8 +5539,7 @@ void Parser::ParseTypeParameters(bool parameterizing_class) {
     } else {
       innermost_function().set_type_parameters(type_parameters);
     }
-    // Try to resolve the upper bounds, which will at least resolve the
-    // referenced type parameters.
+    // Resolve type parameters referenced by upper bounds.
     const intptr_t num_types = type_parameters.Length();
     for (intptr_t i = 0; i < num_types; i++) {
       type_parameter ^= type_parameters.TypeAt(i);
@@ -12254,10 +12249,25 @@ void Parser::ResolveSignature(const Function& signature) {
   const Function& saved_innermost_function =
       Function::Handle(Z, innermost_function().raw());
   innermost_function_ = signature.raw();
-  // TODO(regis): Resolve upper bounds of function type parameters.
-  AbstractType& type = AbstractType::Handle(signature.result_type());
+  AbstractType& type = AbstractType::Handle();
+  // Resolve upper bounds of function type parameters.
+  const intptr_t num_type_params = signature.NumTypeParameters();
+  if (num_type_params > 0) {
+    TypeParameter& type_param = TypeParameter::Handle();
+    const TypeArguments& type_params =
+        TypeArguments::Handle(signature.type_parameters());
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_param ^= type_params.TypeAt(i);
+      type = type_param.bound();
+      ResolveType(&type);
+      type_param.set_bound(type);
+    }
+  }
+  // Resolve result type.
+  type = signature.result_type();
   ResolveType(&type);
   signature.set_result_type(type);
+  // Resolve formal parameter types.
   const intptr_t num_parameters = signature.NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = signature.ParameterTypeAt(i);
@@ -12287,11 +12297,24 @@ void Parser::ResolveType(AbstractType* type) {
       // First check if the type is a function type parameter.
       if (!innermost_function().IsNull()) {
         // TODO(regis): Shortcut this lookup if no generic functions in scope.
+        // A bit has_generic_parent() would be useful on Function.
+        // Unfortunately, all 32 kind bits are used in Function.
         TypeParameter& type_parameter = TypeParameter::ZoneHandle(
             Z, innermost_function().LookupTypeParameter(unresolved_class_name,
                                                         NULL));
         if (!type_parameter.IsNull()) {
-          // TODO(regis): Check for absence of type arguments.
+          // A type parameter cannot be parameterized, so make the type
+          // malformed if type arguments have previously been parsed.
+          if (type->arguments() != TypeArguments::null()) {
+            *type = ClassFinalizer::NewFinalizedMalformedType(
+                Error::Handle(Z),  // No previous error.
+                script_, type_parameter.token_pos(),
+                "type parameter '%s' cannot be parameterized",
+                String::Handle(Z, type_parameter.name()).ToCString());
+            return;
+          }
+          // TODO(regis): Mark function type parameter as finalized (its index
+          // does not need adjustment upon finalization) and return it.
           // For now, resolve the function type parameter to dynamic.
           *type = Type::DynamicType();
           return;
@@ -12334,7 +12357,7 @@ void Parser::ResolveType(AbstractType* type) {
     const intptr_t num_arguments = arguments.Length();
     AbstractType& type_argument = AbstractType::Handle(Z);
     for (intptr_t i = 0; i < num_arguments; i++) {
-      type_argument ^= arguments.TypeAt(i);
+      type_argument = arguments.TypeAt(i);
       ResolveType(&type_argument);
       arguments.SetTypeAt(i, type_argument);
     }
@@ -12890,8 +12913,9 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
           // Make sure that the function instantiator is captured.
           CaptureFunctionInstantiator();
         }
-        // TODO(regis): Finalize type parameter and return as type node.
-        // For now, map to dynamic type.
+        // TODO(regis): Mark function type parameter as finalized (its index
+        // does not need adjustment upon finalization) and return as type node.
+        // For now, resolve the function type parameter to dynamic.
         Type& type = Type::ZoneHandle(Z, Type::DynamicType());
         return new (Z) TypeNode(ident_pos, type);
       }

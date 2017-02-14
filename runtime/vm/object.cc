@@ -5905,24 +5905,28 @@ RawTypeParameter* Function::LookupTypeParameter(
   Function& function = thread->FunctionHandle();
 
   function ^= this->raw();
-  intptr_t parent_level = -1;
+  intptr_t parent_level = 0;
   while (!function.IsNull()) {
     type_params ^= function.type_parameters();
     if (!type_params.IsNull()) {
-      parent_level++;
       const intptr_t num_type_params = type_params.Length();
       for (intptr_t i = 0; i < num_type_params; i++) {
         type_param ^= type_params.TypeAt(i);
         type_param_name = type_param.name();
         if (type_param_name.Equals(type_name)) {
           if (parent_level > 0) {
-            // TODO(regis): Clone type parameter and set parent_level.
+            // Clone type parameter and set parent_level.
+            return TypeParameter::New(
+                Class::Handle(), function, type_param.index(), parent_level,
+                type_param_name, AbstractType::Handle(type_param.bound()),
+                TokenPosition::kNoSource);
           }
           return type_param.raw();
         }
       }
     }
     function ^= function.parent_function();
+    parent_level++;
     if (function_level != NULL) {
       (*function_level)--;
     }
@@ -15620,6 +15624,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
         Function::Handle(zone, Closure::Cast(*this).function());
     const TypeArguments& type_arguments =
         TypeArguments::Handle(zone, GetTypeArguments());
+    // TODO(regis): If signature function is generic, pass its type parameters
+    // as function instantiator, otherwise pass null.
+    // Pass the closure context as well to the the IsSubtypeOf call.
     return signature.IsSubtypeOf(type_arguments, other_signature,
                                  other_type_arguments, bound_error, Heap::kOld);
   }
@@ -17794,7 +17801,7 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
   // No need to clone bound, as it is not part of the finalization state.
   return TypeParameter::New(Class::Handle(parameterized_class()),
                             Function::Handle(parameterized_function()), index(),
-                            String::Handle(name()),
+                            parent_level(), String::Handle(name()),
                             AbstractType::Handle(bound()), token_pos());
 }
 
@@ -17808,11 +17815,16 @@ RawAbstractType* TypeParameter::CloneUninstantiated(const Class& new_owner,
     return clone.raw();
   }
   const Class& old_owner = Class::Handle(parameterized_class());
+  if (old_owner.IsNull()) {
+    ASSERT(IsFunctionTypeParameter());
+    // Function type parameters do not need cloning.
+    return raw();
+  }
   const intptr_t new_index =
       index() + new_owner.NumTypeArguments() - old_owner.NumTypeArguments();
   AbstractType& upper_bound = AbstractType::Handle(bound());
   ASSERT(parameterized_function() == Function::null());
-  clone = TypeParameter::New(new_owner, Function::Handle(), new_index,
+  clone = TypeParameter::New(new_owner, Function::Handle(), new_index, 0,
                              String::Handle(name()),
                              upper_bound,  // Not cloned yet.
                              token_pos());
@@ -17863,6 +17875,7 @@ RawTypeParameter* TypeParameter::New() {
 RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
                                      const Function& parameterized_function,
                                      intptr_t index,
+                                     intptr_t parent_level,
                                      const String& name,
                                      const AbstractType& bound,
                                      TokenPosition token_pos) {
@@ -17871,6 +17884,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
   result.set_parameterized_class(parameterized_class);
   result.set_parameterized_function(parameterized_function);
   result.set_index(index);
+  result.set_parent_level(parent_level);
   result.set_name(name);
   result.set_bound(bound);
   result.SetHash(0);
@@ -17887,7 +17901,9 @@ void TypeParameter::set_token_pos(TokenPosition token_pos) const {
 }
 
 
-void TypeParameter::set_parent_level(uint8_t value) const {
+void TypeParameter::set_parent_level(intptr_t value) const {
+  // TODO(regis): Report error in caller if not uint8.
+  ASSERT(Utils::IsUint(8, value));
   StoreNonPointer(&raw_ptr()->parent_level_, value);
 }
 

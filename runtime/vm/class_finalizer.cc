@@ -1255,8 +1255,21 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
 
 void ClassFinalizer::ResolveSignature(const Class& cls,
                                       const Function& function) {
+  AbstractType& type = AbstractType::Handle();
+  // Resolve upper bounds of function type parameters.
+  const intptr_t num_type_params = function.NumTypeParameters();
+  if (num_type_params > 0) {
+    TypeParameter& type_param = TypeParameter::Handle();
+    const TypeArguments& type_params =
+        TypeArguments::Handle(function.type_parameters());
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_param ^= type_params.TypeAt(i);
+      type = type_param.bound();
+      ResolveType(cls, type);
+    }
+  }
   // Resolve result type.
-  AbstractType& type = AbstractType::Handle(function.result_type());
+  type = function.result_type();
   // It is not a compile time error if this name does not resolve to a class or
   // interface.
   ResolveType(cls, type);
@@ -1271,12 +1284,26 @@ void ClassFinalizer::ResolveSignature(const Class& cls,
 
 void ClassFinalizer::FinalizeSignature(const Class& cls,
                                        const Function& function) {
+  AbstractType& type = AbstractType::Handle();
+  AbstractType& finalized_type = AbstractType::Handle();
+  // Finalize upper bounds of function type parameters.
+  const intptr_t num_type_params = function.NumTypeParameters();
+  if (num_type_params > 0) {
+    TypeParameter& type_param = TypeParameter::Handle();
+    const TypeArguments& type_params =
+        TypeArguments::Handle(function.type_parameters());
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_param ^= type_params.TypeAt(i);
+      type = type_param.bound();
+      finalized_type = FinalizeType(cls, type, kCanonicalize);
+      if (finalized_type.raw() != type.raw()) {
+        type_param.set_bound(finalized_type);
+      }
+    }
+  }
   // Finalize result type.
-  AbstractType& type = AbstractType::Handle(function.result_type());
-  // It is not a compile time error if this name does not resolve to a class or
-  // interface.
-  AbstractType& finalized_type =
-      AbstractType::Handle(FinalizeType(cls, type, kCanonicalize));
+  type = function.result_type();
+  finalized_type = FinalizeType(cls, type, kCanonicalize);
   // The result type may be malformed or malbounded.
   if (finalized_type.raw() != type.raw()) {
     function.set_result_type(finalized_type);
@@ -1736,7 +1763,7 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
         param_name =
             Symbols::FromConcat(thread, param_name, Symbols::Backtick());
         cloned_param =
-            TypeParameter::New(mixin_app_class, null_function, cloned_index,
+            TypeParameter::New(mixin_app_class, null_function, cloned_index, 0,
                                param_name, param_bound, param.token_pos());
         cloned_type_params.SetTypeAt(cloned_index, cloned_param);
         // Change the type arguments of the super type to refer to the
@@ -1774,7 +1801,7 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
         cloned_param =
             TypeParameter::New(mixin_app_class, null_function,
                                cloned_index,  // Unfinalized index.
-                               param_name, param_bound, param.token_pos());
+                               0, param_name, param_bound, param.token_pos());
         cloned_type_params.SetTypeAt(cloned_index, cloned_param);
         mixin_type_args.SetTypeAt(i, cloned_param);  // Unfinalized length.
         instantiator.SetTypeAt(offset + i, cloned_param);  // Finalized length.
