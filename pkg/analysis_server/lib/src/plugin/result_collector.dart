@@ -3,6 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
+ * A function used to determine whether results should be collected for the
+ * file with the given [path].
+ */
+typedef bool ShouldCollectPredicate(String path);
+
+/**
  * An object used to collect partial results (of type [E]) where the partial
  * results are contributed by plugins.
  */
@@ -11,6 +17,12 @@ class ResultCollector<E> {
    * The id used as a plugin id for contributions from the server.
    */
   final String serverId;
+
+  /**
+   * A function used to determine whether results should be collected for the
+   * file whose path is passed in as an argument.
+   */
+  final ShouldCollectPredicate _shouldCollect;
 
   /**
    * A multi-keyed map, where the first key is the (normalized and absolute)
@@ -23,7 +35,8 @@ class ResultCollector<E> {
   /**
    * Initialize a newly created result manager.
    */
-  ResultCollector(this.serverId);
+  ResultCollector(this.serverId, {ShouldCollectPredicate predicate})
+      : _shouldCollect = predicate;
 
   /**
    * Clear any results that have been contributed for the file with the given
@@ -32,7 +45,7 @@ class ResultCollector<E> {
    * because the content of the file has been modified.
    */
   void clearResultsForFile(String filePath) {
-    resultMap[filePath].clear();
+    resultMap[filePath]?.clear();
   }
 
   /**
@@ -69,7 +82,12 @@ class ResultCollector<E> {
    * Return `true` if this collector is collecting results associated with the
    * given [filePath].
    */
-  bool isCollectingFor(String filePath) => resultMap.containsKey(filePath);
+  bool isCollectingFor(String filePath) {
+    if (_shouldCollect != null) {
+      return _shouldCollect(filePath);
+    }
+    return resultMap.containsKey(filePath);
+  }
 
   /**
    * Record the [partialResults] as having been contributed for the given
@@ -77,7 +95,11 @@ class ResultCollector<E> {
    */
   void putResults(String filePath, String pluginId, E partialResults) {
     Map<String, E> fileResults = resultMap[filePath];
-    if (fileResults != null) {
+    if (fileResults == null) {
+      if (_shouldCollect != null && _shouldCollect(filePath)) {
+        resultMap[filePath] = <String, E>{pluginId: partialResults};
+      }
+    } else {
       fileResults[pluginId] = partialResults;
     }
   }

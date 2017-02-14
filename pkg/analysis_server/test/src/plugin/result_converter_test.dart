@@ -9,6 +9,8 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'protocol_test_utilities.dart';
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ResultConverterTest);
@@ -16,7 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class ResultConverterTest {
+class ResultConverterTest extends ProtocolTestUtilities {
   static const List<String> strings = const <String>[
     'a',
     'b',
@@ -37,20 +39,20 @@ class ResultConverterTest {
   ResultConverter converter = new ResultConverter();
 
   void test_convertAnalysisError() {
-    plugin.AnalysisError initial = _pluginAnalysisError();
-    server.AnalysisError expected = _serverAnalysisError();
+    plugin.AnalysisError initial = pluginAnalysisError(0, 0);
+    server.AnalysisError expected = serverAnalysisError(0, 0);
     expect(converter.convertAnalysisError(initial), expected);
   }
 
   void test_convertAnalysisErrorFixes() {
     plugin.AnalysisErrorFixes initial = new plugin.AnalysisErrorFixes(
-        _pluginAnalysisError(),
+        pluginAnalysisError(0, 0),
         fixes: <plugin.PrioritizedSourceChange>[
-          new plugin.PrioritizedSourceChange(100, _pluginSourceChange())
+          new plugin.PrioritizedSourceChange(100, pluginSourceChange(4, 4))
         ]);
     server.AnalysisErrorFixes expected = new server.AnalysisErrorFixes(
-        _serverAnalysisError(),
-        fixes: <server.SourceChange>[_serverSourceChange()]);
+        serverAnalysisError(0, 0),
+        fixes: <server.SourceChange>[serverSourceChange(4, 4)]);
     expect(converter.convertAnalysisErrorFixes(initial), expected);
   }
 
@@ -82,7 +84,7 @@ class ResultConverterTest {
         docSummary: 'b',
         docComplete: 'c',
         declaringType: 'd',
-        element: _pluginElement(4, 4),
+        element: pluginElement(4, 4),
         returnType: 'i',
         parameterNames: <String>['j', 'k'],
         parameterTypes: <String>[],
@@ -96,7 +98,7 @@ class ResultConverterTest {
         docSummary: 'b',
         docComplete: 'c',
         declaringType: 'd',
-        element: _serverElement(4, 4),
+        element: serverElement(4, 4),
         returnType: 'i',
         parameterNames: <String>['j', 'k'],
         parameterTypes: <String>[],
@@ -111,21 +113,21 @@ class ResultConverterTest {
   void test_convertEditGetRefactoringResult_inlineMethod() {
     plugin.EditGetRefactoringResult initial =
         new plugin.EditGetRefactoringResult(
-            <plugin.RefactoringProblem>[_pluginRefactoringProblem('a', 1)],
-            <plugin.RefactoringProblem>[_pluginRefactoringProblem('b', 5)],
-            <plugin.RefactoringProblem>[_pluginRefactoringProblem('c', 9)],
+            <plugin.RefactoringProblem>[pluginRefactoringProblem(0, 0)],
+            <plugin.RefactoringProblem>[pluginRefactoringProblem(2, 4)],
+            <plugin.RefactoringProblem>[pluginRefactoringProblem(4, 8)],
             feedback:
                 new plugin.InlineMethodFeedback('a', true, className: 'b'),
-            change: _pluginSourceChange(),
+            change: pluginSourceChange(6, 12),
             potentialEdits: <String>['f']);
     server.EditGetRefactoringResult expected =
         new server.EditGetRefactoringResult(
-            <server.RefactoringProblem>[_serverRefactoringProblem('a', 1)],
-            <server.RefactoringProblem>[_serverRefactoringProblem('b', 5)],
-            <server.RefactoringProblem>[_serverRefactoringProblem('c', 9)],
+            <server.RefactoringProblem>[serverRefactoringProblem(0, 0)],
+            <server.RefactoringProblem>[serverRefactoringProblem(2, 4)],
+            <server.RefactoringProblem>[serverRefactoringProblem(4, 8)],
             feedback:
                 new server.InlineMethodFeedback('a', true, className: 'b'),
-            change: _serverSourceChange(),
+            change: serverSourceChange(6, 12),
             potentialEdits: <String>['f']);
     expect(
         converter.convertEditGetRefactoringResult(
@@ -136,18 +138,18 @@ class ResultConverterTest {
   void test_convertEditGetRefactoringResult_moveFile() {
     plugin.EditGetRefactoringResult initial =
         new plugin.EditGetRefactoringResult(
-            <plugin.RefactoringProblem>[_pluginRefactoringProblem('a', 1)],
-            <plugin.RefactoringProblem>[_pluginRefactoringProblem('b', 5)],
-            <plugin.RefactoringProblem>[_pluginRefactoringProblem('c', 9)],
+            <plugin.RefactoringProblem>[pluginRefactoringProblem(0, 0)],
+            <plugin.RefactoringProblem>[pluginRefactoringProblem(2, 4)],
+            <plugin.RefactoringProblem>[pluginRefactoringProblem(4, 8)],
             feedback: new plugin.MoveFileFeedback(),
-            change: _pluginSourceChange(),
+            change: pluginSourceChange(6, 12),
             potentialEdits: <String>['f']);
     server.EditGetRefactoringResult expected =
         new server.EditGetRefactoringResult(
-            <server.RefactoringProblem>[_serverRefactoringProblem('a', 1)],
-            <server.RefactoringProblem>[_serverRefactoringProblem('b', 5)],
-            <server.RefactoringProblem>[_serverRefactoringProblem('c', 9)],
-            change: _serverSourceChange(),
+            <server.RefactoringProblem>[serverRefactoringProblem(0, 0)],
+            <server.RefactoringProblem>[serverRefactoringProblem(2, 4)],
+            <server.RefactoringProblem>[serverRefactoringProblem(4, 8)],
+            change: serverSourceChange(6, 12),
             potentialEdits: <String>['f']);
     expect(
         converter.convertEditGetRefactoringResult(
@@ -156,45 +158,39 @@ class ResultConverterTest {
   }
 
   void test_convertFoldingRegion() {
-    plugin.FoldingRegion initial =
-        new plugin.FoldingRegion(plugin.FoldingKind.COMMENT, 1, 2);
-    server.FoldingRegion expected =
-        new server.FoldingRegion(server.FoldingKind.COMMENT, 1, 2);
+    plugin.FoldingRegion initial = pluginFoldingRegion(1, 2);
+    server.FoldingRegion expected = serverFoldingRegion(1, 2);
     expect(converter.convertFoldingRegion(initial), expected);
   }
 
   void test_convertHighlightRegion() {
-    plugin.HighlightRegion initial =
-        new plugin.HighlightRegion(plugin.HighlightRegionType.FIELD, 1, 2);
-    server.HighlightRegion expected =
-        new server.HighlightRegion(server.HighlightRegionType.FIELD, 1, 2);
+    plugin.HighlightRegion initial = pluginHighlightRegion(1, 2);
+    server.HighlightRegion expected = serverHighlightRegion(1, 2);
     expect(converter.convertHighlightRegion(initial), expected);
   }
 
   void test_convertOccurrences() {
-    plugin.Occurrences initial =
-        new plugin.Occurrences(_pluginElement(1, 1), <int>[6, 7], 8);
-    server.Occurrences expected =
-        new server.Occurrences(_serverElement(1, 1), <int>[6, 7], 8);
+    plugin.Occurrences initial = pluginOccurrences(1, 1);
+    server.Occurrences expected = serverOccurrences(1, 1);
     expect(converter.convertOccurrences(initial), expected);
   }
 
   void test_convertOutline() {
-    plugin.Outline initial = new plugin.Outline(_pluginElement(1, 1), 6, 7,
+    plugin.Outline initial = new plugin.Outline(pluginElement(1, 1), 6, 7,
         children: <plugin.Outline>[
-          new plugin.Outline(_pluginElement(6, 8), 14, 15)
+          new plugin.Outline(pluginElement(6, 8), 14, 15)
         ]);
-    server.Outline expected = new server.Outline(_serverElement(1, 1), 6, 7,
+    server.Outline expected = new server.Outline(serverElement(1, 1), 6, 7,
         children: <server.Outline>[
-          new server.Outline(_serverElement(6, 8), 14, 15)
+          new server.Outline(serverElement(6, 8), 14, 15)
         ]);
     expect(converter.convertOutline(initial), expected);
   }
 
   void test_convertPrioritizedSourceChange() {
     plugin.PrioritizedSourceChange initial =
-        new plugin.PrioritizedSourceChange(100, _pluginSourceChange());
-    server.SourceChange expected = _serverSourceChange();
+        new plugin.PrioritizedSourceChange(100, pluginSourceChange(0, 0));
+    server.SourceChange expected = serverSourceChange(0, 0);
     expect(converter.convertPrioritizedSourceChange(initial), expected);
   }
 
@@ -331,106 +327,8 @@ class ResultConverterTest {
   }
 
   void test_convertSourceChange() {
-    plugin.SourceChange initial = _pluginSourceChange();
-    server.SourceChange expected = _serverSourceChange();
+    plugin.SourceChange initial = pluginSourceChange(0, 0);
+    server.SourceChange expected = serverSourceChange(0, 0);
     expect(converter.convertSourceChange(initial), expected);
   }
-
-  String _fileName(int index) => '${strings[index]}.dart';
-
-  plugin.AnalysisError _pluginAnalysisError() => new plugin.AnalysisError(
-      plugin.AnalysisErrorSeverity.ERROR,
-      plugin.AnalysisErrorType.COMPILE_TIME_ERROR,
-      new plugin.Location('a.dart', 1, 2, 3, 4),
-      'm',
-      'c',
-      correction: 'n',
-      hasFix: true);
-
-  /**
-   * On return, increment [stringIndex] by 5 and [intIndex] by 5.
-   */
-  plugin.Element _pluginElement(int stringIndex, int intIndex) =>
-      new plugin.Element(
-          plugin.ElementKind.CLASS, strings[stringIndex++], intIndex++,
-          location: new plugin.Location(_fileName(stringIndex++), intIndex++,
-              intIndex++, intIndex++, intIndex++),
-          parameters: strings[stringIndex++],
-          returnType: strings[stringIndex++],
-          typeParameters: strings[stringIndex++]);
-
-  plugin.Location _pluginLocation(String baseName, int index) =>
-      new plugin.Location(
-          '$baseName.dart', index, index + 1, index + 2, index + 3);
-
-  plugin.RefactoringProblem _pluginRefactoringProblem(
-          String baseName, int index) =>
-      new plugin.RefactoringProblem(
-          plugin.RefactoringProblemSeverity.FATAL, baseName,
-          location: _pluginLocation(baseName, index));
-
-  plugin.SourceChange _pluginSourceChange() => new plugin.SourceChange('m',
-      edits: <plugin.SourceFileEdit>[
-        new plugin.SourceFileEdit('a.dart', 1,
-            edits: <plugin.SourceEdit>[new plugin.SourceEdit(2, 3, 'r')])
-      ],
-      linkedEditGroups: <plugin.LinkedEditGroup>[
-        new plugin.LinkedEditGroup(
-            <plugin.Position>[new plugin.Position('b.dart', 4)],
-            5,
-            <plugin.LinkedEditSuggestion>[
-              new plugin.LinkedEditSuggestion(
-                  'v', plugin.LinkedEditSuggestionKind.METHOD)
-            ])
-      ],
-      selection: new plugin.Position('c.dart', 6));
-
-  server.AnalysisError _serverAnalysisError() {
-    return new server.AnalysisError(
-        server.AnalysisErrorSeverity.ERROR,
-        server.AnalysisErrorType.COMPILE_TIME_ERROR,
-        new server.Location('a.dart', 1, 2, 3, 4),
-        'm',
-        'c',
-        correction: 'n',
-        hasFix: true);
-  }
-
-  /**
-   * On return, increment [stringIndex] by 5 and [intIndex] by 5.
-   */
-  server.Element _serverElement(int stringIndex, int intIndex) =>
-      new server.Element(
-          server.ElementKind.CLASS, strings[stringIndex++], intIndex++,
-          location: new server.Location(_fileName(stringIndex++), intIndex++,
-              intIndex++, intIndex++, intIndex++),
-          parameters: strings[stringIndex++],
-          returnType: strings[stringIndex++],
-          typeParameters: strings[stringIndex++]);
-
-  server.Location _serverLocation(String baseName, int index) =>
-      new server.Location(
-          '$baseName.dart', index, index + 1, index + 2, index + 3);
-
-  server.RefactoringProblem _serverRefactoringProblem(
-          String baseName, int index) =>
-      new server.RefactoringProblem(
-          server.RefactoringProblemSeverity.FATAL, baseName,
-          location: _serverLocation(baseName, index));
-
-  server.SourceChange _serverSourceChange() => new server.SourceChange('m',
-      edits: <server.SourceFileEdit>[
-        new server.SourceFileEdit('a.dart', 1,
-            edits: <server.SourceEdit>[new server.SourceEdit(2, 3, 'r')])
-      ],
-      linkedEditGroups: <server.LinkedEditGroup>[
-        new server.LinkedEditGroup(
-            <server.Position>[new server.Position('b.dart', 4)],
-            5,
-            <server.LinkedEditSuggestion>[
-              new server.LinkedEditSuggestion(
-                  'v', server.LinkedEditSuggestionKind.METHOD)
-            ])
-      ],
-      selection: new server.Position('c.dart', 6));
 }

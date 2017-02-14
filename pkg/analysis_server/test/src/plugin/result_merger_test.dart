@@ -9,10 +9,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
-  /*
-    import 'result_merger_test.dart' as result_merger_test;
-    result_merger_test.main();
-   */
   defineReflectiveSuite(() {
     defineReflectiveTests(ResultMergerTest);
   });

@@ -487,7 +487,7 @@ class ResultMerger {
       bool isCopied = copiedOutline != null;
       copiedOutline ??= outline;
       List<Outline> currentChildren = copiedOutline.children;
-      if (currentChildren.isEmpty) {
+      if (currentChildren == null || currentChildren.isEmpty) {
         return outline;
       }
       List<Outline> updatedChildren =
