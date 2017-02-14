@@ -11,6 +11,7 @@ large_class_declaration_test: SkipSlow  # KernelVM Issue 28312
 ###############################################################################
 
 [ $compiler == dartk || $compiler == dartkp ]
+bad_raw_string_test/03: MissingCompileTimeError
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
 conflicting_type_variable_and_setter_test: CompileTimeError
@@ -18,7 +19,6 @@ const_for_in_variable_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/03: MissingCompileTimeError
 deep_nesting1_negative_test: DartkCrash
 deep_nesting2_negative_test: DartkCrash
-enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
 external_test/21: MissingCompileTimeError
 external_test/24: MissingCompileTimeError
@@ -29,7 +29,9 @@ final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
+main_not_a_function_test/01: Pass # Fails if tree shaking is disabled
 metadata_test: CompileTimeError
+mixin_illegal_syntax_test/00: DartkCrash
 multiline_newline_test/01: CompileTimeError
 multiline_newline_test/02: CompileTimeError
 multiline_newline_test/03: CompileTimeError
@@ -37,13 +39,12 @@ multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 regress_27617_test/1: MissingCompileTimeError
-vm/regress_28325_test: RuntimeError  # Issue 28055.
+type_variable_conflict2_test/02: MissingCompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 vm/regress_27201_test: CompileTimeError
-main_not_a_function_test/01: Pass # Fails if tree shaking is disabled
-type_variable_conflict2_test/02: MissingCompileTimeError
+vm/regress_28325_test: RuntimeError  # Issue 28055.
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
@@ -52,7 +53,6 @@ config_import_corelib_test: RuntimeError
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 config_import_corelib_test: RuntimeError
-mixin_illegal_syntax_test/00: DartkCrash
 not_enough_positional_arguments_test/01: DartkCompileTimeError # Issue 28590
 
 ###############################################################################
@@ -198,8 +198,11 @@ vm/type_vm_test: RuntimeError
 const_locals_test: RuntimeError
 constructor_named_arguments_test/01: Crash  # Dartk Issue 28301
 const_string_test: RuntimeError  # Dartk Issue 28306
+deferred_regression_28678_test: RuntimeError
 library_env_test/has_no_mirror_support: RuntimeError
+main_not_a_function_test/01: Crash
 redirecting_factory_reflection_test: RuntimeError
+vm/causal_async_exception_stack_test: RuntimeError
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
@@ -209,6 +212,7 @@ not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 deferred_regression_28678_test: RuntimeError # Issue 28335
+enum_syntax_test/05: MissingCompileTimeError
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]

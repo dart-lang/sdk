@@ -327,7 +327,7 @@ Future<CompilationResult> requestParse(
 
 void startBatchServer() {
   final loader = new DartLoaderBatch();
-  HttpServer.bind(InternetAddress.LOOPBACK_IP_V6, workerPort).then((server) {
+  HttpServer.bind('localhost', workerPort).then((server) {
     print('READY ${server.port}');
     server.listen((HttpRequest request) async {
       final rq = JSON.decode(await UTF8.decodeStream(request));

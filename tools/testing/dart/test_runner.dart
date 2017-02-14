@@ -2339,15 +2339,18 @@ class BatchDFEProcess  {
 
   static Future<String> _firstLine(stream) {
     var completer = new Completer<String>();
-    var first = true;
     stream.transform(UTF8.decoder)
           .transform(new LineSplitter())
           .listen((line) {
-      if (first) {
+      if (!completer.isCompleted) {
         completer.complete(line);
-        first = false;
       }
       // We need to drain a pipe continuously.
+    }, onDone: () {
+      if (!completer.isCompleted) {
+        completer.completeError(
+            "DFE kernel compiler server did not sucessfully start up");
+      }
     });
     return completer.future;
   }
@@ -2360,7 +2363,7 @@ class BatchDFEProcess  {
       _port = -1;
       _process = await io.Process.start(executable, arguments);
       _process.exitCode.then(_onExit);
-      _process.stderr.drain();
+      _process.stderr.transform(UTF8.decoder).listen(DebugLogger.error);
 
       final readyMsg = await _firstLine(_process.stdout);
       final data = readyMsg.split(' ');

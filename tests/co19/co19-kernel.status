@@ -6,7 +6,6 @@
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
-LibTest/isolate/Isolate/spawnUri_A01_t06: Fail  # Test is racy.
 
 Language/Metadata/before_export_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_import_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
@@ -113,8 +112,6 @@ Language/Variables/final_t04: MissingCompileTimeError
 Language/Variables/final_t05: MissingCompileTimeError
 Language/Variables/final_t06: MissingCompileTimeError
 Language/Variables/final_t07: MissingCompileTimeError
-Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError # Missing compile-time error from analyzer
-Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
@@ -124,6 +121,8 @@ Language/Mixins/Mixin_Application/syntax_t16: DartkCrash
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
+Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError
+Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError
 
 ###############################################################################
 # VM Entries
