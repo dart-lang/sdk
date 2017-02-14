@@ -21,6 +21,8 @@ import 'precedence.dart' show
 import 'token_constants.dart' show
     IDENTIFIER_TOKEN;
 
+import 'canonicalizer.dart';
+
 /**
  * A token that doubles as a linked list.
  */
@@ -195,7 +197,8 @@ class StringToken extends Token {
    */
   StringToken.fromString(this.info, String value, int charOffset,
       {bool canonicalize: false})
-      : valueOrLazySubstring = canonicalizedString(value, canonicalize),
+      : valueOrLazySubstring = canonicalizedString(value, 
+          0, value.length, canonicalize),
         super(charOffset);
 
   /**
@@ -209,7 +212,7 @@ class StringToken extends Token {
     int length = end - start;
     if (length <= LAZY_THRESHOLD) {
       valueOrLazySubstring =
-          canonicalizedString(data.substring(start, end), canonicalize);
+          canonicalizedString(data, start, end, canonicalize);
     } else {
       valueOrLazySubstring =
           new LazySubstring(data, start, length, canonicalize);
@@ -241,7 +244,7 @@ class StringToken extends Token {
       int end = start + valueOrLazySubstring.length;
       if (data is String) {
         valueOrLazySubstring = canonicalizedString(
-            data.substring(start, end), valueOrLazySubstring.boolValue);
+            data, start, end, valueOrLazySubstring.boolValue);
       } else {
         valueOrLazySubstring =
             decodeUtf8(data, start, end, valueOrLazySubstring.boolValue);
@@ -257,24 +260,16 @@ class StringToken extends Token {
 
   String toString() => "StringToken($value)";
 
-  static final HashSet<String> canonicalizedSubstrings = new HashSet<String>();
+  static final StringCanonicalizer canonicalizer = new StringCanonicalizer();
 
-  static String canonicalizedString(String s, bool canonicalize) {
+  static String canonicalizedString(String s, int start, int end,
+      bool canonicalize) {
     if (!canonicalize) return s;
-    var result = canonicalizedSubstrings.lookup(s);
-    if (result != null) return result;
-    canonicalizedSubstrings.add(s);
-    return s;
+    return canonicalizer.canonicalize(s, start, end, false);
   }
 
   static String decodeUtf8(List<int> data, int start, int end, bool asciiOnly) {
-    var s;
-    if (asciiOnly) {
-      s = new String.fromCharCodes(data, start, end);
-    } else {
-      s = UTF8.decoder.convert(data, start, end);
-    }
-    return canonicalizedString(s, true);
+    return canonicalizer.canonicalize(data, start, end, asciiOnly);
   }
 }
 
