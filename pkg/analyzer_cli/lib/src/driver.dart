@@ -244,9 +244,16 @@ class Driver implements CommandLineStarter {
     // Check that each part has a corresponding source in the input list.
     for (Source part in parts) {
       bool found = false;
-      for (var lib in context.getLibrariesContaining(part)) {
-        if (libUris.contains(lib.uri)) {
+      if (analysisDriver != null) {
+        var partFile = analysisDriver.fsState.getFileForPath(part.fullName);
+        if (libUris.contains(partFile.library?.uri)) {
           found = true;
+        }
+      } else {
+        for (var lib in context.getLibrariesContaining(part)) {
+          if (libUris.contains(lib.uri)) {
+            found = true;
+          }
         }
       }
       if (!found) {
