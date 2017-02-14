@@ -217,6 +217,7 @@ verbose_gc_to_bmu_test: Skip
 io/process_sync_test: Pass, Timeout # Issue 24596
 io/sleep_test: Pass, Fail # Issue 25757
 io/http_server_early_client_close2_test: Pass, Crash  # Issue 28197
+io/process_stdin_transform_unsubscribe_test: Pass, Timeout # Issue #28558
 
 [ $system == windows && $compiler != dart2analyzer ]
 io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
