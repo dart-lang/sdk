@@ -6,6 +6,7 @@
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
+LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
 Language/Metadata/before_export_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_import_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
