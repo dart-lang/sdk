@@ -34,7 +34,7 @@ class StringCanonicalizer {
   /// Items in a hash table.
   int _count = 0;
   /// The table itself.
-  Node _nodes = new List<Node>(INITIAL_SIZE);
+  List<Node> _nodes = new List<Node>(INITIAL_SIZE);
 
   static String decode(List<int> data, int start, int end, bool asciiOnly) {
     var s;
