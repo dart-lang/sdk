@@ -33,7 +33,7 @@ typedef void ExitHandler(int code);
 
 /// Analyzer commandline configuration options.
 class CommandLineOptions {
-  final bool enableNewAnalysisDriver = false;
+  final bool enableNewAnalysisDriver = true;
 
   /// The path to output analysis results when in build mode.
   final String buildAnalysisOutput;
@@ -143,6 +143,9 @@ class CommandLineOptions {
   /// Whether to treat lints as fatal
   final bool lintsAreFatal;
 
+  /// Whether to use memory byte store for analysis driver.
+  final bool useAnalysisDriverMemoryByteStore;
+
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(ArgResults args)
       : buildAnalysisOutput = args['build-analysis-output'],
@@ -181,7 +184,9 @@ class CommandLineOptions {
         strongMode = args['strong'],
         implicitCasts = !args['no-implicit-casts'],
         implicitDynamic = !args['no-implicit-dynamic'],
-        lintsAreFatal = args['fatal-lints'];
+        lintsAreFatal = args['fatal-lints'],
+        useAnalysisDriverMemoryByteStore =
+            args['use-analysis-driver-memory-byte-store'];
 
   /// The path to an analysis options file
   String get analysisOptionsFile =>
@@ -451,6 +456,11 @@ class CommandLineOptions {
           hide: hide)
       ..addFlag('enable_type_checks',
           help: 'Check types in constant evaluation.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('use-analysis-driver-memory-byte-store',
+          help: 'Use memory byte store, not the file system cache.',
           defaultsTo: false,
           negatable: false,
           hide: hide);
