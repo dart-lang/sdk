@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
+import 'package:stack_trace/stack_trace.dart';
 import 'service_test_common.dart';
 
 /// Will be set to the http address of the VM's service protocol before
@@ -293,7 +294,7 @@ class _ServiceTesterRunner {
       }
       setupAddresses(serverAddress);
       var name = Platform.script.pathSegments.last;
-      try {
+      Chain.capture(() async {
         var vm =
             new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
         print('Loading VM...');
@@ -328,16 +329,16 @@ class _ServiceTesterRunner {
         print('All service tests completed successfully.');
         testsDone = true;
         await process.requestExit();
-      } catch (error, stackTrace) {
+      }, onError: (error, stackTrace) {
         if (testsDone) {
           print('Ignoring late exception during process exit:\n'
                 '$error\n#stackTrace');
         } else {
           process.requestExit();
           print('Unexpected exception in service tests: $error\n$stackTrace');
-          rethrow;
+          throw error;
         }
-      }
+      });
     });
   }
 

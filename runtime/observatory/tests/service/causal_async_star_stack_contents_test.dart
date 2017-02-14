@@ -41,9 +41,9 @@ var tests = [
     // No causal frames because we are in a completely synchronous stack.
     expect(stack['asyncCausalFrames'], isNotNull);
     var asyncStack = stack['asyncCausalFrames'];
-    expect(asyncStack[0].toString(), contains('helper'));
+    expect(asyncStack[0].toString(), contains('helper_async_body'));
     expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
-    expect(asyncStack[2].toString(), contains('testMain'));
+    expect(asyncStack[2].toString(), contains('helper'));
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
@@ -54,11 +54,13 @@ var tests = [
     // Has causal frames (we are inside an async function)
     expect(stack['asyncCausalFrames'], isNotNull);
     var asyncStack = stack['asyncCausalFrames'];
-    expect(asyncStack[0].toString(), contains('foobar'));
+    expect(asyncStack[0].toString(), contains('foobar_async_gen_body'));
     expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
-    expect(asyncStack[2].toString(), contains('helper'));
-    expect(asyncStack[3].kind, equals(M.FrameKind.asyncSuspensionMarker));
-    expect(asyncStack[4].toString(), contains('testMain'));
+    expect(asyncStack[2].toString(), contains('foobar'));
+    expect(asyncStack[3].toString(), contains('helper_async_body'));
+    expect(asyncStack[4].kind, equals(M.FrameKind.asyncSuspensionMarker));
+    expect(asyncStack[5].toString(), contains('helper'));
+    expect(asyncStack[6].toString(), contains('testMain'));
   },
 
   resumeIsolate,
@@ -70,11 +72,13 @@ var tests = [
     // Has causal frames (we are inside a function called by an async function)
     expect(stack['asyncCausalFrames'], isNotNull);
     var asyncStack = stack['asyncCausalFrames'];
-    expect(asyncStack[0].toString(), contains('foobar'));
+    expect(asyncStack[0].toString(), contains('foobar_async_gen_body'));
     expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
-    expect(asyncStack[2].toString(), contains('helper'));
-    expect(asyncStack[3].kind, equals(M.FrameKind.asyncSuspensionMarker));
-    expect(asyncStack[4].toString(), contains('testMain'));
+    expect(asyncStack[2].toString(), contains('foobar'));
+    expect(asyncStack[3].toString(), contains('helper_async_body'));
+    expect(asyncStack[4].kind, equals(M.FrameKind.asyncSuspensionMarker));
+    expect(asyncStack[5].toString(), contains('helper'));
+    expect(asyncStack[6].toString(), contains('testMain'));
   },
 ];
 

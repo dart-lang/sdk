@@ -7064,31 +7064,12 @@ RawString* Function::UserVisibleName() const {
 
 RawString* Function::QualifiedName(NameVisibility name_visibility) const {
   ASSERT(name_visibility != kInternalName);  // We never request it.
-  // If |this| is the generated asynchronous body closure, use the
-  // name of the parent function.
-  Function& fun = Function::Handle(raw());
-  if (fun.IsClosureFunction()) {
-    // Sniff the parent function.
-    fun = fun.parent_function();
-    ASSERT(!fun.IsNull());
-    if (!fun.IsAsyncGenerator() && !fun.IsAsyncFunction() &&
-        !fun.IsSyncGenerator()) {
-      // Parent function is not the generator of an asynchronous body closure,
-      // start at |this|.
-      fun = raw();
-    }
-  }
   // A function's scrubbed name and its user visible name are identical.
-  String& result = String::Handle(fun.UserVisibleName());
+  String& result = String::Handle(UserVisibleName());
   if (IsClosureFunction()) {
+    Function& fun = Function::Handle(raw());
     while (fun.IsLocalFunction() && !fun.IsImplicitClosureFunction()) {
       fun = fun.parent_function();
-      if (fun.IsAsyncClosure() || fun.IsSyncGenClosure() ||
-          fun.IsAsyncGenClosure()) {
-        // Skip the closure and use the real function name found in
-        // the parent.
-        fun = fun.parent_function();
-      }
       result = String::Concat(Symbols::Dot(), result, Heap::kOld);
       result = String::Concat(String::Handle(fun.UserVisibleName()), result,
                               Heap::kOld);
@@ -22496,10 +22477,6 @@ const char* StackTrace::ToCStringInternal(const StackTrace& stack_trace_in,
       } else if (code.raw() ==
                  StubCode::AsynchronousGapMarker_entry()->code()) {
         buffer.AddString("<asynchronous suspension>\n");
-        // The frame immediately after the asynchronous gap marker is the
-        // identical to the frame above the marker. Skip the frame to enhance
-        // the readability of the trace.
-        i++;
       } else {
         ASSERT(code.IsFunctionCode());
         intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
