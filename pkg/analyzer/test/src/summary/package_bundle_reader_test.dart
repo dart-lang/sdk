@@ -72,6 +72,9 @@ class ResynthesizerResultProviderTest {
     when(bundle.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary]);
     dataStore.addBundle('/p1.ds', bundle);
 
+    when(unlinkedUnit1.isPartOf).thenReturn(false);
+    when(unlinkedUnit2.isPartOf).thenReturn(true);
+
     when(unlinkedUnit1.publicNamespace)
         .thenReturn(_namespaceWithParts(['package:p1/u2.dart']));
     when(unlinkedUnit2.publicNamespace).thenReturn(_namespaceWithParts([]));
@@ -122,6 +125,13 @@ class ResynthesizerResultProviderTest {
     bool success = provider.compute(entry1, SOURCE_KIND);
     expect(success, isTrue);
     expect(entry1.getValue(SOURCE_KIND), SourceKind.LIBRARY);
+  }
+
+  test_compute_SOURCE_KIND_librarySource_isPartOf() {
+    when(unlinkedUnit1.isPartOf).thenReturn(true);
+    bool success = provider.compute(entry1, SOURCE_KIND);
+    expect(success, isTrue);
+    expect(entry1.getValue(SOURCE_KIND), SourceKind.PART);
   }
 
   test_compute_SOURCE_KIND_noResults() {

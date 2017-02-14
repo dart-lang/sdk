@@ -637,7 +637,11 @@ class Interval {
   String toString() => '[$from,$to[';
 }
 
-enum CodeKind { LIBRARY, CLASS, MEMBER, }
+enum CodeKind {
+  LIBRARY,
+  CLASS,
+  MEMBER,
+}
 
 class CodeLocation {
   final Uri uri;

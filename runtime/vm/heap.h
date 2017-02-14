@@ -88,10 +88,11 @@ class Heap {
   bool NewContains(uword addr) const;
   bool OldContains(uword addr) const;
   bool CodeContains(uword addr) const;
+  bool DataContains(uword addr) const;
 
   void IterateObjects(ObjectVisitor* visitor) const;
   void IterateOldObjects(ObjectVisitor* visitor) const;
-  void IterateOldObjectsNoEmbedderPages(ObjectVisitor* visitor) const;
+  void IterateOldObjectsNoImagePages(ObjectVisitor* visitor) const;
   void IterateObjectPointers(ObjectVisitor* visitor) const;
 
   // Find an object by visiting all pointers in the specified heap space,
@@ -114,9 +115,7 @@ class Heap {
     return old_space_.NeedsGarbageCollection();
   }
 
-#if defined(DEBUG)
-  void WaitForSweeperTasks();
-#endif
+  void WaitForSweeperTasks(Thread* thread);
 
   // Enables growth control on the page space heaps.  This should be
   // called before any user code is executed.
@@ -246,8 +245,8 @@ class Heap {
   Monitor* barrier() const { return barrier_; }
   Monitor* barrier_done() const { return barrier_done_; }
 
-  void SetupExternalPage(void* pointer, uword size, bool is_executable) {
-    old_space_.SetupExternalPage(pointer, size, is_executable);
+  void SetupImagePage(void* pointer, uword size, bool is_executable) {
+    old_space_.SetupImagePage(pointer, size, is_executable);
   }
 
  private:
@@ -297,6 +296,8 @@ class Heap {
   // Visit all objects, including FreeListElement "objects". Caller must ensure
   // concurrent sweeper is not running, and the visitor must not allocate.
   void VisitObjects(ObjectVisitor* visitor) const;
+  void VisitObjectsNoImagePages(ObjectVisitor* visitor) const;
+  void VisitObjectsImagePages(ObjectVisitor* visitor) const;
 
   // Like Verify, but does not wait for concurrent sweeper, so caller must
   // ensure thread-safety.
@@ -350,6 +351,8 @@ class Heap {
 
   friend class Become;       // VisitObjectPointers
   friend class Precompiler;  // VisitObjects
+  friend class ObjectGraph;  // VisitObjects
+  friend class Unmarker;     // VisitObjects
   friend class ServiceEvent;
   friend class PageSpace;             // VerifyGC
   friend class IsolateReloadContext;  // VisitObjects
@@ -360,12 +363,13 @@ class Heap {
 
 class HeapIterationScope : public StackResource {
  public:
-  HeapIterationScope();
+  explicit HeapIterationScope(bool writable = false);
   ~HeapIterationScope();
 
  private:
   NoSafepointScope no_safepoint_scope_;
   PageSpace* old_space_;
+  bool writable_;
 
   DISALLOW_COPY_AND_ASSIGN(HeapIterationScope);
 };

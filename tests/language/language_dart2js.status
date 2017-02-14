@@ -3,14 +3,14 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+enum_test: Fail # Issue 28340
+regress_28341_test: Fail # Issue 28340
 deferred_not_loaded_check_test: Fail # Issue 27577
 getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
 setter4_test: CompileTimeError # issue 13639
 
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
-tearoff_basic_test: Skip # Tear-off not supported
-tearoff_constructor_basic_test: Skip # Tear-off not supported
 
 try_catch_on_syntax_test/10: Fail # Issue 19823
 try_catch_on_syntax_test/11: Fail # Issue 19823
@@ -39,6 +39,19 @@ accessor_conflict_import_test: RuntimeError # Issue 25626
 
 duplicate_part_test/01: MissingCompileTimeError # Issue 27517
 
+bad_typedef_test/00: Crash # Issue 28214
+
+covariant_test/02: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/08: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/12: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/14: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/16: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/22: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/28: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/32: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/34: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+covariant_test/36: MissingCompileTimeError, OK # Accepts `covariant` for statics/top-level.
+
 [ $compiler == dart2js && $fast_startup ]
 const_evaluation_test/*: Fail # mirrors not supported
 deferred_constraints_constants_test/none: Fail # mirrors not supported
@@ -62,13 +75,10 @@ redirecting_factory_reflection_test: Fail # mirrors not supported
 regress_13462_0_test: Fail # mirrors not supported
 regress_13462_1_test: Fail # mirrors not supported
 regress_18535_test: Fail # mirrors not supported
+regress_28255_test: Fail # mirrors not supported
 super_call4_test: Fail # mirrors not supported
 super_getter_setter_test: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
-
-[ $compiler == dart2js && $fast_startup && $checked ]
-generic_local_functions_test: Fail # reified type for generic function not generated correctly
-generic_methods_generic_function_parameter_test: Fail # reified type for generic function not generated correctly
 
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
@@ -183,6 +193,7 @@ f_bounded_quantification5_test: Fail, OK # Issue 12605
 cyclic_type_test/0*: Fail # Issue 12605
 cyclic_type2_test: Fail # Issue 12605
 f_bounded_quantification4_test: Fail, OK # Issue 12605
+generic_closure_test: Fail # Issue 12605
 mixin_generic_test: Fail # Issue 12605
 mixin_mixin2_test: Fail # Issue 12605
 mixin_mixin3_test: Fail # Issue 12605
@@ -217,7 +228,6 @@ mixin_mixin3_test: RuntimeError # Issue 13109.
 modulo_test: RuntimeError # Issue 15246
 truncdiv_test: RuntimeError # Issue 15246
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
-generic_closure_test: RuntimeError # Issue 12605
 const_switch_test/02: RuntimeError # Issue 17960
 const_switch_test/04: RuntimeError # Issue 17960
 

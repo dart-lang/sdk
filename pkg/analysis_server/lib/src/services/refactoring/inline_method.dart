@@ -191,20 +191,15 @@ Set<String> _getNamesConflictingAt(AstNode node) {
 }
 
 /**
- * Completes with the resolved [CompilationUnit] that contains the [element].
- */
-typedef Future<CompilationUnit> GetResolvedUnitContainingElement(
-    Element element);
-
-/**
  * [InlineMethodRefactoring] implementation.
  */
 class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
-  final GetResolvedUnitContainingElement getResolvedUnit;
+  final GetResolvedUnit getResolvedUnit;
   final CompilationUnit unit;
   final int offset;
+  _UnitCache _unitCache;
   CorrectionUtils utils;
   SourceChange change;
 
@@ -227,6 +222,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   InlineMethodRefactoringImpl(
       this.searchEngine, this.getResolvedUnit, this.unit, this.offset) {
+    _unitCache = new _UnitCache(getResolvedUnit, unit);
     utils = new CorrectionUtils(unit);
   }
 
@@ -323,6 +319,20 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   @override
   bool requiresPreview() => false;
 
+  Future<FunctionDeclaration> _computeFunctionDeclaration() async {
+    CompilationUnit unit = await _unitCache.getUnit(_methodElement);
+    return new NodeLocator(_methodElement.nameOffset)
+        .searchWithin(unit)
+        .getAncestor((n) => n is FunctionDeclaration) as FunctionDeclaration;
+  }
+
+  Future<MethodDeclaration> _computeMethodDeclaration() async {
+    CompilationUnit unit = await _unitCache.getUnit(_methodElement);
+    return new NodeLocator(_methodElement.nameOffset)
+        .searchWithin(unit)
+        .getAncestor((n) => n is MethodDeclaration) as MethodDeclaration;
+  }
+
   _SourcePart _createSourcePart(SourceRange range) {
     String source = _methodUtils.getRangeText(range);
     String prefix = getLinePrefix(source);
@@ -361,12 +371,12 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     _methodElement = element as ExecutableElement;
     _isAccessor = element is PropertyAccessorElement;
-    _methodUnit = await getResolvedUnit(element);
+    _methodUnit = await _unitCache.getUnit(element);
     _methodUtils = new CorrectionUtils(_methodUnit);
     // class member
     bool isClassMember = element.enclosingElement is ClassElement;
     if (element is MethodElement || _isAccessor && isClassMember) {
-      MethodDeclaration methodDeclaration = element.computeNode();
+      MethodDeclaration methodDeclaration = await _computeMethodDeclaration();
       _methodNode = methodDeclaration;
       _methodParameters = methodDeclaration.parameters;
       _methodBody = methodDeclaration.body;
@@ -379,7 +389,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // unit member
     bool isUnitMember = element.enclosingElement is CompilationUnitElement;
     if (element is FunctionElement || _isAccessor && isUnitMember) {
-      FunctionDeclaration functionDeclaration = element.computeNode();
+      FunctionDeclaration functionDeclaration =
+          await _computeFunctionDeclaration();
       _methodNode = functionDeclaration;
       _methodParameters = functionDeclaration.functionExpression.parameters;
       _methodBody = functionDeclaration.functionExpression.body;
@@ -457,7 +468,7 @@ class _ReferenceProcessor {
   Future<Null> init() async {
     refElement = reference.element;
     // prepare CorrectionUtils
-    CompilationUnit refUnit = await ref.getResolvedUnit(refElement);
+    CompilationUnit refUnit = await ref._unitCache.getUnit(refElement);
     _refUtils = new CorrectionUtils(refUnit);
     // prepare node and environment
     _node = _refUtils.findNode(reference.sourceRange.offset);
@@ -774,6 +785,26 @@ class _SourcePart {
     }
     range = rangeFromBase(range, _base);
     ranges.add(range);
+  }
+}
+
+class _UnitCache {
+  final GetResolvedUnit getResolvedUnit;
+  final Map<CompilationUnitElement, CompilationUnit> map = {};
+
+  _UnitCache(this.getResolvedUnit, CompilationUnit unit) {
+    map[unit.element] = unit;
+  }
+
+  Future<CompilationUnit> getUnit(Element element) async {
+    Element unitElement =
+        element.getAncestor((e) => e is CompilationUnitElement);
+    CompilationUnit unit = map[unitElement];
+    if (unit == null) {
+      unit = unitElement.unit;
+      map[unitElement] = unit;
+    }
+    return unit;
   }
 }
 

@@ -14,7 +14,7 @@ class SanitizeForVM {
       for (var class_ in library.classes) {
         if (class_.constructors.isEmpty && class_.procedures.isEmpty) {
           class_.addMember(new Constructor(
-              new FunctionNode(new InvalidStatement()),
+              new FunctionNode(new EmptyStatement()),
               name: new Name('')));
         }
       }

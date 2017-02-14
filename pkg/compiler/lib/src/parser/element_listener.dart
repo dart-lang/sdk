@@ -273,9 +273,9 @@ class ElementListener extends Listener {
       Token classKeyword, Token implementsKeyword, Token endToken) {
     NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
     MixinApplication mixinApplication = popNode();
-    Modifiers modifiers = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
+    Modifiers modifiers = popNode();
     NamedMixinApplication namedMixinApplication = new NamedMixinApplication(
         name,
         typeParameters,

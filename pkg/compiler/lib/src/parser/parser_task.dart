@@ -18,7 +18,9 @@ import 'parser.dart' show Parser;
 class ParserTask extends CompilerTask {
   final Compiler compiler;
 
-  ParserTask(Compiler compiler): compiler = compiler, super(compiler.measurer);
+  ParserTask(Compiler compiler)
+      : compiler = compiler,
+        super(compiler.measurer);
 
   String get name => 'Parser';
 

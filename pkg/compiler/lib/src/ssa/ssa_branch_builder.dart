@@ -161,8 +161,7 @@ class SsaBranchBuilder {
       boolifiedLeft = builder.popBoolified();
       builder.stack.add(boolifiedLeft);
       if (!isAnd) {
-        JavaScriptBackend backend = compiler.backend;
-        builder.push(new HNot(builder.pop(), backend.boolType));
+        builder.push(new HNot(builder.pop(), builder.commonMasks.boolType));
       }
     }
 
@@ -172,10 +171,12 @@ class SsaBranchBuilder {
     }
 
     handleIf(visitCondition, visitThen, null);
-    HConstant notIsAnd = builder.graph.addConstantBool(!isAnd, compiler);
-    JavaScriptBackend backend = compiler.backend;
+    HConstant notIsAnd =
+        builder.graph.addConstantBool(!isAnd, builder.closedWorld);
     HPhi result = new HPhi.manyInputs(
-        null, <HInstruction>[boolifiedRight, notIsAnd], backend.dynamicType);
+        null,
+        <HInstruction>[boolifiedRight, notIsAnd],
+        builder.commonMasks.dynamicType);
     builder.current.addPhi(result);
     builder.stack.add(result);
   }
@@ -200,9 +201,8 @@ class SsaBranchBuilder {
 
     if (isExpression) {
       assert(thenValue != null && elseValue != null);
-      JavaScriptBackend backend = compiler.backend;
-      HPhi phi = new HPhi.manyInputs(
-          null, <HInstruction>[thenValue, elseValue], backend.dynamicType);
+      HPhi phi = new HPhi.manyInputs(null, <HInstruction>[thenValue, elseValue],
+          builder.commonMasks.dynamicType);
       joinBranch.block.addPhi(phi);
       builder.stack.add(phi);
     }

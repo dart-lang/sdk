@@ -9,11 +9,12 @@ import '../common.dart' show invariant;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
-import '../inferrer/type_graph_inferrer.dart'
-    show TypeGraphInferrer, TypeInformationSystem;
+import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
+import '../inferrer/type_system.dart';
 import '../tree/tree.dart';
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Maplet;
+import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 
 import 'masks.dart';
 export 'masks.dart';
@@ -43,12 +44,14 @@ abstract class GlobalTypeInferenceElementResult {
   /// The inferred return type when this result belongs to a function element.
   TypeMask get returnType;
 
-  /// Returns the type of a list allocation [node] (which can be a list
-  /// literal or a list new expression).
-  TypeMask typeOfNewList(Node node);
+  /// Returns the type of a list new expression [node].
+  TypeMask typeOfNewList(Send node);
+
+  /// Returns the type of a list literal [node].
+  TypeMask typeOfListLiteral(LiteralList node);
 
   /// Returns the type of a send [node].
-  TypeMask typeOfSend(Node node);
+  TypeMask typeOfSend(Send node);
 
   /// Returns the type of the operator of a complex send-set [node], for
   /// example, the type of `+` in `a += b`.
@@ -98,10 +101,13 @@ class GlobalTypeInferenceElementResultImpl
     return mask != null && mask.isEmpty;
   }
 
-  TypeMask typeOfNewList(Node node) =>
+  TypeMask typeOfNewList(Send node) =>
       _inferrer.getTypeForNewList(_owner, node);
 
-  TypeMask typeOfSend(Node node) => _data?.typeOfSend(node);
+  TypeMask typeOfListLiteral(LiteralList node) =>
+      _inferrer.getTypeForNewList(_owner, node);
+
+  TypeMask typeOfSend(Send node) => _data?.typeOfSend(node);
   TypeMask typeOfGetter(SendSet node) => _data?.typeOfGetter(node);
   TypeMask typeOfOperator(SendSet node) => _data?.typeOfOperator(node);
   TypeMask typeOfIterator(ForIn node) => _data?.typeOfIterator(node);
@@ -122,11 +128,11 @@ class GlobalTypeInferenceElementData {
     _typeMasks[node] = mask;
   }
 
-  TypeMask typeOfSend(Node node) => _get(node);
+  TypeMask typeOfSend(Send node) => _get(node);
   TypeMask typeOfGetter(SendSet node) => _get(node.selector);
   TypeMask typeOfOperator(SendSet node) => _get(node.assignmentOperator);
 
-  void setTypeMask(Node node, TypeMask mask) {
+  void setTypeMask(Send node, TypeMask mask) {
     _set(node, mask);
   }
 
@@ -184,8 +190,8 @@ abstract class TypesInferrer {
 class GlobalTypeInferenceResults {
   // TODO(sigmund): store relevant data & drop reference to inference engine.
   final TypeGraphInferrer _inferrer;
-  final Compiler compiler;
-  final TypeMask dynamicType;
+  final ClosedWorld closedWorld;
+  final Compiler _compiler;
   final Map<Element, GlobalTypeInferenceElementResult> _elementResults = {};
 
   // TODO(sigmund,johnniwinther): compute result objects eagerly and make it an
@@ -206,13 +212,14 @@ class GlobalTypeInferenceResults {
             element,
             _inferrer.inferrer.inTreeData[key],
             _inferrer,
-            compiler.backend.isJsInterop(element),
+            _compiler.backend.isJsInterop(element),
             dynamicType));
   }
 
-  GlobalTypeInferenceResults(this._inferrer, this.compiler, CommonMasks masks,
-      TypeInformationSystem types)
-      : dynamicType = masks.dynamicType;
+  GlobalTypeInferenceResults(
+      this._inferrer, this._compiler, this.closedWorld, TypeSystem types);
+
+  TypeMask get dynamicType => closedWorld.commonMasks.dynamicType;
 
   /// Returns the type of a [selector] when applied to a receiver with the given
   /// type [mask].
@@ -245,14 +252,15 @@ class GlobalTypeInferenceTask extends CompilerTask {
         super(compiler.measurer);
 
   /// Runs the global type-inference algorithm once.
-  void runGlobalTypeInference(Element mainElement) {
+  void runGlobalTypeInference(Element mainElement, ClosedWorld closedWorld,
+      ClosedWorldRefiner closedWorldRefiner) {
     measure(() {
-      CommonMasks masks = compiler.closedWorld.commonMasks;
-      typesInferrerInternal ??= new TypeGraphInferrer(compiler, masks);
+      typesInferrerInternal ??=
+          new TypeGraphInferrer(compiler, closedWorld, closedWorldRefiner);
       typesInferrerInternal.analyzeMain(mainElement);
       typesInferrerInternal.clear();
       results = new GlobalTypeInferenceResults(typesInferrerInternal, compiler,
-          masks, typesInferrerInternal.inferrer.types);
+          closedWorld, typesInferrerInternal.inferrer.types);
     });
   }
 }

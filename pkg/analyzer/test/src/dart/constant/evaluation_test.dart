@@ -4,8 +4,11 @@
 
 library analyzer.test.constant_test;
 
+import 'dart:async';
+
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -91,8 +94,8 @@ $text''');
 
 @reflectiveTest
 class ConstantValueComputerTest extends ResolverTestCase {
-  void test_annotation_constConstructor() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_annotation_constConstructor() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class A {
   final int i;
   const A(this.i);
@@ -109,8 +112,8 @@ class C {
     _assertIntField(annotationFields, 'i', 5);
   }
 
-  void test_annotation_constConstructor_named() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_annotation_constConstructor_named() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class A {
   final int i;
   const A.named(this.i);
@@ -127,10 +130,10 @@ class C {
     _assertIntField(annotationFields, 'i', 5);
   }
 
-  void test_annotation_constConstructor_noArgs() {
+  test_annotation_constConstructor_noArgs() async {
     // Failing to pass arguments to an annotation which is a constant
     // constructor is illegal, but shouldn't crash analysis.
-    CompilationUnit compilationUnit = resolveSource(r'''
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class A {
   final int i;
   const A(this.i);
@@ -144,10 +147,10 @@ class C {
     _evaluateAnnotation(compilationUnit, "C", "f");
   }
 
-  void test_annotation_constConstructor_noArgs_named() {
+  test_annotation_constConstructor_noArgs_named() async {
     // Failing to pass arguments to an annotation which is a constant
     // constructor is illegal, but shouldn't crash analysis.
-    CompilationUnit compilationUnit = resolveSource(r'''
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class A {
   final int i;
   const A.named(this.i);
@@ -161,10 +164,10 @@ class C {
     _evaluateAnnotation(compilationUnit, "C", "f");
   }
 
-  void test_annotation_nonConstConstructor() {
+  test_annotation_nonConstConstructor() async {
     // Calling a non-const constructor from an annotation that is illegal, but
     // shouldn't crash analysis.
-    CompilationUnit compilationUnit = resolveSource(r'''
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class A {
   final int i;
   A(this.i);
@@ -178,8 +181,8 @@ class C {
     _evaluateAnnotation(compilationUnit, "C", "f");
   }
 
-  void test_annotation_staticConst() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_annotation_staticConst() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class C {
   static const int i = 5;
 
@@ -192,10 +195,10 @@ class C {
     expect(_assertValidInt(result), 5);
   }
 
-  void test_annotation_staticConst_args() {
+  test_annotation_staticConst_args() async {
     // Applying arguments to an annotation that is a static const is
     // illegal, but shouldn't crash analysis.
-    CompilationUnit compilationUnit = resolveSource(r'''
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class C {
   static const int i = 5;
 
@@ -206,8 +209,8 @@ class C {
     _evaluateAnnotation(compilationUnit, "C", "f");
   }
 
-  void test_annotation_staticConst_otherClass() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_annotation_staticConst_otherClass() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class A {
   static const int i = 5;
 }
@@ -222,10 +225,10 @@ class C {
     expect(_assertValidInt(result), 5);
   }
 
-  void test_annotation_staticConst_otherClass_args() {
+  test_annotation_staticConst_otherClass_args() async {
     // Applying arguments to an annotation that is a static const is
     // illegal, but shouldn't crash analysis.
-    CompilationUnit compilationUnit = resolveSource(r'''
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class A {
   static const int i = 5;
 }
@@ -238,8 +241,8 @@ class C {
     _evaluateAnnotation(compilationUnit, "C", "f");
   }
 
-  void test_annotation_topLevelVariable() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_annotation_topLevelVariable() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const int i = 5;
 class C {
   @i
@@ -251,10 +254,10 @@ class C {
     expect(_assertValidInt(result), 5);
   }
 
-  void test_annotation_topLevelVariable_args() {
+  test_annotation_topLevelVariable_args() async {
     // Applying arguments to an annotation that is a top-level variable is
     // illegal, but shouldn't crash analysis.
-    CompilationUnit compilationUnit = resolveSource(r'''
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const int i = 5;
 class C {
   @i(1)
@@ -264,7 +267,7 @@ class C {
     _evaluateAnnotation(compilationUnit, "C", "f");
   }
 
-  void test_computeValues_cycle() {
+  test_computeValues_cycle() async {
     TestLogger logger = new TestLogger();
     AnalysisEngine.instance.logger = logger;
     try {
@@ -290,7 +293,7 @@ class C {
     }
   }
 
-  void test_computeValues_dependentVariables() {
+  test_computeValues_dependentVariables() async {
     Source source = addSource(r'''
 const int b = a;
 const int a = 0;''');
@@ -307,12 +310,12 @@ const int a = 0;''');
     _validate(true, (members[1] as TopLevelVariableDeclaration).variables);
   }
 
-  void test_computeValues_empty() {
+  test_computeValues_empty() async {
     ConstantValueComputer computer = _makeConstantValueComputer();
     computer.computeValues();
   }
 
-  void test_computeValues_multipleSources() {
+  test_computeValues_multipleSources() async {
     Source librarySource = addNamedSource(
         "/lib.dart",
         r'''
@@ -349,7 +352,7 @@ const int d = c;''');
     _validate(true, (partMembers[1] as TopLevelVariableDeclaration).variables);
   }
 
-  void test_computeValues_singleVariable() {
+  test_computeValues_singleVariable() async {
     Source source = addSource("const int a = 0;");
     LibraryElement libraryElement = resolve2(source);
     CompilationUnit unit =
@@ -363,7 +366,7 @@ const int d = c;''');
     _validate(true, (members[0] as TopLevelVariableDeclaration).variables);
   }
 
-  void test_computeValues_value_depends_on_enum() {
+  test_computeValues_value_depends_on_enum() async {
     Source source = addSource('''
 enum E { id0, id1 }
 const E e = E.id0;
@@ -380,18 +383,18 @@ const E e = E.id0;
     _validate(true, declaration.variables);
   }
 
-  void test_dependencyOnConstructor() {
+  test_dependencyOnConstructor() async {
     // x depends on "const A()"
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A();
 }
 const x = const A();''');
   }
 
-  void test_dependencyOnConstructorArgument() {
+  test_dependencyOnConstructorArgument() async {
     // "const A(x)" depends on x
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A(this.next);
   final A next;
@@ -400,9 +403,9 @@ const A x = const A(null);
 const A y = const A(x);''');
   }
 
-  void test_dependencyOnConstructorArgument_unresolvedConstructor() {
+  test_dependencyOnConstructorArgument_unresolvedConstructor() async {
     // "const A.a(x)" depends on x even if the constructor A.a can't be found.
-    _assertProperDependencies(
+    await _assertProperDependencies(
         r'''
 class A {
 }
@@ -411,9 +414,9 @@ const A y = const A.a(x);''',
         [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR]);
   }
 
-  void test_dependencyOnConstructorInitializer() {
+  test_dependencyOnConstructorInitializer() async {
     // "const A()" depends on x
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 const int x = 1;
 class A {
   const A() : v = x;
@@ -421,9 +424,9 @@ class A {
 }''');
   }
 
-  void test_dependencyOnExplicitSuperConstructor() {
+  test_dependencyOnExplicitSuperConstructor() async {
     // b depends on B() depends on A()
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A(this.x);
   final int x;
@@ -434,9 +437,9 @@ class B extends A {
 const B b = const B();''');
   }
 
-  void test_dependencyOnExplicitSuperConstructorParameters() {
+  test_dependencyOnExplicitSuperConstructorParameters() async {
     // b depends on B() depends on i
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A(this.x);
   final int x;
@@ -448,9 +451,9 @@ const B b = const B();
 const int i = 5;''');
   }
 
-  void test_dependencyOnFactoryRedirect() {
+  test_dependencyOnFactoryRedirect() async {
     // a depends on A.foo() depends on A.bar()
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 class A {
   factory const A.foo() = A.bar;
@@ -458,8 +461,8 @@ class A {
 }''');
   }
 
-  void test_dependencyOnFactoryRedirectWithTypeParams() {
-    _assertProperDependencies(r'''
+  test_dependencyOnFactoryRedirectWithTypeParams() async {
+    await _assertProperDependencies(r'''
 class A {
   const factory A(var a) = B<int>;
 }
@@ -472,9 +475,9 @@ class B<T> implements A {
 const A a = const A(10);''');
   }
 
-  void test_dependencyOnImplicitSuperConstructor() {
+  test_dependencyOnImplicitSuperConstructor() async {
     // b depends on B() depends on A()
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A() : x = 5;
   final int x;
@@ -485,9 +488,9 @@ class B extends A {
 const B b = const B();''');
   }
 
-  void test_dependencyOnInitializedFinal() {
+  test_dependencyOnInitializedFinal() async {
     // a depends on A() depends on A.x
-    _assertProperDependencies('''
+    await _assertProperDependencies('''
 class A {
   const A();
   final int x = 1;
@@ -496,11 +499,11 @@ const A a = const A();
 ''');
   }
 
-  void test_dependencyOnInitializedNonStaticConst() {
+  test_dependencyOnInitializedNonStaticConst() async {
     // Even though non-static consts are not allowed by the language, we need
     // to handle them for error recovery purposes.
     // a depends on A() depends on A.x
-    _assertProperDependencies(
+    await _assertProperDependencies(
         '''
 class A {
   const A();
@@ -511,9 +514,9 @@ const A a = const A();
         [CompileTimeErrorCode.CONST_INSTANCE_FIELD]);
   }
 
-  void test_dependencyOnNonFactoryRedirect() {
+  test_dependencyOnNonFactoryRedirect() async {
     // a depends on A.foo() depends on A.bar()
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 class A {
   const A.foo() : this.bar();
@@ -521,9 +524,9 @@ class A {
 }''');
   }
 
-  void test_dependencyOnNonFactoryRedirect_arg() {
+  test_dependencyOnNonFactoryRedirect_arg() async {
     // a depends on A.foo() depends on b
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 const int b = 1;
 class A {
@@ -533,9 +536,9 @@ class A {
 }''');
   }
 
-  void test_dependencyOnNonFactoryRedirect_defaultValue() {
+  test_dependencyOnNonFactoryRedirect_defaultValue() async {
     // a depends on A.foo() depends on A.bar() depends on b
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 const int b = 1;
 class A {
@@ -545,10 +548,10 @@ class A {
 }''');
   }
 
-  void test_dependencyOnNonFactoryRedirect_toMissing() {
+  test_dependencyOnNonFactoryRedirect_toMissing() async {
     // a depends on A.foo() which depends on nothing, since A.bar() is
     // missing.
-    _assertProperDependencies(
+    await _assertProperDependencies(
         r'''
 const A a = const A.foo();
 class A {
@@ -557,10 +560,10 @@ class A {
         [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
   }
 
-  void test_dependencyOnNonFactoryRedirect_toNonConst() {
+  test_dependencyOnNonFactoryRedirect_toNonConst() async {
     // a depends on A.foo() which depends on nothing, since A.bar() is
     // non-const.
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 class A {
   const A.foo() : this.bar();
@@ -568,9 +571,9 @@ class A {
 }''');
   }
 
-  void test_dependencyOnNonFactoryRedirect_unnamed() {
+  test_dependencyOnNonFactoryRedirect_unnamed() async {
     // a depends on A.foo() depends on A()
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 class A {
   const A.foo() : this();
@@ -578,9 +581,9 @@ class A {
 }''');
   }
 
-  void test_dependencyOnOptionalParameterDefault() {
+  test_dependencyOnOptionalParameterDefault() async {
     // a depends on A() depends on B()
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 class A {
   const A([x = const B()]) : b = x;
   final B b;
@@ -591,15 +594,15 @@ class B {
 const A a = const A();''');
   }
 
-  void test_dependencyOnVariable() {
+  test_dependencyOnVariable() async {
     // x depends on y
-    _assertProperDependencies(r'''
+    await _assertProperDependencies(r'''
 const x = y + 1;
 const y = 2;''');
   }
 
-  void test_final_initialized_at_declaration() {
-    CompilationUnit compilationUnit = resolveSource('''
+  test_final_initialized_at_declaration() async {
+    CompilationUnit compilationUnit = await resolveSource('''
 class A {
   final int i = 123;
   const A();
@@ -614,103 +617,115 @@ const A a = const A();
     _assertIntField(fields, "i", 123);
   }
 
-  void test_fromEnvironment_bool_default_false() {
-    expect(_assertValidBool(_check_fromEnvironment_bool(null, "false")), false);
-  }
-
-  void test_fromEnvironment_bool_default_overridden() {
-    expect(
-        _assertValidBool(_check_fromEnvironment_bool("false", "true")), false);
-  }
-
-  void test_fromEnvironment_bool_default_parseError() {
-    expect(_assertValidBool(_check_fromEnvironment_bool("parseError", "true")),
-        true);
-  }
-
-  void test_fromEnvironment_bool_default_true() {
-    expect(_assertValidBool(_check_fromEnvironment_bool(null, "true")), true);
-  }
-
-  void test_fromEnvironment_bool_false() {
-    expect(_assertValidBool(_check_fromEnvironment_bool("false", null)), false);
-  }
-
-  void test_fromEnvironment_bool_parseError() {
-    expect(_assertValidBool(_check_fromEnvironment_bool("parseError", null)),
+  test_fromEnvironment_bool_default_false() async {
+    expect(_assertValidBool(await _check_fromEnvironment_bool(null, "false")),
         false);
   }
 
-  void test_fromEnvironment_bool_true() {
-    expect(_assertValidBool(_check_fromEnvironment_bool("true", null)), true);
+  test_fromEnvironment_bool_default_overridden() async {
+    expect(_assertValidBool(await _check_fromEnvironment_bool("false", "true")),
+        false);
   }
 
-  void test_fromEnvironment_bool_undeclared() {
-    _assertValidUnknown(_check_fromEnvironment_bool(null, null));
-  }
-
-  void test_fromEnvironment_int_default_overridden() {
-    expect(_assertValidInt(_check_fromEnvironment_int("234", "123")), 234);
-  }
-
-  void test_fromEnvironment_int_default_parseError() {
+  test_fromEnvironment_bool_default_parseError() async {
     expect(
-        _assertValidInt(_check_fromEnvironment_int("parseError", "123")), 123);
+        _assertValidBool(
+            await _check_fromEnvironment_bool("parseError", "true")),
+        true);
   }
 
-  void test_fromEnvironment_int_default_undeclared() {
-    expect(_assertValidInt(_check_fromEnvironment_int(null, "123")), 123);
+  test_fromEnvironment_bool_default_true() async {
+    expect(_assertValidBool(await _check_fromEnvironment_bool(null, "true")),
+        true);
   }
 
-  void test_fromEnvironment_int_ok() {
-    expect(_assertValidInt(_check_fromEnvironment_int("234", null)), 234);
+  test_fromEnvironment_bool_false() async {
+    expect(_assertValidBool(await _check_fromEnvironment_bool("false", null)),
+        false);
   }
 
-  void test_fromEnvironment_int_parseError() {
-    _assertValidNull(_check_fromEnvironment_int("parseError", null));
+  test_fromEnvironment_bool_parseError() async {
+    expect(
+        _assertValidBool(await _check_fromEnvironment_bool("parseError", null)),
+        false);
   }
 
-  void test_fromEnvironment_int_parseError_nullDefault() {
-    _assertValidNull(_check_fromEnvironment_int("parseError", "null"));
+  test_fromEnvironment_bool_true() async {
+    expect(_assertValidBool(await _check_fromEnvironment_bool("true", null)),
+        true);
   }
 
-  void test_fromEnvironment_int_undeclared() {
-    _assertValidUnknown(_check_fromEnvironment_int(null, null));
+  test_fromEnvironment_bool_undeclared() async {
+    _assertValidUnknown(await _check_fromEnvironment_bool(null, null));
   }
 
-  void test_fromEnvironment_int_undeclared_nullDefault() {
-    _assertValidNull(_check_fromEnvironment_int(null, "null"));
+  test_fromEnvironment_int_default_overridden() async {
+    expect(
+        _assertValidInt(await _check_fromEnvironment_int("234", "123")), 234);
   }
 
-  void test_fromEnvironment_string_default_overridden() {
-    expect(_assertValidString(_check_fromEnvironment_string("abc", "'def'")),
+  test_fromEnvironment_int_default_parseError() async {
+    expect(
+        _assertValidInt(await _check_fromEnvironment_int("parseError", "123")),
+        123);
+  }
+
+  test_fromEnvironment_int_default_undeclared() async {
+    expect(_assertValidInt(await _check_fromEnvironment_int(null, "123")), 123);
+  }
+
+  test_fromEnvironment_int_ok() async {
+    expect(_assertValidInt(await _check_fromEnvironment_int("234", null)), 234);
+  }
+
+  test_fromEnvironment_int_parseError() async {
+    _assertValidNull(await _check_fromEnvironment_int("parseError", null));
+  }
+
+  test_fromEnvironment_int_parseError_nullDefault() async {
+    _assertValidNull(await _check_fromEnvironment_int("parseError", "null"));
+  }
+
+  test_fromEnvironment_int_undeclared() async {
+    _assertValidUnknown(await _check_fromEnvironment_int(null, null));
+  }
+
+  test_fromEnvironment_int_undeclared_nullDefault() async {
+    _assertValidNull(await _check_fromEnvironment_int(null, "null"));
+  }
+
+  test_fromEnvironment_string_default_overridden() async {
+    expect(
+        _assertValidString(await _check_fromEnvironment_string("abc", "'def'")),
         "abc");
   }
 
-  void test_fromEnvironment_string_default_undeclared() {
-    expect(_assertValidString(_check_fromEnvironment_string(null, "'def'")),
+  test_fromEnvironment_string_default_undeclared() async {
+    expect(
+        _assertValidString(await _check_fromEnvironment_string(null, "'def'")),
         "def");
   }
 
-  void test_fromEnvironment_string_empty() {
-    expect(_assertValidString(_check_fromEnvironment_string("", null)), "");
-  }
-
-  void test_fromEnvironment_string_ok() {
+  test_fromEnvironment_string_empty() async {
     expect(
-        _assertValidString(_check_fromEnvironment_string("abc", null)), "abc");
+        _assertValidString(await _check_fromEnvironment_string("", null)), "");
   }
 
-  void test_fromEnvironment_string_undeclared() {
-    _assertValidUnknown(_check_fromEnvironment_string(null, null));
+  test_fromEnvironment_string_ok() async {
+    expect(_assertValidString(await _check_fromEnvironment_string("abc", null)),
+        "abc");
   }
 
-  void test_fromEnvironment_string_undeclared_nullDefault() {
-    _assertValidNull(_check_fromEnvironment_string(null, "null"));
+  test_fromEnvironment_string_undeclared() async {
+    _assertValidUnknown(await _check_fromEnvironment_string(null, null));
   }
 
-  void test_instanceCreationExpression_computedField() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_fromEnvironment_string_undeclared_nullDefault() async {
+    _assertValidNull(await _check_fromEnvironment_string(null, "null"));
+  }
+
+  test_instanceCreationExpression_computedField() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A(4, 5);
 class A {
   const A(int i, int j) : k = 2 * i + j;
@@ -723,28 +738,24 @@ class A {
     _assertIntField(fields, "k", 13);
   }
 
-  void
-      test_instanceCreationExpression_computedField_namedOptionalWithDefault() {
-    _checkInstanceCreationOptionalParams(false, true, true);
+  test_instanceCreationExpression_computedField_namedOptionalWithDefault() async {
+    await _checkInstanceCreationOptionalParams(false, true, true);
   }
 
-  void
-      test_instanceCreationExpression_computedField_namedOptionalWithoutDefault() {
-    _checkInstanceCreationOptionalParams(false, true, false);
+  test_instanceCreationExpression_computedField_namedOptionalWithoutDefault() async {
+    await _checkInstanceCreationOptionalParams(false, true, false);
   }
 
-  void
-      test_instanceCreationExpression_computedField_unnamedOptionalWithDefault() {
-    _checkInstanceCreationOptionalParams(false, false, true);
+  test_instanceCreationExpression_computedField_unnamedOptionalWithDefault() async {
+    await _checkInstanceCreationOptionalParams(false, false, true);
   }
 
-  void
-      test_instanceCreationExpression_computedField_unnamedOptionalWithoutDefault() {
-    _checkInstanceCreationOptionalParams(false, false, false);
+  test_instanceCreationExpression_computedField_unnamedOptionalWithoutDefault() async {
+    await _checkInstanceCreationOptionalParams(false, false, false);
   }
 
-  void test_instanceCreationExpression_computedField_usesConstConstructor() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_computedField_usesConstConstructor() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A(3);
 class A {
   const A(int i) : b = const B(4);
@@ -764,8 +775,8 @@ class B {
     _assertIntField(fieldsOfB, "k", 4);
   }
 
-  void test_instanceCreationExpression_computedField_usesStaticConst() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_computedField_usesStaticConst() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A(3);
 class A {
   const A(int i) : k = i + B.bar;
@@ -781,8 +792,8 @@ class B {
     _assertIntField(fields, "k", 7);
   }
 
-  void test_instanceCreationExpression_computedField_usesTopLevelConst() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_computedField_usesTopLevelConst() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A(3);
 const bar = 4;
 class A {
@@ -796,8 +807,8 @@ class A {
     _assertIntField(fields, "k", 7);
   }
 
-  void test_instanceCreationExpression_explicitSuper() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_explicitSuper() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const B(4, 5);
 class A {
   const A(this.x);
@@ -818,8 +829,8 @@ class B extends A {
     _assertIntField(superclassFields, "x", 8);
   }
 
-  void test_instanceCreationExpression_fieldFormalParameter() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_fieldFormalParameter() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A(42);
 class A {
   int x;
@@ -832,28 +843,24 @@ class A {
     _assertIntField(fields, "x", 42);
   }
 
-  void
-      test_instanceCreationExpression_fieldFormalParameter_namedOptionalWithDefault() {
-    _checkInstanceCreationOptionalParams(true, true, true);
+  test_instanceCreationExpression_fieldFormalParameter_namedOptionalWithDefault() async {
+    await _checkInstanceCreationOptionalParams(true, true, true);
   }
 
-  void
-      test_instanceCreationExpression_fieldFormalParameter_namedOptionalWithoutDefault() {
-    _checkInstanceCreationOptionalParams(true, true, false);
+  test_instanceCreationExpression_fieldFormalParameter_namedOptionalWithoutDefault() async {
+    await _checkInstanceCreationOptionalParams(true, true, false);
   }
 
-  void
-      test_instanceCreationExpression_fieldFormalParameter_unnamedOptionalWithDefault() {
-    _checkInstanceCreationOptionalParams(true, false, true);
+  test_instanceCreationExpression_fieldFormalParameter_unnamedOptionalWithDefault() async {
+    await _checkInstanceCreationOptionalParams(true, false, true);
   }
 
-  void
-      test_instanceCreationExpression_fieldFormalParameter_unnamedOptionalWithoutDefault() {
-    _checkInstanceCreationOptionalParams(true, false, false);
+  test_instanceCreationExpression_fieldFormalParameter_unnamedOptionalWithoutDefault() async {
+    await _checkInstanceCreationOptionalParams(true, false, false);
   }
 
-  void test_instanceCreationExpression_implicitSuper() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_implicitSuper() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const B(4);
 class A {
   const A() : x = 3;
@@ -874,8 +881,8 @@ class B extends A {
     _assertIntField(superclassFields, "x", 3);
   }
 
-  void test_instanceCreationExpression_nonFactoryRedirect() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_nonFactoryRedirect() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A.a1();
 class A {
   const A.a1() : this.a2();
@@ -887,8 +894,8 @@ class A {
     _assertIntField(aFields, 'x', 5);
   }
 
-  void test_instanceCreationExpression_nonFactoryRedirect_arg() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_nonFactoryRedirect_arg() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A.a1(1);
 class A {
   const A.a1(x) : this.a2(x + 100);
@@ -900,11 +907,11 @@ class A {
     _assertIntField(aFields, 'y', 111);
   }
 
-  void test_instanceCreationExpression_nonFactoryRedirect_cycle() {
+  test_instanceCreationExpression_nonFactoryRedirect_cycle() async {
     // It is an error to have a cycle in non-factory redirects; however, we
     // need to make sure that even if the error occurs, attempting to evaluate
     // the constant will terminate.
-    CompilationUnit compilationUnit = resolveSource(r'''
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A();
 class A {
   const A() : this.b();
@@ -913,8 +920,8 @@ class A {
     _assertValidUnknown(_evaluateTopLevelVariable(compilationUnit, "foo"));
   }
 
-  void test_instanceCreationExpression_nonFactoryRedirect_defaultArg() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_nonFactoryRedirect_defaultArg() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A.a1();
 class A {
   const A.a1() : this.a2();
@@ -926,8 +933,8 @@ class A {
     _assertIntField(aFields, 'y', 110);
   }
 
-  void test_instanceCreationExpression_nonFactoryRedirect_toMissing() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_nonFactoryRedirect_toMissing() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A.a1();
 class A {
   const A.a1() : this.a2();
@@ -938,8 +945,8 @@ class A {
     _assertType(_evaluateTopLevelVariable(compilationUnit, "foo"), "A");
   }
 
-  void test_instanceCreationExpression_nonFactoryRedirect_toNonConst() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_nonFactoryRedirect_toNonConst() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A.a1();
 class A {
   const A.a1() : this.a2();
@@ -951,8 +958,8 @@ class A {
     _assertType(_evaluateTopLevelVariable(compilationUnit, "foo"), "A");
   }
 
-  void test_instanceCreationExpression_nonFactoryRedirect_unnamed() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_nonFactoryRedirect_unnamed() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A.a1();
 class A {
   const A.a1() : this();
@@ -964,8 +971,8 @@ class A {
     _assertIntField(aFields, 'x', 5);
   }
 
-  void test_instanceCreationExpression_redirect() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_redirect() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A();
 class A {
   const factory A() = B;
@@ -976,11 +983,11 @@ class B implements A {
     _assertType(_evaluateTopLevelVariable(compilationUnit, "foo"), "B");
   }
 
-  void test_instanceCreationExpression_redirect_cycle() {
+  test_instanceCreationExpression_redirect_cycle() async {
     // It is an error to have a cycle in factory redirects; however, we need
     // to make sure that even if the error occurs, attempting to evaluate the
     // constant will terminate.
-    CompilationUnit compilationUnit = resolveSource(r'''
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A();
 class A {
   const factory A() = A.b;
@@ -989,8 +996,8 @@ class A {
     _assertValidUnknown(_evaluateTopLevelVariable(compilationUnit, "foo"));
   }
 
-  void test_instanceCreationExpression_redirect_external() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_redirect_external() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A();
 class A {
   external const factory A();
@@ -998,11 +1005,11 @@ class A {
     _assertValidUnknown(_evaluateTopLevelVariable(compilationUnit, "foo"));
   }
 
-  void test_instanceCreationExpression_redirect_nonConst() {
+  test_instanceCreationExpression_redirect_nonConst() async {
     // It is an error for a const factory constructor redirect to a non-const
     // constructor; however, we need to make sure that even if the error
     // attempting to evaluate the constant won't cause a crash.
-    CompilationUnit compilationUnit = resolveSource(r'''
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const foo = const A();
 class A {
   const factory A() = A.b;
@@ -1011,8 +1018,8 @@ class A {
     _assertValidUnknown(_evaluateTopLevelVariable(compilationUnit, "foo"));
   }
 
-  void test_instanceCreationExpression_redirectWithTypeParams() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_redirectWithTypeParams() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class A {
   const factory A(var a) = B<int>;
 }
@@ -1030,11 +1037,11 @@ const A a = const A(10);''');
     _assertIntField(fields, "x", 10);
   }
 
-  void test_instanceCreationExpression_redirectWithTypeSubstitution() {
+  test_instanceCreationExpression_redirectWithTypeSubstitution() async {
     // To evaluate the redirection of A<int>,
     // A's template argument (T=int) must be substituted
     // into B's template argument (B<U> where U=T) to get B<int>.
-    CompilationUnit compilationUnit = resolveSource(r'''
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class A<T> {
   const factory A(var a) = B<T>;
 }
@@ -1052,9 +1059,9 @@ const A<int> a = const A<int>(10);''');
     _assertIntField(fields, "x", 10);
   }
 
-  void test_instanceCreationExpression_symbol() {
+  test_instanceCreationExpression_symbol() async {
     CompilationUnit compilationUnit =
-        resolveSource("const foo = const Symbol('a');");
+        await resolveSource("const foo = const Symbol('a');");
     EvaluationResultImpl evaluationResult =
         _evaluateTopLevelVariable(compilationUnit, "foo");
     expect(evaluationResult.value, isNotNull);
@@ -1063,16 +1070,16 @@ const A<int> a = const A<int>(10);''');
     expect(value.toSymbolValue(), "a");
   }
 
-  void test_instanceCreationExpression_withSupertypeParams_explicit() {
-    _checkInstanceCreation_withSupertypeParams(true);
+  test_instanceCreationExpression_withSupertypeParams_explicit() async {
+    await _checkInstanceCreation_withSupertypeParams(true);
   }
 
-  void test_instanceCreationExpression_withSupertypeParams_implicit() {
-    _checkInstanceCreation_withSupertypeParams(false);
+  test_instanceCreationExpression_withSupertypeParams_implicit() async {
+    await _checkInstanceCreation_withSupertypeParams(false);
   }
 
-  void test_instanceCreationExpression_withTypeParams() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_instanceCreationExpression_withTypeParams() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 class C<E> {
   const C();
 }
@@ -1089,7 +1096,7 @@ const c_num = const C<num>();''');
     expect(c_int_value == c_num_value, isFalse);
   }
 
-  void test_isValidSymbol() {
+  test_isValidSymbol() async {
     expect(ConstantEvaluationEngine.isValidPublicSymbol(""), isTrue);
     expect(ConstantEvaluationEngine.isValidPublicSymbol("foo"), isTrue);
     expect(ConstantEvaluationEngine.isValidPublicSymbol("foo.bar"), isTrue);
@@ -1116,11 +1123,11 @@ const c_num = const C<num>();''');
     expect(ConstantEvaluationEngine.isValidPublicSymbol("foo.void"), isFalse);
   }
 
-  void test_length_of_improperly_typed_string_expression() {
+  test_length_of_improperly_typed_string_expression() async {
     // Since type annotations are ignored in unchecked mode, the improper
     // types on s1 and s2 shouldn't prevent us from evaluating i to
     // 'alpha'.length.
-    CompilationUnit compilationUnit = resolveSource('''
+    CompilationUnit compilationUnit = await resolveSource('''
 const int s1 = 'alpha';
 const int s2 = 'beta';
 const int i = (true ? s1 : s2).length;
@@ -1131,10 +1138,10 @@ const int i = (true ? s1 : s2).length;
     expect(_assertValidInt(result), 5);
   }
 
-  void test_length_of_improperly_typed_string_identifier() {
+  test_length_of_improperly_typed_string_identifier() async {
     // Since type annotations are ignored in unchecked mode, the improper type
     // on s shouldn't prevent us from evaluating i to 'alpha'.length.
-    CompilationUnit compilationUnit = resolveSource('''
+    CompilationUnit compilationUnit = await resolveSource('''
 const int s = 'alpha';
 const int i = s.length;
 ''');
@@ -1144,10 +1151,10 @@ const int i = s.length;
     expect(_assertValidInt(result), 5);
   }
 
-  void test_non_static_const_initialized_at_declaration() {
+  test_non_static_const_initialized_at_declaration() async {
     // Even though non-static consts are not allowed by the language, we need
     // to handle them for error recovery purposes.
-    CompilationUnit compilationUnit = resolveSource('''
+    CompilationUnit compilationUnit = await resolveSource('''
 class A {
   const int i = 123;
   const A();
@@ -1162,9 +1169,9 @@ const A a = const A();
     _assertIntField(fields, "i", 123);
   }
 
-  void test_symbolLiteral_void() {
+  test_symbolLiteral_void() async {
     CompilationUnit compilationUnit =
-        resolveSource("const voidSymbol = #void;");
+        await resolveSource("const voidSymbol = #void;");
     VariableDeclaration voidSymbol =
         findTopLevelDeclaration(compilationUnit, "voidSymbol");
     EvaluationResultImpl voidSymbolResult =
@@ -1195,8 +1202,8 @@ const A a = const A();
     expect(field.isNull, isTrue);
   }
 
-  void _assertProperDependencies(String sourceText,
-      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
+  Future<Null> _assertProperDependencies(String sourceText,
+      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) async {
     Source source = addSource(sourceText);
     LibraryElement element = resolve2(source);
     CompilationUnit unit =
@@ -1205,6 +1212,7 @@ const A a = const A();
     ConstantValueComputer computer = _makeConstantValueComputer();
     computer.add(unit);
     computer.computeValues();
+    await computeAnalysisResult(source);
     assertErrors(source, expectedErrorCodes);
   }
 
@@ -1252,51 +1260,67 @@ const A a = const A();
     expect(value.isUnknown, isTrue);
   }
 
-  EvaluationResultImpl _check_fromEnvironment_bool(
-      String valueInEnvironment, String defaultExpr) {
+  Future<EvaluationResultImpl> _check_fromEnvironment_bool(
+      String valueInEnvironment, String defaultExpr) async {
     String envVarName = "x";
     String varName = "foo";
     if (valueInEnvironment != null) {
-      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
+      if (enableNewAnalysisDriver) {
+        driver.declaredVariables.define(envVarName, valueInEnvironment);
+      } else {
+        analysisContext2.declaredVariables
+            .define(envVarName, valueInEnvironment);
+      }
     }
     String defaultArg =
         defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
-    CompilationUnit compilationUnit = resolveSource(
+    CompilationUnit compilationUnit = await resolveSource(
         "const $varName = const bool.fromEnvironment('$envVarName'$defaultArg);");
     return _evaluateTopLevelVariable(compilationUnit, varName);
   }
 
-  EvaluationResultImpl _check_fromEnvironment_int(
-      String valueInEnvironment, String defaultExpr) {
+  Future<EvaluationResultImpl> _check_fromEnvironment_int(
+      String valueInEnvironment, String defaultExpr) async {
     String envVarName = "x";
     String varName = "foo";
     if (valueInEnvironment != null) {
-      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
+      if (enableNewAnalysisDriver) {
+        driver.declaredVariables.define(envVarName, valueInEnvironment);
+      } else {
+        analysisContext2.declaredVariables
+            .define(envVarName, valueInEnvironment);
+      }
     }
     String defaultArg =
         defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
-    CompilationUnit compilationUnit = resolveSource(
+    CompilationUnit compilationUnit = await resolveSource(
         "const $varName = const int.fromEnvironment('$envVarName'$defaultArg);");
     return _evaluateTopLevelVariable(compilationUnit, varName);
   }
 
-  EvaluationResultImpl _check_fromEnvironment_string(
-      String valueInEnvironment, String defaultExpr) {
+  Future<EvaluationResultImpl> _check_fromEnvironment_string(
+      String valueInEnvironment, String defaultExpr) async {
     String envVarName = "x";
     String varName = "foo";
     if (valueInEnvironment != null) {
-      analysisContext2.declaredVariables.define(envVarName, valueInEnvironment);
+      if (enableNewAnalysisDriver) {
+        driver.declaredVariables.define(envVarName, valueInEnvironment);
+      } else {
+        analysisContext2.declaredVariables
+            .define(envVarName, valueInEnvironment);
+      }
     }
     String defaultArg =
         defaultExpr == null ? "" : ", defaultValue: $defaultExpr";
-    CompilationUnit compilationUnit = resolveSource(
+    CompilationUnit compilationUnit = await resolveSource(
         "const $varName = const String.fromEnvironment('$envVarName'$defaultArg);");
     return _evaluateTopLevelVariable(compilationUnit, varName);
   }
 
-  void _checkInstanceCreation_withSupertypeParams(bool isExplicit) {
+  Future<Null> _checkInstanceCreation_withSupertypeParams(
+      bool isExplicit) async {
     String superCall = isExplicit ? " : super()" : "";
-    CompilationUnit compilationUnit = resolveSource("""
+    CompilationUnit compilationUnit = await resolveSource("""
 class A<T> {
   const A();
 }
@@ -1320,13 +1344,13 @@ const c_int_num = const C<int, num>();""");
     _assertFieldType(c_int_num_fields, GenericState.SUPERCLASS_FIELD, "A<num>");
   }
 
-  void _checkInstanceCreationOptionalParams(
-      bool isFieldFormal, bool isNamed, bool hasDefault) {
+  Future<Null> _checkInstanceCreationOptionalParams(
+      bool isFieldFormal, bool isNamed, bool hasDefault) async {
     String fieldName = "j";
     String paramName = isFieldFormal ? fieldName : "i";
     String formalParam =
         "${isFieldFormal ? "this." : "int "}$paramName${hasDefault ? " = 3" : ""}";
-    CompilationUnit compilationUnit = resolveSource("""
+    CompilationUnit compilationUnit = await resolveSource("""
 const x = const A();
 const y = const A(${isNamed ? '$paramName: ' : ''}10);
 class A {
@@ -1406,7 +1430,7 @@ class A {
 
 @reflectiveTest
 class ConstantVisitorTest extends ResolverTestCase {
-  void test_visitBinaryExpression_questionQuestion_notNull_notNull() {
+  test_visitBinaryExpression_questionQuestion_notNull_notNull() async {
     Expression left = AstTestFactory.string2('a');
     Expression right = AstTestFactory.string2('b');
     Expression expression = AstTestFactory.binaryExpression(
@@ -1422,7 +1446,7 @@ class ConstantVisitorTest extends ResolverTestCase {
     errorListener.assertNoErrors();
   }
 
-  void test_visitBinaryExpression_questionQuestion_null_notNull() {
+  test_visitBinaryExpression_questionQuestion_null_notNull() async {
     Expression left = AstTestFactory.nullLiteral();
     Expression right = AstTestFactory.string2('b');
     Expression expression = AstTestFactory.binaryExpression(
@@ -1438,7 +1462,7 @@ class ConstantVisitorTest extends ResolverTestCase {
     errorListener.assertNoErrors();
   }
 
-  void test_visitBinaryExpression_questionQuestion_null_null() {
+  test_visitBinaryExpression_questionQuestion_null_null() async {
     Expression left = AstTestFactory.nullLiteral();
     Expression right = AstTestFactory.nullLiteral();
     Expression expression = AstTestFactory.binaryExpression(
@@ -1453,7 +1477,7 @@ class ConstantVisitorTest extends ResolverTestCase {
     errorListener.assertNoErrors();
   }
 
-  void test_visitConditionalExpression_false() {
+  test_visitConditionalExpression_false() async {
     Expression thenExpression = AstTestFactory.integer(1);
     Expression elseExpression = AstTestFactory.integer(0);
     ConditionalExpression expression = AstTestFactory.conditionalExpression(
@@ -1465,7 +1489,7 @@ class ConstantVisitorTest extends ResolverTestCase {
     errorListener.assertNoErrors();
   }
 
-  void test_visitConditionalExpression_nonBooleanCondition() {
+  test_visitConditionalExpression_nonBooleanCondition() async {
     Expression thenExpression = AstTestFactory.integer(1);
     Expression elseExpression = AstTestFactory.integer(0);
     NullLiteral conditionExpression = AstTestFactory.nullLiteral();
@@ -1480,7 +1504,7 @@ class ConstantVisitorTest extends ResolverTestCase {
         .assertErrorsWithCodes([CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
   }
 
-  void test_visitConditionalExpression_nonConstantElse() {
+  test_visitConditionalExpression_nonConstantElse() async {
     Expression thenExpression = AstTestFactory.integer(1);
     Expression elseExpression = AstTestFactory.identifier3("x");
     ConditionalExpression expression = AstTestFactory.conditionalExpression(
@@ -1494,7 +1518,7 @@ class ConstantVisitorTest extends ResolverTestCase {
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
-  void test_visitConditionalExpression_nonConstantThen() {
+  test_visitConditionalExpression_nonConstantThen() async {
     Expression thenExpression = AstTestFactory.identifier3("x");
     Expression elseExpression = AstTestFactory.integer(0);
     ConditionalExpression expression = AstTestFactory.conditionalExpression(
@@ -1508,7 +1532,7 @@ class ConstantVisitorTest extends ResolverTestCase {
         .assertErrorsWithCodes([CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
-  void test_visitConditionalExpression_true() {
+  test_visitConditionalExpression_true() async {
     Expression thenExpression = AstTestFactory.integer(1);
     Expression elseExpression = AstTestFactory.integer(0);
     ConditionalExpression expression = AstTestFactory.conditionalExpression(
@@ -1520,8 +1544,8 @@ class ConstantVisitorTest extends ResolverTestCase {
     errorListener.assertNoErrors();
   }
 
-  void test_visitSimpleIdentifier_className() {
-    CompilationUnit compilationUnit = resolveSource('''
+  test_visitSimpleIdentifier_className() async {
+    CompilationUnit compilationUnit = await resolveSource('''
 const a = C;
 class C {}
 ''');
@@ -1530,8 +1554,8 @@ class C {}
     expect(result.toTypeValue().name, 'C');
   }
 
-  void test_visitSimpleIdentifier_dynamic() {
-    CompilationUnit compilationUnit = resolveSource('''
+  test_visitSimpleIdentifier_dynamic() async {
+    CompilationUnit compilationUnit = await resolveSource('''
 const a = dynamic;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'a', null);
@@ -1539,8 +1563,8 @@ const a = dynamic;
     expect(result.toTypeValue(), typeProvider.dynamicType);
   }
 
-  void test_visitSimpleIdentifier_inEnvironment() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_visitSimpleIdentifier_inEnvironment() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const a = b;
 const b = 3;''');
     Map<String, DartObjectImpl> environment = new Map<String, DartObjectImpl>();
@@ -1550,8 +1574,8 @@ const b = 3;''');
     _assertValue(6, _evaluateConstant(compilationUnit, "a", environment));
   }
 
-  void test_visitSimpleIdentifier_notInEnvironment() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_visitSimpleIdentifier_notInEnvironment() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const a = b;
 const b = 3;''');
     Map<String, DartObjectImpl> environment = new Map<String, DartObjectImpl>();
@@ -1561,8 +1585,8 @@ const b = 3;''');
     _assertValue(3, _evaluateConstant(compilationUnit, "a", environment));
   }
 
-  void test_visitSimpleIdentifier_withoutEnvironment() {
-    CompilationUnit compilationUnit = resolveSource(r'''
+  test_visitSimpleIdentifier_withoutEnvironment() async {
+    CompilationUnit compilationUnit = await resolveSource(r'''
 const a = b;
 const b = 3;''');
     _assertValue(3, _evaluateConstant(compilationUnit, "a", null));
@@ -1580,16 +1604,17 @@ const b = 3;''');
   }
 
   DartObjectImpl _evaluate(Expression expression, ErrorReporter errorReporter) {
+    TestTypeProvider typeProvider = new TestTypeProvider();
     return expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(
-            new TestTypeProvider(), new DeclaredVariables(),
-            typeSystem: new TypeSystemImpl()),
+        new ConstantEvaluationEngine(typeProvider, new DeclaredVariables(),
+            typeSystem: new TypeSystemImpl(typeProvider)),
         errorReporter));
   }
 
   DartObjectImpl _evaluateConstant(CompilationUnit compilationUnit, String name,
       Map<String, DartObjectImpl> lexicalEnvironment) {
-    Source source = compilationUnit.element.source;
+    Source source =
+        resolutionMap.elementDeclaredByCompilationUnit(compilationUnit).source;
     Expression expression =
         findTopLevelConstantExpression(compilationUnit, name);
     GatheringErrorListener errorListener = new GatheringErrorListener();
@@ -1608,6 +1633,6 @@ const b = 3;''');
 class StrongConstantValueComputerTest extends ConstantValueComputerTest {
   void setUp() {
     super.setUp();
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
   }
 }

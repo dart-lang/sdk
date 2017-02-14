@@ -6,7 +6,7 @@ library dart2js.serialization.util;
 
 import '../common.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/messages.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show WrappedMessage;
@@ -23,7 +23,8 @@ void serializeName(Name name, ObjectEncoder encoder) {
   encoder.setString(Key.NAME, name.text);
   encoder.setBool(Key.IS_SETTER, name.isSetter);
   if (name.library != null) {
-    encoder.setElement(Key.LIBRARY, name.library);
+    LibraryElement library = name.library;
+    encoder.setElement(Key.LIBRARY, library);
   }
 }
 
@@ -350,7 +351,7 @@ NewStructure deserializeNewStructure(ObjectDecoder decoder) {
       ConstructorAccessKind constructorAccessKind =
           decoder.getEnum(Key.SUB_KIND, ConstructorAccessKind.values);
       Element element = decoder.getElement(Key.ELEMENT);
-      DartType type = decoder.getType(Key.TYPE);
+      ResolutionDartType type = decoder.getType(Key.TYPE);
       ConstructorAccessSemantics semantics =
           new ConstructorAccessSemantics(constructorAccessKind, element, type);
       Selector selector = deserializeSelector(decoder.getObject(Key.SELECTOR));

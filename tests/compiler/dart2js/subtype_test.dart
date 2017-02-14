@@ -7,7 +7,7 @@ library subtype_test;
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import "package:compiler/src/elements/elements.dart" show Element, ClassElement;
 
 void main() {
@@ -22,8 +22,8 @@ void main() {
   testTypeVariableSubtype();
 }
 
-void testTypes(TypeEnvironment env, DartType subtype, DartType supertype,
-    bool expectSubtype, bool expectMoreSpecific) {
+void testTypes(TypeEnvironment env, ResolutionDartType subtype,
+    ResolutionDartType supertype, bool expectSubtype, bool expectMoreSpecific) {
   if (expectMoreSpecific == null) expectMoreSpecific = expectSubtype;
   Expect.equals(expectSubtype, env.isSubtype(subtype, supertype),
       '$subtype <: $supertype');
@@ -33,8 +33,8 @@ void testTypes(TypeEnvironment env, DartType subtype, DartType supertype,
 
 void testElementTypes(TypeEnvironment env, String subname, String supername,
     bool expectSubtype, bool expectMoreSpecific) {
-  DartType subtype = env.getElementType(subname);
-  DartType supertype = env.getElementType(supername);
+  ResolutionDartType subtype = env.getElementType(subname);
+  ResolutionDartType supertype = env.getElementType(supername);
   testTypes(env, subtype, supertype, expectSubtype, expectMoreSpecific);
 }
 
@@ -46,7 +46,8 @@ void testInterfaceSubtype() {
       // currently not supported by the implementation.
       class C<T1, T2> extends B<T2, T1> /*implements A<A<T1>>*/ {}
       """).then((env) {
-        void expect(bool expectSubtype, DartType T, DartType S,
+        void expect(
+            bool expectSubtype, ResolutionDartType T, ResolutionDartType S,
             {bool expectMoreSpecific}) {
           testTypes(env, T, S, expectSubtype, expectMoreSpecific);
         }
@@ -54,12 +55,13 @@ void testInterfaceSubtype() {
         ClassElement A = env.getElement('A');
         ClassElement B = env.getElement('B');
         ClassElement C = env.getElement('C');
-        DartType Object_ = env['Object'];
-        DartType num_ = env['num'];
-        DartType int_ = env['int'];
-        DartType String_ = env['String'];
-        DartType dynamic_ = env['dynamic'];
-        DartType void_ = env['void'];
+        ResolutionDartType Object_ = env['Object'];
+        ResolutionDartType num_ = env['num'];
+        ResolutionDartType int_ = env['int'];
+        ResolutionDartType String_ = env['String'];
+        ResolutionDartType dynamic_ = env['dynamic'];
+        ResolutionDartType void_ = env['void'];
+        ResolutionDartType Null_ = env['Null'];
 
         expect(true, void_, void_);
         expect(true, void_, dynamic_);
@@ -67,84 +69,113 @@ void testInterfaceSubtype() {
         expect(true, dynamic_, void_, expectMoreSpecific: false);
         expect(false, void_, Object_);
         expect(false, Object_, void_);
+        expect(true, Null_, void_);
 
         expect(true, Object_, Object_);
         expect(true, num_, Object_);
         expect(true, int_, Object_);
         expect(true, String_, Object_);
         expect(true, dynamic_, Object_, expectMoreSpecific: false);
+        expect(true, Null_, Object_);
 
         expect(false, Object_, num_);
         expect(true, num_, num_);
         expect(true, int_, num_);
         expect(false, String_, num_);
         expect(true, dynamic_, num_, expectMoreSpecific: false);
+        expect(true, Null_, num_);
 
         expect(false, Object_, int_);
         expect(false, num_, int_);
         expect(true, int_, int_);
         expect(false, String_, int_);
         expect(true, dynamic_, int_, expectMoreSpecific: false);
+        expect(true, Null_, int_);
 
         expect(false, Object_, String_);
         expect(false, num_, String_);
         expect(false, int_, String_);
         expect(true, String_, String_);
         expect(true, dynamic_, String_, expectMoreSpecific: false);
+        expect(true, Null_, String_);
 
         expect(true, Object_, dynamic_);
         expect(true, num_, dynamic_);
         expect(true, int_, dynamic_);
         expect(true, String_, dynamic_);
         expect(true, dynamic_, dynamic_);
+        expect(true, Null_, dynamic_);
 
-        DartType A_Object = instantiate(A, [Object_]);
-        DartType A_num = instantiate(A, [num_]);
-        DartType A_int = instantiate(A, [int_]);
-        DartType A_String = instantiate(A, [String_]);
-        DartType A_dynamic = instantiate(A, [dynamic_]);
+        expect(false, Object_, Null_);
+        expect(false, num_, Null_);
+        expect(false, int_, Null_);
+        expect(false, String_, Null_);
+        expect(true, dynamic_, Null_, expectMoreSpecific: false);
+        expect(true, Null_, Null_);
+
+        ResolutionDartType A_Object = instantiate(A, [Object_]);
+        ResolutionDartType A_num = instantiate(A, [num_]);
+        ResolutionDartType A_int = instantiate(A, [int_]);
+        ResolutionDartType A_String = instantiate(A, [String_]);
+        ResolutionDartType A_dynamic = instantiate(A, [dynamic_]);
+        ResolutionDartType A_Null = instantiate(A, [Null_]);
 
         expect(true, A_Object, Object_);
         expect(false, A_Object, num_);
         expect(false, A_Object, int_);
         expect(false, A_Object, String_);
         expect(true, A_Object, dynamic_);
+        expect(false, A_Object, Null_);
 
         expect(true, A_Object, A_Object);
         expect(true, A_num, A_Object);
         expect(true, A_int, A_Object);
         expect(true, A_String, A_Object);
         expect(true, A_dynamic, A_Object, expectMoreSpecific: false);
+        expect(true, A_Null, A_Object);
 
         expect(false, A_Object, A_num);
         expect(true, A_num, A_num);
         expect(true, A_int, A_num);
         expect(false, A_String, A_num);
         expect(true, A_dynamic, A_num, expectMoreSpecific: false);
+        expect(true, A_Null, A_num);
 
         expect(false, A_Object, A_int);
         expect(false, A_num, A_int);
         expect(true, A_int, A_int);
         expect(false, A_String, A_int);
         expect(true, A_dynamic, A_int, expectMoreSpecific: false);
+        expect(true, A_Null, A_int);
 
         expect(false, A_Object, A_String);
         expect(false, A_num, A_String);
         expect(false, A_int, A_String);
         expect(true, A_String, A_String);
         expect(true, A_dynamic, A_String, expectMoreSpecific: false);
+        expect(true, A_Null, A_String);
 
         expect(true, A_Object, A_dynamic);
         expect(true, A_num, A_dynamic);
         expect(true, A_int, A_dynamic);
         expect(true, A_String, A_dynamic);
         expect(true, A_dynamic, A_dynamic);
+        expect(true, A_Null, A_dynamic);
 
-        DartType B_Object_Object = instantiate(B, [Object_, Object_]);
-        DartType B_num_num = instantiate(B, [num_, num_]);
-        DartType B_int_num = instantiate(B, [int_, num_]);
-        DartType B_dynamic_dynamic = instantiate(B, [dynamic_, dynamic_]);
-        DartType B_String_dynamic = instantiate(B, [String_, dynamic_]);
+        expect(false, A_Object, A_Null);
+        expect(false, A_num, A_Null);
+        expect(false, A_int, A_Null);
+        expect(false, A_String, A_Null);
+        expect(true, A_dynamic, A_Null, expectMoreSpecific: false);
+        expect(true, A_Null, A_Null);
+
+        ResolutionDartType B_Object_Object = instantiate(B, [Object_, Object_]);
+        ResolutionDartType B_num_num = instantiate(B, [num_, num_]);
+        ResolutionDartType B_int_num = instantiate(B, [int_, num_]);
+        ResolutionDartType B_dynamic_dynamic =
+            instantiate(B, [dynamic_, dynamic_]);
+        ResolutionDartType B_String_dynamic =
+            instantiate(B, [String_, dynamic_]);
 
         expect(true, B_Object_Object, Object_);
         expect(true, B_Object_Object, A_Object);
@@ -214,10 +245,11 @@ void testInterfaceSubtype() {
             expectMoreSpecific: false);
         expect(true, B_String_dynamic, B_String_dynamic);
 
-        DartType C_Object_Object = instantiate(C, [Object_, Object_]);
-        DartType C_num_num = instantiate(C, [num_, num_]);
-        DartType C_int_String = instantiate(C, [int_, String_]);
-        DartType C_dynamic_dynamic = instantiate(C, [dynamic_, dynamic_]);
+        ResolutionDartType C_Object_Object = instantiate(C, [Object_, Object_]);
+        ResolutionDartType C_num_num = instantiate(C, [num_, num_]);
+        ResolutionDartType C_int_String = instantiate(C, [int_, String_]);
+        ResolutionDartType C_dynamic_dynamic =
+            instantiate(C, [dynamic_, dynamic_]);
 
         expect(true, C_Object_Object, B_Object_Object);
         expect(false, C_Object_Object, B_num_num);
@@ -269,20 +301,21 @@ void testCallableSubtype() {
         void m5(V v, int i);
       }
       """).then((env) {
-        void expect(bool expectSubtype, DartType T, DartType S,
+        void expect(
+            bool expectSubtype, ResolutionDartType T, ResolutionDartType S,
             {bool expectMoreSpecific}) {
           testTypes(env, T, S, expectSubtype, expectMoreSpecific);
         }
 
         ClassElement classA = env.getElement('A');
-        DartType A = classA.rawType;
-        DartType function = env['Function'];
-        DartType call = env.getMemberType(classA, 'call');
-        DartType m1 = env.getMemberType(classA, 'm1');
-        DartType m2 = env.getMemberType(classA, 'm2');
-        DartType m3 = env.getMemberType(classA, 'm3');
-        DartType m4 = env.getMemberType(classA, 'm4');
-        DartType m5 = env.getMemberType(classA, 'm5');
+        ResolutionDartType A = classA.rawType;
+        ResolutionDartType function = env['Function'];
+        ResolutionDartType call = env.getMemberType(classA, 'call');
+        ResolutionDartType m1 = env.getMemberType(classA, 'm1');
+        ResolutionDartType m2 = env.getMemberType(classA, 'm2');
+        ResolutionDartType m3 = env.getMemberType(classA, 'm3');
+        ResolutionDartType m4 = env.getMemberType(classA, 'm4');
+        ResolutionDartType m5 = env.getMemberType(classA, 'm5');
 
         expect(true, A, function);
         expect(true, A, call);
@@ -554,44 +587,45 @@ void testTypeVariableSubtype() {
       class I<T extends S, S extends U, U extends T> {}
       class J<T extends S, S extends U, U extends S> {}
       """).then((env) {
-        void expect(bool expectSubtype, DartType T, DartType S,
+        void expect(
+            bool expectSubtype, ResolutionDartType T, ResolutionDartType S,
             {bool expectMoreSpecific}) {
           testTypes(env, T, S, expectSubtype, expectMoreSpecific);
         }
 
         ClassElement A = env.getElement('A');
-        TypeVariableType A_T = A.thisType.typeArguments[0];
+        ResolutionTypeVariableType A_T = A.thisType.typeArguments[0];
         ClassElement B = env.getElement('B');
-        TypeVariableType B_T = B.thisType.typeArguments[0];
+        ResolutionTypeVariableType B_T = B.thisType.typeArguments[0];
         ClassElement C = env.getElement('C');
-        TypeVariableType C_T = C.thisType.typeArguments[0];
+        ResolutionTypeVariableType C_T = C.thisType.typeArguments[0];
         ClassElement D = env.getElement('D');
-        TypeVariableType D_T = D.thisType.typeArguments[0];
+        ResolutionTypeVariableType D_T = D.thisType.typeArguments[0];
         ClassElement E = env.getElement('E');
-        TypeVariableType E_T = E.thisType.typeArguments[0];
-        TypeVariableType E_S = E.thisType.typeArguments[1];
+        ResolutionTypeVariableType E_T = E.thisType.typeArguments[0];
+        ResolutionTypeVariableType E_S = E.thisType.typeArguments[1];
         ClassElement F = env.getElement('F');
-        TypeVariableType F_T = F.thisType.typeArguments[0];
-        TypeVariableType F_S = F.thisType.typeArguments[1];
+        ResolutionTypeVariableType F_T = F.thisType.typeArguments[0];
+        ResolutionTypeVariableType F_S = F.thisType.typeArguments[1];
         ClassElement G = env.getElement('G');
-        TypeVariableType G_T = G.thisType.typeArguments[0];
+        ResolutionTypeVariableType G_T = G.thisType.typeArguments[0];
         ClassElement H = env.getElement('H');
-        TypeVariableType H_T = H.thisType.typeArguments[0];
-        TypeVariableType H_S = H.thisType.typeArguments[1];
+        ResolutionTypeVariableType H_T = H.thisType.typeArguments[0];
+        ResolutionTypeVariableType H_S = H.thisType.typeArguments[1];
         ClassElement I = env.getElement('I');
-        TypeVariableType I_T = I.thisType.typeArguments[0];
-        TypeVariableType I_S = I.thisType.typeArguments[1];
-        TypeVariableType I_U = I.thisType.typeArguments[2];
+        ResolutionTypeVariableType I_T = I.thisType.typeArguments[0];
+        ResolutionTypeVariableType I_S = I.thisType.typeArguments[1];
+        ResolutionTypeVariableType I_U = I.thisType.typeArguments[2];
         ClassElement J = env.getElement('J');
-        TypeVariableType J_T = J.thisType.typeArguments[0];
-        TypeVariableType J_S = J.thisType.typeArguments[1];
-        TypeVariableType J_U = J.thisType.typeArguments[2];
+        ResolutionTypeVariableType J_T = J.thisType.typeArguments[0];
+        ResolutionTypeVariableType J_S = J.thisType.typeArguments[1];
+        ResolutionTypeVariableType J_U = J.thisType.typeArguments[2];
 
-        DartType Object_ = env['Object'];
-        DartType num_ = env['num'];
-        DartType int_ = env['int'];
-        DartType String_ = env['String'];
-        DartType dynamic_ = env['dynamic'];
+        ResolutionDartType Object_ = env['Object'];
+        ResolutionDartType num_ = env['num'];
+        ResolutionDartType int_ = env['int'];
+        ResolutionDartType String_ = env['String'];
+        ResolutionDartType dynamic_ = env['dynamic'];
 
         // class A<T> {}
         expect(true, A_T, Object_);

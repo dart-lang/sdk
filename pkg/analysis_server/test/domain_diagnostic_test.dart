@@ -5,89 +5,66 @@
 library test.domain.diagnostic;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_diagnostic.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'mock_sdk.dart';
-import 'mocks.dart';
+import 'analysis_abstract.dart';
 
 main() {
-  AnalysisServer server;
-  DiagnosticDomainHandler handler;
-  MemoryResourceProvider resourceProvider;
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DiagnosticDomainTest);
+    defineReflectiveTests(DiagnosticDomainTest_Driver);
+  });
+}
 
-  setUp(() {
-    //
-    // Collect plugins
-    //
-    ServerPlugin serverPlugin = new ServerPlugin();
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
-    plugins.add(serverPlugin);
-    //
-    // Process plugins
-    //
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
-    //
-    // Create the server
-    //
-    var serverChannel = new MockServerChannel();
-    resourceProvider = new MemoryResourceProvider();
-    // Create an SDK in the mock file system.
-    new MockSdk(resourceProvider: resourceProvider);
-    server = new AnalysisServer(
-        serverChannel,
-        resourceProvider,
-        new MockPackageMapProvider(),
-        null,
-        serverPlugin,
-        new AnalysisServerOptions(),
-        new DartSdkManager('/', false),
-        InstrumentationService.NULL_SERVICE);
+@reflectiveTest
+class DiagnosticDomainTest extends AbstractAnalysisTest {
+  @override
+  void setUp() {
+    super.setUp();
     handler = new DiagnosticDomainHandler(server);
-  });
+    server.handlers = [handler];
+  }
 
-  group('DiagnosticDomainHandler', () {
-    test('getDiagnostics', () async {
-      String file = '/project/bin/test.dart';
-      resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
-      resourceProvider.newFile(file, 'main() {}');
+  test_getDiagnostics() async {
+    String file = '/project/bin/test.dart';
+    resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
+    resourceProvider.newFile(file, 'main() {}');
 
-      server.setAnalysisRoots('0', ['/project/'], [], {});
+    server.setAnalysisRoots('0', ['/project/'], [], {});
 
-      await server.onAnalysisComplete;
+    await server.onAnalysisComplete;
 
-      var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
-      var response = handler.handleRequest(request);
+    var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
+    var response = handler.handleRequest(request);
+    var result = new DiagnosticGetDiagnosticsResult.fromResponse(response);
 
-      int fileCount = 1 /* test.dart */;
+    expect(result.contexts, hasLength(1));
 
-      Map json = response.toJson()[Response.RESULT];
-      expect(json['contexts'], hasLength(1));
-      var context = json['contexts'][0];
-      expect(context['name'], '/project');
-      expect(context['explicitFileCount'], fileCount);
-      // dart:core dart:async dart:math dart:_internal
-      expect(context['implicitFileCount'], 4);
-      expect(context['workItemQueueLength'], isNotNull);
-    });
+    ContextData context = result.contexts[0];
+    expect(context.name, '/project');
+    expect(context.explicitFileCount, 1); /* test.dart */
 
-    test('getDiagnostics - (no root)', () async {
-      var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
-      var response = handler.handleRequest(request);
-      Map json = response.toJson()[Response.RESULT];
-      expect(json['contexts'], hasLength(0));
-    });
-  });
+    expect(context.implicitFileCount, 4);
+
+    expect(context.workItemQueueLength, isNotNull);
+  }
+
+  test_getDiagnostics_noRoot() async {
+    var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
+    var response = handler.handleRequest(request);
+    var result = new DiagnosticGetDiagnosticsResult.fromResponse(response);
+    expect(result.contexts, isEmpty);
+  }
+}
+
+@reflectiveTest
+class DiagnosticDomainTest_Driver extends DiagnosticDomainTest {
+  @override
+  void setUp() {
+    enableNewAnalysisDriver = true;
+    generateSummaryFiles = true;
+    super.setUp();
+  }
 }

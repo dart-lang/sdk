@@ -245,18 +245,19 @@ class _Manager {
         "(function (f, a) { return function (e) { f(a, e); }})(#, #)",
         IsolateNatives._processWorkerMessage,
         mainManager);
-    JS("void", r"self.onmessage = #", function);
+    JS("void", r"#.onmessage = #", global, function);
     // We ensure dartPrint is defined so that the implementation of the Dart
     // print method knows what to call.
-    JS('', '''self.dartPrint = self.dartPrint || (function(serialize) {
+    JS('', '''#.dartPrint = #.dartPrint || (function(serialize) {
   return function (object) {
-    if (self.console && self.console.log) {
-      self.console.log(object)
+    var _self = #;
+    if (_self.console && _self.console.log) {
+      _self.console.log(object)
     } else {
-      self.postMessage(serialize(object));
+      _self.postMessage(serialize(object));
     }
   }
-})(#)''', _serializePrintMessage);
+})(#)''', global, global, global, _serializePrintMessage);
   }
 
   static _serializePrintMessage(object) {
@@ -429,8 +430,8 @@ class _IsolateContext implements IsolateContext {
         // don't print it.
         return;
       }
-      if (JS('bool', 'self.console && self.console.error')) {
-        JS('void', 'self.console.error(#, #)', error, stackTrace);
+      if (JS('bool', '#.console && #.console.error', global, global)) {
+        JS('void', '#.console.error(#, #)', global, error, stackTrace);
       } else {
         print(error);
         if (stackTrace != null) print(stackTrace);
@@ -700,13 +701,13 @@ class _IsolateEvent {
 //
 // See: http://www.w3.org/TR/workers/#the-global-scope
 // and: http://www.w3.org/TR/Window/#dfn-self-attribute
-final _global =
+final global =
   JS("", "typeof global == 'undefined' ? self : global");
 
 /** A stub for interacting with the main manager. */
 class _MainManagerStub {
   void postMessage(msg) {
-    JS("void", r"#.postMessage(#)", _global, msg);
+    JS("void", r"#.postMessage(#)", global, msg);
   }
 }
 
@@ -714,14 +715,14 @@ const String _SPAWNED_SIGNAL = "spawned";
 const String _SPAWN_FAILED_SIGNAL = "spawn failed";
 
 get globalWindow {
-  return JS('', "#.window", _global);
+  return JS('', "#.window", global);
 }
 
 get globalWorker {
-  return JS('', "#.Worker", _global);
+  return JS('', "#.Worker", global);
 }
 bool get globalPostMessageDefined {
-  return JS('bool', "!!#.postMessage", _global);
+  return JS('bool', "!!#.postMessage", global);
 }
 
 typedef _MainFunction();
@@ -906,7 +907,7 @@ class IsolateNatives {
   }
 
   static void _consoleLog(msg) {
-    JS("void", r"self.console.log(#)", msg);
+    JS("void", r"#.console.log(#)", global, msg);
   }
 
   static _getJSFunctionFromName(String functionName) {
@@ -1372,7 +1373,7 @@ class TimerImpl implements Timer {
       enterJsAsync();
 
       _handle = JS(
-          'int', 'self.setTimeout(#, #)', internalCallback, milliseconds);
+          'int', '#.setTimeout(#, #)', global, internalCallback, milliseconds);
     } else {
       assert(milliseconds > 0);
       throw new UnsupportedError("Timer greater than 0.");
@@ -1383,8 +1384,8 @@ class TimerImpl implements Timer {
       : _once = false {
     if (hasTimer()) {
       enterJsAsync();
-      _handle = JS('int', 'self.setInterval(#, #)',
-          () { callback(this); }, milliseconds);
+      _handle = JS('int', '#.setInterval(#, #)',
+          global, () { callback(this); }, milliseconds);
     } else {
       throw new UnsupportedError("Periodic timer.");
     }
@@ -1398,9 +1399,9 @@ class TimerImpl implements Timer {
       if (_handle == null) return;
       leaveJsAsync();
       if (_once) {
-        JS('void', 'self.clearTimeout(#)', _handle);
+        JS('void', '#.clearTimeout(#)', global, _handle);
       } else {
-        JS('void', 'self.clearInterval(#)', _handle);
+        JS('void', '#.clearInterval(#)', global, _handle);
       }
       _handle = null;
     } else {
@@ -1412,7 +1413,7 @@ class TimerImpl implements Timer {
 }
 
 bool hasTimer() {
-  return JS('', 'self.setTimeout') != null;
+  return JS('', '#.setTimeout', global) != null;
 }
 
 

@@ -79,11 +79,13 @@ class IsolateSummaryElement extends HtmlElement implements Renderable {
           ..classes = ['flex-row']
           ..children = [
             new DivElement()
+              ..classes = ['isolate-ref-container']
               ..children = [
                 new IsolateRefElement(_isolate, _events, queue: _r.queue)
               ],
             new DivElement()..style.flex = '1',
             new DivElement()
+              ..classes = ['flex-row', 'isolate-state-container']
               ..children = [
                 new IsolateRunStateElement(_isolate, _events, queue: _r.queue),
                 new IsolateLocationElement(_isolate, _events, _scripts,

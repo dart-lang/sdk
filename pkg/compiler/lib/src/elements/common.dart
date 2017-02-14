@@ -7,10 +7,11 @@
 library elements.common;
 
 import '../common/names.dart' show Identifiers, Names, Uris;
-import '../core_types.dart' show CoreClasses;
-import '../dart_types.dart' show DartType, InterfaceType, FunctionType;
+import '../core_types.dart' show CommonElements;
 import '../util/util.dart' show Link;
 import 'elements.dart';
+import 'resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType, ResolutionFunctionType;
 
 abstract class ElementCommon implements Element {
   @override
@@ -141,7 +142,7 @@ abstract class ElementCommon implements Element {
   Element get outermostEnclosingMemberOrTopLevel {
     // TODO(lrn): Why is this called "Outermost"?
     // TODO(johnniwinther): Clean up this method: This method does not return
-    // the outermost for elements in closure classses, but some call-sites rely
+    // the outermost for elements in closure classes, but some call-sites rely
     // on that behavior.
     for (Element e = this; e != null; e = e.enclosingElement) {
       if (e.isClassMember || e.isTopLevel) {
@@ -188,13 +189,13 @@ abstract class CompilationUnitElementCommon implements CompilationUnitElement {}
 
 abstract class ClassElementCommon implements ClassElement {
   @override
-  Link<DartType> get allSupertypes => allSupertypesAndSelf.supertypes;
+  Link<ResolutionDartType> get allSupertypes => allSupertypesAndSelf.supertypes;
 
   @override
   int get hierarchyDepth => allSupertypesAndSelf.maxDepth;
 
   @override
-  InterfaceType asInstanceOf(ClassElement cls) {
+  ResolutionInterfaceType asInstanceOf(ClassElement cls) {
     if (cls == this) return thisType;
     return allSupertypesAndSelf.asInstanceOf(cls);
   }
@@ -439,8 +440,9 @@ abstract class ClassElementCommon implements ClassElement {
   }
 
   @override
-  bool implementsFunction(CoreClasses coreClasses) {
-    return asInstanceOf(coreClasses.functionClass) != null || callType != null;
+  bool implementsFunction(CommonElements commonElements) {
+    return asInstanceOf(commonElements.functionClass) != null ||
+        callType != null;
   }
 
   @override
@@ -454,7 +456,7 @@ abstract class ClassElementCommon implements ClassElement {
     return false;
   }
 
-  FunctionType get callType {
+  ResolutionFunctionType get callType {
     MemberSignature member = lookupInterfaceMember(Names.call);
     return member != null && member.isMethod ? member.type : null;
   }
@@ -496,7 +498,7 @@ abstract class ClassElementCommon implements ClassElement {
 }
 
 abstract class FunctionSignatureCommon implements FunctionSignature {
-  DartType get returnType => type.returnType;
+  ResolutionDartType get returnType => type.returnType;
 
   void forEachRequiredParameter(void function(Element parameter)) {
     requiredParameters.forEach(function);
@@ -601,7 +603,12 @@ abstract class AbstractFieldElementCommon implements AbstractFieldElement {
   }
 }
 
-enum _FromEnvironmentState { NOT, BOOL, INT, STRING, }
+enum _FromEnvironmentState {
+  NOT,
+  BOOL,
+  INT,
+  STRING,
+}
 
 abstract class ConstructorElementCommon implements ConstructorElement {
   _FromEnvironmentState _fromEnvironmentState;

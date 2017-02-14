@@ -7,13 +7,14 @@ library test.analysis_server.src.single_context_manager;
 import 'dart:core';
 
 import 'package:analysis_server/src/single_context_manager.dart';
+import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/util/glob.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
@@ -63,10 +64,13 @@ class SingleContextManagerTest {
     packageResolver = new TestUriResolver();
 
     _processRequiredPlugins();
-    DartSdkManager sdkManager = new DartSdkManager('', false);
+    DartSdkManager sdkManager = new DartSdkManager('/', false);
     manager = new SingleContextManager(resourceProvider, sdkManager,
         (_) => packageResolver, analysisFilesGlobs, new AnalysisOptionsImpl());
-    callbacks = new TestContextManagerCallbacks(resourceProvider);
+    PerformanceLog logger = new PerformanceLog(new NullStringSink());
+    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
+    callbacks = new TestContextManagerCallbacks(
+        resourceProvider, sdkManager, logger, scheduler);
     manager.callbacks = callbacks;
   }
 
@@ -532,9 +536,6 @@ class SingleContextManagerTest {
   void _processRequiredPlugins() {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
-    plugins.add(linterPlugin);
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
   }

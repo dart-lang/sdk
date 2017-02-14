@@ -603,14 +603,27 @@ testRename() {
   Expect.isTrue(temp2.existsSync());
   Expect.equals(temp3.path, temp2.path);
 
-  temp2.rename(temp1.path).then((temp4) {
-    Expect.isFalse(temp3.existsSync());
-    Expect.isFalse(temp2.existsSync());
-    Expect.isTrue(temp1.existsSync());
-    Expect.isTrue(temp4.existsSync());
-    Expect.equals(temp1.path, temp4.path);
-    temp1.deleteSync(recursive: true);
-  });
+  var temp4 = temp2.renameSync(temp1.path);
+  Expect.isFalse(temp3.existsSync());
+  Expect.isFalse(temp2.existsSync());
+  Expect.isTrue(temp1.existsSync());
+  Expect.isTrue(temp4.existsSync());
+  Expect.equals(temp1.path, temp4.path);
+
+  String foo = '${temp4.path}/foo';
+  String bar = '${temp4.path}/bar';
+  new File(foo).createSync();
+  try {
+    new Directory(foo).renameSync(bar);
+    Expect.fail('Directory.rename should fail to rename a non-directory');
+  } catch (e) {
+    Expect.isTrue(e is FileSystemException);
+    if (Platform.isLinux || Platform.isMacOS) {
+      Expect.isTrue(e.osError.message.contains('Not a directory'));
+    }
+  }
+
+  temp1.deleteSync(recursive: true);
 }
 
 main() {

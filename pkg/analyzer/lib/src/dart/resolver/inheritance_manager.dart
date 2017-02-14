@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -962,8 +963,8 @@ class InheritanceManager {
       int numOfPositionalParameters,
       List<String> namedParameters) {
     DynamicTypeImpl dynamicType = DynamicTypeImpl.instance;
-    SimpleIdentifier nameIdentifier =
-        new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
+    SimpleIdentifier nameIdentifier = astFactory
+        .simpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
     ExecutableElementImpl executable;
     ExecutableElement elementToMerge = elementArrayToMerge[0];
     if (elementToMerge is MethodElement) {

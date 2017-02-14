@@ -79,9 +79,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         visiting_old_object_(NULL) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
-    ASSERT((visiting_old_object_ != NULL) ||
-           scavenger_->Contains(reinterpret_cast<uword>(first)) ||
-           !heap_->Contains(reinterpret_cast<uword>(first)));
+    if (FLAG_verify_gc_contains) {
+      ASSERT((visiting_old_object_ != NULL) ||
+             scavenger_->Contains(reinterpret_cast<uword>(first)) ||
+             !heap_->Contains(reinterpret_cast<uword>(first)));
+    }
     for (RawObject** current = first; current <= last; current++) {
       ScavengePointer(current);
     }
@@ -96,11 +98,12 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
  private:
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
-    uword ptr = reinterpret_cast<uword>(p);
     ASSERT(obj->IsHeapObject());
-    ASSERT(!scavenger_->Contains(ptr));
-    ASSERT(!heap_->CodeContains(ptr));
-    ASSERT(heap_->Contains(ptr));
+    if (FLAG_verify_gc_contains) {
+      uword ptr = reinterpret_cast<uword>(p);
+      ASSERT(!scavenger_->Contains(ptr));
+      ASSERT(heap_->DataContains(ptr));
+    }
     // If the newly written object is not a new object, drop it immediately.
     if (!obj->IsNewObject() || visiting_old_object_->IsRemembered()) {
       return;
@@ -504,13 +507,13 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
 
 
 void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
-  int64_t start = OS::GetCurrentTimeMicros();
+  int64_t start = OS::GetCurrentMonotonicMicros();
   isolate->VisitObjectPointers(visitor,
                                StackFrameIterator::kDontValidateFrames);
-  int64_t middle = OS::GetCurrentTimeMicros();
+  int64_t middle = OS::GetCurrentMonotonicMicros();
   IterateStoreBuffers(isolate, visitor);
   IterateObjectIdTable(isolate, visitor);
-  int64_t end = OS::GetCurrentTimeMicros();
+  int64_t end = OS::GetCurrentMonotonicMicros();
   heap_->RecordData(kToKBAfterStoreBuffer, RoundWordsToKB(UsedInWords()));
   heap_->RecordTime(kVisitIsolateRoots, middle - start);
   heap_->RecordTime(kIterateStoreBuffers, end - middle);
@@ -808,9 +811,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     ScavengerVisitor visitor(isolate, this, from);
     page_space->AcquireDataLock();
     IterateRoots(isolate, &visitor);
-    int64_t start = OS::GetCurrentTimeMicros();
+    int64_t start = OS::GetCurrentMonotonicMicros();
     ProcessToSpace(&visitor);
-    int64_t middle = OS::GetCurrentTimeMicros();
+    int64_t middle = OS::GetCurrentMonotonicMicros();
     {
       TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
       if (FLAG_background_finalization) {
@@ -831,7 +834,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     page_space->ReleaseDataLock();
 
     // Scavenge finished. Run accounting.
-    int64_t end = OS::GetCurrentTimeMicros();
+    int64_t end = OS::GetCurrentMonotonicMicros();
     heap_->RecordTime(kProcessToSpace, middle - start);
     heap_->RecordTime(kIterateWeaks, end - middle);
     stats_history_.Add(ScavengeStats(
@@ -872,7 +875,7 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty("vmName", "Scavenger");
   space.AddProperty("collections", collections());
   if (collections() > 0) {
-    int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();
+    int64_t run_time = isolate->UptimeMicros();
     run_time = Utils::Maximum(run_time, static_cast<int64_t>(0));
     double run_time_millis = MicrosecondsToMilliseconds(run_time);
     double avg_time_between_collections =

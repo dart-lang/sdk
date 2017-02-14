@@ -93,6 +93,9 @@ def GetOptions():
       help='Where to output the sdk')
   options.add_option("--snapshot_location",
       help='Location of the snapshots.')
+  options.add_option("--copy_libs",
+      action="store_true", default=False,
+      help='Copy dynamically linked libraries to the SDK bin directory.')
   return options.parse_args()
 
 
@@ -129,6 +132,20 @@ def CopyShellScript(src_file, dest_dir):
   src = src_file + file_extension
   dest = join(dest_dir, dest_file + file_extension)
   Copy(src, dest)
+
+
+def CopyLibs(out_dir, bin_dir):
+  for library in ['libcrypto', 'libssl']:
+    ext = '.so'
+    if HOST_OS == 'macos':
+      ext = '.dylib'
+    elif HOST_OS == 'win32':
+      ext = '.dll'
+    src = os.path.join(out_dir, library + ext)
+    dst = os.path.join(bin_dir, library + ext)
+    if os.path.isfile(src):
+      copyfile(src, dst)
+      copymode(src, dst)
 
 
 def CopyDartScripts(home, sdk_root):
@@ -312,6 +329,9 @@ def Main():
   CopyAnalyzerSources(HOME, LIB)
   CopyAnalysisSummaries(SNAPSHOT, LIB)
   CopyDevCompilerSdk(HOME, LIB)
+
+  if options.copy_libs:
+    CopyLibs(build_dir, BIN)
 
   # Write the 'version' file
   version = utils.GetVersion()

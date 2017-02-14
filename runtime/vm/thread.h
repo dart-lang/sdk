@@ -37,6 +37,7 @@ class Library;
 class LongJumpScope;
 class Object;
 class OSThread;
+class JSONObject;
 class PcDescriptors;
 class RawBool;
 class RawObject;
@@ -51,7 +52,6 @@ class String;
 class TimelineStream;
 class TypeArguments;
 class TypeParameter;
-class TypeRangeCache;
 class Zone;
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
@@ -160,6 +160,9 @@ class Thread : public BaseThread {
     kMarkerTask = 0x8,
     kFinalizerTask = 0x10,
   };
+  // Converts a TaskKind to its corresponding C-String name.
+  static const char* TaskKindToCString(TaskKind kind);
+
   ~Thread();
 
   // The currently executing thread, or NULL if not yet initialized.
@@ -261,6 +264,22 @@ class Thread : public BaseThread {
 
   bool ZoneIsOwnedByThread(Zone* zone) const;
 
+  void IncrementMemoryUsage(uintptr_t value) {
+    current_thread_memory_ += value;
+    if (current_thread_memory_ > memory_high_watermark_) {
+      memory_high_watermark_ = current_thread_memory_;
+    }
+  }
+
+  void DecrementMemoryUsage(uintptr_t value) {
+    ASSERT(current_thread_memory_ >= value);
+    current_thread_memory_ -= value;
+  }
+
+  uintptr_t memory_high_watermark() const { return memory_high_watermark_; }
+
+  void ResetHighWatermark() { memory_high_watermark_ = current_thread_memory_; }
+
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
   void set_api_reusable_scope(ApiLocalScope* value) {
@@ -299,11 +318,6 @@ class Thread : public BaseThread {
   void set_cha(CHA* value) {
     ASSERT(isolate_ != NULL);
     cha_ = value;
-  }
-
-  TypeRangeCache* type_range_cache() const { return type_range_cache_; }
-  void set_type_range_cache(TypeRangeCache* value) {
-    type_range_cache_ = value;
   }
 
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
@@ -639,12 +653,21 @@ class Thread : public BaseThread {
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
+  bool IsValidHandle(Dart_Handle object) const;
   bool IsValidLocalHandle(Dart_Handle object) const;
-  int CountLocalHandles() const;
+  intptr_t CountLocalHandles() const;
+  bool IsValidZoneHandle(Dart_Handle object) const;
+  intptr_t CountZoneHandles() const;
+  bool IsValidScopedHandle(Dart_Handle object) const;
+  intptr_t CountScopedHandles() const;
   int ZoneSizeInBytes() const;
   void UnwindScopes(uword stack_marker);
 
   void InitVMConstants();
+
+#ifndef PRODUCT
+  void PrintJSON(JSONStream* stream) const;
+#endif
 
  private:
   template <class T>
@@ -677,6 +700,8 @@ class Thread : public BaseThread {
   OSThread* os_thread_;
   Monitor* thread_lock_;
   Zone* zone_;
+  uintptr_t current_thread_memory_;
+  uintptr_t memory_high_watermark_;
   ApiLocalScope* api_reusable_scope_;
   ApiLocalScope* api_top_scope_;
   StackResource* top_resource_;
@@ -696,7 +721,6 @@ class Thread : public BaseThread {
 
   // Compiler state:
   CHA* cha_;
-  TypeRangeCache* type_range_cache_;
   intptr_t deopt_id_;  // Compilation specific counter.
   RawGrowableObjectArray* pending_functions_;
 

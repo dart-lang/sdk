@@ -95,10 +95,11 @@ void Benchmark::RunAll(const char* executable) {
 }
 
 
-Dart_Isolate Benchmark::CreateIsolate(const uint8_t* buffer) {
-  bin::IsolateData* isolate_data = new bin::IsolateData(NULL, NULL, NULL);
+Dart_Isolate Benchmark::CreateIsolate(const uint8_t* snapshot_data,
+                                      const uint8_t* snapshot_instructions) {
   char* err = NULL;
-  isolate_ = Dart_CreateIsolate(NULL, NULL, buffer, NULL, isolate_data, &err);
+  isolate_ = Dart_CreateIsolate(NULL, NULL, snapshot_data,
+                                snapshot_instructions, NULL, NULL, &err);
   EXPECT(isolate_ != NULL);
   free(err);
   return isolate_;
@@ -492,6 +493,11 @@ static uint8_t* malloc_allocator(uint8_t* ptr,
 }
 
 
+static void malloc_deallocator(uint8_t* ptr) {
+  free(ptr);
+}
+
+
 BENCHMARK_SIZE(CoreSnapshotSize) {
   const char* kScriptChars =
       "import 'dart:async';\n"
@@ -505,21 +511,25 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
       "\n";
 
   // Start an Isolate, load a script and create a full snapshot.
-  uint8_t* vm_isolate_snapshot_buffer;
-  uint8_t* isolate_snapshot_buffer;
+  uint8_t* vm_snapshot_data_buffer;
+  uint8_t* isolate_snapshot_data_buffer;
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(Snapshot::kCore, &vm_isolate_snapshot_buffer,
-                            &isolate_snapshot_buffer, &malloc_allocator,
-                            NULL /* instructions_writer */);
+  FullSnapshotWriter writer(Snapshot::kCore, &vm_snapshot_data_buffer,
+                            &isolate_snapshot_data_buffer, &malloc_allocator,
+                            NULL, NULL /* image_writer */);
   writer.WriteFullSnapshot();
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
+  const Snapshot* snapshot =
+      Snapshot::SetupFromBuffer(isolate_snapshot_data_buffer);
   ASSERT(snapshot->kind() == Snapshot::kCore);
   benchmark->set_score(snapshot->length());
+
+  free(vm_snapshot_data_buffer);
+  free(isolate_snapshot_data_buffer);
 }
 
 
@@ -539,21 +549,25 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
       "\n";
 
   // Start an Isolate, load a script and create a full snapshot.
-  uint8_t* vm_isolate_snapshot_buffer;
-  uint8_t* isolate_snapshot_buffer;
+  uint8_t* vm_snapshot_data_buffer;
+  uint8_t* isolate_snapshot_data_buffer;
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  FullSnapshotWriter writer(Snapshot::kCore, &vm_isolate_snapshot_buffer,
-                            &isolate_snapshot_buffer, &malloc_allocator,
-                            NULL /* instructions_writer */);
+  FullSnapshotWriter writer(Snapshot::kCore, &vm_snapshot_data_buffer,
+                            &isolate_snapshot_data_buffer, &malloc_allocator,
+                            NULL, NULL /* image_writer */);
   writer.WriteFullSnapshot();
-  const Snapshot* snapshot = Snapshot::SetupFromBuffer(isolate_snapshot_buffer);
+  const Snapshot* snapshot =
+      Snapshot::SetupFromBuffer(isolate_snapshot_data_buffer);
   ASSERT(snapshot->kind() == Snapshot::kCore);
   benchmark->set_score(snapshot->length());
+
+  free(vm_snapshot_data_buffer);
+  free(isolate_snapshot_data_buffer);
 }
 
 
@@ -602,6 +616,7 @@ static uint8_t* message_allocator(uint8_t* ptr,
                                   intptr_t new_size) {
   return message_buffer;
 }
+static void message_deallocator(uint8_t* ptr) {}
 
 
 BENCHMARK(SerializeNull) {
@@ -612,7 +627,8 @@ BENCHMARK(SerializeNull) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &message_allocator, true);
+    MessageWriter writer(&buffer, &message_allocator, &message_deallocator,
+                         true);
     writer.WriteMessage(null_object);
     intptr_t buffer_len = writer.BytesWritten();
 
@@ -634,7 +650,8 @@ BENCHMARK(SerializeSmi) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &message_allocator, true);
+    MessageWriter writer(&buffer, &message_allocator, &message_deallocator,
+                         true);
     writer.WriteMessage(smi_object);
     intptr_t buffer_len = writer.BytesWritten();
 
@@ -659,7 +676,7 @@ BENCHMARK(SimpleMessage) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &malloc_allocator, true);
+    MessageWriter writer(&buffer, &malloc_allocator, &malloc_deallocator, true);
     writer.WriteMessage(array_object);
     intptr_t buffer_len = writer.BytesWritten();
 
@@ -693,7 +710,7 @@ BENCHMARK(LargeMap) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(&buffer, &malloc_allocator, true);
+    MessageWriter writer(&buffer, &malloc_allocator, &malloc_deallocator, true);
     writer.WriteMessage(map);
     intptr_t buffer_len = writer.BytesWritten();
 

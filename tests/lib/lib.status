@@ -8,6 +8,8 @@ mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type check
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. Issue 5958
 
+async/future_or_strong_test: RuntimeError, OK
+
 math/double_pow_test: RuntimeError
 math/low_test: RuntimeError
 math/random_big_test: RuntimeError  # Using bigint seeds for random.
@@ -103,6 +105,18 @@ mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
 mirrors/raw_type_test/01: RuntimeError # Issue 6490
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 mirrors/regress_26187_test: RuntimeError # Issue 6490
+mirrors/reflected_type_generics_test/01: Fail # Issues in reflecting generic typedefs.
+mirrors/reflected_type_generics_test/02: Fail # Issues in reflecting bounded type variables.
+# The following tests fail because we have disabled a test in
+# `reflectClassByName`. `MirrorsUsed` leads to classes not having the
+# information necessary to correctly handle these checks.
+mirrors/reflected_type_generics_test/03: Fail # Issues in reflecting generic typedefs.
+mirrors/reflected_type_generics_test/04: Fail # Issues in reflecting bounded type variables.
+mirrors/reflected_type_generics_test/05: Fail # Issues in reflecting generic typedefs.
+mirrors/reflected_type_generics_test/06: Fail # Issues in reflecting bounded type variables.
+
+[ $compiler == none && $unchecked ]
+mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded type argument.
 
 [ $compiler == dart2js && $fast_startup ]
 mirrors/*: Fail # mirrors not supported
@@ -209,14 +223,11 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 
 # 'js' tests import the dart:js library, so they only make sense in
 # a browser environment.
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 js/*: Skip
 
-# 'js' tests import the dart:js library, so they only make sense in
-# a browser environment.
-[ $runtime == dart_app ]
-js/*: SkipByDesign
-mirrors/*: SkipByDesign
+[ $compiler == app_jit ]
+mirrors/*: Skip # Issue 27929: Triage
 
 [ $compiler == dart2js && $minified ]
 mirrors/mirrors_used_get_name_test: RuntimeError
@@ -255,20 +266,24 @@ async/timer_test: Fail, Pass
 [ $runtime == vm ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 async/timer_not_available_test: Fail, OK
 mirrors/native_class_test: Fail, OK # This test is meant to run in a browser.
 mirrors/deferred_type_test: CompileTimeError, OK # Don't have a multitest marker for dynamic compile time errors.
 mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
 
-[ $compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 
+async/future_or_strong_test: RuntimeError, OK
+
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+async/future_or_bad_type_test/implements: Pass # Issue 28084
+
 mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
 async/schedule_microtask6_test: Fail # Issue 10910
 async/timer_test: Fail, Pass # Issue 15487
@@ -321,6 +336,7 @@ developer/metrics_num_test: Fail # Issue 20309
 profiler/metrics_test: Fail # Issue 20309
 profiler/metrics_num_test: Fail # Issue 20309
 
+
 [ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
 
@@ -331,8 +347,8 @@ mirrors/*deferred*: Pass,RuntimeError # Issue 17458
 [ $compiler == dart2js && $mode == debug ]
 mirrors/native_class_test: Pass, Slow
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $arch == mips ]
-async/timer_regress22626_test: Pass, RuntimeError # Issue 22626
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) ]
+async/timer_regress22626_test: Pass, RuntimeError # Issue 28254
 
 [ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te ]
 convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
@@ -354,13 +370,13 @@ convert/utf85_test: Skip # Pass, Slow Issue 20111.
 [ $mode == debug && $arch == ia32 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $arch == x64 && $system == windows ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $arch == x64 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 
 [ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv6 && $arch != simarmv5te ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 mirrors/immutable_collections_test: SkipSlow  # Timeout.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 
@@ -387,13 +403,10 @@ mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 
-[ $noopt && $arch == simarm64 ]
-async/slow_consumer2_test: Pass, RuntimeError # Issue 25726
-
-[ $noopt || $compiler == precompiler || $mode == product ]
+[ $compiler == precompiler || $mode == product ]
 mirrors/*: SkipByDesign
 
-[ $noopt || $compiler == precompiler ]
+[ $compiler == precompiler ]
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 
@@ -414,6 +427,5 @@ mirrors/load_library_test: Crash # Deferred loading
 
 [ $hot_reload ]
 mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
-mirrors/typedef_reflected_type_test/01: Fail # Type equality - Issue 26869
 mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869
 async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.

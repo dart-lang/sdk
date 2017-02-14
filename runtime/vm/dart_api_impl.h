@@ -9,6 +9,7 @@
 #include "vm/native_arguments.h"
 #include "vm/object.h"
 #include "vm/safepoint.h"
+#include "vm/thread_registry.h"
 
 namespace dart {
 
@@ -18,6 +19,7 @@ class FinalizablePersistentHandle;
 class LocalHandle;
 class PersistentHandle;
 class ReusableObjectHandleScope;
+class ThreadRegistry;
 
 const char* CanonicalFunction(const char* func);
 
@@ -165,6 +167,9 @@ class Api : AllStatic {
   static bool IsInstance(Dart_Handle handle) {
     return (ClassId(handle) >= kInstanceCid);
   }
+
+  // Returns true if the handle is non-dangling.
+  static bool IsValid(Dart_Handle handle);
 
   // Returns true if the handle holds an Error.
   static bool IsError(Dart_Handle handle) {

@@ -6,10 +6,10 @@ library ssa.tracer;
 
 import 'dart:async' show EventSink;
 
-import '../compiler.dart' show Compiler;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
-import '../js_backend/js_backend.dart';
+import '../js_backend/namer.dart' show Namer;
 import '../tracer.dart';
+import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
 
 /**
@@ -18,10 +18,11 @@ import 'nodes.dart';
  * to enable it.
  */
 class HTracer extends HGraphVisitor with TracerUtil {
-  Compiler compiler;
+  final ClosedWorld closedWorld;
+  final Namer namer;
   final EventSink<String> output;
 
-  HTracer(this.output, this.compiler);
+  HTracer(this.output, this.closedWorld, this.namer);
 
   void traceGraph(String name, HGraph graph) {
     DEBUG_MODE = true;
@@ -75,7 +76,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
 
   void visitBasicBlock(HBasicBlock block) {
     HInstructionStringifier stringifier =
-        new HInstructionStringifier(block, compiler);
+        new HInstructionStringifier(block, closedWorld, namer);
     assert(block.id != null);
     tag("block", () {
       printProperty("name", "B${block.id}");
@@ -112,10 +113,11 @@ class HTracer extends HGraphVisitor with TracerUtil {
 }
 
 class HInstructionStringifier implements HVisitor<String> {
-  final Compiler compiler;
+  final ClosedWorld closedWorld;
+  final Namer namer;
   final HBasicBlock currentBlock;
 
-  HInstructionStringifier(this.currentBlock, this.compiler);
+  HInstructionStringifier(this.currentBlock, this.closedWorld, this.namer);
 
   visit(HInstruction node) => '${node.accept(this)} ${node.instructionType}';
 
@@ -125,27 +127,27 @@ class HInstructionStringifier implements HVisitor<String> {
       prefix = 'u';
     } else if (instruction.isConflicting()) {
       prefix = 'c';
-    } else if (instruction.isExtendableArray(compiler)) {
+    } else if (instruction.isExtendableArray(closedWorld)) {
       prefix = 'e';
-    } else if (instruction.isFixedArray(compiler)) {
+    } else if (instruction.isFixedArray(closedWorld)) {
       prefix = 'f';
-    } else if (instruction.isMutableArray(compiler)) {
+    } else if (instruction.isMutableArray(closedWorld)) {
       prefix = 'm';
-    } else if (instruction.isReadableArray(compiler)) {
+    } else if (instruction.isReadableArray(closedWorld)) {
       prefix = 'a';
-    } else if (instruction.isString(compiler)) {
+    } else if (instruction.isString(closedWorld)) {
       prefix = 's';
-    } else if (instruction.isIndexablePrimitive(compiler)) {
+    } else if (instruction.isIndexablePrimitive(closedWorld)) {
       prefix = 'r';
-    } else if (instruction.isBoolean(compiler)) {
+    } else if (instruction.isBoolean(closedWorld)) {
       prefix = 'b';
-    } else if (instruction.isInteger(compiler)) {
+    } else if (instruction.isInteger(closedWorld)) {
       prefix = 'i';
-    } else if (instruction.isDouble(compiler)) {
+    } else if (instruction.isDouble(closedWorld)) {
       prefix = 'd';
-    } else if (instruction.isNumber(compiler)) {
+    } else if (instruction.isNumber(closedWorld)) {
       prefix = 'n';
-    } else if (instruction.instructionType.containsAll(compiler.closedWorld)) {
+    } else if (instruction.instructionType.containsAll(closedWorld)) {
       prefix = 'v';
     } else {
       prefix = 'U';
@@ -292,9 +294,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitInterceptor(HInterceptor node) {
     String value = temporaryId(node.inputs[0]);
     if (node.interceptedClasses != null) {
-      JavaScriptBackend backend = compiler.backend;
-      String cls =
-          backend.namer.suffixForGetInterceptor(node.interceptedClasses);
+      String cls = namer.suffixForGetInterceptor(node.interceptedClasses);
       return "Interceptor ($cls): $value";
     }
     return "Interceptor: $value";
@@ -450,6 +450,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitTruncatingDivide(HTruncatingDivide node) {
     return handleInvokeBinary(node, 'TruncatingDivide');
+  }
+
+  String visitRemainder(HRemainder node) {
+    return handleInvokeBinary(node, 'Remainder');
   }
 
   String visitExitTry(HExitTry node) {

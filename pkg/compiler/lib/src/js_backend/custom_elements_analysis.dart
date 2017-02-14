@@ -4,7 +4,7 @@
 
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../enqueue.dart' show Enqueuer;
 import '../universe/use.dart' show StaticUse;
@@ -86,7 +86,7 @@ class CustomElementsAnalysis {
     joinFor(forResolution: forResolution).instantiatedClasses.add(classElement);
   }
 
-  void registerTypeLiteral(DartType type) {
+  void registerTypeLiteral(ResolutionDartType type) {
     if (type.isInterfaceType) {
       // TODO(sra): If we had a flow query from the type literal expression to
       // the Type argument of the metadata lookup, we could tell if this type
@@ -126,7 +126,7 @@ class CustomElementsAnalysis {
   bool needsClass(ClassElement classElement) =>
       codegenJoin.activeClasses.contains(classElement);
 
-  List<Element> constructors(ClassElement classElement) =>
+  List<ConstructorElement> constructors(ClassElement classElement) =>
       codegenJoin.computeEscapingConstructors(classElement);
 }
 
@@ -189,7 +189,7 @@ class CustomElementsAnalysisJoin {
   }
 
   TypeConstantValue makeTypeConstant(ClassElement element) {
-    DartType elementType = element.rawType;
+    ResolutionDartType elementType = element.rawType;
     return backend.constantSystem.createType(compiler, elementType);
   }
 

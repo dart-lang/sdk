@@ -7,7 +7,7 @@ library dart2js.serialization.elements;
 import '../common.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/messages.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
@@ -71,9 +71,9 @@ enum SerializedElementKind {
 /// encoding into them into [ObjectEncoder]s.
 ///
 /// This class is called from the [Serializer] when an [Element] needs
-/// serialization. The [ObjectEncoder] ensures that any [Element], [DartType],
-/// and [ConstantExpression] that the serialized [Element] depends upon are also
-/// serialized.
+/// serialization. The [ObjectEncoder] ensures that any [Element],
+/// [ResolutionDartType], and [ConstantExpression] that the serialized [Element]
+/// depends upon are also serialized.
 const List<ElementSerializer> ELEMENT_SERIALIZERS = const [
   const ErrorSerializer(),
   const LibrarySerializer(),
@@ -166,8 +166,7 @@ class SerializerUtil {
   static void serializeParentRelation(Element element, ObjectEncoder encoder) {
     if (element.enclosingClass != null) {
       encoder.setElement(Key.CLASS, element.enclosingClass);
-      if (element.enclosingClass.declaration.compilationUnit !=
-          element.compilationUnit) {
+      if (element.enclosingClass.compilationUnit != element.compilationUnit) {
         encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
       }
     } else {
@@ -179,7 +178,7 @@ class SerializerUtil {
   /// Serialize the parameters of [element] into [encoder].
   static void serializeParameters(
       FunctionElement element, ObjectEncoder encoder) {
-    FunctionType type = element.type;
+    ResolutionFunctionType type = element.type;
     encoder.setType(Key.RETURN_TYPE, type.returnType);
     encoder.setElements(Key.PARAMETERS, element.parameters);
   }
@@ -420,7 +419,7 @@ class ClassSerializer implements ElementSerializer {
     }
     if (element.isObject) return;
 
-    List<InterfaceType> mixins = <InterfaceType>[];
+    List<ResolutionInterfaceType> mixins = <ResolutionInterfaceType>[];
     ClassElement superclass = element.superclass;
     while (superclass.isUnnamedMixinApplication) {
       MixinApplicationElement mixinElement = superclass;
@@ -428,12 +427,13 @@ class ClassSerializer implements ElementSerializer {
       superclass = mixinElement.superclass;
     }
     mixins = mixins.reversed.toList();
-    InterfaceType supertype = element.thisType.asInstanceOf(superclass);
+    ResolutionInterfaceType supertype =
+        element.thisType.asInstanceOf(superclass);
 
     encoder.setType(Key.SUPERTYPE, supertype);
     encoder.setTypes(Key.MIXINS, mixins);
     encoder.setTypes(Key.INTERFACES, element.interfaces.toList());
-    FunctionType callType = element.declaration.callType;
+    ResolutionFunctionType callType = element.declaration.callType;
     if (callType != null) {
       encoder.setType(Key.CALL_TYPE, element.callType);
     }
@@ -848,8 +848,8 @@ class ElementDeserializer {
   ///
   /// The class is called from the [Deserializer] when an [Element]
   /// needs deserialization. The [ObjectDecoder] ensures that any [Element],
-  /// [DartType], and [ConstantExpression] that the deserialized [Element]
-  /// depends upon are available.
+  /// [ResolutionDartType], and [ConstantExpression] that the deserialized
+  /// [Element] depends upon are available.
   static Element deserialize(
       ObjectDecoder decoder, SerializedElementKind elementKind) {
     switch (elementKind) {

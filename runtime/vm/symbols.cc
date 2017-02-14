@@ -354,7 +354,6 @@ RawArray* Symbols::UnifiedSymbolTable() {
 }
 
 
-#if defined(DART_PRECOMPILER)
 void Symbols::Compact(Isolate* isolate) {
   ASSERT(isolate != Dart::vm_isolate());
   Zone* zone = Thread::Current()->zone();
@@ -397,7 +396,6 @@ void Symbols::Compact(Isolate* isolate) {
   }
   isolate->object_store()->set_symbol_table(table.Release());
 }
-#endif  // DART_PRECOMPILER
 
 
 void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
@@ -702,21 +700,19 @@ RawString* Symbols::FromCharCode(Thread* thread, int32_t char_code) {
 }
 
 
-void Symbols::DumpStats() {
-  if (FLAG_dump_symbol_stats) {
-    intptr_t size = -1;
-    intptr_t capacity = -1;
-    // First dump VM symbol table stats.
-    GetStats(Dart::vm_isolate(), &size, &capacity);
-    OS::Print("VM Isolate: Number of symbols : %" Pd "\n", size);
-    OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
-    // Now dump regular isolate symbol table stats.
-    GetStats(Isolate::Current(), &size, &capacity);
-    OS::Print("Isolate: Number of symbols : %" Pd "\n", size);
-    OS::Print("Isolate: Symbol table capacity : %" Pd "\n", capacity);
-    // TODO(koda): Consider recording growth and collision stats in HashTable,
-    // in DEBUG mode.
-  }
+void Symbols::DumpStats(Isolate* isolate) {
+  intptr_t size = -1;
+  intptr_t capacity = -1;
+  // First dump VM symbol table stats.
+  GetStats(Dart::vm_isolate(), &size, &capacity);
+  OS::Print("VM Isolate: Number of symbols : %" Pd "\n", size);
+  OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
+  // Now dump regular isolate symbol table stats.
+  GetStats(isolate, &size, &capacity);
+  OS::Print("Isolate: Number of symbols : %" Pd "\n", size);
+  OS::Print("Isolate: Symbol table capacity : %" Pd "\n", capacity);
+  // TODO(koda): Consider recording growth and collision stats in HashTable,
+  // in DEBUG mode.
 }
 
 

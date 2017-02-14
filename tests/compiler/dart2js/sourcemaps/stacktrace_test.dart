@@ -15,6 +15,7 @@ import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_maps/src/utils.dart';
 
+import '../annotated_code_helper.dart';
 import '../source_map_validator_helper.dart';
 
 const String EXCEPTION_MARKER = '>ExceptionMarker<';
@@ -116,6 +117,19 @@ test() {
   '''
 import 'package:expect/expect.dart';
 main() {
+  @{1:main}test(new Class());
+}
+@NoInline()
+test(c) {
+  @{2:test}c.field.method();
+}
+class Class {
+  var field;
+}
+''',
+  '''
+import 'package:expect/expect.dart';
+main() {
   // This call is no longer on the stack when the error is thrown.
   @{:main}test();
 }
@@ -184,60 +198,28 @@ const int _CR = 0x0D;
 const int _LBRACE = 0x7B;
 
 Test processTestCode(String code) {
-  StringBuffer codeBuffer = new StringBuffer();
   Map<int, StackTraceLine> stackTraceMap = <int, StackTraceLine>{};
   List<StackTraceLine> unexpectedLines = <StackTraceLine>[];
-  int index = 0;
-  int lineNo = 1;
-  int columnNo = 1;
-  while (index < code.length) {
-    int charCode = code.codeUnitAt(index);
-    switch (charCode) {
-      case _LF:
-        codeBuffer.write('\n');
-        lineNo++;
-        columnNo = 1;
-        break;
-      case _CR:
-        if (index + 1 < code.length && code.codeUnitAt(index + 1) == _LF) {
-          index++;
-        }
-        codeBuffer.write('\n');
-        lineNo++;
-        columnNo = 1;
-        break;
-      case 0x40:
-        if (index + 1 < code.length && code.codeUnitAt(index + 1) == _LBRACE) {
-          int colonIndex = code.indexOf(':', index);
-          int endIndex = code.indexOf('}', index);
-          String methodName = code.substring(colonIndex + 1, endIndex);
-          String indexText = code.substring(index + 2, colonIndex);
-          StackTraceLine stackTraceLine =
-              new StackTraceLine(methodName, INPUT_FILE_NAME, lineNo, columnNo);
-          if (indexText == '') {
-            unexpectedLines.add(stackTraceLine);
-          } else {
-            int stackTraceIndex = int.parse(indexText);
-            assert(!stackTraceMap.containsKey(stackTraceIndex));
-            stackTraceMap[stackTraceIndex] = stackTraceLine;
-          }
-          index = endIndex;
-        } else {
-          codeBuffer.writeCharCode(charCode);
-          columnNo++;
-        }
-        break;
-      default:
-        codeBuffer.writeCharCode(charCode);
-        columnNo++;
+  AnnotatedCode annotatedCode = new AnnotatedCode(code);
+  for (Annotation annotation in annotatedCode.annotations) {
+    int colonIndex = annotation.text.indexOf(':');
+    String indexText = annotation.text.substring(0, colonIndex);
+    String methodName = annotation.text.substring(colonIndex + 1);
+    StackTraceLine stackTraceLine = new StackTraceLine(
+        methodName, INPUT_FILE_NAME, annotation.lineNo, annotation.columnNo);
+    if (indexText == '') {
+      unexpectedLines.add(stackTraceLine);
+    } else {
+      int stackTraceIndex = int.parse(indexText);
+      assert(!stackTraceMap.containsKey(stackTraceIndex));
+      stackTraceMap[stackTraceIndex] = stackTraceLine;
     }
-    index++;
   }
   List<StackTraceLine> expectedLines = <StackTraceLine>[];
   for (int stackTraceIndex in (stackTraceMap.keys.toList()..sort()).reversed) {
     expectedLines.add(stackTraceMap[stackTraceIndex]);
   }
-  return new Test(codeBuffer.toString(), expectedLines, unexpectedLines);
+  return new Test(annotatedCode.sourceCode, expectedLines, unexpectedLines);
 }
 
 void main(List<String> arguments) {
@@ -308,15 +290,9 @@ Future runTest(int index, Test test,
   }
   List<String> lines = out.split(new RegExp(r'(\r|\n|\r\n)'));
   List<StackTraceLine> jsStackTrace = <StackTraceLine>[];
-  bool seenMarker = false;
   for (String line in lines) {
-    if (seenMarker) {
-      line = line.trim();
-      if (line.startsWith('at ')) {
-        jsStackTrace.add(new StackTraceLine.fromText(line));
-      }
-    } else if (line == EXCEPTION_MARKER) {
-      seenMarker = true;
+    if (line.startsWith('    at ')) {
+      jsStackTrace.add(new StackTraceLine.fromText(line));
     }
   }
 
@@ -324,15 +300,15 @@ Future runTest(int index, Test test,
   for (StackTraceLine line in jsStackTrace) {
     TargetEntry targetEntry = _findColumn(line.lineNo - 1, line.columnNo - 1,
         _findLine(sourceMap, line.lineNo - 1));
-    if (targetEntry == null) {
+    if (targetEntry == null || targetEntry.sourceUrlId == null) {
       dartStackTrace.add(line);
     } else {
       String methodName;
-      if (targetEntry.sourceNameId != 0) {
+      if (targetEntry.sourceNameId != null) {
         methodName = sourceMap.names[targetEntry.sourceNameId];
       }
       String fileName;
-      if (targetEntry.sourceUrlId != 0) {
+      if (targetEntry.sourceUrlId != null) {
         fileName = sourceMap.urls[targetEntry.sourceUrlId];
       }
       dartStackTrace.add(new StackTraceLine(methodName, fileName,

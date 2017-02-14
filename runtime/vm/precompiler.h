@@ -21,28 +21,15 @@ class GrowableObjectArray;
 class RawError;
 class SequenceNode;
 class String;
+class ParsedJSONObject;
+class ParsedJSONArray;
+class Precompiler;
+class FlowGraph;
 
-
-class TypeRangeCache : public StackResource {
+class TypeRangeCache : public ValueObject {
  public:
-  TypeRangeCache(Thread* thread, intptr_t num_cids)
-      : StackResource(thread),
-        thread_(thread),
-        lower_limits_(thread->zone()->Alloc<intptr_t>(num_cids)),
-        upper_limits_(thread->zone()->Alloc<intptr_t>(num_cids)) {
-    for (intptr_t i = 0; i < num_cids; i++) {
-      lower_limits_[i] = kNotComputed;
-      upper_limits_[i] = kNotComputed;
-    }
-    // We don't re-enter the precompiler.
-    ASSERT(thread->type_range_cache() == NULL);
-    thread->set_type_range_cache(this);
-  }
-
-  ~TypeRangeCache() {
-    ASSERT(thread_->type_range_cache() == this);
-    thread_->set_type_range_cache(NULL);
-  }
+  TypeRangeCache(Precompiler* precompiler, Thread* thread, intptr_t num_cids);
+  ~TypeRangeCache();
 
   bool InstanceOfHasClassRange(const AbstractType& type,
                                intptr_t* lower_limit,
@@ -52,6 +39,7 @@ class TypeRangeCache : public StackResource {
   static const intptr_t kNotComputed = -1;
   static const intptr_t kNotContiguous = -2;
 
+  Precompiler* precompiler_;
   Thread* thread_;
   intptr_t* lower_limits_;
   intptr_t* upper_limits_;
@@ -78,12 +66,12 @@ class SymbolKeyValueTrait {
 
 typedef DirectChainedHashMap<SymbolKeyValueTrait> SymbolSet;
 
-class StackmapKeyValueTrait {
+class StackMapKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
-  typedef const Stackmap* Key;
-  typedef const Stackmap* Value;
-  typedef const Stackmap* Pair;
+  typedef const StackMap* Key;
+  typedef const StackMap* Value;
+  typedef const StackMap* Pair;
 
   static Key KeyOf(Pair kv) { return kv; }
 
@@ -96,7 +84,7 @@ class StackmapKeyValueTrait {
   }
 };
 
-typedef DirectChainedHashMap<StackmapKeyValueTrait> StackmapSet;
+typedef DirectChainedHashMap<StackMapKeyValueTrait> StackMapSet;
 
 
 class ArrayKeyValueTrait {
@@ -328,11 +316,78 @@ struct FieldTypePair {
 typedef DirectChainedHashMap<FieldTypePair> FieldTypeMap;
 
 
+struct IntptrPair {
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef intptr_t Key;
+  typedef intptr_t Value;
+  typedef IntptrPair Pair;
+
+  static Key KeyOf(Pair kv) { return kv.key_; }
+
+  static Value ValueOf(Pair kv) { return kv.value_; }
+
+  static inline intptr_t Hashcode(Key key) { return key; }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) { return pair.key_ == key; }
+
+  IntptrPair(intptr_t key, intptr_t value) : key_(key), value_(value) {}
+
+  IntptrPair() : key_(kIllegalCid), value_(kIllegalCid) {}
+
+  Key key_;
+  Value value_;
+};
+
+typedef DirectChainedHashMap<IntptrPair> CidMap;
+
+
+struct FunctionFeedbackKey {
+  FunctionFeedbackKey() : owner_cid_(kIllegalCid), token_(0), kind_(0) {}
+  FunctionFeedbackKey(intptr_t owner_cid, intptr_t token, intptr_t kind)
+      : owner_cid_(owner_cid), token_(token), kind_(kind) {}
+
+  intptr_t owner_cid_;
+  intptr_t token_;
+  intptr_t kind_;
+};
+
+
+struct FunctionFeedbackPair {
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef FunctionFeedbackKey Key;
+  typedef ParsedJSONObject* Value;
+  typedef FunctionFeedbackPair Pair;
+
+  static Key KeyOf(Pair kv) { return kv.key_; }
+
+  static Value ValueOf(Pair kv) { return kv.value_; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key.token_ ^ key.owner_cid_ ^ key.kind_;
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return (pair.key_.owner_cid_ == key.owner_cid_) &&
+           (pair.key_.token_ == key.token_) && (pair.key_.kind_ == key.kind_);
+  }
+
+  FunctionFeedbackPair(Key key, Value value) : key_(key), value_(value) {}
+
+  FunctionFeedbackPair() : key_(), value_(NULL) {}
+
+  Key key_;
+  Value value_;
+};
+
+typedef DirectChainedHashMap<FunctionFeedbackPair> FunctionFeedbackMap;
+
+
 class Precompiler : public ValueObject {
  public:
   static RawError* CompileAll(
       Dart_QualifiedFunctionName embedder_entry_points[],
-      bool reset_fields);
+      uint8_t* jit_feedback,
+      intptr_t jit_feedback_length);
 
   static RawError* CompileFunction(Precompiler* precompiler,
                                    Thread* thread,
@@ -352,9 +407,21 @@ class Precompiler : public ValueObject {
   }
 
   FieldTypeMap* field_type_map() { return &field_type_map_; }
+  TypeRangeCache* type_range_cache() { return type_range_cache_; }
+  void set_type_range_cache(TypeRangeCache* value) {
+    type_range_cache_ = value;
+  }
+
+  bool HasFeedback() const { return jit_feedback_ != NULL; }
+  static void PopulateWithICData(const Function& func, FlowGraph* graph);
+  void TryApplyFeedback(const Function& func, FlowGraph* graph);
+  void TryApplyFeedback(ParsedJSONArray* js_icdatas, const ICData& ic);
 
  private:
-  Precompiler(Thread* thread, bool reset_fields);
+  explicit Precompiler(Thread* thread);
+
+  void LoadFeedback(uint8_t* jit_feedback, intptr_t jit_feedback_length);
+  ParsedJSONObject* LookupFeedback(const Function& function);
 
   void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void ClearAllCode();
@@ -368,7 +435,7 @@ class Precompiler : public ValueObject {
   void AddTypeArguments(const TypeArguments& args);
   void AddCalleesOf(const Function& function);
   void AddConstObject(const Instance& instance);
-  void AddClosureCall(const ICData& call_site);
+  void AddClosureCall(const Array& arguments_descriptor);
   void AddField(const Field& field);
   void AddFunction(const Function& function);
   void AddInstantiatedClass(const Class& cls);
@@ -393,7 +460,7 @@ class Precompiler : public ValueObject {
   void BindStaticCalls();
   void SwitchICCalls();
   void ShareMegamorphicBuckets();
-  void DedupStackmaps();
+  void DedupStackMaps();
   void DedupLists();
   void DedupInstructions();
   void ResetPrecompilerState();
@@ -403,21 +470,13 @@ class Precompiler : public ValueObject {
   void PrecompileStaticInitializers();
   void PrecompileConstructors();
 
-  template <typename T>
-  class Visitor : public ValueObject {
-   public:
-    virtual ~Visitor() {}
-    virtual void Visit(const T& obj) = 0;
-  };
-  typedef Visitor<Function> FunctionVisitor;
-  typedef Visitor<Class> ClassVisitor;
-
-  void VisitFunctions(FunctionVisitor* visitor);
-  void VisitClasses(ClassVisitor* visitor);
-
   void FinalizeAllClasses();
   void SortClasses();
   void RemapClassIds(intptr_t* old_to_new_cid);
+  void RehashTypes();
+  void VerifyJITFeedback();
+  RawScript* LookupScript(const char* uri);
+  intptr_t MapCid(intptr_t feedback_cid);
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
@@ -427,7 +486,7 @@ class Precompiler : public ValueObject {
   Zone* zone_;
   Isolate* isolate_;
 
-  const bool reset_fields_;
+  ParsedJSONObject* jit_feedback_;
 
   bool changed_;
   intptr_t function_count_;
@@ -451,6 +510,9 @@ class Precompiler : public ValueObject {
   AbstractTypeSet types_to_retain_;
   InstanceSet consts_to_retain_;
   FieldTypeMap field_type_map_;
+  TypeRangeCache* type_range_cache_;
+  CidMap feedback_cid_map_;
+  FunctionFeedbackMap function_feedback_map_;
   Error& error_;
 
   bool get_runtime_type_is_unique_;

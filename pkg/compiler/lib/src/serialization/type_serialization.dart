@@ -4,32 +4,35 @@
 
 library dart2js.serialization.types;
 
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import 'keys.dart';
 import 'serialization.dart';
 
-/// Visitor that serializes a [DartType] by encoding it into an [ObjectEncoder].
+/// Visitor that serializes a [ResolutionDartType] by encoding it into an
+/// [ObjectEncoder].
 ///
-/// This class is called from the [Serializer] when a [DartType] needs
+/// This class is called from the [Serializer] when a [ResolutionDartType] needs
 /// serialization. The [ObjectEncoder] ensures that any [Element], and other
-/// [DartType] that the serialized [DartType] depends upon are also serialized.
+/// [ResolutionDartType] that the serialized [ResolutionDartType] depends upon
+/// are also serialized.
 class TypeSerializer extends DartTypeVisitor<dynamic, ObjectEncoder> {
   const TypeSerializer();
 
-  void visitType(DartType type, ObjectEncoder encoder) {
+  void visitType(ResolutionDartType type, ObjectEncoder encoder) {
     throw new UnsupportedError('Unsupported type: $type');
   }
 
-  void visitVoidType(VoidType type, ObjectEncoder encoder) {}
+  void visitVoidType(ResolutionVoidType type, ObjectEncoder encoder) {}
 
-  void visitTypeVariableType(TypeVariableType type, ObjectEncoder encoder) {
+  void visitTypeVariableType(
+      ResolutionTypeVariableType type, ObjectEncoder encoder) {
     encoder.setElement(Key.ELEMENT, type.element);
     encoder.setBool(
         Key.IS_METHOD_TYPE_VARIABLE_TYPE, type is MethodTypeVariableType);
   }
 
-  void visitFunctionType(FunctionType type, ObjectEncoder encoder) {
+  void visitFunctionType(ResolutionFunctionType type, ObjectEncoder encoder) {
     // TODO(johnniwinther): Support encoding of `type.element`.
     encoder.setType(Key.RETURN_TYPE, type.returnType);
     encoder.setTypes(Key.PARAMETER_TYPES, type.parameterTypes);
@@ -42,61 +45,61 @@ class TypeSerializer extends DartTypeVisitor<dynamic, ObjectEncoder> {
     encoder.setElement(Key.ELEMENT, type.element);
   }
 
-  void visitInterfaceType(InterfaceType type, ObjectEncoder encoder) {
+  void visitInterfaceType(ResolutionInterfaceType type, ObjectEncoder encoder) {
     encoder.setElement(Key.ELEMENT, type.element);
     encoder.setTypes(Key.TYPE_ARGUMENTS, type.typeArguments);
   }
 
-  void visitTypedefType(TypedefType type, ObjectEncoder encoder) {
+  void visitTypedefType(ResolutionTypedefType type, ObjectEncoder encoder) {
     encoder.setElement(Key.ELEMENT, type.element);
     encoder.setTypes(Key.TYPE_ARGUMENTS, type.typeArguments);
   }
 
-  void visitDynamicType(DynamicType type, ObjectEncoder encoder) {}
+  void visitDynamicType(ResolutionDynamicType type, ObjectEncoder encoder) {}
 }
 
-/// Utility class for deserializing [DartType]s.
+/// Utility class for deserializing [ResolutionDartType]s.
 ///
 /// This is used by the [Deserializer].
 class TypeDeserializer {
-  /// Deserializes a [DartType] from an [ObjectDecoder].
+  /// Deserializes a [ResolutionDartType] from an [ObjectDecoder].
   ///
-  /// The class is called from the [Deserializer] when a [DartType] needs
-  /// deserialization. The [ObjectDecoder] ensures that any [Element], other
-  /// [DartType] that the deserialized [DartType] depends upon are available.
-  static DartType deserialize(ObjectDecoder decoder) {
-    TypeKind typeKind = decoder.getEnum(Key.KIND, TypeKind.values);
+  /// The class is called from the [Deserializer] when a [ResolutionDartType]
+  /// needs deserialization. The [ObjectDecoder] ensures that any [Element],
+  /// other [ResolutionDartType] that the deserialized [ResolutionDartType]
+  /// depends upon are available.
+  static ResolutionDartType deserialize(ObjectDecoder decoder) {
+    ResolutionTypeKind typeKind =
+        decoder.getEnum(Key.KIND, ResolutionTypeKind.values);
     switch (typeKind) {
-      case TypeKind.INTERFACE:
-        return new InterfaceType(decoder.getElement(Key.ELEMENT),
+      case ResolutionTypeKind.INTERFACE:
+        return new ResolutionInterfaceType(decoder.getElement(Key.ELEMENT),
             decoder.getTypes(Key.TYPE_ARGUMENTS, isOptional: true));
-      case TypeKind.FUNCTION:
+      case ResolutionTypeKind.FUNCTION:
         // TODO(johnniwinther): Support decoding of `type.element`.
-        return new FunctionType.synthesized(
+        return new ResolutionFunctionType.synthesized(
             decoder.getType(Key.RETURN_TYPE),
             decoder.getTypes(Key.PARAMETER_TYPES, isOptional: true),
             decoder.getTypes(Key.OPTIONAL_PARAMETER_TYPES, isOptional: true),
             decoder.getStrings(Key.NAMED_PARAMETERS, isOptional: true),
             decoder.getTypes(Key.NAMED_PARAMETER_TYPES, isOptional: true));
-      case TypeKind.TYPE_VARIABLE:
+      case ResolutionTypeKind.TYPE_VARIABLE:
         TypeVariableElement element = decoder.getElement(Key.ELEMENT);
         if (decoder.getBool(Key.IS_METHOD_TYPE_VARIABLE_TYPE)) {
           return new MethodTypeVariableType(element);
         }
-        return new TypeVariableType(element);
-      case TypeKind.TYPEDEF:
-        return new TypedefType(decoder.getElement(Key.ELEMENT),
+        return new ResolutionTypeVariableType(element);
+      case ResolutionTypeKind.TYPEDEF:
+        return new ResolutionTypedefType(decoder.getElement(Key.ELEMENT),
             decoder.getTypes(Key.TYPE_ARGUMENTS, isOptional: true));
-      case TypeKind.STATEMENT:
-        throw new UnsupportedError("Unexpected type kind '${typeKind}.");
-      case TypeKind.MALFORMED_TYPE:
+      case ResolutionTypeKind.MALFORMED_TYPE:
         // TODO(johnniwinther): Do we need the 'userProvidedBadType' or maybe
         // just a toString of it?
         return new MalformedType(decoder.getElement(Key.ELEMENT), null);
-      case TypeKind.DYNAMIC:
-        return const DynamicType();
-      case TypeKind.VOID:
-        return const VoidType();
+      case ResolutionTypeKind.DYNAMIC:
+        return const ResolutionDynamicType();
+      case ResolutionTypeKind.VOID:
+        return const ResolutionVoidType();
     }
   }
 }

@@ -44,11 +44,11 @@ the Dart repo root,
 
 unless you really intend to use a non-default Makefile.""" % DART_ROOT
 
-DART_USE_GN = "DART_USE_GN"
+DART_USE_GYP = "DART_USE_GYP"
 
 
-def use_gn():
-  return DART_USE_GN in os.environ
+def use_gyp():
+  return DART_USE_GYP in os.environ
 
 
 def BuildOptions():
@@ -84,9 +84,9 @@ def BuildOptions():
       help='Name of the devenv.com/msbuild executable on Windows (varies for '
            'different versions of Visual Studio)',
       default=vs_executable)
-  result.add_option("--gn",
-      help='Build with GN/Ninja',
-      default=use_gn(),
+  result.add_option("--gyp",
+      help='Build with gyp.',
+      default=use_gyp(),
       action='store_true')
   return result
 
@@ -114,7 +114,7 @@ def ProcessOptions(options, args):
   for arch in options.arch:
     archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
              'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',
-             'simdbc', 'simdbc64', 'armsimdbc']
+             'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']
     if not arch in archs:
       print "Unknown arch %s" % arch
       return False
@@ -416,13 +416,63 @@ def RunGN(target_os, mode, arch):
     print ("Tried to run GN, but it failed. Try running it manually: \n\t$ " +
            ' '.join(gn_command))
 
+
+def ShouldRunGN(out_dir):
+  return (not os.path.exists(out_dir) or
+          not os.path.isfile(os.path.join(out_dir, 'args.gn')))
+
+
+def UseGoma(out_dir):
+  args_gn = os.path.join(out_dir, 'args.gn')
+  return 'use_goma = true' in open(args_gn, 'r').read()
+
+
+# Try to start goma, but don't bail out if we can't. Instead print an error
+# message, and let the build fail with its own error messages as well.
+def EnsureGomaStarted(out_dir):
+  args_gn_path = os.path.join(out_dir, 'args.gn')
+  goma_dir = None
+  with open(args_gn_path, 'r') as fp:
+    for line in fp:
+      if 'goma_dir' in line:
+        words = line.split()
+        goma_dir = words[2][1:-1]  # goma_dir = "/path/to/goma"
+  if not goma_dir:
+    print 'Could not find goma for ' + out_dir
+    return False
+  if not os.path.exists(goma_dir) or not os.path.isdir(goma_dir):
+    print 'Could not find goma at ' + goma_dir
+    return False
+  goma_ctl = os.path.join(goma_dir, 'goma_ctl.py')
+  goma_ctl_command = [
+    'python',
+    goma_ctl,
+    'ensure_start',
+  ]
+  process = subprocess.Popen(goma_ctl_command)
+  process.wait()
+  if process.returncode != 0:
+    print ("Tried to run goma_ctl.py, but it failed. Try running it manually: "
+           + "\n\t" + ' '.join(goma_ctl_command))
+    return False
+  return True
+
+
+
 def BuildNinjaCommand(options, target, target_os, mode, arch):
   out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
-  if not os.path.exists(out_dir):
+  if ShouldRunGN(out_dir):
     RunGN(target_os, mode, arch)
   command = ['ninja', '-C', out_dir]
   if options.verbose:
     command += ['-v']
+  if UseGoma(out_dir):
+    if EnsureGomaStarted(out_dir):
+      command += ['-j1000']
+    else:
+      # If we couldn't ensure that goma is started, let the build start, but
+      # slowly so we can see any helpful error messages that pop out.
+      command += ['-j1']
   command += [target]
   return command
 
@@ -433,7 +483,7 @@ def BuildOneConfig(options, target, target_os, mode, arch, override_tools):
   start_time = time.time()
   args = []
   build_config = utils.GetBuildConf(mode, arch, target_os)
-  if options.gn:
+  if not options.gyp:
     args = BuildNinjaCommand(options, target, target_os, mode, arch)
   else:
     os.environ['DART_BUILD_MODE'] = mode
@@ -442,6 +492,8 @@ def BuildOneConfig(options, target, target_os, mode, arch, override_tools):
       project_file = 'dart.xcodeproj'
       if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
         project_file = 'dart-%s.xcodeproj' % CurrentDirectoryBaseName()
+      if target == 'all':
+        target = 'All'
       args = ['xcodebuild',
               '-project',
               project_file,
@@ -577,10 +629,7 @@ def Main():
     return 1
   # Determine which targets to build. By default we build the "all" target.
   if len(args) == 0:
-    if HOST_OS == 'macos':
-      targets = ['All']
-    else:
-      targets = ['all']
+    targets = ['all']
   else:
     targets = args
 

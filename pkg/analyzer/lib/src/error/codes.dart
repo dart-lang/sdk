@@ -953,17 +953,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "removing the extends clause.");
 
   /**
-   * DEP 37 extends the syntax for assert() to allow a second "message"
-   * argument.  We issue this error if the user tries to supply a "message"
-   * argument but the DEP is not enabled.
-   */
-  static const CompileTimeErrorCode EXTRA_ARGUMENT_TO_ASSERT =
-      const CompileTimeErrorCode(
-          'EXTRA_ARGUMENT_TO_ASSERT',
-          "Assertions only accept a single argument.",
-          "Try removing the message, or enable messages in assert statements.");
-
-  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
    * h</i> or if <i>m &gt; n</i>.
    *
@@ -1466,6 +1455,16 @@ class CompileTimeErrorCode extends ErrorCode {
           "Constant map literals can't include a type parameter as a type "
           "argument, such as '{0}'.",
           "Try replacing the type parameter with a different type.");
+
+  /**
+   * The 'covariant' keyword was found in an inappropriate location.
+   */
+  static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT =
+      const CompileTimeErrorCode(
+          'INVALID_USE_OF_COVARIANT',
+          "The 'covariant' keyword can only be used for parameters in instance "
+          "methods or before non-final instance fields.",
+          "Try removing the 'covariant' keyword.");
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
@@ -4898,6 +4897,18 @@ class StrongModeCode extends ErrorCode {
       'IMPLICIT_DYNAMIC_INVOKE',
       "Missing type arguments for calling generic function type '{0}'.",
       _implicitDynamicCorrection);
+
+  static const StrongModeCode NO_DEFAULT_BOUNDS = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'NO_DEFAULT_BOUNDS',
+      "Type has no default bounds",
+      "Try adding explicit type arguments to type");
+
+  static const StrongModeCode NOT_INSTANTIATED_BOUND = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'NOT_INSTANTIATED_BOUND',
+      "Type parameter bound types must be instantiated.",
+      "Try adding type arguments.");
 
   static const StrongModeCode UNSAFE_BLOCK_CLOSURE_INFERENCE = const StrongModeCode(
       ErrorType.STATIC_WARNING,

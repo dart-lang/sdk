@@ -9,19 +9,26 @@ import 'dart:core';
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/command_line/arguments.dart'
+    show applyAnalysisOptionFlags;
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart'
+    show AnalysisDriver, AnalysisDriverScheduler, PerformanceLog;
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:args/args.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
 import 'package:package_config/src/packages_impl.dart';
@@ -64,7 +71,8 @@ class ContextBuilder {
   final DartSdkManager sdkManager;
 
   /**
-   * The cache containing the contents of overlaid files.
+   * The cache containing the contents of overlaid files. If this builder will
+   * be used to build analysis drivers, set the [fileContentOverlay] instead.
    */
   final ContentCache contentCache;
 
@@ -86,6 +94,28 @@ class ContextBuilder {
   ResolverProvider fileResolverProvider;
 
   /**
+   * The scheduler used by any analysis drivers created through this interface.
+   */
+  AnalysisDriverScheduler analysisDriverScheduler;
+
+  /**
+   * The performance log used by any analysis drivers created through this
+   * interface.
+   */
+  PerformanceLog performanceLog;
+
+  /**
+   * The byte store used by any analysis drivers created through this interface.
+   */
+  ByteStore byteStore;
+
+  /**
+   * The file content overlay used by analysis drivers. If this builder will be
+   * used to build analysis contexts, set the [contentCache] instead.
+   */
+  FileContentOverlay fileContentOverlay;
+
+  /**
    * Initialize a newly created builder to be ready to build a context rooted in
    * the directory with the given [rootDirectoryPath].
    */
@@ -102,7 +132,7 @@ class ContextBuilder {
   AnalysisContext buildContext(String path) {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
-    AnalysisOptions options = getAnalysisOptions(context, path);
+    AnalysisOptions options = getAnalysisOptions(path);
     context.contentCache = contentCache;
     context.sourceFactory = createSourceFactory(path, options);
     context.analysisOptions = options;
@@ -111,6 +141,26 @@ class ContextBuilder {
     declareVariables(context);
     configureSummaries(context);
     return context;
+  }
+
+  /**
+   * Return an analysis driver that is configured correctly to analyze code in
+   * the directory with the given [path].
+   */
+  AnalysisDriver buildDriver(String path) {
+    AnalysisOptions options = getAnalysisOptions(path);
+    //_processAnalysisOptions(context, optionMap);
+    AnalysisDriver driver = new AnalysisDriver(
+        analysisDriverScheduler,
+        performanceLog,
+        resourceProvider,
+        byteStore,
+        fileContentOverlay,
+        path,
+        createSourceFactory(path, options),
+        options);
+    declareVariablesInDriver(driver);
+    return driver;
   }
 
   /**
@@ -206,6 +256,17 @@ class ContextBuilder {
       return new SourceFactory(resolvers, null, resourceProvider);
     }
 
+    GnWorkspace gnWorkspace = GnWorkspace.find(resourceProvider, rootPath);
+    if (gnWorkspace != null) {
+      DartSdk sdk = findSdk(gnWorkspace.packageMap, options);
+      List<UriResolver> resolvers = <UriResolver>[
+        new DartUriResolver(sdk),
+        new GnPackageUriResolver(gnWorkspace),
+        new GnFileUriResolver(gnWorkspace)
+      ];
+      return new SourceFactory(resolvers, null, resourceProvider);
+    }
+
     Packages packages = createPackageMap(rootPath);
     Map<String, List<Folder>> packageMap = convertPackagesToMap(packages);
     List<UriResolver> resolvers = <UriResolver>[
@@ -224,6 +285,20 @@ class ContextBuilder {
     Map<String, String> variables = builderOptions.declaredVariables;
     if (variables != null && variables.isNotEmpty) {
       DeclaredVariables contextVariables = context.declaredVariables;
+      variables.forEach((String variableName, String value) {
+        contextVariables.define(variableName, value);
+      });
+    }
+  }
+
+  /**
+   * Add any [declaredVariables] to the list of declared variables used by the
+   * given analysis [driver].
+   */
+  void declareVariablesInDriver(AnalysisDriver driver) {
+    Map<String, String> variables = builderOptions.declaredVariables;
+    if (variables != null && variables.isNotEmpty) {
+      DeclaredVariables contextVariables = driver.declaredVariables;
       variables.forEach((String variableName, String value) {
         contextVariables.define(variableName, value);
       });
@@ -325,15 +400,13 @@ class ContextBuilder {
   }
 
   /**
-   * Return the analysis options that should be used when the given [context] is
-   * used to analyze code in the directory with the given [path].
+   * Return the analysis options that should be used to analyze code in the
+   * directory with the given [path].
    */
-  AnalysisOptions getAnalysisOptions(AnalysisContext context, String path) {
+  AnalysisOptions getAnalysisOptions(String path) {
     AnalysisOptionsImpl options = createDefaultOptions();
     File optionsFile = getOptionsFile(path);
     if (optionsFile != null) {
-      List<OptionsProcessor> optionsProcessors =
-          AnalysisEngine.instance.optionsPlugin.optionsProcessors;
       // TODO(danrubel) restructure so that we don't recalculate the package map
       // more than once per path.
       Packages packages = createPackageMap(path);
@@ -348,11 +421,12 @@ class ContextBuilder {
         Map<String, YamlNode> optionMap =
             new AnalysisOptionsProvider(sourceFactory)
                 .getOptionsFromFile(optionsFile);
-        optionsProcessors.forEach(
-            (OptionsProcessor p) => p.optionsProcessed(context, optionMap));
         applyToAnalysisOptions(options, optionMap);
-      } on Exception catch (exception) {
-        optionsProcessors.forEach((OptionsProcessor p) => p.onError(exception));
+      } catch (_) {
+        // Ignore exceptions thrown while trying to load the options file.
+      }
+      if (builderOptions.argResults != null) {
+        applyAnalysisOptionFlags(options, builderOptions.argResults);
       }
     }
     return options;
@@ -485,6 +559,12 @@ class ContextBuilder {
  * Options used by a [ContextBuilder].
  */
 class ContextBuilderOptions {
+  /**
+   * The results of parsing the command line arguments as defined by
+   * [defineAnalysisArguments] or `null` if none.
+   */
+  ArgResults argResults;
+
   /**
    * The file path of the file containing the summary of the SDK that should be
    * used to "analyze" the SDK. This option should only be specified by

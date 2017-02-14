@@ -72,6 +72,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
+import 'package:front_end/src/dependency_walker.dart';
 
 bool isIncrementOrDecrement(UnlinkedExprAssignOperator operator) {
   switch (operator) {
@@ -246,7 +247,7 @@ EntityRefBuilder _createLinkedType(
 }
 
 DartType _dynamicIfNull(DartType type) {
-  if (type == null || type.isBottom || type.isVoid) {
+  if (type == null || type.isBottom || type.isDartCoreNull) {
     return DynamicTypeImpl.instance;
   }
   return type;
@@ -1752,132 +1753,6 @@ class ContextForLink implements AnalysisContext {
 }
 
 /**
- * An instance of [DependencyWalker] contains the core algorithms for
- * walking a dependency graph and evaluating nodes in a safe order.
- */
-abstract class DependencyWalker<NodeType extends Node<NodeType>> {
-  /**
-   * Called by [walk] to evaluate a single non-cyclical node, after
-   * all that node's dependencies have been evaluated.
-   */
-  void evaluate(NodeType v);
-
-  /**
-   * Called by [walk] to evaluate a strongly connected component
-   * containing one or more nodes.  All dependencies of the strongly
-   * connected component have been evaluated.
-   */
-  void evaluateScc(List<NodeType> scc);
-
-  /**
-   * Walk the dependency graph starting at [startingPoint], finding
-   * strongly connected components and evaluating them in a safe order
-   * by calling [evaluate] and [evaluateScc].
-   *
-   * This is an implementation of Tarjan's strongly connected
-   * components algorithm
-   * (https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm).
-   */
-  void walk(NodeType startingPoint) {
-    // TODO(paulberry): consider rewriting in a non-recursive way so
-    // that long dependency chains don't cause stack overflow.
-
-    // TODO(paulberry): in the event that an exception occurs during
-    // the walk, restore the state of the [Node] data structures so
-    // that further evaluation will be safe.
-
-    // The index which will be assigned to the next node that is
-    // freshly visited.
-    int index = 1;
-
-    // Stack of nodes which have been seen so far and whose strongly
-    // connected component is still being determined.  Nodes are only
-    // popped off the stack when they are evaluated, so sometimes the
-    // stack contains nodes that were visited after the current node.
-    List<NodeType> stack = <NodeType>[];
-
-    void strongConnect(NodeType node) {
-      bool hasTrivialCycle = false;
-
-      // Assign the current node an index and add it to the stack.  We
-      // haven't seen any of its dependencies yet, so set its lowLink
-      // to its index, indicating that so far it is the only node in
-      // its strongly connected component.
-      node.index = node.lowLink = index++;
-      stack.add(node);
-
-      // Consider the node's dependencies one at a time.
-      for (NodeType dependency in node.dependencies) {
-        // If the dependency has already been evaluated, it can't be
-        // part of this node's strongly connected component, so we can
-        // skip it.
-        if (dependency.isEvaluated) {
-          continue;
-        }
-        if (identical(node, dependency)) {
-          // If a node includes itself as a dependency, there is no need to
-          // explore the dependency further.
-          hasTrivialCycle = true;
-        } else if (dependency.index == 0) {
-          // The dependency hasn't been seen yet, so recurse on it.
-          strongConnect(dependency);
-          // If the dependency's lowLink refers to a node that was
-          // visited before the current node, that means that the
-          // current node, the dependency, and the node referred to by
-          // the dependency's lowLink are all part of the same
-          // strongly connected component, so we need to update the
-          // current node's lowLink accordingly.
-          if (dependency.lowLink < node.lowLink) {
-            node.lowLink = dependency.lowLink;
-          }
-        } else {
-          // The dependency has already been seen, so it is part of
-          // the current node's strongly connected component.  If it
-          // was visited earlier than the current node's lowLink, then
-          // it is a new addition to the current node's strongly
-          // connected component, so we need to update the current
-          // node's lowLink accordingly.
-          if (dependency.index < node.lowLink) {
-            node.lowLink = dependency.index;
-          }
-        }
-      }
-
-      // If the current node's lowLink is the same as its index, then
-      // we have finished visiting a strongly connected component, so
-      // pop the stack and evaluate it before moving on.
-      if (node.lowLink == node.index) {
-        // The strongly connected component has only one node.  If there is a
-        // cycle, it's a trivial one.
-        if (identical(stack.last, node)) {
-          stack.removeLast();
-          if (hasTrivialCycle) {
-            evaluateScc(<NodeType>[node]);
-          } else {
-            evaluate(node);
-          }
-        } else {
-          // There are multiple nodes in the strongly connected
-          // component.
-          List<NodeType> scc = <NodeType>[];
-          while (true) {
-            NodeType otherNode = stack.removeLast();
-            scc.add(otherNode);
-            if (identical(otherNode, node)) {
-              break;
-            }
-          }
-          evaluateScc(scc);
-        }
-      }
-    }
-
-    // Kick off the algorithm starting with the starting point.
-    strongConnect(startingPoint);
-  }
-}
-
-/**
  * Base class for executable elements resynthesized from a summary during
  * linking.
  */
@@ -2131,7 +2006,7 @@ class ExprTypeComputer {
           stack.add(typeProvider.symbolType);
           break;
         case UnlinkedExprOperation.pushNull:
-          stack.add(BottomTypeImpl.instance);
+          stack.add(typeProvider.nullType);
           break;
         case UnlinkedExprOperation.pushReference:
           _doPushReference();
@@ -2399,6 +2274,9 @@ class ExprTypeComputer {
 
   void _doExtractProperty() {
     DartType target = stack.removeLast();
+    if (target.isDynamic) {
+      target = typeProvider.objectType;
+    }
     String propertyName = _getNextString();
     stack.add(() {
       if (target is InterfaceType) {
@@ -2461,6 +2339,9 @@ class ExprTypeComputer {
     String methodName = _getNextString();
     List<DartType> typeArguments = _getTypeArguments();
     DartType target = stack.removeLast();
+    if (target.isDynamic) {
+      target = typeProvider.objectType;
+    }
     stack.add(() {
       if (target is InterfaceType) {
         MethodElement method =
@@ -2681,13 +2562,8 @@ class ExprTypeComputer {
           }
         });
         // Perform inference.
-        FunctionType inferred = ts.inferGenericFunctionCall(
-            typeProvider,
-            rawMethodType,
-            paramTypes,
-            argTypes,
-            rawMethodType.returnType,
-            null);
+        FunctionType inferred = ts.inferGenericFunctionCall(rawMethodType,
+            paramTypes, argTypes, rawMethodType.returnType, null);
         return inferred;
       }
     }
@@ -2696,7 +2572,7 @@ class ExprTypeComputer {
   }
 
   DartType _leastUpperBound(DartType s, DartType t) {
-    return linker.typeSystem.getLeastUpperBound(typeProvider, s, t);
+    return linker.typeSystem.getLeastUpperBound(s, t);
   }
 
   List<DartType> _popList(int n) {
@@ -2712,8 +2588,8 @@ class ExprTypeComputer {
           left.lookUpInheritedMethod(operator.lexeme, library: library);
       if (method != null) {
         DartType type = method.returnType;
-        type = linker.typeSystem.refineBinaryExpressionType(
-            typeProvider, left, operator, right, type);
+        type = linker.typeSystem
+            .refineBinaryExpressionType(left, operator, right, type);
         stack.add(type);
         return;
       }
@@ -2986,6 +2862,9 @@ class FunctionElementForLink_Initializer extends Object
   String get identifier => '';
 
   @override
+  bool get isAsynchronous => _unlinkedExecutable.isAsynchronous;
+
+  @override
   DartType get returnType {
     // If this is a variable whose type needs inferring, infer it.
     if (_variable.hasImplicitType) {
@@ -3119,6 +2998,9 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
     }
     return identifier;
   }
+
+  @override
+  bool get isAsynchronous => _unlinkedExecutable.isAsynchronous;
 
   @override
   bool get _hasTypeBeenInferred => _inferredReturnType != null;
@@ -3779,8 +3661,9 @@ class Linker {
   /**
    * Get an instance of [TypeSystem] for use during linking.
    */
-  TypeSystem get typeSystem => _typeSystem ??=
-      strongMode ? new StrongTypeSystemImpl() : new TypeSystemImpl();
+  TypeSystem get typeSystem => _typeSystem ??= strongMode
+      ? new StrongTypeSystemImpl(typeProvider)
+      : new TypeSystemImpl(typeProvider);
 
   /**
    * Get the element representing `void`.
@@ -3856,45 +3739,6 @@ class MethodElementForLink extends ExecutableElementForLink_NonLocal
 }
 
 /**
- * Instances of [Node] represent nodes in a dependency graph.  The
- * type parameter, [NodeType], is the derived type (this affords some
- * extra type safety by making it difficult to accidentally construct
- * bridges between unrelated dependency graphs).
- */
-abstract class Node<NodeType> {
-  /**
-   * Index used by Tarjan's strongly connected components algorithm.
-   * Zero means the node has not been visited yet; a nonzero value
-   * counts the order in which the node was visited.
-   */
-  int index = 0;
-
-  /**
-   * Low link used by Tarjan's strongly connected components
-   * algorithm.  This represents the smallest [index] of all the nodes
-   * in the strongly connected component to which this node belongs.
-   */
-  int lowLink = 0;
-
-  List<NodeType> _dependencies;
-
-  /**
-   * Retrieve the dependencies of this node.
-   */
-  List<NodeType> get dependencies => _dependencies ??= computeDependencies();
-
-  /**
-   * Indicates whether this node has been evaluated yet.
-   */
-  bool get isEvaluated;
-
-  /**
-   * Compute the dependencies of this node.
-   */
-  List<NodeType> computeDependencies();
-}
-
-/**
  * Element used for references that result from trying to access a non-static
  * member of an element that is not a container (e.g. accessing the "length"
  * property of a constant).
@@ -3931,6 +3775,9 @@ class NonstaticMemberElementForLink extends Object
   DartType get asStaticType {
     if (_library._linker.strongMode) {
       DartType targetType = _target.asStaticType;
+      if (targetType.isDynamic) {
+        targetType = _library._linker.typeProvider.objectType;
+      }
       if (targetType is InterfaceType) {
         ExecutableElement element =
             targetType.lookUpInheritedGetterOrMethod(_name, library: _library);
@@ -4027,7 +3874,7 @@ class ParameterElementForLink implements ParameterElementImpl {
 
   @override
   bool get isCovariant {
-    if (inheritsCovariant) {
+    if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
     for (UnlinkedExpr annotation in _unlinkedParam.annotations) {
@@ -4044,6 +3891,9 @@ class ParameterElementForLink implements ParameterElementImpl {
     }
     return false;
   }
+
+  @override
+  bool get isExplicitlyCovariant => _unlinkedParam.isExplicitlyCovariant;
 
   @override
   String get name => _unlinkedParam.name;
@@ -4123,7 +3973,10 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   ParameterElementForLink_VariableSetter(this.enclosingElement);
 
   @override
-  bool get isCovariant => false;
+  bool get isCovariant => isExplicitlyCovariant || inheritsCovariant;
+
+  @override
+  bool get isExplicitlyCovariant => enclosingElement.variable.isCovariant;
 
   @override
   bool get isSynthetic => true;
@@ -4171,7 +4024,7 @@ abstract class ParameterParentElementForLink implements Element {
             unlinkedParam,
             typeParameterContext,
             typeParameterContext.enclosingUnit.resynthesizerContext
-            as CompilationUnitElementForLink,
+                as CompilationUnitElementForLink,
             i);
       }
     }
@@ -4802,8 +4655,18 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
     if (inCycle) {
       functionElement._setInferredType(DynamicTypeImpl.instance);
     } else {
-      functionElement
-          ._setInferredType(new ExprTypeComputer(functionElement).compute());
+      var bodyType = new ExprTypeComputer(functionElement).compute();
+      if (functionElement.isAsynchronous) {
+        var linker = functionElement.compilationUnit.library._linker;
+        var typeProvider = linker.typeProvider;
+        var typeSystem = linker.typeSystem;
+        if (bodyType.isDartAsyncFutureOr) {
+          bodyType = (bodyType as InterfaceType).typeArguments[0];
+        }
+        bodyType = typeProvider.futureType
+            .instantiate([bodyType.flattenFutures(typeSystem)]);
+      }
+      functionElement._setInferredType(bodyType);
     }
   }
 
@@ -4820,6 +4683,8 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType _functionType;
   InterfaceType _futureDynamicType;
   InterfaceType _futureNullType;
+  InterfaceType _futureOrNullType;
+  InterfaceType _futureOrType;
   InterfaceType _futureType;
   InterfaceType _intType;
   InterfaceType _iterableDynamicType;
@@ -4867,6 +4732,14 @@ class TypeProviderForLink extends TypeProviderBase {
   @override
   InterfaceType get futureNullType =>
       _futureNullType ??= futureType.instantiate(<DartType>[nullType]);
+
+  @override
+  InterfaceType get futureOrNullType =>
+      _futureOrNullType ??= futureOrType.instantiate(<DartType>[nullType]);
+
+  @override
+  InterfaceType get futureOrType =>
+      _futureOrType ??= _buildInterfaceType(_linker.asyncLibrary, 'FutureOr');
 
   @override
   InterfaceType get futureType =>
@@ -5071,6 +4944,12 @@ abstract class VariableElementForLink
 
   @override
   bool get isConst => unlinkedVariable.isConst;
+
+  /**
+   * Return `true` if this variable is a field that was explicitly marked as
+   * being covariant (in the setter's parameter).
+   */
+  bool get isCovariant => unlinkedVariable.isCovariant;
 
   @override
   bool get isFinal => unlinkedVariable.isFinal;

@@ -125,6 +125,86 @@ main() {
     procedure.function = new FunctionNode(new EmptyStatement());
     return procedure;
   });
+  negativeTest('StaticGet without target', () {
+    return new StaticGet(null);
+  });
+  negativeTest('StaticSet without target', () {
+    return new StaticSet(null, new NullLiteral());
+  });
+  negativeTest('StaticInvocation without target', () {
+    return new StaticInvocation(null, new Arguments.empty());
+  });
+  positiveTest('Correct StaticInvocation', () {
+    var method = new Procedure(new Name('test'), ProcedureKind.Method, null,
+        isStatic: true);
+    method.function = new FunctionNode(
+        new ReturnStatement(
+            new StaticInvocation(method, new Arguments([new NullLiteral()]))),
+        positionalParameters: [new VariableDeclaration('p')])..parent = method;
+    return new Class(
+        name: 'Test',
+        supertype: objectClass.asRawSupertype,
+        procedures: [method]);
+  });
+  negativeTest('StaticInvocation with too many parameters', () {
+    var method = new Procedure(new Name('test'), ProcedureKind.Method, null,
+        isStatic: true);
+    method.function = new FunctionNode(new ReturnStatement(
+        new StaticInvocation(method, new Arguments([new NullLiteral()]))))
+      ..parent = method;
+    return new Class(
+        name: 'Test',
+        supertype: objectClass.asRawSupertype,
+        procedures: [method]);
+  });
+  negativeTest('StaticInvocation with too few parameters', () {
+    var method = new Procedure(new Name('test'), ProcedureKind.Method, null,
+        isStatic: true);
+    method.function = new FunctionNode(
+        new ReturnStatement(
+            new StaticInvocation(method, new Arguments.empty())),
+        positionalParameters: [new VariableDeclaration('p')])..parent = method;
+    return new Class(
+        name: 'Test',
+        supertype: objectClass.asRawSupertype,
+        procedures: [method]);
+  });
+  negativeTest('StaticInvocation with unmatched named parameter', () {
+    var method = new Procedure(new Name('test'), ProcedureKind.Method, null,
+        isStatic: true);
+    method.function = new FunctionNode(new ReturnStatement(new StaticInvocation(
+        method,
+        new Arguments([],
+            named: [new NamedExpression('p', new NullLiteral())]))))
+      ..parent = method;
+    return new Class(
+        name: 'Test',
+        supertype: objectClass.asRawSupertype,
+        procedures: [method]);
+  });
+  negativeTest('StaticInvocation with missing type argument', () {
+    var method = new Procedure(new Name('test'), ProcedureKind.Method, null,
+        isStatic: true);
+    method.function = new FunctionNode(
+        new ReturnStatement(
+            new StaticInvocation(method, new Arguments.empty())),
+        typeParameters: [makeTypeParameter()])..parent = method;
+    return new Class(
+        name: 'Test',
+        supertype: objectClass.asRawSupertype,
+        procedures: [method]);
+  });
+  negativeTest('ConstructorInvocation with missing type argument', () {
+    var constructor = new Constructor(null);
+    constructor.function = new FunctionNode(new ReturnStatement(
+        new ConstructorInvocation(constructor, new Arguments.empty())))
+      ..parent = constructor;
+    return new Class(
+        name: 'Test',
+        typeParameters: [makeTypeParameter()],
+        supertype: objectClass.asRawSupertype,
+        constructors: [constructor]);
+  });
 }
 
 checkHasError(Program program) {

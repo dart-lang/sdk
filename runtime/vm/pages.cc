@@ -4,6 +4,7 @@
 
 #include "vm/pages.h"
 
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
 #include "vm/compiler_stats.h"
 #include "vm/gc_marker.h"
@@ -69,6 +70,9 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   result->memory_ = memory;
   result->next_ = NULL;
   result->type_ = type;
+
+  LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
+
   return result;
 }
 
@@ -89,8 +93,21 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words, PageType type) {
 
 
 void HeapPage::Deallocate() {
-  // The memory for this object will become unavailable after the delete below.
+  bool image_page = is_image_page();
+
+  if (!image_page) {
+    LSAN_UNREGISTER_ROOT_REGION(this, sizeof(*this));
+  }
+
+  // For a regular heap pages, the memory for this object will become
+  // unavailable after the delete below.
   delete memory_;
+
+  // For a heap page from a snapshot, the HeapPage object lives in the malloc
+  // heap rather than the page itself.
+  if (image_page) {
+    free(this);
+  }
 }
 
 
@@ -139,6 +156,8 @@ RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
 
 
 void HeapPage::WriteProtect(bool read_only) {
+  ASSERT(!is_image_page());
+
   VirtualMemory::Protection prot;
   if (read_only) {
     if (type_ == kExecutable) {
@@ -227,16 +246,16 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   } else {
     // Should not allocate executable pages when running from a precompiled
     // snapshot.
-    ASSERT(Dart::snapshot_kind() != Snapshot::kAppNoJIT);
+    ASSERT(Dart::vm_snapshot_kind() != Snapshot::kAppAOT);
 
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
     } else {
-      if (FLAG_write_protect_code) {
+      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
         exec_pages_tail_->WriteProtect(false);
       }
       exec_pages_tail_->set_next(page);
-      if (FLAG_write_protect_code) {
+      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
         exec_pages_tail_->WriteProtect(true);
       }
     }
@@ -379,9 +398,6 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
                                      bool is_locked) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-#ifdef DEBUG
-  SpaceUsage usage_before = GetCurrentUsage();
-#endif
   uword result = 0;
   if (size < kAllocatablePageSize) {
     if (is_locked) {
@@ -418,14 +434,6 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       }
     }
   }
-#ifdef DEBUG
-  if (result != 0) {
-    // A successful allocation should increase usage_.
-    ASSERT(usage_before.used_in_words < usage_.used_in_words);
-  }
-// Note we cannot assert that a failed allocation should not change
-// used_in_words as another thread could have changed used_in_words.
-#endif
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;
 }
@@ -609,6 +617,17 @@ bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
 }
 
 
+bool PageSpace::DataContains(uword addr) const {
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if ((it.page()->type() != HeapPage::kExecutable) &&
+        it.page()->Contains(addr)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 void PageSpace::AddRegionsToObjectSet(ObjectSet* set) const {
   ASSERT((pages_ != NULL) || (exec_pages_ != NULL) || (large_pages_ != NULL));
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
@@ -624,9 +643,18 @@ void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
-void PageSpace::VisitObjectsNoEmbedderPages(ObjectVisitor* visitor) const {
+void PageSpace::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if (!it.page()->embedder_allocated()) {
+    if (!it.page()->is_image_page()) {
+      it.page()->VisitObjects(visitor);
+    }
+  }
+}
+
+
+void PageSpace::VisitObjectsImagePages(ObjectVisitor* visitor) const {
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if (it.page()->is_image_page()) {
       it.page()->VisitObjects(visitor);
     }
   }
@@ -680,7 +708,7 @@ void PageSpace::WriteProtect(bool read_only) {
     AbandonBumpAllocation();
   }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if (!it.page()->embedder_allocated()) {
+    if (!it.page()->is_image_page()) {
       it.page()->WriteProtect(read_only);
     }
   }
@@ -704,7 +732,7 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty64("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
   if (collections() > 0) {
-    int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();
+    int64_t run_time = isolate->UptimeMicros();
     run_time = Utils::Maximum(run_time, static_cast<int64_t>(0));
     double run_time_millis = MicrosecondsToMilliseconds(run_time);
     double avg_time_between_collections =
@@ -776,7 +804,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
 
 bool PageSpace::ShouldCollectCode() {
   // Try to collect code if enough time has passed since the last attempt.
-  const int64_t start = OS::GetCurrentTimeMicros();
+  const int64_t start = OS::GetCurrentMonotonicMicros();
   const int64_t last_code_collection_in_us =
       page_space_controller_.last_code_collection_in_us();
 
@@ -800,12 +828,14 @@ void PageSpace::WriteProtectCode(bool read_only) {
     HeapPage* page = exec_pages_;
     while (page != NULL) {
       ASSERT(page->type() == HeapPage::kExecutable);
-      page->WriteProtect(read_only);
+      if (!page->is_image_page()) {
+        page->WriteProtect(read_only);
+      }
       page = page->next();
     }
     page = large_pages_;
     while (page != NULL) {
-      if (page->type() == HeapPage::kExecutable) {
+      if (page->type() == HeapPage::kExecutable && !page->is_image_page()) {
         page->WriteProtect(read_only);
       }
       page = page->next();
@@ -852,7 +882,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       OS::PrintErr(" done.\n");
     }
 
-    const int64_t start = OS::GetCurrentTimeMicros();
+    const int64_t start = OS::GetCurrentMonotonicMicros();
 
     // Make code pages writable.
     WriteProtectCode(false);
@@ -867,7 +897,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
     usage_.used_in_words = marker.marked_words();
 
-    int64_t mid1 = OS::GetCurrentTimeMicros();
+    int64_t mid1 = OS::GetCurrentMonotonicMicros();
 
     // Abandon the remainder of the bump allocation block.
     AbandonBumpAllocation();
@@ -875,7 +905,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     freelist_[HeapPage::kData].Reset();
     freelist_[HeapPage::kExecutable].Reset();
 
-    int64_t mid2 = OS::GetCurrentTimeMicros();
+    int64_t mid2 = OS::GetCurrentMonotonicMicros();
     int64_t mid3 = 0;
 
     {
@@ -922,7 +952,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
         page = next_page;
       }
 
-      mid3 = OS::GetCurrentTimeMicros();
+      mid3 = OS::GetCurrentMonotonicMicros();
 
       if (!FLAG_concurrent_sweep) {
         // Sweep all regular sized pages now.
@@ -955,7 +985,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     // Make code pages read-only.
     WriteProtectCode(true);
 
-    int64_t end = OS::GetCurrentTimeMicros();
+    int64_t end = OS::GetCurrentMonotonicMicros();
 
     // Record signals for growth control. Include size of external allocations.
     page_space_controller_.EvaluateGarbageCollection(
@@ -1067,9 +1097,7 @@ uword PageSpace::TryAllocatePromoLocked(intptr_t size,
 }
 
 
-void PageSpace::SetupExternalPage(void* pointer,
-                                  uword size,
-                                  bool is_executable) {
+void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   // Setup a HeapPage so precompiled Instructions can be traversed.
   // Instructions are contiguous at [pointer, pointer + size). HeapPage
   // expects to find objects at [memory->start() + ObjectStartOffset,
@@ -1078,7 +1106,7 @@ void PageSpace::SetupExternalPage(void* pointer,
   pointer = reinterpret_cast<void*>(reinterpret_cast<uword>(pointer) - offset);
   size += offset;
 
-  VirtualMemory* memory = VirtualMemory::ForExternalPage(pointer, size);
+  VirtualMemory* memory = VirtualMemory::ForImagePage(pointer, size);
   ASSERT(memory != NULL);
   HeapPage* page = reinterpret_cast<HeapPage*>(malloc(sizeof(HeapPage)));
   page->memory_ = memory;
@@ -1093,14 +1121,20 @@ void PageSpace::SetupExternalPage(void* pointer,
     first = &exec_pages_;
     tail = &exec_pages_tail_;
   } else {
-    page->type_ = HeapPage::kReadOnlyData;
+    page->type_ = HeapPage::kData;
     first = &pages_;
     tail = &pages_tail_;
   }
   if (*first == NULL) {
     *first = page;
   } else {
+    if (is_executable && FLAG_write_protect_code && !(*tail)->is_image_page()) {
+      (*tail)->WriteProtect(false);
+    }
     (*tail)->set_next(page);
+    if (is_executable && FLAG_write_protect_code && !(*tail)->is_image_page()) {
+      (*tail)->WriteProtect(true);
+    }
   }
   (*tail) = page;
 }
@@ -1117,7 +1151,7 @@ PageSpaceController::PageSpaceController(Heap* heap,
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_max_(heap_growth_max),
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
-      last_code_collection_in_us_(OS::GetCurrentTimeMicros()) {}
+      last_code_collection_in_us_(OS::GetCurrentMonotonicMicros()) {}
 
 
 PageSpaceController::~PageSpaceController() {}
@@ -1144,8 +1178,8 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   // kInitialTimeoutSeconds, gradually lower the capacity limit.
   static const double kInitialTimeoutSeconds = 1.00;
   if (history_.IsEmpty()) {
-    double seconds_since_init = MicrosecondsToSeconds(
-        OS::GetCurrentTimeMicros() - heap_->isolate()->start_time());
+    double seconds_since_init =
+        MicrosecondsToSeconds(heap_->isolate()->UptimeMicros());
     if (seconds_since_init > kInitialTimeoutSeconds) {
       multiplier *= seconds_since_init / kInitialTimeoutSeconds;
     }

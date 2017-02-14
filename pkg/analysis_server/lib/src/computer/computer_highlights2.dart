@@ -6,6 +6,7 @@ library computer.highlights2;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -428,7 +429,7 @@ class DartUnitHighlightsComputer2 {
     if (e is SimpleIdentifier && e.staticElement is PrefixElement) {
       return false;
     }
-    return e.bestType.isDynamic;
+    return resolutionMap.bestTypeForExpression(e).isDynamic;
   }
 }
 
@@ -587,6 +588,19 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
     computer._addRegion_token(
         node.typedefKeyword, HighlightRegionType.BUILT_IN);
     return super.visitFunctionTypeAlias(node);
+  }
+
+  @override
+  Object visitGenericFunctionType(GenericFunctionType node) {
+    computer._addRegion_token(
+        node.functionKeyword, HighlightRegionType.KEYWORD);
+    return super.visitGenericFunctionType(node);
+  }
+
+  @override
+  Object visitGenericTypeAlias(GenericTypeAlias node) {
+    computer._addRegion_token(node.typedefKeyword, HighlightRegionType.KEYWORD);
+    return super.visitGenericTypeAlias(node);
   }
 
   @override

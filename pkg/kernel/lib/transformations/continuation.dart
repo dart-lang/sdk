@@ -50,13 +50,12 @@ class RecursiveContinuationRewriter extends Transformer {
 abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   final FunctionNode enclosingFunction;
 
-  int currentTryDepth; // Nesting depth for try-blocks.
+  int currentTryDepth = 0; // Nesting depth for try-blocks.
   int currentCatchDepth = 0; // Nesting depth for catch-blocks.
   int capturedTryDepth = 0; // Deepest yield point within a try-block.
   int capturedCatchDepth = 0; // Deepest yield point within a catch-block.
 
-  ContinuationRewriterBase(HelperNodes helper, this.enclosingFunction,
-      {this.currentTryDepth: 0})
+  ContinuationRewriterBase(HelperNodes helper, this.enclosingFunction)
       : super(helper);
 
   Statement createContinuationPoint([Expression value]) {
@@ -68,28 +67,30 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
 
   TreeNode visitTryCatch(TryCatch node) {
     if (node.body != null) {
-      currentTryDepth++;
+      ++currentTryDepth;
       node.body = node.body.accept(this);
       node.body?.parent = node;
-      currentTryDepth--;
+      --currentTryDepth;
     }
 
-    currentCatchDepth++;
+    ++currentCatchDepth;
     transformList(node.catches, this, node);
-    currentCatchDepth--;
+    --currentCatchDepth;
     return node;
   }
 
   TreeNode visitTryFinally(TryFinally node) {
     if (node.body != null) {
-      currentTryDepth++;
+      ++currentTryDepth;
       node.body = node.body.accept(this);
       node.body?.parent = node;
-      currentTryDepth--;
+      --currentTryDepth;
     }
     if (node.finalizer != null) {
+      ++currentCatchDepth;
       node.finalizer = node.finalizer.accept(this);
       node.finalizer?.parent = node;
+      --currentCatchDepth;
     }
     return node;
   }
@@ -125,9 +126,12 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     final function = new FunctionNode(buildClosureBody(),
         positionalParameters: [iteratorVariable],
         requiredParameterCount: 1,
-        asyncMarker: AsyncMarker.SyncYielding);
+        asyncMarker: AsyncMarker.SyncYielding)
+      ..fileOffset = enclosingFunction.fileOffset
+      ..fileEndOffset = enclosingFunction.fileEndOffset;
     final closureFunction =
-        new FunctionDeclaration(nestedClosureVariable, function);
+        new FunctionDeclaration(nestedClosureVariable, function)
+          ..fileOffset = enclosingFunction.parent.fileOffset;
 
     // return new _SyncIterable(:sync_body);
     final arguments = new Arguments([new VariableGet(nestedClosureVariable)]);
@@ -186,8 +190,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   ExpressionLifter expressionRewriter;
 
   AsyncRewriterBase(helper, enclosingFunction)
-      // Body is wrapped in the try-catch so initial currentTryDepth is 1.
-      : super(helper, enclosingFunction, currentTryDepth: 1) {}
+      : super(helper, enclosingFunction) {}
 
   void setupAsyncContinuations(List<Statement> statements) {
     expressionRewriter = new ExpressionLifter(this);
@@ -209,7 +212,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     final function = new FunctionNode(buildWrappedBody(),
         positionalParameters: parameters,
         requiredParameterCount: 0,
-        asyncMarker: AsyncMarker.SyncYielding);
+        asyncMarker: AsyncMarker.SyncYielding)
+      ..fileOffset = enclosingFunction.fileOffset
+      ..fileEndOffset = enclosingFunction.fileEndOffset;
 
     // The await expression lifter might have created a number of
     // [VariableDeclarations].
@@ -220,7 +225,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
     // Now add the closure function itself.
     final closureFunction =
-        new FunctionDeclaration(nestedClosureVariable, function);
+        new FunctionDeclaration(nestedClosureVariable, function)
+          ..fileOffset = enclosingFunction.parent.fileOffset;
     statements.add(closureFunction);
 
     // :async_op_then = _asyncThenWrapperHelper(asyncBody);
@@ -241,9 +247,11 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   }
 
   Statement buildWrappedBody() {
+    ++currentTryDepth;
     labeledBody = new LabeledStatement(null);
     labeledBody.body = visitDelimited(enclosingFunction.body)
       ..parent = labeledBody;
+    --currentTryDepth;
 
     var exceptionVariable = new VariableDeclaration(":exception");
     var stackTraceVariable = new VariableDeclaration(":stack_trace");
@@ -528,13 +536,14 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       var iteratorVariable = new VariableDeclaration(':for-iterator',
           initializer: new ConstructorInvocation(
               helper.streamIteratorConstructor,
-              new Arguments(<Expression>[stmt.iterable])));
+              new Arguments(<Expression>[stmt.iterable],
+                  types: [const DynamicType()])));
 
       // await iterator.moveNext()
       var condition = new AwaitExpression(new MethodInvocation(
           new VariableGet(iteratorVariable),
           new Name('moveNext'),
-          new Arguments(<Expression>[])));
+          new Arguments(<Expression>[])))..fileOffset = stmt.fileOffset;
 
       // var <variable> = iterator.current;
       var valueVariable = stmt.variable;
@@ -610,7 +619,9 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     ++currentTryDepth;
     stmt.body = visitDelimited(stmt.body)..parent = stmt;
     --currentTryDepth;
+    ++currentCatchDepth;
     stmt.finalizer = visitDelimited(stmt.finalizer)..parent = stmt;
+    --currentCatchDepth;
     statements.add(stmt);
     return null;
   }
@@ -658,8 +669,9 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     // :controller = new _AsyncController(:async_op);
     var arguments =
         new Arguments(<Expression>[new VariableGet(nestedClosureVariable)]);
-    var buildController = new ConstructorInvocation(
-        helper.streamControllerConstructor, arguments);
+    var buildController =
+        new ConstructorInvocation(helper.streamControllerConstructor, arguments)
+          ..fileOffset = enclosingFunction.fileOffset;
     var setController = new ExpressionStatement(
         new VariableSet(controllerVariable, buildController));
     statements.add(setController);
@@ -676,10 +688,24 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     return enclosingFunction;
   }
 
+  Statement buildWrappedBody() {
+    ++currentTryDepth;
+    Statement body = super.buildWrappedBody();
+    --currentTryDepth;
+
+    var finallyBody = new ExpressionStatement(new MethodInvocation(
+        new VariableGet(controllerVariable),
+        new Name("close", helper.asyncLibrary),
+        new Arguments(<Expression>[])));
+
+    var tryFinally = new TryFinally(body, new Block(<Statement>[finallyBody]));
+    return tryFinally;
+  }
+
   Statement buildCatchBody(exceptionVariable, stackTraceVariable) {
     return new ExpressionStatement(new MethodInvocation(
         new VariableGet(controllerVariable),
-        new Name("completeError", helper.asyncLibrary),
+        new Name("addError", helper.asyncLibrary),
         new Arguments(<Expression>[
           new VariableGet(exceptionVariable),
           new VariableGet(stackTraceVariable)
@@ -691,11 +717,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     // have been translated into breaks from the labeled body.
     return new Block(<Statement>[
       body,
-      new ExpressionStatement(new MethodInvocation(
-          new VariableGet(controllerVariable),
-          new Name("close", helper.asyncLibrary),
-          new Arguments(<Expression>[]))),
-      new ReturnStatement()
+      new ReturnStatement()..fileOffset = enclosingFunction.fileEndOffset,
     ]);
   }
 
@@ -705,10 +727,12 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     var addExpression = new MethodInvocation(
         new VariableGet(controllerVariable),
         new Name(stmt.isYieldStar ? 'addStream' : 'add', helper.asyncLibrary),
-        new Arguments(<Expression>[expr]));
+        new Arguments(<Expression>[expr]))..fileOffset = stmt.fileOffset;
 
-    statements.add(new IfStatement(addExpression,
-        new ReturnStatement(new NullLiteral()), createContinuationPoint()));
+    statements.add(new IfStatement(
+        addExpression,
+        new ReturnStatement(new NullLiteral()),
+        createContinuationPoint()..fileOffset = stmt.fileOffset));
     return null;
   }
 
@@ -733,8 +757,9 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
 
     // var :completer = new Completer.sync();
     completerVariable = new VariableDeclaration(":completer",
-        initializer: new StaticInvocation(
-            helper.completerConstructor, new Arguments([])),
+        initializer: new StaticInvocation(helper.completerConstructor,
+            new Arguments([], types: [const DynamicType()]))
+          ..fileOffset = enclosingFunction.body.fileOffset,
         isFinal: true);
     statements.add(completerVariable);
 
@@ -746,7 +771,9 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     // new Future.microtask(:async_op);
     var newMicrotaskStatement = new ExpressionStatement(new StaticInvocation(
         helper.futureMicrotaskConstructor,
-        new Arguments([new VariableGet(nestedClosureVariable)])));
+        new Arguments([new VariableGet(nestedClosureVariable)],
+            types: [const DynamicType()]))
+      ..fileOffset = enclosingFunction.fileOffset);
     statements.add(newMicrotaskStatement);
 
     // return :completer.future;
@@ -758,6 +785,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     enclosingFunction.body = new Block(statements);
     enclosingFunction.body.parent = enclosingFunction;
     enclosingFunction.asyncMarker = AsyncMarker.Sync;
+    enclosingFunction.debuggable = false;
     return enclosingFunction;
   }
 
@@ -780,7 +808,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
           new VariableGet(completerVariable),
           new Name("complete", helper.asyncLibrary),
           new Arguments([new VariableGet(returnVariable)]))),
-      new ReturnStatement()
+      new ReturnStatement()..fileOffset = enclosingFunction.fileEndOffset
     ]);
   }
 

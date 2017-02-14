@@ -23,6 +23,7 @@ static const uint8_t kEndByteMarker = (255 - kMaxDataPerByte);
 static const uint8_t kEndUnsignedByteMarker = (255 - kMaxUnsignedDataPerByte);
 
 typedef uint8_t* (*ReAlloc)(uint8_t* ptr, intptr_t old_size, intptr_t new_size);
+typedef void (*DeAlloc)(uint8_t* ptr);
 
 // Stream for reading various types from a buffer.
 class ReadStream : public ValueObject {
@@ -309,9 +310,16 @@ class WriteStream : public ValueObject {
   }
 
   uint8_t* buffer() const { return *buffer_; }
+  void set_buffer(uint8_t* value) { *buffer_ = value; }
   intptr_t bytes_written() const { return current_ - *buffer_; }
 
   void set_current(uint8_t* value) { current_ = value; }
+
+  void Align(intptr_t alignment) {
+    intptr_t position = current_ - *buffer_;
+    position = Utils::RoundUp(position, alignment);
+    current_ = *buffer_ + position;
+  }
 
   template <int N, typename T>
   class Raw {};

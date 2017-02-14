@@ -75,7 +75,7 @@ abstract class Uri {
    * default port.
    *
    * If any of `userInfo`, `host` or `port` are provided,
-   * the URI has an autority according to [hasAuthority].
+   * the URI has an authority according to [hasAuthority].
    *
    * The path component is set through either [path] or
    * [pathSegments].
@@ -379,7 +379,7 @@ abstract class Uri {
   /**
    * Returns the port part of the authority component.
    *
-   * Returns the defualt port if there is no port number in the authority
+   * Returns the default port if there is no port number in the authority
    * component. That's 80 for http, 443 for https, and 0 for everything else.
    */
   int get port;
@@ -505,7 +505,8 @@ abstract class Uri {
    * Returns the origin of the URI in the form scheme://host:port for the
    * schemes http and https.
    *
-   * It is an error if the scheme is not "http" or "https".
+   * It is an error if the scheme is not "http" or "https", or if the host name
+   * is missing or empty.
    *
    * See: http://www.w3.org/TR/2011/WD-html5-20110405/origin-0.html#origin
    */
@@ -612,7 +613,7 @@ abstract class Uri {
    * value from this `Uri` instead.
    *
    * This method is different from [Uri.resolve] which overrides in a
-   * hierarchial manner,
+   * hierarchical manner,
    * and can instead replace each part of a `Uri` individually.
    *
    * Example:
@@ -1059,7 +1060,7 @@ abstract class Uri {
    *
    * Note that decoding a URI component might change its meaning as
    * some of the decoded characters could be characters with are
-   * delimiters for a given URI componene type. Always split a URI
+   * delimiters for a given URI component type. Always split a URI
    * component using the delimiters for the component before decoding
    * the individual parts.
    *
@@ -1360,7 +1361,7 @@ class _Uri implements Uri {
   final String _fragment;
 
   /**
-   * Cache the computed return value of [pathSegements].
+   * Cache the computed return value of [pathSegments].
    */
   List<String> _pathSegments;
 
@@ -1470,9 +1471,13 @@ class _Uri implements Uri {
     path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
                      scheme, hasAuthority);
     if (scheme.isEmpty && host == null && !path.startsWith('/')) {
-      path = _normalizeRelativePath(path);
+      bool allowScheme = scheme.isNotEmpty || host != null;
+      path = _normalizeRelativePath(path, allowScheme);
     } else {
       path = _removeDotSegments(path);
+    }
+    if (host == null && path.startsWith("//")) {
+      host = "";
     }
     return new _Uri._internal(scheme, userInfo, host, port,
                               path, query, fragment);
@@ -2058,7 +2063,7 @@ class _Uri implements Uri {
   /// Otherwise it follows the RFC 3986 "remove dot segments" algorithm.
   static String _normalizePath(String path, String scheme, bool hasAuthority) {
     if (scheme.isEmpty && !hasAuthority && !path.startsWith('/')) {
-      return _normalizeRelativePath(path);
+      return _normalizeRelativePath(path, scheme.isNotEmpty || hasAuthority);
     }
     return _removeDotSegments(path);
   }
@@ -2354,15 +2359,21 @@ class _Uri implements Uri {
 
   /// Removes all `.` segments and any non-leading `..` segments.
   ///
+  /// If the path starts with something that looks like a scheme,
+  /// and [allowScheme] is false, the colon is escaped.
+  ///
   /// Removing the ".." from a "bar/foo/.." sequence results in "bar/"
   /// (trailing "/"). If the entire path is removed (because it contains as
   /// many ".." segments as real segments), the result is "./".
   /// This is different from an empty string, which represents "no path",
   /// when you resolve it against a base URI with a path with a non-empty
   /// final segment.
-  static String _normalizeRelativePath(String path) {
+  static String _normalizeRelativePath(String path, bool allowScheme) {
     assert(!path.startsWith('/'));  // Only get called for relative paths.
-    if (!_mayContainDotSegments(path)) return path;
+    if (!_mayContainDotSegments(path)) {
+      if (!allowScheme) path = _escapeScheme(path);
+      return path;
+    }
     assert(path.isNotEmpty);  // An empty path would not have dot segments.
     List<String> output = [];
     bool appendSlash = false;
@@ -2385,7 +2396,25 @@ class _Uri implements Uri {
       return "./";
     }
     if (appendSlash || output.last == '..') output.add("");
+    if (!allowScheme) output[0] = _escapeScheme(output[0]);
     return output.join("/");
+  }
+
+  /// If [path] starts with a valid scheme, escape the percent.
+  static String _escapeScheme(String path) {
+    if (path.length >= 2 && _isAlphabeticCharacter(path.codeUnitAt(0))) {
+      for (int i = 1; i < path.length; i++) {
+        int char = path.codeUnitAt(i);
+        if (char == _COLON) {
+          return "${path.substring(0, i)}%3A${path.substring(i + 1)}";
+        }
+        if (char > 127 ||
+            ((_schemeTable[char >> 4] & (1 << (char & 0x0f))) == 0)) {
+          break;
+        }
+      }
+    }
+    return path;
   }
 
   Uri resolve(String reference) {
@@ -2459,7 +2488,8 @@ class _Uri implements Uri {
                 // If both base and reference are relative paths,
                 // allow the merged path to start with "..".
                 // The RFC only specifies the case where the base has a scheme.
-                targetPath = _normalizeRelativePath(mergedPath);
+                targetPath = _normalizeRelativePath(mergedPath,
+                  this.hasScheme || this.hasAuthority);
               }
             }
           }
@@ -2492,12 +2522,16 @@ class _Uri implements Uri {
   bool get hasAbsolutePath => _path.startsWith('/');
 
   String get origin {
-    if (scheme == "" || _host == null || _host == "") {
+    if (scheme == "") {
       throw new StateError("Cannot use origin without a scheme: $this");
     }
     if (scheme != "http" && scheme != "https") {
       throw new StateError(
         "Origin is only applicable schemes http and https: $this");
+    }
+    if (_host == null || _host == "") {
+      throw new StateError(
+          "A $scheme: URI should have a non-empty host name: $this");
     }
     if (_port == null) return "$scheme://$_host";
     return "$scheme://$_host:$_port";
@@ -2596,7 +2630,7 @@ class _Uri implements Uri {
     assert(_text == null);
     StringBuffer sb = new StringBuffer();
     if (scheme.isNotEmpty) sb..write(scheme)..write(":");
-    if (hasAuthority || path.startsWith("//") || (scheme == "file")) {
+    if (hasAuthority || (scheme == "file")) {
       // File URIS always have the authority, even if it is empty.
       // The empty URI means "localhost".
       sb.write("//");
@@ -2708,7 +2742,7 @@ class _Uri implements Uri {
    * If [plusToSpace] is `true`, plus characters will be converted to spaces.
    *
    * The decoder will create a byte-list of the percent-encoded parts, and then
-   * decode the byte-list using [encoding]. The default encodingis UTF-8.
+   * decode the byte-list using [encoding]. The default encodings UTF-8.
    */
   static String _uriDecode(String text,
                            int start,
@@ -4082,12 +4116,16 @@ class _SimpleUri implements Uri {
   String get origin {
     // Check original behavior - W3C spec is wonky!
     bool isHttp = _isHttp;
-    if (_schemeEnd < 0 || _hostStart == _portStart) {
+    if (_schemeEnd < 0) {
       throw new StateError("Cannot use origin without a scheme: $this");
     }
     if (!isHttp && !_isHttps) {
       throw new StateError(
         "Origin is only applicable schemes http and https: $this");
+    }
+    if (_hostStart == _portStart) {
+      throw new StateError(
+          "A $scheme: URI should have a non-empty host name: $this");
     }
     if (_hostStart == _schemeEnd + 3) {
       return _uri.substring(0, _pathStart);

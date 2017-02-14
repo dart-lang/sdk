@@ -100,9 +100,15 @@ class VerifyOriginId : public IsolateVisitor {
 #endif
 
 
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+static void malloc_deallocator(uint8_t* ptr) {
+  free(reinterpret_cast<void*>(ptr));
 }
 
 
@@ -110,7 +116,8 @@ static void SerializeObject(const Instance& obj,
                             uint8_t** obj_data,
                             intptr_t* obj_len,
                             bool allow_any_object) {
-  MessageWriter writer(obj_data, &allocator, allow_any_object);
+  MessageWriter writer(obj_data, &malloc_allocator, &malloc_deallocator,
+                       allow_any_object);
   writer.WriteMessage(obj);
   *obj_len = writer.BytesWritten();
 }
@@ -125,6 +132,12 @@ static Message* SerializeMessage(Dart_Port dest_port, const Instance& obj) {
     SerializeObject(obj, &obj_data, &obj_len, false);
     return new Message(dest_port, obj_data, obj_len, Message::kNormalPriority);
   }
+}
+
+
+bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
+  return ((isolate == Dart::vm_isolate()) ||
+          ServiceIsolate::IsServiceIsolateDescendant(isolate));
 }
 
 
@@ -187,7 +200,7 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   msg.SetAt(2, element);
 
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
+  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
   writer.WriteMessage(msg);
 
   PortMap::PostMessage(new Message(main_port(), data, writer.BytesWritten(),
@@ -773,7 +786,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       message_notify_callback_(NULL),
       name_(NULL),
       debugger_name_(NULL),
-      start_time_(OS::GetCurrentTimeMicros()),
+      start_time_micros_(OS::GetCurrentMonotonicMicros()),
       main_port_(0),
       origin_id_(0),
       pause_capability_(0),
@@ -786,7 +799,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       debugger_(NULL),
       resume_request_(false),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
-      has_compiled_code_(false),
       random_(),
       simulator_(NULL),
       mutex_(new Mutex()),
@@ -986,35 +998,10 @@ Thread* Isolate::mutator_thread() const {
 }
 
 
-void Isolate::SetupInstructionsSnapshotPage(
-    const uint8_t* instructions_snapshot_buffer) {
-  InstructionsSnapshot snapshot(instructions_snapshot_buffer);
-#if defined(DEBUG)
-  if (FLAG_trace_isolates) {
-    OS::Print("Precompiled instructions are at [0x%" Px ", 0x%" Px ")\n",
-              reinterpret_cast<uword>(snapshot.instructions_start()),
-              reinterpret_cast<uword>(snapshot.instructions_start()) +
-                  snapshot.instructions_size());
-  }
-#endif
-  heap_->SetupExternalPage(snapshot.instructions_start(),
-                           snapshot.instructions_size(),
-                           /* is_executable = */ true);
-}
-
-
-void Isolate::SetupDataSnapshotPage(const uint8_t* data_snapshot_buffer) {
-  DataSnapshot snapshot(data_snapshot_buffer);
-#if defined(DEBUG)
-  if (FLAG_trace_isolates) {
-    OS::Print(
-        "Precompiled rodata are at [0x%" Px ", 0x%" Px ")\n",
-        reinterpret_cast<uword>(snapshot.data_start()),
-        reinterpret_cast<uword>(snapshot.data_start()) + snapshot.data_size());
-  }
-#endif
-  heap_->SetupExternalPage(snapshot.data_start(), snapshot.data_size(),
-                           /* is_executable = */ false);
+void Isolate::SetupImagePage(const uint8_t* image_buffer, bool is_executable) {
+  Image image(image_buffer);
+  heap_->SetupImagePage(image.object_start(), image.object_size(),
+                        is_executable);
 }
 
 
@@ -1032,6 +1019,11 @@ void Isolate::ScheduleMessageInterrupts() {
 void Isolate::set_debugger_name(const char* name) {
   free(debugger_name_);
   debugger_name_ = strdup(name);
+}
+
+
+int64_t Isolate::UptimeMicros() const {
+  return OS::GetCurrentMonotonicMicros() - start_time_micros_;
 }
 
 
@@ -1663,9 +1655,11 @@ void Isolate::LowLevelShutdown() {
   if (FLAG_dump_megamorphic_stats) {
     MegamorphicCacheTable::PrintSizes(this);
   }
+  if (FLAG_dump_symbol_stats) {
+    Symbols::DumpStats(this);
+  }
   if (FLAG_trace_isolates) {
     heap()->PrintSizes();
-    Symbols::DumpStats();
     OS::Print(
         "[-] Stopping isolate:\n"
         "\tisolate:    %s\n",
@@ -1712,7 +1706,7 @@ void Isolate::Shutdown() {
   StopBackgroundCompiler();
 
 #if defined(DEBUG)
-  if (heap_ != NULL) {
+  if (heap_ != NULL && FLAG_verify_on_transition) {
     // The VM isolate keeps all objects marked.
     heap_->Verify(this == Dart::vm_isolate() ? kRequireMarked : kForbidMarked);
   }
@@ -1984,8 +1978,9 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   }
   jsobj.AddPropertyF("_originNumber", "%" Pd64 "",
                      static_cast<int64_t>(origin_id()));
-  int64_t start_time_millis = start_time() / kMicrosecondsPerMillisecond;
-  jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
+  int64_t uptime_millis = UptimeMicros() / kMicrosecondsPerMillisecond;
+  int64_t start_time = OS::GetCurrentTimeMillis() - uptime_millis;
+  jsobj.AddPropertyTimeMillis("startTime", start_time);
   {
     JSONObject jsheap(&jsobj, "_heaps");
     heap()->PrintToJSONObject(Heap::kNew, &jsheap);
@@ -2031,6 +2026,12 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   if (!lib.IsNull()) {
     jsobj.AddProperty("rootLib", lib);
   }
+
+  intptr_t zone_handle_count = thread_registry_->CountZoneHandles();
+  intptr_t scoped_handle_count = thread_registry_->CountScopedHandles();
+
+  jsobj.AddProperty("_numZoneHandles", zone_handle_count);
+  jsobj.AddProperty("_numScopedHandles", scoped_handle_count);
 
   if (FLAG_profiler) {
     JSONObject tagCounters(&jsobj, "_tagCounters");
@@ -2090,6 +2091,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
       }
     }
   }
+
+  jsobj.AddProperty("_threads", thread_registry_);
 }
 #endif
 
@@ -2232,12 +2235,12 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
 
     if (FLAG_trace_service) {
       OS::Print("[+%" Pd64 "ms] Isolate %s invoking _runExtension for %s\n",
-                Dart::timestamp(), name(), method_name.ToCString());
+                Dart::UptimeMillis(), name(), method_name.ToCString());
     }
     result = DartEntry::InvokeFunction(run_extension, arguments);
     if (FLAG_trace_service) {
       OS::Print("[+%" Pd64 "ms] Isolate %s : _runExtension complete for %s\n",
-                Dart::timestamp(), name(), method_name.ToCString());
+                Dart::UptimeMillis(), name(), method_name.ToCString());
     }
     // Propagate the error.
     if (result.IsError()) {
@@ -2276,7 +2279,7 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
                                          const Instance& id) {
   if (FLAG_trace_service) {
     OS::Print("[+%" Pd64 "ms] Isolate %s ENQUEUING request for extension %s\n",
-              Dart::timestamp(), name(), method_name.ToCString());
+              Dart::UptimeMillis(), name(), method_name.ToCString());
   }
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(pending_service_extension_calls());
@@ -2535,7 +2538,7 @@ void Isolate::KillLocked(LibMsgId msg_id) {
 
   {
     uint8_t* buffer = NULL;
-    ApiMessageWriter writer(&buffer, allocator);
+    ApiMessageWriter writer(&buffer, &malloc_allocator);
     bool success = writer.WriteCMessage(&kill_msg);
     ASSERT(success);
 
@@ -2571,9 +2574,7 @@ class IsolateKillerVisitor : public IsolateVisitor {
     // If a target_ is specified, then only kill the target_.
     // Otherwise, don't kill the service isolate or vm isolate.
     return (((target_ != NULL) && (isolate == target_)) ||
-            ((target_ == NULL) &&
-             !ServiceIsolate::IsServiceIsolateDescendant(isolate) &&
-             (isolate != Dart::vm_isolate())));
+            ((target_ == NULL) && !IsVMInternalIsolate(isolate)));
   }
 
   Isolate* target_;
@@ -2640,6 +2641,8 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     // Now get a free Thread structure.
     thread = thread_registry()->GetFreeThreadLocked(this, is_mutator);
     ASSERT(thread != NULL);
+
+    thread->ResetHighWatermark();
 
     // Set up other values and set the TLS value.
     thread->isolate_ = this;
@@ -2736,7 +2739,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      void* init_data,
                                      const char* script_url,
                                      const Function& func,
-                                     const Instance& message,
+                                     SerializedObjectBuffer* message_buffer,
                                      Monitor* spawn_count_monitor,
                                      intptr_t* spawn_count,
                                      const char* package_root,
@@ -2778,9 +2781,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
     const String& class_name = String::Handle(cls.Name());
     class_name_ = NewConstChar(class_name.ToCString());
   }
-  bool can_send_any_object = true;
-  SerializeObject(message, &serialized_message_, &serialized_message_len_,
-                  can_send_any_object);
+  message_buffer->StealBuffer(&serialized_message_, &serialized_message_len_);
+
   // Inherit flags from spawning isolate.
   Isolate::Current()->FlagsCopyTo(isolate_flags());
 }
@@ -2791,8 +2793,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* script_url,
                                      const char* package_root,
                                      const char* package_config,
-                                     const Instance& args,
-                                     const Instance& message,
+                                     SerializedObjectBuffer* args_buffer,
+                                     SerializedObjectBuffer* message_buffer,
                                      Monitor* spawn_count_monitor,
                                      intptr_t* spawn_count,
                                      bool paused,
@@ -2821,11 +2823,9 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
   function_name_ = NewConstChar("main");
-  bool can_send_any_object = false;
-  SerializeObject(args, &serialized_args_, &serialized_args_len_,
-                  can_send_any_object);
-  SerializeObject(message, &serialized_message_, &serialized_message_len_,
-                  can_send_any_object);
+  args_buffer->StealBuffer(&serialized_args_, &serialized_args_len_);
+  message_buffer->StealBuffer(&serialized_message_, &serialized_message_len_);
+
   // By default inherit flags from spawning isolate. These can be overridden
   // from the calling code.
   Isolate::Current()->FlagsCopyTo(isolate_flags());

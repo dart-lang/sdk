@@ -47,7 +47,6 @@ custom/element_upgrade_test: Fail # Issue 17298
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor. Issue 14835
 fontface_loaded_test: Fail # Support for promises.
-js_test/JsArray: RuntimeError # Issue 26197
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
@@ -79,9 +78,12 @@ native_gc_test: Pass, Slow
 worker_test/functional: Pass, Crash # Issue 9929.
 
 [ $compiler == dart2js && $runtime == chrome ]
-fileapi_test/entry: Fail # TODO(dart2js-team): Please triage this failure.
+fileapi_test/entry: Pass, Fail # TODO(dart2js-team): Please triage this failure.
 fileapi_test/getDirectory: Fail # TODO(dart2js-team): Please triage this failure.
 fileapi_test/getFile: Fail # TODO(dart2js-team): Please triage this failure.
+media_stream_test/supported_MediaStreamEvent: RuntimeError # Please triage.
+media_stream_test/supported_MediaStreamTrackEvent: RuntimeError # Please triage.
+speechrecognition_test/types: RuntimeError # Please triage.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 crypto_test/functional: Pass, Slow # TODO(dart2js-team): Please triage this failure.
@@ -320,7 +322,6 @@ indexeddb_4_test: RuntimeError # Issue 21433
 indexeddb_5_test: RuntimeError # Issue 21433
 
 
-js_test/JsArray: RuntimeError # Fails 10 out of 10.
 indexeddb_3_test: Skip # Times out 1 out of 10.
 
 [  $compiler == dart2js && $runtime == ff ]
@@ -353,7 +354,7 @@ websql_test/supported: Fail
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
-[ $runtime == vm || $runtime == dart_precompiled || $runtime == dart_app ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 *: Skip
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]

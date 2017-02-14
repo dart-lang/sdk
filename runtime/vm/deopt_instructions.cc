@@ -1077,7 +1077,13 @@ void DeoptInfoBuilder::AddCopy(Value* value,
     deopt_instr = new (zone()) DeoptMaterializedObjectRefInstr(index);
   } else {
     ASSERT(!source_loc.IsInvalid());
-    switch (value->definition()->representation()) {
+#if defined(TARGET_ARCH_DBC)
+    Representation rep =
+        (value == NULL) ? kTagged : value->definition()->representation();
+#else
+    Representation rep = value->definition()->representation();
+#endif
+    switch (rep) {
       case kTagged:
         deopt_instr =
             new (zone()) DeoptWordInstr(ToCpuRegisterSource(source_loc));

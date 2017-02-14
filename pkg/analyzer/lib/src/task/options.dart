@@ -14,6 +14,10 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/lint/config.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/options_rule_validator.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/task/general.dart';
@@ -34,12 +38,6 @@ void applyToAnalysisOptions(
     AnalysisOptionsImpl options, Map<String, Object> optionMap) {
   _processor.applyToAnalysisOptions(options, optionMap);
 }
-
-/// Configure this [context] based on configuration details specified in
-/// the given [options].  If [options] is `null`, default values are applied.
-void configureContextOptions(
-        AnalysisContext context, Map<String, Object> options) =>
-    _processor.configure(context, options);
 
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
@@ -393,16 +391,16 @@ class LinterOptionsValidator extends TopLevelOptionValidator {
 
 /// Validates options defined in an analysis options file.
 class OptionsFileValidator {
-  // TODO(pq): move to an extension point.
+  /// The source being validated.
+  final Source source;
+
   final List<OptionsValidator> _validators = [
     new AnalyzerOptionsValidator(),
-    new LinterOptionsValidator()
+    new LinterOptionsValidator(),
+    new LinterRuleOptionsValidator()
   ];
 
-  final Source source;
-  OptionsFileValidator(this.source) {
-    _validators.addAll(AnalysisEngine.instance.optionsPlugin.optionsValidators);
-  }
+  OptionsFileValidator(this.source);
 
   List<AnalysisError> validate(Map<String, YamlNode> options) {
     RecordingErrorListener recorder = new RecordingErrorListener();
@@ -513,109 +511,13 @@ class _OptionsProcessor {
       var excludes = analyzer[AnalyzerOptions.exclude];
       _applyExcludes(options, excludes);
     }
-  }
 
-  /// Configure [context] based on the given [options] (which can be `null`
-  /// to restore [defaults]).
-  void configure(AnalysisContext context, Map<String, Object> options) {
-    if (options == null) {
-      options = defaults;
-    }
-
-    var analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer is Map) {
-      // Set strong mode (default is false).
-      var strongMode = analyzer[AnalyzerOptions.strong_mode];
-      setStrongMode(context, strongMode);
-
-      // Set filters.
-      var filters = analyzer[AnalyzerOptions.errors];
-      setProcessors(context, filters);
-
-      // Process language options.
-      var language = analyzer[AnalyzerOptions.language];
-      setLanguageOptions(context, language);
-
-      // Process excludes.
-      var excludes = analyzer[AnalyzerOptions.exclude];
-      setExcludes(context, excludes);
-    }
-  }
-
-  void setExcludes(AnalysisContext context, Object excludes) {
-    if (excludes is YamlList) {
-      List<String> excludeList = toStringList(excludes);
-      if (excludeList != null) {
-        AnalysisOptionsImpl options =
-            new AnalysisOptionsImpl.from(context.analysisOptions);
-        options.excludePatterns = excludeList;
-        context.analysisOptions = options;
-      }
-    }
-  }
-
-  void setLanguageOption(
-      AnalysisContext context, Object feature, Object value) {
-    if (feature == AnalyzerOptions.enableAssertInitializer) {
-      if (isTrue(value)) {
-        AnalysisOptionsImpl options =
-            new AnalysisOptionsImpl.from(context.analysisOptions);
-        options.enableAssertInitializer = true;
-        context.analysisOptions = options;
-      }
-    }
-    if (feature == AnalyzerOptions.enableStrictCallChecks) {
-      if (isTrue(value)) {
-        AnalysisOptionsImpl options =
-            new AnalysisOptionsImpl.from(context.analysisOptions);
-        options.enableStrictCallChecks = true;
-        context.analysisOptions = options;
-      }
-    }
-    if (feature == AnalyzerOptions.enableSuperMixins) {
-      if (isTrue(value)) {
-        AnalysisOptionsImpl options =
-            new AnalysisOptionsImpl.from(context.analysisOptions);
-        options.enableSuperMixins = true;
-        context.analysisOptions = options;
-      }
-    }
-  }
-
-  void setLanguageOptions(AnalysisContext context, Object configs) {
-    if (configs is YamlMap) {
-      configs.nodes.forEach((k, v) {
-        if (k is YamlScalar && v is YamlScalar) {
-          String feature = k.value?.toString();
-          setLanguageOption(context, feature, v.value);
-        }
-      });
-    } else if (configs is Map) {
-      configs.forEach((k, v) => setLanguageOption(context, k, v));
-    }
-  }
-
-  void setProcessors(AnalysisContext context, Object codes) {
-    ErrorConfig config = new ErrorConfig(codes);
-    AnalysisOptionsImpl options =
-        new AnalysisOptionsImpl.from(context.analysisOptions);
-    options.errorProcessors = config.processors;
-    context.analysisOptions = options;
-  }
-
-  void setStrongMode(AnalysisContext context, Object strongMode) {
-    if (strongMode is Map) {
-      AnalysisOptionsImpl options =
-          new AnalysisOptionsImpl.from(context.analysisOptions);
-      _applyStrongOptions(options, strongMode);
-      context.analysisOptions = options;
-    } else {
-      strongMode = strongMode is bool ? strongMode : false;
-      if (context.analysisOptions.strongMode != strongMode) {
-        AnalysisOptionsImpl options =
-            new AnalysisOptionsImpl.from(context.analysisOptions);
-        options.strongMode = strongMode;
-        context.analysisOptions = options;
+    LintConfig config = parseConfig(optionMap);
+    if (config != null) {
+      Iterable<LintRule> lintRules = Registry.ruleRegistry.enabled(config);
+      if (lintRules.isNotEmpty) {
+        options.lint = true;
+        options.lintRules = lintRules.toList();
       }
     }
   }
@@ -635,6 +537,8 @@ class _OptionsProcessor {
     if (boolValue != null) {
       if (feature == AnalyzerOptions.enableAssertInitializer) {
         options.enableAssertInitializer = boolValue;
+      } else if (feature == AnalyzerOptions.enableStrictCallChecks) {
+        options.enableStrictCallChecks = boolValue;
       } else if (feature == AnalyzerOptions.enableSuperMixins) {
         options.enableSuperMixins = boolValue;
       }

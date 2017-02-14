@@ -172,8 +172,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
 
   Iterable<E> where(bool test(E element)) => super.where(test);
 
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) =>
-      new MappedListIterable<E, dynamic/*=T*/ >(this, f);
+  Iterable<T> map<T>(T f(E element)) => new MappedListIterable<E, T>(this, f);
 
   E reduce(E combine(var value, E element)) {
     int length = this.length;
@@ -189,9 +188,7 @@ abstract class ListIterable<E> extends EfficientLengthIterable<E> {
     return value;
   }
 
-  /*=T*/ fold/*<T>*/(
-      var/*=T*/ initialValue, /*=T*/ combine(
-          var/*=T*/ previousValue, E element)) {
+  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
@@ -405,8 +402,7 @@ class MappedIterator<S, T> extends Iterator<T> {
  *
  * Expects efficient `length` and `elementAt` on the source iterable.
  */
-class MappedListIterable<S, T> extends ListIterable<T>
-                               implements EfficientLengthIterable<T> {
+class MappedListIterable<S, T> extends ListIterable<T> {
   final Iterable<S> _source;
   final _Transformation<S, T> _f;
 
@@ -428,8 +424,7 @@ class WhereIterable<E> extends Iterable<E> {
   Iterator<E> get iterator => new WhereIterator<E>(_iterable.iterator, _f);
 
   // Specialization of [Iterable.map] to non-EfficientLengthIterable.
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) =>
-     new MappedIterable<E, dynamic/*=T*/>._(this, f);
+  Iterable<T> map<T>(T f(E element)) => new MappedIterable<E, T>._(this, f);
 }
 
 class WhereIterator<E> extends Iterator<E> {
@@ -720,15 +715,13 @@ class EmptyIterable<E> extends EfficientLengthIterable<E> {
 
   Iterable<E> where(bool test(E element)) => this;
 
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) => const EmptyIterable();
+  Iterable<T> map<T>(T f(E element)) => const EmptyIterable();
 
   E reduce(E combine(E value, E element)) {
     throw IterableElementError.noElement();
   }
 
-  /*=T*/ fold/*<T>*/(
-      var/*=T*/ initialValue, /*=T*/ combine(
-          var/*=T*/ previousValue, E element)) {
+  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
     return initialValue;
   }
 

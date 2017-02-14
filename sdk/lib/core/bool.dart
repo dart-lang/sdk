@@ -41,6 +41,8 @@ class bool {
   external const factory bool.fromEnvironment(String name,
                                               {bool defaultValue: false});
 
+  external int get hashCode;
+
   /**
    * Returns [:"true":] if the receiver is [:true:], or [:"false":] if the
    * receiver is [:false:].

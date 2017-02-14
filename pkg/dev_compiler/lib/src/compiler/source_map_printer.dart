@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:source_maps/source_maps.dart' hide Printer;
 import 'package:source_span/source_span.dart' show SourceLocation;
 
@@ -48,7 +49,8 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
       // parts.
       _currentTopLevelDeclaration = node;
       unit = node.getAncestor((n) => n is CompilationUnit);
-      sourcePath = unit.element.source.fullName;
+      sourcePath =
+          resolutionMap.elementDeclaredByCompilationUnit(unit).source.fullName;
     }
 
     _mark(node.offset, _getIdentifier(node));

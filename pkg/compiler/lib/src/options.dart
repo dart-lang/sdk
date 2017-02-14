@@ -131,6 +131,9 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
+  ///
+  /// This is only included so that tests can pass the --assert-message flag
+  /// without causing dart2js to crash. The flag has no effect.
   final bool enableAssertMessage;
 
   /// Whether the user specified a flag to allow the use of dart:mirrors. This
@@ -267,7 +270,6 @@ class CompilerOptions implements DiagnosticOptions {
         disableInlining: _hasOption(options, Flags.disableInlining),
         disableTypeInference: _hasOption(options, Flags.disableTypeInference),
         dumpInfo: _hasOption(options, Flags.dumpInfo),
-        enableAssertMessage: _hasOption(options, Flags.enableAssertMessage),
         enableExperimentalMirrors:
             _hasOption(options, Flags.enableExperimentalMirrors),
         enableMinification: _hasOption(options, Flags.minify),
@@ -333,7 +335,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool disableInlining: false,
       bool disableTypeInference: false,
       bool dumpInfo: false,
-      bool enableAssertMessage: false,
+      bool enableAssertMessage: true,
       bool enableExperimentalMirrors: false,
       bool enableMinification: false,
       bool enableNativeLiveTypeAnalysis: true,
@@ -452,7 +454,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.disableInlining: false,
       this.disableTypeInference: false,
       this.dumpInfo: false,
-      this.enableAssertMessage: false,
+      this.enableAssertMessage: true,
       this.enableExperimentalMirrors: false,
       this.enableMinification: false,
       this.enableNativeLiveTypeAnalysis: false,

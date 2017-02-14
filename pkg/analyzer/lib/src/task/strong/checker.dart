@@ -8,6 +8,7 @@ library analyzer.src.task.strong.checker;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -35,19 +36,11 @@ DartType getDefiniteType(
   DartType type = expression.staticType ?? DynamicTypeImpl.instance;
   if (typeSystem is StrongTypeSystemImpl &&
       type is FunctionType &&
-      _hasStrictArrow(expression)) {
+      hasStrictArrow(expression)) {
     // Remove fuzzy arrow if possible.
-    return typeSystem.functionTypeToConcreteType(typeProvider, type);
+    return typeSystem.functionTypeToConcreteType(type);
   }
   return type;
-}
-
-bool isKnownFunction(Expression expression) {
-  var element = _getKnownElement(expression);
-  // First class functions and static methods, where we know the original
-  // declaration, will have an exact type, so we know a downcast will fail.
-  return element is FunctionElement ||
-      element is MethodElement && element.isStatic;
 }
 
 DartType _elementType(Element e) {
@@ -60,9 +53,10 @@ DartType _elementType(Element e) {
 
 Element _getKnownElement(Expression expression) {
   if (expression is ParenthesizedExpression) {
-    expression = (expression as ParenthesizedExpression).expression;
-  }
-  if (expression is FunctionExpression) {
+    return _getKnownElement(expression.expression);
+  } else if (expression is NamedExpression) {
+    return _getKnownElement(expression.expression);
+  } else if (expression is FunctionExpression) {
     return expression.element;
   } else if (expression is PropertyAccess) {
     return expression.propertyName.staticElement;
@@ -104,7 +98,7 @@ FieldElement _getMemberField(
 FunctionType _getMemberType(InterfaceType type, ExecutableElement member) =>
     _memberTypeGetter(member)(type);
 
-bool _hasStrictArrow(Expression expression) {
+bool hasStrictArrow(Expression expression) {
   var element = _getKnownElement(expression);
   return element is FunctionElement || element is MethodElement;
 }
@@ -216,8 +210,8 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  DartType getType(TypeName name) {
-    return (name == null) ? DynamicTypeImpl.instance : name.type;
+  DartType getType(TypeAnnotation type) {
+    return type?.type ?? DynamicTypeImpl.instance;
   }
 
   void reset() {
@@ -491,7 +485,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitListLiteral(ListLiteral node) {
     DartType type = DynamicTypeImpl.instance;
     if (node.typeArguments != null) {
-      NodeList<TypeName> targs = node.typeArguments.arguments;
+      NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
       if (targs.length > 0) {
         type = targs[0].type;
       }
@@ -516,7 +510,7 @@ class CodeChecker extends RecursiveAstVisitor {
     DartType ktype = DynamicTypeImpl.instance;
     DartType vtype = DynamicTypeImpl.instance;
     if (node.typeArguments != null) {
-      NodeList<TypeName> targs = node.typeArguments.arguments;
+      NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
       if (targs.length > 0) {
         ktype = targs[0].type;
       }
@@ -602,7 +596,7 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    var type = node.staticElement?.type;
+    var type = resolutionMap.staticElementForConstructorReference(node)?.type;
     // TODO(leafp): There's a TODO in visitRedirectingConstructorInvocation
     // in the element_resolver to handle the case that the element is null
     // and emit an error.  In the meantime, just be defensive here.
@@ -622,7 +616,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.staticElement;
     if (element != null) {
-      var type = node.staticElement.type;
+      var type = resolutionMap.staticElementForConstructorReference(node).type;
       checkArgumentList(node.argumentList, type);
     }
     node.visitChildren(this);
@@ -639,21 +633,24 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
+    VariableElement variableElement = node == null
+        ? null
+        : resolutionMap.elementDeclaredByVariableDeclaration(node);
     if (!node.isConst &&
         !node.isFinal &&
         node.initializer == null &&
-        rules.isNonNullableType(node?.element?.type)) {
+        rules.isNonNullableType(variableElement?.type)) {
       _recordMessage(
           node,
           StaticTypeWarningCode.NON_NULLABLE_FIELD_NOT_INITIALIZED,
-          [node.name, node?.element?.type]);
+          [node.name, variableElement?.type]);
     }
     return super.visitVariableDeclaration(node);
   }
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    TypeName type = node.type;
+    TypeAnnotation type = node.type;
     if (type == null) {
       // No checks are needed when the type is var. Although internally the
       // typing rules may have inferred a more precise type for the variable
@@ -684,7 +681,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void _checkCompoundAssignment(AssignmentExpression expr) {
     var op = expr.operator.type;
     assert(op.isAssignmentOperator && op != TokenType.EQ);
-    var methodElement = expr.staticElement;
+    var methodElement = resolutionMap.staticElementForMethodReference(expr);
     if (methodElement == null) {
       // Dynamic invocation.
       _recordDynamicInvoke(expr, expr.leftHandSide);
@@ -701,7 +698,7 @@ class CodeChecker extends RecursiveAstVisitor {
       var rhsType = _getDefiniteType(expr.rightHandSide);
       var lhsType = _getDefiniteType(expr.leftHandSide);
       var returnType = rules.refineBinaryExpressionType(
-          typeProvider, lhsType, op, rhsType, functionType.returnType);
+          lhsType, op, rhsType, functionType.returnType);
 
       // Check the argument for an implicit cast.
       _checkImplicitCast(expr.rightHandSide, paramTypes[0], from: rhsType);
@@ -716,55 +713,6 @@ class CodeChecker extends RecursiveAstVisitor {
       //
       _checkImplicitCast(expr.leftHandSide, lhsType,
           from: returnType, opAssign: true);
-    }
-  }
-
-  /// Returns true if we need an implicit cast of [expr] from [from] type to
-  /// [to] type, otherwise returns false.
-  ///
-  /// If [from] is omitted, uses the static type of [expr].
-  bool _needsImplicitCast(Expression expr, DartType to, {DartType from}) {
-    from ??= _getDefiniteType(expr);
-
-    if (!_checkNonNullAssignment(expr, to, from)) return false;
-
-    // We can use anything as void.
-    if (to.isVoid) return false;
-
-    // fromT <: toT, no coercion needed.
-    if (rules.isSubtypeOf(from, to)) return false;
-
-    // Note: a function type is never assignable to a class per the Dart
-    // spec - even if it has a compatible call method.  We disallow as
-    // well for consistency.
-    if (from is FunctionType && rules.getCallMethodType(to) != null) {
-      return false;
-    }
-
-    // Downcast if toT <: fromT
-    if (rules.isSubtypeOf(to, from)) {
-      return true;
-    }
-
-    // Anything else is an illegal sideways cast.
-    // However, these will have been reported already in error_verifier, so we
-    // don't need to report them again.
-    return false;
-  }
-
-  /// Checks if an implicit cast of [expr] from [from] type to [to] type is
-  /// needed, and if so records it.
-  ///
-  /// If [from] is omitted, uses the static type of [expr].
-  ///
-  /// If [expr] does not require an implicit cast because it is not related to
-  /// [to] or is already a subtype of it, does nothing.
-  void _checkImplicitCast(Expression expr, DartType to,
-      {DartType from, bool opAssign: false}) {
-    from ??= _getDefiniteType(expr);
-
-    if (_needsImplicitCast(expr, to, from: from)) {
-      _recordImplicitCast(expr, to, from: from, opAssign: opAssign);
     }
   }
 
@@ -786,7 +734,10 @@ class CodeChecker extends RecursiveAstVisitor {
     if (node.body is! BlockFunctionBody) {
       return;
     }
-    if (node.element.returnType.isDynamic) {
+    if (resolutionMap
+        .elementDeclaredByFunctionExpression(node)
+        .returnType
+        .isDynamic) {
       return;
     }
     // Find the enclosing variable declaration whose inferred type might depend
@@ -875,6 +826,22 @@ class CodeChecker extends RecursiveAstVisitor {
         [declElement.name]);
   }
 
+  /// Checks if an implicit cast of [expr] from [from] type to [to] type is
+  /// needed, and if so records it.
+  ///
+  /// If [from] is omitted, uses the static type of [expr].
+  ///
+  /// If [expr] does not require an implicit cast because it is not related to
+  /// [to] or is already a subtype of it, does nothing.
+  void _checkImplicitCast(Expression expr, DartType to,
+      {DartType from, bool opAssign: false}) {
+    from ??= _getDefiniteType(expr);
+
+    if (_needsImplicitCast(expr, to, from: from)) {
+      _recordImplicitCast(expr, to, from: from, opAssign: opAssign);
+    }
+  }
+
   /// Checks if the assignment is valid with respect to non-nullable types.
   /// Returns `false` if a nullable expression is assigned to a variable of
   /// non-nullable type and `true` otherwise.
@@ -902,8 +869,8 @@ class CodeChecker extends RecursiveAstVisitor {
     if (expression != null) checkAssignment(expression, type);
   }
 
-  void _checkRuntimeTypeCheck(AstNode node, TypeName typeName) {
-    var type = getType(typeName);
+  void _checkRuntimeTypeCheck(AstNode node, TypeAnnotation annotation) {
+    var type = getType(annotation);
     if (!rules.isGroundType(type)) {
       _recordMessage(node, StrongModeCode.NON_GROUND_TYPE_CHECK_INFO, [type]);
     }
@@ -927,8 +894,8 @@ class CodeChecker extends RecursiveAstVisitor {
         var functionType = element.type;
         var rhsType = typeProvider.intType;
         var lhsType = _getDefiniteType(operand);
-        var returnType = rules.refineBinaryExpressionType(typeProvider, lhsType,
-            TokenType.PLUS, rhsType, functionType.returnType);
+        var returnType = rules.refineBinaryExpressionType(
+            lhsType, TokenType.PLUS, rhsType, functionType.returnType);
 
         // Skip the argument check - `int` cannot be downcast.
         //
@@ -1011,7 +978,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (type is FunctionType) {
       return type;
     } else if (type is InterfaceType) {
-      return rules.getCallMethodType(type);
+      return rules.getCallMethodDefiniteType(type);
     }
     return null;
   }
@@ -1028,10 +995,43 @@ class CodeChecker extends RecursiveAstVisitor {
     // a dynamic parameter type requires a dynamic call in general.
     // However, as an optimization, if we have an original definition, we know
     // dynamic is reified as Object - in this case a regular call is fine.
-    if (_hasStrictArrow(call.function)) {
+    if (hasStrictArrow(call.function)) {
       return false;
     }
     return rules.anyParameterType(ft, (pt) => pt.isDynamic);
+  }
+
+  /// Returns true if we need an implicit cast of [expr] from [from] type to
+  /// [to] type, otherwise returns false.
+  ///
+  /// If [from] is omitted, uses the static type of [expr].
+  bool _needsImplicitCast(Expression expr, DartType to, {DartType from}) {
+    from ??= _getDefiniteType(expr);
+
+    if (!_checkNonNullAssignment(expr, to, from)) return false;
+
+    // We can use anything as void.
+    if (to.isVoid) return false;
+
+    // fromT <: toT, no coercion needed.
+    if (rules.isSubtypeOf(from, to)) return false;
+
+    // Note: a function type is never assignable to a class per the Dart
+    // spec - even if it has a compatible call method.  We disallow as
+    // well for consistency.
+    if (from is FunctionType && rules.getCallMethodType(to) != null) {
+      return false;
+    }
+
+    // Downcast if toT <: fromT
+    if (rules.isSubtypeOf(to, from)) {
+      return true;
+    }
+
+    // Anything else is an illegal sideways cast.
+    // However, these will have been reported already in error_verifier, so we
+    // don't need to report them again.
+    return false;
   }
 
   void _recordDynamicInvoke(AstNode node, Expression target) {
@@ -1083,8 +1083,8 @@ class CodeChecker extends RecursiveAstVisitor {
       }
     }
 
-    if (isKnownFunction(expr)) {
-      Element e = _getKnownElement(expr);
+    Element e = _getKnownElement(expr);
+    if (e is FunctionElement || e is MethodElement && e.isStatic) {
       _recordMessage(
           expr,
           e is MethodElement
@@ -1141,7 +1141,9 @@ class CodeChecker extends RecursiveAstVisitor {
           ? node.firstTokenAfterCommentAndMetadata.offset
           : node.offset;
       int length = node.end - begin;
-      var source = (node.root as CompilationUnit).element.source;
+      var source = resolutionMap
+          .elementDeclaredByCompilationUnit(node.root as CompilationUnit)
+          .source;
       var error =
           new AnalysisError(source, begin, length, errorCode, arguments);
       reporter.onError(error);
@@ -1161,7 +1163,8 @@ class _OverrideChecker {
         rules = checker.rules;
 
   void check(ClassDeclaration node) {
-    if (node.element.type.isObject) return;
+    if (resolutionMap.elementDeclaredByClassDeclaration(node).type.isObject)
+      return;
     _checkSuperOverrides(node);
     _checkMixinApplicationOverrides(node);
     _checkAllInterfaceOverrides(node);
@@ -1197,7 +1200,7 @@ class _OverrideChecker {
     // Check all interfaces reachable from the `implements` clause in the
     // current class against definitions here and in superclasses.
     var localInterfaces = new Set<InterfaceType>();
-    var type = node.element.type;
+    var type = resolutionMap.elementDeclaredByClassDeclaration(node).type;
     type.interfaces.forEach((i) => find(i, localInterfaces));
     _checkInterfacesOverrides(node, localInterfaces, seen,
         includeParents: true);
@@ -1254,7 +1257,7 @@ class _OverrideChecker {
         if (member.isStatic) {
           continue;
         }
-        var method = member.element;
+        var method = resolutionMap.elementDeclaredByMethodDeclaration(member);
         if (seen.contains(method.name)) {
           continue;
         }
@@ -1310,7 +1313,9 @@ class _OverrideChecker {
       bool includeParents: true,
       AstNode errorLocation}) {
     var node = cls is ClassDeclaration ? cls : null;
-    var type = cls is InterfaceType ? cls : node.element.type;
+    var type = cls is InterfaceType
+        ? cls
+        : resolutionMap.elementDeclaredByClassDeclaration(node).type;
 
     if (visited == null) {
       visited = new Set<InterfaceType>();
@@ -1365,7 +1370,7 @@ class _OverrideChecker {
   ///      B & E against B (equivalently how E overrides B)
   ///      B & E & F against B & E (equivalently how F overrides both B and E)
   void _checkMixinApplicationOverrides(ClassDeclaration node) {
-    var type = node.element.type;
+    var type = resolutionMap.elementDeclaredByClassDeclaration(node).type;
     var parent = type.superclass;
     var mixins = type.mixins;
 
@@ -1434,15 +1439,7 @@ class _OverrideChecker {
         ]);
       }
     }
-    FunctionType concreteSubType = subType;
-    FunctionType concreteBaseType = baseType;
-    if (concreteSubType.typeFormals.isNotEmpty) {
-      if (concreteBaseType.typeFormals.isEmpty) {
-        concreteSubType = rules.instantiateToBounds(concreteSubType);
-      }
-    }
-
-    if (!rules.isOverrideSubtypeOf(concreteSubType, concreteBaseType)) {
+    if (!rules.isOverrideSubtypeOf(subType, baseType)) {
       ErrorCode errorCode;
       if (errorLocation is ExtendsClause) {
         errorCode = StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_BASE;
@@ -1492,7 +1489,7 @@ class _OverrideChecker {
   ///     }
   void _checkSuperOverrides(ClassDeclaration node) {
     var seen = new Set<String>();
-    var current = node.element.type;
+    var current = resolutionMap.elementDeclaredByClassDeclaration(node).type;
     var visited = new Set<InterfaceType>();
     do {
       visited.add(current);

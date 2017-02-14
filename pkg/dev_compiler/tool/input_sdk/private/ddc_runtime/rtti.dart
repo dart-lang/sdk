@@ -183,7 +183,7 @@ lazyAnonymousJSType(name) {
 }
 
 /// Given a WrappedType, return the internal runtime type object.
-unwrapType(obj) => obj._wrappedType;
+unwrapType(WrappedType obj) => obj._wrappedType;
 
 _getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
 getIsNamedConstructor(value) => JS('', '#[#]', value, isNamedConstructor);

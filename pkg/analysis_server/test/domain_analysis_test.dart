@@ -13,8 +13,10 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -33,12 +35,20 @@ main() {
   AnalysisServer server;
   AnalysisDomainHandler handler;
 
+  void processRequiredPlugins(ServerPlugin serverPlugin) {
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(serverPlugin);
+
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+  }
+
   setUp(() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
-    manager.processPlugins([serverPlugin]);
+    processRequiredPlugins(serverPlugin);
     // Create an SDK in the mock file system.
     new MockSdk(resourceProvider: resourceProvider);
     server = new AnalysisServer(
@@ -429,11 +439,10 @@ class AnalysisTestHelper {
   String testCode;
 
   AnalysisTestHelper() {
+    ServerPlugin serverPlugin = new ServerPlugin();
+    processRequiredPlugins(serverPlugin);
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    ExtensionManager manager = new ExtensionManager();
-    ServerPlugin serverPlugin = new ServerPlugin();
-    manager.processPlugins([serverPlugin]);
     // Create an SDK in the mock file system.
     new MockSdk(resourceProvider: resourceProvider);
     server = new AnalysisServer(
@@ -595,6 +604,15 @@ class AnalysisTestHelper {
   void handleSuccessfulRequest(Request request) {
     Response response = handler.handleRequest(request);
     expect(response, isResponseSuccess('0'));
+  }
+
+  void processRequiredPlugins(ServerPlugin serverPlugin) {
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(serverPlugin);
+
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
   }
 
   /**

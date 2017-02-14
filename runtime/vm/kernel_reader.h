@@ -19,11 +19,8 @@ class KernelReader;
 
 class BuildingTranslationHelper : public TranslationHelper {
  public:
-  BuildingTranslationHelper(KernelReader* reader,
-                            dart::Thread* thread,
-                            dart::Zone* zone,
-                            Isolate* isolate)
-      : TranslationHelper(thread, zone, isolate), reader_(reader) {}
+  BuildingTranslationHelper(KernelReader* reader, dart::Thread* thread)
+      : TranslationHelper(thread), reader_(reader) {}
   virtual ~BuildingTranslationHelper() {}
 
   virtual RawLibrary* LookupLibraryByKernelLibrary(Library* library);
@@ -37,18 +34,18 @@ template <typename KernelType, typename VmType>
 class Mapping {
  public:
   bool Lookup(KernelType* node, VmType** handle) {
-    typename MapType::iterator value = map_.find(node);
-    if (value != map_.end()) {
-      *handle = value->second;
+    typename MapType::Pair* pair = map_.LookupPair(node);
+    if (pair != NULL) {
+      *handle = pair->value;
       return true;
     }
     return false;
   }
 
-  void Insert(KernelType* node, VmType* object) { map_[node] = object; }
+  void Insert(KernelType* node, VmType* object) { map_.Insert(node, object); }
 
  private:
-  typedef typename std::map<KernelType*, VmType*> MapType;
+  typedef MallocMap<KernelType, VmType*> MapType;
   MapType map_;
 };
 
@@ -73,7 +70,9 @@ class KernelReader {
   friend class BuildingTranslationHelper;
 
   void ReadPreliminaryClass(dart::Class* klass, Class* kernel_klass);
-  dart::Class& ReadClass(const dart::Library& library, Class* kernel_klass);
+  dart::Class& ReadClass(const dart::Library& library,
+                         const dart::Class& toplevel_class,
+                         Class* kernel_klass);
   void ReadProcedure(const dart::Library& library,
                      const dart::Class& owner,
                      Procedure* procedure,
@@ -84,7 +83,7 @@ class KernelReader {
   // Otherwise return klass.
   const Object& ClassForScriptAt(const dart::Class& klass,
                                  intptr_t source_uri_index);
-  Script& ScriptAt(intptr_t source_uri_index);
+  Script& ScriptAt(intptr_t source_uri_index, String* import_uri = NULL);
 
   void GenerateFieldAccessors(const dart::Class& klass,
                               const dart::Field& field,

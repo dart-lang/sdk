@@ -40,21 +40,26 @@ class CheckerTest {
   void test_awaitForInCastsStreamElementToVariable() {
     checkFile('''
 import 'dart:async';
+
+abstract class MyStream<T> extends Stream<T> {
+  factory MyStream() => null;
+}
+
 main() async {
   // Don't choke if sequence is not stream.
   await for (var i in /*error:FOR_IN_OF_INVALID_TYPE*/1234) {}
 
   // Dynamic cast.
-  await for (String /*info:DYNAMIC_CAST*/s in new Stream<dynamic>()) {}
+  await for (String /*info:DYNAMIC_CAST*/s in new MyStream<dynamic>()) {}
 
   // Identity cast.
-  await for (String s in new Stream<String>()) {}
+  await for (String s in new MyStream<String>()) {}
 
   // Untyped.
-  await for (var s in new Stream<String>()) {}
+  await for (var s in new MyStream<String>()) {}
 
   // Downcast.
-  await for (int /*info:DOWN_CAST_IMPLICIT*/i in new Stream<num>()) {}
+  await for (int /*info:DOWN_CAST_IMPLICIT*/i in new MyStream<num>()) {}
 }
 ''');
   }
@@ -937,16 +942,16 @@ dynamic x;
 foo1() async => x;
 Future foo2() async => x;
 Future<int> foo3() async => x;
-Future<int> foo4() async => new Future<int>.value(/*info:DYNAMIC_CAST*/x);
+Future<int> foo4() async => new Future<int>.value(x);
 Future<int> foo5() async =>
-    /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(/*info:DYNAMIC_CAST*/x);
+    /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(x);
 
 bar1() async { return x; }
 Future bar2() async { return x; }
 Future<int> bar3() async { return x; }
-Future<int> bar4() async { return new Future<int>.value(/*info:DYNAMIC_CAST*/x); }
+Future<int> bar4() async { return new Future<int>.value(x); }
 Future<int> bar5() async {
-  return /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(/*info:DYNAMIC_CAST*/x);
+  return /*error:RETURN_OF_INVALID_TYPE*/new Future<String>.value(x);
 }
 
 int y;
@@ -981,16 +986,22 @@ import 'dart:async';
 
 dynamic x;
 
+Stream<int> intStream;
+
+abstract class MyStream<T> extends Stream<T> {
+  factory MyStream() => null;
+}
+
 bar1() async* { yield x; }
 Stream bar2() async* { yield x; }
 Stream<int> bar3() async* { yield /*info:DYNAMIC_CAST*/x; }
-Stream<int> bar4() async* { yield /*error:YIELD_OF_INVALID_TYPE*/new Stream<int>(); }
+Stream<int> bar4() async* { yield /*error:YIELD_OF_INVALID_TYPE*/intStream; }
 
 baz1() async* { yield* /*info:DYNAMIC_CAST*/x; }
 Stream baz2() async* { yield* /*info:DYNAMIC_CAST*/x; }
 Stream<int> baz3() async* { yield* /*info:DYNAMIC_CAST*/x; }
-Stream<int> baz4() async* { yield* new Stream<int>(); }
-Stream<int> baz5() async* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new Stream(); }
+Stream<int> baz4() async* { yield* intStream; }
+Stream<int> baz5() async* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new MyStream(); }
 ''');
   }
 
@@ -1301,9 +1312,10 @@ void main() {
   }
 
   void test_functionTypingAndSubtyping_dynamicFunctions_closuresAreNotFuzzy() {
-    // Regression test for
+    // Regression test for definite function cases
     // https://github.com/dart-lang/sdk/issues/26118
     // https://github.com/dart-lang/sdk/issues/26156
+    // https://github.com/dart-lang/sdk/issues/28087
     checkFile('''
 void takesF(void f(int x)) {}
 
@@ -1313,20 +1325,27 @@ void update(_) {}
 void updateOpt([_]) {}
 void updateOptNum([num x]) {}
 
+class Callable {
+  void call(_) {}
+}
+
 class A {
   TakesInt f;
   A(TakesInt g) {
     f = update;
     f = updateOpt;
     f = updateOptNum;
+    f = new Callable();
   }
   TakesInt g(bool a, bool b) {
     if (a) {
       return update;
     } else if (b) {
       return updateOpt;
-    } else {
+    } else if (a) {
       return updateOptNum;
+    } else {
+      return new Callable();
     }
   }
 }
@@ -1335,13 +1354,16 @@ void test0() {
   takesF(update);
   takesF(updateOpt);
   takesF(updateOptNum);
+  takesF(new Callable());
   TakesInt f;
   f = update;
   f = updateOpt;
   f = updateOptNum;
+  f = new Callable();
   new A(update);
   new A(updateOpt);
   new A(updateOptNum);
+  new A(new Callable());
 }
 
 void test1() {
@@ -2083,6 +2105,41 @@ class DerivedFuture4<A> extends Future<A> {
 ''');
   }
 
+  void test_genericMethodSuper() {
+    checkFile(r'''
+class A<T> {
+  A<S> create<S extends T>() => new A<S>();
+}
+class B extends A {
+  A<S> create<S>() => super.create<S>();
+}
+class C extends A {
+  A<S> create<S>() => super.create();
+}
+class D extends A<num> {
+  A<S> create<S extends num>() => super.create<S>();
+}
+class E extends A<num> {
+  A<S> create<S extends num>() => /*error:RETURN_OF_INVALID_TYPE*/super.create<int>();
+}
+class F extends A<num> {
+  create2<S>() => super.create</*error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS*/S>();
+}
+    ''');
+  }
+
+  void test_genericMethodSuperSubstitute() {
+    checkFile(r'''
+class Clonable<T> {}
+class G<T> {
+  create<A extends Clonable<T>, B extends Iterable<A>>() => null;
+}
+class H extends G<num> {
+  create2() => super.create<Clonable<int>, List<Clonable<int>>>();
+}
+    ''');
+  }
+
   void test_getterGetterOverride() {
     checkFile('''
 class A {}
@@ -2332,12 +2389,12 @@ void ftf1(void x(int y)) {}
   void test_implicitDynamic_return() {
     addFile(r'''
 // function
-/*error:IMPLICIT_DYNAMIC_RETURN*/f0() {}
+/*error:IMPLICIT_DYNAMIC_RETURN*/f0() {return f0();}
 dynamic f1() { return 42; }
 
 // nested function
 void main() {
-  /*error:IMPLICIT_DYNAMIC_RETURN*/g0() {}
+  /*error:IMPLICIT_DYNAMIC_RETURN*/g0() {return g0();}
   dynamic g1() { return 42; }
 }
 
@@ -2353,7 +2410,7 @@ class C extends B {
 
 // accessors
 set x(int value) {}
-/*error:IMPLICIT_DYNAMIC_RETURN*/get y0 => 42;
+get /*error:IMPLICIT_DYNAMIC_RETURN*/y0 => 42;
 dynamic get y1 => 42;
 
 // function typed formals
@@ -3174,8 +3231,10 @@ class C<T> {
     // Regression test for https://github.com/dart-lang/sdk/issues/26155
     checkFile(r'''
 void takesF(void f(int x)) {
-  takesF(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/([x]) { bool z = x.isEven; });
-  takesF(/*info:INFERRED_TYPE_CLOSURE*/(y) { bool z = y.isEven; });
+  takesF(/*info:INFERRED_TYPE_CLOSURE,
+           info:INFERRED_TYPE_CLOSURE*/([x]) { bool z = x.isEven; });
+  takesF(/*info:INFERRED_TYPE_CLOSURE,
+           info:INFERRED_TYPE_CLOSURE*/(y) { bool z = y.isEven; });
 }
     ''');
   }
@@ -3606,6 +3665,61 @@ class B extends A {
 ''');
   }
 
+  void test_tearOffTreatedConsistentlyAsStrictArrow() {
+    checkFile(r'''
+void foo(void f(String x)) {}
+
+class A {
+  Null bar1(dynamic x) => null;
+  void bar2(dynamic x) => null;
+  Null bar3(String x) => null;
+  void test() {
+    foo(bar1);
+    foo(bar2);
+    foo(bar3);
+  }
+}
+
+
+Null baz1(dynamic x) => null;
+void baz2(dynamic x) => null;
+Null baz3(String x) => null;
+void test() {
+  foo(baz1);
+  foo(baz2);
+  foo(baz3);
+}
+    ''');
+  }
+
+  void test_tearOffTreatedConsistentlyAsStrictArrowNamedParam() {
+    checkFile(r'''
+typedef void Handler(String x);
+void foo({Handler f}) {}
+
+class A {
+  Null bar1(dynamic x) => null;
+  void bar2(dynamic x) => null;
+  Null bar3(String x) => null;
+  void test() {
+    foo(f: bar1);
+    foo(f: bar2);
+    foo(f: bar3);
+  }
+}
+
+
+Null baz1(dynamic x) => null;
+void baz2(dynamic x) => null;
+Null baz3(String x) => null;
+void test() {
+  foo(f: baz1);
+  foo(f: baz2);
+  foo(f: baz3);
+}
+    ''');
+  }
+
   void test_ternaryOperator() {
     checkFile('''
 abstract class Comparable<T> {
@@ -3989,6 +4103,27 @@ void main() {
    dynamic y = /*error:UNDEFINED_IDENTIFIER*/unboundVariable;
 }
 ''');
+  }
+
+  void test_universalFunctionSubtyping() {
+    checkFile(r'''
+dynamic foo<T>(dynamic x) => x;
+
+void takesDtoD(dynamic f(dynamic x)) {}
+
+void test() {
+  // here we currently infer an instantiation.
+  takesDtoD(/*pass should be error:INVALID_ASSIGNMENT*/foo);
+}
+
+class A {
+  dynamic method(dynamic x) => x;
+}
+
+class B extends A {
+  /*error:INVALID_METHOD_OVERRIDE*/T method<T>(T x) => x;
+}
+    ''');
   }
 
   void test_voidSubtyping() {

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/services/index/index_unit.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
@@ -80,10 +81,15 @@ class Index {
    * Index declarations in the given partially resolved [unit].
    */
   void indexDeclarations(CompilationUnit unit) {
-    if (unit?.element?.library == null) {
+    if (unit == null) {
       return;
     }
-    AnalysisContext context = unit.element.context;
+    CompilationUnitElement compilationUnitElement =
+        resolutionMap.elementDeclaredByCompilationUnit(unit);
+    if (compilationUnitElement?.library == null) {
+      return;
+    }
+    AnalysisContext context = compilationUnitElement.context;
     _getContextIndex(context).indexDeclarations(unit);
   }
 
@@ -91,10 +97,15 @@ class Index {
    * Index the given fully resolved [unit].
    */
   void indexUnit(CompilationUnit unit) {
-    if (unit?.element?.library == null) {
+    if (unit == null) {
       return;
     }
-    AnalysisContext context = unit.element.context;
+    CompilationUnitElement compilationUnitElement =
+        resolutionMap.elementDeclaredByCompilationUnit(unit);
+    if (compilationUnitElement?.library == null) {
+      return;
+    }
+    AnalysisContext context = compilationUnitElement.context;
     _getContextIndex(context).indexUnit(unit);
   }
 

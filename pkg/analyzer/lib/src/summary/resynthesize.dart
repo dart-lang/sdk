@@ -7,6 +7,7 @@ library summary_resynthesizer;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -21,19 +22,13 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 
 /**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
  * model from summaries.
  */
 abstract class SummaryResynthesizer extends ElementResynthesizer {
-  /**
-   * The parent [SummaryResynthesizer] which is asked to resynthesize elements
-   * and get summaries before this resynthesizer attempts to do this.
-   * Can be `null`.
-   */
-  final SummaryResynthesizer parent;
-
   /**
    * Source factory used to convert URIs to [Source] objects.
    */
@@ -45,10 +40,9 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, Source> _sources = <String, Source>{};
 
   /**
-   * The [TypeProvider] used to obtain core types (such as Object, int, List,
-   * and dynamic) during resynthesis.
+   * The [TypeProvider] used to obtain SDK types during resynthesis.
    */
-  final TypeProvider typeProvider;
+  TypeProvider _typeProvider;
 
   /**
    * Indicates whether the summary should be resynthesized assuming strong mode
@@ -79,9 +73,11 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(this.parent, AnalysisContext context, this.typeProvider,
-      this.sourceFactory, this.strongMode)
-      : super(context);
+  SummaryResynthesizer(
+      AnalysisContext context, this.sourceFactory, this.strongMode)
+      : super(context) {
+    _buildTypeProvider();
+  }
 
   /**
    * Number of libraries that have been resynthesized so far.
@@ -89,23 +85,14 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   int get resynthesisCount => _resynthesizedLibraries.length;
 
   /**
-   * Perform delayed finalization of the `dart:core` and `dart:async` libraries.
+   * The [TypeProvider] used to obtain SDK types during resynthesis.
    */
-  void finalizeCoreAsyncLibraries() {
-    (_resynthesizedLibraries['dart:core'] as LibraryElementImpl)
-        .createLoadLibraryFunction(typeProvider);
-    (_resynthesizedLibraries['dart:async'] as LibraryElementImpl)
-        .createLoadLibraryFunction(typeProvider);
-  }
+  TypeProvider get typeProvider => _typeProvider;
 
   @override
   Element getElement(ElementLocation location) {
     List<String> components = location.components;
     String libraryUri = components[0];
-    // Ask the parent resynthesizer.
-    if (parent != null && parent._hasLibrarySummary(libraryUri)) {
-      return parent.getElement(location);
-    }
     // Resynthesize locally.
     if (components.length == 1) {
       return getLibraryElement(libraryUri);
@@ -202,11 +189,8 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    * hasn't been resynthesized already.
    */
   LibraryElement getLibraryElement(String uri) {
-    if (parent != null && parent._hasLibrarySummary(uri)) {
-      return parent.getLibraryElement(uri);
-    }
     return _resynthesizedLibraries.putIfAbsent(uri, () {
-      LinkedLibrary serializedLibrary = _getLinkedSummaryOrNull(uri);
+      LinkedLibrary serializedLibrary = getLinkedSummary(uri);
       Source librarySource = _getSource(uri);
       if (serializedLibrary == null) {
         LibraryElementImpl libraryElement =
@@ -217,18 +201,25 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
         libraryElement.definingCompilationUnit = unitElement;
         unitElement.source = librarySource;
         unitElement.librarySource = librarySource;
-        return libraryElement..isSynthetic = true;
+        libraryElement.createLoadLibraryFunction(typeProvider);
+        libraryElement.publicNamespace = new Namespace({});
+        libraryElement.exportNamespace = new Namespace({});
+        return libraryElement;
       }
-      UnlinkedUnit unlinkedSummary = _getUnlinkedSummaryOrNull(uri);
+      UnlinkedUnit unlinkedSummary = getUnlinkedSummary(uri);
       if (unlinkedSummary == null) {
         throw new StateError('Unable to find unlinked summary: $uri');
       }
       List<UnlinkedUnit> serializedUnits = <UnlinkedUnit>[unlinkedSummary];
       for (String part in serializedUnits[0].publicNamespace.parts) {
         Source partSource = sourceFactory.resolveUri(librarySource, part);
-        String partAbsUri = partSource.uri.toString();
-        serializedUnits.add(_getUnlinkedSummaryOrNull(partAbsUri) ??
-            new UnlinkedUnitBuilder(codeRange: new CodeRangeBuilder()));
+        if (partSource == null) {
+          serializedUnits.add(null);
+        } else {
+          String partAbsUri = partSource.uri.toString();
+          serializedUnits.add(getUnlinkedSummary(partAbsUri) ??
+              new UnlinkedUnitBuilder(codeRange: new CodeRangeBuilder()));
+        }
       }
       _LibraryResynthesizer libraryResynthesizer = new _LibraryResynthesizer(
           this, serializedLibrary, serializedUnits, librarySource);
@@ -259,15 +250,15 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    */
   bool hasLibrarySummary(String uri);
 
-  /**
-   * Return the [LinkedLibrary] for the given [uri] or return `null` if it
-   * could not be found.
-   */
-  LinkedLibrary _getLinkedSummaryOrNull(String uri) {
-    if (parent != null && parent._hasLibrarySummary(uri)) {
-      return parent._getLinkedSummaryOrNull(uri);
-    }
-    return getLinkedSummary(uri);
+  void _buildTypeProvider() {
+    var coreLibrary = getLibraryElement('dart:core') as LibraryElementImpl;
+    var asyncLibrary = getLibraryElement('dart:async') as LibraryElementImpl;
+    SummaryTypeProvider summaryTypeProvider = new SummaryTypeProvider();
+    summaryTypeProvider.initializeCore(coreLibrary);
+    summaryTypeProvider.initializeAsync(asyncLibrary);
+    coreLibrary.createLoadLibraryFunction(summaryTypeProvider);
+    asyncLibrary.createLoadLibraryFunction(summaryTypeProvider);
+    _typeProvider = summaryTypeProvider;
   }
 
   /**
@@ -276,34 +267,14 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   Source _getSource(String uri) {
     return _sources.putIfAbsent(uri, () => sourceFactory.forUri(uri));
   }
-
-  /**
-   * Return the [UnlinkedUnit] for the given [uri] or return `null` if it
-   * could not be found.
-   */
-  UnlinkedUnit _getUnlinkedSummaryOrNull(String uri) {
-    if (parent != null && parent._hasLibrarySummary(uri)) {
-      return parent._getUnlinkedSummaryOrNull(uri);
-    }
-    return getUnlinkedSummary(uri);
-  }
-
-  /**
-   * Return `true` if this resynthesizer can provide summaries of the libraries
-   * with the given [uri].
-   */
-  bool _hasLibrarySummary(String uri) {
-    if (parent != null && parent._hasLibrarySummary(uri)) {
-      return true;
-    }
-    return hasLibrarySummary(uri);
-  }
 }
 
 /**
  * Builder of [Expression]s from [UnlinkedExpr]s.
  */
 class _ConstExprBuilder {
+  static const ARGUMENT_LIST = 'ARGUMENT_LIST';
+
   final _UnitResynthesizer resynthesizer;
   final ElementImpl context;
   final UnlinkedExpr uc;
@@ -467,17 +438,18 @@ class _ConstExprBuilder {
           _pushList(null);
           break;
         case UnlinkedExprOperation.makeTypedList:
-          TypeName itemType = _newTypeName();
-          _pushList(AstTestFactory.typeArgumentList(<TypeName>[itemType]));
+          TypeAnnotation itemType = _newTypeName();
+          _pushList(
+              AstTestFactory.typeArgumentList(<TypeAnnotation>[itemType]));
           break;
         case UnlinkedExprOperation.makeUntypedMap:
           _pushMap(null);
           break;
         case UnlinkedExprOperation.makeTypedMap:
-          TypeName keyType = _newTypeName();
-          TypeName valueType = _newTypeName();
-          _pushMap(
-              AstTestFactory.typeArgumentList(<TypeName>[keyType, valueType]));
+          TypeAnnotation keyType = _newTypeName();
+          TypeAnnotation valueType = _newTypeName();
+          _pushMap(AstTestFactory
+              .typeArgumentList(<TypeAnnotation>[keyType, valueType]));
           break;
         case UnlinkedExprOperation.pushReference:
           _pushReference();
@@ -504,6 +476,9 @@ class _ConstExprBuilder {
           Expression expression = _pop();
           _push(AstTestFactory.awaitExpression(expression));
           break;
+        case UnlinkedExprOperation.pushThis:
+          _push(AstTestFactory.thisExpression());
+          break;
         case UnlinkedExprOperation.assignToRef:
         case UnlinkedExprOperation.assignToProperty:
         case UnlinkedExprOperation.assignToIndex:
@@ -515,6 +490,9 @@ class _ConstExprBuilder {
         case UnlinkedExprOperation.typeCheck:
         case UnlinkedExprOperation.throwException:
         case UnlinkedExprOperation.pushLocalFunctionReference:
+        case UnlinkedExprOperation.pushError:
+        case UnlinkedExprOperation.pushTypedAbstract:
+        case UnlinkedExprOperation.pushUntypedAbstract:
           throw new UnimplementedError(
               'Unexpected $operation in a constant expression.');
       }
@@ -566,8 +544,8 @@ class _ConstExprBuilder {
     return AstTestFactory.propertyAccess(enclosing, property);
   }
 
-  TypeName _buildTypeAst(DartType type) {
-    List<TypeName> argumentNodes;
+  TypeAnnotation _buildTypeAst(DartType type) {
+    List<TypeAnnotation> argumentNodes;
     if (type is ParameterizedType) {
       if (!resynthesizer.libraryResynthesizer.typesWithImplicitTypeArguments
           .contains(type)) {
@@ -588,9 +566,9 @@ class _ConstExprBuilder {
 
   InterpolationElement _newInterpolationElement(Expression expr) {
     if (expr is SimpleStringLiteral) {
-      return new InterpolationString(expr.literal, expr.value);
+      return astFactory.interpolationString(expr.literal, expr.value);
     } else {
-      return new InterpolationExpression(
+      return astFactory.interpolationExpression(
           TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION),
           expr,
           TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
@@ -601,7 +579,7 @@ class _ConstExprBuilder {
    * Convert the next reference to the [DartType] and return the AST
    * corresponding to this type.
    */
-  TypeName _newTypeName() {
+  TypeAnnotation _newTypeName() {
     EntityRef typeRef = uc.references[refPtr++];
     DartType type =
         resynthesizer.buildType(typeRef, context?.typeParameterContext);
@@ -644,8 +622,12 @@ class _ConstExprBuilder {
       } else if (info.element is ClassElement) {
         constructorName = null;
       } else {
-        throw new StateError('Unsupported element for invokeConstructor '
-            '${info.element?.runtimeType}');
+        List<Expression> arguments = _buildArguments();
+        SimpleIdentifier name = AstTestFactory.identifier3(info.name);
+        name.staticElement = info.element;
+        name.setProperty(ARGUMENT_LIST, AstTestFactory.argumentList(arguments));
+        _push(name);
+        return;
       }
       InterfaceType definingType = resynthesizer._createConstructorDefiningType(
           context?.typeParameterContext, info, ref.typeArguments);
@@ -707,14 +689,15 @@ class _ConstExprBuilder {
     TypeArgumentList typeArguments;
     int numTypeArguments = uc.ints[intPtr++];
     if (numTypeArguments > 0) {
-      List<TypeName> typeNames = new List<TypeName>(numTypeArguments);
+      List<TypeAnnotation> typeNames =
+          new List<TypeAnnotation>(numTypeArguments);
       for (int i = 0; i < numTypeArguments; i++) {
         typeNames[i] = _newTypeName();
       }
       typeArguments = AstTestFactory.typeArgumentList(typeNames);
     }
     if (node is SimpleIdentifier) {
-      _push(new MethodInvocation(
+      _push(astFactory.methodInvocation(
           null,
           TokenFactory.tokenFromType(TokenType.PERIOD),
           node,
@@ -1021,7 +1004,9 @@ class _LibraryResynthesizer {
           unlinkedDefiningUnit.publicNamespace.parts[i - 1],
           unlinkedDefiningUnit.parts[i - 1],
           i);
-      partResynthesizers.add(partResynthesizer);
+      if (partResynthesizer != null) {
+        partResynthesizers.add(partResynthesizer);
+      }
     }
     library.parts = partResynthesizers.map((r) => r.unit).toList();
     // Populate units.
@@ -1042,13 +1027,16 @@ class _LibraryResynthesizer {
   }
 
   /**
-   * Create, but do not populate, the [CompilationUnitElement] for a part other
-   * than the defining compilation unit.
+   * Create a [_UnitResynthesizer] that will resynthesize the part with the
+   * given [uri]. Return `null` if the [uri] is invalid.
    */
   _UnitResynthesizer buildPart(_UnitResynthesizer definingUnitResynthesizer,
       String uri, UnlinkedPart partDecl, int unitNum) {
     Source unitSource =
         summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
+    if (unitSource == null) {
+      return null;
+    }
     _UnitResynthesizer partResynthesizer =
         createUnitResynthesizer(unitNum, unitSource, partDecl);
     CompilationUnitElementImpl partUnit = partResynthesizer.unit;
@@ -1270,7 +1258,7 @@ class _ReferenceInfo {
   /**
    * If this reference refers to a type, build a [DartType].  Otherwise return
    * `null`.  If [numTypeArguments] is the same as the [numTypeParameters],
-   * the type in instantiated with type arguments returned by [getTypeArgument],
+   * the type is instantiated with type arguments returned by [getTypeArgument],
    * otherwise it is instantiated with type parameter bounds (if strong mode),
    * or with `dynamic` type arguments.
    *
@@ -1287,7 +1275,7 @@ class _ReferenceInfo {
       // If type arguments are specified, use them.
       // Otherwise, delay until they are requested.
       if (numTypeParameters == 0) {
-        typeArguments = const <DartType>[];
+        return element.type;
       } else if (numTypeArguments == numTypeParameters) {
         typeArguments = new List<DartType>(numTypeParameters);
         for (int i = 0; i < numTypeParameters; i++) {
@@ -1297,22 +1285,14 @@ class _ReferenceInfo {
       InterfaceTypeImpl type =
           new InterfaceTypeImpl.elementWithNameAndArgs(element, name, () {
         if (typeArguments == null) {
-          typeArguments = element.typeParameters
-              .map/*<DartType>*/((_) => DynamicTypeImpl.instance)
-              .toList();
+          typeArguments = new List<DartType>.filled(
+              element.typeParameters.length, DynamicTypeImpl.instance);
           if (libraryResynthesizer.summaryResynthesizer.strongMode &&
               instantiateToBoundsAllowed) {
-            List<DartType> typeParameterTypes;
-            for (int i = 0; i < typeArguments.length; i++) {
-              DartType bound = element.typeParameters[i].bound;
-              if (bound != null) {
-                typeParameterTypes ??= element.typeParameters
-                    .map/*<DartType>*/((TypeParameterElement e) => e.type)
-                    .toList();
-                typeArguments[i] =
-                    bound.substitute2(typeArguments, typeParameterTypes);
-              }
-            }
+            InterfaceType instantiatedToBounds = libraryResynthesizer
+                .summaryResynthesizer.context.typeSystem
+                .instantiateToBounds(element.type) as InterfaceType;
+            return instantiatedToBounds.typeArguments;
           }
         }
         return typeArguments;
@@ -1378,6 +1358,9 @@ class _ResynthesizerContext implements ResynthesizerContext {
   final _UnitResynthesizer _unitResynthesizer;
 
   _ResynthesizerContext(this._unitResynthesizer);
+
+  @override
+  bool get isStrongMode => _unitResynthesizer.summaryResynthesizer.strongMode;
 
   @override
   ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedExpr uc) {
@@ -1523,8 +1506,11 @@ class _UnitResynthesizer {
     ElementAnnotationImpl elementAnnotation = new ElementAnnotationImpl(unit);
     Expression constExpr = _buildConstExpression(context, uc);
     if (constExpr is Identifier) {
+      ArgumentList arguments =
+          constExpr.getProperty(_ConstExprBuilder.ARGUMENT_LIST);
       elementAnnotation.element = constExpr.staticElement;
-      elementAnnotation.annotationAst = AstTestFactory.annotation(constExpr);
+      elementAnnotation.annotationAst =
+          AstTestFactory.annotation2(constExpr, null, arguments);
     } else if (constExpr is InstanceCreationExpression) {
       elementAnnotation.element = constExpr.staticElement;
       Identifier typeName = constExpr.constructorName.type.name;
@@ -1538,6 +1524,15 @@ class _UnitResynthesizer {
       elementAnnotation.annotationAst = AstTestFactory.annotation2(
           typeName, constructorName, constExpr.argumentList)
         ..element = constExpr.staticElement;
+    } else if (constExpr is PropertyAccess) {
+      var target = constExpr.target as Identifier;
+      var propertyName = constExpr.propertyName;
+      ArgumentList arguments =
+          constExpr.getProperty(_ConstExprBuilder.ARGUMENT_LIST);
+      elementAnnotation.element = propertyName.staticElement;
+      elementAnnotation.annotationAst = AstTestFactory.annotation2(
+          target, propertyName, arguments)
+        ..element = propertyName.staticElement;
     } else {
       throw new StateError(
           'Unexpected annotation type: ${constExpr.runtimeType}');
@@ -1744,6 +1739,13 @@ class _UnitResynthesizer {
           locationComponents =
               libraryResynthesizer.getReferencedLocationComponents(
                   linkedReference.dependency, linkedReference.unit, identifier);
+        }
+        if (!_resynthesizerContext.isStrongMode &&
+            locationComponents.length == 3 &&
+            locationComponents[0] == 'dart:async' &&
+            locationComponents[2] == 'FutureOr') {
+          type = typeProvider.dynamicType;
+          numTypeParameters = 0;
         }
         ElementLocation location =
             new ElementLocationImpl.con3(locationComponents);

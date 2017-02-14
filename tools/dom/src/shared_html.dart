@@ -12,23 +12,13 @@ _wrapZoneCallback/*<A, R>*/ _wrapZone/*<A, R>*/(_wrapZoneCallback/*<A, R>*/ call
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  // TODO(jacobr): we cast to _wrapZoneCallback/*<A, R>*/ to hack around missing
-  // generic method support in zones.
-  // ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
-  _wrapZoneCallback/*<A, R>*/ wrapped =
-      Zone.current.bindUnaryCallback(callback, runGuarded: true);
-  return wrapped;
+  return Zone.current.bindUnaryCallback/*<R, A>*/(callback, runGuarded: true);
 }
 
 _wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(_wrapZoneBinaryCallback/*<A, B, R>*/ callback) {
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  // We cast to _wrapZoneBinaryCallback/*<A, B, R>*/ to hack around missing
-  // generic method support in zones.
-  // ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
-  _wrapZoneBinaryCallback/*<A, B, R>*/ wrapped =
-      Zone.current.bindBinaryCallback(callback, runGuarded: true);
-  return wrapped;
+  return Zone.current.bindBinaryCallback/*<R, A, B>*/(callback, runGuarded: true);
 }
 
 /**

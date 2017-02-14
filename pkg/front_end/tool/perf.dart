@@ -6,7 +6,7 @@
 library front_end.tool.perf;
 
 import 'dart:async';
-import 'dart:io' show exit, stderr;
+import 'dart:io' show exit;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
@@ -19,22 +19,17 @@ import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:kernel/analyzer/loader.dart';
-import 'package:kernel/kernel.dart';
-import 'package:package_config/discovery.dart';
-
+import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/link.dart';
+import 'package:analyzer/src/summary/summarize_ast.dart';
+import 'package:front_end/compiler_options.dart';
+import 'package:front_end/kernel_generator.dart';
 import 'package:front_end/src/scanner/reader.dart';
 import 'package:front_end/src/scanner/scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
-
-/// Cumulative total number of chars scanned.
-int scanTotalChars = 0;
-
-/// Cumulative time spent scanning.
-Stopwatch scanTimer = new Stopwatch();
-
-/// Factory to load and resolve app, packages, and sdk sources.
-SourceFactory sources;
+import 'package:kernel/kernel.dart' hide Source;
+import 'package:package_config/discovery.dart';
 
 main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
@@ -42,136 +37,60 @@ main(List<String> args) async {
     print('usage: perf.dart <bench-id> <entry.dart>');
     exit(1);
   }
-  var totalTimer = new Stopwatch()..start();
 
   var bench = args[0];
   var entryUri = Uri.base.resolve(args[1]);
 
   await setup(entryUri);
 
+  Set<Source> files = scanReachableFiles(entryUri);
   var handlers = {
-    'scan': () async {
-      Set<Source> files = scanReachableFiles(entryUri);
-      // TODO(sigmund): replace the warmup with instrumented snapshots.
-      for (int i = 0; i < 10; i++) scanFiles(files);
-    },
-    'parse': () async {
-      Set<Source> files = scanReachableFiles(entryUri);
-      // TODO(sigmund): replace the warmup with instrumented snapshots.
-      for (int i = 0; i < 10; i++) parseFiles(files);
-    },
+    'scan': () async => scanFiles(files),
+    'parse': () async => parseFiles(files),
     'kernel_gen_e2e': () async {
-      // TODO(sigmund): remove. This is used to compute the input size, we
-      // should extract input size from frontend instead.
-      scanReachableFiles(entryUri);
-      // TODO(sigmund): replace this warmup. Note that for very large programs,
-      // the GC pressure on the VM seems to make this worse with time (maybe we
-      // are leaking memory?). That's why we run it twice and not 10 times.
-      for (int i = 0; i < 2; i++) await generateKernel(entryUri);
+      await generateKernel(entryUri, useSdkSummary: false);
     },
+    'kernel_gen_e2e_sum': () async {
+      await generateKernel(entryUri, useSdkSummary: true, compileSdk: false);
+    },
+    'unlinked_summarize': () async => summarize(files),
+    'unlinked_summarize_from_sources': () async => summarize(files),
+    'prelinked_summarize': () async => summarize(files, prelink: true),
+    'linked_summarize': () async => summarize(files, link: true),
   };
 
   var handler = handlers[bench];
   if (handler == null) {
-    // TODO(sigmund): implement the remaining benchmarks.
     print('unsupported bench-id: $bench. Please specify one of the following: '
         '${handlers.keys.join(", ")}');
     exit(1);
   }
-  await handler();
 
-  totalTimer.stop();
-  report("total", totalTimer.elapsedMicroseconds);
-}
-
-/// Sets up analyzer to be able to load and resolve app, packages, and sdk
-/// sources.
-Future setup(Uri entryUri) async {
-  var provider = PhysicalResourceProvider.INSTANCE;
-  var packageMap = new ContextBuilder(provider, null, null)
-      .convertPackagesToMap(await findPackages(entryUri));
-  sources = new SourceFactory([
-    new ResourceUriResolver(provider),
-    new PackageMapUriResolver(provider, packageMap),
-    new DartUriResolver(
-        new FolderBasedDartSdk(provider, provider.getFolder("sdk"))),
-  ]);
-}
-
-/// Load and scans all files we need to process: files reachable from the
-/// entrypoint and all core libraries automatically included by the VM.
-Set<Source> scanReachableFiles(Uri entryUri) {
-  var files = new Set<Source>();
-  var loadTimer = new Stopwatch()..start();
-  collectSources(sources.forUri2(entryUri), files);
-
-  var libs = [
-    "dart:async",
-    "dart:collection",
-    "dart:convert",
-    "dart:core",
-    "dart:developer",
-    "dart:_internal",
-    "dart:isolate",
-    "dart:math",
-    "dart:mirrors",
-    "dart:typed_data",
-    "dart:io"
-  ];
-
-  for (var lib in libs) {
-    collectSources(sources.forUri(lib), files);
+  // TODO(sigmund): replace the warmup with instrumented snapshots.
+  int iterations = bench.contains('kernel_gen') ? 2 : 10;
+  for (int i = 0; i < iterations; i++) {
+    var totalTimer = new Stopwatch()..start();
+    print('== iteration $i');
+    await handler();
+    totalTimer.stop();
+    report('total', totalTimer.elapsedMicroseconds);
   }
-
-  loadTimer.stop();
-
-  print('input size: ${scanTotalChars} chars');
-  var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("load", loadTime);
-  report("scan", scanTimer.elapsedMicroseconds);
-  return files;
 }
 
-/// Scans every file in [files] and reports the time spent doing so.
-void scanFiles(Set<Source> files) {
-  // The code below will record again how many chars are scanned and how long it
-  // takes to scan them, even though we already did so in [scanReachableFiles].
-  // Recording and reporting this twice is unnecessary, but we do so for now to
-  // validate that the results are consistent.
-  scanTimer = new Stopwatch();
-  var old = scanTotalChars;
-  scanTotalChars = 0;
-  for (var source in files) {
-    tokenize(source);
-  }
+/// Cumulative time spent parsing.
+Stopwatch parseTimer = new Stopwatch();
 
-  // Report size and scanning time again. See discussion above.
-  if (old != scanTotalChars) print('input size changed? ${old} chars');
-  report("scan", scanTimer.elapsedMicroseconds);
-}
+/// Cumulative time spent building unlinked summaries.
+Stopwatch unlinkedSummarizeTimer = new Stopwatch();
 
-/// Parses every file in [files] and reports the time spent doing so.
-void parseFiles(Set<Source> files) {
-  // The code below will record again how many chars are scanned and how long it
-  // takes to scan them, even though we already did so in [scanReachableFiles].
-  // Recording and reporting this twice is unnecessary, but we do so for now to
-  // validate that the results are consistent.
-  scanTimer = new Stopwatch();
-  var old = scanTotalChars;
-  scanTotalChars = 0;
-  var parseTimer = new Stopwatch()..start();
-  for (var source in files) {
-    parseFull(source);
-  }
-  parseTimer.stop();
+/// Cumulative time spent scanning.
+Stopwatch scanTimer = new Stopwatch();
 
-  // Report size and scanning time again. See discussion above.
-  if (old != scanTotalChars) print('input size changed? ${old} chars');
-  report("scan", scanTimer.elapsedMicroseconds);
+/// Size of all sources.
+int inputSize = 0;
 
-  var pTime = parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("parse", pTime);
-}
+/// Factory to load and resolve app, packages, and sdk sources.
+SourceFactory sources;
 
 /// Add to [files] all sources reachable from [start].
 void collectSources(Source start, Set<Source> files) {
@@ -185,6 +104,87 @@ void collectSources(Source start, Set<Source> files) {
   }
 }
 
+Future<Program> generateKernel(Uri entryUri,
+    {bool useSdkSummary: false, bool compileSdk: true}) async {
+  // TODO(sigmund): this is here only to compute the input size,
+  // we should extract the input size from the frontend instead.
+  scanReachableFiles(entryUri);
+
+  var dartkTimer = new Stopwatch()..start();
+  // TODO(sigmund): add a constructor with named args to compiler options.
+  var options = new CompilerOptions()
+    ..strongMode = false
+    ..compileSdk = compileSdk
+    ..packagesFileUri = new Uri.file('.packages')
+    ..onError = ((e) => print('${e.message}'));
+  if (useSdkSummary) {
+    // TODO(sigmund): adjust path based on the benchmark runner architecture.
+    // Possibly let the runner make the file available at an architecture
+    // independent location.
+    options.sdkSummary =
+        new Uri.file('out/ReleaseX64/dart-sdk/lib/_internal/spec.sum');
+  } else {
+    options.sdkRoot = new Uri.file('sdk');
+  }
+  Program program = await kernelForProgram(entryUri, options);
+  dartkTimer.stop();
+  var suffix = useSdkSummary ? '_sum' : '';
+  report('kernel_gen_e2e${suffix}', dartkTimer.elapsedMicroseconds);
+  return program;
+}
+
+/// Generates unlinkmed summaries for all files in [files], and returns them in
+/// an [_UnlinkedSummaries] container.
+_UnlinkedSummaries generateUnlinkedSummaries(Set<Source> files) {
+  var unlinkedSummaries = new _UnlinkedSummaries();
+  for (var source in files) {
+    unlinkedSummaries.summariesByUri[source.uri.toString()] =
+        unlinkedSummarize(source);
+  }
+  return unlinkedSummaries;
+}
+
+/// Generates unlinked summaries for every file in [files] and, if requested via
+/// [prelink] or [link], generates the pre-linked and linked summaries as well.
+///
+/// This function also prints a report of the time spent on each action.
+void summarize(Set<Source> files, {bool prelink: false, bool link: false}) {
+  scanTimer = new Stopwatch();
+  parseTimer = new Stopwatch();
+  unlinkedSummarizeTimer = new Stopwatch();
+  var unlinkedSummaries = generateUnlinkedSummaries(files);
+  report('scan', scanTimer.elapsedMicroseconds);
+  report('parse', parseTimer.elapsedMicroseconds);
+  report('unlinked_summarize', unlinkedSummarizeTimer.elapsedMicroseconds);
+  report(
+      'unlinked_summarize_from_sources',
+      unlinkedSummarizeTimer.elapsedMicroseconds +
+          parseTimer.elapsedMicroseconds +
+          scanTimer.elapsedMicroseconds);
+
+  if (prelink || link) {
+    var prelinkTimer = new Stopwatch()..start();
+    var prelinkedLibraries = prelinkSummaries(files, unlinkedSummaries);
+    prelinkTimer.stop();
+    report('prelinked_summarize', prelinkTimer.elapsedMicroseconds);
+
+    if (link) {
+      var linkTimer = new Stopwatch()..start();
+      LinkedLibrary getDependency(String uri) {
+        // getDependency should never be called because all dependencies are
+        // present in [prelinkedLibraries].
+        print('Warning: getDependency called for: $uri');
+        return null;
+      }
+
+      relink(prelinkedLibraries, getDependency, unlinkedSummaries.getUnit,
+          true /*strong*/);
+      linkTimer.stop();
+      report('linked_summarize', linkTimer.elapsedMicroseconds);
+    }
+  }
+}
+
 /// Uses the diet-parser to parse only directives in [source].
 CompilationUnit parseDirectives(Source source) {
   var token = tokenize(source);
@@ -192,24 +192,149 @@ CompilationUnit parseDirectives(Source source) {
   return parser.parseDirectives(token);
 }
 
+/// Parses every file in [files] and reports the time spent doing so.
+void parseFiles(Set<Source> files) {
+  scanTimer = new Stopwatch();
+  parseTimer = new Stopwatch();
+  for (var source in files) {
+    parseFull(source);
+  }
+
+  report('scan', scanTimer.elapsedMicroseconds);
+  report('parse', parseTimer.elapsedMicroseconds);
+}
+
 /// Parse the full body of [source] and return it's compilation unit.
 CompilationUnit parseFull(Source source) {
   var token = tokenize(source);
+  parseTimer.start();
   var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
-  return parser.parseCompilationUnit(token);
+  var unit = parser.parseCompilationUnit(token);
+  parseTimer.stop();
+  return unit;
+}
+
+/// Prelinks all the summaries for [files], using [unlinkedSummaries] to obtain
+/// their unlinked summaries.
+///
+/// The return value is suitable for passing to the summary linker.
+Map<String, LinkedLibraryBuilder> prelinkSummaries(
+    Set<Source> files, _UnlinkedSummaries unlinkedSummaries) {
+  Set<String> libraryUris = files.map((source) => '${source.uri}').toSet();
+
+  String getDeclaredVariable(String s) => null;
+  var prelinkedLibraries =
+      setupForLink(libraryUris, unlinkedSummaries.getUnit, getDeclaredVariable);
+  return prelinkedLibraries;
+}
+
+/// Report that metric [name] took [time] micro-seconds to process
+/// [inputSize] characters.
+void report(String name, int time) {
+  var sb = new StringBuffer();
+  var padding = ' ' * (20 - name.length);
+  sb.write('$name:$padding $time us, ${time ~/ 1000} ms');
+  var invSpeed = (time * 1000 / inputSize).toStringAsFixed(2);
+  sb.write(', $invSpeed ns/char');
+  print('$sb');
+}
+
+/// Scans every file in [files] and reports the time spent doing so.
+void scanFiles(Set<Source> files) {
+  // `tokenize` records how many chars are scanned and how long it takes to scan
+  // them. As this function is called repeatedly when running as a benchmark, we
+  // make sure to clear the data and compute it again every time.
+  scanTimer = new Stopwatch();
+  for (var source in files) {
+    tokenize(source);
+  }
+
+  report('scan', scanTimer.elapsedMicroseconds);
+}
+
+/// Load and scans all files we need to process: files reachable from the
+/// entrypoint and all core libraries automatically included by the VM.
+Set<Source> scanReachableFiles(Uri entryUri) {
+  var files = new Set<Source>();
+  var loadTimer = new Stopwatch()..start();
+  scanTimer = new Stopwatch();
+  collectSources(sources.forUri2(entryUri), files);
+
+  var libs = [
+    'dart:async',
+    'dart:collection',
+    'dart:convert',
+    'dart:core',
+    'dart:developer',
+    'dart:_internal',
+    'dart:isolate',
+    'dart:math',
+    'dart:mirrors',
+    'dart:typed_data',
+    'dart:io'
+  ];
+
+  for (var lib in libs) {
+    collectSources(sources.forUri(lib), files);
+  }
+
+  loadTimer.stop();
+
+  inputSize = 0;
+  for (var s in files) inputSize += s.contents.data.length;
+  print('input size: ${inputSize} chars');
+  var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
+  report('load', loadTime);
+  report('scan', scanTimer.elapsedMicroseconds);
+  return files;
+}
+
+/// Sets up analyzer to be able to load and resolve app, packages, and sdk
+/// sources.
+Future setup(Uri entryUri) async {
+  var provider = PhysicalResourceProvider.INSTANCE;
+  var packageMap = new ContextBuilder(provider, null, null)
+      .convertPackagesToMap(await findPackages(entryUri));
+  sources = new SourceFactory([
+    new ResourceUriResolver(provider),
+    new PackageMapUriResolver(provider, packageMap),
+    new DartUriResolver(
+        new FolderBasedDartSdk(provider, provider.getFolder('sdk'))),
+  ]);
 }
 
 /// Scan [source] and return the first token produced by the scanner.
 Token tokenize(Source source) {
   scanTimer.start();
-  var contents = source.contents.data;
-  scanTotalChars += contents.length;
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
-  var scanner = new _Scanner(contents);
+  var scanner = new _Scanner(source.contents.data);
   var token = scanner.tokenize();
   scanTimer.stop();
   return token;
+}
+
+UnlinkedUnitBuilder unlinkedSummarize(Source source) {
+  var unit = parseFull(source);
+  unlinkedSummarizeTimer.start();
+  var unlinkedUnit = serializeAstUnlinked(unit);
+  unlinkedSummarizeTimer.stop();
+  return unlinkedUnit;
+}
+
+/// Simple container for a mapping from URI string to an unlinked summary.
+class _UnlinkedSummaries {
+  final summariesByUri = <String, UnlinkedUnit>{};
+
+  /// Get the unlinked summary for the given URI, and report a warning if it
+  /// can't be found.
+  UnlinkedUnit getUnit(String uri) {
+    var result = summariesByUri[uri];
+    if (result == null) {
+      print('Warning: no summary found for: $uri');
+    }
+    return result;
+  }
 }
 
 class _Scanner extends Scanner {
@@ -221,36 +346,4 @@ class _Scanner extends Scanner {
   void reportError(errorCode, int offset, List<Object> arguments) {
     // ignore errors.
   }
-}
-
-/// Report that metric [name] took [time] micro-seconds to process
-/// [scanTotalChars] characters.
-void report(String name, int time) {
-  var sb = new StringBuffer();
-  sb.write('$name: $time us, ${time ~/ 1000} ms');
-  sb.write(', ${scanTotalChars * 1000 ~/ time} chars/ms');
-  print('$sb');
-}
-
-// TODO(sigmund): replace this once kernel is produced by the frontend directly.
-Future<Program> generateKernel(Uri entryUri) async {
-  var dartkTimer = new Stopwatch()..start();
-  var options = new DartOptions(strongMode: false, sdk: 'sdk');
-  var packages =
-      await createPackages(options.packagePath, discoveryPath: entryUri.path);
-  var repository = new Repository();
-  DartLoader loader = new DartLoader(repository, options, packages);
-
-  Program program = loader.loadProgram(entryUri.path);
-  List errors = loader.errors;
-  if (errors.isNotEmpty) {
-    const int errorLimit = 100;
-    stderr.writeln(errors.take(errorLimit).join('\n'));
-    if (errors.length > errorLimit) {
-      stderr.writeln('[error] ${errors.length - errorLimit} errors not shown');
-    }
-  }
-  dartkTimer.stop();
-  report("kernel_gen_e2e", dartkTimer.elapsedMicroseconds);
-  return program;
 }

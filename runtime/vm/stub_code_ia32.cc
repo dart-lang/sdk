@@ -351,8 +351,6 @@ static void PushArgumentsArray(Assembler* assembler) {
 //   +------------------+
 //   | return-address   |  (deoptimization point)
 //   +------------------+
-//   | Saved CODE_REG   |
-//   +------------------+
 //   | ...              | <- SP of optimized frame
 //
 // Parts of the code cannot GC, part of the code can GC.
@@ -462,15 +460,16 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ popl(ECX);       // Pop return address.
   __ addl(ESP, EBX);  // Remove materialization arguments.
   __ pushl(ECX);      // Push return address.
-  __ ret();
+  // The caller is responsible for emitting the return instruction.
 }
 
 
 // EAX: result, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   // Return address for "call" to deopt stub.
-  __ pushl(Immediate(0xe1e1e1e1));
+  __ pushl(Immediate(kZapReturnAddress));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
+  __ ret();
 }
 
 
@@ -478,13 +477,15 @@ void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
 // EDX: stacktrace, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
   // Return address for "call" to deopt stub.
-  __ pushl(Immediate(0xe1e1e1e1));
+  __ pushl(Immediate(kZapReturnAddress));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
+  __ ret();
 }
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
+  __ ret();
 }
 
 
@@ -1832,6 +1833,22 @@ void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ movl(stacktrace_addr, Immediate(0));
 
   __ jmp(EBX);  // Jump to continuation point.
+}
+
+
+// Deoptimize a frame on the call stack before rewinding.
+// The arguments are stored in the Thread object.
+// No result.
+void StubCode::GenerateDeoptForRewindStub(Assembler* assembler) {
+  // Push the deopt pc.
+  __ pushl(Address(THR, Thread::resume_pc_offset()));
+  GenerateDeoptimizationSequence(assembler, kEagerDeopt);
+
+  // After we have deoptimized, jump to the correct frame.
+  __ EnterStubFrame();
+  __ CallRuntime(kRewindPostDeoptRuntimeEntry, 0);
+  __ LeaveFrame();
+  __ int3();
 }
 
 

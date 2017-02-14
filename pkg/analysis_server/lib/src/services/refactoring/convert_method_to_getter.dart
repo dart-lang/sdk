@@ -24,11 +24,13 @@ import 'package:analyzer/src/generated/source.dart';
 class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     implements ConvertMethodToGetterRefactoring {
   final SearchEngine searchEngine;
+  final GetResolvedUnit getResolvedUnit;
   final ExecutableElement element;
 
   SourceChange change;
 
-  ConvertMethodToGetterRefactoringImpl(this.searchEngine, this.element);
+  ConvertMethodToGetterRefactoringImpl(
+      this.searchEngine, this.getResolvedUnit, this.element);
 
   @override
   String get refactoringName => 'Convert Method To Getter';
@@ -114,7 +116,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     }
   }
 
-  Future _updateElementReferences(Element element) async {
+  Future<Null> _updateElementReferences(Element element) async {
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
     List<SourceReference> references = getSourceReferences(matches);
     for (SourceReference reference in references) {
@@ -123,7 +125,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       // prepare invocation
       MethodInvocation invocation;
       {
-        CompilationUnit refUnit = refElement.unit;
+        CompilationUnit refUnit = await getResolvedUnit(refElement);
         AstNode refNode =
             new NodeLocator(refRange.offset).searchWithin(refUnit);
         invocation = refNode.getAncestor((node) => node is MethodInvocation);

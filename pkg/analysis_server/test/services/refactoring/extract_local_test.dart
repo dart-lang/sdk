@@ -19,6 +19,7 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractLocalTest);
+    defineReflectiveTests(ExtractLocalTest_Driver);
   });
 }
 
@@ -27,7 +28,7 @@ class ExtractLocalTest extends RefactoringTest {
   ExtractLocalRefactoringImpl refactoring;
 
   test_checkFinalConditions_sameVariable_after() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int a = 1 + 2;
   var res;
@@ -41,7 +42,7 @@ main() {
   }
 
   test_checkFinalConditions_sameVariable_before() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   var res;
   int a = 1 + 2;
@@ -55,7 +56,7 @@ main() {
   }
 
   test_checkInitialConditions_assignmentLeftHandSize() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   var v = 0;
   v = 1;
@@ -69,7 +70,7 @@ main() {
   }
 
   test_checkInitialConditions_namePartOfDeclaration_function() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
 }
 ''');
@@ -81,7 +82,7 @@ main() {
   }
 
   test_checkInitialConditions_namePartOfDeclaration_variable() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int vvv = 0;
 }
@@ -94,7 +95,7 @@ main() {
   }
 
   test_checkInitialConditions_noExpression() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   // abc
 }
@@ -105,7 +106,7 @@ main() {
   }
 
   test_checkInitialConditions_notPartOfFunction() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 int a = 1 + 2;
 ''');
     _createRefactoringForString('1 + 2');
@@ -117,7 +118,7 @@ int a = 1 + 2;
   }
 
   test_checkInitialConditions_stringSelection_leadingQuote() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   var vvv = 'abc';
 }
@@ -133,7 +134,7 @@ main() {
   }
 
   test_checkInitialConditions_stringSelection_trailingQuote() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   var vvv = 'abc';
 }
@@ -149,7 +150,7 @@ main() {
   }
 
   test_checkInitialConditions_voidExpression() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   print(42);
 }
@@ -161,8 +162,8 @@ main() {
         expectedMessage: 'Cannot extract the void expression.');
   }
 
-  test_checkName() {
-    indexTestUnit('''
+  test_checkName() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2;
 }
@@ -185,7 +186,7 @@ main() {
   }
 
   test_checkName_conflict_withInvokedFunction() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int a = 1 + 2;
   res();
@@ -202,7 +203,7 @@ void res() {}
   }
 
   test_checkName_conflict_withOtherLocal() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   var res;
   int a = 1 + 2;
@@ -217,7 +218,7 @@ main() {
   }
 
   test_checkName_conflict_withTypeName() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int a = 1 + 2;
   Res b = null;
@@ -233,8 +234,8 @@ class Res {}
         expectedMessage: "The name 'Res' is already used in the scope.");
   }
 
-  test_completeStatementExpression() {
-    indexTestUnit('''
+  test_completeStatementExpression() async {
+    await indexTestUnit('''
 main(p) {
   p.toString();
 }
@@ -248,8 +249,8 @@ main(p) {
 ''');
   }
 
-  test_const_argument_inConstInstanceCreation() {
-    indexTestUnit('''
+  test_const_argument_inConstInstanceCreation() async {
+    await indexTestUnit('''
 class A {
   const A(int a, int b);
 }
@@ -270,8 +271,8 @@ main() {
 ''');
   }
 
-  test_const_inList() {
-    indexTestUnit('''
+  test_const_inList() async {
+    await indexTestUnit('''
 main() {
   const [1, 2];
 }
@@ -286,8 +287,8 @@ main() {
 ''');
   }
 
-  test_const_inList_inBinaryExpression() {
-    indexTestUnit('''
+  test_const_inList_inBinaryExpression() async {
+    await indexTestUnit('''
 main() {
   const [1 + 2, 3];
 }
@@ -302,8 +303,8 @@ main() {
 ''');
   }
 
-  test_const_inList_inConditionalExpression() {
-    indexTestUnit('''
+  test_const_inList_inConditionalExpression() async {
+    await indexTestUnit('''
 main() {
   const [true ? 1 : 2, 3];
 }
@@ -318,8 +319,8 @@ main() {
 ''');
   }
 
-  test_const_inList_inParenthesis() {
-    indexTestUnit('''
+  test_const_inList_inParenthesis() async {
+    await indexTestUnit('''
 main() {
   const [(1), 2];
 }
@@ -334,8 +335,8 @@ main() {
 ''');
   }
 
-  test_const_inList_inPrefixExpression() {
-    indexTestUnit('''
+  test_const_inList_inPrefixExpression() async {
+    await indexTestUnit('''
 main() {
   const [!true, 2];
 }
@@ -350,8 +351,8 @@ main() {
 ''');
   }
 
-  test_const_inMap_key() {
-    indexTestUnit('''
+  test_const_inMap_key() async {
+    await indexTestUnit('''
 main() {
   const {1: 2};
 }
@@ -366,8 +367,8 @@ main() {
 ''');
   }
 
-  test_const_inMap_value() {
-    indexTestUnit('''
+  test_const_inMap_value() async {
+    await indexTestUnit('''
 main() {
   const {1: 2};
 }
@@ -383,7 +384,7 @@ main() {
   }
 
   test_coveringExpressions() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int aaa = 1;
   int bbb = 2;
@@ -399,7 +400,7 @@ main() {
   }
 
   test_coveringExpressions_inArgumentList() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   foo(111 + 222);
 }
@@ -413,7 +414,7 @@ int foo(int x) => x;
   }
 
   test_coveringExpressions_inInvocationOfVoidFunction() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   foo(111 + 222);
 }
@@ -427,7 +428,7 @@ void foo(int x) {}
   }
 
   test_coveringExpressions_namedExpression_value() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   foo(ppp: 42);
 }
@@ -441,7 +442,7 @@ int foo({int ppp: 0}) => ppp + 1;
   }
 
   test_coveringExpressions_skip_assignment() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   int v;
   foo(v = 111 + 222);
@@ -456,12 +457,12 @@ int foo(x) => 42;
   }
 
   test_coveringExpressions_skip_constructorName() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class AAA {
   AAA.name() {}
 }
 main() {
-  int v = new AAA.name();
+  var v = new AAA.name();
 }
 ''');
     _createRefactoring(testCode.indexOf('AA.name();'), 5);
@@ -472,12 +473,12 @@ main() {
   }
 
   test_coveringExpressions_skip_constructorName_name() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   A.name() {}
 }
 main() {
-  int v = new A.name();
+  var v = new A.name();
 }
 ''');
     _createRefactoring(testCode.indexOf('ame();'), 0);
@@ -488,10 +489,10 @@ main() {
   }
 
   test_coveringExpressions_skip_constructorName_type() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {}
 main() {
-  int v = new A();
+  var v = new A();
 }
 ''');
     _createRefactoring(testCode.indexOf('A();'), 0);
@@ -502,10 +503,10 @@ main() {
   }
 
   test_coveringExpressions_skip_constructorName_typeArgument() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A<T> {}
 main() {
-  int v = new A<String>();
+  var v = new A<String>();
 }
 ''');
     _createRefactoring(testCode.indexOf('ring>'), 0);
@@ -516,7 +517,7 @@ main() {
   }
 
   test_coveringExpressions_skip_namedExpression() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   foo(ppp: 42);
 }
@@ -529,8 +530,8 @@ int foo({int ppp: 0}) => ppp + 1;
     expect(subExpressions, ['foo(ppp: 42)']);
   }
 
-  test_fragmentExpression() {
-    indexTestUnit('''
+  test_fragmentExpression() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2 + 3 + 4;
 }
@@ -545,8 +546,8 @@ main() {
 ''');
   }
 
-  test_fragmentExpression_leadingNotWhitespace() {
-    indexTestUnit('''
+  test_fragmentExpression_leadingNotWhitespace() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2 + 3 + 4;
 }
@@ -561,8 +562,8 @@ main() {
 ''');
   }
 
-  test_fragmentExpression_leadingPartialSelection() {
-    indexTestUnit('''
+  test_fragmentExpression_leadingPartialSelection() async {
+    await indexTestUnit('''
 main() {
   int a = 111 + 2 + 3 + 4;
 }
@@ -577,8 +578,8 @@ main() {
 ''');
   }
 
-  test_fragmentExpression_leadingWhitespace() {
-    indexTestUnit('''
+  test_fragmentExpression_leadingWhitespace() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2 + 3 + 4;
 }
@@ -593,8 +594,8 @@ main() {
 ''');
   }
 
-  test_fragmentExpression_notAssociativeOperator() {
-    indexTestUnit('''
+  test_fragmentExpression_notAssociativeOperator() async {
+    await indexTestUnit('''
 main() {
   int a = 1 - 2 - 3 - 4;
 }
@@ -609,8 +610,8 @@ main() {
 ''');
   }
 
-  test_fragmentExpression_trailingNotWhitespace() {
-    indexTestUnit('''
+  test_fragmentExpression_trailingNotWhitespace() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2 + 3 + 4;
 }
@@ -625,8 +626,8 @@ main() {
 ''');
   }
 
-  test_fragmentExpression_trailingPartialSelection() {
-    indexTestUnit('''
+  test_fragmentExpression_trailingPartialSelection() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2 + 333 + 4;
 }
@@ -641,8 +642,8 @@ main() {
 ''');
   }
 
-  test_fragmentExpression_trailingWhitespace() {
-    indexTestUnit('''
+  test_fragmentExpression_trailingWhitespace() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2 + 3 + 4;
 }
@@ -658,7 +659,7 @@ main() {
   }
 
   test_guessNames_fragmentExpression() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   var a = 111 + 222 + 333 + 444;
 }
@@ -670,7 +671,7 @@ main() {
   }
 
   test_guessNames_singleExpression() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class TreeItem {}
 TreeItem getSelectedItem() => null;
 process(my) {}
@@ -686,7 +687,7 @@ main() {
   }
 
   test_guessNames_stringPart() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   var s = 'Hello Bob... welcome to Dart!';
 }
@@ -698,7 +699,7 @@ main() {
   }
 
   test_occurrences_differentVariable() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   {
     int v = 1;
@@ -731,8 +732,8 @@ main() {
         length: 3, offsets: [36, 59, 85], names: ['object', 'i']);
   }
 
-  test_occurrences_disableOccurrences() {
-    indexTestUnit('''
+  test_occurrences_disableOccurrences() async {
+    await indexTestUnit('''
 int foo() => 42;
 main() {
   int a = 1 + foo();
@@ -752,8 +753,8 @@ main() {
 ''');
   }
 
-  test_occurrences_ignore_assignmentLeftHandSize() {
-    indexTestUnit('''
+  test_occurrences_ignore_assignmentLeftHandSize() async {
+    await indexTestUnit('''
 main() {
   int v = 1;
   v = 2;
@@ -776,8 +777,8 @@ main() {
 ''');
   }
 
-  test_occurrences_ignore_nameOfVariableDeclaration() {
-    indexTestUnit('''
+  test_occurrences_ignore_nameOfVariableDeclaration() async {
+    await indexTestUnit('''
 main() {
   int v = 1;
   print(v); // marker
@@ -794,8 +795,8 @@ main() {
 ''');
   }
 
-  test_occurrences_singleExpression() {
-    indexTestUnit('''
+  test_occurrences_singleExpression() async {
+    await indexTestUnit('''
 int foo() => 42;
 main() {
   int a = 1 + foo();
@@ -814,8 +815,8 @@ main() {
 ''');
   }
 
-  test_occurrences_useDominator() {
-    indexTestUnit('''
+  test_occurrences_useDominator() async {
+    await indexTestUnit('''
 main() {
   if (true) {
     print(42);
@@ -838,8 +839,8 @@ main() {
 ''');
   }
 
-  test_occurrences_whenComment() {
-    indexTestUnit('''
+  test_occurrences_whenComment() async {
+    await indexTestUnit('''
 int foo() => 42;
 main() {
   /*int a = 1 + foo();*/
@@ -858,8 +859,8 @@ main() {
 ''');
   }
 
-  test_occurrences_withSpace() {
-    indexTestUnit('''
+  test_occurrences_withSpace() async {
+    await indexTestUnit('''
 int foo(String s) => 42;
 main() {
   int a = 1 + foo('has space');
@@ -879,7 +880,7 @@ main() {
   }
 
   test_offsets_lengths() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 int foo() => 42;
 main() {
   int a = 1 + foo(); // marker
@@ -894,8 +895,8 @@ main() {
     expect(refactoring.lengths, unorderedEquals([5, 6]));
   }
 
-  test_singleExpression() {
-    indexTestUnit('''
+  test_singleExpression() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2;
 }
@@ -910,8 +911,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_getter() {
-    indexTestUnit('''
+  test_singleExpression_getter() async {
+    await indexTestUnit('''
 class A {
   int get foo => 42;
 }
@@ -934,9 +935,9 @@ main() {
 ''');
   }
 
-  test_singleExpression_hasParseError_expectedSemicolon() {
+  test_singleExpression_hasParseError_expectedSemicolon() async {
     verifyNoTestUnitErrors = false;
-    indexTestUnit('''
+    await indexTestUnit('''
 main(p) {
   foo
   p.bar.baz;
@@ -954,7 +955,7 @@ main(p) {
   }
 
   test_singleExpression_inExpressionBody_ofClosure() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   print((x) => x.y * x.y + 1);
 }
@@ -974,7 +975,7 @@ main() {
   }
 
   test_singleExpression_inExpressionBody_ofFunction() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 foo(Point p) => p.x * p.x + p.y * p.y;
 class Point {int x; int y;}
 ''');
@@ -992,7 +993,7 @@ class Point {int x; int y;}
   }
 
   test_singleExpression_inExpressionBody_ofMethod() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 class A {
   foo(Point p) => p.x * p.x + p.y * p.y;
 }
@@ -1013,8 +1014,8 @@ class Point {int x; int y;}
         length: 3, offsets: [35, 57, 63], names: ['x', 'i']);
   }
 
-  test_singleExpression_inIfElseIf() {
-    indexTestUnit('''
+  test_singleExpression_inIfElseIf() async {
+    await indexTestUnit('''
 main(int p) {
   if (p == 1) {
     print(1);
@@ -1037,8 +1038,8 @@ main(int p) {
 ''');
   }
 
-  test_singleExpression_inMethod() {
-    indexTestUnit('''
+  test_singleExpression_inMethod() async {
+    await indexTestUnit('''
 class A {
   main() {
     print(1 + 2);
@@ -1057,8 +1058,8 @@ class A {
 ''');
   }
 
-  test_singleExpression_leadingNotWhitespace() {
-    indexTestUnit('''
+  test_singleExpression_leadingNotWhitespace() async {
+    await indexTestUnit('''
 main() {
   int a = 12 + 345;
 }
@@ -1073,8 +1074,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_leadingWhitespace() {
-    indexTestUnit('''
+  test_singleExpression_leadingWhitespace() async {
+    await indexTestUnit('''
 main() {
   int a = 1 /*abc*/ + 2 + 345;
 }
@@ -1090,7 +1091,7 @@ main() {
   }
 
   test_singleExpression_methodName_reference() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   var v = foo().length;
 }
@@ -1108,7 +1109,7 @@ String foo() => '';
   }
 
   test_singleExpression_nameOfProperty_prefixedIdentifier() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main(p) {
   var v = p.value; // marker
 }
@@ -1124,7 +1125,7 @@ main(p) {
   }
 
   test_singleExpression_nameOfProperty_propertyAccess() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   var v = foo().length; // marker
 }
@@ -1146,8 +1147,8 @@ String foo() => '';
    * `1 + 2` will be a separate and complete binary expression, so it can be
    * handled as a single expression.
    */
-  test_singleExpression_partOfBinaryExpression() {
-    indexTestUnit('''
+  test_singleExpression_partOfBinaryExpression() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2 + 3 + 4;
 }
@@ -1162,8 +1163,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_string() {
-    indexTestUnit('''
+  test_singleExpression_string() async {
+    await indexTestUnit('''
 void main() {
   print("1234");
 }
@@ -1178,8 +1179,8 @@ void main() {
 ''');
   }
 
-  test_singleExpression_trailingNotWhitespace() {
-    indexTestUnit('''
+  test_singleExpression_trailingNotWhitespace() async {
+    await indexTestUnit('''
 main() {
   int a = 12 + 345;
 }
@@ -1194,8 +1195,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_trailingWhitespace() {
-    indexTestUnit('''
+  test_singleExpression_trailingWhitespace() async {
+    await indexTestUnit('''
 main() {
   int a = 1 + 2 ;
 }
@@ -1211,7 +1212,7 @@ main() {
   }
 
   test_stringLiteral_part() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   print('abcdefgh');
 }
@@ -1228,7 +1229,7 @@ main() {
   }
 
   test_stringLiteral_whole() async {
-    indexTestUnit('''
+    await indexTestUnit('''
 main() {
   print('abc');
 }
@@ -1246,7 +1247,7 @@ main() {
   }
 
   test_stringLiteralPart() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 main() {
   int x = 1;
   int y = 2;
@@ -1345,4 +1346,10 @@ main() {
     }
     return subExpressions;
   }
+}
+
+@reflectiveTest
+class ExtractLocalTest_Driver extends ExtractLocalTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

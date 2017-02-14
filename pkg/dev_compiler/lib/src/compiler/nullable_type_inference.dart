@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/ast/visitor.dart' show RecursiveAstVisitor;
 import 'package:analyzer/dart/element/element.dart';
@@ -121,7 +122,7 @@ abstract class NullableTypeInference {
       return _isNullable(expr.expression, localIsNullable);
     }
     if (expr is InstanceCreationExpression) {
-      var e = expr.staticElement;
+      var e = resolutionMap.staticElementForConstructorReference(expr);
       if (e == null) return true;
 
       // Follow redirects.
@@ -165,7 +166,7 @@ abstract class NullableTypeInference {
     if (expr is MethodInvocation) {
       // TODO(vsm): This logic overlaps with the resolver.
       // Where is the best place to put this?
-      var e = expr.methodName.staticElement;
+      var e = resolutionMap.staticElementForIdentifier(expr.methodName);
       if (isInlineJS(e)) {
         // Fix types for JS builtin calls.
         //

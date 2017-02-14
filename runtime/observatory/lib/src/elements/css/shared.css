@@ -283,6 +283,12 @@ hr {
   flex-basis: 90%;
 }
 
+.indent {
+  margin-left: 1.5em;
+  font: 400 14px 'Montserrat', sans-serif;
+  line-height: 150%;
+}
+
 .well {
   min-height: 20px;
   padding: 19px;
@@ -1429,6 +1435,17 @@ isolate-run-state > span {
 isolate-shared-summary {
   display: block;
 }
+
+.isolate-ref-container {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.isolate-state-container {
+  display: inline-block;
+  min-width: 18ex;
+}
+
 isolate-shared-summary > .summary {
   height: 300px;
   position: relative;

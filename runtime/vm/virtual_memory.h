@@ -64,16 +64,16 @@ class VirtualMemory {
   // Commit a reserved memory area, so that the memory can be accessed.
   bool Commit(uword addr, intptr_t size, bool is_executable);
 
-  bool embedder_allocated() const { return embedder_allocated_; }
+  bool vm_owns_region() const { return vm_owns_region_; }
 
-  static VirtualMemory* ForExternalPage(void* pointer, uword size);
+  static VirtualMemory* ForImagePage(void* pointer, uword size);
 
  private:
   static VirtualMemory* ReserveInternal(intptr_t size);
 
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
-  static bool FreeSubSegment(void* address, intptr_t size);
+  static bool FreeSubSegment(int32_t handle, void* address, intptr_t size);
 
   // This constructor is only used internally when reserving new virtual spaces.
   // It does not reserve any virtual address space on its own.
@@ -81,7 +81,7 @@ class VirtualMemory {
       : region_(region.pointer(), region.size()),
         reserved_size_(region.size()),
         handle_(handle),
-        embedder_allocated_(false) {}
+        vm_owns_region_(true) {}
 
   MemoryRegion region_;
 
@@ -93,8 +93,10 @@ class VirtualMemory {
 
   static uword page_size_;
 
-  // True for a region provided by the embedder.
-  bool embedder_allocated_;
+  // False for a part of a snapshot added directly to the Dart heap, which
+  // belongs to the the embedder and must not be deallocated or have its
+  // protection status changed by the VM.
+  bool vm_owns_region_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(VirtualMemory);
 };

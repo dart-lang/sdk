@@ -75,7 +75,41 @@ class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
       return pair->value;
     }
   }
+
+  inline Pair* LookupPair(const Key& key) {
+    return DirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(key);
+  }
 };
+
+template <typename K, typename V>
+class MallocMap
+    : public MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
+ public:
+  typedef typename RawPointerKeyValueTrait<K, V>::Key Key;
+  typedef typename RawPointerKeyValueTrait<K, V>::Value Value;
+  typedef typename RawPointerKeyValueTrait<K, V>::Pair Pair;
+
+  inline void Insert(const Key& key, const Value& value) {
+    Pair pair(key, value);
+    MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Insert(pair);
+  }
+
+  inline V Lookup(const Key& key) {
+    Pair* pair =
+        MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(key);
+    if (pair == NULL) {
+      return V();
+    } else {
+      return pair->value;
+    }
+  }
+
+  inline Pair* LookupPair(const Key& key) {
+    return MallocDirectChainedHashMap<RawPointerKeyValueTrait<K, V> >::Lookup(
+        key);
+  }
+};
+
 
 class BreakableBlock;
 class CatchBlock;
@@ -188,12 +222,12 @@ class ActiveFunctionScope {
 
 class TranslationHelper {
  public:
-  TranslationHelper(dart::Thread* thread, dart::Zone* zone, Isolate* isolate)
+  explicit TranslationHelper(dart::Thread* thread)
       : thread_(thread),
-        zone_(zone),
-        isolate_(isolate),
-        allocation_space_(thread_->IsMutatorThread() ? Heap::kNew
-                                                     : Heap::kOld) {}
+        zone_(thread->zone()),
+        isolate_(thread->isolate()),
+        allocation_space_(thread->IsMutatorThread() ? Heap::kNew : Heap::kOld) {
+  }
   virtual ~TranslationHelper() {}
 
   Thread* thread() { return thread_; }
@@ -284,6 +318,7 @@ class DartTypeTranslator : public DartTypeVisitor {
                      bool finalize = false)
       : translation_helper_(*helper),
         active_class_(active_class),
+        type_parameter_scope_(NULL),
         zone_(helper->zone()),
         result_(AbstractType::Handle(helper->zone())),
         finalize_(finalize) {}
@@ -327,11 +362,31 @@ class DartTypeTranslator : public DartTypeVisitor {
   const Type& ReceiverType(const dart::Class& klass);
 
  private:
+  class TypeParameterScope {
+   public:
+    TypeParameterScope(DartTypeTranslator* translator,
+                       List<TypeParameter>* parameters)
+        : parameters_(parameters),
+          outer_(translator->type_parameter_scope_),
+          translator_(translator) {
+      translator_->type_parameter_scope_ = this;
+    }
+    ~TypeParameterScope() { translator_->type_parameter_scope_ = outer_; }
+
+    TypeParameterScope* outer() const { return outer_; }
+    List<TypeParameter>* parameters() const { return parameters_; }
+
+   private:
+    List<TypeParameter>* parameters_;
+    TypeParameterScope* outer_;
+    DartTypeTranslator* translator_;
+  };
+
   TranslationHelper& translation_helper_;
   ActiveClass* active_class_;
+  TypeParameterScope* type_parameter_scope_;
   Zone* zone_;
   AbstractType& result_;
-
   bool finalize_;
 };
 
@@ -393,6 +448,7 @@ class ConstantEvaluator : public ExpressionVisitor {
   virtual void VisitConditionalExpression(ConditionalExpression* node);
   virtual void VisitLogicalExpression(LogicalExpression* node);
   virtual void VisitNot(Not* node);
+  virtual void VisitPropertyGet(PropertyGet* node);
 
  private:
   // This will translate type arguments form [kernel_arguments].  If no type
@@ -498,8 +554,8 @@ class ScopeBuilder : public RecursiveVisitor {
       : result_(NULL),
         parsed_function_(parsed_function),
         node_(node),
-        zone_(Thread::Current()->zone()),
-        translation_helper_(Thread::Current(), zone_, Isolate::Current()),
+        translation_helper_(Thread::Current()),
+        zone_(translation_helper_.zone()),
         type_translator_(&translation_helper_,
                          &active_class_,
                          /*finalize=*/true),
@@ -540,11 +596,13 @@ class ScopeBuilder : public RecursiveVisitor {
   virtual void VisitConstructor(Constructor* node);
 
  private:
-  void EnterScope(TreeNode* node);
-  void ExitScope();
+  void EnterScope(TreeNode* node, TokenPosition start_position);
+  void ExitScope(TokenPosition end_position);
 
   const Type& TranslateVariableType(VariableDeclaration* variable);
-  LocalVariable* MakeVariable(const dart::String& name,
+  LocalVariable* MakeVariable(TokenPosition declaration_pos,
+                              TokenPosition token_pos,
+                              const dart::String& name,
                               const AbstractType& type);
 
   void AddParameters(FunctionNode* function, intptr_t pos = 0);
@@ -594,8 +652,8 @@ class ScopeBuilder : public RecursiveVisitor {
 
   ActiveClass active_class_;
 
-  Zone* zone_;
   TranslationHelper translation_helper_;
+  Zone* zone_;
   DartTypeTranslator type_translator_;
 
   FunctionNode* current_function_node_;
@@ -607,7 +665,7 @@ class ScopeBuilder : public RecursiveVisitor {
 };
 
 
-class FlowGraphBuilder : public TreeVisitor {
+class FlowGraphBuilder : public ExpressionVisitor, public StatementVisitor {
  public:
   FlowGraphBuilder(TreeNode* node,
                    ParsedFunction* parsed_function,
@@ -619,7 +677,8 @@ class FlowGraphBuilder : public TreeVisitor {
 
   FlowGraph* BuildGraph();
 
-  virtual void VisitDefaultTreeNode(TreeNode* node) { UNREACHABLE(); }
+  virtual void VisitDefaultExpression(Expression* node) { UNREACHABLE(); }
+  virtual void VisitDefaultStatement(Statement* node) { UNREACHABLE(); }
 
   virtual void VisitInvalidExpression(InvalidExpression* node);
   virtual void VisitNullLiteral(NullLiteral* node);
@@ -655,7 +714,6 @@ class FlowGraphBuilder : public TreeVisitor {
   virtual void VisitLet(Let* node);
   virtual void VisitThrow(Throw* node);
   virtual void VisitRethrow(Rethrow* node);
-  virtual void VisitBlockExpression(BlockExpression* node);
 
   virtual void VisitInvalidStatement(InvalidStatement* node);
   virtual void VisitEmptyStatement(EmptyStatement* node);
@@ -697,6 +755,7 @@ class FlowGraphBuilder : public TreeVisitor {
 
   TargetEntryInstr* BuildTargetEntry();
   JoinEntryInstr* BuildJoinEntry();
+  JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
 
   Fragment TranslateArguments(Arguments* node, Array* argument_names);
   ArgumentArray GetArguments(int count);
@@ -723,6 +782,7 @@ class FlowGraphBuilder : public TreeVisitor {
   Fragment PopContext();
 
   Fragment LoadInstantiatorTypeArguments();
+  Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
@@ -781,7 +841,7 @@ class FlowGraphBuilder : public TreeVisitor {
   Fragment NullConstant();
   Fragment NativeCall(const dart::String* name, const Function* function);
   Fragment PushArgument();
-  Fragment Return();
+  Fragment Return(TokenPosition position);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count);
@@ -790,16 +850,18 @@ class FlowGraphBuilder : public TreeVisitor {
                       intptr_t argument_count,
                       const Array& argument_names);
   Fragment StoreIndexed(intptr_t class_id);
-  Fragment StoreInstanceFieldGuarded(const dart::Field& field);
+  Fragment StoreInstanceFieldGuarded(const dart::Field& field,
+                                     bool is_initialization_store);
   Fragment StoreInstanceField(
       const dart::Field& field,
+      bool is_initialization_store,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreInstanceField(
       intptr_t offset,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
-  Fragment StoreLocal(LocalVariable* variable);
+  Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreStaticField(const dart::Field& field);
-  Fragment StringInterpolate();
+  Fragment StringInterpolate(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
   Fragment BuildImplicitClosureCreation(const Function& target);
@@ -833,8 +895,8 @@ class FlowGraphBuilder : public TreeVisitor {
 
   void InlineBailout(const char* reason);
 
-  Zone* zone_;
   TranslationHelper translation_helper_;
+  Zone* zone_;
 
   // The node we are currently compiling (e.g. FunctionNode, Constructor,
   // Field)
@@ -921,6 +983,24 @@ class FlowGraphBuilder : public TreeVisitor {
   friend class TryCatchBlock;
   friend class TryFinallyBlock;
 };
+
+RawObject* EvaluateMetadata(TreeNode* const kernel_node);
+RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
+
+
+}  // namespace kernel
+}  // namespace dart
+
+#else  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#include "vm/object.h"
+#include "vm/kernel.h"
+
+namespace dart {
+namespace kernel {
+
+RawObject* EvaluateMetadata(TreeNode* const kernel_node);
+RawObject* BuildParameterDescriptor(TreeNode* const kernel_node);
 
 }  // namespace kernel
 }  // namespace dart

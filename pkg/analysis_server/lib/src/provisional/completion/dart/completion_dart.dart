@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
+import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -98,6 +99,12 @@ abstract class DartCompletionRequest extends CompletionRequest {
    * Answer the [DartType] for Object in dart:core
    */
   DartType get objectType;
+
+  /**
+   * The [OpType] which describes which types of suggestions would fit the
+   * request.
+   */
+  OpType get opType;
 
   /**
    * Return the [SourceFactory] of the request.

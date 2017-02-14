@@ -11,7 +11,7 @@ import '../constants/constructors.dart'
         GenerativeConstantConstructor,
         RedirectingGenerativeConstantConstructor;
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show
@@ -98,7 +98,10 @@ class InitializerResolver {
     Element target;
     FieldElement field;
     if (isFieldInitializer(init)) {
-      target = constructor.enclosingClass.lookupLocalMember(name);
+      // Use [enclosingElement] instead of [enclosingClass] to ensure lookup in
+      // patch class when necessary.
+      ClassElement cls = constructor.enclosingElement;
+      target = cls.lookupLocalMember(name);
       if (target == null) {
         reporter.reportErrorMessage(
             selector, MessageKind.CANNOT_RESOLVE, {'name': name});
@@ -139,7 +142,7 @@ class InitializerResolver {
     }
   }
 
-  InterfaceType getSuperOrThisLookupTarget(Node diagnosticNode,
+  ResolutionInterfaceType getSuperOrThisLookupTarget(Node diagnosticNode,
       {bool isSuperCall}) {
     if (isSuperCall) {
       // Calculate correct lookup target and constructor name.
@@ -163,7 +166,7 @@ class InitializerResolver {
     }, inConstantInitializer: isConst);
 
     bool isSuperCall = Initializers.isSuperConstructorCall(node);
-    InterfaceType targetType =
+    ResolutionInterfaceType targetType =
         getSuperOrThisLookupTarget(node, isSuperCall: isSuperCall);
     ClassElement lookupTarget = targetType.element;
     String constructorName =
@@ -210,7 +213,7 @@ class InitializerResolver {
       assert(superClass != null);
       assert(superClass.isResolved);
 
-      InterfaceType targetType =
+      ResolutionInterfaceType targetType =
           getSuperOrThisLookupTarget(functionNode, isSuperCall: true);
       ClassElement lookupTarget = targetType.element;
       ConstructorElement calledConstructor =
@@ -272,8 +275,7 @@ class InitializerResolver {
           reportAndCreateErroneousConstructor(node, constructorName, kind, {});
     } else {
       lookedupConstructor.computeType(visitor.resolution);
-      if (!callStructure
-          .signatureApplies(lookedupConstructor.functionSignature)) {
+      if (!callStructure.signatureApplies(lookedupConstructor.type)) {
         MessageKind kind = isImplicitSuperCall
             ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
             : MessageKind.NO_MATCHING_CONSTRUCTOR;
@@ -345,7 +347,7 @@ class InitializerResolver {
         if (!field.isMalformed) {
           registry.registerStaticUse(new StaticUse.fieldInit(field));
         }
-        checkForDuplicateInitializers(field, element.initializer);
+        checkForDuplicateInitializers(field, parameterNode);
         visitor.defineLocalVariable(parameterNode, initializingFormal);
         visitor.addToScope(initializingFormal);
         if (isConst) {
@@ -488,7 +490,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   ConstructorResult reportAndCreateErroneousConstructorElement(
       Spannable diagnosticNode,
       ConstructorResultKind resultKind,
-      DartType type,
+      ResolutionDartType type,
       String name,
       MessageKind kind,
       Map arguments,
@@ -515,8 +517,11 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     return new ConstructorResult.forError(resultKind, error, type);
   }
 
-  ConstructorResult resolveConstructor(PrefixElement prefix, InterfaceType type,
-      Node diagnosticNode, String constructorName) {
+  ConstructorResult resolveConstructor(
+      PrefixElement prefix,
+      ResolutionInterfaceType type,
+      Node diagnosticNode,
+      String constructorName) {
     ClassElement cls = type.element;
     cls.ensureResolved(resolution);
     ConstructorElement constructor =
@@ -616,7 +621,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
   ConstructorResult visitTypeAnnotation(TypeAnnotation node) {
     // This is not really resolving a type-annotation, but the name of the
     // constructor. Therefore we allow deferred types.
-    DartType type = resolver.resolveTypeAnnotation(node,
+    ResolutionDartType type = resolver.resolveTypeAnnotation(node,
         malformedIsError: inConstContext,
         deferredIsMalformed: false,
         registerCheckedModeCheck: false);
@@ -747,7 +752,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
         error, new MalformedType(error, null));
   }
 
-  ConstructorResult constructorResultForType(Node node, DartType type,
+  ConstructorResult constructorResultForType(Node node, ResolutionDartType type,
       {PrefixElement prefix}) {
     String name = type.name;
     if (type.isTypeVariable) {
@@ -816,12 +821,12 @@ class ConstructorResult {
 
   /// The type of the new expression. For instance `Foo<String>` in
   /// `new prefix.Foo<String>.constructorName()`.
-  final DartType type;
+  final ResolutionDartType type;
 
   /// Creates a fully resolved constructor access where [element] is resolved
   /// to a constructor and [type] to an interface type.
   ConstructorResult(this.kind, this.prefix, ConstructorElement this.element,
-      InterfaceType this.type);
+      ResolutionInterfaceType this.type);
 
   /// Creates a fully resolved constructor access where [element] is an
   /// [ErroneousElement].

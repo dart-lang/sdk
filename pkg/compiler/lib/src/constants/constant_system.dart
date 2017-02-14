@@ -5,7 +5,7 @@
 library dart2js.constant_system;
 
 import '../compiler.dart' show Compiler;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../resolution/operators.dart';
 import '../tree/dartstring.dart' show DartString;
 import 'values.dart';
@@ -48,6 +48,7 @@ abstract class ConstantSystem {
   BinaryOperation get multiply;
   UnaryOperation get negate;
   UnaryOperation get not;
+  BinaryOperation get remainder;
   BinaryOperation get shiftLeft;
   BinaryOperation get shiftRight;
   BinaryOperation get subtract;
@@ -63,18 +64,19 @@ abstract class ConstantSystem {
   ConstantValue createString(DartString string);
   ConstantValue createBool(bool value);
   ConstantValue createNull();
-  ConstantValue createList(InterfaceType type, List<ConstantValue> values);
+  ConstantValue createList(
+      ResolutionInterfaceType type, List<ConstantValue> values);
   // TODO(johnniwinther): Remove the need for [compiler].
-  ConstantValue createMap(Compiler compiler, InterfaceType type,
+  ConstantValue createMap(Compiler compiler, ResolutionInterfaceType type,
       List<ConstantValue> keys, List<ConstantValue> values);
   // TODO(johnniwinther): Remove the need for [compiler].
-  ConstantValue createType(Compiler compiler, DartType type);
+  ConstantValue createType(Compiler compiler, ResolutionDartType type);
   // TODO(johnniwinther): Remove the need for [compiler].
   ConstantValue createSymbol(Compiler compiler, String text);
 
   // We need to special case the subtype check for JavaScript constant
   // system because an int is a double at runtime.
-  bool isSubtype(DartTypes types, DartType s, DartType t);
+  bool isSubtype(DartTypes types, ResolutionDartType s, ResolutionDartType t);
 
   /** Returns true if the [constant] is an integer at runtime. */
   bool isInt(ConstantValue constant);

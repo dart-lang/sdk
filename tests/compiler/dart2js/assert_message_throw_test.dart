@@ -7,6 +7,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/types/masks.dart';
+import 'package:compiler/src/world.dart' show ClosedWorld;
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 import 'type_mask_test_helper.dart';
@@ -58,19 +59,21 @@ main() {
         memorySourceFiles: {'main.dart': SOURCE},
         options: [Flags.enableCheckedMode, Flags.enableAssertMessage]);
     Compiler compiler = result.compiler;
+    ClosedWorld closedWorld =
+        compiler.resolutionWorldBuilder.closedWorldForTesting;
 
     void check(String methodName, TypeMask expectedReturnType) {
       Element element = compiler.mainApp.find(methodName);
       TypeMask typeMask = simplify(
           compiler.globalInference.results.resultOf(element).returnType,
-          compiler);
+          closedWorld);
       Expect.equals(expectedReturnType, typeMask,
           "Unexpected return type on method '$methodName'.");
     }
 
-    check('test0', compiler.closedWorld.commonMasks.growableListType);
-    check('test1', compiler.closedWorld.commonMasks.nullType);
-    check('test2', compiler.closedWorld.commonMasks.uint31Type.nullable());
-    check('test3', compiler.closedWorld.commonMasks.intType);
+    check('test0', closedWorld.commonMasks.growableListType);
+    check('test1', closedWorld.commonMasks.nullType);
+    check('test2', closedWorld.commonMasks.uint31Type.nullable());
+    check('test3', closedWorld.commonMasks.intType);
   });
 }

@@ -28,23 +28,23 @@ DEFINE_FLAG(bool,
             "Prints a stack trace everytime a throw occurs.");
 
 
-class StacktraceBuilder : public ValueObject {
+class StackTraceBuilder : public ValueObject {
  public:
-  StacktraceBuilder() {}
-  virtual ~StacktraceBuilder() {}
+  StackTraceBuilder() {}
+  virtual ~StackTraceBuilder() {}
 
   virtual void AddFrame(const Code& code, const Smi& offset) = 0;
 };
 
 
-class RegularStacktraceBuilder : public StacktraceBuilder {
+class RegularStackTraceBuilder : public StackTraceBuilder {
  public:
-  explicit RegularStacktraceBuilder(Zone* zone)
+  explicit RegularStackTraceBuilder(Zone* zone)
       : code_list_(
             GrowableObjectArray::Handle(zone, GrowableObjectArray::New())),
         pc_offset_list_(
             GrowableObjectArray::Handle(zone, GrowableObjectArray::New())) {}
-  ~RegularStacktraceBuilder() {}
+  ~RegularStackTraceBuilder() {}
 
   const GrowableObjectArray& code_list() const { return code_list_; }
   const GrowableObjectArray& pc_offset_list() const { return pc_offset_list_; }
@@ -58,41 +58,41 @@ class RegularStacktraceBuilder : public StacktraceBuilder {
   const GrowableObjectArray& code_list_;
   const GrowableObjectArray& pc_offset_list_;
 
-  DISALLOW_COPY_AND_ASSIGN(RegularStacktraceBuilder);
+  DISALLOW_COPY_AND_ASSIGN(RegularStackTraceBuilder);
 };
 
 
-class PreallocatedStacktraceBuilder : public StacktraceBuilder {
+class PreallocatedStackTraceBuilder : public StackTraceBuilder {
  public:
-  explicit PreallocatedStacktraceBuilder(const Instance& stacktrace)
-      : stacktrace_(Stacktrace::Cast(stacktrace)),
+  explicit PreallocatedStackTraceBuilder(const Instance& stacktrace)
+      : stacktrace_(StackTrace::Cast(stacktrace)),
         cur_index_(0),
         dropped_frames_(0) {
     ASSERT(stacktrace_.raw() ==
            Isolate::Current()->object_store()->preallocated_stack_trace());
   }
-  ~PreallocatedStacktraceBuilder() {}
+  ~PreallocatedStackTraceBuilder() {}
 
   virtual void AddFrame(const Code& code, const Smi& offset);
 
  private:
-  static const int kNumTopframes = Stacktrace::kPreallocatedStackdepth / 2;
+  static const int kNumTopframes = StackTrace::kPreallocatedStackdepth / 2;
 
-  const Stacktrace& stacktrace_;
+  const StackTrace& stacktrace_;
   intptr_t cur_index_;
   intptr_t dropped_frames_;
 
-  DISALLOW_COPY_AND_ASSIGN(PreallocatedStacktraceBuilder);
+  DISALLOW_COPY_AND_ASSIGN(PreallocatedStackTraceBuilder);
 };
 
 
-void PreallocatedStacktraceBuilder::AddFrame(const Code& code,
+void PreallocatedStackTraceBuilder::AddFrame(const Code& code,
                                              const Smi& offset) {
-  if (cur_index_ >= Stacktrace::kPreallocatedStackdepth) {
+  if (cur_index_ >= StackTrace::kPreallocatedStackdepth) {
     // The number of frames is overflowing the preallocated stack trace object.
     Code& frame_code = Code::Handle();
     Smi& frame_offset = Smi::Handle();
-    intptr_t start = Stacktrace::kPreallocatedStackdepth - (kNumTopframes - 1);
+    intptr_t start = StackTrace::kPreallocatedStackdepth - (kNumTopframes - 1);
     intptr_t null_slot = start - 2;
     // We are going to drop one frame.
     dropped_frames_++;
@@ -107,14 +107,14 @@ void PreallocatedStacktraceBuilder::AddFrame(const Code& code,
     frame_offset ^= Smi::New(dropped_frames_);
     stacktrace_.SetPcOffsetAtFrame(null_slot, frame_offset);
     // Move frames one slot down so that we can accomodate the new frame.
-    for (intptr_t i = start; i < Stacktrace::kPreallocatedStackdepth; i++) {
+    for (intptr_t i = start; i < StackTrace::kPreallocatedStackdepth; i++) {
       intptr_t prev = (i - 1);
       frame_code = stacktrace_.CodeAtFrame(i);
       frame_offset = stacktrace_.PcOffsetAtFrame(i);
       stacktrace_.SetCodeAtFrame(prev, frame_code);
       stacktrace_.SetPcOffsetAtFrame(prev, frame_offset);
     }
-    cur_index_ = (Stacktrace::kPreallocatedStackdepth - 1);
+    cur_index_ = (StackTrace::kPreallocatedStackdepth - 1);
   }
   stacktrace_.SetCodeAtFrame(cur_index_, code);
   stacktrace_.SetPcOffsetAtFrame(cur_index_, offset);
@@ -122,7 +122,7 @@ void PreallocatedStacktraceBuilder::AddFrame(const Code& code,
 }
 
 
-static void BuildStackTrace(StacktraceBuilder* builder) {
+static void BuildStackTrace(StackTraceBuilder* builder) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
@@ -189,7 +189,6 @@ static bool FindExceptionHandler(Thread* thread,
 static void FindErrorHandler(uword* handler_pc,
                              uword* handler_sp,
                              uword* handler_fp) {
-  // TODO(turnidge): Is there a faster way to get the next entry frame?
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);
@@ -228,7 +227,17 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
         break;
       }
     }
+  }
+#endif  // !DBC
+  return program_counter;
+}
 
+
+static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
+#if !defined(TARGET_ARCH_DBC)
+  MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
+      thread->isolate()->pending_deopts();
+  if (pending_deopts->length() > 0) {
     // We may be jumping over frames scheduled for lazy deopt. Remove these
     // frames from the pending deopt table, but only after unmarking them so
     // any stack walk that happens before the stack is unwound will still work.
@@ -264,7 +273,6 @@ static uword RemapExceptionPCForDeopt(Thread* thread,
 #endif
   }
 #endif  // !DBC
-  return program_counter;
 }
 
 
@@ -281,14 +289,18 @@ static void JumpToExceptionHandler(Thread* thread,
   thread->set_resume_pc(remapped_pc);
   uword run_exception_pc = StubCode::RunExceptionHandler_entry()->EntryPoint();
   Exceptions::JumpToFrame(thread, run_exception_pc, stack_pointer,
-                          frame_pointer);
+                          frame_pointer, false /* do not clear deopt */);
 }
 
 
 void Exceptions::JumpToFrame(Thread* thread,
                              uword program_counter,
                              uword stack_pointer,
-                             uword frame_pointer) {
+                             uword frame_pointer,
+                             bool clear_deopt_at_target) {
+  uword fp_for_clearing =
+      (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
+  ClearLazyDeopts(thread, fp_for_clearing);
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done
   // by the simulator, because the target stack_pointer is a simulated stack
@@ -323,7 +335,7 @@ void Exceptions::JumpToFrame(Thread* thread,
 }
 
 
-static RawField* LookupStacktraceField(const Instance& instance) {
+static RawField* LookupStackTraceField(const Instance& instance) {
   if (instance.GetClassId() < kNumPredefinedCids) {
     // 'class Error' is not a predefined class.
     return Field::null();
@@ -356,9 +368,9 @@ static RawField* LookupStacktraceField(const Instance& instance) {
 }
 
 
-RawStacktrace* Exceptions::CurrentStacktrace() {
+RawStackTrace* Exceptions::CurrentStackTrace() {
   Zone* zone = Thread::Current()->zone();
-  RegularStacktraceBuilder frame_builder(zone);
+  RegularStackTraceBuilder frame_builder(zone);
   BuildStackTrace(&frame_builder);
 
   // Create arrays for code and pc_offset tuples of each frame.
@@ -366,8 +378,8 @@ RawStacktrace* Exceptions::CurrentStacktrace() {
       Array::Handle(zone, Array::MakeArray(frame_builder.code_list()));
   const Array& full_pc_offset_array =
       Array::Handle(zone, Array::MakeArray(frame_builder.pc_offset_list()));
-  const Stacktrace& full_stacktrace = Stacktrace::Handle(
-      Stacktrace::New(full_code_array, full_pc_offset_array));
+  const StackTrace& full_stacktrace = StackTrace::Handle(
+      StackTrace::New(full_code_array, full_pc_offset_array));
   return full_stacktrace.raw();
 }
 
@@ -408,7 +420,7 @@ static void ThrowExceptionHelper(Thread* thread,
       UNREACHABLE();
     }
     stacktrace ^= isolate->object_store()->preallocated_stack_trace();
-    PreallocatedStacktraceBuilder frame_builder(stacktrace);
+    PreallocatedStackTraceBuilder frame_builder(stacktrace);
     if (handler_needs_stacktrace) {
       BuildStackTrace(&frame_builder);
     }
@@ -423,11 +435,11 @@ static void ThrowExceptionHelper(Thread* thread,
       // Get stacktrace field of class Error to determine whether we have a
       // subclass of Error which carries around its stack trace.
       const Field& stacktrace_field =
-          Field::Handle(zone, LookupStacktraceField(exception));
+          Field::Handle(zone, LookupStackTraceField(exception));
       if (!stacktrace_field.IsNull() || handler_needs_stacktrace) {
         // Collect the stacktrace if needed.
         ASSERT(existing_stacktrace.IsNull());
-        stacktrace = Exceptions::CurrentStacktrace();
+        stacktrace = Exceptions::CurrentStackTrace();
         // If we have an Error object, then set its stackTrace field only if it
         // not yet initialized.
         if (!stacktrace_field.IsNull() &&
@@ -461,7 +473,7 @@ static void ThrowExceptionHelper(Thread* thread,
     // the isolate etc.).
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
         zone, UnhandledException::New(exception, stacktrace));
-    stacktrace = Stacktrace::null();
+    stacktrace = StackTrace::null();
     JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp,
                            unhandled_exception, stacktrace);
   }
@@ -620,7 +632,7 @@ void Exceptions::Throw(Thread* thread, const Instance& exception) {
     }
   }
   // Null object is a valid exception object.
-  ThrowExceptionHelper(thread, exception, Stacktrace::Handle(thread->zone()),
+  ThrowExceptionHelper(thread, exception, StackTrace::Handle(thread->zone()),
                        false);
 }
 
@@ -653,7 +665,7 @@ void Exceptions::PropagateError(const Error& error) {
     uword handler_fp = 0;
     FindErrorHandler(&handler_pc, &handler_sp, &handler_fp);
     JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp, error,
-                           Stacktrace::Handle(zone));  // Null stacktrace.
+                           StackTrace::Handle(zone));  // Null stacktrace.
   }
   UNREACHABLE();
 }

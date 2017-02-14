@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl, ReplacementRange;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:test/test.dart';
@@ -217,8 +218,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggestEnumConst(String completion,
       {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
-    CompletionSuggestion suggestion =
-        assertSuggest(completion, relevance: relevance, isDeprecated: isDeprecated);
+    CompletionSuggestion suggestion = assertSuggest(completion,
+        relevance: relevance, isDeprecated: isDeprecated);
     expect(suggestion.completion, completion);
     expect(suggestion.isDeprecated, isDeprecated);
     expect(suggestion.element.kind, protocol.ElementKind.ENUM_CONSTANT);
@@ -434,10 +435,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    * Return a [Future] that completes with the containing library information
    * after it is accessible via [context.getLibrariesContaining].
    */
-  Future computeLibrariesContaining([int times = 200]) {
+  Future<Null> computeLibrariesContaining([int times = 200]) {
+    if (enableNewAnalysisDriver) {
+      return driver.getResult(testFile).then((result) => null);
+    }
     List<Source> libraries = context.getLibrariesContaining(testSource);
     if (libraries.isNotEmpty) {
-      return new Future.value(libraries);
+      return new Future.value(null);
     }
     if (times == 0) {
       fail('failed to determine libraries containing $testSource');
@@ -452,10 +456,16 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   Future computeSuggestions([int times = 200]) async {
-    context.analysisPriorityOrder = [testSource];
+    AnalysisResult analysisResult = null;
+    if (enableNewAnalysisDriver) {
+      analysisResult = await driver.getResult(testFile);
+      testSource = analysisResult.unit.element.source;
+    } else {
+      context.analysisPriorityOrder = [testSource];
+    }
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        null,
-        context,
+        analysisResult,
+        enableNewAnalysisDriver ? null: context,
         provider,
         searchEngine,
         testSource,
@@ -537,14 +547,18 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  Future/*<E>*/ performAnalysis/*<E>*/(int times, Completer/*<E>*/ completer) {
+  Future/*<E>*/ performAnalysis/*<E>*/(int times, Completer/*<E>*/ completer) async {
     if (completer.isCompleted) {
       return completer.future;
     }
-    if (times == 0 || context == null) {
-      return new Future.value();
+    if (enableNewAnalysisDriver) {
+      // Just wait.
+    } else {
+      if (times == 0 || context == null) {
+        return new Future.value();
+      }
+      context.performAnalysisTask();
     }
-    context.performAnalysisTask();
     // We use a delayed future to allow microtask events to finish. The
     // Future.value or Future() constructors use scheduleMicrotask themselves and
     // would therefore not wait for microtask callbacks that are scheduled after
@@ -555,8 +569,10 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   void resolveSource(String path, String content) {
     Source libSource = addSource(path, content);
-    var target = new LibrarySpecificUnit(libSource, libSource);
-    context.computeResult(target, RESOLVED_UNIT);
+    if (!enableNewAnalysisDriver) {
+      var target = new LibrarySpecificUnit(libSource, libSource);
+      context.computeResult(target, RESOLVED_UNIT);
+    }
   }
 
   @override

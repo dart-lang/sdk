@@ -4,16 +4,16 @@
 
 import '../closure.dart';
 import '../common.dart';
+import '../common/backend_api.dart' show BackendClasses;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../dart_types.dart';
 import '../elements/elements.dart'
     show Entity, JumpTarget, LabelDefinition, Local;
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
-import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../native/native.dart' as native;
 import '../tree/dartstring.dart' as ast;
@@ -79,6 +79,7 @@ abstract class HVisitor<R> {
   R visitRangeConversion(HRangeConversion node);
   R visitReadModifyWrite(HReadModifyWrite node);
   R visitRef(HRef node);
+  R visitRemainder(HRemainder node);
   R visitReturn(HReturn node);
   R visitShiftLeft(HShiftLeft node);
   R visitShiftRight(HShiftRight node);
@@ -206,7 +207,7 @@ class HGraph {
     return result;
   }
 
-  HConstant addConstant(ConstantValue constant, Compiler compiler,
+  HConstant addConstant(ConstantValue constant, ClosedWorld closedWorld,
       {SourceInformation sourceInformation}) {
     HConstant result = constants[constant];
     // TODO(johnniwinther): Support source information per constant reference.
@@ -215,7 +216,7 @@ class HGraph {
         // We use `null` as the value for invalid constant expressions.
         constant = const NullConstantValue();
       }
-      TypeMask type = computeTypeMask(compiler, constant);
+      TypeMask type = computeTypeMask(closedWorld, constant);
       result = new HConstant.internal(constant, type)
         ..sourceInformation = sourceInformation;
       entry.addAtExit(result);
@@ -227,43 +228,56 @@ class HGraph {
     return result;
   }
 
-  HConstant addDeferredConstant(ConstantValue constant, Entity prefix,
-      SourceInformation sourceInformation, Compiler compiler) {
+  HConstant addDeferredConstant(
+      ConstantValue constant,
+      Entity prefix,
+      SourceInformation sourceInformation,
+      Compiler compiler,
+      ClosedWorld closedWorld) {
     // TODO(sigurdm,johnniwinther): These deferred constants should be created
     // by the constant evaluator.
     ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
     compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
-    return addConstant(wrapper, compiler, sourceInformation: sourceInformation);
+    return addConstant(wrapper, closedWorld,
+        sourceInformation: sourceInformation);
   }
 
-  HConstant addConstantInt(int i, Compiler compiler) {
-    return addConstant(compiler.backend.constantSystem.createInt(i), compiler);
+  HConstant addConstantInt(int i, ClosedWorld closedWorld) {
+    return addConstant(closedWorld.constantSystem.createInt(i), closedWorld);
   }
 
-  HConstant addConstantDouble(double d, Compiler compiler) {
+  HConstant addConstantDouble(double d, ClosedWorld closedWorld) {
+    return addConstant(closedWorld.constantSystem.createDouble(d), closedWorld);
+  }
+
+  HConstant addConstantString(ast.DartString str, ClosedWorld closedWorld) {
     return addConstant(
-        compiler.backend.constantSystem.createDouble(d), compiler);
+        closedWorld.constantSystem.createString(str), closedWorld);
   }
 
-  HConstant addConstantString(ast.DartString str, Compiler compiler) {
-    return addConstant(
-        compiler.backend.constantSystem.createString(str), compiler);
-  }
-
-  HConstant addConstantStringFromName(js.Name name, Compiler compiler) {
+  HConstant addConstantStringFromName(js.Name name, ClosedWorld closedWorld) {
     return addConstant(
         new SyntheticConstantValue(
             SyntheticConstantKind.NAME, js.quoteName(name)),
-        compiler);
+        closedWorld);
   }
 
-  HConstant addConstantBool(bool value, Compiler compiler) {
+  HConstant addConstantBool(bool value, ClosedWorld closedWorld) {
     return addConstant(
-        compiler.backend.constantSystem.createBool(value), compiler);
+        closedWorld.constantSystem.createBool(value), closedWorld);
   }
 
-  HConstant addConstantNull(Compiler compiler) {
-    return addConstant(compiler.backend.constantSystem.createNull(), compiler);
+  HConstant addConstantNull(ClosedWorld closedWorld) {
+    return addConstant(closedWorld.constantSystem.createNull(), closedWorld);
+  }
+
+  HConstant addConstantUnreachable(ClosedWorld closedWorld) {
+    // A constant with an empty type used as the HInstruction of an expression
+    // in an unreachable context.
+    return addConstant(
+        new SyntheticConstantValue(
+            SyntheticConstantKind.EMPTY_VALUE, const TypeMask.nonNullEmpty()),
+        closedWorld);
   }
 
   void finalize() {
@@ -382,6 +396,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitRangeConversion(HRangeConversion node) => visitCheck(node);
   visitReadModifyWrite(HReadModifyWrite node) => visitInstruction(node);
   visitRef(HRef node) => node.value.accept(this);
+  visitRemainder(HRemainder node) => visitBinaryArithmetic(node);
   visitReturn(HReturn node) => visitControlFlow(node);
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
@@ -877,6 +892,7 @@ abstract class HInstruction implements Spannable {
   static const int TYPE_INFO_EXPRESSION_TYPECODE = 40;
 
   static const int FOREIGN_CODE_TYPECODE = 41;
+  static const int REMAINDER_TYPECODE = 42;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -949,203 +965,168 @@ abstract class HInstruction implements Spannable {
         typeMask.satisfies(cls, closedWorld);
   }
 
-  bool canBePrimitive(Compiler compiler) {
-    return canBePrimitiveNumber(compiler) ||
-        canBePrimitiveArray(compiler) ||
-        canBePrimitiveBoolean(compiler) ||
-        canBePrimitiveString(compiler) ||
+  bool canBePrimitive(ClosedWorld closedWorld) {
+    return canBePrimitiveNumber(closedWorld) ||
+        canBePrimitiveArray(closedWorld) ||
+        canBePrimitiveBoolean(closedWorld) ||
+        canBePrimitiveString(closedWorld) ||
         isNull();
   }
 
-  bool canBePrimitiveNumber(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
+  bool canBePrimitiveNumber(ClosedWorld closedWorld) {
+    BackendClasses backendClasses = closedWorld.backendClasses;
     // TODO(sra): It should be possible to test only jsDoubleClass and
     // jsUInt31Class, since all others are superclasses of these two.
-    return containsType(instructionType, helpers.jsNumberClass, closedWorld) ||
-        containsType(instructionType, helpers.jsIntClass, closedWorld) ||
+    return containsType(
+            instructionType, backendClasses.numImplementation, closedWorld) ||
         containsType(
-            instructionType, helpers.jsPositiveIntClass, closedWorld) ||
-        containsType(instructionType, helpers.jsUInt32Class, closedWorld) ||
-        containsType(instructionType, helpers.jsUInt31Class, closedWorld) ||
-        containsType(instructionType, helpers.jsDoubleClass, closedWorld);
+            instructionType, backendClasses.intImplementation, closedWorld) ||
+        containsType(instructionType, backendClasses.positiveIntImplementation,
+            closedWorld) ||
+        containsType(instructionType, backendClasses.uint32Implementation,
+            closedWorld) ||
+        containsType(instructionType, backendClasses.uint31Implementation,
+            closedWorld) ||
+        containsType(
+            instructionType, backendClasses.doubleImplementation, closedWorld);
   }
 
-  bool canBePrimitiveBoolean(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
-    return containsType(instructionType, helpers.jsBoolClass, closedWorld);
+  bool canBePrimitiveBoolean(ClosedWorld closedWorld) {
+    return containsType(instructionType,
+        closedWorld.backendClasses.boolImplementation, closedWorld);
   }
 
-  bool canBePrimitiveArray(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
-    return containsType(instructionType, helpers.jsArrayClass, closedWorld) ||
-        containsType(instructionType, helpers.jsFixedArrayClass, closedWorld) ||
-        containsType(
-            instructionType, helpers.jsExtendableArrayClass, closedWorld) ||
-        containsType(
-            instructionType, helpers.jsUnmodifiableArrayClass, closedWorld);
+  bool canBePrimitiveArray(ClosedWorld closedWorld) {
+    BackendClasses backendClasses = closedWorld.backendClasses;
+    return containsType(
+            instructionType, backendClasses.listImplementation, closedWorld) ||
+        containsType(instructionType, backendClasses.fixedListImplementation,
+            closedWorld) ||
+        containsType(instructionType, backendClasses.growableListImplementation,
+            closedWorld) ||
+        containsType(instructionType, backendClasses.constListImplementation,
+            closedWorld);
   }
 
-  bool isIndexablePrimitive(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
+  bool isIndexablePrimitive(ClosedWorld closedWorld) {
     return instructionType.containsOnlyString(closedWorld) ||
-        isInstanceOf(instructionType, helpers.jsIndexableClass, closedWorld);
+        isInstanceOf(instructionType,
+            closedWorld.backendClasses.indexableImplementation, closedWorld);
   }
 
-  bool isFixedArray(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
+  bool isFixedArray(ClosedWorld closedWorld) {
+    BackendClasses backendClasses = closedWorld.backendClasses;
     // TODO(sra): Recognize the union of these types as well.
-    return containsOnlyType(
-            instructionType, helpers.jsFixedArrayClass, closedWorld) ||
-        containsOnlyType(
-            instructionType, helpers.jsUnmodifiableArrayClass, closedWorld);
+    return containsOnlyType(instructionType,
+            backendClasses.fixedListImplementation, closedWorld) ||
+        containsOnlyType(instructionType,
+            backendClasses.constListImplementation, closedWorld);
   }
 
-  bool isExtendableArray(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
-    return containsOnlyType(
-        instructionType, helpers.jsExtendableArrayClass, closedWorld);
+  bool isExtendableArray(ClosedWorld closedWorld) {
+    return containsOnlyType(instructionType,
+        closedWorld.backendClasses.growableListImplementation, closedWorld);
   }
 
-  bool isMutableArray(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
-    return isInstanceOf(
-        instructionType, helpers.jsMutableArrayClass, closedWorld);
+  bool isMutableArray(ClosedWorld closedWorld) {
+    return isInstanceOf(instructionType,
+        closedWorld.backendClasses.mutableListImplementation, closedWorld);
   }
 
-  bool isReadableArray(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
-    return isInstanceOf(instructionType, helpers.jsArrayClass, closedWorld);
+  bool isReadableArray(ClosedWorld closedWorld) {
+    return isInstanceOf(instructionType,
+        closedWorld.backendClasses.listImplementation, closedWorld);
   }
 
-  bool isMutableIndexable(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
-    return isInstanceOf(
-        instructionType, helpers.jsMutableIndexableClass, closedWorld);
+  bool isMutableIndexable(ClosedWorld closedWorld) {
+    return isInstanceOf(instructionType,
+        closedWorld.backendClasses.mutableIndexableImplementation, closedWorld);
   }
 
-  bool isArray(Compiler compiler) => isReadableArray(compiler);
+  bool isArray(ClosedWorld closedWorld) => isReadableArray(closedWorld);
 
-  bool canBePrimitiveString(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
-    return containsType(instructionType, helpers.jsStringClass, closedWorld);
+  bool canBePrimitiveString(ClosedWorld closedWorld) {
+    return containsType(instructionType,
+        closedWorld.backendClasses.stringImplementation, closedWorld);
   }
 
-  bool isInteger(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
+  bool isInteger(ClosedWorld closedWorld) {
     return instructionType.containsOnlyInt(closedWorld) &&
         !instructionType.isNullable;
   }
 
-  bool isUInt32(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
+  bool isUInt32(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType, helpers.jsUInt32Class, closedWorld);
+        isInstanceOf(instructionType,
+            closedWorld.backendClasses.uint32Implementation, closedWorld);
   }
 
-  bool isUInt31(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
+  bool isUInt31(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType, helpers.jsUInt31Class, closedWorld);
+        isInstanceOf(instructionType,
+            closedWorld.backendClasses.uint31Implementation, closedWorld);
   }
 
-  bool isPositiveInteger(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
+  bool isPositiveInteger(ClosedWorld closedWorld) {
     return !instructionType.isNullable &&
-        isInstanceOf(instructionType, helpers.jsPositiveIntClass, closedWorld);
+        isInstanceOf(instructionType,
+            closedWorld.backendClasses.positiveIntImplementation, closedWorld);
   }
 
-  bool isPositiveIntegerOrNull(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
-    JavaScriptBackend backend = compiler.backend;
-    BackendHelpers helpers = backend.helpers;
-    return isInstanceOf(
-        instructionType, helpers.jsPositiveIntClass, closedWorld);
+  bool isPositiveIntegerOrNull(ClosedWorld closedWorld) {
+    return isInstanceOf(instructionType,
+        closedWorld.backendClasses.positiveIntImplementation, closedWorld);
   }
 
-  bool isIntegerOrNull(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
+  bool isIntegerOrNull(ClosedWorld closedWorld) {
     return instructionType.containsOnlyInt(closedWorld);
   }
 
-  bool isNumber(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
+  bool isNumber(ClosedWorld closedWorld) {
     return instructionType.containsOnlyNum(closedWorld) &&
         !instructionType.isNullable;
   }
 
-  bool isNumberOrNull(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
+  bool isNumberOrNull(ClosedWorld closedWorld) {
     return instructionType.containsOnlyNum(closedWorld);
   }
 
-  bool isDouble(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
+  bool isDouble(ClosedWorld closedWorld) {
     return instructionType.containsOnlyDouble(closedWorld) &&
         !instructionType.isNullable;
   }
 
-  bool isDoubleOrNull(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
+  bool isDoubleOrNull(ClosedWorld closedWorld) {
     return instructionType.containsOnlyDouble(closedWorld);
   }
 
-  bool isBoolean(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
+  bool isBoolean(ClosedWorld closedWorld) {
     return instructionType.containsOnlyBool(closedWorld) &&
         !instructionType.isNullable;
   }
 
-  bool isBooleanOrNull(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
+  bool isBooleanOrNull(ClosedWorld closedWorld) {
     return instructionType.containsOnlyBool(closedWorld);
   }
 
-  bool isString(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
+  bool isString(ClosedWorld closedWorld) {
     return instructionType.containsOnlyString(closedWorld) &&
         !instructionType.isNullable;
   }
 
-  bool isStringOrNull(Compiler compiler) {
-    ClosedWorld closedWorld = compiler.closedWorld;
+  bool isStringOrNull(ClosedWorld closedWorld) {
     return instructionType.containsOnlyString(closedWorld);
   }
 
-  bool isPrimitive(Compiler compiler) {
-    return (isPrimitiveOrNull(compiler) && !instructionType.isNullable) ||
+  bool isPrimitive(ClosedWorld closedWorld) {
+    return (isPrimitiveOrNull(closedWorld) && !instructionType.isNullable) ||
         isNull();
   }
 
-  bool isPrimitiveOrNull(Compiler compiler) {
-    return isIndexablePrimitive(compiler) ||
-        isNumberOrNull(compiler) ||
-        isBooleanOrNull(compiler) ||
+  bool isPrimitiveOrNull(ClosedWorld closedWorld) {
+    return isIndexablePrimitive(closedWorld) ||
+        isNumberOrNull(closedWorld) ||
+        isBooleanOrNull(closedWorld) ||
         isNull();
   }
 
@@ -1155,7 +1136,7 @@ abstract class HInstruction implements Spannable {
   TypeMask instructionType;
 
   Selector get selector => null;
-  HInstruction getDartReceiver(Compiler compiler) => null;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => null;
   bool onlyThrowsNSM() => false;
 
   bool isInBasicBlock() => block != null;
@@ -1338,7 +1319,7 @@ abstract class HInstruction implements Spannable {
   bool isConstantFalse() => false;
   bool isConstantTrue() => false;
 
-  bool isInterceptor(Compiler compiler) => false;
+  bool isInterceptor(ClosedWorld closedWorld) => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
@@ -1364,7 +1345,7 @@ abstract class HInstruction implements Spannable {
     return false;
   }
 
-  HInstruction convertType(Compiler compiler, DartType type, int kind) {
+  HInstruction convertType(ClosedWorld closedWorld, DartType type, int kind) {
     if (type == null) return this;
     type = type.unaliased;
     // Only the builder knows how to create [HTypeConversion]
@@ -1374,19 +1355,21 @@ abstract class HInstruction implements Spannable {
     assert(type.treatAsRaw || type.isFunctionType);
     if (type.isDynamic) return this;
     if (type.isObject) return this;
-    JavaScriptBackend backend = compiler.backend;
     if (type.isVoid || type.isFunctionType || type.isMalformed) {
-      return new HTypeConversion(type, kind, backend.dynamicType, this);
+      return new HTypeConversion(
+          type, kind, closedWorld.commonMasks.dynamicType, this);
     }
     assert(type.isInterfaceType);
     if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
       // Boolean conversion checks work on non-nullable booleans.
-      return new HTypeConversion(type, kind, backend.boolType, this);
+      return new HTypeConversion(
+          type, kind, closedWorld.commonMasks.boolType, this);
     } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
-      Entity cls = type.element;
-      TypeMask subtype = new TypeMask.subtype(cls, compiler.closedWorld);
+      InterfaceType interfaceType = type;
+      TypeMask subtype =
+          new TypeMask.subtype(interfaceType.element, closedWorld);
       return new HTypeConversion(type, kind, subtype, this);
     }
   }
@@ -1412,8 +1395,8 @@ class HRef extends HInstruction {
   HInstruction get value => inputs[0];
 
   @override
-  HInstruction convertType(Compiler compiler, DartType type, int kind) {
-    HInstruction converted = value.convertType(compiler, type, kind);
+  HInstruction convertType(ClosedWorld closedWorld, DartType type, int kind) {
+    HInstruction converted = value.convertType(closedWorld, type, kind);
     if (converted == value) return this;
     HTypeConversion conversion = converted;
     conversion.inputs[0] = this;
@@ -1577,15 +1560,15 @@ abstract class HInvokeDynamic extends HInvoke {
             : const InvokeDynamicSpecializer();
   toString() => 'invoke dynamic: selector=$selector, mask=$mask';
   HInstruction get receiver => inputs[0];
-  HInstruction getDartReceiver(Compiler compiler) {
-    return isCallOnInterceptor(compiler) ? inputs[1] : inputs[0];
+  HInstruction getDartReceiver(ClosedWorld closedWorld) {
+    return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
   }
 
   /**
    * Returns whether this call is on an interceptor object.
    */
-  bool isCallOnInterceptor(Compiler compiler) {
-    return isInterceptedCall && receiver.isInterceptor(compiler);
+  bool isCallOnInterceptor(ClosedWorld closedWorld) {
+    return isInterceptedCall && receiver.isInterceptor(closedWorld);
   }
 
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
@@ -1682,15 +1665,15 @@ class HInvokeSuper extends HInvokeStatic {
   }
 
   HInstruction get receiver => inputs[0];
-  HInstruction getDartReceiver(Compiler compiler) {
-    return isCallOnInterceptor(compiler) ? inputs[1] : inputs[0];
+  HInstruction getDartReceiver(ClosedWorld closedWorld) {
+    return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
   }
 
   /**
    * Returns whether this call is on an interceptor object.
    */
-  bool isCallOnInterceptor(Compiler compiler) {
-    return isInterceptedCall && receiver.isInterceptor(compiler);
+  bool isCallOnInterceptor(ClosedWorld closedWorld) {
+    return isInterceptedCall && receiver.isInterceptor(closedWorld);
   }
 
   toString() => 'invoke super: $element';
@@ -1740,22 +1723,22 @@ class HFieldGet extends HFieldAccess {
     }
   }
 
-  bool isInterceptor(Compiler compiler) {
+  bool isInterceptor(ClosedWorld closedWorld) {
     if (sourceElement == null) return false;
     // In case of a closure inside an interceptor class, [:this:] is
     // stored in the generated closure class, and accessed through a
     // [HFieldGet].
-    JavaScriptBackend backend = compiler.backend;
     if (sourceElement is ThisLocal) {
       ThisLocal thisLocal = sourceElement;
-      return backend.isInterceptorClass(thisLocal.enclosingClass);
+      return closedWorld.backendClasses
+          .isInterceptorClass(thisLocal.enclosingClass);
     }
     return false;
   }
 
   bool canThrow() => receiver.canBeNull();
 
-  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
   bool get isNullCheck => element == null;
 
@@ -1778,7 +1761,7 @@ class HFieldSet extends HFieldAccess {
 
   bool canThrow() => receiver.canBeNull();
 
-  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
 
   HInstruction get value => inputs[1];
@@ -1830,7 +1813,7 @@ class HReadModifyWrite extends HLateInstruction {
 
   bool canThrow() => receiver.canBeNull();
 
-  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
 
   HInstruction get value => inputs[1];
@@ -2037,6 +2020,19 @@ class HTruncatingDivide extends HBinaryArithmetic {
   bool dataEquals(HInstruction other) => true;
 }
 
+class HRemainder extends HBinaryArithmetic {
+  HRemainder(
+      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+      : super(left, right, selector, type);
+  accept(HVisitor visitor) => visitor.visitRemainder(this);
+
+  BinaryOperation operation(ConstantSystem constantSystem) =>
+      constantSystem.remainder;
+  int typeCode() => HInstruction.REMAINDER_TYPECODE;
+  bool typeEquals(other) => other is HRemainder;
+  bool dataEquals(HInstruction other) => true;
+}
+
 /**
  * An [HSwitch] instruction has one input for the incoming
  * value, and one input per constant that it can switch on.
@@ -2194,11 +2190,9 @@ abstract class HJump extends HControlFlow {
 }
 
 class HBreak extends HJump {
-  /**
-   * Signals that this is a special break instruction for the synthetic loop
-   * generatedfor a switch statement with continue statements. See
-   * [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
-   */
+  /// Signals that this is a special break instruction for the synthetic loop
+  /// generated for a switch statement with continue statements. See
+  /// [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
   final bool breakSwitchContinueLoop;
   HBreak(JumpTarget target, {bool this.breakSwitchContinueLoop: false})
       : super(target);
@@ -2287,7 +2281,7 @@ class HConstant extends HInstruction {
   bool isConstantFalse() => constant.isFalse;
   bool isConstantTrue() => constant.isTrue;
 
-  bool isInterceptor(Compiler compiler) => constant.isInterceptor;
+  bool isInterceptor(ClosedWorld closedWorld) => constant.isInterceptor;
 
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;
@@ -2353,9 +2347,9 @@ class HThis extends HParameterValue {
 
   bool isCodeMotionInvariant() => true;
 
-  bool isInterceptor(Compiler compiler) {
-    JavaScriptBackend backend = compiler.backend;
-    return backend.isInterceptorClass(sourceElement.enclosingClass);
+  bool isInterceptor(ClosedWorld closedWorld) {
+    return closedWorld.backendClasses
+        .isInterceptorClass(sourceElement.enclosingClass);
   }
 
   String toString() => 'this';
@@ -2561,7 +2555,7 @@ class HInterceptor extends HInstruction {
     inputs.add(constant);
   }
 
-  bool isInterceptor(Compiler compiler) => true;
+  bool isInterceptor(ClosedWorld closedWorld) => true;
 
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
   bool typeEquals(other) => other is HInterceptor;
@@ -2589,7 +2583,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
     assert(inputs[0] is HConstant);
     assert(inputs[0].isNull());
   }
-  bool isCallOnInterceptor(Compiler compiler) => true;
+  bool isCallOnInterceptor(ClosedWorld closedWorld) => true;
 
   String toString() => 'one shot interceptor: selector=$selector, mask=$mask';
   accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);
@@ -2664,7 +2658,7 @@ class HIndex extends HInstruction {
   // TODO(27272): Make HIndex dependent on bounds checking.
   bool get isMovable => false;
 
-  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
   bool canThrow() => receiver.canBeNull();
 
@@ -2698,7 +2692,7 @@ class HIndexAssign extends HInstruction {
   // TODO(27272): Make HIndex dependent on bounds checking.
   bool get isMovable => false;
 
-  HInstruction getDartReceiver(Compiler compiler) => receiver;
+  HInstruction getDartReceiver(ClosedWorld closedWorld) => receiver;
   bool onlyThrowsNSM() => true;
   bool canThrow() => receiver.canBeNull();
 }
@@ -2826,7 +2820,7 @@ class HTypeConversion extends HCheck {
       : checkedType = type,
         super(<HInstruction>[input], type) {
     assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
-    assert(typeExpression == null || typeExpression.kind != TypeKind.TYPEDEF);
+    assert(typeExpression == null || !typeExpression.isTypedef);
     sourceElement = input.sourceElement;
   }
 
@@ -2835,7 +2829,7 @@ class HTypeConversion extends HCheck {
       : checkedType = type,
         super(<HInstruction>[input, typeRepresentation], type),
         receiverTypeCheckSelector = null {
-    assert(typeExpression.kind != TypeKind.TYPEDEF);
+    assert(!typeExpression.isTypedef);
     sourceElement = input.sourceElement;
   }
 
@@ -2862,7 +2856,7 @@ class HTypeConversion extends HCheck {
   HInstruction get checkedInput =>
       usesMethodOnType ? inputs[1] : super.checkedInput;
 
-  HInstruction convertType(Compiler compiler, DartType type, int kind) {
+  HInstruction convertType(ClosedWorld closedWorld, DartType type, int kind) {
     if (typeExpression == type) {
       // Don't omit a boolean conversion (which doesn't allow `null`) unless
       // this type conversion is already a boolean conversion.
@@ -2870,7 +2864,7 @@ class HTypeConversion extends HCheck {
         return this;
       }
     }
-    return super.convertType(compiler, type, kind);
+    return super.convertType(closedWorld, type, kind);
   }
 
   bool get isCheckedModeCheck {
@@ -3295,7 +3289,7 @@ class HTypeInfoReadVariable extends HInstruction {
   bool typeEquals(HInstruction other) => other is HTypeInfoReadVariable;
 
   bool dataEquals(HTypeInfoReadVariable other) {
-    return variable.element == other.variable.element;
+    return variable == other.variable;
   }
 
   String toString() => 'HTypeInfoReadVariable($variable)';
@@ -3413,8 +3407,7 @@ class HReadTypeVariable extends HInstruction {
   bool typeEquals(HInstruction other) => other is HReadTypeVariable;
 
   bool dataEquals(HReadTypeVariable other) {
-    return dartType.element == other.dartType.element &&
-        hasReceiver == other.hasReceiver;
+    return dartType == other.dartType && hasReceiver == other.hasReceiver;
   }
 }
 

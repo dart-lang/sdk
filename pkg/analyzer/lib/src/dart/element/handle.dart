@@ -409,7 +409,8 @@ abstract class ElementHandle implements Element {
       object is Element && object.location == _location;
 
   @override
-  accept(ElementVisitor visitor) => actualElement.accept(visitor);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      actualElement.accept(visitor);
 
   @override
   String computeDocumentationComment() => documentationComment;
@@ -874,6 +875,10 @@ class MethodElementHandle extends ExecutableElementHandle
 
   @override
   MethodDeclaration computeNode() => actualElement.computeNode();
+
+  @override
+  FunctionType getReifiedType(DartType objectType) =>
+      actualElement.getReifiedType(objectType);
 }
 
 /**

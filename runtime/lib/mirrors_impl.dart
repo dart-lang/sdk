@@ -4,9 +4,8 @@
 
 // VM-specific implementation of the dart:mirrors library.
 
-var dirty = false;
-final emptyList = new UnmodifiableListView([]);
-final emptyMap = new UnmodifiableMapView({});
+var _dirty = false;
+final _emptyList = new UnmodifiableListView([]);
 
 class _InternalMirrorError {
   final String _msg;
@@ -220,10 +219,10 @@ class _LocalMirrorSystem extends MirrorSystem {
 
   var _libraries;
   Map<Uri, LibraryMirror> get libraries {
-    if ((_libraries == null) || dirty) {
+    if ((_libraries == null) || _dirty) {
       _libraries = new Map<Uri, LibraryMirror>.fromIterable(
           _computeLibraries(), key: (e) => e.uri);
-      dirty = false;
+      _dirty = false;
     }
     return _libraries;
   }
@@ -303,13 +302,13 @@ class _SyntheticAccessor implements MethodMirror {
 
   TypeMirror get returnType => _target.type;
   List<ParameterMirror> get parameters {
-    if (isGetter) return emptyList;
+    if (isGetter) return _emptyList;
     return new UnmodifiableListView(
         [new _SyntheticSetterParameter(this, this._target)]);
   }
 
   SourceLocation get location => null;
-  List<InstanceMirror> get metadata => emptyList;
+  List<InstanceMirror> get metadata => _emptyList;
   String get source => null;
 }
 
@@ -333,7 +332,7 @@ class _SyntheticSetterParameter implements ParameterMirror {
   bool get hasDefaultValue => false;
   InstanceMirror get defaultValue => null;
   SourceLocation get location => null;
-  List<InstanceMirror> get metadata => emptyList;
+  List<InstanceMirror> get metadata => _emptyList;
 }
 
 abstract class _LocalObjectMirror extends _LocalMirror implements ObjectMirror {
@@ -787,7 +786,7 @@ class _LocalClassMirror extends _LocalObjectMirror
   List<TypeVariableMirror> _typeVariables = null;
   List<TypeVariableMirror> get typeVariables {
     if (_typeVariables == null) {
-      if (_isAnonymousMixinApplication) return _typeVariables = emptyList;
+      if (_isAnonymousMixinApplication) return _typeVariables = _emptyList;
       _typeVariables = new List<TypeVariableMirror>();
 
       List params = _ClassMirror_type_variables(_reflectee);
@@ -807,7 +806,7 @@ class _LocalClassMirror extends _LocalObjectMirror
   List<TypeMirror> get typeArguments {
     if(_typeArguments == null) {
       if(_isGenericDeclaration || _isAnonymousMixinApplication) {
-        _typeArguments = emptyList;
+        _typeArguments = _emptyList;
       } else {
         _typeArguments =
             new UnmodifiableListView(_computeTypeArguments(_reflectedType));
@@ -986,9 +985,9 @@ class _LocalFunctionTypeMirror extends _LocalClassMirror
 
   bool get isOriginalDeclaration => true;
   get originalDeclaration => this;
-  get typeVariables => emptyList;
-  get typeArguments => emptyList;
-  get metadata => emptyList;
+  get typeVariables => _emptyList;
+  get typeArguments => _emptyList;
+  get metadata => _emptyList;
   get location => null;
 
   String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
@@ -1072,8 +1071,8 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
   }
   Type get _reflectedType => _reflectee;
 
-  List<TypeVariableMirror> get typeVariables => emptyList;
-  List<TypeMirror> get typeArguments => emptyList;
+  List<TypeVariableMirror> get typeVariables => _emptyList;
+  List<TypeMirror> get typeArguments => _emptyList;
 
   bool get isOriginalDeclaration => true;
   TypeMirror get originalDeclaration => this;
@@ -1181,7 +1180,7 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
   List<TypeMirror> get typeArguments {
     if(_typeArguments == null) {
       if(_isGenericDeclaration) {
-        _typeArguments = emptyList;
+        _typeArguments = _emptyList;
       } else {
         _typeArguments = new UnmodifiableListView(
             _LocalClassMirror._computeTypeArguments(_reflectedType));
@@ -1558,7 +1557,7 @@ class _LocalParameterMirror extends _LocalVariableMirror
   }
 
   List<InstanceMirror> get metadata {
-    if (_unmirroredMetadata == null) return emptyList;
+    if (_unmirroredMetadata == null) return _emptyList;
     return new UnmodifiableListView(_unmirroredMetadata.map(reflect));
   }
 
@@ -1593,7 +1592,7 @@ class _SpecialTypeMirror extends _LocalMirror
   DeclarationMirror get owner => null;
 
   SourceLocation get location => null;
-  List<InstanceMirror> get metadata => emptyList;
+  List<InstanceMirror> get metadata => _emptyList;
 
   bool get hasReflectedType => simpleName == #dynamic;
   Type get reflectedType {
@@ -1601,8 +1600,8 @@ class _SpecialTypeMirror extends _LocalMirror
     throw new UnsupportedError("void has no reflected type");
   }
 
-  List<TypeVariableMirror> get typeVariables => emptyList;
-  List<TypeMirror> get typeArguments => emptyList;
+  List<TypeVariableMirror> get typeVariables => _emptyList;
+  List<TypeMirror> get typeArguments => _emptyList;
 
   bool get isOriginalDeclaration => true;
   TypeMirror get originalDeclaration => this;
@@ -1646,6 +1645,8 @@ class _Mirrors {
       native "Mirrors_makeLocalClassMirror";
   static TypeMirror makeLocalTypeMirror(Type key)
       native "Mirrors_makeLocalTypeMirror";
+  static Type instantiateGenericType(Type key, typeArguments)
+      native "Mirrors_instantiateGenericType";
 
   static Expando<ClassMirror> _declarationCache = new Expando("ClassMirror");
   static Expando<TypeMirror> _instantiationCache = new Expando("TypeMirror");
@@ -1662,7 +1663,10 @@ class _Mirrors {
     return classMirror;
   }
 
-  static TypeMirror reflectType(Type key) {
+  static TypeMirror reflectType(Type key, [List<Type> typeArguments]) {
+    if (typeArguments != null) {
+      key = _instantiateType(key, typeArguments);
+    }
     var typeMirror = _instantiationCache[key];
     if (typeMirror == null) {
       typeMirror = makeLocalTypeMirror(key);
@@ -1672,5 +1676,13 @@ class _Mirrors {
       }
     }
     return typeMirror;
+  }
+
+  static Type _instantiateType(Type key, List<Type> typeArguments) {
+    if (typeArguments.isEmpty) {
+      throw new ArgumentError.value(
+        typeArguments, 'typeArguments', 'Type arguments list cannot be empty.');
+    }
+    return instantiateGenericType(key, typeArguments.toList(growable: false));
   }
 }

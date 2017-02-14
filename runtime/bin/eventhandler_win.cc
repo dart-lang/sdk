@@ -145,6 +145,12 @@ bool Handle::CreateCompletionPort(HANDLE completion_port) {
 
 
 void Handle::Close() {
+  if (!SupportsOverlappedIO()) {
+    // If the handle uses synchronous I/O (e.g. stdin), cancel any pending
+    // operation before closing the handle, so the read thread is not blocked.
+    BOOL result = CancelIoEx(handle_, NULL);
+    ASSERT(result || (GetLastError() == ERROR_NOT_FOUND));
+  }
   MonitorLocker ml(monitor_);
   if (!IsClosing()) {
     // Close the socket and set the closing state. This close method can be

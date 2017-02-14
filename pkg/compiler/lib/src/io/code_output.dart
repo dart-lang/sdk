@@ -39,7 +39,7 @@ abstract class CodeOutput implements SourceLocations {
   /// If the output is closed, a [StateError] is thrown.
   void addBuffer(CodeBuffer buffer);
 
-  /// Returns the number of characters currently write to this output.
+  /// Returns the number of characters currently written to this output.
   int get length;
 
   /// Returns `true` if this output has been closed.

@@ -107,20 +107,26 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_async_topLevel() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_async_topLevel();
+  void test_blockBodiedLambdas_inferBottom_async_topLevel() {
+    super.test_blockBodiedLambdas_inferBottom_async_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_asyncStar_topLevel();
+  void test_blockBodiedLambdas_inferBottom_asyncStar_topLevel() {
+    super.test_blockBodiedLambdas_inferBottom_asyncStar_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel() {
-    super.test_blockBodiedLambdas_doesNotInferBottom_syncStar_topLevel();
+  void test_blockBodiedLambdas_inferBottom_sync_topLevel() {
+    super.test_blockBodiedLambdas_inferBottom_sync_topLevel();
+  }
+
+  @override
+  @failingTest
+  void test_blockBodiedLambdas_inferBottom_syncStar_topLevel() {
+    super.test_blockBodiedLambdas_inferBottom_syncStar_topLevel();
   }
 
   @override
@@ -559,6 +565,18 @@ var b = a.m();
 
   @override
   @failingTest
+  void test_inferredType_blockBodiedClosure_noArguments() {
+    super.test_inferredType_blockBodiedClosure_noArguments();
+  }
+
+  @override
+  @failingTest
+  void test_inferredType_blockClosure_noArgs_noReturn() {
+    super.test_inferredType_blockClosure_noArgs_noReturn();
+  }
+
+  @override
+  @failingTest
   void test_inferredType_opAssignToProperty_prefixedIdentifier() {
     super.test_inferredType_opAssignToProperty_prefixedIdentifier();
   }
@@ -701,6 +719,7 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
         .test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment();
   }
 
+  @override
   LibraryElementImpl _checkSource(
       SummaryResynthesizer resynthesizer, Source source) {
     LibraryElementImpl resynthesized =
@@ -725,10 +744,8 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
       super.createOptions()..strongMode = true;
 
   @override
-  @failingTest
-  test_instantiateToBounds_boundRefersToLaterTypeArgument() {
-    // TODO(paulberry): this is failing due to dartbug.com/27072.
-    super.test_instantiateToBounds_boundRefersToLaterTypeArgument();
+  test_instantiateToBounds_boundRefersToItself() {
+    super.test_instantiateToBounds_boundRefersToItself();
   }
 
   @override
@@ -820,7 +837,6 @@ abstract class _AstResynthesizeTestMixin
         context.analysisOptions.strongMode);
 
     return new TestSummaryResynthesizer(
-        null,
         context,
         new Map<String, UnlinkedUnit>()
           ..addAll(SerializedMockSdk.instance.uriToUnlinkedUnit)
@@ -832,6 +848,10 @@ abstract class _AstResynthesizeTestMixin
   }
 
   UnlinkedUnit _getUnlinkedUnit(Source source) {
+    if (source == null) {
+      return new UnlinkedUnitBuilder();
+    }
+
     String uriStr = source.uri.toString();
     {
       UnlinkedUnit unlinkedUnitInSdk =
@@ -873,7 +893,7 @@ abstract class _AstResynthesizeTestMixin
     Source resolveRelativeUri(String relativeUri) {
       Source resolvedSource =
           context.sourceFactory.resolveUri(librarySource, relativeUri);
-      if (resolvedSource == null) {
+      if (resolvedSource == null && !allowMissingFiles) {
         throw new StateError('Could not resolve $relativeUri in the context of '
             '$librarySource (${librarySource.runtimeType})');
       }

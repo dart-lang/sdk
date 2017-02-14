@@ -86,7 +86,7 @@ ObjectStore::ObjectStore()
       stack_overflow_(Instance::null()),
       out_of_memory_(Instance::null()),
       preallocated_unhandled_exception_(UnhandledException::null()),
-      preallocated_stack_trace_(Stacktrace::null()),
+      preallocated_stack_trace_(StackTrace::null()),
       lookup_port_handler_(Function::null()),
       empty_uint32_array_(TypedData::null()),
       handle_message_function_(Function::null()),
@@ -149,12 +149,12 @@ RawError* ObjectStore::PreallocateObjects() {
   ASSERT(isolate != NULL && isolate->object_store() == this);
   if (this->stack_overflow() != Instance::null()) {
     ASSERT(this->out_of_memory() != Instance::null());
-    ASSERT(this->preallocated_stack_trace() != Stacktrace::null());
+    ASSERT(this->preallocated_stack_trace() != StackTrace::null());
     return Error::null();
   }
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
-  ASSERT(this->preallocated_stack_trace() == Stacktrace::null());
+  ASSERT(this->preallocated_stack_trace() == StackTrace::null());
 
   this->pending_deferred_loads_ = GrowableObjectArray::New();
 
@@ -186,15 +186,15 @@ RawError* ObjectStore::PreallocateObjects() {
   // pre-allocated OutOfMemoryError.
   const UnhandledException& unhandled_exception =
       UnhandledException::Handle(UnhandledException::New(
-          Instance::Cast(result), Stacktrace::Handle(zone)));
+          Instance::Cast(result), StackTrace::Handle(zone)));
   set_preallocated_unhandled_exception(unhandled_exception);
 
   const Array& code_array = Array::Handle(
-      zone, Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
+      zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
   const Array& pc_offset_array = Array::Handle(
-      zone, Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
-  const Stacktrace& stack_trace =
-      Stacktrace::Handle(zone, Stacktrace::New(code_array, pc_offset_array));
+      zone, Array::New(StackTrace::kPreallocatedStackdepth, Heap::kOld));
+  const StackTrace& stack_trace =
+      StackTrace::Handle(zone, StackTrace::New(code_array, pc_offset_array));
   // Expansion of inlined functions requires additional memory at run time,
   // avoid it.
   stack_trace.set_expand_inlined(false);

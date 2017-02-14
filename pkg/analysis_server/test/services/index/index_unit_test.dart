@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:analysis_server/src/services/index/index_unit.dart';
@@ -55,99 +56,99 @@ class PackageIndexAssemblerTest extends AbstractSingleUnitTest {
     return imports[index].importedLibrary.definingCompilationUnit;
   }
 
-  void test_definedName_classMember_field() {
-    _indexTestUnit('''
+  test_definedName_classMember_field() async {
+    await _indexTestUnit('''
 class A {
   int f;
 }''');
     _assertDefinedName('f', IndexNameKind.classMember, 'f;');
   }
 
-  void test_definedName_classMember_getter() {
-    _indexTestUnit('''
+  test_definedName_classMember_getter() async {
+    await _indexTestUnit('''
 class A {
   int get g => 0;
 }''');
     _assertDefinedName('g', IndexNameKind.classMember, 'g => 0;');
   }
 
-  void test_definedName_classMember_method() {
-    _indexTestUnit('''
+  test_definedName_classMember_method() async {
+    await _indexTestUnit('''
 class A {
   m() {}
 }''');
     _assertDefinedName('m', IndexNameKind.classMember, 'm() {}');
   }
 
-  void test_definedName_classMember_operator() {
-    _indexTestUnit('''
+  test_definedName_classMember_operator() async {
+    await _indexTestUnit('''
 class A {
   operator +(o) {}
 }''');
     _assertDefinedName('+', IndexNameKind.classMember, '+(o) {}');
   }
 
-  void test_definedName_classMember_setter() {
-    _indexTestUnit('''
+  test_definedName_classMember_setter() async {
+    await _indexTestUnit('''
 class A {
   int set s (_) {}
 }''');
     _assertDefinedName('s', IndexNameKind.classMember, 's (_) {}');
   }
 
-  void test_definedName_topLevel_class() {
-    _indexTestUnit('class A {}');
+  test_definedName_topLevel_class() async {
+    await _indexTestUnit('class A {}');
     _assertDefinedName('A', IndexNameKind.topLevel, 'A {}');
   }
 
-  void test_definedName_topLevel_class2() {
-    _indexTestUnit('class A {}', declOnly: true);
+  test_definedName_topLevel_class2() async {
+    await _indexTestUnit('class A {}', declOnly: true);
     _assertDefinedName('A', IndexNameKind.topLevel, 'A {}');
   }
 
-  void test_definedName_topLevel_classAlias() {
-    _indexTestUnit('''
+  test_definedName_topLevel_classAlias() async {
+    await _indexTestUnit('''
 class M {}
 class C = Object with M;''');
     _assertDefinedName('C', IndexNameKind.topLevel, 'C =');
   }
 
-  void test_definedName_topLevel_enum() {
-    _indexTestUnit('enum E {a, b, c}');
+  test_definedName_topLevel_enum() async {
+    await _indexTestUnit('enum E {a, b, c}');
     _assertDefinedName('E', IndexNameKind.topLevel, 'E {');
   }
 
-  void test_definedName_topLevel_function() {
-    _indexTestUnit('foo() {}');
+  test_definedName_topLevel_function() async {
+    await _indexTestUnit('foo() {}');
     _assertDefinedName('foo', IndexNameKind.topLevel, 'foo() {}');
   }
 
-  void test_definedName_topLevel_functionTypeAlias() {
-    _indexTestUnit('typedef F(int p);');
+  test_definedName_topLevel_functionTypeAlias() async {
+    await _indexTestUnit('typedef F(int p);');
     _assertDefinedName('F', IndexNameKind.topLevel, 'F(int p);');
   }
 
-  void test_definedName_topLevel_getter() {
-    _indexTestUnit('''
+  test_definedName_topLevel_getter() async {
+    await _indexTestUnit('''
 int get g => 0;
 ''');
     _assertDefinedName('g', IndexNameKind.topLevel, 'g => 0;');
   }
 
-  void test_definedName_topLevel_setter() {
-    _indexTestUnit('''
+  test_definedName_topLevel_setter() async {
+    await _indexTestUnit('''
 int set s (_) {}
 ''');
     _assertDefinedName('s', IndexNameKind.topLevel, 's (_) {}');
   }
 
-  void test_definedName_topLevel_topLevelVariable() {
-    _indexTestUnit('var V = 42;');
+  test_definedName_topLevel_topLevelVariable() async {
+    await _indexTestUnit('var V = 42;');
     _assertDefinedName('V', IndexNameKind.topLevel, 'V = 42;');
   }
 
-  void test_hasAncestor_ClassDeclaration() {
-    _indexTestUnit('''
+  test_hasAncestor_ClassDeclaration() async {
+    await _indexTestUnit('''
 class A {}
 class B1 extends A {}
 class B2 implements A {}
@@ -168,8 +169,8 @@ class M extends Object with A {}
       ..isAncestorOf('M extends Object with A');
   }
 
-  void test_hasAncestor_ClassTypeAlias() {
-    _indexTestUnit('''
+  test_hasAncestor_ClassTypeAlias() async {
+    await _indexTestUnit('''
 class A {}
 class B extends A {}
 class C1 = Object with A;
@@ -183,8 +184,8 @@ class C2 = Object with B;
     assertThat(classElementB)..isAncestorOf('C2 = Object with B');
   }
 
-  void test_isExtendedBy_ClassDeclaration() {
-    _indexTestUnit('''
+  test_isExtendedBy_ClassDeclaration() async {
+    await _indexTestUnit('''
 class A {} // 1
 class B extends A {} // 2
 ''');
@@ -194,13 +195,13 @@ class B extends A {} // 2
       ..isReferencedAt('A {} // 2', false);
   }
 
-  void test_isExtendedBy_ClassDeclaration_isQualified() {
+  test_isExtendedBy_ClassDeclaration_isQualified() async {
     addSource(
         '/lib.dart',
         '''
 class A {}
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import 'lib.dart' as p;
 class B extends p.A {} // 2
 ''');
@@ -208,8 +209,8 @@ class B extends p.A {} // 2
     assertThat(elementA).isExtendedAt('A {} // 2', true);
   }
 
-  void test_isExtendedBy_ClassDeclaration_Object() {
-    _indexTestUnit('''
+  test_isExtendedBy_ClassDeclaration_Object() async {
+    await _indexTestUnit('''
 class A {}
 ''');
     ClassElement elementA = findElement('A');
@@ -217,8 +218,8 @@ class A {}
     assertThat(elementObject).isExtendedAt('A {}', true, length: 0);
   }
 
-  void test_isExtendedBy_ClassTypeAlias() {
-    _indexTestUnit('''
+  test_isExtendedBy_ClassTypeAlias() async {
+    await _indexTestUnit('''
 class A {}
 class B {}
 class C = A with B;
@@ -229,13 +230,13 @@ class C = A with B;
       ..isReferencedAt('A with', false);
   }
 
-  void test_isExtendedBy_ClassTypeAlias_isQualified() {
+  test_isExtendedBy_ClassTypeAlias_isQualified() async {
     addSource(
         '/lib.dart',
         '''
 class A {}
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import 'lib.dart' as p;
 class B {}
 class C = p.A with B;
@@ -246,8 +247,8 @@ class C = p.A with B;
       ..isReferencedAt('A with', true);
   }
 
-  void test_isImplementedBy_ClassDeclaration() {
-    _indexTestUnit('''
+  test_isImplementedBy_ClassDeclaration() async {
+    await _indexTestUnit('''
 class A {} // 1
 class B implements A {} // 2
 ''');
@@ -257,13 +258,13 @@ class B implements A {} // 2
       ..isReferencedAt('A {} // 2', false);
   }
 
-  void test_isImplementedBy_ClassDeclaration_isQualified() {
+  test_isImplementedBy_ClassDeclaration_isQualified() async {
     addSource(
         '/lib.dart',
         '''
 class A {}
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import 'lib.dart' as p;
 class B implements p.A {} // 2
 ''');
@@ -273,8 +274,8 @@ class B implements p.A {} // 2
       ..isReferencedAt('A {} // 2', true);
   }
 
-  void test_isImplementedBy_ClassTypeAlias() {
-    _indexTestUnit('''
+  test_isImplementedBy_ClassTypeAlias() async {
+    await _indexTestUnit('''
 class A {} // 1
 class B {} // 2
 class C = Object with A implements B; // 3
@@ -285,8 +286,8 @@ class C = Object with A implements B; // 3
       ..isReferencedAt('B; // 3', false);
   }
 
-  void test_isInvokedBy_FieldElement() {
-    _indexTestUnit('''
+  test_isInvokedBy_FieldElement() async {
+    await _indexTestUnit('''
 class A {
   var field;
   main() {
@@ -300,14 +301,14 @@ class A {
       ..isInvokedAt('field(); // nq', false);
   }
 
-  void test_isInvokedBy_FunctionElement() {
+  test_isInvokedBy_FunctionElement() async {
     addSource(
         '/lib.dart',
         '''
 library lib;
 foo() {}
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import 'lib.dart';
 import 'lib.dart' as pref;
 main() {
@@ -320,9 +321,9 @@ main() {
       ..isInvokedAt('foo(); // nq', false);
   }
 
-  void test_isInvokedBy_FunctionElement_synthetic_loadLibrary() {
+  test_isInvokedBy_FunctionElement_synthetic_loadLibrary() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import 'dart:math' deferred as math;
 main() {
   math.loadLibrary(); // 1
@@ -335,8 +336,8 @@ main() {
     assertThat(element).isInvokedAt('loadLibrary(); // 2', true);
   }
 
-  void test_isInvokedBy_MethodElement() {
-    _indexTestUnit('''
+  test_isInvokedBy_MethodElement() async {
+    await _indexTestUnit('''
 class A {
   foo() {}
   main() {
@@ -350,8 +351,8 @@ class A {
       ..isInvokedAt('foo(); // nq', false);
   }
 
-  void test_isInvokedBy_MethodElement_propagatedType() {
-    _indexTestUnit('''
+  test_isInvokedBy_MethodElement_propagatedType() async {
+    await _indexTestUnit('''
 class A {
   foo() {}
 }
@@ -364,8 +365,8 @@ main() {
     assertThat(element).isInvokedAt('foo();', true);
   }
 
-  void test_isInvokedBy_operator_binary() {
-    _indexTestUnit('''
+  test_isInvokedBy_operator_binary() async {
+    await _indexTestUnit('''
 class A {
   operator +(other) => this;
 }
@@ -384,8 +385,8 @@ main(A a) {
       ..isInvokedAt('++;', true, length: 2);
   }
 
-  void test_isInvokedBy_operator_index() {
-    _indexTestUnit('''
+  test_isInvokedBy_operator_index() async {
+    await _indexTestUnit('''
 class A {
   operator [](i) => null;
   operator []=(i, v) {}
@@ -401,8 +402,8 @@ main(A a) {
     assertThat(writeElement).isInvokedAt('[1]', true, length: 1);
   }
 
-  void test_isInvokedBy_operator_prefix() {
-    _indexTestUnit('''
+  test_isInvokedBy_operator_prefix() async {
+    await _indexTestUnit('''
 class A {
   A operator ~() => this;
 }
@@ -414,8 +415,8 @@ main(A a) {
     assertThat(element).isInvokedAt('~a', true, length: 1);
   }
 
-  void test_isInvokedBy_PropertyAccessorElement_getter() {
-    _indexTestUnit('''
+  test_isInvokedBy_PropertyAccessorElement_getter() async {
+    await _indexTestUnit('''
 class A {
   get ggg => null;
   main() {
@@ -429,8 +430,8 @@ class A {
       ..isInvokedAt('ggg(); // nq', false);
   }
 
-  void test_isMixedInBy_ClassDeclaration() {
-    _indexTestUnit('''
+  test_isMixedInBy_ClassDeclaration() async {
+    await _indexTestUnit('''
 class A {} // 1
 class B extends Object with A {} // 2
 ''');
@@ -440,13 +441,13 @@ class B extends Object with A {} // 2
       ..isReferencedAt('A {} // 2', false);
   }
 
-  void test_isMixedInBy_ClassDeclaration_isQualified() {
+  test_isMixedInBy_ClassDeclaration_isQualified() async {
     addSource(
         '/lib.dart',
         '''
 class A {}
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import 'lib.dart' as p;
 class B extends Object with p.A {} // 2
 ''');
@@ -454,8 +455,8 @@ class B extends Object with p.A {} // 2
     assertThat(elementA).isMixedInAt('A {} // 2', true);
   }
 
-  void test_isMixedInBy_ClassTypeAlias() {
-    _indexTestUnit('''
+  test_isMixedInBy_ClassTypeAlias() async {
+    await _indexTestUnit('''
 class A {} // 1
 class B = Object with A; // 2
 ''');
@@ -463,8 +464,8 @@ class B = Object with A; // 2
     assertThat(elementA).isMixedInAt('A; // 2', false);
   }
 
-  void test_isReferencedBy_ClassElement() {
-    _indexTestUnit('''
+  test_isReferencedBy_ClassElement() async {
+    await _indexTestUnit('''
 class A {
   static var field;
 }
@@ -484,9 +485,9 @@ main(A p) {
       ..isReferencedAt('A.field); // 3', false);
   }
 
-  void test_isReferencedBy_ClassElement_invocation() {
+  test_isReferencedBy_ClassElement_invocation() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class A {}
 main() {
   A(); // invalid code, but still a reference
@@ -495,14 +496,14 @@ main() {
     assertThat(element).isReferencedAt('A();', false);
   }
 
-  void test_isReferencedBy_ClassElement_invocation_isQualified() {
+  test_isReferencedBy_ClassElement_invocation_isQualified() async {
     verifyNoTestUnitErrors = false;
     addSource(
         '/lib.dart',
         '''
 class A {}
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import 'lib.dart' as p;
 main() {
   p.A(); // invalid code, but still a reference
@@ -511,8 +512,8 @@ main() {
     assertThat(element).isReferencedAt('A();', true);
   }
 
-  void test_isReferencedBy_ClassTypeAlias() {
-    _indexTestUnit('''
+  test_isReferencedBy_ClassTypeAlias() async {
+    await _indexTestUnit('''
 class A {}
 class B = Object with A;
 main(B p) {
@@ -525,35 +526,35 @@ main(B p) {
       ..isReferencedAt('B v;', false);
   }
 
-  void test_isReferencedBy_CompilationUnitElement_export() {
+  test_isReferencedBy_CompilationUnitElement_export() async {
     addSource(
         '/lib.dart',
         '''
 library lib;
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 export 'lib.dart';
 ''');
     LibraryElement element = testLibraryElement.exports[0].exportedLibrary;
     assertThat(element)..isReferencedAt("'lib.dart'", true, length: 10);
   }
 
-  void test_isReferencedBy_CompilationUnitElement_import() {
+  test_isReferencedBy_CompilationUnitElement_import() async {
     addSource(
         '/lib.dart',
         '''
 library lib;
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import 'lib.dart';
 ''');
     LibraryElement element = testLibraryElement.imports[0].importedLibrary;
     assertThat(element)..isReferencedAt("'lib.dart'", true, length: 10);
   }
 
-  void test_isReferencedBy_CompilationUnitElement_part() {
+  test_isReferencedBy_CompilationUnitElement_part() async {
     addSource('/my_unit.dart', 'part of my_lib;');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 library my_lib;
 part 'my_unit.dart';
 ''');
@@ -561,8 +562,8 @@ part 'my_unit.dart';
     assertThat(element)..isReferencedAt("'my_unit.dart';", true, length: 14);
   }
 
-  void test_isReferencedBy_ConstructorElement() {
-    _indexTestUnit('''
+  test_isReferencedBy_ConstructorElement() async {
+    await _indexTestUnit('''
 class A implements B {
   A() {}
   A.foo() {}
@@ -593,8 +594,8 @@ main() {
       ..isReferencedAt('.foo(); // 5', true, length: 4);
   }
 
-  void test_isReferencedBy_ConstructorElement_classTypeAlias() {
-    _indexTestUnit('''
+  test_isReferencedBy_ConstructorElement_classTypeAlias() async {
+    await _indexTestUnit('''
 class M {}
 class A implements B {
   A() {}
@@ -620,8 +621,8 @@ main() {
       ..isReferencedAt('.named(); // C2', true, length: 6);
   }
 
-  void test_isReferencedBy_ConstructorElement_classTypeAlias_cycle() {
-    _indexTestUnit('''
+  test_isReferencedBy_ConstructorElement_classTypeAlias_cycle() async {
+    await _indexTestUnit('''
 class M {}
 class A = B with M;
 class B = A with M;
@@ -633,8 +634,8 @@ main() {
     // No additional validation, but it should not fail with stack overflow.
   }
 
-  void test_isReferencedBy_ConstructorElement_namedOnlyWithDot() {
-    _indexTestUnit('''
+  test_isReferencedBy_ConstructorElement_namedOnlyWithDot() async {
+    await _indexTestUnit('''
 class A {
   A.named() {}
 }
@@ -649,8 +650,8 @@ main() {
     expect(unitIndex.usedElementOffsets, contains(offsetWithDot));
   }
 
-  void test_isReferencedBy_ConstructorElement_redirection() {
-    _indexTestUnit('''
+  test_isReferencedBy_ConstructorElement_redirection() async {
+    await _indexTestUnit('''
 class A {
   A() : this.bar(); // 1
   A.foo() : this(); // 2
@@ -664,8 +665,8 @@ class A {
     assertThat(constA_bar).isReferencedAt('.bar(); // 1', true, length: 4);
   }
 
-  void test_isReferencedBy_ConstructorElement_synthetic() {
-    _indexTestUnit('''
+  test_isReferencedBy_ConstructorElement_synthetic() async {
+    await _indexTestUnit('''
 class A {}
 main() {
   new A(); // 1
@@ -677,15 +678,15 @@ main() {
     assertThat(constA)..isReferencedAt('(); // 1', true, length: 0);
   }
 
-  void test_isReferencedBy_DynamicElement() {
-    _indexTestUnit('''
+  test_isReferencedBy_DynamicElement() async {
+    await _indexTestUnit('''
 dynamic f() {
 }''');
     expect(unitIndex.usedElementOffsets, isEmpty);
   }
 
-  void test_isReferencedBy_FieldElement() {
-    _indexTestUnit('''
+  test_isReferencedBy_FieldElement() async {
+    await _indexTestUnit('''
 class A {
   var field;
   A({this.field});
@@ -714,8 +715,8 @@ main(A a) {
     assertThat(field)..isReferencedAt('field: 4', true);
   }
 
-  void test_isReferencedBy_FieldElement_multiple() {
-    _indexTestUnit('''
+  test_isReferencedBy_FieldElement_multiple() async {
+    await _indexTestUnit('''
 class A {
   var aaa;
   var bbb;
@@ -748,9 +749,9 @@ class A {
     }
   }
 
-  void test_isReferencedBy_FieldElement_ofEnum() {
+  test_isReferencedBy_FieldElement_ofEnum() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 enum MyEnum {
   A, B, C
 }
@@ -769,9 +770,9 @@ main() {
     assertThat(enumElement.getGetter('B'))..isReferencedAt('B);', true);
   }
 
-  void test_isReferencedBy_FieldElement_synthetic_hasGetter() {
+  test_isReferencedBy_FieldElement_synthetic_hasGetter() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class A {
   A() : f = 42;
   int get f => 0;
@@ -781,9 +782,9 @@ class A {
     assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
   }
 
-  void test_isReferencedBy_FieldElement_synthetic_hasGetterSetter() {
+  test_isReferencedBy_FieldElement_synthetic_hasGetterSetter() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class A {
   A() : f = 42;
   int get f => 0;
@@ -794,9 +795,9 @@ class A {
     assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
   }
 
-  void test_isReferencedBy_FieldElement_synthetic_hasSetter() {
+  test_isReferencedBy_FieldElement_synthetic_hasSetter() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class A {
   A() : f = 42;
   set f(_) {}
@@ -806,8 +807,8 @@ class A {
     assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
   }
 
-  void test_isReferencedBy_FunctionElement() {
-    _indexTestUnit('''
+  test_isReferencedBy_FunctionElement() async {
+    await _indexTestUnit('''
 foo() {}
 main() {
   print(foo);
@@ -820,13 +821,13 @@ main() {
       ..isInvokedAt('foo());', false);
   }
 
-  void test_isReferencedBy_FunctionElement_with_LibraryElement() {
+  test_isReferencedBy_FunctionElement_with_LibraryElement() async {
     addSource(
         '/foo.dart',
         r'''
 bar() {}
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import "foo.dart";
 main() {
   bar();
@@ -840,8 +841,8 @@ main() {
     }
   }
 
-  void test_isReferencedBy_FunctionTypeAliasElement() {
-    _indexTestUnit('''
+  test_isReferencedBy_FunctionTypeAliasElement() async {
+    await _indexTestUnit('''
 typedef A();
 main(A p) {
 }
@@ -857,8 +858,8 @@ main(A p) {
    * This caused duplicate indexing.
    * Here we test that the problem is fixed one way or another.
    */
-  void test_isReferencedBy_identifierInComment() {
-    _indexTestUnit('''
+  test_isReferencedBy_identifierInComment() async {
+    await _indexTestUnit('''
 class A {}
 /// [A] text
 var myVariable = null;
@@ -867,8 +868,8 @@ var myVariable = null;
     assertThat(element)..isReferencedAt('A] text', false);
   }
 
-  void test_isReferencedBy_MethodElement() {
-    _indexTestUnit('''
+  test_isReferencedBy_MethodElement() async {
+    await _indexTestUnit('''
 class A {
   method() {}
   main() {
@@ -882,8 +883,8 @@ class A {
       ..isReferencedAt('method); // nq', false);
   }
 
-  void test_isReferencedBy_ParameterElement() {
-    _indexTestUnit('''
+  test_isReferencedBy_ParameterElement() async {
+    await _indexTestUnit('''
 foo({var p}) {}
 main() {
   foo(p: 1);
@@ -893,14 +894,14 @@ main() {
     assertThat(element)..isReferencedAt('p: 1', true);
   }
 
-  void test_isReferencedBy_TopLevelVariableElement() {
+  test_isReferencedBy_TopLevelVariableElement() async {
     addSource(
         '/lib.dart',
         '''
 library lib;
 var V;
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import 'lib.dart' show V; // imp
 import 'lib.dart' as pref;
 main() {
@@ -919,7 +920,7 @@ main() {
       ..isReferencedAt('V = 5; // nq', false);
   }
 
-  void test_isReferencedBy_TopLevelVariableElement_synthetic_hasGetterSetter() {
+  test_isReferencedBy_TopLevelVariableElement_synthetic_hasGetterSetter() async {
     verifyNoTestUnitErrors = false;
     addSource(
         '/lib.dart',
@@ -927,29 +928,29 @@ main() {
 int get V => 0;
 void set V(_) {}
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import 'lib.dart' show V;
 ''');
     TopLevelVariableElement element = importedUnit().topLevelVariables[0];
     assertThat(element).isReferencedAt('V;', true);
   }
 
-  void test_isReferencedBy_TopLevelVariableElement_synthetic_hasSetter() {
+  test_isReferencedBy_TopLevelVariableElement_synthetic_hasSetter() async {
     verifyNoTestUnitErrors = false;
     addSource(
         '/lib.dart',
         '''
 void set V(_) {}
 ''');
-    _indexTestUnit('''
+    await _indexTestUnit('''
 import 'lib.dart' show V;
 ''');
     TopLevelVariableElement element = importedUnit().topLevelVariables[0];
     assertThat(element).isReferencedAt('V;', true);
   }
 
-  void test_isReferencedBy_typeInVariableList() {
-    _indexTestUnit('''
+  test_isReferencedBy_typeInVariableList() async {
+    await _indexTestUnit('''
 class A {}
 A myVariable = null;
 ''');
@@ -957,8 +958,8 @@ A myVariable = null;
     assertThat(element).isReferencedAt('A myVariable', false);
   }
 
-  void test_isWrittenBy_FieldElement() {
-    _indexTestUnit('''
+  test_isWrittenBy_FieldElement() async {
+    await _indexTestUnit('''
 class A {
   int field;
   A.foo({this.field});
@@ -971,9 +972,9 @@ class A {
       ..isWrittenAt('field = 5', true);
   }
 
-  void test_usedName_inLibraryIdentifier() {
+  test_usedName_inLibraryIdentifier() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 library aaa.bbb.ccc;
 class C {
   var bbb;
@@ -987,9 +988,9 @@ main(p) {
       ..isUsedQ('bbb = 1;', IndexRelationKind.IS_WRITTEN_BY);
   }
 
-  void test_usedName_qualified_resolved() {
+  test_usedName_qualified_resolved() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class C {
   var x;
 }
@@ -1007,9 +1008,9 @@ main(C c) {
       ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
-  void test_usedName_qualified_unresolved() {
+  test_usedName_qualified_unresolved() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 main(p) {
   p.x;
   p.x = 1;
@@ -1024,9 +1025,9 @@ main(p) {
       ..isUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
-  void test_usedName_unqualified_resolved() {
+  test_usedName_unqualified_resolved() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class C {
   var x;
   m() {
@@ -1044,9 +1045,9 @@ class C {
       ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
-  void test_usedName_unqualified_unresolved() {
+  test_usedName_unqualified_unresolved() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 main() {
   x;
   x = 1;
@@ -1217,8 +1218,8 @@ main() {
     return _getStringId(str);
   }
 
-  void _indexTestUnit(String code, {bool declOnly: false}) {
-    resolveTestUnit(code);
+  Future<Null> _indexTestUnit(String code, {bool declOnly: false}) async {
+    await resolveTestUnit(code);
     PackageIndexAssembler assembler = new PackageIndexAssembler();
     if (declOnly) {
       assembler.indexDeclarations(testUnit);

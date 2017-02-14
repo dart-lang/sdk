@@ -585,7 +585,7 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
       Instance::CheckedHandle(zone, arguments.ArgAt(0));
 
   if (src_instance.IsNull()) {
-    const Array& args = Array::Handle(zone, Array::New(4));
+    const Array& args = Array::Handle(zone, Array::New(5));
     args.SetAt(
         0, String::Handle(
                zone,
@@ -596,6 +596,7 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
     args.SetAt(1, String::Handle(zone, String::null()));
     args.SetAt(2, Smi::Handle(zone, Smi::New(0)));
     args.SetAt(3, Smi::Handle(zone, Smi::New(0)));
+    args.SetAt(4, String::Handle(zone, String::null()));
 
     Exceptions::ThrowByType(Exceptions::kAssertion, args);
     UNREACHABLE();
@@ -2215,6 +2216,15 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
 }
 
 
+DEFINE_RUNTIME_ENTRY(RewindPostDeopt, 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(PRODUCT)
+  isolate->debugger()->RewindPostDeopt();
+#endif  // !PRODUCT
+#endif  // !DART_PRECOMPILED_RUNTIME
+  UNREACHABLE();
+}
+
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                           BigintCompare,
                           2,
@@ -2243,14 +2253,6 @@ double DartModulo(double left, double right) {
     }
   }
   return remainder;
-}
-
-
-void SinCos(double arg, double* cos_res, double* sin_res) {
-  // The compiler may merge the calls to sincos, if supported. This
-  // typically occurs only when compiling for 64-bit targets.
-  *cos_res = cos(arg);
-  *sin_res = sin(arg);
 }
 
 

@@ -76,12 +76,11 @@ uword FlowGraphBuilder::FindDoubleConstant(double value) {
 }
 
 
-#define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
-  {Symbols::k##test_factory_symbol##Id, cid, fp,                               \
-   #test_factory_symbol ", " #cid},  // NOLINT
+#define RECOGNIZE_FACTORY(symbol, class_name, constructor_name, cid, fp)       \
+  {Symbols::k##symbol##Id, cid, fp, #symbol ", " #cid},  // NOLINT
 
 static struct {
-  intptr_t symbold_id;
+  intptr_t symbol_id;
   intptr_t cid;
   intptr_t finger_print;
   const char* name;
@@ -98,10 +97,10 @@ intptr_t FactoryRecognizer::ResultCid(const Function& factory) {
          (lib.raw() == Library::TypedDataLibrary()));
   const String& factory_name = String::Handle(factory.name());
   for (intptr_t i = 0;
-       factory_recognizer_list[i].symbold_id != Symbols::kIllegal; i++) {
+       factory_recognizer_list[i].symbol_id != Symbols::kIllegal; i++) {
     if (String::EqualsIgnoringPrivateKey(
             factory_name,
-            Symbols::Symbol(factory_recognizer_list[i].symbold_id))) {
+            Symbols::Symbol(factory_recognizer_list[i].symbol_id))) {
       return factory_recognizer_list[i].cid;
     }
   }
@@ -992,23 +991,8 @@ void TestGraphVisitor::ReturnValue(Value* value) {
 }
 
 
-void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
-  BranchInstr* branch;
-  if (Token::IsStrictEqualityOperator(comp->kind())) {
-    ASSERT(comp->IsStrictCompare());
-    branch = new (Z) BranchInstr(comp);
-  } else if (Token::IsEqualityOperator(comp->kind()) &&
-             (comp->left()->BindsToConstantNull() ||
-              comp->right()->BindsToConstantNull())) {
-    branch = new (Z) BranchInstr(new (Z) StrictCompareInstr(
-        comp->token_pos(),
-        (comp->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
-        comp->left(), comp->right(),
-        false));  // No number check.
-  } else {
-    branch = new (Z) BranchInstr(comp);
-    branch->set_is_checked(Isolate::Current()->type_checks());
-  }
+void TestGraphVisitor::MergeBranchWithStrictCompare(StrictCompareInstr* comp) {
+  BranchInstr* branch = new (Z) BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
   true_successor_addresses_.Add(branch->true_successor_address());
@@ -1031,9 +1015,9 @@ void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
 
 
 void TestGraphVisitor::ReturnDefinition(Definition* definition) {
-  ComparisonInstr* comp = definition->AsComparison();
+  StrictCompareInstr* comp = definition->AsStrictCompare();
   if (comp != NULL) {
-    MergeBranchWithComparison(comp);
+    MergeBranchWithStrictCompare(comp);
     return;
   }
   if (!Isolate::Current()->type_checks()) {
@@ -2120,6 +2104,11 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
 
 void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
+  if (FLAG_support_debugger && owner()->function().is_debuggable()) {
+    AddInstruction(new (Z) DebugStepCheckInstr(node->token_pos(),
+                                               RawPcDescriptors::kRuntimeCall));
+  }
+
   NestedContextAdjustment context_adjustment(owner(), owner()->context_level());
 
   for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
@@ -3380,7 +3369,7 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
     if (rhs->IsAssignableNode()) {
       rhs = rhs->AsAssignableNode()->expr();
     }
-    if ((rhs->IsLiteralNode() ||
+    if ((rhs->IsLiteralNode() || rhs->IsLoadStaticFieldNode() ||
          (rhs->IsLoadLocalNode() &&
           !rhs->AsLoadLocalNode()->local().IsInternal()) ||
          rhs->IsClosureNode()) &&
@@ -3492,7 +3481,7 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
       rhs = rhs->AsAssignableNode()->expr();
     }
     if ((rhs->IsLiteralNode() || rhs->IsLoadLocalNode() ||
-         rhs->IsClosureNode()) &&
+         rhs->IsLoadStaticFieldNode() || rhs->IsClosureNode()) &&
         node->token_pos().IsDebugPause()) {
       AddInstruction(new (Z) DebugStepCheckInstr(
           node->token_pos(), RawPcDescriptors::kRuntimeCall));
@@ -4223,6 +4212,7 @@ void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
   if (FLAG_support_debugger) {
     if (node->exception()->IsLiteralNode() ||
         node->exception()->IsLoadLocalNode() ||
+        node->exception()->IsLoadStaticFieldNode() ||
         node->exception()->IsClosureNode()) {
       AddInstruction(new (Z) DebugStepCheckInstr(
           node->token_pos(), RawPcDescriptors::kRuntimeCall));

@@ -53,6 +53,27 @@ mixin(base, @rest mixins) => JS(
         $copyProperties(s, m[$_methodSig]);
       }
       return s;
+    },
+    fields: () => {
+      let s = {};
+      for (let m of $mixins) {
+        $copyProperties(s, m[$_fieldSig]);
+      }
+      return s;
+    },
+    getters: () => {
+      let s = {};
+      for (let m of $mixins) {
+        $copyProperties(s, m[$_getterSig]);
+      }
+      return s;
+    },
+    setters: () => {
+      let s = {};
+      for (let m of $mixins) {
+        $copyProperties(s, m[$_setterSig]);
+      }
+      return s;
     }
   });
 
@@ -64,12 +85,14 @@ mixin(base, @rest mixins) => JS(
 /// The Symbol for storing type arguments on a specialized generic type.
 final _mixins = JS('', 'Symbol("mixins")');
 
-getMixins(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null', clazz, _mixins, clazz, _mixins);
+getMixins(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
+    clazz, _mixins, clazz, _mixins);
 
 @JSExportName('implements')
 final _implements = JS('', 'Symbol("implements")');
 
-getImplements(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null', clazz, _implements, clazz, _implements);
+getImplements(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
+    clazz, _implements, clazz, _implements);
 
 /// The Symbol for storing type arguments on a specialized generic type.
 final _typeArguments = JS('', 'Symbol("typeArguments")');
@@ -151,12 +174,12 @@ getGenericArgs(type) => JS('', '$safeGetOwnProperty($type, $_typeArguments)');
 final _constructorSig = JS('', 'Symbol("sigCtor")');
 final _methodSig = JS('', 'Symbol("sigMethod")');
 final _fieldSig = JS('', 'Symbol("sigField")');
-final _getterSig= JS('', 'Symbol("sigGetter")');
-final _setterSig= JS('', 'Symbol("sigSetter")');
+final _getterSig = JS('', 'Symbol("sigGetter")');
+final _setterSig = JS('', 'Symbol("sigSetter")');
 final _staticSig = JS('', 'Symbol("sigStaticMethod")');
 final _staticFieldSig = JS('', 'Symbol("sigStaticField")');
-final _staticGetterSig= JS('', 'Symbol("sigStaticGetter")');
-final _staticSetterSig= JS('', 'Symbol("sigStaticSetter")');
+final _staticGetterSig = JS('', 'Symbol("sigStaticGetter")');
+final _staticSetterSig = JS('', 'Symbol("sigStaticSetter")');
 final _genericTypeCtor = JS('', 'Symbol("genericType")');
 
 // TODO(vsm): Collapse this as well - just provide a dart map to mirrors code.
@@ -174,18 +197,50 @@ getStaticSetterSig(value) => JS('', '#[#]', value, _staticSetterSig);
 getGenericTypeCtor(value) => JS('', '#[#]', value, _genericTypeCtor);
 
 /// Get the type of a method from an object using the stored signature
-getMethodType(obj, name) => JS(
+getType(obj) => JS(
     '',
     '''(() => {
-  let type = $obj == null ? $Object : $obj.__proto__.constructor;
-  return $getMethodTypeFromType(type, $name);
+  return $obj == null ? $Object : $obj.__proto__.constructor;
 })()''');
 
+bool isJsInterop(obj) {
+  if (JS('bool', 'typeof # === "function"', obj)) {
+    // A function is a Dart function if it has runtime type information.
+    return _getRuntimeType(obj) == null;
+  }
+  // Primitive types are not JS interop types.
+  if (JS('bool', 'typeof # !== "object"', obj)) return false;
+
+  // Extension types are not considered JS interop types.
+  // Note that it is still possible to call typed JS interop methods on
+  // extension types but the calls must be statically typed.
+  if (getExtensionType(obj) != null) return false;
+  return JS('bool', '!($obj instanceof $Object)');
+}
+
 /// Get the type of a method from a type using the stored signature
-getMethodTypeFromType(type, name) => JS(
+getMethodType(type, name) => JS(
     '',
     '''(() => {
   let sigObj = $type[$_methodSig];
+  if (sigObj === void 0) return void 0;
+  return sigObj[$name];
+})()''');
+
+getFieldType(type, name) => JS(
+    '',
+    '''(() => {
+  let sigObj = $type[$_fieldSig];
+  if (sigObj === void 0) return void 0;
+  let fieldType = sigObj[$name];
+  // workaround to handle metadata.
+  return (fieldType instanceof Array) ? fieldType[0] : fieldType;
+})()''');
+
+getSetterType(type, name) => JS(
+    '',
+    '''(() => {
+  let sigObj = $type[$_setterSig];
   if (sigObj === void 0) return void 0;
   return sigObj[$name];
 })()''');
@@ -219,7 +274,7 @@ bind(obj, name, f) => JS(
   $f = $f.bind($obj);
   // TODO(jmesserly): track the function's signature on the function, instead
   // of having to go back to the class?
-  let sig = $getMethodType($obj, $name);
+  let sig = $getMethodType($getType($obj), $name);
   $assert_(sig);
   $tag($f, sig);
   return $f;
@@ -242,7 +297,9 @@ _setInstanceSignature(f, sigF, kind) => JS(
     '''(() => {
   $defineMemoizedGetter($f, $kind, () => {
     let sigObj = $sigF();
-    sigObj.__proto__ = $f.__proto__[$kind];
+    let proto = $f.__proto__;
+    // We need to set the root proto to null not undefined.
+    sigObj.__proto__ = ($kind in proto) ? proto[$kind] : null;
     return sigObj;
   });
 })()''');
@@ -330,7 +387,18 @@ setSignature(f, signature) => JS(
   $_setStaticTypes($f, names);
 })()''');
 
-hasMethod(obj, name) => JS('', '$getMethodType($obj, $name) !== void 0');
+_hasSigEntry(type, sigF, name) => JS(
+    '',
+    '''(() => {
+  let sigObj = $type[$sigF];
+  if (sigObj === void 0) return false;
+  return $name in sigObj;
+})()''');
+
+hasMethod(type, name) => _hasSigEntry(type, _methodSig, name);
+hasGetter(type, name) => _hasSigEntry(type, _getterSig, name);
+hasSetter(type, name) => _hasSigEntry(type, _setterSig, name);
+hasField(type, name) => _hasSigEntry(type, _fieldSig, name);
 
 /// Given a class and an initializer method name, creates a constructor
 /// function with the same name.
@@ -431,9 +499,15 @@ registerExtension(jsType, dartExtType) => JS(
   // Mark the JS type's instances so we can easily check for extensions.
   jsProto[$_extensionType] = $dartExtType;
   $_installProperties(jsProto, extProto);
-  let originalSigFn = $getOwnPropertyDescriptor($dartExtType, $_methodSig).get;
-  $assert_(originalSigFn);
-  $defineMemoizedGetter($jsType, $_methodSig, originalSigFn);
+  function updateSig(sigF) {
+    let originalSigFn = $getOwnPropertyDescriptor($dartExtType, sigF).get;
+    $assert_(originalSigFn);
+    $defineMemoizedGetter($jsType, sigF, originalSigFn);
+  }
+  updateSig($_methodSig);
+  updateSig($_fieldSig);
+  updateSig($_getterSig);
+  updateSig($_setterSig);
 })()''');
 
 ///
@@ -469,14 +543,24 @@ defineExtensionMembers(type, methodNames) => JS(
   // annotations) any time we copy a method as part of our metaprogramming.
   // It might be more friendly to JS metaprogramming if we include this info
   // on the function.
-  let originalSigFn = $getOwnPropertyDescriptor($type, $_methodSig).get;
-  $defineMemoizedGetter(type, $_methodSig, function() {
-    let sig = originalSigFn();
-    for (let name of $methodNames) {
-      sig[$getExtensionSymbol(name)] = sig[name];
-    }
-    return sig;
-  });
+
+  function upgradeSig(sigF) {
+    let originalSigFn = $getOwnPropertyDescriptor($type, sigF).get;
+    $defineMemoizedGetter(type, sigF, function() {
+      let sig = originalSigFn();
+      let propertyNames = Object.getOwnPropertyNames(sig);
+      for (let name of methodNames) {
+        if (name in sig) {
+          sig[$getExtensionSymbol(name)] = sig[name];
+        }
+      }
+      return sig;
+    });
+  };
+  upgradeSig($_methodSig);
+  upgradeSig($_fieldSig);
+  upgradeSig($_getterSig);
+  upgradeSig($_setterSig);
 })()''');
 
 /// Sets the type of `obj` to be `type`
@@ -499,7 +583,9 @@ setBaseClass(derived, base) {
 /// Like [setBaseClass] but for generic extension types, e.g. `JSArray<E>`
 setExtensionBaseClass(derived, base) {
   // Mark the generic type as an extension type and link the prototype objects
-  return JS('', '''(() => {
+  return JS(
+      '',
+      '''(() => {
     if ($base) {
       $derived.prototype[$_extensionType] = $derived;
       $derived.prototype.__proto__ = $base.prototype

@@ -211,11 +211,12 @@ void doTest(String allocation, [String keyElement, String valueElement]) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
       expectedErrors: 0, expectedWarnings: 1);
-  var closedWorld = compiler.openWorld.closeWorld(compiler.reporter);
+  compiler.closeResolution();
   asyncTest(() => compiler.run(uri).then((_) {
         var keyType, valueType;
-        var commonMasks = compiler.closedWorld.commonMasks;
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
+        var commonMasks = closedWorld.commonMasks;
         var emptyType = new TypeMask.nonNullEmpty();
         var aKeyType =
             typesInferrer.getTypeOfElement(findElement(compiler, 'aKey'));
@@ -233,14 +234,15 @@ void doTest(String allocation, [String keyElement, String valueElement]) {
         checkType(String name, keyType, valueType) {
           var element = findElement(compiler, name);
           MapTypeMask mask = typesInferrer.getTypeOfElement(element);
-          Expect.equals(keyType, simplify(mask.keyType, compiler), name);
-          Expect.equals(valueType, simplify(mask.valueType, compiler), name);
+          Expect.equals(keyType, simplify(mask.keyType, closedWorld), name);
+          Expect.equals(valueType, simplify(mask.valueType, closedWorld), name);
         }
 
         K(TypeMask other) =>
-            simplify(keyType.union(other, closedWorld), compiler);
+            simplify(keyType.union(other, closedWorld), closedWorld);
         V(TypeMask other) =>
-            simplify(valueType.union(other, closedWorld), compiler).nullable();
+            simplify(valueType.union(other, closedWorld), closedWorld)
+                .nullable();
 
         checkType('mapInField', K(aKeyType), V(commonMasks.numType));
         checkType('mapPassedToMethod', K(aKeyType), V(commonMasks.numType));

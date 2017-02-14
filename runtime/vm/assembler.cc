@@ -319,10 +319,10 @@ RawObjectPool* ObjectPoolWrapper::MakeObjectPool() {
     return Object::empty_object_pool().raw();
   }
   const ObjectPool& result = ObjectPool::Handle(ObjectPool::New(len));
-  const TypedData& info_array = TypedData::Handle(result.info_array());
+  ObjectPoolInfo pool_info(result);
   for (intptr_t i = 0; i < len; ++i) {
     ObjectPool::EntryType info = object_pool_[i].type_;
-    info_array.SetInt8(i, static_cast<int8_t>(info));
+    pool_info.SetInfoAt(i, info);
     if (info == ObjectPool::kTaggedObject) {
       result.SetObjectAt(i, *object_pool_[i].obj_);
     } else {

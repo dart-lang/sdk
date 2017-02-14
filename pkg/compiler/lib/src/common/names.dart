@@ -162,6 +162,9 @@ class Uris {
   /// The URI for 'dart:html'.
   static final Uri dart_html = new Uri(scheme: 'dart', path: 'html');
 
+  /// The URI for 'dart:isolate'.
+  static final Uri dart_isolate = new Uri(scheme: 'dart', path: 'isolate');
+
   /// The URI for 'dart:mirrors'.
   static final Uri dart_mirrors = new Uri(scheme: 'dart', path: 'mirrors');
 

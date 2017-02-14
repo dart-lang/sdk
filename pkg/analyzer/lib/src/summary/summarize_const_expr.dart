@@ -36,6 +36,14 @@ UnlinkedConstructorInitializer serializeConstructorInitializer(
     }
   }
 
+  if (node is AssertInitializer) {
+    serializeArguments(node.message != null
+        ? [node.condition, node.message]
+        : [node.condition]);
+    return new UnlinkedConstructorInitializerBuilder(
+        kind: UnlinkedConstructorInitializerKind.assertInvocation,
+        arguments: arguments);
+  }
   if (node is RedirectingConstructorInvocation) {
     serializeArguments(node.argumentList.arguments);
     return new UnlinkedConstructorInitializerBuilder(
@@ -178,8 +186,12 @@ abstract class AbstractConstExprSerializer {
   /**
    * Return [EntityRefBuilder] that corresponds to the given [type].
    */
-  EntityRefBuilder serializeTypeName(TypeName type) {
-    return serializeType(type?.type, type?.name, type?.typeArguments);
+  EntityRefBuilder serializeTypeName(TypeAnnotation type) {
+    if (type is TypeName) {
+      return serializeType(type?.type, type?.name, type?.typeArguments);
+    }
+    throw new ArgumentError(
+        'Cannot serialize an instance of ${type.runtimeType}');
   }
 
   /**
@@ -376,6 +388,8 @@ abstract class AbstractConstExprSerializer {
       _serialize(expr.expression);
       references.add(serializeTypeName(expr.type));
       operations.add(UnlinkedExprOperation.typeCheck);
+    } else if (expr is ThisExpression) {
+      operations.add(UnlinkedExprOperation.pushThis);
     } else if (expr is ThrowExpression) {
       isValidConst = false;
       _serialize(expr.expression);
@@ -649,8 +663,8 @@ abstract class AbstractConstExprSerializer {
       ints.add(0);
     } else {
       ints.add(typeArguments.arguments.length);
-      for (TypeName typeName in typeArguments.arguments) {
-        references.add(serializeTypeName(typeName));
+      for (TypeAnnotation type in typeArguments.arguments) {
+        references.add(serializeTypeName(type));
       }
     }
   }

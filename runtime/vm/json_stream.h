@@ -30,6 +30,8 @@ class ServiceEvent;
 class String;
 class TimelineEvent;
 class TimelineEventBlock;
+class Thread;
+class ThreadRegistry;
 class Zone;
 
 
@@ -53,14 +55,14 @@ enum JSONRpcErrorCode {
   kStreamNotSubscribed = 104,
   kIsolateMustBeRunnable = 105,
   kIsolateMustBePaused = 106,
+  kCannotResume = 107,
+  kIsolateIsReloading = 108,
+  kIsolateReloadBarred = 109,
 
   // Experimental (used in private rpcs).
-  kIsolateIsReloading = 1000,
   kFileSystemAlreadyExists = 1001,
   kFileSystemDoesNotExist = 1002,
   kFileDoesNotExist = 1003,
-  kIsolateReloadFailed = 1004,
-  kIsolateReloadBarred = 1005,
 };
 
 // Expected that user_data is a JSONStream*.
@@ -180,6 +182,9 @@ class JSONStream : ValueObject {
   void PrintValue(Metric* metric);
   void PrintValue(MessageQueue* queue);
   void PrintValue(Isolate* isolate, bool ref = true);
+  void PrintValue(ThreadRegistry* reg);
+  void PrintValue(Thread* thread);
+  void PrintValue(Zone* zone);
   bool PrintValueStr(const String& s, intptr_t offset, intptr_t count);
   void PrintValue(const TimelineEvent* timeline_event);
   void PrintValue(const TimelineEventBlock* timeline_event_block);
@@ -211,6 +216,9 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, Metric* metric);
   void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
+  void PrintProperty(const char* name, ThreadRegistry* reg);
+  void PrintProperty(const char* name, Thread* thread);
+  void PrintProperty(const char* name, Zone* zone);
   void PrintProperty(const char* name, const TimelineEvent* timeline_event);
   void PrintProperty(const char* name,
                      const TimelineEventBlock* timeline_event_block);
@@ -330,6 +338,15 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, Isolate* isolate) const {
     stream_->PrintProperty(name, isolate);
   }
+  void AddProperty(const char* name, ThreadRegistry* reg) const {
+    stream_->PrintProperty(name, reg);
+  }
+  void AddProperty(const char* name, Thread* thread) const {
+    stream_->PrintProperty(name, thread);
+  }
+  void AddProperty(const char* name, Zone* zone) const {
+    stream_->PrintProperty(name, zone);
+  }
   void AddProperty(const char* name,
                    const TimelineEvent* timeline_event) const {
     stream_->PrintProperty(name, timeline_event);
@@ -385,6 +402,9 @@ class JSONArray : public ValueObject {
   void AddValue(Isolate* isolate, bool ref = true) const {
     stream_->PrintValue(isolate, ref);
   }
+  void AddValue(ThreadRegistry* reg) const { stream_->PrintValue(reg); }
+  void AddValue(Thread* thread) const { stream_->PrintValue(thread); }
+  void AddValue(Zone* zone) const { stream_->PrintValue(zone); }
   void AddValue(Breakpoint* bpt) const { stream_->PrintValue(bpt); }
   void AddValue(TokenPosition tp) const { stream_->PrintValue(tp); }
   void AddValue(const ServiceEvent* event) const { stream_->PrintValue(event); }

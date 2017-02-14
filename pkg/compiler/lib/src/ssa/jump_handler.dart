@@ -12,12 +12,12 @@ import 'locals_handler.dart';
 import 'nodes.dart';
 
 /// A single break/continue instruction.
-class JumpHandlerEntry {
+class _JumpHandlerEntry {
   final HJump jumpInstruction;
   final LocalsHandler locals;
   bool isBreak() => jumpInstruction is HBreak;
   bool isContinue() => jumpInstruction is HContinue;
-  JumpHandlerEntry(this.jumpInstruction, this.locals);
+  _JumpHandlerEntry(this.jumpInstruction, this.locals);
 }
 
 abstract class JumpHandler {
@@ -33,7 +33,7 @@ abstract class JumpHandler {
   bool hasAnyBreak();
   void close();
   final JumpTarget target;
-  List<LabelDefinition> labels();
+  List<LabelDefinition> get labels;
 }
 
 /// Jump handler used to avoid null checks when a target isn't used as the
@@ -60,7 +60,7 @@ class NullJumpHandler implements JumpHandler {
   bool hasAnyContinue() => false;
   bool hasAnyBreak() => false;
 
-  List<LabelDefinition> labels() => const <LabelDefinition>[];
+  List<LabelDefinition> get labels => const <LabelDefinition>[];
   JumpTarget get target => null;
 }
 
@@ -71,11 +71,11 @@ class NullJumpHandler implements JumpHandler {
 class TargetJumpHandler implements JumpHandler {
   final GraphBuilder builder;
   final JumpTarget target;
-  final List<JumpHandlerEntry> jumps;
+  final List<_JumpHandlerEntry> jumps;
 
   TargetJumpHandler(GraphBuilder builder, this.target)
       : this.builder = builder,
-        jumps = <JumpHandlerEntry>[] {
+        jumps = <_JumpHandlerEntry>[] {
     assert(builder.jumpTargets[target] == null);
     builder.jumpTargets[target] = this;
   }
@@ -89,7 +89,7 @@ class TargetJumpHandler implements JumpHandler {
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(breakInstruction);
-    jumps.add(new JumpHandlerEntry(breakInstruction, locals));
+    jumps.add(new _JumpHandlerEntry(breakInstruction, locals));
   }
 
   void generateContinue([LabelDefinition label]) {
@@ -104,30 +104,30 @@ class TargetJumpHandler implements JumpHandler {
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(continueInstruction);
-    jumps.add(new JumpHandlerEntry(continueInstruction, locals));
+    jumps.add(new _JumpHandlerEntry(continueInstruction, locals));
   }
 
   void forEachBreak(Function action) {
-    for (JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in jumps) {
       if (entry.isBreak()) action(entry.jumpInstruction, entry.locals);
     }
   }
 
   void forEachContinue(Function action) {
-    for (JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in jumps) {
       if (entry.isContinue()) action(entry.jumpInstruction, entry.locals);
     }
   }
 
   bool hasAnyContinue() {
-    for (JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in jumps) {
       if (entry.isContinue()) return true;
     }
     return false;
   }
 
   bool hasAnyBreak() {
-    for (JumpHandlerEntry entry in jumps) {
+    for (_JumpHandlerEntry entry in jumps) {
       if (entry.isBreak()) return true;
     }
     return false;
@@ -138,24 +138,82 @@ class TargetJumpHandler implements JumpHandler {
     builder.jumpTargets.remove(target);
   }
 
-  List<LabelDefinition> labels() {
+  List<LabelDefinition> get labels {
     List<LabelDefinition> result = null;
     for (LabelDefinition element in target.labels) {
-      if (result == null) result = <LabelDefinition>[];
+      result ??= <LabelDefinition>[];
       result.add(element);
     }
-    return (result == null) ? const <LabelDefinition>[] : result;
+    return result ?? const <LabelDefinition>[];
   }
 }
 
 /// Special [JumpHandler] implementation used to handle continue statements
 /// targeting switch cases.
-class SwitchCaseJumpHandler extends TargetJumpHandler {
+abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
   /// Map from switch case targets to indices used to encode the flow of the
   /// switch case loop.
   final Map<JumpTarget, int> targetIndexMap = new Map<JumpTarget, int>();
 
-  SwitchCaseJumpHandler(
+  SwitchCaseJumpHandler(GraphBuilder builder, JumpTarget target)
+      : super(builder, target);
+
+  void generateBreak([LabelDefinition label]) {
+    if (label == null) {
+      // Creates a special break instruction for the synthetic loop generated
+      // for a switch statement with continue statements. See
+      // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
+
+      HInstruction breakInstruction =
+          new HBreak(target, breakSwitchContinueLoop: true);
+      LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
+      builder.close(breakInstruction);
+      jumps.add(new _JumpHandlerEntry(breakInstruction, locals));
+    } else {
+      super.generateBreak(label);
+    }
+  }
+
+  bool isContinueToSwitchCase(LabelDefinition label) {
+    return label != null && targetIndexMap.containsKey(label.target);
+  }
+
+  void generateContinue([LabelDefinition label]) {
+    if (isContinueToSwitchCase(label)) {
+      // Creates the special instructions 'label = i; continue l;' used in
+      // switch statements with continue statements. See
+      // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
+
+      assert(label != null);
+      // TODO(het): change the graph 'addConstantXXX' to take a ConstantSystem
+      // instead of a Compiler.
+      HInstruction value = builder.graph
+          .addConstantInt(targetIndexMap[label.target], builder.closedWorld);
+      builder.localsHandler.updateLocal(target, value);
+
+      assert(label.target.labels.contains(label));
+      HInstruction continueInstruction = new HContinue(target);
+      LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
+      builder.close(continueInstruction);
+      jumps.add(new _JumpHandlerEntry(continueInstruction, locals));
+    } else {
+      super.generateContinue(label);
+    }
+  }
+
+  void close() {
+    // The mapping from TargetElement to JumpHandler is no longer needed.
+    for (JumpTarget target in targetIndexMap.keys) {
+      builder.jumpTargets.remove(target);
+    }
+    super.close();
+  }
+}
+
+/// Special [JumpHandler] implementation used to handle continue statements
+/// targeting switch cases.
+class AstSwitchCaseJumpHandler extends SwitchCaseJumpHandler {
+  AstSwitchCaseJumpHandler(
       GraphBuilder builder, JumpTarget target, ast.SwitchStatement node)
       : super(builder, target) {
     // The switch case indices must match those computed in
@@ -179,56 +237,5 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
       }
       switchIndex++;
     }
-  }
-
-  void generateBreak([LabelDefinition label]) {
-    if (label == null) {
-      // Creates a special break instruction for the synthetic loop generated
-      // for a switch statement with continue statements. See
-      // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
-
-      HInstruction breakInstruction =
-          new HBreak(target, breakSwitchContinueLoop: true);
-      LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
-      builder.close(breakInstruction);
-      jumps.add(new JumpHandlerEntry(breakInstruction, locals));
-    } else {
-      super.generateBreak(label);
-    }
-  }
-
-  bool isContinueToSwitchCase(LabelDefinition label) {
-    return label != null && targetIndexMap.containsKey(label.target);
-  }
-
-  void generateContinue([LabelDefinition label]) {
-    if (isContinueToSwitchCase(label)) {
-      // Creates the special instructions 'label = i; continue l;' used in
-      // switch statements with continue statements. See
-      // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
-
-      assert(label != null);
-      // TODO(het): change the graph 'addConstantXXX' to take a ConstantSystem
-      // instead of a Compiler.
-      HInstruction value = builder.graph
-          .addConstantInt(targetIndexMap[label.target], builder.compiler);
-      builder.localsHandler.updateLocal(target, value);
-
-      assert(label.target.labels.contains(label));
-      HInstruction continueInstruction = new HContinue(target);
-      LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
-      builder.close(continueInstruction);
-      jumps.add(new JumpHandlerEntry(continueInstruction, locals));
-    } else {
-      super.generateContinue(label);
-    }
-  }
-
-  void close() {
-    // The mapping from TargetElement to JumpHandler is no longer needed.
-    for (JumpTarget target in targetIndexMap.keys) {
-      builder.jumpTargets.remove(target);
-    }
-    super.close();
   }
 }

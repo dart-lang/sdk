@@ -29,6 +29,7 @@ void main() {
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
 
         checkArgument(String functionName, type) {
           var functionElement = findElement(compiler, functionName);
@@ -36,10 +37,10 @@ void main() {
           var element = signature.requiredParameters.first;
           Expect.equals(
               type,
-              simplify(typesInferrer.getTypeOfElement(element), compiler),
+              simplify(typesInferrer.getTypeOfElement(element), closedWorld),
               functionName);
         }
 
-        checkArgument('method', compiler.closedWorld.commonMasks.uint31Type);
+        checkArgument('method', closedWorld.commonMasks.uint31Type);
       }));
 }

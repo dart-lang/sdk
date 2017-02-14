@@ -6,7 +6,7 @@ library dart2js.serialization.impact;
 
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../universe/selector.dart';
 import '../universe/feature.dart';
@@ -137,7 +137,7 @@ class ImpactDeserializer {
       StaticUseKind kind = object.getEnum(Key.KIND, StaticUseKind.values);
       Element usedElement =
           deserializeElementReference(element, Key.ELEMENT, Key.NAME, object);
-      DartType type = object.getType(Key.TYPE, isOptional: true);
+      ResolutionDartType type = object.getType(Key.TYPE, isOptional: true);
       staticUses.add(new StaticUse.internal(usedElement, kind, type));
     }
 
@@ -154,7 +154,7 @@ class ImpactDeserializer {
     for (int index = 0; index < typeUseDecoder.length; index++) {
       ObjectDecoder object = typeUseDecoder.getObject(index);
       TypeUseKind kind = object.getEnum(Key.KIND, TypeUseKind.values);
-      DartType type = object.getType(Key.TYPE);
+      ResolutionDartType type = object.getType(Key.TYPE);
       typeUses.add(new TypeUse.internal(type, kind));
     }
 
@@ -174,7 +174,7 @@ class ImpactDeserializer {
       listLiterals = <ListLiteralUse>[];
       for (int i = 0; i < listLiteralDecoder.length; i++) {
         ObjectDecoder useDecoder = listLiteralDecoder.getObject(i);
-        DartType type = useDecoder.getType(Key.TYPE);
+        ResolutionDartType type = useDecoder.getType(Key.TYPE);
         bool isConstant = useDecoder.getBool(Key.IS_CONST);
         bool isEmpty = useDecoder.getBool(Key.IS_EMPTY);
         listLiterals.add(
@@ -189,7 +189,7 @@ class ImpactDeserializer {
       mapLiterals = <MapLiteralUse>[];
       for (int i = 0; i < mapLiteralDecoder.length; i++) {
         ObjectDecoder useDecoder = mapLiteralDecoder.getObject(i);
-        DartType type = useDecoder.getType(Key.TYPE);
+        ResolutionDartType type = useDecoder.getType(Key.TYPE);
         bool isConstant = useDecoder.getBool(Key.IS_CONST);
         bool isEmpty = useDecoder.getBool(Key.IS_EMPTY);
         mapLiterals.add(

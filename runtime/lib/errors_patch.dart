@@ -18,29 +18,37 @@
 
 class _AssertionError extends Error implements AssertionError {
   _AssertionError._create(
-      this._failedAssertion, this._url, this._line, this._column);
+      this._failedAssertion, this._url, this._line, this._column,
+      this.message);
 
-  static _throwNew(int assertionStart, int assertionEnd)
-      native "AssertionError_throwNew";
 
-  static void _checkAssertion(condition, int start, int end) {
+  // AssertionError_throwNew in errors.cc fishes the assertion source code
+  // out of the script. It expects a Dart stack frame from class
+  // _AssertionError. Thus we need a Dart stub that calls the native code.
+  static _throwNew(int assertionStart, int assertionEnd, Object message) {
+    _doThrowNew(assertionStart, assertionEnd, message);
+  }
+
+  static _doThrowNew(int assertionStart, int assertionEnd, Object message)
+    native "AssertionError_throwNew";
+
+  static _evaluateAssertion(condition) {
     if (condition is Function) {
       condition = condition();
     }
-    if (!condition) {
-      _throwNew(start, end);
-    }
+    return condition;
   }
 
-  static void _checkConstAssertion(bool condition, int start, int end) {
-    if (!condition) {
-      _throwNew(start, end);
-    }
+  String get _messageString {
+    if (message == null) return "is not true.";
+    if (message is String) return message;
+    return Error.safeToString(message);
   }
 
   String toString() {
     if (_url == null) {
-      return _failedAssertion;
+      if (message == null) return _failedAssertion;
+      return "'$_failedAssertion': $_messageString";
     }
     var columnInfo = "";
     if (_column > 0) {
@@ -48,17 +56,18 @@ class _AssertionError extends Error implements AssertionError {
       columnInfo = " pos $_column";
     }
     return "'$_url': Failed assertion: line $_line$columnInfo: "
-        "'$_failedAssertion' is not true.";
+        "'$_failedAssertion': $_messageString";
   }
   final String _failedAssertion;
   final String _url;
   final int _line;
   final int _column;
+  final Object message;
 }
 
 class _TypeError extends _AssertionError implements TypeError {
-  _TypeError._create(String url, int line, int column, this._errorMsg)
-      : super._create("is assignable", url, line, column);
+  _TypeError._create(String url, int line, int column, String errorMsg)
+      : super._create("is assignable", url, line, column, errorMsg);
 
   static _throwNew(int location,
                    Object src_value,
@@ -78,9 +87,7 @@ class _TypeError extends _AssertionError implements TypeError {
     }
   }
 
-  String toString() => _errorMsg;
-
-  final String _errorMsg;
+  String toString() => super.message;
 }
 
 class _CastError extends Error implements CastError {
@@ -103,6 +110,7 @@ class _CastError extends Error implements CastError {
 
   static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
 
+  @patch
   String toString() {
     return "'$_url': Switch case fall-through at line $_line.";
   }
@@ -204,13 +212,17 @@ class _InternalError {
   final int _invocation_type;
 
   @patch
-  NoSuchMethodError(Object this._receiver,
-                    Symbol this._memberName,
-                    List this._arguments,
-                    Map<Symbol, dynamic> this._namedArguments,
+  NoSuchMethodError(Object receiver,
+                    Symbol memberName,
+                    List positionalArguments,
+                    Map<Symbol, dynamic> namedArguments,
                     [List existingArgumentNames = null])
-      : this._existingArgumentNames = existingArgumentNames,
-        this._invocation_type = -1;
+      : _receiver = receiver,
+        _memberName = memberName,
+        _arguments = positionalArguments,
+        _namedArguments = namedArguments,
+        _existingArgumentNames = existingArgumentNames,
+        _invocation_type = -1;
 
   // This constructor seems to be called with either strings or
   // values read from another NoSuchMethodError.

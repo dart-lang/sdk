@@ -61,6 +61,9 @@ class HashMap {
   Entry* Lookup(void* key, uint32_t hash, bool insert);
 
   // Removes the entry with matching key.
+  //
+  // WARNING: This method cannot be called while iterating a `HashMap`
+  // otherwise the iteration might step over elements!
   void Remove(void* key, uint32_t hash);
 
   // Empties the hash map (occupancy() == 0), and calls the function 'clear' on

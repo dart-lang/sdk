@@ -33,7 +33,6 @@ if (typeof global != "undefined") self = global;  // Node.js.
   self.location = { href: "file://" + workingDirectory + "/" };
 
   // Event loop.
-
   // Task queue as cyclic list queue.
   var taskQueue = new Array(8);  // Length is power of 2.
   var head = 0;
@@ -77,7 +76,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
   // That field is cleared when the timer is cancelled, but it is not returned
   // from the queue until its time comes.
   var timerIds = {};
-  var timerIdCounter = 1;  // Counter used to assing ids.
+  var timerIdCounter = 1;  // Counter used to assign ids.
 
   // Zero-timer queue as simple array queue using push/shift.
   var zeroTimerQueue = [];

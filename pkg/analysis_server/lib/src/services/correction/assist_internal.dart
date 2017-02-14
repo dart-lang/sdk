@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/correction/statement_analyzer.dart'
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -72,7 +73,9 @@ class AssistProcessor {
     unit = dartContext.unit;
     unitElement = dartContext.unit.element;
     // library
-    unitLibraryElement = dartContext.unit.element.library;
+    unitLibraryElement = resolutionMap
+        .elementDeclaredByCompilationUnit(dartContext.unit)
+        .library;
     unitLibraryFile = unitLibraryElement.source.fullName;
     unitLibraryFolder = dirname(unitLibraryFile);
     // selection
@@ -233,7 +236,7 @@ class AssistProcessor {
     DartType type = declaredIdentifier.identifier.bestType;
     if (type is InterfaceType || type is FunctionType) {
       _configureTargetLocation(node);
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      Set<Source> librariesToImport = new Set<Source>();
       typeSource = utils.getTypeSource(type, librariesToImport);
       addLibraryImports(change, unitLibraryElement, librariesToImport);
     } else {
@@ -285,7 +288,7 @@ class AssistProcessor {
     String typeSource;
     {
       _configureTargetLocation(node);
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      Set<Source> librariesToImport = new Set<Source>();
       typeSource = utils.getTypeSource(type, librariesToImport);
       addLibraryImports(change, unitLibraryElement, librariesToImport);
     }
@@ -335,9 +338,9 @@ class AssistProcessor {
     DartType type = initializer.bestType;
     // prepare type source
     String typeSource;
-    if (type is InterfaceType || type is FunctionType) {
+    if (type is InterfaceType && !type.isDartCoreNull || type is FunctionType) {
       _configureTargetLocation(node);
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      Set<Source> librariesToImport = new Set<Source>();
       typeSource = utils.getTypeSource(type, librariesToImport);
       addLibraryImports(change, unitLibraryElement, librariesToImport);
     } else {
@@ -502,7 +505,9 @@ class AssistProcessor {
         getter = n;
         break;
       }
-      if (n is SimpleIdentifier || n is TypeName || n is TypeArgumentList) {
+      if (n is SimpleIdentifier ||
+          n is TypeAnnotation ||
+          n is TypeArgumentList) {
         continue;
       }
       break;
@@ -568,7 +573,7 @@ class AssistProcessor {
       if (n is SimpleIdentifier ||
           n is VariableDeclaration ||
           n is VariableDeclarationList ||
-          n is TypeName ||
+          n is TypeAnnotation ||
           n is TypeArgumentList) {
         continue;
       }
@@ -1002,7 +1007,7 @@ class AssistProcessor {
       String name = (node as SimpleIdentifier).name;
       // prepare type
       DartType type = parameterElement.type;
-      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      Set<Source> librariesToImport = new Set<Source>();
       String typeCode = utils.getTypeSource(type, librariesToImport);
       // replace parameter
       if (type.isDynamic) {
@@ -1561,7 +1566,7 @@ class AssistProcessor {
       return;
     }
     // we need a type
-    TypeName typeNode = declarationList.type;
+    TypeAnnotation typeNode = declarationList.type;
     if (typeNode == null) {
       _coverageMarker();
       return;

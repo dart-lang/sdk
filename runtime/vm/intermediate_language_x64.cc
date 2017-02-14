@@ -5641,34 +5641,9 @@ LocationSummary* MergedMathInstr::MakeLocationSummary(Zone* zone,
                                        Location::RegisterLocation(RDX)));
     return summary;
   }
-  if (kind() == MergedMathInstr::kSinCos) {
-    const intptr_t kNumInputs = 1;
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new (zone)
-        LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-    // Because we always call into the runtime (LocationSummary::kCall) we
-    // must specify each input, temp, and output register explicitly.
-    summary->set_in(0, Location::FpuRegisterLocation(XMM1));
-    // R13 is chosen because it is callee saved so we do not need to back it
-    // up before calling into the runtime.
-    summary->set_temp(0, Location::RegisterLocation(R13));
-    summary->set_out(0, Location::Pair(Location::FpuRegisterLocation(XMM2),
-                                       Location::FpuRegisterLocation(XMM3)));
-    return summary;
-  }
   UNIMPLEMENTED();
   return NULL;
 }
-
-
-typedef void (*SinCosCFunction)(double x, double* res_sin, double* res_cos);
-
-extern const RuntimeEntry kSinCosRuntimeEntry(
-    "libc_sincos",
-    reinterpret_cast<RuntimeFunction>(static_cast<SinCosCFunction>(&SinCos)),
-    1,
-    true,
-    true);
 
 
 void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -5762,41 +5737,6 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiTag(RDX);
     // Note that the result of an integer division/modulo of two
     // in-range arguments, cannot create out-of-range result.
-    return;
-  }
-  if (kind() == MergedMathInstr::kSinCos) {
-    ASSERT(locs()->out(0).IsPairLocation());
-    PairLocation* pair = locs()->out(0).AsPairLocation();
-    XmmRegister out1 = pair->At(0).fpu_reg();
-    XmmRegister out2 = pair->At(1).fpu_reg();
-
-    // Save RSP.
-    __ movq(locs()->temp(0).reg(), RSP);
-    // +-------------------------------+
-    // | double-argument               |  <- TOS
-    // +-------------------------------+
-    // | address-cos-result            |  +8
-    // +-------------------------------+
-    // | address-sin-result            |  +16
-    // +-------------------------------+
-    // | double-storage-for-cos-result |  +24
-    // +-------------------------------+
-    // | double-storage-for-sin-result |  +32
-    // +-------------------------------+
-    // ....
-    __ ReserveAlignedFrameSpace(kDoubleSize * 3 + kWordSize * 2);
-    __ movsd(Address(RSP, 0), locs()->in(0).fpu_reg());
-
-    __ leaq(RDI, Address(RSP, 2 * kWordSize + kDoubleSize));
-    __ leaq(RSI, Address(RSP, 2 * kWordSize + 2 * kDoubleSize));
-    __ movaps(XMM0, locs()->in(0).fpu_reg());
-
-    __ CallRuntime(kSinCosRuntimeEntry, InputCount());
-    __ movsd(out2, Address(RSP, 2 * kWordSize + kDoubleSize * 2));  // sin.
-    __ movsd(out1, Address(RSP, 2 * kWordSize + kDoubleSize));      // cos.
-    // Restore RSP.
-    __ movq(RSP, locs()->temp(0).reg());
-
     return;
   }
   UNIMPLEMENTED();
@@ -6527,7 +6467,7 @@ LocationSummary* ReThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->SetNeedsStacktrace(catch_try_index());
+  compiler->SetNeedsStackTrace(catch_try_index());
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(), kReThrowRuntimeEntry,
                                 2, locs());
   __ int3();

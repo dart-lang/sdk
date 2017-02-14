@@ -24,6 +24,9 @@ class AnalysisStatus {
    * Return `true` is the driver is idle.
    */
   bool get isIdle => !_analyzing;
+
+  @override
+  String toString() => _analyzing ? 'analyzing' : 'idle';
 }
 
 /**
@@ -70,6 +73,17 @@ class StatusSupport {
   AnalysisStatus _currentStatus = AnalysisStatus.IDLE;
 
   /**
+   * If non-null, a completer which should be completed on the next transition
+   * to idle.
+   */
+  Completer<Null> _idleCompleter;
+
+  /**
+   * Return the last status sent to the [stream].
+   */
+  AnalysisStatus get currentStatus => _currentStatus;
+
+  /**
    * Return the stream that produces [AnalysisStatus] events.
    */
   Stream<AnalysisStatus> get stream => _statusController.stream;
@@ -91,6 +105,23 @@ class StatusSupport {
     if (_currentStatus != AnalysisStatus.IDLE) {
       _currentStatus = AnalysisStatus.IDLE;
       _statusController.add(AnalysisStatus.IDLE);
+      _idleCompleter?.complete();
+      _idleCompleter = null;
+    }
+  }
+
+  /**
+   * Return a future that will be completed the next time the status is idle.
+   *
+   * If the status is currently idle, the returned future will be signaled
+   * immediately.
+   */
+  Future<Null> waitForIdle() {
+    if (_currentStatus == AnalysisStatus.IDLE) {
+      return new Future.value();
+    } else {
+      _idleCompleter ??= new Completer<Null>();
+      return _idleCompleter.future;
     }
   }
 }

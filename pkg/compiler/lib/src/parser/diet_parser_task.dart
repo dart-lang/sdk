@@ -19,8 +19,8 @@ class DietParserTask extends CompilerTask {
   final Backend _backend;
   final DiagnosticReporter _reporter;
 
-  DietParserTask(this._idGenerator, this._backend, this._reporter,
-      Measurer measurer)
+  DietParserTask(
+      this._idGenerator, this._backend, this._reporter, Measurer measurer)
       : super(measurer);
 
   final String name = 'Diet Parser';

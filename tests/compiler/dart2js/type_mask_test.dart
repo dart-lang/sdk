@@ -21,7 +21,8 @@ main() {
 main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(CODE, uri);
-  var closedWorld = compiler.openWorld.closeWorld(compiler.reporter);
+  compiler.closeResolution();
+  var closedWorld = compiler.resolutionWorldBuilder.closedWorldForTesting;
 
   asyncTest(() => compiler.run(uri).then((_) {
         var classA = findElement(compiler, 'A');
@@ -38,7 +39,7 @@ main() {
         var subtypeA = new TypeMask.nonNullSubtype(classA, closedWorld);
 
         var subclassObject = new TypeMask.nonNullSubclass(
-            compiler.coreClasses.objectClass, closedWorld);
+            compiler.commonElements.objectClass, closedWorld);
 
         var unionABC =
             UnionTypeMask.unionOf([exactA, exactB, exactC], closedWorld);

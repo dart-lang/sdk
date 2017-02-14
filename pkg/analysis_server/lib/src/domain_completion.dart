@@ -138,7 +138,7 @@ class CompletionDomainHandler implements RequestHandler {
     if (server.options.enableNewAnalysisDriver) {
       result = await server.getAnalysisResult(params.file);
 
-      if (result == null) {
+      if (result == null || !result.exists) {
         server.sendResponse(new Response.unknownSource(request));
         return;
       }

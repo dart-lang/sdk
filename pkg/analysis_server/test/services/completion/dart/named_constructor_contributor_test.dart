@@ -16,6 +16,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NamedConstructorContributorTest);
+    defineReflectiveTests(NamedConstructorContributorTest_Driver);
   });
 }
 
@@ -60,7 +61,9 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
         var m;
         main() {new X.^}''');
     // Assume that imported libraries are resolved
-    await resolveLibraryUnit(libSource);
+    if (!enableNewAnalysisDriver) {
+      await resolveLibraryUnit(libSource);
+    }
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -114,7 +117,9 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
         var m;
         main() {new X.^}''');
     // Assume that imported libraries are resolved
-    await resolveLibraryUnit(libSource);
+    if (!enableNewAnalysisDriver) {
+      await resolveLibraryUnit(libSource);
+    }
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
@@ -179,4 +184,11 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('z');
     assertNotSuggested('m');
   }
+}
+
+@reflectiveTest
+class NamedConstructorContributorTest_Driver
+    extends NamedConstructorContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

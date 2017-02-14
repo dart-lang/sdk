@@ -9,7 +9,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/server/http_server.dart';
@@ -25,7 +24,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
+import 'package:linter/src/rules.dart' as linter;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
@@ -243,7 +242,7 @@ class Driver implements ServerStarter {
       "incremental-resolution-validation";
 
   /**
-   * The name of the option used to enable using pub summary manager.
+   * The name of the option used to enable using the new analysis driver.
    */
   static const String ENABLE_NEW_ANALYSIS_DRIVER = 'enable-new-analysis-driver';
 
@@ -274,6 +273,11 @@ class Driver implements ServerStarter {
    * console instead of being intercepted.
    */
   static const String INTERNAL_PRINT_TO_CONSOLE = "internal-print-to-console";
+
+  /**
+   * The name of the option used to describe the new analysis driver logger.
+   */
+  static const String NEW_ANALYSIS_DRIVER_LOG = 'new-analysis-driver-log';
 
   /**
    * The name of the flag used to disable error notifications.
@@ -399,6 +403,8 @@ class Driver implements ServerStarter {
     analysisServerOptions.useAnalysisHighlight2 =
         results[USE_ANALISYS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
+    analysisServerOptions.newAnalysisDriverLog =
+        results[NEW_ANALYSIS_DRIVER_LOG];
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
@@ -408,15 +414,12 @@ class Driver implements ServerStarter {
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
     plugins.add(serverPlugin);
-    plugins.add(linterPlugin);
-    plugins.add(linterServerPlugin);
     plugins.add(dartCompletionPlugin);
     plugins.addAll(_userDefinedPlugins);
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
+    linter.registerLintRules();
 
     String defaultSdkPath;
     if (results[SDK_OPTION] != null) {
@@ -559,6 +562,8 @@ class Driver implements ServerStarter {
         help: "enable sending `print` output to the console",
         defaultsTo: false,
         negatable: false);
+    parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
+        help: "set a destination for the new analysis driver's log");
     parser.addOption(PORT_OPTION,
         help: "the http diagnostic port on which the server provides"
             " status and performance information");

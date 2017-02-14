@@ -75,8 +75,7 @@ class ObjectPointerVisitor;
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
-  V(CheckAssertion, "_checkAssertion")                                         \
-  V(CheckConstAssertion, "_checkConstAssertion")                               \
+  V(EvaluateAssertion, "_evaluateAssertion")                                   \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
   V(List, "List")                                                              \
@@ -84,8 +83,8 @@ class ObjectPointerVisitor;
   V(ListFactory, "List.")                                                      \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
-  V(ImmutableMap, "ImmutableMap")                                              \
-  V(ImmutableMapConstructor, "ImmutableMap._create")                           \
+  V(ImmutableMap, "_ImmutableMap")                                             \
+  V(ImmutableMapConstructor, "_ImmutableMap._create")                          \
   V(StringBase, "_StringBase")                                                 \
   V(Interpolate, "_interpolate")                                               \
   V(InterpolateSingle, "_interpolateSingle")                                   \
@@ -128,6 +127,7 @@ class ObjectPointerVisitor;
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
   V(Future, "Future")                                                          \
+  V(FutureOr, "FutureOr")                                                      \
   V(FutureMicrotask, "Future.microtask")                                       \
   V(FutureValue, "Future.value")                                               \
   V(FutureThen, "then")                                                        \
@@ -142,6 +142,7 @@ class ObjectPointerVisitor;
   V(Native, "native")                                                          \
   V(Class, "Class")                                                            \
   V(Null, "Null")                                                              \
+  V(null, "null")                                                              \
   V(Dynamic, "dynamic")                                                        \
   V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "_Type")                                                             \
@@ -157,6 +158,7 @@ class ObjectPointerVisitor;
   V(FunctionResult, "function result")                                         \
   V(FactoryResult, "factory result")                                           \
   V(ClosureData, "ClosureData")                                                \
+  V(SignatureData, "SignatureData")                                            \
   V(RedirectionData, "RedirectionData")                                        \
   V(Field, "Field")                                                            \
   V(LiteralToken, "LiteralToken")                                              \
@@ -170,7 +172,7 @@ class ObjectPointerVisitor;
   V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
   V(CodeSourceMap, "CodeSourceMap")                                            \
-  V(Stackmap, "Stackmap")                                                      \
+  V(StackMap, "StackMap")                                                      \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
   V(DeoptInfo, "DeoptInfo")                                                    \
@@ -218,6 +220,9 @@ class ObjectPointerVisitor;
   V(Float32x4, "Float32x4")                                                    \
   V(Float64x2, "Float64x2")                                                    \
   V(Int32x4, "Int32x4")                                                        \
+  V(_Float32x4, "_Float32x4")                                                  \
+  V(_Float64x2, "_Float64x2")                                                  \
+  V(_Int32x4, "_Int32x4")                                                      \
   V(Int8List, "Int8List")                                                      \
   V(Uint8List, "Uint8List")                                                    \
   V(Uint8ClampedList, "Uint8ClampedList")                                      \
@@ -232,6 +237,20 @@ class ObjectPointerVisitor;
   V(Float64x2List, "Float64x2List")                                            \
   V(Float32List, "Float32List")                                                \
   V(Float64List, "Float64List")                                                \
+  V(_Int8List, "_Int8List")                                                    \
+  V(_Uint8List, "_Uint8List")                                                  \
+  V(_Uint8ClampedList, "_Uint8ClampedList")                                    \
+  V(_Int16List, "_Int16List")                                                  \
+  V(_Uint16List, "_Uint16List")                                                \
+  V(_Int32List, "_Int32List")                                                  \
+  V(_Uint32List, "_Uint32List")                                                \
+  V(_Int64List, "_Int64List")                                                  \
+  V(_Uint64List, "_Uint64List")                                                \
+  V(_Float32x4List, "_Float32x4List")                                          \
+  V(_Int32x4List, "_Int32x4List")                                              \
+  V(_Float64x2List, "_Float64x2List")                                          \
+  V(_Float32List, "_Float32List")                                              \
+  V(_Float64List, "_Float64List")                                              \
   V(_Int8ArrayFactory, "Int8List.")                                            \
   V(_Uint8ArrayFactory, "Uint8List.")                                          \
   V(_Uint8ClampedArrayFactory, "Uint8ClampedList.")                            \
@@ -278,8 +297,8 @@ class ObjectPointerVisitor;
   V(ByteDataDot, "ByteData.")                                                  \
   V(ByteDataDot_view, "ByteData._view")                                        \
   V(_ByteDataView, "_ByteDataView")                                            \
-  V(ByteBuffer, "ByteBuffer")                                                  \
-  V(ByteBufferDot_New, "ByteBuffer._New")                                      \
+  V(_ByteBuffer, "_ByteBuffer")                                                \
+  V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
   V(FreeListElement, "FreeListElement")                                        \
@@ -554,10 +573,8 @@ class Symbols : public AllStatic {
 
   static RawArray* UnifiedSymbolTable();
 
-#if defined(DART_PRECOMPILER)
   // Treat the symbol table as weak and collect garbage.
   static void Compact(Isolate* isolate);
-#endif
 
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
@@ -620,7 +637,7 @@ class Symbols : public AllStatic {
     return reinterpret_cast<RawString**>(&predefined_);
   }
 
-  static void DumpStats();
+  static void DumpStats(Isolate* isolate);
 
   // Returns Symbol::Null if no symbol is found.
   template <typename StringType>

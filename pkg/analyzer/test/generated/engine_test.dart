@@ -42,7 +42,6 @@ class AnalysisOptionsImplTest {
     modifiedOptions.dart2jsHint = true;
     modifiedOptions.disableCacheFlushing = true;
     modifiedOptions.enableAssertInitializer = true;
-    modifiedOptions.enableAssertMessage = true;
     modifiedOptions.enableLazyAssignmentOperators = true;
     modifiedOptions.enableStrictCallChecks = true;
     modifiedOptions.enableSuperMixins = true;
@@ -59,7 +58,9 @@ class AnalysisOptionsImplTest {
     modifiedOptions.incrementalValidation = true;
     modifiedOptions.lint = true;
     modifiedOptions.lintRules = [null];
-    modifiedOptions.patchPlatform = 3;
+    modifiedOptions.patchPaths = {
+      'dart:core': ['/dart_core.patch.dart']
+    };
     modifiedOptions.preserveComments = false;
     modifiedOptions.strongMode = true;
     modifiedOptions.trackCacheDependencies = false;
@@ -71,8 +72,6 @@ class AnalysisOptionsImplTest {
         defaultOptions.disableCacheFlushing);
     expect(modifiedOptions.enableAssertInitializer,
         defaultOptions.enableAssertInitializer);
-    expect(modifiedOptions.enableAssertMessage,
-        defaultOptions.enableAssertMessage);
     expect(modifiedOptions.enableLazyAssignmentOperators,
         defaultOptions.enableLazyAssignmentOperators);
     expect(modifiedOptions.enableStrictCallChecks,
@@ -94,7 +93,7 @@ class AnalysisOptionsImplTest {
         defaultOptions.incrementalValidation);
     expect(modifiedOptions.lint, defaultOptions.lint);
     expect(modifiedOptions.lintRules, defaultOptions.lintRules);
-    expect(modifiedOptions.patchPlatform, defaultOptions.patchPlatform);
+    expect(modifiedOptions.patchPaths, defaultOptions.patchPaths);
     expect(modifiedOptions.preserveComments, defaultOptions.preserveComments);
     expect(modifiedOptions.strongMode, defaultOptions.strongMode);
     expect(modifiedOptions.trackCacheDependencies,

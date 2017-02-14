@@ -5,12 +5,19 @@
 library dart2js.resolution.result;
 
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 
-enum ResultKind { NONE, ELEMENT, TYPE, ASSERT, CONSTANT, PREFIX, }
+enum ResultKind {
+  NONE,
+  ELEMENT,
+  TYPE,
+  ASSERT,
+  CONSTANT,
+  PREFIX,
+}
 
 /// The result of resolving a node.
 abstract class ResolutionResult {
@@ -25,7 +32,7 @@ abstract class ResolutionResult {
   ResultKind get kind;
   Node get node => null;
   Element get element => null;
-  DartType get type => null;
+  ResolutionDartType get type => null;
   ConstantExpression get constant => null;
   bool get isConstant => false;
 }
@@ -60,9 +67,10 @@ class ElementResult extends ResolutionResult {
   String toString() => 'ElementResult($element)';
 }
 
-/// The result for the resolution of a node that points to an [DartType].
+/// The result for the resolution of a node that points to an
+/// [ResolutionDartType].
 class TypeResult extends ResolutionResult {
-  final DartType type;
+  final ResolutionDartType type;
 
   TypeResult(this.type) {
     assert(type != null);

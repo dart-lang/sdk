@@ -238,11 +238,153 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   visitVariableGet(VariableGet node) {
     checkVariableInScope(node.variable, node);
+    visitChildren(node);
   }
 
   visitVariableSet(VariableSet node) {
     checkVariableInScope(node.variable, node);
     visitChildren(node);
+  }
+
+  @override
+  visitStaticGet(StaticGet node) {
+    visitChildren(node);
+    if (node.target == null) {
+      throw 'StaticGet without target found in $context.';
+    }
+    if (!node.target.hasGetter) {
+      throw 'StaticGet to ${node.target} without getter found in $context';
+    }
+    if (node.target.isInstanceMember) {
+      throw 'StaticGet to ${node.target} that is not static found in $context';
+    }
+  }
+
+  @override
+  visitStaticSet(StaticSet node) {
+    visitChildren(node);
+    if (node.target == null) {
+      throw 'StaticSet without target found in $context.';
+    }
+    if (!node.target.hasSetter) {
+      throw 'StaticSet to ${node.target} without setter found in $context';
+    }
+    if (node.target.isInstanceMember) {
+      throw 'StaticSet to ${node.target} that is not static found in $context';
+    }
+  }
+
+  @override
+  visitStaticInvocation(StaticInvocation node) {
+    visitChildren(node);
+    if (node.target == null) {
+      throw 'StaticInvocation without target found in $context.';
+    }
+    if (node.target.isInstanceMember) {
+      throw 'StaticInvocation to ${node.target} that is not static found in '
+          '$context';
+    }
+    if (!areArgumentsCompatible(node.arguments, node.target.function)) {
+      throw 'StaticInvocation with incompatible arguments to '
+          '${node.target} found in $context';
+    }
+    if (node.arguments.types.length !=
+        node.target.function.typeParameters.length) {
+      throw 'Wrong number of type arguments provided in StaticInvocation '
+          'to ${node.target} found in $context';
+    }
+  }
+
+  @override
+  visitDirectPropertyGet(DirectPropertyGet node) {
+    visitChildren(node);
+    if (node.target == null) {
+      throw 'DirectPropertyGet without target found in $context.';
+    }
+    if (!node.target.hasGetter) {
+      throw 'DirectPropertyGet to ${node.target} without getter found in '
+          '$context';
+    }
+    if (!node.target.isInstanceMember) {
+      throw 'DirectPropertyGet to ${node.target} that is static found in '
+          '$context';
+    }
+  }
+
+  @override
+  visitDirectPropertySet(DirectPropertySet node) {
+    visitChildren(node);
+    if (node.target == null) {
+      throw 'DirectPropertySet without target found in $context.';
+    }
+    if (!node.target.hasSetter) {
+      throw 'DirectPropertyGet to ${node.target} without setter found in '
+          '$context';
+    }
+    if (!node.target.isInstanceMember) {
+      throw 'DirectPropertySet to ${node.target} that is static found in '
+          '$context';
+    }
+  }
+
+  @override
+  visitDirectMethodInvocation(DirectMethodInvocation node) {
+    visitChildren(node);
+    if (node.target == null) {
+      throw 'DirectMethodInvocation without target found in $context.';
+    }
+    if (!node.target.isInstanceMember) {
+      throw 'DirectMethodInvocation to ${node.target} that is static found in '
+          '$context';
+    }
+    if (!areArgumentsCompatible(node.arguments, node.target.function)) {
+      throw 'DirectMethodInvocation with incompatible arguments to '
+          '${node.target} found in $context';
+    }
+    if (node.arguments.types.length !=
+        node.target.function.typeParameters.length) {
+      throw 'Wrong number of type arguments provided in DirectMethodInvocation '
+          'to ${node.target} found in $context';
+    }
+  }
+
+  @override
+  visitConstructorInvocation(ConstructorInvocation node) {
+    visitChildren(node);
+    if (node.target == null) {
+      throw 'ConstructorInvocation without target found in $context.';
+    }
+    if (node.target.enclosingClass.isAbstract) {
+      throw 'ConstructorInvocation to abstract class found in $context';
+    }
+    if (!areArgumentsCompatible(node.arguments, node.target.function)) {
+      throw 'ConstructorInvocation with incompatible arguments to '
+          '${node.target} found in $context';
+    }
+    if (node.arguments.types.length !=
+        node.target.enclosingClass.typeParameters.length) {
+      throw 'Wrong number of type arguments provided in ConstructorInvocation '
+          'to ${node.target} found in $context';
+    }
+  }
+
+  bool areArgumentsCompatible(Arguments arguments, FunctionNode function) {
+    if (arguments.positional.length < function.requiredParameterCount) {
+      return false;
+    }
+    if (arguments.positional.length > function.positionalParameters.length) {
+      return false;
+    }
+    namedLoop:
+    for (int i = 0; i < arguments.named.length; ++i) {
+      var argument = arguments.named[i];
+      String name = argument.name;
+      for (int j = 0; j < function.namedParameters.length; ++j) {
+        if (function.namedParameters[j].name == name) continue namedLoop;
+      }
+      return false;
+    }
+    return true;
   }
 
   @override

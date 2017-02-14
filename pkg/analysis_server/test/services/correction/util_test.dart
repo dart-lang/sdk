@@ -7,7 +7,6 @@ library test.services.correction.util;
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,14 +21,14 @@ main() {
 
 @reflectiveTest
 class UtilTest extends AbstractSingleUnitTest {
-  test_addLibraryImports_dart_hasImports_between() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasImports_between() async {
+    await resolveTestUnit('''
 import 'dart:async';
 import 'dart:math';
 ''');
-    LibraryElement newLibrary = _getDartLibrary('dart:collection');
+    Source newLibrary = _getDartSource('dart:collection');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary],
+        <Source>[newLibrary],
         '''
 import 'dart:async';
 import 'dart:collection';
@@ -37,14 +36,14 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_first() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasImports_first() async {
+    await resolveTestUnit('''
 import 'dart:collection';
 import 'dart:math';
 ''');
-    LibraryElement newLibrary = _getDartLibrary('dart:async');
+    Source newLibrary = _getDartSource('dart:async');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary],
+        <Source>[newLibrary],
         '''
 import 'dart:async';
 import 'dart:collection';
@@ -52,14 +51,14 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_last() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasImports_last() async {
+    await resolveTestUnit('''
 import 'dart:async';
 import 'dart:collection';
 ''');
-    LibraryElement newLibrary = _getDartLibrary('dart:math');
+    Source newLibrary = _getDartSource('dart:math');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary],
+        <Source>[newLibrary],
         '''
 import 'dart:async';
 import 'dart:collection';
@@ -67,32 +66,15 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_multiple() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasImports_multiple() async {
+    await resolveTestUnit('''
 import 'dart:collection';
 import 'dart:math';
 ''');
-    LibraryElement newLibrary1 = _getDartLibrary('dart:async');
-    LibraryElement newLibrary2 = _getDartLibrary('dart:html');
+    Source newLibrary1 = _getDartSource('dart:async');
+    Source newLibrary2 = _getDartSource('dart:html');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary1, newLibrary2],
-        '''
-import 'dart:async';
-import 'dart:collection';
-import 'dart:html';
-import 'dart:math';
-''');
-  }
-
-  test_addLibraryImports_dart_hasImports_multiple_first() {
-    resolveTestUnit('''
-import 'dart:html';
-import 'dart:math';
-''');
-    LibraryElement newLibrary1 = _getDartLibrary('dart:async');
-    LibraryElement newLibrary2 = _getDartLibrary('dart:collection');
-    _assertAddLibraryImport(
-        <LibraryElement>[newLibrary1, newLibrary2],
+        <Source>[newLibrary1, newLibrary2],
         '''
 import 'dart:async';
 import 'dart:collection';
@@ -101,15 +83,15 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_multiple_last() {
-    resolveTestUnit('''
-import 'dart:async';
-import 'dart:collection';
+  test_addLibraryImports_dart_hasImports_multiple_first() async {
+    await resolveTestUnit('''
+import 'dart:html';
+import 'dart:math';
 ''');
-    LibraryElement newLibrary1 = _getDartLibrary('dart:html');
-    LibraryElement newLibrary2 = _getDartLibrary('dart:math');
+    Source newLibrary1 = _getDartSource('dart:async');
+    Source newLibrary2 = _getDartSource('dart:collection');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary1, newLibrary2],
+        <Source>[newLibrary1, newLibrary2],
         '''
 import 'dart:async';
 import 'dart:collection';
@@ -118,16 +100,33 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasLibraryDirective() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_hasImports_multiple_last() async {
+    await resolveTestUnit('''
+import 'dart:async';
+import 'dart:collection';
+''');
+    Source newLibrary1 = _getDartSource('dart:html');
+    Source newLibrary2 = _getDartSource('dart:math');
+    _assertAddLibraryImport(
+        <Source>[newLibrary1, newLibrary2],
+        '''
+import 'dart:async';
+import 'dart:collection';
+import 'dart:html';
+import 'dart:math';
+''');
+  }
+
+  test_addLibraryImports_dart_hasLibraryDirective() async {
+    await resolveTestUnit('''
 library test;
 
 class A {}
 ''');
-    LibraryElement newLibrary1 = _getDartLibrary('dart:math');
-    LibraryElement newLibrary2 = _getDartLibrary('dart:async');
+    Source newLibrary1 = _getDartSource('dart:math');
+    Source newLibrary2 = _getDartSource('dart:async');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary1, newLibrary2],
+        <Source>[newLibrary1, newLibrary2],
         '''
 library test;
 
@@ -138,16 +137,16 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_hasComment() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_noDirectives_hasComment() async {
+    await resolveTestUnit('''
 /// Comment.
 
 class A {}
 ''');
-    LibraryElement newLibrary1 = _getDartLibrary('dart:math');
-    LibraryElement newLibrary2 = _getDartLibrary('dart:async');
+    Source newLibrary1 = _getDartSource('dart:math');
+    Source newLibrary2 = _getDartSource('dart:async');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary1, newLibrary2],
+        <Source>[newLibrary1, newLibrary2],
         '''
 /// Comment.
 
@@ -158,16 +157,16 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_hasShebang() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_noDirectives_hasShebang() async {
+    await resolveTestUnit('''
 #!/bin/dart
 
 class A {}
 ''');
-    LibraryElement newLibrary1 = _getDartLibrary('dart:math');
-    LibraryElement newLibrary2 = _getDartLibrary('dart:async');
+    Source newLibrary1 = _getDartSource('dart:math');
+    Source newLibrary2 = _getDartSource('dart:async');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary1, newLibrary2],
+        <Source>[newLibrary1, newLibrary2],
         '''
 #!/bin/dart
 
@@ -178,14 +177,14 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_noShebang() {
-    resolveTestUnit('''
+  test_addLibraryImports_dart_noDirectives_noShebang() async {
+    await resolveTestUnit('''
 class A {}
 ''');
-    LibraryElement newLibrary1 = _getDartLibrary('dart:math');
-    LibraryElement newLibrary2 = _getDartLibrary('dart:async');
+    Source newLibrary1 = _getDartSource('dart:math');
+    Source newLibrary2 = _getDartSource('dart:async');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary1, newLibrary2],
+        <Source>[newLibrary1, newLibrary2],
         '''
 import 'dart:async';
 import 'dart:math';
@@ -194,16 +193,15 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_package_hasDart_hasPackages_insertAfter() {
-    resolveTestUnit('''
+  test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
+    await resolveTestUnit('''
 import 'dart:async';
 
 import 'package:aaa/aaa.dart';
 ''');
-    LibraryElement newLibrary =
-        _mockLibraryElement('/lib/bbb.dart', 'package:bbb/bbb.dart');
+    Source newLibrary = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary],
+        <Source>[newLibrary],
         '''
 import 'dart:async';
 
@@ -212,16 +210,15 @@ import 'package:bbb/bbb.dart';
 ''');
   }
 
-  test_addLibraryImports_package_hasDart_hasPackages_insertBefore() {
-    resolveTestUnit('''
+  test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
+    await resolveTestUnit('''
 import 'dart:async';
 
 import 'package:bbb/bbb.dart';
 ''');
-    LibraryElement newLibrary =
-        _mockLibraryElement('/lib/aaa.dart', 'package:aaa/aaa.dart');
+    Source newLibrary = _getSource('/lib/aaa.dart', 'package:aaa/aaa.dart');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary],
+        <Source>[newLibrary],
         '''
 import 'dart:async';
 
@@ -230,17 +227,15 @@ import 'package:bbb/bbb.dart';
 ''');
   }
 
-  test_addLibraryImports_package_hasImports_between() {
-    resolveTestUnit('''
+  test_addLibraryImports_package_hasImports_between() async {
+    await resolveTestUnit('''
 import 'package:aaa/aaa.dart';
 import 'package:ddd/ddd.dart';
 ''');
-    LibraryElement newLibrary1 =
-        _mockLibraryElement('/lib/bbb.dart', 'package:bbb/bbb.dart');
-    LibraryElement newLibrary2 =
-        _mockLibraryElement('/lib/ccc.dart', 'package:ccc/ccc.dart');
+    Source newLibrary1 = _getSource('/lib/bbb.dart', 'package:bbb/bbb.dart');
+    Source newLibrary2 = _getSource('/lib/ccc.dart', 'package:ccc/ccc.dart');
     _assertAddLibraryImport(
-        <LibraryElement>[newLibrary1, newLibrary2],
+        <Source>[newLibrary1, newLibrary2],
         '''
 import 'package:aaa/aaa.dart';
 import 'package:bbb/bbb.dart';
@@ -249,8 +244,7 @@ import 'package:ddd/ddd.dart';
 ''');
   }
 
-  void _assertAddLibraryImport(
-      List<LibraryElement> newLibraries, String expectedCode) {
+  void _assertAddLibraryImport(List<Source> newLibraries, String expectedCode) {
     SourceChange change = new SourceChange('');
     addLibraryImports(change, testLibraryElement, newLibraries.toSet());
     SourceFileEdit testEdit = change.getFileEdit(testFile);
@@ -259,25 +253,14 @@ import 'package:ddd/ddd.dart';
     expect(resultCode, expectedCode);
   }
 
-  LibraryElement _getDartLibrary(String uri) {
+  Source _getDartSource(String uri) {
     String path = removeStart(uri, 'dart:');
-    Source newSource = new _SourceMock('/sdk/lib/$path.dart', Uri.parse(uri));
-    return new _LibraryElementMock(newSource);
+    return new _SourceMock('/sdk/lib/$path.dart', Uri.parse(uri));
   }
 
-  LibraryElement _mockLibraryElement(String path, String uri) {
-    Source newSource = new _SourceMock(path, Uri.parse(uri));
-    return new _LibraryElementMock(newSource);
+  Source _getSource(String path, String uri) {
+    return new _SourceMock(path, Uri.parse(uri));
   }
-}
-
-class _LibraryElementMock implements LibraryElement {
-  @override
-  final Source source;
-
-  _LibraryElementMock(this.source);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _SourceMock implements Source {

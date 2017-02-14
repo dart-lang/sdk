@@ -17,7 +17,7 @@ import 'constants/evaluation.dart' as constants;
 import 'constants/expressions.dart' as constants;
 import 'constants/values.dart' as constants;
 import 'dart2js.dart' as dart2js;
-import 'dart_types.dart' as dart_types;
+import 'elements/resolution_types.dart' as dart_types;
 import 'deferred_load.dart' as deferred;
 import 'diagnostics/source_span.dart' as diagnostics;
 import 'elements/elements.dart' as elements;
@@ -247,15 +247,15 @@ useIo([io.LineColumnMap map, io.LineColumnProvider provider]) {
 usedByTests() {
   // TODO(ahe): We should try to avoid including API used only for tests. In
   // most cases, such API can be moved to a test library.
-  WorldImpl world = null;
+  ClosedWorldImpl closedWorld = null;
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
   sourceFileProvider.getSourceFile(null);
-  world.hasAnyUserDefinedGetter(null, null);
-  world.subclassesOf(null);
-  world.getClassHierarchyNode(null);
-  world.getClassSet(null);
-  world.haveAnyCommonSubtypes(null, null);
+  closedWorld.hasAnyUserDefinedGetter(null, null);
+  closedWorld.subclassesOf(null);
+  closedWorld.getClassHierarchyNode(null);
+  closedWorld.getClassSet(null);
+  closedWorld.haveAnyCommonSubtypes(null, null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(null).copy(null);

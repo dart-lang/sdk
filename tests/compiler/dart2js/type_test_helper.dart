@@ -10,18 +10,19 @@ import 'compiler_helper.dart' as mock;
 import 'memory_compiler.dart' as memory;
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/elements.dart'
     show Element, MemberElement, TypeDeclarationElement, ClassElement;
+import 'package:compiler/src/world.dart' show ClosedWorld;
 
 GenericType instantiate(
-    TypeDeclarationElement element, List<DartType> arguments) {
+    TypeDeclarationElement element, List<ResolutionDartType> arguments) {
   if (element.isClass) {
-    return new InterfaceType(element, arguments);
+    return new ResolutionInterfaceType(element, arguments);
   } else {
     assert(element.isTypedef);
-    return new TypedefType(element, arguments);
+    return new ResolutionTypedefType(element, arguments);
   }
 }
 
@@ -93,50 +94,59 @@ class TypeEnvironment {
     return element;
   }
 
-  DartType getElementType(String name) {
+  ClassElement getClass(String name) => getElement(name);
+
+  ResolutionDartType getElementType(String name) {
     var element = getElement(name);
     return element.computeType(compiler.resolution);
   }
 
-  DartType operator [](String name) {
-    if (name == 'dynamic') return const DynamicType();
-    if (name == 'void') return const VoidType();
+  ResolutionDartType operator [](String name) {
+    if (name == 'dynamic') return const ResolutionDynamicType();
+    if (name == 'void') return const ResolutionVoidType();
     return getElementType(name);
   }
 
-  DartType getMemberType(ClassElement element, String name) {
+  ResolutionDartType getMemberType(ClassElement element, String name) {
     MemberElement member = element.localLookup(name);
     return member.computeType(compiler.resolution);
   }
 
-  bool isSubtype(DartType T, DartType S) {
+  bool isSubtype(ResolutionDartType T, ResolutionDartType S) {
     return compiler.types.isSubtype(T, S);
   }
 
-  bool isMoreSpecific(DartType T, DartType S) {
+  bool isMoreSpecific(ResolutionDartType T, ResolutionDartType S) {
     return compiler.types.isMoreSpecific(T, S);
   }
 
-  DartType computeLeastUpperBound(DartType T, DartType S) {
+  ResolutionDartType computeLeastUpperBound(
+      ResolutionDartType T, ResolutionDartType S) {
     return compiler.types.computeLeastUpperBound(T, S);
   }
 
-  DartType flatten(DartType T) {
+  ResolutionDartType flatten(ResolutionDartType T) {
     return compiler.types.flatten(T);
   }
 
-  FunctionType functionType(DartType returnType, List<DartType> parameters,
-      {List<DartType> optionalParameters: const <DartType>[],
-      Map<String, DartType> namedParameters}) {
+  ResolutionFunctionType functionType(
+      ResolutionDartType returnType, List<ResolutionDartType> parameters,
+      {List<ResolutionDartType> optionalParameters:
+          const <ResolutionDartType>[],
+      Map<String, ResolutionDartType> namedParameters}) {
     List<String> namedParameterNames = <String>[];
-    List<DartType> namedParameterTypes = <DartType>[];
+    List<ResolutionDartType> namedParameterTypes = <ResolutionDartType>[];
     if (namedParameters != null) {
-      namedParameters.forEach((String name, DartType type) {
+      namedParameters.forEach((String name, ResolutionDartType type) {
         namedParameterNames.add(name);
         namedParameterTypes.add(type);
       });
     }
-    return new FunctionType.synthesized(returnType, parameters,
+    return new ResolutionFunctionType.synthesized(returnType, parameters,
         optionalParameters, namedParameterNames, namedParameterTypes);
+  }
+
+  ClosedWorld get closedWorld {
+    return compiler.resolutionWorldBuilder.closedWorldForTesting;
   }
 }

@@ -209,7 +209,8 @@ class DownCommand extends DebuggerCommand {
       debugger.downFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
     } catch (e) {
-      debugger.console.print('frame must be in range [${e.start},${e.end-1}]');
+      debugger.console.print(
+          'frame must be in range [${e.start}..${e.end-1}]');
     }
     return new Future.value(null);
   }
@@ -243,7 +244,8 @@ class UpCommand extends DebuggerCommand {
       debugger.upFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
-      debugger.console.print('frame must be in range [${e.start},${e.end-1}]');
+      debugger.console.print(
+          'frame must be in range [${e.start}..${e.end-1}]');
     }
     return new Future.value(null);
   }
@@ -279,7 +281,8 @@ class FrameCommand extends DebuggerCommand {
       debugger.currentFrame = frame;
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
-      debugger.console.print('frame must be in range [${e.start},${e.end-1}]');
+      debugger.console.print(
+          'frame must be in range [${e.start}..${e.end-1}]');
     }
     return new Future.value(null);
   }
@@ -401,6 +404,73 @@ class StepCommand extends DebuggerCommand {
       'Hotkey: [F10]\n'
       '\n'
       'Syntax: step\n';
+}
+
+class RewindCommand extends DebuggerCommand {
+  RewindCommand(Debugger debugger) : super(debugger, 'rewind', []);
+
+  Future run(List<String> args) async {
+    try {
+      int count = 1;
+      if (args.length == 1) {
+        count = int.parse(args[0]);
+      } else if (args.length > 1) {
+        debugger.console.print('rewind expects 0 or 1 argument');
+        return;
+      } else if (count < 1 || count > debugger.stackDepth) {
+        debugger.console.print(
+            'frame must be in range [1..${debugger.stackDepth - 1}]');
+        return;
+      }
+      await debugger.rewind(count);
+    } on S.ServerRpcException catch(e) {
+      if (e.code == S.ServerRpcException.kCannotResume) {
+        debugger.console.printRed(e.data['details']);
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  String helpShort = 'Rewind the stack to a previous frame';
+
+  String helpLong =
+      'Rewind the stack to a previous frame.\n'
+      '\n'
+      'Syntax: rewind\n'
+      '        rewind <count>\n';
+}
+
+class ReloadCommand extends DebuggerCommand {
+  ReloadCommand(Debugger debugger) : super(debugger, 'reload', []);
+
+  Future run(List<String> args) async {
+    try {
+      int count = 1;
+      if (args.length > 0) {
+        debugger.console.print('reload expects no arguments');
+        return;
+      }
+      await debugger.isolate.reloadSources();
+      debugger.console.print('reload complete');
+      await debugger.refreshStack();
+    } on S.ServerRpcException catch(e) {
+      if (e.code == S.ServerRpcException.kIsolateReloadBarred ||
+          e.code == S.ServerRpcException.kIsolateReloadFailed ||
+          e.code == S.ServerRpcException.kIsolateIsReloading) {
+        debugger.console.printRed(e.data['details']);
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  String helpShort = 'Reload the sources for the current isolate';
+
+  String helpLong =
+      'Reload the sources for the current isolate.\n'
+      '\n'
+      'Syntax: reload\n';
 }
 
 class ClsCommand extends DebuggerCommand {
@@ -663,8 +733,8 @@ class BreakCommand extends DebuggerCommand {
         var script = loc.script;
         await script.load();
         if (loc.line < 1 || loc.line > script.lines.length) {
-          debugger.console
-              .print('line number must be in range [1,${script.lines.length}]');
+          debugger.console.print(
+              'line number must be in range [1..${script.lines.length}]');
           return;
         }
         try {
@@ -744,7 +814,7 @@ class ClearCommand extends DebuggerCommand {
     var script = loc.script;
     if (loc.line < 1 || loc.line > script.lines.length) {
       debugger.console
-          .print('line number must be in range [1,${script.lines.length}]');
+          .print('line number must be in range [1..${script.lines.length}]');
       return;
     }
     var lineInfo = script.getLine(loc.line);
@@ -899,7 +969,6 @@ class IsolateCommand extends DebuggerCommand {
       : super(debugger, 'isolate', [
           new IsolateListCommand(debugger),
           new IsolateNameCommand(debugger),
-          new IsolateReloadCommand(debugger),
         ]) {
     alias = 'i';
   }
@@ -1040,27 +1109,6 @@ class IsolateNameCommand extends DebuggerCommand {
   String helpLong = 'Rename the current isolate.\n'
       '\n'
       'Syntax: isolate name <name>\n';
-}
-
-class IsolateReloadCommand extends DebuggerCommand {
-  IsolateReloadCommand(Debugger debugger) : super(debugger, 'reload', []);
-
-  Future run(List<String> args) async {
-    if (debugger.isolate == null) {
-      debugger.console.print('There is no current vm');
-      return;
-    }
-
-    await debugger.isolate.reloadSources();
-
-    debugger.console.print('Isolate reloading....');
-  }
-
-  String helpShort = 'Reload the sources for the current isolate.';
-
-  String helpLong = 'Reload the sources for the current isolate.\n'
-      '\n'
-      'Syntax: reload\n';
 }
 
 class InfoCommand extends DebuggerCommand {
@@ -1371,7 +1419,9 @@ class ObservatoryDebugger extends Debugger {
       new LogCommand(this),
       new PauseCommand(this),
       new PrintCommand(this),
+      new ReloadCommand(this),
       new RefreshCommand(this),
+      new RewindCommand(this),
       new SetCommand(this),
       new SmartNextCommand(this),
       new StepCommand(this),
@@ -1879,6 +1929,20 @@ class ObservatoryDebugger extends Debugger {
       return new Future.value(null);
     }
   }
+
+  Future rewind(int count) {
+    if (isolatePaused()) {
+      var event = isolate.pauseEvent;
+      if (event is M.PauseExitEvent) {
+        console.print("Type 'continue' [F7] to exit the isolate");
+        return new Future.value(null);
+      }
+      return isolate.rewind(count);
+    } else {
+      console.print('The program must be paused');
+      return new Future.value(null);
+    }
+  }
 }
 
 class DebuggerPageElement extends HtmlElement implements Renderable {
@@ -1905,6 +1969,7 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
     final e = document.createElement(tag.name);
     final debugger = new ObservatoryDebugger(isolate);
     debugger.page = e;
+    debugger.instances = instances;
     e._isolate = isolate;
     e._debugger = debugger;
     e._instances = instances;
@@ -2513,7 +2578,9 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   }
 
   bool matchFrame(S.Frame newFrame) {
-    return newFrame.function.id == _frame.function.id;
+    return (newFrame.function.id == _frame.function.id &&
+            newFrame.location.script.id ==
+            frame.location.script.id);
   }
 
   void updateFrame(S.Frame newFrame) {

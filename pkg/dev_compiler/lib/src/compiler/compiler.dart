@@ -5,30 +5,32 @@
 import 'dart:collection' show HashSet, Queue;
 import 'dart:convert' show BASE64, JSON, UTF8;
 import 'dart:io' show File;
-import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+
 import 'package:analyzer/analyzer.dart'
     show AnalysisError, CompilationUnit, ErrorSeverity;
+import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
+import 'package:analyzer/file_system/physical_file_system.dart'
+    show PhysicalResourceProvider;
+import 'package:analyzer/src/context/builder.dart' show ContextBuilder;
+import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
+import 'package:analyzer/src/error/codes.dart' show StaticTypeWarningCode;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
-import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
+import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
+import 'package:analyzer/src/generated/source.dart'
+    show ContentCache, DartUriResolver;
 import 'package:analyzer/src/generated/source_io.dart'
     show Source, SourceKind, UriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummarySource, InputPackagesResultProvider, SummaryDataStore;
-import 'package:analyzer/src/error/codes.dart' show StaticTypeWarningCode;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/src/usage_exception.dart' show UsageException;
 import 'package:func/func.dart' show Func1;
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';
 
-import '../analyzer/context.dart'
-    show
-        AnalyzerOptions,
-        createAnalysisContext,
-        createSdkPathResolver,
-        createSourceFactory;
+import '../analyzer/context.dart' show AnalyzerOptions, createSourceFactory;
 import '../js_ast/js_ast.dart' as JS;
 import 'code_generator.dart' show CodeGenerator;
 import 'error_helpers.dart' show errorSeverity, formatError, sortErrors;
@@ -59,29 +61,36 @@ class ModuleCompiler {
   final SummaryDataStore summaryData;
   final ExtensionTypeSet _extensionTypes;
 
-  ModuleCompiler.withContext(AnalysisContext context, this.summaryData)
+  ModuleCompiler._(AnalysisContext context, this.summaryData)
       : context = context,
-        _extensionTypes = new ExtensionTypeSet(context) {
-    if (!context.analysisOptions.strongMode) {
-      throw new ArgumentError('AnalysisContext must be strong mode');
-    }
-    if (!context.sourceFactory.dartSdk.context.analysisOptions.strongMode) {
-      throw new ArgumentError('AnalysisContext must have strong mode SDK');
-    }
-  }
+        _extensionTypes = new ExtensionTypeSet(context);
 
   factory ModuleCompiler(AnalyzerOptions options,
-      {DartUriResolver sdkResolver,
-      ResourceProvider resourceProvider,
+      {ResourceProvider resourceProvider,
+      String analysisRoot,
       List<UriResolver> fileResolvers}) {
+    // TODO(danrubel): refactor with analyzer CLI into analyzer common code
     AnalysisEngine.instance.processRequiredPlugins();
 
-    sdkResolver ??=
-        createSdkPathResolver(options.dartSdkSummaryPath, options.dartSdkPath);
+    resourceProvider ??= PhysicalResourceProvider.INSTANCE;
+    analysisRoot ??= path.current;
+
+    var contextBuilder = new ContextBuilder(resourceProvider,
+        new DartSdkManager(options.dartSdkPath, true), new ContentCache(),
+        options: options.contextBuilderOptions);
+
+    var analysisOptions = contextBuilder.getAnalysisOptions(analysisRoot);
+    var sdk = contextBuilder.findSdk(null, analysisOptions);
+
+    var sdkResolver = new DartUriResolver(sdk);
 
     // Read the summaries.
     var summaryData =
         new SummaryDataStore(options.summaryPaths, recordDependencyInfo: true);
+    var sdkSummaryBundle = sdk.getLinkedBundle();
+    if (sdkSummaryBundle != null) {
+      summaryData.addBundle(null, sdkSummaryBundle);
+    }
 
     var srcFactory = createSourceFactory(options,
         sdkResolver: sdkResolver,
@@ -89,15 +98,29 @@ class ModuleCompiler {
         summaryData: summaryData,
         resourceProvider: resourceProvider);
 
-    var context = createAnalysisContext();
+    var context =
+        AnalysisEngine.instance.createAnalysisContext() as AnalysisContextImpl;
+    context.analysisOptions = analysisOptions;
     context.sourceFactory = srcFactory;
-    context.typeProvider = sdkResolver.dartSdk.context.typeProvider;
-    context.resultProvider =
-        new InputPackagesResultProvider(context, summaryData);
+    if (sdkSummaryBundle != null) {
+      context.resultProvider =
+          new InputPackagesResultProvider(context, summaryData);
+    }
     options.declaredVariables.forEach(context.declaredVariables.define);
     context.declaredVariables.define('dart.isVM', 'false');
 
-    return new ModuleCompiler.withContext(context, summaryData);
+    // TODO(vsm): Should this be hardcoded?
+    context.declaredVariables.define('dart.library.html', 'true');
+    context.declaredVariables.define('dart.library.io', 'false');
+
+    if (!context.analysisOptions.strongMode) {
+      throw new ArgumentError('AnalysisContext must be strong mode');
+    }
+    if (!context.sourceFactory.dartSdk.context.analysisOptions.strongMode) {
+      throw new ArgumentError('AnalysisContext must have strong mode SDK');
+    }
+
+    return new ModuleCompiler._(context, summaryData);
   }
 
   bool _isFatalError(AnalysisError e, CompilerOptions options) {
@@ -305,19 +328,19 @@ class CompilerOptions {
         bazelMapping = _parseBazelMappings(args['bazel-mapping']),
         summaryOutPath = args['summary-out'];
 
-  static void addArguments(ArgParser parser) {
+  static void addArguments(ArgParser parser, {bool hide: true}) {
     parser
       ..addFlag('summarize', help: 'emit an API summary file', defaultsTo: true)
       ..addOption('summary-extension',
           help: 'file extension for Dart summary files',
           defaultsTo: 'sum',
-          hide: true)
+          hide: hide)
       ..addFlag('source-map', help: 'emit source mapping', defaultsTo: true)
       ..addFlag('source-map-comment',
           help: 'adds a sourceMappingURL comment to the end of the JS,\n'
               'disable if using X-SourceMap header',
           defaultsTo: true,
-          hide: true)
+          hide: hide)
       ..addFlag('inline-source-map',
           help: 'emit source mapping inline', defaultsTo: false)
       ..addFlag('emit-metadata',
@@ -327,39 +350,39 @@ class CompilerOptions {
           help: 'emit Closure Compiler-friendly code (experimental)',
           defaultsTo: false)
       ..addFlag('destructure-named-params',
-          help: 'Destructure named parameters', defaultsTo: false, hide: true)
+          help: 'Destructure named parameters', defaultsTo: false, hide: hide)
       ..addFlag('unsafe-force-compile',
           help: 'Compile code even if it has errors. ಠ_ಠ\n'
               'This has undefined behavior!',
           defaultsTo: false,
-          hide: true)
+          hide: hide)
       ..addFlag('repl-compile',
-          help: 'Compile code more permissively when in REPL mode allowing '
-              'access to private members across library boundaries.',
+          help: 'Compile code more permissively when in REPL mode\n'
+              'allowing access to private members across library boundaries.',
           defaultsTo: false,
-          hide: true)
+          hide: hide)
       ..addFlag('hoist-instance-creation',
           help: 'Hoist the class type from generic instance creations',
           defaultsTo: true,
-          hide: true)
+          hide: hide)
       ..addFlag('hoist-signature-types',
           help: 'Hoist types from class signatures',
           defaultsTo: false,
-          hide: true)
+          hide: hide)
       ..addFlag('name-type-tests',
-          help: 'Name types used in type tests', defaultsTo: true, hide: true)
+          help: 'Name types used in type tests', defaultsTo: true, hide: hide)
       ..addFlag('hoist-type-tests',
-          help: 'Hoist types used in type tests', defaultsTo: true, hide: true)
-      ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: true)
+          help: 'Hoist types used in type tests', defaultsTo: true, hide: hide)
+      ..addFlag('unsafe-angular2-whitelist', defaultsTo: false, hide: hide)
       ..addOption('bazel-mapping',
           help:
               '--bazel-mapping=genfiles/to/library.dart,to/library.dart uses \n'
               'to/library.dart as the path for library.dart in source maps.',
           allowMultiple: true,
           splitCommas: false,
-          hide: true)
+          hide: hide)
       ..addOption('summary-out',
-          help: 'location to write the summary file', hide: true);
+          help: 'location to write the summary file', hide: hide);
   }
 
   static Map<String, String> _parseBazelMappings(Iterable argument) {

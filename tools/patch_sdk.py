@@ -25,7 +25,13 @@ https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
 
 def BuildArguments():
   result = argparse.ArgumentParser(usage=usage)
-  result.add_argument("--dart-executable", help="dart executable", default=None)
+  result.add_argument("-q", "--quiet",
+                      help="emit no output",
+                      default=False,
+                      action="store_true")
+  result.add_argument("--dart-executable",
+                      help="dart executable",
+                      default=None)
   return result
 
 def main():
@@ -35,7 +41,8 @@ def main():
   if utils.CheckedInSdkCheckExecutable():
     options.dart_executable = utils.CheckedInSdkExecutable()
   elif options.dart_executable is not None:
-    DisplayBootstrapWarning()
+    if not options.quiet:
+      DisplayBootstrapWarning()
     options.dart_executable = os.path.abspath(options.dart_executable)
   else:
     print >> sys.stderr, 'ERROR: cannot locate dart executable'

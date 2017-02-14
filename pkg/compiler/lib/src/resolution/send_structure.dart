@@ -6,7 +6,7 @@ library dart2js.resolution.send_structure;
 
 import '../common.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart';
@@ -112,7 +112,7 @@ class LogicalOrStructure<R, A> implements SendStructure<R, A> {
 /// The structure for a [Send] of the form `a is T`.
 class IsStructure<R, A> implements SendStructure<R, A> {
   /// The type that the expression is tested against.
-  final DartType type;
+  final ResolutionDartType type;
 
   IsStructure(this.type);
 
@@ -129,7 +129,7 @@ class IsStructure<R, A> implements SendStructure<R, A> {
 /// The structure for a [Send] of the form `a is! T`.
 class IsNotStructure<R, A> implements SendStructure<R, A> {
   /// The type that the expression is tested against.
-  final DartType type;
+  final ResolutionDartType type;
 
   IsNotStructure(this.type);
 
@@ -146,7 +146,7 @@ class IsNotStructure<R, A> implements SendStructure<R, A> {
 /// The structure for a [Send] of the form `a as T`.
 class AsStructure<R, A> implements SendStructure<R, A> {
   /// The type that the expression is cast to.
-  final DartType type;
+  final ResolutionDartType type;
 
   AsStructure(this.type);
 
@@ -2059,7 +2059,11 @@ class DeferredPrefixStructure<R, A> implements SendStructure<R, A> {
   }
 }
 
-enum NewStructureKind { NEW_INVOKE, CONST_INVOKE, LATE_CONST, }
+enum NewStructureKind {
+  NEW_INVOKE,
+  CONST_INVOKE,
+  LATE_CONST,
+}
 
 /// The structure for a [NewExpression] of a new invocation.
 abstract class NewStructure<R, A> implements SemanticSendStructure<R, A> {
@@ -2110,10 +2114,9 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
                 arg);
           }
           ConstructorElement effectiveTarget = constructor.effectiveTarget;
-          InterfaceType effectiveTargetType =
+          ResolutionInterfaceType effectiveTargetType =
               constructor.computeEffectiveTargetType(semantics.type);
-          if (callStructure
-              .signatureApplies(effectiveTarget.functionSignature)) {
+          if (callStructure.signatureApplies(effectiveTarget.type)) {
             return visitor.visitRedirectingFactoryConstructorInvoke(
                 node,
                 semantics.element,
@@ -2133,7 +2136,7 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
                 arg);
           }
         }
-        if (callStructure.signatureApplies(constructor.functionSignature)) {
+        if (callStructure.signatureApplies(constructor.type)) {
           return visitor.visitFactoryConstructorInvoke(node, constructor,
               semantics.type, node.send.argumentsNode, callStructure, arg);
         }
@@ -2234,7 +2237,7 @@ class LateConstInvokeStructure<R, A> extends NewStructure<R, A> {
   NewStructure resolve(NewExpression node) {
     Element element = elements[node.send];
     Selector selector = elements.getSelector(node.send);
-    DartType type = elements.getType(node);
+    ResolutionDartType type = elements.getType(node);
     ConstantExpression constant = elements.getConstant(node);
     if (element.isMalformed ||
         constant == null ||
@@ -2271,7 +2274,7 @@ class LateConstInvokeStructure<R, A> extends NewStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg) {
     Element element = elements[node.send];
     Selector selector = elements.getSelector(node.send);
-    DartType type = elements.getType(node);
+    ResolutionDartType type = elements.getType(node);
     ConstantExpression constant = elements.getConstant(node);
     if (element.isMalformed ||
         constant == null ||
@@ -2470,7 +2473,7 @@ class FieldInitializerStructure<R, A> extends InitializerStructure<R, A> {
 class SuperConstructorInvokeStructure<R, A> extends InitializerStructure<R, A> {
   final Send node;
   final ConstructorElement constructor;
-  final InterfaceType type;
+  final ResolutionInterfaceType type;
   final CallStructure callStructure;
 
   SuperConstructorInvokeStructure(
@@ -2488,7 +2491,7 @@ class ImplicitSuperConstructorInvokeStructure<R, A>
     extends InitializerStructure<R, A> {
   final FunctionExpression node;
   final ConstructorElement constructor;
-  final InterfaceType type;
+  final ResolutionInterfaceType type;
 
   ImplicitSuperConstructorInvokeStructure(
       this.node, this.constructor, this.type);

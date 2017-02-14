@@ -341,7 +341,8 @@ class CloneVisitor extends TreeVisitor {
         isConst: node.isConst,
         isExternal: node.isExternal,
         initializers: node.initializers.map(clone).toList(),
-        transformerFlags: node.transformerFlags);
+        transformerFlags: node.transformerFlags)
+      ..fileEndOffset = node.fileEndOffset;
   }
 
   visitProcedure(Procedure node) {
@@ -351,7 +352,7 @@ class CloneVisitor extends TreeVisitor {
         isExternal: node.isExternal,
         isConst: node.isConst,
         transformerFlags: node.transformerFlags,
-        fileUri: node.fileUri);
+        fileUri: node.fileUri)..fileEndOffset = node.fileEndOffset;
   }
 
   visitField(Field node) {
@@ -364,7 +365,7 @@ class CloneVisitor extends TreeVisitor {
         hasImplicitGetter: node.hasImplicitGetter,
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,
-        fileUri: node.fileUri);
+        fileUri: node.fileUri)..fileEndOffset = node.fileEndOffset;
   }
 
   visitTypeParameter(TypeParameter node) {
@@ -374,17 +375,19 @@ class CloneVisitor extends TreeVisitor {
     return newNode;
   }
 
+  TreeNode cloneFunctionNodeBody(FunctionNode node) => cloneOptional(node.body);
+
   visitFunctionNode(FunctionNode node) {
     var typeParameters = node.typeParameters.map(clone).toList();
     var positional = node.positionalParameters.map(clone).toList();
     var named = node.namedParameters.map(clone).toList();
-    return new FunctionNode(cloneOptional(node.body),
+    return new FunctionNode(cloneFunctionNodeBody(node),
         typeParameters: typeParameters,
         positionalParameters: positional,
         namedParameters: named,
         requiredParameterCount: node.requiredParameterCount,
         returnType: visitType(node.returnType),
-        asyncMarker: node.asyncMarker);
+        asyncMarker: node.asyncMarker)..fileEndOffset = node.fileEndOffset;
   }
 
   visitArguments(Arguments node) {

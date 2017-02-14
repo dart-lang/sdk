@@ -243,6 +243,11 @@ void PatchClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
 static void AddFunctionServiceId(const JSONObject& jsobj,
                                  const Function& f,
                                  const Class& cls) {
+  if (cls.IsNull()) {
+    ASSERT(f.IsSignatureFunction());
+    jsobj.AddServiceId(f);
+    return;
+  }
   // Special kinds of functions use indices in their respective lists.
   intptr_t id = -1;
   const char* selector = NULL;
@@ -279,10 +284,13 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
 
 void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Class& cls = Class::Handle(Owner());
-  ASSERT(!cls.IsNull());
-  Error& err = Error::Handle();
-  err ^= cls.EnsureIsFinalized(Thread::Current());
-  ASSERT(err.IsNull());
+  if (!cls.IsNull()) {
+    Error& err = Error::Handle();
+    err ^= cls.EnsureIsFinalized(Thread::Current());
+    ASSERT(err.IsNull());
+  } else {
+    ASSERT(IsSignatureFunction());
+  }
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Function", ref);
   AddFunctionServiceId(jsobj, *this, cls);
@@ -292,11 +300,13 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const Function& parent = Function::Handle(parent_function());
   if (!parent.IsNull()) {
     jsobj.AddProperty("owner", parent);
-  } else if (cls.IsTopLevel()) {
-    const Library& library = Library::Handle(cls.library());
-    jsobj.AddProperty("owner", library);
-  } else {
-    jsobj.AddProperty("owner", cls);
+  } else if (!cls.IsNull()) {
+    if (cls.IsTopLevel()) {
+      const Library& library = Library::Handle(cls.library());
+      jsobj.AddProperty("owner", library);
+    } else {
+      jsobj.AddProperty("owner", cls);
+    }
   }
 
   const char* kind_string = Function::KindToCString(kind());
@@ -709,7 +719,7 @@ void CodeSourceMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void Stackmap::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void StackMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
@@ -1099,6 +1109,7 @@ void AbstractType::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // TODO(regis): Function types are not handled properly.
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Type");
@@ -1482,12 +1493,17 @@ void ClosureData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
+void SignatureData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
+
 void Closure::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
 
 
-void Stacktrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void StackTrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "StackTrace");

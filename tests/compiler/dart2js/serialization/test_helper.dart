@@ -8,7 +8,7 @@ import 'dart:collection';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
@@ -103,7 +103,7 @@ class CheckStrategy implements TestStrategy {
 
   @override
   bool testTypes(Object object1, Object object2, String property,
-      DartType type1, DartType type2) {
+      ResolutionDartType type1, ResolutionDartType type2) {
     return checkTypes(object1, object2, property, type1, type2);
   }
 
@@ -121,7 +121,7 @@ class CheckStrategy implements TestStrategy {
 
   @override
   bool testTypeLists(Object object1, Object object2, String property,
-      List<DartType> list1, List<DartType> list2) {
+      List<ResolutionDartType> list1, List<ResolutionDartType> list2) {
     return checkTypeLists(object1, object2, property, list1, list2);
   }
 
@@ -301,8 +301,8 @@ bool checkElementListIdentities(Object object1, Object object2, String property,
 /// Checks the equivalence of [type1] and [type2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkTypes(Object object1, Object object2, String property, DartType type1,
-    DartType type2) {
+bool checkTypes(Object object1, Object object2, String property,
+    ResolutionDartType type1, ResolutionDartType type2) {
   if (identical(type1, type2)) return true;
   if (type1 == null || type2 == null) {
     return check(object1, object2, property, type1, type2);
@@ -316,7 +316,7 @@ bool checkTypes(Object object1, Object object2, String property, DartType type1,
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
 bool checkTypeLists(Object object1, Object object2, String property,
-    List<DartType> list1, List<DartType> list2) {
+    List<ResolutionDartType> list1, List<ResolutionDartType> list2) {
   return checkListEquivalence(
       object1, object2, property, list1, list2, checkTypes);
 }

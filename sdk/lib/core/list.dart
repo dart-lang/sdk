@@ -329,7 +329,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   void setAll(int index, Iterable<E> iterable);
 
   /**
-   * Removes the first occurence of [value] from this list.
+   * Removes the first occurrence of [value] from this list.
    *
    * Returns true if [value] was in the list, false otherwise.
    *
@@ -415,12 +415,15 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Returns an [Iterable] that iterates over the objects in the range
    * [start] inclusive to [end] exclusive.
    *
-   * An error occurs if [end] is before [start].
+   * The provide range, given by [start] and [end], must be valid at the time
+   * of the call.
    *
-   * An error occurs if the [start] and [end] are not valid ranges at the time
-   * of the call to this method. The returned [Iterable] behaves like
-   * `skip(start).take(end - start)`. That is, it does not throw exceptions
-   * if `this` changes size.
+   * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
+   * `len` is this list's `length`. The range starts at `start` and has length
+   * `end - start`. An empty range (with `end == start`) is valid.
+   *
+   * The returned [Iterable] behaves like `skip(start).take(end - start)`.
+   * That is, it does *not* throw if this list changes size.
    *
    *     List<String> colors = ['red', 'green', 'blue', 'orange', 'pink'];
    *     Iterable<String> range = colors.getRange(1, 4);
@@ -441,15 +444,17 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     list1.setRange(1, 3, list2, 3);
    *     list1.join(', '); // '1, 8, 9, 4'
    *
-   * The [start] and [end] indices must satisfy `0 ≤ start ≤ end ≤ length`.
-   * If [start] equals [end], this method has no effect.
+   * The provide range, given by [start] and [end], must be valid.
+   * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
+   * `len` is this list's `length`. The range starts at `start` and has length
+   * `end - start`. An empty range (with `end == start`) is valid.
    *
    * The [iterable] must have enough objects to fill the range from `start`
    * to `end` after skipping [skipCount] objects.
    *
-   * If `iterable` is this list, the operation will copy the elements originally
-   * in the range from `skipCount` to `skipCount + (end - start)` to the
-   * range `start` to `end`, even if the two ranges overlap.
+   * If `iterable` is this list, the operation copies the elements
+   * originally in the range from `skipCount` to `skipCount + (end - start)` to
+   * the range `start` to `end`, even if the two ranges overlap.
    *
    * If `iterable` depends on this list in some other way, no guarantees are
    * made.
@@ -459,8 +464,10 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /**
    * Removes the objects in the range [start] inclusive to [end] exclusive.
    *
-   * The [start] and [end] indices must be in the range
-   * `0 ≤ index ≤ length`, and `start ≤ end`.
+   * The provide range, given by [start] and [end], must be valid.
+   * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
+   * `len` is this list's `length`. The range starts at `start` and has length
+   * `end - start`. An empty range (with `end == start`) is valid.
    *
    * Throws an [UnsupportedError] if this is a fixed-length list. In that case
    * the list is not modified.
@@ -471,7 +478,10 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Sets the objects in the range [start] inclusive to [end] exclusive
    * to the given [fillValue].
    *
-   * An error occurs if [start]..[end] is not a valid range for `this`.
+   * The provide range, given by [start] and [end], must be valid.
+   * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
+   * `len` is this list's `length`. The range starts at `start` and has length
+   * `end - start`. An empty range (with `end == start`) is valid.
    */
   void fillRange(int start, int end, [E fillValue]);
 
@@ -483,7 +493,10 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     list.replaceRange(1, 4, [6, 7]);
    *     list.join(', '); // '1, 6, 7, 5'
    *
-   * An error occurs if [start]..[end] is not a valid range for `this`.
+   * The provide range, given by [start] and [end], must be valid.
+   * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
+   * `len` is this list's `length`. The range starts at `start` and has length
+   * `end - start`. An empty range (with `end == start`) is valid.
    *
    * This method does not work on fixed-length lists, even when [replacement]
    * has the same number of elements as the replaced range. In that case use

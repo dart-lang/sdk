@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js_backend/js_backend.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
@@ -22,9 +22,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   JavaScriptBackend get backend => compiler.backend;
   String get name => 'type propagator';
 
-  SsaTypePropagator(Compiler compiler)
-      : this.compiler = compiler,
-        this.closedWorld = compiler.closedWorld;
+  SsaTypePropagator(this.compiler, this.closedWorld);
 
   TypeMask computeType(HInstruction instruction) {
     return instruction.accept(this);
@@ -109,18 +107,21 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   TypeMask visitBinaryArithmetic(HBinaryArithmetic instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
-    if (left.isInteger(compiler) && right.isInteger(compiler)) {
-      return backend.intType;
+    if (left.isInteger(closedWorld) && right.isInteger(closedWorld)) {
+      return closedWorld.commonMasks.intType;
     }
-    if (left.isDouble(compiler)) return backend.doubleType;
-    return backend.numType;
+    if (left.isDouble(closedWorld)) {
+      return closedWorld.commonMasks.doubleType;
+    }
+    return closedWorld.commonMasks.numType;
   }
 
   TypeMask checkPositiveInteger(HBinaryArithmetic instruction) {
     HInstruction left = instruction.left;
     HInstruction right = instruction.right;
-    if (left.isPositiveInteger(compiler) && right.isPositiveInteger(compiler)) {
-      return backend.positiveIntType;
+    if (left.isPositiveInteger(closedWorld) &&
+        right.isPositiveInteger(closedWorld)) {
+      return closedWorld.commonMasks.positiveIntType;
     }
     return visitBinaryArithmetic(instruction);
   }
@@ -143,11 +144,18 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     return instruction.instructionType;
   }
 
+  TypeMask visitRemainder(HRemainder instruction) {
+    // Always as initialized.
+    return instruction.instructionType;
+  }
+
   TypeMask visitNegate(HNegate instruction) {
     HInstruction operand = instruction.operand;
     // We have integer subclasses that represent ranges, so widen any int
     // subclass to full integer.
-    if (operand.isInteger(compiler)) return backend.intType;
+    if (operand.isInteger(closedWorld)) {
+      return closedWorld.commonMasks.intType;
+    }
     return instruction.operand.instructionType;
   }
 
@@ -157,7 +165,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   TypeMask visitPhi(HPhi phi) {
-    TypeMask candidateType = backend.emptyType;
+    TypeMask candidateType = closedWorld.commonMasks.emptyType;
     for (int i = 0, length = phi.inputs.length; i < length; i++) {
       TypeMask inputType = phi.inputs[i].instructionType;
       candidateType = candidateType.union(inputType, closedWorld);
@@ -175,11 +183,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // We only do an int check if the input is integer or null.
       if (checkedType.containsOnlyNum(closedWorld) &&
           !checkedType.containsOnlyDouble(closedWorld) &&
-          input.isIntegerOrNull(compiler)) {
-        instruction.checkedType = backend.intType;
+          input.isIntegerOrNull(closedWorld)) {
+        instruction.checkedType = closedWorld.commonMasks.intType;
       } else if (checkedType.containsOnlyInt(closedWorld) &&
-          !input.isIntegerOrNull(compiler)) {
-        instruction.checkedType = backend.numType;
+          !input.isIntegerOrNull(closedWorld)) {
+        instruction.checkedType = closedWorld.commonMasks.numType;
       }
     }
 
@@ -193,9 +201,9 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       if (inputType.containsOnlyInt(closedWorld) &&
           checkedType.containsOnlyDouble(closedWorld)) {
         if (inputType.isNullable && checkedType.isNullable) {
-          outputType = backend.doubleType.nullable();
+          outputType = closedWorld.commonMasks.doubleType.nullable();
         } else {
-          outputType = backend.doubleType;
+          outputType = closedWorld.commonMasks.doubleType;
         }
       }
     }
@@ -248,7 +256,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // If the instruction's type is integer or null, the codegen
       // will emit a null check, which is enough to know if it will
       // hit a noSuchMethod.
-      return instruction.isIntegerOrNull(compiler);
+      return instruction.isIntegerOrNull(closedWorld);
     }
     return true;
   }
@@ -259,8 +267,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   bool checkReceiver(HInvokeDynamic instruction) {
     assert(instruction.isInterceptedCall);
     HInstruction receiver = instruction.inputs[1];
-    if (receiver.isNumber(compiler)) return false;
-    if (receiver.isNumberOrNull(compiler)) {
+    if (receiver.isNumber(closedWorld)) return false;
+    if (receiver.isNumberOrNull(closedWorld)) {
       convertInput(
           instruction,
           receiver,
@@ -268,13 +276,12 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           HTypeConversion.RECEIVER_TYPE_CHECK);
       return true;
     } else if (instruction.element == null) {
-      Iterable<Element> targets = compiler.closedWorld.allFunctions
+      Iterable<MemberEntity> targets = closedWorld.allFunctions
           .filter(instruction.selector, instruction.mask);
       if (targets.length == 1) {
-        MemberElement target = targets.first;
-        ClassElement cls = target.enclosingClass;
-        TypeMask type =
-            new TypeMask.nonNullSubclass(cls.declaration, closedWorld);
+        MemberEntity target = targets.first;
+        ClassEntity cls = target.enclosingClass;
+        TypeMask type = new TypeMask.nonNullSubclass(cls, closedWorld);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
         if (!type.satisfies(backend.helpers.jsIndexableClass, closedWorld) &&
@@ -302,11 +309,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction right = instruction.inputs[2];
 
     Selector selector = instruction.selector;
-    if (selector.isOperator && left.isNumber(compiler)) {
-      if (right.isNumber(compiler)) return false;
-      TypeMask type = right.isIntegerOrNull(compiler)
+    if (selector.isOperator && left.isNumber(closedWorld)) {
+      if (right.isNumber(closedWorld)) return false;
+      TypeMask type = right.isIntegerOrNull(closedWorld)
           ? right.instructionType.nonNullable()
-          : backend.numType;
+          : closedWorld.commonMasks.numType;
       // TODO(ngeoffray): Some number operations don't have a builtin
       // variant and will do the check in their method anyway. We
       // still add a check because it allows to GVN these operations,
@@ -357,7 +364,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
               });
     }
 
-    HInstruction receiver = instruction.getDartReceiver(compiler);
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
     TypeMask receiverType = receiver.instructionType;
     instruction.mask = receiverType;
 
@@ -371,7 +378,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     if (!instruction.selector.isClosureCall) {
       TypeMask newType;
       TypeMask computeNewType() {
-        newType = compiler.closedWorld.allFunctions
+        newType = closedWorld.allFunctions
             .receiverType(instruction.selector, instruction.mask);
         newType = newType.intersection(receiverType, closedWorld);
         return newType;
@@ -406,6 +413,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     }
 
     return instruction.specializer
-        .computeTypeFromInputTypes(instruction, compiler);
+        .computeTypeFromInputTypes(instruction, compiler, closedWorld);
   }
 }

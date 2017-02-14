@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.context.context_builder_test;
+library analyzer.test.src.command_line.arguments_test;
 
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
@@ -142,13 +142,30 @@ class ArgumentsTest {
     expect(parser.options, hasLength(12));
   }
 
+  void test_extractDefinedVariables() {
+    List<String> args = ['--a', '-Dbaz', 'go', '-Dc=d', 'e=f', '-Dy=', '-Dx'];
+    Map<String, String> definedVariables = {'one': 'two'};
+    args = extractDefinedVariables(args, definedVariables);
+    expect(args, orderedEquals(['--a', 'e=f', '-Dx']));
+    expect(definedVariables['one'], 'two');
+    expect(definedVariables['two'], isNull);
+    expect(definedVariables['baz'], 'go');
+    expect(definedVariables['go'], isNull);
+    expect(definedVariables['c'], 'd');
+    expect(definedVariables['d'], isNull);
+    expect(definedVariables['y'], '');
+    expect(definedVariables, hasLength(4));
+  }
+
   void test_filterUnknownArguments() {
-    List<String> args = ['--a', '--b', '--c', 'foo', 'bar'];
+    List<String> args = ['--a', '--b', '--c=0', '--d=1', '-e=2', '-f', 'bar'];
     ArgParser parser = new ArgParser();
     parser.addFlag('a');
-    parser.addFlag('c');
+    parser.addOption('c');
+    parser.addOption('ee', abbr: 'e');
+    parser.addFlag('ff', abbr: 'f');
     List<String> result = filterUnknownArguments(args, parser);
-    expect(result, orderedEquals(['--a', '--c', 'foo', 'bar']));
+    expect(result, orderedEquals(['--a', '--c=0', '-e=2', '-f', 'bar']));
   }
 
   void test_parse_noReplacement_noIgnored() {
@@ -166,8 +183,10 @@ class ArgumentsTest {
 
   void test_preprocessArgs_noReplacement() {
     MemoryResourceProvider provider = new MemoryResourceProvider();
-    List<String> result = preprocessArgs(provider, ['--xx' '--yy' 'baz']);
-    expect(result, orderedEquals(['--xx' '--yy' 'baz']));
+    List<String> original = ['--xx' '--yy' 'baz'];
+    List<String> result = preprocessArgs(provider, original);
+    expect(result, orderedEquals(original));
+    expect(identical(original, result), isFalse);
   }
 
   void test_preprocessArgs_replacement_exists() {
@@ -191,8 +210,13 @@ bar
     MemoryResourceProvider provider = new MemoryResourceProvider();
     String filePath = provider.convertPath('/args.txt');
     List<String> args = ['ignored', '@$filePath'];
-    List<String> result = preprocessArgs(provider, args);
-    expect(result, orderedEquals(args));
+    try {
+      preprocessArgs(provider, args);
+      fail('Expect exception');
+    } on Exception catch (e) {
+      expect(e.toString(), contains('Failed to read file'));
+      expect(e.toString(), contains('@$filePath'));
+    }
   }
 
   void test_preprocessArgs_replacement_notLast() {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.analysis.error;
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -16,8 +14,7 @@ main() {
   });
 }
 
-@reflectiveTest
-class AnalysisErrorIntegrationTest
+class AbstractAnalysisErrorIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   test_detect_simple_error() {
     String pathname = sourcePath('test.dart');
@@ -96,3 +93,7 @@ abstract class C extends B {
     expect(errors, isEmpty);
   }
 }
+
+@reflectiveTest
+class AnalysisErrorIntegrationTest
+    extends AbstractAnalysisErrorIntegrationTest {}

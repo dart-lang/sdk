@@ -51,9 +51,9 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
     lastRead = _IOResourceInfo.timestamp;
   }
 
-  // In cases where we read but did not neccesarily get any bytes, use this to
+  // In cases where we read but did not necessarily get any bytes, use this to
   // update the readCount and timestamp. Manually update totalRead if any bytes
-  // where acutally read.
+  // where actually read.
   void didRead() { addRead(0); }
 
   void addWrite(int bytes) {

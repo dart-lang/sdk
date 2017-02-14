@@ -458,10 +458,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   CorrectionUtils utils;
 
   /**
-   * A set containing the elements of the libraries that need to be imported in
+   * A set containing the sources of the libraries that need to be imported in
    * order to make visible the names used in generated code.
    */
-  Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+  Set<Source> librariesToImport = new Set<Source>();
 
   /**
    * Initialize a newly created builder to build a source file edit within the

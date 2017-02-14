@@ -95,7 +95,11 @@ class TypeEnvironment extends SubtypeTester {
     Class class_ = member.enclosingClass;
     if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
       String name = member.name.name;
-      return name == '+' || name == '-' || name == '*' || name == 'remainder';
+      return name == '+' ||
+          name == '-' ||
+          name == '*' ||
+          name == 'remainder' ||
+          name == '%';
     }
     return false;
   }
@@ -114,6 +118,21 @@ class TypeEnvironment extends SubtypeTester {
     if (type1 == doubleType || type2 == doubleType) return doubleType;
     return numType;
   }
+
+  /// Returns true if [class_] has no proper subtypes that are usable as type
+  /// argument.
+  bool isSealedClass(Class class_) {
+    // The sealed core classes have subtypes in the patched SDK, but those
+    // classes cannot occur as type argument.
+    if (class_ == coreTypes.intClass ||
+        class_ == coreTypes.doubleClass ||
+        class_ == coreTypes.stringClass ||
+        class_ == coreTypes.boolClass ||
+        class_ == coreTypes.nullClass) {
+      return true;
+    }
+    return !hierarchy.hasProperSubtypes(class_);
+  }
 }
 
 /// The part of [TypeEnvironment] that deals with subtype tests.
@@ -128,7 +147,9 @@ abstract class SubtypeTester {
   bool isSubtypeOf(DartType subtype, DartType supertype) {
     if (identical(subtype, supertype)) return true;
     if (subtype is BottomType) return true;
-    if (supertype is DynamicType || supertype == objectType) {
+    if (supertype is DynamicType ||
+        supertype is VoidType ||
+        supertype == objectType) {
       return true;
     }
     if (subtype is InterfaceType && supertype is InterfaceType) {
@@ -194,8 +215,7 @@ abstract class SubtypeTester {
       }
       subtype = substitute(subtype.withoutTypeParameters, substitution);
     }
-    if (supertype.returnType is! VoidType &&
-        !isSubtypeOf(subtype.returnType, supertype.returnType)) {
+    if (!isSubtypeOf(subtype.returnType, supertype.returnType)) {
       return false;
     }
     for (int i = 0; i < supertype.positionalParameters.length; ++i) {

@@ -120,6 +120,11 @@ class Platform {
   static final bool isIOS = (_operatingSystem == "ios");
 
   /**
+   * Returns true if the operating system is Fuchsia
+   */
+   static final bool isFuchsia = (_operatingSystem == "fuchsia");
+
+  /**
    * Get the environment for this process.
    *
    * The returned environment is an unmodifiable map which content is

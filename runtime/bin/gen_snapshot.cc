@@ -60,11 +60,11 @@ static const int kRestartRequestExitCode = 1000;
 
 // Global state that indicates whether a snapshot is to be created and
 // if so which file to write the snapshot into.
-static const char* vm_isolate_snapshot_filename = NULL;
-static const char* isolate_snapshot_filename = NULL;
+static const char* vm_snapshot_data_filename = NULL;
+static const char* vm_snapshot_instructions_filename = NULL;
+static const char* isolate_snapshot_data_filename = NULL;
+static const char* isolate_snapshot_instructions_filename = NULL;
 static const char* assembly_filename = NULL;
-static const char* instructions_blob_filename = NULL;
-static const char* rodata_blob_filename = NULL;
 
 
 // Value of the --package-root flag.
@@ -189,20 +189,40 @@ static const char* ProcessOption(const char* option, const char* name) {
 }
 
 
-static bool ProcessVmIsolateSnapshotOption(const char* option) {
-  const char* name = ProcessOption(option, "--vm_isolate_snapshot=");
+static bool ProcessVmSnapshotDataOption(const char* option) {
+  const char* name = ProcessOption(option, "--vm_snapshot_data=");
   if (name != NULL) {
-    vm_isolate_snapshot_filename = name;
+    vm_snapshot_data_filename = name;
     return true;
   }
   return false;
 }
 
 
-static bool ProcessIsolateSnapshotOption(const char* option) {
-  const char* name = ProcessOption(option, "--isolate_snapshot=");
+static bool ProcessVmSnapshotInstructionsOption(const char* option) {
+  const char* name = ProcessOption(option, "--vm_snapshot_instructions=");
   if (name != NULL) {
-    isolate_snapshot_filename = name;
+    vm_snapshot_instructions_filename = name;
+    return true;
+  }
+  return false;
+}
+
+
+static bool ProcessIsolateSnapshotDataOption(const char* option) {
+  const char* name = ProcessOption(option, "--isolate_snapshot_data=");
+  if (name != NULL) {
+    isolate_snapshot_data_filename = name;
+    return true;
+  }
+  return false;
+}
+
+
+static bool ProcessIsolateSnapshotInstructionsOption(const char* option) {
+  const char* name = ProcessOption(option, "--isolate_snapshot_instructions=");
+  if (name != NULL) {
+    isolate_snapshot_instructions_filename = name;
     return true;
   }
   return false;
@@ -213,26 +233,6 @@ static bool ProcessAssemblyOption(const char* option) {
   const char* name = ProcessOption(option, "--assembly=");
   if (name != NULL) {
     assembly_filename = name;
-    return true;
-  }
-  return false;
-}
-
-
-static bool ProcessInstructionsBlobOption(const char* option) {
-  const char* name = ProcessOption(option, "--instructions_blob=");
-  if (name != NULL) {
-    instructions_blob_filename = name;
-    return true;
-  }
-  return false;
-}
-
-
-static bool ProcessRodataBlobOption(const char* option) {
-  const char* name = ProcessOption(option, "--rodata_blob=");
-  if (name != NULL) {
-    rodata_blob_filename = name;
     return true;
   }
   return false;
@@ -286,7 +286,8 @@ static bool ProcessURLmappingOption(const char* option) {
 
 
 static bool IsSnapshottingForPrecompilation() {
-  return (assembly_filename != NULL) || (instructions_blob_filename != NULL);
+  return (assembly_filename != NULL) ||
+         (vm_snapshot_instructions_filename != NULL);
 }
 
 
@@ -304,11 +305,11 @@ static int ParseArguments(int argc,
 
   // Parse out the vm options.
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
-    if (ProcessVmIsolateSnapshotOption(argv[i]) ||
-        ProcessIsolateSnapshotOption(argv[i]) ||
+    if (ProcessVmSnapshotDataOption(argv[i]) ||
+        ProcessVmSnapshotInstructionsOption(argv[i]) ||
+        ProcessIsolateSnapshotDataOption(argv[i]) ||
+        ProcessIsolateSnapshotInstructionsOption(argv[i]) ||
         ProcessAssemblyOption(argv[i]) ||
-        ProcessInstructionsBlobOption(argv[i]) ||
-        ProcessRodataBlobOption(argv[i]) ||
         ProcessEmbedderEntryPointsManifestOption(argv[i]) ||
         ProcessURLmappingOption(argv[i]) || ProcessPackageRootOption(argv[i]) ||
         ProcessPackagesOption(argv[i]) || ProcessEnvironmentOption(argv[i])) {
@@ -336,19 +337,19 @@ static int ParseArguments(int argc,
     return -1;
   }
 
-  if (vm_isolate_snapshot_filename == NULL) {
-    Log::PrintErr("No vm isolate snapshot output file specified.\n\n");
+  if (vm_snapshot_data_filename == NULL) {
+    Log::PrintErr("No vm snapshot output file specified.\n\n");
     return -1;
   }
 
-  if (isolate_snapshot_filename == NULL) {
+  if (isolate_snapshot_data_filename == NULL) {
     Log::PrintErr("No isolate snapshot output file specified.\n\n");
     return -1;
   }
 
   bool precompiled_as_assembly = assembly_filename != NULL;
-  bool precompiled_as_blobs =
-      (instructions_blob_filename != NULL) || (rodata_blob_filename != NULL);
+  bool precompiled_as_blobs = (vm_snapshot_instructions_filename != NULL) ||
+                              (isolate_snapshot_instructions_filename != NULL);
   if (precompiled_as_assembly && precompiled_as_blobs) {
     Log::PrintErr(
         "Cannot request a precompiled snapshot simultaneously as "
@@ -357,11 +358,12 @@ static int ParseArguments(int argc,
         "--rodata-blob=<output.file>)\n\n");
     return -1;
   }
-  if ((instructions_blob_filename != NULL) != (rodata_blob_filename != NULL)) {
+  if ((vm_snapshot_instructions_filename != NULL) !=
+      (isolate_snapshot_instructions_filename != NULL)) {
     Log::PrintErr(
         "Requesting a precompiled snapshot as blobs requires both "
-        "(--instructions-blob=<output.file> and "
-        "--rodata-blob=<output.file>)\n\n");
+        "(--vm_snapshot_instructions=<output.file> and "
+        "--isolate_snapshot_instructions=<output.file>)\n\n");
     return -1;
   }
   if (IsSnapshottingForPrecompilation() && (entry_points_files->count() == 0)) {
@@ -640,8 +642,8 @@ static void PrintUsage() {
 "      dart:something,SomeClass,doSomething                                  \n"
 "                                                                            \n"
 "  Supported options:                                                        \n"
-"    --vm_isolate_snapshot=<file>      A full snapshot is a compact          \n"
-"    --isolate_snapshot=<file>         representation of the dart vm isolate \n"
+"    --vm_snapshot_data=<file>         A full snapshot is a compact          \n"
+"    --isolate_snapshot_data=<file>    representation of the dart vm isolate \n"
 "                                      heap and dart isolate heap states.    \n"
 "                                      Both these options are required       \n"
 "                                                                            \n"
@@ -658,9 +660,10 @@ static void PrintUsage() {
 "                                      assembly that must be linked into     \n"
 "                                      the target binary                     \n"
 "                                                                            \n"
-"    --instructions_blob=<file>        (Precompilation only) Contains the    \n"
-"    --rodata_blob=<file>              instructions and read-only data that  \n"
-"                                      must be mapped into the target binary \n"
+"    --vm_snapshot_instructions=<file> (Precompilation only) Contains the    \n"
+"    --isolate_snapshot_instructions=<file> instructions and read-only data  \n"
+"                                      that must be mapped into the target   \n"
+"                                      binary                                \n"
 "                                                                            \n"
 "    --embedder_entry_points_manifest=<file> (Precompilation or app          \n"
 "                                      snapshots) Contains embedder's entry  \n"
@@ -1027,21 +1030,23 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
 static void CreateAndWriteSnapshot() {
   ASSERT(!IsSnapshottingForPrecompilation());
   Dart_Handle result;
-  uint8_t* vm_isolate_buffer = NULL;
-  intptr_t vm_isolate_size = 0;
-  uint8_t* isolate_buffer = NULL;
-  intptr_t isolate_size = 0;
+  uint8_t* vm_snapshot_data_buffer = NULL;
+  intptr_t vm_snapshot_data_size = 0;
+  uint8_t* isolate_snapshot_data_buffer = NULL;
+  intptr_t isolate_snapshot_data_size = 0;
 
   // First create a snapshot.
-  result = Dart_CreateSnapshot(&vm_isolate_buffer, &vm_isolate_size,
-                               &isolate_buffer, &isolate_size);
+  result = Dart_CreateSnapshot(&vm_snapshot_data_buffer, &vm_snapshot_data_size,
+                               &isolate_snapshot_data_buffer,
+                               &isolate_snapshot_data_size);
   CHECK_RESULT(result);
 
   // Now write the vm isolate and isolate snapshots out to the
   // specified file and exit.
-  WriteSnapshotFile(vm_isolate_snapshot_filename, vm_isolate_buffer,
-                    vm_isolate_size);
-  WriteSnapshotFile(isolate_snapshot_filename, isolate_buffer, isolate_size);
+  WriteSnapshotFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
+                    vm_snapshot_data_size);
+  WriteSnapshotFile(isolate_snapshot_data_filename,
+                    isolate_snapshot_data_buffer, isolate_snapshot_data_size);
   Dart_ExitScope();
 
   // Shutdown the isolate.
@@ -1055,7 +1060,7 @@ static void CreateAndWritePrecompiledSnapshot(
   Dart_Handle result;
 
   // Precompile with specified embedder entry points
-  result = Dart_Precompile(standalone_entry_points, true);
+  result = Dart_Precompile(standalone_entry_points, NULL, 0);
   CHECK_RESULT(result);
 
   // Create a precompiled snapshot.
@@ -1063,31 +1068,36 @@ static void CreateAndWritePrecompiledSnapshot(
   if (as_assembly) {
     uint8_t* assembly_buffer = NULL;
     intptr_t assembly_size = 0;
-    result = Dart_CreatePrecompiledSnapshotAssembly(&assembly_buffer,
-                                                    &assembly_size);
+    result =
+        Dart_CreateAppAOTSnapshotAsAssembly(&assembly_buffer, &assembly_size);
     CHECK_RESULT(result);
     WriteSnapshotFile(assembly_filename, assembly_buffer, assembly_size);
   } else {
-    uint8_t* vm_isolate_buffer = NULL;
-    intptr_t vm_isolate_size = 0;
-    uint8_t* isolate_buffer = NULL;
-    intptr_t isolate_size = 0;
-    uint8_t* instructions_blob_buffer = NULL;
-    intptr_t instructions_blob_size = 0;
-    uint8_t* rodata_blob_buffer = NULL;
-    intptr_t rodata_blob_size = 0;
-    result = Dart_CreatePrecompiledSnapshotBlob(
-        &vm_isolate_buffer, &vm_isolate_size, &isolate_buffer, &isolate_size,
-        &instructions_blob_buffer, &instructions_blob_size, &rodata_blob_buffer,
-        &rodata_blob_size);
+    uint8_t* vm_snapshot_data_buffer = NULL;
+    intptr_t vm_snapshot_data_size = 0;
+    uint8_t* vm_snapshot_instructions_buffer = NULL;
+    intptr_t vm_snapshot_instructions_size = 0;
+    uint8_t* isolate_snapshot_data_buffer = NULL;
+    intptr_t isolate_snapshot_data_size = 0;
+    uint8_t* isolate_snapshot_instructions_buffer = NULL;
+    intptr_t isolate_snapshot_instructions_size = 0;
+    result = Dart_CreateAppAOTSnapshotAsBlobs(
+        &vm_snapshot_data_buffer, &vm_snapshot_data_size,
+        &vm_snapshot_instructions_buffer, &vm_snapshot_instructions_size,
+        &isolate_snapshot_data_buffer, &isolate_snapshot_data_size,
+        &isolate_snapshot_instructions_buffer,
+        &isolate_snapshot_instructions_size);
     CHECK_RESULT(result);
-    WriteSnapshotFile(vm_isolate_snapshot_filename, vm_isolate_buffer,
-                      vm_isolate_size);
-    WriteSnapshotFile(isolate_snapshot_filename, isolate_buffer, isolate_size);
-    WriteSnapshotFile(instructions_blob_filename, instructions_blob_buffer,
-                      instructions_blob_size);
-    WriteSnapshotFile(rodata_blob_filename, rodata_blob_buffer,
-                      rodata_blob_size);
+    WriteSnapshotFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
+                      vm_snapshot_data_size);
+    WriteSnapshotFile(vm_snapshot_instructions_filename,
+                      vm_snapshot_instructions_buffer,
+                      vm_snapshot_instructions_size);
+    WriteSnapshotFile(isolate_snapshot_data_filename,
+                      isolate_snapshot_data_buffer, isolate_snapshot_data_size);
+    WriteSnapshotFile(isolate_snapshot_instructions_filename,
+                      isolate_snapshot_instructions_buffer,
+                      isolate_snapshot_instructions_size);
   }
 
   Dart_ExitScope();
@@ -1139,8 +1149,8 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, package_config);
   Dart_Isolate isolate = NULL;
-  isolate =
-      Dart_CreateIsolate(script_uri, main, NULL, NULL, isolate_data, error);
+  isolate = Dart_CreateIsolate(script_uri, main, NULL, NULL, NULL, isolate_data,
+                               error);
 
   if (isolate == NULL) {
     Log::PrintErr("Error: Could not create service isolate");
@@ -1243,7 +1253,7 @@ int main(int argc, char** argv) {
   IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
                                               commandline_packages_file);
   Dart_Isolate isolate =
-      Dart_CreateIsolate(NULL, NULL, NULL, NULL, isolate_data, &error);
+      Dart_CreateIsolate(NULL, NULL, NULL, NULL, NULL, isolate_data, &error);
   if (isolate == NULL) {
     Log::PrintErr("Error: %s", error);
     free(error);
@@ -1257,8 +1267,8 @@ int main(int argc, char** argv) {
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
 
-  ASSERT(vm_isolate_snapshot_filename != NULL);
-  ASSERT(isolate_snapshot_filename != NULL);
+  ASSERT(vm_snapshot_data_filename != NULL);
+  ASSERT(isolate_snapshot_data_filename != NULL);
   // Load up the script before a snapshot is created.
   if (app_script_name != NULL) {
     // This is the case of a custom embedder (e.g: dartium) trying to
@@ -1305,7 +1315,8 @@ int main(int argc, char** argv) {
         is_kernel_file
             ? Dart_CreateIsolateFromKernel(NULL, NULL, kernel_program, NULL,
                                            isolate_data, &error)
-            : Dart_CreateIsolate(NULL, NULL, NULL, NULL, isolate_data, &error);
+            : Dart_CreateIsolate(NULL, NULL, NULL, NULL, NULL, isolate_data,
+                                 &error);
     if (isolate == NULL) {
       Log::PrintErr("%s", error);
       free(error);

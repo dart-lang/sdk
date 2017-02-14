@@ -20,7 +20,7 @@ void VirtualMemory::Truncate(intptr_t new_size, bool try_unmap) {
   ASSERT(new_size <= size());
   if (try_unmap &&
       (reserved_size_ == size()) && /* Don't create holes in reservation. */
-      FreeSubSegment(reinterpret_cast<void*>(start() + new_size),
+      FreeSubSegment(handle(), reinterpret_cast<void*>(start() + new_size),
                      size() - new_size)) {
     reserved_size_ = new_size;
   }
@@ -28,12 +28,12 @@ void VirtualMemory::Truncate(intptr_t new_size, bool try_unmap) {
 }
 
 
-VirtualMemory* VirtualMemory::ForExternalPage(void* pointer, uword size) {
+VirtualMemory* VirtualMemory::ForImagePage(void* pointer, uword size) {
   // Memory for precompilated instructions was allocated by the embedder, so
   // create a VirtualMemory without allocating.
   MemoryRegion region(pointer, size);
   VirtualMemory* memory = new VirtualMemory(region);
-  memory->embedder_allocated_ = true;
+  memory->vm_owns_region_ = false;
   return memory;
 }
 

@@ -16,6 +16,41 @@ HOST_ARCH = utils.GuessArchitecture()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 
+# Environment variables for default settings.
+DART_USE_ASAN = "DART_USE_ASAN"  # Use instead of --asan
+DART_USE_MSAN = "DART_USE_MSAN"  # Use instead of --msan
+DART_USE_TSAN = "DART_USE_TSAN"  # Use instead of --tsan
+DART_USE_WHEEZY = "DART_USE_WHEEZY"  # Use instread of --wheezy
+DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
+DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
+
+def use_asan():
+  return DART_USE_ASAN in os.environ
+
+
+def use_msan():
+  return DART_USE_MSAN in os.environ
+
+
+def use_tsan():
+  return DART_USE_TSAN in os.environ
+
+
+def use_wheezy():
+  return DART_USE_WHEEZY in os.environ
+
+
+def toolchain_prefix(args):
+  if args.toolchain_prefix:
+    return args.toolchain_prefix
+  return os.environ.get(DART_USE_TOOLCHAIN)
+
+
+def target_sysroot(args):
+  if args.target_sysroot:
+    return args.target_sysroot
+  return os.environ.get(DART_USE_SYSROOT)
+
 
 def get_out_dir(mode, arch, target_os):
   return utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
@@ -31,9 +66,10 @@ def to_command_line(gn_args):
 
 def host_cpu_for_arch(arch):
   if arch in ['ia32', 'arm', 'armv6', 'armv5te', 'mips',
-              'simarm', 'simarmv6', 'simarmv5te', 'simmips', 'simdbc']:
+              'simarm', 'simarmv6', 'simarmv5te', 'simmips', 'simdbc',
+              'armsimdbc']:
     return 'x86'
-  if arch in ['x64', 'arm64', 'simarm64', 'simdbc64']:
+  if arch in ['x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64']:
     return 'x64'
 
 
@@ -48,6 +84,10 @@ def target_cpu_for_arch(arch, target_os):
     return 'arm' if target_os == 'android' else 'x86'
   if arch == 'simdbc64':
     return 'arm64' if target_os == 'android' else 'x64'
+  if arch == 'armsimdbc':
+    return 'arm'
+  if arch == 'armsimdbc64':
+    return 'arm64'
   return arch
 
 
@@ -57,6 +97,16 @@ def host_os_for_gn(host_os):
   if host_os.startswith('win'):
     return 'win'
   return host_os
+
+
+# Where string_map is formatted as X1=Y1,X2=Y2 etc.
+# If key is X1, returns Y1.
+def parse_string_map(key, string_map):
+  for m in string_map.split(','):
+    l = m.split('=')
+    if l[0] == key:
+      return l[1]
+  return None
 
 
 def to_gn_args(args, mode, arch, target_os):
@@ -85,17 +135,22 @@ def to_gn_args(args, mode, arch, target_os):
   gn_args['dart_zlib_path'] = "//runtime/bin/zlib"
 
   # Use tcmalloc only when targeting Linux and when not using ASAN.
-  gn_args['dart_use_tcmalloc'] = (gn_args['target_os'] == 'linux'
-                                  and not args.asan)
+  gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux')
+                                  and not args.asan
+                                  and not args.msan
+                                  and not args.tsan)
 
-  # Force -mfloat-abi=hard and -mfpu=neon on Linux as we're specifying
-  # a gnueabihf compiler in //build/toolchain/linux BUILD.gn.
-  # TODO(zra): This will likely need some adjustment to build for armv6 etc.
-  hard_float = (gn_args['target_cpu'].startswith('arm') and
-                gn_args['target_os'] == 'linux')
-  if hard_float:
-    gn_args['arm_float_abi'] = 'hard'
-    gn_args['arm_use_neon'] = True
+  if gn_args['target_os'] == 'linux':
+    if gn_args['target_cpu'] == 'arm':
+      # Force -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're
+      # specifying a gnueabihf compiler in //build/toolchain/linux BUILD.gn.
+      gn_args['arm_arch'] = 'armv7'
+      gn_args['arm_float_abi'] = 'hard'
+      gn_args['arm_use_neon'] = True
+    elif gn_args['target_cpu'] == 'armv6':
+      raise Exception("GN support for armv6 unimplemented")
+    elif gn_args['target_cpu'] == 'armv5te':
+      raise Exception("GN support for armv5te unimplemented")
 
   gn_args['is_debug'] = mode == 'debug'
   gn_args['is_release'] = mode == 'release'
@@ -109,27 +164,34 @@ def to_gn_args(args, mode, arch, target_os):
 
   # TODO(zra): Investigate using clang with these configurations.
   # Clang compiles tcmalloc's inline assembly for ia32 on Linux wrong, so we
-  # don't use clang in that configuration.
+  # don't use clang in that configuration. Thus, we use gcc for ia32 *unless*
+  # asan or tsan is specified.
   has_clang = (host_os != 'win'
                and args.os not in ['android']
-               and not (gn_args['target_os'] == 'linux' and
-                        gn_args['host_cpu'] == 'x86' and
-                        not args.asan)  # Use clang for asan builds.
                and not gn_args['target_cpu'].startswith('arm')
-               and not gn_args['target_cpu'].startswith('mips'))
+               and not gn_args['target_cpu'].startswith('mips')
+               and not ((gn_args['target_os'] == 'linux')
+                        and (gn_args['host_cpu'] == 'x86')
+                        and not args.asan
+                        and not args.msan
+                        and not args.tsan))  # Use clang for sanitizer builds.
   gn_args['is_clang'] = args.clang and has_clang
 
   gn_args['is_asan'] = args.asan and gn_args['is_clang']
+  gn_args['is_msan'] = args.msan and gn_args['is_clang']
+  gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
 
   # Setup the user-defined sysroot.
   if gn_args['target_os'] == 'linux' and args.wheezy:
     gn_args['dart_use_wheezy_sysroot'] = True
   else:
-    if args.target_sysroot:
-      gn_args['target_sysroot'] = args.target_sysroot
+    sysroot = target_sysroot(args)
+    if sysroot:
+      gn_args['target_sysroot'] = parse_string_map(arch, sysroot)
 
-    if args.toolchain_prefix:
-      gn_args['toolchain_prefix'] = args.toolchain_prefix
+    toolchain = toolchain_prefix(args)
+    if toolchain:
+      gn_args['toolchain_prefix'] = parse_string_map(arch, toolchain)
 
   goma_dir = os.environ.get('GOMA_DIR')
   goma_home_dir = os.path.join(os.getenv('HOME', ''), 'goma')
@@ -142,6 +204,10 @@ def to_gn_args(args, mode, arch, target_os):
   else:
     gn_args['use_goma'] = False
     gn_args['goma_dir'] = None
+
+  if args.debug_opt_level:
+    gn_args['dart_debug_optimization_level'] = args.debug_opt_level
+    gn_args['debug_optimization_level'] = args.debug_opt_level
 
   return gn_args
 
@@ -169,7 +235,7 @@ def process_options(args):
   for arch in args.arch:
     archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
              'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',
-             'simdbc', 'simdbc64', 'armsimdbc']
+             'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']
     if not arch in archs:
       print "Unknown arch %s" % arch
       return False
@@ -207,84 +273,97 @@ def ide_switch(host_os):
     return '--ide=json'
 
 
-# Environment variables for default settings.
-DART_USE_ASAN = "DART_USE_ASAN"
-DART_USE_WHEEZY = "DART_USE_WHEEZY"
-
-def use_asan():
-  return DART_USE_ASAN in os.environ
-
-
-def use_wheezy():
-  return DART_USE_WHEEZY in os.environ
-
-
 def parse_args(args):
   args = args[1:]
-  parser = argparse.ArgumentParser(description='A script to run `gn gen`.')
+  parser = argparse.ArgumentParser(
+      description='A script to run `gn gen`.',
+      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+  common_group = parser.add_argument_group('Common Arguments')
+  other_group = parser.add_argument_group('Other Arguments')
 
-  parser.add_argument("-v", "--verbose",
-      help='Verbose output.',
-      default=False, action="store_true")
-  parser.add_argument('--mode', '-m',
-      type=str,
-      help='Build variants (comma-separated).',
-      metavar='[all,debug,release,product]',
-      default='debug')
-  parser.add_argument('--os',
-      type=str,
-      help='Target OSs (comma-separated).',
-      metavar='[all,host,android]',
-      default='host')
-  parser.add_argument('--arch', '-a',
+  common_group.add_argument('--arch', '-a',
       type=str,
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
               'simmips,mips,simarm64,arm64,simdbc,armsimdbc]',
       default='x64')
-  parser.add_argument('--asan',
+  common_group.add_argument('--mode', '-m',
+      type=str,
+      help='Build variants (comma-separated).',
+      metavar='[all,debug,release,product]',
+      default='debug')
+  common_group.add_argument('--os',
+      type=str,
+      help='Target OSs (comma-separated).',
+      metavar='[all,host,android]',
+      default='host')
+  common_group.add_argument("-v", "--verbose",
+      help='Verbose output.',
+      default=False, action="store_true")
+
+  other_group.add_argument('--asan',
       help='Build with ASAN',
       default=use_asan(),
       action='store_true')
-  parser.add_argument('--no-asan',
+  other_group.add_argument('--no-asan',
       help='Disable ASAN',
       dest='asan',
       action='store_false')
-  parser.add_argument('--wheezy',
-      help='Use the Debian wheezy sysroot on Linux',
-      default=use_wheezy(),
-      action='store_true')
-  parser.add_argument('--no-wheezy',
-      help='Disable the Debian wheezy sysroot on Linux',
-      dest='wheezy',
-      action='store_false')
-  parser.add_argument('--goma',
-      help='Use goma',
-      default=True,
-      action='store_true')
-  parser.add_argument('--no-goma',
-      help='Disable goma',
-      dest='goma',
-      action='store_false')
-  parser.add_argument('--clang',
+  other_group.add_argument('--clang',
       help='Use Clang',
       default=True,
       action='store_true')
-  parser.add_argument('--no-clang',
+  other_group.add_argument('--no-clang',
       help='Disable Clang',
       dest='clang',
       action='store_false')
-  parser.add_argument('--ide',
+  other_group.add_argument('--debug-opt-level',
+      '-d',
+      help='The optimization level to use for debug builds',
+      type=str)
+  other_group.add_argument('--goma',
+      help='Use goma',
+      default=True,
+      action='store_true')
+  other_group.add_argument('--no-goma',
+      help='Disable goma',
+      dest='goma',
+      action='store_false')
+  other_group.add_argument('--ide',
       help='Generate an IDE file.',
       default=os_has_ide(HOST_OS),
       action='store_true')
-  parser.add_argument('--target-sysroot', '-s',
+  other_group.add_argument('--msan',
+      help='Build with MSAN',
+      default=use_msan(),
+      action='store_true')
+  other_group.add_argument('--no-msan',
+      help='Disable MSAN',
+      dest='msan',
+      action='store_false')
+  other_group.add_argument('--target-sysroot', '-s',
       type=str,
-      help='Path to the toolchain sysroot')
-  parser.add_argument('--toolchain-prefix', '-t',
+      help='Comma-separated list of arch=/path/to/sysroot mappings')
+  other_group.add_argument('--toolchain-prefix', '-t',
       type=str,
-      help='Path to the toolchain prefix')
-  parser.add_argument('--workers', '-w',
+      help='Comma-separated list of arch=/path/to/toolchain-prefix mappings')
+  other_group.add_argument('--tsan',
+      help='Build with TSAN',
+      default=use_tsan(),
+      action='store_true')
+  other_group.add_argument('--no-tsan',
+      help='Disable TSAN',
+      dest='tsan',
+      action='store_false')
+  other_group.add_argument('--wheezy',
+      help='Use the Debian wheezy sysroot on Linux',
+      default=use_wheezy(),
+      action='store_true')
+  other_group.add_argument('--no-wheezy',
+      help='Disable the Debian wheezy sysroot on Linux',
+      dest='wheezy',
+      action='store_false')
+  other_group.add_argument('--workers', '-w',
       type=int,
       help='Number of simultaneous GN invocations',
       dest='workers',

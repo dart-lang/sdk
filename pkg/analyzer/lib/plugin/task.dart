@@ -41,20 +41,6 @@ final String HTML_ERRORS_EXTENSION_POINT_ID = Plugin.join(
 
 /**
  * The identifier of the extension point that allows plugins to register new
- * analysis tasks with the analysis engine. The object used as an extension must
- * be a [TaskDescriptor].
- *
- * Contributed tasks should never extract information from Dart elements or AST
- * (e.g. offsets) of a source and put it into results for targets in other
- * sources. Dart elements and ASTs are updated during incremental resolution,
- * and invalidation of results is intentionally limited by the source bounds
- * for performance reasons.
- */
-final String TASK_EXTENSION_POINT_ID = Plugin.join(
-    EnginePlugin.UNIQUE_IDENTIFIER, EnginePlugin.TASK_EXTENSION_POINT);
-
-/**
- * The identifier of the extension point that allows plugins to register new
  * work managers with the analysis engine. The object used as an extension must
  * be a [WorkManagerFactory].
  */

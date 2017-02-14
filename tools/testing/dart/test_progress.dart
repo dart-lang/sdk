@@ -316,25 +316,52 @@ class TestOutcomeLogWriter extends EventListener {
 }
 
 class UnexpectedCrashDumpArchiver extends EventListener {
+  final archivedBinaries = <String, String>{};
+
   void done(TestCase test) {
-    if (test.unexpectedOutput && test.result == Expectation.CRASH) {
-      var name = "core.dart.${test.lastCommandOutput.pid}";
-      var file = new File(name);
-      if (file.existsSync()) {
-        // Find the binary - we assume this is the first part of the command
-        var binName = test.lastCommandExecuted.toString().split(' ').first;
-        var binFile = new File(binName);
-        var binBaseName = new Path(binName).filename;
-        if (binFile.existsSync()) {
-          var tmpPath = new Path(Directory.systemTemp.path);
-          var dir = new Path(TestUtils
-              .mkdirRecursive(
-                  tmpPath, new Path('coredump_${test.lastCommandOutput.pid}'))
-              .path);
-          TestUtils.copyFile(new Path(name), dir.append(name));
-          TestUtils.copyFile(new Path(binName), dir.append(binBaseName));
-          print("\nCopied core dump and binary for unexpected crash to: "
-              "$dir");
+    if (test.unexpectedOutput &&
+        test.result == Expectation.CRASH &&
+        test.lastCommandExecuted is ProcessCommand) {
+      final name = "core.${test.lastCommandOutput.pid}";
+      final file = new File(name);
+      final exists = file.existsSync();
+      if (exists) {
+        final lastCommand = test.lastCommandExecuted as ProcessCommand;
+        // We have a coredump for the process. This coredump will be archived by
+        // CoreDumpArchiver (see tools/utils.py). For debugging purposes we
+        // need to archive the crashed binary as well. To simplify the
+        // archiving code we simply copy binaries into current folder next to
+        // core dumps and name them `core.${mode}_${arch}_${binary_name}`.
+        final binName = lastCommand.executable;
+        final binFile = new File(binName);
+        final binBaseName = new Path(binName).filename;
+        if (!archivedBinaries.containsKey(binName) &&
+            binFile.existsSync()) {
+          final mode = test.configuration['mode'];
+          final arch = test.configuration['arch'];
+          final archived = "binary.${mode}_${arch}_${binBaseName}";
+          TestUtils.copyFile(new Path(binName), new Path(archived));
+          archivedBinaries[binName] = archived;
+        }
+
+        if (archivedBinaries.containsKey(binName)) {
+          // We have found and copied the binary.
+          var coredumpsList;
+          try {
+            coredumpsList =
+                new File('coredumps').openSync(mode: FileMode.APPEND);
+            coredumpsList.writeStringSync(
+                "${test.displayName},${name},${archivedBinaries[binName]}\n");
+          } catch (e) {
+            print('Failed to add crash to coredumps list: ${e}');
+          } finally {
+            try {
+              if (coredumpsList != null)
+                coredumpsList.closeSync();
+            } catch (e) {
+              print('Failed to close coredumps list: ${e}');
+            }
+          }
         }
       }
     }
@@ -694,6 +721,6 @@ EventListener progressIndicatorFromName(
       return new BuildbotProgressIndicator(startTime);
     default:
       assert(false);
-      break;
+      return null;
   }
 }

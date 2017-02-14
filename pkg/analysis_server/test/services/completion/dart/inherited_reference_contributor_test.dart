@@ -15,6 +15,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InheritedContributorTest);
+    defineReflectiveTests(InheritedContributorTest_Driver);
   });
 }
 
@@ -616,4 +617,10 @@ class B extends A1 with A2 {
     assertNotSuggested('x2');
     assertNotSuggested('y2');
   }
+}
+
+@reflectiveTest
+class InheritedContributorTest_Driver extends InheritedContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

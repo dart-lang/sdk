@@ -2339,6 +2339,7 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   Array& storage = Array::Handle(Array::New(limit));
   GetInstancesVisitor visitor(cls, storage);
   ObjectGraph graph(thread);
+  HeapIterationScope iteration_scope(true);
   graph.IterateObjects(&visitor);
   intptr_t count = visitor.count();
   JSONObject jsobj(js);
@@ -2988,18 +2989,57 @@ static bool GetVMTimeline(Thread* thread, JSONStream* js) {
 }
 
 
+static const char* const step_enum_names[] = {
+    "None", "Into", "Over", "Out", "Rewind", "OverAsyncSuspension", NULL,
+};
+
+
+static const Debugger::ResumeAction step_enum_values[] = {
+    Debugger::kContinue,   Debugger::kStepInto,
+    Debugger::kStepOver,   Debugger::kStepOut,
+    Debugger::kStepRewind, Debugger::kStepOverAsyncSuspension,
+    Debugger::kContinue,  // Default value
+};
+
+
 static const MethodParameter* resume_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    new EnumParameter("step", false, step_enum_names),
+    new UIntParameter("frameIndex", false), NULL,
 };
 
 
 static bool Resume(Thread* thread, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
+  Debugger::ResumeAction step = Debugger::kContinue;
+  if (step_param != NULL) {
+    step = EnumMapper(step_param, step_enum_names, step_enum_values);
+  }
+#if defined(TARGET_ARCH_DBC)
+  if (step == Debugger::kStepRewind) {
+    js->PrintError(kCannotResume,
+                   "Rewind not yet implemented on this architecture");
+    return true;
+  }
+#endif
+  intptr_t frame_index = 1;
+  const char* frame_index_param = js->LookupParam("frameIndex");
+  if (frame_index_param != NULL) {
+    if (step != Debugger::kStepRewind) {
+      // Only rewind supports the frameIndex parameter.
+      js->PrintError(
+          kInvalidParams,
+          "%s: the 'frameIndex' parameter can only be used when rewinding",
+          js->method());
+      return true;
+    }
+    frame_index = UIntParameter::Parse(js->LookupParam("frameIndex"));
+  }
   Isolate* isolate = thread->isolate();
   if (isolate->message_handler()->is_paused_on_start()) {
     // If the user is issuing a 'Over' or an 'Out' step, that is the
     // same as a regular resume request.
-    if ((step_param != NULL) && (strcmp(step_param, "Into") == 0)) {
+    if (step == Debugger::kStepInto) {
       isolate->debugger()->EnterSingleStepMode();
     }
     isolate->message_handler()->set_should_pause_on_start(false);
@@ -3028,31 +3068,18 @@ static bool Resume(Thread* thread, JSONStream* js) {
     PrintSuccess(js);
     return true;
   }
-  if (isolate->debugger()->PauseEvent() != NULL) {
-    if (step_param != NULL) {
-      if (strcmp(step_param, "Into") == 0) {
-        isolate->debugger()->SetSingleStep();
-      } else if (strcmp(step_param, "Over") == 0) {
-        isolate->debugger()->SetStepOver();
-      } else if (strcmp(step_param, "Out") == 0) {
-        isolate->debugger()->SetStepOut();
-      } else if (strcmp(step_param, "OverAsyncSuspension") == 0) {
-        if (!isolate->debugger()->SetupStepOverAsyncSuspension()) {
-          js->PrintError(kInvalidParams,
-                         "Isolate must be paused at an async suspension point");
-          return true;
-        }
-      } else {
-        PrintInvalidParamError(js, "step");
-        return true;
-      }
-    }
-    isolate->SetResumeRequest();
-    PrintSuccess(js);
+  if (isolate->debugger()->PauseEvent() == NULL) {
+    js->PrintError(kIsolateMustBePaused, NULL);
     return true;
   }
 
-  js->PrintError(kIsolateMustBePaused, NULL);
+  const char* error = NULL;
+  if (!isolate->debugger()->SetResumeAction(step, frame_index, &error)) {
+    js->PrintError(kCannotResume, error);
+    return true;
+  }
+  isolate->SetResumeRequest();
+  PrintSuccess(js);
   return true;
 }
 
@@ -3733,12 +3760,10 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
 class ServiceIsolateVisitor : public IsolateVisitor {
  public:
   explicit ServiceIsolateVisitor(JSONArray* jsarr) : jsarr_(jsarr) {}
-
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if ((isolate != Dart::vm_isolate()) &&
-        !ServiceIsolate::IsServiceIsolateDescendant(isolate)) {
+    if (!IsVMInternalIsolate(isolate)) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -3760,7 +3785,6 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   if (ref) {
     return;
   }
-  Isolate* vm_isolate = Dart::vm_isolate();
   jsobj.AddProperty("architectureBits", static_cast<intptr_t>(kBitsPerWord));
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
@@ -3768,9 +3792,8 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddProperty64("_maxRSS", OS::MaxRSS());
-  int64_t start_time_millis =
-      (vm_isolate->start_time() / kMicrosecondsPerMillisecond);
-  jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
+  jsobj.AddPropertyTimeMillis(
+      "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");

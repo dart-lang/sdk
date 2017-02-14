@@ -167,15 +167,16 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-        var commonMasks = compiler.closedWorld.commonMasks;
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
+        var commonMasks = closedWorld.commonMasks;
 
         checkReturn(String name, type) {
           var element = findElement(compiler, name);
           Expect.equals(
               type,
               simplify(
-                  typesInferrer.getReturnTypeOfElement(element), compiler));
+                  typesInferrer.getReturnTypeOfElement(element), closedWorld));
         }
 
         checkReturn('returnInt1', commonMasks.uint31Type);
@@ -186,10 +187,9 @@ void main() {
         checkReturn(
             'returnInt6',
             new TypeMask.nonNullSubtype(
-                compiler.coreClasses.intClass, compiler.closedWorld));
+                closedWorld.commonElements.intClass, closedWorld));
 
-        var subclassOfInterceptor =
-            findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+        var subclassOfInterceptor = commonMasks.interceptorType;
 
         checkReturn('returnDyn1', subclassOfInterceptor);
         checkReturn('returnDyn2', subclassOfInterceptor);

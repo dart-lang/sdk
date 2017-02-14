@@ -98,7 +98,7 @@ class UnknownJavaScriptObject extends JavaScriptObject {
 // dart:html can be used in dart2js an dev compiler.
 // Warning: calls to these methods need to be removed before custom elements
 // and cross-frame dom objects behave correctly in ddc.
-// See https://github.com/dart-lang/dev_compiler/issues/517
+// See https://github.com/dart-lang/sdk/issues/28326
 findInterceptorConstructorForType(Type type) { }
 findConstructorForNativeSubclassType(Type type, String name) { }
 getNativeInterceptor(object) {}

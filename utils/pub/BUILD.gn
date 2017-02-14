@@ -10,7 +10,9 @@ application_snapshot("pub") {
   deps = [
     "../compiler:dart2js_files_stamp",
   ]
+  dart2js_gen_dir =
+      get_label_info("../compiler:dart2js_files_stamp", "target_gen_dir")
   inputs = [
-    "$root_gen_dir/dart2js_files.stamp",
+    "$dart2js_gen_dir/dart2js_files.stamp",
   ]
 }

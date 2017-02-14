@@ -714,32 +714,35 @@ class BufferList : public BufferListBase {
   // overlapped read.
   void DataIsRead(intptr_t size) {
     ASSERT(read_pending_ == true);
-    data_size_ += size;
-    free_size_ -= size;
-    ASSERT(free_size_ >= 0);
+    set_data_size(data_size() + size);
+    set_free_size(free_size() - size);
+    ASSERT(free_size() >= 0);
     read_pending_ = false;
   }
 
   // The access to the read buffer for overlapped read.
-  void GetReadBuffer(uint8_t** buffer, intptr_t* size) {
+  bool GetReadBuffer(uint8_t** buffer, intptr_t* size) {
     ASSERT(!read_pending_);
-    if (free_size_ == 0) {
-      Allocate();
+    if (free_size() == 0) {
+      if (!Allocate()) {
+        return false;
+      }
     }
-    ASSERT(free_size_ > 0);
-    ASSERT(free_size_ <= kBufferSize);
+    ASSERT(free_size() > 0);
+    ASSERT(free_size() <= kBufferSize);
     *buffer = FreeSpaceAddress();
-    *size = free_size_;
+    *size = free_size();
     read_pending_ = true;
+    return true;
   }
 
-  intptr_t GetDataSize() { return data_size_; }
+  intptr_t GetDataSize() { return data_size(); }
 
   uint8_t* GetFirstDataBuffer() {
-    ASSERT(head_ != NULL);
-    ASSERT(head_ == tail_);
-    ASSERT(data_size_ <= kBufferSize);
-    return head_->data_;
+    ASSERT(head() != NULL);
+    ASSERT(head() == tail());
+    ASSERT(data_size() <= kBufferSize);
+    return head()->data();
   }
 
   void FreeDataBuffer() { Free(); }
@@ -776,7 +779,9 @@ class OverlappedHandle {
       ClearOverlapped();
       uint8_t* buffer;
       intptr_t buffer_size;
-      buffer_.GetReadBuffer(&buffer, &buffer_size);
+      if (!buffer_.GetReadBuffer(&buffer, &buffer_size)) {
+        return false;
+      }
       BOOL ok = ReadFile(handle_, buffer, buffer_size, NULL, &overlapped_);
       if (!ok) {
         return (GetLastError() == ERROR_IO_PENDING);
@@ -792,6 +797,10 @@ class OverlappedHandle {
   uint8_t* GetFirstDataBuffer() { return buffer_.GetFirstDataBuffer(); }
 
   void FreeDataBuffer() { return buffer_.FreeDataBuffer(); }
+
+#if defined(DEBUG)
+  bool IsEmpty() const { return buffer_.IsEmpty(); }
+#endif
 
   void Close() {
     CloseHandle(handle_);
@@ -882,6 +891,8 @@ bool Process::Wait(intptr_t pid,
   // All handles closed and all data read.
   result->set_stdout_data(oh[0].GetData());
   result->set_stderr_data(oh[1].GetData());
+  DEBUG_ASSERT(oh[0].IsEmpty());
+  DEBUG_ASSERT(oh[1].IsEmpty());
 
   // Calculate the exit code.
   ASSERT(oh[2].GetDataSize() == 8);

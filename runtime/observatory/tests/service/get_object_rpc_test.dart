@@ -441,7 +441,7 @@ var tests = [
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('Uint8List'));
+    expect(result['class']['name'], equals('_Uint8List'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));
@@ -467,7 +467,7 @@ var tests = [
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('Uint8List'));
+    expect(result['class']['name'], equals('_Uint8List'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));
@@ -494,7 +494,7 @@ var tests = [
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('Uint8List'));
+    expect(result['class']['name'], equals('_Uint8List'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));
@@ -521,7 +521,7 @@ var tests = [
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('Uint8List'));
+    expect(result['class']['name'], equals('_Uint8List'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));
@@ -544,7 +544,7 @@ var tests = [
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('Uint64List'));
+    expect(result['class']['name'], equals('_Uint64List'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));
@@ -570,7 +570,7 @@ var tests = [
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('Uint64List'));
+    expect(result['class']['name'], equals('_Uint64List'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));
@@ -597,7 +597,7 @@ var tests = [
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('Uint64List'));
+    expect(result['class']['name'], equals('_Uint64List'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));
@@ -624,7 +624,7 @@ var tests = [
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
     expect(result['class']['type'], equals('@Class'));
-    expect(result['class']['name'], equals('Uint64List'));
+    expect(result['class']['name'], equals('_Uint64List'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['length'], equals(3));

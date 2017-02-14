@@ -10,12 +10,9 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
-import 'package:path/src/context.dart';
 
 /**
  * [SdkPatcher] applies patches to SDK [CompilationUnit].
@@ -28,12 +25,13 @@ class SdkPatcher {
 
   /**
    * Patch the given [unit] of a SDK [source] with the patches defined in
-   * the [sdk] for the given [platform].  Throw [ArgumentError] if a patch
+   * [allPatchPaths].  Throw [ArgumentError] if a patch
    * file cannot be read, or the contents violates rules for patch files.
    */
   void patch(
-      FolderBasedDartSdk sdk,
-      int platform,
+      ResourceProvider resourceProvider,
+      bool strongMode,
+      Map<String, List<String>> allPatchPaths,
       AnalysisErrorListener errorListener,
       Source source,
       CompilationUnit unit) {
@@ -53,21 +51,10 @@ class SdkPatcher {
       _allowNewPublicNames = libraryName == '_internal';
     }
     // Prepare the patch files to apply.
-    List<String> patchPaths;
-    {
-      SdkLibrary sdkLibrary = sdk.getSdkLibrary(libraryUriStr);
-      if (sdkLibrary == null) {
-        throw new ArgumentError(
-            'The library $libraryUriStr is not defined in the SDK.');
-      }
-      patchPaths = sdkLibrary.getPatches(platform);
-    }
+    List<String> patchPaths = allPatchPaths[libraryUriStr];
 
-    bool strongMode = sdk.analysisOptions.strongMode;
-    Context pathContext = sdk.resourceProvider.pathContext;
     for (String path in patchPaths) {
-      String pathInLib = pathContext.joinAll(path.split('/'));
-      File patchFile = sdk.libraryDirectory.getChildAssumingFile(pathInLib);
+      File patchFile = resourceProvider.getFile(path);
       if (!patchFile.exists) {
         throw new ArgumentError(
             'The patch file ${patchFile.path} for $source does not exist.');
@@ -112,6 +99,78 @@ class SdkPatcher {
     return 'the line ${location.lineNumber}';
   }
 
+  void _matchParameterLists(FormalParameterList baseParameters,
+      FormalParameterList patchParameters, String context()) {
+    if (baseParameters == null && patchParameters == null) return;
+    if (baseParameters == null || patchParameters == null) {
+      throw new ArgumentError("${context()}, parameter lists don't match");
+    }
+    if (baseParameters.parameters.length != patchParameters.parameters.length) {
+      throw new ArgumentError(
+          '${context()}, parameter lists have different lengths');
+    }
+    for (var i = 0; i < baseParameters.parameters.length; i++) {
+      _matchParameters(baseParameters.parameters[i],
+          patchParameters.parameters[i], () => '${context()}, parameter $i');
+    }
+  }
+
+  void _matchParameters(FormalParameter baseParameter,
+      FormalParameter patchParameter, String whichParameter()) {
+    if (baseParameter.identifier.name != patchParameter.identifier.name) {
+      throw new ArgumentError('${whichParameter()} has different name');
+    }
+    NormalFormalParameter baseParameterWithoutDefault =
+        _withoutDefault(baseParameter);
+    NormalFormalParameter patchParameterWithoutDefault =
+        _withoutDefault(patchParameter);
+    if (baseParameterWithoutDefault is SimpleFormalParameter &&
+        patchParameterWithoutDefault is SimpleFormalParameter) {
+      _matchTypes(baseParameterWithoutDefault.type,
+          patchParameterWithoutDefault.type, () => '${whichParameter()} type');
+    } else if (baseParameterWithoutDefault is FunctionTypedFormalParameter &&
+        patchParameterWithoutDefault is FunctionTypedFormalParameter) {
+      _matchTypes(
+          baseParameterWithoutDefault.returnType,
+          patchParameterWithoutDefault.returnType,
+          () => '${whichParameter()} return type');
+      _matchParameterLists(
+          baseParameterWithoutDefault.parameters,
+          patchParameterWithoutDefault.parameters,
+          () => '${whichParameter()} parameters');
+    } else if (baseParameterWithoutDefault is FieldFormalParameter &&
+        patchParameter is FieldFormalParameter) {
+      throw new ArgumentError(
+          '${whichParameter()} cannot be patched (field formal parameters are not supported)');
+    } else {
+      throw new ArgumentError(
+          '${whichParameter()} mismatch (different parameter kinds)');
+    }
+  }
+
+  void _matchTypes(TypeName baseType, TypeName patchType, String whichType()) {
+    error() => new ArgumentError("${whichType()} doesn't match");
+    if (baseType == null && patchType == null) return;
+    if (baseType == null || patchType == null) throw error();
+    // Match up the types token by token; this is more restrictive than strictly
+    // necessary, but it's easy and sufficient for patching purposes.
+    Token baseToken = baseType.beginToken;
+    Token patchToken = patchType.beginToken;
+    while (true) {
+      if (baseToken.lexeme != patchToken.lexeme) throw error();
+      if (identical(baseToken, baseType.endToken) &&
+          identical(patchToken, patchType.endToken)) {
+        break;
+      }
+      if (identical(baseToken, baseType.endToken) ||
+          identical(patchToken, patchType.endToken)) {
+        throw error();
+      }
+      baseToken = baseToken.next;
+      patchToken = patchToken.next;
+    }
+  }
+
   void _patchClassMembers(
       ClassDeclaration baseClass, ClassDeclaration patchClass) {
     String className = baseClass.name.name;
@@ -147,6 +206,12 @@ class SdkPatcher {
               } else {
                 _failExternalKeyword(name, baseMember.offset);
               }
+              _matchParameterLists(
+                  baseMember.parameters,
+                  patchMember.parameters,
+                  () => 'While patching $className.$name');
+              _matchTypes(baseMember.returnType, patchMember.returnType,
+                  () => 'While patching $className.$name, return type');
               // Replace the body.
               FunctionBody oldBody = baseMember.body;
               FunctionBody newBody = patchMember.body;
@@ -190,6 +255,11 @@ class SdkPatcher {
                     'Cannot patch external constructors with initializers '
                     'in $_baseDesc.');
               }
+              _matchParameterLists(
+                  baseMember.parameters, patchMember.parameters, () {
+                String nameSuffix = name == null ? '' : '.$name';
+                return 'While patching $className$nameSuffix';
+              });
               // Prepare nodes.
               FunctionBody baseBody = baseMember.body;
               FunctionBody patchBody = patchMember.body;
@@ -263,6 +333,14 @@ class SdkPatcher {
               } else {
                 _failExternalKeyword(name, baseDeclaration.offset);
               }
+              _matchParameterLists(
+                  baseDeclaration.functionExpression.parameters,
+                  patchDeclaration.functionExpression.parameters,
+                  () => 'While patching $name');
+              _matchTypes(
+                  baseDeclaration.returnType,
+                  patchDeclaration.returnType,
+                  () => 'While patching $name, return type');
               // Replace the body.
               FunctionExpression oldExpr = baseDeclaration.functionExpression;
               FunctionBody newBody = patchDeclaration.functionExpression.body;
@@ -294,6 +372,13 @@ class SdkPatcher {
           _failIfPublicName(patchDeclaration, patchDeclaration.name.name);
           declarationsToAppend.add(patchDeclaration);
         }
+      } else if (patchDeclaration is TopLevelVariableDeclaration &&
+          !_hasPatchAnnotation(patchDeclaration.metadata)) {
+        for (VariableDeclaration variable
+            in patchDeclaration.variables.variables) {
+          _failIfPublicName(patchDeclaration, variable.name.name);
+        }
+        declarationsToAppend.add(patchDeclaration);
       } else {
         _failInPatch('contains an unsupported top-level declaration',
             patchDeclaration.offset);
@@ -303,6 +388,18 @@ class SdkPatcher {
     if (appendNewTopLevelDeclarations) {
       _appendToNodeList(baseUnit.declarations, declarationsToAppend,
           baseUnit.endToken.previous);
+    }
+  }
+
+  NormalFormalParameter _withoutDefault(FormalParameter parameter) {
+    if (parameter is NormalFormalParameter) {
+      return parameter;
+    } else if (parameter is DefaultFormalParameter) {
+      return parameter.parameter;
+    } else {
+      // Should not happen.
+      assert(false);
+      return null;
     }
   }
 

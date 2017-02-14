@@ -9,8 +9,7 @@ import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../core_types.dart' show CoreClasses;
-import '../dart_types.dart';
+import '../core_types.dart' show CommonElements;
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/scope.dart' show Scope;
 import '../resolution/tree_elements.dart' show TreeElements;
@@ -18,9 +17,12 @@ import '../script.dart';
 import '../tokens/token.dart'
     show Token, isUserDefinableOperator, isMinusOperator;
 import '../tree/tree.dart';
+import '../universe/call_structure.dart';
 import '../util/characters.dart' show $_;
 import '../util/util.dart';
+import '../world.dart' show ClosedWorld;
 import 'entities.dart';
+import 'resolution_types.dart';
 import 'visitor.dart' show ElementVisitor;
 
 part 'names.dart';
@@ -140,7 +142,7 @@ abstract class Entity implements Spannable {
  * are elements corresponding to "dynamic", "null", and unresolved
  * references.
  *
- * Elements are distinct from types ([DartType]). For example, there
+ * Elements are distinct from types ([ResolutionDartType]). For example, there
  * is one declaration of the class List, but several related types,
  * for example, List, List<int>, List<String>, etc.
  *
@@ -675,21 +677,6 @@ class Elements {
     return null;
   }
 
-  static bool isNumberOrStringSupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
-    return (element == coreLibrary.find('Comparable'));
-  }
-
-  static bool isStringOnlySupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
-    return element == coreLibrary.find('Pattern');
-  }
-
-  static bool isListSupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
-    return element == coreLibrary.find('Iterable');
-  }
-
   /// A `compareTo` function that places [Element]s in a consistent order based
   /// on the source code order.
   static int compareByPosition(Element a, Element b) {
@@ -770,23 +757,23 @@ class Elements {
   }
 
   static bool isFixedListConstructorCall(
-      Element element, Send node, Compiler compiler) {
-    return element == compiler.unnamedListConstructor &&
+      Element element, Send node, CommonElements commonElements) {
+    return element == commonElements.unnamedListConstructor &&
         node.isCall &&
         !node.arguments.isEmpty &&
         node.arguments.tail.isEmpty;
   }
 
   static bool isGrowableListConstructorCall(
-      Element element, Send node, Compiler compiler) {
-    return element == compiler.unnamedListConstructor &&
+      Element element, Send node, CommonElements commonElements) {
+    return element == commonElements.unnamedListConstructor &&
         node.isCall &&
         node.arguments.isEmpty;
   }
 
   static bool isFilledListConstructorCall(
-      Element element, Send node, Compiler compiler) {
-    return element == compiler.filledListConstructor &&
+      Element element, Send node, CommonElements commonElements) {
+    return element == commonElements.filledListConstructor &&
         node.isCall &&
         !node.arguments.isEmpty &&
         !node.arguments.tail.isEmpty &&
@@ -794,17 +781,17 @@ class Elements {
   }
 
   static bool isConstructorOfTypedArraySubclass(
-      Element element, Compiler compiler) {
-    if (compiler.commonElements.typedDataLibrary == null) return false;
+      Element element, ClosedWorld closedWorld) {
+    if (closedWorld.commonElements.typedDataLibrary == null) return false;
     if (!element.isConstructor) return false;
     ConstructorElement constructor = element.implementation;
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
-    return cls.library == compiler.commonElements.typedDataLibrary &&
-        compiler.backend.isNative(cls) &&
-        compiler.closedWorld
-            .isSubtypeOf(cls, compiler.commonElements.typedDataClass) &&
-        compiler.closedWorld.isSubtypeOf(cls, compiler.coreClasses.listClass) &&
+    return cls.library == closedWorld.commonElements.typedDataLibrary &&
+        closedWorld.backendClasses.isNativeClass(cls) &&
+        closedWorld.isSubtypeOf(
+            cls, closedWorld.commonElements.typedDataClass) &&
+        closedWorld.isSubtypeOf(cls, closedWorld.commonElements.listClass) &&
         constructor.name == '';
   }
 
@@ -832,6 +819,131 @@ class Elements {
     // a break or continue for a different target. In that case, this
     // label is also always unused.
     return element == null || element.statement != body;
+  }
+
+  /**
+   * Returns a `List` with the evaluated arguments in the normalized order.
+   *
+   * [compileDefaultValue] is a function that returns a compiled constant
+   * of an optional argument that is not in [compiledArguments].
+   *
+   * Precondition: `callStructure.signatureApplies(element.type)`.
+   *
+   * Invariant: [element] must be the implementation element.
+   */
+  static List<T> makeArgumentsList<T>(
+      CallStructure callStructure,
+      Link<Node> arguments,
+      FunctionElement element,
+      T compileArgument(Node argument),
+      T compileDefaultValue(ParameterElement element)) {
+    assert(invariant(element, element.isImplementation));
+    List<T> result = <T>[];
+
+    FunctionSignature parameters = element.functionSignature;
+    parameters.forEachRequiredParameter((ParameterElement element) {
+      result.add(compileArgument(arguments.head));
+      arguments = arguments.tail;
+    });
+
+    if (!parameters.optionalParametersAreNamed) {
+      parameters.forEachOptionalParameter((ParameterElement element) {
+        if (!arguments.isEmpty) {
+          result.add(compileArgument(arguments.head));
+          arguments = arguments.tail;
+        } else {
+          result.add(compileDefaultValue(element));
+        }
+      });
+    } else {
+      // Visit named arguments and add them into a temporary list.
+      List compiledNamedArguments = [];
+      for (; !arguments.isEmpty; arguments = arguments.tail) {
+        NamedArgument namedArgument = arguments.head;
+        compiledNamedArguments.add(compileArgument(namedArgument.expression));
+      }
+      // Iterate over the optional parameters of the signature, and try to
+      // find them in [compiledNamedArguments]. If found, we use the
+      // value in the temporary list, otherwise the default value.
+      parameters.orderedOptionalParameters.forEach((ParameterElement element) {
+        int foundIndex = callStructure.namedArguments.indexOf(element.name);
+        if (foundIndex != -1) {
+          result.add(compiledNamedArguments[foundIndex]);
+        } else {
+          result.add(compileDefaultValue(element));
+        }
+      });
+    }
+    return result;
+  }
+
+  /**
+   * Fills [list] with the arguments in the order expected by
+   * [callee], and where [caller] is a synthesized element
+   *
+   * [compileArgument] is a function that returns a compiled version
+   * of a parameter of [callee].
+   *
+   * [compileConstant] is a function that returns a compiled constant
+   * of an optional argument that is not in the parameters of [callee].
+   *
+   * Returns [:true:] if the signature of the [caller] matches the
+   * signature of the [callee], [:false:] otherwise.
+   */
+  static bool addForwardingElementArgumentsToList<T>(
+      ConstructorElement caller,
+      List<T> list,
+      ConstructorElement callee,
+      T compileArgument(ParameterElement element),
+      T compileConstant(ParameterElement element)) {
+    assert(invariant(caller, !callee.isMalformed,
+        message: "Cannot compute arguments to malformed constructor: "
+            "$caller calling $callee."));
+
+    FunctionSignature signature = caller.functionSignature;
+    Map<Node, ParameterElement> mapping = <Node, ParameterElement>{};
+
+    // TODO(ngeoffray): This is a hack that fakes up AST nodes, so
+    // that we can call [addArgumentsToList].
+    Link<Node> computeCallNodesFromParameters() {
+      LinkBuilder<Node> builder = new LinkBuilder<Node>();
+      signature.forEachRequiredParameter((ParameterElement element) {
+        Node node = element.node;
+        mapping[node] = element;
+        builder.addLast(node);
+      });
+      if (signature.optionalParametersAreNamed) {
+        signature.forEachOptionalParameter((ParameterElement element) {
+          mapping[element.initializer] = element;
+          builder.addLast(new NamedArgument(null, null, element.initializer));
+        });
+      } else {
+        signature.forEachOptionalParameter((ParameterElement element) {
+          Node node = element.node;
+          mapping[node] = element;
+          builder.addLast(node);
+        });
+      }
+      return builder.toLink();
+    }
+
+    T internalCompileArgument(Node node) {
+      return compileArgument(mapping[node]);
+    }
+
+    Link<Node> nodes = computeCallNodesFromParameters();
+
+    // Synthesize a structure for the call.
+    // TODO(ngeoffray): Should the resolver do it instead?
+    CallStructure callStructure = new CallStructure(
+        signature.parameterCount, signature.type.namedParameters);
+    if (!callStructure.signatureApplies(signature.type)) {
+      return false;
+    }
+    list.addAll(makeArgumentsList<T>(callStructure, nodes, callee,
+        internalCompileArgument, compileConstant));
+
+    return true;
   }
 }
 
@@ -918,7 +1030,7 @@ abstract class ExportElement extends Element {
 }
 
 abstract class LibraryElement extends Element
-    implements ScopeContainerElement, AnalyzableElement {
+    implements ScopeContainerElement, AnalyzableElement, LibraryEntity {
   /**
    * The canonical uri for this library.
    *
@@ -1012,18 +1124,18 @@ abstract class TypedefElement extends Element
   /// arguments.
   ///
   /// For instance `F<T>` for `typedef void F<T>(T t)`.
-  TypedefType get thisType;
+  ResolutionTypedefType get thisType;
 
   /// The type defined by this typedef with `dynamic` as its type arguments.
   ///
   /// For instance `F<dynamic>` for `typedef void F<T>(T t)`.
-  TypedefType get rawType;
+  ResolutionTypedefType get rawType;
 
   /// The type, function type if well-defined, for which this typedef is an
   /// alias.
   ///
   /// For instance `(int)->void` for `typedef void F(int)`.
-  DartType get alias;
+  ResolutionDartType get alias;
 
   void checkCyclicReference(Resolution resolution);
 }
@@ -1179,9 +1291,9 @@ abstract class AbstractFieldElement extends Element {
 }
 
 abstract class FunctionSignature {
-  FunctionType get type;
-  DartType get returnType;
-  List<DartType> get typeVariables;
+  ResolutionFunctionType get type;
+  ResolutionDartType get returnType;
+  List<ResolutionDartType> get typeVariables;
   List<FormalElement> get requiredParameters;
   List<FormalElement> get optionalParameters;
 
@@ -1222,7 +1334,7 @@ abstract class FunctionElement extends Element
   List<ParameterElement> get parameters;
 
   /// The type of this function.
-  FunctionType get type;
+  ResolutionFunctionType get type;
 
   /// The synchronous/asynchronous marker on this function.
   AsyncMarker get asyncMarker;
@@ -1367,7 +1479,8 @@ abstract class ConstructorElement extends MethodElement {
 
   /// Compute the type of the effective target of this constructor for an
   /// instantiation site with type [:newType:].
-  InterfaceType computeEffectiveTargetType(InterfaceType newType);
+  ResolutionInterfaceType computeEffectiveTargetType(
+      ResolutionInterfaceType newType);
 
   /// If this is a synthesized constructor [definingConstructor] points to
   /// the generative constructor from which this constructor was created.
@@ -1417,12 +1530,20 @@ abstract class ConstructorBodyElement extends MethodElement {
 /// [GenericElement] defines the common interface for generic functions and
 /// [TypeDeclarationElement].
 abstract class GenericElement extends Element implements AstElement {
+  /// Do not use [computeType] outside of the resolver.
+  ///
+  /// Trying to access a type that has not been computed in resolution is an
+  /// error and calling [computeType] covers that error.
+  /// This method will go away!
+  @deprecated
+  ResolutionDartType computeType(Resolution resolution);
+
   /**
    * The type variables declared on this declaration. The type variables are not
    * available until the type of the element has been computed through
    * [computeType].
    */
-  List<DartType> get typeVariables;
+  List<ResolutionDartType> get typeVariables;
 }
 
 /// [TypeDeclarationElement] defines the common interface for class/interface
@@ -1463,9 +1584,9 @@ abstract class TypeDeclarationElement extends GenericElement {
    * used to distinguish explicit and implicit uses of the [dynamic]
    * type arguments. For instance should [:List:] be the [rawType] of the
    * [:List:] class element whereas [:List<dynamic>:] should be its own
-   * instantiation of [InterfaceType] with [:dynamic:] as type argument. Using
-   * this distinction, we can print the raw type with type arguments only when
-   * the input source has used explicit type arguments.
+   * instantiation of [ResolutionInterfaceType] with [:dynamic:] as type
+   * argument. Using this distinction, we can print the raw type with type
+   * arguments only when the input source has used explicit type arguments.
    */
   GenericType get rawType;
 
@@ -1479,24 +1600,24 @@ abstract class ClassElement extends TypeDeclarationElement
   /// The length of the longest inheritance path from [:Object:].
   int get hierarchyDepth;
 
-  InterfaceType get rawType;
-  InterfaceType get thisType;
+  ResolutionInterfaceType get rawType;
+  ResolutionInterfaceType get thisType;
   ClassElement get superclass;
 
   /// The direct supertype of this class.
-  DartType get supertype;
+  ResolutionDartType get supertype;
 
   /// Ordered set of all supertypes of this class including the class itself.
   OrderedTypeSet get allSupertypesAndSelf;
 
   /// A list of all supertypes of this class excluding the class itself.
-  Link<DartType> get allSupertypes;
+  Link<ResolutionDartType> get allSupertypes;
 
   /// Returns the this type of this class as an instance of [cls].
-  InterfaceType asInstanceOf(ClassElement cls);
+  ResolutionInterfaceType asInstanceOf(ClassElement cls);
 
   /// A list of all direct superinterfaces of this class.
-  Link<DartType> get interfaces;
+  Link<ResolutionDartType> get interfaces;
 
   bool get hasConstructor;
   Link<Element> get constructors;
@@ -1533,7 +1654,7 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// Returns `true` if this class implements [Function] either by directly
   /// implementing the interface or by providing a [call] method.
-  bool implementsFunction(CoreClasses coreClasses);
+  bool implementsFunction(CommonElements commonElements);
 
   /// Returns `true` if this class extends [cls] directly or indirectly.
   ///
@@ -1607,12 +1728,12 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// Returns the type of the 'call' method in the interface of this class, or
   /// `null` if the interface has no 'call' method.
-  FunctionType get callType;
+  ResolutionFunctionType get callType;
 }
 
 abstract class MixinApplicationElement extends ClassElement {
   ClassElement get mixin;
-  InterfaceType get mixinType;
+  ResolutionInterfaceType get mixinType;
 
   /// If this is an unnamed mixin application [subclass] is the subclass for
   /// which this mixin application is created.
@@ -1653,7 +1774,7 @@ abstract class LabelDefinition extends Entity {
 abstract class JumpTarget extends Local {
   Node get statement;
   int get nestingLevel;
-  Link<LabelDefinition> get labels;
+  List<LabelDefinition> get labels;
 
   bool get isTarget;
   bool get isBreakTarget;
@@ -1669,7 +1790,7 @@ abstract class JumpTarget extends Local {
 
 /// The [Element] for a type variable declaration on a generic class or typedef.
 abstract class TypeVariableElement extends Element
-    implements AstElement, TypedElement {
+    implements AstElement, TypedElement, TypeVariableEntity {
   /// The name of this type variable, taking privacy into account.
   Name get memberName;
 
@@ -1685,11 +1806,11 @@ abstract class TypeVariableElement extends Element
   int get index;
 
   /// The [type] defined by the type variable.
-  TypeVariableType get type;
+  ResolutionTypeVariableType get type;
 
   /// The upper bound on the type variable. If not explicitly declared, this is
   /// `Object`.
-  DartType get bound;
+  ResolutionDartType get bound;
 }
 
 abstract class MetadataAnnotation implements Spannable {
@@ -1713,9 +1834,9 @@ abstract class TypedElement extends Element {
   /// error and calling [computeType] covers that error.
   /// This method will go away!
   @deprecated
-  DartType computeType(Resolution resolution);
+  ResolutionDartType computeType(Resolution resolution);
 
-  DartType get type;
+  ResolutionDartType get type;
 }
 
 /// An [Element] that can define a function type.
@@ -1866,13 +1987,13 @@ abstract class MemberSignature {
   /// The type of the member when accessed. For getters and setters this is the
   /// return type and argument type, respectively. For methods the type is the
   /// [functionType] defined by the return type and parameters.
-  DartType get type;
+  ResolutionDartType get type;
 
   /// The function type of the member. For a getter `Foo get foo` this is
   /// `() -> Foo`, for a setter `void set foo(Foo _)` this is `(Foo) -> void`.
   /// For methods the function type is defined by the return type and
   /// parameters.
-  FunctionType get functionType;
+  ResolutionFunctionType get functionType;
 
   /// Returns `true` if this member is a getter, possibly implictly defined by a
   /// field declaration.
@@ -1914,7 +2035,7 @@ abstract class Member extends MemberSignature {
   ///   class B<S> extends A<S> {}
   /// The declarer of `m` in `A` is `A<T>` whereas the declarer of `m` in `B` is
   /// `A<S>`.
-  InterfaceType get declarer;
+  ResolutionInterfaceType get declarer;
 
   /// Returns `true` if this member is static.
   bool get isStatic;

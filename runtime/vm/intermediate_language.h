@@ -193,37 +193,6 @@ class ZoneCompileType : public ZoneAllocated {
 };
 
 
-// ConstrainedCompileType represents a compile type that is computed from
-// another compile type.
-class ConstrainedCompileType : public ZoneCompileType {
- public:
-  virtual ~ConstrainedCompileType() {}
-
-  // Recompute compile type.
-  virtual void Update() = 0;
-
- protected:
-  explicit ConstrainedCompileType(const CompileType& type)
-      : ZoneCompileType(type) {}
-};
-
-
-// NotNullConstrainedCompileType represents not-null constraint applied to
-// the source compile type. Result is non-nullable version of the incoming
-// compile type. It is used to represent compile type propagated downwards
-// from strict comparison with the null constant.
-class NotNullConstrainedCompileType : public ConstrainedCompileType {
- public:
-  explicit NotNullConstrainedCompileType(CompileType* source)
-      : ConstrainedCompileType(source->CopyNonNullable()), source_(source) {}
-
-  virtual void Update() { type_ = source_->CopyNonNullable(); }
-
- private:
-  CompileType* source_;
-};
-
-
 class EffectSet : public ValueObject {
  public:
   enum Effects {
@@ -1655,11 +1624,9 @@ class Definition : public Instruction {
   void ClearSSATempIndex() { ssa_temp_index_ = -1; }
   bool HasPairRepresentation() const {
 #if defined(TARGET_ARCH_X64)
-    return (representation() == kPairOfTagged) ||
-           (representation() == kPairOfUnboxedDouble);
+    return representation() == kPairOfTagged;
 #else
     return (representation() == kPairOfTagged) ||
-           (representation() == kPairOfUnboxedDouble) ||
            (representation() == kUnboxedMint);
 #endif
   }
@@ -2355,8 +2322,6 @@ class BranchInstr : public Instruction {
   explicit BranchInstr(ComparisonInstr* comparison)
       : Instruction(Thread::Current()->GetNextDeoptId()),
         comparison_(comparison),
-        is_checked_(false),
-        constrained_type_(NULL),
         constant_target_(NULL) {
     ASSERT(comparison->env() == NULL);
     for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
@@ -2376,11 +2341,7 @@ class BranchInstr : public Instruction {
 
   virtual TokenPosition token_pos() const { return comparison_->token_pos(); }
 
-  virtual bool CanDeoptimize() const {
-    // Branches need a deoptimization info in checked mode if they
-    // can throw a type check error.
-    return comparison()->CanDeoptimize() || is_checked();
-  }
+  virtual bool CanDeoptimize() const { return comparison()->CanDeoptimize(); }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     return comparison()->CanBecomeDeoptimizationTarget();
@@ -2391,9 +2352,6 @@ class BranchInstr : public Instruction {
   ComparisonInstr* comparison() const { return comparison_; }
   void SetComparison(ComparisonInstr* comp);
 
-  void set_is_checked(bool value) { is_checked_ = value; }
-  bool is_checked() const { return is_checked_; }
-
   virtual intptr_t DeoptimizationTarget() const {
     return comparison()->DeoptimizationTarget();
   }
@@ -2403,16 +2361,6 @@ class BranchInstr : public Instruction {
   }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
-  // Set compile type constrained by the comparison of this branch.
-  // FlowGraphPropagator propagates it downwards into either true or false
-  // successor.
-  void set_constrained_type(ConstrainedCompileType* type) {
-    constrained_type_ = type;
-  }
-
-  // Return compile type constrained by the comparison of this branch.
-  ConstrainedCompileType* constrained_type() const { return constrained_type_; }
 
   void set_constant_target(TargetEntryInstr* target) {
     ASSERT(target == true_successor() || target == false_successor());
@@ -2443,8 +2391,6 @@ class BranchInstr : public Instruction {
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
   ComparisonInstr* comparison_;
-  bool is_checked_;
-  ConstrainedCompileType* constrained_type_;
   TargetEntryInstr* constant_target_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
@@ -3220,6 +3166,8 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
   // ICData for static calls carries call count.
   const ICData* ic_data() const { return ic_data_; }
   bool HasICData() const { return (ic_data() != NULL) && !ic_data()->IsNull(); }
+
+  void set_ic_data(const ICData* value) { ic_data_ = value; }
 
   DECLARE_INSTRUCTION(StaticCall)
   virtual CompileType ComputeType() const;
@@ -7442,8 +7390,6 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
     ASSERT(idx == 0);
     if (representation() == kTagged) {
       return kPairOfTagged;
-    } else if (representation() == kUnboxedDouble) {
-      return kPairOfUnboxedDouble;
     }
     UNREACHABLE();
     return definition_rep_;
@@ -7469,7 +7415,6 @@ class MergedMathInstr : public PureDefinition {
  public:
   enum Kind {
     kTruncDivMod,
-    kSinCos,
   };
 
   MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
@@ -7479,8 +7424,6 @@ class MergedMathInstr : public PureDefinition {
   static intptr_t InputCountFor(MergedMathInstr::Kind kind) {
     if (kind == kTruncDivMod) {
       return 2;
-    } else if (kind == kSinCos) {
-      return 1;
     } else {
       UNIMPLEMENTED();
       return -1;
@@ -7501,8 +7444,6 @@ class MergedMathInstr : public PureDefinition {
   virtual bool CanDeoptimize() const {
     if (kind_ == kTruncDivMod) {
       return true;
-    } else if (kind_ == kSinCos) {
-      return false;
     } else {
       UNIMPLEMENTED();
       return false;
@@ -7512,8 +7453,6 @@ class MergedMathInstr : public PureDefinition {
   virtual Representation representation() const {
     if (kind_ == kTruncDivMod) {
       return kPairOfTagged;
-    } else if (kind_ == kSinCos) {
-      return kPairOfUnboxedDouble;
     } else {
       UNIMPLEMENTED();
       return kTagged;
@@ -7524,8 +7463,6 @@ class MergedMathInstr : public PureDefinition {
     ASSERT((0 <= idx) && (idx < InputCount()));
     if (kind_ == kTruncDivMod) {
       return kTagged;
-    } else if (kind_ == kSinCos) {
-      return kUnboxedDouble;
     } else {
       UNIMPLEMENTED();
       return kTagged;
@@ -7545,7 +7482,6 @@ class MergedMathInstr : public PureDefinition {
 
   static const char* KindToCString(MergedMathInstr::Kind kind) {
     if (kind == kTruncDivMod) return "TruncDivMod";
-    if (kind == kSinCos) return "SinCos";
     UNIMPLEMENTED();
     return "";
   }
@@ -7957,6 +7893,8 @@ class Environment : public ZoneAllocated {
   }
 
   Value* ValueAt(intptr_t ix) const { return values_[ix]; }
+
+  void PushValue(Value* value);
 
   intptr_t Length() const { return values_.length(); }
 

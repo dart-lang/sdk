@@ -13,8 +13,9 @@ abstract class TypeChecks {
   Iterable<ClassElement> get classes;
 }
 
-typedef jsAst.Expression OnVariableCallback(TypeVariableType variable);
-typedef bool ShouldEncodeTypedefCallback(TypedefType variable);
+typedef jsAst.Expression OnVariableCallback(
+    ResolutionTypeVariableType variable);
+typedef bool ShouldEncodeTypedefCallback(ResolutionTypedefType variable);
 
 // TODO(johnniwinther): Rename to something like [RuntimeTypeUsageCollector]
 // we semantics is more clear.
@@ -30,11 +31,12 @@ abstract class RuntimeTypes {
   void registerClassUsingTypeVariableExpression(ClassElement cls);
   void registerRtiDependency(Element element, Element dependency);
   void registerTypeVariableBoundsSubtypeCheck(
-      DartType typeArgument, DartType bound);
+      ResolutionDartType typeArgument, ResolutionDartType bound);
 
   Set<ClassElement> getClassesUsedInSubstitutions(
       JavaScriptBackend backend, TypeChecks checks);
-  void computeClassesNeedingRti();
+  void computeClassesNeedingRti(
+      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld);
 
   /// Compute the required type checkes and substitutions for the given
   /// instantitated and checked classes.
@@ -46,11 +48,11 @@ abstract class RuntimeTypes {
   ///
   /// This function must be called after all is-checks have been registered.
   void addImplicitChecks(
-      WorldBuilder universe, Iterable<ClassElement> classesUsingChecks);
+      WorldBuilder worldBuilder, Iterable<ClassElement> classesUsingChecks);
 
   /// Return all classes that are referenced in the type of the function, i.e.,
   /// in the return type or the argument types.
-  Set<ClassElement> getReferencedClasses(FunctionType type);
+  Set<ClassElement> getReferencedClasses(ResolutionFunctionType type);
 
   /// Return all classes that are uses a type arguments.
   Set<ClassElement> getRequiredArgumentClasses(JavaScriptBackend backend);
@@ -59,9 +61,9 @@ abstract class RuntimeTypes {
 
   Substitution getSubstitution(ClassElement cls, ClassElement other);
 
-  static bool hasTypeArguments(DartType type) {
-    if (type is InterfaceType) {
-      InterfaceType interfaceType = type;
+  static bool hasTypeArguments(ResolutionDartType type) {
+    if (type is ResolutionInterfaceType) {
+      ResolutionInterfaceType interfaceType = type;
       return !interfaceType.treatAsRaw;
     }
     return false;
@@ -69,12 +71,13 @@ abstract class RuntimeTypes {
 }
 
 abstract class RuntimeTypesEncoder {
-  bool isSimpleFunctionType(FunctionType type);
+  bool isSimpleFunctionType(ResolutionFunctionType type);
 
-  jsAst.Expression getSignatureEncoding(DartType type, jsAst.Expression this_);
+  jsAst.Expression getSignatureEncoding(
+      ResolutionDartType type, jsAst.Expression this_);
 
   jsAst.Expression getSubstitutionRepresentation(
-      List<DartType> types, OnVariableCallback onVariable);
+      List<ResolutionDartType> types, OnVariableCallback onVariable);
   jsAst.Expression getSubstitutionCode(Substitution substitution);
   jsAst.Expression getSubstitutionCodeForVariable(
       Substitution substitution, int index);
@@ -91,10 +94,10 @@ abstract class RuntimeTypesEncoder {
   /// Returns a [jsAst.Expression] representing the given [type]. Type variables
   /// are replaced by the [jsAst.Expression] returned by [onVariable].
   jsAst.Expression getTypeRepresentation(
-      DartType type, OnVariableCallback onVariable,
+      ResolutionDartType type, OnVariableCallback onVariable,
       [ShouldEncodeTypedefCallback shouldEncodeTypedef]);
 
-  String getTypeRepresentationForTypeConstant(DartType type);
+  String getTypeRepresentationForTypeConstant(ResolutionDartType type);
 }
 
 class _RuntimeTypes implements RuntimeTypes {
@@ -112,9 +115,9 @@ class _RuntimeTypes implements RuntimeTypes {
   final Set<ClassElement> classesUsingTypeVariableExpression;
 
   // The set of type arguments tested against type variable bounds.
-  final Set<DartType> checkedTypeArguments;
+  final Set<ResolutionDartType> checkedTypeArguments;
   // The set of tested type variable bounds.
-  final Set<DartType> checkedBounds;
+  final Set<ResolutionDartType> checkedBounds;
 
   TypeChecks cachedRequiredChecks;
 
@@ -126,8 +129,8 @@ class _RuntimeTypes implements RuntimeTypes {
         methodsNeedingRti = new Set<Element>(),
         rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
         classesUsingTypeVariableExpression = new Set<ClassElement>(),
-        checkedTypeArguments = new Set<DartType>(),
-        checkedBounds = new Set<DartType>();
+        checkedTypeArguments = new Set<ResolutionDartType>(),
+        checkedBounds = new Set<ResolutionDartType>();
 
   Set<ClassElement> directlyInstantiatedArguments;
   Set<ClassElement> allInstantiatedArguments;
@@ -149,7 +152,7 @@ class _RuntimeTypes implements RuntimeTypes {
 
   @override
   void registerTypeVariableBoundsSubtypeCheck(
-      DartType typeArgument, DartType bound) {
+      ResolutionDartType typeArgument, ResolutionDartType bound) {
     checkedTypeArguments.add(typeArgument);
     checkedBounds.add(bound);
   }
@@ -170,18 +173,18 @@ class _RuntimeTypes implements RuntimeTypes {
    */
   @override
   void addImplicitChecks(
-      WorldBuilder universe, Iterable<ClassElement> classesUsingChecks) {
+      WorldBuilder worldBuilder, Iterable<ClassElement> classesUsingChecks) {
     // If there are no classes that use their variables in checks, there is
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
-    Set<DartType> instantiatedTypes = universe.instantiatedTypes;
+    Set<ResolutionDartType> instantiatedTypes = worldBuilder.instantiatedTypes;
     if (cannotDetermineInstantiatedTypesPrecisely) {
-      for (DartType type in instantiatedTypes) {
-        if (type.kind != TypeKind.INTERFACE) continue;
-        InterfaceType interface = type;
+      for (ResolutionDartType type in instantiatedTypes) {
+        if (type.kind != ResolutionTypeKind.INTERFACE) continue;
+        ResolutionInterfaceType interface = type;
         do {
-          for (DartType argument in interface.typeArguments) {
-            universe.registerIsCheck(argument, compiler.resolution);
+          for (ResolutionDartType argument in interface.typeArguments) {
+            worldBuilder.registerIsCheck(argument);
           }
           interface = interface.element.supertype;
         } while (interface != null && !instantiatedTypes.contains(interface));
@@ -192,19 +195,19 @@ class _RuntimeTypes implements RuntimeTypes {
       // set of is-checks.
       // TODO(karlklose): replace this with code that uses a subtype lookup
       // datastructure in the world.
-      for (DartType type in instantiatedTypes) {
-        if (type.kind != TypeKind.INTERFACE) continue;
-        InterfaceType classType = type;
+      for (ResolutionDartType type in instantiatedTypes) {
+        if (type.kind != ResolutionTypeKind.INTERFACE) continue;
+        ResolutionInterfaceType classType = type;
         for (ClassElement cls in classesUsingChecks) {
-          InterfaceType current = classType;
+          ResolutionInterfaceType current = classType;
           do {
             // We need the type as instance of its superclass anyway, so we just
             // try to compute the substitution; if the result is [:null:], the
             // classes are not related.
-            InterfaceType instance = current.asInstanceOf(cls);
+            ResolutionInterfaceType instance = current.asInstanceOf(cls);
             if (instance == null) break;
-            for (DartType argument in instance.typeArguments) {
-              universe.registerIsCheck(argument, compiler.resolution);
+            for (ResolutionDartType argument in instance.typeArguments) {
+              worldBuilder.registerIsCheck(argument);
             }
             current = current.element.supertype;
           } while (current != null && !instantiatedTypes.contains(current));
@@ -214,7 +217,8 @@ class _RuntimeTypes implements RuntimeTypes {
   }
 
   @override
-  void computeClassesNeedingRti() {
+  void computeClassesNeedingRti(
+      ResolutionWorldBuilder resolutionWorldBuilder, ClosedWorld closedWorld) {
     // Find the classes that need runtime type information. Such
     // classes are:
     // (1) used in a is check with type variables,
@@ -227,7 +231,7 @@ class _RuntimeTypes implements RuntimeTypes {
       classesNeedingRti.add(cls);
 
       // TODO(ngeoffray): This should use subclasses, not subtypes.
-      compiler.closedWorld.forEachStrictSubtypeOf(cls, (ClassElement sub) {
+      closedWorld.forEachStrictSubtypeOf(cls, (ClassElement sub) {
         potentiallyAddForRti(sub);
       });
 
@@ -240,7 +244,7 @@ class _RuntimeTypes implements RuntimeTypes {
     }
 
     Set<ClassElement> classesUsingTypeVariableTests = new Set<ClassElement>();
-    compiler.resolverWorld.isChecks.forEach((DartType type) {
+    resolutionWorldBuilder.isChecks.forEach((ResolutionDartType type) {
       if (type.isTypeVariable) {
         TypeVariableElement variable = type.element;
         // GENERIC_METHODS: When generic method support is complete enough to
@@ -252,7 +256,8 @@ class _RuntimeTypes implements RuntimeTypes {
       }
     });
     // Add is-checks that result from classes using type variables in checks.
-    addImplicitChecks(compiler.resolverWorld, classesUsingTypeVariableTests);
+    addImplicitChecks(
+        compiler.resolutionWorldBuilder, classesUsingTypeVariableTests);
     // Add the rti dependencies that are implicit in the way the backend
     // generates code: when we create a new [List], we actually create
     // a JSArray in the backend and we need to add type arguments to
@@ -260,14 +265,14 @@ class _RuntimeTypes implements RuntimeTypes {
     // JSArray needs type arguments.
     // TODO(karlklose): make this dependency visible from code.
     if (backend.helpers.jsArrayClass != null) {
-      registerRtiDependency(
-          backend.helpers.jsArrayClass, compiler.coreClasses.listClass);
+      ClassElement listClass = compiler.commonElements.listClass;
+      registerRtiDependency(backend.helpers.jsArrayClass, listClass);
     }
     // Compute the set of all classes and methods that need runtime type
     // information.
-    compiler.resolverWorld.isChecks.forEach((DartType type) {
+    compiler.resolutionWorldBuilder.isChecks.forEach((ResolutionDartType type) {
       if (type.isInterfaceType) {
-        InterfaceType itf = type;
+        ResolutionInterfaceType itf = type;
         if (!itf.treatAsRaw) {
           potentiallyAddForRti(itf.element);
         }
@@ -281,7 +286,7 @@ class _RuntimeTypes implements RuntimeTypes {
         }
         if (type.isFunctionType) {
           void analyzeMethod(TypedElement method) {
-            DartType memberType = method.type;
+            ResolutionDartType memberType = method.type;
             ClassElement contextClass = Types.getClassContext(memberType);
             if (contextClass != null &&
                 compiler.types.isPotentialSubtype(memberType, type)) {
@@ -290,16 +295,16 @@ class _RuntimeTypes implements RuntimeTypes {
             }
           }
 
-          compiler.resolverWorld.closuresWithFreeTypeVariables
+          compiler.resolutionWorldBuilder.closuresWithFreeTypeVariables
               .forEach(analyzeMethod);
-          compiler.resolverWorld.callMethodsWithFreeTypeVariables
+          compiler.resolutionWorldBuilder.callMethodsWithFreeTypeVariables
               .forEach(analyzeMethod);
         }
       }
     });
     if (compiler.options.enableTypeAssertions) {
       void analyzeMethod(TypedElement method) {
-        DartType memberType = method.type;
+        ResolutionDartType memberType = method.type;
         ClassElement contextClass = Types.getClassContext(memberType);
         if (contextClass != null) {
           potentiallyAddForRti(contextClass);
@@ -307,9 +312,9 @@ class _RuntimeTypes implements RuntimeTypes {
         }
       }
 
-      compiler.resolverWorld.closuresWithFreeTypeVariables
+      compiler.resolutionWorldBuilder.closuresWithFreeTypeVariables
           .forEach(analyzeMethod);
-      compiler.resolverWorld.callMethodsWithFreeTypeVariables
+      compiler.resolutionWorldBuilder.callMethodsWithFreeTypeVariables
           .forEach(analyzeMethod);
     }
     // Add the classes that need RTI because they use a type variable as
@@ -341,7 +346,7 @@ class _RuntimeTypes implements RuntimeTypes {
       // and precompute the substitutions for them.
       assert(invariant(element, element.allSupertypes != null,
           message: 'Supertypes have not been computed for $element.'));
-      for (DartType supertype in element.allSupertypes) {
+      for (ResolutionDartType supertype in element.allSupertypes) {
         ClassElement superelement = supertype.element;
         if (checked.contains(superelement)) {
           Substitution substitution =
@@ -354,37 +359,39 @@ class _RuntimeTypes implements RuntimeTypes {
   }
 
   void computeRequiredChecks() {
-    Set<DartType> isChecks = compiler.codegenWorld.isChecks;
+    Set<ResolutionDartType> isChecks = compiler.codegenWorldBuilder.isChecks;
     // These types are needed for is-checks against function types.
-    Set<DartType> instantiatedTypesAndClosures =
-        computeInstantiatedTypesAndClosures(compiler.codegenWorld);
+    Set<ResolutionDartType> instantiatedTypesAndClosures =
+        computeInstantiatedTypesAndClosures(compiler.codegenWorldBuilder);
     computeInstantiatedArguments(instantiatedTypesAndClosures, isChecks);
     computeCheckedArguments(instantiatedTypesAndClosures, isChecks);
     cachedRequiredChecks =
         computeChecks(allInstantiatedArguments, checkedArguments);
   }
 
-  Set<DartType> computeInstantiatedTypesAndClosures(
-      CodegenWorldBuilder universe) {
-    Set<DartType> instantiatedTypes =
-        new Set<DartType>.from(universe.instantiatedTypes);
-    for (DartType instantiatedType in universe.instantiatedTypes) {
+  Set<ResolutionDartType> computeInstantiatedTypesAndClosures(
+      CodegenWorldBuilder worldBuilder) {
+    Set<ResolutionDartType> instantiatedTypes =
+        new Set<ResolutionDartType>.from(worldBuilder.instantiatedTypes);
+    for (ResolutionDartType instantiatedType
+        in worldBuilder.instantiatedTypes) {
       if (instantiatedType.isInterfaceType) {
-        InterfaceType interface = instantiatedType;
-        FunctionType callType = interface.callType;
+        ResolutionInterfaceType interface = instantiatedType;
+        ResolutionFunctionType callType = interface.callType;
         if (callType != null) {
           instantiatedTypes.add(callType);
         }
       }
     }
-    for (FunctionElement element in universe.staticFunctionsNeedingGetter) {
+    for (FunctionElement element in worldBuilder.staticFunctionsNeedingGetter) {
       instantiatedTypes.add(element.type);
     }
     // TODO(johnniwinther): We should get this information through the
     // [neededClasses] computed in the emitter instead of storing it and pulling
     // it from resolution, but currently it would introduce a cyclic dependency
     // between [computeRequiredChecks] and [computeNeededClasses].
-    for (TypedElement element in compiler.resolverWorld.closurizedMembers) {
+    for (TypedElement element
+        in compiler.resolutionWorldBuilder.closurizedMembers) {
       instantiatedTypes.add(element.type);
     }
     return instantiatedTypes;
@@ -397,8 +404,8 @@ class _RuntimeTypes implements RuntimeTypes {
    * have a type check against this supertype that includes a check against
    * the type arguments.
    */
-  void computeInstantiatedArguments(
-      Set<DartType> instantiatedTypes, Set<DartType> isChecks) {
+  void computeInstantiatedArguments(Set<ResolutionDartType> instantiatedTypes,
+      Set<ResolutionDartType> isChecks) {
     ArgumentCollector superCollector = new ArgumentCollector(backend);
     ArgumentCollector directCollector = new ArgumentCollector(backend);
     FunctionArgumentCollector functionArgumentCollector =
@@ -406,8 +413,8 @@ class _RuntimeTypes implements RuntimeTypes {
 
     // We need to add classes occuring in function type arguments, like for
     // instance 'I' for [: o is C<f> :] where f is [: typedef I f(); :].
-    void collectFunctionTypeArguments(Iterable<DartType> types) {
-      for (DartType type in types) {
+    void collectFunctionTypeArguments(Iterable<ResolutionDartType> types) {
+      for (ResolutionDartType type in types) {
         functionArgumentCollector.collect(type);
       }
     }
@@ -415,13 +422,13 @@ class _RuntimeTypes implements RuntimeTypes {
     collectFunctionTypeArguments(isChecks);
     collectFunctionTypeArguments(checkedBounds);
 
-    void collectTypeArguments(Iterable<DartType> types,
+    void collectTypeArguments(Iterable<ResolutionDartType> types,
         {bool isTypeArgument: false}) {
-      for (DartType type in types) {
+      for (ResolutionDartType type in types) {
         directCollector.collect(type, isTypeArgument: isTypeArgument);
         if (type.isInterfaceType) {
           ClassElement cls = type.element;
-          for (DartType supertype in cls.allSupertypes) {
+          for (ResolutionDartType supertype in cls.allSupertypes) {
             superCollector.collect(supertype, isTypeArgument: isTypeArgument);
           }
         }
@@ -432,7 +439,7 @@ class _RuntimeTypes implements RuntimeTypes {
     collectTypeArguments(checkedTypeArguments, isTypeArgument: true);
 
     for (ClassElement cls in superCollector.classes.toList()) {
-      for (DartType supertype in cls.allSupertypes) {
+      for (ResolutionDartType supertype in cls.allSupertypes) {
         superCollector.collect(supertype);
       }
     }
@@ -444,8 +451,8 @@ class _RuntimeTypes implements RuntimeTypes {
   }
 
   /// Collects all type arguments used in is-checks.
-  void computeCheckedArguments(
-      Set<DartType> instantiatedTypes, Set<DartType> isChecks) {
+  void computeCheckedArguments(Set<ResolutionDartType> instantiatedTypes,
+      Set<ResolutionDartType> isChecks) {
     ArgumentCollector collector = new ArgumentCollector(backend);
     FunctionArgumentCollector functionArgumentCollector =
         new FunctionArgumentCollector(backend);
@@ -453,8 +460,8 @@ class _RuntimeTypes implements RuntimeTypes {
     // We need to add types occuring in function type arguments, like for
     // instance 'J' for [: (J j) {} is f :] where f is
     // [: typedef void f(I i); :] and 'J' is a subtype of 'I'.
-    void collectFunctionTypeArguments(Iterable<DartType> types) {
-      for (DartType type in types) {
+    void collectFunctionTypeArguments(Iterable<ResolutionDartType> types) {
+      for (ResolutionDartType type in types) {
         functionArgumentCollector.collect(type);
       }
     }
@@ -462,9 +469,9 @@ class _RuntimeTypes implements RuntimeTypes {
     collectFunctionTypeArguments(instantiatedTypes);
     collectFunctionTypeArguments(checkedTypeArguments);
 
-    void collectTypeArguments(Iterable<DartType> types,
+    void collectTypeArguments(Iterable<ResolutionDartType> types,
         {bool isTypeArgument: false}) {
-      for (DartType type in types) {
+      for (ResolutionDartType type in types) {
         collector.collect(type, isTypeArgument: isTypeArgument);
       }
     }
@@ -506,7 +513,7 @@ class _RuntimeTypes implements RuntimeTypes {
   }
 
   @override
-  Set<ClassElement> getReferencedClasses(FunctionType type) {
+  Set<ClassElement> getReferencedClasses(ResolutionFunctionType type) {
     FunctionArgumentCollector collector =
         new FunctionArgumentCollector(backend);
     collector.collect(type);
@@ -527,8 +534,8 @@ class _RuntimeTypes implements RuntimeTypes {
       return true;
     }
 
-    InterfaceType originalType = cls.thisType;
-    InterfaceType type = originalType.asInstanceOf(check);
+    ResolutionInterfaceType originalType = cls.thisType;
+    ResolutionInterfaceType type = originalType.asInstanceOf(check);
     // [type] is not a subtype of [check]. we do not generate a check and do not
     // need a substitution.
     if (type == null) return true;
@@ -536,8 +543,8 @@ class _RuntimeTypes implements RuntimeTypes {
     // Run through both lists of type variables and check if the type variables
     // are identical at each position. If they are not, we need to calculate a
     // substitution function.
-    List<DartType> variables = cls.typeVariables;
-    List<DartType> arguments = type.typeArguments;
+    List<ResolutionDartType> variables = cls.typeVariables;
+    List<ResolutionDartType> arguments = type.typeArguments;
     if (variables.length != arguments.length) {
       return false;
     }
@@ -569,9 +576,9 @@ class _RuntimeTypes implements RuntimeTypes {
     // Unnamed mixin application classes do not need substitutions, because they
     // are never instantiated and their checks are overwritten by the class that
     // they are mixed into.
-    InterfaceType type = cls.thisType;
-    InterfaceType target = type.asInstanceOf(check);
-    List<DartType> typeVariables = cls.typeVariables;
+    ResolutionInterfaceType type = cls.thisType;
+    ResolutionInterfaceType target = type.asInstanceOf(check);
+    List<ResolutionDartType> typeVariables = cls.typeVariables;
     if (typeVariables.isEmpty && !alwaysGenerateFunction) {
       return new Substitution.list(target.typeArguments);
     } else {
@@ -607,25 +614,28 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
 
   @override
   jsAst.Expression getTypeRepresentation(
-      DartType type, OnVariableCallback onVariable,
+      ResolutionDartType type, OnVariableCallback onVariable,
       [ShouldEncodeTypedefCallback shouldEncodeTypedef]) {
+    // GENERIC_METHODS: When generic method support is complete enough to
+    // include a runtime value for method type variables this must be updated.
     return representationGenerator.getTypeRepresentation(
-        type, onVariable, shouldEncodeTypedef);
+        type.dynamifyMethodTypeVariableType, onVariable, shouldEncodeTypedef);
   }
 
   @override
   jsAst.Expression getSubstitutionRepresentation(
-      List<DartType> types, OnVariableCallback onVariable) {
+      List<ResolutionDartType> types, OnVariableCallback onVariable) {
     List<jsAst.Expression> elements = types
-        .map((DartType type) => getTypeRepresentation(type, onVariable))
+        .map((ResolutionDartType type) =>
+            getTypeRepresentation(type, onVariable))
         .toList(growable: false);
     return new jsAst.ArrayInitializer(elements);
   }
 
-  jsAst.Expression getTypeEncoding(DartType type,
+  jsAst.Expression getTypeEncoding(ResolutionDartType type,
       {bool alwaysGenerateFunction: false}) {
     ClassElement contextClass = Types.getClassContext(type);
-    jsAst.Expression onVariable(TypeVariableType v) {
+    jsAst.Expression onVariable(ResolutionTypeVariableType v) {
       return new jsAst.VariableUse(v.name);
     }
 
@@ -644,7 +654,8 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   }
 
   @override
-  jsAst.Expression getSignatureEncoding(DartType type, jsAst.Expression this_) {
+  jsAst.Expression getSignatureEncoding(
+      ResolutionDartType type, jsAst.Expression this_) {
     ClassElement contextClass = Types.getClassContext(type);
     jsAst.Expression encoding =
         getTypeEncoding(type, alwaysGenerateFunction: true);
@@ -678,15 +689,16 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
    */
   @override
   jsAst.Expression getSubstitutionCode(Substitution substitution) {
-    jsAst.Expression declaration(TypeVariableType variable) {
+    jsAst.Expression declaration(ResolutionTypeVariableType variable) {
       return new jsAst.Parameter(getVariableName(variable.name));
     }
 
-    jsAst.Expression use(TypeVariableType variable) {
+    jsAst.Expression use(ResolutionTypeVariableType variable) {
       return new jsAst.VariableUse(getVariableName(variable.name));
     }
 
-    if (substitution.arguments.every((DartType type) => type.isDynamic)) {
+    if (substitution.arguments
+        .every((ResolutionDartType type) => type.isDynamic)) {
       return backend.emitter.emitter.generateFunctionThatReturnsNull();
     } else {
       jsAst.Expression value =
@@ -704,11 +716,11 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   @override
   jsAst.Expression getSubstitutionCodeForVariable(
       Substitution substitution, int index) {
-    jsAst.Expression declaration(TypeVariableType variable) {
+    jsAst.Expression declaration(ResolutionTypeVariableType variable) {
       return new jsAst.Parameter(getVariableName(variable.name));
     }
 
-    jsAst.Expression use(TypeVariableType variable) {
+    jsAst.Expression use(ResolutionTypeVariableType variable) {
       return new jsAst.VariableUse(getVariableName(variable.name));
     }
 
@@ -732,14 +744,14 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
       backend.namer.internalGlobal('functionThatReturnsNull');
 
   @override
-  String getTypeRepresentationForTypeConstant(DartType type) {
+  String getTypeRepresentationForTypeConstant(ResolutionDartType type) {
     JavaScriptBackend backend = compiler.backend;
     Namer namer = backend.namer;
     if (type.isDynamic) return "dynamic";
     String name = namer.uniqueNameForTypeConstantElement(type.element);
     if (!type.element.isClass) return name;
-    InterfaceType interface = type;
-    List<DartType> variables = interface.element.typeVariables;
+    ResolutionInterfaceType interface = type;
+    List<ResolutionDartType> variables = interface.element.typeVariables;
     // Type constants can currently only be raw types, so there is no point
     // adding ground-term type parameters, as they would just be 'dynamic'.
     // TODO(sra): Since the result string is used only in constructing constant
@@ -751,11 +763,11 @@ class _RuntimeTypesEncoder implements RuntimeTypesEncoder {
   }
 
   @override
-  bool isSimpleFunctionType(FunctionType type) {
+  bool isSimpleFunctionType(ResolutionFunctionType type) {
     if (!type.returnType.isDynamic) return false;
     if (!type.optionalParameterTypes.isEmpty) return false;
     if (!type.namedParameterTypes.isEmpty) return false;
-    for (DartType parameter in type.parameterTypes) {
+    for (ResolutionDartType parameter in type.parameterTypes) {
       if (!parameter.isDynamic) return false;
     }
     return true;
@@ -778,12 +790,13 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
    * the type representation for type variables.
    */
   jsAst.Expression getTypeRepresentation(
-      DartType type,
+      ResolutionDartType type,
       OnVariableCallback onVariable,
       ShouldEncodeTypedefCallback encodeTypedef) {
     this.onVariable = onVariable;
-    this.shouldEncodeTypedef =
-        (encodeTypedef != null) ? encodeTypedef : (TypedefType type) => false;
+    this.shouldEncodeTypedef = (encodeTypedef != null)
+        ? encodeTypedef
+        : (ResolutionTypedefType type) => false;
     jsAst.Expression representation = visit(type);
     this.onVariable = null;
     this.shouldEncodeTypedef = null;
@@ -795,27 +808,28 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
   }
 
   @override
-  visit(DartType type, [_]) => type.accept(this, null);
+  visit(ResolutionDartType type, [_]) => type.accept(this, null);
 
-  visitTypeVariableType(TypeVariableType type, _) {
+  visitTypeVariableType(ResolutionTypeVariableType type, _) {
     return onVariable(type);
   }
 
-  visitDynamicType(DynamicType type, _) {
+  visitDynamicType(ResolutionDynamicType type, _) {
     return js('null');
   }
 
-  visitInterfaceType(InterfaceType type, _) {
+  visitInterfaceType(ResolutionInterfaceType type, _) {
     jsAst.Expression name = getJavaScriptClassName(type.element);
     return type.treatAsRaw ? name : visitList(type.typeArguments, head: name);
   }
 
-  jsAst.Expression visitList(List<DartType> types, {jsAst.Expression head}) {
+  jsAst.Expression visitList(List<ResolutionDartType> types,
+      {jsAst.Expression head}) {
     List<jsAst.Expression> elements = <jsAst.Expression>[];
     if (head != null) {
       elements.add(head);
     }
-    for (DartType type in types) {
+    for (ResolutionDartType type in types) {
       jsAst.Expression element = visit(type);
       if (element is jsAst.LiteralNull) {
         elements.add(new jsAst.ArrayHole());
@@ -841,7 +855,7 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
         .expressionTemplateFor('{ ${namer.functionTypeTag}: "dynafunc" }');
   }
 
-  visitFunctionType(FunctionType type, _) {
+  visitFunctionType(ResolutionFunctionType type, _) {
     List<jsAst.Property> properties = <jsAst.Property>[];
 
     void addProperty(String name, jsAst.Expression value) {
@@ -867,7 +881,7 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
     if (!type.namedParameterTypes.isEmpty) {
       List<jsAst.Property> namedArguments = <jsAst.Property>[];
       List<String> names = type.namedParameters;
-      List<DartType> types = type.namedParameterTypes;
+      List<ResolutionDartType> types = type.namedParameterTypes;
       assert(types.length == names.length);
       for (int index = 0; index < types.length; index++) {
         jsAst.Expression name = js.string(names[index]);
@@ -884,14 +898,14 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
     return js('null');
   }
 
-  visitVoidType(VoidType type, _) {
+  visitVoidType(ResolutionVoidType type, _) {
     // TODO(ahe): Reify void type ("null" means "dynamic").
     return js('null');
   }
 
-  visitTypedefType(TypedefType type, _) {
+  visitTypedefType(ResolutionTypedefType type, _) {
     bool shouldEncode = shouldEncodeTypedef(type);
-    DartType unaliasedType = type.unaliased;
+    ResolutionDartType unaliasedType = type.unaliased;
     if (shouldEncode) {
       jsAst.ObjectInitializer initializer = unaliasedType.accept(this, null);
       // We have to encode the aliased type.
@@ -906,11 +920,6 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
     } else {
       return unaliasedType.accept(this, null);
     }
-  }
-
-  visitStatementType(StatementType type, _) {
-    reporter.internalError(
-        NO_LOCATION_SPANNABLE, 'Unexpected type: $type (${type.kind}).');
   }
 }
 
@@ -947,28 +956,28 @@ class ArgumentCollector extends DartTypeVisitor {
 
   ArgumentCollector(this.backend);
 
-  collect(DartType type, {bool isTypeArgument: false}) {
+  collect(ResolutionDartType type, {bool isTypeArgument: false}) {
     visit(type, isTypeArgument);
   }
 
   /// Collect all types in the list as if they were arguments of an
   /// InterfaceType.
-  collectAll(List<DartType> types) {
-    for (DartType type in types) {
+  collectAll(List<ResolutionDartType> types) {
+    for (ResolutionDartType type in types) {
       visit(type, true);
     }
   }
 
-  visitTypedefType(TypedefType type, bool isTypeArgument) {
+  visitTypedefType(ResolutionTypedefType type, bool isTypeArgument) {
     type.unaliased.accept(this, isTypeArgument);
   }
 
-  visitInterfaceType(InterfaceType type, bool isTypeArgument) {
+  visitInterfaceType(ResolutionInterfaceType type, bool isTypeArgument) {
     if (isTypeArgument) classes.add(type.element);
     type.visitChildren(this, true);
   }
 
-  visitFunctionType(FunctionType type, _) {
+  visitFunctionType(ResolutionFunctionType type, _) {
     type.visitChildren(this, true);
   }
 }
@@ -979,30 +988,30 @@ class FunctionArgumentCollector extends DartTypeVisitor {
 
   FunctionArgumentCollector(this.backend);
 
-  collect(DartType type) {
+  collect(ResolutionDartType type) {
     visit(type, false);
   }
 
   /// Collect all types in the list as if they were arguments of an
   /// InterfaceType.
-  collectAll(Link<DartType> types) {
-    for (DartType type in types) {
+  collectAll(Link<ResolutionDartType> types) {
+    for (ResolutionDartType type in types) {
       visit(type, true);
     }
   }
 
-  visitTypedefType(TypedefType type, bool inFunctionType) {
+  visitTypedefType(ResolutionTypedefType type, bool inFunctionType) {
     type.unaliased.accept(this, inFunctionType);
   }
 
-  visitInterfaceType(InterfaceType type, bool inFunctionType) {
+  visitInterfaceType(ResolutionInterfaceType type, bool inFunctionType) {
     if (inFunctionType) {
       classes.add(type.element);
     }
     type.visitChildren(this, inFunctionType);
   }
 
-  visitFunctionType(FunctionType type, _) {
+  visitFunctionType(ResolutionFunctionType type, _) {
     type.visitChildren(this, true);
   }
 }
@@ -1019,12 +1028,12 @@ class FunctionArgumentCollector extends DartTypeVisitor {
 //TODO(floitsch): Remove support for non-function substitutions.
 class Substitution {
   final bool isFunction;
-  final List<DartType> arguments;
-  final List<DartType> parameters;
+  final List<ResolutionDartType> arguments;
+  final List<ResolutionDartType> parameters;
 
   Substitution.list(this.arguments)
       : isFunction = false,
-        parameters = const <DartType>[];
+        parameters = const <ResolutionDartType>[];
 
   Substitution.function(this.arguments, this.parameters) : isFunction = true;
 }

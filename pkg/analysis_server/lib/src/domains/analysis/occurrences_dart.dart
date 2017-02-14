@@ -14,6 +14,19 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
+void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
+  _DartUnitOccurrencesComputerVisitor visitor =
+      new _DartUnitOccurrencesComputerVisitor();
+  unit.accept(visitor);
+  visitor.elementsOffsets.forEach((engineElement, offsets) {
+    int length = engineElement.nameLength;
+    protocol.Element serverElement = protocol.convertElement(engineElement);
+    protocol.Occurrences occurrences =
+        new protocol.Occurrences(serverElement, offsets, length);
+    collector.addOccurrences(occurrences);
+  });
+}
+
 /**
  * A computer for occurrences in a Dart [CompilationUnit].
  */
@@ -26,17 +39,7 @@ class DartOccurrencesComputer implements OccurrencesContributor {
       CompilationUnit unit =
           context.getResolvedCompilationUnit2(source, libraries.first);
       if (unit != null) {
-        _DartUnitOccurrencesComputerVisitor visitor =
-            new _DartUnitOccurrencesComputerVisitor();
-        unit.accept(visitor);
-        visitor.elementsOffsets.forEach((engineElement, offsets) {
-          int length = engineElement.nameLength;
-          protocol.Element serverElement =
-              protocol.convertElement(engineElement);
-          protocol.Occurrences occurrences =
-              new protocol.Occurrences(serverElement, offsets, length);
-          collector.addOccurrences(occurrences);
-        });
+        addDartOccurrences(collector, unit);
       }
     }
   }

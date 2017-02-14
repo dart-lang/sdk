@@ -121,20 +121,18 @@ import "../foo/foo.dart";
     });
   }
 
-  void processRequiredPlugins() {
+  void processRequiredPlugins(ServerPlugin serverPlugin) {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
-    plugins.add(server.serverPlugin);
+    plugins.add(serverPlugin);
 
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
   }
 
   void setUp() {
-    ExtensionManager manager = new ExtensionManager();
-    ServerPlugin plugin = new ServerPlugin();
-    manager.processPlugins([plugin]);
+    ServerPlugin serverPlugin = new ServerPlugin();
+    processRequiredPlugins(serverPlugin);
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     // Create an SDK in the mock file system.
@@ -145,12 +143,11 @@ import "../foo/foo.dart";
         resourceProvider,
         packageMapProvider,
         null,
-        plugin,
+        serverPlugin,
         new AnalysisServerOptions(),
         new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE,
         rethrowExceptions: true);
-    processRequiredPlugins();
   }
 
   Future test_contextDisposed() {

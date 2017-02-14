@@ -116,7 +116,8 @@ abstract class AbstractClassElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.CLASS;
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitClassElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitClassElement(this);
 
   @override
   NamedCompilationUnitMember computeNode() {
@@ -1212,7 +1213,10 @@ class ClassElementImpl extends AbstractClassElementImpl
         if (e.kind == UnlinkedExecutableKind.getter) {
           fieldType = accessor.returnType;
         } else {
-          fieldType = accessor.parameters[0].type;
+          List<ParameterElement> parameters = accessor.parameters;
+          fieldType = parameters.isNotEmpty
+              ? parameters[0].type
+              : DynamicTypeImpl.instance;
         }
         // Create or update the implicit field.
         String fieldName = accessor.displayName;
@@ -1621,7 +1625,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       object is CompilationUnitElementImpl && source == object.source;
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitCompilationUnitElement(this);
 
   /**
    * This method is invoked after this unit was incrementally resolved.
@@ -1759,7 +1764,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(accessors, visitor);
-    safelyVisitChildren(_enums, visitor);
+    safelyVisitChildren(enums, visitor);
     safelyVisitChildren(functions, visitor);
     safelyVisitChildren(functionTypeAliases, visitor);
     safelyVisitChildren(types, visitor);
@@ -2171,7 +2176,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitConstructorElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -2233,6 +2239,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
                     .buildExpression(this, serialized.expression));
         initializer.fieldName.staticElement = enclosingElement.getField(name);
         return initializer;
+      case UnlinkedConstructorInitializerKind.assertInvocation:
+        return AstTestFactory.assertInitializer(
+            arguments[0], arguments.length > 1 ? arguments[1] : null);
       case UnlinkedConstructorInitializerKind.superInvocation:
         SuperConstructorInvocation initializer =
             AstTestFactory.superConstructorInvocation2(
@@ -2434,7 +2443,7 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   ElementKind get kind => ElementKind.DYNAMIC;
 
   @override
-  accept(ElementVisitor visitor) => null;
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) => null;
 }
 
 /**
@@ -4157,12 +4166,13 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitExportElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitExportElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {
     buffer.write("export ");
-    (exportedLibrary as LibraryElementImpl).appendTo(buffer);
+    LibraryElementImpl.getImpl(exportedLibrary).appendTo(buffer);
   }
 }
 
@@ -4208,6 +4218,24 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
+  /**
+   * Return `true` if this field was explicitly marked as being covariant.
+   */
+  bool get isCovariant {
+    if (_unlinkedVariable != null) {
+      return _unlinkedVariable.isCovariant;
+    }
+    return hasModifier(Modifier.COVARIANT);
+  }
+
+  /**
+   * Set whether this field is explicitly marked as being covariant.
+   */
+  void set isCovariant(bool isCovariant) {
+    _assertNotResynthesized(_unlinkedVariable);
+    setModifier(Modifier.COVARIANT, isCovariant);
+  }
+
   @override
   bool get isEnumConstant =>
       enclosingElement != null ? enclosingElement.isEnum : false;
@@ -4242,7 +4270,8 @@ class FieldElementImpl extends PropertyInducingElementImpl
   ElementKind get kind => ElementKind.FIELD;
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitFieldElement(this);
 
   @override
   AstNode computeNode() {
@@ -4288,9 +4317,14 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   @override
   FieldElement get field {
     if (_unlinkedParam != null && _field == null) {
-      Element enclosingClass = enclosingElement?.enclosingElement;
-      if (enclosingClass is ClassElement) {
-        _field = enclosingClass.getField(_unlinkedParam.name);
+      Element enclosing = enclosingElement?.enclosingElement;
+      while (enclosing != null) {
+        if (enclosing is ClassElement) {
+          _field = enclosing.getField(_unlinkedParam.name);
+          break;
+        } else {
+          enclosing = enclosing.enclosingElement;
+        }
       }
     }
     return _field;
@@ -4319,7 +4353,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   }
 
   @override
-  accept(ElementVisitor visitor) =>
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
       visitor.visitFieldFormalParameterElement(this);
 }
 
@@ -4421,7 +4455,8 @@ class FunctionElementImpl extends ExecutableElementImpl
   }
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitFunctionElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -4764,7 +4799,8 @@ class FunctionTypeAliasElementImpl extends ElementImpl
       _unlinkedTypedef.typeParameters;
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitFunctionTypeAliasElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitFunctionTypeAliasElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -4782,12 +4818,13 @@ class FunctionTypeAliasElementImpl extends ElementImpl
       buffer.write(">");
     }
     buffer.write("(");
-    int parameterCount = _parameters.length;
+    List<ParameterElement> parameterList = parameters;
+    int parameterCount = parameterList.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
         buffer.write(", ");
       }
-      (_parameters[i] as ParameterElementImpl).appendTo(buffer);
+      (parameterList[i] as ParameterElementImpl).appendTo(buffer);
     }
     buffer.write(")");
     if (type != null) {
@@ -4824,7 +4861,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(parameters, visitor);
-    safelyVisitChildren(_typeParameters, visitor);
+    safelyVisitChildren(typeParameters, visitor);
   }
 }
 
@@ -5109,12 +5146,13 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitImportElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitImportElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {
     buffer.write("import ");
-    (importedLibrary as LibraryElementImpl).appendTo(buffer);
+    LibraryElementImpl.getImpl(importedLibrary).appendTo(buffer);
   }
 
   @override
@@ -5238,7 +5276,8 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   }
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitLabelElement(this);
 
   /**
    * Create and return [LabelElement]s for the given [unlinkedLabels].
@@ -5497,7 +5536,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  bool get hasExtUri => hasModifier(Modifier.HAS_EXT_URI);
+  bool get hasExtUri {
+    if (_unlinkedDefiningUnit != null) {
+      List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
+      for (UnlinkedImport import in unlinkedImports) {
+        if (DartUriResolver.isDartExtUri(import.uri)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return hasModifier(Modifier.HAS_EXT_URI);
+  }
 
   /**
    * Set whether this library has an import of a "dart-ext" URI.
@@ -5788,7 +5838,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitLibraryElement(this);
 
   /**
    * Create the [FunctionElement] to be returned by [loadLibraryFunction],
@@ -5920,6 +5971,16 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     safelyVisitChildren(exports, visitor);
     safelyVisitChildren(imports, visitor);
     safelyVisitChildren(_parts, visitor);
+  }
+
+  /**
+   * Return the [LibraryElementImpl] of the given [element].
+   */
+  static LibraryElementImpl getImpl(LibraryElement element) {
+    if (element is LibraryElementHandle) {
+      return getImpl(element.actualElement);
+    }
+    return element as LibraryElementImpl;
   }
 
   /**
@@ -6078,7 +6139,8 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   }
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitLocalVariableElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitLocalVariableElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -6198,7 +6260,8 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   }
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitMethodElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -6209,6 +6272,33 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   MethodDeclaration computeNode() =>
       getNodeMatching((node) => node is MethodDeclaration);
+
+  @override
+  FunctionType getReifiedType(DartType objectType) {
+    // Collect the covariant parameters. Do this first so we don't allocate
+    // anything in the common case where there are none.
+    Set<String> covariantNames;
+    for (ParameterElement parameter in parameters) {
+      if (parameter.isCovariant) {
+        covariantNames ??= new Set();
+        covariantNames.add(parameter.name);
+      }
+    }
+
+    if (covariantNames == null) return type;
+
+    List<ParameterElement> covariantParameters = parameters.map((parameter) {
+      if (!covariantNames.contains(parameter.name)) {
+        return parameter;
+      }
+
+      return new ParameterElementImpl.synthetic(
+          parameter.name, objectType, parameter.parameterKind);
+    }).toList();
+
+    return new FunctionElementImpl.synthetic(covariantParameters, returnType)
+        .type;
+  }
 }
 
 /**
@@ -6235,76 +6325,81 @@ class Modifier implements Comparable<Modifier> {
   static const Modifier CONST = const Modifier('CONST', 2);
 
   /**
+   * Indicates that the modifier 'covariant' was applied to the element.
+   */
+  static const Modifier COVARIANT = const Modifier('COVARIANT', 3);
+
+  /**
    * Indicates that the import element represents a deferred library.
    */
-  static const Modifier DEFERRED = const Modifier('DEFERRED', 3);
+  static const Modifier DEFERRED = const Modifier('DEFERRED', 4);
 
   /**
    * Indicates that a class element was defined by an enum declaration.
    */
-  static const Modifier ENUM = const Modifier('ENUM', 4);
+  static const Modifier ENUM = const Modifier('ENUM', 5);
 
   /**
    * Indicates that a class element was defined by an enum declaration.
    */
-  static const Modifier EXTERNAL = const Modifier('EXTERNAL', 5);
+  static const Modifier EXTERNAL = const Modifier('EXTERNAL', 6);
 
   /**
    * Indicates that the modifier 'factory' was applied to the element.
    */
-  static const Modifier FACTORY = const Modifier('FACTORY', 6);
+  static const Modifier FACTORY = const Modifier('FACTORY', 7);
 
   /**
    * Indicates that the modifier 'final' was applied to the element.
    */
-  static const Modifier FINAL = const Modifier('FINAL', 7);
+  static const Modifier FINAL = const Modifier('FINAL', 8);
 
   /**
    * Indicates that an executable element has a body marked as being a
    * generator.
    */
-  static const Modifier GENERATOR = const Modifier('GENERATOR', 8);
+  static const Modifier GENERATOR = const Modifier('GENERATOR', 9);
 
   /**
    * Indicates that the pseudo-modifier 'get' was applied to the element.
    */
-  static const Modifier GETTER = const Modifier('GETTER', 9);
+  static const Modifier GETTER = const Modifier('GETTER', 10);
 
   /**
    * A flag used for libraries indicating that the defining compilation unit
    * contains at least one import directive whose URI uses the "dart-ext"
    * scheme.
    */
-  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 10);
+  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 11);
 
   /**
    * Indicates that the associated element did not have an explicit type
    * associated with it. If the element is an [ExecutableElement], then the
    * type being referred to is the return type.
    */
-  static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 11);
+  static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 12);
 
   /**
    * Indicates that a class is a mixin application.
    */
   static const Modifier MIXIN_APPLICATION =
-      const Modifier('MIXIN_APPLICATION', 12);
+      const Modifier('MIXIN_APPLICATION', 13);
 
   /**
    * Indicates that a class contains an explicit reference to 'super'.
    */
   static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 13);
+      const Modifier('REFERENCES_SUPER', 14);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 14);
+  static const Modifier SETTER = const Modifier('SETTER', 15);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 15);
+  static const Modifier STATIC = const Modifier('STATIC', 16);
 
   /**
    * Indicates that the element does not appear in the source code but was
@@ -6312,12 +6407,13 @@ class Modifier implements Comparable<Modifier> {
    * constructors, an implicit zero-argument constructor will be created and it
    * will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 17);
 
   static const List<Modifier> values = const [
     ABSTRACT,
     ASYNCHRONOUS,
     CONST,
+    COVARIANT,
     DEFERRED,
     ENUM,
     EXTERNAL,
@@ -6489,7 +6585,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   CompilationUnit get unit => null;
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitMultiplyDefinedElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitMultiplyDefinedElement(this);
 
   @override
   String computeDocumentationComment() => null;
@@ -7034,7 +7131,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   bool get isCovariant {
-    if (inheritsCovariant) {
+    if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
     for (ElementAnnotationImpl annotation in metadata) {
@@ -7045,10 +7142,28 @@ class ParameterElementImpl extends VariableElementImpl
     return false;
   }
 
+  /**
+   * Return true if this parameter is explicitly marked as being covariant.
+   */
+  bool get isExplicitlyCovariant {
+    if (_unlinkedParam != null) {
+      return _unlinkedParam.isExplicitlyCovariant;
+    }
+    return hasModifier(Modifier.COVARIANT);
+  }
+
+  /**
+   * Set whether this variable parameter is explicitly marked as being covariant.
+   */
+  void set isExplicitlyCovariant(bool isCovariant) {
+    _assertNotResynthesized(_unlinkedParam);
+    setModifier(Modifier.COVARIANT, isCovariant);
+  }
+
   @override
   bool get isFinal {
     if (_unlinkedParam != null) {
-      return false;
+      return _unlinkedParam.isFinal;
     }
     return super.isFinal;
   }
@@ -7181,7 +7296,8 @@ class ParameterElementImpl extends VariableElementImpl
   UnlinkedExpr get _unlinkedConst => _unlinkedParam?.initializer?.bodyExpr;
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitParameterElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -7310,13 +7426,22 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 
   @override
   bool get isCovariant {
-    if (inheritsCovariant) {
+    if (isExplicitlyCovariant || inheritsCovariant) {
       return true;
     }
     for (ElementAnnotationImpl annotation in setter.variable.metadata) {
       if (annotation.isCovariant) {
         return true;
       }
+    }
+    return false;
+  }
+
+  @override
+  bool get isExplicitlyCovariant {
+    PropertyInducingElement variable = setter.variable;
+    if (variable is FieldElementImpl) {
+      return variable.isCovariant;
     }
     return false;
   }
@@ -7421,7 +7546,8 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   }
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitPrefixElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitPrefixElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -7593,7 +7719,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitPropertyAccessorElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitPropertyAccessorElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {
@@ -7759,6 +7886,8 @@ abstract class PropertyInducingElementImpl
  * The context in which elements are resynthesized.
  */
 abstract class ResynthesizerContext {
+  bool get isStrongMode;
+
   /**
    * Build [ElementAnnotationImpl] for the given [UnlinkedExpr].
    */
@@ -7933,7 +8062,8 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitTopLevelVariableElement(this);
 
   @override
   VariableDeclaration computeNode() =>
@@ -8081,7 +8211,8 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitTypeParameterElement(this);
 
   @override
   void appendTo(StringBuffer buffer) {

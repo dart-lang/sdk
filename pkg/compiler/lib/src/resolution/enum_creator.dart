@@ -5,8 +5,8 @@
 library dart2js.resolution.enum_creator;
 
 import '../common.dart';
-import '../core_types.dart' show CoreTypes;
-import '../dart_types.dart';
+import '../core_types.dart' show CommonElements;
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import '../tokens/keyword.dart' show Keyword;
@@ -199,20 +199,21 @@ class AstBuilder {
 // removed.
 class EnumCreator {
   final DiagnosticReporter reporter;
-  final CoreTypes coreTypes;
+  final CommonElements commonElements;
   final EnumClassElementX enumClass;
 
-  EnumCreator(this.reporter, this.coreTypes, this.enumClass);
+  EnumCreator(this.reporter, this.commonElements, this.enumClass);
 
   void createMembers() {
     Enum node = enumClass.node;
-    InterfaceType enumType = enumClass.thisType;
+    ResolutionInterfaceType enumType = enumClass.thisType;
     AstBuilder builder = new AstBuilder(enumClass.position.charOffset);
 
-    InterfaceType intType = coreTypes.intType;
-    InterfaceType stringType = coreTypes.stringType;
+    ResolutionInterfaceType intType = commonElements.intType;
+    ResolutionInterfaceType stringType = commonElements.stringType;
 
-    EnumFieldElementX addInstanceMember(String name, InterfaceType type) {
+    EnumFieldElementX addInstanceMember(
+        String name, ResolutionInterfaceType type) {
       Identifier identifier = builder.identifier(name);
       VariableList variableList =
           new VariableList(builder.modifiers(isFinal: true));
@@ -243,8 +244,8 @@ class EnumCreator {
     FunctionSignatureX constructorSignature = new FunctionSignatureX(
         requiredParameters: [indexFormal],
         requiredParameterCount: 1,
-        type: new FunctionType(
-            constructor, const DynamicType(), <DartType>[intType]));
+        type: new ResolutionFunctionType(constructor,
+            const ResolutionDynamicType(), <ResolutionDartType>[intType]));
     constructor.functionSignature = constructorSignature;
     enumClass.addMember(constructor, reporter);
 
@@ -281,7 +282,8 @@ class EnumCreator {
 
     VariableList valuesVariableList =
         new VariableList(builder.modifiers(isStatic: true, isConst: true));
-    valuesVariableList.type = coreTypes.listType(enumType);
+    ResolutionInterfaceType valuesType = commonElements.listType(enumType);
+    valuesVariableList.type = valuesType;
 
     Identifier valuesIdentifier = builder.identifier('values');
     // TODO(johnniwinther): Add type argument.
@@ -308,8 +310,8 @@ class EnumCreator {
 
     EnumMethodElementX toString = new EnumMethodElementX(
         'toString', enumClass, Modifiers.EMPTY, toStringNode);
-    FunctionSignatureX toStringSignature =
-        new FunctionSignatureX(type: new FunctionType(toString, stringType));
+    FunctionSignatureX toStringSignature = new FunctionSignatureX(
+        type: new ResolutionFunctionType(toString, stringType));
     toString.functionSignature = toStringSignature;
     enumClass.addMember(toString, reporter);
 

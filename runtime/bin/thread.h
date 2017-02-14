@@ -55,7 +55,6 @@ class Thread {
   static ThreadId GetCurrentThreadId();
   static intptr_t ThreadIdToIntPtr(ThreadId id);
   static bool Compare(ThreadId a, ThreadId b);
-  static void GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage);
 
   static void InitOnce();
 

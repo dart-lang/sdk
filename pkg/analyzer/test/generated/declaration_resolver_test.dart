@@ -4,6 +4,8 @@
 
 library engine.declaration_resolver_test;
 
+import 'dart:async';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -59,50 +61,50 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
     }
   }
 
-  void setupCode(String code) {
+  Future<Null> setupCode(String code) async {
     this.code = code;
-    unit = resolveSource(code + ' const a = null;');
+    unit = await resolveSource(code + ' const a = null;');
     unit2 = _cloneResolveUnit(unit);
   }
 
-  void test_metadata_classDeclaration() {
-    setupCode('@a class C {}');
+  test_metadata_classDeclaration() async {
+    await setupCode('@a class C {}');
     checkMetadata('C');
   }
 
-  void test_metadata_classTypeAlias() {
-    setupCode('@a class C = D with E; class D {} class E {}');
+  test_metadata_classTypeAlias() async {
+    await setupCode('@a class C = D with E; class D {} class E {}');
     checkMetadata('C');
   }
 
-  void test_metadata_constructorDeclaration_named() {
-    setupCode('class C { @a C.x(); }');
+  test_metadata_constructorDeclaration_named() async {
+    await setupCode('class C { @a C.x(); }');
     checkMetadata('x');
   }
 
-  void test_metadata_constructorDeclaration_unnamed() {
-    setupCode('class C { @a C(); }');
+  test_metadata_constructorDeclaration_unnamed() async {
+    await setupCode('class C { @a C(); }');
     checkMetadata('C()');
   }
 
-  void test_metadata_declaredIdentifier() {
-    setupCode('f(x, y) { for (@a var x in y) {} }');
+  test_metadata_declaredIdentifier() async {
+    await setupCode('f(x, y) { for (@a var x in y) {} }');
     checkMetadata('var', expectDifferent: true);
   }
 
-  void test_metadata_enumDeclaration() {
-    setupCode('@a enum E { v }');
+  test_metadata_enumDeclaration() async {
+    await setupCode('@a enum E { v }');
     checkMetadata('E');
   }
 
-  void test_metadata_exportDirective() {
+  test_metadata_exportDirective() async {
     addNamedSource('/foo.dart', 'class C {}');
-    setupCode('@a export "foo.dart";');
+    await setupCode('@a export "foo.dart";');
     checkMetadata('export');
   }
 
-  void test_metadata_exportDirective_resynthesized() {
-    CompilationUnit unit = resolveSource(r'''
+  test_metadata_exportDirective_resynthesized() async {
+    CompilationUnit unit = await resolveSource(r'''
 @a
 export "dart:async";
 
@@ -128,58 +130,58 @@ const b = null;
     expect(unit.directives[1].metadata.single.name.name, 'b');
   }
 
-  void test_metadata_fieldDeclaration() {
-    setupCode('class C { @a int x; }');
+  test_metadata_fieldDeclaration() async {
+    await setupCode('class C { @a int x; }');
     checkMetadata('x');
   }
 
-  void test_metadata_fieldFormalParameter() {
-    setupCode('class C { var x; C(@a this.x); }');
+  test_metadata_fieldFormalParameter() async {
+    await setupCode('class C { var x; C(@a this.x); }');
     checkMetadata('this');
   }
 
-  void test_metadata_fieldFormalParameter_withDefault() {
-    setupCode('class C { var x; C([@a this.x = null]); }');
+  test_metadata_fieldFormalParameter_withDefault() async {
+    await setupCode('class C { var x; C([@a this.x = null]); }');
     checkMetadata('this');
   }
 
-  void test_metadata_functionDeclaration_function() {
-    setupCode('@a f() {}');
+  test_metadata_functionDeclaration_function() async {
+    await setupCode('@a f() {}');
     checkMetadata('f');
   }
 
-  void test_metadata_functionDeclaration_getter() {
-    setupCode('@a get f() => null;');
+  test_metadata_functionDeclaration_getter() async {
+    await setupCode('@a get f() => null;');
     checkMetadata('f');
   }
 
-  void test_metadata_functionDeclaration_setter() {
-    setupCode('@a set f(value) {}');
+  test_metadata_functionDeclaration_setter() async {
+    await setupCode('@a set f(value) {}');
     checkMetadata('f');
   }
 
-  void test_metadata_functionTypeAlias() {
-    setupCode('@a typedef F();');
+  test_metadata_functionTypeAlias() async {
+    await setupCode('@a typedef F();');
     checkMetadata('F');
   }
 
-  void test_metadata_functionTypedFormalParameter() {
-    setupCode('f(@a g()) {}');
+  test_metadata_functionTypedFormalParameter() async {
+    await setupCode('f(@a g()) {}');
     checkMetadata('g');
   }
 
-  void test_metadata_functionTypedFormalParameter_withDefault() {
-    setupCode('f([@a g() = null]) {}');
+  test_metadata_functionTypedFormalParameter_withDefault() async {
+    await setupCode('f([@a g() = null]) {}');
     checkMetadata('g');
   }
 
-  void test_metadata_importDirective() {
+  test_metadata_importDirective() async {
     addNamedSource('/foo.dart', 'class C {}');
-    setupCode('@a import "foo.dart";');
+    await setupCode('@a import "foo.dart";');
     checkMetadata('import');
   }
 
-  void test_metadata_importDirective_partiallyResolved() {
+  test_metadata_importDirective_partiallyResolved() async {
     addNamedSource('/foo.dart', 'class C {}');
     this.code = 'const a = null; @a import "foo.dart";';
     Source source = addNamedSource('/test.dart', code);
@@ -190,8 +192,8 @@ const b = null;
     checkMetadata('import');
   }
 
-  void test_metadata_importDirective_resynthesized() {
-    CompilationUnit unit = resolveSource(r'''
+  test_metadata_importDirective_resynthesized() async {
+    CompilationUnit unit = await resolveSource(r'''
 @a
 import "dart:async";
 
@@ -217,13 +219,14 @@ const b = null;
     expect(unit.directives[1].metadata.single.name.name, 'b');
   }
 
-  void test_metadata_libraryDirective() {
-    setupCode('@a library L;');
+  test_metadata_libraryDirective() async {
+    await setupCode('@a library L;');
     checkMetadata('L');
   }
 
-  void test_metadata_libraryDirective_resynthesized() {
-    CompilationUnit unit = resolveSource('@a library L; const a = null;');
+  test_metadata_libraryDirective_resynthesized() async {
+    CompilationUnit unit =
+        await resolveSource('@a library L; const a = null;');
     expect(unit.directives.single.metadata.single.name.name, 'a');
     var unitElement = unit.element as CompilationUnitElementImpl;
     // Damage the unit element - as if "setAnnotations" were not called.
@@ -236,8 +239,8 @@ const b = null;
     expect(clonedUnit.directives.single.metadata.single.name.name, 'a');
   }
 
-  void test_metadata_localFunctionDeclaration() {
-    setupCode('f() { @a g() {} }');
+  test_metadata_localFunctionDeclaration() async {
+    await setupCode('f() { @a g() {} }');
     // Note: metadata on local function declarations is ignored by the
     // analyzer.  TODO(paulberry): is this a bug?
     FunctionDeclaration node = EngineTestCase.findNode(
@@ -245,64 +248,64 @@ const b = null;
     expect((node as FunctionDeclarationImpl).metadata, isEmpty);
   }
 
-  void test_metadata_localVariableDeclaration() {
-    setupCode('f() { @a int x; }');
+  test_metadata_localVariableDeclaration() async {
+    await setupCode('f() { @a int x; }');
     checkMetadata('x', expectDifferent: true);
   }
 
-  void test_metadata_methodDeclaration_getter() {
-    setupCode('class C { @a get m => null; }');
+  test_metadata_methodDeclaration_getter() async {
+    await setupCode('class C { @a get m => null; }');
     checkMetadata('m');
   }
 
-  void test_metadata_methodDeclaration_method() {
-    setupCode('class C { @a m() {} }');
+  test_metadata_methodDeclaration_method() async {
+    await setupCode('class C { @a m() {} }');
     checkMetadata('m');
   }
 
-  void test_metadata_methodDeclaration_setter() {
-    setupCode('class C { @a set m(value) {} }');
+  test_metadata_methodDeclaration_setter() async {
+    await setupCode('class C { @a set m(value) {} }');
     checkMetadata('m');
   }
 
-  void test_metadata_partDirective() {
+  test_metadata_partDirective() async {
     addNamedSource('/foo.dart', 'part of L;');
-    setupCode('library L; @a part "foo.dart";');
+    await setupCode('library L; @a part "foo.dart";');
     checkMetadata('part');
   }
 
-  void test_metadata_simpleFormalParameter() {
-    setupCode('f(@a x) {}) {}');
+  test_metadata_simpleFormalParameter() async {
+    await setupCode('f(@a x) {}) {}');
     checkMetadata('x');
   }
 
-  void test_metadata_simpleFormalParameter_withDefault() {
-    setupCode('f([@a x = null]) {}');
+  test_metadata_simpleFormalParameter_withDefault() async {
+    await setupCode('f([@a x = null]) {}');
     checkMetadata('x');
   }
 
-  void test_metadata_topLevelVariableDeclaration() {
-    setupCode('@a int x;');
+  test_metadata_topLevelVariableDeclaration() async {
+    await setupCode('@a int x;');
     checkMetadata('x');
   }
 
-  void test_metadata_typeParameter_ofClass() {
-    setupCode('class C<@a T> {}');
+  test_metadata_typeParameter_ofClass() async {
+    await setupCode('class C<@a T> {}');
     checkMetadata('T');
   }
 
-  void test_metadata_typeParameter_ofClassTypeAlias() {
-    setupCode('class C<@a T> = D with E; class D {} class E {}');
+  test_metadata_typeParameter_ofClassTypeAlias() async {
+    await setupCode('class C<@a T> = D with E; class D {} class E {}');
     checkMetadata('T');
   }
 
-  void test_metadata_typeParameter_ofFunction() {
-    setupCode('f<@a T>() {}');
+  test_metadata_typeParameter_ofFunction() async {
+    await setupCode('f<@a T>() {}');
     checkMetadata('T');
   }
 
-  void test_metadata_typeParameter_ofTypedef() {
-    setupCode('typedef F<@a T>();');
+  test_metadata_typeParameter_ofTypedef() async {
+    await setupCode('typedef F<@a T>();');
     checkMetadata('T');
   }
 
@@ -330,7 +333,7 @@ class DeclarationResolverTest extends ResolverTestCase {
     super.setUp();
   }
 
-  void test_closure_inside_catch_block() {
+  test_closure_inside_catch_block() async {
     String code = '''
 f() {
   try {
@@ -339,13 +342,13 @@ f() {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     // re-resolve
     _cloneResolveUnit(unit);
     // no other validations than built into DeclarationResolver
   }
 
-  void test_closure_inside_labeled_statement() {
+  test_closure_inside_labeled_statement() async {
     String code = '''
 f(b) {
   foo: while (true) {
@@ -356,13 +359,13 @@ f(b) {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     // re-resolve
     _cloneResolveUnit(unit);
     // no other validations than built into DeclarationResolver
   }
 
-  void test_closure_inside_switch_case() {
+  test_closure_inside_switch_case() async {
     String code = '''
 void f(k, m) {
   switch (k) {
@@ -372,13 +375,13 @@ void f(k, m) {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     // re-resolve
     _cloneResolveUnit(unit);
     // no other validations than built into DeclarationResolver
   }
 
-  void test_closure_inside_switch_default() {
+  test_closure_inside_switch_default() async {
     String code = '''
 void f(k, m) {
   switch (k) {
@@ -388,13 +391,13 @@ void f(k, m) {
   }
 }
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     // re-resolve
     _cloneResolveUnit(unit);
     // no other validations than built into DeclarationResolver
   }
 
-  void test_enumConstant_partiallyResolved() {
+  test_enumConstant_partiallyResolved() async {
     String code = r'''
 enum Fruit {apple, pear}
 ''';
@@ -406,11 +409,11 @@ enum Fruit {apple, pear}
     _cloneResolveUnit(unit);
   }
 
-  void test_functionDeclaration_getter() {
+  test_functionDeclaration_getter() async {
     String code = r'''
 int get zzz => 42;
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     PropertyAccessorElement getterElement =
         _findSimpleIdentifier(unit, code, 'zzz =>').staticElement;
     expect(getterElement.isGetter, isTrue);
@@ -420,11 +423,11 @@ int get zzz => 42;
     expect(getterName.staticElement, same(getterElement));
   }
 
-  void test_functionDeclaration_setter() {
+  test_functionDeclaration_setter() async {
     String code = r'''
 void set zzz(_) {}
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     PropertyAccessorElement setterElement =
         _findSimpleIdentifier(unit, code, 'zzz(_)').staticElement;
     expect(setterElement.isSetter, isTrue);
@@ -434,7 +437,7 @@ void set zzz(_) {}
     expect(getterName.staticElement, same(setterElement));
   }
 
-  void test_invalid_functionDeclaration_getter_inFunction() {
+  test_invalid_functionDeclaration_getter_inFunction() async {
     String code = r'''
 var v = (() {
   main() {
@@ -442,7 +445,7 @@ var v = (() {
   }
 });
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     FunctionElement getterElement =
         _findSimpleIdentifier(unit, code, 'zzz =>').staticElement;
     // re-resolve
@@ -451,7 +454,7 @@ var v = (() {
     expect(getterName.staticElement, same(getterElement));
   }
 
-  void test_invalid_functionDeclaration_setter_inFunction() {
+  test_invalid_functionDeclaration_setter_inFunction() async {
     String code = r'''
 var v = (() {
   main() {
@@ -459,7 +462,7 @@ var v = (() {
   }
 });
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     FunctionElement setterElement =
         _findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
     // re-resolve
@@ -468,66 +471,66 @@ var v = (() {
     expect(setterName.staticElement, same(setterElement));
   }
 
-  void test_visitExportDirective_notExistingSource() {
+  test_visitExportDirective_notExistingSource() async {
     String code = r'''
 export 'foo.dart';
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     // re-resolve
     _cloneResolveUnit(unit);
     // no other validations than built into DeclarationResolver
   }
 
-  void test_visitExportDirective_unresolvedUri() {
+  test_visitExportDirective_unresolvedUri() async {
     String code = r'''
 export 'package:foo/bar.dart';
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     // re-resolve
     _cloneResolveUnit(unit);
     // no other validations than built into DeclarationResolver
   }
 
-  void test_visitFunctionExpression() {
+  test_visitFunctionExpression() async {
     String code = r'''
 main(List<String> items) {
   items.forEach((item) {});
 }
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     // re-resolve
     _cloneResolveUnit(unit);
     // no other validations than built into DeclarationResolver
   }
 
-  void test_visitImportDirective_notExistingSource() {
+  test_visitImportDirective_notExistingSource() async {
     String code = r'''
 import 'foo.dart';
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     // re-resolve
     _cloneResolveUnit(unit);
     // no other validations than built into DeclarationResolver
   }
 
-  void test_visitImportDirective_unresolvedUri() {
+  test_visitImportDirective_unresolvedUri() async {
     String code = r'''
 import 'package:foo/bar.dart';
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     // re-resolve
     _cloneResolveUnit(unit);
     // no other validations than built into DeclarationResolver
   }
 
-  void test_visitMethodDeclaration_getter_duplicate() {
+  test_visitMethodDeclaration_getter_duplicate() async {
     String code = r'''
 class C {
   int get zzz => 1;
   String get zzz => null;
 }
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     PropertyAccessorElement firstElement =
         _findSimpleIdentifier(unit, code, 'zzz => 1').staticElement;
     PropertyAccessorElement secondElement =
@@ -541,7 +544,7 @@ class C {
     expect(secondName.staticElement, same(secondElement));
   }
 
-  void test_visitMethodDeclaration_getterSetter() {
+  test_visitMethodDeclaration_getterSetter() async {
     String code = r'''
 class C {
   int _field = 0;
@@ -549,7 +552,7 @@ class C {
   void set field(value) {_field = value;}
 }
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     FieldElement getterElement =
         _findSimpleIdentifier(unit, code, 'field =').staticElement;
     PropertyAccessorElement setterElement =
@@ -562,14 +565,14 @@ class C {
     expect(setterName.staticElement, same(setterElement));
   }
 
-  void test_visitMethodDeclaration_method_duplicate() {
+  test_visitMethodDeclaration_method_duplicate() async {
     String code = r'''
 class C {
   void zzz(x) {}
   void zzz(y) {}
 }
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     MethodElement firstElement =
         _findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
     MethodElement secondElement =
@@ -582,7 +585,7 @@ class C {
     expect(secondName.staticElement, same(secondElement));
   }
 
-  void test_visitMethodDeclaration_setter_duplicate() {
+  test_visitMethodDeclaration_setter_duplicate() async {
     // https://github.com/dart-lang/sdk/issues/25601
     String code = r'''
 class C {
@@ -590,7 +593,7 @@ class C {
   set zzz(y) {}
 }
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     PropertyAccessorElement firstElement =
         _findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
     PropertyAccessorElement secondElement =
@@ -603,24 +606,24 @@ class C {
     expect(secondName.staticElement, same(secondElement));
   }
 
-  void test_visitMethodDeclaration_unaryMinus() {
+  test_visitMethodDeclaration_unaryMinus() async {
     String code = r'''
 class C {
   C operator -() => null;
   C operator -(C other) => null;
 }
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     // re-resolve
     _cloneResolveUnit(unit);
     // no other validations than built into DeclarationResolver
   }
 
-  void test_visitPartDirective_notExistingSource() {
+  test_visitPartDirective_notExistingSource() async {
     String code = r'''
 part 'foo.bar';
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     // re-resolve
     _cloneResolveUnit(unit);
     // no other validations than built into DeclarationResolver
@@ -634,14 +637,14 @@ part 'foo.bar';
 class StrongModeDeclarationResolverTest extends ResolverTestCase {
   @override
   void setUp() {
-    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
+    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
   }
 
-  void test_genericFunction_typeParameter() {
+  test_genericFunction_typeParameter() async {
     String code = r'''
 /*=T*/ max/*<T>*/(/*=T*/ x, /*=T*/ y) => null;
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     FunctionDeclaration node = _findSimpleIdentifier(unit, code, 'max').parent;
     TypeParameter t = node.functionExpression.typeParameters.typeParameters[0];
 
@@ -659,13 +662,13 @@ class StrongModeDeclarationResolverTest extends ResolverTestCase {
     expect(t.element, same(tElement));
   }
 
-  void test_genericMethod_typeParameter() {
+  test_genericMethod_typeParameter() async {
     String code = r'''
 class C {
   /*=T*/ max/*<T>*/(/*=T*/ x, /*=T*/ y) => null;
 }
 ''';
-    CompilationUnit unit = resolveSource(code);
+    CompilationUnit unit = await resolveSource(code);
     MethodDeclaration node = _findSimpleIdentifier(unit, code, 'max').parent;
     TypeParameter t = node.typeParameters.typeParameters[0];
 

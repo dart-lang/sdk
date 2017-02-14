@@ -447,7 +447,7 @@ main() {
       var result = context.callMethod('callable');
       expect(result, 'called');
       context.deleteProperty('callable');
-    }, skip: "https://github.com/dart-lang/dev_compiler/issues/244");
+    });
 
   });
 

@@ -11,6 +11,7 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show PerformanceLog;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -19,6 +20,7 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:typed_mock/typed_mock.dart';
 
 import '../../context/mock_sdk.dart';
 
@@ -30,21 +32,25 @@ main() {
 
 @reflectiveTest
 class FileSystemStateTest {
-  static final MockSdk sdk = new MockSdk();
-
   final MemoryResourceProvider provider = new MemoryResourceProvider();
+  MockSdk sdk;
+
   final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
 
   final StringBuffer logBuffer = new StringBuffer();
+  final UriResolver generatedUriResolver = new _GeneratedUriResolverMock();
+  SourceFactory sourceFactory;
   PerformanceLog logger;
 
   FileSystemState fileSystemState;
 
   void setUp() {
     logger = new PerformanceLog(logBuffer);
-    SourceFactory sourceFactory = new SourceFactory([
+    sdk = new MockSdk(resourceProvider: provider);
+    sourceFactory = new SourceFactory([
       new DartUriResolver(sdk),
+      generatedUriResolver,
       new PackageMapUriResolver(provider, <String, List<Folder>>{
         'aaa': [provider.getFolder(_p('/aaa/lib'))],
         'bbb': [provider.getFolder(_p('/bbb/lib'))],
@@ -54,7 +60,202 @@ class FileSystemStateTest {
     AnalysisOptions analysisOptions = new AnalysisOptionsImpl()
       ..strongMode = true;
     fileSystemState = new FileSystemState(logger, byteStore, contentOverlay,
-        provider, sourceFactory, analysisOptions, new Uint32List(0), '');
+        provider, sourceFactory, analysisOptions, new Uint32List(0));
+  }
+
+  test_exportedTopLevelDeclarations_export() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class A {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart';
+class B {}
+''');
+    FileState file = fileSystemState.getFileForPath(b);
+    Map<String, TopLevelDeclaration> declarations =
+        file.exportedTopLevelDeclarations;
+    expect(declarations.keys, unorderedEquals(['A', 'B']));
+  }
+
+  test_exportedTopLevelDeclarations_export2_show() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    String c = _p('/aaa/lib/c.dart');
+    provider.newFile(
+        a,
+        r'''
+class A1 {}
+class A2 {}
+class A3 {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart' show A1, A2;
+class B1 {}
+class B2 {}
+''');
+    provider.newFile(
+        c,
+        r'''
+export 'b.dart' show A2, A3, B1;
+class C {}
+''');
+    _assertExportedTopLevelDeclarations(c, ['A2', 'B1', 'C']);
+  }
+
+  test_exportedTopLevelDeclarations_export_flushOnChange() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class A {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart';
+class B {}
+''');
+
+    // Initial exported declarations.
+    _assertExportedTopLevelDeclarations(b, ['A', 'B']);
+
+    // Update a.dart, so a.dart and b.dart exported declarations are flushed.
+    provider.newFile(a, 'class A {} class A2 {}');
+    fileSystemState.getFileForPath(a).refresh();
+    _assertExportedTopLevelDeclarations(b, ['A', 'A2', 'B']);
+  }
+
+  test_exportedTopLevelDeclarations_export_hide() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class A1 {}
+class A2 {}
+class A3 {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart' hide A2;
+class B {}
+''');
+    _assertExportedTopLevelDeclarations(b, ['A1', 'A3', 'B']);
+  }
+
+  test_exportedTopLevelDeclarations_export_preferLocal() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class V {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart';
+int V;
+''');
+    FileState file = fileSystemState.getFileForPath(b);
+    Map<String, TopLevelDeclaration> declarations =
+        file.exportedTopLevelDeclarations;
+    expect(declarations.keys, unorderedEquals(['V']));
+    expect(declarations['V'].kind, TopLevelDeclarationKind.variable);
+  }
+
+  test_exportedTopLevelDeclarations_export_show() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class A1 {}
+class A2 {}
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'a.dart' show A2;
+class B {}
+''');
+    _assertExportedTopLevelDeclarations(b, ['A2', 'B']);
+  }
+
+  test_exportedTopLevelDeclarations_export_show2() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    String c = _p('/aaa/lib/c.dart');
+    String d = _p('/aaa/lib/d.dart');
+    provider.newFile(
+        a,
+        r'''
+export 'b.dart' show Foo;
+export 'c.dart' show Bar;
+''');
+    provider.newFile(
+        b,
+        r'''
+export 'd.dart';
+''');
+    provider.newFile(
+        c,
+        r'''
+export 'd.dart';
+''');
+    provider.newFile(
+        d,
+        r'''
+class Foo {}
+class Bar {}
+''');
+    _assertExportedTopLevelDeclarations(a, ['Foo', 'Bar']);
+  }
+
+  test_exportedTopLevelDeclarations_import() {
+    String a = _p('/aaa/lib/a.dart');
+    String b = _p('/aaa/lib/b.dart');
+    provider.newFile(
+        a,
+        r'''
+class A {}
+''');
+    provider.newFile(
+        b,
+        r'''
+import 'a.dart';
+class B {}
+''');
+    _assertExportedTopLevelDeclarations(b, ['B']);
+  }
+
+  test_exportedTopLevelDeclarations_parts() {
+    String a = _p('/aaa/lib/a.dart');
+    String a2 = _p('/aaa/lib/a2.dart');
+    provider.newFile(
+        a,
+        r'''
+library lib;
+part 'a2.dart';
+class A1 {}
+''');
+    provider.newFile(
+        a2,
+        r'''
+part of lib;
+class A2 {}
+''');
+    _assertExportedTopLevelDeclarations(a, ['A1', 'A2']);
   }
 
   test_getFileForPath_doesNotExist() {
@@ -64,14 +265,37 @@ class FileSystemStateTest {
     expect(file.uri, FastUri.parse('package:aaa/a.dart'));
     expect(file.content, '');
     expect(file.contentHash, _md5(''));
-    expect(file.importedFiles, isEmpty);
+    expect(_excludeSdk(file.importedFiles), isEmpty);
     expect(file.exportedFiles, isEmpty);
     expect(file.partedFiles, isEmpty);
-    expect(file.directReferencedFiles, isEmpty);
+    expect(_excludeSdk(file.directReferencedFiles), isEmpty);
     expect(file.isPart, isFalse);
     expect(file.library, isNull);
     expect(file.unlinked, isNotNull);
     expect(file.unlinked.classes, isEmpty);
+  }
+
+  test_getFileForPath_generatedFile() {
+    Uri uri = Uri.parse('package:aaa/foo.dart');
+    String templatePath = _p('/aaa/lib/foo.dart');
+    String generatedPath = _p('/generated/aaa/lib/foo.dart');
+
+    Source generatedSource = new _SourceMock();
+    when(generatedSource.fullName).thenReturn(generatedPath);
+    when(generatedSource.uri).thenReturn(uri);
+
+    when(generatedUriResolver.resolveAbsolute(uri, uri))
+        .thenReturn(generatedSource);
+
+    FileState generatedFile = fileSystemState.getFileForUri(uri);
+    expect(generatedFile.path, generatedPath);
+    expect(generatedFile.uri, uri);
+
+    FileState templateFile = fileSystemState.getFileForPath(templatePath);
+    expect(templateFile.path, templatePath);
+    expect(templateFile.uri, uri);
+
+    expect(fileSystemState.getFilesForPath(templatePath), [templateFile]);
   }
 
   test_getFileForPath_library() {
@@ -103,7 +327,7 @@ class A1 {}
     expect(file.unlinked.classes, hasLength(1));
     expect(file.unlinked.classes[0].name, 'A1');
 
-    expect(file.importedFiles, hasLength(2));
+    expect(_excludeSdk(file.importedFiles), hasLength(2));
     expect(file.importedFiles[0].path, a2);
     expect(file.importedFiles[0].uri, FastUri.parse('package:aaa/a2.dart'));
     expect(file.importedFiles[0].source, isNotNull);
@@ -123,9 +347,37 @@ class A1 {}
     expect(file.partedFiles[0].path, a4);
     expect(file.partedFiles[0].uri, FastUri.parse('package:aaa/a4.dart'));
 
-    expect(file.directReferencedFiles, hasLength(5));
+    expect(_excludeSdk(file.directReferencedFiles), hasLength(5));
 
     expect(fileSystemState.getFilesForPath(a1), [file]);
+  }
+
+  test_getFileForPath_onlyDartFiles() {
+    String not_dart = _p('/test/lib/not_dart.txt');
+    String a = _p('/test/lib/a.dart');
+    String b = _p('/test/lib/b.dart');
+    String c = _p('/test/lib/c.dart');
+    String d = _p('/test/lib/d.dart');
+    provider.newFile(
+        a,
+        r'''
+library lib;
+import 'dart:math';
+import 'b.dart';
+import 'not_dart.txt';
+export 'c.dart';
+export 'not_dart.txt';
+part 'd.dart';
+part 'not_dart.txt';
+''');
+    FileState file = fileSystemState.getFileForPath(a);
+    expect(_excludeSdk(file.importedFiles).map((f) => f.path),
+        unorderedEquals([b, not_dart]));
+    expect(
+        file.exportedFiles.map((f) => f.path), unorderedEquals([c, not_dart]));
+    expect(file.partedFiles.map((f) => f.path), unorderedEquals([d, not_dart]));
+    expect(_excludeSdk(fileSystemState.knownFilePaths),
+        unorderedEquals([a, b, c, d, not_dart]));
   }
 
   test_getFileForPath_part() {
@@ -152,10 +404,10 @@ class A2 {}
     expect(file_a2.unlinked.classes, hasLength(1));
     expect(file_a2.unlinked.classes[0].name, 'A2');
 
-    expect(file_a2.importedFiles, isEmpty);
+    expect(_excludeSdk(file_a2.importedFiles), isEmpty);
     expect(file_a2.exportedFiles, isEmpty);
     expect(file_a2.partedFiles, isEmpty);
-    expect(file_a2.directReferencedFiles, isEmpty);
+    expect(_excludeSdk(file_a2.directReferencedFiles), isEmpty);
 
     // The library is not known yet.
     expect(file_a2.isPart, isTrue);
@@ -165,7 +417,8 @@ class A2 {}
     FileState file_a1 = fileSystemState.getFileForPath(a1);
     expect(file_a1.partedFiles, hasLength(1));
     expect(file_a1.partedFiles[0], same(file_a2));
-    expect(file_a1.directReferencedFiles, unorderedEquals([file_a2]));
+    expect(
+        _excludeSdk(file_a1.directReferencedFiles), unorderedEquals([file_a2]));
 
     // Now the part knows its library.
     expect(file_a2.library, same(file_a1));
@@ -280,6 +533,49 @@ class C {
     expect(file.apiSignature, signature);
   }
 
+  test_topLevelDeclarations() {
+    String path = _p('/aaa/lib/a.dart');
+    provider.newFile(
+        path,
+        r'''
+class C {}
+typedef F();
+enum E {E1, E2}
+void f() {}
+var V1;
+get V2 => null;
+set V3(_) {}
+get V4 => null;
+set V4(_) {}
+
+class _C {}
+typedef _F();
+enum _E {E1, E2}
+void _f() {}
+var _V1;
+get _V2 => null;
+set _V3(_) {}
+''');
+    FileState file = fileSystemState.getFileForPath(path);
+
+    Map<String, TopLevelDeclaration> declarations = file.topLevelDeclarations;
+
+    void assertHas(String name, TopLevelDeclarationKind kind) {
+      expect(declarations[name]?.kind, kind);
+    }
+
+    expect(declarations.keys,
+        unorderedEquals(['C', 'F', 'E', 'f', 'V1', 'V2', 'V3', 'V4']));
+    assertHas('C', TopLevelDeclarationKind.type);
+    assertHas('F', TopLevelDeclarationKind.type);
+    assertHas('E', TopLevelDeclarationKind.type);
+    assertHas('f', TopLevelDeclarationKind.function);
+    assertHas('V1', TopLevelDeclarationKind.variable);
+    assertHas('V2', TopLevelDeclarationKind.variable);
+    assertHas('V3', TopLevelDeclarationKind.variable);
+    assertHas('V4', TopLevelDeclarationKind.variable);
+  }
+
   test_transitiveFiles() {
     String pa = _p('/aaa/lib/a.dart');
     String pb = _p('/aaa/lib/b.dart');
@@ -296,7 +592,8 @@ class C {
     fb.transitiveFiles;
     fc.transitiveFiles;
     fd.transitiveFiles;
-    expect(fileSystemState.test.filesWithoutTransitiveFiles, isEmpty);
+    expect(
+        _excludeSdk(fileSystemState.test.filesWithoutTransitiveFiles), isEmpty);
 
     // No imports, so just a single file.
     provider.newFile(pa, "");
@@ -379,13 +676,15 @@ class C {
     expect(fb.transitiveSignature, isNotNull);
     expect(fc.transitiveSignature, isNotNull);
     expect(fd.transitiveSignature, isNotNull);
-    expect(fileSystemState.test.filesWithoutTransitiveFiles, isEmpty);
+    expect(
+        _excludeSdk(fileSystemState.test.filesWithoutTransitiveFiles), isEmpty);
 
     // Make an update to a.dart that does not change its API signature.
     // All transitive signatures are still valid.
     provider.newFile(pa, "class A {} // the same API signature");
     fa.refresh();
-    expect(fileSystemState.test.filesWithoutTransitiveFiles, isEmpty);
+    expect(
+        _excludeSdk(fileSystemState.test.filesWithoutTransitiveFiles), isEmpty);
 
     // Change a.dart API signature, also flush signatures of b.dart and c.dart,
     // but d.dart is still OK.
@@ -394,18 +693,35 @@ class C {
     _assertFilesWithoutTransitiveSignatures([fa, fb, fc]);
   }
 
+  void _assertExportedTopLevelDeclarations(String path, List<String> expected) {
+    FileState file = fileSystemState.getFileForPath(path);
+    Map<String, TopLevelDeclaration> declarations =
+        file.exportedTopLevelDeclarations;
+    expect(declarations.keys, unorderedEquals(expected));
+  }
+
   void _assertFilesWithoutTransitiveFiles(List<FileState> expected) {
     var actual = fileSystemState.test.filesWithoutTransitiveFiles;
-    expect(actual, unorderedEquals(expected));
+    expect(_excludeSdk(actual), unorderedEquals(expected));
   }
 
   void _assertFilesWithoutTransitiveSignatures(List<FileState> expected) {
     var actual = fileSystemState.test.filesWithoutTransitiveSignature;
-    expect(actual, unorderedEquals(expected));
+    expect(_excludeSdk(actual), unorderedEquals(expected));
   }
 
   void _assertTransitiveFiles(FileState file, List<FileState> expected) {
-    expect(file.transitiveFiles, unorderedEquals(expected));
+    expect(_excludeSdk(file.transitiveFiles), unorderedEquals(expected));
+  }
+
+  List<T> _excludeSdk<T>(Iterable<T> files) {
+    return files.where((Object file) {
+      if (file is FileState) {
+        return file.uri.scheme != 'dart';
+      } else {
+        return !(file as String).startsWith(_p('/sdk'));
+      }
+    }).toList();
   }
 
   String _p(String path) => provider.convertPath(path);
@@ -414,3 +730,7 @@ class C {
     return hex.encode(md5.convert(UTF8.encode(content)).bytes);
   }
 }
+
+class _GeneratedUriResolverMock extends TypedMock implements UriResolver {}
+
+class _SourceMock extends TypedMock implements Source {}

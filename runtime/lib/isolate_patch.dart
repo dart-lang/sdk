@@ -77,10 +77,10 @@ class _ReceivePortImpl extends Stream implements ReceivePort {
   StreamController _controller;
 }
 
-typedef void ImmediateCallback();
+typedef void _ImmediateCallback();
 
 /// The callback that has been registered through `scheduleImmediate`.
-ImmediateCallback _pendingImmediateCallback;
+_ImmediateCallback _pendingImmediateCallback;
 
 /// The closure that should be used as scheduleImmediateClosure, when the VM
 /// is responsible for the event loop.
@@ -97,7 +97,7 @@ void _runPendingImmediateCallback() {
   }
 }
 
-ImmediateCallback _removePendingImmediateCallback() {
+_ImmediateCallback _removePendingImmediateCallback() {
   var callback = _pendingImmediateCallback;
   _pendingImmediateCallback = null;
   return callback;

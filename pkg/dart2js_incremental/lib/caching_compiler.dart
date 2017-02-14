@@ -68,23 +68,13 @@ Future<CompilerImpl> reuseCompiler(
             environment: environment));
     backend = compiler.backend;
 
-    full.Emitter emitter = backend.emitter.emitter;
-
-    // Much like a scout, an incremental compiler is always prepared. For
-    // mixins, classes, and lazy statics, at least.
-    emitter
-        ..needsClassSupport = true
-        ..needsMixinSupport = true
-        ..needsLazyInitializer = true
-        ..needsStructuredMemberInfo = true;
-
     Uri core = Uri.parse("dart:core");
 
     return compiler.setupSdk().then((_) {
       return compiler.libraryLoader.loadLibrary(core).then((_) {
         // Likewise, always be prepared for runtimeType support.
         // TODO(johnniwinther): Add global switch to force RTI.
-        compiler.resolverWorld.hasRuntimeTypeSupport = true;
+        compiler.resolutionWorldBuilder.hasRuntimeTypeSupport = true;
         compiler.enqueuer.resolution.applyImpact(backend.registerRuntimeType());
         return compiler;
       });

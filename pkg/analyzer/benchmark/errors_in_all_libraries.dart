@@ -9,6 +9,7 @@
 /// it easier to connect to this with observatory.
 import 'dart:io';
 
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -61,7 +62,8 @@ void main(List<String> args) {
 
     // Walk all of the transitively referenced libraries and compute errors.
     var errorCount = 0;
-    var allLibraries = _reachableLibraries(initialLibrary.element.library);
+    var allLibraries = _reachableLibraries(
+        resolutionMap.elementDeclaredByCompilationUnit(initialLibrary).library);
     for (var lib in allLibraries) {
       for (var unit in lib.units) {
         var source = unit.source;

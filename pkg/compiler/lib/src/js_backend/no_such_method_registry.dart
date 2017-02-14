@@ -187,7 +187,7 @@ class NoSuchMethodRegistry {
 
   bool isDefaultNoSuchMethodImplementation(FunctionElement element) {
     ClassElement classElement = element.enclosingClass;
-    return classElement == _compiler.coreClasses.objectClass ||
+    return classElement == _compiler.commonElements.objectClass ||
         classElement == _backend.helpers.jsInterceptorClass ||
         classElement == _backend.helpers.jsNullClass;
   }
@@ -267,4 +267,9 @@ class NoSuchMethodRegistry {
   }
 }
 
-enum NsmCategory { DEFAULT, THROWING, NOT_APPLICABLE, OTHER, }
+enum NsmCategory {
+  DEFAULT,
+  THROWING,
+  NOT_APPLICABLE,
+  OTHER,
+}

@@ -22,7 +22,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
-import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:yaml/yaml.dart';
 
@@ -89,11 +89,12 @@ abstract class AbstractDartSdk implements DartSdk {
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
       if (_useSummary) {
-        bool strongMode = _analysisOptions?.strongMode ?? false;
         PackageBundle sdkBundle = getLinkedBundle();
         if (sdkBundle != null) {
-          _analysisContext.resultProvider = new SdkSummaryResultProvider(
-              _analysisContext, sdkBundle, strongMode);
+          SummaryDataStore dataStore = new SummaryDataStore([]);
+          dataStore.addBundle(null, sdkBundle);
+          _analysisContext.resultProvider =
+              new InputPackagesResultProvider(_analysisContext, dataStore);
         }
       }
     }
@@ -273,15 +274,14 @@ class EmbedderSdk extends AbstractDartSdk {
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
   final Map<String, String> _urlMappings = new HashMap<String, String>();
 
-  PackageBundle _embedderBundle;
+  Folder _embedderYamlLibFolder;
 
   EmbedderSdk(
       ResourceProvider resourceProvider, Map<Folder, YamlMap> embedderYamls) {
     this.resourceProvider = resourceProvider;
     embedderYamls?.forEach(_processEmbedderYaml);
     if (embedderYamls?.length == 1) {
-      Folder libFolder = embedderYamls.keys.first;
-      _loadEmbedderBundle(libFolder);
+      _embedderYamlLibFolder = embedderYamls.keys.first;
     }
   }
 
@@ -299,8 +299,17 @@ class EmbedderSdk extends AbstractDartSdk {
 
   @override
   PackageBundle getSummarySdkBundle(bool strongMode) {
-    if (strongMode) {
-      return _embedderBundle;
+    String name = strongMode ? 'strong.sum' : 'spec.sum';
+    File file = _embedderYamlLibFolder.parent.getChildAssumingFile(name);
+    try {
+      if (file.exists) {
+        List<int> bytes = file.readAsBytesSync();
+        return new PackageBundle.fromBuffer(bytes);
+      }
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(
+          'Failed to load SDK analysis summary from $file',
+          new CaughtException(exception, stackTrace));
     }
     return null;
   }
@@ -342,16 +351,6 @@ class EmbedderSdk extends AbstractDartSdk {
       return file.createSource(Uri.parse(dartUri));
     } on FormatException {
       return null;
-    }
-  }
-
-  void _loadEmbedderBundle(Folder libFolder) {
-    File bundleFile = libFolder.parent.getChildAssumingFile('sdk.ds');
-    if (bundleFile.exists) {
-      try {
-        List<int> bytes = bundleFile.readAsBytesSync();
-        _embedderBundle = new PackageBundle.fromBuffer(bytes);
-      } on FileSystemException {}
     }
   }
 
@@ -698,7 +697,16 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     String outDir = pathContext.dirname(pathContext.dirname(exec));
     String sdkPath = pathContext.join(pathContext.dirname(outDir), "sdk");
     if (resourceProvider.getFolder(sdkPath).exists) {
-      return sdkPath;
+      // We are executing in the context of a test.  sdkPath is the path to the
+      // *source* files for the SDK.  But we want to test using the path to the
+      // *built* SDK if possible.
+      String builtSdkPath =
+          pathContext.join(pathContext.dirname(exec), 'dart-sdk');
+      if (resourceProvider.getFolder(builtSdkPath).exists) {
+        return builtSdkPath;
+      } else {
+        return sdkPath;
+      }
     }
     // probably be "dart-sdk/bin/dart"
     return pathContext.dirname(pathContext.dirname(exec));

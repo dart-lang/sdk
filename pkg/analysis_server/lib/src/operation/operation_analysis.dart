@@ -17,6 +17,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -71,7 +72,8 @@ scheduleImplementedNotification(
 void scheduleIndexOperation(
     AnalysisServer server, String file, CompilationUnit dartUnit) {
   if (server.index != null) {
-    AnalysisContext context = dartUnit.element.context;
+    AnalysisContext context =
+        resolutionMap.elementDeclaredByCompilationUnit(dartUnit).context;
     server.addOperation(new _DartIndexOperation(context, file, dartUnit));
   }
 }
@@ -133,13 +135,17 @@ void scheduleNotificationOperations(
 
 void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
   _sendNotification(server, () {
-    // TODO(paulberry): if it proves to be too inefficient to recompute the set
-    // of analyzed files each time analysis is complete, consider modifying the
-    // analysis engine to update this set incrementally as analysis is
-    // performed.
-    LibraryDependencyCollector collector =
-        new LibraryDependencyCollector(server.analysisContexts.toList());
-    Set<String> analyzedFiles = collector.collectLibraryDependencies();
+    Set<String> analyzedFiles;
+    if (server.options.enableNewAnalysisDriver) {
+      analyzedFiles = server.driverMap.values
+          .map((driver) => driver.knownFiles)
+          .expand((files) => files)
+          .toSet();
+    } else {
+      LibraryDependencyCollector collector =
+          new LibraryDependencyCollector(server.analysisContexts.toList());
+      analyzedFiles = collector.collectLibraryDependencies();
+    }
     Set<String> prevAnalyzedFiles = server.prevAnalyzedFiles;
     if (prevAnalyzedFiles != null &&
         prevAnalyzedFiles.length == analyzedFiles.length &&
@@ -165,8 +171,9 @@ void sendAnalysisNotificationErrors(
     if (errors == null) {
       errors = <AnalysisError>[];
     }
-    var serverErrors =
-        protocol.doAnalysisError_listFromEngine(context, lineInfo, errors);
+    AnalysisOptions analysisOptions = context.analysisOptions;
+    var serverErrors = protocol.doAnalysisError_listFromEngine(
+        analysisOptions, lineInfo, errors);
     var params = new protocol.AnalysisErrorsParams(file, serverErrors);
     server.sendNotification(params.toNotification());
   });

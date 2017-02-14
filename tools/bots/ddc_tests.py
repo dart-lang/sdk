@@ -22,11 +22,13 @@ CHANNEL = bot_utils.GetChannelFromName(bot_name)
 
 if __name__ == '__main__':
   with utils.ChangedWorkingDirectory('pkg/dev_compiler'):
-    with bot.BuildStep('npm install'):
-      bot.RunProcess(['npm', 'install'])
+    dart_exe = utils.CheckedInSdkExecutable()
 
-    with bot.BuildStep('Compile tests and run unit tests'):
-      bot.RunProcess([utils.CheckedInSdkExecutable(), 'test/all_tests.dart'])
+    # These two calls mirror pkg/dev_compiler/tool/test.sh.
+    bot.RunProcess([dart_exe, 'tool/build_pkgs.dart', 'test'])
+    bot.RunProcess([dart_exe, 'test/all_tests.dart'])
 
-    with bot.BuildStep('Execute compiled tests'):
-      bot.RunProcess(['npm', 'test'])
+    # TODO(vsm): Our bots do not have node / npm installed.
+    # These mirror pkg/dev_compiler/tool/browser_test.sh.
+    # bot.RunProcess(['npm', 'install'])
+    # bot.RunProcess(['npm', 'test'], {'CHROME_BIN': 'chrome'})

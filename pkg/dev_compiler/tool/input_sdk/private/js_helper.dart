@@ -851,6 +851,17 @@ class RuntimeError extends Error {
 }
 
 /**
+ * Error thrown when an assert() fails with a message:
+ *
+ *     assert(false, "Message here");
+ */
+class AssertionErrorWithMessage extends AssertionError {
+  final Object _message;
+  AssertionErrorWithMessage(this._message);
+  String toString() => "Assertion failed: ${_message}";
+}
+
+/**
  * Creates a random number with 64 bits of randomness.
  *
  * This will be truncated to the 53 bits available in a double.
@@ -867,8 +878,8 @@ String jsonEncodeNative(String string) {
 }
 
 
-// TODO(jmesserly): this adapter is to work around:
-// https://github.com/dart-lang/dev_compiler/issues/247
+// TODO(jmesserly): this adapter is to work around
+// https://github.com/dart-lang/sdk/issues/28320
 class SyncIterator<E> implements Iterator<E> {
   final dynamic _jsIterator;
   E _current;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.completion.get.suggestions;
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -12,12 +10,11 @@ import '../integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(Test);
+    defineReflectiveTests(GetSuggestionsTest);
   });
 }
 
-@reflectiveTest
-class Test extends AbstractAnalysisServerIntegrationTest {
+class AbstractGetSuggestionsTest extends AbstractAnalysisServerIntegrationTest {
   String path;
   String content;
   int completionOffset;
@@ -123,3 +120,6 @@ main() {
     });
   }
 }
+
+@reflectiveTest
+class GetSuggestionsTest extends AbstractGetSuggestionsTest {}

@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:test/test.dart';
@@ -21,6 +22,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionManagerTest);
+    defineReflectiveTests(CompletionManagerTest_Driver);
   });
 }
 
@@ -52,12 +54,14 @@ part '$testFile';
     addTestSource('part of libB; main() {^}');
 
     // Associate part with library
-    context.computeResult(libSource, LIBRARY_CYCLE_UNITS);
+    if (!enableNewAnalysisDriver) {
+      context.computeResult(libSource, LIBRARY_CYCLE_UNITS);
+    }
 
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        null,
-        context,
+        enableNewAnalysisDriver ? await driver.getResult(testFile) : null,
+        enableNewAnalysisDriver ? null : context,
         provider,
         searchEngine,
         testSource,
@@ -76,7 +80,10 @@ part '$testFile';
     var directives = request.target.unit.directives;
 
     // Assert that the import does not have an export namespace
-    expect(directives[0].element?.library?.exportNamespace, isNull);
+    if (!enableNewAnalysisDriver) {
+      Element element = resolutionMap.elementDeclaredByDirective(directives[0]);
+      expect(element?.library?.exportNamespace, isNull);
+    }
 
     // Resolve directives
     var importCompleter = new Completer<List<ImportElement>>();
@@ -102,4 +109,10 @@ part '$testFile';
     assertImportedLib(null /* dart:core */);
     assertImportedLib('/libA.dart');
   }
+}
+
+@reflectiveTest
+class CompletionManagerTest_Driver extends CompletionManagerTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

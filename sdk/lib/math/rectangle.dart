@@ -15,7 +15,7 @@ part of dart.math;
  *
  * The rectangle is the set of points with representable coordinates greater
  * than or equal to left/top, and with distance to left/top no greater than
- * width/height (to the limit of the precission of the coordinates).
+ * width/height (to the limit of the precision of the coordinates).
  */
 abstract class _RectangleBase<T extends num> {
   const _RectangleBase();
@@ -209,8 +209,8 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
    * point `(left, top)`.
    */
   MutableRectangle(this.left, this.top, T width, T height)
-      : this._width = (width < 0) ? _clampToZero/*<T>*/(width) : width,
-        this._height = (height < 0) ? _clampToZero/*<T>*/(height) : height;
+      : this._width = (width < 0) ? _clampToZero<T>(width) : width,
+        this._height = (height < 0) ? _clampToZero<T>(height) : height;
 
   /**
    * Create a mutable rectangle spanned by the points [a] and [b];
@@ -244,7 +244,7 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
    * but will not change [left].
    */
   void set width(T width) {
-    if (width < 0) width = _clampToZero/*<T>*/(width);
+    if (width < 0) width = _clampToZero<T>(width);
     _width = width;
   }
 
@@ -260,7 +260,7 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
    * but will not change [top].
    */
   void set height(T height) {
-    if (height < 0) height = _clampToZero/*<T>*/(height);
+    if (height < 0) height = _clampToZero<T>(height);
     _height = height;
   }
 }
@@ -270,7 +270,7 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
  *
  * Returns `0` if value is int, `0.0` if value is double.
  */
-num/*=T*/ _clampToZero/*<T extends num>*/(num/*=T*/ value) {
+T _clampToZero<T extends num>(T value) {
   assert(value < 0);
   return -value * 0;
 }

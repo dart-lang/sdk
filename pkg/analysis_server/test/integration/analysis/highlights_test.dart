@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.analysis.highlights;
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -13,11 +11,12 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHighlightsTest);
+    defineReflectiveTests(AnalysisHighlightsTest_Driver);
   });
 }
 
-@reflectiveTest
-class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
+class AbstractAnalysisHighlightsTest
+    extends AbstractAnalysisServerIntegrationTest {
   test_highlights() {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -144,4 +143,13 @@ int topLevelVariable;
       expect(highlights, isEmpty);
     });
   }
+}
+
+@reflectiveTest
+class AnalysisHighlightsTest extends AbstractAnalysisHighlightsTest {}
+
+@reflectiveTest
+class AnalysisHighlightsTest_Driver extends AbstractAnalysisHighlightsTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

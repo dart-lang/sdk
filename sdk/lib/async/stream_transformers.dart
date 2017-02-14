@@ -270,7 +270,7 @@ typedef StreamSubscription<T> _SubscriptionTransformer<S, T>(
  *
  * Instead of implementing three classes: a [StreamTransformer], a [Stream]
  * (as the result of a `bind` call) and a [StreamSubscription] (which does the
- * actual work), this class only requires a fincution that is invoked when the
+ * actual work), this class only requires a function that is invoked when the
  * last bit (the subscription) of the transformer-workflow is needed.
  *
  * The given transformer function maps from Stream and cancelOnError to a

@@ -28,6 +28,9 @@ declare_args() {
   dart_target_arch = ""
 
   dart_experimental_interpreter = false
+
+  # The optimization level to use for debug builds.
+  dart_debug_optimization_level = "2"
 }
 
 config("dart_public_config") {
@@ -129,11 +132,13 @@ config("dart_config") {
     } else if (dart_target_arch == "ia32") {
       defines += [ "TARGET_ARCH_IA32" ]
     } else if (dart_target_arch == "dbc" || dart_target_arch == "simdbc" ||
-               dart_target_arch == "simdbc64") {
+               dart_target_arch == "simdbc64" ||
+               dart_target_arch == "armsimdbc" ||
+               dart_target_arch == "armsimdbc64") {
       defines += [ "TARGET_ARCH_DBC" ]
       defines += [ "USING_SIMULATOR" ]
     } else {
-      print("Invalid |dart_target_arch|")
+      print("Invalid $dart_target_arch")
       assert(false)
     }
   }
@@ -161,13 +166,20 @@ config("dart_config") {
     ]
 
     if (dart_debug) {
-      cflags += [ "-O1" ]
+      cflags += [ "-O${dart_debug_optimization_level}" ]
     } else {
       cflags += [ "-O3" ]
     }
 
+    ldflags = []
     if (defined(is_asan) && is_asan) {
-      ldflags = [ "-fsanitize=address" ]
+      ldflags += [ "-fsanitize=address" ]
+    }
+    if (defined(is_msan) && is_msan) {
+      ldflags += [ "-fsanitize=memory" ]
+    }
+    if (defined(is_tsan) && is_tsan) {
+      ldflags += [ "-fsanitize=thread" ]
     }
   }
 }
@@ -214,17 +226,6 @@ libdart_library("libdart") {
   extra_deps = [
     "vm:libdart_lib",
     "vm:libdart_vm",
-  ]
-}
-
-libdart_library("libdart_noopt") {
-  extra_configs = [
-    ":dart_maybe_precompiled_runtime_config",
-    ":dart_precompiler_config",
-  ]
-  extra_deps = [
-    "vm:libdart_lib",
-    "vm:libdart_vm_noopt",
   ]
 }
 

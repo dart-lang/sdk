@@ -8,8 +8,8 @@ import '../common/resolution.dart' show ParsingContext, Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../core_types.dart' show CoreTypes;
-import '../dart_types.dart';
+import '../core_types.dart' show CommonElements;
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
@@ -130,10 +130,12 @@ class NativeThrowBehavior {
  * `null` may be returned.
  */
 class NativeBehavior {
-  /// [DartType]s or [SpecialType]s returned or yielded by the native element.
+  /// [ResolutionDartType]s or [SpecialType]s returned or yielded by the native
+  /// element.
   final List typesReturned = [];
 
-  /// [DartType]s or [SpecialType]s instantiated by the native element.
+  /// [ResolutionDartType]s or [SpecialType]s instantiated by the native
+  /// element.
   final List typesInstantiated = [];
 
   String codeTemplateText;
@@ -498,8 +500,12 @@ class NativeBehavior {
   }
 
   /// Compute the [NativeBehavior] for a [Send] node calling the 'JS' function.
-  static NativeBehavior ofJsCallSend(Send jsCall, DiagnosticReporter reporter,
-      ParsingContext parsing, CoreTypes coreTypes, ForeignResolver resolver) {
+  static NativeBehavior ofJsCallSend(
+      Send jsCall,
+      DiagnosticReporter reporter,
+      ParsingContext parsing,
+      CommonElements commonElements,
+      ForeignResolver resolver) {
     var argNodes = jsCall.arguments;
     if (argNodes.isEmpty || argNodes.tail.isEmpty) {
       reporter.reportErrorMessage(jsCall, MessageKind.WRONG_ARGUMENT_FOR_JS);
@@ -524,7 +530,7 @@ class NativeBehavior {
     String codeString = codeArgument.dartString.slowToString();
 
     return ofJsCall(specString, codeString, _typeLookup(specArgument, resolver),
-        specArgument, reporter, coreTypes);
+        specArgument, reporter, commonElements);
   }
 
   /// Compute the [NativeBehavior] for a call to the 'JS' function with the
@@ -535,7 +541,7 @@ class NativeBehavior {
       TypeLookup lookupType,
       Spannable spannable,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes) {
+      CommonElements commonElements) {
     // The first argument of a JS-call is a string encoding various attributes
     // of the code.
     //
@@ -576,8 +582,8 @@ class NativeBehavior {
         lookupType: lookupType,
         typesReturned: behavior.typesReturned,
         typesInstantiated: behavior.typesInstantiated,
-        objectType: coreTypes.objectType,
-        nullType: coreTypes.nullType);
+        objectType: commonElements.objectType,
+        nullType: commonElements.nullType);
 
     if (!sideEffectsAreEncodedInSpecString) {
       new SideEffectsVisitor(behavior.sideEffects)
@@ -597,7 +603,7 @@ class NativeBehavior {
       String specString,
       TypeLookup lookupType,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes,
+      CommonElements commonElements,
       {List<String> validTags}) {
     void setSideEffects(SideEffects newEffects) {
       behavior.sideEffects.setTo(newEffects);
@@ -609,14 +615,14 @@ class NativeBehavior {
         setSideEffects: setSideEffects,
         typesReturned: behavior.typesReturned,
         typesInstantiated: behavior.typesInstantiated,
-        objectType: coreTypes.objectType,
-        nullType: coreTypes.nullType);
+        objectType: commonElements.objectType,
+        nullType: commonElements.nullType);
   }
 
   static NativeBehavior ofJsBuiltinCallSend(
       Send jsBuiltinCall,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes,
+      CommonElements commonElements,
       ForeignResolver resolver) {
     NativeBehavior behavior = new NativeBehavior();
     behavior.sideEffects.setTo(new SideEffects());
@@ -650,7 +656,7 @@ class NativeBehavior {
     String specString = specLiteral.dartString.slowToString();
 
     return ofJsBuiltinCall(specString, _typeLookup(jsBuiltinCall, resolver),
-        jsBuiltinCall, reporter, coreTypes);
+        jsBuiltinCall, reporter, commonElements);
   }
 
   static NativeBehavior ofJsBuiltinCall(
@@ -658,18 +664,18 @@ class NativeBehavior {
       TypeLookup lookupType,
       Spannable spannable,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes) {
+      CommonElements commonElements) {
     NativeBehavior behavior = new NativeBehavior();
     behavior.sideEffects.setTo(new SideEffects());
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
-        behavior, spannable, specString, lookupType, reporter, coreTypes);
+        behavior, spannable, specString, lookupType, reporter, commonElements);
     return behavior;
   }
 
   static NativeBehavior ofJsEmbeddedGlobalCallSend(
       Send jsEmbeddedGlobalCall,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes,
+      CommonElements commonElements,
       ForeignResolver resolver) {
     NativeBehavior behavior = new NativeBehavior();
     // TODO(sra): Allow the use site to override these defaults.
@@ -717,7 +723,7 @@ class NativeBehavior {
         _typeLookup(jsEmbeddedGlobalCall, resolver),
         jsEmbeddedGlobalCall,
         reporter,
-        coreTypes);
+        commonElements);
   }
 
   static NativeBehavior ofJsEmbeddedGlobalCall(
@@ -725,7 +731,7 @@ class NativeBehavior {
       TypeLookup lookupType,
       Spannable spannable,
       DiagnosticReporter reporter,
-      CoreTypes coreTypes) {
+      CommonElements commonElements) {
     NativeBehavior behavior = new NativeBehavior();
     // TODO(sra): Allow the use site to override these defaults.
     // Embedded globals are usually pre-computed data structures or JavaScript
@@ -733,21 +739,21 @@ class NativeBehavior {
     behavior.sideEffects.setTo(new SideEffects.empty());
     behavior.throwBehavior = NativeThrowBehavior.NEVER;
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
-        behavior, spannable, specString, lookupType, reporter, coreTypes,
+        behavior, spannable, specString, lookupType, reporter, commonElements,
         validTags: ['returns', 'creates']);
     return behavior;
   }
 
   static NativeBehavior ofMethodElement(
       FunctionElement element, Compiler compiler) {
-    FunctionType type = element.computeType(compiler.resolution);
+    ResolutionFunctionType type = element.computeType(compiler.resolution);
     List<ConstantExpression> metadata = <ConstantExpression>[];
     for (MetadataAnnotation annotation in element.implementation.metadata) {
       annotation.ensureResolved(compiler.resolution);
       metadata.add(annotation.constant);
     }
 
-    DartType lookup(String name) {
+    ResolutionDartType lookup(String name) {
       Element e = element.buildScope().lookup(name);
       if (e == null) return null;
       if (e is! ClassElement) return null;
@@ -762,7 +768,7 @@ class NativeBehavior {
 
   static NativeBehavior ofMethod(
       Spannable spannable,
-      FunctionType type,
+      ResolutionFunctionType type,
       List<ConstantExpression> metadata,
       TypeLookup lookupType,
       Compiler compiler,
@@ -781,18 +787,18 @@ class NativeBehavior {
     behavior.typesReturned.add(
         !isJsInterop || compiler.options.trustJSInteropTypeAnnotations
             ? returnType
-            : const DynamicType());
+            : const ResolutionDynamicType());
     if (!type.returnType.isVoid) {
       // Declared types are nullable.
-      behavior.typesReturned.add(compiler.coreTypes.nullType);
+      behavior.typesReturned.add(compiler.commonElements.nullType);
     }
     behavior._capture(type, compiler.resolution,
         isInterop: isJsInterop, compiler: compiler);
 
-    for (DartType type in type.optionalParameterTypes) {
+    for (ResolutionDartType type in type.optionalParameterTypes) {
       behavior._escape(type, compiler.resolution);
     }
-    for (DartType type in type.namedParameterTypes) {
+    for (ResolutionDartType type in type.namedParameterTypes) {
       behavior._escape(type, compiler.resolution);
     }
 
@@ -804,14 +810,14 @@ class NativeBehavior {
   static NativeBehavior ofFieldElementLoad(
       MemberElement element, Compiler compiler) {
     Resolution resolution = compiler.resolution;
-    DartType type = element.computeType(resolution);
+    ResolutionDartType type = element.computeType(resolution);
     List<ConstantExpression> metadata = <ConstantExpression>[];
     for (MetadataAnnotation annotation in element.implementation.metadata) {
       annotation.ensureResolved(compiler.resolution);
       metadata.add(annotation.constant);
     }
 
-    DartType lookup(String name) {
+    ResolutionDartType lookup(String name) {
       Element e = element.buildScope().lookup(name);
       if (e == null) return null;
       if (e is! ClassElement) return null;
@@ -826,7 +832,7 @@ class NativeBehavior {
 
   static NativeBehavior ofFieldLoad(
       Spannable spannable,
-      DartType type,
+      ResolutionDartType type,
       List<ConstantExpression> metadata,
       TypeLookup lookupType,
       Compiler compiler,
@@ -837,9 +843,9 @@ class NativeBehavior {
     behavior.typesReturned.add(
         !isJsInterop || compiler.options.trustJSInteropTypeAnnotations
             ? type
-            : const DynamicType());
+            : const ResolutionDynamicType());
     // Declared types are nullable.
-    behavior.typesReturned.add(resolution.coreTypes.nullType);
+    behavior.typesReturned.add(resolution.commonElements.nullType);
     behavior._capture(type, resolution,
         isInterop: isJsInterop, compiler: compiler);
     behavior._overrideWithAnnotations(
@@ -849,11 +855,12 @@ class NativeBehavior {
 
   static NativeBehavior ofFieldElementStore(
       MemberElement field, Resolution resolution) {
-    DartType type = field.computeType(resolution);
+    ResolutionDartType type = field.computeType(resolution);
     return ofFieldStore(type, resolution);
   }
 
-  static NativeBehavior ofFieldStore(DartType type, Resolution resolution) {
+  static NativeBehavior ofFieldStore(
+      ResolutionDartType type, Resolution resolution) {
     var behavior = new NativeBehavior();
     behavior._escape(type, resolution);
     // We don't override the default behaviour - the annotations apply to
@@ -920,15 +927,15 @@ class NativeBehavior {
 
   /// Models the behavior of having intances of [type] escape from Dart code
   /// into native code.
-  void _escape(DartType type, Resolution resolution) {
+  void _escape(ResolutionDartType type, Resolution resolution) {
     type.computeUnaliased(resolution);
     type = type.unaliased;
-    if (type is FunctionType) {
-      FunctionType functionType = type;
+    if (type is ResolutionFunctionType) {
+      ResolutionFunctionType functionType = type;
       // A function might be called from native code, passing us novel
       // parameters.
       _escape(functionType.returnType, resolution);
-      for (DartType parameter in functionType.parameterTypes) {
+      for (ResolutionDartType parameter in functionType.parameterTypes) {
         _capture(parameter, resolution);
       }
     }
@@ -940,15 +947,15 @@ class NativeBehavior {
   ///
   /// We assume that JS-interop APIs cannot instantiate Dart types or
   /// non-JSInterop native types.
-  void _capture(DartType type, Resolution resolution,
+  void _capture(ResolutionDartType type, Resolution resolution,
       {bool isInterop: false, Compiler compiler}) {
     type.computeUnaliased(resolution);
     type = type.unaliased;
-    if (type is FunctionType) {
-      FunctionType functionType = type;
+    if (type is ResolutionFunctionType) {
+      ResolutionFunctionType functionType = type;
       _capture(functionType.returnType, resolution,
           isInterop: isInterop, compiler: compiler);
-      for (DartType parameter in functionType.parameterTypes) {
+      for (ResolutionDartType parameter in functionType.parameterTypes) {
         _escape(parameter, resolution);
       }
     } else {
@@ -988,7 +995,7 @@ class NativeBehavior {
       Spannable spannable, DiagnosticReporter reporter, TypeLookup lookupType) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
-      return const DynamicType();
+      return const ResolutionDynamicType();
     }
     var type = lookupType(typeString);
     if (type != null) return type;
@@ -997,7 +1004,7 @@ class NativeBehavior {
     if (index < 1) {
       reporter.reportErrorMessage(spannable, MessageKind.GENERIC,
           {'text': "Type '$typeString' not found."});
-      return const DynamicType();
+      return const ResolutionDynamicType();
     }
     type = lookupType(typeString.substring(0, index));
     if (type != null) {
@@ -1006,6 +1013,6 @@ class NativeBehavior {
     }
     reporter.reportErrorMessage(spannable, MessageKind.GENERIC,
         {'text': "Type '$typeString' not found."});
-    return const DynamicType();
+    return const ResolutionDynamicType();
   }
 }

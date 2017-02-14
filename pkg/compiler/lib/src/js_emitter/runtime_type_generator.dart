@@ -2,11 +2,42 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.runtime_type_generator;
+
+import '../closure.dart' show ClosureClassMap, ClosureFieldElement;
+import '../common.dart';
+import '../common/names.dart' show Identifiers;
+import '../compiler.dart' show Compiler;
+import '../core_types.dart' show CommonElements;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionFunctionType, ResolutionTypeVariableType;
+import '../elements/elements.dart'
+    show
+        ClassElement,
+        Element,
+        FunctionElement,
+        MixinApplicationElement,
+        TypeVariableElement;
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../js_backend/js_backend.dart'
+    show
+        JavaScriptBackend,
+        Namer,
+        RuntimeTypes,
+        RuntimeTypesEncoder,
+        Substitution,
+        TypeCheck,
+        TypeChecks;
+import '../util/util.dart' show Setlet;
+
+import 'code_emitter_task.dart' show CodeEmitterTask;
+import 'model.dart';
+import 'type_test_registry.dart' show TypeTestRegistry;
 
 // Function signatures used in the generation of runtime type information.
 typedef void FunctionTypeSignatureEmitter(
-    Element method, FunctionType methodType);
+    Element method, ResolutionFunctionType methodType);
 
 typedef void SubstitutionEmitter(Element element, {bool emitNull});
 
@@ -35,7 +66,7 @@ class RuntimeTypeGenerator {
 
   JavaScriptBackend get backend => compiler.backend;
   TypeTestRegistry get typeTestRegistry => emitterTask.typeTestRegistry;
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CommonElements get commonElements => compiler.commonElements;
 
   Set<ClassElement> get checkedClasses => typeTestRegistry.checkedClasses;
 
@@ -44,7 +75,7 @@ class RuntimeTypeGenerator {
   Iterable<ClassElement> get classesUsingTypeVariableExpression =>
       backend.rti.classesUsingTypeVariableExpression;
 
-  Set<FunctionType> get checkedFunctionTypes =>
+  Set<ResolutionFunctionType> get checkedFunctionTypes =>
       typeTestRegistry.checkedFunctionTypes;
 
   /// Generates all properties necessary for is-checks on the [classElement].
@@ -75,7 +106,7 @@ class RuntimeTypeGenerator {
     }
 
     void generateFunctionTypeSignature(
-        FunctionElement method, FunctionType type) {
+        FunctionElement method, ResolutionFunctionType type) {
       assert(method.isImplementation);
       jsAst.Expression thisAccess = new jsAst.This();
       if (!method.isAbstract) {
@@ -193,7 +224,7 @@ class RuntimeTypeGenerator {
     bool supertypesNeedSubstitutions = false;
 
     if (superclass != null &&
-        superclass != coreClasses.objectClass &&
+        superclass != commonElements.objectClass &&
         !haveSameTypeVariables(cls, superclass)) {
       // We cannot inherit the generated substitutions, because the type
       // variable layout for this class is different.  Instead we generate
@@ -217,7 +248,7 @@ class RuntimeTypeGenerator {
     }
 
     if (supertypesNeedSubstitutions) {
-      for (DartType supertype in cls.allSupertypes) {
+      for (ResolutionDartType supertype in cls.allSupertypes) {
         ClassElement superclass = supertype.element;
         if (generated.contains(superclass)) continue;
 
@@ -238,7 +269,7 @@ class RuntimeTypeGenerator {
 
     // A class that defines a `call` method implicitly implements
     // [Function] and needs checks for all typedefs that are used in is-checks.
-    if (checkedClasses.contains(coreClasses.functionClass) ||
+    if (checkedClasses.contains(commonElements.functionClass) ||
         checkedFunctionTypes.isNotEmpty) {
       Element call = cls.lookupLocalMember(Identifiers.call);
       if (call == null) {
@@ -249,16 +280,17 @@ class RuntimeTypeGenerator {
         FunctionElement callFunction = call;
         // A superclass might already implement the Function interface. In such
         // a case, we can avoid emiting the is test here.
-        if (!cls.superclass.implementsFunction(coreClasses)) {
-          _generateInterfacesIsTests(coreClasses.functionClass, generateIsTest,
-              generateSubstitution, generated);
+        if (!cls.superclass.implementsFunction(commonElements)) {
+          _generateInterfacesIsTests(commonElements.functionClass,
+              generateIsTest, generateSubstitution, generated);
         }
-        FunctionType callType = callFunction.computeType(compiler.resolution);
+        ResolutionFunctionType callType =
+            callFunction.computeType(compiler.resolution);
         generateFunctionTypeSignature(callFunction, callType);
       }
     }
 
-    for (DartType interfaceType in cls.interfaces) {
+    for (ResolutionDartType interfaceType in cls.interfaces) {
       _generateInterfacesIsTests(interfaceType.element, generateIsTest,
           generateSubstitution, generated);
     }
@@ -282,7 +314,7 @@ class RuntimeTypeGenerator {
 
     tryEmitTest(cls);
 
-    for (DartType interfaceType in cls.interfaces) {
+    for (ResolutionDartType interfaceType in cls.interfaces) {
       Element element = interfaceType.element;
       tryEmitTest(element);
       _generateInterfacesIsTests(
@@ -302,7 +334,7 @@ class RuntimeTypeGenerator {
     List<StubMethod> stubs = <StubMethod>[];
     ClassElement superclass = classElement;
     while (superclass != null) {
-      for (TypeVariableType parameter in superclass.typeVariables) {
+      for (ResolutionTypeVariableType parameter in superclass.typeVariables) {
         if (backend.emitter.readTypeVariables.contains(parameter.element)) {
           stubs.add(
               _generateTypeVariableReader(classElement, parameter.element));

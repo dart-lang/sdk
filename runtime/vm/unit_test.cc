@@ -52,10 +52,9 @@ void TestCaseBase::RunAll() {
 
 
 Dart_Isolate TestCase::CreateIsolate(const uint8_t* buffer, const char* name) {
-  bin::IsolateData* isolate_data = new bin::IsolateData(name, NULL, NULL);
   char* err;
   Dart_Isolate isolate =
-      Dart_CreateIsolate(name, NULL, buffer, NULL, isolate_data, &err);
+      Dart_CreateIsolate(name, NULL, buffer, NULL, NULL, NULL, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);

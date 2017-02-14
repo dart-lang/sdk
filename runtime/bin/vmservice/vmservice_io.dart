@@ -229,7 +229,7 @@ main() {
   VMServiceEmbedderHooks.webServerControl = webServerControlCallback;
   // Always instantiate the vmservice object so that the exit message
   // can be delivered and waiting loaders can be cancelled.
-  var service = new VMService();
+  new VMService();
   if (_autoStart) {
     _lazyServerBoot();
     server.startup();

@@ -268,8 +268,8 @@ abstract class SummaryLinkerTest {
       {String path: '/test.dart', String uri}) {
     uri ??= absUri(path);
     Uri testDartUri = Uri.parse(uri);
-    CompilationUnit unit = _parseText(text);
-    UnlinkedUnitBuilder unlinkedDefiningUnit = serializeAstUnlinked(unit);
+    UnlinkedUnitBuilder unlinkedDefiningUnit =
+        createUnlinkedSummary(testDartUri, text);
     _filesToLink.uriToUnit[testDartUri.toString()] = unlinkedDefiningUnit;
     LinkerInputs linkerInputs = new LinkerInputs(
         allowMissingFiles,
@@ -309,12 +309,16 @@ abstract class SummaryLinkerTest {
     return assembler.assemble();
   }
 
+  UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>
+      serializeAstUnlinked(_parseText(text));
+
   CompilationUnit _parseText(String text) {
     CharSequenceReader reader = new CharSequenceReader(text);
     Scanner scanner =
         new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, AnalysisErrorListener.NULL_LISTENER);
+    parser.enableAssertInitializer = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = new LineInfo(scanner.lineStarts);
     return unit;

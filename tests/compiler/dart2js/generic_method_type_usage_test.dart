@@ -69,10 +69,15 @@ main() {
   aFunction<Set>();
 }
 ''',
-
   'dynamic_as_type_argument.dart': '''
 main() {
   method<dynamic>();
+}
+method<T>() {}
+''',
+  'malformed_type_argument.dart': '''
+main() {
+  method<Unresolved>();
 }
 method<T>() {}
 ''',
@@ -114,5 +119,8 @@ void main() {
         warning: MessageKind.CANNOT_INSTANTIATE_TYPE_VARIABLE);
 
     await runTest(Uri.parse('memory:dynamic_as_type_argument.dart'));
+
+    await runTest(Uri.parse('memory:malformed_type_argument.dart'),
+        warning: MessageKind.CANNOT_RESOLVE_TYPE);
   });
 }

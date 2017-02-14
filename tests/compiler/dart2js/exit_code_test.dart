@@ -169,8 +169,7 @@ class TestResolver extends ResolverTask {
 
   TestResolver(TestCompiler compiler, ConstantCompiler constantCompiler)
       : this.compiler = compiler,
-        super(compiler.resolution, constantCompiler, compiler.openWorld,
-            compiler.measurer);
+        super(compiler.resolution, constantCompiler, compiler.measurer);
 
   void computeClassMembers(ClassElement element) {
     compiler.test('ResolverTask.computeClassMembers');

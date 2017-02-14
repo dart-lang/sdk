@@ -775,7 +775,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("_List._List", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("List.List", walker.CurrentName());
+    EXPECT_STREQ("List.List._internal", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -829,7 +829,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("_GrowableList._GrowableList", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("List.List", walker.CurrentName());
+    EXPECT_STREQ("List.List._internal", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("bar", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -994,7 +994,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
       Library::Handle(isolate->object_store()->typed_data_library());
 
   const Class& float32_list_class =
-      Class::Handle(GetClass(typed_data_library, "Float32List"));
+      Class::Handle(GetClass(typed_data_library, "_Float32List"));
   EXPECT(!float32_list_class.IsNull());
 
   Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);

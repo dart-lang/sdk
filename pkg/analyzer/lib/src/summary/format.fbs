@@ -226,7 +226,12 @@ enum UnlinkedConstructorInitializerKind : byte {
   /**
    * Invocation of a superclass' constructor.
    */
-  superInvocation
+  superInvocation,
+
+  /**
+   * Invocation of `assert`.
+   */
+  assertInvocation
 }
 
 /**
@@ -771,7 +776,43 @@ enum UnlinkedExprOperation : byte {
    * Pop the top value from the stack.  Treat it as a Future and await its
    * completion.  Then push the awaited value onto the stack.
    */
-  await
+  await,
+
+  /**
+   * Push an abstract value onto the stack. Abstract values mark the presence of
+   * a value, but whose details are not included.
+   *
+   * This is not used by the summary generators today, but it will be used to
+   * experiment with prunning the initializer expression tree, so only
+   * information that is necessary gets included in the output summary file.
+   */
+  pushUntypedAbstract,
+
+  /**
+   * Get the next type reference from [UnlinkedExpr.references] and push an
+   * abstract value onto the stack that has that type.
+   *
+   * Like [pushUntypedAbstract], this is also not used by the summary generators
+   * today. The plan is to experiment with prunning the initializer expression
+   * tree, and include just enough type information to perform strong-mode type
+   * inference, but not all the details of how this type was obtained.
+   */
+  pushTypedAbstract,
+
+  /**
+   * Push an error onto the stack.
+   *
+   * Like [pushUntypedAbstract], this is not used by summary generators today.
+   * This will be used to experiment with prunning the const expression tree. If
+   * a constant has an error, we can omit the subexpression containing the error
+   * and only include a marker that an error was detected.
+   */
+  pushError,
+
+  /**
+   * Push `this` expression onto the stack.
+   */
+  pushThis
 }
 
 /**
@@ -2231,6 +2272,16 @@ table UnlinkedParam {
   initializer:UnlinkedExecutable (id: 12);
 
   /**
+   * Indicates whether this parameter is explicitly marked as being covariant.
+   */
+  isExplicitlyCovariant:bool (id: 15);
+
+  /**
+   * Indicates whether the parameter is declared using the `final` keyword.
+   */
+  isFinal:bool (id: 16);
+
+  /**
    * Indicates whether this is a function-typed parameter.
    */
   isFunctionTyped:bool (id: 5);
@@ -2621,6 +2672,12 @@ table UnlinkedVariable {
    * Indicates whether the variable is declared using the `const` keyword.
    */
   isConst:bool (id: 6);
+
+  /**
+   * Indicates whether this variable is declared using the `covariant` keyword.
+   * This should be false for everything except instance fields.
+   */
+  isCovariant:bool (id: 14);
 
   /**
    * Indicates whether the variable is declared using the `final` keyword.

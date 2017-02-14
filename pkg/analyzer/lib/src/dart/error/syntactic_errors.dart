@@ -82,6 +82,11 @@ class ParserErrorCode extends ErrorCode {
       "For-in loops use 'in' rather than a colon.",
       "Try replacing the colon with the keyword 'in'.");
 
+  static const ParserErrorCode CONST_AND_COVARIANT = const ParserErrorCode(
+      'CONST_AND_COVARIANT',
+      "Members can't be declared to be both 'const' and 'covariant'.",
+      "Try removing either the 'const' or 'covariant' keyword.");
+
   static const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
       'CONST_AND_FINAL',
       "Members can't be declared to be both 'const' and 'final'.",
@@ -142,11 +147,37 @@ class ParserErrorCode extends ErrorCode {
       "A continue statement in a switch statement must have a label as a target.",
       "Try adding a label associated with one of the case clauses to the continue statement.");
 
-  static const ParserErrorCode DEPRECATED_CLASS_TYPE_ALIAS =
+  static const ParserErrorCode COVARIANT_AFTER_VAR = const ParserErrorCode(
+      'COVARIANT_AFTER_VAR',
+      "The modifier 'covariant' should be before the modifier 'var'.",
+      "Try re-ordering the modifiers.");
+
+  static const ParserErrorCode COVARIANT_AND_STATIC = const ParserErrorCode(
+      'COVARIANT_AND_STATIC',
+      "Members can't be declared to be both 'covariant' and 'static'.",
+      "Try removing either the 'covariant' or 'static' keyword.");
+
+  static const ParserErrorCode COVARIANT_MEMBER = const ParserErrorCode(
+      'COVARIANT_MEMBER',
+      "Getters, setters and methods can't be declared to be 'covariant'.",
+      "Try removing the 'covariant' keyword.");
+
+  static const ParserErrorCode COVARIANT_TOP_LEVEL_DECLARATION =
       const ParserErrorCode(
-          'DEPRECATED_CLASS_TYPE_ALIAS',
-          "The 'typedef' mixin application was replaced with 'class'.",
-          "Try re-writing the typedef as 'class C = S with M'.");
+          'COVARIANT_TOP_LEVEL_DECLARATION',
+          "Top-level declarations can't be declared to be covariant.",
+          "Try removing the keyword 'covariant'.");
+
+  static const ParserErrorCode COVARIANT_CONSTRUCTOR = const ParserErrorCode(
+      'COVARIANT_CONSTRUCTOR',
+      "A constructor can't be declared to be 'covariant'.",
+      "Try removing the keyword 'covariant'.");
+
+  static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE =
+      const ParserErrorCode(
+          'DEFAULT_VALUE_IN_FUNCTION_TYPE',
+          "Parameters in a function type cannot have default values",
+          "Try removing the default value.");
 
   static const ParserErrorCode DIRECTIVE_AFTER_DECLARATION =
       const ParserErrorCode(
@@ -322,6 +353,11 @@ class ParserErrorCode extends ErrorCode {
           "Field formal parameters can only be used in a constructor.",
           "Try replacing the field formal parameter with a normal parameter.");
 
+  static const ParserErrorCode FINAL_AND_COVARIANT = const ParserErrorCode(
+      'FINAL_AND_COVARIANT',
+      "Members can't be declared to be both 'final' and 'covariant'.",
+      "Try removing either the 'final' or 'covariant' keyword.");
+
   static const ParserErrorCode FINAL_AND_VAR = const ParserErrorCode(
       'FINAL_AND_VAR',
       "Members can't be declared to be both 'final' and 'var'.",
@@ -446,7 +482,7 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode INVALID_SYNC = const ParserErrorCode(
       'INVALID_SYNC',
-      "The modifier 'sync' isn't allowed for an exrpression function body.",
+      "The modifier 'sync' isn't allowed for an expression function body.",
       "Try converting the body to a block.");
 
   static const ParserErrorCode INVALID_UNICODE_ESCAPE = const ParserErrorCode(
@@ -523,16 +559,15 @@ class ParserErrorCode extends ErrorCode {
       "A function body must be provided.",
       "Try adding a function body.");
 
+  static const ParserErrorCode MISSING_FUNCTION_KEYWORD = const ParserErrorCode(
+      'MISSING_FUNCTION_KEYWORD',
+      "Function types must have the keyword 'Function' before the parameter list.",
+      "Try adding the keyword 'Function'.");
+
   static const ParserErrorCode MISSING_FUNCTION_PARAMETERS =
       const ParserErrorCode(
           'MISSING_FUNCTION_PARAMETERS',
           "Functions must have an explicit list of parameters.",
-          "Try adding a parameter list.");
-
-  static const ParserErrorCode MISSING_METHOD_PARAMETERS =
-      const ParserErrorCode(
-          'MISSING_METHOD_PARAMETERS',
-          "Methods must have an explicit list of parameters.",
           "Try adding a parameter list.");
 
   static const ParserErrorCode MISSING_GET = const ParserErrorCode(
@@ -550,6 +585,18 @@ class ParserErrorCode extends ErrorCode {
       'MISSING_KEYWORD_OPERATOR',
       "Operator declarations must be preceeded by the keyword 'operator'.",
       "Try adding the keyword 'operator'.");
+
+  static const ParserErrorCode MISSING_METHOD_PARAMETERS =
+      const ParserErrorCode(
+          'MISSING_METHOD_PARAMETERS',
+          "Methods must have an explicit list of parameters.",
+          "Try adding a parameter list.");
+
+  static const ParserErrorCode MISSING_NAME_FOR_NAMED_PARAMETER =
+      const ParserErrorCode(
+          'MISSING_NAME_FOR_NAMED_PARAMETER',
+          "Named parameters in a function type must have a name",
+          "Try providing a name for the parameter or removing the curly braces.");
 
   static const ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE =
       const ParserErrorCode(
@@ -660,6 +707,11 @@ class ParserErrorCode extends ErrorCode {
       "Function expressions can't be named.",
       "Try removing the name, or "
       "moving the function expression to a function declaration statement.");
+
+  static const ParserErrorCode NAMED_FUNCTION_TYPE = const ParserErrorCode(
+      'NAMED_FUNCTION_TYPE',
+      "Function types can't be named.",
+      "Try replacing the name with the keyword 'Function'.");
 
   static const ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP =
       const ParserErrorCode(

@@ -54,15 +54,15 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.containsOnlyString(closedWorld);
   }
 
-  bool containsOnly(Entity cls) {
+  bool containsOnly(ClassEntity cls) {
     return forwardTo.containsOnly(cls);
   }
 
-  bool satisfies(Entity cls, ClosedWorld closedWorld) {
+  bool satisfies(ClassEntity cls, ClosedWorld closedWorld) {
     return forwardTo.satisfies(cls, closedWorld);
   }
 
-  bool contains(Entity cls, ClosedWorld closedWorld) {
+  bool contains(ClassEntity cls, ClosedWorld closedWorld) {
     return forwardTo.contains(cls, closedWorld);
   }
 
@@ -70,7 +70,7 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.containsAll(closedWorld);
   }
 
-  Entity singleClass(ClosedWorld closedWorld) {
+  ClassEntity singleClass(ClosedWorld closedWorld) {
     return forwardTo.singleClass(closedWorld);
   }
 
@@ -97,11 +97,12 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.needsNoSuchMethodHandling(selector, closedWorld);
   }
 
-  bool canHit(Element element, Selector selector, ClosedWorld closedWorld) {
+  bool canHit(
+      MemberEntity element, Selector selector, ClosedWorld closedWorld) {
     return forwardTo.canHit(element, selector, closedWorld);
   }
 
-  Element locateSingleElement(Selector selector, ClosedWorld closedWorld) {
+  MemberEntity locateSingleElement(Selector selector, ClosedWorld closedWorld) {
     return forwardTo.locateSingleElement(selector, closedWorld);
   }
 

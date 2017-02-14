@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/resolution.dart' show Resolution;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
 import '../tree/tree.dart';
@@ -54,8 +54,10 @@ class PatchResolverTask extends CompilerTask {
         assert(invariant(origin, originParameter.patch == patchParameter,
             message: "Inconsistent repatch of $originParameter."));
       }
-      DartType originParameterType = originParameter.computeType(resolution);
-      DartType patchParameterType = patchParameter.computeType(resolution);
+      ResolutionDartType originParameterType =
+          originParameter.computeType(resolution);
+      ResolutionDartType patchParameterType =
+          patchParameter.computeType(resolution);
       if (originParameterType != patchParameterType) {
         reporter.reportError(
             reporter.createMessage(
@@ -84,7 +86,7 @@ class PatchResolverTask extends CompilerTask {
             // We special case the list constructor because of the
             // optional parameter.
             &&
-            origin != compiler.unnamedListConstructor) {
+            origin != compiler.commonElements.unnamedListConstructor) {
           reporter.reportError(
               reporter.createMessage(
                   originParameter, MessageKind.PATCH_PARAMETER_MISMATCH, {
@@ -106,10 +108,24 @@ class PatchResolverTask extends CompilerTask {
   void checkMatchingPatchSignatures(
       FunctionElement origin, FunctionElement patch) {
     // TODO(johnniwinther): Show both origin and patch locations on errors.
+    FunctionExpression originTree = origin.node;
     FunctionSignature originSignature = origin.functionSignature;
     FunctionExpression patchTree = patch.node;
     FunctionSignature patchSignature = patch.functionSignature;
 
+    if ('${originTree.typeVariables}' != '${patchTree.typeVariables}') {
+      reporter.withCurrentElement(patch, () {
+        Node errorNode = patchTree.typeVariables != null
+            ? patchTree.typeVariables
+            : patchTree;
+        reporter.reportError(
+            reporter.createMessage(
+                errorNode,
+                MessageKind.PATCH_TYPE_VARIABLES_MISMATCH,
+                {'methodName': origin.name}),
+            [reporter.createMessage(origin, MessageKind.THIS_IS_THE_METHOD)]);
+      });
+    }
     if (originSignature.type.returnType != patchSignature.type.returnType) {
       reporter.withCurrentElement(patch, () {
         Node errorNode =

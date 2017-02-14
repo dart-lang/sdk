@@ -171,7 +171,7 @@ function makeConstList(list) {
 function convertToFastObject(properties) {
   // Create an instance that uses 'properties' as prototype. This should
   // make 'properties' a fast object.
-  function t() {};
+  function t() {}
   t.prototype = properties;
   new t();
   return properties;
@@ -563,11 +563,21 @@ class FragmentEmitter {
     for (Library library in fragment.libraries) {
       for (StaticMethod method in library.statics) {
         assert(!method.holder.isStaticStateHolder);
-        holderCode[method.holder].addAll(emitStaticMethod(method));
+        var staticMethod = emitStaticMethod(method);
+        if (compiler.options.dumpInfo) {
+          for (var code in staticMethod.values) {
+            compiler.dumpInfoTask.registerElementAst(method.element, code);
+            compiler.dumpInfoTask.registerElementAst(library.element, code);
+          }
+        }
+        holderCode[method.holder].addAll(staticMethod);
       }
       for (Class cls in library.classes) {
         assert(!cls.holder.isStaticStateHolder);
-        holderCode[cls.holder][cls.name] = emitConstructor(cls);
+        var constructor = emitConstructor(cls);
+        compiler.dumpInfoTask.registerElementAst(cls.element, constructor);
+        compiler.dumpInfoTask.registerElementAst(library.element, constructor);
+        holderCode[cls.holder][cls.name] = constructor;
       }
     }
 
@@ -668,9 +678,14 @@ class FragmentEmitter {
   js.Statement emitPrototypes(Fragment fragment) {
     List<js.Statement> assignments = fragment.libraries
         .expand((Library library) => library.classes)
-        .map((Class cls) => js.js.statement(
-            '#.prototype = #;', [classReference(cls), emitPrototype(cls)]))
-        .toList(growable: false);
+        .map((Class cls) {
+      var proto = js.js.statement(
+          '#.prototype = #;', [classReference(cls), emitPrototype(cls)]);
+      ClassElement element = cls.element;
+      compiler.dumpInfoTask.registerElementAst(element, proto);
+      compiler.dumpInfoTask.registerElementAst(element.library, proto);
+      return proto;
+    }).toList(growable: false);
 
     return new js.Block(assignments);
   }
@@ -712,7 +727,9 @@ class FragmentEmitter {
     allMethods.forEach((Method method) {
       emitInstanceMethod(method)
           .forEach((js.Expression name, js.Expression code) {
-        properties.add(new js.Property(name, code));
+        var prop = new js.Property(name, code);
+        compiler.dumpInfoTask.registerElementAst(method.element, prop);
+        properties.add(prop);
       });
     });
 
@@ -948,7 +965,8 @@ class FragmentEmitter {
 
     bool isIntercepted = false;
     if (method is InstanceMethod) {
-      isIntercepted = backend.isInterceptedMethod(method.element);
+      MethodElement element = method.element;
+      isIntercepted = backend.isInterceptedMethod(element);
     }
     int requiredParameterCount = 0;
     js.Expression optionalParameterDefaultValues = new js.LiteralNull();
@@ -1011,11 +1029,13 @@ class FragmentEmitter {
       // find the constants that don't have any dependency on other constants
       // and create an object-literal with them (and assign it to the
       // constant-holder variable).
-      assignments.add(js.js.statement('#.# = #', [
+      var assignment = js.js.statement('#.# = #', [
         constant.holder.name,
         constant.name,
         constantEmitter.generate(constant.value)
-      ]));
+      ]);
+      compiler.dumpInfoTask.registerConstantAst(constant.value, assignment);
+      assignments.add(assignment);
     }
     return new js.Block(assignments);
   }
@@ -1140,17 +1160,17 @@ class FragmentEmitter {
   js.Property emitMangledGlobalNames() {
     List<js.Property> names = <js.Property>[];
 
-    CoreClasses coreClasses = compiler.coreClasses;
+    CommonElements commonElements = compiler.commonElements;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
     List<ClassElement> nativeClassesNeedingUnmangledName = [
-      coreClasses.intClass,
-      coreClasses.doubleClass,
-      coreClasses.numClass,
-      coreClasses.stringClass,
-      coreClasses.boolClass,
-      coreClasses.nullClass,
-      coreClasses.listClass
+      commonElements.intClass,
+      commonElements.doubleClass,
+      commonElements.numClass,
+      commonElements.stringClass,
+      commonElements.boolClass,
+      commonElements.nullClass,
+      commonElements.listClass
     ];
     // TODO(floitsch): this should probably be on a per-fragment basis.
     nativeClassesNeedingUnmangledName.forEach((element) {

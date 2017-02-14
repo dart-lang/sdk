@@ -6,7 +6,7 @@ library dart2js.resolution.tree_elements;
 
 import '../common.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
@@ -22,7 +22,7 @@ abstract class TreeElements {
   void forEachConstantNode(f(Node n, ConstantExpression c));
 
   Element operator [](Node node);
-  Map<Node, DartType> get typesCache;
+  Map<Node, ResolutionDartType> get typesCache;
 
   /// Returns the [SendStructure] that describes the semantics of [node].
   SendStructure getSendStructure(Send node);
@@ -34,7 +34,7 @@ abstract class TreeElements {
   Selector getSelector(Node node);
   Selector getGetterSelectorInComplexSendSet(SendSet node);
   Selector getOperatorSelectorInComplexSendSet(SendSet node);
-  DartType getType(Node node);
+  ResolutionDartType getType(Node node);
 
   /// Returns the for-in loop variable for [node].
   Element getForInVariable(ForIn node);
@@ -57,7 +57,7 @@ abstract class TreeElements {
   bool isTypeLiteral(Send node);
 
   /// Returns the type that the type literal [node] refers to.
-  DartType getTypeLiteralType(Send node);
+  ResolutionDartType getTypeLiteralType(Send node);
 
   /// Returns a list of nodes that potentially mutate [element] anywhere in its
   /// scope.
@@ -94,10 +94,11 @@ abstract class TreeElements {
 class TreeElementMapping extends TreeElements {
   final AnalyzableElement analyzedElement;
   Map<Spannable, Selector> _selectors;
-  Map<Node, DartType> _types;
+  Map<Node, ResolutionDartType> _types;
 
-  Map<Node, DartType> _typesCache;
-  Map<Node, DartType> get typesCache => _typesCache ??= <Node, DartType>{};
+  Map<Node, ResolutionDartType> _typesCache;
+  Map<Node, ResolutionDartType> get typesCache =>
+      _typesCache ??= <Node, ResolutionDartType>{};
 
   Setlet<SourceSpan> _superUses;
   Map<Node, ConstantExpression> _constants;
@@ -176,15 +177,15 @@ class TreeElementMapping extends TreeElements {
     _newStructureMap[node] = newStructure;
   }
 
-  void setType(Node node, DartType type) {
+  void setType(Node node, ResolutionDartType type) {
     if (_types == null) {
-      _types = new Maplet<Node, DartType>();
+      _types = new Maplet<Node, ResolutionDartType>();
     }
     _types[node] = type;
   }
 
   @override
-  DartType getType(Node node) => _types != null ? _types[node] : null;
+  ResolutionDartType getType(Node node) => _types != null ? _types[node] : null;
 
   @override
   Iterable<SourceSpan> get superUses {
@@ -260,7 +261,7 @@ class TreeElementMapping extends TreeElements {
   }
 
   @override
-  DartType getTypeLiteralType(Send node) {
+  ResolutionDartType getTypeLiteralType(Send node) {
     return getType(node);
   }
 
@@ -361,9 +362,7 @@ class TreeElementMapping extends TreeElements {
   }
 
   void defineTarget(Node node, JumpTarget target) {
-    if (_definedTargets == null) {
-      _definedTargets = new Maplet<Node, JumpTarget>();
-    }
+    _definedTargets ??= new Maplet<Node, JumpTarget>();
     _definedTargets[node] = target;
   }
 
@@ -382,9 +381,7 @@ class TreeElementMapping extends TreeElements {
   }
 
   void registerTargetOf(GotoStatement node, JumpTarget target) {
-    if (_usedTargets == null) {
-      _usedTargets = new Maplet<GotoStatement, JumpTarget>();
-    }
+    _usedTargets ??= new Maplet<GotoStatement, JumpTarget>();
     _usedTargets[node] = target;
   }
 
@@ -394,9 +391,7 @@ class TreeElementMapping extends TreeElements {
   }
 
   void defineLabel(Label label, LabelDefinition target) {
-    if (_definedLabels == null) {
-      _definedLabels = new Maplet<Label, LabelDefinition>();
-    }
+    _definedLabels ??= new Maplet<Label, LabelDefinition>();
     _definedLabels[label] = target;
   }
 

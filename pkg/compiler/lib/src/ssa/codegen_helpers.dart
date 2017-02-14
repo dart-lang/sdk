@@ -8,6 +8,7 @@ import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
+import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
 
 /**
@@ -16,9 +17,10 @@ import 'nodes.dart';
  */
 class SsaInstructionSelection extends HBaseVisitor {
   final Compiler compiler;
+  final ClosedWorld closedWorld;
   HGraph graph;
 
-  SsaInstructionSelection(this.compiler);
+  SsaInstructionSelection(this.compiler, this.closedWorld);
 
   JavaScriptBackend get backend => compiler.backend;
 
@@ -67,7 +69,7 @@ class SsaInstructionSelection extends HBaseVisitor {
       HInstruction interceptor = node.interceptor;
       if (interceptor != null) {
         return new HIsViaInterceptor(
-            node.typeExpression, interceptor, backend.boolType);
+            node.typeExpression, interceptor, closedWorld.commonMasks.boolType);
       }
     }
     return node;
@@ -86,7 +88,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     if (leftType.isNullable && rightType.isNullable) {
       if (left.isConstantNull() ||
           right.isConstantNull() ||
-          (left.isPrimitive(compiler) && leftType == rightType)) {
+          (left.isPrimitive(closedWorld) && leftType == rightType)) {
         return '==';
       }
       return null;
@@ -103,7 +105,7 @@ class SsaInstructionSelection extends HBaseVisitor {
 
   HInstruction visitInvokeSuper(HInvokeSuper node) {
     if (node.isInterceptedCall) {
-      TypeMask mask = node.getDartReceiver(compiler).instructionType;
+      TypeMask mask = node.getDartReceiver(closedWorld).instructionType;
       tryReplaceInterceptorWithDummy(node, node.selector, mask);
     }
     return node;
@@ -145,7 +147,7 @@ class SsaInstructionSelection extends HBaseVisitor {
         ConstantValue constant = new SyntheticConstantValue(
             SyntheticConstantKind.DUMMY_INTERCEPTOR,
             receiverArgument.instructionType);
-        HConstant dummy = graph.addConstant(constant, compiler);
+        HConstant dummy = graph.addConstant(constant, closedWorld);
         receiverArgument.usedBy.remove(node);
         node.inputs[1] = dummy;
         dummy.usedBy.add(node);
@@ -166,7 +168,7 @@ class SsaInstructionSelection extends HBaseVisitor {
       if (candidate is HFieldGet) {
         if (candidate.element != setter.element) return false;
         if (candidate.receiver != setter.receiver) return false;
-        // Recognize only three instructions in sequence in the same block.  This
+        // Recognize only three instructions in sequence in the same block. This
         // could be broadened to allow non-interfering interleaved instructions.
         if (op.block != block) return false;
         if (candidate.block != block) return false;
@@ -242,7 +244,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     HInstruction bitop(String assignOp) {
       // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
       // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
-      if (op.isUInt31(compiler)) return simpleBinary(assignOp);
+      if (op.isUInt31(closedWorld)) return simpleBinary(assignOp);
       return noMatchingRead();
     }
 

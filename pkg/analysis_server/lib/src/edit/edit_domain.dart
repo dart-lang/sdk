@@ -24,6 +24,7 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/file_system/file_system.dart';
@@ -143,11 +144,13 @@ class EditDomainHandler implements RequestHandler {
       AnalysisResult result = await server.getAnalysisResult(params.file);
       if (result != null) {
         CompilationUnit unit = result.unit;
+        CompilationUnitElement compilationUnitElement =
+            resolutionMap.elementDeclaredByCompilationUnit(unit);
         DartAssistContext dartAssistContext = new _DartAssistContextForValues(
-            unit.element.source,
+            compilationUnitElement.source,
             params.offset,
             params.length,
-            unit.element.context,
+            compilationUnitElement.context,
             unit);
         try {
           AssistProcessor processor = new AssistProcessor(dartAssistContext);
@@ -189,10 +192,15 @@ class EditDomainHandler implements RequestHandler {
           int errorLine = lineInfo.getLocation(error.offset).lineNumber;
           if (errorLine == requestLine) {
             var context = new _DartFixContextImpl(
-                server.resourceProvider, unit.element.context, unit, error);
+                server.resourceProvider,
+                result.driver.getTopLevelNameDeclarations,
+                resolutionMap.elementDeclaredByCompilationUnit(unit).context,
+                unit,
+                error);
             List<Fix> fixes =
                 await new DefaultFixContributor().internalComputeFixes(context);
             if (fixes.isNotEmpty) {
+              fixes.sort(Fix.SORT_BY_RELEVANCE);
               AnalysisError serverError =
                   newAnalysisError_fromEngine(lineInfo, error);
               AnalysisErrorFixes errorFixes =
@@ -214,8 +222,11 @@ class EditDomainHandler implements RequestHandler {
         for (engine.AnalysisError error in errorInfo.errors) {
           int errorLine = lineInfo.getLocation(error.offset).lineNumber;
           if (errorLine == requestLine) {
-            List<Fix> fixes = await computeFixes(server.serverPlugin,
-                server.resourceProvider, unit.element.context, error);
+            List<Fix> fixes = await computeFixes(
+                server.serverPlugin,
+                server.resourceProvider,
+                resolutionMap.elementDeclaredByCompilationUnit(unit).context,
+                error);
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
                   newAnalysisError_fromEngine(lineInfo, error);
@@ -296,8 +307,10 @@ class EditDomainHandler implements RequestHandler {
         return;
       }
       // prepare context
-      engine.AnalysisContext context = unit.element.context;
-      Source source = unit.element.source;
+      CompilationUnitElement compilationUnitElement =
+          resolutionMap.elementDeclaredByCompilationUnit(unit);
+      engine.AnalysisContext context = compilationUnitElement.context;
+      Source source = compilationUnitElement.source;
       errors = context.computeErrors(source);
       // prepare code
       fileStamp = context.getModificationStamp(source);
@@ -406,8 +419,8 @@ class EditDomainHandler implements RequestHandler {
       if (element != null) {
         // try CONVERT_METHOD_TO_GETTER
         if (element is ExecutableElement) {
-          Refactoring refactoring =
-              new ConvertMethodToGetterRefactoring(searchEngine, element);
+          Refactoring refactoring = new ConvertMethodToGetterRefactoring(
+              searchEngine, _getResolvedUnit, element);
           RefactoringStatus status = await refactoring.checkInitialConditions();
           if (!status.hasFatalError) {
             kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);
@@ -440,11 +453,17 @@ class EditDomainHandler implements RequestHandler {
     return Response.DELAYED_RESPONSE;
   }
 
+  Future<CompilationUnit> _getResolvedUnit(Element element) {
+    String path = element.source.fullName;
+    return server.getResolvedCompilationUnit(path);
+  }
+
   /**
    * Initializes [refactoringManager] with a new instance.
    */
   void _newRefactoringManager() {
-    refactoringManager = new _RefactoringManager(server, searchEngine);
+    refactoringManager =
+        new _RefactoringManager(server, _getResolvedUnit, searchEngine);
   }
 
   static int _getNumberOfScanParseErrors(List<engine.AnalysisError> errors) {
@@ -491,6 +510,9 @@ class _DartFixContextImpl implements DartFixContext {
   final ResourceProvider resourceProvider;
 
   @override
+  final GetTopLevelDeclarations getTopLevelDeclarations;
+
+  @override
   final engine.AnalysisContext analysisContext;
 
   @override
@@ -499,8 +521,8 @@ class _DartFixContextImpl implements DartFixContext {
   @override
   final engine.AnalysisError error;
 
-  _DartFixContextImpl(
-      this.resourceProvider, this.analysisContext, this.unit, this.error);
+  _DartFixContextImpl(this.resourceProvider, this.getTopLevelDeclarations,
+      this.analysisContext, this.unit, this.error);
 }
 
 /**
@@ -518,6 +540,7 @@ class _RefactoringManager {
       const <RefactoringProblem>[];
 
   final AnalysisServer server;
+  final GetResolvedUnit getResolvedUnit;
   final SearchEngine searchEngine;
   StreamSubscription subscriptionToReset;
 
@@ -534,7 +557,7 @@ class _RefactoringManager {
   Request request;
   EditGetRefactoringResult result;
 
-  _RefactoringManager(this.server, this.searchEngine) {
+  _RefactoringManager(this.server, this.getResolvedUnit, this.searchEngine) {
     _reset();
   }
 
@@ -726,8 +749,8 @@ class _RefactoringManager {
       if (element != null) {
         if (element is ExecutableElement) {
           _resetOnAnalysisStarted();
-          refactoring =
-              new ConvertMethodToGetterRefactoring(searchEngine, element);
+          refactoring = new ConvertMethodToGetterRefactoring(
+              searchEngine, getResolvedUnit, element);
         }
       }
     }
@@ -763,11 +786,8 @@ class _RefactoringManager {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
         _resetOnAnalysisStarted();
-        refactoring =
-            new InlineMethodRefactoring(searchEngine, (Element element) async {
-          String elementPath = element.source.fullName;
-          return await server.getResolvedCompilationUnit(elementPath);
-        }, unit, offset);
+        refactoring = new InlineMethodRefactoring(
+            searchEngine, getResolvedUnit, unit, offset);
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {

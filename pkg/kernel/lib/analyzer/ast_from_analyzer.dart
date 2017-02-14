@@ -12,6 +12,7 @@ import '../transformations/flags.dart';
 import 'analyzer.dart';
 import 'loader.dart';
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -294,14 +295,22 @@ class ReferenceScope {
 class TypeScope extends ReferenceScope {
   final Map<TypeParameterElement, ast.TypeParameter> localTypeParameters =
       <TypeParameterElement, ast.TypeParameter>{};
+  TypeAnnotationBuilder _typeBuilder;
 
-  TypeScope(ReferenceLevelLoader loader) : super(loader);
+  TypeScope(ReferenceLevelLoader loader) : super(loader) {
+    _typeBuilder = new TypeAnnotationBuilder(this);
+  }
 
   String get location => '?';
 
   bool get allowClassTypeParameters => false;
 
   ast.DartType get defaultTypeParameterBound => getRootClassReference().rawType;
+
+  ast.TypeParameter tryGetTypeParameterReference(TypeParameterElement element) {
+    return localTypeParameters[element] ??
+        loader.tryGetClassTypeParameter(element);
+  }
 
   ast.TypeParameter getTypeParameterReference(TypeParameterElement element) {
     return localTypeParameters[element] ??
@@ -318,7 +327,7 @@ class TypeScope extends ReferenceScope {
   }
 
   ast.DartType buildType(DartType type) {
-    return new TypeAnnotationBuilder(this).buildFromDartType(type);
+    return _typeBuilder.buildFromDartType(type);
   }
 
   ast.Supertype buildSupertype(DartType type) {
@@ -338,11 +347,11 @@ class TypeScope extends ReferenceScope {
   }
 
   ast.DartType buildTypeAnnotation(AstNode node) {
-    return new TypeAnnotationBuilder(this).build(node);
+    return _typeBuilder.build(node);
   }
 
   ast.DartType buildOptionalTypeAnnotation(AstNode node) {
-    return node == null ? null : new TypeAnnotationBuilder(this).build(node);
+    return node == null ? null : _typeBuilder.build(node);
   }
 
   ast.DartType getInferredType(Expression node) {
@@ -381,7 +390,8 @@ class TypeScope extends ReferenceScope {
             .toList();
       }
       return new List<ast.DartType>.filled(
-          genericFunctionType.typeParameters.length, const ast.DynamicType());
+          genericFunctionType.typeParameters.length, const ast.DynamicType(),
+          growable: true);
     } else {
       return <ast.DartType>[];
     }
@@ -389,16 +399,17 @@ class TypeScope extends ReferenceScope {
 
   List<ast.DartType> buildOptionalTypeArgumentList(TypeArgumentList node) {
     if (node == null) return null;
-    return new TypeAnnotationBuilder(this).buildList(node.arguments);
+    return _typeBuilder.buildList(node.arguments);
   }
 
   List<ast.DartType> buildTypeArgumentList(TypeArgumentList node) {
-    return new TypeAnnotationBuilder(this).buildList(node.arguments);
+    return _typeBuilder.buildList(node.arguments);
   }
 
-  List<ast.TypeParameter> buildOptionalTypeParameterList(
-      TypeParameterList node) {
+  List<ast.TypeParameter> buildOptionalTypeParameterList(TypeParameterList node,
+      {bool strongModeOnly: false}) {
     if (node == null) return <ast.TypeParameter>[];
+    if (strongModeOnly && !strongMode) return <ast.TypeParameter>[];
     return node.typeParameters.map(buildTypeParameter).toList();
   }
 
@@ -427,10 +438,12 @@ class TypeScope extends ReferenceScope {
     // Initialize type parameters in two passes: put them into scope,
     // and compute the bounds afterwards while they are all in scope.
     var typeParameters = <ast.TypeParameter>[];
-    for (var parameter in element.typeParameters) {
-      var parameterNode = new ast.TypeParameter(parameter.name);
-      typeParameters.add(parameterNode);
-      localTypeParameters[parameter] = parameterNode;
+    if (strongMode || element is ConstructorElement) {
+      for (var parameter in element.typeParameters) {
+        var parameterNode = new ast.TypeParameter(parameter.name);
+        typeParameters.add(parameterNode);
+        localTypeParameters[parameter] = parameterNode;
+      }
     }
     for (int i = 0; i < typeParameters.length; ++i) {
       var parameter = element.typeParameters[i];
@@ -465,7 +478,7 @@ class TypeScope extends ReferenceScope {
         positionalParameters: positional,
         namedParameters: named,
         requiredParameterCount: requiredParameterCount,
-        returnType: returnType);
+        returnType: returnType)..fileOffset = element.nameOffset;
   }
 }
 
@@ -541,7 +554,8 @@ class ExpressionScope extends TypeScope {
           initializer: parameter is DefaultFormalParameter
               ? buildOptionalTopLevelExpression(parameter.defaultValue)
               : null,
-          type: buildType(parameter.element.type));
+          type: buildType(
+              resolutionMap.elementDeclaredByFormalParameter(parameter).type));
       switch (parameter.kind) {
         case ParameterKind.REQUIRED:
           positional.add(declaration);
@@ -558,6 +572,8 @@ class ExpressionScope extends TypeScope {
           break;
       }
     }
+    int offset = formalParameters?.offset ?? body.offset;
+    int endOffset = body.endToken.offset;
     return new ast.FunctionNode(buildOptionalFunctionBody(body),
         typeParameters: typeParameters,
         positionalParameters: positional,
@@ -567,7 +583,9 @@ class ExpressionScope extends TypeScope {
             inferredReturnType ??
             const ast.DynamicType(),
         asyncMarker: getAsyncMarker(
-            isAsync: body.isAsynchronous, isStar: body.isGenerator));
+            isAsync: body.isAsynchronous, isStar: body.isGenerator))
+      ..fileOffset = offset
+      ..fileEndOffset = endOffset;
   }
 
   ast.Expression buildOptionalTopLevelExpression(Expression node) {
@@ -628,7 +646,8 @@ class ExpressionScope extends TypeScope {
   ast.VariableDeclaration getVariableReference(LocalElement element) {
     return localVariables.putIfAbsent(element, () {
       return new ast.VariableDeclaration(element.name,
-          isFinal: isFinal(element), isConst: isConst(element));
+          isFinal: isFinal(element),
+          isConst: isConst(element))..fileOffset = element.nameOffset;
     });
   }
 
@@ -735,11 +754,14 @@ class ExpressionScope extends TypeScope {
     return new ast.Throw(new ast.StringLiteral(message));
   }
 
+  ast.Expression buildThrowCompileTimeErrorFromCode(ErrorCode code,
+      [List arguments]) {
+    return buildThrowCompileTimeError(makeErrorMessage(code, arguments));
+  }
+
   static final RegExp _errorMessagePattern = new RegExp(r'\{(\d+)\}');
 
-  /// Throws an exception that will be caught at the function level, to replace
-  /// the entire function with a throw.
-  emitCompileTimeError(ErrorCode error, [List arguments]) {
+  String makeErrorMessage(ErrorCode error, [List arguments]) {
     String message = error.message;
     if (arguments != null) {
       message = message.replaceAllMapped(_errorMessagePattern, (m) {
@@ -748,7 +770,13 @@ class ExpressionScope extends TypeScope {
         return arguments[index];
       });
     }
-    throw new _CompilationError(message);
+    return message;
+  }
+
+  /// Throws an exception that will be caught at the function level, to replace
+  /// the entire function with a throw.
+  emitCompileTimeError(ErrorCode error, [List arguments]) {
+    throw new _CompilationError(makeErrorMessage(error, arguments));
   }
 
   ast.Expression buildThrowAbstractClassInstantiationError(String name) {
@@ -887,21 +915,36 @@ class LabelStack {
 
 class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
   final ExpressionScope scope;
-  final LabelStack breakStack, continueStack;
+  LabelStack breakStack, continueStack;
 
   StatementBuilder(this.scope, [this.breakStack, this.continueStack]);
 
   ast.Statement build(Statement node) {
-    return node.accept(this);
+    ast.Statement result = node.accept(this);
+    result.fileOffset = _getOffset(node);
+    return result;
   }
 
   ast.Statement buildOptional(Statement node) {
-    return node?.accept(this);
+    ast.Statement result = node?.accept(this);
+    result?.fileOffset = _getOffset(node);
+    return result;
+  }
+
+  int _getOffset(AstNode node) {
+    return node.offset;
   }
 
   ast.Statement buildInScope(
       Statement node, LabelStack breakNode, LabelStack continueNode) {
-    return new StatementBuilder(scope, breakNode, continueNode).build(node);
+    var oldBreak = this.breakStack;
+    var oldContinue = this.continueStack;
+    breakStack = breakNode;
+    continueStack = continueNode;
+    var result = build(node);
+    this.breakStack = oldBreak;
+    this.continueStack = oldContinue;
+    return result;
   }
 
   void buildBlockMember(Statement node, List<ast.Statement> output) {
@@ -1086,11 +1129,14 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
       currentCase = null;
     }
     // Now that the label environment is set up, build the bodies.
-    var innerBuilder = new StatementBuilder(scope, breakNode, continueNode);
+    var oldBreak = this.breakStack;
+    var oldContinue = this.continueStack;
+    this.breakStack = breakNode;
+    this.continueStack = continueNode;
     for (int i = 0; i < cases.length; ++i) {
       var blockNodes = <ast.Statement>[];
       for (var statement in bodies[i]) {
-        innerBuilder.buildBlockMember(statement, blockNodes);
+        buildBlockMember(statement, blockNodes);
       }
       if (blockNodes.isEmpty || !isBreakingStatement(blockNodes.last)) {
         if (i < cases.length - 1) {
@@ -1105,7 +1151,7 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
       cases[i].body = new ast.Block(blockNodes)..parent = cases[i];
     }
     // Unwind the stack of case labels and bind their jumps to the case target.
-    while (continueNode != continueStack) {
+    while (continueNode != oldContinue) {
       for (var jump in continueNode.jumps) {
         (jump as ast.ContinueSwitchStatement).target =
             labelToNode[continueNode.labels.first];
@@ -1114,6 +1160,8 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     }
     var expression = scope.buildExpression(node.expression);
     var result = new ast.SwitchStatement(expression, cases);
+    this.breakStack = oldBreak;
+    this.continueStack = oldContinue;
     return makeBreakTarget(result, breakNode);
   }
 
@@ -1151,6 +1199,28 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     return loop;
   }
 
+  DartType iterableElementType(DartType iterable) {
+    if (iterable is InterfaceType) {
+      var iterator = iterable.lookUpInheritedGetter('iterator')?.returnType;
+      if (iterator is InterfaceType) {
+        return iterator.lookUpInheritedGetter('current')?.returnType;
+      }
+    }
+    return null;
+  }
+
+  DartType streamElementType(DartType stream) {
+    if (stream is InterfaceType) {
+      var class_ = stream.element;
+      if (class_.library.isDartAsync &&
+          class_.name == 'Stream' &&
+          stream.typeArguments.length == 1) {
+        return stream.typeArguments[0];
+      }
+    }
+    return null;
+  }
+
   ast.Statement visitForEachStatement(ForEachStatement node) {
     ast.VariableDeclaration variable;
     Accessor leftHand;
@@ -1160,8 +1230,16 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
           type: scope.buildOptionalTypeAnnotation(loopVariable.type));
     } else if (node.identifier != null) {
       leftHand = scope.buildLeftHandValue(node.identifier);
-      // TODO: In strong mode, set variable type based on iterable type.
       variable = new ast.VariableDeclaration(null, isFinal: true);
+      if (scope.strongMode) {
+        var containerType = node.iterable.staticType;
+        DartType elementType = node.awaitKeyword != null
+            ? streamElementType(containerType)
+            : iterableElementType(containerType);
+        if (elementType != null) {
+          variable.type = scope.buildType(elementType);
+        }
+      }
     }
     var breakNode = new LabelStack.unlabeled(breakStack);
     var continueNode = new LabelStack.unlabeled(continueStack);
@@ -1188,7 +1266,7 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
         variable,
         scope.buildExpression(node.iterable),
         makeBreakTarget(body, continueNode),
-        isAsync: node.awaitKeyword != null);
+        isAsync: node.awaitKeyword != null)..fileOffset = node.offset;
     return makeBreakTarget(loop, breakNode);
   }
 
@@ -1259,13 +1337,14 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     var declaration = node.functionDeclaration;
     var expression = declaration.functionExpression;
     LocalElement element = declaration.element as dynamic; // Cross cast.
-    // TODO: Set a function type on the variable.
     return new ast.FunctionDeclaration(
-        scope.makeVariableDeclaration(element),
+        scope.makeVariableDeclaration(element,
+            type: scope.buildType(declaration.element.type)),
         scope.buildFunctionNode(expression.parameters, expression.body,
-            typeParameters:
-                scope.buildOptionalTypeParameterList(expression.typeParameters),
-            returnType: declaration.returnType));
+            typeParameters: scope.buildOptionalTypeParameterList(
+                expression.typeParameters,
+                strongModeOnly: true),
+            returnType: declaration.returnType))..fileOffset = node.offset;
   }
 
   @override
@@ -1277,8 +1356,8 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
 class ExpressionBuilder
     extends GeneralizingAstVisitor /* <ast.Expression | Accessor> */ {
   final ExpressionScope scope;
-  final ast.VariableDeclaration cascadeReceiver;
-  ExpressionBuilder(this.scope, [this.cascadeReceiver]);
+  ast.VariableDeclaration cascadeReceiver;
+  ExpressionBuilder(this.scope);
 
   ast.Expression build(Expression node) {
     var result = node.accept(this);
@@ -1299,6 +1378,14 @@ class ExpressionBuilder
       return node.identifier.offset;
     } else if (node is AssignmentExpression) {
       return _getOffset(node.leftHandSide);
+    } else if (node is PropertyAccess) {
+      return node.propertyName.offset;
+    } else if (node is IsExpression) {
+      return node.isOperator.offset;
+    } else if (node is StringLiteral) {
+      // Use a catch-all for StringInterpolation and AdjacentStrings:
+      // the debugger stops at the end.
+      return node.end;
     }
     return node.offset;
   }
@@ -1332,6 +1419,7 @@ class ExpressionBuilder
       // Cut off the trailing '='.
       var name = new ast.Name(operator.substring(0, operator.length - 1));
       return leftHand.buildCompoundAssignment(name, rightHand,
+          offset: node.offset,
           voidContext: voidContext,
           interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
     }
@@ -1355,7 +1443,7 @@ class ExpressionBuilder
       ast.Expression leftOperand = build(node.leftOperand);
       if (leftOperand is ast.VariableGet) {
         return new ast.ConditionalExpression(
-            buildIsNull(leftOperand),
+            buildIsNull(leftOperand, offset: node.leftOperand.offset),
             build(node.rightOperand),
             new ast.VariableGet(leftOperand.variable),
             scope.getInferredType(node));
@@ -1364,7 +1452,8 @@ class ExpressionBuilder
         return new ast.Let(
             variable,
             new ast.ConditionalExpression(
-                buildIsNull(new ast.VariableGet(variable)),
+                buildIsNull(new ast.VariableGet(variable),
+                    offset: leftOperand.fileOffset),
                 build(node.rightOperand),
                 new ast.VariableGet(variable),
                 scope.getInferredType(node)));
@@ -1431,12 +1520,14 @@ class ExpressionBuilder
     // might be reassigned in one of the cascade sections.
     var receiverVariable = new ast.VariableDeclaration.forValue(receiver,
         type: scope.getInferredType(node.target));
-    var inner = new ExpressionBuilder(scope, receiverVariable);
+    var oldReceiver = this.cascadeReceiver;
+    cascadeReceiver = receiverVariable;
     ast.Expression result = new ast.VariableGet(receiverVariable);
     for (var section in node.cascadeSections.reversed) {
-      var dummy = new ast.VariableDeclaration.forValue(inner.build(section));
+      var dummy = new ast.VariableDeclaration.forValue(build(section));
       result = new ast.Let(dummy, result);
     }
+    cascadeReceiver = oldReceiver;
     return new ast.Let(receiverVariable, result);
   }
 
@@ -1456,8 +1547,9 @@ class ExpressionBuilder
   ast.Expression visitFunctionExpression(FunctionExpression node) {
     return new ast.FunctionExpression(scope.buildFunctionNode(
         node.parameters, node.body,
-        typeParameters:
-            scope.buildOptionalTypeParameterList(node.typeParameters),
+        typeParameters: scope.buildOptionalTypeParameterList(
+            node.typeParameters,
+            strongModeOnly: true),
         inferredReturnType: scope.getInferredReturnType(node)));
   }
 
@@ -1487,10 +1579,14 @@ class ExpressionBuilder
   }
 
   ast.Arguments buildArgumentsForInvocation(InvocationExpression node) {
-    return buildArguments(node.argumentList,
-        explicitTypeArguments: node.typeArguments,
-        inferTypeArguments: () =>
-            scope.getInferredInvocationTypeArguments(node));
+    if (scope.strongMode) {
+      return buildArguments(node.argumentList,
+          explicitTypeArguments: node.typeArguments,
+          inferTypeArguments: () =>
+              scope.getInferredInvocationTypeArguments(node));
+    } else {
+      return buildArguments(node.argumentList);
+    }
   }
 
   static final ast.Name callName = new ast.Name('call');
@@ -1606,6 +1702,9 @@ class ExpressionBuilder
         if (isTopLevelFunction(function)) {
           return scope.staticAccess(node.name, function);
         }
+        if (function == function.library.loadLibraryFunction) {
+          return scope.unsupportedFeature('Deferred loading');
+        }
         return new VariableAccessor(scope.getVariableReference(function));
 
       case ElementKind.LOCAL_VARIABLE:
@@ -1677,6 +1776,15 @@ class ExpressionBuilder
     return element;
   }
 
+  /// Forces the list of type arguments to have the specified length. If the
+  /// length was changed, all type arguments are changed to `dynamic`.
+  void _coerceTypeArgumentArity(List<ast.DartType> typeArguments, int arity) {
+    if (typeArguments.length != arity) {
+      typeArguments.length = arity;
+      typeArguments.fillRange(0, arity, const ast.DynamicType());
+    }
+  }
+
   ast.Expression visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     ConstructorElement element = node.staticElement;
@@ -1729,6 +1837,8 @@ class ExpressionBuilder
     if (classElement.isEnum) {
       return scope.emitCompileTimeError(CompileTimeErrorCode.INSTANTIATE_ENUM);
     }
+    _coerceTypeArgumentArity(
+        arguments.types, classElement.typeParameters.length);
     if (element.isFactory) {
       ast.Member target = scope.resolveConcreteMethod(element);
       if (target is ast.Procedure &&
@@ -1855,7 +1965,7 @@ class ExpressionBuilder
                   new ast.VariableGet(receiver),
                   scope.buildName(node.methodName),
                   buildArgumentsForInvocation(node),
-                  element),
+                  element)..fileOffset = node.methodName.offset,
               scope.buildType(node.staticType)));
     } else {
       return buildDecomposableMethodInvocation(
@@ -1890,6 +2000,7 @@ class ExpressionBuilder
         var leftHand = buildLeftHandValue(node.operand);
         var binaryOperator = new ast.Name(operator[0]);
         return leftHand.buildPostfixIncrement(binaryOperator,
+            offset: node.offset,
             voidContext: isInVoidContext(node),
             interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
 
@@ -1923,6 +2034,7 @@ class ExpressionBuilder
         var leftHand = buildLeftHandValue(node.operand);
         var binaryOperator = new ast.Name(operator[0]);
         return leftHand.buildPrefixIncrement(binaryOperator,
+            offset: node.offset,
             interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
 
       default:
@@ -2067,6 +2179,12 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
     return convertType(type, null);
   }
 
+  /// True if [parameter] should not be reified, because spec mode does not
+  /// currently reify generic method type parameters.
+  bool isUnreifiedTypeParameter(TypeParameterElement parameter) {
+    return !scope.strongMode && parameter.enclosingElement is! ClassElement;
+  }
+
   /// Converts [type] to an [ast.DartType], while replacing unbound type
   /// variables with 'dynamic'.
   ///
@@ -2076,8 +2194,19 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
   ast.DartType convertType(
       DartType type, List<TypeParameterElement> boundVariables) {
     if (type is TypeParameterType) {
+      if (isUnreifiedTypeParameter(type.element)) {
+        return const ast.DynamicType();
+      }
       if (boundVariables == null || boundVariables.contains(type)) {
-        var typeParameter = scope.getTypeParameterReference(type.element);
+        var typeParameter = scope.tryGetTypeParameterReference(type.element);
+        if (typeParameter == null) {
+          // The analyzer sometimes gives us a type parameter that was not
+          // bound anywhere.  Make sure we do not emit a dangling reference.
+          if (type.element.bound != null) {
+            return convertType(type.element.bound, []);
+          }
+          return const ast.DynamicType();
+        }
         if (!scope.allowClassTypeParameters &&
             typeParameter.parent is ast.Class) {
           return const ast.InvalidType();
@@ -2089,7 +2218,7 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
     } else if (type is InterfaceType) {
       var classNode = scope.getClassReference(type.element);
       if (type.typeArguments.length == 0) {
-        return new ast.InterfaceType(classNode);
+        return classNode.rawType;
       }
       if (type.typeArguments.length != classNode.typeParameters.length) {
         log.warning('Type parameter arity error in $type');
@@ -2169,7 +2298,7 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
     Element element = node.staticElement;
     switch (ElementKind.of(element)) {
       case ElementKind.CLASS:
-        return new ast.InterfaceType(scope.getClassReference(element));
+        return scope.getClassReference(element).rawType;
 
       case ElementKind.DYNAMIC:
         return const ast.DynamicType();
@@ -2183,6 +2312,9 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
         if (!scope.allowClassTypeParameters &&
             typeParameter.parent is ast.Class) {
           return const ast.InvalidType();
+        }
+        if (isUnreifiedTypeParameter(element)) {
+          return const ast.DynamicType();
         }
         return new ast.TypeParameterType(typeParameter);
 
@@ -2302,7 +2434,8 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     currentClass.name = element.name;
     currentClass.supertype = scope.getRootClassReference().asRawSupertype;
     currentClass.constructors.add(
-        new ast.Constructor(new ast.FunctionNode(new ast.InvalidStatement())));
+        new ast.Constructor(new ast.FunctionNode(new ast.InvalidStatement()))
+          ..fileOffset = element.nameOffset);
   }
 
   void addAnnotations(List<Annotation> annotations) {
@@ -2324,7 +2457,10 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   bool _isIgnoredMember(ClassMember node) {
     return node is ConstructorDeclaration &&
         node.factoryKeyword != null &&
-        node.element.redirectedConstructor != null;
+        resolutionMap
+                .elementDeclaredByConstructorDeclaration(node)
+                .redirectedConstructor !=
+            null;
   }
 
   visitClassDeclaration(ClassDeclaration node) {
@@ -2433,40 +2569,59 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   visitEnumDeclaration(EnumDeclaration node) {
     addAnnotations(node.metadata);
     ast.Class classNode = currentClass;
-    var intType =
-        new ast.InterfaceType(scope.loader.getCoreClassReference('int'));
+
+    var intType = scope.loader.getCoreClassReference('int').rawType;
     var indexFieldElement = element.fields.firstWhere(_isIndexField);
     ast.Field indexField = scope.getMemberReference(indexFieldElement);
     indexField.type = intType;
     classNode.addMember(indexField);
-    var parameter = new ast.VariableDeclaration('index', type: intType);
+
+    var stringType = scope.loader.getCoreClassReference('String').rawType;
+    ast.Field nameField = new ast.Field(
+        new ast.Name('_name', scope.currentLibrary),
+        type: stringType,
+        isFinal: true,
+        fileUri: classNode.fileUri);
+    classNode.addMember(nameField);
+
+    var indexParameter = new ast.VariableDeclaration('index', type: intType);
+    var nameParameter = new ast.VariableDeclaration('name', type: stringType);
     var function = new ast.FunctionNode(new ast.EmptyStatement(),
-        positionalParameters: [parameter]);
+        positionalParameters: [indexParameter, nameParameter]);
     var superConstructor = scope.loader.getRootClassConstructorReference();
     var constructor = new ast.Constructor(function,
         name: new ast.Name(''),
         isConst: true,
         initializers: [
-          new ast.FieldInitializer(indexField, new ast.VariableGet(parameter)),
+          new ast.FieldInitializer(
+              indexField, new ast.VariableGet(indexParameter)),
+          new ast.FieldInitializer(
+              nameField, new ast.VariableGet(nameParameter)),
           new ast.SuperInitializer(superConstructor, new ast.Arguments.empty())
-        ]);
+        ])..fileOffset = element.nameOffset;
     classNode.addMember(constructor);
+
     int index = 0;
     var enumConstantFields = <ast.Field>[];
     for (var constant in node.constants) {
       ast.Field field = scope.getMemberReference(constant.element);
       field.initializer = new ast.ConstructorInvocation(
-          constructor, new ast.Arguments([new ast.IntLiteral(index)]),
+          constructor,
+          new ast.Arguments([
+            new ast.IntLiteral(index),
+            new ast.StringLiteral('${classNode.name}.${field.name.name}')
+          ]),
           isConst: true)..parent = field;
-      field.type = new ast.InterfaceType(classNode);
+      field.type = classNode.rawType;
       classNode.addMember(field);
       ++index;
       enumConstantFields.add(field);
     }
+
     // Add the 'values' field.
     var valuesFieldElement = element.fields.firstWhere(_isValuesField);
     ast.Field valuesField = scope.getMemberReference(valuesFieldElement);
-    var enumType = new ast.InterfaceType(classNode);
+    var enumType = classNode.rawType;
     valuesField.type = new ast.InterfaceType(
         scope.loader.getCoreClassReference('List'), <ast.DartType>[enumType]);
     valuesField.initializer = new ast.ListLiteral(
@@ -2474,7 +2629,15 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         isConst: true,
         typeArgument: enumType)..parent = valuesField;
     classNode.addMember(valuesField);
-    // TODO: Add the toString method.
+
+    // Add the 'toString()' method.
+    var body = new ast.ReturnStatement(
+        new ast.DirectPropertyGet(new ast.ThisExpression(), nameField));
+    var toStringFunction = new ast.FunctionNode(body, returnType: stringType);
+    var toStringMethod = new ast.Procedure(
+        new ast.Name('toString'), ast.ProcedureKind.Method, toStringFunction,
+        fileUri: classNode.fileUri);
+    classNode.addMember(toStringMethod);
   }
 
   visitClassTypeAlias(ClassTypeAlias node) {
@@ -2525,6 +2688,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
 
   void build(AstNode node) {
     if (node != null) {
+      currentMember.fileEndOffset = node.endToken.offset;
       node.accept(this);
     } else {
       buildBrokenMember();
@@ -2574,6 +2738,10 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   void buildGenerativeConstructor(ConstructorDeclaration node) {
+    if (currentMember is! ast.Constructor) {
+      buildBrokenMember();
+      return;
+    }
     addAnnotations(node.metadata);
     ast.Constructor constructor = currentMember;
     constructor.function = scope.buildFunctionNode(node.parameters, node.body,
@@ -2585,9 +2753,18 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     }
     for (var parameter in node.parameters.parameterElements) {
       if (parameter is FieldFormalParameterElement) {
-        var initializer = new ast.FieldInitializer(
-            scope.getMemberReference(parameter.field),
-            new ast.VariableGet(scope.getVariableReference(parameter)));
+        ast.Initializer initializer;
+        if (parameter.field == null) {
+          initializer = new ast.LocalInitializer(
+              new ast.VariableDeclaration.forValue(scope
+                  .buildThrowCompileTimeErrorFromCode(
+                      CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
+                      [parameter.name])));
+        } else {
+          initializer = new ast.FieldInitializer(
+              scope.getMemberReference(parameter.field),
+              new ast.VariableGet(scope.getVariableReference(parameter)));
+        }
         constructor.initializers.add(initializer..parent = constructor);
       }
     }
@@ -2599,7 +2776,9 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         hasExplicitConstructorCall = true;
       }
     }
-    ClassElement classElement = node.element.enclosingElement;
+    ClassElement classElement = resolutionMap
+        .elementDeclaredByConstructorDeclaration(node)
+        .enclosingElement;
     if (classElement.supertype != null && !hasExplicitConstructorCall) {
       ConstructorElement targetElement =
           scope.findDefaultConstructor(classElement.supertype.element);
@@ -2615,24 +2794,39 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   void buildFactoryConstructor(ConstructorDeclaration node) {
+    if (currentMember is! ast.Procedure) {
+      buildBrokenMember();
+      return;
+    }
     addAnnotations(node.metadata);
     ast.Procedure procedure = currentMember;
-    ClassElement classElement = node.element.enclosingElement;
+    ClassElement classElement = resolutionMap
+        .elementDeclaredByConstructorDeclaration(node)
+        .enclosingElement;
     ast.Class classNode = procedure.enclosingClass;
     var types = getFreshTypeParameters(classNode.typeParameters);
     for (int i = 0; i < classElement.typeParameters.length; ++i) {
       scope.localTypeParameters[classElement.typeParameters[i]] =
           types.freshTypeParameters[i];
     }
+    var inferredReturnType = types.freshTypeParameters.isEmpty
+        ? classNode.rawType
+        : new ast.InterfaceType(
+            classNode,
+            types.freshTypeParameters
+                .map(makeTypeParameterType)
+                .toList(growable: false));
     var function = scope.buildFunctionNode(node.parameters, node.body,
         typeParameters: types.freshTypeParameters,
-        inferredReturnType: new ast.InterfaceType(classNode,
-            types.freshTypeParameters.map(makeTypeParameterType).toList()));
+        inferredReturnType: inferredReturnType);
     procedure.function = function..parent = procedure;
     handleNativeBody(node.body);
     if (node.redirectedConstructor != null) {
       // Redirecting factories with resolved targets don't show up here.
-      assert(node.element.redirectedConstructor == null);
+      assert(resolutionMap
+              .elementDeclaredByConstructorDeclaration(node)
+              .redirectedConstructor ==
+          null);
       var function = procedure.function;
       var name = node.redirectedConstructor.type.name.name;
       if (node.redirectedConstructor.name != null) {
@@ -2651,17 +2845,19 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     ast.Procedure procedure = currentMember;
     procedure.function = scope.buildFunctionNode(node.parameters, node.body,
         returnType: node.returnType,
-        inferredReturnType: scope.buildType(node.element.returnType),
-        typeParameters:
-            scope.buildOptionalTypeParameterList(node.typeParameters))
-      ..parent = procedure;
+        inferredReturnType: scope.buildType(
+            resolutionMap.elementDeclaredByMethodDeclaration(node).returnType),
+        typeParameters: scope.buildOptionalTypeParameterList(
+            node.typeParameters,
+            strongModeOnly: true))..parent = procedure;
     handleNativeBody(node.body);
   }
 
   visitVariableDeclaration(VariableDeclaration node) {
     addAnnotations(node.metadata);
     ast.Field field = currentMember;
-    field.type = scope.buildType(node.element.type);
+    field.type = scope.buildType(
+        resolutionMap.elementDeclaredByVariableDeclaration(node).type);
     if (node.initializer != null) {
       field.initializer = scope.buildTopLevelExpression(node.initializer)
         ..parent = field;
@@ -2673,14 +2869,15 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
+    addAnnotations(node.metadata);
     var function = node.functionExpression;
     ast.Procedure procedure = currentMember;
     procedure.function = scope.buildFunctionNode(
         function.parameters, function.body,
         returnType: node.returnType,
-        typeParameters:
-            scope.buildOptionalTypeParameterList(function.typeParameters))
-      ..parent = procedure;
+        typeParameters: scope.buildOptionalTypeParameterList(
+            function.typeParameters,
+            strongModeOnly: true))..parent = procedure;
     handleNativeBody(function.body);
   }
 

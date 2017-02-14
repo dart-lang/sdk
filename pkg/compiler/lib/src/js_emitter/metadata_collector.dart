@@ -2,7 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.metadata_collector;
+
+import 'package:js_ast/src/precedence.dart' as js_precedence;
+
+import '../common.dart';
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionTypedefType;
+import '../deferred_load.dart' show OutputUnit;
+import '../elements/elements.dart'
+    show
+        ConstructorElement,
+        Element,
+        FunctionElement,
+        FunctionSignature,
+        MetadataAnnotation,
+        ParameterElement;
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../js_backend/js_backend.dart'
+    show JavaScriptBackend, TypeVariableHandler;
+
+import 'code_emitter_task.dart' show Emitter;
 
 /// Represents an entry's position in one of the global metadata arrays.
 ///
@@ -130,8 +153,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   /// A map used to canonicalize the entries of types.
-  Map<OutputUnit, Map<DartType, _BoundMetadataEntry>> _typesMap =
-      <OutputUnit, Map<DartType, _BoundMetadataEntry>>{};
+  Map<OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>> _typesMap =
+      <OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>>{};
 
   // To support incremental compilation, we have to be able to eagerly emit
   // metadata and add metadata later on. We use the below two counters for
@@ -247,8 +270,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       int i = source.requiredParameterCount;
       for (ParameterElement element in source.orderedOptionalParameters) {
         if (i >= target.requiredParameterCount && i < target.parameterCount) {
-          map[element] = target.orderedOptionalParameters[
-              i - target.requiredParameterCount];
+          map[element] = target
+              .orderedOptionalParameters[i - target.requiredParameterCount];
         }
         ++i;
       }
@@ -266,13 +289,15 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return _addGlobalMetadata(_emitter.constantReference(constant));
   }
 
-  jsAst.Expression reifyType(DartType type, {ignoreTypeVariables: false}) {
+  jsAst.Expression reifyType(ResolutionDartType type,
+      {ignoreTypeVariables: false}) {
     return reifyTypeForOutputUnit(
         type, _compiler.deferredLoadTask.mainOutputUnit,
         ignoreTypeVariables: ignoreTypeVariables);
   }
 
-  jsAst.Expression reifyTypeForOutputUnit(DartType type, OutputUnit outputUnit,
+  jsAst.Expression reifyTypeForOutputUnit(
+      ResolutionDartType type, OutputUnit outputUnit,
       {ignoreTypeVariables: false}) {
     return addTypeInOutputUnit(type, outputUnit,
         ignoreTypeVariables: ignoreTypeVariables);
@@ -303,13 +328,13 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     });
   }
 
-  jsAst.Expression _computeTypeRepresentation(DartType type,
+  jsAst.Expression _computeTypeRepresentation(ResolutionDartType type,
       {ignoreTypeVariables: false}) {
     jsAst.Expression representation =
         _backend.rtiEncoder.getTypeRepresentation(type, (variable) {
       if (ignoreTypeVariables) return new jsAst.LiteralNull();
       return _typeVariableHandler.reifyTypeVariable(variable.element);
-    }, (TypedefType typedef) {
+    }, (ResolutionTypedefType typedef) {
       return _backend.isAccessibleByReflection(typedef.element);
     });
 
@@ -323,10 +348,12 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return representation;
   }
 
-  jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit,
+  jsAst.Expression addTypeInOutputUnit(
+      ResolutionDartType type, OutputUnit outputUnit,
       {ignoreTypeVariables: false}) {
     if (_typesMap[outputUnit] == null) {
-      _typesMap[outputUnit] = new Map<DartType, _BoundMetadataEntry>();
+      _typesMap[outputUnit] =
+          new Map<ResolutionDartType, _BoundMetadataEntry>();
     }
     return _typesMap[outputUnit].putIfAbsent(type, () {
       _BoundMetadataEntry result = new _BoundMetadataEntry(

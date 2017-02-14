@@ -14,6 +14,7 @@ application_snapshot("dartdevc") {
     "--help",
   ]
   inputs = exec_script("../../tools/list_dart_files.py",
-                       [ rebase_path("../../pkg/dev_compiler/bin") ],
+                       [ "absolute",
+                         rebase_path("../../pkg/dev_compiler/bin") ],
                        "list lines")
 }

@@ -87,10 +87,7 @@ abstract class MirrorSystem {
    *
    * If no unique library exists, an error is thrown.
    */
-  LibraryMirror findLibrary(Symbol libraryName) {
-    return libraries.values.singleWhere(
-        (library) => library.simpleName == libraryName);
-  }
+  external LibraryMirror findLibrary(Symbol libraryName);
 
   /**
    * A mirror on the isolate associated with this [MirrorSystem].
@@ -174,11 +171,16 @@ external ClassMirror reflectClass(Type key);
  * If [key] is not an instance of [Type], then this function throws an
  * [ArgumentError].
  *
+ * Optionally takes a list of [typeArguments] for generic classes. If the list
+ * is provided, then the [key] must be a generic class type, and the number of
+ * the provided type arguments must be equal to the number of type variables 
+ * declared by the class.
+ *
  * Note that since one cannot obtain a [Type] object from another isolate, this
  * function can only be used to obtain type mirrors on types of the current
  * isolate.
  */
-external TypeMirror reflectType(Type key);
+external TypeMirror reflectType(Type key, [List<Type> typeArguments]);
 
 /**
  * A [Mirror] reflects some Dart language entity.
@@ -1232,7 +1234,7 @@ class Comment {
  * see the comments for [symbols], [targets], [metaTargets] and [override].
  *
  * An import of `dart:mirrors` may have multiple [MirrorsUsed] annotations. This
- * is particularly helpful to specify overrides for specific libraries. For 
+ * is particularly helpful to specify overrides for specific libraries. For
  * example:
  *
  *     @MirrorsUsed(targets: 'foo.Bar', override: 'foo')
@@ -1244,7 +1246,7 @@ class Comment {
  */
 class MirrorsUsed {
   // Note: the fields of this class are untyped.  This is because the most
-  // convenient way to specify symbols today is using a single string. In 
+  // convenient way to specify symbols today is using a single string. In
   // some cases, a const list of classes might be convenient. Some
   // might prefer to use a const list of symbols.
 
@@ -1261,7 +1263,7 @@ class MirrorsUsed {
    *
    * Dart2js currently supports the following formats to specify symbols:
    *
-   * * A constant [List] of [String] constants representing symbol names, 
+   * * A constant [List] of [String] constants representing symbol names,
    *   e.g., `const ['foo', 'bar']`.
    * * A single [String] constant whose value is a comma-separated list of
    *   symbol names, e.g., `"foo, bar"`.
@@ -1309,14 +1311,14 @@ class MirrorsUsed {
    * 1. If the qualified name matches a library name, the matching library is
    *    the target.
    * 2. Else, find the longest prefix of the name such that the prefix ends
-   *    just before a `.` and is a library name. 
+   *    just before a `.` and is a library name.
    * 3. Use that library as current scope. If no matching prefix was found, use
-   *    the current library, i.e., the library where the [MirrorsUsed] 
+   *    the current library, i.e., the library where the [MirrorsUsed]
    *    annotation was placed.
    * 4. Split the remaining suffix (the entire name if no library name was
-   *    found in step 3) into a list of [String] using `.` as a 
+   *    found in step 3) into a list of [String] using `.` as a
    *    separator.
-   * 5. Select all targets in the current scope whose name matches a [String] 
+   * 5. Select all targets in the current scope whose name matches a [String]
    *    from the list.
    *
    * For example:
@@ -1332,11 +1334,11 @@ class MirrorsUsed {
    *     @MirrorsUsed(targets: "my.library.one.A.aField")
    *     import "dart:mirrors";
    *
-   * The [MirrorsUsed] annotation specifies `A` and `aField` from library 
+   * The [MirrorsUsed] annotation specifies `A` and `aField` from library
    * `my.library.one` as targets. This will mark the class `A` as a reflective
    * target. The target specification for `aField` has no effect, as there is
-   * no target in `my.library.one` with that name. 
-   * 
+   * no target in `my.library.one` with that name.
+   *
    * Note that everything within a target also is available for reflection.
    * So, if a library is specified as target, all classes in that library
    * become targets for reflection. Likewise, if a class is a target, all
@@ -1358,9 +1360,9 @@ class MirrorsUsed {
    * effect. In particular, adding a library to [metaTargets] does not make
    * the library's classes valid metadata annotations to enable reflection.
    *
-   * If an instance of a class specified in [metaTargets] is used as 
+   * If an instance of a class specified in [metaTargets] is used as
    * metadata annotation on a library, class, field or method, that library,
-   * class, field or  method is added to the set of targets for reflection. 
+   * class, field or  method is added to the set of targets for reflection.
    *
    * Example usage:
    *
@@ -1380,10 +1382,10 @@ class MirrorsUsed {
    *     }
    *
    * In the above example. `reflectableMethod` is marked as reflectable by
-   * using the `Reflectable` class, which in turn is specified in the 
+   * using the `Reflectable` class, which in turn is specified in the
    * [metaTargets] annotation.
    *
-   * The method `nonReflectableMethod` lacks a metadata annotation and thus 
+   * The method `nonReflectableMethod` lacks a metadata annotation and thus
    * will not be reflectable at runtime.
    */
   final metaTargets;
@@ -1393,7 +1395,7 @@ class MirrorsUsed {
    *
    * When used as metadata on an import of "dart:mirrors", this metadata does
    * not apply to the library in which the annotation is used, but instead
-   * applies to the other libraries (all libraries if "*" is used). 
+   * applies to the other libraries (all libraries if "*" is used).
    *
    * The following text is non-normative:
    *
@@ -1403,31 +1405,31 @@ class MirrorsUsed {
    *   libraries.
    * * A single [String] constant whose value is a comma-separated list of
    *   library names.
-   * 
-   * Conceptually, a [MirrorsUsed] annotation with [override] has the same 
+   *
+   * Conceptually, a [MirrorsUsed] annotation with [override] has the same
    * effect as placing the annotation directly on the import of `dart:mirrors`
-   * in each of the referenced libraries. Thus, if the library had no 
-   * [MirrorsUsed] annotation before, its unconditional import of 
+   * in each of the referenced libraries. Thus, if the library had no
+   * [MirrorsUsed] annotation before, its unconditional import of
    * `dart:mirrors` is overridden by an annotated import.
-   * 
+   *
    * Note that, like multiple explicit [MirrorsUsed] annotations, using
    * override on a library with an existing [MirrorsUsed] annotation is
    * additive. That is, the overall set of reflective targets is the union
    * of the reflective targets that arise from the original and the
-   * overriding [MirrorsUsed] annotations. 
+   * overriding [MirrorsUsed] annotations.
    *
-   * The use of [override] is only meaningful for libraries that have an 
+   * The use of [override] is only meaningful for libraries that have an
    * import of `dart:mirrors` without annotation because otherwise it would
    * work exactly the same way without the [override] parameter.
    *
    * While the annotation will apply to the given target libraries, the
-   * [symbols], [targets] and [metaTargets] are still evaluated in the 
+   * [symbols], [targets] and [metaTargets] are still evaluated in the
    * scope of the annotation. Thus, to select a target from library `foo`,
    * a qualified name has to be used or, if the target is visible in the
    * current scope, its type may be referenced.
-   * 
+   *
    * For example, the following code marks all targets in the library `foo`
-   * as reflectable that have a metadata annotation using the `Reflectable` 
+   * as reflectable that have a metadata annotation using the `Reflectable`
    * class from the same library.
    *
    *     @MirrorsUsed(metaTargets: "foo.Reflectable", override: "foo")
@@ -1441,8 +1443,8 @@ class MirrorsUsed {
   final override;
 
   /**
-   * See the documentation for [MirrorsUsed.symbols], [MirrorsUsed.targets], 
-   * [MirrorsUsed.metaTargets] and [MirrorsUsed.override] for documentation 
+   * See the documentation for [MirrorsUsed.symbols], [MirrorsUsed.targets],
+   * [MirrorsUsed.metaTargets] and [MirrorsUsed.override] for documentation
    * of the parameters.
    */
   const MirrorsUsed(

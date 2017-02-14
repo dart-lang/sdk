@@ -29,6 +29,7 @@ void main() {
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
 
         checkReturn(String name, type) {
           var element = findElement(compiler, name);
@@ -38,7 +39,7 @@ void main() {
               name);
         }
 
-        checkReturn('method', compiler.closedWorld.commonMasks.numType);
-        checkReturn('returnNum', compiler.closedWorld.commonMasks.numType);
+        checkReturn('method', closedWorld.commonMasks.numType);
+        checkReturn('returnNum', closedWorld.commonMasks.numType);
       }));
 }

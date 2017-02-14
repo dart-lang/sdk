@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../compiler.dart' show Compiler;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -20,8 +20,10 @@ class CheckedModeHelper {
 
   StaticUse getStaticUse(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    return new StaticUse.staticInvoke(
-        backend.helpers.findHelper(name), callStructure);
+    // TODO(johnniwinther): Refactor this to avoid looking up directly in the
+    // js helper library but instead access helpers directly on backend helpers.
+    MethodElement method = backend.helpers.jsHelperLibrary.find(name);
+    return new StaticUse.staticInvoke(method, callStructure);
   }
 
   CallStructure get callStructure => CallStructure.ONE_ARG;
@@ -89,7 +91,8 @@ class MalformedCheckedModeHelper extends CheckedModeHelper {
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    ErroneousElement element = node.typeExpression.element;
+    MalformedType type = node.typeExpression;
+    ErroneousElement element = type.element;
     arguments.add(js.escapedString(element.message));
   }
 }
@@ -101,7 +104,7 @@ class PropertyCheckedModeHelper extends CheckedModeHelper {
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
+    ResolutionDartType type = node.typeExpression;
     jsAst.Name additionalArgument = codegen.backend.namer.operatorIsType(type);
     arguments.add(js.quoteName(additionalArgument));
   }
@@ -127,7 +130,7 @@ class SubtypeCheckedModeHelper extends CheckedModeHelper {
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
       HTypeConversion node, List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
+    ResolutionDartType type = node.typeExpression;
     Element element = type.element;
     jsAst.Name isField = codegen.backend.namer.operatorIs(element);
     arguments.add(js.quoteName(isField));

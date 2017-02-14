@@ -7,6 +7,7 @@ library analyzer.test.generated.utilities_test;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -1606,7 +1607,7 @@ class ExceptionHandlingDelegatingAstVisitorTest extends EngineTestCase {
             dynamic exception, StackTrace stackTrace) {
       handlerInvoked = true;
     });
-    new NullLiteral(null).accept(visitor);
+    astFactory.nullLiteral(null).accept(visitor);
     expect(handlerInvoked, isTrue);
   }
 }
@@ -1630,9 +1631,9 @@ class Getter_NodeReplacerTest_test_annotation_3
 }
 
 class Getter_NodeReplacerTest_test_asExpression
-    implements NodeReplacerTest_Getter<AsExpression, TypeName> {
+    implements NodeReplacerTest_Getter<AsExpression, TypeAnnotation> {
   @override
-  TypeName get(AsExpression node) => node.type;
+  TypeAnnotation get(AsExpression node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_asExpression_2
@@ -1714,9 +1715,9 @@ class Getter_NodeReplacerTest_test_catchClause_2
 }
 
 class Getter_NodeReplacerTest_test_catchClause_3
-    implements NodeReplacerTest_Getter<CatchClause, TypeName> {
+    implements NodeReplacerTest_Getter<CatchClause, TypeAnnotation> {
   @override
-  TypeName get(CatchClause node) => node.exceptionType;
+  TypeAnnotation get(CatchClause node) => node.exceptionType;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration
@@ -1882,9 +1883,9 @@ class Getter_NodeReplacerTest_test_continueStatement
 }
 
 class Getter_NodeReplacerTest_test_declaredIdentifier
-    implements NodeReplacerTest_Getter<DeclaredIdentifier, TypeName> {
+    implements NodeReplacerTest_Getter<DeclaredIdentifier, TypeAnnotation> {
   @override
-  TypeName get(DeclaredIdentifier node) => node.type;
+  TypeAnnotation get(DeclaredIdentifier node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_declaredIdentifier_2
@@ -1964,9 +1965,9 @@ class Getter_NodeReplacerTest_test_fieldFormalParameter
 }
 
 class Getter_NodeReplacerTest_test_fieldFormalParameter_2
-    implements NodeReplacerTest_Getter<FieldFormalParameter, TypeName> {
+    implements NodeReplacerTest_Getter<FieldFormalParameter, TypeAnnotation> {
   @override
-  TypeName get(FieldFormalParameter node) => node.type;
+  TypeAnnotation get(FieldFormalParameter node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_forEachStatement_withIdentifier
@@ -2042,9 +2043,9 @@ class Getter_NodeReplacerTest_test_forStatement_withVariables_3
 }
 
 class Getter_NodeReplacerTest_test_functionDeclaration
-    implements NodeReplacerTest_Getter<FunctionDeclaration, TypeName> {
+    implements NodeReplacerTest_Getter<FunctionDeclaration, TypeAnnotation> {
   @override
-  TypeName get(FunctionDeclaration node) => node.returnType;
+  TypeAnnotation get(FunctionDeclaration node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionDeclaration_2
@@ -2109,9 +2110,9 @@ class Getter_NodeReplacerTest_test_functionTypeAlias_2
 }
 
 class Getter_NodeReplacerTest_test_functionTypeAlias_3
-    implements NodeReplacerTest_Getter<FunctionTypeAlias, TypeName> {
+    implements NodeReplacerTest_Getter<FunctionTypeAlias, TypeAnnotation> {
   @override
-  TypeName get(FunctionTypeAlias node) => node.returnType;
+  TypeAnnotation get(FunctionTypeAlias node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionTypeAlias_4
@@ -2121,9 +2122,10 @@ class Getter_NodeReplacerTest_test_functionTypeAlias_4
 }
 
 class Getter_NodeReplacerTest_test_functionTypedFormalParameter
-    implements NodeReplacerTest_Getter<FunctionTypedFormalParameter, TypeName> {
+    implements
+        NodeReplacerTest_Getter<FunctionTypedFormalParameter, TypeAnnotation> {
   @override
-  TypeName get(FunctionTypedFormalParameter node) => node.returnType;
+  TypeAnnotation get(FunctionTypedFormalParameter node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_functionTypedFormalParameter_2
@@ -2197,9 +2199,9 @@ class Getter_NodeReplacerTest_test_isExpression
 }
 
 class Getter_NodeReplacerTest_test_isExpression_2
-    implements NodeReplacerTest_Getter<IsExpression, TypeName> {
+    implements NodeReplacerTest_Getter<IsExpression, TypeAnnotation> {
   @override
-  TypeName get(IsExpression node) => node.type;
+  TypeAnnotation get(IsExpression node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_label
@@ -2233,9 +2235,9 @@ class Getter_NodeReplacerTest_test_mapLiteralEntry_2
 }
 
 class Getter_NodeReplacerTest_test_methodDeclaration
-    implements NodeReplacerTest_Getter<MethodDeclaration, TypeName> {
+    implements NodeReplacerTest_Getter<MethodDeclaration, TypeAnnotation> {
   @override
-  TypeName get(MethodDeclaration node) => node.returnType;
+  TypeAnnotation get(MethodDeclaration node) => node.returnType;
 }
 
 class Getter_NodeReplacerTest_test_methodDeclaration_2
@@ -2370,9 +2372,9 @@ class Getter_NodeReplacerTest_test_returnStatement
 }
 
 class Getter_NodeReplacerTest_test_simpleFormalParameter
-    implements NodeReplacerTest_Getter<SimpleFormalParameter, TypeName> {
+    implements NodeReplacerTest_Getter<SimpleFormalParameter, TypeAnnotation> {
   @override
-  TypeName get(SimpleFormalParameter node) => node.type;
+  TypeAnnotation get(SimpleFormalParameter node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_superConstructorInvocation
@@ -2441,9 +2443,9 @@ class Getter_NodeReplacerTest_test_typeName_2
 }
 
 class Getter_NodeReplacerTest_test_typeParameter
-    implements NodeReplacerTest_Getter<TypeParameter, TypeName> {
+    implements NodeReplacerTest_Getter<TypeParameter, TypeAnnotation> {
   @override
-  TypeName get(TypeParameter node) => node.bound;
+  TypeAnnotation get(TypeParameter node) => node.bound;
 }
 
 class Getter_NodeReplacerTest_test_typeParameter_2
@@ -2465,9 +2467,10 @@ class Getter_NodeReplacerTest_test_variableDeclaration_2
 }
 
 class Getter_NodeReplacerTest_test_variableDeclarationList
-    implements NodeReplacerTest_Getter<VariableDeclarationList, TypeName> {
+    implements
+        NodeReplacerTest_Getter<VariableDeclarationList, TypeAnnotation> {
   @override
-  TypeName get(VariableDeclarationList node) => node.type;
+  TypeAnnotation get(VariableDeclarationList node) => node.type;
 }
 
 class Getter_NodeReplacerTest_test_variableDeclarationStatement
@@ -2763,11 +2766,11 @@ class ListGetter_NodeReplacerTest_test_tryStatement
 }
 
 class ListGetter_NodeReplacerTest_test_typeArgumentList
-    extends NodeReplacerTest_ListGetter<TypeArgumentList, TypeName> {
+    extends NodeReplacerTest_ListGetter<TypeArgumentList, TypeAnnotation> {
   ListGetter_NodeReplacerTest_test_typeArgumentList(int arg0) : super(arg0);
 
   @override
-  NodeList<TypeName> getList(TypeArgumentList node) => node.arguments;
+  NodeList<TypeAnnotation> getList(TypeArgumentList node) => node.arguments;
 }
 
 class ListGetter_NodeReplacerTest_test_typeParameterList
@@ -3063,8 +3066,7 @@ class NodeReplacerTest extends EngineTestCase {
       AstTestFactory.fieldDeclaration2(
           false, null, [AstTestFactory.variableDeclaration("f")])
     ]);
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     node.nativeClause = AstTestFactory.nativeClause("");
@@ -3087,8 +3089,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstTestFactory.typeName4("B"),
         AstTestFactory.withClause([AstTestFactory.typeName4("C")]),
         AstTestFactory.implementsClause([AstTestFactory.typeName4("D")]));
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_classTypeAlias_4());
@@ -3100,15 +3101,15 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_comment() {
-    Comment node = Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
-    node.references
-        .add(new CommentReference(null, AstTestFactory.identifier3("x")));
+    Comment node = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
+    node.references.add(
+        astFactory.commentReference(null, AstTestFactory.identifier3("x")));
     _assertReplace(node, new ListGetter_NodeReplacerTest_test_comment(0));
   }
 
   void test_commentReference() {
     CommentReference node =
-        new CommentReference(null, AstTestFactory.identifier3("x"));
+        astFactory.commentReference(null, AstTestFactory.identifier3("x"));
     _assertReplace(node, new Getter_NodeReplacerTest_test_commentReference());
   }
 
@@ -3151,8 +3152,7 @@ class NodeReplacerTest extends EngineTestCase {
               false, "x", AstTestFactory.integer(0))
         ],
         AstTestFactory.emptyFunctionBody());
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     node.redirectedConstructor =
@@ -3196,8 +3196,7 @@ class NodeReplacerTest extends EngineTestCase {
   void test_declaredIdentifier() {
     DeclaredIdentifier node =
         AstTestFactory.declaredIdentifier4(AstTestFactory.typeName4("C"), "i");
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_declaredIdentifier());
@@ -3223,8 +3222,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_enumConstantDeclaration() {
-    EnumConstantDeclaration node = new EnumConstantDeclaration(
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST),
+    EnumConstantDeclaration node = astFactory.enumConstantDeclaration(
+        astFactory.endOfLineComment(EMPTY_TOKEN_LIST),
         [AstTestFactory.annotation(AstTestFactory.identifier3("a"))],
         AstTestFactory.identifier3("C"));
     _assertReplace(
@@ -3234,8 +3233,7 @@ class NodeReplacerTest extends EngineTestCase {
 
   void test_enumDeclaration() {
     EnumDeclaration node = AstTestFactory.enumDeclaration2("E", ["ONE", "TWO"]);
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_enumDeclaration());
@@ -3246,8 +3244,7 @@ class NodeReplacerTest extends EngineTestCase {
     ExportDirective node = AstTestFactory.exportDirective2("", [
       AstTestFactory.hideCombinator2(["C"])
     ]);
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _testNamespaceDirective(node);
@@ -3279,8 +3276,7 @@ class NodeReplacerTest extends EngineTestCase {
         null,
         AstTestFactory.typeName4("C"),
         [AstTestFactory.variableDeclaration("c")]);
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_fieldDeclaration());
@@ -3293,8 +3289,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstTestFactory.typeName4("C"),
         "f",
         AstTestFactory.formalParameterList());
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata = [
       AstTestFactory.annotation(AstTestFactory.identifier3("a"))
     ];
@@ -3380,8 +3375,7 @@ class NodeReplacerTest extends EngineTestCase {
         "f",
         AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
             AstTestFactory.blockFunctionBody(AstTestFactory.block())));
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(
@@ -3431,8 +3425,7 @@ class NodeReplacerTest extends EngineTestCase {
         "F",
         AstTestFactory.typeParameterList(["E"]),
         AstTestFactory.formalParameterList());
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(
@@ -3449,8 +3442,7 @@ class NodeReplacerTest extends EngineTestCase {
     FunctionTypedFormalParameter node = AstTestFactory
         .functionTypedFormalParameter(AstTestFactory.typeName4("R"), "f",
             [AstTestFactory.simpleFormalParameter3("p")]);
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata = [
       AstTestFactory.annotation(AstTestFactory.identifier3("a"))
     ];
@@ -3489,8 +3481,7 @@ class NodeReplacerTest extends EngineTestCase {
       AstTestFactory.showCombinator2(["A"]),
       AstTestFactory.hideCombinator2(["B"])
     ]);
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_importDirective());
@@ -3542,8 +3533,7 @@ class NodeReplacerTest extends EngineTestCase {
 
   void test_libraryDirective() {
     LibraryDirective node = AstTestFactory.libraryDirective2("lib");
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_libraryDirective());
@@ -3590,8 +3580,7 @@ class NodeReplacerTest extends EngineTestCase {
         AstTestFactory.identifier3("m"),
         AstTestFactory.formalParameterList(),
         AstTestFactory.blockFunctionBody(AstTestFactory.block()));
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_methodDeclaration());
@@ -3638,8 +3627,7 @@ class NodeReplacerTest extends EngineTestCase {
 
   void test_partDirective() {
     PartDirective node = AstTestFactory.partDirective2("");
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _testUriBasedDirective(node);
@@ -3648,8 +3636,7 @@ class NodeReplacerTest extends EngineTestCase {
   void test_partOfDirective() {
     PartOfDirective node = AstTestFactory
         .partOfDirective(AstTestFactory.libraryIdentifier2(["lib"]));
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(node, new Getter_NodeReplacerTest_test_partOfDirective());
@@ -3706,8 +3693,7 @@ class NodeReplacerTest extends EngineTestCase {
   void test_simpleFormalParameter() {
     SimpleFormalParameter node = AstTestFactory.simpleFormalParameter4(
         AstTestFactory.typeName4("T"), "p");
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata = [
       AstTestFactory.annotation(AstTestFactory.identifier3("a"))
     ];
@@ -3768,8 +3754,7 @@ class NodeReplacerTest extends EngineTestCase {
     TopLevelVariableDeclaration node = AstTestFactory
         .topLevelVariableDeclaration(null, AstTestFactory.typeName4("T"),
             [AstTestFactory.variableDeclaration("t")]);
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(
@@ -3819,8 +3804,7 @@ class NodeReplacerTest extends EngineTestCase {
   void test_variableDeclaration() {
     VariableDeclaration node =
         AstTestFactory.variableDeclaration2("a", AstTestFactory.nullLiteral());
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(
@@ -3835,8 +3819,7 @@ class NodeReplacerTest extends EngineTestCase {
         null,
         AstTestFactory.typeName4("T"),
         [AstTestFactory.variableDeclaration("a")]);
-    node.documentationComment =
-        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
     _assertReplace(

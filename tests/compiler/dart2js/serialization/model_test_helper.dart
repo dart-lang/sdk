@@ -13,7 +13,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/enqueue.dart';
@@ -99,7 +99,8 @@ Future checkModels(Uri entryPoint,
         compilerDeserialized.enqueuer.resolution,
         verbose: verbose);
     checkClosedWorlds(
-        compilerNormal.closedWorld, compilerDeserialized.closedWorld,
+        compilerNormal.resolutionWorldBuilder.closedWorldForTesting,
+        compilerDeserialized.resolutionWorldBuilder.closedWorldForTesting,
         verbose: verbose);
     checkBackendInfo(compilerNormal, compilerDeserialized, verbose: verbose);
   });
@@ -107,15 +108,16 @@ Future checkModels(Uri entryPoint,
 
 void checkResolutionEnqueuers(
     ResolutionEnqueuer enqueuer1, ResolutionEnqueuer enqueuer2,
-    {bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
+    {bool typeEquivalence(ResolutionDartType a, ResolutionDartType b):
+        areTypesEquivalent,
     bool elementFilter(Element element),
     bool verbose: false}) {
-  checkSets(enqueuer1.processedElements, enqueuer2.processedElements,
+  checkSets(enqueuer1.processedEntities, enqueuer2.processedEntities,
       "Processed element mismatch", areElementsEquivalent,
       elementFilter: elementFilter, verbose: verbose);
 
-  ResolutionWorldBuilderImpl worldBuilder1 = enqueuer1.universe;
-  ResolutionWorldBuilderImpl worldBuilder2 = enqueuer2.universe;
+  ResolutionWorldBuilderImpl worldBuilder1 = enqueuer1.worldBuilder;
+  ResolutionWorldBuilderImpl worldBuilder2 = enqueuer2.worldBuilder;
 
   checkMaps(
       worldBuilder1.getInstantiationMap(),
@@ -126,39 +128,35 @@ void checkResolutionEnqueuers(
       verbose: verbose);
 
   checkSets(
-      enqueuer1.universe.directlyInstantiatedClasses,
-      enqueuer2.universe.directlyInstantiatedClasses,
+      enqueuer1.worldBuilder.directlyInstantiatedClasses,
+      enqueuer2.worldBuilder.directlyInstantiatedClasses,
       "Directly instantiated classes mismatch",
       areElementsEquivalent,
       verbose: verbose);
 
   checkSets(
-      enqueuer1.universe.instantiatedTypes,
-      enqueuer2.universe.instantiatedTypes,
+      enqueuer1.worldBuilder.instantiatedTypes,
+      enqueuer2.worldBuilder.instantiatedTypes,
       "Instantiated types mismatch",
       typeEquivalence,
       verbose: verbose);
 
-  checkSets(enqueuer1.universe.isChecks, enqueuer2.universe.isChecks,
+  checkSets(enqueuer1.worldBuilder.isChecks, enqueuer2.worldBuilder.isChecks,
       "Is-check mismatch", typeEquivalence,
       verbose: verbose);
 
   JavaScriptBackend backend1 = enqueuer1.backend;
   JavaScriptBackend backend2 = enqueuer2.backend;
   Expect.equals(backend1.hasInvokeOnSupport, backend2.hasInvokeOnSupport,
-      "Compiler.enabledInvokeOn mismatch");
+      "JavaScriptBackend.hasInvokeOnSupport mismatch");
   Expect.equals(
-      enqueuer1.universe.hasFunctionApplySupport,
-      enqueuer2.universe.hasFunctionApplySupport,
-      "ResolutionEnqueuer.universe.hasFunctionApplySupport mismatch");
-  Expect.equals(
-      enqueuer1.universe.hasRuntimeTypeSupport,
-      enqueuer2.universe.hasRuntimeTypeSupport,
-      "ResolutionEnqueuer.universe.hasRuntimeTypeSupport mismatch");
-  Expect.equals(
-      enqueuer1.universe.hasIsolateSupport,
-      enqueuer2.universe.hasIsolateSupport,
-      "ResolutionEnqueuer.universe.hasIsolateSupport mismatch");
+      backend1.hasFunctionApplySupport,
+      backend2.hasFunctionApplySupport,
+      "JavaScriptBackend.hasFunctionApplySupport mismatch");
+  Expect.equals(backend1.hasRuntimeTypeSupport, backend2.hasRuntimeTypeSupport,
+      "JavaScriptBackend.hasRuntimeTypeSupport mismatch");
+  Expect.equals(backend1.hasIsolateSupport, backend2.hasIsolateSupport,
+      "JavaScriptBackend.hasIsolateSupport mismatch");
 }
 
 void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
@@ -166,16 +164,18 @@ void checkClosedWorlds(ClosedWorld closedWorld1, ClosedWorld closedWorld2,
   checkClassHierarchyNodes(
       closedWorld1,
       closedWorld2,
-      closedWorld1.getClassHierarchyNode(closedWorld1.coreClasses.objectClass),
-      closedWorld2.getClassHierarchyNode(closedWorld2.coreClasses.objectClass),
+      closedWorld1
+          .getClassHierarchyNode(closedWorld1.commonElements.objectClass),
+      closedWorld2
+          .getClassHierarchyNode(closedWorld2.commonElements.objectClass),
       verbose: verbose);
 }
 
 void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,
     {bool verbose: false}) {
   checkSets(
-      compilerNormal.enqueuer.resolution.processedElements,
-      compilerDeserialized.enqueuer.resolution.processedElements,
+      compilerNormal.enqueuer.resolution.processedEntities,
+      compilerDeserialized.enqueuer.resolution.processedEntities,
       "Processed element mismatch",
       areElementsEquivalent, onSameElement: (a, b) {
     checkElements(compilerNormal, compilerDeserialized, a, b, verbose: verbose);
@@ -338,10 +338,10 @@ void checkClassHierarchyNodes(
       if (child.isInstantiated) {
         print('Missing subclass ${child.cls} of ${node1.cls} '
             'in ${node2.directSubclasses}');
-        print(closedWorld1
-            .dump(verbose ? closedWorld1.coreClasses.objectClass : node1.cls));
-        print(closedWorld2
-            .dump(verbose ? closedWorld2.coreClasses.objectClass : node2.cls));
+        print(closedWorld1.dump(
+            verbose ? closedWorld1.commonElements.objectClass : node1.cls));
+        print(closedWorld2.dump(
+            verbose ? closedWorld2.commonElements.objectClass : node2.cls));
       }
       Expect.isFalse(
           child.isInstantiated,
@@ -426,8 +426,10 @@ void checkOutputUnits(
       (a, b) => areElementsEquivalent(a.declaration, b.declaration));
 }
 
-bool areInstantiationInfosEquivalent(InstantiationInfo info1,
-    InstantiationInfo info2, bool typeEquivalence(DartType a, DartType b)) {
+bool areInstantiationInfosEquivalent(
+    InstantiationInfo info1,
+    InstantiationInfo info2,
+    bool typeEquivalence(ResolutionDartType a, ResolutionDartType b)) {
   checkMaps(
       info1.instantiationMap,
       info2.instantiationMap,
@@ -440,7 +442,7 @@ bool areInstantiationInfosEquivalent(InstantiationInfo info1,
 }
 
 bool areInstancesEquivalent(Instance instance1, Instance instance2,
-    bool typeEquivalence(DartType a, DartType b)) {
+    bool typeEquivalence(ResolutionDartType a, ResolutionDartType b)) {
   return typeEquivalence(instance1.type, instance2.type) &&
       instance1.kind == instance2.kind &&
       instance1.isRedirection == instance2.isRedirection;

@@ -36,8 +36,8 @@ abstract class num implements Comparable<num> {
    * will fail to work. The behavior is the standard IEEE-754 equality of
    * doubles.
    *
-   * If you can avoid NaN values, the remaining doubles do have a proper eqality
-   * relation, and can be used safely.
+   * If you can avoid NaN values, the remaining doubles do have a proper
+   * equality relation, and can be used safely.
    *
    * Use [compareTo] for a comparison that distinguishes zero and minus zero,
    * and that considers NaN values as equal.
@@ -51,7 +51,7 @@ abstract class num implements Comparable<num> {
    * for an [int] and a [double] with the same numerical value, and therefore
    * the same value for the doubles zero and minus zero.
    *
-   * No guarantees are made about the hash code of NaN.
+   * No guarantees are made about the hash code of NaN values.
    */
   int get hashCode;
 
@@ -61,21 +61,45 @@ abstract class num implements Comparable<num> {
    * Returns a negative number if `this` is less than `other`, zero if they are
    * equal, and a positive number if `this` is greater than `other`.
    *
-   * The orderding represented by this method is a total ordering of [num]
+   * The ordering represented by this method is a total ordering of [num]
    * values. All distinct doubles are non-equal, as are all distinct integers,
    * but integers are equal to doubles if they have the same numerical
    * value.
    *
-   * For ordering, the double NaN value is considered equal to itself, and
-   * greater than any numeric value (unlike its behavior in `operator==`).
+   * For doubles, the `compareTo` operation is different from the partial
+   * ordering given by [operator==], [operator<] and [operator>]. For example,
+   * IEEE doubles impose that `0.0 == -0.0` and all comparison operations on
+   * NaN return false.
    *
-   * The double value -0.0 is considered less than 0.0 (and the integer 0), but
-   * greater than any non-zero negative value.
+   * This function imposes a complete ordering for doubles. When using
+   * `compareTo` the following properties hold:
    *
-   * Positive infinity is greater than any finite value (any value apart from
-   * itself and NaN), and negative infinity is less than any other value.
+   * - All NaN values are considered equal, and greater than any numeric value.
+   * - -0.0 is less than 0.0 (and the integer 0), but greater than any non-zero
+   *    negative value.
+   * - Negative infinity is less than all other values and positive infinity is
+   *   greater than all non-NaN values.
+   * - All other values are compared using their numeric value.
    *
-   * All other values are compared using their numeric value.
+   * Examples:
+   * ```
+   * print(1.compareTo(2)); // => -1
+   * print(2.compareTo(1)); // => 1
+   * print(1.compareTo(1)); // => 0
+   *
+   * // The following comparisons yield different results than the
+   * // corresponding comparison operators.
+   * print((-0.0).compareTo(0.0));  // => -1
+   * print(double.NAN.compareTo(double.NAN));  // => 0
+   * print(double.INFINITY.compareTo(double.NAN)); // => -1
+   *
+   * // -0.0, and NaN comparison operators have rules imposed by the IEEE
+   * // standard.
+   * print(-0.0 == 0.0); // => true
+   * print(double.NAN == double.NAN);  // => false
+   * print(double.INFINITY < double.NAN);  // => false
+   * print(double.NAN < double.INFINITY);  // => false
+   * print(double.NAN == double.INFINITY);  // => false
    */
   int compareTo(num other);
 
@@ -162,7 +186,7 @@ abstract class num implements Comparable<num> {
   /**
    * True if the number is finite; otherwise, false.
    *
-   * The only non-finite numbers are NaN, positive infinitity and
+   * The only non-finite numbers are NaN, positive infinity, and
    * negative infinity.
    */
   bool get isFinite;
@@ -296,6 +320,9 @@ abstract class num implements Comparable<num> {
    * The comparison is done using [compareTo] and therefore takes `-0.0` into
    * account. This also implies that [double.NAN] is treated as the maximal
    * double value.
+   *
+   * The arguments [lowerLimit] and [upperLimit] must form a valid range where
+   * `lowerLimit.compareTo(upperLimit) <= 0`.
    */
   num clamp(num lowerLimit, num upperLimit);
 

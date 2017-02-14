@@ -27,7 +27,7 @@ part of dart.collection;
 abstract class SetMixin<E> implements Set<E> {
   // This class reimplements all of [IterableMixin].
   // If/when Dart mixins get more powerful, we should just create a single
-  // Mixin class from IterableMixin and the new methods of thisclass.
+  // Mixin class from IterableMixin and the new methods of this class.
 
   bool add(E element);
 
@@ -120,8 +120,8 @@ abstract class SetMixin<E> implements Set<E> {
     return result;
   }
 
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/f(E element)) =>
-      new EfficientLengthMappedIterable<E, dynamic/*=T*/>(this, f);
+  Iterable<T> map<T>(T f(E element)) =>
+      new EfficientLengthMappedIterable<E, T>(this, f);
 
   E get single {
     if (length > 1) throw IterableElementError.tooMany();
@@ -138,8 +138,8 @@ abstract class SetMixin<E> implements Set<E> {
 
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
-  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) =>
-      new ExpandIterable<E, dynamic/*=T*/>(this, f);
+  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
+      new ExpandIterable<E, T>(this, f);
 
   void forEach(void f(E element)) {
     for (E element in this) f(element);
@@ -157,8 +157,8 @@ abstract class SetMixin<E> implements Set<E> {
     return value;
   }
 
-  dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
-      dynamic/*=T*/ combine(var/*=T*/ previousValue, E element)) {
+  T fold<T>(T initialValue,
+      T combine(T previousValue, E element)) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;

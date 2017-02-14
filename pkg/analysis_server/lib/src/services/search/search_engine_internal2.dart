@@ -19,21 +19,43 @@ class SearchEngineImpl2 implements SearchEngine {
   SearchEngineImpl2(this._drivers);
 
   @override
-  Future<List<SearchMatch>> searchAllSubtypes(ClassElement type) async {
-    // TODO(scheglov) implement
-    return [];
+  Future<Set<ClassElement>> searchAllSubtypes(ClassElement type) async {
+    Set<ClassElement> allSubtypes = new Set<ClassElement>();
+
+    Future<Null> addSubtypes(ClassElement type) async {
+      List<SearchResult> directResults = await _searchDirectSubtypes(type);
+      for (SearchResult directResult in directResults) {
+        var directSubtype = directResult.enclosingElement as ClassElement;
+        if (allSubtypes.add(directSubtype)) {
+          await addSubtypes(directSubtype);
+        }
+      }
+    }
+
+    await addSubtypes(type);
+    return allSubtypes;
   }
 
   @override
   Future<List<SearchMatch>> searchMemberDeclarations(String name) async {
-    // TODO(scheglov) implement
-    return [];
+    List<SearchMatch> allDeclarations = [];
+    RegExp regExp = new RegExp('^$name\$');
+    for (AnalysisDriver driver in _drivers) {
+      List<Element> elements = await driver.search.classMembers(regExp);
+      allDeclarations.addAll(elements.map(_SearchMatch.forElement));
+    }
+    return allDeclarations;
   }
 
   @override
   Future<List<SearchMatch>> searchMemberReferences(String name) async {
-    // TODO(scheglov) implement
-    return [];
+    List<SearchResult> allResults = [];
+    for (AnalysisDriver driver in _drivers) {
+      List<SearchResult> results =
+          await driver.search.unresolvedMemberReferences(name);
+      allResults.addAll(results);
+    }
+    return allResults.map(_SearchMatch.forSearchResult).toList();
   }
 
   @override
@@ -48,14 +70,28 @@ class SearchEngineImpl2 implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchSubtypes(ClassElement type) async {
-    // TODO(scheglov) implement
-    return [];
+    List<SearchResult> results = await _searchDirectSubtypes(type);
+    return results.map(_SearchMatch.forSearchResult).toList();
   }
 
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
-    // TODO(scheglov) implement
-    return [];
+    List<SearchMatch> allDeclarations = [];
+    RegExp regExp = new RegExp(pattern);
+    for (AnalysisDriver driver in _drivers) {
+      List<Element> elements = await driver.search.topLevelElements(regExp);
+      allDeclarations.addAll(elements.map(_SearchMatch.forElement));
+    }
+    return allDeclarations;
+  }
+
+  Future<List<SearchResult>> _searchDirectSubtypes(ClassElement type) async {
+    List<SearchResult> allResults = [];
+    for (AnalysisDriver driver in _drivers) {
+      List<SearchResult> results = await driver.search.subTypes(type);
+      allResults.addAll(results);
+    }
+    return allResults;
   }
 }
 
@@ -129,6 +165,19 @@ class _SearchMatch implements SearchMatch {
         result.isQualified,
         toMatchKind(result.kind),
         new SourceRange(result.offset, result.length));
+  }
+
+  static _SearchMatch forElement(Element element) {
+    return new _SearchMatch(
+        element.source.fullName,
+        element.librarySource,
+        element.source,
+        element.library,
+        element,
+        true,
+        true,
+        MatchKind.DECLARATION,
+        new SourceRange(element.nameOffset, element.nameLength));
   }
 
   static MatchKind toMatchKind(SearchResultKind kind) {

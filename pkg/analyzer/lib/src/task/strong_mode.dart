@@ -79,23 +79,26 @@ class InstanceMemberInferrer {
   /**
    * Initialize a newly create inferrer.
    */
-  InstanceMemberInferrer(this.typeProvider, this.inheritanceManager,
+  InstanceMemberInferrer(TypeProvider typeProvider, this.inheritanceManager,
       {TypeSystem typeSystem})
-      : typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl();
+      : typeSystem = (typeSystem != null)
+            ? typeSystem
+            : new TypeSystemImpl(typeProvider),
+        this.typeProvider = typeProvider;
 
   /**
    * Infer type information for all of the instance members in the given
    * compilation [unit].
    */
   void inferCompilationUnit(CompilationUnitElement unit) {
-    unit.types.forEach((ClassElement classElement) {
+    for (ClassElement classElement in unit.types) {
       try {
         _inferClass(classElement);
       } on _CycleException {
         // This is a short circuit return to prevent types that inherit from
         // types containing a circular reference from being inferred.
       }
-    });
+    }
   }
 
   /**
@@ -365,7 +368,7 @@ class InstanceMemberInferrer {
           newType = fieldElement.initializer.returnType;
         }
       }
-      if (newType == null || newType.isBottom) {
+      if (newType == null || newType.isBottom || newType.isDartCoreNull) {
         newType = typeProvider.dynamicType;
       }
       setFieldType(fieldElement, newType);

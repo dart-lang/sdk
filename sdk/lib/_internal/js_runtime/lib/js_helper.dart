@@ -154,6 +154,15 @@ bool isDartFunctionTypeRti(Object type) {
                     JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME));
 }
 
+/// Returns true if the given [type] is _the_ `Null` type.
+@ForceInline()
+bool isNullType(Object type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+      JsBuiltin.isGivenTypeRti,
+      type,
+      JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
+}
+
 /// Returns whether the given type is _the_ Dart Object type.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
@@ -670,11 +679,14 @@ class ReflectionInfo {
     if (JS('bool', 'typeof # == "number"', functionType)) {
       return getType(functionType);
     } else if (JS('bool', 'typeof # == "function"', functionType)) {
-      var fakeInstance = JS('', 'new #()', jsConstructor);
-      setRuntimeTypeInfo(
-          fakeInstance, JS('JSExtendableArray', '#["<>"]', fakeInstance));
-      return JS('=Object|Null', r'#.apply({$receiver:#})',
-                functionType, fakeInstance);
+      if (jsConstructor != null) {
+        var fakeInstance = JS('', 'new #()', jsConstructor);
+        setRuntimeTypeInfo(
+            fakeInstance, JS('JSExtendableArray', '#["<>"]', fakeInstance));
+        return JS('=Object|Null', r'#.apply({$receiver:#})',
+                  functionType, fakeInstance);
+      }
+      return functionType;
     } else {
       throw new RuntimeError('Unexpected function type');
     }
@@ -2607,18 +2619,21 @@ abstract class Closure implements Function {
                 })(#, #)''',
              RAW_DART_FUNCTION_REF(getType),
              functionType);
-    } else if (!isStatic
-               && JS('bool', 'typeof # == "function"', functionType)) {
-      var getReceiver = isIntercepted
-          ? RAW_DART_FUNCTION_REF(BoundClosure.receiverOf)
-          : RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
-      signatureFunction = JS(
-        '',
-        'function(f,r){'
-          'return function(){'
-            'return f.apply({\$receiver:r(this)},arguments)'
-          '}'
-        '}(#,#)', functionType, getReceiver);
+    } else if (JS('bool', 'typeof # == "function"', functionType)) {
+      if (isStatic) {
+        signatureFunction = functionType;
+      } else {
+        var getReceiver = isIntercepted
+            ? RAW_DART_FUNCTION_REF(BoundClosure.receiverOf)
+            : RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
+        signatureFunction = JS(
+          '',
+          'function(f,r){'
+            'return function(){'
+              'return f.apply({\$receiver:r(this)},arguments)'
+            '}'
+          '}(#,#)', functionType, getReceiver);
+      }
     } else {
       throw 'Error in reflectionInfo.';
     }
@@ -3394,8 +3409,8 @@ class CastErrorImplementation extends Error implements CastError {
    * Normal cast error caused by a failed type cast.
    */
   CastErrorImplementation(Object actualType, Object expectedType)
-      : message = "CastError: Casting value of type $actualType to"
-                  " incompatible type $expectedType";
+      : message = "CastError: Casting value of type '$actualType' to"
+                  " incompatible type '$expectedType'";
 
   String toString() => message;
 }
@@ -3452,8 +3467,7 @@ void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
  * field that is currently being initialized.
  */
 void throwCyclicInit(String staticName) {
-  throw new CyclicInitializationError(
-      "Cyclic initialization for static $staticName");
+  throw new CyclicInitializationError(staticName);
 }
 
 /**
@@ -3500,7 +3514,7 @@ class RuntimeFunctionType extends RuntimeType {
   /// returns true if [this] is a supertype of [expression].
   @NoInline() @NoSideEffects()
   bool _isTest(expression) {
-    var functionTypeObject = _extractFunctionTypeObjectFrom(expression);
+    var functionTypeObject = extractFunctionTypeObjectFrom(expression);
     return functionTypeObject == null
         ? false
         : isFunctionSubtype(functionTypeObject, toRti());
@@ -3528,12 +3542,12 @@ class RuntimeFunctionType extends RuntimeType {
     if (expression == null) return null;
     if (_isTest(expression)) return expression;
 
-    var self = new FunctionTypeInfoDecoderRing(toRti()).toString();
+    var self = runtimeTypeToString(toRti());
     if (isCast) {
-      var functionTypeObject = _extractFunctionTypeObjectFrom(expression);
+      var functionTypeObject = extractFunctionTypeObjectFrom(expression);
       var pretty;
       if (functionTypeObject != null) {
-        pretty = new FunctionTypeInfoDecoderRing(functionTypeObject).toString();
+        pretty = runtimeTypeToString(functionTypeObject);
       } else {
         pretty = Primitives.objectTypeName(expression);
       }
@@ -3542,14 +3556,6 @@ class RuntimeFunctionType extends RuntimeType {
       // TODO(ahe): Pass "pretty" function-type to TypeErrorImplementation?
       throw new TypeErrorImplementation(expression, self);
     }
-  }
-
-  _extractFunctionTypeObjectFrom(o) {
-    var interceptor = getInterceptor(o);
-    var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
-    return JS('bool', '# in #', signatureName, interceptor)
-        ? JS('', '#[#]()', interceptor, JS_GET_NAME(JsGetName.SIGNATURE_NAME))
-        : null;
   }
 
   toRti() {
@@ -3641,6 +3647,14 @@ class RuntimeFunctionType extends RuntimeType {
     result += ') -> $returnType';
     return result;
   }
+}
+
+extractFunctionTypeObjectFrom(o) {
+  var interceptor = getInterceptor(o);
+  var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
+  return JS('bool', '# in #', signatureName, interceptor)
+      ? JS('', '#[#]()', interceptor, signatureName)
+      : null;
 }
 
 RuntimeFunctionType buildFunctionType(returnType,
@@ -3802,58 +3816,8 @@ class FunctionTypeInfoDecoderRing {
     return const DynamicRuntimeType();
   }
 
-  String _convert(type) {
-    String result = runtimeTypeToString(type);
-    if (result != null) return result;
-    // Currently the [runtimeTypeToString] method doesn't handle function rtis.
-    if (JS('bool', '"func" in #', type)) {
-      return new FunctionTypeInfoDecoderRing(type).toString();
-    } else {
-      throw 'bad type';
-    }
-  }
-
   String toString() {
-    if (_cachedToString != null) return _cachedToString;
-    var s = "(";
-    var sep = '';
-    if (_hasArguments) {
-      for (var argument in _arguments) {
-        s += sep;
-        s += _convert(argument);
-        sep = ', ';
-      }
-    }
-    if (_hasOptionalArguments) {
-      s += '$sep[';
-      sep = '';
-      for (var argument in _optionalArguments) {
-        s += sep;
-        s += _convert(argument);
-        sep = ', ';
-      }
-      s += ']';
-    }
-    if (_hasNamedArguments) {
-      s += '$sep{';
-      sep = '';
-      for (var name in extractKeys(_namedArguments)) {
-        s += sep;
-        s += '$name: ';
-        s += _convert(JS('', '#[#]', _namedArguments, name));
-        sep = ', ';
-      }
-      s += '}';
-    }
-    s += ') -> ';
-    if (_isVoid) {
-      s += 'void';
-    } else if (_hasReturnType) {
-      s += _convert(_returnType);
-    } else {
-      s += 'dynamic';
-    }
-    return _cachedToString = "$s";
+    return _cachedToString ??= runtimeTypeToString(_typeData);
   }
 }
 
@@ -4046,10 +4010,9 @@ void mainHasTooManyParameters() {
 }
 
 class _AssertionError extends AssertionError {
-  final _message;
-  _AssertionError(this._message);
+  _AssertionError(Object message) : super(message);
 
-  String toString() => "Assertion failed: " + Error.safeToString(_message);
+  String toString() => "Assertion failed: " + Error.safeToString(message);
 }
 
 

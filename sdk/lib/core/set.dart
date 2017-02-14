@@ -21,7 +21,7 @@ part of dart.core;
  * or ordered in some way. Examples:
  *
  * * A [HashSet] is unordered, which means that its iteration order is
- *   uspecified,
+ *   unspecified,
  * * [LinkedHashSet] iterates in the insertion order of its elements, and
  * * a sorted set like [SplayTreeSet] iterates the elements in sorted order.
  *

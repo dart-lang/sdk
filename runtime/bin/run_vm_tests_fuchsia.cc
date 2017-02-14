@@ -32,17 +32,9 @@ const char* kSkip[] = {
   "Read",
   "FileLength",
   "FilePosition",
-  // Crash in abort() and then hang. (MG-252)
-  "ArrayLengthMaxElements",
-  "Int8ListLengthMaxElements",
-  "ArrayNew_Overflow_Crash",
-  "SNPrint_BadArgs",
-  "IsolateReload_PendingUnqualifiedCall_InstanceToStatic",
-  "IsolateReload_PendingUnqualifiedCall_StaticToInstance",
-  "IsolateReload_PendingConstructorCall_AbstractToConcrete",
-  "IsolateReload_PendingConstructorCall_ConcreteToAbstract",
-  "IsolateReload_PendingStaticCall_DefinedToNSM",
-  "IsolateReload_PendingStaticCall_NSMToDefined",
+  // No realpath, files not in image.
+  "Dart2JSCompilerStats",
+  "Dart2JSCompileAll",
   // The profiler is turned off.
   "Profiler_AllocationSampleTest",
   "Profiler_ArrayAllocation",
@@ -69,27 +61,6 @@ const char* kSkip[] = {
   "Profiler_TypedArrayAllocation",
   "Profiler_GetSourceReport",
   "Service_Profile",
-  // No realpath, files not in image.
-  "Dart2JSCompilerStats",
-  "Dart2JSCompileAll",
-  // Uses too much memory.
-  "PrintJSON",
-  // Need OS::GetCurrentThreadCPUMicros.
-  // Skipping because they crash and hang. (MG-252)
-  "Timeline_Dart_TimelineGetTrace",
-  "Timeline_Dart_TimelineGetTraceOnlyDartEvents",
-  "Timeline_Dart_TimelineGetTraceWithDartEvents",
-  "Timeline_Dart_TimelineGetTraceGlobalOverride",
-  "Timeline_Dart_GlobalTimelineGetTrace",
-  "Timeline_Dart_GlobalTimelineGetTrace_Threaded",
-  "TimelineEventDuration",
-  "TimelineEventDurationPrintJSON",
-  "TimelineEventArguments",
-  "TimelineEventArgumentsPrintJSON",
-  "TimelineEventCallbackRecorderBasic",
-  "TimelineAnalysis_ThreadBlockCount",
-  "TimelineRingRecorderJSONOrder",
-  "TimelinePauses_BeginEnd",
 };
 
 // Expected to fail/crash.
@@ -99,14 +70,20 @@ const char* kExpectFail[] = {
   "Fail2",
   "AllocGeneric_Overflow",
   "CodeImmutability",
-  // Assumes initial thread's stack is the same size as spawned thread stacks.
-  "StackOverflowStacktraceInfo",
+  "IsolateReload_PendingUnqualifiedCall_StaticToInstance",
+  "IsolateReload_PendingConstructorCall_AbstractToConcrete",
+  "IsolateReload_PendingConstructorCall_ConcreteToAbstract",
+  "IsolateReload_PendingUnqualifiedCall_InstanceToStatic",
+  "IsolateReload_PendingStaticCall_DefinedToNSM",
+  "IsolateReload_PendingStaticCall_NSMToDefined",
+  "ArrayNew_Overflow_Crash",
+  "SNPrint_BadArgs",
 };
 
 // Bugs to fix, or things that are not yet implemented.
 const char* kBugs[] = {
-  // Needs read of RSS.
-  "InitialRSS",
+  // Assumes initial thread's stack is the same size as spawned thread stacks.
+  "StackOverflowStackTraceInfo",
 };
 // clang-format on
 
@@ -156,7 +133,10 @@ static mx_status_t lp_setup(launchpad_t** lp_out,
   }
   launchpad_t* lp;
   mx_status_t status;
-  status = launchpad_create(0, argv[0], &lp);
+  mx_handle_t job = MX_HANDLE_INVALID;
+  status = mx_handle_duplicate(mx_job_default(), MX_RIGHT_SAME_RIGHTS, &job);
+  RETURN_IF_ERROR(status);
+  status = launchpad_create(job, argv[0], &lp);
   RETURN_IF_ERROR(status);
   status = launchpad_arguments(lp, argc, argv);
   RETURN_IF_ERROR(status);
@@ -272,7 +252,7 @@ static int run_test(mx_handle_t binary_vmo,
   drain_fd(stderr_pipe, test_stderr);
 
   mx_status_t r =
-      mx_handle_wait_one(p, MX_SIGNAL_SIGNALED, MX_TIME_INFINITE, NULL);
+      mx_handle_wait_one(p, MX_PROCESS_SIGNALED, MX_TIME_INFINITE, NULL);
   RETURN_IF_ERROR(r);
 
   mx_info_process_t proc_info;

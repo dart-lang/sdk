@@ -6,7 +6,7 @@ library dart2js.semantics_visitor.resolver;
 
 import '../common.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import 'semantic_visitor.dart';
@@ -58,7 +58,7 @@ class ConstructorDeclStructure<R, A> extends DeclStructure<R, A> {
 
 class RedirectingFactoryConstructorDeclStructure<R, A>
     extends DeclStructure<R, A> {
-  InterfaceType redirectionTargetType;
+  ResolutionInterfaceType redirectionTargetType;
   ConstructorElement redirectionTarget;
 
   RedirectingFactoryConstructorDeclStructure(ConstructorElement constructor,
@@ -234,7 +234,7 @@ abstract class DeclarationResolverMixin {
     if (!constructorInvocationSeen) {
       ConstructorElement currentConstructor = elements[node];
       ClassElement currentClass = currentConstructor.enclosingClass;
-      InterfaceType supertype = currentClass.supertype;
+      ResolutionInterfaceType supertype = currentClass.supertype;
       if (supertype != null) {
         ClassElement superclass = supertype.element;
         ConstructorElement superConstructor =

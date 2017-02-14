@@ -7,7 +7,7 @@ part of dart.convert;
 /**
  * A `String` converter that converts characters to HTML entities.
  *
- * This is intended to sanitice text before inserting the text into an HTML
+ * This is intended to sanitize text before inserting the text into an HTML
  * document. Characters that are meaningful in HTML are converted to
  * HTML entities (like `&amp;` for `&`).
  *
@@ -134,7 +134,7 @@ class HtmlEscapeMode {
 /**
  * Converter which escapes characters with special meaning in HTML.
  *
- * The converter finds characters that are siginificant in HTML source and
+ * The converter finds characters that are significant in HTML source and
  * replaces them with corresponding HTML entities.
  *
  * The characters that need escaping in HTML are:

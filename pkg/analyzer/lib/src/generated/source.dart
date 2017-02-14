@@ -66,6 +66,17 @@ class ContentCache {
   String getContents(Source source) => _contentMap[source.fullName];
 
   /**
+   * Return `true` if the given [source] exists, `false` if it does not exist,
+   * or `null` if this cache does not override existence of the source.
+   *
+   * <b>Note:</b> This method is not intended to be used except by
+   * [AnalysisContext.exists].
+   */
+  bool getExists(Source source) {
+    return _contentMap.containsKey(source.fullName) ? true : null;
+  }
+
+  /**
    * Return the modification stamp of the given [source], or `null` if this
    * cache does not override the contents of the source.
    *
@@ -161,6 +172,12 @@ class DartUriResolver extends UriResolver {
       return null;
     }
     return _sdk.mapDartUri(uri.toString());
+  }
+
+  @override
+  Uri restoreAbsolute(Source source) {
+    Source dartSource = _sdk.fromFileUri(source.uri);
+    return dartSource?.uri;
   }
 
   /**
@@ -411,6 +428,9 @@ class NonExistingSource extends Source {
 
   @override
   bool exists() => false;
+
+  @override
+  String toString() => 'NonExistingSource($uri, $fullName)';
 }
 
 /**

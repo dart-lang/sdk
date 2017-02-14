@@ -15,6 +15,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CombinatorContributorTest);
+    defineReflectiveTests(CombinatorContributorTest_Driver);
   });
 }
 
@@ -64,7 +65,9 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       class X {}''');
 
     // Assume that imported libraries have been resolved
-    context.resolveCompilationUnit2(importedLibSource, importedLibSource);
+    if (!enableNewAnalysisDriver) {
+      context.resolveCompilationUnit2(importedLibSource, importedLibSource);
+    }
 
     await computeSuggestions();
     assertSuggestClass('A',
@@ -116,7 +119,9 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       class X {}''');
 
     // Assume that imported libraries have been resolved
-    context.resolveCompilationUnit2(importedLibSource, importedLibSource);
+    if (!enableNewAnalysisDriver) {
+      context.resolveCompilationUnit2(importedLibSource, importedLibSource);
+    }
 
     await computeSuggestions();
     assertSuggestClass('A',
@@ -150,4 +155,10 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertSuggestTopLevelVar('PI', 'double',
         kind: CompletionSuggestionKind.IDENTIFIER);
   }
+}
+
+@reflectiveTest
+class CombinatorContributorTest_Driver extends CombinatorContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

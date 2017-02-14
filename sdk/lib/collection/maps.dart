@@ -214,8 +214,8 @@ class UnmodifiableMapView<K, V> =
 
 /**
  * Helper class which implements complex [Map] operations
- * in term of basic ones ([Map.keys], [Map.operator []],
- * [Map.operator []=] and [Map.remove].)  Not all methods are
+ * in term of basic ones ([Map.keys], [Map.[]],
+ * [Map.[]=] and [Map.remove].)  Not all methods are
  * necessary to implement each particular operation.
  */
 class Maps {

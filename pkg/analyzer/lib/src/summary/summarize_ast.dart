@@ -53,19 +53,19 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   @override
   void serializeAnnotation(Annotation annotation) {
-    if (annotation.arguments == null) {
-      assert(annotation.constructorName == null);
-      serialize(annotation.name);
+    Identifier name = annotation.name;
+    EntityRefBuilder constructor;
+    if (name is PrefixedIdentifier && annotation.constructorName == null) {
+      constructor =
+          serializeConstructorRef(null, name.prefix, null, name.identifier);
     } else {
-      Identifier name = annotation.name;
-      EntityRefBuilder constructor;
-      if (name is PrefixedIdentifier && annotation.constructorName == null) {
-        constructor =
-            serializeConstructorRef(null, name.prefix, null, name.identifier);
-      } else {
-        constructor = serializeConstructorRef(
-            null, annotation.name, null, annotation.constructorName);
-      }
+      constructor = serializeConstructorRef(
+          null, annotation.name, null, annotation.constructorName);
+    }
+    if (annotation.arguments == null) {
+      references.add(constructor);
+      operations.add(UnlinkedExprOperation.pushReference);
+    } else {
       serializeInstanceCreation(constructor, annotation.arguments);
     }
   }
@@ -567,7 +567,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       NodeList<Annotation> annotations,
       bool isFinal,
       bool isConst,
-      TypeName type,
+      TypeAnnotation type,
       bool assignPropagatedTypeSlot,
       SimpleIdentifier declaredIdentifier) {
     UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
@@ -597,7 +597,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     String text = documentationComment.tokens
         .map((Token t) => t.toString())
-        .join()
+        .join('\n')
         .replaceAll('\r\n', '\n');
     return new UnlinkedDocumentationCommentBuilder(text: text);
   }
@@ -615,7 +615,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       int nameOffset,
       bool isGetter,
       bool isSetter,
-      TypeName returnType,
+      TypeAnnotation returnType,
       FormalParameterList formalParameters,
       FunctionBody body,
       bool isTopLevel,
@@ -764,7 +764,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * parameter and store them in [b].
    */
   void serializeFunctionTypedParameterDetails(UnlinkedParamBuilder b,
-      TypeName returnType, FormalParameterList parameters) {
+      TypeAnnotation returnType, FormalParameterList parameters) {
     EntityRefBuilder serializedReturnType = serializeTypeName(returnType);
     if (serializedReturnType != null) {
       b.type = serializedReturnType;
@@ -807,6 +807,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.identifier.offset;
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
+    b.isExplicitlyCovariant = node.covariantKeyword != null;
+    b.isFinal = node.isFinal;
     if (_parametersMayInheritCovariance) {
       b.inheritsCovariantSlot = assignSlot();
     }
@@ -933,8 +935,13 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * a [EntityRef].  Note that this method does the right thing if the
    * name doesn't refer to an entity other than a type (e.g. a class member).
    */
-  EntityRefBuilder serializeTypeName(TypeName node) {
-    return serializeType(node?.name, node?.typeArguments);
+  EntityRefBuilder serializeTypeName(TypeAnnotation node) {
+    if (node is TypeName) {
+      return serializeType(node?.name, node?.typeArguments);
+    } else if (node != null) {
+      throw new ArgumentError('Cannot serialize a ${node.runtimeType}');
+    }
+    return null;
   }
 
   /**
@@ -966,10 +973,14 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       Comment documentationComment,
       NodeList<Annotation> annotations,
       bool isField) {
+    bool isCovariant = isField
+        ? (variables.parent as FieldDeclaration).covariantKeyword != null
+        : false;
     for (VariableDeclaration variable in variables.variables) {
       UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
-      b.isFinal = variables.isFinal;
       b.isConst = variables.isConst;
+      b.isCovariant = isCovariant;
+      b.isFinal = variables.isFinal;
       b.isStatic = isDeclaredStatic;
       b.name = variable.name.name;
       b.nameOffset = variable.name.offset;
@@ -1394,14 +1405,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     serializeVariables(
         enclosingBlock, node.variables, false, null, null, false);
-  }
-
-  /**
-   * Helper method to determine if a given [typeName] refers to `dynamic`.
-   */
-  static bool isDynamic(TypeName typeName) {
-    Identifier name = typeName.name;
-    return name is SimpleIdentifier && name.name == 'dynamic';
   }
 
   /**

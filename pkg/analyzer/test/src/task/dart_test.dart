@@ -5,6 +5,7 @@
 library analyzer.test.src.task.dart_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -186,7 +187,7 @@ f() {
       unitElement.types[0].fields[0],
       unitElement.functions[0].localVariables[0],
       unitElement.types[0].constructors[0],
-      annotation.elementAnnotation,
+      resolutionMap.elementAnnotationForAnnotation(annotation),
       unitElement.types[0].constructors[0].parameters[0]
     ];
     expect(
@@ -580,7 +581,9 @@ part 'part.dart';''',
     // Validate metadata
     expect(part.directives[0], new isInstanceOf<PartOfDirective>());
     expect(part.directives[0].element, same(libraryA));
-    expect(part.directives[0].element.metadata, isEmpty);
+    expect(
+        resolutionMap.elementDeclaredByDirective(part.directives[0]).metadata,
+        isEmpty);
   }
 
   void _assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
@@ -626,7 +629,8 @@ enum MyEnum {
         matcher: isBuildEnumMemberElementsTask);
     CompilationUnit unit = outputs[RESOLVED_UNIT3];
     // validate Element
-    ClassElement enumElement = unit.element.getEnum('MyEnum');
+    ClassElement enumElement =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).getEnum('MyEnum');
     List<FieldElement> fields = enumElement.fields;
     expect(fields, hasLength(4));
     {
@@ -832,7 +836,8 @@ part of 'lib.dart';
     // CompilationUnitElement(s)
     CompilationUnitElement firstPart;
     CompilationUnitElement secondPart;
-    if (partUnits[0].element.uri == 'part1.dart') {
+    if (resolutionMap.elementDeclaredByCompilationUnit(partUnits[0]).uri ==
+        'part1.dart') {
       firstPart = partUnits[0].element;
       secondPart = partUnits[1].element;
     } else {
@@ -1000,10 +1005,16 @@ void set test(_) {}
 '''
     });
     CompilationUnitElement unitElement1 = partUnits
-        .singleWhere((u) => u.element.name.endsWith('part1.dart'))
+        .singleWhere((u) => resolutionMap
+            .elementDeclaredByCompilationUnit(u)
+            .name
+            .endsWith('part1.dart'))
         .element;
     CompilationUnitElement unitElement2 = partUnits
-        .singleWhere((u) => u.element.name.endsWith('part2.dart'))
+        .singleWhere((u) => resolutionMap
+            .elementDeclaredByCompilationUnit(u)
+            .name
+            .endsWith('part2.dart'))
         .element;
     PropertyAccessorElement getter = unitElement1.accessors[0];
     PropertyAccessorElement setter = unitElement2.accessors[0];
@@ -1157,19 +1168,22 @@ class D { const D(value); }
     computeResult(librarySpecificUnit, RESOLVED_UNIT1);
     CompilationUnit unit = outputs[RESOLVED_UNIT1];
     // Find the elements for x and D's constructor, and the annotation on C.
-    List<PropertyAccessorElement> accessors = unit.element.accessors;
+    CompilationUnitElement compilationUnitElement =
+        resolutionMap.elementDeclaredByCompilationUnit(unit);
+    List<PropertyAccessorElement> accessors = compilationUnitElement.accessors;
     Element x = accessors
         .firstWhere((PropertyAccessorElement accessor) =>
             accessor.isGetter && accessor.name == 'x')
         .variable;
-    List<ClassElement> types = unit.element.types;
+    List<ClassElement> types = compilationUnitElement.types;
     Element constructorForD =
         types.firstWhere((ClassElement cls) => cls.name == 'D').constructors[0];
     Annotation annotation = findClassAnnotation(unit, 'C');
     // Now compute the dependencies for the annotation, and check that it is
     // the set [x, constructorForD].
     // TODO(paulberry): test librarySource != source
-    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
+    computeResult(resolutionMap.elementAnnotationForAnnotation(annotation),
+        CONSTANT_DEPENDENCIES,
         matcher: isComputeConstantDependenciesTask);
     expect(
         outputs[CONSTANT_DEPENDENCIES].toSet(), [x, constructorForD].toSet());
@@ -1197,7 +1211,8 @@ class C {
     Annotation annotation = classC.members[0].metadata[0];
     // Now compute the dependencies for the annotation, and check that it is
     // the right size.
-    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
+    computeResult(resolutionMap.elementAnnotationForAnnotation(annotation),
+        CONSTANT_DEPENDENCIES,
         matcher: isComputeConstantDependenciesTask);
     expect(outputs[CONSTANT_DEPENDENCIES], hasLength(1));
   }
@@ -1215,7 +1230,8 @@ const x = 1;
     computeResult(librarySpecificUnit, RESOLVED_UNIT1);
     CompilationUnit unit = outputs[RESOLVED_UNIT1];
     // Find the element for x and the annotation on C.
-    List<PropertyAccessorElement> accessors = unit.element.accessors;
+    List<PropertyAccessorElement> accessors =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).accessors;
     Element x = accessors
         .firstWhere((PropertyAccessorElement accessor) =>
             accessor.isGetter && accessor.name == 'x')
@@ -1223,7 +1239,8 @@ const x = 1;
     Annotation annotation = findClassAnnotation(unit, 'C');
     // Now compute the dependencies for the annotation, and check that it is
     // the list [x].
-    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
+    computeResult(resolutionMap.elementAnnotationForAnnotation(annotation),
+        CONSTANT_DEPENDENCIES,
         matcher: isComputeConstantDependenciesTask);
     expect(outputs[CONSTANT_DEPENDENCIES], [x]);
   }
@@ -1263,7 +1280,8 @@ const y = 1;
     computeResult(librarySpecificUnit, RESOLVED_UNIT1);
     CompilationUnit unit = outputs[RESOLVED_UNIT1];
     // Find the elements for the constants x and y.
-    List<PropertyAccessorElement> accessors = unit.element.accessors;
+    List<PropertyAccessorElement> accessors =
+        resolutionMap.elementDeclaredByCompilationUnit(unit).accessors;
     Element x = accessors
         .firstWhere((PropertyAccessorElement accessor) =>
             accessor.isGetter && accessor.name == 'x')
@@ -1539,14 +1557,19 @@ const b = 0;
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     computeResult(target, RESOLVED_UNIT7);
     CompilationUnit unit = outputs[RESOLVED_UNIT7];
-    TopLevelVariableElement elementA = unit.element.topLevelVariables[0];
-    TopLevelVariableElement elementB = unit.element.topLevelVariables[1];
+    TopLevelVariableElement elementA = resolutionMap
+        .elementDeclaredByCompilationUnit(unit)
+        .topLevelVariables[0];
+    TopLevelVariableElement elementB = resolutionMap
+        .elementDeclaredByCompilationUnit(unit)
+        .topLevelVariables[1];
 
     computeResult(elementA, INFERABLE_STATIC_VARIABLE_DEPENDENCIES,
         matcher: isComputeInferableStaticVariableDependenciesTask);
     expect(outputs, hasLength(1));
-    List<VariableElement> dependencies = outputs[
-        INFERABLE_STATIC_VARIABLE_DEPENDENCIES] as List<VariableElement>;
+    List<VariableElement> dependencies =
+        outputs[INFERABLE_STATIC_VARIABLE_DEPENDENCIES]
+            as List<VariableElement>;
     expect(dependencies, unorderedEquals([elementB]));
   }
 }
@@ -2678,13 +2701,26 @@ class Z {}
     CompilationUnit unit = outputs[RESOLVED_UNIT10];
     VariableDeclaration field = AstFinder.getFieldInClass(unit, 'B', 'f');
     MethodDeclaration method = AstFinder.getMethodInClass(unit, 'B', 'm');
-    DartType typeX = AstFinder.getClass(unit, 'X').element.type;
-    DartType typeY = AstFinder.getClass(unit, 'Y').element.type;
-    DartType typeZ = AstFinder.getClass(unit, 'Z').element.type;
+    DartType typeX = resolutionMap
+        .elementDeclaredByClassDeclaration(AstFinder.getClass(unit, 'X'))
+        .type;
+    DartType typeY = resolutionMap
+        .elementDeclaredByClassDeclaration(AstFinder.getClass(unit, 'Y'))
+        .type;
+    DartType typeZ = resolutionMap
+        .elementDeclaredByClassDeclaration(AstFinder.getClass(unit, 'Z'))
+        .type;
 
-    expect(field.element.type, typeX);
-    expect(method.element.returnType, typeY);
-    expect(method.element.parameters[0].type, typeZ);
+    expect(
+        resolutionMap.elementDeclaredByVariableDeclaration(field).type, typeX);
+    expect(resolutionMap.elementDeclaredByMethodDeclaration(method).returnType,
+        typeY);
+    expect(
+        resolutionMap
+            .elementDeclaredByMethodDeclaration(method)
+            .parameters[0]
+            .type,
+        typeZ);
   }
 
   void test_perform_cross_library_const() {
@@ -2722,10 +2758,13 @@ class M {
         AstFinder.getFieldInClass(secondUnit, 'M', 'c');
     InterfaceType stringType = context.typeProvider.stringType;
 
-    expect(variableA.element.type, stringType);
-    expect(variableB.element.type, stringType);
+    expect(resolutionMap.elementDeclaredByVariableDeclaration(variableA).type,
+        stringType);
+    expect(resolutionMap.elementDeclaredByVariableDeclaration(variableB).type,
+        stringType);
     expect(variableB.initializer.staticType, stringType);
-    expect(variableC.element.type, stringType);
+    expect(resolutionMap.elementDeclaredByVariableDeclaration(variableC).type,
+        stringType);
     expect(variableC.initializer.staticType, stringType);
   }
 
@@ -2790,7 +2829,8 @@ class M {
     CompilationUnit unit = outputs[RESOLVED_UNIT8];
     VariableDeclaration declaration = AstFinder.getFieldInClass(unit, 'M', 'X');
     InterfaceType stringType = context.typeProvider.stringType;
-    expect(declaration.element.type, stringType);
+    expect(resolutionMap.elementDeclaredByVariableDeclaration(declaration).type,
+        stringType);
   }
 
   test_perform_hasParseError() {
@@ -2853,12 +2893,16 @@ class M {}
     VariableDeclaration variableC =
         AstFinder.getTopLevelVariable(firstUnit, 'c');
     ClassDeclaration classM = AstFinder.getClass(secondUnit, 'M');
-    DartType typeM = classM.element.type;
+    DartType typeM =
+        resolutionMap.elementDeclaredByClassDeclaration(classM).type;
 
-    expect(variableA.element.type, typeM);
-    expect(variableB.element.type, typeM);
+    expect(resolutionMap.elementDeclaredByVariableDeclaration(variableA).type,
+        typeM);
+    expect(resolutionMap.elementDeclaredByVariableDeclaration(variableB).type,
+        typeM);
     expect(variableB.initializer.staticType, typeM);
-    expect(variableC.element.type, typeM);
+    expect(resolutionMap.elementDeclaredByVariableDeclaration(variableC).type,
+        typeM);
     expect(variableC.initializer.staticType, typeM);
   }
 
@@ -2900,8 +2944,9 @@ var V = [42];
     expect(outputs[RESOLVED_UNIT8], isNotNull);
     expect(outputs[CREATED_RESOLVED_UNIT8], isTrue);
     // An INFERRED_TYPE_LITERAL error should be generated.
-    List<AnalysisError> errors = outputs[
-        STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT] as List<AnalysisError>;
+    List<AnalysisError> errors =
+        outputs[STATIC_VARIABLE_RESOLUTION_ERRORS_IN_UNIT]
+            as List<AnalysisError>;
     expect(errors, hasLength(1));
     expect(errors[0].errorCode, StrongModeCode.INFERRED_TYPE_LITERAL);
   }
@@ -4496,11 +4541,15 @@ typedef F<T extends String>();
 
   void _assertTypeParameterBound(TypeParameter typeParameter,
       String expectedBoundTypeString, String expectedBoundElementName) {
-    TypeName boundNode = typeParameter.bound;
+    TypeAnnotation bound = typeParameter.bound;
+    // TODO(brianwilkerson) Extend this to support function types as bounds.
+    expect(bound, new isInstanceOf<TypeName>());
+    TypeName boundNode = bound;
     Identifier boundName = boundNode.name;
     expect(boundNode.type.toString(), expectedBoundTypeString);
     expect(boundName.staticType.toString(), expectedBoundTypeString);
-    expect(boundName.staticElement.displayName, expectedBoundElementName);
+    expect(resolutionMap.staticElementForIdentifier(boundName).displayName,
+        expectedBoundElementName);
   }
 }
 
@@ -4584,7 +4633,8 @@ int f(String p) => p.length;
       ClassDeclaration nodeA = unit.declarations[0];
       ClassDeclaration nodeB = unit.declarations[1];
       DartType extendsType = nodeB.extendsClause.superclass.type;
-      expect(extendsType, nodeA.element.type);
+      expect(extendsType,
+          resolutionMap.elementDeclaredByClassDeclaration(nodeA).type);
     }
     {
       FunctionDeclaration functionNode = unit.declarations[2];
@@ -4592,7 +4642,12 @@ int f(String p) => p.length;
       List<FormalParameter> parameters =
           functionNode.functionExpression.parameters.parameters;
       expect(returnType.displayName, 'int');
-      expect(parameters[0].element.type.displayName, 'String');
+      expect(
+          resolutionMap
+              .elementDeclaredByFormalParameter(parameters[0])
+              .type
+              .displayName,
+          'String');
     }
   }
 
@@ -4626,15 +4681,20 @@ typedef String G(int p);
     FunctionTypeAlias nodeG = unit.declarations[1];
     {
       FormalParameter parameter = nodeF.parameters.parameters[0];
-      DartType parameterType = parameter.element.type;
-      Element returnTypeElement = nodeF.returnType.type.element;
+      DartType parameterType =
+          resolutionMap.elementDeclaredByFormalParameter(parameter).type;
+      Element returnTypeElement =
+          resolutionMap.typeForTypeName(nodeF.returnType).element;
       expect(returnTypeElement.displayName, 'int');
       expect(parameterType.element, nodeG.element);
     }
     {
       FormalParameter parameter = nodeG.parameters.parameters[0];
-      DartType parameterType = parameter.element.type;
-      expect(nodeG.returnType.type.element.displayName, 'String');
+      DartType parameterType =
+          resolutionMap.elementDeclaredByFormalParameter(parameter).type;
+      expect(
+          resolutionMap.typeForTypeName(nodeG.returnType).element.displayName,
+          'String');
       expect(parameterType.element.displayName, 'int');
     }
   }
@@ -5258,19 +5318,19 @@ var tau = piFirst ? pi * 2 : 6.28;
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
-    DartType bottomType = context.typeProvider.bottomType;
+    DartType nullType = context.typeProvider.nullType;
     DartType dynamicType = context.typeProvider.dynamicType;
 
     assertVariableDeclarationTypes(
-        AstFinder.getTopLevelVariable(unit, "x"), dynamicType, bottomType);
+        AstFinder.getTopLevelVariable(unit, "x"), dynamicType, nullType);
     assertVariableDeclarationTypes(
         AstFinder.getTopLevelVariable(unit, "y"), intType, intType);
     assertVariableDeclarationTypes(
-        AstFinder.getFieldInClass(unit, "A", "x"), dynamicType, bottomType);
+        AstFinder.getFieldInClass(unit, "A", "x"), dynamicType, nullType);
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit, "A", "y"), intType, intType);
     assertVariableDeclarationTypes(
-        AstFinder.getFieldInClass(unit, "A", "x2"), dynamicType, bottomType);
+        AstFinder.getFieldInClass(unit, "A", "x2"), dynamicType, nullType);
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit, "A", "y2"), intType, intType);
 
@@ -5305,7 +5365,8 @@ var tau = piFirst ? pi * 2 : 6.28;
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     VariableDeclaration decl =
         (statements[0] as VariableDeclarationStatement).variables.variables[0];
-    expect(decl.element.type, intType);
+    expect(
+        resolutionMap.elementDeclaredByVariableDeclaration(decl).type, intType);
     expect(decl.initializer.staticType, intType);
 
     ExpressionStatement statement = statements[1];
@@ -5593,7 +5654,8 @@ class _AbstractDartTaskTest extends AbstractContextTest {
 
   void assertVariableDeclarationTypes(
       VariableDeclaration decl, DartType varType, DartType initializerType) {
-    expect(decl.element.type, varType);
+    expect(
+        resolutionMap.elementDeclaredByVariableDeclaration(decl).type, varType);
     expect(decl.initializer.staticType, initializerType);
   }
 

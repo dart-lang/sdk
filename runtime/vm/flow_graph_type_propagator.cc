@@ -98,18 +98,6 @@ void FlowGraphTypePropagator::Propagate() {
         if (use_defn != NULL) {
           AddToWorklist(use_defn);
         }
-
-        // If the value flow into a branch recompute type constrained by the
-        // branch (if any). This ensures that correct non-nullable type will
-        // flow downwards from the branch on the comparison with the null
-        // constant.
-        BranchInstr* branch = instr->AsBranch();
-        if (branch != NULL) {
-          ConstrainedCompileType* constrained_type = branch->constrained_type();
-          if (constrained_type != NULL) {
-            constrained_type->Update();
-          }
-        }
       }
     }
   }
@@ -196,19 +184,6 @@ void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
   if (current->IsNone() || (current->ToCid() != cid)) {
     SetTypeOf(def, ZoneCompileType::Wrap(CompileType::FromCid(cid)));
   }
-}
-
-
-ConstrainedCompileType* FlowGraphTypePropagator::MarkNonNullable(
-    Definition* def) {
-  CompileType* current = TypeOf(def);
-  if (current->is_nullable() && (current->ToCid() != kNullCid)) {
-    ConstrainedCompileType* constrained_type =
-        new NotNullConstrainedCompileType(current);
-    SetTypeOf(def, constrained_type->ToCompileType());
-    return constrained_type;
-  }
-  return NULL;
 }
 
 
@@ -604,7 +579,7 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
   const AbstractType& compile_type = *ToAbstractType();
 
   // The compile-type of a value should never be void. The result of a void
-  // function must always be null, which wass checked to be null at the return
+  // function must always be null, which was checked to be null at the return
   // statement inside the function.
   ASSERT(!compile_type.IsVoidType());
 
@@ -612,13 +587,13 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  // The Null type is only a subtype of Object and of dynamic.
+  // The null instance is an instance of Null, of Object, and of dynamic.
   // Functions that do not explicitly return a value, implicitly return null,
   // except generative constructors, which return the object being constructed.
   // It is therefore acceptable for void functions to return null.
   if (compile_type.IsNullType()) {
     *is_instance = is_nullable || type.IsObjectType() || type.IsDynamicType() ||
-                   type.IsVoidType();
+                   type.IsNullType() || type.IsVoidType();
     return true;
   }
 

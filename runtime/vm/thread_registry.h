@@ -14,6 +14,11 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+class JSONStream;
+class JSONArray;
+#endif
+
 // Unordered collection of threads relating to a particular isolate.
 class ThreadRegistry {
  public:
@@ -27,6 +32,17 @@ class ThreadRegistry {
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
   void PrepareForGC();
   Thread* mutator_thread() const { return mutator_thread_; }
+
+#ifndef PRODUCT
+  void PrintJSON(JSONStream* stream) const;
+#endif
+
+  // Calculates the sum of the max memory usage in bytes of each thread.
+  uintptr_t ThreadHighWatermarksTotalLocked() const;
+
+  bool IsValidHandle(Dart_Handle handle) const;
+  intptr_t CountZoneHandles() const;
+  intptr_t CountScopedHandles() const;
 
  private:
   Thread* active_list() const { return active_list_; }

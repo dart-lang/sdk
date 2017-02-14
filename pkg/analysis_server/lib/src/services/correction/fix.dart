@@ -126,8 +126,6 @@ class DartFixKind {
   static const ADD_NE_NULL = const FixKind('ADD_NE_NULL', 50, "Add != null");
   static const ADD_PACKAGE_DEPENDENCY = const FixKind(
       'ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
-  static const ADD_PART_OF =
-      const FixKind('ADD_PART_OF', 50, "Add 'part of' directive");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION = const FixKind(
       'ADD_SUPER_CONSTRUCTOR_INVOCATION',
       50,
@@ -209,8 +207,6 @@ class DartFixKind {
       const FixKind('REMOVE_UNUSED_IMPORT', 50, "Remove unused import");
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
       'REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'");
-  static const REPLACE_IMPORT_URI =
-      const FixKind('REPLACE_IMPORT_URI', 50, "Replace with '{0}'");
   static const REPLACE_VAR_WITH_DYNAMIC = const FixKind(
       'REPLACE_VAR_WITH_DYNAMIC', 50, "Replace 'var' with 'dynamic'");
   static const REPLACE_RETURN_TYPE_FUTURE = const FixKind(

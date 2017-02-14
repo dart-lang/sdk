@@ -39,7 +39,7 @@ abstract class AstFactory {
    * Returns a newly created as expression.
    */
   AsExpression asExpression(
-      Expression expression, Token asOperator, TypeName type);
+      Expression expression, Token asOperator, TypeAnnotation type);
 
   /**
    * Returns a newly created assert initializer. The [comma] and [message]
@@ -128,7 +128,7 @@ abstract class AstFactory {
    */
   CatchClause catchClause(
       Token onKeyword,
-      TypeName exceptionType,
+      TypeAnnotation exceptionType,
       Token catchKeyword,
       Token leftParenthesis,
       SimpleIdentifier exceptionParameter,
@@ -290,7 +290,7 @@ abstract class AstFactory {
       Comment comment,
       List<Annotation> metadata,
       Token keyword,
-      TypeName type,
+      TypeAnnotation type,
       SimpleIdentifier identifier);
 
   /**
@@ -423,7 +423,7 @@ abstract class AstFactory {
       Comment comment,
       List<Annotation> metadata,
       Token keyword,
-      TypeName type,
+      TypeAnnotation type,
       Token thisKeyword,
       Token period,
       SimpleIdentifier identifier,
@@ -502,7 +502,7 @@ abstract class AstFactory {
       Comment comment,
       List<Annotation> metadata,
       Token externalKeyword,
-      TypeName returnType,
+      TypeAnnotation returnType,
       Token propertyKeyword,
       SimpleIdentifier name,
       FunctionExpression functionExpression);
@@ -536,7 +536,7 @@ abstract class AstFactory {
       Comment comment,
       List<Annotation> metadata,
       Token keyword,
-      TypeName returnType,
+      TypeAnnotation returnType,
       SimpleIdentifier name,
       TypeParameterList typeParameters,
       FormalParameterList parameters,
@@ -551,7 +551,7 @@ abstract class AstFactory {
   FunctionTypedFormalParameter functionTypedFormalParameter(
       Comment comment,
       List<Annotation> metadata,
-      TypeName returnType,
+      TypeAnnotation returnType,
       SimpleIdentifier identifier,
       TypeParameterList typeParameters,
       FormalParameterList parameters,
@@ -642,7 +642,7 @@ abstract class AstFactory {
    * if the sense of the test is not negated.
    */
   IsExpression isExpression(Expression expression, Token isOperator,
-      Token notOperator, TypeName type);
+      Token notOperator, TypeAnnotation type);
 
   /**
    * Returns a newly created label.
@@ -706,7 +706,7 @@ abstract class AstFactory {
       List<Annotation> metadata,
       Token externalKeyword,
       Token modifierKeyword,
-      TypeName returnType,
+      TypeAnnotation returnType,
       Token propertyKeyword,
       Token operatorKeyword,
       SimpleIdentifier name,
@@ -849,7 +849,7 @@ abstract class AstFactory {
       Comment comment,
       List<Annotation> metadata,
       Token keyword,
-      TypeName type,
+      TypeAnnotation type,
       SimpleIdentifier identifier);
 
   /**
@@ -948,7 +948,7 @@ abstract class AstFactory {
    * Returns a newly created list of type arguments.
    */
   TypeArgumentList typeArgumentList(
-      Token leftBracket, List<TypeName> arguments, Token rightBracket);
+      Token leftBracket, List<TypeAnnotation> arguments, Token rightBracket);
 
   /**
    * Returns a newly created type name. The [typeArguments] can be `null` if
@@ -964,7 +964,7 @@ abstract class AstFactory {
    * the parameter does not have an upper bound.
    */
   TypeParameter typeParameter(Comment comment, List<Annotation> metadata,
-      SimpleIdentifier name, Token extendsKeyword, TypeName bound);
+      SimpleIdentifier name, Token extendsKeyword, TypeAnnotation bound);
 
   /**
    * Returns a newly created list of type parameters.
@@ -989,8 +989,21 @@ abstract class AstFactory {
       Comment comment,
       List<Annotation> metadata,
       Token keyword,
-      TypeName type,
+      TypeAnnotation type,
       List<VariableDeclaration> variables);
+
+  /**
+   * Returns a newly created generic type alias. Either or both of the
+   * [comment] and [metadata] can be `null` if the variable list does not have
+   * the corresponding attribute. The [typeParameters] can be `null` if there
+   * are no type parameters.
+   */
+  GenericTypeAlias genericTypeAlias(Comment comment, List<Annotation> metadata, Token typedefKeyword, SimpleIdentifier name, TypeParameterList typeParameters, Token equals, GenericFunctionType functionType, Token semicolon);
+
+  /**
+   * Initialize a newly created generic function type.
+   */
+  GenericFunctionType genericFunctionType(TypeAnnotation returnType, Token functionKeyword, TypeParameterList typeParameters, FormalParameterList _parameters);
 
   /**
    * Returns a newly created variable declaration statement.

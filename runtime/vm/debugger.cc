@@ -6,6 +6,8 @@
 
 #include "include/dart_api.h"
 
+#include "platform/address_sanitizer.h"
+
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
@@ -42,6 +44,7 @@ DEFINE_FLAG(bool,
             trace_debugger_stacktrace,
             false,
             "Trace debugger stacktrace collection");
+DEFINE_FLAG(bool, trace_rewind, false, "Trace frame rewind");
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
 DEFINE_FLAG(bool,
             steal_breakpoints,
@@ -635,7 +638,7 @@ intptr_t ActivationFrame::ContextLevel() {
       const int8_t kind = var_info.kind();
       if ((kind == RawLocalVarDescriptors::kContextLevel) &&
           (var_info.begin_pos <= activation_token_pos) &&
-          (activation_token_pos < var_info.end_pos)) {
+          (activation_token_pos <= var_info.end_pos)) {
         // This var_descriptors_ entry is a context scope which is in scope
         // of the current token position. Now check whether it is shadowing
         // the previous context scope.
@@ -847,6 +850,24 @@ RawObject* ActivationFrame::GetStackVar(intptr_t slot_index) {
   } else {
     return deopt_frame_.At(LocalVarIndex(deopt_frame_offset_, slot_index));
   }
+}
+
+
+bool ActivationFrame::IsRewindable() const {
+  if (deopt_frame_.IsNull()) {
+    return true;
+  }
+  // TODO(turnidge): This is conservative.  It looks at all values in
+  // the deopt_frame_ even though some of them may correspond to other
+  // inlined frames.
+  Object& obj = Object::Handle();
+  for (int i = 0; i < deopt_frame_.Length(); i++) {
+    obj = deopt_frame_.At(i);
+    if (obj.raw() == Symbols::OptimizedOut().raw()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -1108,9 +1129,13 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj, bool full) {
   }
 }
 
+static bool IsFunctionVisible(const Function& function) {
+  return FLAG_show_invisible_frames || function.is_visible();
+}
+
 
 void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
-  if (FLAG_show_invisible_frames || frame->function().is_visible()) {
+  if (IsFunctionVisible(frame->function())) {
     trace_.Add(frame);
   }
 }
@@ -1237,6 +1262,8 @@ Debugger::Debugger()
       breakpoint_locations_(NULL),
       code_breakpoints_(NULL),
       resume_action_(kContinue),
+      resume_frame_index_(-1),
+      post_deopt_frame_index_(-1),
       ignore_breakpoints_(false),
       pause_event_(NULL),
       obj_cache_(NULL),
@@ -1300,10 +1327,13 @@ static RawFunction* ResolveLibraryFunction(const Library& library,
 }
 
 
-bool Debugger::SetupStepOverAsyncSuspension() {
+bool Debugger::SetupStepOverAsyncSuspension(const char** error) {
   ActivationFrame* top_frame = TopDartFrame();
   if (!IsAtAsyncJump(top_frame)) {
     // Not at an async operation.
+    if (error) {
+      *error = "Isolate must be paused at an async suspension point";
+    }
     return false;
   }
   Object& closure = Object::Handle(top_frame->GetAsyncOperation());
@@ -1313,24 +1343,42 @@ bool Debugger::SetupStepOverAsyncSuspension() {
   Breakpoint* bpt = SetBreakpointAtActivation(Instance::Cast(closure), true);
   if (bpt == NULL) {
     // Unable to set the breakpoint.
+    if (error) {
+      *error = "Unable to set breakpoint at async suspension point";
+    }
     return false;
   }
   return true;
 }
 
 
-void Debugger::SetSingleStep() {
-  resume_action_ = kSingleStep;
-}
-
-
-void Debugger::SetStepOver() {
-  resume_action_ = kStepOver;
-}
-
-
-void Debugger::SetStepOut() {
-  resume_action_ = kStepOut;
+bool Debugger::SetResumeAction(ResumeAction action,
+                               intptr_t frame_index,
+                               const char** error) {
+  if (error) {
+    *error = NULL;
+  }
+  resume_frame_index_ = -1;
+  switch (action) {
+    case kStepInto:
+    case kStepOver:
+    case kStepOut:
+    case kContinue:
+      resume_action_ = action;
+      return true;
+    case kStepRewind:
+      if (!CanRewindFrame(frame_index, error)) {
+        return false;
+      }
+      resume_action_ = kStepRewind;
+      resume_frame_index_ = frame_index;
+      return true;
+    case kStepOverAsyncSuspension:
+      return SetupStepOverAsyncSuspension(error);
+    default:
+      UNREACHABLE();
+      return false;
+  }
 }
 
 
@@ -1519,7 +1567,7 @@ DebuggerStackTrace* Debugger::CurrentStackTrace() {
   return CollectStackTrace();
 }
 
-DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {
+DebuggerStackTrace* Debugger::StackTraceFrom(const class StackTrace& ex_trace) {
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   Function& function = Function::Handle();
   Code& code = Code::Handle();
@@ -1531,7 +1579,7 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const Stacktrace& ex_trace) {
 
   for (intptr_t i = 0; i < ex_trace.Length(); i++) {
     function = ex_trace.FunctionAtFrame(i);
-    // Pre-allocated Stacktraces may include empty slots, either (a) to indicate
+    // Pre-allocated StackTraces may include empty slots, either (a) to indicate
     // where frames were omitted in the case a stack has more frames than the
     // pre-allocated trace (such as a stack overflow) or (b) because a stack has
     // fewer frames that the pre-allocated trace (such as memory exhaustion with
@@ -1622,6 +1670,7 @@ void Debugger::PauseException(const Instance& exc) {
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
   Pause(&event);
+  HandleSteppingRequest(stack_trace_);  // we may get a rewind request
   stack_trace_ = NULL;
 }
 
@@ -1722,6 +1771,7 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
   // of the given token range.
   TokenPosition best_fit_pos = TokenPosition::kMaxSource;
   intptr_t best_column = INT_MAX;
+  intptr_t best_line = INT_MAX;
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
     const TokenPosition pos = iter.TokenPos();
@@ -1732,8 +1782,8 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
     }
 
     intptr_t token_start_column = -1;
+    intptr_t token_line = -1;
     if (requested_column >= 0) {
-      intptr_t ignored = -1;
       intptr_t token_len = -1;
       // TODO(turnidge): GetTokenLocation is a very expensive
       // operation, and this code will blow up when we are setting
@@ -1741,7 +1791,8 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
       // program.  Consider rewriting this code so that it only scans
       // the program code once and caches the token positions and
       // lengths.
-      script.GetTokenLocation(pos, &ignored, &token_start_column, &token_len);
+      script.GetTokenLocation(pos, &token_line, &token_start_column,
+                              &token_len);
       intptr_t token_end_column = token_start_column + token_len - 1;
       if ((token_end_column < requested_column) ||
           (token_start_column > best_column)) {
@@ -1754,6 +1805,7 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
     // Prefer the lowest (first) token pos.
     if (pos < best_fit_pos) {
       best_fit_pos = pos;
+      best_line = token_line;
       best_column = token_start_column;
     }
   }
@@ -1763,10 +1815,24 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
   // was specified) and has the lowest code address.
   if (best_fit_pos != TokenPosition::kMaxSource) {
     const Script& script = Script::Handle(zone, func.script());
-    const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
     const TokenPosition begin_pos = best_fit_pos;
-    const TokenPosition end_of_line_pos =
-        LastTokenOnLine(zone, tokens, begin_pos);
+
+    TokenPosition end_of_line_pos;
+    if (script.kind() == RawScript::kKernelTag) {
+      if (best_line == -1) {
+        script.GetTokenLocation(begin_pos, &best_line, NULL);
+      }
+      ASSERT(best_line > 0);
+      TokenPosition ignored;
+      script.TokenRangeAtLine(best_line, &ignored, &end_of_line_pos);
+      if (end_of_line_pos < begin_pos) {
+        end_of_line_pos = begin_pos;
+      }
+    } else {
+      const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
+      end_of_line_pos = LastTokenOnLine(zone, tokens, begin_pos);
+    }
+
     uword lowest_pc_offset = kUwordMax;
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
@@ -2547,7 +2613,7 @@ void Debugger::EnterSingleStepMode() {
 void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
                                      bool skip_next_step) {
   stepping_fp_ = 0;
-  if (resume_action_ == kSingleStep) {
+  if (resume_action_ == kStepInto) {
     // When single stepping, we need to deoptimize because we might be
     // stepping into optimized code.  This happens in particular if
     // the isolate has been interrupted, but can happen in other cases
@@ -2557,7 +2623,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     isolate_->set_single_step(true);
     skip_next_step_ = skip_next_step;
     if (FLAG_verbose_debug) {
-      OS::Print("HandleSteppingRequest- kSingleStep\n");
+      OS::Print("HandleSteppingRequest- kStepInto\n");
     }
   } else if (resume_action_ == kStepOver) {
     DeoptimizeWorld();
@@ -2581,6 +2647,244 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     }
     if (FLAG_verbose_debug) {
       OS::Print("HandleSteppingRequest- kStepOut %" Px "\n", stepping_fp_);
+    }
+  } else if (resume_action_ == kStepRewind) {
+    if (FLAG_trace_rewind) {
+      OS::PrintErr("Rewinding to frame %" Pd "\n", resume_frame_index_);
+      OS::PrintErr(
+          "-------------------------\n"
+          "All frames...\n\n");
+      StackFrameIterator iterator(false);
+      StackFrame* frame = iterator.NextFrame();
+      intptr_t num = 0;
+      while ((frame != NULL)) {
+        OS::PrintErr("#%04" Pd " %s\n", num++, frame->ToCString());
+        frame = iterator.NextFrame();
+      }
+    }
+    RewindToFrame(resume_frame_index_);
+    UNREACHABLE();
+  }
+}
+
+
+static intptr_t FindNextRewindFrameIndex(DebuggerStackTrace* stack,
+                                         intptr_t frame_index) {
+  for (intptr_t i = frame_index + 1; i < stack->Length(); i++) {
+    ActivationFrame* frame = stack->FrameAt(i);
+    if (frame->IsRewindable()) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+
+// Can the top frame be rewound?
+bool Debugger::CanRewindFrame(intptr_t frame_index, const char** error) const {
+  // check rewind pc is found
+  DebuggerStackTrace* stack = Isolate::Current()->debugger()->StackTrace();
+  intptr_t num_frames = stack->Length();
+  if (frame_index < 1 || frame_index >= num_frames) {
+    if (error) {
+      *error = Thread::Current()->zone()->PrintToString(
+          "Frame must be in bounds [1..%" Pd
+          "]: "
+          "saw %" Pd "",
+          num_frames - 1, frame_index);
+    }
+    return false;
+  }
+  ActivationFrame* frame = stack->FrameAt(frame_index);
+  if (!frame->IsRewindable()) {
+    intptr_t next_index = FindNextRewindFrameIndex(stack, frame_index);
+    if (next_index > 0) {
+      *error = Thread::Current()->zone()->PrintToString(
+          "Cannot rewind to frame %" Pd
+          " due to conflicting compiler "
+          "optimizations. "
+          "Run the vm with --no-prune-dead-locals to disallow these "
+          "optimizations. "
+          "Next valid rewind frame is %" Pd ".",
+          frame_index, next_index);
+    } else {
+      *error = Thread::Current()->zone()->PrintToString(
+          "Cannot rewind to frame %" Pd
+          " due to conflicting compiler "
+          "optimizations. "
+          "Run the vm with --no-prune-dead-locals to disallow these "
+          "optimizations.",
+          frame_index);
+    }
+    return false;
+  }
+  return true;
+}
+
+
+// Given a return address pc, find the "rewind" pc, which is the pc
+// before the corresponding call.
+static uword LookupRewindPc(const Code& code, uword pc) {
+  ASSERT(!code.is_optimized());
+  ASSERT(code.ContainsInstructionAt(pc));
+
+  uword pc_offset = pc - code.PayloadStart();
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  PcDescriptors::Iterator iter(
+      descriptors, RawPcDescriptors::kRewind | RawPcDescriptors::kIcCall |
+                       RawPcDescriptors::kUnoptStaticCall);
+  intptr_t rewind_deopt_id = -1;
+  uword rewind_pc = 0;
+  while (iter.MoveNext()) {
+    if (iter.Kind() == RawPcDescriptors::kRewind) {
+      // Remember the last rewind so we don't need to iterator twice.
+      rewind_pc = code.PayloadStart() + iter.PcOffset();
+      rewind_deopt_id = iter.DeoptId();
+    }
+    if ((pc_offset == iter.PcOffset()) && (iter.DeoptId() == rewind_deopt_id)) {
+      return rewind_pc;
+    }
+  }
+  return 0;
+}
+
+
+void Debugger::RewindToFrame(intptr_t frame_index) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Code& code = Code::Handle(zone);
+  Function& function = Function::Handle(zone);
+
+  // Find the requested frame.
+  StackFrameIterator iterator(false);
+  intptr_t current_frame = 0;
+  for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
+       frame = iterator.NextFrame()) {
+    ASSERT(frame->IsValid());
+    if (frame->IsDartFrame()) {
+      code = frame->LookupDartCode();
+      function = code.function();
+      if (!IsFunctionVisible(function)) {
+        continue;
+      }
+      if (code.is_optimized()) {
+        intptr_t sub_index = 0;
+        for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
+             it.Advance()) {
+          if (current_frame == frame_index) {
+            RewindToOptimizedFrame(frame, code, sub_index);
+            UNREACHABLE();
+          }
+          current_frame++;
+          sub_index++;
+        }
+      } else {
+        if (current_frame == frame_index) {
+          // We are rewinding to an unoptimized frame.
+          RewindToUnoptimizedFrame(frame, code);
+          UNREACHABLE();
+        }
+        current_frame++;
+      }
+    }
+  }
+  UNIMPLEMENTED();
+}
+
+
+void Debugger::RewindToUnoptimizedFrame(StackFrame* frame, const Code& code) {
+  // We will be jumping out of the debugger rather than exiting this
+  // function, so prepare the debugger state.
+  stack_trace_ = NULL;
+  resume_action_ = kContinue;
+  resume_frame_index_ = -1;
+  EnterSingleStepMode();
+
+  uword rewind_pc = LookupRewindPc(code, frame->pc());
+  if (FLAG_trace_rewind && rewind_pc == 0) {
+    OS::PrintErr("Unable to find rewind pc for pc(%" Px ")\n", frame->pc());
+  }
+  ASSERT(rewind_pc != 0);
+  if (FLAG_trace_rewind) {
+    OS::PrintErr(
+        "===============================\n"
+        "Rewinding to unoptimized frame:\n"
+        "    rewind_pc(0x%" Px ") sp(0x%" Px ") fp(0x%" Px
+        ")\n"
+        "===============================\n",
+        rewind_pc, frame->sp(), frame->fp());
+  }
+  Exceptions::JumpToFrame(Thread::Current(), rewind_pc, frame->sp(),
+                          frame->fp(), true /* clear lazy deopt at target */);
+  UNREACHABLE();
+}
+
+
+void Debugger::RewindToOptimizedFrame(StackFrame* frame,
+                                      const Code& optimized_code,
+                                      intptr_t sub_index) {
+  post_deopt_frame_index_ = sub_index;
+
+  // We will be jumping out of the debugger rather than exiting this
+  // function, so prepare the debugger state.
+  stack_trace_ = NULL;
+  resume_action_ = kContinue;
+  resume_frame_index_ = -1;
+  EnterSingleStepMode();
+
+  if (FLAG_trace_rewind) {
+    OS::PrintErr(
+        "===============================\n"
+        "Deoptimizing frame for rewind:\n"
+        "    deopt_pc(0x%" Px ") sp(0x%" Px ") fp(0x%" Px
+        ")\n"
+        "===============================\n",
+        frame->pc(), frame->sp(), frame->fp());
+  }
+  Thread* thread = Thread::Current();
+  thread->set_resume_pc(frame->pc());
+  uword deopt_stub_pc = StubCode::DeoptForRewind_entry()->EntryPoint();
+  Exceptions::JumpToFrame(thread, deopt_stub_pc, frame->sp(), frame->fp(),
+                          true /* clear lazy deopt at target */);
+  UNREACHABLE();
+}
+
+
+void Debugger::RewindPostDeopt() {
+  intptr_t rewind_frame = post_deopt_frame_index_;
+  post_deopt_frame_index_ = -1;
+  if (FLAG_trace_rewind) {
+    OS::PrintErr("Post deopt, jumping to frame %" Pd "\n", rewind_frame);
+    OS::PrintErr(
+        "-------------------------\n"
+        "All frames...\n\n");
+    StackFrameIterator iterator(false);
+    StackFrame* frame = iterator.NextFrame();
+    intptr_t num = 0;
+    while ((frame != NULL)) {
+      OS::PrintErr("#%04" Pd " %s\n", num++, frame->ToCString());
+      frame = iterator.NextFrame();
+    }
+  }
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Code& code = Code::Handle(zone);
+
+  StackFrameIterator iterator(false);
+  intptr_t current_frame = 0;
+  for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
+       frame = iterator.NextFrame()) {
+    ASSERT(frame->IsValid());
+    if (frame->IsDartFrame()) {
+      code = frame->LookupDartCode();
+      ASSERT(!code.is_optimized());
+      if (current_frame == rewind_frame) {
+        RewindToUnoptimizedFrame(frame, code);
+        UNREACHABLE();
+      }
+      current_frame++;
     }
   }
 }
@@ -2624,6 +2928,9 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
     ASSERT(closure_or_null.IsInstance());
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
     const Script& script = Script::Handle(zone, top_frame->SourceScript());
+    if (script.kind() == RawScript::kKernelTag) {
+      return false;
+    }
     const TokenStream& tokens = TokenStream::Handle(zone, script.tokens());
     TokenStream::Iterator iter(zone, tokens, top_frame->TokenPos());
     if ((iter.CurrentTokenKind() == Token::kIDENT) &&
@@ -2793,7 +3100,7 @@ RawError* Debugger::PauseBreakpoint() {
 
     // We are at the entry of an async function.
     // We issue a step over to resume at the point after the await statement.
-    SetStepOver();
+    SetResumeAction(kStepOver);
     // When we single step from a user breakpoint, our next stepping
     // point will be at the exact same pc.  Skip it.
     HandleSteppingRequest(stack_trace_, true /* skip next step */);
@@ -2846,7 +3153,7 @@ void Debugger::PauseDeveloper(const String& msg) {
   // We are in the native call to Developer_debugger.  the developer
   // gets a better experience by not seeing this call. To accomplish
   // this, we continue execution until the call exits (step out).
-  SetStepOut();
+  SetResumeAction(kStepOut);
   HandleSteppingRequest(stack_trace_);
 
   stack_trace_ = NULL;

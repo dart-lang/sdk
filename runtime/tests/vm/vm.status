@@ -2,12 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail, Crash
-cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail, Crash
-cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash
-cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash
-cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail, Crash
-cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash
+# Issue 28198
+cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail, Crash, Timeout
+cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail, Crash, Timeout
+cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash, Timeout
+cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash, Timeout
+cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail, Crash, Timeout
+cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash, Timeout
 
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash, Timeout
@@ -17,8 +18,8 @@ cc/Fail0: Fail
 cc/Fail1: Fail
 cc/Fail2: Fail
 
-cc/Dart2JSCompileAll: Crash # Issue 27369
-cc/Dart2JSCompilerStats: Crash # Issue 27369
+cc/Dart2JSCompileAll: Fail, Crash # Issue 27369
+cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
 
 cc/SNPrint_BadArgs: Skip
 
@@ -47,6 +48,43 @@ cc/ExternalizeConstantStrings: Skip
 cc/Service_Profile: Skip
 cc/Dart2JSCompilerStats: Skip
 cc/CorelibCompilerStats: Skip
+
+[ $system == fuchsia ]
+# OOM crash can bring down the OS.
+dart/spawn_shutdown_test: Skip
+cc/CorelibIsolateStartup: Skip
+# TODO(zra): package:unittest is not in the image.
+dart/data_uri_spawn_test: Skip
+# ../../dart/runtime/bin/file_test.cc: 34: error: expected: !file->WriteByte(1)
+cc/Read: Fail  # TODO(zra): Investigate
+# Assumes initial thread's stack is the same size as spawned thread stacks.
+cc/StackOverflowStackTraceInfo: Crash
+# The profiler is turned off. Issue MG-430.
+cc/Profiler_AllocationSampleTest: Crash
+cc/Profiler_ArrayAllocation: Crash
+cc/Profiler_BasicSourcePosition: Crash
+cc/Profiler_BasicSourcePositionOptimized: Crash
+cc/Profiler_BinaryOperatorSourcePosition: Crash
+cc/Profiler_BinaryOperatorSourcePositionOptimized: Crash
+cc/Profiler_ChainedSamples: Crash
+cc/Profiler_ClosureAllocation: Crash
+cc/Profiler_CodeTicks: Crash
+cc/Profiler_ContextAllocation: Crash
+cc/Profiler_FunctionInline: Crash
+cc/Profiler_FunctionTicks: Crash
+cc/Profiler_InliningIntervalBoundry: Crash
+cc/Profiler_IntrinsicAllocation: Crash
+cc/Profiler_SampleBufferIterateTest: Crash
+cc/Profiler_SampleBufferWrapTest: Crash
+cc/Profiler_SourcePosition: Crash
+cc/Profiler_SourcePositionOptimized: Crash
+cc/Profiler_StringAllocation: Crash
+cc/Profiler_StringInterpolation: Crash
+cc/Profiler_ToggleRecordAllocation: Crash
+cc/Profiler_TrivialRecordAllocation: Crash
+cc/Profiler_TypedArrayAllocation: Crash
+cc/Profiler_GetSourceReport: Crash
+cc/Service_Profile: Fail
 
 # Profiler is completely disabled in SIMDBC builds.
 # On the simluator stack traces produced by the Profiler do not match
@@ -133,6 +171,9 @@ cc/FindCodeObject: SkipSlow # Takes more than 8 minutes. Issue 17440
 [ $compiler == dart2analyzer ]
 dart/optimized_stacktrace_test: StaticWarning
 
+[ $compiler == app_jit ]
+dart/snapshot_version_test: Fail,OK # Expects to find script snapshot relative to Dart source.
+
 [ $runtime != vm ]
 dart/snapshot_version_test: SkipByDesign  # Spawns processes
 dart/spawn_infinite_loop_test: Skip  # VM shutdown test
@@ -145,22 +186,82 @@ cc/Dart2JSCompileAll: SkipSlow  # Timeout.
 [ $builder_tag == asan ]
 cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
-[ $noopt || $compiler == precompiler ]
+[ $builder_tag == asan && $arch == x64 ]
+cc/Debug_DeleteBreakpoint: Fail # Issue 28348
+
+cc/IsolateReload_ChangeInstanceFormat7: Fail # Issue 28349
+cc/IsolateReload_ClassAdded: Fail # Issue 28349
+cc/IsolateReload_ComplexInheritanceChange: Fail # Issue 28349
+cc/IsolateReload_ConstFieldUpdate: Fail # Issue 28349
+cc/IsolateReload_ConstantIdentical: Fail # Issue 28349
+cc/IsolateReload_ConstructorChanged: Fail # Issue 28349
+cc/IsolateReload_DanglingGetter_Class: Fail # Issue 28349
+cc/IsolateReload_DanglingGetter_Instance: Fail # Issue 28349
+cc/IsolateReload_DanglingGetter_Library: Fail # Issue 28349
+cc/IsolateReload_DanglingSetter_Class: Fail # Issue 28349
+cc/IsolateReload_DanglingSetter_Instance: Fail # Issue 28349
+cc/IsolateReload_DanglingSetter_Library: Fail # Issue 28349
+cc/IsolateReload_DirectSubclasses_GhostSubclass: Fail # Issue 28349
+cc/IsolateReload_DirectSubclasses_Success: Fail # Issue 28349
+cc/IsolateReload_EnumAddition: Fail # Issue 28349
+cc/IsolateReload_EnumDelete: Fail # Issue 28349
+cc/IsolateReload_EnumEquality: Fail # Issue 28349
+cc/IsolateReload_EnumIdentical: Fail # Issue 28349
+cc/IsolateReload_EnumIdentityReload: Fail # Issue 28349
+cc/IsolateReload_EnumReorderIdentical: Fail # Issue 28349
+cc/IsolateReload_EnumValuesToString: Fail # Issue 28349
+cc/IsolateReload_ExportedLibModified: Fail # Issue 28349
+cc/IsolateReload_FunctionReplacement: Fail # Issue 28349
+cc/IsolateReload_Generics: Fail # Issue 28349
+cc/IsolateReload_ImplicitConstructorChanged: Fail # Issue 28349
+cc/IsolateReload_ImportedLibModified: Fail # Issue 28349
+cc/IsolateReload_ImportedMixinFunction: Fail # Issue 28349
+cc/IsolateReload_LibraryDebuggable: Fail # Issue 28349
+cc/IsolateReload_LibraryHide: Fail # Issue 28349
+cc/IsolateReload_LibraryImportAdded: Fail # Issue 28349
+cc/IsolateReload_LibraryImportRemoved: Fail # Issue 28349
+cc/IsolateReload_LibraryLookup: Fail # Issue 28349
+cc/IsolateReload_LibraryShow: Fail # Issue 28349
+cc/IsolateReload_LiveStack: Fail # Issue 28349
+cc/IsolateReload_MainLibModified: Fail # Issue 28349
+cc/IsolateReload_MixinChanged: Fail # Issue 28349
+cc/IsolateReload_PendingSuperCall: Fail # Issue 28349
+cc/IsolateReload_PrefixImportedLibModified: Fail # Issue 28349
+cc/IsolateReload_SavedClosure: Fail # Issue 28349
+cc/IsolateReload_SavedClosure: Fail # Issue 28349
+cc/IsolateReload_SimpleConstFieldUpdate: Fail # Issue 28349
+cc/IsolateReload_SmiFastPathStubs: Fail # Issue 28349
+cc/IsolateReload_StaticTearOffRetainsHash: Fail # Issue 28349
+cc/IsolateReload_StaticValuePreserved: Fail # Issue 28349
+cc/IsolateReload_StaticValuePreserved: Fail # Issue 28349
+cc/IsolateReload_SuperClassChanged: Fail # Issue 28349
+cc/IsolateReload_TearOff_AddArguments2: Fail # Issue 28349
+cc/IsolateReload_TearOff_AddArguments: Fail # Issue 28349
+cc/IsolateReload_TearOff_Class_Identity: Fail # Issue 28349
+cc/IsolateReload_TearOff_Instance_Equality: Fail # Issue 28349
+cc/IsolateReload_TearOff_Library_Identity: Fail # Issue 28349
+cc/IsolateReload_TearOff_List_Set: Fail # Issue 28349
+cc/IsolateReload_TopLevelFieldAdded: Fail # Issue 28349
+cc/IsolateReload_TypeIdentity: Fail # Issue 28349
+cc/IsolateReload_TypeIdentityGeneric: Fail # Issue 28349
+cc/IsolateReload_TypeIdentityParameter: Fail # Issue 28349
+
+[ $compiler == precompiler ]
 dart/byte_array_test: Skip # Incompatible flag --disable_alloc_stubs_after_gc
 
-[ $noopt || $compiler == precompiler || $mode == product ]
+[ $compiler == precompiler || $mode == product ]
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 
-[ $noopt || $runtime == dart_precompiled ]
-# Stacktraces in precompilation omit inlined frames.
+[ $runtime == dart_precompiled ]
+# StackTraces in precompilation omit inlined frames.
 dart/inline_stack_frame_test: Pass, RuntimeError
 dart/optimized_stacktrace_test: Pass, RuntimeError
-
-[ $runtime == dart_app || $runtime == dart_precompiled ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+
+[ $compiler == app_jit || $compiler == precompiler ]
 dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
 
 [ $runtime == vm && $mode == product ]
@@ -187,6 +288,9 @@ cc/GuardFieldSimpleTest: Skip
 
 # This test is meaningless for DBC as allocation stubs are not used.
 cc/RegenerateAllocStubs: Skip
+
+[ $arch == simdbc64 && $mode == release ]
+cc/UseDartApi: Pass,Crash # Issue 28499
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.

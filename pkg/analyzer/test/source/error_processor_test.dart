@@ -153,17 +153,15 @@ ErrorProcessor processor;
 void configureOptions(String options) {
   Map<String, YamlNode> optionMap =
       optionsProvider.getOptionsFromString(options);
-  configureContextOptions(context, optionMap);
+  applyToAnalysisOptions(context.analysisOptions, optionMap);
 }
 
 ErrorProcessor getProcessor(AnalysisError error) =>
-    ErrorProcessor.getProcessor(context, error);
+    ErrorProcessor.getProcessor(context.analysisOptions, error);
 
 void oneTimeSetup() {
   List<Plugin> plugins = <Plugin>[];
   plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-  plugins.add(AnalysisEngine.instance.commandLinePlugin);
-  plugins.add(AnalysisEngine.instance.optionsPlugin);
   ExtensionManager manager = new ExtensionManager();
   manager.processPlugins(plugins);
 }

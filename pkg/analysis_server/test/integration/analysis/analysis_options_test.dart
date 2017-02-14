@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.analysis.analysis_options_test;
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
@@ -14,11 +12,12 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OptionsIntegrationTest);
+    defineReflectiveTests(OptionsIntegrationTest_Driver);
   });
 }
 
-@reflectiveTest
-class OptionsIntegrationTest extends AbstractAnalysisServerIntegrationTest {
+class AbstractOptionsIntegrationTest
+    extends AbstractAnalysisServerIntegrationTest {
   test_option_warning_newOptionFile() async {
     String options = sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     writeFile(
@@ -71,5 +70,28 @@ linter:
     expect(error.location.length, 'camel_case_typo'.length);
     expect(error.location.startLine, 3);
     expect(error.location.startColumn, 7);
+  }
+}
+
+@reflectiveTest
+class OptionsIntegrationTest extends AbstractOptionsIntegrationTest {}
+
+@reflectiveTest
+class OptionsIntegrationTest_Driver extends AbstractOptionsIntegrationTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  test_option_warning_newOptionFile() async {
+    //   TimeoutException after 0:00:30.000000: Test timed out after 30 seconds.
+    //return super.test_option_warning_newOptionFile();
+    fail('Test timed out');
+  }
+
+  @failingTest
+  test_option_warning_oldOptionFile() async {
+    //   TimeoutException after 0:00:30.000000: Test timed out after 30 seconds.
+    //return super.test_option_warning_oldOptionFile();
+    fail('Test timed out');
   }
 }

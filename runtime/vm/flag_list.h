@@ -103,7 +103,6 @@
     "Maximum number of polymorphic check, otherwise it is megamorphic.")       \
   P(max_equality_polymorphic_checks, int, 32,                                  \
     "Maximum number of polymorphic checks in equality operator,")              \
-  P(merge_sin_cos, bool, false, "Merge sin/cos into sincos")                   \
   P(new_gen_ext_limit, int, 64,                                                \
     "maximum total external size (MB) in new gen before triggering GC")        \
   P(new_gen_semi_max_size, int, (kWordSize <= 4) ? 16 : 32,                    \
@@ -162,6 +161,8 @@
     "Enables heap verification after GC.")                                     \
   R(verify_before_gc, false, bool, false,                                      \
     "Enables heap verification before GC.")                                    \
+  D(verify_gc_contains, bool, false,                                           \
+    "Enables verification of address contains during GC.")                     \
   D(verify_on_transition, bool, false, "Verify on dart <==> VM.")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

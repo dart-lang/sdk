@@ -19,8 +19,8 @@ const List<String> DART2JS_OPTIONS = const <String>[
 
 Iterable<ClassElement> computeLiveClasses(CompilerImpl compiler) {
   return new Set<ClassElement>()
-    ..addAll(compiler.resolverWorld.directlyInstantiatedClasses)
-    ..addAll(compiler.codegenWorld.directlyInstantiatedClasses);
+    ..addAll(compiler.resolutionWorldBuilder.directlyInstantiatedClasses)
+    ..addAll(compiler.codegenWorldBuilder.directlyInstantiatedClasses);
 }
 
 void checkClassInvariants(ClassElement cls) {

@@ -4,11 +4,15 @@
 library kernel.target.vm;
 
 import '../ast.dart';
+import '../core_types.dart';
 import '../transformations/continuation.dart' as cont;
 import '../transformations/erasure.dart';
+import '../transformations/insert_covariance_checks.dart';
+import '../transformations/insert_type_checks.dart';
 import '../transformations/mixin_full_resolution.dart' as mix;
 import '../transformations/sanitize_for_vm.dart';
 import '../transformations/setup_builtin_library.dart' as setup_builtin_library;
+import '../transformations/treeshaker.dart';
 import 'targets.dart';
 
 /// Specializes the kernel IR to the Dart VM.
@@ -51,7 +55,23 @@ class VmTarget extends Target {
       ];
 
   void transformProgram(Program program) {
-    new mix.MixinFullResolution().transform(program);
+    var mixins = new mix.MixinFullResolution();
+    mixins.transform(program);
+
+    var hierarchy = mixins.hierarchy;
+    var coreTypes = new CoreTypes(program);
+
+    if (strongMode) {
+      new InsertTypeChecks(hierarchy: hierarchy, coreTypes: coreTypes)
+          .transformProgram(program);
+      new InsertCovarianceChecks(hierarchy: hierarchy, coreTypes: coreTypes)
+          .transformProgram(program);
+    }
+
+    new TreeShaker(program,
+            hierarchy: hierarchy, coreTypes: coreTypes, strongMode: strongMode)
+        .transform(program);
+
     cont.transformProgram(program);
 
     // Repair `_getMainClosure()` function in dart:_builtin.

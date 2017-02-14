@@ -42,11 +42,13 @@ class ServerRpcException extends RpcException implements M.RequestException {
   static const kStreamNotSubscribed = 104;
   static const kIsolateMustBeRunnable = 105;
   static const kIsolateMustBePaused = 106;
-  static const kIsolateIsReloading = 1000;
+  static const kCannotResume = 107;
+  static const kIsolateIsReloading = 108;
+  static const kIsolateReloadBarred = 109;
+
   static const kFileSystemAlreadyExists = 1001;
   static const kFileSystemDoesNotExist = 1002;
   static const kFileDoesNotExist = 1003;
-  static const kIsolateReloadFailed = 1004;
 
   int code;
   Map data;
@@ -235,6 +237,9 @@ abstract class ServiceObject {
         break;
       case 'SourceLocation':
         obj = new SourceLocation._empty(owner);
+        break;
+      case '_Thread':
+        obj = new Thread._empty(owner);
         break;
       case 'UnresolvedSourceLocation':
         obj = new UnresolvedSourceLocation._empty(owner);
@@ -1279,7 +1284,6 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   bool loading = true;
   bool runnable = false;
   bool ioEnabled = false;
-  bool reloading = false;
   M.IsolateStatus get status {
     if (paused) {
       return M.IsolateStatus.paused;
@@ -1344,13 +1348,12 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       params['pause'] = pause;
     }
     return invokeRpc('reloadSources', params).then((result) {
-      reloading = true;
+      _cache.clear();
       return result;
     });
   }
 
   void _handleIsolateReloadEvent(ServiceEvent event) {
-    reloading = false;
     if (event.reloadError != null) {
       // Failure.
       print('Reload failed: ${event.reloadError}');
@@ -1501,6 +1504,18 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   List<ByteData> _chunksInProgress;
 
+  List<Thread> get threads => _threads;
+  final List<Thread> _threads = new List<Thread>();
+
+  int get memoryHighWatermark => _memoryHighWatermark;
+  int _memoryHighWatermark = 0;
+
+  int get numZoneHandles => _numZoneHandles;
+  int _numZoneHandles;
+
+  int get numScopedHandles => _numScopedHandles;
+  int _numScopedHandles;
+
   void _loadHeapSnapshot(ServiceEvent event) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       // No outstanding snapshot request. Presumably another client asked for a
@@ -1624,6 +1639,23 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     if (map['extensionRPCs'] != null) {
       extensionRPCs.addAll(map['extensionRPCs']);
     }
+
+    threads.clear();
+    if(map['_threads'] != null) {
+      threads.addAll(map['_threads']);
+    }
+
+    int currentMemoryHighWatermark = 0;
+    for (var i = 0; i < threads.length; i++) {
+      currentMemoryHighWatermark += threads[i].memoryHighWatermark;
+    }
+
+    if (currentMemoryHighWatermark > _memoryHighWatermark) {
+      _memoryHighWatermark = currentMemoryHighWatermark;
+    }
+
+    _numZoneHandles = map['_numZoneHandles'];
+    _numScopedHandles = map['_numScopedHandles'];
   }
 
   Future<TagProfile> updateTagProfile() {
@@ -1775,6 +1807,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   Future stepOut() {
     return invokeRpc('resume', {'step': 'Out'});
+  }
+
+  Future rewind(int count) {
+    return invokeRpc('resume', {'step': 'Rewind', 'frameIndex': count});
   }
 
   Future setName(String newName) {
@@ -3050,6 +3086,71 @@ class Sentinel extends ServiceObject implements M.Sentinel {
 
   String toString() => 'Sentinel($kind)';
   String get shortName => valueAsString;
+}
+
+class Thread extends ServiceObject implements M.Thread {
+  M.ThreadKind get kind => _kind;
+  M.ThreadKind _kind;
+  String get kindString => _kindString;
+  String _kindString;
+  int get memoryHighWatermark => _memoryHighWatermark;
+  int _memoryHighWatermark;
+  List<Zone> get zones => _zones;
+  final List<Zone> _zones = new List<Zone>();
+
+  Thread._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(Map map, bool mapIsRef) {
+    String rawKind = map['kind'];
+    List<Map> zoneList = map['zones'];
+
+    switch(rawKind) {
+      case "kUnknownTask":
+        _kind = M.ThreadKind.unknownTask;
+        _kindString = 'unknown';
+        break;
+      case "kMutatorTask":
+        _kind = M.ThreadKind.mutatorTask;
+        _kindString = 'mutator';
+        break;
+      case "kCompilerTask":
+        _kind = M.ThreadKind.compilerTask;
+        _kindString = 'compiler';
+        break;
+      case "kSweeperTask":
+        _kind = M.ThreadKind.sweeperTask;
+        _kindString = 'sweeper';
+        break;
+      case "kMarkerTask":
+        _kind = M.ThreadKind.markerTask;
+        _kindString = 'marker';
+        break;
+      case "kFinalizerTask":
+        _kind = M.ThreadKind.finalizerTask;
+        _kindString = 'finalizer';
+        break;
+      default:
+        assert(false);
+    }
+
+    _memoryHighWatermark = int.parse(map['_memoryHighWatermark']);
+
+    zones.clear();
+    zoneList.forEach((zone) {
+      int capacity = zone['capacity'];
+      int used = zone['used'];
+      zones.add(new Zone(capacity, used));
+    });
+  }
+}
+
+class Zone implements M.Zone {
+  int get capacity => _capacity;
+  int _capacity;
+  int get used => _used;
+  int _used;
+
+  Zone(this._capacity, this._used);
 }
 
 class Field extends HeapObject implements M.Field {

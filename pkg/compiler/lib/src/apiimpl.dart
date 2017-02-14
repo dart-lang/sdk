@@ -47,7 +47,7 @@ class CompilerImpl extends Compiler {
 
   CompilerImpl(this.provider, api.CompilerOutput outputProvider, this.handler,
       CompilerOptions options,
-      {MakeBackendFuncion makeBackend, MakeReporterFunction makeReporter})
+      {MakeBackendFunction makeBackend, MakeReporterFunction makeReporter})
       // NOTE: allocating measurer is done upfront to ensure the wallclock is
       // started before other computations.
       : measurer = new Measurer(enableTaskMeasurements: options.verbose),
@@ -381,8 +381,7 @@ class _Environment implements Environment {
     // Private libraries are not exposed to the users.
     if (libraryName.startsWith("_")) return null;
 
-    Uri libraryUri =
-        compiler.resolvedUriTranslator.sdkLibraries[libraryName];
+    Uri libraryUri = compiler.resolvedUriTranslator.sdkLibraries[libraryName];
     if (libraryUri != null && libraryUri.scheme != "unsupported") {
       // Dart2js always "supports" importing 'dart:mirrors' but will abort
       // the compilation at a later point if the backend doesn't support

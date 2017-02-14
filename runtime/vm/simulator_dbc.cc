@@ -61,7 +61,6 @@ class SimulatorSetjmpBuffer {
     simulator_ = sim;
     link_ = sim->last_setjmp_buffer();
     sim->set_last_setjmp_buffer(this);
-    sp_ = sim->sp_;
     fp_ = sim->fp_;
   }
 
@@ -72,13 +71,11 @@ class SimulatorSetjmpBuffer {
 
   SimulatorSetjmpBuffer* link() const { return link_; }
 
-  uword sp() const { return reinterpret_cast<uword>(sp_); }
   uword fp() const { return reinterpret_cast<uword>(fp_); }
 
   jmp_buf buffer_;
 
  private:
-  RawObject** sp_;
   RawObject** fp_;
   Simulator* simulator_;
   SimulatorSetjmpBuffer* link_;
@@ -510,7 +507,7 @@ void Simulator::InitOnce() {
 }
 
 
-Simulator::Simulator() : stack_(NULL), fp_(NULL), sp_(NULL) {
+Simulator::Simulator() : stack_(NULL), fp_(NULL) {
   // Setup simulator support first. Some of this information is needed to
   // setup the architecture state.
   // We allocate the stack here, the size is computed as the sum of
@@ -581,8 +578,8 @@ void Simulator::Exit(Thread* thread,
   frame[1] = Code::null();
   frame[2] = reinterpret_cast<RawObject*>(pc);
   frame[3] = reinterpret_cast<RawObject*>(base);
-  fp_ = sp_ = frame + kDartFrameFixedSize;
-  thread->set_top_exit_frame_info(reinterpret_cast<uword>(sp_));
+  fp_ = frame + kDartFrameFixedSize;
+  thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));
 }
 
 // TODO(vegorov): Investigate advantages of using
@@ -1060,8 +1057,8 @@ static DART_NOINLINE bool InvokeNativeWrapper(Thread* thread,
     FP = reinterpret_cast<RawObject**>(fp_);                                   \
     pc = reinterpret_cast<uint32_t*>(pc_);                                     \
     if ((reinterpret_cast<uword>(pc) & 2) != 0) { /* Entry frame? */           \
-      fp_ = sp_ = reinterpret_cast<RawObject**>(fp_[0]);                       \
-      thread->set_top_exit_frame_info(reinterpret_cast<uword>(sp_));           \
+      fp_ = reinterpret_cast<RawObject**>(fp_[0]);                             \
+      thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));           \
       thread->set_top_resource(top_resource);                                  \
       thread->set_vm_tag(vm_tag);                                              \
       return special_[kExceptionSpecialIndex];                                 \
@@ -1112,8 +1109,8 @@ RawObject* Simulator::Call(const Code& code,
   uint32_t op;  // Currently executing op.
   uint16_t rA;  // A component of the currently executing op.
 
-  if (sp_ == NULL) {
-    fp_ = sp_ = reinterpret_cast<RawObject**>(stack_);
+  if (fp_ == NULL) {
+    fp_ = reinterpret_cast<RawObject**>(stack_);
   }
 
   // Save current VM tag and mark thread as executing Dart code.
@@ -1442,6 +1439,16 @@ RawObject* Simulator::Call(const Code& code,
         NativeArguments args(thread, 0, NULL, NULL);
         INVOKE_RUNTIME(DRT_StackOverflow, args);
       }
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckStackAlwaysExit, A);
+    {
+      Exit(thread, FP, SP + 1, pc);
+      NativeArguments args(thread, 0, NULL, NULL);
+      INVOKE_RUNTIME(DRT_StackOverflow, args);
     }
     DISPATCH();
   }
@@ -2565,9 +2572,8 @@ RawObject* Simulator::Call(const Code& code,
     // Check if it is a fake PC marking the entry frame.
     if ((reinterpret_cast<uword>(pc) & 2) != 0) {
       const intptr_t argc = reinterpret_cast<uword>(pc) >> 2;
-      fp_ = sp_ =
-          reinterpret_cast<RawObject**>(FrameArguments(FP, argc + 1)[0]);
-      thread->set_top_exit_frame_info(reinterpret_cast<uword>(sp_));
+      fp_ = reinterpret_cast<RawObject**>(FrameArguments(FP, argc + 1)[0]);
+      thread->set_top_exit_frame_info(reinterpret_cast<uword>(fp_));
       thread->set_top_resource(top_resource);
       thread->set_vm_tag(vm_tag);
       return result;
@@ -3498,15 +3504,17 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(LoadIndexedUint32, A_B_C);
-    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = reinterpret_cast<RawObject*>(*reinterpret_cast<uintptr_t*>(data));
+    const uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    const uint32_t value = *reinterpret_cast<const uint32_t*>(data);
+    FP[rA] = reinterpret_cast<RawObject*>(value);
     DISPATCH();
   }
 
   {
     BYTECODE(LoadIndexedInt32, A_B_C);
-    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = reinterpret_cast<RawObject*>(*reinterpret_cast<intptr_t*>(data));
+    const uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    const int32_t value = *reinterpret_cast<const int32_t*>(data);
+    FP[rA] = reinterpret_cast<RawObject*>(value);
     DISPATCH();
   }
 
@@ -3546,19 +3554,13 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(Deopt, A_D);
+
+    // Note: frame translation will take care of preserving result at the
+    // top of the stack. See CompilerDeoptInfo::CreateDeoptInfo.
     const bool is_lazy = rD == 0;
 
-    // Preserve result of the previous call.
-    // TODO(vegorov) we could have actually included result into the
-    // deoptimization environment because it is passed through the stack.
-    // If we do then we could remove special result handling from this code.
-    RawObject* result = SP[0];
-
-    // When not preserving the result, we still need to preserve SP[0] as it
-    // contains some temporary expression.
-    if (!is_lazy) {
-      SP++;
-    }
+    // Make sure we preserve SP[0] when entering synthetic frame below.
+    SP++;
 
     // Leaf runtime function DeoptimizeCopyFrame expects a Dart frame.
     // The code in this frame may not cause GC.
@@ -3574,9 +3576,6 @@ RawObject* Simulator::Call(const Code& code,
 
     // We are now inside a valid frame.
     {
-      if (is_lazy) {
-        *++SP = result;  // Preserve result (call below can cause GC).
-      }
       *++SP = 0;  // Space for the result: number of materialization args.
       Exit(thread, FP, SP + 1, /*pc=*/0);
       NativeArguments native_args(thread, 0, SP, SP);
@@ -3584,10 +3583,6 @@ RawObject* Simulator::Call(const Code& code,
     }
     const intptr_t materialization_arg_count =
         Smi::Value(RAW_CAST(Smi, *SP--)) / kWordSize;
-    if (is_lazy) {
-      // Reload the result. It might have been relocated by GC.
-      result = *SP--;
-    }
 
     // Restore caller PC.
     pc = SavedCallerPC(FP);
@@ -3596,21 +3591,13 @@ RawObject* Simulator::Call(const Code& code,
     // Check if it is a fake PC marking the entry frame.
     ASSERT((reinterpret_cast<uword>(pc) & 2) == 0);
 
-    // Restore SP, FP and PP. Push result and dispatch.
-    // Note: unlike in a normal return sequence we don't need to drop
-    // arguments - those are not part of the innermost deoptimization
-    // environment they were dropped by FlowGraphCompiler::RecordAfterCall.
-
-    // If the result is not preserved, the unoptimized frame ends at the
-    // next slot.
-    SP = FrameArguments(FP, materialization_arg_count);
+    // Restore SP, FP and PP.
+    // Unoptimized frame SP is one below FrameArguments(...) because
+    // FrameArguments(...) returns a pointer to the first argument.
+    SP = FrameArguments(FP, materialization_arg_count) - 1;
     FP = SavedCallerFP(FP);
     pp = SimulatorHelpers::FrameCode(FP)->ptr()->object_pool_->ptr();
-    if (is_lazy) {
-      SP[0] = result;  // Put the result on the stack.
-    } else {
-      SP--;  // No result to push.
-    }
+
     DISPATCH();
   }
 
@@ -3711,18 +3698,28 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Clear top exit frame.
   thread->set_top_exit_frame_info(0);
 
-  sp_ = reinterpret_cast<RawObject**>(sp);
   fp_ = reinterpret_cast<RawObject**>(fp);
 
   if (pc == StubCode::RunExceptionHandler_entry()->EntryPoint()) {
-    // Instead of executing the RunException stub, we implement its
-    // behavior here.
+    // The RunExceptionHandler stub is a placeholder.  We implement
+    // its behavior here.
     RawObject* raw_exception = thread->active_exception();
     RawObject* raw_stacktrace = thread->active_stacktrace();
     ASSERT(raw_exception != Object::null());
     special_[kExceptionSpecialIndex] = raw_exception;
-    special_[kStacktraceSpecialIndex] = raw_stacktrace;
+    special_[kStackTraceSpecialIndex] = raw_stacktrace;
     pc_ = thread->resume_pc();
+  } else if (pc == StubCode::DeoptForRewind_entry()->EntryPoint()) {
+    // The DeoptForRewind stub is a placeholder.  We will eventually
+    // implement its behavior here.
+    //
+    // TODO(turnidge): Refactor the Deopt bytecode so that we can use
+    // the implementation here too.  The deopt pc is stored in
+    // Thread::resume_pc().  After invoking deoptimization, we usually
+    // call into Debugger::RewindPostDeopt(), but I need to figure out
+    // if that makes any sense (it would JumpToFrame during a
+    // JumpToFrame, which seems wrong).
+    UNIMPLEMENTED();
   } else {
     pc_ = pc;
   }

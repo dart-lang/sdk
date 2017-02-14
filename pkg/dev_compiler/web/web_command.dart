@@ -18,7 +18,6 @@ import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
 import 'package:analyzer/file_system/memory_file_system.dart'
     show MemoryResourceProvider;
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
-import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show
@@ -27,7 +26,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart'
         InputPackagesResultProvider,
         InSummarySource;
 import 'package:analyzer/src/dart/resolver/scope.dart' show Scope;
-import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 
 import 'package:args/command_runner.dart';
 
@@ -95,13 +93,12 @@ class WebCompileCommand extends Command {
 
   CompileModule setUpCompile(List<int> sdkBytes, List<List<int>> summaryBytes,
       List<String> summaryUrls) {
-    var resourceProvider = new MemoryResourceProvider();
-    var resourceUriResolver = new ResourceUriResolver(resourceProvider);
+    var dartSdkSummaryPath = '/dart-sdk/lib/_internal/web_sdk.sum';
 
-    var packageBundle = new PackageBundle.fromBuffer(sdkBytes);
-    var webDartSdk = new SummaryBasedDartSdk.fromBundle(
-        true, packageBundle, resourceProvider);
-    var sdkResolver = new DartUriResolver(webDartSdk);
+    var resourceProvider = new MemoryResourceProvider()
+      ..newFileWithBytes(dartSdkSummaryPath, sdkBytes);
+
+    var resourceUriResolver = new ResourceUriResolver(resourceProvider);
 
     var summaryDataStore = new SummaryDataStore([]);
     for (var i = 0; i < summaryBytes.length; i++) {
@@ -116,8 +113,9 @@ class WebCompileCommand extends Command {
     var fileResolvers = [summaryResolver, resourceUriResolver];
 
     var compiler = new ModuleCompiler(
-        new AnalyzerOptions(dartSdkPath: '/dart-sdk'),
-        sdkResolver: sdkResolver,
+        new AnalyzerOptions.basic(
+            dartSdkPath: '/dart-sdk', dartSdkSummaryPath: dartSdkSummaryPath),
+        analysisRoot: '/web-compile-root',
         fileResolvers: fileResolvers,
         resourceProvider: resourceProvider);
 
@@ -209,7 +207,8 @@ class WebCompileCommand extends Command {
           code: moduleCode, isValid: module.isValid, errors: module.errors);
     };
 
-    return allowInterop(compileFn);
+    // TODO(vsm): Cast is due to https://github.com/dart-lang/sdk/issues/28507
+    return allowInterop(compileFn) as CompileModule;
   }
 }
 

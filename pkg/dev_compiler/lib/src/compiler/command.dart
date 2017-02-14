@@ -3,6 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'package:analyzer/src/command_line/arguments.dart'
+    show
+        defineAnalysisArguments,
+        filterUnknownArguments,
+        ignoreUnrecognizedFlagsFlag;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummarySource;
@@ -10,28 +15,11 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/command_runner.dart' show UsageException;
 import 'package:path/path.dart' as path;
 
-import '../analyzer/context.dart' show AnalyzerOptions, parseDeclaredVariables;
+import '../analyzer/context.dart' show AnalyzerOptions;
 import 'compiler.dart' show BuildUnit, CompilerOptions, ModuleCompiler;
 import 'module_builder.dart';
 
-final ArgParser _argParser = () {
-  var argParser = new ArgParser(allowTrailingOptions: true)
-    ..addFlag('help', abbr: 'h', help: 'Display this message.')
-    ..addOption('out',
-        abbr: 'o', allowMultiple: true, help: 'Output file (required).')
-    ..addOption('module-root',
-        help: 'Root module directory.\n'
-            'Generated module paths are relative to this root.')
-    ..addOption('library-root',
-        help: 'Root of source files.\n'
-            'Generated library names are relative to this root.')
-    ..addOption('build-root',
-        help: 'Deprecated in favor of --library-root', hide: true);
-  addModuleFormatOptions(argParser, allowMultiple: true);
-  AnalyzerOptions.addArguments(argParser);
-  CompilerOptions.addArguments(argParser);
-  return argParser;
-}();
+bool _verbose = false;
 
 /// Runs a single compile for dartdevc.
 ///
@@ -40,16 +28,29 @@ final ArgParser _argParser = () {
 /// worker support.
 int compile(List<String> args, {void printFn(Object obj)}) {
   printFn ??= print;
+
   ArgResults argResults;
-  var declaredVars = <String, String>{};
+  AnalyzerOptions analyzerOptions;
   try {
-    argResults = _argParser.parse(parseDeclaredVariables(args, declaredVars));
+    var parser = ddcArgParser();
+    if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
+      args = filterUnknownArguments(args, parser);
+    }
+    argResults = parser.parse(args);
+    analyzerOptions = new AnalyzerOptions.fromArguments(argResults);
   } on FormatException catch (error) {
     printFn('$error\n\n$_usageMessage');
     return 64;
   }
+
+  _verbose = argResults['verbose'];
+  if (argResults['help']) {
+    printFn(_usageMessage);
+    return 0;
+  }
+
   try {
-    _compile(argResults, declaredVars, printFn);
+    _compile(argResults, analyzerOptions, printFn);
     return 0;
   } on UsageException catch (error) {
     // Incorrect usage, input file not found, etc.
@@ -82,6 +83,33 @@ $stackTrace
   }
 }
 
+ArgParser ddcArgParser({bool hide: true}) {
+  var argParser = new ArgParser(allowTrailingOptions: true)
+    ..addFlag('help',
+        abbr: 'h',
+        help: 'Display this message.\n'
+            'Add --verbose to show hidden options.',
+        negatable: false)
+    ..addFlag('verbose', abbr: 'v', help: 'Verbose output.')
+    ..addFlag(ignoreUnrecognizedFlagsFlag,
+        help: 'Ignore unrecognized command line flags.',
+        defaultsTo: false,
+        negatable: false)
+    ..addOption('out',
+        abbr: 'o', allowMultiple: true, help: 'Output file (required).')
+    ..addOption('module-root',
+        help: 'Root module directory.\n'
+            'Generated module paths are relative to this root.')
+    ..addOption('library-root',
+        help: 'Root of source files.\n'
+            'Generated library names are relative to this root.');
+  defineAnalysisArguments(argParser, hide: hide, ddc: true);
+  addModuleFormatOptions(argParser, allowMultiple: true, hide: hide);
+  AnalyzerOptions.addArguments(argParser, hide: hide);
+  CompilerOptions.addArguments(argParser, hide: hide);
+  return argParser;
+}
+
 bool _changed(List<int> list1, List<int> list2) {
   var length = list1.length;
   if (length != list2.length) return true;
@@ -91,14 +119,9 @@ bool _changed(List<int> list1, List<int> list2) {
   return false;
 }
 
-void _compile(ArgResults argResults, Map<String, String> declaredVars,
+void _compile(ArgResults argResults, AnalyzerOptions analyzerOptions,
     void printFn(Object obj)) {
-  if (argResults['help']) {
-    printFn(_usageMessage);
-    return;
-  }
-  var compiler = new ModuleCompiler(
-      new AnalyzerOptions.fromArguments(argResults, declaredVars));
+  var compiler = new ModuleCompiler(analyzerOptions);
   var compilerOpts = new CompilerOptions.fromArguments(argResults);
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = parseModuleFormatOption(argResults);
@@ -125,7 +148,6 @@ void _compile(ArgResults argResults, Map<String, String> declaredVars,
   var firstOutPath = outPaths[0];
 
   var libraryRoot = argResults['library-root'] as String;
-  libraryRoot ??= argResults['build-root'] as String;
   if (libraryRoot != null) {
     libraryRoot = path.absolute(libraryRoot);
   } else {
@@ -201,9 +223,9 @@ String _moduleForLibrary(
   return null; // unreachable
 }
 
-final _usageMessage =
+String get _usageMessage =>
     'Dart Development Compiler compiles Dart into a JavaScript module.'
-    '\n\n${_argParser.usage}';
+    '\n\n${ddcArgParser(hide: !_verbose).usage}';
 
 void _usageException(String message) {
   throw new UsageException(message, _usageMessage);

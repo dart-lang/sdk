@@ -327,7 +327,10 @@ void EventHandlerImplementation::HandleInterruptFd() {
           delete di;
         }
 
-        DartUtils::PostInt32(port, 1 << kDestroyedEvent);
+        bool success = DartUtils::PostInt32(port, 1 << kDestroyedEvent);
+        if (!success) {
+          LOG_ERR("Failed to post destroy event to port %ld", port);
+        }
       } else if (IS_COMMAND(msg[i].data, kReturnTokenCommand)) {
         int count = TOKEN_COUNT(msg[i].data);
         intptr_t old_mask = di->Mask();
@@ -385,16 +388,13 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
     } else {
       DescriptorInfo* di =
           reinterpret_cast<DescriptorInfo*>(events[i].data.ptr);
-      intptr_t event_mask = GetPollEvents(events[i].events, di);
-
+      const intptr_t old_mask = di->Mask();
+      const intptr_t event_mask = GetPollEvents(events[i].events, di);
+      LOG_INFO("HandleEvents: fd=%ld events=%ld\n", di->fd(), event_mask);
       if ((event_mask & (1 << kErrorEvent)) != 0) {
         di->NotifyAllDartPorts(event_mask);
-      }
-      event_mask &= ~(1 << kErrorEvent);
-
-      LOG_INFO("HandleEvents: fd=%ld events=%ld\n", di->fd(), event_mask);
-      if (event_mask != 0) {
-        intptr_t old_mask = di->Mask();
+        UpdateEpollInstance(old_mask, di);
+      } else if (event_mask != 0) {
         Dart_Port port = di->NextNotifyDartPort(event_mask);
         ASSERT(port != 0);
         UpdateEpollInstance(old_mask, di);
@@ -404,7 +404,8 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
         if (!success) {
           // This can happen if e.g. the isolate that owns the port has died
           // for some reason.
-          FATAL2("Failed to post event for fd %ld to port %ld", di->fd(), port);
+          LOG_ERR("Failed to post event for fd %ld to port %ld", di->fd(),
+                  port);
         }
       }
     }
@@ -449,6 +450,10 @@ void EventHandlerImplementation::Poll(uword args) {
   while (!handler_impl->shutdown_) {
     int64_t millis = handler_impl->GetTimeout();
     ASSERT((millis == kInfinityTimeout) || (millis >= 0));
+    // TODO(US-109): When the epoll implementation is properly edge-triggered,
+    // remove this sleep, which prevents the message queue from being
+    // overwhelmed and leading to memory exhaustion.
+    usleep(5000);
     LOG_INFO("epoll_wait(millis = %ld)\n", millis);
     intptr_t result = NO_RETRY_EXPECTED(
         epoll_wait(handler_impl->epoll_fd_, events, kMaxEvents, millis));

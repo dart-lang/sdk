@@ -23,5 +23,5 @@ sample_extension/test/*: Skip # Issue 14705
 [ $compiler == precompiler ]
 sample_extension/test/*: Skip # These tests attempt to spawn another script using the precompiled runtime.
 
-[ $runtime == dart_app ]
+[ $compiler == app_jit ]
 sample_extension/test/*: Skip # Shared use of a temp directory

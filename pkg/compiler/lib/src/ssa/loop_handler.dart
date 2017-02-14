@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../elements/elements.dart';
+import '../elements/elements.dart' show JumpTarget, LabelDefinition;
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
 
@@ -106,12 +106,12 @@ abstract class LoopHandler<T> {
       builder.localsHandler =
           continueHandlers[0].mergeMultiple(continueHandlers, updateBlock);
 
-      List<LabelDefinition> labels = jumpHandler.labels();
+      List<LabelDefinition> labels = jumpHandler.labels;
       JumpTarget target = getTargetDefinition(loop);
-      if (!labels.isEmpty) {
+      if (labels.isNotEmpty) {
         beginBodyBlock.setBlockFlow(
             new HLabeledBlockInformation(
-                new HSubGraphBlockInformation(bodyGraph), jumpHandler.labels(),
+                new HSubGraphBlockInformation(bodyGraph), jumpHandler.labels,
                 isContinue: true),
             updateBlock);
       } else if (target != null && target.isContinueTarget) {
@@ -222,7 +222,7 @@ abstract class LoopHandler<T> {
 
     JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: true);
     HBasicBlock loopEntry = builder.graph
-        .addNewLoopHeaderBlock(jumpHandler.target, jumpHandler.labels());
+        .addNewLoopHeaderBlock(jumpHandler.target, jumpHandler.labels);
     previousBlock.addSuccessor(loopEntry);
     builder.open(loopEntry);
 
@@ -350,7 +350,7 @@ class _SsaLoopTypeVisitor extends ast.Visitor {
 
 // TODO(het): Since kernel simplifies loop breaks and continues, we should
 // rewrite the loop handler from scratch to account for the simplified structure
-class KernelLoopHandler extends LoopHandler<ir.Node> {
+class KernelLoopHandler extends LoopHandler<ir.TreeNode> {
   final KernelSsaBuilder builder;
 
   KernelAstAdapter get astAdapter => builder.astAdapter;
@@ -360,33 +360,22 @@ class KernelLoopHandler extends LoopHandler<ir.Node> {
         super(builder);
 
   @override
-  JumpHandler createJumpHandler(ir.Node node, {bool isLoopJump}) {
-    JumpTarget element = getTargetDefinition(node);
-    if (element == null || !identical(element.statement, node)) {
-      // No breaks or continues to this node.
-      return new NullJumpHandler(builder.compiler.reporter);
-    }
-    if (isLoopJump && node is ast.SwitchStatement) {
-      // Create a special jump handler for loops created for switch statements
-      // with continue statements.
-      return new SwitchCaseJumpHandler(builder, element, getNode(node));
-    }
-    return new JumpHandler(builder, element);
-  }
+  JumpHandler createJumpHandler(ir.TreeNode node, {bool isLoopJump}) =>
+      builder.createJumpHandler(node, isLoopJump: isLoopJump);
 
   @override
-  ast.Node getNode(ir.Node node) => astAdapter.getNode(node);
+  ast.Node getNode(ir.TreeNode node) => astAdapter.getNode(node);
 
   @override
-  JumpTarget getTargetDefinition(ir.Node node) =>
-      astAdapter.getTargetDefinition(node);
+  JumpTarget getTargetDefinition(ir.TreeNode node) =>
+      astAdapter.getJumpTarget(node.parent);
 
   @override
-  int loopKind(ir.Node node) => node.accept(new _KernelLoopTypeVisitor());
+  int loopKind(ir.TreeNode node) => node.accept(new _KernelLoopTypeVisitor());
 
   // TODO(het): return the actual source information
   @override
-  SourceInformation loopSourceInformation(ir.Node node) => null;
+  SourceInformation loopSourceInformation(ir.TreeNode node) => null;
 }
 
 class _KernelLoopTypeVisitor extends ir.Visitor<int> {

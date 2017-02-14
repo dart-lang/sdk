@@ -42,30 +42,39 @@ abstract class Accessor {
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return _finish(_makeWrite(
-        builtBinary =
-            makeBinary(_makeRead(), binaryOperator, interfaceTarget, value),
+        builtBinary = makeBinary(
+            _makeRead(), binaryOperator, interfaceTarget, value,
+            offset: offset),
         voidContext));
   }
 
   Expression buildPrefixIncrement(Name binaryOperator,
-      {bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return buildCompoundAssignment(binaryOperator, new IntLiteral(1),
-        voidContext: voidContext, interfaceTarget: interfaceTarget);
+        offset: offset,
+        voidContext: voidContext,
+        interfaceTarget: interfaceTarget);
   }
 
   Expression buildPostfixIncrement(Name binaryOperator,
-      {bool voidContext: false, Procedure interfaceTarget}) {
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     if (voidContext) {
-      return buildPrefixIncrement(binaryOperator,
+      return buildPrefixIncrement(binaryOperator, offset: offset,
           voidContext: true, interfaceTarget: interfaceTarget);
     }
     var value = new VariableDeclaration.forValue(_makeRead());
     valueAccess() => new VariableGet(value);
     var dummy = new VariableDeclaration.forValue(_makeWrite(
-        builtBinary = makeBinary(
-            valueAccess(), binaryOperator, interfaceTarget, new IntLiteral(1)),
+        builtBinary = makeBinary(valueAccess(), binaryOperator, interfaceTarget,
+            new IntLiteral(1), offset: offset),
         true));
     return _finish(makeLet(value, makeLet(dummy, valueAccess())));
   }
@@ -185,7 +194,7 @@ class SuperPropertyAccessor extends Accessor {
 
   SuperPropertyAccessor(this.name, this.getter, this.setter);
 
-  _makeRead() => new SuperPropertyGet(name, getter);
+  _makeRead() => builtGetter = new SuperPropertyGet(name, getter);
 
   _makeWrite(Expression value, bool voidContext) {
     return new SuperPropertySet(name, value, setter);
@@ -235,7 +244,7 @@ class IndexAccessor extends Accessor {
   }
 
   _makeRead() {
-    return new MethodInvocation(receiverAccess(), _indexGet,
+    return builtGetter = new MethodInvocation(receiverAccess(), _indexGet,
         new Arguments(<Expression>[indexAccess()]), getter);
   }
 
@@ -289,8 +298,8 @@ class ThisIndexAccessor extends Accessor {
     return new VariableGet(indexVariable);
   }
 
-  _makeRead() => new MethodInvocation(new ThisExpression(), _indexGet,
-      new Arguments(<Expression>[indexAccess()]), getter);
+  _makeRead() => builtGetter = new MethodInvocation(new ThisExpression(),
+      _indexGet, new Arguments(<Expression>[indexAccess()]), getter);
 
   _makeWrite(Expression value, bool voidContext) {
     if (!voidContext) return _makeWriteAndReturn(value);
@@ -335,7 +344,7 @@ class SuperIndexAccessor extends Accessor {
   }
 
   _makeRead() {
-    return new SuperMethodInvocation(
+    return builtGetter = new SuperMethodInvocation(
         _indexGet, new Arguments(<Expression>[indexAccess()]), getter);
   }
 
@@ -367,7 +376,7 @@ class StaticAccessor extends Accessor {
 
   StaticAccessor(this.readTarget, this.writeTarget);
 
-  _makeRead() =>
+  _makeRead() => builtGetter =
       readTarget == null ? makeInvalidRead() : new StaticGet(readTarget);
 
   _makeWrite(Expression value, bool voidContext) {
@@ -400,16 +409,19 @@ Expression makeLet(VariableDeclaration variable, Expression body) {
   return new Let(variable, body);
 }
 
-Expression makeBinary(Expression left, Name operator, Procedure interfaceTarget,
-    Expression right) {
+Expression makeBinary(
+    Expression left, Name operator, Procedure interfaceTarget, Expression right,
+    {int offset: TreeNode.noOffset}) {
   return new MethodInvocation(
-      left, operator, new Arguments(<Expression>[right]), interfaceTarget);
+      left, operator, new Arguments(<Expression>[right]), interfaceTarget)
+    ..fileOffset = offset;
 }
 
 final Name _equalOperator = new Name('==');
 
-Expression buildIsNull(Expression value) {
-  return makeBinary(value, _equalOperator, null, new NullLiteral());
+Expression buildIsNull(Expression value, {int offset: TreeNode.noOffset}) {
+  return makeBinary(value, _equalOperator, null, new NullLiteral(),
+      offset: offset);
 }
 
 VariableDeclaration makeOrReuseVariable(Expression value) {

@@ -56,7 +56,6 @@ class ExpressionLifter extends Transformer {
   /// [statements] to a fresh empty list before transforming those children.
   List<Statement> statements = <Statement>[];
 
-
   /// The number of currently live named intermediate values.
   ///
   /// This index is used to allocate names to temporary values.  Because
@@ -76,8 +75,7 @@ class ExpressionLifter extends Transformer {
   /// [nameIndex] may still account for names of subexpressions.
   int nameIndex = 0;
 
-  final VariableDeclaration asyncResult =
-      new VariableDeclaration(':result');
+  final VariableDeclaration asyncResult = new VariableDeclaration(':result');
   final List<VariableDeclaration> variables = <VariableDeclaration>[];
 
   ExpressionLifter(this.continuationRewriter);
@@ -176,12 +174,10 @@ class ExpressionLifter extends Transformer {
     // children.
     var index = nameIndex;
 
-
     // 3. Transform the children.  Initially they do not have an await in a
     // sibling to their right.
     seenAwait = false;
     action();
-
 
     // 4. If the expression was named then the variables used for children are
     // no longer live but the variable used for the expression is.
@@ -194,7 +190,9 @@ class ExpressionLifter extends Transformer {
 
   // Unary expressions.
   Expression unary(Expression expr) {
-    return transform(expr, () { expr.transformChildren(this); });
+    return transform(expr, () {
+      expr.transformChildren(this);
+    });
   }
 
   TreeNode visitVariableSet(VariableSet expr) => unary(expr);
@@ -249,15 +247,21 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitSuperMethodInvocation(SuperMethodInvocation expr) {
-    return transform(expr, () { visitArguments(expr.arguments); });
+    return transform(expr, () {
+      visitArguments(expr.arguments);
+    });
   }
 
   TreeNode visitStaticInvocation(StaticInvocation expr) {
-    return transform(expr, () { visitArguments(expr.arguments); });
+    return transform(expr, () {
+      visitArguments(expr.arguments);
+    });
   }
 
   TreeNode visitConstructorInvocation(ConstructorInvocation expr) {
-    return transform(expr, () { visitArguments(expr.arguments); });
+    return transform(expr, () {
+      visitArguments(expr.arguments);
+    });
   }
 
   TreeNode visitStringConcatenation(StringConcatenation expr) {
@@ -295,7 +299,7 @@ class ExpressionLifter extends Transformer {
     var rightStatements = <Statement>[];
     seenAwait = false;
     expr.right = delimit(() => expr.right.accept(this), rightStatements)
-        ..parent = expr;
+      ..parent = expr;
     var rightAwait = seenAwait;
 
     if (rightStatements.isEmpty) {
@@ -321,13 +325,10 @@ class ExpressionLifter extends Transformer {
     // so they occur before in the corresponding block).
     var rightBody = blockOf(rightStatements);
     var result = allocateTemporary(nameIndex);
-    rightBody.addStatement(new ExpressionStatement(
-        new VariableSet(
-            result,
-            new MethodInvocation(
-                expr.right,
-                new Name('=='),
-                new Arguments(<Expression>[new BoolLiteral(true)])))));
+    rightBody.addStatement(new ExpressionStatement(new VariableSet(
+        result,
+        new MethodInvocation(expr.right, new Name('=='),
+            new Arguments(<Expression>[new BoolLiteral(true)])))));
     var then, otherwise;
     if (expr.operator == '&&') {
       then = rightBody;
@@ -338,13 +339,9 @@ class ExpressionLifter extends Transformer {
     }
     statements.add(new IfStatement(new VariableGet(result), then, otherwise));
 
-    var test =
-        new MethodInvocation(
-            expr.left,
-            new Name('=='),
-            new Arguments(<Expression>[new BoolLiteral(true)]));
-    statements.add(
-        new ExpressionStatement(new VariableSet(result, test)));
+    var test = new MethodInvocation(expr.left, new Name('=='),
+        new Arguments(<Expression>[new BoolLiteral(true)]));
+    statements.add(new ExpressionStatement(new VariableSet(result, test)));
 
     seenAwait = false;
     test.receiver = test.receiver.accept(this)..parent = test;
@@ -362,13 +359,14 @@ class ExpressionLifter extends Transformer {
     var thenStatements = <Statement>[];
     seenAwait = false;
     expr.then = delimit(() => expr.then.accept(this), thenStatements)
-        ..parent = expr;
+      ..parent = expr;
     var thenAwait = seenAwait;
 
     var otherwiseStatements = <Statement>[];
     seenAwait = false;
-    expr.otherwise = delimit(() => expr.otherwise.accept(this),
-        otherwiseStatements)..parent = expr;
+    expr.otherwise =
+        delimit(() => expr.otherwise.accept(this), otherwiseStatements)
+          ..parent = expr;
     var otherwiseAwait = seenAwait;
 
     if (thenStatements.isEmpty && otherwiseStatements.isEmpty) {
@@ -411,16 +409,19 @@ class ExpressionLifter extends Transformer {
     final R = continuationRewriter;
     var shouldName = seenAwait;
     var result = new VariableGet(asyncResult);
+
     // The statements are in reverse order, so name the result first if
     // necessary and then add the two other statements in reverse.
     if (shouldName) result = name(result);
-    statements.add(R.createContinuationPoint());
+    statements.add(R.createContinuationPoint()..fileOffset = expr.fileOffset);
     Arguments arguments = new Arguments(<Expression>[
-        expr.operand,
-        new VariableGet(R.thenContinuationVariable),
-        new VariableGet(R.catchErrorContinuationVariable)]);
+      expr.operand,
+      new VariableGet(R.thenContinuationVariable),
+      new VariableGet(R.catchErrorContinuationVariable)
+    ]);
     statements.add(new ExpressionStatement(
-        new StaticInvocation(R.helper.awaitHelper, arguments)));
+        new StaticInvocation(R.helper.awaitHelper, arguments)
+          ..fileOffset = expr.fileOffset));
 
     seenAwait = false;
     var index = nameIndex;
@@ -461,8 +462,8 @@ class ExpressionLifter extends Transformer {
       statements.add(variable);
       var index = nameIndex;
       seenAwait = false;
-      variable.initializer =
-          variable.initializer.accept(this)..parent = variable;
+      variable.initializer = variable.initializer.accept(this)
+        ..parent = variable;
       // Temporaries used in the initializer or the body are not live but the
       // temporary used for the body is.
       nameIndex = index + 1;
@@ -475,15 +476,15 @@ class ExpressionLifter extends Transformer {
       return transform(expr, () {
         // The body has already been translated.
         expr.body = body..parent = expr;
-        variable.initializer =
-            variable.initializer.accept(this)..parent = variable;
+        variable.initializer = variable.initializer.accept(this)
+          ..parent = variable;
       });
     }
   }
 
   visitFunctionNode(FunctionNode node) {
-    var nestedRewriter = new RecursiveContinuationRewriter(
-        continuationRewriter.helper);
+    var nestedRewriter =
+        new RecursiveContinuationRewriter(continuationRewriter.helper);
     return node.accept(nestedRewriter);
   }
 }

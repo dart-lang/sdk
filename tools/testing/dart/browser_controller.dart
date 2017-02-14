@@ -699,21 +699,23 @@ class AndroidChrome extends Browser {
   static const String viewAction = 'android.intent.action.VIEW';
   static const String mainAction = 'android.intent.action.MAIN';
   static const String chromePackage = 'com.android.chrome';
+  static const String chromeActivity = '.Main';
   static const String browserPackage = 'com.android.browser';
+  static const String browserActivity = '.BrowserActivity';
   static const String firefoxPackage = 'org.mozilla.firefox';
+  static const String firefoxActivity = '.App';
   static const String turnScreenOnPackage = 'com.google.dart.turnscreenon';
+  static const String turnScreenOnActivity = '.Main';
 
   AdbDevice _adbDevice;
 
   AndroidChrome(this._adbDevice);
 
   Future<bool> start(String url) {
-    var browserIntent =
-        new Intent(viewAction, browserPackage, '.BrowserActivity', url);
-    var chromeIntent = new Intent(viewAction, chromePackage, '.Main', url);
-    var firefoxIntent = new Intent(viewAction, firefoxPackage, '.App', url);
+    var chromeIntent =
+        new Intent(viewAction, chromePackage, chromeActivity, url);
     var turnScreenOnIntent =
-        new Intent(mainAction, turnScreenOnPackage, '.Main');
+        new Intent(mainAction, turnScreenOnPackage, turnScreenOnActivity);
 
     var testing_resources_dir =
         new Path('third_party/android_testing_resources');
@@ -1551,7 +1553,7 @@ body div {
 
       // Object that holds the state of an HTML test
       var html_test;
-  
+
       function newTaskHandler() {
         if (this.readyState == this.DONE) {
           if (this.status == 200) {
@@ -1577,7 +1579,7 @@ body div {
                 }
               } else {
                 html_test = null;
-              }               
+              }
               run(url);
             }
           } else {
@@ -1611,10 +1613,10 @@ body div {
       function childError(message, filename, lineno, colno, error) {
         sendStatusUpdate();
         if (error) {
-          reportMessage('FAIL:' + filename + ':' + lineno + 
+          reportMessage('FAIL:' + filename + ':' + lineno +
                ':' + colno + ':' + message + '\\n' + error.stack, false, false);
         } else if (filename) {
-          reportMessage('FAIL:' + filename + ':' + lineno + 
+          reportMessage('FAIL:' + filename + ':' + lineno +
                ':' + colno + ':' + message, false, false);
         } else {
           reportMessage('FAIL: ' + message, false, false);
@@ -1806,7 +1808,7 @@ body div {
           html_test.found_messages[msg]++;
           if (html_test.found_messages[msg] == 1) {
             html_test.found_message_count++;
-          } else {  
+          } else {
             html_test.double_received_messages.push(msg);
             sendStatusUpdate();
           }

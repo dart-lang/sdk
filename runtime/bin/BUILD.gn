@@ -3,27 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("gypi_contents.gni")
-
-declare_args() {
-  # Whether to fall back to built-in root certificates when they cannot be
-  # verified at the operating system level.
-  dart_use_fallback_root_certificates = false
-
-  # The BUILD.gn file that we pull from chromium as part of zlib has a
-  # dependence on //base, which we don't pull in. In a standalone build of the
-  # VM, we set this to //runtime/bin/zlib where we have a BUILD.gn file without
-  # a dependence on //base.
-  dart_zlib_path = "//third_party/zlib"
-
-  # Whether to link the standalone VM against tcmalloc. The standalone build of
-  # the VM enables this only for Linux builds.
-  dart_use_tcmalloc = false
-}
-
-# TODO(zra): Remove this when Fuchsia has a root cert cache on the filesystem.
-if (defined(is_fuchsia) && is_fuchsia) {
-  dart_use_fallback_root_certificates = true
-}
+import("../runtime_args.gni")
 
 # Generate a resources.cc file for the service isolate without Observatory.
 action("gen_resources_cc") {
@@ -333,6 +313,10 @@ executable("gen_snapshot") {
       "winmm.lib",
     ]
   }
+
+  if (defined(is_fuchsia) && is_fuchsia) {
+    libs = [ "launchpad" ]
+  }
 }
 
 # A source set for the implementation of 'dart:io' library
@@ -428,6 +412,10 @@ template("dart_io") {
       deps = [
         "//third_party/boringssl",
       ]
+    }
+
+    if (defined(is_fuchsia) && is_fuchsia) {
+      libs = [ "launchpad" ]
     }
 
     sources = io_impl_sources_gypi + builtin_impl_sources_gypi
@@ -564,6 +552,17 @@ template("dart_executable") {
                  "..:dart_maybe_product_config",
                ] + extra_configs
 
+    if (defined(is_fuchsia_host) && is_fuchsia_host) {
+      # We already have these in the standalone build, but Fuchsia doesn't
+      # have them. They are needed for running Fuchsia binaries built for the
+      # host.
+      if (is_linux) {
+        configs += [ "../../build/config/gcc:executable_ldconfig" ]
+      } else if (is_mac) {
+        configs += [ "../../build/config/mac:mac_dynamic_flags" ]
+      }
+    }
+
     deps = [
              ":gen_resources_cc",
              ":standalone_dart_io",
@@ -571,11 +570,12 @@ template("dart_executable") {
              "$dart_zlib_path",
            ] + extra_deps
 
+    defines = extra_defines
+
     if (dart_use_tcmalloc) {
       deps += [ "//third_party/tcmalloc" ]
+      defines += [ "DART_USE_TCMALLOC" ]
     }
-
-    defines = extra_defines
 
     sources = [
                 "main.cc",
@@ -604,40 +604,32 @@ template("dart_executable") {
         "winmm.lib",
       ]
     }
+
+    if (defined(is_fuchsia) && is_fuchsia) {
+      libs = [ "launchpad" ]
+    }
   }
 }
 
-if (!defined(is_fuchsia) || !is_fuchsia) {
-  dart_executable("dart") {
-    extra_deps = [
-      "..:libdart",
-      ":dart_snapshot_cc",
-      "../observatory:standalone_observatory_archive",
-    ]
-    extra_sources = [ "builtin_nolib.cc" ]
-  }
+dart_executable("dart") {
+  extra_deps = [
+    "..:libdart",
+    ":dart_snapshot_cc",
+    "../observatory:standalone_observatory_archive",
+  ]
+  extra_sources = [ "builtin_nolib.cc" ]
+}
 
-  dart_executable("dart_noopt") {
-    extra_configs = [ "..:dart_precompiler_config" ]
-    extra_deps = [
-      "..:libdart_noopt",
-      ":dart_snapshot_cc",
-      "../observatory:standalone_observatory_archive",
-    ]
-    extra_sources = [ "builtin_nolib.cc" ]
-  }
-
-  dart_executable("dart_precompiled_runtime") {
-    extra_configs = [ "..:dart_precompiled_runtime_config" ]
-    extra_deps = [
-      "..:libdart_precompiled_runtime",
-      "../observatory:standalone_observatory_archive",
-    ]
-    extra_sources = [
-      "builtin_nolib.cc",
-      "snapshot_empty.cc",
-    ]
-  }
+dart_executable("dart_precompiled_runtime") {
+  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_deps = [
+    "..:libdart_precompiled_runtime",
+    "../observatory:standalone_observatory_archive",
+  ]
+  extra_sources = [
+    "builtin_nolib.cc",
+    "snapshot_empty.cc",
+  ]
 }
 
 dart_executable("dart_bootstrap") {
@@ -764,10 +756,15 @@ action("generate_snapshot_test_dat_file") {
 }
 
 executable("run_vm_tests") {
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    testonly = true
+  }
+
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
   ]
+
   deps = [
     ":dart_snapshot_cc",
     ":generate_snapshot_test_dat_file",
@@ -784,6 +781,7 @@ executable("run_vm_tests") {
 
   if (dart_use_tcmalloc) {
     deps += [ "//third_party/tcmalloc" ]
+    defines += [ "DART_USE_TCMALLOC" ]
   }
 
   # The VM sources are already included in libdart, so we just want to add in
@@ -810,44 +808,48 @@ executable("run_vm_tests") {
   }
 }
 
-if (!defined(is_fuchsia) || !is_fuchsia) {
-  shared_library("test_extension") {
-    deps = [
-      ":dart",
-    ]
-    sources = [
-      "test_extension.c",
-      "test_extension_dllmain_win.cc",
-    ]
-    include_dirs = [ ".." ]
-    defines = [
-      # The only effect of DART_SHARED_LIB is to export the Dart API.
-      "DART_SHARED_LIB",
-    ]
-    if (is_win) {
-      libs = [ "dart.lib" ]
-      abs_root_out_dir = rebase_path(root_out_dir)
-      ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
-    }
+shared_library("test_extension") {
+  deps = [
+    ":dart",
+  ]
+  sources = [
+    "test_extension.c",
+    "test_extension_dllmain_win.cc",
+  ]
+  include_dirs = [ ".." ]
+  defines = [
+    # The only effect of DART_SHARED_LIB is to export the Dart API.
+    "DART_SHARED_LIB",
+  ]
+  if (is_linux || is_android) {
+    cflags = [ "-fPIC" ]
   }
+  if (is_win) {
+    libs = [ "dart.lib" ]
+    abs_root_out_dir = rebase_path(root_out_dir)
+    ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
+  }
+}
 
-  shared_library("sample_extension") {
-    deps = [
-      ":dart",
-    ]
-    sources = [
-      "../../samples/sample_extension/sample_extension.cc",
-      "../../samples/sample_extension/sample_extension_dllmain_win.cc",
-    ]
-    include_dirs = [ ".." ]
-    defines = [
-      # The only effect of DART_SHARED_LIB is to export the Dart API.
-      "DART_SHARED_LIB",
-    ]
-    if (is_win) {
-      libs = [ "dart.lib" ]
-      abs_root_out_dir = rebase_path(root_out_dir)
-      ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
-    }
+shared_library("sample_extension") {
+  deps = [
+    ":dart",
+  ]
+  sources = [
+    "../../samples/sample_extension/sample_extension.cc",
+    "../../samples/sample_extension/sample_extension_dllmain_win.cc",
+  ]
+  include_dirs = [ ".." ]
+  defines = [
+    # The only effect of DART_SHARED_LIB is to export the Dart API.
+    "DART_SHARED_LIB",
+  ]
+  if (is_linux || is_android) {
+    cflags = [ "-fPIC" ]
+  }
+  if (is_win) {
+    libs = [ "dart.lib" ]
+    abs_root_out_dir = rebase_path(root_out_dir)
+    ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
   }
 }

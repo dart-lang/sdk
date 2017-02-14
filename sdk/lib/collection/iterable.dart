@@ -15,13 +15,13 @@ abstract class IterableMixin<E> implements Iterable<E> {
   // - SetMixin
   // If changing a method here, also change the other copies.
 
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) =>
-      new MappedIterable<E, dynamic/*=T*/>(this, f);
+  Iterable<T> map<T>(T f(E element)) =>
+      new MappedIterable<E, T>(this, f);
 
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
-  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) =>
-      new ExpandIterable<E, dynamic/*=T*/>(this, f);
+  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
+      new ExpandIterable<E, T>(this, f);
 
   bool contains(Object element) {
     for (E e in this) {
@@ -46,8 +46,8 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return value;
   }
 
-  dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
-               dynamic/*=T*/ combine(var/*=T*/ previousValue, E element)) {
+  T fold<T>(T initialValue,
+               T combine(T previousValue, E element)) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;

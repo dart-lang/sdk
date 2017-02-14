@@ -6,7 +6,7 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -18,7 +18,7 @@ import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:front_end/src/base/source.dart';
 
 /**
  * The [ResultProvider] that provides results from input package summaries.
@@ -27,8 +27,8 @@ class InputPackagesResultProvider extends ResynthesizerResultProvider {
   InputPackagesResultProvider(
       InternalAnalysisContext context, SummaryDataStore dataStore)
       : super(context, dataStore) {
-    AnalysisContext sdkContext = context.sourceFactory.dartSdk.context;
-    createResynthesizer(sdkContext, sdkContext.typeProvider);
+    createResynthesizer();
+    context.typeProvider = resynthesizer.typeProvider;
   }
 
   @override
@@ -66,42 +66,22 @@ class InSummaryPackageUriResolver extends UriResolver {
  * are served from its summary.  This source uses its URI as [fullName] and has
  * empty contents.
  */
-class InSummarySource extends Source {
-  final Uri uri;
-
+class InSummarySource extends BasicSource {
   /**
    * The summary file where this source was defined.
    */
   final String summaryPath;
 
-  InSummarySource(this.uri, this.summaryPath);
+  InSummarySource(Uri uri, this.summaryPath) : super(uri);
 
   @override
   TimestampedData<String> get contents => new TimestampedData<String>(0, '');
 
   @override
-  String get encoding => uri.toString();
-
-  @override
-  String get fullName => encoding;
-
-  @override
-  int get hashCode => uri.hashCode;
-
-  @override
-  bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
-
-  @override
   int get modificationStamp => 0;
 
   @override
-  String get shortName => pathos.basename(fullName);
-
-  @override
   UriKind get uriKind => UriKind.PACKAGE_URI;
-
-  @override
-  bool operator ==(Object object) => object is Source && object.uri == uri;
 
   @override
   bool exists() => true;
@@ -141,7 +121,6 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
   final SummaryDataStore _dataStore;
 
   _FileBasedSummaryResynthesizer _resynthesizer;
-  ResynthesizerResultProvider _sdkProvider;
 
   ResynthesizerResultProvider(this.context, this._dataStore);
 
@@ -156,10 +135,13 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
 
   @override
   bool compute(CacheEntry entry, ResultDescriptor result) {
-    if (_sdkProvider != null && _sdkProvider.compute(entry, result)) {
+    AnalysisTarget target = entry.target;
+
+    if (result == TYPE_PROVIDER) {
+      entry.setValue(result as ResultDescriptor<TypeProvider>,
+          _resynthesizer.typeProvider, TargetedResult.EMPTY_LIST);
       return true;
     }
-    AnalysisTarget target = entry.target;
 
     // LINE_INFO can be provided using just the UnlinkedUnit.
     if (target is Source && result == LINE_INFO) {
@@ -218,14 +200,12 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
             result as ResultDescriptor<int>, 0, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == SOURCE_KIND) {
-        if (_dataStore.linkedMap.containsKey(uriString)) {
-          entry.setValue(result as ResultDescriptor<SourceKind>,
-              SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
-          return true;
-        }
-        if (_dataStore.unlinkedMap.containsKey(uriString)) {
-          entry.setValue(result as ResultDescriptor<SourceKind>,
-              SourceKind.PART, TargetedResult.EMPTY_LIST);
+        UnlinkedUnit unlinked = _dataStore.unlinkedMap[uriString];
+        if (unlinked != null) {
+          entry.setValue(
+              result as ResultDescriptor<SourceKind>,
+              unlinked.isPartOf ? SourceKind.PART : SourceKind.LIBRARY,
+              TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;
@@ -286,19 +266,9 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
    *
    * Subclasses must call this method in their constructors.
    */
-  void createResynthesizer(
-      InternalAnalysisContext sdkContext, TypeProvider typeProvider) {
-    // Set the type provider to prevent the context from computing it.
-    context.typeProvider = typeProvider;
-    // Create a chained resynthesizer.
-    _sdkProvider = sdkContext?.resultProvider;
-    _resynthesizer = new _FileBasedSummaryResynthesizer(
-        _sdkProvider?.resynthesizer,
-        context,
-        typeProvider,
-        context.sourceFactory,
-        context.analysisOptions.strongMode,
-        _dataStore);
+  void createResynthesizer() {
+    _resynthesizer = new _FileBasedSummaryResynthesizer(context,
+        context.sourceFactory, context.analysisOptions.strongMode, _dataStore);
   }
 
   /**
@@ -389,12 +359,26 @@ class SummaryDataStore {
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       String uri = bundle.unlinkedUnitUris[i];
       uriToSummaryPath[uri] = path;
-      unlinkedMap[uri] = bundle.unlinkedUnits[i];
+      addUnlinkedUnit(uri, bundle.unlinkedUnits[i]);
     }
     for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
       String uri = bundle.linkedLibraryUris[i];
-      linkedMap[uri] = bundle.linkedLibraries[i];
+      addLinkedLibrary(uri, bundle.linkedLibraries[i]);
     }
+  }
+
+  /**
+   * Add the given [linkedLibrary] with the given [uri].
+   */
+  void addLinkedLibrary(String uri, LinkedLibrary linkedLibrary) {
+    linkedMap[uri] = linkedLibrary;
+  }
+
+  /**
+   * Add the given [unlinkedUnit] with the given [uri].
+   */
+  void addUnlinkedUnit(String uri, UnlinkedUnit unlinkedUnit) {
+    unlinkedMap[uri] = unlinkedUnit;
   }
 
   /**
@@ -436,14 +420,9 @@ class SummaryDataStore {
 class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
   final SummaryDataStore _dataStore;
 
-  _FileBasedSummaryResynthesizer(
-      SummaryResynthesizer parent,
-      AnalysisContext context,
-      TypeProvider typeProvider,
-      SourceFactory sourceFactory,
-      bool strongMode,
-      this._dataStore)
-      : super(parent, context, typeProvider, sourceFactory, strongMode);
+  _FileBasedSummaryResynthesizer(AnalysisContext context,
+      SourceFactory sourceFactory, bool strongMode, this._dataStore)
+      : super(context, sourceFactory, strongMode);
 
   @override
   LinkedLibrary getLinkedSummary(String uri) {

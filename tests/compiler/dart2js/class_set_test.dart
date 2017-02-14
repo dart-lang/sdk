@@ -50,7 +50,7 @@ testIterators() async {
       }
       """,
       useMockCompiler: false);
-  ClosedWorld world = env.compiler.closedWorld;
+  ClosedWorld world = env.closedWorld;
 
   ClassElement A = env.getElement("A");
   ClassElement B = env.getElement("B");
@@ -383,7 +383,7 @@ testForEach() async {
       }
       """,
       useMockCompiler: false);
-  ClosedWorld world = env.compiler.closedWorld;
+  ClosedWorld world = env.closedWorld;
 
   ClassElement A = env.getElement("A");
   ClassElement B = env.getElement("B");

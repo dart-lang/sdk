@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.analysis.overrides;
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -12,12 +10,12 @@ import '../integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(Test);
+    defineReflectiveTests(OverridesTest);
+    defineReflectiveTests(OverridesTest_Driver);
   });
 }
 
-@reflectiveTest
-class Test extends AbstractAnalysisServerIntegrationTest {
+class AbstractOverridesTest extends AbstractAnalysisServerIntegrationTest {
   test_overrides() {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -121,4 +119,13 @@ class Target extends Base implements Interface1, Interface2 {
       checkOverrides('method7', false, []);
     });
   }
+}
+
+@reflectiveTest
+class OverridesTest extends AbstractOverridesTest {}
+
+@reflectiveTest
+class OverridesTest_Driver extends AbstractOverridesTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

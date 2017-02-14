@@ -40,6 +40,7 @@ main() {
     defineReflectiveTests(ElementImplTest);
     defineReflectiveTests(LibraryElementImplTest);
     defineReflectiveTests(MethodElementImplTest);
+    defineReflectiveTests(MethodMemberTest);
     defineReflectiveTests(MultiplyDefinedElementImplTest);
     defineReflectiveTests(ParameterElementImplTest);
     defineReflectiveTests(PropertyAccessorElementImplTest);
@@ -1819,8 +1820,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     // () -> B <: () -> A
     ClassElement a = ElementFactory.classElement2("A");
     ClassElement b = ElementFactory.classElement("B", a.type);
-    FunctionType t = ElementFactory.functionElement2("t", a).type;
-    FunctionType s = ElementFactory.functionElement2("s", b).type;
+    FunctionType t = ElementFactory.functionElement2("t", a.type).type;
+    FunctionType s = ElementFactory.functionElement2("s", b.type).type;
     expect(t.isSubtypeOf(s), isTrue);
     expect(s.isSubtypeOf(t), isTrue);
   }
@@ -1828,10 +1829,10 @@ class FunctionTypeImplTest extends EngineTestCase {
   void test_isSubtypeOf_returnType_tNotAssignableToS() {
     // ! () -> A <: () -> B
     FunctionType t = ElementFactory
-        .functionElement2("t", ElementFactory.classElement2("A"))
+        .functionElement2("t", ElementFactory.classElement2("A").type)
         .type;
     FunctionType s = ElementFactory
-        .functionElement2("s", ElementFactory.classElement2("B"))
+        .functionElement2("s", ElementFactory.classElement2("B").type)
         .type;
     expect(t.isSubtypeOf(s), isFalse);
   }
@@ -4010,6 +4011,49 @@ abstract class A {
       expect(m2Node.name.name, "m2");
       expect(m2Node.element, same(m2Element));
     }
+  }
+}
+
+@reflectiveTest
+class MethodMemberTest extends EngineTestCase {
+  /**
+   * The type provider used to access the types.
+   */
+  TestTypeProvider _typeProvider;
+
+  @override
+  void setUp() {
+    super.setUp();
+    _typeProvider = new TestTypeProvider();
+  }
+
+  void test_getReifiedType_substituteFor() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.analyzeFunctionBodies = false;
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper(options);
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource(
+        "/test.dart",
+        r'''
+class A<T> {
+  T f(T x) => x;
+}
+class B<S> extends A<S> {
+  S f(S x) => x;
+}
+''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    DartType objectType = _typeProvider.objectType;
+    // B.f
+    ClassElement elementB = unitElement.getType("B");
+    MethodElement BfElement = elementB.type
+        .lookUpInheritedMethod("f", library: libraryElement, thisType: true);
+    MethodElement AfElement = elementB.type
+        .lookUpInheritedMethod("f", library: libraryElement, thisType: false);
+    expect(BfElement.getReifiedType(objectType),
+        equals(AfElement.getReifiedType(objectType)));
   }
 }
 

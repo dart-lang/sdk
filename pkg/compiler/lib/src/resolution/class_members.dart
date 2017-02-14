@@ -7,7 +7,7 @@ library dart2js.resolution.compute_members;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names;
 import '../common/resolution.dart' show Resolution;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart'
     show
         ClassElement,
@@ -99,7 +99,7 @@ abstract class MembersCreator {
   /// If [name] and [names] are not null, the computation is restricted to
   /// members with these names.
   void computeSuperClassMembers(String name, Setlet<Name> names) {
-    InterfaceType supertype = cls.supertype;
+    ResolutionInterfaceType supertype = cls.supertype;
     if (supertype == null) return;
     ClassElement superclass = supertype.element;
 
@@ -162,7 +162,7 @@ abstract class MembersCreator {
       }
     } else {
       LibraryElement library = cls.library;
-      InterfaceType thisType = cls.thisType;
+      ResolutionInterfaceType thisType = cls.thisType;
 
       void createMember(MemberElement element) {
         if (element.isConstructor) return;
@@ -170,8 +170,8 @@ abstract class MembersCreator {
         if (shouldSkipName(elementName)) return;
         if (nameText != null && elementName != nameText) return;
 
-        void addDeclaredMember(
-            Name name, DartType type, FunctionType functionType) {
+        void addDeclaredMember(Name name, ResolutionDartType type,
+            ResolutionFunctionType functionType) {
           DeclaredMember inherited = classMembers[name];
           DeclaredMember declared;
           if (element.isAbstract) {
@@ -188,32 +188,33 @@ abstract class MembersCreator {
 
         Name name = new Name(element.name, library);
         if (element.isField) {
-          DartType type = element.computeType(resolution);
-          addDeclaredMember(name, type, new FunctionType.synthesized(type));
+          ResolutionDartType type = element.computeType(resolution);
+          addDeclaredMember(
+              name, type, new ResolutionFunctionType.synthesized(type));
           if (!element.isConst && !element.isFinal) {
             addDeclaredMember(
                 name.setter,
                 type,
-                new FunctionType.synthesized(
-                    const VoidType(), <DartType>[type]));
+                new ResolutionFunctionType.synthesized(
+                    const ResolutionVoidType(), <ResolutionDartType>[type]));
           }
         } else if (element.isGetter) {
-          FunctionType functionType = element.computeType(resolution);
-          DartType type = functionType.returnType;
+          ResolutionFunctionType functionType = element.computeType(resolution);
+          ResolutionDartType type = functionType.returnType;
           addDeclaredMember(name, type, functionType);
         } else if (element.isSetter) {
-          FunctionType functionType = element.computeType(resolution);
-          DartType type;
+          ResolutionFunctionType functionType = element.computeType(resolution);
+          ResolutionDartType type;
           if (!functionType.parameterTypes.isEmpty) {
             type = functionType.parameterTypes.first;
           } else {
-            type = const DynamicType();
+            type = const ResolutionDynamicType();
           }
           name = name.setter;
           addDeclaredMember(name, type, functionType);
         } else {
           assert(invariant(element, element.isFunction));
-          FunctionType type = element.computeType(resolution);
+          ResolutionFunctionType type = element.computeType(resolution);
           addDeclaredMember(name, type, type);
         }
       }
@@ -310,7 +311,7 @@ abstract class MembersCreator {
   void checkImplementsFunctionWithCall() {
     assert(!cls.isAbstract);
 
-    ClassElement functionClass = resolution.coreClasses.functionClass;
+    ClassElement functionClass = resolution.commonElements.functionClass;
     functionClass.ensureResolved(resolution);
     if (cls.asInstanceOf(functionClass) == null) return;
     if (cls.lookupMember(Identifiers.call) != null) return;
@@ -380,7 +381,7 @@ abstract class MembersCreator {
         }
       }
 
-      DartType declaredType = declared.functionType;
+      ResolutionDartType declaredType = declared.functionType;
       for (Member inherited in superMember.declarations) {
         if (inherited.element == declared.element) {
           // TODO(ahe): For some reason, "call" elements are repeated in
@@ -425,7 +426,7 @@ abstract class MembersCreator {
           reportError(MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD,
               MessageKind.CANNOT_OVERRIDE_GETTER_WITH_METHOD_CONT);
         } else {
-          DartType inheritedType = inherited.functionType;
+          ResolutionDartType inheritedType = inherited.functionType;
           if (!resolution.types.isSubtype(declaredType, inheritedType)) {
             void reportWarning(
                 var marker, MessageKind warningKind, MessageKind infoKind) {
@@ -595,7 +596,7 @@ class InterfaceMembersCreator extends MembersCreator {
 
   Map<Name, Setlet<Member>> computeSuperInterfaceMembers(
       String name, Setlet<Name> names) {
-    InterfaceType supertype = cls.supertype;
+    ResolutionInterfaceType supertype = cls.supertype;
     assert(invariant(cls, supertype != null,
         message: "Interface members computed for $cls."));
     ClassElement superclass = supertype.element;
@@ -604,7 +605,7 @@ class InterfaceMembersCreator extends MembersCreator {
         new Map<Name, Setlet<Member>>();
 
     void inheritInterfaceMember(
-        InterfaceType supertype, MemberSignature member) {
+        ResolutionInterfaceType supertype, MemberSignature member) {
       if (shouldSkipMember(member)) return;
       Setlet<Member> members = inheritedInterfaceMembers.putIfAbsent(
           member.name, () => new Setlet<Member>());
@@ -613,7 +614,7 @@ class InterfaceMembersCreator extends MembersCreator {
       }
     }
 
-    void inheritInterfaceMembers(InterfaceType supertype) {
+    void inheritInterfaceMembers(ResolutionInterfaceType supertype) {
       supertype.element.forEachInterfaceMember((MemberSignature member) {
         inheritInterfaceMember(supertype, member);
       });
@@ -629,10 +630,10 @@ class InterfaceMembersCreator extends MembersCreator {
     }
 
     // Inherit interface members from superinterfaces.
-    for (Link<DartType> link = cls.interfaces;
+    for (Link<ResolutionDartType> link = cls.interfaces;
         !link.isEmpty;
         link = link.tail) {
-      InterfaceType superinterface = link.head;
+      ResolutionInterfaceType superinterface = link.head;
       if (names != null) {
         MembersCreator._computeClassMember(
             resolution, superinterface.element, name, names);
@@ -668,7 +669,7 @@ class InterfaceMembersCreator extends MembersCreator {
   void computeInterfaceMembers(
       Map<Name, Setlet<Member>> inheritedInterfaceMembers,
       Map<Name, Member> declaredMembers) {
-    InterfaceType thisType = cls.thisType;
+    ResolutionInterfaceType thisType = cls.thisType;
     // Compute the interface members by overriding the inherited members with
     // a declared member or by computing a single, possibly synthesized,
     // inherited member.
@@ -688,8 +689,8 @@ class InterfaceMembersCreator extends MembersCreator {
       } else {
         bool someAreGetters = false;
         bool allAreGetters = true;
-        Map<DartType, Setlet<Member>> subtypesOfAllInherited =
-            new Map<DartType, Setlet<Member>>();
+        Map<ResolutionDartType, Setlet<Member>> subtypesOfAllInherited =
+            new Map<ResolutionDartType, Setlet<Member>>();
         outer:
         for (Member inherited in inheritedMembers) {
           if (inherited.isGetter) {
@@ -773,7 +774,7 @@ class InterfaceMembersCreator extends MembersCreator {
         requiredParameters = 1;
       }
       if (member.type.isFunctionType) {
-        FunctionType type = member.type;
+        ResolutionFunctionType type = member.type;
         type.namedParameters.forEach((String name) => names.add(name));
         requiredParameters = type.parameterTypes.length;
         optionalParameters = type.optionalParameterTypes.length;
@@ -792,24 +793,25 @@ class InterfaceMembersCreator extends MembersCreator {
     // TODO(johnniwinther): Support function types with both optional
     // and named parameters?
     if (optionalParameters == 0 || names.isEmpty) {
-      DartType dynamic = const DynamicType();
-      List<DartType> requiredParameterTypes =
+      ResolutionDartType dynamic = const ResolutionDynamicType();
+      List<ResolutionDartType> requiredParameterTypes =
           new List.filled(minRequiredParameters, dynamic);
-      List<DartType> optionalParameterTypes =
+      List<ResolutionDartType> optionalParameterTypes =
           new List.filled(optionalParameters, dynamic);
       List<String> namedParameters = names.toList()
         ..sort((a, b) => a.compareTo(b));
-      List<DartType> namedParameterTypes =
+      List<ResolutionDartType> namedParameterTypes =
           new List.filled(namedParameters.length, dynamic);
-      FunctionType memberType = new FunctionType.synthesized(
-          const DynamicType(),
-          requiredParameterTypes,
-          optionalParameterTypes,
-          namedParameters,
-          namedParameterTypes);
-      DartType type = memberType;
+      ResolutionFunctionType memberType =
+          new ResolutionFunctionType.synthesized(
+              const ResolutionDynamicType(),
+              requiredParameterTypes,
+              optionalParameterTypes,
+              namedParameters,
+              namedParameterTypes);
+      ResolutionDartType type = memberType;
       if (inheritedMembers.first.isGetter || inheritedMembers.first.isSetter) {
-        type = const DynamicType();
+        type = const ResolutionDynamicType();
       }
       interfaceMembers[name] =
           new SyntheticMember(inheritedMembers, type, memberType);

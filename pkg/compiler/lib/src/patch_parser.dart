@@ -120,7 +120,7 @@ import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue;
-import 'dart_types.dart' show DartType;
+import 'elements/resolution_types.dart' show ResolutionDartType;
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
     show
@@ -149,7 +149,8 @@ class PatchParserTask extends CompilerTask {
   DiagnosticReporter get reporter => compiler.reporter;
 
   PatchParserTask(Compiler compiler)
-      : compiler = compiler, super(compiler.measurer);
+      : compiler = compiler,
+        super(compiler.measurer);
 
   /**
    * Scans a library patch file, applies the method patches and
@@ -203,8 +204,8 @@ class PatchParserTask extends CompilerTask {
             Token token = parser.parseTopLevelDeclaration(cls.beginToken);
             assert(identical(token, cls.endToken.next));
           } on ParserError catch (e) {
-            // No need to recover from a parser error in platform libraries, user
-            // will never see this if the libraries are tested correctly.
+            // No need to recover from a parser error in platform libraries,
+            // user will never see this if the libraries are tested correctly.
             reporter.internalError(cls, "Parser error in patch file: $e");
           }
           cls.cachedNode = listener.popNode();
@@ -248,7 +249,7 @@ class PatchMemberListener extends MemberListener {
  * declarations.
  */
 class PatchClassElementParser extends PartialParser {
-  PatchClassElementParser(Listener listener): super(listener);
+  PatchClassElementParser(Listener listener) : super(listener);
 
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }
@@ -427,7 +428,8 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
 
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
-    DartType annotationType = constant.getType(compiler.coreTypes);
+    ResolutionDartType annotationType =
+        constant.getType(compiler.commonElements);
     if (annotationType.element !=
         compiler.commonElements.nativeAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
@@ -460,8 +462,8 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
     JavaScriptBackend backend = compiler.backend;
-    if (constant.getType(compiler.coreTypes).element !=
-        backend.helpers.jsAnnotationClass) {
+    ResolutionDartType type = constant.getType(compiler.commonElements);
+    if (type.element != backend.helpers.jsAnnotationClass) {
       compiler.reporter
           .internalError(annotation, 'Invalid @JS(...) annotation.');
     }
@@ -496,7 +498,8 @@ class PatchAnnotationHandler implements EagerAnnotationHandler<PatchVersion> {
   @override
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
-    DartType annotationType = constant.getType(compiler.coreTypes);
+    ResolutionDartType annotationType =
+        constant.getType(compiler.commonElements);
     if (annotationType.element !=
         compiler.commonElements.patchAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;

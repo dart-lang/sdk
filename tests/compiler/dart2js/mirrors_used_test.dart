@@ -50,9 +50,9 @@ void main() {
         diagnosticHandler: new LegacyCompilerDiagnostics(expectOnlyVerboseInfo),
         options: ['--enable-experimental-mirrors']);
     CompilerImpl compiler = result.compiler;
+    JavaScriptBackend backend = compiler.backend;
     print('');
-    List generatedCode =
-        Elements.sortedByPosition(compiler.enqueuer.codegen.processedEntities);
+    List generatedCode = Elements.sortedByPosition(backend.generatedCode.keys);
     for (var element in generatedCode) {
       print(element);
     }
@@ -84,15 +84,14 @@ void main() {
 
     // We always include the names of some native classes.
     List<Element> nativeClasses = [
-      compiler.coreClasses.intClass,
-      compiler.coreClasses.doubleClass,
-      compiler.coreClasses.numClass,
-      compiler.coreClasses.stringClass,
-      compiler.coreClasses.boolClass,
-      compiler.coreClasses.nullClass,
-      compiler.coreClasses.listClass
+      compiler.commonElements.intClass,
+      compiler.commonElements.doubleClass,
+      compiler.commonElements.numClass,
+      compiler.commonElements.stringClass,
+      compiler.commonElements.boolClass,
+      compiler.commonElements.nullClass,
+      compiler.commonElements.listClass
     ];
-    JavaScriptBackend backend = compiler.backend;
     Iterable<String> nativeNames = nativeClasses.map(backend.namer.className);
     expectedNames = expectedNames.map(backend.namer.asName).toList();
     expectedNames.addAll(nativeNames);
@@ -127,7 +126,7 @@ void main() {
     Set<ConstantValue> compiledConstants = backend.constants.compiledConstants;
     // Make sure that most of the metadata constants aren't included in the
     // generated code.
-    backend.processMetadata(compiler.enqueuer.resolution.processedElements,
+    backend.processMetadata(compiler.enqueuer.resolution.processedEntities,
         (metadata) {
       ConstantValue constant =
           backend.constants.getConstantValueForMetadata(metadata);

@@ -232,6 +232,22 @@ class ClassHierarchy {
     }
   }
 
+  /// True if the program contains another class that is a subtype of given one.
+  bool hasProperSubtypes(Class class_) {
+    // If there are no subtypes then the subtype set contains the class itself.
+    return !getSubtypesOf(class_).isSingleton;
+  }
+
+  /// Returns the subtypes of [class_] as an interval list.
+  ClassSet getSubtypesOf(Class class_) {
+    return new ClassSet(this, _infoFor[class_].subtypeIntervalList);
+  }
+
+  /// Returns the subclasses of [class_] as an interval list.
+  ClassSet getSubclassesOf(Class class_) {
+    return new ClassSet(this, _infoFor[class_].subclassIntervalList);
+  }
+
   ClassHierarchy._internal(Program program, int numberOfClasses)
       : classes = new List<Class>(numberOfClasses) {
     // Build the class ordering based on a topological sort.
@@ -365,6 +381,7 @@ class ClassHierarchy {
       inherited = _getUnshadowedInheritedMembers(declared, inherited);
       allInheritedMembers = _merge(allInheritedMembers, inherited);
     }
+
     inheritFrom(classNode.supertype);
     inheritFrom(classNode.mixedInType);
     classNode.implementedTypes.forEach(inheritFrom);
@@ -415,10 +432,14 @@ class ClassHierarchy {
     }
     // One of the two lists is now exhausted, copy over the remains.
     while (i < declared.length) {
-      result[storeIndex++] = declared[i++];
+      Member declaredMember = declared[i++];
+      if (skipAbstractMembers && declaredMember.isAbstract) continue;
+      result[storeIndex++] = declaredMember;
     }
     while (j < inherited.length) {
-      result[storeIndex++] = inherited[j++];
+      Member inheritedMember = inherited[j++];
+      if (skipAbstractMembers && inheritedMember.isAbstract) continue;
+      result[storeIndex++] = inheritedMember;
     }
     result.length = storeIndex;
     return result;
@@ -849,4 +870,33 @@ class _ClassInfo {
   List<Member> interfaceSetters;
 
   _ClassInfo(this.classNode);
+}
+
+/// An immutable set of classes, internally represented as an interval list.
+class ClassSet {
+  final ClassHierarchy _hierarchy;
+  final Uint32List _intervalList;
+
+  ClassSet(this._hierarchy, this._intervalList);
+
+  bool get isEmpty => _intervalList.isEmpty;
+
+  bool get isSingleton {
+    var list = _intervalList;
+    return list.length == 2 && list[0] + 1 == list[1];
+  }
+
+  bool contains(Class class_) {
+    return _intervalListContains(
+        _intervalList, _hierarchy._infoFor[class_].topDownIndex);
+  }
+
+  ClassSet union(ClassSet other) {
+    assert(_hierarchy == other._hierarchy);
+    if (identical(_intervalList, other._intervalList)) return this;
+    _IntervalListBuilder builder = new _IntervalListBuilder();
+    builder.addIntervalList(_intervalList);
+    builder.addIntervalList(other._intervalList);
+    return new ClassSet(_hierarchy, builder.buildIntervalList());
+  }
 }

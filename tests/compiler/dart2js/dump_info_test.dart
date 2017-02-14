@@ -104,7 +104,8 @@ jsonTest(String program, JsonTaking testFn) async {
   var dumpTask = compiler.dumpInfoTask;
 
   StringBuffer sb = new StringBuffer();
-  dumpTask.dumpInfoJson(sb);
+  dumpTask.dumpInfoJson(
+      sb, compiler.resolutionWorldBuilder.closedWorldForTesting);
   String json = sb.toString();
   Map<String, dynamic> map = JSON.decode(json);
 

@@ -230,12 +230,12 @@ class ElementFactory {
       functionElement4(functionName, null, null, null, null);
 
   static FunctionElementImpl functionElement2(
-          String functionName, TypeDefiningElement returnElement) =>
-      functionElement3(functionName, returnElement, null, null);
+          String functionName, DartType returnType) =>
+      functionElement3(functionName, returnType, null, null);
 
   static FunctionElementImpl functionElement3(
       String functionName,
-      TypeDefiningElement returnElement,
+      DartType returnType,
       List<TypeDefiningElement> normalParameters,
       List<TypeDefiningElement> optionalParameters) {
     // We don't create parameter elements because we don't have parameter names
@@ -243,12 +243,7 @@ class ElementFactory {
         new FunctionElementImpl(functionName, 0);
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionElement.type = functionType;
-    // return type
-    if (returnElement == null) {
-      functionElement.returnType = VoidTypeImpl.instance;
-    } else {
-      functionElement.returnType = returnElement.type;
-    }
+    functionElement.returnType = returnType ?? VoidTypeImpl.instance;
     // parameters
     int normalCount = normalParameters == null ? 0 : normalParameters.length;
     int optionalCount =

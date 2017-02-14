@@ -10,7 +10,8 @@ import 'dart:collection';
 import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/common/names.dart' show Uris;
 import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/dart_types.dart' show DartType;
+import 'package:compiler/src/elements/resolution_types.dart'
+    show ResolutionDartType;
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
@@ -148,7 +149,8 @@ class MockCompiler extends Compiler {
       // dynamic invocation the ArgumentTypesRegistry eventually iterates over
       // the interfaces of the Object class which would be 'null' if the class
       // wasn't resolved.
-      coreClasses.objectClass.ensureResolved(resolution);
+      ClassElement objectClass = commonElements.objectClass;
+      objectClass.ensureResolved(resolution);
     }).then((_) => uri);
   }
 
@@ -290,7 +292,7 @@ class MockResolvedUriTranslator implements ResolvedUriTranslator {
   static final _emptySet = new Set();
 
   Uri translate(LibraryElement importingLibrary, Uri resolvedUri,
-          [Spannable spannable]) =>
+          Spannable spannable) =>
       resolvedUri;
   Set<Uri> get disallowedLibraryUris => _emptySet;
   bool get mockableLibraryUsed => false;
@@ -321,7 +323,7 @@ class CollectingTreeElements extends TreeElementMapping {
 
 class MockTypeVariablesScope extends TypeVariablesScope {
   @override
-  List<DartType> get typeVariables => <DartType>[];
+  List<ResolutionDartType> get typeVariables => <ResolutionDartType>[];
   MockTypeVariablesScope(Scope parent) : super(parent);
   String toString() => 'MockTypeVariablesScope($parent)';
 }

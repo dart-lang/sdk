@@ -6,6 +6,7 @@ library analyzer.src.generated.engine;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -24,11 +25,15 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/plugin/command_line_plugin.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
-import 'package:analyzer/src/plugin/options_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/general.dart';
+import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/manager.dart';
+import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/task/yaml.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
@@ -757,23 +762,10 @@ class AnalysisEngine {
   Logger _logger = Logger.NULL;
 
   /**
-   * The plugin that defines the extension points and extensions that are defined by
-   * command-line applications using the analysis engine.
-   */
-  final CommandLinePlugin commandLinePlugin = new CommandLinePlugin();
-
-  /**
    * The plugin that defines the extension points and extensions that are
    * inherently defined by the analysis engine.
    */
   final EnginePlugin enginePlugin = new EnginePlugin();
-
-  /***
-   * The plugin that defines the extension points and extensions that are defined
-   * by applications that want to consume options defined in the analysis
-   * options file.
-   */
-  final OptionsPlugin optionsPlugin = new OptionsPlugin();
 
   /**
    * The instrumentation service that is to be used by this analysis engine.
@@ -837,14 +829,9 @@ class AnalysisEngine {
    */
   TaskManager get taskManager {
     if (_taskManager == null) {
-      if (enginePlugin.taskExtensionPoint == null) {
-        processRequiredPlugins();
-      }
       _taskManager = new TaskManager();
-      _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors);
-      // TODO(brianwilkerson) Create a way to associate different results with
-      // different file suffixes, then make this pluggable.
-      _taskManager.addGeneralResult(DART_ERRORS);
+      _initializeTaskMap();
+      _initializeResults();
     }
     return _taskManager;
   }
@@ -870,8 +857,91 @@ class AnalysisEngine {
    * process any other plugins.
    */
   void processRequiredPlugins() {
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(requiredPlugins);
+    if (enginePlugin.workManagerFactoryExtensionPoint == null) {
+      ExtensionManager manager = new ExtensionManager();
+      manager.processPlugins(requiredPlugins);
+    }
+  }
+
+  void _initializeResults() {
+    _taskManager.addGeneralResult(DART_ERRORS);
+  }
+
+  void _initializeTaskMap() {
+    //
+    // Register general tasks.
+    //
+    _taskManager.addTaskDescriptor(GetContentTask.DESCRIPTOR);
+    //
+    // Register Dart tasks.
+    //
+    _taskManager.addTaskDescriptor(BuildCompilationUnitElementTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildDirectiveElementsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildExportNamespaceTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildLibraryElementTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildPublicNamespaceTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildSourceExportClosureTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ComputeConstantDependenciesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ComputeConstantValueTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(
+        ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ComputeLibraryCycleTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ComputeRequiredConstantsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ContainingLibrariesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(DartErrorsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(EvaluateUnitConstantsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(GatherUsedImportedElementsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(GatherUsedLocalElementsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(GenerateHintsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(GenerateLintsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(InferInstanceMembersInUnitTask.DESCRIPTOR);
+    _taskManager
+        .addTaskDescriptor(InferStaticVariableTypesInUnitTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(InferStaticVariableTypeTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(LibraryErrorsReadyTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(LibraryUnitErrorsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ParseDartTask.DESCRIPTOR);
+    _taskManager
+        .addTaskDescriptor(PartiallyResolveUnitReferencesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ReadyLibraryElement2Task.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ReadyLibraryElement5Task.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ReadyLibraryElement7Task.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ReadyResolvedUnitTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveConstantExpressionTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveDirectiveElementsTask.DESCRIPTOR);
+    _taskManager
+        .addTaskDescriptor(ResolvedUnit7InLibraryClosureTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolvedUnit7InLibraryTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveInstanceFieldsInUnitTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveLibraryReferencesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveLibraryTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveLibraryTypeNamesTask.DESCRIPTOR);
+    _taskManager
+        .addTaskDescriptor(ResolveTopLevelLibraryTypeBoundsTask.DESCRIPTOR);
+    _taskManager
+        .addTaskDescriptor(ResolveTopLevelUnitTypeBoundsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveUnitTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveUnitTypeNamesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ResolveVariableReferencesTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ScanDartTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(StrongModeVerifyUnitTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(VerifyUnitTask.DESCRIPTOR);
+    //
+    // Register HTML tasks.
+    //
+    _taskManager.addTaskDescriptor(DartScriptsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(HtmlErrorsTask.DESCRIPTOR);
+    _taskManager.addTaskDescriptor(ParseHtmlTask.DESCRIPTOR);
+    //
+    // Register YAML tasks.
+    //
+    _taskManager.addTaskDescriptor(ParseYamlTask.DESCRIPTOR);
+    //
+    // Register analysis option file tasks.
+    //
+    _taskManager.addTaskDescriptor(GenerateOptionsErrorsTask.DESCRIPTOR);
   }
 
   /**
@@ -1063,7 +1133,7 @@ abstract class AnalysisOptions {
   /**
    * The length of the list returned by [encodeCrossContextOptions].
    */
-  static const int crossContextOptionsLength = 2;
+  static const int signatureLength = 4;
 
   /**
    * Function that returns `true` if analysis is to parse and analyze function
@@ -1105,6 +1175,7 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to enable custom assert messages (DEP 37).
    */
+  @deprecated
   bool get enableAssertMessage;
 
   /**
@@ -1227,15 +1298,22 @@ abstract class AnalysisOptions {
   List<Linter> get lintRules;
 
   /**
-   * Return the "platform" bit mask which should be used to apply patch files,
-   * or `0` if no patch files should be applied.
+   * A mapping from Dart SDK library name (e.g. "dart:core") to a list of paths
+   * to patch files that should be applied to the library.
    */
-  int get patchPlatform;
+  Map<String, List<String>> get patchPaths;
 
   /**
    * Return `true` if analysis is to parse comments.
    */
   bool get preserveComments;
+
+  /**
+   * Return the opaque signature of the options.
+   *
+   * The length of the list is guaranteed to equal [signatureLength].
+   */
+  Uint32List get signature;
 
   /**
    * Return `true` if strong mode analysis should be used.
@@ -1251,15 +1329,6 @@ abstract class AnalysisOptions {
   bool get trackCacheDependencies;
 
   /**
-   * Return a list of integers encoding of the values of the options that need
-   * to be the same across all of the contexts associated with partitions that
-   * are to be shared by a single analysis context.
-   *
-   * The length of the list is guaranteed to equal [crossContextOptionsLength].
-   */
-  List<int> encodeCrossContextOptions();
-
-  /**
    * Reset the state of this set of analysis options to its original state.
    */
   void resetToDefaults();
@@ -1271,12 +1340,11 @@ abstract class AnalysisOptions {
   void setCrossContextOptionsFrom(AnalysisOptions options);
 
   /**
-   * Determine whether two lists returned by [encodeCrossContextOptions] are
-   * equal.
+   * Determine whether two signatures returned by [signature] are equal.
    */
-  static bool crossContextOptionsEqual(List<int> a, List<int> b) {
-    assert(a.length == crossContextOptionsLength);
-    assert(b.length == crossContextOptionsLength);
+  static bool signaturesEqual(Uint32List a, Uint32List b) {
+    assert(a.length == signatureLength);
+    assert(b.length == signatureLength);
     if (a.length != b.length) {
       return false;
     }
@@ -1303,13 +1371,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @deprecated
   static const int DEFAULT_CACHE_SIZE = 64;
 
-  static const int ENABLE_ASSERT_FLAG = 0x01;
-  static const int ENABLE_LAZY_ASSIGNMENT_OPERATORS = 0x02;
-  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x04;
-  static const int ENABLE_STRONG_MODE_FLAG = 0x08;
-  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x10;
-  static const int ENABLE_SUPER_MIXINS_FLAG = 0x20;
-
   /**
    * The default list of non-nullable type names.
    */
@@ -1322,6 +1383,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   AnalyzeFunctionBodiesPredicate _analyzeFunctionBodiesPredicate =
       _analyzeAllFunctionBodies;
 
+  /**
+   * The cached [signature].
+   */
+  Uint32List _signature;
+
   @override
   @deprecated
   int cacheSize = 64;
@@ -1331,9 +1397,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool enableAssertInitializer = false;
-
-  @override
-  bool enableAssertMessage = false;
 
   @override
   bool enableLazyAssignmentOperators = false;
@@ -1388,8 +1451,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   List<Linter> _lintRules;
 
-  @override
-  int patchPlatform = 0;
+  Map<String, List<String>> patchPaths = {};
 
   @override
   bool preserveComments = true;
@@ -1454,7 +1516,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     dart2jsHint = options.dart2jsHint;
     enableAssertInitializer = options.enableAssertInitializer;
-    enableAssertMessage = options.enableAssertMessage;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableSuperMixins = options.enableSuperMixins;
@@ -1480,7 +1541,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
     finerGrainedInvalidation = options.finerGrainedInvalidation;
-    patchPlatform = options.patchPlatform;
+    patchPaths = options.patchPaths;
   }
 
   bool get analyzeFunctionBodies {
@@ -1512,6 +1573,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     }
     _analyzeFunctionBodiesPredicate = value;
   }
+
+  @override
+  @deprecated
+  bool get enableAssertMessage => true;
+
+  @deprecated
+  void set enableAssertMessage(bool enable) {}
 
   @deprecated
   @override
@@ -1577,14 +1645,36 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @override
-  List<int> encodeCrossContextOptions() {
-    int flags = (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
-        (enableLazyAssignmentOperators ? ENABLE_LAZY_ASSIGNMENT_OPERATORS : 0) |
-        (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
-        (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0) |
-        (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
-        (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0);
-    return <int>[flags, patchPlatform];
+  Uint32List get signature {
+    if (_signature == null) {
+      ApiSignature buffer = new ApiSignature();
+
+      // Append boolean flags.
+      buffer.addBool(enableLazyAssignmentOperators);
+      buffer.addBool(enableStrictCallChecks);
+      buffer.addBool(enableSuperMixins);
+      buffer.addBool(implicitCasts);
+      buffer.addBool(implicitDynamic);
+      buffer.addBool(strongMode);
+      buffer.addBool(strongModeHints);
+
+      // Append error processors.
+      buffer.addInt(errorProcessors.length);
+      for (ErrorProcessor processor in errorProcessors) {
+        buffer.addString(processor.description);
+      }
+
+      // Append lints.
+      buffer.addInt(lintRules.length);
+      for (Linter lintRule in lintRules) {
+        buffer.addString(lintRule.lintCode.uniqueName);
+      }
+
+      // Hash and convert to Uint32List.
+      List<int> bytes = buffer.toByteList();
+      _signature = new Uint8List.fromList(bytes).buffer.asUint32List();
+    }
+    return _signature;
   }
 
   @override
@@ -1592,7 +1682,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = false;
     disableCacheFlushing = false;
     enableAssertInitializer = false;
-    enableAssertMessage = false;
     enableLazyAssignmentOperators = false;
     enableStrictCallChecks = false;
     enableSuperMixins = false;
@@ -1612,7 +1701,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     lint = false;
     _lintRules = null;
     nonnullableTypes = NONNULLABLE_TYPES;
-    patchPlatform = 0;
+    patchPaths = {};
     preserveComments = true;
     strongMode = false;
     strongModeHints = false;
@@ -1621,51 +1710,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
-    enableAssertMessage = options.enableAssertMessage;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableSuperMixins = options.enableSuperMixins;
     strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
-    }
-    patchPlatform = options.patchPlatform;
-  }
-
-  /**
-   * Produce a human readable list of option names corresponding to the options
-   * encoded in the given [encoding], presumably from invoking the method
-   * [encodeCrossContextOptions].
-   */
-  static String decodeCrossContextOptions(List<int> encoding) {
-    List<String> parts = [];
-    int flags = encoding[0];
-    if (flags & ENABLE_ASSERT_FLAG > 0) {
-      parts.add('assert');
-    }
-    if (flags & ENABLE_LAZY_ASSIGNMENT_OPERATORS > 0) {
-      parts.add('lazyAssignmentOperators');
-    }
-    if (flags & ENABLE_STRICT_CALL_CHECKS_FLAG > 0) {
-      parts.add('strictCallChecks');
-    }
-    if (flags & ENABLE_SUPER_MIXINS_FLAG > 0) {
-      parts.add('superMixins');
-    }
-    if (flags & ENABLE_STRONG_MODE_FLAG > 0) {
-      parts.add('strongMode');
-    }
-    if (flags & ENABLE_STRONG_MODE_HINTS_FLAG > 0) {
-      parts.add('strongModeHints');
-    }
-    int patchPlatform = encoding[1];
-    if (patchPlatform != 0) {
-      parts.add('patchPlatform=$patchPlatform');
-    }
-    if (parts.isEmpty) {
-      return 'none';
-    } else {
-      return parts.join(', ');
     }
   }
 

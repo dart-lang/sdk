@@ -24,9 +24,12 @@ import 'dart:async';
 import 'dart:_internal';
 
 class Object {
+  const Object() {}
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
   int get hashCode => 0;
+  Type get runtimeType => null;
+  dynamic noSuchMethod(Invocation invocation) => null;
 }
 
 class Function {}
@@ -130,13 +133,24 @@ abstract class Iterable<E> {
   Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
 }
 
-abstract class List<E> implements Iterable<E> {
-  void add(E value);
+class List<E> implements Iterable<E> {
+  List();
+  void add(E value) {}
   void addAll(Iterable<E> iterable) {}
-  E operator [](int index);
-  void operator []=(int index, E value);
+  E operator [](int index) => null;
+  void operator []=(int index, E value) {}
   Iterator<E> get iterator => null;
-  void clear();
+  void clear() {}
+
+  bool get isEmpty => false;
+  E get first => null;
+  E get last => null;
+
+  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e)) => null;
+
+  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
+      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
+
 }
 
 abstract class Map<K, V> extends Object {
@@ -173,6 +187,8 @@ class Future<T> {
   static Future wait(List<Future> futures) => null;
 }
 
+class FutureOr<T> {}
+
 class Stream<T> {}
 abstract class StreamTransformer<S, T> {}
 ''');
@@ -206,8 +222,8 @@ library dart.math;
 const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
 const double LN10 =  2.302585092994046;
-num min(num a, num b) => 0;
-num max(num a, num b) => 0;
+T min<T extends num>(T a, T b) => null;
+T max<T extends num>(T a, T b) => null;
 external double cos(num x);
 external num pow(num x, num exponent);
 external double sin(num x);
@@ -269,13 +285,24 @@ const Map<String, LibraryInfo> libraries = const {
    */
   PackageBundle _bundle;
 
-  MockSdk({resource.ResourceProvider resourceProvider})
+  MockSdk(
+      {bool generateSummaryFiles: false,
+      resource.ResourceProvider resourceProvider})
       : provider = resourceProvider ?? new resource.MemoryResourceProvider() {
     LIBRARIES.forEach((SdkLibrary library) {
       provider.newFile(library.path, (library as MockSdkLibrary).content);
     });
-    provider.newFile('/lib/_internal/sdk_library_metadata/lib/libraries.dart',
+    provider.newFile(
+        provider.convertPath(
+            '/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
         librariesContent);
+    if (generateSummaryFiles) {
+      List<int> bytes = _computeLinkedBundleBytes();
+      provider.newFileWithBytes(
+          provider.convertPath('/lib/_internal/spec.sum'), bytes);
+      provider.newFileWithBytes(
+          provider.convertPath('/lib/_internal/strong.sum'), bytes);
+    }
   }
 
   @override
@@ -307,28 +334,26 @@ const Map<String, LibraryInfo> libraries = const {
 
   @override
   Source fromFileUri(Uri uri) {
-    String filePath = uri.path;
-    String libPath = '/lib';
-    if (!filePath.startsWith("$libPath/")) {
-      return null;
-    }
-    for (SdkLibrary library in LIBRARIES) {
-      String libraryPath = library.path;
-      if (filePath.replaceAll('\\', '/') == libraryPath) {
+    String filePath = provider.pathContext.fromUri(uri);
+    for (SdkLibrary library in sdkLibraries) {
+      String libraryPath = provider.convertPath(library.path);
+      if (filePath == libraryPath) {
         try {
-          resource.File file = provider.getResource(uri.path);
+          resource.File file = provider.getResource(filePath);
           Uri dartUri = Uri.parse(library.shortName);
           return file.createSource(dartUri);
         } catch (exception) {
           return null;
         }
       }
-      if (filePath.startsWith("$libraryPath/")) {
-        String pathInLibrary = filePath.substring(libraryPath.length + 1);
-        String path = '${library.shortName}/$pathInLibrary';
+      String libraryRootPath = provider.pathContext.dirname(libraryPath) +
+          provider.pathContext.separator;
+      if (filePath.startsWith(libraryRootPath)) {
+        String pathInLibrary = filePath.substring(libraryRootPath.length);
+        String uriStr = '${library.shortName}/$pathInLibrary';
         try {
-          resource.File file = provider.getResource(uri.path);
-          Uri dartUri = new Uri(scheme: 'dart', path: path);
+          resource.File file = provider.getResource(filePath);
+          Uri dartUri = Uri.parse(uriStr);
           return file.createSource(dartUri);
         } catch (exception) {
           return null;
@@ -341,12 +366,14 @@ const Map<String, LibraryInfo> libraries = const {
   @override
   PackageBundle getLinkedBundle() {
     if (_bundle == null) {
-      List<Source> librarySources = sdkLibraries
-          .map((SdkLibrary library) => mapDartUri(library.shortName))
-          .toList();
-      List<int> bytes = new SummaryBuilder(
-              librarySources, context, context.analysisOptions.strongMode)
-          .build();
+      resource.File summaryFile =
+          provider.getFile(provider.convertPath('/lib/_internal/spec.sum'));
+      List<int> bytes;
+      if (summaryFile.exists) {
+        bytes = summaryFile.readAsBytesSync();
+      } else {
+        bytes = _computeLinkedBundleBytes();
+      }
       _bundle = new PackageBundle.fromBuffer(bytes);
     }
     return _bundle;
@@ -383,6 +410,18 @@ const Map<String, LibraryInfo> libraries = const {
     // table above.
     return null;
   }
+
+  /**
+   * Compute the bytes of the linked bundle associated with this SDK.
+   */
+  List<int> _computeLinkedBundleBytes() {
+    List<Source> librarySources = sdkLibraries
+        .map((SdkLibrary library) => mapDartUri(library.shortName))
+        .toList();
+    return new SummaryBuilder(
+            librarySources, context, context.analysisOptions.strongMode)
+        .build();
+  }
 }
 
 class MockSdkLibrary implements SdkLibrary {
@@ -414,7 +453,4 @@ class MockSdkLibrary implements SdkLibrary {
   bool get isVmLibrary => throw unimplemented;
 
   UnimplementedError get unimplemented => new UnimplementedError();
-
-  @override
-  List<String> getPatches(int platform) => const <String>[];
 }

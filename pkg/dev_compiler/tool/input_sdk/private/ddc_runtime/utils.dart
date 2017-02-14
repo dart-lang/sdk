@@ -24,13 +24,13 @@ final hasOwnProperty = JS('', 'Object.prototype.hasOwnProperty');
 /// This error indicates a strong mode specific failure, other than a type
 /// assertion failure (TypeError) or CastError.
 void throwStrongModeError(String message) {
-  JS('', 'debugger');
+  if (_trapRuntimeErrors) JS('', 'debugger');
   JS('', 'throw new #(#);', StrongModeErrorImplementation, message);
 }
 
 /// This error indicates a bug in the runtime or the compiler.
 void throwInternalError(String message) {
-  JS('', 'debugger');
+  if (_trapRuntimeErrors) JS('', 'debugger');
   JS('', 'throw Error(#)', message);
 }
 
@@ -98,7 +98,7 @@ copyProperty(to, from, name) {
     // On native types, Symbol.iterator may already be present.
     // TODO(jmesserly): investigate if we still need this.
     // If so, we need to find a better solution.
-    // See: https://github.com/dart-lang/dev_compiler/issues/487
+    // See https://github.com/dart-lang/sdk/issues/28324
     var existing = getOwnPropertyDescriptor(to, name);
     if (existing != null) {
       if (JS('bool', '#.writable', existing)) {

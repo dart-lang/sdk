@@ -10,6 +10,7 @@ import 'batch_util.dart';
 
 import 'package:args/args.dart';
 import 'package:kernel/analyzer/loader.dart';
+import 'package:kernel/application_root.dart';
 import 'package:kernel/verifier.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/log.dart';
@@ -36,6 +37,11 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
   ..addOption('packages',
       abbr: 'p', help: 'Path to the .packages file or packages folder.')
   ..addOption('package-root', help: 'Deprecated alias for --packages')
+  ..addOption('app-root',
+      help: 'Store library paths relative to the given directory.\n'
+          'If none is given, absolute paths are used.\n'
+          'Application libraries not inside the application root are stored '
+          'using absolute paths')
   ..addOption('target',
       abbr: 't',
       help: 'Tailor the IR to the given target.',
@@ -69,7 +75,9 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       hide: true)
   ..addFlag('show-external',
       help: 'When printing a library as text, also print its dependencies\n'
-          'on external libraries.');
+          'on external libraries.')
+  ..addFlag('show-offsets',
+      help: 'When printing a library as text, also print node offsets');
 
 String getUsage() => """
 Usage: dartk [options] FILE
@@ -244,6 +252,13 @@ Future<CompilerOutcome> batchMain(
   String packagePath = options['packages'] ?? options['package-root'];
   checkIsFileOrDirectoryOrNull(packagePath, 'Package root or .packages');
 
+  String applicationRootOption = options['app-root'];
+  checkIsDirectoryOrNull(applicationRootOption, 'Application root');
+  if (applicationRootOption != null) {
+    applicationRootOption = new File(applicationRootOption).absolute.path;
+  }
+  var applicationRoot = new ApplicationRoot(applicationRootOption);
+
   // Set up logging.
   if (options['verbose']) {
     log.onRecord.listen((LogRecord rec) {
@@ -255,9 +270,10 @@ Future<CompilerOutcome> batchMain(
     return fail('Exactly one FILE should be given.');
   }
 
-  var file = options.rest.single;
-
+  String file = options.rest.single;
   checkIsFile(file, option: 'Input file');
+  file = new File(file).absolute.path;
+  Uri fileUri = new Uri(scheme: 'file', path: file);
 
   String format = options['format'] ?? defaultFormat();
   String outputFile = options['out'] ?? defaultOutput();
@@ -297,16 +313,18 @@ Future<CompilerOutcome> batchMain(
         sdk: options['sdk'],
         packagePath: packagePath,
         customUriMappings: customUriMappings,
-        declaredVariables: declaredVariables);
+        declaredVariables: declaredVariables,
+        applicationRoot: applicationRoot);
     String packageDiscoveryPath = batchModeState.isBatchMode ? null : file;
     DartLoader loader = await batchModeState.batch.getLoader(
         repository, dartOptions,
         packageDiscoveryPath: packageDiscoveryPath);
     if (options['link']) {
-      program = loader.loadProgram(file, target: target);
+      program = loader.loadProgram(fileUri, target: target);
     } else {
-      var library = loader.loadLibrary(file);
-      assert(library == repository.getLibrary(file));
+      var library = loader.loadLibrary(fileUri);
+      assert(library ==
+          repository.getLibraryReference(applicationRoot.relativeUri(fileUri)));
       program = new Program(repository.libraries);
     }
     errors = loader.errors;
@@ -360,7 +378,9 @@ Future<CompilerOutcome> batchMain(
     switch (format) {
       case 'text':
         writeProgramToText(program,
-            path: outputFile, showExternal: options['show-external']);
+            path: outputFile,
+            showExternal: options['show-external'],
+            showOffsets: options['show-offsets']);
         break;
       case 'bin':
         ioFuture = writeProgramToBinary(program, outputFile);

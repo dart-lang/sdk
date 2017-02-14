@@ -7,7 +7,7 @@ library dart2js.serialization;
 import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../library_loader.dart' show LibraryProvider;
 import '../util/enumset.dart';
@@ -23,8 +23,8 @@ export 'task.dart' show LibraryDeserializer;
 /// An object that supports the encoding an [ObjectValue] for serialization.
 ///
 /// The [ObjectEncoder] ensures that nominality and circularities of
-/// non-primitive values like [Element], [DartType] and [ConstantExpression] are
-/// handled.
+/// non-primitive values like [Element], [ResolutionDartType] and
+/// [ConstantExpression] are handled.
 class ObjectEncoder extends AbstractEncoder<Key> {
   /// Creates an [ObjectEncoder] in the scope of [serializer] that uses [map]
   /// as its internal storage.
@@ -37,8 +37,8 @@ class ObjectEncoder extends AbstractEncoder<Key> {
 /// An object that supports the encoding a [MapValue] for serialization.
 ///
 /// The [MapEncoder] ensures that nominality and circularities of
-/// non-primitive values like [Element], [DartType] and [ConstantExpression] are
-/// handled.
+/// non-primitive values like [Element], [ResolutionDartType] and
+/// [ConstantExpression] are handled.
 class MapEncoder extends AbstractEncoder<String> {
   /// Creates an [MapEncoder] in the scope of [serializer] that uses [map]
   /// as its internal storage.
@@ -52,8 +52,8 @@ class MapEncoder extends AbstractEncoder<String> {
 /// or [MapValue]s.
 ///
 /// The [ListEncoder] ensures that nominality and circularities of
-/// non-primitive values like [Element], [DartType] and [ConstantExpression] are
-/// handled.
+/// non-primitive values like [Element], [ResolutionDartType] and
+/// [ConstantExpression] are handled.
 class ListEncoder {
   final Serializer _serializer;
   final List<Value> _list;
@@ -151,7 +151,7 @@ abstract class AbstractEncoder<K> {
   }
 
   /// Maps the [key] entry to the [type] in the encoded object.
-  void setType(K key, DartType type) {
+  void setType(K key, ResolutionDartType type) {
     _checkKey(key);
     _map[key] = _serializer.createTypeValue(type);
   }
@@ -159,7 +159,7 @@ abstract class AbstractEncoder<K> {
   /// Maps the [key] entry to the [types] in the encoded object.
   ///
   /// If [types] is empty, it is skipped.
-  void setTypes(K key, Iterable<DartType> types) {
+  void setTypes(K key, Iterable<ResolutionDartType> types) {
     _checkKey(key);
     if (types.isNotEmpty) {
       _map[key] =
@@ -412,11 +412,12 @@ abstract class AbstractDecoder<K> {
     return list.map(_deserializer.deserializeConstant).toList();
   }
 
-  /// Returns the [DartType] value associated with [key] in the decoded object.
+  /// Returns the [ResolutionDartType] value associated with [key] in the
+  /// decoded object.
   ///
   /// If no value is associated with [key], then if [isOptional] is `true`,
   /// `null` is returned, otherwise an exception is thrown.
-  DartType getType(K key, {bool isOptional: false}) {
+  ResolutionDartType getType(K key, {bool isOptional: false}) {
     int id = _map[_getKeyValue(key)];
     if (id == null) {
       if (isOptional) {
@@ -427,12 +428,12 @@ abstract class AbstractDecoder<K> {
     return _deserializer.deserializeType(id);
   }
 
-  /// Returns the list of [DartType] values associated with [key] in the decoded
-  /// object.
+  /// Returns the list of [ResolutionDartType] values associated with [key] in
+  /// the decoded object.
   ///
   /// If no value is associated with [key], then if [isOptional] is `true`,
   /// and empty [List] is returned, otherwise an exception is thrown.
-  List<DartType> getTypes(K key, {bool isOptional: false}) {
+  List<ResolutionDartType> getTypes(K key, {bool isOptional: false}) {
     List list = _map[_getKeyValue(key)];
     if (list == null) {
       if (isOptional) {
@@ -630,9 +631,9 @@ bool includeAllElements(Element element) => true;
 
 /// Serializer for the transitive closure of a collection of libraries.
 ///
-/// The serializer creates an [ObjectValue] model of the [Element], [DartType]
-/// and [ConstantExpression] values in the transitive closure of the serialized
-/// libraries.
+/// The serializer creates an [ObjectValue] model of the [Element],
+/// [ResolutionDartType] and [ConstantExpression] values in the transitive
+/// closure of the serialized libraries.
 ///
 /// The model layout of the produced [objectValue] is:
 ///
@@ -662,7 +663,8 @@ class Serializer {
   Map<Element, DataObject> _elementMap = <Element, DataObject>{};
   Map<ConstantExpression, DataObject> _constantMap =
       <ConstantExpression, DataObject>{};
-  Map<DartType, DataObject> _typeMap = <DartType, DataObject>{};
+  Map<ResolutionDartType, DataObject> _typeMap =
+      <ResolutionDartType, DataObject>{};
   List _pendingList = [];
   ElementMatcher shouldInclude;
 
@@ -848,7 +850,7 @@ class Serializer {
   /// If [type] has no [DataObject], a new [DataObject] is created and
   /// encoding the [ObjectValue] for [type] is put into the work queue of this
   /// serializer.
-  Value _getTypeId(DartType type) {
+  Value _getTypeId(ResolutionDartType type) {
     DataObject dataObject = _typeMap[type];
     if (dataObject == null) {
       _typeMap[type] = dataObject = new DataObject(
@@ -861,7 +863,7 @@ class Serializer {
   }
 
   /// Encodes [type] into the [ObjectValue] of [dataObject].
-  void _encodeType(DartType type, DataObject dataObject) {
+  void _encodeType(ResolutionDartType type, DataObject dataObject) {
     const TypeSerializer().visit(type, new ObjectEncoder(this, dataObject.map));
   }
 
@@ -869,7 +871,7 @@ class Serializer {
   ///
   /// If [type] has not already been serialized, it is added to the work
   /// queue of this serializer.
-  TypeValue createTypeValue(DartType type) {
+  TypeValue createTypeValue(ResolutionDartType type) {
     return new TypeValue(type, _getTypeId(type));
   }
 
@@ -982,7 +984,7 @@ class Deserializer {
   ListDecoder _typeList;
   ListDecoder _constantList;
   Map<int, Element> _elementMap = {};
-  Map<int, DartType> _typeMap = {};
+  Map<int, ResolutionDartType> _typeMap = {};
   Map<int, ConstantExpression> _constantMap = {};
 
   Deserializer.fromText(
@@ -998,7 +1000,8 @@ class Deserializer {
     return _elementList;
   }
 
-  /// Returns the [ListDecoder] for the [DartType]s in this deserializer.
+  /// Returns the [ListDecoder] for the [ResolutionDartType]s in this
+  /// deserializer.
   ListDecoder get types {
     if (_typeList == null) {
       _typeList = _headerObject.getList(Key.TYPES);
@@ -1105,8 +1108,8 @@ class Deserializer {
     return element;
   }
 
-  /// Returns the deserialized [DartType] for [id].
-  DartType deserializeType(int id) {
+  /// Returns the deserialized [ResolutionDartType] for [id].
+  ResolutionDartType deserializeType(int id) {
     if (id == null) throw new ArgumentError('Deserializer.getType(null)');
     return _typeMap.putIfAbsent(id, () {
       return TypeDeserializer.deserialize(types.getObject(id));

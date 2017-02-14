@@ -10,11 +10,15 @@ import 'dart:_js_helper' show
 import 'dart:_isolate_helper' show
     IsolateNatives,
     TimerImpl,
+    global,
     leaveJsAsync,
     enterJsAsync,
     isWorker;
 
 import 'dart:_foreign_helper' show JS;
+
+typedef void _Callback();
+typedef void _TakeCallback(_Callback callback);
 
 @patch
 class _AsyncRun {
@@ -24,21 +28,21 @@ class _AsyncRun {
   }
 
   // Lazily initialized.
-  static final Function _scheduleImmediateClosure =
+  static final _TakeCallback _scheduleImmediateClosure =
       _initializeScheduleImmediate();
 
-  static Function _initializeScheduleImmediate() {
+  static _TakeCallback _initializeScheduleImmediate() {
     // TODO(rnystrom): Not needed by dev_compiler.
     // requiresPreamble();
-    if (JS('', 'self.scheduleImmediate') != null) {
+    if (JS('', '#.scheduleImmediate', global) != null) {
       return _scheduleImmediateJsOverride;
     }
-    if (JS('', 'self.MutationObserver') != null &&
-        JS('', 'self.document') != null) {
+    if (JS('', '#.MutationObserver', global) != null &&
+        JS('', '#.document', global) != null) {
       // Use mutationObservers.
-      var div = JS('', 'self.document.createElement("div")');
-      var span = JS('', 'self.document.createElement("span")');
-      var storedCallback;
+      var div = JS('', '#.document.createElement("div")', global);
+      var span = JS('', '#.document.createElement("span")', global);
+      _Callback storedCallback;
 
       internalCallback(_) {
         leaveJsAsync();
@@ -47,7 +51,7 @@ class _AsyncRun {
         f();
       };
 
-      var observer = JS('', 'new self.MutationObserver(#)', internalCallback);
+      var observer = JS('', 'new #.MutationObserver(#)', global, internalCallback);
       JS('', '#.observe(#, { childList: true })',
           observer, div);
 
@@ -61,7 +65,7 @@ class _AsyncRun {
         JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)',
             div, div, span, div, span);
       };
-    } else if (JS('', 'self.setImmediate') != null) {
+    } else if (JS('', '#.setImmediate', global) != null) {
       return _scheduleImmediateWithSetImmediate;
     }
     // TODO(20055): We should use DOM promises when available.
@@ -74,7 +78,7 @@ class _AsyncRun {
       callback();
     };
     enterJsAsync();
-    JS('void', 'self.scheduleImmediate(#)', internalCallback);
+    JS('void', '#.scheduleImmediate(#)', global, internalCallback);
   }
 
   static void _scheduleImmediateWithSetImmediate(void callback()) {
@@ -83,7 +87,7 @@ class _AsyncRun {
       callback();
     };
     enterJsAsync();
-    JS('void', 'self.setImmediate(#)', internalCallback);
+    JS('void', '#.setImmediate(#)', global, internalCallback);
   }
 
   static void _scheduleImmediateWithTimer(void callback()) {

@@ -56,7 +56,7 @@ class Object {
    * If a subclass overrides the equality operator it should override
    * the [hashCode] method as well to maintain consistency.
    */
-  bool operator ==(other) => identical(this, other);
+  external bool operator==(other);
 
   /**
    * Get a hash code for this object.

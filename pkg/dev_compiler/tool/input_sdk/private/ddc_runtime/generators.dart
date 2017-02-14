@@ -5,7 +5,7 @@
 /// This library adapts ES6 generators to implement Dart's async/await.
 /// It's designed to interact with Dart's Future/Stream and follow Dart
 /// async/await semantics.
-/// See https://github.com/dart-lang/dev_compiler/issues/245 for ideas on
+/// See https://github.com/dart-lang/sdk/issues/27315 for ideas on
 /// reconciling Dart's Future and ES6 Promise.
 /// Inspired by `co`: https://github.com/tj/co/blob/master/index.js, which is a
 /// stepping stone for proposed ES7 async/await, and uses ES6 Promises.
@@ -47,7 +47,7 @@ async_(gen, T, @rest args) => JS('', '''(() => {
     // Chain the Future so `await` receives the Future's value.
     return future.then($dynamic)(onValue, {onError: onError});
   }
-  return ${getGenericClass(Future)}($T).new(function() {
+  return ${getGenericClass(Future)}($T).microtask(function() {
     iter = $gen.apply(null, $args)[Symbol.iterator]();
     return onValue();
   });

@@ -6,14 +6,25 @@ library entities;
 
 import 'elements.dart' show Entity;
 
+/// Stripped down super interface for library like entities.
+///
+/// Currently only [LibraryElement] but later also kernel based Dart classes
+/// and/or Dart-in-JS classes.
+abstract class LibraryEntity extends Entity {
+  String get libraryName;
+}
+
 /// Stripped down super interface for class like entities.
 ///
 /// Currently only [ClassElement] but later also kernel based Dart classes
 /// and/or Dart-in-JS classes.
 abstract class ClassEntity extends Entity {
   bool get isClosure;
-  void forEachInstanceField(f(ClassEntity cls, FieldEntity field),
-      {bool includeSuperAndInjectedMembers: false});
+}
+
+abstract class TypeVariableEntity extends Entity {
+  Entity get typeDeclaration;
+  int get index;
 }
 
 /// Stripped down super interface for member like entities, that is,
@@ -22,9 +33,14 @@ abstract class ClassEntity extends Entity {
 /// Currently only [MemberElement] but later also kernel based Dart members
 /// and/or Dart-in-JS properties.
 abstract class MemberEntity extends Entity {
+  bool get isTopLevel;
+  bool get isStatic;
+  bool get isInstanceMember;
+  bool get isConstructor;
   bool get isField;
   bool get isFunction;
   bool get isGetter;
+  bool get isSetter;
   bool get isAssignable;
   ClassEntity get enclosingClass;
 }

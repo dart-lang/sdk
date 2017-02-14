@@ -22,8 +22,8 @@ import 'package:js_runtime/shared/embedded_names.dart'
 
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
-import '../../core_types.dart' show CoreClasses;
-import '../../elements/elements.dart' show ClassElement, FunctionElement;
+import '../../core_types.dart' show CommonElements;
+import '../../elements/elements.dart' show ClassElement, MethodElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter;
@@ -103,7 +103,7 @@ class ModelEmitter {
     return deepCompareConstants(a, b);
   }
 
-  js.Expression generateStaticClosureAccess(FunctionElement element) {
+  js.Expression generateStaticClosureAccess(MethodElement element) {
     return js.js('#.#()',
         [namer.globalObjectFor(element), namer.staticClosureName(element)]);
   }
@@ -342,17 +342,17 @@ class ModelEmitter {
   js.Property emitMangledGlobalNames() {
     List<js.Property> names = <js.Property>[];
 
-    CoreClasses coreClasses = compiler.coreClasses;
+    CommonElements commonElements = compiler.commonElements;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
     List<ClassElement> nativeClassesNeedingUnmangledName = [
-      coreClasses.intClass,
-      coreClasses.doubleClass,
-      coreClasses.numClass,
-      coreClasses.stringClass,
-      coreClasses.boolClass,
-      coreClasses.nullClass,
-      coreClasses.listClass
+      commonElements.intClass,
+      commonElements.doubleClass,
+      commonElements.numClass,
+      commonElements.stringClass,
+      commonElements.boolClass,
+      commonElements.nullClass,
+      commonElements.listClass
     ];
     nativeClassesNeedingUnmangledName.forEach((element) {
       names.add(new js.Property(
@@ -860,7 +860,8 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
         data.add(js.quoteName(method.callName, allowNull: true));
 
         if (method.needsTearOff) {
-          bool isIntercepted = backend.isInterceptedMethod(method.element);
+          MethodElement element = method.element;
+          bool isIntercepted = backend.isInterceptedMethod(element);
           data.add(new js.LiteralBool(isIntercepted));
           data.add(js.quoteName(method.tearOffName));
           data.add((method.functionType));

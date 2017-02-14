@@ -394,8 +394,8 @@ abstract class _IntegerImplementation {
     if (x == 0) return y;
     if (y == 0) return x;
     if ((x == 1) || (y == 1)) return 1;
-    if (other is _Bigint) {
-      return _toBigint().gcd(other);
+    if (y is _Bigint) {
+      return x._toBigint().gcd(y);
     }
     return _binaryGcd(x, y, false);
   }

@@ -6233,9 +6233,6 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     return;
   }
-  if (kind() == MergedMathInstr::kSinCos) {
-    UNIMPLEMENTED();
-  }
   UNIMPLEMENTED();
 }
 
@@ -6994,7 +6991,7 @@ LocationSummary* ReThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->SetNeedsStacktrace(catch_try_index());
+  compiler->SetNeedsStackTrace(catch_try_index());
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(), kReThrowRuntimeEntry,
                                 2, locs());
   __ bkpt(0);

@@ -97,13 +97,14 @@ class UnionTypeMask implements TypeMask {
     bool isNullable = masks.any((e) => e.isNullable);
 
     List masksBases = masks.map((mask) => mask.base).toList();
-    Iterable<Entity> candidates = closedWorld.commonSupertypesOf(masksBases);
+    Iterable<ClassEntity> candidates =
+        closedWorld.commonSupertypesOf(masksBases);
 
     // Compute the best candidate and its kind.
-    Entity bestElement;
+    ClassEntity bestElement;
     int bestKind;
     int bestSize;
-    for (Entity candidate in candidates) {
+    for (ClassEntity candidate in candidates) {
       bool isInstantiatedStrictSubclass(cls) =>
           cls != candidate &&
           closedWorld.isExplicitlyInstantiated(cls) &&
@@ -219,27 +220,27 @@ class UnionTypeMask implements TypeMask {
     // Ensure the cheap test fails.
     assert(!disjointMasks.any((mask) => mask.containsMask(other, closedWorld)));
     // If we cover object, we should never get here.
-    assert(!contains(closedWorld.coreClasses.objectClass, closedWorld));
+    assert(!contains(closedWorld.commonElements.objectClass, closedWorld));
     // Likewise, nullness should be covered.
     assert(isNullable || !other.isNullable);
     // The fast test is precise for exact types.
     if (other.isExact) return false;
     // We cannot contain object.
-    if (other.contains(closedWorld.coreClasses.objectClass, closedWorld)) {
+    if (other.contains(closedWorld.commonElements.objectClass, closedWorld)) {
       return false;
     }
     FlatTypeMask flat = TypeMask.nonForwardingMask(other);
     // Check we cover the base class.
     if (!contains(flat.base, closedWorld)) return false;
     // Check for other members.
-    Iterable<Entity> members;
+    Iterable<ClassEntity> members;
     if (flat.isSubclass) {
       members = closedWorld.strictSubclassesOf(flat.base);
     } else {
       assert(flat.isSubtype);
       members = closedWorld.strictSubtypesOf(flat.base);
     }
-    return members.every((Entity cls) => this.contains(cls, closedWorld));
+    return members.every((ClassEntity cls) => this.contains(cls, closedWorld));
   }
 
   bool isInMask(TypeMask other, ClosedWorld closedWorld) {
@@ -307,15 +308,15 @@ class UnionTypeMask implements TypeMask {
     return disjointMasks.every((mask) => mask.containsOnlyString(closedWorld));
   }
 
-  bool containsOnly(Entity element) {
+  bool containsOnly(ClassEntity element) {
     return disjointMasks.every((mask) => mask.containsOnly(element));
   }
 
-  bool satisfies(Entity cls, ClosedWorld closedWorld) {
+  bool satisfies(ClassEntity cls, ClosedWorld closedWorld) {
     return disjointMasks.every((mask) => mask.satisfies(cls, closedWorld));
   }
 
-  bool contains(Entity cls, ClosedWorld closedWorld) {
+  bool contains(ClassEntity cls, ClosedWorld closedWorld) {
     return disjointMasks.any((e) => e.contains(cls, closedWorld));
   }
 
@@ -323,21 +324,22 @@ class UnionTypeMask implements TypeMask {
     return disjointMasks.any((mask) => mask.containsAll(closedWorld));
   }
 
-  Entity singleClass(ClosedWorld closedWorld) => null;
+  ClassEntity singleClass(ClosedWorld closedWorld) => null;
 
   bool needsNoSuchMethodHandling(Selector selector, ClosedWorld closedWorld) {
     return disjointMasks
         .any((e) => e.needsNoSuchMethodHandling(selector, closedWorld));
   }
 
-  bool canHit(Element element, Selector selector, ClosedWorld closedWorld) {
+  bool canHit(
+      MemberEntity element, Selector selector, ClosedWorld closedWorld) {
     return disjointMasks.any((e) => e.canHit(element, selector, closedWorld));
   }
 
-  Element locateSingleElement(Selector selector, ClosedWorld closedWorld) {
-    Element candidate;
+  MemberEntity locateSingleElement(Selector selector, ClosedWorld closedWorld) {
+    MemberEntity candidate;
     for (FlatTypeMask mask in disjointMasks) {
-      Element current = mask.locateSingleElement(selector, closedWorld);
+      MemberEntity current = mask.locateSingleElement(selector, closedWorld);
       if (current == null) {
         return null;
       } else if (candidate == null) {

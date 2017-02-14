@@ -2,8 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 
 # Failures ok in tests below. VM moves super initializer to end of list.
 Language/Classes/Constructors/Generative_Constructors/execution_t03: Fail, OK
@@ -38,7 +37,7 @@ LibTest/isolate/Isolate/spawn_A04_t03: Skip # Flaky, Issue 15974
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 # With asynchronous loading, the load errors in these tests are no longer recognized as compile errors:
@@ -46,13 +45,11 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
 Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
 Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug ]
+[ ($runtime == vm || $runtime == dart_precompiled ) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
+LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269
 
-[ ($runtime == dart_precompiled || $runtime == dart_app) && $mode == debug ]
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: Crash # Issue 27201
-
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc64 && $arch != simdbc) ]
+[ ($runtime == vm || $runtime == dart_precompiled) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc64 && $arch != simdbc) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch == mips || $arch == arm64) ]
@@ -62,7 +59,7 @@ LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) ]
+[ ($runtime == vm || $runtime == dart_precompiled) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simmips || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) ]
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Skip  # Timeout
 LibTest/collection/IterableBase/IterableBase_class_A01_t02: Skip  # Timeout
 LibTest/collection/IterableMixin/IterableMixin_class_A02_t01: Skip  # Timeout
@@ -76,16 +73,16 @@ LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 # co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
 Language/Classes/Getters/type_object_t01: RuntimeError # Issue 23721
 Language/Classes/Getters/type_object_t02: RuntimeError # Issue 23721
@@ -93,20 +90,6 @@ Language/Classes/Setters/type_object_t01: RuntimeError # Issue 23721
 Language/Classes/Setters/type_object_t02: RuntimeError # Issue 23721
 Language/Classes/Static_Methods/type_object_t01: RuntimeError # Issue 23721
 Language/Classes/Static_Methods/type_object_t02: RuntimeError # Issue 23721
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t01: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t02: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t03: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t04: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t05: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/General_Closurization/class_object_member_t06: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t04: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t05: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24472
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24472
 Language/Expressions/Identifier_Reference/built_in_identifier_t35: MissingCompileTimeError # Issue 25732
 Language/Expressions/Identifier_Reference/built_in_identifier_t36: MissingCompileTimeError # Issue 25732
 Language/Expressions/Identifier_Reference/built_in_identifier_t37: MissingCompileTimeError # Issue 25732
@@ -130,13 +113,9 @@ Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: MissingCompi
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: MissingCompileTimeError # Issue 25772
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t01: RuntimeError # Issue 24607
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t01: RuntimeError # Issue 24607
-Language/Expressions/Property_Extraction/Named_Constructor_Closurization/identical_t01: RuntimeError # Issue 24607
 Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Fail # Issue 25967
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Fail # Issue 25967
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Closurization/identical_t02: RuntimeError # Issue 24607
 Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
@@ -148,29 +127,26 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompile
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
 
-Language/Expressions/Property_Extraction/General_Super_Property_Extraction: CompileTimeError # Issue 26287
-Language/Expressions/Property_Extraction/Super_Closurization: CompileTimeError # Issue 26287
-
-[ $noopt || $compiler == precompiler || $mode == product ]
+[ $runtime == dart_precompiled || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
 
-[ $noopt || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit || $mode == product ]
+[ $compiler == precompiler || $compiler == app_jit || $mode == product ]
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: Skip # Eager loading
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: Skip # Eager loading
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Eager loading
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Eager loading
 
-[ $runtime == dart_precompiled || $runtime == dart_app ]
+[ $runtime == dart_precompiled ]
 LibTest/isolate/Isolate/spawnUri*: SkipByDesign # Isolate.spawnUri
 
-[ $noopt || $compiler == precompiler ]
+[ $compiler == precompiler ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 
-[ $noopt || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
+[ $compiler == precompiler || $compiler == app_jit ]
 Language/Mixins/Mixin_Application/error_t01: Pass
 Language/Mixins/Mixin_Application/error_t02: Pass
 Language/Mixins/declaring_constructor_t01: Pass
@@ -202,8 +178,6 @@ Language/Expressions/Instance_Creation/Const/deferred_type_t01: Skip # Requires 
 Language/Expressions/Instance_Creation/Const/deferred_type_t02: Skip # Requires deferred libraries
 Language/Expressions/Instance_Creation/New/evaluation_t19: Skip # Requires deferred libraries
 Language/Expressions/Instance_Creation/New/evaluation_t20: Skip # Requires deferred libraries
-Language/Expressions/Property_Extraction/Anonymous_Constructor_Extraction/deferred_type_t01: Skip # Requires deferred libraries
-Language/Expressions/Property_Extraction/Named_Constructor_Extraction/deferred_type_t01: Skip # Requires deferred libraries
 Language/Expressions/Type_Cast/evaluation_t10: Skip # Requires deferred libraries
 Language/Expressions/Type_Test/evaluation_t10: Skip # Requires deferred libraries
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: Skip # Requires deferred libraries
@@ -231,3 +205,6 @@ LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
 LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Timing dependent
 LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail # Timing dependent
 LibTest/isolate/ReceivePort/take_A01_t02: Skip # Issue 27773
+
+[ $runtime == vm && $mode == release && $system == linux && ($arch == x64 || $arch == ia32)]
+LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow

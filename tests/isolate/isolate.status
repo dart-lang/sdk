@@ -2,17 +2,17 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 browser/*: SkipByDesign  # Browser specific tests
 isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be able to pass when we have wrapper-less tests.
 
-[ $runtime != vm || $mode == product ]
+[ $runtime != vm || $mode == product || $compiler == app_jit ]
 checked_test: Skip # Unsupported.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $arch == mips && $mode == debug ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $mode == debug ]
 mandel_isolate_test: Skip # Uses 600 MB Ram on our 1 GB test device.
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) ]
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 compile_time_error_test/01: Skip # Issue 12587
 ping_test: Skip           # Resolve test issues
 ping_pause_test: Skip     # Resolve test issues
@@ -89,7 +89,7 @@ isolate_current_test: Fail  # please triage
 
 [ $csp ]
 deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
-browser/package_resolve_browser_hook_test: RuntimeError # CSP violation. Issue 27914
+browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 isolate_stress_test: Pass, Slow # TODO(kasperl): Please triage.
@@ -154,7 +154,13 @@ pause_test: RuntimeError, OK  # Uses Isolate.spawn.
 simple_message_test/none: RuntimeError, OK  # Uses Isolate.spawn.
 start_paused_test: RuntimeError, OK  # Uses Isolate.spawn.
 message3_test/int32x4: RuntimeError, OK  # Uses Isolate.spawn.
-browser/package_*: Skip # Issue 25594 (missing implementation in Dartium).
+browser/package_resolve_browser_hook*: Skip # Tests that use defaultPackagesBase (not supported in Dartium).
+
+[ ($compiler == none) && ( $runtime == dartium || $runtime == drt) ]
+browser/package_resolve_browser_test: Fail # Issue 28382
+
+[ ($compiler == none) && ( $runtime == dartium || $runtime == drt) && ($system == windows) ]
+browser/package_resolve_browser_test: Skip # Temporarily disabled working on CL to fix under Windows.
 
 [ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
@@ -170,7 +176,7 @@ package_resolve_test: SkipByDesign  # Uses Isolate.resolvePackageUri
 spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
 scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
 
-[ $noopt || $compiler == precompiler || $mode == product ]
+[ $compiler == precompiler || $mode == product ]
 # Imports dart:mirrors
 count_test: SkipByDesign
 cross_isolate_message_test: SkipByDesign
@@ -191,7 +197,7 @@ stacktrace_message_test: SkipByDesign
 static_function_test: SkipByDesign
 unresolved_ports_test: SkipByDesign
 
-[ $runtime == dart_precompiled || $runtime == dart_app ]
+[ $runtime == dart_precompiled ]
 count_test: Skip # Isolate.spawnUri
 cross_isolate_message_test: Skip # Isolate.spawnUri
 deferred_in_isolate2_test: Skip # Isolate.spawnUri
@@ -236,3 +242,4 @@ message3_test/fun: Pass, Fail # Closure identity
 deferred_in_isolate_test: Crash # Requires deferred libraries
 deferred_in_isolate2_test: Crash # Requires deferred libraries
 issue_21398_parent_isolate2_test: Crash # Requires deferred libraries
+spawn_uri_nested_vm_test: Pass, Crash # Issue 28192

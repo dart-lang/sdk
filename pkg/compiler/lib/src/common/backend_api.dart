@@ -15,9 +15,17 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart' show ConstantSystem;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../dart_types.dart' show DartType, InterfaceType;
+import '../elements/resolution_types.dart'
+    show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/elements.dart'
-    show ClassElement, Element, FunctionElement, MethodElement, LibraryElement;
+    show
+        ClassElement,
+        Element,
+        FunctionElement,
+        MemberElement,
+        MethodElement,
+        LibraryElement;
+import '../elements/entities.dart';
 import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformationStrategy;
@@ -32,6 +40,7 @@ import '../serialization/serialization.dart'
 import '../tree/tree.dart' show Node;
 import '../universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilder;
+import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 import 'codegen.dart' show CodegenWorkItem;
 import 'tasks.dart' show CompilerTask;
 
@@ -101,11 +110,12 @@ abstract class Backend extends Target {
   }
 
   /// Generates the output and returns the total size of the generated code.
-  int assembleProgram();
+  int assembleProgram(ClosedWorld closedWorld);
 
   List<CompilerTask> get tasks;
 
-  void onResolutionComplete() {}
+  void onResolutionComplete(
+      ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {}
   void onTypeInferenceComplete() {}
 
   bool classNeedsRti(ClassElement cls);
@@ -141,21 +151,12 @@ abstract class Backend extends Target {
 
   /// Called to instruct to the backend register [type] as instantiated on
   /// [enqueuer].
-  void registerInstantiatedType(InterfaceType type) {}
+  void registerInstantiatedType(ResolutionInterfaceType type) {}
 
   /// Register a runtime type variable bound tests between [typeArgument] and
   /// [bound].
   void registerTypeVariableBoundsSubtypeCheck(
-      DartType typeArgument, DartType bound) {}
-
-  /// Called to register that an instantiated generic class has a call method.
-  /// Any backend specific [WorldImpact] of this is returned.
-  ///
-  /// Note: The [callMethod] is registered even thought it doesn't reference
-  /// the type variables.
-  WorldImpact registerCallMethodWithFreeTypeVariables(Element callMethod,
-          {bool forResolution}) =>
-      const WorldImpact();
+      ResolutionDartType typeArgument, ResolutionDartType bound) {}
 
   /// Called to instruct the backend to register that a closure exists for a
   /// function on an instantiated generic class. Any backend specific
@@ -172,17 +173,6 @@ abstract class Backend extends Target {
   /// specific [WorldImpact] of this is returned.
   WorldImpact registerGetOfStaticFunction() => const WorldImpact();
 
-  /// Called to register that the `runtimeType` property has been accessed. Any
-  /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerRuntimeType() => const WorldImpact();
-
-  /// Called to register a `noSuchMethod` implementation.
-  void registerNoSuchMethod(FunctionElement noSuchMethodElement) {}
-
-  /// Called to enable support for `noSuchMethod`. Any backend specific
-  /// [WorldImpact] of this is returned.
-  WorldImpact enableNoSuchMethod() => const WorldImpact();
-
   /// Returns whether or not `noSuchMethod` support has been enabled.
   bool get enabledNoSuchMethod => false;
 
@@ -193,7 +183,7 @@ abstract class Backend extends Target {
   void registerConstSymbol(String name) {}
 
   ClassElement defaultSuperclass(ClassElement element) {
-    return compiler.coreClasses.objectClass;
+    return compiler.commonElements.objectClass;
   }
 
   bool isInterceptorClass(ClassElement element) => false;
@@ -222,7 +212,8 @@ abstract class Backend extends Target {
 
   /// Called to register that [element] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerStaticUse(Element element, {bool forResolution}) =>
+  WorldImpact registerUsedElement(MemberElement element,
+          {bool forResolution}) =>
       const WorldImpact();
 
   /// This method is called immediately after the [LibraryElement] [library] has
@@ -271,6 +262,10 @@ abstract class Backend extends Target {
   /// Returns true if this element needs reflection information at runtime.
   bool isAccessibleByReflection(Element element) => true;
 
+  /// Returns true if this member element needs reflection information at
+  /// runtime.
+  bool isMemberAccessibleByReflection(MemberElement element) => true;
+
   /// Returns true if this element is covered by a mirrorsUsed annotation.
   ///
   /// Note that it might still be ok to tree shake the element away if no
@@ -305,7 +300,7 @@ abstract class Backend extends Target {
   /// There is no guarantee that a class is only present once in
   /// [recentClasses], but every class seen by the [enqueuer] will be present in
   /// [recentClasses] at least once.
-  bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassElement> recentClasses) {
+  bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
     return true;
   }
 
@@ -313,11 +308,12 @@ abstract class Backend extends Target {
   /// times, but [onQueueClosed] is only called once.
   void onQueueClosed() {}
 
-  /// Called when the compiler starts running the codegen enqueuer.
-  void onCodegenStart() {}
+  /// Called when the compiler starts running the codegen enqueuer. The
+  /// [WorldImpact] of enabled backend features is returned.
+  WorldImpact onCodegenStart(ClosedWorld closedWorld) => const WorldImpact();
 
-  /// Called after [element] has been resolved.
-  void onElementResolved(Element element) {}
+  /// Called when code generation has been completed.
+  void onCodegenEnd() {}
 
   // Does this element belong in the output
   bool shouldOutput(Element element) => true;
@@ -368,10 +364,10 @@ abstract class ForeignResolver {
   ConstantExpression getConstant(Node node);
 
   /// Registers [type] as instantiated.
-  void registerInstantiatedType(InterfaceType type);
+  void registerInstantiatedType(ResolutionInterfaceType type);
 
   /// Resolves [typeName] to a type in the context of [node].
-  DartType resolveTypeFromString(Node node, String typeName);
+  ResolutionDartType resolveTypeFromString(Node node, String typeName);
 }
 
 /// Backend transformation methods for the world impacts.
@@ -405,6 +401,7 @@ abstract class BackendClasses {
   ClassElement get numImplementation;
   ClassElement get stringImplementation;
   ClassElement get listImplementation;
+  ClassElement get mutableListImplementation;
   ClassElement get growableListImplementation;
   ClassElement get fixedListImplementation;
   ClassElement get constListImplementation;
@@ -420,4 +417,13 @@ abstract class BackendClasses {
   ClassElement get syncStarIterableImplementation;
   ClassElement get asyncFutureImplementation;
   ClassElement get asyncStarStreamImplementation;
+  ClassElement get indexableImplementation;
+  ClassElement get mutableIndexableImplementation;
+  ClassElement get indexingBehaviorImplementation;
+  ClassElement get interceptorImplementation;
+
+  bool isDefaultEqualityImplementation(MemberElement element);
+  bool isInterceptorClass(ClassElement cls);
+  bool isNativeClass(ClassElement element);
+  bool isNativeMember(MemberElement element);
 }

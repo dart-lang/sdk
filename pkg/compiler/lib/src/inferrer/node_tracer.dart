@@ -10,7 +10,7 @@ import '../elements/elements.dart';
 import '../types/types.dart' show ContainerTypeMask, MapTypeMask;
 import '../util/util.dart' show Setlet;
 import 'debug.dart' as debug;
-import 'type_graph_inferrer.dart' show TypeGraphInferrerEngine;
+import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 
 // A set of selectors we know do not escape the elements inside the
@@ -72,16 +72,15 @@ Set<String> doesNotEscapeMapSet = new Set<String>.from(const <String>[
 ]);
 
 /// Common logic to trace a value through the type inference graph nodes.
-abstract class TracerVisitor<T extends TypeInformation>
-    implements TypeInformationVisitor {
-  final T tracedType;
-  final TypeGraphInferrerEngine inferrer;
+abstract class TracerVisitor implements TypeInformationVisitor {
+  final TypeInformation tracedType;
+  final InferrerEngine inferrer;
   final Compiler compiler;
 
   static const int MAX_ANALYSIS_COUNT = 16;
   final Setlet<Element> analyzedElements = new Setlet<Element>();
 
-  TracerVisitor(this.tracedType, TypeGraphInferrerEngine inferrer)
+  TracerVisitor(this.tracedType, InferrerEngine inferrer)
       : this.inferrer = inferrer,
         this.compiler = inferrer.compiler;
 
@@ -113,10 +112,14 @@ abstract class TracerVisitor<T extends TypeInformation>
   bool _wouldBeTooManyUsers(Set users) {
     int seenSoFar = analyzedElements.length;
     if (seenSoFar + users.length <= MAX_ANALYSIS_COUNT) return false;
-    int actualWork = users
-        .where((TypeInformation user) => !analyzedElements.contains(user.owner))
-        .length;
-    return seenSoFar + actualWork > MAX_ANALYSIS_COUNT;
+    int actualWork = 0;
+    for (TypeInformation user in users) {
+      if (!analyzedElements.contains(user.owner)) {
+        actualWork++;
+        if (actualWork > MAX_ANALYSIS_COUNT - seenSoFar) return true;
+      }
+    }
+    return false;
   }
 
   void analyze() {

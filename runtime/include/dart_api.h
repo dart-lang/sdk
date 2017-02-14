@@ -125,7 +125,7 @@ typedef struct _Dart_Isolate* Dart_Isolate;
  *
  *   An unhandled exception error provides access to an exception and
  *   stacktrace via the functions Dart_ErrorGetException and
- *   Dart_ErrorGetStacktrace.
+ *   Dart_ErrorGetStackTrace.
  *
  * - Compilation error handles are produced when, during the execution
  *   of Dart code, a compile-time error occurs.  As above, this can
@@ -284,7 +284,7 @@ DART_EXPORT bool Dart_IsApiError(Dart_Handle handle);
  * This can occur in any function which triggers the execution of Dart
  * code.
  *
- * See Dart_ErrorGetException and Dart_ErrorGetStacktrace.
+ * See Dart_ErrorGetException and Dart_ErrorGetStackTrace.
  *
  * Requires there to be a current isolate.
  */
@@ -347,7 +347,7 @@ DART_EXPORT Dart_Handle Dart_ErrorGetException(Dart_Handle handle);
 /**
  * Gets the stack trace Object from an unhandled exception error handle.
  */
-DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle);
+DART_EXPORT Dart_Handle Dart_ErrorGetStackTrace(Dart_Handle handle);
 
 /**
  * Produces an api error handle with the provided error message.
@@ -773,7 +773,7 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  * The current version of the Dart_InitializeFlags. Should be incremented every
  * time Dart_InitializeFlags changes in a binary incompatible way.
  */
-#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000001)
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000002)
 
 /**
  * Describes how to initialize the VM. Used with Dart_Initialize.
@@ -794,9 +794,8 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  */
 typedef struct {
   int32_t version;
-  const uint8_t* vm_isolate_snapshot;
-  const uint8_t* instructions_snapshot;
-  const uint8_t* data_snapshot;
+  const uint8_t* vm_snapshot_data;
+  const uint8_t* vm_snapshot_instructions;
   Dart_IsolateCreateCallback create;
   Dart_IsolateShutdownCallback shutdown;
   Dart_ThreadExitCallback thread_exit;
@@ -864,8 +863,9 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *   Provided only for advisory purposes to improve debugging messages.
  * \param main The name of the main entry point this isolate will run.
  *   Provided only for advisory purposes to improve debugging messages.
- * \param snapshot A buffer containing a snapshot of the isolate or
- *   NULL if no snapshot is provided.
+ * \param isolate_snapshot_data
+ * \param isolate_snapshot_instructions Buffers containing a snapshot of the
+ *   isolate or NULL if no snapshot is provided.
  * \param flags Pointer to VM specific flags or NULL for default flags.
  * \param callback_data Embedder data.  This data will be passed to
  *   the Dart_IsolateCreateCallback when new isolates are spawned from
@@ -875,12 +875,14 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  * \return The new isolate is returned. May be NULL if an error
  *   occurs during isolate initialization.
  */
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
-                                            const char* main,
-                                            const uint8_t* snapshot,
-                                            Dart_IsolateFlags* flags,
-                                            void* callback_data,
-                                            char** error);
+DART_EXPORT Dart_Isolate
+Dart_CreateIsolate(const char* script_uri,
+                   const char* main,
+                   const uint8_t* isolate_snapshot_data,
+                   const uint8_t* isolate_snapshot_instructions,
+                   Dart_IsolateFlags* flags,
+                   void* callback_data,
+                   char** error);
 /* TODO(turnidge): Document behavior when there is already a current
  * isolate. */
 
@@ -1009,10 +1011,10 @@ DART_EXPORT void Dart_ExitIsolate();
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle
-Dart_CreateSnapshot(uint8_t** vm_isolate_snapshot_buffer,
-                    intptr_t* vm_isolate_snapshot_size,
-                    uint8_t** isolate_snapshot_buffer,
-                    intptr_t* isolate_snapshot_size);
+Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
+                    intptr_t* vm_snapshot_data_size,
+                    uint8_t** isolate_snapshot_data_buffer,
+                    intptr_t* isolate_snapshot_data_size);
 
 /**
  * Creates a snapshot of the application script loaded in the isolate.
@@ -1030,29 +1032,9 @@ Dart_CreateSnapshot(uint8_t** vm_isolate_snapshot_buffer,
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
-                                                  intptr_t* size);
-
-/**
- * Creates a snapshot of the specified library loaded in the isolate.
- *
- * A library snapshot can be used for implementing fast startup of applications
- * (skips tokenizing and parsing process). A Snapshot of the library
- * can only be created before any dart code has executed.
- *
- * Requires there to be a current isolate which already has loaded the library.
- *
- * \param library A library for which the snapshot needs to be created.
- * \param buffer Returns a pointer to a buffer containing
- *   the snapshot. This buffer is scope allocated and is only valid
- *   until the next call to Dart_ExitScope.
- * \param size Returns the size of the buffer.
- *
- * \return A valid handle if no error occurs during the operation.
- */
-DART_EXPORT Dart_Handle Dart_CreateLibrarySnapshot(Dart_Handle library,
-                                                   uint8_t** buffer,
-                                                   intptr_t* size);
+DART_EXPORT Dart_Handle
+Dart_CreateScriptSnapshot(uint8_t** script_snapshot_buffer,
+                          intptr_t* script_snapshot_size);
 
 /**
  * Schedules an interrupt for the specified isolate.
@@ -2860,8 +2842,9 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
  * \return If no error occurs, the Library object corresponding to the root
  *   script is returned. Otherwise an error handle is returned.
  */
-DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
-                                                    intptr_t buffer_len);
+DART_EXPORT Dart_Handle
+Dart_LoadScriptFromSnapshot(const uint8_t* script_snapshot_buffer,
+                            intptr_t script_snapshot_size);
 
 /**
  * Loads a dart application via an in-memory kernel program.
@@ -3131,6 +3114,27 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer);
 
 
 /*
+ * ======
+ * Kernel
+ * ======
+ */
+
+
+/**
+ * Experimental support for Dart to Kernel parser isolate.
+ *
+ * TODO(hausner): Document finalized interface.
+ *
+ */
+
+DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
+DART_EXPORT bool Dart_KernelIsolateIsRunning();
+DART_EXPORT Dart_Port Dart_ServiceWaitForKernelPort();
+DART_EXPORT Dart_Port Dart_KernelPort();
+
+#define DART_KERNEL_ISOLATE_NAME "kernel-service"
+
+/*
  * =======
  * Service
  * =======
@@ -3164,6 +3168,22 @@ DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
  * ==============
  */
 
+/**
+ * Saves a serialized version of the information collected for use by the
+ * optimizing compiler, such as type feedback and usage counters. When this
+ * information is passed to Dart_Precompile, the AOT compiler may use it to
+ * produce faster and smaller code. The feedback is only used if the JIT that
+ * created it and the AOT compiler consuming it
+ *   - are running the same Dart program
+ *   - are built from the same version of the VM
+ *   - agree on whether type checks and assertions are enabled
+ *
+ * \return Returns an error handler if the VM was built in a mode that does not
+ * support saving JIT feedback.
+ */
+DART_EXPORT Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer,
+                                             intptr_t* buffer_length);
+
 
 typedef struct {
   const char* library_uri;
@@ -3186,14 +3206,15 @@ typedef struct {
  * reset_fields is true when we are about to create a precompilated snapshot.
  * Some fields are already been initialized as part of the loading logic, and
  * we want them to be reinitialized in the new process that will load the
- * snapshot. reset_fields is false for --noopt, which will continue running in
- * the same process.
+ * snapshot.
  *
  * \return An error handle if a compilation error or runtime error running const
  * constructors was encountered.
  */
 DART_EXPORT Dart_Handle
-Dart_Precompile(Dart_QualifiedFunctionName entry_points[], bool reset_fields);
+Dart_Precompile(Dart_QualifiedFunctionName entry_points[],
+                uint8_t* jit_feedback,
+                intptr_t jit_feedback_length);
 
 
 /**
@@ -3201,14 +3222,18 @@ Dart_Precompile(Dart_QualifiedFunctionName entry_points[], bool reset_fields);
  *   - A root library must have been loaded.
  *   - Dart_Precompile must have been called.
  *
- *  Outputs a vm isolate snapshot, an isolate snapshot, and an assembly file
- *  defining the symbols kInstructionsSnapshot and kDataSnapshot. The assembly
- *  should be compiled as a static or shared library and linked or loaded by the
- *  embedder.
+ *  Outputs an assembly file defining the symbols
+ *   - kDartVmSnapshotData
+ *   - kDartVmSnapshotInstructions
+ *   - kDartIsolateSnapshotData
+ *   - kDartIsolateSnapshotInstructions
+ *
+ *  The assembly should be compiled as a static or shared library and linked or
+ *  loaded by the embedder.
  *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_SNAPSHOT.
- *  The vm isolate snapshot, kInstructionsSnapshot and kDataSnapshot should be
- *  passed as arguments to Dart_Initialize. The isolate snapshot should be
- *  passed to Dart_CreateIsolate.
+ *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
+ *  Dart_Initialize. The kDartIsolateSnapshotData and
+ *  kDartIsoalteSnapshotInstructions should be passed to Dart_CreateIsolate.
  *
  *  The buffers are scope allocated and are only valid until the next call to
  *  Dart_ExitScope.
@@ -3216,43 +3241,39 @@ Dart_Precompile(Dart_QualifiedFunctionName entry_points[], bool reset_fields);
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle
-Dart_CreatePrecompiledSnapshotAssembly(uint8_t** assembly_buffer,
-                                       intptr_t* assembly_size);
+Dart_CreateAppAOTSnapshotAsAssembly(uint8_t** assembly_buffer,
+                                    intptr_t* assembly_size);
 
 
 /**
- *  Same as Dart_CreatePrecompiledSnapshotAssembly, except the instruction and
- *  data snapshot pieces are provided directly as bytes that the embedder can
- *  load with mmap. The instructions piece must be loaded with read and
- *  execute permissions; the rodata piece may be loaded as read-only.
+ *  Same as Dart_CreateAppAOTSnapshotAsAssembly, except all the pieces are
+ *  provided directly as bytes that the embedder can load with mmap. The
+ *  instructions pieces must be loaded with read and execute permissions; the
+ *  other pieces may be loaded as read-only.
  */
 DART_EXPORT Dart_Handle
-Dart_CreatePrecompiledSnapshotBlob(uint8_t** vm_isolate_snapshot_buffer,
-                                   intptr_t* vm_isolate_snapshot_size,
-                                   uint8_t** isolate_snapshot_buffer,
-                                   intptr_t* isolate_snapshot_size,
-                                   uint8_t** instructions_blob_buffer,
-                                   intptr_t* instructions_blob_size,
-                                   uint8_t** rodata_blob_buffer,
-                                   intptr_t* rodata_blob_size);
-
-
-DART_EXPORT Dart_Handle Dart_PrecompileJIT();
+Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
+                                 intptr_t* vm_snapshot_data_size,
+                                 uint8_t** vm_snapshot_instructions_buffer,
+                                 intptr_t* vm_snapshot_instructions_size,
+                                 uint8_t** isolate_snapshot_data_buffer,
+                                 intptr_t* isolate_snapshot_data_size,
+                                 uint8_t** isolate_snapshot_instructions_buffer,
+                                 intptr_t* isolate_snapshot_instructions_size);
 
 
 /**
- *  Creates a snapshot that caches unoptimized code and type feedback for faster
+ *  Creates a snapshot that caches compiled code and type feedback for faster
  *  startup and quicker warmup in a subsequent process.
  *
- *  Outputs a snapshot in four pieces. The vm isolate snapshot,
- *  instructions_blob and rodata_blob should be passed as arguments to
- *  Dart_Initialize. The isolate snapshot should be passed to
- *  Dart_CreateIsolate. The instructions piece must be loaded with execute
- *  permissions; the other pieces may loaded as read-only.
+ *  Outputs a snapshot in two pieces. The pieces should be passed to
+ *  Dart_CreateIsolate in a VM using the same VM snapshot pieces used in the
+ *  current VM. The instructions piece must be loaded with read and execute
+ *  permissions; the data piece may be loaded as read-only.
  *
  *   - Requires the VM to have been started with --load-deferred-eagerly.
  *   - Requires the VM to have not been started with --precompilation.
- *   - Not supported when targeting IA32.
+ *   - Not supported when targeting IA32 or DBC.
  *   - The VM writing the snapshot and the VM reading the snapshot must be the
  *     same version, must be built in the same DEBUG/RELEASE/PRODUCT mode, must
  *     be targeting the same architecture, and must both be in checked mode or
@@ -3264,14 +3285,10 @@ DART_EXPORT Dart_Handle Dart_PrecompileJIT();
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle
-Dart_CreateAppJITSnapshot(uint8_t** vm_isolate_snapshot_buffer,
-                          intptr_t* vm_isolate_snapshot_size,
-                          uint8_t** isolate_snapshot_buffer,
-                          intptr_t* isolate_snapshot_size,
-                          uint8_t** instructions_blob_buffer,
-                          intptr_t* instructions_blob_size,
-                          uint8_t** rodata_blob_buffer,
-                          intptr_t* rodata_blob_size);
+Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
+                                 intptr_t* isolate_snapshot_data_size,
+                                 uint8_t** isolate_snapshot_instructions_buffer,
+                                 intptr_t* isolate_snapshot_instructions_size);
 
 
 /**

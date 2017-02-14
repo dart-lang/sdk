@@ -383,8 +383,7 @@ class GetHandler2 implements AbstractGetHandler {
       driver = analysisServer.driverMap[folder];
     }
 
-    // TODO(scheglov) Show priority files.
-//    List<String> priorityNames = <String>[];
+    List<String> priorityFiles = driver.priorityFiles;
     List<String> addedFiles = driver.addedFiles.toList();
     List<String> implicitFiles =
         driver.knownFiles.difference(driver.addedFiles).toList();
@@ -517,9 +516,8 @@ class GetHandler2 implements AbstractGetHandler {
           }
         }
 
-        // TODO(scheglov) Show priority files.
-//        _writeFiles(
-//            buffer, 'Priority Files (${priorityNames.length})', priorityNames);
+        _writeFiles(
+            buffer, 'Priority Files (${priorityFiles.length})', priorityFiles);
         _writeFiles(buffer, 'Added Files (${addedFiles.length})', addedFiles);
         _writeFiles(
             buffer,

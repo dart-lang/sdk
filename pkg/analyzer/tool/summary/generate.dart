@@ -268,10 +268,13 @@ class _CodeGenerator {
         for (ClassMember classMember in decl.members) {
           if (classMember is MethodDeclaration && classMember.isGetter) {
             String desc = '$clsName.${classMember.name.name}';
-            TypeName type = classMember.returnType;
-            if (type == null) {
-              throw new Exception('Class member needs a type: $desc');
+            if (classMember.returnType is! TypeName) {
+              if (classMember.returnType == null) {
+                throw new Exception('Class member needs a type: $desc');
+              }
+              throw new Exception('Class member needs a class type: $desc');
             }
+            TypeName type = classMember.returnType;
             bool isList = false;
             if (type.name.name == 'List' &&
                 type.typeArguments != null &&

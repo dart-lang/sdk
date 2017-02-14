@@ -6,7 +6,7 @@ library dart2js.new_js_emitter.model;
 
 import '../constants/values.dart' show ConstantValue;
 import '../deferred_load.dart' show OutputUnit;
-import '../elements/elements.dart' show Element;
+import '../elements/entities.dart';
 import '../js/js.dart' as js show Expression, Name, Statement, TokenFinalizer;
 import 'js_emitter.dart' show MetadataCollector;
 
@@ -178,7 +178,7 @@ abstract class FieldContainer {
 class Library implements FieldContainer {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
-  final Element element;
+  final LibraryEntity element;
 
   final String uri;
   final List<StaticMethod> statics;
@@ -193,7 +193,7 @@ class Library implements FieldContainer {
 class StaticField {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
-  final Element element;
+  final FieldEntity element;
 
   js.Name name;
   // TODO(floitsch): the holder for static fields is the isolate object. We
@@ -210,7 +210,7 @@ class StaticField {
 class Class implements FieldContainer {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
-  final Element element;
+  final ClassEntity element;
 
   final js.Name name;
   final Holder holder;
@@ -289,7 +289,7 @@ class MixinApplication extends Class {
   Class _mixinClass;
 
   MixinApplication(
-      Element element,
+      ClassEntity element,
       js.Name name,
       Holder holder,
       List<Field> instanceFields,
@@ -335,7 +335,7 @@ class MixinApplication extends Class {
 class Field {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
-  final Element element;
+  final FieldEntity element;
 
   final js.Name name;
   final js.Name accessorName;
@@ -374,7 +374,7 @@ class Field {
 abstract class Method {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
-  final Element element;
+  final MemberEntity element;
 
   /// The name of the method. If the method is a [ParameterStubMethod] for a
   /// static function, then the name can be `null`. In that case, only the
@@ -410,7 +410,7 @@ abstract class DartMethod extends Method {
   // `call$1$name` (in unminified mode).
   final js.Name callName;
 
-  DartMethod(Element element, js.Name name, js.Expression code,
+  DartMethod(FunctionEntity element, js.Name name, js.Expression code,
       this.parameterStubs, this.callName,
       {this.needsTearOff,
       this.tearOffName,
@@ -444,7 +444,7 @@ class InstanceMethod extends DartMethod {
   /// functions that can be torn off.
   final bool isClosureCallMethod;
 
-  InstanceMethod(Element element, js.Name name, js.Expression code,
+  InstanceMethod(FunctionEntity element, js.Name name, js.Expression code,
       List<ParameterStubMethod> parameterStubs, js.Name callName,
       {bool needsTearOff,
       js.Name tearOffName,
@@ -473,7 +473,7 @@ class InstanceMethod extends DartMethod {
 /// to a method in the original Dart program. Examples are getter and setter
 /// stubs and stubs to dispatch calls to methods with optional parameters.
 class StubMethod extends Method {
-  StubMethod(js.Name name, js.Expression code, {Element element})
+  StubMethod(js.Name name, js.Expression code, {MemberEntity element})
       : super(element, name, code);
 }
 
@@ -506,7 +506,7 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
   final Holder holder;
 
   StaticDartMethod(
-      Element element,
+      FunctionEntity element,
       js.Name name,
       this.holder,
       js.Expression code,

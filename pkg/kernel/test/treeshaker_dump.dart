@@ -24,7 +24,8 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       negatable: false)
   ..addOption('output',
       help: 'The --diff files are written to the given directory instead of '
-          'the working directory');
+          'the working directory')
+  ..addFlag('strong', help: 'Run the tree shaker in strong mode');
 
 String usage = '''
 Usage: treeshaker_dump [options] FILE.dill
@@ -60,8 +61,10 @@ main(List<String> args) {
     exit(1);
   }
 
+  bool strong = options['strong'];
+
   Program program = loadProgramFromBinary(filename);
-  TreeShaker shaker = new TreeShaker(program);
+  TreeShaker shaker = new TreeShaker(program, strongMode: strong);
   int totalClasses = 0;
   int totalInstantiationCandidates = 0;
   int totalMembers = 0;
@@ -72,7 +75,7 @@ main(List<String> args) {
   void visitMember(Member member) {
     if (member.isAbstract) return; // Abstract members are not relevant.
     ++totalMembers;
-    bool isUsed = shaker.isMemberUsed(member);
+    bool isUsed = shaker.isMemberBodyUsed(member);
     if (isUsed) {
       ++usedMembers;
     }
@@ -124,7 +127,7 @@ main(List<String> args) {
     StringBuffer before = new StringBuffer();
     new Printer(before, syntheticNames: names).writeProgramFile(program);
     new File(beforeFile).writeAsStringSync('$before');
-    new TreeShaker(program).transform(program);
+    new TreeShaker(program, strongMode: strong).transform(program);
     StringBuffer after = new StringBuffer();
     new Printer(after, syntheticNames: names).writeProgramFile(program);
     new File(afterFile).writeAsStringSync('$after');

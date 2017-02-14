@@ -602,13 +602,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
     // Create type formals with specialized bounds.
     // For example `<U extends T>` where T comes from an outer scope.
-    List<TypeParameterElement> result =
-        new List<TypeParameterElement>(formalCount);
-
-    for (int i = 0; i < formalCount; i++) {
-      result[i] = TypeParameterMember.from(baseTypeFormals[i], this);
-    }
-    return result;
+    return TypeParameterMember.from(baseTypeFormals, this);
   }
 
   @override
@@ -828,16 +822,17 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         type,
         (DartType t, DartType s, _, __) =>
             (t as TypeImpl).isMoreSpecificThan(s, withDynamic),
-        new TypeSystemImpl().instantiateToBounds);
+        new TypeSystemImpl(null).instantiateToBounds);
   }
 
   @override
   bool isSubtypeOf(DartType type) {
+    var typeSystem = new TypeSystemImpl(null);
     return relate(
-        this,
-        type,
+        typeSystem.instantiateToBounds(this),
+        typeSystem.instantiateToBounds(type),
         (DartType t, DartType s, _, __) => t.isAssignableTo(s),
-        new TypeSystemImpl().instantiateToBounds);
+        typeSystem.instantiateToBounds);
   }
 
   @override
@@ -1026,16 +1021,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // This type cast is safe, because we checked it above.
     FunctionType s = other as FunctionType;
     if (t.typeFormals.isNotEmpty) {
-      if (s.typeFormals.isEmpty) {
-        t = instantiateToBounds(t);
-      } else {
-        List<DartType> freshVariables = relateTypeFormals(t, s, returnRelation);
-        if (freshVariables == null) {
-          return false;
-        }
-        t = t.instantiate(freshVariables);
-        s = s.instantiate(freshVariables);
+      List<DartType> freshVariables = relateTypeFormals(t, s, returnRelation);
+      if (freshVariables == null) {
+        return false;
       }
+      t = t.instantiate(freshVariables);
+      s = s.instantiate(freshVariables);
     } else if (s.typeFormals.isNotEmpty) {
       return false;
     }
@@ -1390,12 +1381,30 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartAsyncFutureOr {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "FutureOr" && element.library.isDartAsync;
+  }
+
+  @override
   bool get isDartCoreFunction {
     ClassElement element = this.element;
     if (element == null) {
       return false;
     }
     return element.name == "Function" && element.library.isDartCore;
+  }
+
+  @override
+  bool get isDartCoreNull {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Null" && element.library.isDartCore;
   }
 
   @override
@@ -1592,6 +1601,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   bool isMoreSpecificThan(DartType type,
       [bool withDynamic = false, Set<Element> visitedElements]) {
     //
+    // T is Null and S is not Bottom.
+    //
+    if (isDartCoreNull && !type.isBottom) {
+      return true;
+    }
+
     // S is dynamic.
     // The test to determine whether S is dynamic is done here because dynamic
     // is not an instance of InterfaceType.
@@ -1949,7 +1964,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       //
       if (element.library.context.analysisOptions.strongMode) {
         TypeImpl t = newTypeArguments[0];
-        newTypeArguments[0] = t.flattenFutures(new StrongTypeSystemImpl());
+        newTypeArguments[0] = t.flattenFutures(new StrongTypeSystemImpl(null));
       }
     }
 
@@ -2152,8 +2167,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return _leastUpperBound(first, second);
     }
     AnalysisContext context = first.element.context;
-    return context.typeSystem
-        .getLeastUpperBound(context.typeProvider, first, second);
+    return context.typeSystem.getLeastUpperBound(first, second);
   }
 
   /**
@@ -2372,7 +2386,13 @@ abstract class TypeImpl implements DartType {
   bool get isDartAsyncFuture => false;
 
   @override
+  bool get isDartAsyncFutureOr => false;
+
+  @override
   bool get isDartCoreFunction => false;
+
+  @override
+  bool get isDartCoreNull => false;
 
   @override
   bool get isDynamic => false;
@@ -2555,10 +2575,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       : super(element, element.name);
 
   @override
-  ElementLocation get definition => element.location;
+  DartType get bound => element.bound ?? DynamicTypeImpl.instance;
 
   @override
-  DartType get bound => element.bound ?? DynamicTypeImpl.instance;
+  ElementLocation get definition => element.location;
 
   @override
   TypeParameterElement get element => super.element as TypeParameterElement;

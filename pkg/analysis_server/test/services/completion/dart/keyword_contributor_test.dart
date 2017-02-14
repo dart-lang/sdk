@@ -16,6 +16,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(KeywordContributorTest);
+    defineReflectiveTests(KeywordContributorTest_Driver);
   });
 }
 
@@ -1586,4 +1587,10 @@ class A {
     if (iter2.any((c) => !iter1.contains(c))) return false;
     return true;
   }
+}
+
+@reflectiveTest
+class KeywordContributorTest_Driver extends KeywordContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

@@ -6,7 +6,7 @@ library least_upper_bound_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/elements.dart' show Element, ClassElement;
 
 import 'type_test_helper.dart';
@@ -27,14 +27,15 @@ void testInterface1() {
       class I implements A, B {}
       class J implements A, B {}
       """).then((env) {
-        DartType Object_ = env['Object'];
-        DartType A = env['A'];
-        DartType B = env['B'];
-        DartType I = env['I'];
-        DartType J = env['J'];
+        ResolutionDartType Object_ = env['Object'];
+        ResolutionDartType A = env['A'];
+        ResolutionDartType B = env['B'];
+        ResolutionDartType I = env['I'];
+        ResolutionDartType J = env['J'];
 
-        checkLub(DartType a, DartType b, DartType expect) {
-          DartType lub = env.computeLeastUpperBound(a, b);
+        checkLub(ResolutionDartType a, ResolutionDartType b,
+            ResolutionDartType expect) {
+          ResolutionDartType lub = env.computeLeastUpperBound(a, b);
           Expect.equals(
               expect, lub, 'Unexpected lub($a,$b) = $lub, expected $expect.');
         }
@@ -79,15 +80,16 @@ void testInterface2() {
       class I implements A, C {}
       class J implements A, C {}
       """).then((env) {
-        DartType Object_ = env['Object'];
-        DartType A = env['A'];
-        DartType B = env['B'];
-        DartType C = env['C'];
-        DartType I = env['I'];
-        DartType J = env['J'];
+        ResolutionDartType Object_ = env['Object'];
+        ResolutionDartType A = env['A'];
+        ResolutionDartType B = env['B'];
+        ResolutionDartType C = env['C'];
+        ResolutionDartType I = env['I'];
+        ResolutionDartType J = env['J'];
 
-        checkLub(DartType a, DartType b, DartType expectedLub) {
-          DartType lub = env.computeLeastUpperBound(a, b);
+        checkLub(ResolutionDartType a, ResolutionDartType b,
+            ResolutionDartType expectedLub) {
+          ResolutionDartType lub = env.computeLeastUpperBound(a, b);
           Expect.equals(expectedLub, lub,
               'Unexpected lub($a,$b) = $lub, expected $expectedLub');
         }
@@ -143,17 +145,18 @@ void testGeneric() {
       class C extends B {}
       class I<T> {}
       """).then((env) {
-        DartType Object_ = env['Object'];
-        DartType A = env['A'];
-        DartType B = env['B'];
-        DartType C = env['C'];
+        ResolutionDartType Object_ = env['Object'];
+        ResolutionDartType A = env['A'];
+        ResolutionDartType B = env['B'];
+        ResolutionDartType C = env['C'];
         ClassElement I = env.getElement('I');
-        DartType I_A = instantiate(I, [A]);
-        DartType I_B = instantiate(I, [B]);
-        DartType I_C = instantiate(I, [C]);
+        ResolutionDartType I_A = instantiate(I, [A]);
+        ResolutionDartType I_B = instantiate(I, [B]);
+        ResolutionDartType I_C = instantiate(I, [C]);
 
-        checkLub(DartType a, DartType b, DartType expectedLub) {
-          DartType lub = env.computeLeastUpperBound(a, b);
+        checkLub(ResolutionDartType a, ResolutionDartType b,
+            ResolutionDartType expectedLub) {
+          ResolutionDartType lub = env.computeLeastUpperBound(a, b);
           Expect.equals(expectedLub, lub,
               'Unexpected lub($a,$b) = $lub, expected $expectedLub');
         }
@@ -226,17 +229,18 @@ void testMixin() {
       class I2 extends Object with A, B implements A, D {}
       class J extends Object with B, A implements A, D {}
       """).then((env) {
-        DartType Object_ = env['Object'];
-        DartType A = env['A'];
-        DartType B = env['B'];
-        DartType C = env['C'];
-        DartType D = env['D'];
-        DartType I = env['I'];
-        DartType I2 = env['I2'];
-        DartType J = env['J'];
+        ResolutionDartType Object_ = env['Object'];
+        ResolutionDartType A = env['A'];
+        ResolutionDartType B = env['B'];
+        ResolutionDartType C = env['C'];
+        ResolutionDartType D = env['D'];
+        ResolutionDartType I = env['I'];
+        ResolutionDartType I2 = env['I2'];
+        ResolutionDartType J = env['J'];
 
-        checkLub(DartType a, DartType b, DartType expectedLub) {
-          DartType lub = env.computeLeastUpperBound(a, b);
+        checkLub(ResolutionDartType a, ResolutionDartType b,
+            ResolutionDartType expectedLub) {
+          ResolutionDartType lub = env.computeLeastUpperBound(a, b);
           Expect.equals(expectedLub, lub,
               'Unexpected lub($a,$b) = $lub, expected $expectedLub');
         }
@@ -340,37 +344,41 @@ void testFunction() {
       typedef void void____B_C({B a, C b});
       typedef void void____C_C({C a, C b});
       """).then((env) {
-        DartType Object_ = env['Object'];
-        DartType Function_ = env['Function'];
-        DartType dynamic__ = env['dynamic__'];
-        DartType void__ = env['void__'];
-        DartType A__ = env['A__'];
-        DartType B__ = env['B__'];
-        DartType C__ = env['C__'];
-        DartType void__A_B = env['void__A_B'];
-        DartType void__A_C = env['void__A_C'];
-        DartType void__B_A = env['void__B_A'];
-        DartType void__B_C = env['void__B_C'];
-        DartType void___B = env['void___B'];
-        DartType void___B_C = env['void___B_C'];
-        DartType void___C_C = env['void___C_C'];
-        DartType void____B = env['void____B'];
-        DartType void____B_C = env['void____B_C'];
-        DartType void____C_C = env['void____C_C'];
+        ResolutionDartType Object_ = env['Object'];
+        ResolutionDartType Function_ = env['Function'];
+        ResolutionDartType dynamic__ = env['dynamic__'];
+        ResolutionDartType void__ = env['void__'];
+        ResolutionDartType A__ = env['A__'];
+        ResolutionDartType B__ = env['B__'];
+        ResolutionDartType C__ = env['C__'];
+        ResolutionDartType void__A_B = env['void__A_B'];
+        ResolutionDartType void__A_C = env['void__A_C'];
+        ResolutionDartType void__B_A = env['void__B_A'];
+        ResolutionDartType void__B_C = env['void__B_C'];
+        ResolutionDartType void___B = env['void___B'];
+        ResolutionDartType void___B_C = env['void___B_C'];
+        ResolutionDartType void___C_C = env['void___C_C'];
+        ResolutionDartType void____B = env['void____B'];
+        ResolutionDartType void____B_C = env['void____B_C'];
+        ResolutionDartType void____C_C = env['void____C_C'];
 
         // Types used only for checking results.
-        DartType void_ = env['void'];
-        DartType B = env['B'];
-        DartType C = env['C'];
-        FunctionType Object__ = env.functionType(Object_, []);
-        FunctionType void__Object_Object =
+        ResolutionDartType void_ = env['void'];
+        ResolutionDartType B = env['B'];
+        ResolutionDartType C = env['C'];
+        ResolutionFunctionType Object__ = env.functionType(Object_, []);
+        ResolutionFunctionType void__Object_Object =
             env.functionType(void_, [Object_, Object_]);
-        FunctionType void__Object_B = env.functionType(void_, [Object_, B]);
-        FunctionType void__Object_C = env.functionType(void_, [Object_, C]);
-        FunctionType void__B_Object = env.functionType(void_, [B, Object_]);
+        ResolutionFunctionType void__Object_B =
+            env.functionType(void_, [Object_, B]);
+        ResolutionFunctionType void__Object_C =
+            env.functionType(void_, [Object_, C]);
+        ResolutionFunctionType void__B_Object =
+            env.functionType(void_, [B, Object_]);
 
-        checkLub(DartType a, DartType b, DartType expectedLub) {
-          DartType lub = env.computeLeastUpperBound(a, b);
+        checkLub(ResolutionDartType a, ResolutionDartType b,
+            ResolutionDartType expectedLub) {
+          ResolutionDartType lub = env.computeLeastUpperBound(a, b);
           if (a != b) {
             expectedLub = expectedLub.unaliased;
             lub = lub.unaliased;
@@ -711,20 +719,21 @@ void testTypeVariable() {
         //   /
         //  W
 
-        DartType Object_ = env['Object'];
-        DartType A = env['A'];
-        DartType B = env['B'];
-        DartType C = env['C'];
+        ResolutionDartType Object_ = env['Object'];
+        ResolutionDartType A = env['A'];
+        ResolutionDartType B = env['B'];
+        ResolutionDartType C = env['C'];
         ClassElement I = env.getElement('I');
-        DartType S = I.typeVariables[0];
-        DartType T = I.typeVariables[1];
-        DartType U = I.typeVariables[2];
-        DartType V = I.typeVariables[3];
-        DartType W = I.typeVariables[4];
-        DartType X = I.typeVariables[5];
+        ResolutionDartType S = I.typeVariables[0];
+        ResolutionDartType T = I.typeVariables[1];
+        ResolutionDartType U = I.typeVariables[2];
+        ResolutionDartType V = I.typeVariables[3];
+        ResolutionDartType W = I.typeVariables[4];
+        ResolutionDartType X = I.typeVariables[5];
 
-        checkLub(DartType a, DartType b, DartType expectedLub) {
-          DartType lub = env.computeLeastUpperBound(a, b);
+        checkLub(ResolutionDartType a, ResolutionDartType b,
+            ResolutionDartType expectedLub) {
+          ResolutionDartType lub = env.computeLeastUpperBound(a, b);
           Expect.equals(expectedLub, lub,
               'Unexpected lub($a,$b) = $lub, expected $expectedLub');
         }

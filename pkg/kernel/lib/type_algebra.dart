@@ -30,6 +30,18 @@ Map<TypeParameter, DartType> getSubstitutionMap(Supertype type) {
           type.classNode.typeParameters, type.typeArguments);
 }
 
+Map<TypeParameter, DartType> getUpperBoundSubstitutionMap(Class host) {
+  if (host.typeParameters.isEmpty) return const <TypeParameter, DartType>{};
+  var result = <TypeParameter, DartType>{};
+  for (var parameter in host.typeParameters) {
+    result[parameter] = const DynamicType();
+  }
+  for (var parameter in host.typeParameters) {
+    result[parameter] = substitute(parameter.bound, result);
+  }
+  return result;
+}
+
 /// Like [substitute], except when a type in the [substitution] map references
 /// another substituted type variable, the mapping for that type is recursively
 /// inserted.
@@ -178,6 +190,21 @@ abstract class Substitution {
   static Substitution bottomForClass(Class class_) {
     if (class_.typeParameters.isEmpty) return _NullSubstitution.instance;
     return new _ClassBottomSubstitution(class_);
+  }
+
+  /// Substitutes covariant uses of [class_]'s type parameters with the upper
+  /// bound of that type parameter.  Recursive references in the bound have
+  /// been replaced by dynamic.
+  static Substitution upperBoundForClass(Class class_) {
+    if (class_.typeParameters.isEmpty) return _NullSubstitution.instance;
+    var upper = <TypeParameter, DartType>{};
+    for (var parameter in class_.typeParameters) {
+      upper[parameter] = const DynamicType();
+    }
+    for (var parameter in class_.typeParameters) {
+      upper[parameter] = substitute(parameter.bound, upper);
+    }
+    return fromUpperAndLowerBounds(upper, {});
   }
 
   /// Substitutes both variables from [first] and [second], favoring those from

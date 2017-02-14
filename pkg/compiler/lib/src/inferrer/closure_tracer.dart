@@ -10,16 +10,20 @@ import '../js_backend/backend_helpers.dart';
 import '../types/types.dart' show TypeMask;
 import '../universe/selector.dart' show Selector;
 import 'debug.dart' as debug;
+import 'inferrer_engine.dart';
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 
-class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
+class ClosureTracerVisitor extends TracerVisitor {
   final Iterable<FunctionElement> tracedElements;
   final List<CallSiteTypeInformation> _callsToAnalyze =
       new List<CallSiteTypeInformation>();
 
-  ClosureTracerVisitor(this.tracedElements, tracedType, inferrer)
+  ClosureTracerVisitor(this.tracedElements, ApplyableTypeInformation tracedType,
+      InferrerEngine inferrer)
       : super(tracedType, inferrer);
+
+  ApplyableTypeInformation get tracedType => super.tracedType;
 
   void run() {
     analyze();
@@ -49,7 +53,9 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
     Selector selector = info.selector;
     TypeMask mask = info.mask;
     tracedElements.forEach((FunctionElement functionElement) {
-      if (!selector.signatureApplies(functionElement)) return;
+      if (!selector.callStructure.signatureApplies(functionElement.type)) {
+        return;
+      }
       inferrer.updateParameterAssignments(
           info, functionElement, info.arguments, selector, mask,
           remove: false, addToQueue: false);
@@ -94,8 +100,10 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
   bool _checkIfCurrentUser(element) =>
       inferrer.types.getInferredTypeOf(element) == currentUser;
 
-  bool _checkIfFunctionApply(element) =>
-      compiler.commonElements.isFunctionApplyMethod(element);
+  bool _checkIfFunctionApply(Element element) {
+    return element is MemberElement &&
+        compiler.commonElements.isFunctionApplyMethod(element);
+  }
 
   @override
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {

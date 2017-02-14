@@ -7,8 +7,10 @@ library jsinterop.world_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/src/elements/elements.dart' show Element, ClassElement;
+import 'package:compiler/src/elements/elements.dart'
+    show ClassElement, PublicName;
 import 'package:compiler/src/js_backend/js_backend.dart';
+import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart';
 import '../type_test_helper.dart';
 
@@ -87,9 +89,10 @@ $mainSource
       return cls;
     }
 
-    ClosedWorld world = env.compiler.closedWorld;
+    ClosedWorld world = env.closedWorld;
     JavaScriptBackend backend = env.compiler.backend;
-    ClassElement Object_ = registerClass(env.compiler.coreClasses.objectClass);
+    ClassElement Object_ =
+        registerClass(env.compiler.commonElements.objectClass);
     ClassElement Interceptor =
         registerClass(backend.helpers.jsInterceptorClass);
     ClassElement JavaScriptObject =
@@ -100,6 +103,8 @@ $mainSource
     ClassElement D = registerClass(env.getElement('D'));
     ClassElement E = registerClass(env.getElement('E'));
     ClassElement F = registerClass(env.getElement('F'));
+
+    Selector nonExisting = new Selector.getter(const PublicName('nonExisting'));
 
     Expect.equals(Interceptor.superclass, Object_);
     Expect.equals(JavaScriptObject.superclass, Interceptor);
@@ -127,6 +132,15 @@ $mainSource
             world.isAbstractlyInstantiated(cls),
             "Expected $name to be abstractly instantiated in `${mainSource}`:"
             "\n${world.dump(cls)}");
+        Expect.isTrue(
+            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.EXACT),
+            "Expected $name to need noSuchMethod for $nonExisting.");
+        Expect.isTrue(
+            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.SUBCLASS),
+            "Expected $name to need noSuchMethod for $nonExisting.");
+        Expect.isTrue(
+            world.needsNoSuchMethod(cls, nonExisting, ClassQuery.SUBTYPE),
+            "Expected $name to need noSuchMethod for $nonExisting.");
       }
       if (indirectlyInstantiated.contains(name)) {
         isInstantiated = true;

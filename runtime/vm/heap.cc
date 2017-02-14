@@ -87,14 +87,9 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   // memory.
   Thread* thread = Thread::Current();
   if (thread->CanCollectGarbage()) {
-    {
-      MonitorLocker ml(old_space_.tasks_lock());
-      addr = old_space_.TryAllocate(size, type);
-      while ((addr == 0) && (old_space_.tasks() > 0)) {
-        ml.WaitWithSafepointCheck(thread);
-        addr = old_space_.TryAllocate(size, type);
-      }
-    }
+    // Wait for any GC tasks that are in progress.
+    WaitForSweeperTasks(thread);
+    addr = old_space_.TryAllocate(size, type);
     if (addr != 0) {
       return addr;
     }
@@ -105,14 +100,8 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
       return addr;
     }
     // Wait for all of the concurrent tasks to finish before giving up.
-    {
-      MonitorLocker ml(old_space_.tasks_lock());
-      addr = old_space_.TryAllocate(size, type);
-      while ((addr == 0) && (old_space_.tasks() > 0)) {
-        ml.WaitWithSafepointCheck(thread);
-        addr = old_space_.TryAllocate(size, type);
-      }
-    }
+    WaitForSweeperTasks(thread);
+    addr = old_space_.TryAllocate(size, type);
     if (addr != 0) {
       return addr;
     }
@@ -123,12 +112,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
     }
     // Before throwing an out-of-memory error try a synchronous GC.
     CollectAllGarbage();
-    {
-      MonitorLocker ml(old_space_.tasks_lock());
-      while (old_space_.tasks() > 0) {
-        ml.WaitWithSafepointCheck(thread);
-      }
-    }
+    WaitForSweeperTasks(thread);
   }
   addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
   if (addr != 0) {
@@ -194,34 +178,61 @@ bool Heap::CodeContains(uword addr) const {
 }
 
 
+bool Heap::DataContains(uword addr) const {
+  return old_space_.DataContains(addr);
+}
+
+
 void Heap::VisitObjects(ObjectVisitor* visitor) const {
   new_space_.VisitObjects(visitor);
   old_space_.VisitObjects(visitor);
 }
 
 
-HeapIterationScope::HeapIterationScope()
+void Heap::VisitObjectsNoImagePages(ObjectVisitor* visitor) const {
+  new_space_.VisitObjects(visitor);
+  old_space_.VisitObjectsNoImagePages(visitor);
+}
+
+
+void Heap::VisitObjectsImagePages(ObjectVisitor* visitor) const {
+  old_space_.VisitObjectsImagePages(visitor);
+}
+
+
+HeapIterationScope::HeapIterationScope(bool writable)
     : StackResource(Thread::Current()),
-      old_space_(isolate()->heap()->old_space()) {
-  // It's not yet safe to iterate over a paged space while it's concurrently
-  // sweeping, so wait for any such task to complete first.
-  MonitorLocker ml(old_space_->tasks_lock());
+      old_space_(isolate()->heap()->old_space()),
+      writable_(writable) {
+  {
+    // It's not yet safe to iterate over a paged space while it's concurrently
+    // sweeping, so wait for any such task to complete first.
+    MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
-  // We currently don't support nesting of HeapIterationScopes.
-  ASSERT(old_space_->iterating_thread_ != thread());
+    // We currently don't support nesting of HeapIterationScopes.
+    ASSERT(old_space_->iterating_thread_ != thread());
 #endif
-  while (old_space_->tasks() > 0) {
-    ml.WaitWithSafepointCheck(thread());
+    while (old_space_->tasks() > 0) {
+      ml.WaitWithSafepointCheck(thread());
+    }
+#if defined(DEBUG)
+    ASSERT(old_space_->iterating_thread_ == NULL);
+    old_space_->iterating_thread_ = thread();
+#endif
+    old_space_->set_tasks(1);
   }
-#if defined(DEBUG)
-  ASSERT(old_space_->iterating_thread_ == NULL);
-  old_space_->iterating_thread_ = thread();
-#endif
-  old_space_->set_tasks(1);
+
+  if (writable_) {
+    thread()->heap()->WriteProtectCode(false);
+  }
 }
 
 
 HeapIterationScope::~HeapIterationScope() {
+  if (writable_) {
+    thread()->heap()->WriteProtectCode(true);
+  }
+
   MonitorLocker ml(old_space_->tasks_lock());
 #if defined(DEBUG)
   ASSERT(old_space_->iterating_thread_ == thread());
@@ -247,9 +258,9 @@ void Heap::IterateOldObjects(ObjectVisitor* visitor) const {
 }
 
 
-void Heap::IterateOldObjectsNoEmbedderPages(ObjectVisitor* visitor) const {
+void Heap::IterateOldObjectsNoImagePages(ObjectVisitor* visitor) const {
   HeapIterationScope heap_iteration_scope;
-  old_space_.VisitObjectsNoEmbedderPages(visitor);
+  old_space_.VisitObjectsNoImagePages(visitor);
 }
 
 
@@ -434,17 +445,12 @@ void Heap::CollectAllGarbage() {
 }
 
 
-#if defined(DEBUG)
-void Heap::WaitForSweeperTasks() {
-  Thread* thread = Thread::Current();
-  {
-    MonitorLocker ml(old_space_.tasks_lock());
-    while (old_space_.tasks() > 0) {
-      ml.WaitWithSafepointCheck(thread);
-    }
+void Heap::WaitForSweeperTasks(Thread* thread) {
+  MonitorLocker ml(old_space_.tasks_lock());
+  while (old_space_.tasks() > 0) {
+    ml.WaitWithSafepointCheck(thread);
   }
 }
-#endif
 
 
 void Heap::UpdateGlobalMaxUsed() {
@@ -525,7 +531,12 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
   {
     VerifyObjectVisitor object_visitor(isolate(), allocated_set,
                                        mark_expectation);
-    this->VisitObjects(&object_visitor);
+    this->VisitObjectsNoImagePages(&object_visitor);
+  }
+  {
+    VerifyObjectVisitor object_visitor(isolate(), allocated_set,
+                                       kRequireMarked);
+    this->VisitObjectsImagePages(&object_visitor);
   }
 
   Isolate* vm_isolate = Dart::vm_isolate();
@@ -682,7 +693,7 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
   stats_.num_++;
   stats_.space_ = space;
   stats_.reason_ = reason;
-  stats_.before_.micros_ = OS::GetCurrentTimeMicros();
+  stats_.before_.micros_ = OS::GetCurrentMonotonicMicros();
   stats_.before_.new_ = new_space_.GetCurrentUsage();
   stats_.before_.old_ = old_space_.GetCurrentUsage();
   stats_.times_[0] = 0;
@@ -697,7 +708,7 @@ void Heap::RecordBeforeGC(Space space, GCReason reason) {
 
 
 void Heap::RecordAfterGC(Space space) {
-  stats_.after_.micros_ = OS::GetCurrentTimeMicros();
+  stats_.after_.micros_ = OS::GetCurrentMonotonicMicros();
   int64_t delta = stats_.after_.micros_ - stats_.before_.micros_;
   if (stats_.space_ == kNew) {
     new_space_.AddGCTime(delta);
@@ -750,7 +761,7 @@ void Heap::PrintStats() {
     "]\n",  // End with a comma to make it easier to import in spreadsheets.
     isolate()->main_port(), space_str, GCReasonToString(stats_.reason_),
     stats_.num_,
-    MicrosecondsToSeconds(stats_.before_.micros_ - isolate()->start_time()),
+    MicrosecondsToSeconds(isolate()->UptimeMicros()),
     MicrosecondsToMilliseconds(stats_.after_.micros_ -
                                     stats_.before_.micros_),
     RoundWordsToKB(stats_.before_.new_.used_in_words),

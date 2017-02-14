@@ -14,6 +14,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryMemberContributorTest);
+    defineReflectiveTests(LibraryMemberContributorTest_Driver);
   });
 }
 
@@ -60,7 +61,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     import "dart:math" as math;
     main() {math.^.}''');
     await computeSuggestions();
-    assertSuggestFunction('min', 'num');
+    assertSuggestFunction('min', 'T');
   }
 
   test_libraryPrefix_cascade3() async {
@@ -76,7 +77,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     import "dart:math" as math;
     main() {math.^.a}''');
     await computeSuggestions();
-    assertSuggestFunction('min', 'num');
+    assertSuggestFunction('min', 'T');
   }
 
   test_libraryPrefix_deferred() async {
@@ -268,4 +269,10 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     assertNoSuggestions();
   }
+}
+
+@reflectiveTest
+class LibraryMemberContributorTest_Driver extends LibraryMemberContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

@@ -17,8 +17,8 @@ import '../constants/values.dart'
         NullConstantValue,
         StringConstantValue,
         TypeConstantValue;
-import '../dart_types.dart' show DartType;
-import '../dart_types.dart' show InterfaceType;
+import '../elements/resolution_types.dart' show ResolutionDartType;
+import '../elements/resolution_types.dart' show ResolutionInterfaceType;
 import '../elements/elements.dart'
     show ClassElement, FieldElement, LibraryElement, VariableElement;
 import '../universe/use.dart' show StaticUse;
@@ -201,10 +201,13 @@ class LookupMapAnalysis {
   }
 
   /// Whether [constant] is an instance of a `LookupMap`.
-  bool isLookupMap(ConstantValue constant) =>
-      _isEnabled &&
-      constant is ConstructedConstantValue &&
-      constant.type.asRaw().element.isSubclassOf(typeLookupMapClass);
+  bool isLookupMap(ConstantValue constant) {
+    if (_isEnabled && constant is ConstructedConstantValue) {
+      ResolutionInterfaceType type = constant.type;
+      return type.element.isSubclassOf(typeLookupMapClass);
+    }
+    return false;
+  }
 
   /// Registers an instance of a lookup-map with the analysis.
   void registerLookupMapReference(ConstantValue lookupMap) {
@@ -246,13 +249,12 @@ class LookupMapAnalysis {
 
   /// If [key] is a type, cache it in [_typeConstants].
   _registerTypeKey(ConstantValue key) {
-    if (key is TypeConstantValue) {
-      ClassElement cls = key.representedType.element;
-      if (cls == null || !cls.isClass) {
-        // TODO(sigmund): report error?
-        return;
-      }
-      _typeConstants[cls] = key;
+    if (key is TypeConstantValue &&
+        key.representedType is ResolutionInterfaceType) {
+      ResolutionInterfaceType type = key.representedType;
+      _typeConstants[type.element] = key;
+    } else {
+      // TODO(sigmund): report error?
     }
   }
 
@@ -264,7 +266,7 @@ class LookupMapAnalysis {
   }
 
   /// Callback from the enqueuer, invoked when [type] is instantiated.
-  void registerInstantiatedType(InterfaceType type) {
+  void registerInstantiatedType(ResolutionInterfaceType type) {
     if (!_isEnabled || !_inCodegen) return;
     // TODO(sigmund): only add if .runtimeType is ever used
     _addClassUse(type.element);
@@ -274,10 +276,10 @@ class LookupMapAnalysis {
 
   /// Records generic type arguments in [type], in case they are retrieved and
   /// returned using a type-argument expression.
-  void _addGenerics(InterfaceType type) {
+  void _addGenerics(ResolutionInterfaceType type) {
     if (!type.isGeneric) return;
     for (var arg in type.typeArguments) {
-      if (arg is InterfaceType) {
+      if (arg is ResolutionInterfaceType) {
         _addClassUse(arg.element);
         // Note: this call was needed to generate correct code for
         // type_lookup_map/generic_type_test
@@ -431,7 +433,7 @@ class _LookupMapInfo {
   /// Restores [original] to contain all of the entries marked as possibly used.
   void _prepareForEmission() {
     ListConstantValue originalEntries = original.fields[analysis.entriesField];
-    DartType listType = originalEntries.type;
+    ResolutionInterfaceType listType = originalEntries.type;
     List<ConstantValue> keyValuePairs = <ConstantValue>[];
     usedEntries.forEach((key, value) {
       keyValuePairs.add(key);

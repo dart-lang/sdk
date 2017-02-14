@@ -129,16 +129,16 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'enabledJsInterop': backend.jsInteropAnalysis.enabledJsInterop,
     'jsInteropBoostrap': backend.jsInteropAnalysis.buildJsInteropBootstrap(),
     'isInterceptorClass': namer.operatorIs(backend.helpers.jsInterceptorClass),
-    'isObject': namer.operatorIs(compiler.coreClasses.objectClass),
+    'isObject': namer.operatorIs(compiler.commonElements.objectClass),
     'specProperty': js.string(namer.nativeSpecProperty),
     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
     'hasRetainedMetadata': backend.hasRetainedMetadata,
     'types': typesAccess,
-    'objectClassName':
-        js.quoteName(namer.runtimeTypeName(compiler.coreClasses.objectClass)),
+    'objectClassName': js.quoteName(
+        namer.runtimeTypeName(compiler.commonElements.objectClass as Entity)),
     'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
     'usesMangledNames': compiler.commonElements.mirrorsLibrary != null ||
-        compiler.hasFunctionApplySupport,
+        backend.hasFunctionApplySupport,
     'tearOffCode': buildTearOffCode(backend),
     'nativeInfoHandler': nativeInfoHandler,
     'operatorIsPrefix': js.string(namer.operatorIsPrefix),
@@ -499,6 +499,7 @@ function $setupProgramName(programData, typesOffset) {
           chain = targetPrototype.#deferredAction;
         }
         return function foo() {
+          if (!supportsDirectProtoAccess) return;
           var prototype = this;
           // Find the actual prototype that this handler is installed on.
           while (!prototype.hasOwnProperty(#deferredActionString)) {

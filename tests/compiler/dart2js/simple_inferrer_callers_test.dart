@@ -8,6 +8,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/inferrer/type_graph_inferrer.dart';
+import 'package:compiler/src/world.dart' show ClosedWorld, ClosedWorldRefiner;
 
 import 'compiler_helper.dart';
 
@@ -29,7 +30,8 @@ main() {
 // Create our own type inferrer to avoid clearing out the internal
 // data structures.
 class MyInferrer extends TypeGraphInferrer {
-  MyInferrer(compiler, commonMasks) : super(compiler, commonMasks);
+  MyInferrer(compiler, closedWorld, closedWorldRefiner)
+      : super(compiler, closedWorld, closedWorldRefiner);
   clear() {}
 }
 
@@ -37,11 +39,14 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri, analyzeOnly: true);
   asyncTest(() => compiler.run(uri).then((_) {
-        compiler.closeResolution();
+        ClosedWorldRefiner closedWorldRefiner = compiler.closeResolution();
+        ClosedWorld closedWorld =
+            compiler.resolutionWorldBuilder.closedWorldForTesting;
         var inferrer =
-            new MyInferrer(compiler, compiler.closedWorld.commonMasks);
+            new MyInferrer(compiler, closedWorld, closedWorldRefiner);
         compiler.globalInference.typesInferrerInternal = inferrer;
-        compiler.globalInference.runGlobalTypeInference(compiler.mainFunction);
+        compiler.globalInference.runGlobalTypeInference(
+            compiler.mainFunction, closedWorld, closedWorldRefiner);
         var mainElement = findElement(compiler, 'main');
         var classA = findElement(compiler, 'A');
         var fieldA = classA.lookupLocalMember('field');

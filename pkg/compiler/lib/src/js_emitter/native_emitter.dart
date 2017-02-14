@@ -2,38 +2,47 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.native_emitter;
+
+import '../common.dart';
+import '../compiler.dart' show Compiler;
+import '../elements/types.dart' show DartType, FunctionType;
+import '../elements/entities.dart';
+import '../js/js.dart' as jsAst;
+import '../js/js.dart' show js;
+import '../js_backend/backend_helpers.dart' show BackendHelpers;
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../universe/world_builder.dart' show CodegenWorldBuilder;
+
+import 'code_emitter_task.dart' show CodeEmitterTask;
+import 'model.dart';
 
 class NativeEmitter {
-  // TODO(floitsch): the native-emitter should not know about ClassBuilders.
-  final Map<Element, full_js_emitter.ClassBuilder> cachedBuilders;
-
   final CodeEmitterTask emitterTask;
 
   // Whether the application contains native classes.
   bool hasNativeClasses = false;
 
   // Caches the native subtypes of a native class.
-  Map<ClassElement, List<ClassElement>> subtypes;
+  Map<ClassEntity, List<ClassEntity>> subtypes =
+      <ClassEntity, List<ClassEntity>>{};
 
   // Caches the direct native subtypes of a native class.
-  Map<ClassElement, List<ClassElement>> directSubtypes;
+  Map<ClassEntity, List<ClassEntity>> directSubtypes =
+      <ClassEntity, List<ClassEntity>>{};
 
   // Caches the methods that have a native body.
-  Set<FunctionElement> nativeMethods;
+  Set<FunctionEntity> nativeMethods = new Set<FunctionEntity>();
 
-  NativeEmitter(CodeEmitterTask emitterTask)
-      : this.emitterTask = emitterTask,
-        subtypes = new Map<ClassElement, List<ClassElement>>(),
-        directSubtypes = new Map<ClassElement, List<ClassElement>>(),
-        nativeMethods = new Set<FunctionElement>(),
-        cachedBuilders = emitterTask.compiler.cacheStrategy.newMap();
+  NativeEmitter(CodeEmitterTask emitterTask) : this.emitterTask = emitterTask;
 
   Compiler get compiler => emitterTask.compiler;
 
   JavaScriptBackend get backend => compiler.backend;
 
   BackendHelpers get helpers => backend.helpers;
+
+  CodegenWorldBuilder get worldBuilder => compiler.codegenWorldBuilder;
 
   /**
    * Prepares native classes for emission. Returns the unneeded classes.
@@ -67,8 +76,8 @@ class NativeEmitter {
    */
   Set<Class> prepareNativeClasses(
       List<Class> classes,
-      Set<ClassElement> interceptorClassesNeededByConstants,
-      Set<ClassElement> classesModifiedByEmitRTISupport) {
+      Set<ClassEntity> interceptorClassesNeededByConstants,
+      Set<ClassEntity> classesModifiedByEmitRTISupport) {
     assert(classes.every((Class cls) => cls != null));
 
     hasNativeClasses = classes.isNotEmpty;
@@ -83,7 +92,7 @@ class NativeEmitter {
     Class jsInterceptorClass = null;
 
     void walk(Class cls) {
-      if (cls.element == compiler.coreClasses.objectClass) {
+      if (cls.element == compiler.commonElements.objectClass) {
         objectClass = cls;
         return;
       }
@@ -111,7 +120,7 @@ class NativeEmitter {
     neededClasses.add(objectClass);
 
     for (Class cls in preOrder.reversed) {
-      ClassElement classElement = cls.element;
+      ClassEntity classElement = cls.element;
       // Post-order traversal ensures we visit the subclasses before their
       // superclass.  This makes it easy to tell if a class is needed because a
       // subclass is needed.
@@ -132,7 +141,7 @@ class NativeEmitter {
       } else if (extensionPoints.containsKey(cls)) {
         needed = true;
       }
-      if (backend.isJsInterop(classElement)) {
+      if (backend.isJsInteropClass(classElement)) {
         needed = true; // TODO(jacobr): we don't need all interop classes.
       } else if (cls.isNative &&
           backend.nativeData.hasNativeTagsForcedNonLeaf(classElement)) {
@@ -154,7 +163,8 @@ class NativeEmitter {
 
     for (Class cls in classes) {
       if (!cls.isNative) continue;
-      if (backend.isJsInterop(cls.element)) continue;
+      ClassEntity element = cls.element;
+      if (backend.isJsInteropClass(element)) continue;
       List<String> nativeTags =
           backend.nativeData.getNativeTagsOfClass(cls.element);
 
@@ -253,23 +263,21 @@ class NativeEmitter {
   }
 
   void potentiallyConvertDartClosuresToJs(List<jsAst.Statement> statements,
-      FunctionElement member, List<jsAst.Parameter> stubParameters) {
-    FunctionSignature parameters = member.functionSignature;
-    Element converter = helpers.closureConverter;
+      FunctionEntity member, List<jsAst.Parameter> stubParameters) {
+    FunctionEntity converter = helpers.closureConverter;
     jsAst.Expression closureConverter =
         emitterTask.staticFunctionAccess(converter);
-    parameters.forEachParameter((ParameterElement parameter) {
-      String name = parameter.name;
+    worldBuilder.forEachParameter(member, (DartType type, String name) {
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {
         if (stubParameter.name == name) {
-          DartType type = parameter.type.unaliased;
-          if (type is FunctionType) {
+          type = type.unaliased;
+          if (type.isFunctionType) {
             // The parameter type is a function type either directly or through
             // typedef(s).
             FunctionType functionType = type;
-            int arity = functionType.computeArity();
+            int arity = functionType.parameterTypes.length;
             statements.add(js
                 .statement('# = #(#, $arity)', [name, closureConverter, name]));
             break;
@@ -280,7 +288,7 @@ class NativeEmitter {
   }
 
   List<jsAst.Statement> generateParameterStubStatements(
-      FunctionElement member,
+      FunctionEntity member,
       bool isInterceptedMethod,
       jsAst.Name invocationName,
       List<jsAst.Parameter> stubParameters,
@@ -316,7 +324,7 @@ class NativeEmitter {
       assert(invariant(member, member.isStatic));
       arguments = argumentsBuffer.sublist(
           0, indexOfLastOptionalArgumentInParameters + 1);
-      if (backend.isJsInterop(member)) {
+      if (backend.isJsInteropMethod(member)) {
         // fixedBackendPath is allowed to have the form foo.bar.baz for
         // interop. This template is uncached to avoid possibly running out of
         // memory when Dart2Js is run in server mode. In reality the risk of
@@ -324,7 +332,8 @@ class NativeEmitter {
         // and library that uses typed JavaScript interop will create only 1
         // unique template.
         receiver = js
-            .uncachedExpressionTemplate(backend.namer.fixedBackendPath(member))
+            .uncachedExpressionTemplate(
+                backend.namer.fixedBackendMethodPath(member))
             .instantiate([]);
       } else {
         receiver = js('this');
@@ -336,7 +345,7 @@ class NativeEmitter {
     return statements;
   }
 
-  bool isSupertypeOfNativeClass(ClassElement element) {
+  bool isSupertypeOfNativeClass(ClassEntity element) {
     if (backend.classesMixedIntoInterceptedClasses.contains(element)) {
       return true;
     }
@@ -344,15 +353,14 @@ class NativeEmitter {
     return subtypes[element] != null;
   }
 
-  bool requiresNativeIsCheck(Element element) {
+  bool requiresNativeIsCheck(ClassEntity element) {
     // TODO(sra): Remove this function.  It determines if a native type may
     // satisfy a check against [element], in which case an interceptor must be
     // used.  We should also use an interceptor if the check can't be satisfied
     // by a native class in case we get a native instance that tries to spoof
     // the type info.  i.e the criteria for whether or not to use an interceptor
     // is whether the receiver can be native, not the type of the test.
-    if (element == null || !element.isClass) return false;
-    ClassElement cls = element;
+    ClassEntity cls = element;
     if (backend.isNativeOrExtendsNative(cls)) return true;
     return isSupertypeOfNativeClass(element);
   }

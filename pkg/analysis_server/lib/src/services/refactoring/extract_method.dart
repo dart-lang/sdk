@@ -21,6 +21,7 @@ import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -81,7 +82,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   LibraryElement libraryElement;
   SourceRange selectionRange;
   CorrectionUtils utils;
-  Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+  Set<Source> librariesToImport = new Set<Source>();
 
   String returnType = '';
   String variableType;
@@ -411,7 +412,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     AstNode parent = _parentMember.parent;
     // top-level function
     if (parent is CompilationUnit) {
-      LibraryElement libraryElement = parent.element.library;
+      LibraryElement libraryElement =
+          resolutionMap.elementDeclaredByCompilationUnit(parent).library;
       return validateCreateFunction(searchEngine, libraryElement, name);
     }
     // method of class
@@ -857,6 +859,15 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @override
+  Object visitGenericFunctionType(GenericFunctionType node) {
+    super.visitGenericFunctionType(node);
+    if (_isFirstSelectedNode(node)) {
+      invalidSelection('Cannot extract a single type reference.');
+    }
+    return null;
+  }
+
+  @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     super.visitSimpleIdentifier(node);
     if (_isFirstSelectedNode(node)) {
@@ -1217,8 +1228,7 @@ class _ReturnTypeComputer extends RecursiveAstVisitor {
       if (returnType is InterfaceType && type is InterfaceType) {
         returnType = InterfaceType.getSmartLeastUpperBound(returnType, type);
       } else {
-        returnType = context.typeSystem
-            .getLeastUpperBound(context.typeProvider, returnType, type);
+        returnType = context.typeSystem.getLeastUpperBound(returnType, type);
       }
     }
   }

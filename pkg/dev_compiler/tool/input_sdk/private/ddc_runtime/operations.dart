@@ -14,7 +14,7 @@ class InvocationImpl extends Invocation {
   final bool isGetter;
   final bool isSetter;
 
-  InvocationImpl(String memberName, this.positionalArguments,
+  InvocationImpl(memberName, this.positionalArguments,
       {namedArguments,
       this.isMethod: false,
       this.isGetter: false,
@@ -29,22 +29,104 @@ class InvocationImpl extends Invocation {
   }
 }
 
+// Warning: dload, dput, and dsend assume they are never called on methods
+// implemented by the Object base class as those methods can always be
+// statically resolved.
 dload(obj, field) {
   var f = _canonicalMember(obj, field);
+
   _trackCall(obj);
   if (f != null) {
-    if (hasMethod(obj, f)) return bind(obj, f, JS('', 'void 0'));
-    return JS('', '#[#]', obj, f);
+    var type = getType(obj);
+
+    if (hasField(type, f) || hasGetter(type, f)) return JS('', '#[#]', obj, f);
+    if (hasMethod(type, f)) return bind(obj, f, JS('', 'void 0'));
+
+    // Always allow for JS interop objects.
+    if (isJsInterop(obj)) return JS('', '#[#]', obj, f);
   }
   return noSuchMethod(
       obj, new InvocationImpl(field, JS('', '[]'), isGetter: true));
+}
+
+// Version of dload that matches legacy mirrors behavior for JS types.
+dloadMirror(obj, field) {
+  var f = _canonicalMember(obj, field);
+
+  _trackCall(obj);
+  if (f != null) {
+    var type = getType(obj);
+
+    if (hasField(type, f) || hasGetter(type, f)) return JS('', '#[#]', obj, f);
+    if (hasMethod(type, f)) return bind(obj, f, JS('', 'void 0'));
+
+    // Do not support calls on JS interop objects to match Dart2JS behavior.
+  }
+  return noSuchMethod(
+      obj, new InvocationImpl(field, JS('', '[]'), isGetter: true));
+}
+
+_stripGenericArguments(type) {
+  var genericClass = getGenericClass(type);
+  if (genericClass != null) return JS('', '#()', genericClass);
+  return type;
+}
+
+// Version of dput that matches legacy Dart 1 type check rules and mirrors
+// behavior for JS types.
+// TODO(jacobr): remove the type checking rules workaround when mirrors based
+// PageLoader code can generate the correct reified generic types.
+dputMirror(obj, field, value) {
+  var f = _canonicalMember(obj, field);
+  _trackCall(obj);
+  if (f != null) {
+    var objType = getType(obj);
+    var setterType = getSetterType(objType, f);
+    if (JS('bool', '# != void 0', setterType)) {
+      return JS(
+          '',
+          '#[#] = #',
+          obj,
+          f,
+          check(
+              value, _stripGenericArguments(JS('', '#.args[0]', setterType))));
+    } else {
+      var fieldType = getFieldType(objType, f);
+      // TODO(jacobr): add metadata tracking which fields are final and throw
+      // if a setter is called on a final field.
+      if (JS('bool', '# != void 0', fieldType)) {
+        return JS('', '#[#] = #', obj, f,
+            check(value, _stripGenericArguments(fieldType)));
+      }
+
+      // Do not support calls on JS interop objects to match Dart2JS behavior.
+    }
+  }
+  return noSuchMethod(
+      obj, new InvocationImpl(field, JS('', '[#]', value), isSetter: true));
 }
 
 dput(obj, field, value) {
   var f = _canonicalMember(obj, field);
   _trackCall(obj);
   if (f != null) {
-    return JS('', '#[#] = #', obj, f, value);
+    var objType = getType(obj);
+    var setterType = getSetterType(objType, f);
+    if (JS('bool', '# != void 0', setterType)) {
+      return JS('', '#[#] = #', obj, f,
+          check(value, JS('', '#.args[0]', setterType)));
+    } else {
+      var fieldType = getFieldType(objType, f);
+      // TODO(jacobr): add metadata tracking which fields are final and throw
+      // if a setter is called on a final field.
+      if (JS('bool', '# != void 0', fieldType)) {
+        return JS('', '#[#] = #', obj, f, check(value, fieldType));
+      }
+      // Always allow for JS interop objects.
+      if (isJsInterop(obj)) {
+        return JS('', '#[#] = #', obj, f, value);
+      }
+    }
   }
   return noSuchMethod(
       obj, new InvocationImpl(field, JS('', '[#]', value), isSetter: true));
@@ -58,7 +140,7 @@ _checkApply(type, actuals) => JS(
   if ($actuals.length < $type.args.length) return false;
   let index = 0;
   for(let i = 0; i < $type.args.length; ++i) {
-    if (!$instanceOfOrNull($actuals[i], $type.args[i])) return false;
+    $check($actuals[i], $type.args[i]);
     ++index;
   }
   if ($actuals.length == $type.args.length) return true;
@@ -66,7 +148,7 @@ _checkApply(type, actuals) => JS(
   if ($type.optionals.length > 0) {
     if (extras > $type.optionals.length) return false;
     for(let i = 0, j=index; i < extras; ++i, ++j) {
-      if (!$instanceOfOrNull($actuals[j], $type.optionals[i])) return false;
+      $check($actuals[j], $type.optionals[i]);
     }
     return true;
   }
@@ -84,13 +166,47 @@ _checkApply(type, actuals) => JS(
     if (!($hasOwnProperty.call($type.named, name))) {
       return false;
     }
-    if (!$instanceOfOrNull(opts[name], $type.named[name])) return false;
+    $check(opts[name], $type.named[name]);
   }
   return true;
 })()''');
 
-Symbol _dartSymbol(name) =>
-    JS('', '#(#.new(#.toString()))', const_, Symbol, name);
+_toSymbolName(symbol) => JS(
+    '',
+    '''(() => {
+        let str = $symbol.toString();
+        // Strip leading 'Symbol(' and trailing ')'
+        return str.substring(7, str.length-1);
+    })()''');
+
+_toDisplayName(name) => JS(
+    '',
+    '''(() => {
+      // Names starting with _ are escaped names used to disambiguate Dart and
+      // JS names.
+      if ($name[0] === '_') {
+        // Inverse of 
+        switch($name) {
+          case '_get':
+            return '[]';
+          case '_set':
+            return '[]=';
+          case '_negate':
+            return 'unary-';
+          case '_constructor':
+          case '_prototype':
+            return $name.substring(1);
+        }
+      }
+      return $name;
+  })()''');
+
+Symbol _dartSymbol(name) {
+  return (JS('bool', 'typeof # === "symbol"', name))
+      ? JS('', '#(new #.es6(#, #))', const_, _internal.Symbol,
+          _toSymbolName(name), name)
+      : JS('', '#(#.new(#))', const_, Symbol, _toDisplayName(name));
+}
 
 /// Extracts the named argument array from a list of arguments, and returns it.
 // TODO(jmesserly): we need to handle named arguments better.
@@ -121,7 +237,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS(
     // We're not a function (and hence not a method either)
     // Grab the `call` method if it's not a function.
     if ($f != null) {
-      $ftype = $getMethodType($f, 'call');
+      $ftype = $getMethodType($getType($f), 'call');
       $f = $f.call;
     }
     if (!($f instanceof Function)) {
@@ -303,7 +419,9 @@ _callMethod(obj, name, typeArgs, args, displayName) {
         obj, new InvocationImpl(displayName, args, isMethod: true));
   }
   var f = obj != null ? JS('', '#[#]', obj, symbol) : null;
-  var ftype = getMethodType(obj, symbol);
+  var type = getType(obj);
+  var ftype = getMethodType(type, symbol);
+  // No such method if dart object and ftype is missing.
   return _checkAndCall(f, ftype, obj, typeArgs, args, displayName);
 }
 
@@ -312,7 +430,8 @@ dsend(obj, method, @rest args) => _callMethod(obj, method, null, args, method);
 dgsend(obj, typeArgs, method, @rest args) =>
     _callMethod(obj, method, typeArgs, args, method);
 
-dindex(obj, index) => _callMethod(obj, '_get', null, JS('', '[#]', index), '[]');
+dindex(obj, index) =>
+    _callMethod(obj, '_get', null, JS('', '[#]', index), '[]');
 
 dsetindex(obj, index, value) =>
     _callMethod(obj, '_set', null, JS('', '[#, #]', index, value), '[]=');
@@ -394,6 +513,9 @@ instanceOfOrNull(obj, type) => JS(
 instanceOf(obj, type) => JS(
     '',
     '''(() => {
+  if ($obj == null) {
+    return $type == $Null || $_isTop($type);
+  }
   let result = $strongInstanceOf($obj, $type);
   if (result !== null) return result;
   let actual = $getReifiedType($obj);
@@ -546,31 +668,26 @@ map(values, [K, V]) => JS(
 })()''');
 
 @JSExportName('assert')
-assert_(condition) => JS(
+assert_(condition, [message]) => JS(
     '',
     '''(() => {
-  if (!$condition) $throwAssertionError();
+  if (!$condition) $throwAssertionError(message);
 })()''');
 
-final _stack = JS('', 'new WeakMap()');
+var _stack = null;
 @JSExportName('throw')
 throw_(obj) => JS(
     '',
     '''(() => {
-  if ($obj != null && (typeof $obj == 'object' || typeof $obj == 'function')) {
-    // TODO(jmesserly): couldn't we store the most recent stack in a single
-    // variable? There should only be one active stack trace. That would
-    // allow it to work for things like strings and numbers.
-    $_stack.set($obj, new Error());
-  }
-  throw $obj;
+    $_stack = new Error();
+    throw $obj;
 })()''');
 
 getError(exception) => JS(
     '',
     '''(() => {
-  var stack = $_stack.get($exception);
-  return stack !== void 0 ? stack : $exception;
+  var stack = $_stack;
+  return stack !== null ? stack : $exception;
 })()''');
 
 // This is a utility function: it is only intended to be called from dev
@@ -765,7 +882,7 @@ String _toString(obj) {
   }
   // TODO(jmesserly): restore this faster path once ES Symbol is treated as
   // an extension type (and thus hits the above code path).
-  // See https://github.com/dart-lang/dev_compiler/issues/578.
+  // See https://github.com/dart-lang/sdk/issues/28323
   // return JS('', '"" + #', obj);
   return JS('String', '#.toString()', obj);
 }

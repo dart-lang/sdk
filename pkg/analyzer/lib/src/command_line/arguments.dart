@@ -18,8 +18,8 @@ const String analysisOptionsFileOption = 'options';
 const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
 const String enableStrictCallChecksFlag = 'enable-strict-call-checks';
-const String enableSuperInMixinFlag = 'supermixin';
-const String ignoreUnrecognizedFlagsFlag = 'ignore_unrecognized_flags';
+const String enableSuperMixinFlag = 'supermixin';
+const String ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
 const String noImplicitCastsFlag = 'no-implicit-casts';
 const String noImplicitDynamicFlag = 'no-implicit-dynamic';
 const String packageRootOption = 'package-root';
@@ -29,11 +29,34 @@ const String sdkSummaryPathOption = 'dart-sdk-summary';
 const String strongModeFlag = 'strong';
 
 /**
+ * Update [options] with the value of each analysis option command line flag.
+ */
+void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args) {
+  if (args.wasParsed(enableStrictCallChecksFlag)) {
+    options.enableStrictCallChecks = args[enableStrictCallChecksFlag];
+  }
+  if (args.wasParsed(enableSuperMixinFlag)) {
+    options.enableSuperMixins = args[enableSuperMixinFlag];
+  }
+  if (args.wasParsed(noImplicitCastsFlag)) {
+    options.implicitCasts = !args[noImplicitCastsFlag];
+  }
+  if (args.wasParsed(noImplicitDynamicFlag)) {
+    options.implicitDynamic = !args[noImplicitDynamicFlag];
+  }
+  if (args.wasParsed(strongModeFlag)) {
+    options.strongMode = args[strongModeFlag];
+  }
+}
+
+/**
  * Use the given [resourceProvider], [contentCache] and command-line [args] to
  * create a context builder.
  */
-ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
+ContextBuilderOptions createContextBuilderOptions(ArgResults args,
+    {bool strongMode, bool trackCacheDependencies}) {
   ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+  builderOptions.argResults = args;
   //
   // File locations.
   //
@@ -46,11 +69,13 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
   // Analysis options.
   //
   AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
-  defaultOptions.enableStrictCallChecks = args[enableStrictCallChecksFlag];
-  defaultOptions.enableSuperMixins = args[enableSuperInMixinFlag];
-  defaultOptions.implicitCasts = !args[noImplicitCastsFlag];
-  defaultOptions.implicitDynamic = !args[noImplicitDynamicFlag];
-  defaultOptions.strongMode = args[strongModeFlag];
+  applyAnalysisOptionFlags(defaultOptions, args);
+  if (strongMode != null) {
+    defaultOptions.strongMode = strongMode;
+  }
+  if (trackCacheDependencies != null) {
+    defaultOptions.trackCacheDependencies = trackCacheDependencies;
+  }
   builderOptions.defaultOptions = defaultOptions;
   //
   // Declared variables.
@@ -103,29 +128,37 @@ DartSdkManager createDartSdkManager(
  * Add the standard flags and options to the given [parser]. The standard flags
  * are those that are typically used to control the way in which the code is
  * analyzed.
+ *
+ * TODO(danrubel) Update DDC to support all the options defined in this method
+ * then remove the [ddc] named argument from this method.
  */
-void defineAnalysisArguments(ArgParser parser) {
+void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
   parser.addOption(defineVariableOption,
       abbr: 'D',
       allowMultiple: true,
       help: 'Define environment variables. For example, "-Dfoo=bar" defines an '
           'environment variable named "foo" whose value is "bar".');
+
   parser.addOption(sdkPathOption, help: 'The path to the Dart SDK.');
   parser.addOption(sdkSummaryPathOption,
-      help: 'The path to the Dart SDK summary file.', hide: true);
+      help: 'The path to the Dart SDK summary file.', hide: hide);
+
   parser.addOption(analysisOptionsFileOption,
       help: 'Path to an analysis options file.');
+
+  parser.addOption(packageRootOption,
+      abbr: 'p',
+      help: 'The path to a package root directory (deprecated). '
+          'This option cannot be used with --packages.');
   parser.addOption(packagesOption,
       help: 'The path to the package resolution configuration file, which '
           'supplies a mapping of package names to paths. This option cannot be '
-          'used with --package-root.');
-  parser.addOption(packageRootOption,
-      abbr: 'p',
-      help: 'The path to a package root directory (deprecated). This option '
-          'cannot be used with --packages.');
+          'used with --package-root.',
+      hide: ddc);
 
   parser.addFlag(strongModeFlag,
-      help: 'Enable strong static checks (https://goo.gl/DqcBsw)');
+      help: 'Enable strong static checks (https://goo.gl/DqcBsw)',
+      defaultsTo: ddc);
   parser.addFlag(noImplicitCastsFlag,
       negatable: false,
       help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40)');
@@ -139,29 +172,64 @@ void defineAnalysisArguments(ArgParser parser) {
 //      help: 'Enable support for null-aware operators (DEP 9).',
 //      defaultsTo: false,
 //      negatable: false,
-//      hide: true);
+//      hide: hide || ddc);
   parser.addFlag(enableStrictCallChecksFlag,
       help: 'Fix issue 21938.',
       defaultsTo: false,
       negatable: false,
-      hide: true);
+      hide: hide);
   parser.addFlag(enableInitializingFormalAccessFlag,
       help:
           'Enable support for allowing access to field formal parameters in a '
           'constructor\'s initializer list',
       defaultsTo: false,
       negatable: false,
-      hide: true);
-  parser.addFlag(enableSuperInMixinFlag,
+      hide: hide || ddc);
+  parser.addFlag(enableSuperMixinFlag,
       help: 'Relax restrictions on mixins (DEP 34).',
       defaultsTo: false,
       negatable: false,
-      hide: true);
+      hide: hide);
 //  parser.addFlag('enable_type_checks',
 //      help: 'Check types in constant evaluation.',
 //      defaultsTo: false,
 //      negatable: false,
-//      hide: true);
+//      hide: hide || ddc);
+}
+
+/**
+ * Find arguments of the form -Dkey=value
+ * or argument pairs of the form -Dkey value
+ * and place those key/value pairs into [definedVariables].
+ * Return a list of arguments with the key/value arguments removed.
+ */
+List<String> extractDefinedVariables(
+    List<String> args, Map<String, String> definedVariables) {
+  //TODO(danrubel) extracting defined variables is already handled by the
+  // createContextBuilderOptions method.
+  // Long term we should switch to using that instead.
+  int count = args.length;
+  List<String> remainingArgs = <String>[];
+  for (int i = 0; i < count; i++) {
+    String arg = args[i];
+    if (arg == '--') {
+      while (i < count) {
+        remainingArgs.add(args[i++]);
+      }
+    } else if (arg.startsWith("-D")) {
+      int end = arg.indexOf('=');
+      if (end > 2) {
+        definedVariables[arg.substring(2, end)] = arg.substring(end + 1);
+      } else if (i + 1 < count) {
+        definedVariables[arg.substring(2)] = args[++i];
+      } else {
+        remainingArgs.add(arg);
+      }
+    } else {
+      remainingArgs.add(arg);
+    }
+  }
+  return remainingArgs;
 }
 
 /**
@@ -175,7 +243,7 @@ void defineAnalysisArguments(ArgParser parser) {
  * - it starts with something other than '--' or '-'.
  *
  * This function allows command-line tools to implement the
- * '--ignore_unrecognized_flags' option.
+ * '--ignore-unrecognized-flags' option.
  */
 List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   Set<String> knownOptions = new HashSet<String>();
@@ -227,10 +295,13 @@ ArgResults parse(
 }
 
 /**
- * Preprocess the given list of command line [args] by checking whether the real
- * arguments are in a file (Bazel worker mode).
+ * Preprocess the given list of command line [args].
+ * If the final arg is `@file_path` (Bazel worker mode),
+ * then read in all the lines of that file and add those as args.
+ * Always returns a new modifiable list.
  */
 List<String> preprocessArgs(ResourceProvider provider, List<String> args) {
+  args = new List.from(args);
   if (args.isEmpty) {
     return args;
   }
@@ -238,16 +309,15 @@ List<String> preprocessArgs(ResourceProvider provider, List<String> args) {
   if (lastArg.startsWith('@')) {
     File argsFile = provider.getFile(lastArg.substring(1));
     try {
-      List<String> newArgs = args.sublist(0, args.length - 1).toList();
-      newArgs.addAll(argsFile
+      args.removeLast();
+      args.addAll(argsFile
           .readAsStringSync()
           .replaceAll('\r\n', '\n')
           .replaceAll('\r', '\n')
           .split('\n')
           .where((String line) => line.isNotEmpty));
-      return newArgs;
-    } on FileSystemException {
-      // Don't modify args if the file does not exist or cannot be read.
+    } on FileSystemException catch (e) {
+      throw new Exception('Failed to read file specified by $lastArg : $e');
     }
   }
   return args;

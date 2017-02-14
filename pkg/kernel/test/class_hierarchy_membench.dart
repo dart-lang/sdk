@@ -10,7 +10,8 @@ import 'dart:io';
 
 ArgParser argParser = new ArgParser()
   ..addFlag('basic', help: 'Measure the basic implementation', negatable: false)
-  ..addOption('count', abbr: 'c',
+  ..addOption('count',
+      abbr: 'c',
       help: 'Build N copies of the class hierarchy',
       defaultsTo: '300');
 

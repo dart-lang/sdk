@@ -99,8 +99,8 @@ class Uint31PairMap<T> {
   Iterable<T> get values => _table.values;
 
   static int _bigintHash(int bigint) {
-  	int x = 0x3fffffff & (bigint >> 31);
-  	int y = 0x3fffffff & bigint;
+    int x = 0x3fffffff & (bigint >> 31);
+    int y = 0x3fffffff & bigint;
     int hash = 0x3fffffff & (x * 1367);
     hash = 0x3fffffff & (y * 31 + hash ^ y);
     hash = 0x3fffffff & ((x ^ y) * 31 + hash ^ y);

@@ -154,35 +154,25 @@ class SourceInformationBuilder {
 
 /// A location in a source file.
 abstract class SourceLocation {
-  final SourceFile _sourceFile;
-  int _line;
-
-  SourceLocation(this._sourceFile) {
-    assert(invariant(new SourceSpan(sourceUri, 0, 0), isValid,
-        message: "Invalid source location in ${sourceUri}: "
-            "offset=$offset, length=${_sourceFile.length}."));
-  }
+  const SourceLocation();
 
   /// The absolute URI of the source file of this source location.
-  Uri get sourceUri => _sourceFile.uri;
+  Uri get sourceUri;
 
   /// The character offset of the this source location into the source file.
   int get offset;
 
   /// The 0-based line number of the [offset].
-  int get line {
-    if (_line == null) _line = _sourceFile.getLine(offset);
-    return _line;
-  }
+  int get line;
 
   /// The 0-base column number of the [offset] with its line.
-  int get column => _sourceFile.getColumn(line, offset);
+  int get column;
 
   /// The name associated with this source location, if any.
   String get sourceName;
 
   /// `true` if the offset within the length of the source file.
-  bool get isValid => offset < _sourceFile.length;
+  bool get isValid;
 
   int get hashCode {
     return sourceUri.hashCode * 17 +
@@ -209,7 +199,50 @@ abstract class SourceLocation {
   }
 }
 
-class OffsetSourceLocation extends SourceLocation {
+/// A location in a source file.
+abstract class AbstractSourceLocation extends SourceLocation {
+  final SourceFile _sourceFile;
+  int _line;
+
+  AbstractSourceLocation(this._sourceFile) {
+    assert(invariant(new SourceSpan(sourceUri, 0, 0), isValid,
+        message: "Invalid source location in ${sourceUri}: "
+            "offset=$offset, length=${_sourceFile.length}."));
+  }
+
+  /// The absolute URI of the source file of this source location.
+  Uri get sourceUri => _sourceFile.uri;
+
+  /// The character offset of the this source location into the source file.
+  int get offset;
+
+  /// The 0-based line number of the [offset].
+  int get line {
+    if (_line == null) _line = _sourceFile.getLine(offset);
+    return _line;
+  }
+
+  /// The 0-base column number of the [offset] with its line.
+  int get column => _sourceFile.getColumn(line, offset);
+
+  /// The name associated with this source location, if any.
+  String get sourceName;
+
+  /// `true` if the offset within the length of the source file.
+  bool get isValid => offset < _sourceFile.length;
+
+  String get shortText {
+    // Use 1-based line/column info to match usual dart tool output.
+    return '${sourceUri.pathSegments.last}:[${line + 1},${column + 1}]';
+  }
+
+  String toString() {
+    // Use 1-based line/column info to match usual dart tool output.
+    return '${sourceUri}:[${line + 1},${column + 1}]';
+  }
+}
+
+class OffsetSourceLocation extends AbstractSourceLocation {
   final int offset;
   final String sourceName;
 
@@ -281,4 +314,30 @@ SourceFile computeSourceFile(ResolvedAst resolvedAst) {
     }
   }
   return sourceFile;
+}
+
+class NoSourceLocationMarker extends SourceLocation {
+  const NoSourceLocationMarker();
+
+  @override
+  Uri get sourceUri => null;
+
+  @override
+  bool get isValid => true;
+
+  @override
+  String get sourceName => null;
+
+  @override
+  int get column => null;
+
+  @override
+  int get line => null;
+
+  @override
+  int get offset => null;
+
+  String get shortName => '<no-location>';
+
+  String toString() => '<no-location>';
 }

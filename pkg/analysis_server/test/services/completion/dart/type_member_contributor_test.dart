@@ -17,6 +17,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeMemberContributorTest);
+    defineReflectiveTests(TypeMemberContributorTest_Driver);
   });
 }
 
@@ -4156,4 +4157,10 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('x');
     assertNotSuggested('e');
   }
+}
+
+@reflectiveTest
+class TypeMemberContributorTest_Driver extends TypeMemberContributorTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

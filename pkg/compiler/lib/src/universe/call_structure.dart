@@ -6,8 +6,7 @@ library dart2js.call_structure;
 
 import '../common.dart';
 import '../common/names.dart' show Names;
-import '../elements/elements.dart';
-import '../tree/tree.dart';
+import '../elements/types.dart' show FunctionType;
 import '../util/util.dart';
 import 'selector.dart' show Selector;
 
@@ -37,17 +36,6 @@ class CallStructure {
       return new CallStructure.unnamed(argumentCount);
     }
     return new NamedCallStructure(argumentCount, namedArguments);
-  }
-
-  /// Creates the [CallStructure] corresponding to calling [signature] as
-  /// declared, that is, all named arguments are in the order of declaration.
-  factory CallStructure.fromSignature(FunctionSignature signature) {
-    List<String> namedParameters;
-    if (signature.optionalParametersAreNamed) {
-      namedParameters =
-          signature.optionalParameters.map((e) => e.name).toList();
-    }
-    return new CallStructure(signature.parameterCount, namedParameters);
   }
 
   /// `true` if this call has named arguments.
@@ -87,159 +75,42 @@ class CallStructure {
     return match(other);
   }
 
-  bool signatureApplies(FunctionSignature parameters) {
-    if (argumentCount > parameters.parameterCount) return false;
-    int requiredParameterCount = parameters.requiredParameterCount;
-    int optionalParameterCount = parameters.optionalParameterCount;
+  bool signatureApplies(FunctionType type) {
+    int requiredParameterCount = type.parameterTypes.length;
+    int optionalParameterCount =
+        type.optionalParameterTypes.length + type.namedParameters.length;
+    int parameterCount = requiredParameterCount + optionalParameterCount;
+    if (argumentCount > parameterCount) return false;
     if (positionalArgumentCount < requiredParameterCount) return false;
 
-    if (!parameters.optionalParametersAreNamed) {
+    if (type.namedParameters.isEmpty) {
       // We have already checked that the number of arguments are
       // not greater than the number of parameters. Therefore the
       // number of positional arguments are not greater than the
       // number of parameters.
-      assert(positionalArgumentCount <= parameters.parameterCount);
+      assert(positionalArgumentCount <= parameterCount);
       return namedArguments.isEmpty;
     } else {
       if (positionalArgumentCount > requiredParameterCount) return false;
       assert(positionalArgumentCount == requiredParameterCount);
       if (namedArgumentCount > optionalParameterCount) return false;
-      Set<String> nameSet = new Set<String>();
-      parameters.optionalParameters.forEach((Element element) {
-        nameSet.add(element.name);
-      });
-      for (String name in namedArguments) {
-        if (!nameSet.contains(name)) return false;
-        // TODO(5213): By removing from the set we are checking
-        // that we are not passing the name twice. We should have this
-        // check in the resolver also.
-        nameSet.remove(name);
+
+      int nameIndex = 0;
+      List<String> namedParameters = type.namedParameters;
+      for (String name in getOrderedNamedArguments()) {
+        bool found = false;
+        // Note: we start at the existing index because arguments are sorted.
+        while (nameIndex < namedParameters.length) {
+          if (name == namedParameters[nameIndex]) {
+            found = true;
+            break;
+          }
+          nameIndex++;
+        }
+        if (!found) return false;
       }
       return true;
     }
-  }
-
-  /**
-   * Returns a `List` with the evaluated arguments in the normalized order.
-   *
-   * [compileDefaultValue] is a function that returns a compiled constant
-   * of an optional argument that is not in [compiledArguments].
-   *
-   * Precondition: `this.applies(element, world)`.
-   *
-   * Invariant: [element] must be the implementation element.
-   */
-  /*<T>*/ List/*<T>*/ makeArgumentsList(
-      Link<Node> arguments,
-      FunctionElement element,
-      /*T*/ compileArgument(Node argument),
-      /*T*/ compileDefaultValue(ParameterElement element)) {
-    assert(invariant(element, element.isImplementation));
-    List/*<T>*/ result = new List();
-
-    FunctionSignature parameters = element.functionSignature;
-    parameters.forEachRequiredParameter((ParameterElement element) {
-      result.add(compileArgument(arguments.head));
-      arguments = arguments.tail;
-    });
-
-    if (!parameters.optionalParametersAreNamed) {
-      parameters.forEachOptionalParameter((ParameterElement element) {
-        if (!arguments.isEmpty) {
-          result.add(compileArgument(arguments.head));
-          arguments = arguments.tail;
-        } else {
-          result.add(compileDefaultValue(element));
-        }
-      });
-    } else {
-      // Visit named arguments and add them into a temporary list.
-      List compiledNamedArguments = [];
-      for (; !arguments.isEmpty; arguments = arguments.tail) {
-        NamedArgument namedArgument = arguments.head;
-        compiledNamedArguments.add(compileArgument(namedArgument.expression));
-      }
-      // Iterate over the optional parameters of the signature, and try to
-      // find them in [compiledNamedArguments]. If found, we use the
-      // value in the temporary list, otherwise the default value.
-      parameters.orderedOptionalParameters.forEach((ParameterElement element) {
-        int foundIndex = namedArguments.indexOf(element.name);
-        if (foundIndex != -1) {
-          result.add(compiledNamedArguments[foundIndex]);
-        } else {
-          result.add(compileDefaultValue(element));
-        }
-      });
-    }
-    return result;
-  }
-
-  /**
-   * Fills [list] with the arguments in the order expected by
-   * [callee], and where [caller] is a synthesized element
-   *
-   * [compileArgument] is a function that returns a compiled version
-   * of a parameter of [callee].
-   *
-   * [compileConstant] is a function that returns a compiled constant
-   * of an optional argument that is not in the parameters of [callee].
-   *
-   * Returns [:true:] if the signature of the [caller] matches the
-   * signature of the [callee], [:false:] otherwise.
-   */
-  static/*<T>*/ bool addForwardingElementArgumentsToList(
-      ConstructorElement caller,
-      List/*<T>*/ list,
-      ConstructorElement callee,
-      /*T*/ compileArgument(ParameterElement element),
-      /*T*/ compileConstant(ParameterElement element)) {
-    assert(invariant(caller, !callee.isMalformed,
-        message: "Cannot compute arguments to malformed constructor: "
-            "$caller calling $callee."));
-
-    FunctionSignature signature = caller.functionSignature;
-    Map<Node, ParameterElement> mapping = <Node, ParameterElement>{};
-
-    // TODO(ngeoffray): This is a hack that fakes up AST nodes, so
-    // that we can call [addArgumentsToList].
-    Link<Node> computeCallNodesFromParameters() {
-      LinkBuilder<Node> builder = new LinkBuilder<Node>();
-      signature.forEachRequiredParameter((ParameterElement element) {
-        Node node = element.node;
-        mapping[node] = element;
-        builder.addLast(node);
-      });
-      if (signature.optionalParametersAreNamed) {
-        signature.forEachOptionalParameter((ParameterElement element) {
-          mapping[element.initializer] = element;
-          builder.addLast(new NamedArgument(null, null, element.initializer));
-        });
-      } else {
-        signature.forEachOptionalParameter((ParameterElement element) {
-          Node node = element.node;
-          mapping[node] = element;
-          builder.addLast(node);
-        });
-      }
-      return builder.toLink();
-    }
-
-    /*T*/ internalCompileArgument(Node node) {
-      return compileArgument(mapping[node]);
-    }
-
-    Link<Node> nodes = computeCallNodesFromParameters();
-
-    // Synthesize a structure for the call.
-    // TODO(ngeoffray): Should the resolver do it instead?
-    CallStructure callStructure = new CallStructure.fromSignature(signature);
-    if (!callStructure.signatureApplies(signature)) {
-      return false;
-    }
-    list.addAll(callStructure.makeArgumentsList(
-        nodes, callee, internalCompileArgument, compileConstant));
-
-    return true;
   }
 
   static bool sameNames(List<String> first, List<String> second) {

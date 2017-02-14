@@ -177,7 +177,7 @@ class BinaryBuilder {
           'Magic number was: ${magic.toRadixString(16)}');
     }
     readStringTable();
-    Map<String, List<int>> uriToLineStarts = readUriToLineStarts();
+    Map<String, Source> uriToSource = readUriToSource();
     importTable.length = readUInt();
     for (int i = 0; i < importTable.length; ++i) {
       importTable[i] = new Library(null);
@@ -187,15 +187,17 @@ class BinaryBuilder {
       readLibrary();
     }
     var mainMethod = readMemberReference(allowNull: true);
-    return new Program(importTable, uriToLineStarts)..mainMethod = mainMethod;
+    return new Program(importTable, uriToSource)
+      ..mainMethod = mainMethod;
   }
 
-  Map<String, List<int>> readUriToLineStarts() {
+  Map<String, Source> readUriToSource() {
     readSourceUriTable();
     int length = _sourceUriTable.length;
-    Map<String, List<int>> uriToLineStarts = {};
+    Map<String, Source> uriToLineStarts = <String, Source>{};
     for (int i = 0; i < length; ++i) {
       String uri = _sourceUriTable[i];
+      String sourceCode = readStringEntry();
       int lineCount = readUInt();
       List<int> lineStarts = new List<int>(lineCount);
       int previousLineStart = 0;
@@ -204,7 +206,7 @@ class BinaryBuilder {
         lineStarts[j] = lineStart;
         previousLineStart = lineStart;
       }
-      uriToLineStarts[uri] = lineStarts;
+      uriToLineStarts[uri] = new Source(lineStarts, sourceCode);
     }
     return uriToLineStarts;
   }
@@ -319,6 +321,7 @@ class BinaryBuilder {
   }
 
   void readNormalClass(Class node) {
+    node.fileOffset = readOffset();
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
     node.level = _currentLibrary.isExternal
@@ -345,6 +348,7 @@ class BinaryBuilder {
   }
 
   void readMixinClass(Class node) {
+    node.fileOffset = readOffset();
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
     node.level = _currentLibrary.isExternal
@@ -382,6 +386,7 @@ class BinaryBuilder {
     // consumed from the input.
     assert(tag == Tag.Field);
     node.fileOffset = readOffset();
+    node.fileEndOffset = readOffset();
     node.flags = readByte();
     node.name = readName();
     node.fileUri = readUriReference();
@@ -397,6 +402,8 @@ class BinaryBuilder {
 
   void readConstructor(Constructor node, int tag) {
     assert(tag == Tag.Constructor);
+    node.fileOffset = readOffset();
+    node.fileEndOffset = readOffset();
     node.flags = readByte();
     node.name = readName();
     node.annotations = readAnnotationList(node);
@@ -412,6 +419,8 @@ class BinaryBuilder {
 
   void readProcedure(Procedure node, int tag) {
     assert(tag == Tag.Procedure);
+    node.fileOffset = readOffset();
+    node.fileEndOffset = readOffset();
     int kindIndex = readByte();
     node.kind = ProcedureKind.values[kindIndex];
     node.flags = readByte();
@@ -449,7 +458,10 @@ class BinaryBuilder {
   }
 
   FunctionNode readFunctionNode() {
+    int offset = readOffset();
+    int endOffset = readOffset();
     AsyncMarker asyncMarker = AsyncMarker.values[readByte()];
+    bool debuggable = readByte() == 1 ? true : false;
     int typeParameterStackHeight = typeParameterStack.length;
     var typeParameters = readAndPushTypeParameterList();
     var requiredParameterCount = readUInt();
@@ -471,7 +483,10 @@ class BinaryBuilder {
         namedParameters: named,
         returnType: returnType,
         inferredReturnValue: inferredReturnValue,
-        asyncMarker: asyncMarker);
+        asyncMarker: asyncMarker)
+      ..fileOffset = offset
+      ..fileEndOffset = endOffset
+      ..debuggable = debuggable;
   }
 
   void pushVariableDeclaration(VariableDeclaration variable) {
@@ -518,15 +533,22 @@ class BinaryBuilder {
       case Tag.InvalidExpression:
         return new InvalidExpression();
       case Tag.VariableGet:
-        return new VariableGet(readVariableReference(), readDartTypeOption());
+        int offset = readOffset();
+        return new VariableGet(readVariableReference(), readDartTypeOption())
+          ..fileOffset = offset;
       case Tag.SpecializedVariableGet:
         int index = tagByte & Tag.SpecializedPayloadMask;
-        return new VariableGet(variableStack[index]);
+        int offset = readOffset();
+        return new VariableGet(variableStack[index])..fileOffset = offset;
       case Tag.VariableSet:
-        return new VariableSet(readVariableReference(), readExpression());
+        int offset = readOffset();
+        return new VariableSet(readVariableReference(), readExpression())
+          ..fileOffset = offset;
       case Tag.SpecializedVariableSet:
         int index = tagByte & Tag.SpecializedPayloadMask;
-        return new VariableSet(variableStack[index], readExpression());
+        int offset = readOffset();
+        return new VariableSet(variableStack[index], readExpression())
+          ..fileOffset = offset;
       case Tag.PropertyGet:
         int offset = readOffset();
         return new PropertyGet(
@@ -551,8 +573,7 @@ class BinaryBuilder {
             readExpression(), readMemberReference(), readExpression());
       case Tag.StaticGet:
         int offset = readOffset();
-        return new StaticGet(readMemberReference())
-          ..fileOffset = offset;
+        return new StaticGet(readMemberReference())..fileOffset = offset;
       case Tag.StaticSet:
         return new StaticSet(readMemberReference(), readExpression());
       case Tag.MethodInvocation:
@@ -596,9 +617,13 @@ class BinaryBuilder {
         return new ConditionalExpression(readExpression(), readExpression(),
             readExpression(), readDartTypeOption());
       case Tag.StringConcatenation:
-        return new StringConcatenation(readExpressionList());
+        int offset = readOffset();
+        return new StringConcatenation(readExpressionList())
+          ..fileOffset = offset;
       case Tag.IsExpression:
-        return new IsExpression(readExpression(), readDartType());
+        int offset = readOffset();
+        return new IsExpression(readExpression(), readDartType())
+          ..fileOffset = offset;
       case Tag.AsExpression:
         return new AsExpression(readExpression(), readDartType());
       case Tag.StringLiteral:
@@ -640,15 +665,21 @@ class BinaryBuilder {
         return new ListLiteral(readExpressionList(),
             typeArgument: typeArgument, isConst: true);
       case Tag.MapLiteral:
+        int offset = readOffset();
         var keyType = readDartType();
         var valueType = readDartType();
         return new MapLiteral(readMapEntryList(),
-            keyType: keyType, valueType: valueType, isConst: false);
+            keyType: keyType,
+            valueType: valueType,
+            isConst: false)..fileOffset = offset;
       case Tag.ConstMapLiteral:
+        int offset = readOffset();
         var keyType = readDartType();
         var valueType = readDartType();
         return new MapLiteral(readMapEntryList(),
-            keyType: keyType, valueType: valueType, isConst: true);
+            keyType: keyType,
+            valueType: valueType,
+            isConst: true)..fileOffset = offset;
       case Tag.AwaitExpression:
         return new AwaitExpression(readExpression());
       case Tag.FunctionExpression:
@@ -754,25 +785,29 @@ class BinaryBuilder {
         return new IfStatement(
             readExpression(), readStatement(), readStatementOrNullIfEmpty());
       case Tag.ReturnStatement:
-        return new ReturnStatement(readExpressionOption());
+        int offset = readOffset();
+        return new ReturnStatement(readExpressionOption())..fileOffset = offset;
       case Tag.TryCatch:
         return new TryCatch(readStatement(), readCatchList());
       case Tag.TryFinally:
         return new TryFinally(readStatement(), readStatement());
       case Tag.YieldStatement:
+        int offset = readOffset();
         int flags = readByte();
         return new YieldStatement(readExpression(),
             isYieldStar: flags & YieldStatement.FlagYieldStar != 0,
-            isNative: flags & YieldStatement.FlagNative != 0);
+            isNative: flags & YieldStatement.FlagNative != 0)
+          ..fileOffset = offset;
       case Tag.VariableDeclaration:
         var variable = readVariableDeclaration();
         variableStack.add(variable); // Will be popped by the enclosing scope.
         return variable;
       case Tag.FunctionDeclaration:
+        int offset = readOffset();
         var variable = readVariableDeclaration();
         variableStack.add(variable); // Will be popped by the enclosing scope.
         var function = readFunctionNode();
-        return new FunctionDeclaration(variable, function);
+        return new FunctionDeclaration(variable, function)..fileOffset = offset;
       default:
         throw fail('Invalid statement tag: $tag');
     }
@@ -924,13 +959,14 @@ class BinaryBuilder {
   }
 
   VariableDeclaration readVariableDeclaration() {
+    int offset = readOffset();
     int flags = readByte();
     return new VariableDeclaration(readStringOrNullIfEmpty(),
         type: readDartType(),
         inferredValue: readOptionalInferredValue(),
         initializer: readExpressionOption(),
         isFinal: flags & 0x1 != 0,
-        isConst: flags & 0x2 != 0);
+        isConst: flags & 0x2 != 0)..fileOffset = offset;
   }
 
   int readOffset() {

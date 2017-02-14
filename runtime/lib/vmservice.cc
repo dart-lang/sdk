@@ -21,9 +21,15 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_service);
 
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+static void malloc_deallocator(uint8_t* ptr) {
+  free(reinterpret_cast<void*>(ptr));
 }
 
 
@@ -51,8 +57,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
 
   virtual void VisitIsolate(Isolate* isolate) {
     ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
-    if (ServiceIsolate::IsServiceIsolateDescendant(isolate) ||
-        (isolate == Dart::vm_isolate())) {
+    if (IsVMInternalIsolate(isolate)) {
       // We do not register the service (and descendants) or the vm-isolate.
       return;
     }
@@ -96,7 +101,7 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
 
   // Serialize message.
   uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
+  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
   writer.WriteMessage(message);
 
   // TODO(turnidge): Throw an exception when the return value is false?

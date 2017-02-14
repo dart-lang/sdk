@@ -8,7 +8,7 @@
 /// compilation pipeline, for example during resolution.
 library compiler.universe.feature;
 
-import '../dart_types.dart' show InterfaceType;
+import '../elements/resolution_types.dart' show ResolutionInterfaceType;
 
 /// A language feature that may be seen in the program.
 // TODO(johnniwinther): Should mirror usage be part of this?
@@ -88,7 +88,7 @@ enum Feature {
 
 /// Describes a use of a map literal in the program.
 class MapLiteralUse {
-  final InterfaceType type;
+  final ResolutionInterfaceType type;
   final bool isConstant;
   final bool isEmpty;
 
@@ -115,7 +115,7 @@ class MapLiteralUse {
 
 /// Describes the use of a list literal in the program.
 class ListLiteralUse {
-  final InterfaceType type;
+  final ResolutionInterfaceType type;
   final bool isConstant;
   final bool isEmpty;
 

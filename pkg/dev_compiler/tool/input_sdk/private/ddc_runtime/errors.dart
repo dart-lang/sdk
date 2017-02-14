@@ -3,49 +3,59 @@
 // BSD-style license that can be found in the LICENSE file.
 part of dart._runtime;
 
+bool _trapRuntimeErrors = true;
+
+// Override, e.g., for testing
+void trapRuntimeErrors(bool flag) {
+  _trapRuntimeErrors = flag;
+}
+
 throwCastError(object, actual, type) => JS('', '''(() => {
-  debugger;
-  $throw_(new $CastErrorImplementation($object,
-                                       $typeName($actual),
-                                       $typeName($type)));
+  var found = $typeName($actual);
+  var expected = $typeName($type);
+  if ($_trapRuntimeErrors) debugger;
+  $throw_(new $CastErrorImplementation($object, found, expected));
 })()''');
 
 throwTypeError(object, actual, type) => JS('', '''(() => {
-  debugger;
-  $throw_(new $TypeErrorImplementation($object,
-                                       $typeName($actual),
-                                       $typeName($type)));
+  var found = $typeName($actual);
+  var expected = $typeName($type);
+  if ($_trapRuntimeErrors) debugger;
+  $throw_(new $TypeErrorImplementation($object, found, expected));
 })()''');
 
 throwStrongModeCastError(object, actual, type) => JS('', '''(() => {
-  debugger;
-  $throw_(new $StrongModeCastError($object,
-                                   $typeName($actual),
-                                   $typeName($type)));
+  var found = $typeName($actual);
+  var expected = $typeName($type);
+  if ($_trapRuntimeErrors) debugger;
+  $throw_(new $StrongModeCastError($object, found, expected));
 })()''');
 
 throwStrongModeTypeError(object, actual, type) => JS('', '''(() => {
-  debugger;
-  $throw_(new $StrongModeTypeError($object,
-                                   $typeName($actual),
-                                   $typeName($type)));
+  var found = $typeName($actual);
+  var expected = $typeName($type);
+  if ($_trapRuntimeErrors) debugger;
+  $throw_(new $StrongModeTypeError($object, found, expected));
 })()''');
 
 throwUnimplementedError(message) => JS('', '''(() => {
-  debugger;
+  if ($_trapRuntimeErrors) debugger;
   $throw_(new $UnimplementedError($message));
 })()''');
 
-throwAssertionError() => JS('', '''(() => {
-  debugger;
-  $throw_(new $AssertionError());
+throwAssertionError([message]) => JS('', '''(() => {
+  if ($_trapRuntimeErrors) debugger;
+  let error = $message != null
+        ? new $AssertionErrorWithMessage($message())
+        : new $AssertionError();
+  $throw_(error);
 })()''');
 
 throwNullValueError() => JS('', '''(() => {
   // TODO(vsm): Per spec, we should throw an NSM here.  Technically, we ought
   // to thread through method info, but that uglifies the code and can't
   // actually be queried ... it only affects how the error is printed.
-  debugger;
+  if ($_trapRuntimeErrors) debugger;
   $throw_(new $NoSuchMethodError(null,
       new $Symbol('<Unexpected Null Value>'), null, null, null));
 })()''');

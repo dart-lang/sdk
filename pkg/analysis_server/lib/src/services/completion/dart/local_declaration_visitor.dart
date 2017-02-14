@@ -5,6 +5,7 @@
 library services.completion.dart.local.declaration.visitor;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -15,8 +16,8 @@ import 'package:analyzer/src/dart/ast/token.dart';
  * which catches the exception thrown by [finished()].
  */
 abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
-  static final TypeName STACKTRACE_TYPE = new TypeName(
-      new SimpleIdentifier(
+  static final TypeName STACKTRACE_TYPE = astFactory.typeName(
+      astFactory.simpleIdentifier(
           new StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)),
       null);
 
@@ -38,11 +39,11 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   void declaredLabel(Label label, bool isCaseLabel);
 
-  void declaredLocalVar(SimpleIdentifier name, TypeName type);
+  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type);
 
   void declaredMethod(MethodDeclaration declaration);
 
-  void declaredParam(SimpleIdentifier name, TypeName type);
+  void declaredParam(SimpleIdentifier name, TypeAnnotation type);
 
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl);
@@ -127,7 +128,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   @override
   void visitForEachStatement(ForEachStatement node) {
     SimpleIdentifier id;
-    TypeName type;
+    TypeAnnotation type;
     DeclaredIdentifier loopVar = node.loopVariable;
     if (loopVar != null) {
       id = loopVar.identifier;
@@ -232,7 +233,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         } else if (param is NormalFormalParameter) {
           normalParam = param;
         }
-        TypeName type = null;
+        TypeAnnotation type = null;
         if (normalParam is FieldFormalParameter) {
           type = normalParam.type;
         } else if (normalParam is FunctionTypedFormalParameter) {

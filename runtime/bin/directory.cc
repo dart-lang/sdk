@@ -124,12 +124,22 @@ void FUNCTION_NAME(Directory_FillWithDirectoryListing)(
   Dart_Handle path = Dart_GetNativeArgument(args, 1);
   Dart_Handle recursive = Dart_GetNativeArgument(args, 2);
   Dart_Handle follow_links = Dart_GetNativeArgument(args, 3);
-  // Pass the list that should hold the directory listing to the
-  // SyncDirectoryListing object, which adds elements to it.
-  SyncDirectoryListing sync_listing(results, DartUtils::GetStringValue(path),
-                                    DartUtils::GetBooleanValue(recursive),
-                                    DartUtils::GetBooleanValue(follow_links));
-  Directory::List(&sync_listing);
+
+  Dart_Handle dart_error;
+  {
+    // Pass the list that should hold the directory listing to the
+    // SyncDirectoryListing object, which adds elements to it.
+    SyncDirectoryListing sync_listing(results, DartUtils::GetStringValue(path),
+                                      DartUtils::GetBooleanValue(recursive),
+                                      DartUtils::GetBooleanValue(follow_links));
+    Directory::List(&sync_listing);
+    dart_error = sync_listing.dart_error();
+  }
+  if (Dart_IsError(dart_error)) {
+    Dart_PropagateError(dart_error);
+  } else if (!Dart_IsNull(dart_error)) {
+    Dart_ThrowException(dart_error);
+  }
 }
 
 
@@ -401,7 +411,8 @@ bool SyncDirectoryListing::HandleDirectory(const char* dir_name) {
   Dart_Handle dir = Dart_New(directory_type_, Dart_Null(), 1, &dir_name_dart);
   Dart_Handle result = Dart_Invoke(results_, add_string_, 1, &dir);
   if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
+    dart_error_ = result;
+    return false;
   }
   return true;
 }
@@ -412,7 +423,8 @@ bool SyncDirectoryListing::HandleLink(const char* link_name) {
   Dart_Handle link = Dart_New(link_type_, Dart_Null(), 1, &link_name_dart);
   Dart_Handle result = Dart_Invoke(results_, add_string_, 1, &link);
   if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
+    dart_error_ = result;
+    return false;
   }
   return true;
 }
@@ -423,7 +435,8 @@ bool SyncDirectoryListing::HandleFile(const char* file_name) {
   Dart_Handle file = Dart_New(file_type_, Dart_Null(), 1, &file_name_dart);
   Dart_Handle result = Dart_Invoke(results_, add_string_, 1, &file);
   if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
+    dart_error_ = result;
+    return false;
   }
   return true;
 }
@@ -435,10 +448,11 @@ bool SyncDirectoryListing::HandleError() {
   args[0] = DartUtils::NewString("Directory listing failed");
   args[1] = DartUtils::NewString(error() ? "Invalid path" : CurrentPath());
   args[2] = dart_os_error;
-  Dart_ThrowException(Dart_New(
+
+  dart_error_ = Dart_New(
       DartUtils::GetDartType(DartUtils::kIOLibURL, "FileSystemException"),
-      Dart_Null(), 3, args));
-  return true;
+      Dart_Null(), 3, args);
+  return false;
 }
 
 

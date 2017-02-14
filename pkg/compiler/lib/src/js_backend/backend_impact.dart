@@ -7,7 +7,7 @@ library dart2js.js_helpers.impact;
 import '../common/names.dart';
 import '../compiler.dart' show Compiler;
 import '../core_types.dart' show CommonElements;
-import '../dart_types.dart' show InterfaceType;
+import '../elements/resolution_types.dart' show ResolutionInterfaceType;
 import '../elements/elements.dart' show ClassElement, Element;
 import '../universe/selector.dart';
 import '../util/enumset.dart';
@@ -26,7 +26,7 @@ class BackendImpact {
   final List<Element> staticUses;
   final List<Element> globalUses;
   final List<Selector> dynamicUses;
-  final List<InterfaceType> instantiatedTypes;
+  final List<ResolutionInterfaceType> instantiatedTypes;
   final List<ClassElement> instantiatedClasses;
   final List<ClassElement> globalClasses;
   final List<BackendImpact> otherImpacts;
@@ -36,7 +36,7 @@ class BackendImpact {
       {this.staticUses: const <Element>[],
       this.globalUses: const <Element>[],
       this.dynamicUses: const <Selector>[],
-      this.instantiatedTypes: const <InterfaceType>[],
+      this.instantiatedTypes: const <ResolutionInterfaceType>[],
       this.instantiatedClasses: const <ClassElement>[],
       this.globalClasses: const <ClassElement>[],
       this.otherImpacts: const <BackendImpact>[],
@@ -160,13 +160,33 @@ class BackendImpacts {
   BackendImpact _throwNoSuchMethod;
 
   BackendImpact get throwNoSuchMethod {
-    return _throwNoSuchMethod ??= new BackendImpact(staticUses: [
-      helpers.throwNoSuchMethod
-    ], otherImpacts: [
-      // Also register the types of the arguments passed to this method.
-      _needsList('Needed to encode the arguments for throw NoSuchMethodError.'),
-      _needsString('Needed to encode the name for throw NoSuchMethodError.')
-    ]);
+    return _throwNoSuchMethod ??= new BackendImpact(
+        instantiatedClasses: compiler.options.useKernel
+            ? [
+                commonElements.symbolClass,
+              ]
+            : [],
+        staticUses: compiler.options.useKernel
+            ? [
+                helpers.genericNoSuchMethod,
+                helpers.unresolvedConstructorError,
+                helpers.unresolvedStaticMethodError,
+                helpers.unresolvedStaticGetterError,
+                helpers.unresolvedStaticSetterError,
+                helpers.unresolvedTopLevelMethodError,
+                helpers.unresolvedTopLevelGetterError,
+                helpers.unresolvedTopLevelSetterError,
+                commonElements.symbolConstructor,
+              ]
+            : [
+                helpers.throwNoSuchMethod,
+              ],
+        otherImpacts: [
+          // Also register the types of the arguments passed to this method.
+          _needsList(
+              'Needed to encode the arguments for throw NoSuchMethodError.'),
+          _needsString('Needed to encode the name for throw NoSuchMethodError.')
+        ]);
   }
 
   BackendImpact _stringValues;
@@ -222,12 +242,21 @@ class BackendImpacts {
   BackendImpact _throwRuntimeError;
 
   BackendImpact get throwRuntimeError {
-    return _throwRuntimeError ??= new BackendImpact(staticUses: [
-      helpers.throwRuntimeError
-    ], otherImpacts: [
-      // Also register the types of the arguments passed to this method.
-      stringValues
-    ]);
+    return _throwRuntimeError ??= new BackendImpact(
+        staticUses: compiler.options.useKernel
+            ? [
+                // TODO(sra): Refactor impacts so that we know which of these
+                // are called.
+                helpers.malformedTypeError,
+                helpers.throwRuntimeError,
+              ]
+            : [
+                helpers.throwRuntimeError,
+              ],
+        otherImpacts: [
+          // Also register the types of the arguments passed to this method.
+          stringValues
+        ]);
   }
 
   BackendImpact _superNoSuchMethod;
@@ -246,19 +275,12 @@ class BackendImpacts {
   BackendImpact _constantMapLiteral;
 
   BackendImpact get constantMapLiteral {
-    if (_constantMapLiteral == null) {
-      ClassElement find(String name) {
-        return helpers.find(helpers.jsHelperLibrary, name);
-      }
-
-      _constantMapLiteral = new BackendImpact(instantiatedClasses: [
-        find(JavaScriptMapConstant.DART_CLASS),
-        find(JavaScriptMapConstant.DART_PROTO_CLASS),
-        find(JavaScriptMapConstant.DART_STRING_CLASS),
-        find(JavaScriptMapConstant.DART_GENERAL_CLASS)
-      ]);
-    }
-    return _constantMapLiteral;
+    return _constantMapLiteral ??= new BackendImpact(instantiatedClasses: [
+      helpers.constantMapClass,
+      helpers.constantProtoMapClass,
+      helpers.constantStringMapClass,
+      helpers.generalConstantMapClass,
+    ]);
   }
 
   BackendImpact _symbolConstructor;
@@ -273,7 +295,7 @@ class BackendImpacts {
   BackendImpact get constSymbol {
     return _constSymbol ??= new BackendImpact(
         instantiatedClasses: [commonElements.symbolClass],
-        staticUses: [commonElements.symbolConstructor.declaration]);
+        staticUses: [commonElements.symbolConstructor]);
   }
 
   /// Helper for registering that `int` is needed.
@@ -427,8 +449,14 @@ class BackendImpacts {
   BackendImpact _malformedTypeCheck;
 
   BackendImpact get malformedTypeCheck {
-    return _malformedTypeCheck ??=
-        new BackendImpact(staticUses: [helpers.throwTypeError]);
+    return _malformedTypeCheck ??= new BackendImpact(
+        staticUses: compiler.options.useKernel
+            ? [
+                helpers.malformedTypeError,
+              ]
+            : [
+                helpers.throwTypeError,
+              ]);
   }
 
   BackendImpact _genericTypeCheck;
@@ -550,7 +578,7 @@ class BackendImpacts {
         // The backend will use a literal list to initialize the entries
         // of the map.
         globalClasses: [
-          helpers.coreClasses.listClass,
+          helpers.commonElements.listClass,
           helpers.mapLiteralClass
         ]);
   }
@@ -644,7 +672,7 @@ class BackendImpacts {
 
   BackendImpact get runtimeTypeSupport {
     return _runtimeTypeSupport ??= new BackendImpact(
-        globalClasses: [helpers.coreClasses.listClass],
+        globalClasses: [helpers.commonElements.listClass],
         globalUses: [helpers.setRuntimeTypeInfo, helpers.getRuntimeTypeInfo],
         otherImpacts: [getRuntimeTypeArgument, computeSignature]);
   }
@@ -655,7 +683,7 @@ class BackendImpacts {
     return _deferredLoading ??=
         new BackendImpact(globalUses: [helpers.checkDeferredIsLoaded],
             // Also register the types of the arguments passed to this method.
-            globalClasses: [helpers.coreClasses.stringClass]);
+            globalClasses: [helpers.commonElements.stringClass]);
   }
 
   BackendImpact _noSuchMethodSupport;

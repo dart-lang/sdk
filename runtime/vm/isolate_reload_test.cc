@@ -16,6 +16,8 @@ namespace dart {
 
 #ifndef PRODUCT
 
+DECLARE_FLAG(bool, support_deprecated_tearoff_syntax);
+
 // TODO(johnmccutchan):
 // - Tests involving generics.
 
@@ -1434,19 +1436,19 @@ TEST_CASE(IsolateReload_TearOff_List_Set) {
       "main() {\n"
       "  var c = new C();\n"
       "  list[0] = c.foo;\n"
-      "  list[1] = c#foo;\n"
+      "  list[1] = c.foo;\n"
       "  set.add(c.foo);\n"
-      "  set.add(c#foo);\n"
+      "  set.add(c.foo);\n"
       "  int countBefore = set.length;\n"
       "  reloadTest();\n"
       "  list[1] = c.foo;\n"
       "  set.add(c.foo);\n"
-      "  set.add(c#foo);\n"
+      "  set.add(c.foo);\n"
       "  int countAfter = set.length;\n"
       "  return '${list[0]()} ${list[1]()} ${list[0] == list[1]} '\n"
       "         '${countBefore == 1} ${countAfter == 1} ${(set.first)()} '\n"
-      "         '${set.first == c.foo} ${set.first == c#foo} '\n"
-      "         '${set.remove(c#foo)}';\n"
+      "         '${set.first == c.foo} ${set.first == c.foo} '\n"
+      "         '${set.remove(c.foo)}';\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
@@ -1462,19 +1464,19 @@ TEST_CASE(IsolateReload_TearOff_List_Set) {
       "main() {\n"
       "  var c = new C();\n"
       "  list[0] = c.foo;\n"
-      "  list[1] = c#foo;\n"
+      "  list[1] = c.foo;\n"
       "  set.add(c.foo);\n"
-      "  set.add(c#foo);\n"
+      "  set.add(c.foo);\n"
       "  int countBefore = set.length;\n"
       "  reloadTest();\n"
       "  list[1] = c.foo;\n"
       "  set.add(c.foo);\n"
-      "  set.add(c#foo);\n"
+      "  set.add(c.foo);\n"
       "  int countAfter = set.length;\n"
       "  return '${list[0]()} ${list[1]()} ${list[0] == list[1]} '\n"
       "         '${countBefore == 1} ${countAfter == 1} ${(set.first)()} '\n"
-      "         '${set.first == c.foo} ${set.first == c#foo} '\n"
-      "         '${set.remove(c#foo)}';\n"
+      "         '${set.first == c.foo} ${set.first == c.foo} '\n"
+      "         '${set.remove(c.foo)}';\n"
       "}\n";
 
   TestCase::SetReloadTestScript(kReloadScript);
@@ -1503,7 +1505,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Instance) {
       "}\n"
       "main() {\n"
       "  var c = new C();\n"
-      "  var f = c#y;\n"
+      "  var f = c.y;\n"
       "  var r1 = invoke(f);\n"
       "  reloadTest();\n"
       "  var r2 = invoke(f);\n"
@@ -1527,7 +1529,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Instance) {
       "}\n"
       "main() {\n"
       "  var c = new C();\n"
-      "  var f = c#y;\n"
+      "  var f = c.y;\n"
       "  var r1 = invoke(f);\n"
       "  reloadTest();\n"
       "  var r2 = invoke(f);\n"
@@ -1536,8 +1538,10 @@ TEST_CASE(IsolateReload_DanglingGetter_Instance) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("4 NoSuchMethodError: Class 'C' has no instance getter 'y'.",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ(
+      "NoSuchMethodError: Class 'int' has no instance method 'call'. "
+      "NoSuchMethodError: Class 'int' has no instance method 'call'.",
+      SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -1561,7 +1565,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Class) {
       "main() {\n"
       "  C.x = 3;\n"
       "  C.y = 4;\n"
-      "  var f = C#y;\n"
+      "  var f = C.y;\n"
       "  var r1 = invoke(f);\n"
       "  reloadTest();\n"
       "  var r2 = invoke(f);\n"
@@ -1586,7 +1590,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Class) {
       "main() {\n"
       "  C.x = 3;\n"
       "  C.y = 4;\n"
-      "  var f = C#y;\n"
+      "  var f = C.y;\n"
       "  var r1 = invoke(f);\n"
       "  reloadTest();\n"
       "  var r2 = invoke(f);\n"
@@ -1596,8 +1600,8 @@ TEST_CASE(IsolateReload_DanglingGetter_Class) {
   TestCase::SetReloadTestScript(kReloadScript);
 
   EXPECT_STREQ(
-      "4 NoSuchMethodError: No static getter 'y' declared "
-      "in class 'C'.",
+      "NoSuchMethodError: Class 'int' has no instance method 'call'. "
+      "NoSuchMethodError: Class 'int' has no instance method 'call'.",
       SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
@@ -1648,6 +1652,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Library) {
       "  return '$r1 $r2';\n"
       "}\n";
 
+  FLAG_support_deprecated_tearoff_syntax = true;
   Dart_Handle lib = TestCase::LoadTestScript(
       kScript, IsolateReload_DanlingGetter_LibraryNativeResolver);
   EXPECT_VALID(lib);
@@ -1659,6 +1664,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Library) {
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
+  FLAG_support_deprecated_tearoff_syntax = false;
 }
 
 
@@ -1685,6 +1691,7 @@ TEST_CASE(IsolateReload_DanglingSetter_Instance) {
       "  return '$r1 $r2';\n"
       "}\n";
 
+  FLAG_support_deprecated_tearoff_syntax = true;
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
 
@@ -1716,6 +1723,7 @@ TEST_CASE(IsolateReload_DanglingSetter_Instance) {
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
+  FLAG_support_deprecated_tearoff_syntax = false;
 }
 
 
@@ -1743,6 +1751,7 @@ TEST_CASE(IsolateReload_DanglingSetter_Class) {
       "  return '$r1 $r2';\n"
       "}\n";
 
+  FLAG_support_deprecated_tearoff_syntax = true;
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
 
@@ -1777,6 +1786,7 @@ TEST_CASE(IsolateReload_DanglingSetter_Class) {
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
+  FLAG_support_deprecated_tearoff_syntax = false;
 }
 
 
@@ -1823,6 +1833,7 @@ TEST_CASE(IsolateReload_DanglingSetter_Library) {
       "  return '$r1 $r2';\n"
       "}\n";
 
+  FLAG_support_deprecated_tearoff_syntax = true;
   Dart_Handle lib = TestCase::LoadTestScript(
       kScript, IsolateReload_DanlingSetter_LibraryNativeResolver);
   EXPECT_VALID(lib);
@@ -1834,6 +1845,7 @@ TEST_CASE(IsolateReload_DanglingSetter_Library) {
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
+  FLAG_support_deprecated_tearoff_syntax = false;
 }
 
 
@@ -1852,7 +1864,7 @@ TEST_CASE(IsolateReload_TearOff_AddArguments) {
       "}\n"
       "main() {\n"
       "  var c = new C();\n"
-      "  var f = c#foo;\n"
+      "  var f = c.foo;\n"
       "  var r1 = invoke(f, 1);\n"
       "  reloadTest();\n"
       "  var r2 = invoke(f, 1);\n"
@@ -1876,7 +1888,7 @@ TEST_CASE(IsolateReload_TearOff_AddArguments) {
       "}\n"
       "main() {\n"
       "  var c = new C();\n"
-      "  var f = c#foo;\n"
+      "  var f = c.foo;\n"
       "  var r1 = invoke(f, 1);\n"
       "  reloadTest();\n"
       "  var r2 = invoke(f, 1);\n"
@@ -1909,7 +1921,7 @@ TEST_CASE(IsolateReload_TearOff_AddArguments2) {
       "  }\n"
       "}\n"
       "main() {\n"
-      "  var f = C#foo;\n"
+      "  var f = C.foo;\n"
       "  var r1 = invoke(f, 1);\n"
       "  reloadTest();\n"
       "  var r2 = invoke(f, 1);\n"
@@ -1932,7 +1944,7 @@ TEST_CASE(IsolateReload_TearOff_AddArguments2) {
       "  }\n"
       "}\n"
       "main() {\n"
-      "  var f = C#foo;\n"
+      "  var f = C.foo;\n"
       "  var r1 = invoke(f, 1);\n"
       "  reloadTest();\n"
       "  var r2 = invoke(f, 1);\n"

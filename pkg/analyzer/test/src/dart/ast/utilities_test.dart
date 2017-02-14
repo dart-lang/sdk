@@ -5,9 +5,11 @@
 library analyzer.test.src.dart.ast.utilities_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -200,9 +202,34 @@ class ConstantEvaluatorTest extends ParserTestCase {
     expect(value, 2.3 + 3.2);
   }
 
+  void test_binary_plus_double_string() {
+    Object value = _getConstantValue("'world' + 5.5");
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+  }
+
+  void test_binary_plus_int_string() {
+    Object value = _getConstantValue("'world' + 5");
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+  }
+
   void test_binary_plus_integer() {
     Object value = _getConstantValue("2 + 3");
     expect(value, 5);
+  }
+
+  void test_binary_plus_string() {
+    Object value = _getConstantValue("'hello ' + 'world'");
+    expect(value, 'hello world');
+  }
+
+  void test_binary_plus_string_double() {
+    Object value = _getConstantValue("5.5 + 'world'");
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
+  }
+
+  void test_binary_plus_string_int() {
+    Object value = _getConstantValue("5 + 'world'");
+    expect(value, ConstantEvaluator.NOT_A_CONSTANT);
   }
 
   void test_binary_remainder_double() {
@@ -346,7 +373,7 @@ class NodeLocator2Test extends ParserTestCase {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
     TopLevelVariableDeclaration declaration = unit.declarations[0];
     VariableDeclarationList variableList = declaration.variables;
-    Identifier typeName = variableList.type.name;
+    Identifier typeName = (variableList.type as TypeName).name;
     SimpleIdentifier varName = variableList.variables[0].name;
     expect(new NodeLocator2(0).searchWithin(unit), same(unit));
     expect(new NodeLocator2(1).searchWithin(unit), same(typeName));
@@ -367,7 +394,7 @@ class NodeLocator2Test extends ParserTestCase {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
     TopLevelVariableDeclaration declaration = unit.declarations[0];
     VariableDeclarationList variableList = declaration.variables;
-    Identifier typeName = variableList.type.name;
+    Identifier typeName = (variableList.type as TypeName).name;
     SimpleIdentifier varName = variableList.variables[0].name;
     expect(new NodeLocator2(-1, 2).searchWithin(unit), isNull);
     expect(new NodeLocator2(0, 2).searchWithin(unit), same(unit));
@@ -437,9 +464,9 @@ class B {}''');
 @reflectiveTest
 class ResolutionCopierTest extends EngineTestCase {
   void test_visitAdjacentStrings() {
-    AdjacentStrings createNode() => new AdjacentStrings([
-          new SimpleStringLiteral(null, 'hello'),
-          new SimpleStringLiteral(null, 'world')
+    AdjacentStrings createNode() => astFactory.adjacentStrings([
+          astFactory.simpleStringLiteral(null, 'hello'),
+          astFactory.simpleStringLiteral(null, 'world')
         ]);
 
     AdjacentStrings fromNode = createNode();
@@ -670,9 +697,9 @@ class ResolutionCopierTest extends EngineTestCase {
         .functionExpressionInvocation(AstTestFactory.identifier3("f"));
     ClassElement elementT = ElementFactory.classElement2('T');
     fromNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeName>[AstTestFactory.typeName(elementT)]);
+        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName(elementT)]);
     toNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeName>[AstTestFactory.typeName4('T')]);
+        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName4('T')]);
 
     _copyAndVerifyInvocation(fromNode, toNode);
 
@@ -805,9 +832,9 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodInvocation toNode = AstTestFactory.methodInvocation2("m");
     ClassElement elementT = ElementFactory.classElement2('T');
     fromNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeName>[AstTestFactory.typeName(elementT)]);
+        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName(elementT)]);
     toNode.typeArguments = AstTestFactory
-        .typeArgumentList(<TypeName>[AstTestFactory.typeName4('T')]);
+        .typeArgumentList(<TypeAnnotation>[AstTestFactory.typeName4('T')]);
     _copyAndVerifyInvocation(fromNode, toNode);
   }
 
@@ -1104,12 +1131,12 @@ class ResolutionCopierTest extends EngineTestCase {
     expect(toNode.staticType, same(staticType));
     expect(toNode.propagatedInvokeType, same(propagatedInvokeType));
     expect(toNode.staticInvokeType, same(staticInvokeType));
-    List<TypeName> fromTypeArguments = toNode.typeArguments.arguments;
-    List<TypeName> toTypeArguments = fromNode.typeArguments.arguments;
+    List<TypeAnnotation> fromTypeArguments = toNode.typeArguments.arguments;
+    List<TypeAnnotation> toTypeArguments = fromNode.typeArguments.arguments;
     if (fromTypeArguments != null) {
       for (int i = 0; i < fromTypeArguments.length; i++) {
-        TypeName toArgument = fromTypeArguments[i];
-        TypeName fromArgument = toTypeArguments[i];
+        TypeAnnotation toArgument = fromTypeArguments[i];
+        TypeAnnotation fromArgument = toTypeArguments[i];
         expect(toArgument.type, same(fromArgument.type));
       }
     }
@@ -1555,13 +1582,13 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitComment() {
     _assertSource(
         "",
-        Comment.createBlockComment(
+        astFactory.blockComment(
             <Token>[TokenFactory.tokenFromString("/* comment */")]));
   }
 
   void test_visitCommentReference() {
     _assertSource(
-        "", new CommentReference(null, AstTestFactory.identifier3("a")));
+        "", astFactory.commentReference(null, AstTestFactory.identifier3("a")));
   }
 
   void test_visitCompilationUnit_declaration() {
@@ -1947,7 +1974,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitFieldFormalParameter_functionTyped_typeParameters() {
     _assertSource(
         "A this.a<E, F>(b)",
-        new FieldFormalParameter(
+        astFactory.fieldFormalParameter(
             null,
             null,
             null,
@@ -1979,6 +2006,14 @@ class ToSourceVisitor2Test extends EngineTestCase {
             null, AstTestFactory.typeName4("A"), "a"));
   }
 
+  void test_visitFieldFormalParameter_type_covariant() {
+    FieldFormalParameterImpl expected = AstTestFactory.fieldFormalParameter(
+        null, AstTestFactory.typeName4("A"), "a");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant A this.a", expected);
+  }
+
   void test_visitForEachStatement_declared() {
     _assertSource(
         "for (var a in b) {}",
@@ -1989,7 +2024,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForEachStatement_variable() {
     _assertSource(
         "for (a in b) {}",
-        new ForEachStatement.withReference(
+        astFactory.forEachStatementWithReference(
             null,
             TokenFactory.tokenFromKeyword(Keyword.FOR),
             TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
@@ -2003,7 +2038,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitForEachStatement_variable_await() {
     _assertSource(
         "await for (a in b) {}",
-        new ForEachStatement.withReference(
+        astFactory.forEachStatementWithReference(
             TokenFactory.tokenFromString("await"),
             TokenFactory.tokenFromKeyword(Keyword.FOR),
             TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
@@ -2305,7 +2340,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
     FunctionDeclaration f = AstTestFactory.functionDeclaration(
         null, null, "f", AstTestFactory.functionExpression());
     FunctionDeclarationStatement fStatement =
-        new FunctionDeclarationStatement(f);
+        astFactory.functionDeclarationStatement(f);
     _assertSource(
         "main() {f() {} 42;}",
         AstTestFactory.functionDeclaration(
@@ -2328,7 +2363,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
         AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
             AstTestFactory.expressionFunctionBody(AstTestFactory.integer(1))));
     FunctionDeclarationStatement fStatement =
-        new FunctionDeclarationStatement(f);
+        astFactory.functionDeclarationStatement(f);
     _assertSource(
         "main() {f() => 1; 2;}",
         AstTestFactory.functionDeclaration(
@@ -2461,10 +2496,18 @@ class ToSourceVisitor2Test extends EngineTestCase {
             AstTestFactory.typeName4("T"), "f"));
   }
 
+  void test_visitFunctionTypedFormalParameter_type_covariant() {
+    FunctionTypedFormalParameterImpl expected = AstTestFactory
+        .functionTypedFormalParameter(AstTestFactory.typeName4("T"), "f");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant T f()", expected);
+  }
+
   void test_visitFunctionTypedFormalParameter_typeParameters() {
     _assertSource(
         "T f<E>()",
-        new FunctionTypedFormalParameter(
+        astFactory.functionTypedFormalParameter(
             null,
             null,
             AstTestFactory.typeName4("T"),
@@ -3101,6 +3144,14 @@ class ToSourceVisitor2Test extends EngineTestCase {
         "A a",
         AstTestFactory.simpleFormalParameter4(
             AstTestFactory.typeName4("A"), "a"));
+  }
+
+  void test_visitSimpleFormalParameter_type_covariant() {
+    SimpleFormalParameterImpl expected = AstTestFactory.simpleFormalParameter4(
+        AstTestFactory.typeName4("A"), "a");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant A a", expected);
   }
 
   void test_visitSimpleIdentifier() {
@@ -3885,13 +3936,13 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitComment() {
     _assertSource(
         "",
-        Comment.createBlockComment(
+        astFactory.blockComment(
             <Token>[TokenFactory.tokenFromString("/* comment */")]));
   }
 
   void test_visitCommentReference() {
     _assertSource(
-        "", new CommentReference(null, AstTestFactory.identifier3("a")));
+        "", astFactory.commentReference(null, AstTestFactory.identifier3("a")));
   }
 
   void test_visitCompilationUnit_declaration() {
@@ -4277,7 +4328,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFieldFormalParameter_functionTyped_typeParameters() {
     _assertSource(
         "A this.a<E, F>(b)",
-        new FieldFormalParameter(
+        astFactory.fieldFormalParameter(
             null,
             null,
             null,
@@ -4309,6 +4360,14 @@ class ToSourceVisitorTest extends EngineTestCase {
             null, AstTestFactory.typeName4("A"), "a"));
   }
 
+  void test_visitFieldFormalParameter_type_covariant() {
+    FieldFormalParameterImpl expected = AstTestFactory.fieldFormalParameter(
+        null, AstTestFactory.typeName4("A"), "a");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant A this.a", expected);
+  }
+
   void test_visitForEachStatement_declared() {
     _assertSource(
         "for (var a in b) {}",
@@ -4319,7 +4378,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitForEachStatement_variable() {
     _assertSource(
         "for (a in b) {}",
-        new ForEachStatement.withReference(
+        astFactory.forEachStatementWithReference(
             null,
             TokenFactory.tokenFromKeyword(Keyword.FOR),
             TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
@@ -4333,7 +4392,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitForEachStatement_variable_await() {
     _assertSource(
         "await for (a in b) {}",
-        new ForEachStatement.withReference(
+        astFactory.forEachStatementWithReference(
             TokenFactory.tokenFromString("await"),
             TokenFactory.tokenFromKeyword(Keyword.FOR),
             TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
@@ -4635,7 +4694,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     FunctionDeclaration f = AstTestFactory.functionDeclaration(
         null, null, "f", AstTestFactory.functionExpression());
     FunctionDeclarationStatement fStatement =
-        new FunctionDeclarationStatement(f);
+        astFactory.functionDeclarationStatement(f);
     _assertSource(
         "main() {f() {} 42;}",
         AstTestFactory.functionDeclaration(
@@ -4658,7 +4717,7 @@ class ToSourceVisitorTest extends EngineTestCase {
         AstTestFactory.functionExpression2(AstTestFactory.formalParameterList(),
             AstTestFactory.expressionFunctionBody(AstTestFactory.integer(1))));
     FunctionDeclarationStatement fStatement =
-        new FunctionDeclarationStatement(f);
+        astFactory.functionDeclarationStatement(f);
     _assertSource(
         "main() {f() => 1; 2;}",
         AstTestFactory.functionDeclaration(
@@ -4791,10 +4850,18 @@ class ToSourceVisitorTest extends EngineTestCase {
             AstTestFactory.typeName4("T"), "f"));
   }
 
+  void test_visitFunctionTypedFormalParameter_type_covariant() {
+    FunctionTypedFormalParameterImpl expected = AstTestFactory
+        .functionTypedFormalParameter(AstTestFactory.typeName4("T"), "f");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant T f()", expected);
+  }
+
   void test_visitFunctionTypedFormalParameter_typeParameters() {
     _assertSource(
         "T f<E>()",
-        new FunctionTypedFormalParameter(
+        astFactory.functionTypedFormalParameter(
             null,
             null,
             AstTestFactory.typeName4("T"),
@@ -5431,6 +5498,14 @@ class ToSourceVisitorTest extends EngineTestCase {
         "A a",
         AstTestFactory.simpleFormalParameter4(
             AstTestFactory.typeName4("A"), "a"));
+  }
+
+  void test_visitSimpleFormalParameter_type_covariant() {
+    SimpleFormalParameterImpl expected = AstTestFactory.simpleFormalParameter4(
+        AstTestFactory.typeName4("A"), "a");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant A a", expected);
   }
 
   void test_visitSimpleIdentifier() {

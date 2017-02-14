@@ -11,13 +11,14 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/elements/elements.dart'
     show Element, ClassElement, LibraryElement;
 import 'package:compiler/src/universe/class_set.dart';
-import 'package:compiler/src/world.dart' show ClosedWorld;
+import 'package:compiler/src/world.dart' show ClassQuery, ClosedWorld;
 
 void main() {
   asyncTest(() async {
     await testClassSets();
     await testProperties();
     await testNativeClasses();
+    await testCommonSubclasses();
   });
 }
 
@@ -49,7 +50,7 @@ testClassSets() async {
       }
       """,
       useMockCompiler: false);
-  ClosedWorld closedWorld = env.compiler.closedWorld;
+  ClosedWorld closedWorld = env.closedWorld;
 
   ClassElement Object_ = env.getElement("Object");
   ClassElement A = env.getElement("A");
@@ -69,7 +70,7 @@ testClassSets() async {
           foundClasses.contains(expectedClass),
           "Expect $expectedClass in '$property' on $cls. "
           "Found:\n ${foundClasses.join('\n ')}\n"
-          "${env.compiler.closedWorld.dump(cls)}");
+          "${closedWorld.dump(cls)}");
     }
     if (exact) {
       Expect.equals(
@@ -78,7 +79,7 @@ testClassSets() async {
           "Unexpected classes "
           "${foundClasses.where((c) => !expectedClasses.contains(c))} "
           "in '$property' on $cls.\n"
-          "${env.compiler.closedWorld.dump(cls)}");
+          "${closedWorld.dump(cls)}");
     }
   }
 
@@ -104,7 +105,7 @@ testClassSets() async {
           expectedClasses.length,
           count,
           "Unexpected class count in '$property' on $cls.\n"
-          "${env.compiler.closedWorld.dump(cls)}");
+          "${closedWorld.dump(cls)}");
     }
   }
 
@@ -239,7 +240,7 @@ testProperties() async {
       }
       """,
       useMockCompiler: false);
-  ClosedWorld closedWorld = env.compiler.closedWorld;
+  ClosedWorld closedWorld = env.closedWorld;
 
   check(String name, {bool hasStrictSubtype, bool hasOnlySubclasses}) {
     ClassElement cls = env.getElement(name);
@@ -316,7 +317,7 @@ testNativeClasses() async {
       }
       """,
       useMockCompiler: false);
-  ClosedWorld closedWorld = env.compiler.closedWorld;
+  ClosedWorld closedWorld = env.closedWorld;
   LibraryElement dart_html =
       env.compiler.libraryLoader.lookupLibrary(Uris.dart_html);
 
@@ -509,4 +510,100 @@ testNativeClasses() async {
       lubOfInstantiatedSubtypes: clsCanvasRenderingContext2D,
       instantiatedSubclassCount: 0,
       instantiatedSubtypeCount: 0);
+}
+
+testCommonSubclasses() async {
+  var env = await TypeEnvironment.create('',
+      mainSource: r"""
+      class A {}
+      class B {}
+      class C extends A {}
+      class D implements A {}
+      class E extends B {}
+      class F implements C, E {}
+      class G extends C implements E {}
+      class H implements C {}
+      class I extends D implements E {}
+      class J extends E implements D {}
+      main() {
+        new A();
+        new B();
+        new C();
+        new D();
+        new E();
+        new F();
+        new G();
+        new H();
+        new I();
+        new J();
+      }
+      """,
+      useMockCompiler: false);
+  ClosedWorld closedWorld = env.closedWorld;
+
+  ClassElement Object_ = env.getElement("Object");
+  ClassElement A = env.getElement("A");
+  ClassElement B = env.getElement("B");
+  ClassElement C = env.getElement("C");
+  ClassElement D = env.getElement("D");
+  ClassElement F = env.getElement("F");
+  ClassElement G = env.getElement("G");
+  ClassElement H = env.getElement("H");
+  ClassElement I = env.getElement("I");
+  ClassElement J = env.getElement("J");
+
+  void check(ClassElement cls1, ClassQuery query1, ClassElement cls2,
+      ClassQuery query2, List<ClassElement> expectedResult) {
+    Iterable<ClassElement> result1 =
+        closedWorld.commonSubclasses(cls1, query1, cls2, query2);
+    Iterable<ClassElement> result2 =
+        closedWorld.commonSubclasses(cls2, query2, cls1, query1);
+    Expect.setEquals(
+        result1,
+        result2,
+        "Asymmetric results for ($cls1,$query1) vs ($cls2,$query2):"
+        "\n a vs b: $result1\n b vs a: $result2");
+    Expect.setEquals(
+        expectedResult,
+        result1,
+        "Unexpected results for ($cls1,$query1) vs ($cls2,$query2):"
+        "\n expected: $expectedResult\n actual: $result1");
+  }
+
+  check(A, ClassQuery.EXACT, A, ClassQuery.EXACT, []);
+  check(A, ClassQuery.EXACT, A, ClassQuery.SUBCLASS, []);
+  check(A, ClassQuery.EXACT, A, ClassQuery.SUBTYPE, []);
+  check(A, ClassQuery.SUBCLASS, A, ClassQuery.SUBCLASS, [C]);
+  check(A, ClassQuery.SUBCLASS, A, ClassQuery.SUBTYPE, [C]);
+  check(A, ClassQuery.SUBTYPE, A, ClassQuery.SUBTYPE, [C, D]);
+
+  check(A, ClassQuery.EXACT, B, ClassQuery.EXACT, []);
+  check(A, ClassQuery.EXACT, B, ClassQuery.SUBCLASS, []);
+  check(A, ClassQuery.SUBCLASS, B, ClassQuery.EXACT, []);
+  check(A, ClassQuery.EXACT, B, ClassQuery.SUBTYPE, []);
+  check(A, ClassQuery.SUBTYPE, B, ClassQuery.EXACT, []);
+  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBCLASS, []);
+  check(A, ClassQuery.SUBCLASS, B, ClassQuery.SUBTYPE, [G]);
+  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBCLASS, [J]);
+  check(A, ClassQuery.SUBTYPE, B, ClassQuery.SUBTYPE, [F, G, I, J]);
+
+  check(A, ClassQuery.EXACT, C, ClassQuery.EXACT, []);
+  check(A, ClassQuery.EXACT, C, ClassQuery.SUBCLASS, []);
+  check(A, ClassQuery.SUBCLASS, C, ClassQuery.EXACT, []);
+  check(A, ClassQuery.EXACT, C, ClassQuery.SUBTYPE, []);
+  check(A, ClassQuery.SUBTYPE, C, ClassQuery.EXACT, []);
+  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS, [G]);
+  check(A, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, [G]);
+  check(A, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS, [G]);
+  check(A, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE, [F, G, H]);
+
+  check(B, ClassQuery.EXACT, C, ClassQuery.EXACT, []);
+  check(B, ClassQuery.EXACT, C, ClassQuery.SUBCLASS, []);
+  check(B, ClassQuery.SUBCLASS, C, ClassQuery.EXACT, []);
+  check(B, ClassQuery.EXACT, C, ClassQuery.SUBTYPE, []);
+  check(B, ClassQuery.SUBTYPE, C, ClassQuery.EXACT, []);
+  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBCLASS, []);
+  check(B, ClassQuery.SUBCLASS, C, ClassQuery.SUBTYPE, []);
+  check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBCLASS, [G]);
+  check(B, ClassQuery.SUBTYPE, C, ClassQuery.SUBTYPE, [F, G]);
 }

@@ -28,15 +28,16 @@ void main() {
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
+        var closedWorld = typesInferrer.closedWorld;
 
         checkFieldTypeInClass(String className, String fieldName, type) {
           var cls = findElement(compiler, className);
           var element = cls.lookupLocalMember(fieldName);
           Expect.equals(type,
-              simplify(typesInferrer.getTypeOfElement(element), compiler));
+              simplify(typesInferrer.getTypeOfElement(element), closedWorld));
         }
 
-        checkFieldTypeInClass('A', 'dynamicField',
-            findTypeMask(compiler, 'Interceptor', 'nonNullSubclass'));
+        checkFieldTypeInClass(
+            'A', 'dynamicField', closedWorld.commonMasks.interceptorType);
       }));
 }

@@ -1316,7 +1316,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
               return null;
             }
             return StaticTypeWarningCode.UNDEFINED_FUNCTION;
-          } else if (!targetType.isDynamic && !targetType.isBottom) {
+          } else if (!targetType.isDynamic && target is! NullLiteral) {
             // Proxy-conditional warning, based on state of
             // targetType.getElement()
             return StaticTypeWarningCode.UNDEFINED_METHOD;
@@ -1561,7 +1561,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   DartType _getStaticTypeOrFunctionType(Expression expression) {
     if (expression is NullLiteral) {
-      return _resolver.typeProvider.bottomType;
+      return _resolver.typeProvider.nullType;
     }
     return _resolveTypeParameter(expression.staticType);
   }
@@ -1575,7 +1575,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (invokeType is FunctionType) {
       List<TypeParameterElement> parameters = invokeType.typeFormals;
 
-      NodeList<TypeName> arguments = typeArguments?.arguments;
+      NodeList<TypeAnnotation> arguments = typeArguments?.arguments;
       if (arguments != null && arguments.length != parameters.length) {
         if (_resolver.strongMode) {
           _resolver.errorReporter.reportErrorForNode(
@@ -2498,7 +2498,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * [member] in the given [type] and not finding any member.
    */
   bool _shouldReportMissingMember(DartType type, Element member) {
-    return member == null && type != null && !type.isDynamic && !type.isBottom;
+    return member == null && type != null && !type.isDynamic && !type.isDartCoreNull;
   }
 
   /**

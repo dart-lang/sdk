@@ -59,13 +59,13 @@ TEST_CASE(ErrorHandleBasics) {
   EXPECT(Dart_IsError(Dart_ErrorGetException(error)));
   EXPECT_VALID(Dart_ErrorGetException(exception));
 
-  EXPECT(Dart_IsError(Dart_ErrorGetStacktrace(instance)));
-  EXPECT(Dart_IsError(Dart_ErrorGetStacktrace(error)));
-  EXPECT_VALID(Dart_ErrorGetStacktrace(exception));
+  EXPECT(Dart_IsError(Dart_ErrorGetStackTrace(instance)));
+  EXPECT(Dart_IsError(Dart_ErrorGetStackTrace(error)));
+  EXPECT_VALID(Dart_ErrorGetStackTrace(exception));
 }
 
 
-TEST_CASE(StacktraceInfo) {
+TEST_CASE(StackTraceInfo) {
   const char* kScriptChars =
       "bar() => throw new Error();\n"
       "foo() => bar();\n"
@@ -136,7 +136,7 @@ TEST_CASE(StacktraceInfo) {
 }
 
 
-TEST_CASE(DeepStacktraceInfo) {
+TEST_CASE(DeepStackTraceInfo) {
   const char* kScriptChars =
       "foo(n) => n == 1 ? throw new Error() : foo(n-1);\n"
       "testMain() => foo(50);\n";
@@ -156,7 +156,7 @@ TEST_CASE(DeepStacktraceInfo) {
   EXPECT_EQ(51, frame_count);
   // Test something bigger than the preallocated size to verify nothing was
   // truncated.
-  EXPECT(51 > Stacktrace::kPreallocatedStackdepth);
+  EXPECT(51 > StackTrace::kPreallocatedStackdepth);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -215,7 +215,7 @@ TEST_CASE(DeepStacktraceInfo) {
 }
 
 
-TEST_CASE(StackOverflowStacktraceInfo) {
+TEST_CASE(StackOverflowStackTraceInfo) {
   const char* kScriptChars =
       "class C {\n"
       "  static foo() => foo();\n"
@@ -234,7 +234,7 @@ TEST_CASE(StackOverflowStacktraceInfo) {
   intptr_t frame_count = 0;
   result = Dart_StackTraceLength(stacktrace, &frame_count);
   EXPECT_VALID(result);
-  EXPECT_EQ(Stacktrace::kPreallocatedStackdepth - 1, frame_count);
+  EXPECT_EQ(StackTrace::kPreallocatedStackdepth - 1, frame_count);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -264,7 +264,7 @@ TEST_CASE(StackOverflowStacktraceInfo) {
 }
 
 
-TEST_CASE(OutOfMemoryStacktraceInfo) {
+TEST_CASE(OutOfMemoryStackTraceInfo) {
   const char* kScriptChars =
       "var number_of_ints = 134000000;\n"
       "testMain() {\n"
@@ -278,7 +278,7 @@ TEST_CASE(OutOfMemoryStacktraceInfo) {
 
   Dart_StackTrace stacktrace;
   Dart_Handle result = Dart_GetStackTraceFromError(error, &stacktrace);
-  EXPECT(Dart_IsError(result));  // No Stacktrace for OutOfMemory.
+  EXPECT(Dart_IsError(result));  // No StackTrace for OutOfMemory.
 }
 
 
@@ -295,7 +295,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
   EXPECT_EQ(52, frame_count);
   // Test something bigger than the preallocated size to verify nothing was
   // truncated.
-  EXPECT(52 > Stacktrace::kPreallocatedStackdepth);
+  EXPECT(52 > StackTrace::kPreallocatedStackdepth);
 
   Dart_Handle function_name;
   Dart_Handle script_url;
@@ -380,7 +380,7 @@ static Dart_NativeFunction CurrentStackTraceNativeLookup(
 }
 
 
-TEST_CASE(CurrentStacktraceInfo) {
+TEST_CASE(CurrentStackTraceInfo) {
   const char* kScriptChars =
       "inspectStack() native 'CurrentStackTraceNatve';\n"
       "foo(n) => n == 1 ? inspectStack() : foo(n-1);\n"
@@ -1007,6 +1007,7 @@ TEST_CASE(IntegerFitsIntoUint64) {
 
 
 TEST_CASE(ArrayValues) {
+  EXPECT(!Dart_IsList(Dart_Null()));
   const int kArrayLength = 10;
   Dart_Handle str = NewString("test");
   EXPECT(!Dart_IsList(str));
@@ -1473,6 +1474,7 @@ TEST_CASE(ListAccess) {
 
 
 TEST_CASE(MapAccess) {
+  EXPECT(!Dart_IsMap(Dart_Null()));
   const char* kScriptChars =
       "Map testMain() {"
       "  return {"
@@ -3495,7 +3497,8 @@ UNIT_TEST_CASE(CurrentIsolateData) {
   intptr_t mydata = 12345;
   char* err;
   Dart_Isolate isolate =
-      Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL,
+      Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
+                         bin::core_isolate_snapshot_instructions, NULL,
                          reinterpret_cast<void*>(mydata), &err);
   EXPECT(isolate != NULL);
   EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_CurrentIsolateData()));
@@ -3526,7 +3529,8 @@ UNIT_TEST_CASE(IsolateSetCheckedMode) {
 
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, &api_flags, NULL, &err);
+      NULL, NULL, bin::core_isolate_snapshot_data,
+      bin::core_isolate_snapshot_instructions, &api_flags, NULL, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);
@@ -7571,7 +7575,8 @@ void BusyLoop_start(uword unused) {
     MonitorLocker ml(sync);
     char* error = NULL;
     shared_isolate = Dart_CreateIsolate(
-        NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, &error);
+        NULL, NULL, bin::core_isolate_snapshot_data,
+        bin::core_isolate_snapshot_instructions, NULL, NULL, &error);
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
     Dart_Handle url = NewString(TestCase::url());
@@ -7622,7 +7627,8 @@ UNIT_TEST_CASE(IsolateShutdown) {
   // Create an isolate.
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, my_data, &err);
+      NULL, NULL, bin::core_isolate_snapshot_data,
+      bin::core_isolate_snapshot_instructions, NULL, my_data, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);
@@ -7671,7 +7677,8 @@ UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
   // Create an isolate.
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, &err);
+      NULL, NULL, bin::core_isolate_snapshot_data,
+      bin::core_isolate_snapshot_instructions, NULL, NULL, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);

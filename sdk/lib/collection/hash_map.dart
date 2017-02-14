@@ -17,7 +17,7 @@ typedef int _Hasher<K>(K object);
 /**
  * A hash-table based implementation of [Map].
  *
- * The keys of a `HashMap` must have consistent [Object.operator==]
+ * The keys of a `HashMap` must have consistent [Object.==]
  * and [Object.hashCode] implementations. This means that the `==` operator
  * must define a stable equivalence relation on the keys (reflexive,
  * symmetric, transitive, and consistent over time), and that `hashCode`
@@ -41,14 +41,14 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * same as long as the map isn't changed.
    *
    * If [equals] is provided, it is used to compare the keys in the table with
-   * new keys. If [equals] is omitted, the key's own [Object.operator==] is used
+   * new keys. If [equals] is omitted, the key's own [Object.==] is used
    * instead.
    *
    * Similar, if [hashCode] is provided, it is used to produce a hash value
    * for keys in order to place them in the hash table. If it is omitted, the
    * key's own [Object.hashCode] is used.
    *
-   * If using methods like [operator[]], [remove] and [containsKey] together
+   * If using methods like [[]], [remove] and [containsKey] together
    * with a custom equality and hashcode, an extra `isValidKey` function
    * can be supplied. This function is called before calling [equals] or
    * [hashCode] with an argument that may not be a [K] instance, and if the

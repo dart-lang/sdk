@@ -55,6 +55,17 @@ bool SSLFilter::library_initialized_ = false;
 Mutex* SSLFilter::mutex_ = new Mutex();
 int SSLFilter::filter_ssl_index;
 
+const intptr_t SSLFilter::kInternalBIOSize = 10 * KB;
+const intptr_t SSLFilter::kApproximateSize =
+    sizeof(SSLFilter) + (2 * SSLFilter::kInternalBIOSize);
+
+// The security context won't necessarily use the compiled-in root certificates,
+// but since there is no way to update the size of the allocation after creating
+// the weak persistent handle, we assume that it will. Note that when the
+// root certs aren't compiled in, |root_certificates_pem_length| is 0.
+const intptr_t SSLContext::kApproximateSize =
+    sizeof(SSLContext) + root_certificates_pem_length;
+
 static const int kSSLFilterNativeFieldIndex = 0;
 static const int kSecurityContextNativeFieldIndex = 0;
 static const int kX509NativeFieldIndex = 0;
@@ -64,10 +75,8 @@ static const bool SSL_LOG_DATA = false;
 
 static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
 
-
 const char* commandline_root_certs_file = NULL;
 const char* commandline_root_certs_cache = NULL;
-
 
 /* Get the error messages from BoringSSL, and put them in buffer as a
  * null-terminated string. */
@@ -141,7 +150,7 @@ static Dart_Handle SetFilter(Dart_NativeArguments args, SSLFilter* filter) {
                                   reinterpret_cast<intptr_t>(filter));
   RETURN_IF_ERROR(err);
   Dart_NewWeakPersistentHandle(dart_this, reinterpret_cast<void*>(filter),
-                               sizeof(*filter), DeleteFilter);
+                               SSLFilter::kApproximateSize, DeleteFilter);
   return Dart_Null();
 }
 
@@ -167,7 +176,6 @@ static void DeleteSecurityContext(void* isolate_data,
 
 static Dart_Handle SetSecurityContext(Dart_NativeArguments args,
                                       SSLContext* context) {
-  const int approximate_size_of_context = 1500;
   Dart_Handle dart_this = Dart_GetNativeArgument(args, 0);
   RETURN_IF_ERROR(dart_this);
   ASSERT(Dart_IsInstance(dart_this));
@@ -175,7 +183,7 @@ static Dart_Handle SetSecurityContext(Dart_NativeArguments args,
       Dart_SetNativeInstanceField(dart_this, kSecurityContextNativeFieldIndex,
                                   reinterpret_cast<intptr_t>(context));
   RETURN_IF_ERROR(err);
-  Dart_NewWeakPersistentHandle(dart_this, context, approximate_size_of_context,
+  Dart_NewWeakPersistentHandle(dart_this, context, SSLContext::kApproximateSize,
                                DeleteSecurityContext);
   return Dart_Null();
 }
@@ -330,11 +338,16 @@ static void ReleaseCertificate(void* isolate_data,
 }
 
 
+static intptr_t EstimateX509Size(X509* certificate) {
+  intptr_t length = i2d_X509(certificate, NULL);
+  return length > 0 ? length : 0;
+}
+
+
 // Returns the handle for a Dart object wrapping the X509 certificate object.
 // The caller should own a reference to the X509 object whose reference count
 // won't drop to zero before the ReleaseCertificate finalizer runs.
 static Dart_Handle WrappedX509Certificate(X509* certificate) {
-  const intptr_t approximate_size_of_certificate = 1500;
   if (certificate == NULL) {
     return Dart_Null();
   }
@@ -358,6 +371,9 @@ static Dart_Handle WrappedX509Certificate(X509* certificate) {
     X509_free(certificate);
     return status;
   }
+  const intptr_t approximate_size_of_certificate =
+      sizeof(*certificate) + EstimateX509Size(certificate);
+  ASSERT(approximate_size_of_certificate > 0);
   Dart_NewWeakPersistentHandle(result, reinterpret_cast<void*>(certificate),
                                approximate_size_of_certificate,
                                ReleaseCertificate);
@@ -1496,7 +1512,8 @@ void SSLFilter::Connect(const char* hostname,
   int status;
   int error;
   BIO* ssl_side;
-  status = BIO_new_bio_pair(&ssl_side, 10000, &socket_side_, 10000);
+  status = BIO_new_bio_pair(&ssl_side, kInternalBIOSize, &socket_side_,
+                            kInternalBIOSize);
   CheckStatus(status, "TlsException", "BIO_new_bio_pair");
 
   assert(context != NULL);
@@ -1505,10 +1522,6 @@ void SSLFilter::Connect(const char* hostname,
   SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY);  // TODO(whesse): Is this right?
   SSL_set_ex_data(ssl_, filter_ssl_index, this);
 
-#if defined(TARGET_OS_FUCHSIA)
-  // Temporary workaround until we isolate the memory leak issue.
-  SSL_set_verify(ssl_, SSL_VERIFY_NONE, NULL);
-#else
   if (is_server_) {
     int certificate_mode =
         request_client_certificate ? SSL_VERIFY_PEER : SSL_VERIFY_NONE;
@@ -1533,7 +1546,6 @@ void SSLFilter::Connect(const char* hostname,
     CheckStatus(status, "TlsException",
                 "Set hostname for certificate checking");
   }
-#endif  // defined(TARGET_OS_FUCHSIA)
   // Make the connection:
   if (is_server_) {
     status = SSL_accept(ssl_);

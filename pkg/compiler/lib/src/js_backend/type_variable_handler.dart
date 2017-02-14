@@ -6,7 +6,7 @@ import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../enqueue.dart' show Enqueuer;
 import '../js/js.dart' as jsAst;
@@ -101,10 +101,10 @@ class TypeVariableHandler {
     // Do not process classes twice.
     if (_typeVariables.containsKey(cls)) return;
 
-    InterfaceType typeVariableType = _typeVariableClass.thisType;
+    ResolutionInterfaceType typeVariableType = _typeVariableClass.thisType;
     List<jsAst.Expression> constants = <jsAst.Expression>[];
 
-    for (TypeVariableType currentTypeVariable in cls.typeVariables) {
+    for (ResolutionTypeVariableType currentTypeVariable in cls.typeVariables) {
       TypeVariableElement typeVariableElement = currentTypeVariable.element;
 
       jsAst.Expression boundIndex =

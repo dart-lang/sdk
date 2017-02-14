@@ -26,7 +26,6 @@ main() {
     defineReflectiveTests(FolderBasedDartSdkTest);
     defineReflectiveTests(SdkExtensionFinderTest);
     defineReflectiveTests(SdkLibrariesReaderTest);
-    defineReflectiveTests(SdkLibraryImplTest);
   });
 }
 
@@ -60,44 +59,36 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     expectSource('$foxLib/deep/directory/part.dart', 'dart:deep/part.dart');
   }
 
-  void test_getLinkedBundle_hasBundle() {
-    pathTranslator.newFileWithBytes(
-        '$foxPath/sdk.ds', new PackageBundleAssembler().assemble().toBuffer());
-    EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': <Folder>[pathTranslator.getResource(foxLib)]
-    });
-    // No bundle for spec mode.
-    {
-      EmbedderSdk sdk =
-          new EmbedderSdk(resourceProvider, locator.embedderYamls);
-      sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = false;
-      sdk.useSummary = true;
-      expect(sdk.getLinkedBundle(), isNull);
-    }
-    // Has bundle for strong mode.
-    {
-      EmbedderSdk sdk =
-          new EmbedderSdk(resourceProvider, locator.embedderYamls);
-      sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
-      sdk.useSummary = true;
-      expect(sdk.getLinkedBundle(), isNotNull);
-    }
-    // Don't use bundle if not enabled.
-    {
-      EmbedderSdk sdk =
-          new EmbedderSdk(resourceProvider, locator.embedderYamls);
-      sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
-      sdk.useSummary = false;
-      expect(sdk.getLinkedBundle(), isNull);
-    }
-  }
-
   void test_getLinkedBundle_noBundle() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
     expect(sdk.getLinkedBundle(), isNull);
+  }
+
+  void test_getLinkedBundle_spec() {
+    pathTranslator.newFileWithBytes('$foxPath/spec.sum',
+        new PackageBundleAssembler().assemble().toBuffer());
+    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
+    });
+    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
+    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = false;
+    sdk.useSummary = true;
+    expect(sdk.getLinkedBundle(), isNotNull);
+  }
+
+  void test_getLinkedBundle_strong() {
+    pathTranslator.newFileWithBytes('$foxPath/strong.sum',
+        new PackageBundleAssembler().assemble().toBuffer());
+    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
+    });
+    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
+    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
+    sdk.useSummary = true;
+    expect(sdk.getLinkedBundle(), isNotNull);
   }
 
   void test_getSdkLibrary() {
@@ -473,149 +464,5 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(second.isDocumented, false);
     expect(second.isImplementation, true);
     expect(second.isVmLibrary, false);
-  }
-
-  void test_readFrom_patches() {
-    LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(
-        resourceProvider.getFile('/libs.dart'),
-        r'''
-final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
-  'foo' : const LibraryInfo(
-    'foo/foo.dart',
-    patches: {
-      DART2JS_PLATFORM | VM_PLATFORM: ['a', 'b'],
-      DART2JS_PLATFORM: ['c', 'd'],
-      VM_PLATFORM: ['e']}),
-};''');
-    expect(libraryMap, isNotNull);
-    expect(libraryMap.size(), 1);
-    SdkLibrary library = libraryMap.getLibrary('dart:foo');
-    expect(library, isNotNull);
-    expect(library.path, 'foo/foo.dart');
-    expect(library.shortName, 'dart:foo');
-    expect(library.getPatches(SdkLibraryImpl.DART2JS_PLATFORM),
-        unorderedEquals(['a', 'b', 'c', 'd']));
-    expect(library.getPatches(SdkLibraryImpl.VM_PLATFORM),
-        unorderedEquals(['a', 'b', 'e']));
-  }
-
-  void test_readFrom_patches_invalid_notList() {
-    expect(() {
-      new SdkLibrariesReader(false).readFromFile(
-          resourceProvider.getFile('/libs.dart'),
-          r'''
-final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
-  'foo' : const LibraryInfo(
-    'foo/foo.dart',
-    patches: {
-      VM_PLATFORM: 'X'}),
-};''');
-    }, throwsArgumentError);
-  }
-
-  void test_readFrom_patches_invalid_notString_inList() {
-    expect(() {
-      new SdkLibrariesReader(false).readFromFile(
-          resourceProvider.getFile('/libs.dart'),
-          r'''
-final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
-  'foo' : const LibraryInfo(
-    'foo/foo.dart',
-    patches: {
-      VM_PLATFORM: [42]}),
-};''');
-    }, throwsArgumentError);
-  }
-
-  void test_readFrom_patches_invalid_path_hasDotDot() {
-    _assertPatchPathIsInvalid('foo/../bar.dart');
-    _assertPatchPathIsInvalid('../foo/bar.dart');
-    _assertPatchPathIsInvalid('foo/bar..dart');
-  }
-
-  void test_readFrom_patches_invalid_path_isAbsolute() {
-    _assertPatchPathIsInvalid('/foo.dart');
-    _assertPatchPathIsInvalid('/foo/bar.dart');
-  }
-
-  void test_readFrom_patches_invalid_path_notPosix() {
-    _assertPatchPathIsInvalid(r'foo\bar.dart');
-  }
-
-  void test_readFrom_patches_invalid_platformCombinator() {
-    expect(() {
-      new SdkLibrariesReader(false).readFromFile(
-          resourceProvider.getFile('/libs.dart'),
-          r'''
-final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
-  'foo' : const LibraryInfo(
-    'foo/foo.dart',
-    patches: {
-      DART2JS_PLATFORM + VM_PLATFORM: ['X']}),
-};''');
-    }, throwsArgumentError);
-  }
-
-  void test_readFrom_patches_invalid_unknownPlatform() {
-    expect(() {
-      new SdkLibrariesReader(false).readFromFile(
-          resourceProvider.getFile('/libs.dart'),
-          r'''
-final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
-  'foo' : const LibraryInfo(
-    'foo/foo.dart',
-    patches: {
-      MY_UNKNOWN_PLATFORM: ['foo/bar_patch.dart']}),
-};''');
-    }, throwsArgumentError);
-  }
-
-  void test_readFrom_patches_no() {
-    LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(
-        resourceProvider.getFile('/libs.dart'),
-        r'''
-final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
-  'my' : const LibraryInfo('my/my.dart')
-};''');
-    expect(libraryMap, isNotNull);
-    expect(libraryMap.size(), 1);
-    SdkLibrary library = libraryMap.getLibrary('dart:my');
-    expect(library, isNotNull);
-    expect(library.path, 'my/my.dart');
-    expect(library.shortName, 'dart:my');
-    expect(library.getPatches(SdkLibraryImpl.VM_PLATFORM), isEmpty);
-    expect(library.getPatches(SdkLibraryImpl.DART2JS_PLATFORM), isEmpty);
-  }
-
-  void _assertPatchPathIsInvalid(String patchPath) {
-    expect(() {
-      new SdkLibrariesReader(false).readFromFile(
-          resourceProvider.getFile('/libs.dart'),
-          '''
-final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
-  'foo' : const LibraryInfo(
-    'foo/foo.dart',
-    patches: {
-      VM_PLATFORM: [r'$patchPath']}),
-};''');
-    }, throwsArgumentError);
-  }
-}
-
-@reflectiveTest
-class SdkLibraryImplTest extends EngineTestCase {
-  void test_patches() {
-    SdkLibraryImpl library = new SdkLibraryImpl('dart:foo');
-    // Set patches.
-    library.setPatchPaths(
-        SdkLibraryImpl.DART2JS_PLATFORM | SdkLibraryImpl.VM_PLATFORM,
-        ['a', 'b']);
-    library.setPatchPaths(SdkLibraryImpl.DART2JS_PLATFORM, ['c', 'd']);
-    library.setPatchPaths(SdkLibraryImpl.VM_PLATFORM, ['e']);
-    // Get patches.
-    expect(library.getPatches(SdkLibraryImpl.DART2JS_PLATFORM),
-        unorderedEquals(['a', 'b', 'c', 'd']));
-    expect(library.getPatches(SdkLibraryImpl.VM_PLATFORM),
-        unorderedEquals(['a', 'b', 'e']));
   }
 }

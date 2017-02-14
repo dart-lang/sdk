@@ -6,20 +6,20 @@ library test.domain.analysis.abstract;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
@@ -46,6 +46,8 @@ int findIdentifierLength(String search) {
  * An abstract base for all 'analysis' domain tests.
  */
 class AbstractAnalysisTest {
+  bool enableNewAnalysisDriver = false;
+  bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
   MemoryResourceProvider resourceProvider;
   MockPackageMapProvider packageMapProvider;
@@ -67,7 +69,13 @@ class AbstractAnalysisTest {
   AnalysisDomainHandler get analysisHandler => server.handlers
       .singleWhere((handler) => handler is AnalysisDomainHandler);
 
+  AnalysisOptions get analysisOptions => enableNewAnalysisDriver
+      ? testDiver.analysisOptions
+      : testContext.analysisOptions;
+
   AnalysisContext get testContext => server.getAnalysisContext(testFile);
+
+  AnalysisDriver get testDiver => server.getAnalysisDriver(testFile);
 
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
@@ -111,12 +119,8 @@ class AbstractAnalysisTest {
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
     plugins.add(serverPlugin);
     plugins.add(dartCompletionPlugin);
-    plugins.add(linterPlugin);
-    plugins.add(linterServerPlugin);
     addServerPlugins(plugins);
     //
     // Process plugins
@@ -126,18 +130,22 @@ class AbstractAnalysisTest {
     //
     // Create an SDK in the mock file system.
     //
-    new MockSdk(resourceProvider: resourceProvider);
+    new MockSdk(
+        generateSummaryFiles: generateSummaryFiles,
+        resourceProvider: resourceProvider);
     //
     // Create server
     //
+    AnalysisServerOptions options = new AnalysisServerOptions();
+    options.enableNewAnalysisDriver = enableNewAnalysisDriver;
     return new AnalysisServer(
         serverChannel,
         resourceProvider,
         packageMapProvider,
         index,
         serverPlugin,
-        new AnalysisServerOptions(),
-        new DartSdkManager(resourceProvider.convertPath('/'), false),
+        options,
+        new DartSdkManager(resourceProvider.convertPath('/'), true),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -189,7 +197,8 @@ class AbstractAnalysisTest {
   }
 
   String modifyTestFile(String content) {
-    addFile(testFile, content);
+    String path = resourceProvider.convertPath(testFile);
+    resourceProvider.updateFile(path, content);
     this.testCode = content;
     return testFile;
   }

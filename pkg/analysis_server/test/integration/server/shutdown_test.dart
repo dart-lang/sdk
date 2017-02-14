@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.server.shutdown;
-
 import 'dart:async';
 
 import 'package:test/test.dart';
@@ -13,12 +11,12 @@ import '../integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(Test);
+    defineReflectiveTests(ShutdownTest);
+    defineReflectiveTests(ShutdownTest_Driver);
   });
 }
 
-@reflectiveTest
-class Test extends AbstractAnalysisServerIntegrationTest {
+class AbstractShutdownTest extends AbstractAnalysisServerIntegrationTest {
   test_shutdown() {
     return sendServerShutdown().then((_) {
       return new Future.delayed(new Duration(seconds: 1)).then((_) {
@@ -30,4 +28,13 @@ class Test extends AbstractAnalysisServerIntegrationTest {
       });
     });
   }
+}
+
+@reflectiveTest
+class ShutdownTest extends AbstractShutdownTest {}
+
+@reflectiveTest
+class ShutdownTest_Driver extends AbstractShutdownTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

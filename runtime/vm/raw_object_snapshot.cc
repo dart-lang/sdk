@@ -504,7 +504,25 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   // Write out the individual types.
   intptr_t len = Smi::Value(ptr()->length_);
   for (intptr_t i = 0; i < len; i++) {
-    writer->WriteObjectImpl(ptr()->types()[i], kAsReference);
+    // The Dart VM reuses type argument lists across instances in order
+    // to reduce memory footprint, this can sometimes lead to a type from
+    // such a shared type argument list being sent over to another isolate.
+    // In such scenarios where it is not appropriate to send the types
+    // across (isolates spawned using spawnURI) we send them as dynamic.
+    if (!writer->can_send_any_object()) {
+      // Lookup the type class.
+      RawType* raw_type = Type::RawCast(ptr()->types()[i]);
+      RawSmi* raw_type_class_id = Smi::RawCast(raw_type->ptr()->type_class_id_);
+      RawClass* type_class =
+          writer->isolate()->class_table()->At(Smi::Value(raw_type_class_id));
+      if (!writer->AllowObjectsInDartLibrary(type_class->ptr()->library_)) {
+        writer->WriteVMIsolateObject(kDynamicType);
+      } else {
+        writer->WriteObjectImpl(ptr()->types()[i], kAsReference);
+      }
+    } else {
+      writer->WriteObjectImpl(ptr()->types()[i], kAsReference);
+    }
   }
 }
 
@@ -590,7 +608,8 @@ RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &data, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to(),
+  // Cached hash is null-initialized by ClosureData::New()
+  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to_snapshot(),
                      kAsInlinedObject);
 
   return data.raw();
@@ -629,6 +648,47 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
 
   // Canonical static closure.
   writer->WriteObjectImpl(ptr()->closure_, kAsInlinedObject);
+}
+
+
+RawSignatureData* SignatureData::ReadFrom(SnapshotReader* reader,
+                                          intptr_t object_id,
+                                          intptr_t tags,
+                                          Snapshot::Kind kind,
+                                          bool as_reference) {
+  ASSERT(reader != NULL);
+  ASSERT(kind == Snapshot::kScript);
+
+  // Allocate signature data object.
+  SignatureData& data =
+      SignatureData::ZoneHandle(reader->zone(), SignatureData::New());
+  reader->AddBackRef(object_id, &data, kIsDeserialized);
+
+  // Set all the object fields.
+  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to(),
+                     kAsInlinedObject);
+
+  return data.raw();
+}
+
+
+void RawSignatureData::WriteTo(SnapshotWriter* writer,
+                               intptr_t object_id,
+                               Snapshot::Kind kind,
+                               bool as_reference) {
+  ASSERT(writer != NULL);
+  ASSERT(kind == Snapshot::kScript);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kSignatureDataCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer, kAsInlinedObject);
+  visitor.VisitPointers(from(), to());
 }
 
 
@@ -1336,17 +1396,17 @@ void RawCodeSourceMap::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawStackmap* Stackmap::ReadFrom(SnapshotReader* reader,
+RawStackMap* StackMap::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
                                 Snapshot::Kind kind,
                                 bool as_reference) {
   UNREACHABLE();
-  return Stackmap::null();
+  return StackMap::null();
 }
 
 
-void RawStackmap::WriteTo(SnapshotWriter* writer,
+void RawStackMap::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind,
                           bool as_reference) {
@@ -2853,17 +2913,17 @@ void RawSendPort::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawStacktrace* Stacktrace::ReadFrom(SnapshotReader* reader,
+RawStackTrace* StackTrace::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
                                     Snapshot::Kind kind,
                                     bool as_reference) {
-  UNREACHABLE();  // Stacktraces are not sent in a snapshot.
-  return Stacktrace::null();
+  UNREACHABLE();  // StackTraces are not sent in a snapshot.
+  return StackTrace::null();
 }
 
 
-void RawStacktrace::WriteTo(SnapshotWriter* writer,
+void RawStackTrace::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
                             Snapshot::Kind kind,
                             bool as_reference) {

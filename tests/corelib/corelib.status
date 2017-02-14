@@ -14,7 +14,7 @@ string_from_environment2_test: Skip
 string_from_environment3_test: Skip
 string_from_environment_test: Skip
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) ]
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 unicode_test: Fail        # Bug 6706
 compare_to2_test: Fail    # Bug 4018
 
@@ -30,7 +30,7 @@ symbol_operator_test/03: Fail # bug 11669
 string_case_test/01: Fail # Bug 18061
 
 # #void should be a valid symbol.
-[ $compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit || $compiler == dart2js ]
+[ $compiler == none || $compiler == precompiler || $compiler == app_jit || $compiler == dart2js ]
 symbol_reserved_word_test/02: CompileTimeError # bug 20191
 symbol_reserved_word_test/05: CompileTimeError # bug 20191
 
@@ -61,7 +61,7 @@ int_modulo_arith_test/modPow: RuntimeError # No bigints.
 [ $compiler == dart2js && $fast_startup ]
 apply3_test: Fail # mirrors not supported
 
-[ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $runtime != dartium && $runtime != drt ]
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $runtime != dartium && $runtime != drt ]
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
 
@@ -122,6 +122,8 @@ string_case_test/02: Fail, OK  # Bug in IE.
 
 [ $compiler == dart2js && ($runtime == ff || $runtime == jsshell) ]
 string_case_test/01: Fail, OK  # Bug in Firefox.
+list_test/none: Fail # Issue 28014
+list_test/01: Fail # Issue 28014
 
 [ $compiler == dart2js && $runtime == dartium ]
 string_case_test/02: Fail, OK  # Bug in dartium version of V8.
@@ -156,10 +158,11 @@ stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 # The regexp tests are not verified to work on non d8/vm platforms yet.
 regexp/*: Skip
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
+regexp/pcre_test: Pass, Slow, Timeout # Issues 21593 and 22008
 
-[ $runtime != vm && $runtime != dart_precompiled && $runtime != dart_app && $compiler != dart2analyzer]
+[ $runtime != vm && $runtime != dart_precompiled && $compiler != dart2analyzer]
 data_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 file_resource_test: Skip, OK # VM specific test, uses dart:io.
 http_resource_test: Skip, OK # VM specific test, uses dart:io.
@@ -170,7 +173,7 @@ package_resource_test: RuntimeError # Issue 26842
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $arch == simarmv5te ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]
 int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
@@ -185,21 +188,20 @@ core_runtime_types_test: Pass, RuntimeError # Issue 25795.
 regexp/pcre_test: Crash # Stack Overflow
 collection_removes_test: Crash # Issue 25911
 
-[ $noopt || $compiler == precompiler ]
+[ $compiler == precompiler || $mode == product ]
+apply3_test: SkipByDesign # Imports dart:mirrors
+
+[ $compiler == precompiler ]
 # Stacktraces in precompilation omit inlined frames.
 stacktrace_current_test: Pass, RuntimeError
 error_stack_trace1_test: Pass, RuntimeError
 
-[ $noopt || $compiler == precompiler || $mode == product ]
-apply3_test: SkipByDesign # Imports dart:mirrors
-
-[ $noopt || $compiler == precompiler ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 
-[ $compiler == precompiler || $runtime == dart_app ]
+[ $compiler == precompiler || $compiler == app_jit ]
 data_resource_test: Skip # Resolve URI not supported yet in product mode.
 package_resource_test: Skip # Resolve URI not supported yet in product mode.
 file_resource_test: Skip # Resolve URI not supported yet in product mode.

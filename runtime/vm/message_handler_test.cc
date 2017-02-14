@@ -405,6 +405,7 @@ UNIT_TEST_CASE(MessageHandler_Run) {
   handler_peer.decrement_live_ports();
   EXPECT(!handler.HasLivePorts());
   PortMap::ClosePorts(&handler);
+  delete[] ports;
 }
 
 }  // namespace dart

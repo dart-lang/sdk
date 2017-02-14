@@ -9,6 +9,8 @@ import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
@@ -38,7 +40,7 @@ class ContextConfigurationTest extends AbstractContextTest {
   AnalysisOptions get analysisOptions => context.analysisOptions;
 
   configureContext(String optionsSource) =>
-      configureContextOptions(context, parseOptions(optionsSource));
+      applyToAnalysisOptions(analysisOptions, parseOptions(optionsSource));
 
   Map<String, YamlNode> parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
@@ -87,7 +89,7 @@ analyzer:
     unused_local_variable: error
 ''');
 
-    List<ErrorProcessor> processors = context.analysisOptions.errorProcessors;
+    List<ErrorProcessor> processors = analysisOptions.errorProcessors;
     expect(processors, hasLength(2));
 
     var unused_local = new AnalysisError(
@@ -118,7 +120,7 @@ analyzer:
     - 'test/**'
 ''');
 
-    List<String> excludes = context.analysisOptions.excludePatterns;
+    List<String> excludes = analysisOptions.excludePatterns;
     expect(excludes, unorderedEquals(['foo/bar.dart', 'test/**']));
   }
 
@@ -443,11 +445,12 @@ analyzer:
   }
 
   test_linter_supported_rules() {
+    Registry.ruleRegistry.register(new TestRule());
     validate(
         '''
 linter:
   rules:
-    - camel_case_types
+    - fantastic_test_rule
     ''',
         []);
   }
@@ -467,4 +470,8 @@ linter:
     expect(errors.map((AnalysisError e) => e.errorCode),
         unorderedEquals(expected));
   }
+}
+
+class TestRule extends LintRule {
+  TestRule() : super(name: 'fantastic_test_rule');
 }

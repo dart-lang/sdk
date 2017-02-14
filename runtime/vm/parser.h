@@ -694,7 +694,7 @@ class Parser : public ValueObject {
                                LocalVariable** stack_trace_var,
                                LocalVariable** saved_exception_var,
                                LocalVariable** saved_stack_trace_var);
-  void SaveExceptionAndStacktrace(SequenceNode* statements,
+  void SaveExceptionAndStackTrace(SequenceNode* statements,
                                   LocalVariable* exception_var,
                                   LocalVariable* stack_trace_var,
                                   LocalVariable* saved_exception_var,
@@ -750,7 +750,6 @@ class Parser : public ValueObject {
   bool IsSymbol(const String& symbol);
   bool IsSimpleLiteral(const AbstractType& type, Instance* value);
   bool IsFunctionTypeAliasName();
-  bool IsMixinAppAlias();
   bool TryParseQualIdent();
   bool TryParseTypeParameters();
   bool TryParseTypeArguments();
@@ -806,7 +805,8 @@ class Parser : public ValueObject {
                                           bool require_const);
   AstNode* ParseStaticCall(const Class& cls,
                            const String& method_name,
-                           TokenPosition ident_pos);
+                           TokenPosition ident_pos,
+                           const LibraryPrefix* prefix = NULL);
   AstNode* ParseInstanceCall(AstNode* receiver,
                              const String& method_name,
                              TokenPosition ident_pos,

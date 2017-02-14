@@ -123,6 +123,7 @@ abstract class TestSuite {
   // This function is set by subclasses before enqueueing starts.
   Function doTest;
   Map<String, String> _environmentOverrides;
+  RuntimeConfiguration runtimeConfiguration;
 
   TestSuite(this.configuration, this.suiteName) {
     TestUtils.buildDir(configuration); // Sets configuration_directory.
@@ -131,6 +132,7 @@ abstract class TestSuite {
         'DART_CONFIGURATION': configuration['configuration_directory']
       };
     }
+    runtimeConfiguration = new RuntimeConfiguration(configuration);
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -206,19 +208,12 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
-  String get dartVmNooptBinaryFileName {
-    // Controlled by user with the option "--dart".
-    String dartExecutable = configuration['dart'];
-
-    if (dartExecutable == '') {
-      String suffix = executableBinarySuffix;
-      dartExecutable = useSdk
-          ? '$buildDir/dart-sdk/bin/dart_noopt$suffix'
-          : '$buildDir/dart_noopt$suffix';
-    }
-
-    TestUtils.ensureExists(dartExecutable, configuration);
-    return dartExecutable;
+  /// Returns the name of the flutter engine executable.
+  String get flutterEngineBinaryFileName {
+    // Controlled by user with the option "--flutter".
+    String flutterExecutable = configuration['flutter'];
+    TestUtils.ensureExists(flutterExecutable, configuration);
+    return flutterExecutable;
   }
 
   String get dartPrecompiledBinaryFileName {
@@ -293,6 +288,9 @@ abstract class TestSuite {
   //  - test if the selector matches
   // and will enqueue the test (if necessary).
   void enqueueNewTestCase(TestCase testCase) {
+    if (testCase.isNegative && runtimeConfiguration.shouldSkipNegativeTests) {
+      return;
+    }
     var expectations = testCase.expectedOutcomes;
 
     // Handle sharding based on the original test path (i.e. all multitests
@@ -1081,7 +1079,6 @@ class StandardTestSuite extends TestSuite {
       List<String> otherResources = info.optionsFromFile['otherResources'];
       for (String name in otherResources) {
         Path namePath = new Path(name);
-        String fileName = namePath.filename;
         Path fromPath = info.filePath.directoryPath.join(namePath);
         new File('$tempDir/$name').parent.createSync(recursive: true);
         new File(fromPath.toNativePath()).copySync('$tempDir/$name');
@@ -1095,7 +1092,9 @@ class StandardTestSuite extends TestSuite {
             CommandBuilder.instance,
             compileTimeArguments,
             environmentOverrides);
-    commands.addAll(compilationArtifact.commands);
+    if (!configuration['skip-compilation']) {
+      commands.addAll(compilationArtifact.commands);
+    }
 
     if (expectCompileError(info) && compilerConfiguration.hasCompiler) {
       // Do not attempt to run the compiled result. A compilation
@@ -1103,8 +1102,6 @@ class StandardTestSuite extends TestSuite {
       return commands;
     }
 
-    RuntimeConfiguration runtimeConfiguration =
-        new RuntimeConfiguration(configuration);
     List<String> runtimeArguments =
         compilerConfiguration.computeRuntimeArguments(
             runtimeConfiguration,
@@ -1173,6 +1170,7 @@ class StandardTestSuite extends TestSuite {
     // Unreachable
     print("Cannot create URL for path $file. Not in build or dart directory.");
     exit(1);
+    return null;
   }
 
   Uri _getUriForBrowserTest(String pathComponent, String subtestName) {
@@ -1831,11 +1829,10 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'precompiler', 'dart2app', 'dart2appjit'];
+    var COMPILERS = const ['none', 'dartk', 'dartkp', 'precompiler', 'app_jit'];
     var RUNTIMES = const [
       'none',
       'dart_precompiled',
-      'dart_app',
       'vm',
       'drt',
       'dartium',
@@ -2305,7 +2302,10 @@ class TestUtils {
   static String outputDir(Map configuration) {
     var result = '';
     var system = configuration['system'];
-    if (system == 'linux' || system == 'android' || system == 'windows') {
+    if (system == 'fuchsia' ||
+        system == 'linux' ||
+        system == 'android' ||
+        system == 'windows') {
       result = 'out/';
     } else if (system == 'macos') {
       result = 'xcodebuild/';
@@ -2415,6 +2415,7 @@ class TestUtils {
       case 'android':
         os = 'Android';
         break;
+      case 'fuchsia':
       case 'linux':
       case 'macos':
       case 'windows':

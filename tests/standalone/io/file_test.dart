@@ -584,6 +584,28 @@ class FileTest {
     });
   }
 
+  static void testWriteFromOffset() {
+    Directory tmp;
+    RandomAccessFile raf;
+    try {
+      tmp = tempDirectory.createTempSync('write_from_offset_test_');
+      File f = new File('${tmp.path}/file')..createSync();
+      f.writeAsStringSync('pre-existing content\n', flush: true);
+      raf = f.openSync(mode: FileMode.APPEND);
+      String truth = "Hello world";
+      raf.writeFromSync(UTF8.encode('Hello world'), 2, 5);
+      raf.flushSync();
+      Expect.equals(f.readAsStringSync(), 'pre-existing content\nllo');
+    } finally {
+      if (raf != null) {
+        raf.closeSync();
+      }
+      if (tmp != null) {
+        tmp.deleteSync(recursive: true);
+      }
+    }
+  }
+
   static void testDirectory() {
     asyncTestStarted();
     var tempDir = tempDirectory.path;
@@ -640,6 +662,23 @@ class FileTest {
     Expect.equals(42, file.lengthSync());
     Expect.equals(42, openedFile.lengthSync());
     openedFile.closeSync();
+  }
+
+  static void testLengthSyncDirectory() {
+    Directory tmp = tempDirectory.createTempSync('file_length_test_');
+    String dirPath = '${tmp.path}/dir';
+    new Directory(dirPath).createSync();
+    try {
+      new File(dirPath).lengthSync();
+      Expect.fail('Expected operation to throw');
+    } catch (e) {
+      if (e is! FileSystemException) {
+        print(e);
+      }
+      Expect.isTrue(e is FileSystemException);
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
   }
 
   // Test for file position functionality.
@@ -1251,6 +1290,23 @@ class FileTest {
     Expect.isTrue(modified.isBefore(new DateTime.now()));
   }
 
+  static void testLastModifiedSyncDirectory() {
+    Directory tmp = tempDirectory.createTempSync('file_last_modified_test_');
+    String dirPath = '${tmp.path}/dir';
+    new Directory(dirPath).createSync();
+    try {
+      new File(dirPath).lastModifiedSync();
+      Expect.fail('Expected operation to throw');
+    } catch (e) {
+      if (e is! FileSystemException) {
+        print(e);
+      }
+      Expect.isTrue(e is FileSystemException);
+    } finally {
+      tmp.deleteSync(recursive: true);
+    }
+  }
+
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testAppend() {
@@ -1428,6 +1484,7 @@ class FileTest {
 
     createTempDirectory(() {
       testLength();
+      testLengthSyncDirectory();
       testReadWrite();
       testReadWriteSync();
       testReadWriteNoArgsSync();
@@ -1457,6 +1514,7 @@ class FileTest {
       testOutputStreamWriteAppend();
       testOutputStreamWriteString();
       testWriteVariousLists();
+      testWriteFromOffset();
       testDirectory();
       testDirectorySync();
       testWriteStringUtf8();
@@ -1466,6 +1524,7 @@ class FileTest {
       testRename(targetExists: true);
       testRenameSync(targetExists: true);
       testLastModified();
+      testLastModifiedSyncDirectory();
       testDoubleAsyncOperation();
       asyncEnd();
     });

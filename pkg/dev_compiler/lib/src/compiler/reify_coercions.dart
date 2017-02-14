@@ -4,6 +4,7 @@
 
 import 'package:analyzer/analyzer.dart' as analyzer;
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/dart/ast/ast.dart' show FunctionBodyImpl;
 import 'package:analyzer/src/dart/ast/utilities.dart' show NodeReplacer;
@@ -40,7 +41,8 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
   static Expression castExpression(Expression e, DartType toType) {
     // We use an empty name in the AST, because the JS code generator only cares
     // about the target type. It does not look at the AST name.
-    var typeName = new TypeName(AstBuilder.identifierFromString(''), null);
+    var typeName =
+        astFactory.typeName(AstBuilder.identifierFromString(''), null);
     typeName.type = toType;
     var cast = AstBuilder.asExpression(e, typeName);
     cast.staticType = toType;

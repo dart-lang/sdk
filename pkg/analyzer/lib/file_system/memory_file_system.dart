@@ -50,10 +50,11 @@ class MemoryResourceProvider implements ResourceProvider {
    * this class are never converted automatically.
    */
   String convertPath(String path) {
-    if (pathContext.style == pathos.windows.style &&
-        path.startsWith(pathos.posix.separator)) {
-      path = r'C:' +
-          path.replaceAll(pathos.posix.separator, pathos.windows.separator);
+    if (pathContext.style == pathos.windows.style) {
+      if (path.startsWith(pathos.posix.separator)) {
+        path = r'C:' + path;
+      }
+      path = path.replaceAll(pathos.posix.separator, pathos.windows.separator);
     }
     return path;
   }

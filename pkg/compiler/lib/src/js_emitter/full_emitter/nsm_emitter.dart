@@ -2,10 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter.full_emitter;
+library dart2js.js_emitter.full_emitter.nsm_emitter;
+
+import '../../elements/entities.dart';
+import '../../js/js.dart' as jsAst;
+import '../../js/js.dart' show js;
+import '../../js_backend/js_backend.dart' show GetterName, SetterName;
+import '../../universe/selector.dart' show Selector;
+import '../../util/characters.dart' show $$, $A, $HASH, $Z, $a, $z;
+import '../../world.dart' show ClosedWorld;
+import '../js_emitter.dart' hide Emitter, EmitterFactory;
+import '../model.dart';
+import 'emitter.dart';
 
 class NsmEmitter extends CodeEmitterHelper {
+  final ClosedWorld closedWorld;
   final List<Selector> trivialNsmHandlers = <Selector>[];
+
+  NsmEmitter(this.closedWorld);
 
   /// If this is true then we can generate the noSuchMethod handlers at startup
   /// time, instead of them being emitted as part of the Object class.
@@ -19,8 +33,9 @@ class NsmEmitter extends CodeEmitterHelper {
   static const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
 
   void emitNoSuchMethodHandlers(AddPropertyFunction addProperty) {
-    ClassStubGenerator generator =
-        new ClassStubGenerator(compiler, namer, backend);
+    ClassStubGenerator generator = new ClassStubGenerator(
+        namer, backend, codegenWorldBuilder, closedWorld,
+        enableMinification: compiler.options.enableMinification);
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
@@ -55,9 +70,9 @@ class NsmEmitter extends CodeEmitterHelper {
             generator.generateStubForNoSuchMethod(jsName, selector);
         addProperty(method.name, method.code);
         if (reflectionName != null) {
-          bool accessible = compiler.closedWorld.allFunctions
+          bool accessible = closedWorld.allFunctions
               .filter(selector, null)
-              .any((Element e) => backend.isAccessibleByReflection(e));
+              .any(backend.isMemberAccessibleByReflection);
           addProperty(
               namer.asName('+$reflectionName'), js(accessible ? '2' : '0'));
         }
@@ -158,7 +173,7 @@ class NsmEmitter extends CodeEmitterHelper {
     }
     // Startup code that loops over the method names and puts handlers on the
     // Object class to catch noSuchMethod invocations.
-    ClassElement objectClass = compiler.coreClasses.objectClass;
+    ClassEntity objectClass = compiler.commonElements.objectClass;
     jsAst.Expression createInvocationMirror = backend.emitter
         .staticFunctionAccess(backend.helpers.createInvocationMirror);
     if (useDiffEncoding) {

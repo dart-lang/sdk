@@ -5,135 +5,133 @@
 // TODO(sigmund): rename and move to common/elements.dart
 library dart2js.type_system;
 
-import 'dart_types.dart';
-import 'elements/elements.dart'
-    show
-        ClassElement,
-        ConstructorElement,
-        FunctionElement,
-        LibraryElement,
-        Element;
+import 'elements/types.dart';
+import 'elements/entities.dart';
+import 'elements/elements.dart' show Entity;
 
-/// The core classes in Dart.
-abstract class CoreClasses {
+/// The common elements and types in Dart.
+abstract class CommonElements {
   /// The `Object` class defined in 'dart:core'.
-  ClassElement get objectClass;
+  ClassEntity get objectClass;
 
   /// The `bool` class defined in 'dart:core'.
-  ClassElement get boolClass;
+  ClassEntity get boolClass;
 
   /// The `num` class defined in 'dart:core'.
-  ClassElement get numClass;
+  ClassEntity get numClass;
 
   /// The `int` class defined in 'dart:core'.
-  ClassElement get intClass;
+  ClassEntity get intClass;
 
   /// The `double` class defined in 'dart:core'.
-  ClassElement get doubleClass;
+  ClassEntity get doubleClass;
 
   /// The `Resource` class defined in 'dart:core'.
-  ClassElement get resourceClass;
+  ClassEntity get resourceClass;
 
   /// The `String` class defined in 'dart:core'.
-  ClassElement get stringClass;
+  ClassEntity get stringClass;
 
   /// The `Symbol` class defined in 'dart:core'.
-  ClassElement get symbolClass;
+  ClassEntity get symbolClass;
 
   /// The `Function` class defined in 'dart:core'.
-  ClassElement get functionClass;
+  ClassEntity get functionClass;
 
   /// The `Null` class defined in 'dart:core'.
-  ClassElement get nullClass;
+  ClassEntity get nullClass;
 
   /// The `Type` class defined in 'dart:core'.
-  ClassElement get typeClass;
+  ClassEntity get typeClass;
 
   /// The `StackTrace` class defined in 'dart:core';
-  ClassElement get stackTraceClass;
+  ClassEntity get stackTraceClass;
 
   /// The `List` class defined in 'dart:core';
-  ClassElement get listClass;
+  ClassEntity get listClass;
 
   /// The `Map` class defined in 'dart:core';
-  ClassElement get mapClass;
+  ClassEntity get mapClass;
 
   /// The `Iterable` class defined in 'dart:core';
-  ClassElement get iterableClass;
+  ClassEntity get iterableClass;
 
-  /// The `Future` class defined in 'async';
-  ClassElement get futureClass;
+  /// The `Future` class defined in 'async';.
+  ClassEntity get futureClass;
 
   /// The `Stream` class defined in 'async';
-  ClassElement get streamClass;
-}
+  ClassEntity get streamClass;
 
-/// TODO(sigmund): delete CoreClasses and merge it here.
-abstract class CommonElements extends CoreClasses {
   /// The dart:core library.
-  LibraryElement get coreLibrary;
+  LibraryEntity get coreLibrary;
 
   /// The dart:async library.
-  LibraryElement get asyncLibrary;
+  LibraryEntity get asyncLibrary;
 
   /// The dart:mirrors library. Null if the program doesn't access dart:mirrors.
-  LibraryElement get mirrorsLibrary;
+  LibraryEntity get mirrorsLibrary;
 
   /// The dart:typed_data library.
-  LibraryElement get typedDataLibrary;
+  LibraryEntity get typedDataLibrary;
 
   /// The `NativeTypedData` class from dart:typed_data.
-  ClassElement get typedDataClass;
+  ClassEntity get typedDataClass;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   /// The class for patch annotation defined in dart:_js_helper.
-  ClassElement get patchAnnotationClass;
+  ClassEntity get patchAnnotationClass;
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
-  ClassElement get nativeAnnotationClass;
+  ClassEntity get nativeAnnotationClass;
 
   /// Constructor of the `Symbol` class. This getter will ensure that `Symbol`
   /// is resolved and lookup the constructor on demand.
-  ConstructorElement get symbolConstructor;
+  FunctionEntity get symbolConstructor;
 
   /// Whether [element] is the same as [symbolConstructor]. Used to check
   /// for the constructor without computing it until it is likely to be seen.
-  bool isSymbolConstructor(Element e);
+  bool isSymbolConstructor(Entity e);
 
   /// The `MirrorSystem` class in dart:mirrors.
-  ClassElement get mirrorSystemClass;
+  ClassEntity get mirrorSystemClass;
 
   /// Whether [element] is `MirrorClass.getName`. Used to check for the use of
   /// that static method without forcing the resolution of the `MirrorSystem`
   /// class until it is necessary.
-  bool isMirrorSystemGetNameFunction(Element element);
+  bool isMirrorSystemGetNameFunction(MemberEntity element);
 
   /// The `MirrorsUsed` annotation in dart:mirrors.
-  ClassElement get mirrorsUsedClass;
+  ClassEntity get mirrorsUsedClass;
 
   /// Whether [element] is the constructor of the `MirrorsUsed` class. Used to
   /// check for the constructor without forcing the resolution of the
   /// `MirrorsUsed` class until it is necessary.
-  bool isMirrorsUsedConstructor(ConstructorElement element);
+  bool isMirrorsUsedConstructor(FunctionEntity element);
 
   /// The `DeferredLibrary` annotation in dart:async that was used before the
   /// deferred import syntax was introduced.
   // TODO(sigmund): drop support for this old syntax?
-  ClassElement get deferredLibraryClass;
+  ClassEntity get deferredLibraryClass;
 
   /// The function `identical` in dart:core.
-  FunctionElement get identicalFunction;
+  FunctionEntity get identicalFunction;
 
   /// The method `Function.apply`.
-  FunctionElement get functionApplyMethod;
+  FunctionEntity get functionApplyMethod;
 
   /// Whether [element] is the same as [functionApplyMethod]. This will not
   /// resolve the apply method if it hasn't been seen yet during compilation.
-  bool isFunctionApplyMethod(Element element);
-}
+  bool isFunctionApplyMethod(MemberEntity element);
 
-/// The core types in Dart.
-abstract class CoreTypes {
+  /// The unnamed constructor of `List`.
+  FunctionEntity get unnamedListConstructor;
+
+  /// The 'filled' constructor of `List`.
+  FunctionEntity get filledListConstructor;
+
+  /// The `dynamic` type.
+  DynamicType get dynamicType;
+
   /// The `Object` type defined in 'dart:core'.
   InterfaceType get objectType;
 
@@ -188,9 +186,6 @@ abstract class CoreTypes {
   /// If no type argument is provided, the canonical raw type is returned.
   InterfaceType iterableType([DartType elementType]);
 
-  /// The `Future` class declaration.
-  ClassElement get futureClass;
-
   /// Returns an instance of the `Future` type defined in 'dart:async' with
   /// [elementType] as its type argument.
   ///
@@ -202,4 +197,13 @@ abstract class CoreTypes {
   ///
   /// If no type argument is provided, the canonical raw type is returned.
   InterfaceType streamType([DartType elementType]);
+
+  /// Returns `true` if [element] is a superclass of `String` or `num`.
+  bool isNumberOrStringSupertype(ClassEntity element);
+
+  /// Returns `true` if [element] is a superclass of `String`.
+  bool isStringOnlySupertype(ClassEntity element);
+
+  /// Returns `true` if [element] is a superclass of `List`.
+  bool isListSupertype(ClassEntity element);
 }

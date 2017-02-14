@@ -29,8 +29,8 @@ import 'package:path/path.dart';
  * Adds edits to the given [change] that ensure that all the [libraries] are
  * imported into the given [targetLibrary].
  */
-void addLibraryImports(SourceChange change, LibraryElement targetLibrary,
-    Set<LibraryElement> libraries) {
+void addLibraryImports(
+    SourceChange change, LibraryElement targetLibrary, Set<Source> libraries) {
   CorrectionUtils libUtils;
   try {
     CompilationUnitElement unitElement = targetLibrary.definingCompilationUnit;
@@ -54,7 +54,7 @@ void addLibraryImports(SourceChange change, LibraryElement targetLibrary,
 
   // Prepare all URIs to import.
   List<String> uriList = libraries
-      .map((library) => getLibrarySourceUri(targetLibrary, library.source))
+      .map((library) => getLibrarySourceUri(targetLibrary, library))
       .toList();
   uriList.sort((a, b) => a.compareTo(b));
 
@@ -155,25 +155,6 @@ Expression climbPropertyAccess(AstNode node) {
     }
     return node;
   }
-}
-
-/**
- * Attempts to convert the given absolute path into an absolute URI, such as
- * "dart" or "package" URI.
- *
- * [context] - the [AnalysisContext] to work in.
- * [path] - the absolute path, not `null`.
- *
- * Returns the absolute (non-file) URI or `null`.
- */
-String findNonFileUri(AnalysisContext context, String path) {
-  Source fileSource =
-      new NonExistingSource(path, toUri(path), UriKind.FILE_URI);
-  Uri uri = context.sourceFactory.restoreUri(fileSource);
-  if (uri == null || uri.scheme == 'file') {
-    return null;
-  }
-  return uri.toString();
 }
 
 /**
@@ -367,7 +348,7 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
  * Computes the best URI to import [what] into [from].
  */
 String getLibrarySourceUri(LibraryElement from, Source what) {
-  String whatFile = what.fullName;
+  String whatPath = what.fullName;
   // check if an absolute URI (such as 'dart:' or 'package:')
   Uri whatUri = what.uri;
   String whatUriScheme = whatUri.scheme;
@@ -376,7 +357,7 @@ String getLibrarySourceUri(LibraryElement from, Source what) {
   }
   // compute a relative URI
   String fromFolder = dirname(from.source.fullName);
-  String relativeFile = relative(whatFile, from: fromFolder);
+  String relativeFile = relative(whatPath, from: fromFolder);
   return split(relativeFile).join('/');
 }
 
@@ -699,6 +680,8 @@ class CorrectionUtils {
    */
   ClassElement targetClassElement;
 
+  ExecutableElement targetExecutableElement;
+
   LibraryElement _library;
   String _buffer;
   String _endOfLine;
@@ -765,7 +748,7 @@ class CorrectionUtils {
    * if can not be resolved, should be treated as the `dynamic` type.
    */
   String getExpressionTypeSource(
-      Expression expression, Set<LibraryElement> librariesToImport) {
+      Expression expression, Set<Source> librariesToImport) {
     if (expression == null) {
       return null;
     }
@@ -1054,7 +1037,7 @@ class CorrectionUtils {
    * @return the source for the parameter with the given type and name.
    */
   String getParameterSource(
-      DartType type, String name, Set<LibraryElement> librariesToImport) {
+      DartType type, String name, Set<Source> librariesToImport) {
     // no type
     if (type == null || type.isDynamic) {
       return name;
@@ -1121,7 +1104,7 @@ class CorrectionUtils {
    * Fills [librariesToImport] with [LibraryElement]s whose elements are
    * used by the generated source, but not imported.
    */
-  String getTypeSource(DartType type, Set<LibraryElement> librariesToImport,
+  String getTypeSource(DartType type, Set<Source> librariesToImport,
       {StringBuffer parametersBuffer}) {
     StringBuffer sb = new StringBuffer();
     // type parameter
@@ -1146,8 +1129,8 @@ class CorrectionUtils {
       parametersBuffer.write(')');
       return getTypeSource(type.returnType, librariesToImport);
     }
-    // BottomType
-    if (type.isBottom) {
+    // <Bottom>, Null
+    if (type.isBottom || type.isDartCoreNull) {
       return 'dynamic';
     }
     // prepare element
@@ -1173,7 +1156,7 @@ class CorrectionUtils {
           sb.write(".");
         }
       } else {
-        librariesToImport.add(library);
+        librariesToImport.add(library.source);
       }
     }
     // append simple name
@@ -1315,6 +1298,16 @@ class CorrectionUtils {
             member is FieldDeclaration ||
             member is ConstructorDeclaration ||
             member is MethodDeclaration && member.isGetter);
+  }
+
+  ClassMemberLocation prepareNewMethodLocation(
+      ClassDeclaration classDeclaration) {
+    return prepareNewClassMemberLocation(
+        classDeclaration,
+        (member) =>
+            member is FieldDeclaration ||
+            member is ConstructorDeclaration ||
+            member is MethodDeclaration);
   }
 
   /**
@@ -1490,13 +1483,15 @@ class CorrectionUtils {
   }
 
   /**
-   * Checks if [type] is visible at [targetOffset].
+   * Checks if [type] is visible in [targetExecutableElement] or
+   * [targetClassElement].
    */
   bool _isTypeVisible(DartType type) {
     if (type is TypeParameterType) {
       TypeParameterElement parameterElement = type.element;
       Element parameterClassElement = parameterElement.enclosingElement;
-      return identical(parameterClassElement, targetClassElement);
+      return identical(parameterClassElement, targetExecutableElement) ||
+          identical(parameterClassElement, targetClassElement);
     }
     return true;
   }

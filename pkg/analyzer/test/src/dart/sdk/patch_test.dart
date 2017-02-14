@@ -9,7 +9,6 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/sdk/patch.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:test/test.dart';
@@ -163,6 +162,63 @@ class C {
     }, throwsArgumentError);
   }
 
+  test_class_constructor_patch_fail_fieldFormalParam_inBase() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  int f;
+  external C.named(this.f);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named() : f = 2 {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_fail_fieldFormalParam_inPatch() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  int f;
+  external C.named(int f);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named(this.f) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_fail_fieldFormalParam_inPatchAndBase() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  int f;
+  external C.named(this.f);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named(this.f) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
   test_class_constructor_patch_fail_hasInitializers() {
     expect(() {
       _doTopLevelPatching(
@@ -195,6 +251,42 @@ class C {
 class C {
   @patch
   C.named() {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_fail_signatureChange() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external C.named(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named(double x) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_fail_signatureChange_nameOnly() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external C.named(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named(int y) {}
 }
 ''');
     }, throwsArgumentError);
@@ -411,6 +503,254 @@ class C {
     }, throwsArgumentError);
   }
 
+  test_class_method_patch_fail_signatureChange() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f(double x) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_extraArgument() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f(int x) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_extraTypeTokens() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external List f();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  List<int> f() => null;
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_functionTypedParam_paramType() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(void x(int y));
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f(void x(double y)) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_functionTypedParam_returnType() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(int x());
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f(double x()) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_makeReturnTypeExplicit() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external f();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  int f() => 0;
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_missingArgument() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f() {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_missingTypeTokens() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external List<int> f();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  List f() => null;
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_nameOnly() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  void f(int y) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_fail_signatureChange_returnTypeOnly() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external void f(int x);
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  int f(int x) {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch_success_defaultFormalParameter() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class C {
+  external void f(int x = 0);
+}
+''',
+        r'''
+@patch
+class C {
+  @patch
+  void f(int x) {}
+}
+''');
+    ClassDeclaration cls = unit.declarations[0];
+    MethodDeclaration method = cls.members[0];
+    FormalParameter parameter = method.parameters.parameters[0];
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+  }
+
+  test_class_method_patch_success_implicitReturnType() {
+    _doTopLevelPatching(
+        r'''
+class C {
+  external f();
+}
+''',
+        r'''
+@patch
+class C {
+  @patch
+  f() => null;
+}
+''');
+  }
+
+  test_class_method_patch_success_multiTokenReturnType() {
+    _doTopLevelPatching(
+        r'''
+class C {
+  external List<int> f();
+}
+''',
+        r'''
+@patch
+class C {
+  @patch
+  List<int> f() => null;
+}
+''');
+  }
+
+  test_class_method_patch_success_signatureChange_functionTypedParam_matching() {
+    _doTopLevelPatching(
+        r'''
+class C {
+  external void f(void x(int y));
+}
+''',
+        r'''
+@patch
+class C {
+  @patch
+  void f(void x(int y)) {}
+}
+''');
+  }
+
   test_class_setter_append() {
     CompilationUnit unit = _doTopLevelPatching(
         r'''
@@ -453,30 +793,21 @@ import 'c.dart';
         "import 'a.dart'; part 'b.dart'; import 'c.dart'; int bar() => 0;");
   }
 
-  test_fail_noSuchLibrary() {
-    expect(() {
-      _setSdkLibraries('const LIBRARIES = const {};');
-      _createSdk();
-      File file = provider.newFile(_p('/sdk/lib/test/test.dart'), '');
-      Source source = file.createSource(FastUri.parse('dart:test'));
-      CompilationUnit unit = SdkPatcher.parse(source, true, listener);
-      patcher.patch(sdk, SdkLibraryImpl.VM_PLATFORM, listener, source, unit);
-    }, throwsArgumentError);
-  }
-
   test_fail_patchFileDoesNotExist() {
     expect(() {
       _setSdkLibraries(r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'test' : const LibraryInfo(
-    'test/test.dart',
-    patches: {VM_PLATFORM: ['does_not_exists.dart']}),
+    'test/test.dart'),
 };''');
       _createSdk();
+      var patchPaths = {
+        'dart:test': [_p('/sdk/lib/does_not_exist.dart')]
+      };
       File file = provider.newFile(_p('/sdk/lib/test/test.dart'), '');
       Source source = file.createSource(FastUri.parse('dart:test'));
       CompilationUnit unit = SdkPatcher.parse(source, true, listener);
-      patcher.patch(sdk, SdkLibraryImpl.VM_PLATFORM, listener, source, unit);
+      patcher.patch(provider, true, patchPaths, listener, source, unit);
     }, throwsArgumentError);
   }
 
@@ -484,9 +815,11 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     _setSdkLibraries(r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   '_internal' : const LibraryInfo(
-    'internal/internal.dart',
-    patches: {VM_PLATFORM: ['internal/internal_patch.dart']}),
+    'internal/internal.dart'),
 };''');
+    var patchPaths = {
+      'dart:_internal': [_p('/sdk/lib/internal/internal_patch.dart')]
+    };
     File file = provider.newFile(
         _p('/sdk/lib/internal/internal.dart'),
         r'''
@@ -513,7 +846,7 @@ int newFunction() => 2;
 
     Source source = file.createSource(FastUri.parse('dart:_internal'));
     CompilationUnit unit = SdkPatcher.parse(source, true, listener);
-    patcher.patch(sdk, SdkLibraryImpl.VM_PLATFORM, listener, source, unit);
+    patcher.patch(provider, true, patchPaths, listener, source, unit);
     _assertUnitCode(
         unit,
         'library dart._internal; class A {} '
@@ -537,6 +870,9 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     'test/test.dart',
     patches: {VM_PLATFORM: ['test/test_patch.dart']}),
 };''');
+    var patchPaths = {
+      'dart:test': [_p('/sdk/lib/test/test_patch.dart')]
+    };
     File fileLib = provider.newFile(_p('/sdk/lib/test/test.dart'), baseLibCode);
     File filePart =
         provider.newFile(_p('/sdk/lib/test/test_part.dart'), basePartCode);
@@ -564,7 +900,7 @@ class _C {}
       Uri uri = FastUri.parse('dart:test');
       Source source = fileLib.createSource(uri);
       CompilationUnit unit = SdkPatcher.parse(source, true, listener);
-      patcher.patch(sdk, SdkLibraryImpl.VM_PLATFORM, listener, source, unit);
+      patcher.patch(provider, true, patchPaths, listener, source, unit);
       _assertUnitCode(
           unit,
           "library test; part 'test_part.dart'; import 'foo.dart'; "
@@ -575,7 +911,7 @@ class _C {}
       Uri uri = FastUri.parse('dart:test/test_part.dart');
       Source source = filePart.createSource(uri);
       CompilationUnit unit = SdkPatcher.parse(source, true, listener);
-      patcher.patch(sdk, SdkLibraryImpl.VM_PLATFORM, listener, source, unit);
+      patcher.patch(provider, true, patchPaths, listener, source, unit);
       _assertUnitCode(unit, "part of test; class B {int _b() => 1;}");
     }
   }
@@ -617,18 +953,6 @@ class A {}
 ''',
           r'''
 class B {}
-''');
-    }, throwsArgumentError);
-  }
-
-  test_topLevel_fail_topLevelVariable() {
-    expect(() {
-      _doTopLevelPatching(
-          r'''
-int foo() => 0;
-''',
-          r'''
-int _bar;
 ''');
     }, throwsArgumentError);
   }
@@ -770,6 +1094,45 @@ int foo() {int v = 1; return v + 2;}
     _assertUnitCode(unit, 'int foo() {int v = 1; return v + 2;}');
   }
 
+  test_topLevel_patch_function_fail_signatureChange() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+external void f(int x);
+''',
+          r'''
+@patch
+void f(double x) {}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_topLevel_patch_function_fail_signatureChange_nameOnly() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+external void f(int x);
+''',
+          r'''
+@patch
+void f(int y) {}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_topLevel_patch_function_fail_signatureChange_returnTypeOnly() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+external void f(int x);
+''',
+          r'''
+@patch
+int f(int x) {}
+''');
+    }, throwsArgumentError);
+  }
+
   test_topLevel_patch_getter() {
     CompilationUnit unit = _doTopLevelPatching(
         r'''
@@ -796,6 +1159,20 @@ void set foo(int val) {}
     _assertUnitCode(unit, 'void set foo(int val) {} int bar() => 2;');
   }
 
+  test_topLevel_topLevelVariable_append() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+int foo() => 0;
+''',
+        r'''
+int _bar;
+''');
+    _assertUnitCode(unit, 'int foo() => 0; int _bar;');
+    FunctionDeclaration a = unit.declarations[0];
+    TopLevelVariableDeclaration b = unit.declarations[1];
+    _assertPrevNextToken(a.endToken, b.beginToken);
+  }
+
   void _assertUnitCode(CompilationUnit unit, String expectedCode) {
     expect(unit.toSource(), expectedCode);
   }
@@ -809,9 +1186,11 @@ void set foo(int val) {}
     _setSdkLibraries(r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'test' : const LibraryInfo(
-    'test/test.dart',
-    patches: {VM_PLATFORM: ['test/test_patch.dart']}),
+    'test/test.dart'),
 };''');
+    var patchPaths = {
+      'dart:test': [_p('/sdk/lib/test/test_patch.dart')]
+    };
     File file = provider.newFile(_p('/sdk/lib/test/test.dart'), baseCode);
     provider.newFile(_p('/sdk/lib/test/test_patch.dart'), patchCode);
 
@@ -819,7 +1198,7 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
 
     Source source = file.createSource(FastUri.parse('dart:test'));
     CompilationUnit unit = SdkPatcher.parse(source, true, listener);
-    patcher.patch(sdk, SdkLibraryImpl.VM_PLATFORM, listener, source, unit);
+    patcher.patch(provider, true, patchPaths, listener, source, unit);
     return unit;
   }
 

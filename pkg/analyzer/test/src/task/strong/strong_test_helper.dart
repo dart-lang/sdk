@@ -7,6 +7,7 @@
 library analyzer.test.src.task.strong.strong_test_helper;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -87,7 +88,8 @@ CompilationUnit check(
 
   // Extract expectations from the comments in the test files, and
   // check that all errors we emit are included in the expected map.
-  var allLibraries = _reachableLibraries(initialLibrary.element.library);
+  var allLibraries = _reachableLibraries(
+      resolutionMap.elementDeclaredByCompilationUnit(initialLibrary).library);
   for (var lib in allLibraries) {
     for (var unit in lib.units) {
       var errors = <AnalysisError>[];
@@ -173,7 +175,9 @@ String _errorCodeName(ErrorCode errorCode) {
 
 ErrorSeverity _errorSeverity(AnalysisContext context, AnalysisError error) {
   // Attempt to process severity in a similar way to analyzer_cli and server.
-  return ErrorProcessor.getProcessor(context, error)?.severity ??
+  return ErrorProcessor
+          .getProcessor(context.analysisOptions, error)
+          ?.severity ??
       error.errorCode.errorSeverity;
 }
 
@@ -283,13 +287,14 @@ void _reportFailure(
     Map<_ErrorExpectation, AnalysisError> different) {
   // Get the source code. This reads the data again, but it's safe because
   // all tests use memory file system.
-  var sourceCode = unit.element.source.contents.data;
+  var sourceCode =
+      resolutionMap.elementDeclaredByCompilationUnit(unit).source.contents.data;
 
   String formatActualError(AnalysisError error) {
     int offset = error.offset;
     int length = error.length;
-    var span = _createSpanHelper(
-        unit.lineInfo, offset, unit.element.source, sourceCode,
+    var span = _createSpanHelper(unit.lineInfo, offset,
+        resolutionMap.elementDeclaredByCompilationUnit(unit).source, sourceCode,
         end: offset + length);
     var levelName = _errorSeverity(context, error).displayName;
     return '@$offset $levelName:${_errorCodeName(error.errorCode)}\n' +
@@ -299,7 +304,10 @@ void _reportFailure(
   String formatExpectedError(_ErrorExpectation error) {
     int offset = error.offset;
     var span = _createSpanHelper(
-        unit.lineInfo, offset, unit.element.source, sourceCode);
+        unit.lineInfo,
+        offset,
+        resolutionMap.elementDeclaredByCompilationUnit(unit).source,
+        sourceCode);
     var severity = error.severity.displayName;
     return '@$offset $severity:${error.typeName}\n' + span.message('');
   }

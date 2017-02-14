@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart'
@@ -71,14 +71,14 @@ main() {
 }
 
 testSimpleTypes(MockCompiler compiler) {
-  checkType(DartType type, String code) {
+  checkType(ResolutionInterfaceType type, String code) {
     Expect.equals(type, analyzeType(compiler, code));
   }
 
-  checkType(compiler.coreTypes.intType, "3");
-  checkType(compiler.coreTypes.boolType, "false");
-  checkType(compiler.coreTypes.boolType, "true");
-  checkType(compiler.coreTypes.stringType, "'hestfisk'");
+  checkType(compiler.commonElements.intType, "3");
+  checkType(compiler.commonElements.boolType, "false");
+  checkType(compiler.commonElements.boolType, "true");
+  checkType(compiler.commonElements.stringType, "'hestfisk'");
 }
 
 Future testReturn(MockCompiler compiler) {
@@ -2649,7 +2649,7 @@ Future setup(test(MockCompiler compiler)) {
   return compiler.init("import 'dart:async';").then((_) => test(compiler));
 }
 
-DartType analyzeType(MockCompiler compiler, String text) {
+ResolutionDartType analyzeType(MockCompiler compiler, String text) {
   var node = parseExpression(text);
   TypeCheckerVisitor visitor = new TypeCheckerVisitor(
       compiler, new TreeElementMapping(null), compiler.types);
@@ -2699,7 +2699,7 @@ analyzeTopLevel(String text, [expectedWarnings]) {
         new TypeCheckerVisitor(compiler, mapping, compiler.types);
     DiagnosticCollector collector = compiler.diagnosticCollector;
     collector.clear();
-    checker.analyze(node);
+    checker.analyze(node, mustHaveType: false);
     compareWarningKinds(text, expectedWarnings, collector.warnings);
 
     compiler.diagnosticHandler = null;
@@ -2736,7 +2736,7 @@ analyze(MockCompiler compiler, String text,
       new TypeCheckerVisitor(compiler, elements, compiler.types);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   collector.clear();
-  checker.analyze(node);
+  checker.analyze(node, mustHaveType: false);
   if (flushDeferred) {
     compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
   }
@@ -2777,7 +2777,7 @@ analyzeIn(MockCompiler compiler, FunctionElement element, String text,
       new TypeCheckerVisitor(compiler, elements, compiler.types);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   collector.clear();
-  checker.analyze(node);
+  checker.analyze(node, mustHaveType: false);
   generateOutput(compiler, text);
   compareWarningKinds(text, warnings, collector.warnings);
   compareWarningKinds(text, hints, collector.hints);

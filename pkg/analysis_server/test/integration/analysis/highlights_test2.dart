@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.analysis.highlights2;
-
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
@@ -15,11 +13,12 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHighlightsTest);
+    defineReflectiveTests(AnalysisHighlightsTest_Driver);
   });
 }
 
-@reflectiveTest
-class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
+class AbstractAnalysisHighlightsTest
+    extends AbstractAnalysisServerIntegrationTest {
   Future startServer(
       {bool checked: true, int diagnosticPort, int servicesPort}) {
     return server.start(
@@ -159,4 +158,13 @@ int topLevelVariable;
       expect(highlights, isEmpty);
     });
   }
+}
+
+@reflectiveTest
+class AnalysisHighlightsTest extends AbstractAnalysisHighlightsTest {}
+
+@reflectiveTest
+class AnalysisHighlightsTest_Driver extends AbstractAnalysisHighlightsTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

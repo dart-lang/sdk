@@ -21,6 +21,7 @@
 *.vcxproj
 *.vcxproj.filters
 /*.vcxproj.user
+*.stamp
 
 # Gyp generated files
 *.xcodeproj

@@ -10,13 +10,13 @@ import '../elements/elements.dart'
     show
         Element,
         Elements,
-        FunctionElement,
         FunctionSignature,
+        MemberElement,
+        MethodElement,
         Name,
-        LibraryElement,
         PublicName;
+import '../elements/entities.dart';
 import '../util/util.dart' show Hashing;
-import '../common/resolution.dart' show Target;
 import 'call_structure.dart' show CallStructure;
 
 class SelectorKind {
@@ -57,7 +57,7 @@ class Selector {
 
   String get name => memberName.text;
 
-  LibraryElement get library => memberName.library;
+  LibraryEntity get library => memberName.library;
 
   Selector.internal(
       this.kind, this.memberName, this.callStructure, this.hashCode) {
@@ -217,12 +217,12 @@ class Selector {
     return kind;
   }
 
-  bool appliesUnnamed(Element element) {
+  bool appliesUnnamed(MemberElement element) {
     assert(name == element.name);
     return appliesUntyped(element);
   }
 
-  bool appliesUntyped(Element element) {
+  bool appliesUntyped(MemberElement element) {
     assert(name == element.name);
     if (Elements.isUnresolved(element)) return false;
     if (memberName.isPrivate && memberName.library != element.library) {
@@ -242,12 +242,12 @@ class Selector {
     return signatureApplies(element);
   }
 
-  bool signatureApplies(FunctionElement function) {
+  bool signatureApplies(MethodElement function) {
     if (Elements.isUnresolved(function)) return false;
-    return callStructure.signatureApplies(function.functionSignature);
+    return callStructure.signatureApplies(function.type);
   }
 
-  bool applies(Element element) {
+  bool applies(MemberElement element) {
     if (name != element.name) return false;
     return appliesUnnamed(element);
   }

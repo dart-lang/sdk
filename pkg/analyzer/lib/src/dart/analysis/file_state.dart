@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
+import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -22,6 +23,7 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:convert/convert.dart';
@@ -83,6 +85,7 @@ class FileState {
    */
   Source source;
 
+  bool _exists;
   String _content;
   String _contentHash;
   LineInfo _lineInfo;
@@ -93,9 +96,14 @@ class FileState {
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
   List<FileState> _partedFiles;
+  List<NameFilter> _exportFilters;
+
   Set<FileState> _directReferencedFiles = new Set<FileState>();
   Set<FileState> _transitiveFiles;
   String _transitiveSignature;
+
+  Map<String, TopLevelDeclaration> _topLevelDeclarations;
+  Map<String, TopLevelDeclaration> _exportedTopLevelDeclarations;
 
   FileState._(this._fsState, this.path, this.uri, this.source);
 
@@ -121,9 +129,59 @@ class FileState {
   Set<FileState> get directReferencedFiles => _directReferencedFiles;
 
   /**
+   * Return `true` if the file exists.
+   */
+  bool get exists => _exists;
+
+  /**
    * The list of files this file exports.
    */
   List<FileState> get exportedFiles => _exportedFiles;
+
+  /**
+   * Return [TopLevelDeclaration]s exported from the this library file. The
+   * keys to the map are names of declarations.
+   */
+  Map<String, TopLevelDeclaration> get exportedTopLevelDeclarations {
+    if (_exportedTopLevelDeclarations == null) {
+      _exportedTopLevelDeclarations = <String, TopLevelDeclaration>{};
+
+      Set<FileState> seenLibraries = new Set<FileState>();
+
+      /**
+       * Compute [TopLevelDeclaration]s exported from the [library].
+       */
+      Map<String, TopLevelDeclaration> computeExported(FileState library) {
+        var declarations = <String, TopLevelDeclaration>{};
+        if (seenLibraries.add(library)) {
+          // Append the exported declarations.
+          for (int i = 0; i < library._exportedFiles.length; i++) {
+            Map<String, TopLevelDeclaration> exported =
+                computeExported(library._exportedFiles[i]);
+            for (TopLevelDeclaration t in exported.values) {
+              if (library._exportFilters[i].accepts(t.name)) {
+                declarations[t.name] = t;
+              }
+            }
+          }
+
+          // Append the library declarations.
+          declarations.addAll(library.topLevelDeclarations);
+          for (FileState part in library.partedFiles) {
+            declarations.addAll(part.topLevelDeclarations);
+          }
+
+          // We're done with this library.
+          seenLibraries.remove(library);
+        }
+
+        return declarations;
+      }
+
+      _exportedTopLevelDeclarations = computeExported(this);
+    }
+    return _exportedTopLevelDeclarations;
+  }
 
   @override
   int get hashCode => uri.hashCode;
@@ -168,6 +226,56 @@ class FileState {
   Set<String> get referencedNames => _referencedNames;
 
   /**
+   * Return public top-level declarations declared in the file. The keys to the
+   * map are names of declarations.
+   */
+  Map<String, TopLevelDeclaration> get topLevelDeclarations {
+    if (_topLevelDeclarations == null) {
+      _topLevelDeclarations = <String, TopLevelDeclaration>{};
+
+      void addDeclaration(TopLevelDeclarationKind kind, String name) {
+        if (!name.startsWith('_')) {
+          _topLevelDeclarations[name] = new TopLevelDeclaration(kind, name);
+        }
+      }
+
+      // Add types.
+      for (UnlinkedClass type in unlinked.classes) {
+        addDeclaration(TopLevelDeclarationKind.type, type.name);
+      }
+      for (UnlinkedEnum type in unlinked.enums) {
+        addDeclaration(TopLevelDeclarationKind.type, type.name);
+      }
+      for (UnlinkedTypedef type in unlinked.typedefs) {
+        addDeclaration(TopLevelDeclarationKind.type, type.name);
+      }
+      // Add functions and variables.
+      Set<String> addedVariableNames = new Set<String>();
+      for (UnlinkedExecutable executable in unlinked.executables) {
+        String name = executable.name;
+        if (executable.kind == UnlinkedExecutableKind.functionOrMethod) {
+          addDeclaration(TopLevelDeclarationKind.function, name);
+        } else if (executable.kind == UnlinkedExecutableKind.getter ||
+            executable.kind == UnlinkedExecutableKind.setter) {
+          if (executable.kind == UnlinkedExecutableKind.setter) {
+            name = name.substring(0, name.length - 1);
+          }
+          if (addedVariableNames.add(name)) {
+            addDeclaration(TopLevelDeclarationKind.variable, name);
+          }
+        }
+      }
+      for (UnlinkedVariable variable in unlinked.variables) {
+        String name = variable.name;
+        if (addedVariableNames.add(name)) {
+          addDeclaration(TopLevelDeclarationKind.variable, name);
+        }
+      }
+    }
+    return _topLevelDeclarations;
+  }
+
+  /**
    * Return the set of transitive files - the file itself and all of the
    * directly or indirectly referenced files.
    */
@@ -193,7 +301,6 @@ class FileState {
     if (_transitiveSignature == null) {
       ApiSignature signature = new ApiSignature();
       signature.addUint32List(_fsState._salt);
-      signature.addString(_fsState._sdkApiSignature);
       signature.addInt(transitiveFiles.length);
       transitiveFiles
           .map((file) => file.apiSignature)
@@ -232,6 +339,7 @@ class FileState {
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
     Parser parser = new Parser(source, errorListener);
+    parser.enableAssertInitializer = analysisOptions.enableAssertInitializer;
     parser.parseGenericMethodComments = analysisOptions.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
@@ -249,15 +357,10 @@ class FileState {
     try {
       _content = _fsState._contentOverlay[path];
       _content ??= _fsState._resourceProvider.getFile(path).readAsStringSync();
+      _exists = true;
     } catch (_) {
       _content = '';
-      // TODO(scheglov) We fail to report URI_DOES_NOT_EXIST.
-      // On one hand we need to provide an unlinked bundle to prevent
-      // analysis context from reading the file (we want it to work
-      // hermetically and handle one one file at a time). OTOH,
-      // ResynthesizerResultProvider happily reports that any source in the
-      // SummaryDataStore has MODIFICATION_TIME `0`. We need to return `-1`
-      // for missing files. Maybe add this feature to SummaryDataStore?
+      _exists = false;
     }
 
     // Compute the content hash.
@@ -298,18 +401,24 @@ class FileState {
     _referencedNames = new Set<String>.from(driverUnlinkedUnit.referencedNames);
     _unlinked = driverUnlinkedUnit.unit;
     _lineInfo = new LineInfo(_unlinked.lineStarts);
+    _topLevelDeclarations = null;
+
+    // Prepare API signature.
     List<int> newApiSignature = _unlinked.apiSignature;
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
 
-    // If the API signature changed, flush transitive signatures.
+    // The API signature changed.
+    //   Flush transitive signatures of affected files.
+    //   Flush exported top-level declarations of all files.
     if (apiSignatureChanged) {
       for (FileState file in _fsState._uriToFile.values) {
         if (file._transitiveFiles != null &&
             file._transitiveFiles.contains(this)) {
           file._transitiveSignature = null;
         }
+        file._exportedTopLevelDeclarations = null;
       }
     }
 
@@ -324,36 +433,31 @@ class FileState {
     _importedFiles = <FileState>[];
     _exportedFiles = <FileState>[];
     _partedFiles = <FileState>[];
+    _exportFilters = <NameFilter>[];
     for (UnlinkedImport import in _unlinked.imports) {
-      if (!import.isImplicit) {
-        String uri = import.uri;
-        if (!_isDartUri(uri)) {
-          FileState file = _fileForRelativeUri(uri);
-          if (file != null) {
-            _importedFiles.add(file);
-          }
-        }
+      String uri = import.isImplicit ? 'dart:core' : import.uri;
+      FileState file = _fileForRelativeUri(uri);
+      if (file != null) {
+        _importedFiles.add(file);
       }
     }
     for (UnlinkedExportPublic export in _unlinked.publicNamespace.exports) {
       String uri = export.uri;
-      if (!_isDartUri(uri)) {
-        FileState file = _fileForRelativeUri(uri);
-        if (file != null) {
-          _exportedFiles.add(file);
-        }
+      FileState file = _fileForRelativeUri(uri);
+      if (file != null) {
+        _exportedFiles.add(file);
+        _exportFilters
+            .add(new NameFilter.forUnlinkedCombinators(export.combinators));
       }
     }
     for (String uri in _unlinked.publicNamespace.parts) {
-      if (!_isDartUri(uri)) {
-        FileState file = _fileForRelativeUri(uri);
-        if (file != null) {
-          _partedFiles.add(file);
-          // TODO(scheglov) Sort for stable results?
-          _fsState._partToLibraries
-              .putIfAbsent(file, () => <FileState>[])
-              .add(this);
-        }
+      FileState file = _fileForRelativeUri(uri);
+      if (file != null) {
+        _partedFiles.add(file);
+        // TODO(scheglov) Sort for stable results?
+        _fsState._partToLibraries
+            .putIfAbsent(file, () => <FileState>[])
+            .add(this);
       }
     }
 
@@ -411,10 +515,6 @@ class FileState {
     }
     return true;
   }
-
-  static bool _isDartUri(String uri) {
-    return uri.startsWith('dart:');
-  }
 }
 
 /**
@@ -428,12 +528,16 @@ class FileSystemState {
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
   final Uint32List _salt;
-  final String _sdkApiSignature;
 
   /**
    * Mapping from a URI to the corresponding [FileState].
    */
   final Map<Uri, FileState> _uriToFile = {};
+
+  /**
+   * All known file paths.
+   */
+  final Set<String> knownFilePaths = new Set<String>();
 
   /**
    * Mapping from a path to the corresponding [FileState]s, canonical or not.
@@ -459,15 +563,15 @@ class FileSystemState {
       this._resourceProvider,
       this._sourceFactory,
       this._analysisOptions,
-      this._salt,
-      this._sdkApiSignature) {
+      this._salt) {
     _testView = new FileSystemStateTestView(this);
   }
 
   /**
-   * Return the set of known files.
+   * Return the known files.
    */
-  Set<String> get knownFiles => _pathToFiles.keys.toSet();
+  Iterable<FileState> get knownFiles =>
+      _pathToFiles.values.map((files) => files.first);
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
@@ -488,7 +592,7 @@ class FileSystemState {
       // Try to get the existing instance.
       file = _uriToFile[uri];
       // If we have a file, call it the canonical one and return it.
-      if (file != null) {
+      if (file != null && file.path == path) {
         _pathToCanonicalFile[path] = file;
         return file;
       }
@@ -496,7 +600,7 @@ class FileSystemState {
       FileSource uriSource = new FileSource(resource, uri);
       file = new FileState._(this, path, uri, uriSource);
       _uriToFile[uri] = file;
-      _pathToFiles.putIfAbsent(path, () => <FileState>[]).add(file);
+      _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
       file.refresh();
     }
@@ -522,7 +626,7 @@ class FileSystemState {
       FileSource source = new FileSource(resource, uri);
       file = new FileState._(this, path, uri, source);
       _uriToFile[uri] = file;
-      _pathToFiles.putIfAbsent(path, () => <FileState>[]).add(file);
+      _addFileWithPath(path, file);
       file.refresh();
     }
     return file;
@@ -541,6 +645,27 @@ class FileSystemState {
     return allFiles
       ..remove(canonicalFile)
       ..insert(0, canonicalFile);
+  }
+
+  /**
+   * Remove the file with the given [path].
+   */
+  void removeFile(String path) {
+    _uriToFile.clear();
+    knownFilePaths.clear();
+    _pathToFiles.clear();
+    _pathToCanonicalFile.clear();
+    _partToLibraries.clear();
+  }
+
+  void _addFileWithPath(String path, FileState file) {
+    var files = _pathToFiles[path];
+    if (files == null) {
+      knownFilePaths.add(path);
+      files = <FileState>[];
+      _pathToFiles[path] = files;
+    }
+    files.add(file);
   }
 }
 

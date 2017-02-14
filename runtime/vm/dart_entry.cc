@@ -32,7 +32,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 
 class ScopedIsolateStackLimits : public ValueObject {
  public:
-  explicit ScopedIsolateStackLimits(Thread* thread)
+  explicit ScopedIsolateStackLimits(Thread* thread, uword current_sp)
       : thread_(thread), saved_stack_limit_(0) {
     ASSERT(thread != NULL);
     // Set the thread's stack_base based on the current
@@ -41,7 +41,6 @@ class ScopedIsolateStackLimits : public ValueObject {
     // grows from high to low addresses).
     OSThread* os_thread = thread->os_thread();
     ASSERT(os_thread != NULL);
-    uword current_sp = Thread::GetCurrentStackPointer();
     if (current_sp > os_thread->stack_base()) {
       os_thread->set_stack_base(current_sp);
     }
@@ -87,13 +86,15 @@ class SuspendLongJumpScope : public StackResource {
 
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments,
-                                     const Array& arguments_descriptor) {
+                                     const Array& arguments_descriptor,
+                                     uword current_sp) {
   // Get the entrypoint corresponding to the function specified, this
   // will result in a compilation of the function if it is not already
   // compiled.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(thread->IsMutatorThread());
+  ScopedIsolateStackLimits stack_limit(thread, current_sp);
   if (!function.HasCode()) {
     const Error& error =
         Error::Handle(zone, Compiler::CompileFunction(thread, function));
@@ -109,7 +110,6 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
-  ScopedIsolateStackLimits stack_limit(thread);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
   TransitionToGenerated transition(thread);
 #if defined(TARGET_ARCH_DBC)
@@ -177,7 +177,7 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
         if (c_stack_pos < c_stack_limit) {
           const Instance& exception =
               Instance::Handle(zone, isolate->object_store()->stack_overflow());
-          return UnhandledException::New(exception, Stacktrace::Handle(zone));
+          return UnhandledException::New(exception, StackTrace::Handle(zone));
         }
 
         const Array& getter_arguments = Array::Handle(zone, Array::New(1));
@@ -551,7 +551,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
     // If the isolate is being debugged and the debugger was stepping
     // through code, enable single stepping so debugger will stop
     // at the first location the user is interested in.
-    isolate->debugger()->SetSingleStep();
+    isolate->debugger()->SetResumeAction(Debugger::kStepInto);
   }
   const Object& result =
       Object::Handle(zone, DartEntry::InvokeFunction(function, args));

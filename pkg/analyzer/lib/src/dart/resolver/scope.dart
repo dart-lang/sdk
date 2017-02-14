@@ -663,7 +663,7 @@ class Namespace {
    * A table mapping names that are defined in this namespace to the element
    * representing the thing declared with that name.
    */
-  final HashMap<String, Element> _definedNames;
+  final Map<String, Element> _definedNames;
 
   /**
    * Initialize a newly created namespace to have the [_definedNames].

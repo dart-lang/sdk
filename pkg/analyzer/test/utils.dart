@@ -5,9 +5,11 @@
 library analyzer.test.utils;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:front_end/src/base/source.dart';
 import 'package:test/test.dart';
 
 /**
@@ -45,7 +47,8 @@ class AstFinder {
         return unitMember;
       }
     }
-    fail('No class named $className in ${unit.element.source}');
+    Source source = resolutionMap.elementDeclaredByCompilationUnit(unit).source;
+    fail('No class named $className in $source');
     return null;
   }
 
@@ -198,7 +201,9 @@ class TypeAssertions {
   // TODO(leafp): Make these matchers.
   // https://www.dartdocs.org/documentation/matcher/0.12.0%2B1/matcher/Matcher-class.html
 
-  /* Provides primitive types for basic type assertions */
+  /**
+   * Provides primitive types for basic type assertions.
+   */
   final TypeProvider _typeProvider;
 
   TypeAssertions(this._typeProvider);
@@ -216,12 +221,17 @@ class TypeAssertions {
   /**
    * Primitive assertion for the list type
    */
-  Asserter<DartType> get isList => sameElement(_typeProvider.listType);
+  Asserter<DartType> get isList => hasElementOf(_typeProvider.listType);
 
   /**
    * Primitive assertion for the map type
    */
-  Asserter<DartType> get isMap => sameElement(_typeProvider.mapType);
+  Asserter<DartType> get isMap => hasElementOf(_typeProvider.mapType);
+
+  /**
+   * Primitive assertion for the Null type
+   */
+  Asserter<DartType> get isNull => isType(_typeProvider.nullType);
 
   /**
    * Primitive assertion for the num type
@@ -229,15 +239,26 @@ class TypeAssertions {
   Asserter<DartType> get isNum => isType(_typeProvider.numType);
 
   /**
+   * Primitive assertion for the Object type
+   */
+  Asserter<DartType> get isObject => isType(_typeProvider.objectType);
+
+  /**
    * Primitive assertion for the string type
    */
   Asserter<DartType> get isString => isType(_typeProvider.stringType);
 
   /**
-   * Given a type, produce an assertion that a type has the same element.
+   * Assert that a type has the element that is equal to the [expected].
    */
-  Asserter<DartType> hasElement(Element element) =>
-      (DartType type) => expect(element, same(type.element));
+  Asserter<DartType> hasElement(Element expected) =>
+      (DartType type) => expect(expected, type.element);
+
+  /**
+   * Assert that a type has the element that is equal to the element of the
+   * given [type].
+   */
+  Asserter<DartType> hasElementOf(DartType type) => hasElement(type.element);
 
   /**
    * Given assertions for the argument and return types, produce an
@@ -253,7 +274,7 @@ class TypeAssertions {
 
   /**
    * Given an assertion for the base type and assertions over the type
-   * parameters, produce an assertion over instantations.
+   * parameters, produce an assertion over instantiations.
    */
   AsserterBuilder<List<Asserter<DartType>>, DartType> isInstantiationOf(
           Asserter<DartType> baseAssert) =>
@@ -283,15 +304,9 @@ class TypeAssertions {
       isInstantiationOf(isMap)([argAssert0, argAssert1]);
 
   /**
-   * Assert that one type is the same as another
+   * Assert that a type is equal to the [expected].
    */
-  Asserter<DartType> isType(DartType argument) => (DartType t) {
-        expect(t, same(argument));
+  Asserter<DartType> isType(DartType expected) => (DartType t) {
+        expect(t, expected);
       };
-
-  /**
-   * Given a type, produce an assertion that a type has the same element.
-   */
-  Asserter<DartType> sameElement(DartType elementType) =>
-      hasElement(elementType.element);
 }

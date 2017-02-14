@@ -28,6 +28,15 @@ class Expectation {
   static Expectation MISSING_STATIC_WARNING = byName('MissingStaticWarning');
   static Expectation PUB_GET_ERROR = byName('PubGetError');
 
+  // Special 'CRASH' cases
+  static Expectation DARTK_CRASH = byName('DartkCrash');
+
+  // Special 'TIMEOUT' cases
+  static Expectation DARTK_TIMEOUT = byName('DartkTimeout');
+
+  // Special 'COMPILETIME_ERROR'
+  static Expectation DARTK_COMPILETIME_ERROR = byName('DartkCompileTimeError');
+
   // "meta expectations"
   static Expectation OK = byName('Ok');
   static Expectation SLOW = byName('Slow');
@@ -63,14 +72,19 @@ class Expectation {
       }
 
       var fail = build("Fail");
+      var crash = build("Crash");
+      var timeout = build("Timeout");
       build("Pass");
-      build("Crash");
-      build("Timeout");
 
+      var compileError = build("CompileTimeError", group: fail);
       build("MissingCompileTimeError", group: fail);
       build("MissingRuntimeError", group: fail);
-      build("CompileTimeError", group: fail);
       build("RuntimeError", group: fail);
+
+      // Dartk sub expectations
+      build("DartkCrash", group: crash);
+      build("DartkTimeout", group: timeout);
+      build("DartkCompileTimeError", group: compileError);
 
       build("MissingStaticWarning", group: fail);
       build("StaticWarning", group: fail);

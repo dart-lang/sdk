@@ -10,6 +10,7 @@ import '../elements/elements.dart' show Element, FunctionElement;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
+import '../world.dart' show ClosedWorld;
 
 import 'builder.dart';
 import 'builder_kernel.dart';
@@ -36,11 +37,13 @@ class SsaFunctionCompiler implements FunctionCompiler {
 
   /// Generates JavaScript code for `work.element`.
   /// Using the ssa builder, optimizer and codegenerator.
-  js.Fun compile(CodegenWorkItem work) {
-    HGraph graph = useKernel ? builderKernel.build(work) : builder.build(work);
-    optimizer.optimize(work, graph);
+  js.Fun compile(CodegenWorkItem work, ClosedWorld closedWorld) {
+    HGraph graph = useKernel
+        ? builderKernel.build(work, closedWorld)
+        : builder.build(work, closedWorld);
+    optimizer.optimize(work, graph, closedWorld);
     Element element = work.element;
-    js.Expression result = generator.generateCode(work, graph);
+    js.Expression result = generator.generateCode(work, graph, closedWorld);
     if (element is FunctionElement) {
       // TODO(sigmund): replace by kernel transformer when `useKernel` is true.
       result = backend.rewriteAsync(element, result);

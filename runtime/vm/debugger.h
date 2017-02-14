@@ -276,6 +276,9 @@ class ActivationFrame : public ZoneAllocated {
   // to the user and can be debugged.
   bool IsDebuggable() const;
 
+  // Returns true if it is possible to rewind the debugger to this frame.
+  bool IsRewindable() const;
+
   // The context level of a frame is the context level at the
   // PC/token index of the frame. It determines the depth of the context
   // chain that belongs to the function of this activation frame.
@@ -373,6 +376,15 @@ class DebuggerStackTrace : public ZoneAllocated {
 
 class Debugger {
  public:
+  enum ResumeAction {
+    kContinue,
+    kStepInto,
+    kStepOver,
+    kStepOut,
+    kStepRewind,
+    kStepOverAsyncSuspension,
+  };
+
   typedef void EventHandler(ServiceEvent* event);
 
   Debugger();
@@ -412,11 +424,10 @@ class Debugger {
   void RemoveBreakpoint(intptr_t bp_id);
   Breakpoint* GetBreakpointById(intptr_t id);
 
-  // Will return false if we are not at an await.
-  bool SetupStepOverAsyncSuspension();
-  void SetStepOver();
-  void SetSingleStep();
-  void SetStepOut();
+  bool SetResumeAction(ResumeAction action,
+                       intptr_t frame_index = 1,
+                       const char** error = NULL);
+
   bool IsStepping() const { return resume_action_ != kContinue; }
 
   bool IsPaused() const { return pause_event_ != NULL; }
@@ -459,10 +470,10 @@ class Debugger {
   DebuggerStackTrace* StackTrace();
   DebuggerStackTrace* CurrentStackTrace();
 
-  // Returns a debugger stack trace corresponding to a dart.core.Stacktrace.
+  // Returns a debugger stack trace corresponding to a dart.core.StackTrace.
   // Frames corresponding to invisible functions are omitted. It is not valid
   // to query local variables in the returned stack.
-  DebuggerStackTrace* StackTraceFrom(const Stacktrace& dart_stacktrace);
+  DebuggerStackTrace* StackTraceFrom(const class StackTrace& dart_stacktrace);
 
   RawArray* GetInstanceFields(const Instance& obj);
   RawArray* GetStaticFields(const Class& cls);
@@ -513,10 +524,14 @@ class Debugger {
 
   intptr_t limitBreakpointId() { return next_id_; }
 
- private:
-  enum ResumeAction { kContinue, kStepOver, kStepOut, kSingleStep };
+  // Callback to the debugger to continue frame rewind, post-deoptimization.
+  void RewindPostDeopt();
 
+ private:
   RawError* PauseRequest(ServiceEvent::EventKind kind);
+
+  // Will return false if we are not at an await.
+  bool SetupStepOverAsyncSuspension(const char** error);
 
   bool NeedsIsolateEvents();
   bool NeedsDebugEvents();
@@ -588,6 +603,15 @@ class Debugger {
   void HandleSteppingRequest(DebuggerStackTrace* stack_trace,
                              bool skip_next_step = false);
 
+  // Can we rewind to the indicated frame?
+  bool CanRewindFrame(intptr_t frame_index, const char** error) const;
+
+  void RewindToFrame(intptr_t frame_index);
+  void RewindToUnoptimizedFrame(StackFrame* frame, const Code& code);
+  void RewindToOptimizedFrame(StackFrame* frame,
+                              const Code& code,
+                              intptr_t post_deopt_frame_index);
+
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.
   bool initialized_;
@@ -601,6 +625,8 @@ class Debugger {
 
   // Tells debugger what to do when resuming execution after a breakpoint.
   ResumeAction resume_action_;
+  intptr_t resume_frame_index_;
+  intptr_t post_deopt_frame_index_;
 
   // Do not call back to breakpoint handler if this flag is set.
   // Effectively this means ignoring breakpoints. Set when Dart code may

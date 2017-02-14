@@ -727,20 +727,20 @@ void main() {
   var compiler = compilerFor(TEST, uri);
   compiler.diagnosticHandler = createHandler(compiler, TEST);
   asyncTest(() => compiler.run(uri).then((_) {
-        var commonMasks = compiler.closedWorld.commonMasks;
         var typesInferrer = compiler.globalInference.typesInferrerInternal;
-        var world = compiler.closedWorld;
+        var closedWorld = typesInferrer.closedWorld;
+        var commonMasks = closedWorld.commonMasks;
 
         checkReturn(String name, type) {
           var element = findElement(compiler, name);
           Expect.equals(
               type,
-              simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
+              simplify(
+                  typesInferrer.getReturnTypeOfElement(element), closedWorld),
               name);
         }
 
-        var interceptorType =
-            findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+        var interceptorType = commonMasks.interceptorType;
 
         checkReturn('returnNum1', commonMasks.numType);
         checkReturn('returnNum2', commonMasks.numType);
@@ -761,7 +761,7 @@ void main() {
         checkReturn('returnEmpty1', const TypeMask.nonNullEmpty());
         checkReturn('returnEmpty2', const TypeMask.nonNullEmpty());
         TypeMask intType = new TypeMask.nonNullSubtype(
-            compiler.coreClasses.intClass, compiler.closedWorld);
+            compiler.commonElements.intClass, closedWorld);
         checkReturn('testIsCheck1', intType);
         checkReturn('testIsCheck2', intType);
         checkReturn('testIsCheck3', intType.nullable());
@@ -796,7 +796,7 @@ void main() {
         checkReturn(
             'returnAsString',
             new TypeMask.subtype(
-                compiler.coreClasses.stringClass, compiler.closedWorld));
+                compiler.commonElements.stringClass, closedWorld));
         checkReturn('returnIntAsNum', commonMasks.uint31Type);
         checkReturn('returnAsTypedef', commonMasks.functionType.nullable());
         checkReturn('returnTopLevelGetter', commonMasks.uint31Type);
@@ -806,9 +806,9 @@ void main() {
             'testSwitch1',
             simplify(
                 commonMasks.intType
-                    .union(commonMasks.doubleType, compiler.closedWorld)
+                    .union(commonMasks.doubleType, closedWorld)
                     .nullable(),
-                compiler));
+                closedWorld));
         checkReturn('testSwitch2', commonMasks.uint31Type);
         checkReturn('testSwitch3', interceptorType.nullable());
         checkReturn('testSwitch4', commonMasks.uint31Type);
@@ -832,7 +832,8 @@ void main() {
           var element = cls.lookupLocalMember(methodName);
           Expect.equals(
               type,
-              simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
+              simplify(
+                  typesInferrer.getReturnTypeOfElement(element), closedWorld),
               '$className:$methodName');
         }
 
@@ -864,17 +865,16 @@ void main() {
         checkFactoryConstructor(String className, String factoryName) {
           var cls = findElement(compiler, className);
           var element = cls.localLookup(factoryName);
-          Expect.equals(new TypeMask.nonNullExact(cls, world),
+          Expect.equals(new TypeMask.nonNullExact(cls, closedWorld),
               typesInferrer.getReturnTypeOfElement(element));
         }
 
         checkFactoryConstructor('A', '');
 
         checkReturn('testCascade1', commonMasks.growableListType);
-        checkReturn(
-            'testCascade2',
-            new TypeMask.nonNullExact(
-                findElement(compiler, 'CascadeHelper'), world));
+        ClassElement clsCascadeHelper = findElement(compiler, 'CascadeHelper');
+        checkReturn('testCascade2',
+            new TypeMask.nonNullExact(clsCascadeHelper, closedWorld));
         checkReturn('testSpecialization1', commonMasks.numType);
         checkReturn('testSpecialization2', commonMasks.dynamicType);
         checkReturn('testSpecialization3', commonMasks.uint31Type.nullable());

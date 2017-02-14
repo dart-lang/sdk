@@ -7,6 +7,9 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
+io/raw_socket_test: Pass, RuntimeError # Issue 28288
+io/http_close_test: Pass, RuntimeError # Issue 28380
+
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip   # contains no tests.
 
@@ -19,16 +22,16 @@ package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTim
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
 
-[ ($runtime != vm && $runtime != dart_precompiled && $runtime != dart_app) && ($runtime != drt || $compiler != none)) ]
+[ ($runtime != vm && $runtime != dart_precompiled) && ($runtime != drt || $compiler != none) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
 env_test: Skip # This is testing a vm command line parsing scenario.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
 package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $checked ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
 io/directory_invalid_arguments_test: Fail, OK
@@ -41,13 +44,17 @@ io/stdout_bad_argument_test: Fail, OK
 io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $system == macos ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $system == macos ]
 # This test fails with "Too many open files" on the Mac OS buildbot.
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
 # Re-enable once the bots have been updated. Issue #26057
 io/secure_server_client_certificate_test: Skip
+io/socket_test: Pass, Timeout # Issue 27453
+
+# This test sometimes hangs on Mac.
+io/raw_server_socket_cancel_test: Skip # Issue 28182
 
 [ $runtime == vm && $system == linux ]
 # These tests have started timing out and issue 25649 has been filed to
@@ -55,6 +62,11 @@ io/secure_server_client_certificate_test: Skip
 # green again.
 io/http_proxy_test: Skip
 io/secure_builtin_roots_test: Skip
+
+# These tests might be slow on an opt counter threshold bot.
+# They also time out on the bot occasionally => flaky test issue 28046
+io/http_basic_test: Pass, Slow, Timeout  # Issue 28046
+io/http_launch_test: Pass, Slow, Timeout  # Issue 28046
 
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
@@ -114,7 +126,7 @@ deferred_transitive_import_error_test: Skip # Contains intentional errors.
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
 
-[ ($runtime == vm || $runtime == dart_app) && ($arch == arm || $arch == arm64) ]
+[ $runtime == vm && ($arch == arm || $arch == arm64) ]
 io/file_stream_test: Skip # Issue 26109
 io/file_typed_data_test: Skip # Issue 26109
 io/file_input_stream_test: Skip # Issue 26109
@@ -143,7 +155,10 @@ io/test_runner_test: CompileTimeError # Imports dart:mirrors
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
-[ $arch == simarm && $mode == debug && $checked ]
+[ $arch == simmips ]
+io/socket_bind_test: Pass, Fail # Issue 28315
+
+[ ($arch == simarm || $arch == simdbc || $arch == simdbc64) && $mode == debug && $checked ]
 io/web_socket_test: Pass, Fail # Issue 26814
 
 [ $arch == mips ]
@@ -196,13 +211,14 @@ io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 io/process_sync_test: Pass, Timeout # Issue 24596
 io/sleep_test: Pass, Fail # Issue 25757
 io/socket_info_ipv6_test: RuntimeError # Issue 27876
+io/http_server_early_client_close2_test: Pass, Crash  # Issue 28197
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 io/file_lock_test: Skip  # Timeout.
 io/test_runner_test: Skip  # Timeout.
 io/http_client_stays_alive_test: Skip  # Timeout.
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 # Failures in secure networking while NSS is replaced with BoringSSL
 io/https_client_certificate_test: RuntimeError # Issue 24070
 io/secure_socket_renegotiate_test: RuntimeError
@@ -212,18 +228,16 @@ io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection 
 no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 link_natives_lazily_test: SkipByDesign # Not supported.
 
-[ $noopt || $compiler == precompiler ]
+[ $compiler == precompiler ]
 # Stacktraces in precompilation omit inlined frames.
 assert_test: Pass, RuntimeError
-
-[ $noopt || $compiler == precompiler ]
 map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 io/web_socket_test: Pass, RuntimeError # Issue 24674
 
-[ $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
+[ $compiler == precompiler || $compiler == app_jit ]
 io/compile_all_test: Skip # Incompatible flag --compile_all
 
-[ $runtime == dart_app ]
+[ $compiler == app_jit ]
 io/stdout_bad_argument_test: Skip # Test exits and so can't generate snapshot.
 io/directory_list_sync_test: Skip # Snapshot path differs from script path.
 io/test_extension_test: Skip # Snapshot path differs from script path.
@@ -271,12 +285,22 @@ verbose_gc_to_bmu_test: Skip
 io/platform_test: RuntimeError # Expects to be running from 'dart' instead of 'dart_precompiled_runtime'
 io/directory_list_sync_test: Timeout, Skip # Expects to find the test directory relative to the script.
 
+[ $runtime == vm && $system == windows && $mode == release ]
+io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
+io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.
+
+[ $runtime == vm && $system == linux && $mode == release && $arch == ia32 && $builder_tag == asan ]
+io/socket_close_test: Pass, Timeout # Issue 28502: timeout.
+
 [ $runtime == dart_precompiled || $mode == product ]
 io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
 io/test_harness_analyzer_test: CompileTimeError # Imports dart:mirrors
 io/test_runner_test: CompileTimeError # Imports dart:mirrors
 
-[ $runtime == dart_precompiled || $runtime == dart_app || $mode == product ]
+[ $compiler == app_jit ]
+assert_test: RuntimeError # Script name change?
+
+[ $runtime == dart_precompiled || $mode == product ]
 assert_test: SkipByDesign # Requires checked mode.
 no_assert_test: SkipByDesign # Requires checked mode.
 io/code_collection_test: Skip # Incompatible flags
@@ -293,7 +317,7 @@ no_support_timeline_test: SkipByDesign
 io/stdio_implicit_close_test: Skip # SkipByDesign
 
 # Following tests are skipped on dart_app as package mapping is not supported.
-[ $runtime == dart_precompiled || $runtime == dart_app ]
+[ $runtime == dart_precompiled || $compiler == app_jit ]
 package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Skip
 package/scenarios/packages_file_strange_formatting/empty_lines_test: Skip
 package/scenarios/invalid/invalid_utf8_test: Skip
@@ -342,7 +366,10 @@ io/raw_secure_socket_test: RuntimeError
 io/https_bad_certificate_test: RuntimeError
 io/secure_server_closing_test: RuntimeError
 
-[ $runtime == vm || $runtime == dart_app || $runtime == dart_precompiled ]
+[ $system == android && $runtime == dart_precompiled && $mode == release && $arch == arm]
+io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
+
+[ $runtime == vm || $runtime == dart_precompiled ]
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
 [ $hot_reload || $hot_reload_rollback ]
@@ -361,3 +388,7 @@ io/http_proxy_advanced_test: SkipByDesign
 io/http_ipv6_test: SkipByDesign
 io/socket_ipv6_test: SkipByDesign
 io/socket_info_ipv6_test: SkipByDesign
+
+[ $builder_tag == asan && $arch == x64 ]
+io/process_detached_test: Pass, Slow
+io/named_pipe_script_test: RuntimeError

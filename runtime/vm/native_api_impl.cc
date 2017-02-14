@@ -16,7 +16,9 @@ namespace dart {
 
 // --- Message sending/receiving from native code ---
 
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+static uint8_t* malloc_allocator(uint8_t* ptr,
+                                 intptr_t old_size,
+                                 intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
 }
@@ -47,10 +49,13 @@ class IsolateSaver {
 
 static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
   uint8_t* buffer = NULL;
-  ApiMessageWriter writer(&buffer, allocator);
+  ApiMessageWriter writer(&buffer, malloc_allocator);
   bool success = writer.WriteCMessage(message);
 
-  if (!success) return success;
+  if (!success) {
+    free(buffer);
+    return success;
+  }
 
   // Post the message at the given port.
   return PortMap::PostMessage(new Message(

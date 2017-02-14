@@ -16,6 +16,8 @@ class Null {
     throw new UnsupportedError('class Null cannot be instantiated');
   }
 
+  external int get hashCode;
+
   /** Returns the string `"null"`. */
   String toString() => "null";
 }

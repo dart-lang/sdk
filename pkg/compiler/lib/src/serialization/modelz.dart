@@ -13,7 +13,7 @@ import '../common.dart';
 import '../common/resolution.dart' show Resolution;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/common.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionSignatureX;
@@ -762,10 +762,10 @@ abstract class StaticMemberMixin implements DeserializedElementZ {
 }
 
 abstract class TypedElementMixin implements DeserializedElementZ, TypedElement {
-  DartType _type;
+  ResolutionDartType _type;
 
   @override
-  DartType get type {
+  ResolutionDartType get type {
     if (_type == null) {
       _type = _decoder.getType(Key.TYPE);
     }
@@ -773,7 +773,7 @@ abstract class TypedElementMixin implements DeserializedElementZ, TypedElement {
   }
 
   @override
-  DartType computeType(Resolution resolution) => type;
+  ResolutionDartType computeType(Resolution resolution) => type;
 }
 
 abstract class ParametersMixin
@@ -792,8 +792,8 @@ abstract class ParametersMixin
       int requiredParameterCount = 0;
       int optionalParameterCount = 0;
       bool optionalParametersAreNamed = false;
-      List<DartType> parameterTypes = <DartType>[];
-      List<DartType> optionalParameterTypes = <DartType>[];
+      List<ResolutionDartType> parameterTypes = <ResolutionDartType>[];
+      List<ResolutionDartType> optionalParameterTypes = <ResolutionDartType>[];
       for (ParameterElement parameter in parameters) {
         if (parameter.isOptional) {
           optionalParameterCount++;
@@ -811,10 +811,11 @@ abstract class ParametersMixin
         }
       }
       List<String> namedParameters = const <String>[];
-      List<DartType> namedParameterTypes = const <DartType>[];
+      List<ResolutionDartType> namedParameterTypes =
+          const <ResolutionDartType>[];
       if (optionalParametersAreNamed) {
         namedParameters = <String>[];
-        namedParameterTypes = <DartType>[];
+        namedParameterTypes = <ResolutionDartType>[];
         orderedOptionalParameters.sort((Element a, Element b) {
           return a.name.compareTo(b.name);
         });
@@ -823,10 +824,10 @@ abstract class ParametersMixin
           namedParameterTypes.add(parameter.type);
         }
       }
-      List<DartType> typeVariables =
+      List<ResolutionDartType> typeVariables =
           _decoder.getTypes(Key.TYPE_VARIABLES, isOptional: true);
 
-      FunctionType type = new FunctionType(
+      ResolutionFunctionType type = new ResolutionFunctionType(
           this,
           _decoder.getType(Key.RETURN_TYPE),
           parameterTypes,
@@ -866,15 +867,15 @@ abstract class FunctionTypedElementMixin
   }
 
   @override
-  List<DartType> get typeVariables => functionSignature.typeVariables;
+  List<ResolutionDartType> get typeVariables => functionSignature.typeVariables;
 }
 
 abstract class ClassElementMixin
     implements ElementZ, ClassElement, class_members.ClassMemberMixin {
   bool _isResolved = false;
 
-  InterfaceType _createType(List<DartType> typeArguments) {
-    return new InterfaceType(this, typeArguments);
+  ResolutionInterfaceType _createType(List<ResolutionDartType> typeArguments) {
+    return new ResolutionInterfaceType(this, typeArguments);
   }
 
   @override
@@ -926,37 +927,37 @@ class ClassElementZ extends DeserializedElementZ
         class_members.ClassMemberMixin,
         ContainerMixin,
         LibraryMemberMixin,
-        TypeDeclarationMixin<InterfaceType>,
+        TypeDeclarationMixin<ResolutionInterfaceType>,
         ClassElementMixin
     implements ClassElement {
   bool _isObject;
-  DartType _supertype;
+  ResolutionDartType _supertype;
   OrderedTypeSet _allSupertypesAndSelf;
-  Link<DartType> _interfaces;
-  FunctionType _callType;
+  Link<ResolutionDartType> _interfaces;
+  ResolutionFunctionType _callType;
 
   ClassElementZ(ObjectDecoder decoder) : super(decoder);
 
   @override
-  List<DartType> _getTypeVariables() {
+  List<ResolutionDartType> _getTypeVariables() {
     return _decoder.getTypes(Key.TYPE_VARIABLES, isOptional: true);
   }
 
   void _ensureSuperHierarchy() {
     if (_interfaces == null) {
-      InterfaceType supertype =
+      ResolutionInterfaceType supertype =
           _decoder.getType(Key.SUPERTYPE, isOptional: true);
       if (supertype == null) {
         _isObject = true;
         _allSupertypesAndSelf = new OrderedTypeSet.singleton(thisType);
-        _interfaces = const Link<DartType>();
+        _interfaces = const Link<ResolutionDartType>();
       } else {
         _isObject = false;
         _interfaces =
             toLink(_decoder.getTypes(Key.INTERFACES, isOptional: true));
-        List<InterfaceType> mixins =
+        List<ResolutionInterfaceType> mixins =
             _decoder.getTypes(Key.MIXINS, isOptional: true);
-        for (InterfaceType mixin in mixins) {
+        for (ResolutionInterfaceType mixin in mixins) {
           MixinApplicationElement mixinElement =
               new UnnamedMixinApplicationElementZ(this, supertype, mixin);
           supertype = mixinElement.thisType
@@ -976,7 +977,7 @@ class ClassElementZ extends DeserializedElementZ
   }
 
   @override
-  DartType get supertype {
+  ResolutionDartType get supertype {
     _ensureSuperHierarchy();
     return _supertype;
   }
@@ -997,7 +998,7 @@ class ClassElementZ extends DeserializedElementZ
   }
 
   @override
-  Link<DartType> get interfaces {
+  Link<ResolutionDartType> get interfaces {
     _ensureSuperHierarchy();
     return _interfaces;
   }
@@ -1012,7 +1013,7 @@ class ClassElementZ extends DeserializedElementZ
   bool get isUnnamedMixinApplication => false;
 
   @override
-  FunctionType get callType {
+  ResolutionFunctionType get callType {
     _ensureSuperHierarchy();
     // TODO(johnniwinther): Why can't this always be computed in ensureResolved?
     return _callType;
@@ -1031,12 +1032,13 @@ abstract class MixinApplicationElementMixin
 class NamedMixinApplicationElementZ extends ClassElementZ
     with MixinApplicationElementMixin {
   Link<Element> _constructors;
-  InterfaceType _mixinType;
+  ResolutionInterfaceType _mixinType;
 
   NamedMixinApplicationElementZ(ObjectDecoder decoder) : super(decoder);
 
   @override
-  InterfaceType get mixinType => _mixinType ??= _decoder.getType(Key.MIXIN);
+  ResolutionInterfaceType get mixinType =>
+      _mixinType ??= _decoder.getType(Key.MIXIN);
 
   @override
   ClassElement get subclass => null;
@@ -1047,22 +1049,22 @@ class UnnamedMixinApplicationElementZ extends ElementZ
         ClassElementCommon,
         ClassElementMixin,
         class_members.ClassMemberMixin,
-        TypeDeclarationMixin<InterfaceType>,
+        TypeDeclarationMixin<ResolutionInterfaceType>,
         AnalyzableElementMixin,
         AstElementMixinZ,
         MixinApplicationElementCommon,
         MixinApplicationElementMixin {
   final String name;
   final ClassElement subclass;
-  final InterfaceType _supertypeBase;
-  final InterfaceType _mixinBase;
-  InterfaceType _supertype;
-  Link<DartType> _interfaces;
+  final ResolutionInterfaceType _supertypeBase;
+  final ResolutionInterfaceType _mixinBase;
+  ResolutionInterfaceType _supertype;
+  Link<ResolutionDartType> _interfaces;
   OrderedTypeSet _allSupertypesAndSelf;
   Link<ConstructorElement> _constructors;
 
-  UnnamedMixinApplicationElementZ(
-      this.subclass, InterfaceType supertype, InterfaceType mixin)
+  UnnamedMixinApplicationElementZ(this.subclass,
+      ResolutionInterfaceType supertype, ResolutionInterfaceType mixin)
       : this._supertypeBase = supertype,
         this._mixinBase = mixin,
         this.name = "${supertype.name}+${mixin.name}";
@@ -1099,20 +1101,22 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   }
 
   @override
-  List<DartType> _getTypeVariables() {
+  List<ResolutionDartType> _getTypeVariables() {
     // Create synthetic type variables for the mixin application.
-    List<DartType> typeVariables = <DartType>[];
+    List<ResolutionDartType> typeVariables = <ResolutionDartType>[];
     int index = 0;
-    for (TypeVariableType type in subclass.typeVariables) {
+    for (ResolutionTypeVariableType type in subclass.typeVariables) {
       SyntheticTypeVariableElementZ typeVariableElement =
           new SyntheticTypeVariableElementZ(this, index, type.name);
-      TypeVariableType typeVariable = new TypeVariableType(typeVariableElement);
+      ResolutionTypeVariableType typeVariable =
+          new ResolutionTypeVariableType(typeVariableElement);
       typeVariables.add(typeVariable);
       index++;
     }
     // Setup bounds on the synthetic type variables.
-    for (TypeVariableType type in subclass.typeVariables) {
-      TypeVariableType typeVariable = typeVariables[type.element.index];
+    for (ResolutionTypeVariableType type in subclass.typeVariables) {
+      ResolutionTypeVariableType typeVariable =
+          typeVariables[type.element.index];
       SyntheticTypeVariableElementZ typeVariableElement = typeVariable.element;
       typeVariableElement._type = typeVariable;
       typeVariableElement._bound =
@@ -1122,7 +1126,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   }
 
   @override
-  InterfaceType get supertype {
+  ResolutionInterfaceType get supertype {
     if (_supertype == null) {
       // Substitute the type variables in [_supertypeBase] provided by
       // [_subclass] with the type variables in this unnamed mixin application.
@@ -1141,7 +1145,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   }
 
   @override
-  Link<DartType> get interfaces {
+  Link<ResolutionDartType> get interfaces {
     if (_interfaces == null) {
       // Substitute the type variables in [_mixinBase] provided by
       // [_subclass] with the type variables in this unnamed mixin application.
@@ -1154,7 +1158,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
       //    abstract class S+M<S+M.T> extends S<S+M.T> implements M<S+M.T> {}
       // but the mixin is provided as M<C.T> and we need to substitute S+M.T
       // for C.T.
-      _interfaces = const Link<DartType>()
+      _interfaces = const Link<ResolutionDartType>()
           .prepend(_mixinBase.subst(typeVariables, subclass.typeVariables));
     }
     return _interfaces;
@@ -1187,7 +1191,7 @@ class UnnamedMixinApplicationElementZ extends ElementZ
   LibraryElement get library => enclosingElement.library;
 
   @override
-  InterfaceType get mixinType => interfaces.head;
+  ResolutionInterfaceType get mixinType => interfaces.head;
 
   @override
   int get sourceOffset => subclass.sourceOffset;
@@ -1300,7 +1304,9 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   PrefixElement get redirectionDeferredPrefix => null;
 
   @override
-  InterfaceType computeEffectiveTargetType(InterfaceType newType) => newType;
+  ResolutionInterfaceType computeEffectiveTargetType(
+          ResolutionInterfaceType newType) =>
+      newType;
 }
 
 class GenerativeConstructorElementZ extends ConstructorElementZ {
@@ -1339,7 +1345,7 @@ class FactoryConstructorElementZ extends ConstructorElementZ {
 }
 
 class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
-  DartType _effectiveTargetType;
+  ResolutionDartType _effectiveTargetType;
   ConstructorElement _immediateRedirectionTarget;
   PrefixElement _redirectionDeferredPrefix;
   bool _effectiveTargetIsMalformed;
@@ -1380,7 +1386,8 @@ class RedirectingFactoryConstructorElementZ extends ConstructorElementZ {
   }
 
   @override
-  DartType computeEffectiveTargetType(InterfaceType newType) {
+  ResolutionDartType computeEffectiveTargetType(
+      ResolutionInterfaceType newType) {
     _ensureEffectiveTarget();
     return _effectiveTargetType.substByContext(newType);
   }
@@ -1432,12 +1439,13 @@ class ForwardingConstructorElementZ extends ElementZ
   AsyncMarker get asyncMarker => AsyncMarker.SYNC;
 
   @override
-  InterfaceType computeEffectiveTargetType(InterfaceType newType) {
+  ResolutionInterfaceType computeEffectiveTargetType(
+      ResolutionInterfaceType newType) {
     return enclosingClass.thisType.substByContext(newType);
   }
 
   @override
-  DartType computeType(Resolution resolution) => type;
+  ResolutionDartType computeType(Resolution resolution) => type;
 
   @override
   bool get isConst => false;
@@ -1541,14 +1549,14 @@ class ForwardingConstructorElementZ extends ElementZ
   SourceSpan get sourcePosition => enclosingClass.sourcePosition;
 
   @override
-  FunctionType get type {
+  ResolutionFunctionType get type {
     // TODO(johnniwinther): Ensure that the function type substitutes type
     // variables correctly.
     return definingConstructor.type;
   }
 
   @override
-  List<DartType> get typeVariables => _unsupported("typeVariables");
+  List<ResolutionDartType> get typeVariables => _unsupported("typeVariables");
 }
 
 abstract class MemberElementMixin
@@ -1839,7 +1847,7 @@ class InstanceSetterElementZ extends SetterElementZ
 
 abstract class TypeDeclarationMixin<T extends GenericType>
     implements ElementZ, TypeDeclarationElement {
-  List<DartType> _typeVariables;
+  List<ResolutionDartType> _typeVariables;
   T _rawType;
   T _thisType;
   Name _memberName;
@@ -1851,21 +1859,21 @@ abstract class TypeDeclarationMixin<T extends GenericType>
     return _memberName;
   }
 
-  List<DartType> _getTypeVariables();
+  List<ResolutionDartType> _getTypeVariables();
 
   void _ensureTypes() {
     if (_typeVariables == null) {
       _typeVariables = _getTypeVariables();
-      _rawType = _createType(new List<DartType>.filled(
-          _typeVariables.length, const DynamicType()));
+      _rawType = _createType(new List<ResolutionDartType>.filled(
+          _typeVariables.length, const ResolutionDynamicType()));
       _thisType = _createType(_typeVariables);
     }
   }
 
-  T _createType(List<DartType> typeArguments);
+  T _createType(List<ResolutionDartType> typeArguments);
 
   @override
-  List<DartType> get typeVariables {
+  List<ResolutionDartType> get typeVariables {
     _ensureTypes();
     return _typeVariables;
   }
@@ -1895,18 +1903,18 @@ class TypedefElementZ extends DeserializedElementZ
         AstElementMixinZ,
         LibraryMemberMixin,
         ParametersMixin,
-        TypeDeclarationMixin<TypedefType>
+        TypeDeclarationMixin<ResolutionTypedefType>
     implements TypedefElement {
-  DartType _alias;
+  ResolutionDartType _alias;
 
   TypedefElementZ(ObjectDecoder decoder) : super(decoder);
 
-  TypedefType _createType(List<DartType> typeArguments) {
-    return new TypedefType(this, typeArguments);
+  ResolutionTypedefType _createType(List<ResolutionDartType> typeArguments) {
+    return new ResolutionTypedefType(this, typeArguments);
   }
 
   @override
-  List<DartType> _getTypeVariables() {
+  List<ResolutionDartType> _getTypeVariables() {
     return _decoder.getTypes(Key.TYPE_VARIABLES, isOptional: true);
   }
 
@@ -1919,7 +1927,7 @@ class TypedefElementZ extends DeserializedElementZ
   }
 
   @override
-  DartType get alias {
+  ResolutionDartType get alias {
     if (_alias == null) {
       _alias = _decoder.getType(Key.ALIAS);
     }
@@ -1937,8 +1945,8 @@ class TypeVariableElementZ extends DeserializedElementZ
     with AnalyzableElementMixin, AstElementMixinZ, TypedElementMixin
     implements TypeVariableElement {
   GenericElement _typeDeclaration;
-  TypeVariableType _type;
-  DartType _bound;
+  ResolutionTypeVariableType _type;
+  ResolutionDartType _bound;
   Name _memberName;
 
   TypeVariableElementZ(ObjectDecoder decoder) : super(decoder);
@@ -1980,7 +1988,7 @@ class TypeVariableElementZ extends DeserializedElementZ
     return _typeDeclaration;
   }
 
-  DartType get bound {
+  ResolutionDartType get bound {
     if (_bound == null) {
       _bound = _decoder.getType(Key.BOUND);
     }
@@ -1997,8 +2005,8 @@ class SyntheticTypeVariableElementZ extends ElementZ
   final TypeDeclarationElement typeDeclaration;
   final int index;
   final String name;
-  TypeVariableType _type;
-  DartType _bound;
+  ResolutionTypeVariableType _type;
+  ResolutionDartType _bound;
   Name _memberName;
 
   SyntheticTypeVariableElementZ(this.typeDeclaration, this.index, this.name);
@@ -2024,14 +2032,14 @@ class SyntheticTypeVariableElementZ extends ElementZ
   }
 
   @override
-  TypeVariableType get type {
+  ResolutionTypeVariableType get type {
     assert(invariant(this, _type != null,
         message: "Type variable type has not been set on $this."));
     return _type;
   }
 
   @override
-  TypeVariableType computeType(Resolution resolution) => type;
+  ResolutionTypeVariableType computeType(Resolution resolution) => type;
 
   @override
   Element get enclosingElement => typeDeclaration;
@@ -2039,7 +2047,7 @@ class SyntheticTypeVariableElementZ extends ElementZ
   @override
   Element get enclosingClass => typeDeclaration;
 
-  DartType get bound {
+  ResolutionDartType get bound {
     assert(invariant(this, _bound != null,
         message: "Type variable bound has not been set on $this."));
     return _bound;
@@ -2060,7 +2068,7 @@ abstract class ParameterElementZ extends DeserializedElementZ
     implements ParameterElement {
   FunctionElement _functionDeclaration;
   ConstantExpression _constant;
-  DartType _type;
+  ResolutionDartType _type;
 
   ParameterElementZ(ObjectDecoder decoder) : super(decoder);
 
@@ -2127,7 +2135,7 @@ abstract class ParameterElementZ extends DeserializedElementZ
   MemberElement get memberContext => executableContext.memberContext;
 
   @override
-  List<DartType> get typeVariables => functionSignature.typeVariables;
+  List<ResolutionDartType> get typeVariables => functionSignature.typeVariables;
 }
 
 class LocalParameterElementZ extends ParameterElementZ

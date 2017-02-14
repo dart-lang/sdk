@@ -32,7 +32,7 @@ static const intptr_t kMaxPosition = 0x7FFFFFFF;
 static const intptr_t kPairVirtualRegisterOffset = 1;
 
 // Definitions which have pair representations
-// (kPairOfTagged or kPairOfUnboxedDouble) use two virtual register names.
+// (kPairOfTagged) use two virtual register names.
 // At SSA index allocation time each definition reserves two SSA indexes,
 // the second index is only used for pairs. This function maps from the first
 // SSA index to the second.
@@ -786,8 +786,7 @@ static Location::Kind RegisterKindForResult(Instruction* instr) {
   const Representation rep = instr->representation();
 #if !defined(TARGET_ARCH_DBC)
   if ((rep == kUnboxedDouble) || (rep == kUnboxedFloat32x4) ||
-      (rep == kUnboxedInt32x4) || (rep == kUnboxedFloat64x2) ||
-      (rep == kPairOfUnboxedDouble)) {
+      (rep == kUnboxedInt32x4) || (rep == kUnboxedFloat64x2)) {
     return Location::kFpuRegister;
   } else {
     return Location::kRegister;
@@ -796,7 +795,7 @@ static Location::Kind RegisterKindForResult(Instruction* instr) {
   // DBC supports only unboxed doubles and does not have distinguished FPU
   // registers.
   ASSERT((rep != kUnboxedFloat32x4) && (rep != kUnboxedInt32x4) &&
-         (rep != kUnboxedFloat64x2) && (rep != kPairOfUnboxedDouble));
+         (rep != kUnboxedFloat64x2));
   return Location::kRegister;
 #endif
 }

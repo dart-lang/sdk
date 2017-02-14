@@ -14,6 +14,7 @@ class Collector {
   // TODO(floitsch): the code-emitter task should not need a namer.
   final Namer namer;
   final Compiler compiler;
+  final ClosedWorld closedWorld;
   final Set<ClassElement> rtiNeededClasses;
   final Emitter emitter;
 
@@ -44,9 +45,10 @@ class Collector {
 
   BackendHelpers get helpers => backend.helpers;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CommonElements get commonElements => compiler.commonElements;
 
-  Collector(this.compiler, this.namer, this.rtiNeededClasses, this.emitter);
+  Collector(this.compiler, this.namer, this.closedWorld, this.rtiNeededClasses,
+      this.emitter);
 
   Set<ClassElement> computeInterceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
@@ -55,7 +57,7 @@ class Collector {
     for (ConstantValue constant in constants) {
       if (constant is InterceptorConstantValue) {
         InterceptorConstantValue interceptorConstant = constant;
-        classes.add(interceptorConstant.dispatchedType.element);
+        classes.add(interceptorConstant.cls);
       }
     }
     return classes;
@@ -71,7 +73,7 @@ class Collector {
     Set<ClassElement> unneededClasses = new Set<ClassElement>();
     // The [Bool] class is not marked as abstract, but has a factory
     // constructor that always throws. We never need to emit it.
-    unneededClasses.add(coreClasses.boolClass);
+    unneededClasses.add(commonElements.boolClass);
 
     // Go over specialized interceptors and then constants to know which
     // interceptors are needed.
@@ -87,7 +89,7 @@ class Collector {
     // Add unneeded interceptors to the [unneededClasses] set.
     for (ClassElement interceptor in backend.interceptedClasses) {
       if (!needed.contains(interceptor) &&
-          interceptor != coreClasses.objectClass) {
+          interceptor != commonElements.objectClass) {
         unneededClasses.add(interceptor);
       }
     }
@@ -129,7 +131,7 @@ class Collector {
         final onlyForRti = classesOnlyNeededForRti.contains(cls);
         if (!onlyForRti) {
           backend.retainMetadataOf(cls);
-          new FieldVisitor(compiler, namer).visitFields(cls, false,
+          new FieldVisitor(compiler, namer, closedWorld).visitFields(cls, false,
               (Element member, js.Name name, js.Name accessorName,
                   bool needsGetter, bool needsSetter, bool needsCheckedSetter) {
             bool needsAccessor = needsGetter || needsSetter;
@@ -169,14 +171,17 @@ class Collector {
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
     // Compute needed typedefs.
-    typedefsNeededForReflection = Elements.sortedByPosition(compiler
-        .closedWorld.allTypedefs
+    typedefsNeededForReflection = Elements.sortedByPosition(closedWorld
+        .allTypedefs
         .where(backend.isAccessibleByReflection)
         .toList());
 
     // Compute needed classes.
     Set<ClassElement> instantiatedClasses = compiler
-        .codegenWorld.directlyInstantiatedClasses
+        // TODO(johnniwinther): This should be accessed from a codegen closed
+        // world.
+        .codegenWorldBuilder
+        .directlyInstantiatedClasses
         .where(computeClassFilter())
         .toSet();
 
@@ -218,22 +223,22 @@ class Collector {
 
     // TODO(18175, floitsch): remove once issue 18175 is fixed.
     if (neededClasses.contains(helpers.jsIntClass)) {
-      neededClasses.add(coreClasses.intClass);
+      neededClasses.add(commonElements.intClass);
     }
     if (neededClasses.contains(helpers.jsDoubleClass)) {
-      neededClasses.add(coreClasses.doubleClass);
+      neededClasses.add(commonElements.doubleClass);
     }
     if (neededClasses.contains(helpers.jsNumberClass)) {
-      neededClasses.add(coreClasses.numClass);
+      neededClasses.add(commonElements.numClass);
     }
     if (neededClasses.contains(helpers.jsStringClass)) {
-      neededClasses.add(coreClasses.stringClass);
+      neededClasses.add(commonElements.stringClass);
     }
     if (neededClasses.contains(helpers.jsBoolClass)) {
-      neededClasses.add(coreClasses.boolClass);
+      neededClasses.add(commonElements.boolClass);
     }
     if (neededClasses.contains(helpers.jsArrayClass)) {
-      neededClasses.add(coreClasses.listClass);
+      neededClasses.add(commonElements.listClass);
     }
 
     // 4. Finally, sort the classes.
@@ -284,7 +289,11 @@ class Collector {
       list.add(element);
     }
 
-    Iterable<Element> fields = compiler.codegenWorld.allReferencedStaticFields
+    Iterable<Element> fields = compiler
+        // TODO(johnniwinther): This should be accessed from a codegen closed
+        // world.
+        .codegenWorldBuilder
+        .allReferencedStaticFields
         .where((FieldElement field) {
       if (!field.isConst) {
         return field.isField &&

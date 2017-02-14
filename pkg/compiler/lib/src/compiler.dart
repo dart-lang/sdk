@@ -10,7 +10,6 @@ import '../compiler_new.dart' as api;
 import 'cache_strategy.dart' show CacheStrategy;
 import 'closure.dart' as closureMapping show ClosureTask;
 import 'common/backend_api.dart' show Backend;
-import 'common/codegen.dart' show CodegenWorkItem;
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Identifiers, Uris;
 import 'common/resolution.dart'
@@ -25,8 +24,13 @@ import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
-import 'core_types.dart' show CoreClasses, CommonElements, CoreTypes;
-import 'dart_types.dart' show DartType, DynamicType, InterfaceType, Types;
+import 'core_types.dart' show CommonElements;
+import 'elements/resolution_types.dart'
+    show
+        ResolutionDartType,
+        ResolutionDynamicType,
+        ResolutionInterfaceType,
+        Types;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
@@ -78,9 +82,9 @@ import 'universe/world_impact.dart'
         WorldImpactBuilder,
         WorldImpactBuilderImpl;
 import 'util/util.dart' show Link, Setlet;
-import 'world.dart' show ClosedWorld, ClosedWorldRefiner, OpenWorld, WorldImpl;
+import 'world.dart' show ClosedWorld, ClosedWorldRefiner, ClosedWorldImpl;
 
-typedef Backend MakeBackendFuncion(Compiler compiler);
+typedef Backend MakeBackendFunction(Compiler compiler);
 
 typedef CompilerDiagnosticReporter MakeReporterFunction(
     Compiler compiler, CompilerOptions options);
@@ -89,9 +93,8 @@ abstract class Compiler implements LibraryLoaderListener {
   Measurer get measurer;
 
   final IdGenerator idGenerator = new IdGenerator();
-  WorldImpl get _world => resolverWorld.openWorld;
   Types types;
-  _CompilerCoreTypes _coreTypes;
+  _CompilerCommonElements _commonElements;
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
   ParsingContext _parsingContext;
@@ -130,15 +133,11 @@ abstract class Compiler implements LibraryLoaderListener {
 
   ResolvedUriTranslator get resolvedUriTranslator;
 
-  Tracer tracer;
-
   LibraryElement mainApp;
-  FunctionElement mainFunction;
+  MethodElement mainFunction;
 
   DiagnosticReporter get reporter => _reporter;
-  CommonElements get commonElements => _coreTypes;
-  CoreClasses get coreClasses => _coreTypes;
-  CoreTypes get coreTypes => _coreTypes;
+  CommonElements get commonElements => _commonElements;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
 
@@ -180,9 +179,6 @@ abstract class Compiler implements LibraryLoaderListener {
   MirrorUsageAnalyzerTask mirrorUsageAnalyzerTask;
   DumpInfoTask dumpInfoTask;
 
-  bool get hasFunctionApplySupport => resolverWorld.hasFunctionApplySupport;
-  bool get hasIsolateSupport => resolverWorld.hasIsolateSupport;
-
   bool get hasCrashed => _reporter.hasCrashed;
 
   Stopwatch progress;
@@ -203,7 +199,7 @@ abstract class Compiler implements LibraryLoaderListener {
       {CompilerOptions options,
       api.CompilerOutput outputProvider,
       this.environment: const _EmptyEnvironment(),
-      MakeBackendFuncion makeBackend,
+      MakeBackendFunction makeBackend,
       MakeReporterFunction makeReporter})
       : this.options = options,
         this.cacheStrategy = new CacheStrategy(options.hasIncrementalSupport),
@@ -216,11 +212,8 @@ abstract class Compiler implements LibraryLoaderListener {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
     _resolution = createResolution();
-    // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
-    // make its field final.
-    _coreTypes = new _CompilerCoreTypes(_resolution, reporter);
+    _commonElements = new _CompilerCommonElements(_resolution, reporter);
     types = new Types(_resolution);
-    tracer = new Tracer(this, this.outputProvider);
 
     if (options.verbose) {
       progress = new Stopwatch()..start();
@@ -236,11 +229,6 @@ abstract class Compiler implements LibraryLoaderListener {
       backend = createBackend();
     }
     enqueuer = backend.makeEnqueuer();
-
-    if (options.dumpInfo && options.useStartupEmitter) {
-      throw new ArgumentError(
-          '--dump-info is not supported with the fast startup emitter');
-    }
 
     tasks = [
       dietParser = new DietParserTask(idGenerator, backend, reporter, measurer),
@@ -282,20 +270,6 @@ abstract class Compiler implements LibraryLoaderListener {
     tasks.addAll(backend.tasks);
   }
 
-  /// The world currently being computed by resolution. This forms a basis for
-  /// the [inferenceWorld] and later the [closedWorld].
-  OpenWorld get openWorld => _world;
-
-  /// The closed world after resolution but currently refined by inference.
-  ClosedWorldRefiner get inferenceWorld => _world;
-
-  /// The closed world after resolution and inference.
-  ClosedWorld get closedWorld {
-    assert(invariant(CURRENT_ELEMENT_SPANNABLE, _world.isClosed,
-        message: "Closed world not computed yet."));
-    return _world;
-  }
-
   /// Creates the backend.
   ///
   /// Override this to mock the backend for testing.
@@ -323,14 +297,12 @@ abstract class Compiler implements LibraryLoaderListener {
   ///
   /// Override this to mock the resolver for testing.
   ResolverTask createResolverTask() {
-    return new ResolverTask(
-        resolution, backend.constantCompilerTask, openWorld, measurer);
+    return new ResolverTask(resolution, backend.constantCompilerTask, measurer);
   }
 
-  // TODO(johnniwinther): Rename these appropriately when unification of worlds/
-  // universes is complete.
-  ResolutionWorldBuilder get resolverWorld => enqueuer.resolution.universe;
-  CodegenWorldBuilder get codegenWorld => enqueuer.codegen.universe;
+  ResolutionWorldBuilder get resolutionWorldBuilder =>
+      enqueuer.resolution.worldBuilder;
+  CodegenWorldBuilder get codegenWorldBuilder => enqueuer.codegen.worldBuilder;
 
   bool get analyzeAll => options.analyzeAll || compileAll;
 
@@ -355,7 +327,6 @@ abstract class Compiler implements LibraryLoaderListener {
         return new Future.sync(() => runInternal(uri))
             .catchError((error) => _reporter.onError(uri, error))
             .whenComplete(() {
-          tracer.close();
           measurer.stopWallClock();
         }).then((_) {
           return !compilationFailed;
@@ -369,7 +340,7 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Note that [library] has not been scanned yet, nor has its imports/exports
   /// been resolved.
   void onLibraryCreated(LibraryElement library) {
-    _coreTypes.onLibraryCreated(library);
+    _commonElements.onLibraryCreated(library);
     backend.onLibraryCreated(library);
   }
 
@@ -495,20 +466,6 @@ abstract class Compiler implements LibraryLoaderListener {
   // TODO(johnniwinther): Move this to [PatchParser] when it is moved to the
   // [JavaScriptBackend]. Currently needed for testing.
   String get patchVersion => backend.patchVersion;
-
-  Element _unnamedListConstructor;
-  Element get unnamedListConstructor {
-    if (_unnamedListConstructor != null) return _unnamedListConstructor;
-    return _unnamedListConstructor =
-        coreClasses.listClass.lookupDefaultConstructor();
-  }
-
-  Element _filledListConstructor;
-  Element get filledListConstructor {
-    if (_filledListConstructor != null) return _filledListConstructor;
-    return _filledListConstructor =
-        coreClasses.listClass.lookupConstructor("filled");
-  }
 
   /**
    * Get an [Uri] pointing to a patch for the dart: library with
@@ -732,10 +689,12 @@ abstract class Compiler implements LibraryLoaderListener {
         }
         assert(mainFunction != null);
 
-        closeResolution();
+        ClosedWorldRefiner closedWorldRefiner = closeResolution();
+        ClosedWorld closedWorld = closedWorldRefiner.closedWorld;
 
         reporter.log('Inferring types...');
-        globalInference.runGlobalTypeInference(mainFunction);
+        globalInference.runGlobalTypeInference(
+            mainFunction, closedWorld, closedWorldRefiner);
 
         if (stopAfterTypeInference) return;
 
@@ -744,11 +703,8 @@ abstract class Compiler implements LibraryLoaderListener {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 
-        backend.onCodegenStart();
-        if (hasIsolateSupport) {
-          enqueuer.codegen
-              .applyImpact(backend.enableIsolateSupport(forResolution: false));
-        }
+        codegenWorldBuilder.open(closedWorld);
+        enqueuer.codegen.applyImpact(backend.onCodegenStart(closedWorld));
         if (compileAll) {
           libraryLoader.libraries.forEach((LibraryElement library) {
             enqueuer.codegen.applyImpact(computeImpactForLibrary(library));
@@ -758,32 +714,33 @@ abstract class Compiler implements LibraryLoaderListener {
             onProgress: showCodegenProgress);
         enqueuer.codegen.logSummary(reporter.log);
 
-        int programSize = backend.assembleProgram();
+        int programSize = backend.assembleProgram(closedWorld);
 
         if (options.dumpInfo) {
           dumpInfoTask.reportSize(programSize);
-          dumpInfoTask.dumpInfo();
+          dumpInfoTask.dumpInfo(closedWorld);
         }
 
-        backend.sourceInformationStrategy.onComplete();
+        backend.onCodegenEnd();
 
         checkQueues();
       });
 
   /// Perform the steps needed to fully end the resolution phase.
-  void closeResolution() {
+  ClosedWorldRefiner closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    openWorld.closeWorld(reporter);
+    ClosedWorldImpl world = resolutionWorldBuilder.closeWorld(reporter);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
-    backend.onResolutionComplete();
+    backend.onResolutionComplete(world, world);
 
     deferredLoadTask.onResolutionComplete(mainFunction);
 
     // TODO(johnniwinther): Move this after rti computation but before
     // reflection members computation, and (re-)close the world afterwards.
-    closureToClassMapper.createClosureClasses();
+    closureToClassMapper.createClosureClasses(world);
+    return world;
   }
 
   /// Compute the [WorldImpact] for accessing all elements in [library].
@@ -800,6 +757,9 @@ abstract class Compiler implements LibraryLoaderListener {
         cls.ensureResolved(resolution);
         cls.forEachLocalMember(registerStaticUse);
         impactBuilder.registerTypeUse(new TypeUse.instantiation(cls.rawType));
+      } else if (element.isTypedef) {
+        TypedefElement typdef = element;
+        typdef.ensureResolved(resolution);
       } else {
         registerStaticUse(element);
       }
@@ -908,7 +868,7 @@ abstract class Compiler implements LibraryLoaderListener {
       });
     }
     if (!REPORT_EXCESS_RESOLUTION) return;
-    var resolved = new Set.from(enqueuer.resolution.processedElements);
+    var resolved = new Set.from(enqueuer.resolution.processedEntities);
     for (Element e in enqueuer.codegen.processedEntities) {
       resolved.remove(e);
     }
@@ -939,7 +899,7 @@ abstract class Compiler implements LibraryLoaderListener {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       assert(phase == PHASE_RESOLVING);
-      reporter.log('Resolved ${enqueuer.resolution.processedElements.length} '
+      reporter.log('Resolved ${enqueuer.resolution.processedEntities.length} '
           'elements.');
       progress.reset();
     }
@@ -1113,7 +1073,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
   void forgetElement(Element element) {
     resolution.forgetElement(element);
-    enqueuer.forgetElement(element);
+    enqueuer.forgetEntity(element);
     if (element is MemberElement) {
       for (Element closure in element.nestedClosures) {
         // TODO(ahe): It would be nice to reuse names of nested closures.
@@ -1163,7 +1123,7 @@ class SuppressionInfo {
   int hints = 0;
 }
 
-class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
+class _CompilerCommonElements implements CommonElements {
   final Resolution resolution;
   final DiagnosticReporter reporter;
 
@@ -1180,7 +1140,7 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
   // specific backend.
   LibraryElement jsHelperLibrary;
 
-  _CompilerCoreTypes(this.resolution, this.reporter);
+  _CompilerCommonElements(this.resolution, this.reporter);
 
   // From dart:core
 
@@ -1210,8 +1170,8 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
   ClassElement get functionClass =>
       _functionClass ??= _findRequired(coreLibrary, 'Function');
 
-  Element _functionApplyMethod;
-  Element get functionApplyMethod {
+  MethodElement _functionApplyMethod;
+  MethodElement get functionApplyMethod {
     if (_functionApplyMethod == null) {
       functionClass.ensureResolved(resolution);
       _functionApplyMethod = functionClass.lookupLocalMember('apply');
@@ -1221,7 +1181,7 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
     return _functionApplyMethod;
   }
 
-  bool isFunctionApplyMethod(Element element) =>
+  bool isFunctionApplyMethod(MemberElement element) =>
       element.name == 'apply' && element.enclosingClass == functionClass;
 
   ClassElement _nullClass;
@@ -1269,8 +1229,8 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
   ClassElement get resourceClass =>
       _resourceClass ??= _findRequired(coreLibrary, 'Resource');
 
-  Element _identicalFunction;
-  Element get identicalFunction =>
+  MethodElement _identicalFunction;
+  MethodElement get identicalFunction =>
       _identicalFunction ??= coreLibrary.find('identical');
 
   // From dart:async
@@ -1294,7 +1254,7 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
       _mirrorSystemClass ??= _findRequired(mirrorsLibrary, 'MirrorSystem');
 
   FunctionElement _mirrorSystemGetNameFunction;
-  bool isMirrorSystemGetNameFunction(Element element) {
+  bool isMirrorSystemGetNameFunction(MemberElement element) {
     if (_mirrorSystemGetNameFunction == null) {
       if (!element.isFunction || mirrorsLibrary == null) return false;
       ClassElement cls = mirrorSystemClass;
@@ -1347,45 +1307,48 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
       _nativeAnnotationClass ??= _findRequired(jsHelperLibrary, 'Native');
 
   @override
-  InterfaceType get objectType {
+  ResolutionDynamicType get dynamicType => const ResolutionDynamicType();
+
+  @override
+  ResolutionInterfaceType get objectType {
     objectClass.ensureResolved(resolution);
     return objectClass.rawType;
   }
 
   @override
-  InterfaceType get boolType {
+  ResolutionInterfaceType get boolType {
     boolClass.ensureResolved(resolution);
     return boolClass.rawType;
   }
 
   @override
-  InterfaceType get doubleType {
+  ResolutionInterfaceType get doubleType {
     doubleClass.ensureResolved(resolution);
     return doubleClass.rawType;
   }
 
   @override
-  InterfaceType get functionType {
+  ResolutionInterfaceType get functionType {
     functionClass.ensureResolved(resolution);
     return functionClass.rawType;
   }
 
   @override
-  InterfaceType get intType {
+  ResolutionInterfaceType get intType {
     intClass.ensureResolved(resolution);
     return intClass.rawType;
   }
 
   @override
-  InterfaceType get resourceType {
+  ResolutionInterfaceType get resourceType {
     resourceClass.ensureResolved(resolution);
     return resourceClass.rawType;
   }
 
   @override
-  InterfaceType listType([DartType elementType]) {
+  ResolutionInterfaceType listType([ResolutionDartType elementType]) {
     listClass.ensureResolved(resolution);
-    InterfaceType type = listClass.rawType;
+    ResolutionInterfaceType type = listClass.rawType;
     if (elementType == null) {
       return type;
     }
@@ -1393,59 +1356,60 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
   }
 
   @override
-  InterfaceType mapType([DartType keyType, DartType valueType]) {
+  ResolutionInterfaceType mapType(
+      [ResolutionDartType keyType, ResolutionDartType valueType]) {
     mapClass.ensureResolved(resolution);
-    InterfaceType type = mapClass.rawType;
+    ResolutionInterfaceType type = mapClass.rawType;
     if (keyType == null && valueType == null) {
       return type;
     } else if (keyType == null) {
-      keyType = const DynamicType();
+      keyType = const ResolutionDynamicType();
     } else if (valueType == null) {
-      valueType = const DynamicType();
+      valueType = const ResolutionDynamicType();
     }
     return type.createInstantiation([keyType, valueType]);
   }
 
   @override
-  InterfaceType get nullType {
+  ResolutionInterfaceType get nullType {
     nullClass.ensureResolved(resolution);
     return nullClass.rawType;
   }
 
   @override
-  InterfaceType get numType {
+  ResolutionInterfaceType get numType {
     numClass.ensureResolved(resolution);
     return numClass.rawType;
   }
 
   @override
-  InterfaceType get stringType {
+  ResolutionInterfaceType get stringType {
     stringClass.ensureResolved(resolution);
     return stringClass.rawType;
   }
 
   @override
-  InterfaceType get symbolType {
+  ResolutionInterfaceType get symbolType {
     symbolClass.ensureResolved(resolution);
     return symbolClass.rawType;
   }
 
   @override
-  InterfaceType get typeType {
+  ResolutionInterfaceType get typeType {
     typeClass.ensureResolved(resolution);
     return typeClass.rawType;
   }
 
   @override
-  InterfaceType get stackTraceType {
+  ResolutionInterfaceType get stackTraceType {
     stackTraceClass.ensureResolved(resolution);
     return stackTraceClass.rawType;
   }
 
   @override
-  InterfaceType iterableType([DartType elementType]) {
+  ResolutionInterfaceType iterableType([ResolutionDartType elementType]) {
     iterableClass.ensureResolved(resolution);
-    InterfaceType type = iterableClass.rawType;
+    ResolutionInterfaceType type = iterableClass.rawType;
     if (elementType == null) {
       return type;
     }
@@ -1453,9 +1417,9 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
   }
 
   @override
-  InterfaceType futureType([DartType elementType]) {
+  ResolutionInterfaceType futureType([ResolutionDartType elementType]) {
     futureClass.ensureResolved(resolution);
-    InterfaceType type = futureClass.rawType;
+    ResolutionInterfaceType type = futureClass.rawType;
     if (elementType == null) {
       return type;
     }
@@ -1463,9 +1427,9 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
   }
 
   @override
-  InterfaceType streamType([DartType elementType]) {
+  ResolutionInterfaceType streamType([ResolutionDartType elementType]) {
     streamClass.ensureResolved(resolution);
-    InterfaceType type = streamClass.rawType;
+    ResolutionInterfaceType type = streamClass.rawType;
     if (elementType == null) {
       return type;
     }
@@ -1504,6 +1468,26 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses, CommonElements {
     }
     return element;
   }
+
+  ConstructorElement _unnamedListConstructor;
+  ConstructorElement get unnamedListConstructor =>
+      _unnamedListConstructor ??= listClass.lookupDefaultConstructor();
+
+  ConstructorElement _filledListConstructor;
+  ConstructorElement get filledListConstructor =>
+      _filledListConstructor ??= listClass.lookupConstructor("filled");
+
+  // TODO(johnniwinther): Change types to `ClassElement` when these are not
+  // called with unrelated elements.
+  bool isNumberOrStringSupertype(/*Class*/ Entity element) {
+    return element == coreLibrary.find('Comparable');
+  }
+
+  bool isStringOnlySupertype(/*Class*/ Entity element) {
+    return element == coreLibrary.find('Pattern');
+  }
+
+  bool isListSupertype(/*Class*/ Entity element) => element == iterableClass;
 }
 
 class CompilerDiagnosticReporter extends DiagnosticReporter {
@@ -1792,8 +1776,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   }
 
   SourceSpan spanFromSpannable(Spannable node) {
-    // TODO(johnniwinther): Disallow `node == null` ?
-    if (node == null) return null;
     if (node == CURRENT_ELEMENT_SPANNABLE) {
       node = currentElement;
     } else if (node == NO_LOCATION_SPANNABLE) {
@@ -1944,12 +1926,6 @@ class CompilerResolution implements Resolution {
   ParsingContext get parsingContext => _compiler.parsingContext;
 
   @override
-  CoreClasses get coreClasses => _compiler.coreClasses;
-
-  @override
-  CoreTypes get coreTypes => _compiler.coreTypes;
-
-  @override
   CommonElements get commonElements => _compiler.commonElements;
 
   @override
@@ -1978,14 +1954,14 @@ class CompilerResolution implements Resolution {
       _compiler.mirrorUsageAnalyzerTask;
 
   @override
-  LibraryElement get coreLibrary => _compiler._coreTypes.coreLibrary;
+  LibraryElement get coreLibrary => _compiler._commonElements.coreLibrary;
 
   @override
   bool get wasProxyConstantComputedTestingOnly => _proxyConstant != null;
 
   @override
   void registerClass(ClassElement cls) {
-    _compiler.openWorld.registerClass(cls);
+    enqueuer.worldBuilder.registerClass(cls);
   }
 
   @override
@@ -2009,7 +1985,8 @@ class CompilerResolution implements Resolution {
   }
 
   @override
-  DartType resolveTypeAnnotation(Element element, TypeAnnotation node) {
+  ResolutionDartType resolveTypeAnnotation(
+      Element element, TypeAnnotation node) {
     return _compiler.resolver.resolveTypeAnnotation(element, node);
   }
 

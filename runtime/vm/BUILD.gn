@@ -5,6 +5,7 @@
 import("../../build/executable_suffix.gni")
 import("../../build/prebuilt_dart_sdk.gni")
 import("gypi_contents.gni")
+import("../runtime_args.gni")
 
 config("libdart_vm_config") {
   if (defined(is_fuchsia) && is_fuchsia) {
@@ -344,10 +345,12 @@ generate_core_libraries("core_libraries") {
     ],
     [
       "typed_data",
+      processed_gypis.typed_data_sdk_sources,
+      "../../sdk/lib/typed_data",
+      "typed_data",
+      true,
       processed_gypis.typed_data_runtime_sources,
       "../lib",
-      "typed_data",
-      false,
     ],
     [
       "_vmservice",
@@ -378,154 +381,159 @@ template("concatenate_patch") {
   }
 }
 
-if (!defined(is_fuchsia) || !is_fuchsia) {
-  template("generate_patched_sdk") {
-    assert(defined(invoker.libraries), "Need libraries in $target_name")
+template("generate_patched_sdk") {
+  assert(defined(invoker.libraries), "Need libraries in $target_name")
 
-    concatenation_target_names = []
-    concatenation_files = []
+  concatenation_target_names = []
+  concatenation_files = []
 
-    # Concatenate vm library patches.
-    foreach(library, invoker.libraries) {
-      name = library[0]
+  # Concatenate vm library patches.
+  foreach(library, invoker.libraries) {
+    name = library[0]
 
-      target_output = "$target_gen_dir/patches/${name}_patch.dart"
-      concatenate_patch("concatenate_${name}_patch") {
-        libsources = rebase_path(library[1], ".", library[2])
-        output = target_output
-      }
-      concatenation_target_names += [ ":concatenate_${name}_patch" ]
-      concatenation_files += [ target_output ]
+    target_output = "$target_gen_dir/patches/${name}_patch.dart"
+    concatenate_patch("concatenate_${name}_patch") {
+      libsources = rebase_path(library[1], ".", library[2])
+      output = target_output
     }
-
-    # Build the patched sdk out of the concatenated patches and the special
-    # libraries.
-    action(target_name) {
-      deps = concatenation_target_names
-      if (!prebuilt_dart_exe_works) {
-        deps += [ "../bin:dart_bootstrap($host_toolchain)" ]
-      }
-
-      patches_dir = "$target_gen_dir/patches"
-      patched_sdk_dir = "$root_out_dir/patched_sdk"
-
-      script = "../../tools/patch_sdk.py"
-
-      # We list all files which make up the sdk (modulo patches) and get them back
-      # as a GN list object.
-      shared_sdk_sources = exec_script("../../tools/list_dart_files.py",
-                                       [ "../../sdk/lib" ],
-                                       "list lines")
-
-      # We list the `patch_sdk.dart` tool here because the [script] (which is
-      # implicitly an input) will call it.
-      inputs = [
-        "../../tools/patch_sdk.dart",
-      ]
-
-      # Files below are not patches, they will not be in [concatenation_files] but
-      # the `patch_sdk.dart` script will copy them into the patched sdk.
-      inputs += [
-        "../lib/typed_data.dart",
-        "../bin/builtin.dart",
-        "../bin/vmservice/vmservice_io.dart",
-        "../bin/vmservice/loader.dart",
-        "../bin/vmservice/server.dart",
-      ]
-
-      # Add all the normal sdk sources.
-      inputs += shared_sdk_sources
-
-      # Add all the concatenated patch files.
-      inputs += concatenation_files
-
-      outputs = [
-        # Instead of listing all outputs we list a single well-known one.
-        "${patched_sdk_dir}/lib/core/core.dart",
-      ]
-
-      args = []
-      if (!prebuilt_dart_exe_works) {
-        dart_out_dir = get_label_info("../bin:dart_bootstrap($host_toolchain)",
-                                      "root_out_dir")
-        dart_bootstrap =
-            rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
-        args += [
-          "--dart-executable",
-          dart_bootstrap,
-        ]
-      }
-      args += [
-        "vm",
-        rebase_path("../../sdk"),
-        rebase_path(patches_dir, root_build_dir),
-        rebase_path(patched_sdk_dir, root_build_dir),
-      ]
-    }
+    concatenation_target_names += [ ":concatenate_${name}_patch" ]
+    concatenation_files += [ target_output ]
   }
 
-  generate_patched_sdk("patched_sdk") {
-    libraries = [
-      [
-        "async",
-        processed_gypis.async_runtime_sources,
-        "../lib",
-      ],
-      [
-        "collection",
-        processed_gypis.collection_runtime_sources,
-        "../lib",
-      ],
-      [
-        "convert",
-        processed_gypis.convert_runtime_sources,
-        "../lib",
-      ],
-      [
-        "core",
-        processed_gypis.core_runtime_sources,
-        "../lib",
-      ],
-      [
-        "developer",
-        processed_gypis.developer_runtime_sources,
-        "../lib",
-      ],
-      [
-        "internal",
-        processed_gypis.internal_runtime_sources,
-        "../lib",
-      ],
-      [
-        "isolate",
-        processed_gypis.isolate_runtime_sources,
-        "../lib",
-      ],
-      [
-        "math",
-        processed_gypis.math_runtime_sources,
-        "../lib",
-      ],
-      [
-        "mirrors",
-        processed_gypis.mirrors_runtime_sources,
-        "../lib",
-      ],
-      [
-        "profiler",
-        processed_gypis.profiler_runtime_sources,
-        "../lib",
-      ],
-      [
-        "vmservice",
-        processed_gypis.vmservice_runtime_sources,
-        "../lib",
-      ],
-      [
-        "io",
-        processed_gypis.bin_io_sources,
-        "../bin",
-      ],
+  # Build the patched sdk out of the concatenated patches and the special
+  # libraries.
+  action(target_name) {
+    deps = concatenation_target_names
+    if (!prebuilt_dart_exe_works) {
+      deps += [ "../bin:dart_bootstrap($host_toolchain)" ]
+    }
+
+    patches_dir = "$target_gen_dir/patches"
+    patched_sdk_dir = "$root_out_dir/patched_sdk"
+
+    script = "../../tools/patch_sdk.py"
+
+    # We list all files which make up the sdk (modulo patches) and get them
+    # back as a GN list object.
+    shared_sdk_sources = exec_script("../../tools/list_dart_files.py",
+                                     [
+                                       "absolute",
+                                       rebase_path("../../sdk/lib"),
+                                     ],
+                                     "list lines")
+
+    # We list the `patch_sdk.dart` tool here because the [script] (which is
+    # implicitly an input) will call it.
+    inputs = [
+      "../../tools/patch_sdk.dart",
+    ]
+
+    # Files below are not patches, they will not be in [concatenation_files]
+    # but the `patch_sdk.dart` script will copy them into the patched sdk.
+    inputs += [
+      "../bin/builtin.dart",
+      "../bin/vmservice/vmservice_io.dart",
+      "../bin/vmservice/loader.dart",
+      "../bin/vmservice/server.dart",
+    ]
+
+    # Add all the normal sdk sources.
+    inputs += shared_sdk_sources
+
+    # Add all the concatenated patch files.
+    inputs += concatenation_files
+
+    outputs = [
+      # Instead of listing all outputs we list a single well-known one.
+      "${patched_sdk_dir}/lib/core/core.dart",
+    ]
+
+    args = [ "--quiet" ]
+    if (!prebuilt_dart_exe_works) {
+      dart_out_dir = get_label_info("../bin:dart_bootstrap($host_toolchain)",
+                                    "root_out_dir")
+      dart_bootstrap =
+          rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
+      args += [
+        "--dart-executable",
+        dart_bootstrap,
+      ]
+    }
+    args += [
+      "vm",
+      rebase_path("../../sdk"),
+      rebase_path(patches_dir, root_build_dir),
+      rebase_path(patched_sdk_dir, root_build_dir),
     ]
   }
+}
+
+generate_patched_sdk("patched_sdk") {
+  libraries = [
+    [
+      "async",
+      processed_gypis.async_runtime_sources,
+      "../lib",
+    ],
+    [
+      "collection",
+      processed_gypis.collection_runtime_sources,
+      "../lib",
+    ],
+    [
+      "convert",
+      processed_gypis.convert_runtime_sources,
+      "../lib",
+    ],
+    [
+      "core",
+      processed_gypis.core_runtime_sources,
+      "../lib",
+    ],
+    [
+      "developer",
+      processed_gypis.developer_runtime_sources,
+      "../lib",
+    ],
+    [
+      "internal",
+      processed_gypis.internal_runtime_sources,
+      "../lib",
+    ],
+    [
+      "isolate",
+      processed_gypis.isolate_runtime_sources,
+      "../lib",
+    ],
+    [
+      "math",
+      processed_gypis.math_runtime_sources,
+      "../lib",
+    ],
+    [
+      "mirrors",
+      processed_gypis.mirrors_runtime_sources,
+      "../lib",
+    ],
+    [
+      "profiler",
+      processed_gypis.profiler_runtime_sources,
+      "../lib",
+    ],
+    [
+      "typed_data",
+      processed_gypis.typed_data_runtime_sources,
+      "../lib",
+    ],
+    [
+      "vmservice",
+      processed_gypis.vmservice_runtime_sources,
+      "../lib",
+    ],
+    [
+      "io",
+      processed_gypis.bin_io_sources,
+      "../bin",
+    ],
+  ]
 }

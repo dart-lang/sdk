@@ -5,7 +5,7 @@
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
@@ -19,17 +19,18 @@ final RegExp nativeRedirectionRegExp = new RegExp(r'^[a-zA-Z][a-zA-Z_$0-9]*$');
 
 void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   Compiler compiler = builder.compiler;
-  FunctionElement element = builder.target;
+  MethodElement element = builder.target;
   NativeEmitter nativeEmitter = builder.nativeEmitter;
   JavaScriptBackend backend = builder.backend;
   DiagnosticReporter reporter = compiler.reporter;
 
   HInstruction convertDartClosure(
-      ParameterElement parameter, FunctionType type) {
+      ParameterElement parameter, ResolutionFunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
     ConstantValue arityConstant =
-        builder.constantSystem.createInt(type.computeArity());
-    HInstruction arity = builder.graph.addConstant(arityConstant, compiler);
+        builder.constantSystem.createInt(type.parameterTypes.length);
+    HInstruction arity =
+        builder.graph.addConstant(arityConstant, builder.closedWorld);
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
     Element helper = backend.helpers.closureConverter;
@@ -72,9 +73,9 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       inputs.add(builder.localsHandler.readThis());
     }
     parameters.forEachParameter((ParameterElement parameter) {
-      DartType type = parameter.type.unaliased;
+      ResolutionDartType type = parameter.type.unaliased;
       HInstruction input = builder.localsHandler.readLocal(parameter);
-      if (type is FunctionType) {
+      if (type is ResolutionFunctionType) {
         // The parameter type is a function type either directly or through
         // typedef(s).
         input = convertDartClosure(parameter, type);
@@ -101,7 +102,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
         // be proportional to the number of native methods, which is bounded
         // by the dart: libraries.
         js.js.uncachedExpressionTemplate(nativeMethodCall),
-        backend.dynamicType,
+        builder.commonMasks.dynamicType,
         inputs,
         effects: new SideEffects()));
     // TODO(johnniwinther): Provide source information.
@@ -122,6 +123,6 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
         <HInstruction>[],
         new SideEffects(),
         null,
-        backend.dynamicType));
+        builder.commonMasks.dynamicType));
   }
 }

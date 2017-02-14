@@ -498,18 +498,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ popq(RCX);       // Pop return address.
   __ addq(RSP, RBX);  // Remove materialization arguments.
   __ pushq(RCX);      // Push return address.
-  __ ret();
+  // The caller is responsible for emitting the return instruction.
 }
 
 
 // RAX: result, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   // Push zap value instead of CODE_REG for lazy deopt.
-  __ pushq(Immediate(0xf1f1f1f1));
+  __ pushq(Immediate(kZapCodeReg));
   // Return address for "call" to deopt stub.
-  __ pushq(Immediate(0xe1e1e1e1));
+  __ pushq(Immediate(kZapReturnAddress));
   __ movq(CODE_REG, Address(THR, Thread::lazy_deopt_from_return_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
+  __ ret();
 }
 
 
@@ -517,16 +518,18 @@ void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
 // RDX: stacktrace, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
   // Push zap value instead of CODE_REG for lazy deopt.
-  __ pushq(Immediate(0xf1f1f1f1));
+  __ pushq(Immediate(kZapCodeReg));
   // Return address for "call" to deopt stub.
-  __ pushq(Immediate(0xe1e1e1e1));
+  __ pushq(Immediate(kZapReturnAddress));
   __ movq(CODE_REG, Address(THR, Thread::lazy_deopt_from_throw_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
+  __ ret();
 }
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
+  __ ret();
 }
 
 
@@ -1003,8 +1006,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // RDX: Address being stored
   Label reload;
   __ Bind(&reload);
-  __ movq(RCX, FieldAddress(RDX, Object::tags_offset()));
-  __ testq(RCX, Immediate(1 << RawObject::kRememberedBit));
+  __ movq(RAX, FieldAddress(RDX, Object::tags_offset()));
+  __ testq(RAX, Immediate(1 << RawObject::kRememberedBit));
   __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ popq(RCX);
   __ popq(RAX);
@@ -1888,6 +1891,25 @@ void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ movq(stacktrace_addr, Immediate(0));
 
   __ jmp(CallingConventions::kArg1Reg);  // Jump to continuation point.
+}
+
+
+// Deoptimize a frame on the call stack before rewinding.
+// The arguments are stored in the Thread object.
+// No result.
+void StubCode::GenerateDeoptForRewindStub(Assembler* assembler) {
+  // Push zap value instead of CODE_REG.
+  __ pushq(Immediate(kZapCodeReg));
+
+  // Push the deopt pc.
+  __ pushq(Address(THR, Thread::resume_pc_offset()));
+  GenerateDeoptimizationSequence(assembler, kEagerDeopt);
+
+  // After we have deoptimized, jump to the correct frame.
+  __ EnterStubFrame();
+  __ CallRuntime(kRewindPostDeoptRuntimeEntry, 0);
+  __ LeaveStubFrame();
+  __ int3();
 }
 
 

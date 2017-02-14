@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../compiler.dart' show Compiler;
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../js_backend/js_backend.dart';
+import '../js_backend/backend_helpers.dart';
+import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
@@ -600,16 +600,19 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
    */
   final Map<HInstruction, Range> ranges = new Map<HInstruction, Range>();
 
-  final Compiler compiler;
-  final ConstantSystem constantSystem;
+  final BackendHelpers backendHelpers;
+  final ClosedWorld closedWorld;
   final ValueRangeInfo info;
   final SsaOptimizerTask optimizer;
 
   HGraph graph;
 
-  SsaValueRangeAnalyzer(this.compiler, constantSystem, this.optimizer)
-      : info = new ValueRangeInfo(constantSystem),
-        this.constantSystem = constantSystem;
+  SsaValueRangeAnalyzer(
+      this.backendHelpers, ClosedWorld closedWorld, this.optimizer)
+      : info = new ValueRangeInfo(closedWorld.constantSystem),
+        this.closedWorld = closedWorld;
+
+  ConstantSystem get constantSystem => closedWorld.constantSystem;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -632,7 +635,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   void visitBasicBlock(HBasicBlock block) {
     void visit(HInstruction instruction) {
       Range range = instruction.accept(this);
-      if (instruction.isInteger(compiler)) {
+      if (instruction.isInteger(closedWorld)) {
         assert(range != null);
         ranges[instruction] = range;
       }
@@ -643,10 +646,10 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitInstruction(HInstruction instruction) {
-    if (instruction.isPositiveInteger(compiler)) {
+    if (instruction.isPositiveInteger(closedWorld)) {
       return info.newNormalizedRange(
           info.intZero, info.newPositiveValue(instruction));
-    } else if (instruction.isInteger(compiler)) {
+    } else if (instruction.isInteger(closedWorld)) {
       InstructionValue value = info.newInstructionValue(instruction);
       return info.newNormalizedRange(value, value);
     } else {
@@ -655,16 +658,17 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitPhi(HPhi phi) {
-    if (!phi.isInteger(compiler)) return info.newUnboundRange();
+    if (!phi.isInteger(closedWorld)) return info.newUnboundRange();
     // Some phases may replace instructions that change the inputs of
     // this phi. Only the [SsaTypesPropagation] phase will update the
     // phi type. Play it safe by assuming the [SsaTypesPropagation]
     // phase is not necessarily run before the [ValueRangeAnalyzer].
-    if (phi.inputs.any((i) => !i.isInteger(compiler))) {
+    if (phi.inputs.any((i) => !i.isInteger(closedWorld))) {
       return info.newUnboundRange();
     }
     if (phi.block.isLoopHeader()) {
-      Range range = new LoopUpdateRecognizer(compiler, ranges, info).run(phi);
+      Range range =
+          new LoopUpdateRecognizer(closedWorld, ranges, info).run(phi);
       if (range == null) return info.newUnboundRange();
       return range;
     }
@@ -677,7 +681,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitConstant(HConstant hConstant) {
-    if (!hConstant.isInteger(compiler)) return info.newUnboundRange();
+    if (!hConstant.isInteger(closedWorld)) return info.newUnboundRange();
     ConstantValue constant = hConstant.constant;
     NumConstantValue constantNum;
     if (constant is DeferredConstantValue) {
@@ -694,12 +698,11 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitFieldGet(HFieldGet fieldGet) {
-    if (!fieldGet.isInteger(compiler)) return info.newUnboundRange();
-    if (!fieldGet.receiver.isIndexablePrimitive(compiler)) {
+    if (!fieldGet.isInteger(closedWorld)) return info.newUnboundRange();
+    if (!fieldGet.receiver.isIndexablePrimitive(closedWorld)) {
       return visitInstruction(fieldGet);
     }
-    JavaScriptBackend backend = compiler.backend;
-    assert(fieldGet.element == backend.helpers.jsIndexableLength);
+    assert(fieldGet.element == backendHelpers.jsIndexableLength);
     PositiveValue value = info.newPositiveValue(fieldGet);
     // We know this range is above zero. To simplify the analysis, we
     // put the zero value as the lower bound of this range. This
@@ -715,7 +718,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range lengthRange = ranges[check.length];
     if (indexRange == null) {
       indexRange = info.newUnboundRange();
-      assert(!check.index.isInteger(compiler));
+      assert(!check.index.isInteger(closedWorld));
     }
     if (lengthRange == null) {
       // We might have lost the length range due to a type conversion that
@@ -723,7 +726,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       // get to this point anyway, so no need to try and refine ranges.
       return indexRange;
     }
-    assert(check.length.isInteger(compiler));
+    assert(check.length.isInteger(closedWorld));
 
     // Check if the index is strictly below the upper bound of the length
     // range.
@@ -776,8 +779,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   Range visitRelational(HRelational relational) {
     HInstruction right = relational.right;
     HInstruction left = relational.left;
-    if (!left.isInteger(compiler)) return info.newUnboundRange();
-    if (!right.isInteger(compiler)) return info.newUnboundRange();
+    if (!left.isInteger(closedWorld)) return info.newUnboundRange();
+    if (!right.isInteger(closedWorld)) return info.newUnboundRange();
     BinaryOperation operation = relational.operation(constantSystem);
     Range rightRange = ranges[relational.right];
     Range leftRange = ranges[relational.left];
@@ -786,11 +789,11 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       handleEqualityCheck(relational);
     } else if (operation.apply(leftRange, rightRange)) {
       relational.block
-          .rewrite(relational, graph.addConstantBool(true, compiler));
+          .rewrite(relational, graph.addConstantBool(true, closedWorld));
       relational.block.remove(relational);
     } else if (negateOperation(operation).apply(leftRange, rightRange)) {
       relational.block
-          .rewrite(relational, graph.addConstantBool(false, compiler));
+          .rewrite(relational, graph.addConstantBool(false, closedWorld));
       relational.block.remove(relational);
     }
     return info.newUnboundRange();
@@ -800,7 +803,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range right = ranges[node.right];
     Range left = ranges[node.left];
     if (left.isSingleValue && right.isSingleValue && left == right) {
-      node.block.rewrite(node, graph.addConstantBool(true, compiler));
+      node.block.rewrite(node, graph.addConstantBool(true, closedWorld));
       node.block.remove(node);
     }
   }
@@ -810,9 +813,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     HInstruction right = invoke.inputs[2];
     Range divisor = ranges[right];
     if (divisor != null) {
-      // For Integer values we can be precise in the upper bound,
-      // so special case those.
-      if (left.isInteger(compiler) && right.isInteger(compiler)) {
+      // For Integer values we can be precise in the upper bound, so special
+      // case those.
+      if (left.isInteger(closedWorld) && right.isInteger(closedWorld)) {
         if (divisor.isPositive) {
           return info.newNormalizedRange(
               info.intZero, divisor.upper - info.intOne);
@@ -820,12 +823,36 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
           return info.newNormalizedRange(
               info.intZero, info.newNegateValue(divisor.lower) - info.intOne);
         }
-      } else if (left.isNumber(compiler) && right.isNumber(compiler)) {
+      } else if (left.isNumber(closedWorld) && right.isNumber(closedWorld)) {
         if (divisor.isPositive) {
           return info.newNormalizedRange(info.intZero, divisor.upper);
         } else if (divisor.isNegative) {
           return info.newNormalizedRange(
               info.intZero, info.newNegateValue(divisor.lower));
+        }
+      }
+    }
+    return info.newUnboundRange();
+  }
+
+  Range visitRemainder(HRemainder instruction) {
+    HInstruction left = instruction.inputs[0];
+    HInstruction right = instruction.inputs[1];
+    Range dividend = ranges[left];
+    // If both operands are >=0, the result is >= 0 and bounded by the divisor.
+    if ((dividend != null && dividend.isPositive) ||
+        left.isPositiveInteger(closedWorld)) {
+      Range divisor = ranges[right];
+      if (divisor != null) {
+        if (divisor.isPositive) {
+          // For Integer values we can be precise in the upper bound.
+          if (left.isInteger(closedWorld) && right.isInteger(closedWorld)) {
+            return info.newNormalizedRange(
+                info.intZero, divisor.upper - info.intOne);
+          }
+          if (left.isNumber(closedWorld) && right.isNumber(closedWorld)) {
+            return info.newNormalizedRange(info.intZero, divisor.upper);
+          }
         }
       }
     }
@@ -839,7 +866,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range handleBinaryOperation(HBinaryArithmetic instruction) {
-    if (!instruction.isInteger(compiler)) return info.newUnboundRange();
+    if (!instruction.isInteger(closedWorld)) return info.newUnboundRange();
     return instruction
         .operation(constantSystem)
         .apply(ranges[instruction.left], ranges[instruction.right]);
@@ -854,10 +881,10 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitBitAnd(HBitAnd node) {
-    if (!node.isInteger(compiler)) return info.newUnboundRange();
+    if (!node.isInteger(closedWorld)) return info.newUnboundRange();
     HInstruction right = node.right;
     HInstruction left = node.left;
-    if (left.isInteger(compiler) && right.isInteger(compiler)) {
+    if (left.isInteger(closedWorld) && right.isInteger(closedWorld)) {
       return ranges[left] & ranges[right];
     }
 
@@ -871,9 +898,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return info.newUnboundRange();
     }
 
-    if (left.isInteger(compiler)) {
+    if (left.isInteger(closedWorld)) {
       return tryComputeRange(left);
-    } else if (right.isInteger(compiler)) {
+    } else if (right.isInteger(closedWorld)) {
       return tryComputeRange(right);
     }
     return info.newUnboundRange();
@@ -888,9 +915,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction createRangeConversion(
       HInstruction cursor, HInstruction instruction) {
-    JavaScriptBackend backend = compiler.backend;
     HRangeConversion newInstruction =
-        new HRangeConversion(instruction, backend.intType);
+        new HRangeConversion(instruction, closedWorld.commonMasks.intType);
     conversions.add(newInstruction);
     cursor.block.addBefore(cursor, newInstruction);
     // Update the users of the instruction dominated by [cursor] to
@@ -953,8 +979,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     if (condition is HIdentity) return info.newUnboundRange();
     HInstruction right = condition.right;
     HInstruction left = condition.left;
-    if (!left.isInteger(compiler)) return info.newUnboundRange();
-    if (!right.isInteger(compiler)) return info.newUnboundRange();
+    if (!left.isInteger(closedWorld)) return info.newUnboundRange();
+    if (!right.isInteger(closedWorld)) return info.newUnboundRange();
 
     Range rightRange = ranges[right];
     Range leftRange = ranges[left];
@@ -1016,10 +1042,10 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
  * Tries to find a range for the update instruction of a loop phi.
  */
 class LoopUpdateRecognizer extends HBaseVisitor {
-  final Compiler compiler;
+  final ClosedWorld closedWorld;
   final Map<HInstruction, Range> ranges;
   final ValueRangeInfo info;
-  LoopUpdateRecognizer(this.compiler, this.ranges, this.info);
+  LoopUpdateRecognizer(this.closedWorld, this.ranges, this.info);
 
   Range run(HPhi loopPhi) {
     // Create a marker range for the loop phi, so that if the update
@@ -1044,7 +1070,7 @@ class LoopUpdateRecognizer extends HBaseVisitor {
   }
 
   Range visit(HInstruction instruction) {
-    if (!instruction.isInteger(compiler)) return null;
+    if (!instruction.isInteger(closedWorld)) return null;
     if (ranges[instruction] != null) return ranges[instruction];
     return instruction.accept(this);
   }

@@ -24,16 +24,18 @@ import 'types/types.dart' show TypeMask;
 import 'universe/world_builder.dart' show ReceiverConstraint;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
+import 'world.dart' show ClosedWorld;
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   final Compiler compiler;
+  final ClosedWorld closedWorld;
 
   final AllInfo result = new AllInfo();
   final Map<Element, Info> _elementToInfo = <Element, Info>{};
   final Map<ConstantValue, Info> _constantToInfo = <ConstantValue, Info>{};
   final Map<OutputUnit, OutputUnitInfo> _outputToInfo = {};
 
-  ElementInfoCollector(this.compiler);
+  ElementInfoCollector(this.compiler, this.closedWorld);
 
   void run() {
     compiler.dumpInfoTask._constantToNode.forEach((constant, node) {
@@ -260,12 +262,11 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     // TODO(sigmund): why all these checks?
     if (element.isInstanceMember &&
         !element.isAbstract &&
-        compiler.closedWorld.allFunctions.contains(element)) {
+        closedWorld.allFunctions.contains(element as MemberElement)) {
       returnType = '${element.type.returnType}';
     }
     String inferredReturnType = '${_resultOf(element).returnType}';
-    String sideEffects =
-        '${compiler.closedWorld.getSideEffectsOfElement(element)}';
+    String sideEffects = '${closedWorld.getSideEffectsOfElement(element)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[element];
     if (inlinedCount == null) inlinedCount = 0;
@@ -328,10 +329,9 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
       JavaScriptBackend backend = compiler.backend;
-      full.Emitter emitter = backend.emitter.emitter;
       assert(outputUnit.name != null || outputUnit.isMainOutput);
       OutputUnitInfo info = new OutputUnitInfo(
-          outputUnit.name, emitter.outputBuffers[outputUnit].length);
+          outputUnit.name, backend.emitter.emitter.generatedSize(outputUnit));
       info.imports.addAll(outputUnit.imports
           .map((d) => compiler.deferredLoadTask.importDeferName[d]));
       result.outputUnits.add(info);
@@ -391,8 +391,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // is called.
   final Set<jsAst.Node> _tracking = new Set<jsAst.Node>();
   // A mapping from Dart Elements to Javascript AST Nodes.
-  final Map<Element, List<jsAst.Node>> _elementToNodes =
-      <Element, List<jsAst.Node>>{};
+  final Map<Entity, List<jsAst.Node>> _elementToNodes =
+      <Entity, List<jsAst.Node>>{};
   final Map<ConstantValue, jsAst.Node> _constantToNode =
       <ConstantValue, jsAst.Node>{};
   // A mapping from Javascript AST Nodes to the size of their
@@ -419,9 +419,11 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   final Map<Element, Set<Element>> _dependencies = {};
-  void registerDependency(Element source, Element target) {
+  void registerDependency(Element target) {
     if (compiler.options.dumpInfo) {
-      _dependencies.putIfAbsent(source, () => new Set()).add(target);
+      _dependencies
+          .putIfAbsent(compiler.currentElement, () => new Set())
+          .add(target);
     }
   }
 
@@ -431,8 +433,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
   }
 
-  void unregisterImpact(Element element) {
-    impacts.remove(element);
+  void unregisterImpact(var impactSource) {
+    impacts.remove(impactSource);
   }
 
   /**
@@ -440,7 +442,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
    * [element].  Each [Selection] contains an element that is
    * used and the selector that selected the element.
    */
-  Iterable<Selection> getRetaining(Element element) {
+  Iterable<Selection> getRetaining(Element element, ClosedWorld closedWorld) {
     WorldImpact impact = impacts[element];
     if (impact == null) return const <Selection>[];
 
@@ -449,7 +451,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         element,
         impact,
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
-          selections.addAll(compiler.closedWorld.allFunctions
+          selections.addAll(closedWorld.allFunctions
               .filter(dynamicUse.selector, dynamicUse.mask)
               .map((e) => new Selection(e, dynamicUse.mask)));
         }, visitStaticUse: (staticUse) {
@@ -471,7 +473,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 
   // Registers that a javascript AST node `code` was produced by the
   // dart Element `element`.
-  void registerElementAst(Element element, jsAst.Node code) {
+  void registerElementAst(Entity element, jsAst.Node code) {
     if (compiler.options.dumpInfo) {
       _elementToNodes
           .putIfAbsent(element, () => new List<jsAst.Node>())
@@ -526,18 +528,18 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     return sb.toString();
   }
 
-  void dumpInfo() {
+  void dumpInfo(ClosedWorld closedWorld) {
     measure(() {
-      infoCollector = new ElementInfoCollector(compiler)..run();
+      infoCollector = new ElementInfoCollector(compiler, closedWorld)..run();
       StringBuffer jsonBuffer = new StringBuffer();
-      dumpInfoJson(jsonBuffer);
+      dumpInfoJson(jsonBuffer, closedWorld);
       compiler.outputProvider('', 'info.json')
         ..add(jsonBuffer.toString())
         ..close();
     });
   }
 
-  void dumpInfoJson(StringSink buffer) {
+  void dumpInfoJson(StringSink buffer, ClosedWorld closedWorld) {
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     Stopwatch stopwatch = new Stopwatch();
     stopwatch.start();
@@ -547,7 +549,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         infoCollector._elementToInfo.keys.where((k) => k is FunctionElement);
     for (FunctionElement element in functionElements) {
       FunctionInfo info = infoCollector._elementToInfo[element];
-      Iterable<Selection> uses = getRetaining(element);
+      Iterable<Selection> uses = getRetaining(element, closedWorld);
       // Don't bother recording an empty list of dependencies.
       for (Selection selection in uses) {
         // Don't register dart2js builtin functions that are not recorded.

@@ -520,10 +520,16 @@ class PositionTraceListener extends TraceListener
 
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
-    SourceInformation sourceInformation = computeSourceInformation(node);
-    if (sourceInformation == null) return;
     int codeLocation = offset.value;
     if (codeLocation == null) return;
+
+    if (kind == StepKind.NO_INFO) {
+      sourceMapper.register(node, codeLocation, const NoSourceLocationMarker());
+      return;
+    }
+
+    SourceInformation sourceInformation = computeSourceInformation(node);
+    if (sourceInformation == null) return;
 
     void registerPosition(SourcePositionKind sourcePositionKind) {
       SourceLocation sourceLocation =
@@ -561,6 +567,8 @@ class PositionTraceListener extends TraceListener
       case StepKind.DO_CONDITION:
       case StepKind.SWITCH_EXPRESSION:
         registerPosition(SourcePositionKind.START);
+        break;
+      case StepKind.NO_INFO:
         break;
     }
   }
@@ -685,7 +693,13 @@ class Offset {
   }
 }
 
-enum BranchKind { CONDITION, LOOP, CATCH, FINALLY, CASE, }
+enum BranchKind {
+  CONDITION,
+  LOOP,
+  CATCH,
+  FINALLY,
+  CASE,
+}
 
 enum StepKind {
   FUN_ENTRY,
@@ -704,6 +718,7 @@ enum StepKind {
   WHILE_CONDITION,
   DO_CONDITION,
   SWITCH_EXPRESSION,
+  NO_INFO,
 }
 
 /// Listener for the [JavaScriptTracer].
@@ -769,14 +784,20 @@ class JavaScriptTracer extends js.BaseVisitor {
     }
   }
 
-  void notifyStep(js.Node node, Offset offset, StepKind kind) {
-    if (active) {
+  void notifyStep(js.Node node, Offset offset, StepKind kind,
+      {bool force: false}) {
+    if (active || force) {
       listeners.forEach((listener) => listener.onStep(node, offset, kind));
     }
   }
 
   void apply(js.Node node) {
     notifyStart(node);
+
+    int startPosition = getSyntaxOffset(node, kind: CodePositionKind.START);
+    Offset startOffset = getOffsetForNode(node, startPosition);
+    notifyStep(node, startOffset, StepKind.NO_INFO, force: true);
+
     node.accept(this);
     notifyEnd(node);
   }
@@ -823,6 +844,11 @@ class JavaScriptTracer extends js.BaseVisitor {
         statementOffset = getSyntaxOffset(node, kind: CodePositionKind.CLOSING);
     Offset exitOffset = getOffsetForNode(node, statementOffset);
     notifyStep(node, exitOffset, StepKind.FUN_EXIT);
+    if (active && !activeBefore) {
+      int endPosition = getSyntaxOffset(node, kind: CodePositionKind.END);
+      Offset endOffset = getOffsetForNode(node, endPosition);
+      notifyStep(node, endOffset, StepKind.NO_INFO);
+    }
     active = activeBefore;
   }
 

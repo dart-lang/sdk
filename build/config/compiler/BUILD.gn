@@ -2,6 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+declare_args() {
+  # The optimization level to use for debug builds.
+  if (is_android) {
+    # On Android we kind of optimize some things that don't affect debugging
+    # much even when optimization is disabled to get the binary size down.
+    debug_optimization_level = "s"
+  } else {
+    debug_optimization_level = "2"
+  }
+}
+
 import("//build/config/android/config.gni")
 if (current_cpu == "arm") {
   import("//build/config/arm.gni")
@@ -226,6 +237,10 @@ config("compiler") {
         ]
       }
     } else if (current_cpu == "mipsel") {
+      # Some toolchains default to big-endian.
+      cflags += [ "-EL" ]
+      ldflags += [ "-EL" ]
+
       # We have to explicitly request exceptions to get good heap profiles from
       # tcmalloc.
       if (is_debug || is_release) {
@@ -292,14 +307,22 @@ config("compiler") {
   # Linux/Android common flags setup.
   # ---------------------------------
   if (is_linux || is_android) {
-    cflags += [ "-fPIC" ]
-
     ldflags += [
-      "-fPIC",
       "-Wl,-z,noexecstack",
       "-Wl,-z,now",
       "-Wl,-z,relro",
     ]
+  }
+
+  # We need -fPIC:
+  # 1. On ARM and MIPS for tcmalloc.
+  # 2. On Android.
+  # 3. When using the sanitizers.
+  # Otherwise there is a performance hit, in particular on ia32.
+  if (is_android || is_asan || is_lsan || is_msan || is_tsan ||
+      (is_linux && (current_cpu == "arm" || current_cpu == "mipsel"))) {
+    cflags += [ "-fPIC" ]
+    ldflags += [ "-fPIC" ]
   }
 
   # Linux-specific compiler flags setup.
@@ -731,21 +754,21 @@ config("no_optimize") {
     # The only difference on windows is that the inlining is less aggressive.
     # (We accept the default level). Otherwise it is very slow.
     cflags = [
-      "/O2",  # Do some optimizations.
+      "/O${debug_optimization_level}",  # Do some optimizations.
       "/Oy-",  # Disable omitting frame pointers, must be after /O2.
     ]
   } else if (is_android) {
     # On Android we kind of optimize some things that don't affect debugging
     # much even when optimization is disabled to get the binary size down.
     cflags = [
-      "-Os",
+      "-O${debug_optimization_level}",
       "-fdata-sections",
       "-ffunction-sections",
     ]
     ldflags = common_optimize_on_ldflags
   } else {
     cflags = [
-      "-O1",
+      "-O${debug_optimization_level}",
       "-fdata-sections",
       "-ffunction-sections",
     ]

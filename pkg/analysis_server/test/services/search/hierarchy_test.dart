@@ -8,7 +8,9 @@ import 'dart:async';
 
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,22 +20,16 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HierarchyTest);
+    defineReflectiveTests(HierarchyTest_Driver);
   });
 }
 
 @reflectiveTest
-class HierarchyTest extends AbstractSingleUnitTest {
-  Index index;
-  SearchEngineImpl searchEngine;
+abstract class AbstractHierarchyTest extends AbstractSingleUnitTest {
+  SearchEngine get searchEngine;
 
-  void setUp() {
-    super.setUp();
-    index = createMemoryIndex();
-    searchEngine = new SearchEngineImpl(index);
-  }
-
-  void test_getClassMembers() {
-    _indexTestUnit('''
+  test_getClassMembers() async {
+    await _indexTestUnit('''
 class A {
   A() {}
   var ma1;
@@ -58,8 +54,8 @@ class B extends A {
     }
   }
 
-  Future test_getHierarchyMembers_constructors() {
-    _indexTestUnit('''
+  test_getHierarchyMembers_constructors() async {
+    await _indexTestUnit('''
 class A {
   A() {}
 }
@@ -80,8 +76,8 @@ class B extends A {
     return Future.wait([futureA, futureB]);
   }
 
-  Future test_getHierarchyMembers_fields() {
-    _indexTestUnit('''
+  test_getHierarchyMembers_fields() async {
+    await _indexTestUnit('''
 class A {
   int foo;
 }
@@ -118,8 +114,8 @@ class D {
     return Future.wait([futureA, futureB, futureC, futureD]);
   }
 
-  Future test_getHierarchyMembers_fields_static() async {
-    _indexTestUnit('''
+  test_getHierarchyMembers_fields_static() async {
+    await _indexTestUnit('''
 class A {
   static int foo;
 }
@@ -153,8 +149,8 @@ class C extends B {
     }
   }
 
-  Future test_getHierarchyMembers_methods() {
-    _indexTestUnit('''
+  test_getHierarchyMembers_methods() async {
+    await _indexTestUnit('''
 class A {
   foo() {}
 }
@@ -199,8 +195,8 @@ class E extends D {
     return Future.wait([futureA, futureB, futureC, futureD, futureE]);
   }
 
-  Future test_getHierarchyMembers_methods_static() async {
-    _indexTestUnit('''
+  test_getHierarchyMembers_methods_static() async {
+    await _indexTestUnit('''
 class A {
   static foo() {}
 }
@@ -224,8 +220,8 @@ class B extends A {
     }
   }
 
-  Future test_getHierarchyMembers_withInterfaces() {
-    _indexTestUnit('''
+  test_getHierarchyMembers_withInterfaces() async {
+    await _indexTestUnit('''
 class A {
   foo() {}
 }
@@ -259,8 +255,8 @@ class E {
     return Future.wait([futureA, futureB, futureD]);
   }
 
-  void test_getMembers() {
-    _indexTestUnit('''
+  test_getMembers() async {
+    await _indexTestUnit('''
 class A {
   A() {}
   var ma1;
@@ -276,51 +272,39 @@ class B extends A {
     {
       ClassElement classA = findElement('A');
       List<Element> members = getMembers(classA);
-      expect(members.map((e) => e.name),
-          unorderedEquals(['ma1', 'ma2', '==', 'toString', 'hashCode']));
+      expect(
+          members.map((e) => e.name),
+          unorderedEquals([
+            'ma1',
+            'ma2',
+            '==',
+            'toString',
+            'hashCode',
+            'noSuchMethod',
+            'runtimeType'
+          ]));
     }
     {
       ClassElement classB = findElement('B');
       List<Element> members = getMembers(classB);
       expect(
           members.map((e) => e.name),
-          unorderedEquals(
-              ['mb1', 'mb2', 'ma1', 'ma2', '==', 'toString', 'hashCode']));
+          unorderedEquals([
+            'mb1',
+            'mb2',
+            'ma1',
+            'ma2',
+            '==',
+            'toString',
+            'hashCode',
+            'noSuchMethod',
+            'runtimeType'
+          ]));
     }
   }
 
-  Future test_getSubClasses() {
-    _indexTestUnit('''
-class A {}
-class B extends A {}
-class C extends B {}
-class D extends B implements A {}
-class M {}
-class E extends A with M {}
-''');
-    ClassElement classA = findElement("A");
-    ClassElement classB = findElement("B");
-    ClassElement classC = findElement("C");
-    ClassElement classD = findElement("D");
-    ClassElement classM = findElement("M");
-    ClassElement classE = findElement("E");
-    var futureA = getSubClasses(searchEngine, classA).then((subs) {
-      expect(subs, unorderedEquals([classB, classC, classD, classE]));
-    });
-    var futureB = getSubClasses(searchEngine, classB).then((subs) {
-      expect(subs, unorderedEquals([classC, classD]));
-    });
-    var futureC = getSubClasses(searchEngine, classC).then((subs) {
-      expect(subs, isEmpty);
-    });
-    var futureM = getSubClasses(searchEngine, classM).then((subs) {
-      expect(subs, unorderedEquals([classE]));
-    });
-    return Future.wait([futureA, futureB, futureC, futureM]);
-  }
-
-  void test_getSuperClasses() {
-    _indexTestUnit('''
+  test_getSuperClasses() async {
+    await _indexTestUnit('''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -373,8 +357,40 @@ class F implements A {}
     }
   }
 
-  void _indexTestUnit(String code) {
-    resolveTestUnit(code);
+  Future<Null> _indexTestUnit(String code);
+}
+
+@reflectiveTest
+class HierarchyTest extends AbstractHierarchyTest {
+  Index index;
+  SearchEngineImpl searchEngine;
+
+  void setUp() {
+    super.setUp();
+    index = createMemoryIndex();
+    searchEngine = new SearchEngineImpl(index);
+  }
+
+  Future<Null> _indexTestUnit(String code) async {
+    await resolveTestUnit(code);
     index.indexUnit(testUnit);
+  }
+}
+
+@reflectiveTest
+class HierarchyTest_Driver extends AbstractHierarchyTest {
+  SearchEngineImpl2 searchEngine;
+
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  void setUp() {
+    super.setUp();
+    searchEngine = new SearchEngineImpl2([driver]);
+  }
+
+  @override
+  Future<Null> _indexTestUnit(String code) async {
+    await resolveTestUnit(code);
   }
 }

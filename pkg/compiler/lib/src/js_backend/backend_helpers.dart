@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers, Uris;
 import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
-import '../core_types.dart' show CoreClasses;
+import '../core_types.dart' show CommonElements;
 import '../elements/elements.dart'
     show
         AbstractFieldElement,
@@ -16,7 +16,6 @@ import '../elements/elements.dart'
         ConstructorElement,
         Element,
         EnumClassElement,
-        FieldElement,
         FunctionElement,
         LibraryElement,
         MemberElement,
@@ -26,6 +25,7 @@ import '../elements/elements.dart'
 import '../library_loader.dart' show LoadedLibraries;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
+import 'constant_system_javascript.dart';
 import 'js_backend.dart';
 
 /// Helper classes and functions for the JavaScript backend.
@@ -62,7 +62,7 @@ class BackendHelpers {
 
   Resolution get resolution => backend.resolution;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CommonElements get commonElements => compiler.commonElements;
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -113,9 +113,9 @@ class BackendHelpers {
   MethodElement jsArrayRemoveLast;
   MethodElement jsArrayAdd;
   MethodElement jsStringSplit;
-  Element jsStringToString;
-  Element jsStringOperatorAdd;
-  Element objectEquals;
+  MethodElement jsStringToString;
+  MethodElement jsStringOperatorAdd;
+  MethodElement objectEquals;
 
   ClassElement typeLiteralClass;
   ClassElement mapLiteralClass;
@@ -145,7 +145,7 @@ class BackendHelpers {
    */
   ClassElement jsIndexingBehaviorInterface;
 
-  Element getNativeInterceptorMethod;
+  MethodElement getNativeInterceptorMethod;
 
   /// Holds the method "getIsolateAffinityTag" when dart:_js_helper has been
   /// loaded.
@@ -182,7 +182,7 @@ class BackendHelpers {
 
   ClassElement _symbolImplementationClass;
   ClassElement get symbolImplementationClass {
-    return _symbolImplementationClass ??= find(internalLibrary, 'Symbol');
+    return _symbolImplementationClass ??= _find(internalLibrary, 'Symbol');
   }
 
   final Selector symbolValidatedConstructorSelector =
@@ -203,16 +203,23 @@ class BackendHelpers {
   }
 
   // TODO(johnniwinther): Make these private.
-  // TODO(johnniwinther): Split into findHelperFunction and findHelperClass and
-  // add a check that the element has the expected kind.
-  Element findHelper(String name) => find(jsHelperLibrary, name);
-  Element findAsyncHelper(String name) => find(asyncLibrary, name);
-  Element findInterceptor(String name) => find(interceptorsLibrary, name);
-  Element find(LibraryElement library, String name) {
+  // TODO(johnniwinther): Split into _findHelperFunction and _findHelperClass
+  // and add a check that the element has the expected kind.
+  Element _findHelper(String name) => _find(jsHelperLibrary, name);
+  FunctionElement _findHelperFunction(String name) =>
+      _find(jsHelperLibrary, name);
+  Element _findAsyncHelper(String name) => _find(asyncLibrary, name);
+  Element _findInterceptor(String name) => _find(interceptorsLibrary, name);
+  Element _find(LibraryElement library, String name) {
     Element element = library.implementation.findLocal(name);
     assert(invariant(library, element != null,
         message: "Element '$name' not found in '${library.canonicalUri}'."));
     return element;
+  }
+
+  Element findCoreHelper(String name) {
+    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
+    return coreLibrary.implementation.localLookup(name);
   }
 
   ConstructorElement _findConstructor(ClassElement cls, String name) {
@@ -243,7 +250,7 @@ class BackendHelpers {
   void initializeHelperClasses(DiagnosticReporter reporter) {
     final List missingHelperClasses = [];
     ClassElement lookupHelperClass(String name) {
-      ClassElement result = findHelper(name);
+      ClassElement result = _findHelper(name);
       if (result == null) {
         missingHelperClasses.add(name);
       }
@@ -265,11 +272,11 @@ class BackendHelpers {
     Uri uri = library.canonicalUri;
 
     FunctionElement findMethod(String name) {
-      return find(library, name);
+      return _find(library, name);
     }
 
     ClassElement findClass(String name) {
-      return find(library, name);
+      return _find(library, name);
     }
 
     if (uri == DART_INTERCEPTORS) {
@@ -300,10 +307,10 @@ class BackendHelpers {
       jsMutableIndexableClass = findClass('JSMutableIndexable');
     } else if (uri == DART_JS_HELPER) {
       initializeHelperClasses(reporter);
-      assertTest = findHelper('assertTest');
-      assertThrow = findHelper('assertThrow');
-      assertHelper = findHelper('assertHelper');
-      assertUnreachableMethod = findHelper('assertUnreachable');
+      assertTest = _findHelper('assertTest');
+      assertThrow = _findHelper('assertThrow');
+      assertHelper = _findHelper('assertHelper');
+      assertUnreachableMethod = _findHelper('assertUnreachable');
 
       typeLiteralClass = findClass('TypeImpl');
       constMapLiteralClass = findClass('ConstantMap');
@@ -321,21 +328,21 @@ class BackendHelpers {
 
       requiresPreambleMarker = findMethod('requiresPreamble');
     } else if (uri == DART_JS_MIRRORS) {
-      disableTreeShakingMarker = find(library, 'disableTreeShaking');
-      preserveMetadataMarker = find(library, 'preserveMetadata');
-      preserveUrisMarker = find(library, 'preserveUris');
-      preserveLibraryNamesMarker = find(library, 'preserveLibraryNames');
+      disableTreeShakingMarker = _find(library, 'disableTreeShaking');
+      preserveMetadataMarker = _find(library, 'preserveMetadata');
+      preserveUrisMarker = _find(library, 'preserveUris');
+      preserveLibraryNamesMarker = _find(library, 'preserveLibraryNames');
     } else if (uri == DART_JS_NAMES) {
-      preserveNamesMarker = find(library, 'preserveNames');
+      preserveNamesMarker = _find(library, 'preserveNames');
     } else if (uri == DART_EMBEDDED_NAMES) {
-      jsGetNameEnum = find(library, 'JsGetName');
-      jsBuiltinEnum = find(library, 'JsBuiltin');
+      jsGetNameEnum = _find(library, 'JsGetName');
+      jsBuiltinEnum = _find(library, 'JsBuiltin');
     } else if (uri == Uris.dart__native_typed_data) {
       typedArrayClass = findClass('NativeTypedArray');
       typedArrayOfIntClass = findClass('NativeTypedArrayOfInt');
     } else if (uri == PACKAGE_JS) {
-      jsAnnotationClass = find(library, 'JS');
-      jsAnonymousClass = find(library, '_Anonymous');
+      jsAnnotationClass = _find(library, 'JS');
+      jsAnonymousClass = _find(library, '_Anonymous');
     }
   }
 
@@ -351,7 +358,8 @@ class BackendHelpers {
 
     // [LinkedHashMap] is reexported from dart:collection and can therefore not
     // be loaded from dart:core in [onLibraryScanned].
-    mapLiteralClass = compiler.commonElements.coreLibrary.find('LinkedHashMap');
+    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
+    mapLiteralClass = coreLibrary.find('LinkedHashMap');
     assert(invariant(
         compiler.commonElements.coreLibrary, mapLiteralClass != null,
         message: "Element 'LinkedHashMap' not found in 'dart:core'."));
@@ -390,7 +398,8 @@ class BackendHelpers {
     jsStringOperatorAdd = compiler.lookupElementIn(jsStringClass, '+');
     jsStringToString = compiler.lookupElementIn(jsStringClass, 'toString');
 
-    objectEquals = compiler.lookupElementIn(coreClasses.objectClass, '==');
+    ClassElement objectClass = commonElements.objectClass;
+    objectEquals = compiler.lookupElementIn(objectClass, '==');
   }
 
   ConstructorElement _mapLiteralConstructor;
@@ -461,23 +470,23 @@ class BackendHelpers {
   }
 
   Element get badMain {
-    return findHelper('badMain');
+    return _findHelper('badMain');
   }
 
   Element get missingMain {
-    return findHelper('missingMain');
+    return _findHelper('missingMain');
   }
 
   Element get mainHasTooManyParameters {
-    return findHelper('mainHasTooManyParameters');
+    return _findHelper('mainHasTooManyParameters');
   }
 
   MethodElement get loadLibraryWrapper {
-    return findHelper("_loadLibraryWrapper");
+    return _findHelper("_loadLibraryWrapper");
   }
 
   Element get boolConversionCheck {
-    return findHelper('boolConversionCheck');
+    return _findHelper('boolConversionCheck');
   }
 
   MethodElement _traceHelper;
@@ -489,316 +498,392 @@ class BackendHelpers {
   }
 
   MethodElement get _consoleTraceHelper {
-    return findHelper('consoleTraceHelper');
+    return _findHelper('consoleTraceHelper');
   }
 
   MethodElement get _postTraceHelper {
-    return findHelper('postTraceHelper');
+    return _findHelper('postTraceHelper');
   }
 
-  FunctionElement get closureFromTearOff {
-    return findHelper('closureFromTearOff');
+  MethodElement get closureFromTearOff {
+    return _findHelper('closureFromTearOff');
   }
 
-  Element get isJsIndexable {
-    return findHelper('isJsIndexable');
+  MethodElement get isJsIndexable {
+    return _findHelper('isJsIndexable');
   }
 
-  Element get throwIllegalArgumentException {
-    return findHelper('iae');
+  MethodElement get throwIllegalArgumentException {
+    return _findHelper('iae');
   }
 
-  Element get throwIndexOutOfRangeException {
-    return findHelper('ioore');
+  MethodElement get throwIndexOutOfRangeException {
+    return _findHelper('ioore');
   }
 
   Element get exceptionUnwrapper {
-    return findHelper('unwrapException');
+    return _findHelper('unwrapException');
   }
 
   Element get throwRuntimeError {
-    return findHelper('throwRuntimeError');
+    return _findHelper('throwRuntimeError');
   }
 
   Element get throwTypeError {
-    return findHelper('throwTypeError');
+    return _findHelper('throwTypeError');
   }
 
   Element get throwAbstractClassInstantiationError {
-    return findHelper('throwAbstractClassInstantiationError');
+    return _findHelper('throwAbstractClassInstantiationError');
   }
 
   Element get checkConcurrentModificationError {
     if (cachedCheckConcurrentModificationError == null) {
       cachedCheckConcurrentModificationError =
-          findHelper('checkConcurrentModificationError');
+          _findHelper('checkConcurrentModificationError');
     }
     return cachedCheckConcurrentModificationError;
   }
 
-  Element get throwConcurrentModificationError {
-    return findHelper('throwConcurrentModificationError');
+  MethodElement get throwConcurrentModificationError {
+    return _findHelper('throwConcurrentModificationError');
   }
 
-  Element get checkInt => _checkInt ??= findHelper('checkInt');
+  Element get checkInt => _checkInt ??= _findHelper('checkInt');
   Element _checkInt;
 
-  Element get checkNum => _checkNum ??= findHelper('checkNum');
+  Element get checkNum => _checkNum ??= _findHelper('checkNum');
   Element _checkNum;
 
-  Element get checkString => _checkString ??= findHelper('checkString');
+  Element get checkString => _checkString ??= _findHelper('checkString');
   Element _checkString;
 
-  Element get stringInterpolationHelper {
-    return findHelper('S');
+  MethodElement get stringInterpolationHelper {
+    return _findHelper('S');
   }
 
-  Element get wrapExceptionHelper {
-    return findHelper(r'wrapException');
+  MethodElement get wrapExceptionHelper {
+    return _findHelper(r'wrapException');
   }
 
-  Element get throwExpressionHelper {
-    return findHelper('throwExpression');
+  MethodElement get throwExpressionHelper {
+    return _findHelper('throwExpression');
   }
 
-  Element get closureConverter {
-    return findHelper('convertDartClosureToJS');
+  MethodElement get closureConverter {
+    return _findHelper('convertDartClosureToJS');
   }
 
   Element get traceFromException {
-    return findHelper('getTraceFromException');
+    return _findHelper('getTraceFromException');
   }
 
-  Element get setRuntimeTypeInfo {
-    return findHelper('setRuntimeTypeInfo');
+  MethodElement get setRuntimeTypeInfo {
+    return _findHelper('setRuntimeTypeInfo');
   }
 
   Element get getRuntimeTypeInfo {
-    return findHelper('getRuntimeTypeInfo');
+    return _findHelper('getRuntimeTypeInfo');
   }
 
-  Element get getTypeArgumentByIndex {
-    return findHelper('getTypeArgumentByIndex');
+  MethodElement get getTypeArgumentByIndex {
+    return _findHelper('getTypeArgumentByIndex');
   }
 
-  Element get computeSignature {
-    return findHelper('computeSignature');
+  MethodElement get computeSignature {
+    return _findHelper('computeSignature');
   }
 
   Element get getRuntimeTypeArguments {
-    return findHelper('getRuntimeTypeArguments');
+    return _findHelper('getRuntimeTypeArguments');
   }
 
-  Element get getRuntimeTypeArgument {
-    return findHelper('getRuntimeTypeArgument');
+  MethodElement get getRuntimeTypeArgument {
+    return _findHelper('getRuntimeTypeArgument');
   }
 
   Element get runtimeTypeToString {
-    return findHelper('runtimeTypeToString');
+    return _findHelper('runtimeTypeToString');
   }
 
   Element get assertIsSubtype {
-    return findHelper('assertIsSubtype');
+    return _findHelper('assertIsSubtype');
   }
 
   Element get checkSubtype {
-    return findHelper('checkSubtype');
+    return _findHelper('checkSubtype');
   }
 
   Element get assertSubtype {
-    return findHelper('assertSubtype');
+    return _findHelper('assertSubtype');
   }
 
   Element get subtypeCast {
-    return findHelper('subtypeCast');
+    return _findHelper('subtypeCast');
   }
 
   Element get checkSubtypeOfRuntimeType {
-    return findHelper('checkSubtypeOfRuntimeType');
+    return _findHelper('checkSubtypeOfRuntimeType');
   }
 
   Element get assertSubtypeOfRuntimeType {
-    return findHelper('assertSubtypeOfRuntimeType');
+    return _findHelper('assertSubtypeOfRuntimeType');
   }
 
   Element get subtypeOfRuntimeTypeCast {
-    return findHelper('subtypeOfRuntimeTypeCast');
+    return _findHelper('subtypeOfRuntimeTypeCast');
   }
 
   Element get checkDeferredIsLoaded {
-    return findHelper('checkDeferredIsLoaded');
+    return _findHelper('checkDeferredIsLoaded');
   }
 
   Element get throwNoSuchMethod {
-    return findHelper('throwNoSuchMethod');
+    return _findHelper('throwNoSuchMethod');
   }
 
-  Element get createRuntimeType {
-    return findHelper('createRuntimeType');
+  Element get malformedTypeError => _cachedCoreHelper('_malformedTypeError');
+  Element get genericNoSuchMethod => _cachedCoreHelper('_genericNoSuchMethod');
+  Element get unresolvedConstructorError =>
+      _cachedCoreHelper('_unresolvedConstructorError');
+  Element get unresolvedStaticGetterError =>
+      _cachedCoreHelper('_unresolvedStaticGetterError');
+  Element get unresolvedStaticSetterError =>
+      _cachedCoreHelper('_unresolvedStaticSetterError');
+  Element get unresolvedStaticMethodError =>
+      _cachedCoreHelper('_unresolvedStaticMethodError');
+  Element get unresolvedTopLevelGetterError =>
+      _cachedCoreHelper('_unresolvedTopLevelGetterError');
+  Element get unresolvedTopLevelSetterError =>
+      _cachedCoreHelper('_unresolvedTopLevelSetterError');
+  Element get unresolvedTopLevelMethodError =>
+      _cachedCoreHelper('_unresolvedTopLevelMethodError');
+
+  Map<String, Element> _cachedCoreHelpers = <String, Element>{};
+  Element _cachedCoreHelper(String name) =>
+      _cachedCoreHelpers[name] ??= findCoreHelper(name);
+
+  MethodElement get createRuntimeType {
+    return _findHelper('createRuntimeType');
   }
 
   Element get fallThroughError {
-    return findHelper("getFallThroughError");
+    return _findHelper("getFallThroughError");
   }
 
-  Element get createInvocationMirror {
-    return findHelper('createInvocationMirror');
+  MethodElement get createInvocationMirror {
+    return _findHelper('createInvocationMirror');
   }
 
-  Element get cyclicThrowHelper {
-    return findHelper("throwCyclicInit");
+  MethodElement get cyclicThrowHelper {
+    return _findHelper("throwCyclicInit");
   }
 
-  Element get asyncHelper {
-    return findAsyncHelper("_asyncHelper");
+  MethodElement get asyncHelper {
+    return _findAsyncHelper("_asyncHelper");
   }
 
-  Element get wrapBody {
-    return findAsyncHelper("_wrapJsFunctionForAsync");
+  MethodElement get wrapBody {
+    return _findAsyncHelper("_wrapJsFunctionForAsync");
   }
 
-  Element get yieldStar {
-    ClassElement classElement = findAsyncHelper("_IterationMarker");
+  MethodElement get yieldStar {
+    ClassElement classElement = _findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("yieldStar");
   }
 
-  Element get yieldSingle {
-    ClassElement classElement = findAsyncHelper("_IterationMarker");
+  MethodElement get yieldSingle {
+    ClassElement classElement = _findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("yieldSingle");
   }
 
-  Element get syncStarUncaughtError {
-    ClassElement classElement = findAsyncHelper("_IterationMarker");
+  MethodElement get syncStarUncaughtError {
+    ClassElement classElement = _findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("uncaughtError");
   }
 
-  Element get asyncStarHelper {
-    return findAsyncHelper("_asyncStarHelper");
+  MethodElement get asyncStarHelper {
+    return _findAsyncHelper("_asyncStarHelper");
   }
 
-  Element get streamOfController {
-    return findAsyncHelper("_streamOfController");
+  MethodElement get streamOfController {
+    return _findAsyncHelper("_streamOfController");
   }
 
-  Element get endOfIteration {
-    ClassElement classElement = findAsyncHelper("_IterationMarker");
+  MethodElement get endOfIteration {
+    ClassElement classElement = _findAsyncHelper("_IterationMarker");
     classElement.ensureResolved(resolution);
     return classElement.lookupLocalMember("endOfIteration");
   }
 
-  Element get syncStarIterable {
-    ClassElement classElement = findAsyncHelper("_SyncStarIterable");
+  ClassElement get syncStarIterable {
+    ClassElement classElement = _findAsyncHelper("_SyncStarIterable");
     classElement.ensureResolved(resolution);
     return classElement;
   }
 
   Element get futureImplementation {
-    ClassElement classElement = findAsyncHelper('_Future');
+    ClassElement classElement = _findAsyncHelper('_Future');
     classElement.ensureResolved(resolution);
     return classElement;
   }
 
-  Element get controllerStream {
-    ClassElement classElement = findAsyncHelper("_ControllerStream");
+  ClassElement get controllerStream {
+    ClassElement classElement = _findAsyncHelper("_ControllerStream");
     classElement.ensureResolved(resolution);
     return classElement;
   }
 
-  Element get syncStarIterableConstructor {
+  ConstructorElement get syncStarIterableConstructor {
     ClassElement classElement = syncStarIterable;
     classElement.ensureResolved(resolution);
     return classElement.lookupConstructor("");
   }
 
-  Element get syncCompleterConstructor {
-    ClassElement classElement = find(asyncLibrary, "Completer");
+  ConstructorElement get syncCompleterConstructor {
+    ClassElement classElement = _find(asyncLibrary, "Completer");
     classElement.ensureResolved(resolution);
     return classElement.lookupConstructor("sync");
   }
 
-  Element get asyncStarController {
-    ClassElement classElement = findAsyncHelper("_AsyncStarStreamController");
+  ClassElement get asyncStarController {
+    ClassElement classElement = _findAsyncHelper("_AsyncStarStreamController");
     classElement.ensureResolved(resolution);
     return classElement;
   }
 
-  Element get asyncStarControllerConstructor {
+  ConstructorElement get asyncStarControllerConstructor {
     ClassElement classElement = asyncStarController;
     return classElement.lookupConstructor("");
   }
 
-  Element get streamIteratorConstructor {
-    ClassElement classElement = find(asyncLibrary, "StreamIterator");
+  ConstructorElement get streamIteratorConstructor {
+    ClassElement classElement = _find(asyncLibrary, "StreamIterator");
     classElement.ensureResolved(resolution);
     return classElement.lookupConstructor("");
   }
 
   ClassElement get VoidRuntimeType {
-    return findHelper('VoidRuntimeType');
+    return _findHelper('VoidRuntimeType');
   }
 
   ClassElement get RuntimeType {
-    return findHelper('RuntimeType');
+    return _findHelper('RuntimeType');
   }
 
   ClassElement get RuntimeFunctionType {
-    return findHelper('RuntimeFunctionType');
+    return _findHelper('RuntimeFunctionType');
   }
 
   ClassElement get RuntimeTypePlain {
-    return findHelper('RuntimeTypePlain');
+    return _findHelper('RuntimeTypePlain');
   }
 
   ClassElement get RuntimeTypeGeneric {
-    return findHelper('RuntimeTypeGeneric');
+    return _findHelper('RuntimeTypeGeneric');
   }
 
   ClassElement get DynamicRuntimeType {
-    return findHelper('DynamicRuntimeType');
+    return _findHelper('DynamicRuntimeType');
+  }
+
+  MethodElement get getDynamicRuntimeType {
+    // TODO(johnniwinther): Support this in mocks.
+    return jsHelperLibrary.find('getDynamicRuntimeType');
+  }
+
+  MethodElement get getVoidRuntimeType {
+    // TODO(johnniwinther): Support this in mocks.
+    return jsHelperLibrary.find('getVoidRuntimeType');
+  }
+
+  MethodElement get buildInterfaceType {
+    // TODO(johnniwinther): Support this in mocks.
+    return jsHelperLibrary.find('buildInterfaceType');
+  }
+
+  MethodElement get buildFunctionType {
+    // TODO(johnniwinther): Support this in mocks.
+    return jsHelperLibrary.find('buildFunctionType');
+  }
+
+  MethodElement get buildNamedFunctionType {
+    // TODO(johnniwinther): Support this in mocks.
+    return jsHelperLibrary.find('buildNamedFunctionType');
   }
 
   MethodElement get functionTypeTestMetaHelper {
-    return findHelper('functionTypeTestMetaHelper');
+    return _findHelper('functionTypeTestMetaHelper');
   }
 
   MethodElement get defineProperty {
-    return findHelper('defineProperty');
+    return _findHelper('defineProperty');
   }
 
-  Element get startRootIsolate {
-    return find(isolateHelperLibrary, START_ROOT_ISOLATE);
+  MethodElement get startRootIsolate {
+    return _find(isolateHelperLibrary, START_ROOT_ISOLATE);
   }
 
   Element get currentIsolate {
-    return find(isolateHelperLibrary, '_currentIsolate');
+    return _find(isolateHelperLibrary, '_currentIsolate');
   }
 
   Element get callInIsolate {
-    return find(isolateHelperLibrary, '_callInIsolate');
+    return _find(isolateHelperLibrary, '_callInIsolate');
   }
 
   Element get findIndexForNativeSubclassType {
-    return findInterceptor('findIndexForNativeSubclassType');
+    return _findInterceptor('findIndexForNativeSubclassType');
   }
 
-  Element get convertRtiToRuntimeType {
-    return findHelper('convertRtiToRuntimeType');
+  MethodElement get convertRtiToRuntimeType {
+    return _findHelper('convertRtiToRuntimeType');
   }
 
   ClassElement get stackTraceClass {
-    return findHelper('_StackTrace');
+    return _findHelper('_StackTrace');
   }
 
   MethodElement _objectNoSuchMethod;
 
   MethodElement get objectNoSuchMethod {
     if (_objectNoSuchMethod == null) {
+      ClassElement objectClass = commonElements.objectClass;
       _objectNoSuchMethod =
-          coreClasses.objectClass.lookupLocalMember(Identifiers.noSuchMethod_);
+          objectClass.lookupLocalMember(Identifiers.noSuchMethod_);
     }
     return _objectNoSuchMethod;
+  }
+
+  ClassElement get constantMapClass =>
+      _findHelper(JavaScriptMapConstant.DART_CLASS);
+  ClassElement get constantStringMapClass =>
+      _findHelper(JavaScriptMapConstant.DART_STRING_CLASS);
+  ClassElement get constantProtoMapClass =>
+      _findHelper(JavaScriptMapConstant.DART_PROTO_CLASS);
+  ClassElement get generalConstantMapClass =>
+      _findHelper(JavaScriptMapConstant.DART_GENERAL_CLASS);
+
+  ClassElement get annotationCreatesClass {
+    return _findHelper('Creates');
+  }
+
+  ClassElement get annotationReturnsClass {
+    return _findHelper('Returns');
+  }
+
+  ClassElement get annotationJSNameClass {
+    return _findHelper('JSName');
+  }
+
+  MethodElement get toStringForNativeObject {
+    return _findHelper('toStringForNativeObject');
+  }
+
+  MethodElement get hashCodeForNativeObject {
+    return _findHelper('hashCodeForNativeObject');
   }
 }

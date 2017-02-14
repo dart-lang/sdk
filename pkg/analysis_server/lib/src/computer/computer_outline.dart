@@ -40,7 +40,7 @@ class DartUnitOutlineComputer {
             FieldDeclaration fieldDeclaration = classMember;
             VariableDeclarationList fields = fieldDeclaration.fields;
             if (fields != null) {
-              TypeName fieldType = fields.type;
+              TypeAnnotation fieldType = fields.type;
               String fieldTypeName = _safeToSource(fieldType);
               for (VariableDeclaration field in fields.variables) {
                 classContents.add(_newVariableOutline(fieldTypeName,
@@ -67,7 +67,7 @@ class DartUnitOutlineComputer {
         TopLevelVariableDeclaration fieldDeclaration = unitMember;
         VariableDeclarationList fields = fieldDeclaration.variables;
         if (fields != null) {
-          TypeName fieldType = fields.type;
+          TypeAnnotation fieldType = fields.type;
           String fieldTypeName = _safeToSource(fieldType);
           for (VariableDeclaration field in fields.variables) {
             unitContents.add(_newVariableOutline(
@@ -251,7 +251,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newFunctionOutline(FunctionDeclaration function, bool isStatic) {
-    TypeName returnType = function.returnType;
+    TypeAnnotation returnType = function.returnType;
     SimpleIdentifier nameNode = function.name;
     String name = nameNode.name;
     FunctionExpression functionExpression = function.functionExpression;
@@ -285,7 +285,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newFunctionTypeAliasOutline(FunctionTypeAlias node) {
-    TypeName returnType = node.returnType;
+    TypeAnnotation returnType = node.returnType;
     SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
     _SourceRegion sourceRegion = _getSourceRegion(node);
@@ -306,7 +306,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newMethodOutline(MethodDeclaration method) {
-    TypeName returnType = method.returnType;
+    TypeAnnotation returnType = method.returnType;
     SimpleIdentifier nameNode = method.name;
     String name = nameNode.name;
     FormalParameterList parameters = method.parameters;

@@ -187,7 +187,7 @@ abstract class String implements Comparable<String>, Pattern {
   /**
    * Returns a hash code derived from the code units of the string.
    *
-   * This is compatible with [operator==]. Strings with the same sequence
+   * This is compatible with [==]. Strings with the same sequence
    * of code units have the same hash code.
    */
   int get hashCode;
@@ -360,7 +360,7 @@ abstract class String implements Comparable<String>, Pattern {
   String operator *(int times);
 
   /**
-   * Pads this string on the left if it is shorther than [width].
+   * Pads this string on the left if it is shorter than [width].
    *
    * Return a new string that prepends [padding] onto this string
    * one time for each position the length is less than [width].
@@ -378,7 +378,7 @@ abstract class String implements Comparable<String>, Pattern {
   String padLeft(int width, [String padding = ' ']);
 
   /**
-   * Pads this string on the right if it is shorther than [width].
+   * Pads this string on the right if it is shorter than [width].
    *
    * Return a new string that appends [padding] after this string
    * one time for each position the length is less than [width].
@@ -413,7 +413,7 @@ abstract class String implements Comparable<String>, Pattern {
   bool contains(Pattern other, [int startIndex = 0]);
 
   /**
-   * Returns a new string in which the first occurence of [from] in this string
+   * Returns a new string in which the first occurrence of [from] in this string
    * is replaced with [to], starting from [startIndex]:
    *
    *     '0.0001'.replaceFirst(new RegExp(r'0'), ''); // '.0001'
@@ -422,11 +422,14 @@ abstract class String implements Comparable<String>, Pattern {
   String replaceFirst(Pattern from, String to, [int startIndex = 0]);
 
   /**
-   * Replace the first occurence of [from] in this string.
+   * Replace the first occurrence of [from] in this string.
    *
    * Returns a new string, which is this string
    * except that the first match of [pattern], starting from [startIndex],
    * is replaced by the result of calling [replace] with the match object.
+   *
+   * The optional [startIndex] is by default set to 0. If provided, it must be
+   * an integer in the range `[0 .. len]`, where `len` is this string's length.
    *
    * If the value returned by calling `replace` is not a [String], it
    * is converted to a `String` using its `toString` method, which must

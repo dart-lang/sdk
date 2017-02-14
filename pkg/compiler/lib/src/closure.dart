@@ -10,7 +10,7 @@ import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
-import 'dart_types.dart';
+import 'elements/resolution_types.dart';
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
     show BaseFunctionElementX, ClassElementX, ElementX;
@@ -20,6 +20,7 @@ import 'resolution/tree_elements.dart' show TreeElements;
 import 'tokens/token.dart' show Token;
 import 'tree/tree.dart';
 import 'util/util.dart';
+import 'world.dart' show ClosedWorldRefiner;
 
 class ClosureTask extends CompilerTask {
   Map<Element, ClosureClassMap> _closureMappingCache =
@@ -49,9 +50,11 @@ class ClosureTask extends CompilerTask {
   }
 
   /// Create [ClosureClassMap]s for all live members.
-  void createClosureClasses() {
-    compiler.enqueuer.resolution.processedElements
+  void createClosureClasses(ClosedWorldRefiner closedWorldRefiner) {
+    compiler.enqueuer.resolution.processedEntities
         .forEach((AstElement element) {
+      // TODO(johnniwinther): Typedefs should never be in processedElements.
+      if (element.isTypedef) return;
       ResolvedAst resolvedAst = element.resolvedAst;
       if (element.isAbstract) return;
       if (element.isField &&
@@ -60,11 +63,12 @@ class ClosureTask extends CompilerTask {
         // Skip top-level/static fields without an initializer.
         return;
       }
-      computeClosureToClassMapping(resolvedAst);
+      computeClosureToClassMapping(resolvedAst, closedWorldRefiner);
     });
   }
 
-  ClosureClassMap computeClosureToClassMapping(ResolvedAst resolvedAst) {
+  ClosureClassMap computeClosureToClassMapping(
+      ResolvedAst resolvedAst, ClosedWorldRefiner closedWorldRefiner) {
     return measure(() {
       Element element = resolvedAst.element;
       ClosureClassMap cached = _closureMappingCache[element];
@@ -77,8 +81,8 @@ class ClosureTask extends CompilerTask {
         Node node = resolvedAst.node;
         TreeElements elements = resolvedAst.elements;
 
-        ClosureTranslator translator =
-            new ClosureTranslator(compiler, elements, _closureMappingCache);
+        ClosureTranslator translator = new ClosureTranslator(
+            compiler, closedWorldRefiner, elements, _closureMappingCache);
 
         // The translator will store the computed closure-mappings inside the
         // cache. One for given node and one for each nested closure.
@@ -121,7 +125,7 @@ class ClosureTask extends CompilerTask {
       throw new SpannableAssertionFailure(
           closure, 'Not a closure: $closure (${closure.runtimeType}).');
     }
-    compiler.enqueuer.codegen.forgetElement(cls, compiler);
+    compiler.enqueuer.codegen.forgetEntity(cls, compiler);
   }
 }
 
@@ -175,14 +179,14 @@ class ClosureFieldElement extends ElementX
   bool get isInstanceMember => true;
   bool get isAssignable => false;
 
-  DartType computeType(Resolution resolution) => type;
+  ResolutionDartType computeType(Resolution resolution) => type;
 
-  DartType get type {
+  ResolutionDartType get type {
     if (local is LocalElement) {
       LocalElement element = local;
       return element.type;
     }
-    return const DynamicType();
+    return const ResolutionDynamicType();
   }
 
   String toString() => "ClosureFieldElement($name)";
@@ -206,9 +210,9 @@ class ClosureFieldElement extends ElementX
 // TODO(ahe): These classes continuously cause problems.  We need to find
 // a more general solution.
 class ClosureClassElement extends ClassElementX {
-  DartType rawType;
-  DartType thisType;
-  FunctionType callType;
+  ResolutionDartType rawType;
+  ResolutionDartType thisType;
+  ResolutionFunctionType callType;
 
   /// Node that corresponds to this closure, used for source position.
   final FunctionExpression node;
@@ -237,8 +241,8 @@ class ClosureClassElement extends ClassElementX {
         : backend.helpers.closureClass;
     superclass.ensureResolved(compiler.resolution);
     supertype = superclass.thisType;
-    interfaces = const Link<DartType>();
-    thisType = rawType = new InterfaceType(this);
+    interfaces = const Link<ResolutionDartType>();
+    thisType = rawType = new ResolutionInterfaceType(this);
     allSupertypesAndSelf =
         superclass.allSupertypesAndSelf.extendClass(thisType);
     callType = methodElement.type;
@@ -299,9 +303,9 @@ class BoxFieldElement extends ElementX
       : this.box = box,
         super(name, ElementKind.FIELD, box.executableContext);
 
-  DartType computeType(Resolution resolution) => type;
+  ResolutionDartType computeType(Resolution resolution) => type;
 
-  DartType get type => variableElement.type;
+  ResolutionDartType get type => variableElement.type;
 
   @override
   Entity get declaredEntity => variableElement;
@@ -543,6 +547,7 @@ class ClosureClassMap {
 
 class ClosureTranslator extends Visitor {
   final Compiler compiler;
+  final ClosedWorldRefiner closedWorldRefiner;
   final TreeElements elements;
   int closureFieldCounter = 0;
   int boxedFieldCounter = 0;
@@ -574,7 +579,8 @@ class ClosureTranslator extends Visitor {
 
   bool insideClosure = false;
 
-  ClosureTranslator(this.compiler, this.elements, this.closureMappingCache);
+  ClosureTranslator(this.compiler, this.closedWorldRefiner, this.elements,
+      this.closureMappingCache);
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -746,7 +752,7 @@ class ClosureTranslator extends Visitor {
     }
   }
 
-  void useTypeVariableAsLocal(TypeVariableType typeVariable) {
+  void useTypeVariableAsLocal(ResolutionTypeVariableType typeVariable) {
     useLocal(new TypeVariableLocal(typeVariable, outermostElement));
   }
 
@@ -794,7 +800,7 @@ class ClosureTranslator extends Visitor {
 
   visitTypeAnnotation(TypeAnnotation node) {
     MemberElement member = executableContext.memberContext;
-    DartType type = elements.getType(node);
+    ResolutionDartType type = elements.getType(node);
     // TODO(karlklose,johnniwinther): if the type is null, the annotation is
     // from a parameter which has been analyzed before the method has been
     // resolved and the result has been thrown away.
@@ -805,7 +811,7 @@ class ClosureTranslator extends Visitor {
         // This is a closure in a factory constructor.  Since there is no
         // [:this:], we have to mark the type arguments as free variables to
         // capture them in the closure.
-        type.forEachTypeVariable((TypeVariableType variable) {
+        type.forEachTypeVariable((ResolutionTypeVariableType variable) {
           useTypeVariableAsLocal(variable);
         });
       }
@@ -852,13 +858,14 @@ class ClosureTranslator extends Visitor {
       registerNeedsThis();
     } else if (node.isTypeTest || node.isTypeCast) {
       TypeAnnotation annotation = node.typeAnnotationFromIsCheckOrCast;
-      DartType type = elements.getType(annotation);
+      ResolutionDartType type = elements.getType(annotation);
       analyzeType(type);
     } else if (node.isTypeTest) {
-      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
+      ResolutionDartType type =
+          elements.getType(node.typeAnnotationFromIsCheckOrCast);
       analyzeType(type);
     } else if (node.isTypeCast) {
-      DartType type = elements.getType(node.arguments.head);
+      ResolutionDartType type = elements.getType(node.arguments.head);
       analyzeType(type);
     }
     node.visitChildren(this);
@@ -877,25 +884,25 @@ class ClosureTranslator extends Visitor {
   }
 
   visitNewExpression(NewExpression node) {
-    DartType type = elements.getType(node);
+    ResolutionDartType type = elements.getType(node);
     analyzeType(type);
     node.visitChildren(this);
   }
 
   visitLiteralList(LiteralList node) {
-    DartType type = elements.getType(node);
+    ResolutionDartType type = elements.getType(node);
     analyzeType(type);
     node.visitChildren(this);
   }
 
   visitLiteralMap(LiteralMap node) {
-    DartType type = elements.getType(node);
+    ResolutionDartType type = elements.getType(node);
     analyzeType(type);
     node.visitChildren(this);
   }
 
-  void analyzeTypeVariables(DartType type) {
-    type.forEachTypeVariable((TypeVariableType typeVariable) {
+  void analyzeTypeVariables(ResolutionDartType type) {
+    type.forEachTypeVariable((ResolutionTypeVariableType typeVariable) {
       // Field initializers are inlined and access the type variable as
       // normal parameters.
       if (!outermostElement.isField && !outermostElement.isConstructor) {
@@ -906,7 +913,7 @@ class ClosureTranslator extends Visitor {
     });
   }
 
-  void analyzeType(DartType type) {
+  void analyzeType(ResolutionDartType type) {
     // TODO(johnniwinther): Find out why this can be null.
     if (type == null) return;
     if (outermostElement.isClassMember &&
@@ -1068,7 +1075,7 @@ class ClosureTranslator extends Visitor {
     ClosureClassElement globalizedElement =
         new ClosureClassElement(node, closureName, compiler, element);
     // Extend [globalizedElement] as an instantiated class in the closed world.
-    compiler.inferenceWorld.registerClosureClass(globalizedElement);
+    closedWorldRefiner.registerClosureClass(globalizedElement);
     FunctionElement callElement = new SynthesizedCallMethodElementX(
         Identifiers.call, element, globalizedElement, node, elements);
     backend.maybeMarkClosureAsNeededForReflection(
@@ -1112,7 +1119,7 @@ class ClosureTranslator extends Visitor {
     }
 
     inNewScope(node, () {
-      DartType type = element.type;
+      ResolutionDartType type = element.type;
       // If the method needs RTI, or checked mode is set, we need to
       // escape the potential type variables used in that closure.
       if (element is FunctionElement &&
@@ -1190,7 +1197,7 @@ class ClosureTranslator extends Visitor {
 
 /// A type variable as a local variable.
 class TypeVariableLocal implements Local {
-  final TypeVariableType typeVariable;
+  final ResolutionTypeVariableType typeVariable;
   final ExecutableElement executableContext;
 
   TypeVariableLocal(this.typeVariable, this.executableContext);

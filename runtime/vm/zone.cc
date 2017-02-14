@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/handles_impl.h"
 #include "vm/heap.h"
@@ -43,7 +44,14 @@ class Zone::Segment {
 
 void Zone::Segment::DeleteSegmentList(Segment* head) {
   Segment* current = head;
+  Thread* current_thread = Thread::Current();
   while (current != NULL) {
+    if (current_thread != NULL) {
+      current_thread->DecrementMemoryUsage(current->size());
+    } else if (ApiNativeScope::Current() != NULL) {
+      // If there is no current thread, we might be inside of a native scope.
+      ApiNativeScope::DecrementNativeScopeMemoryUsage(current->size());
+    }
     Segment* next = current->next();
 #ifdef DEBUG
     // Zap the entire current segment (including the header).
@@ -68,10 +76,19 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
 #endif
   result->next_ = next;
   result->size_ = size;
+  Thread* current = Thread::Current();
+  if (current != NULL) {
+    current->IncrementMemoryUsage(size);
+  } else if (ApiNativeScope::Current() != NULL) {
+    // If there is no current thread, we might be inside of a native scope.
+    ApiNativeScope::IncrementNativeScopeMemoryUsage(size);
+  }
   return result;
 }
 
-
+// TODO(bkonyi): We need to account for the initial chunk size when a new zone
+// is created within a new thread or ApiNativeScope when calculating high
+// watermarks or memory consumption.
 Zone::Zone()
     : initial_buffer_(buffer_, kInitialChunkSize),
       position_(initial_buffer_.start()),
@@ -106,7 +123,6 @@ void Zone::DeleteAll() {
   if (large_segments_ != NULL) {
     Segment::DeleteSegmentList(large_segments_);
   }
-
 // Reset zone state.
 #ifdef DEBUG
   memset(initial_buffer_.pointer(), kZapDeletedByte, initial_buffer_.size());
@@ -133,6 +149,22 @@ intptr_t Zone::SizeInBytes() const {
     size += s->size();
   }
   return size + (position_ - head_->start());
+}
+
+
+intptr_t Zone::CapacityInBytes() const {
+  intptr_t size = 0;
+  for (Segment* s = large_segments_; s != NULL; s = s->next()) {
+    size += s->size();
+  }
+  if (head_ == NULL) {
+    return size + initial_buffer_.size();
+  }
+  size += initial_buffer_.size();
+  for (Segment* s = head_; s != NULL; s = s->next()) {
+    size += s->size();
+  }
+  return size;
 }
 
 
@@ -258,6 +290,18 @@ char* Zone::PrintToString(const char* format, ...) {
 char* Zone::VPrint(const char* format, va_list args) {
   return OS::VSCreate(this, format, args);
 }
+
+
+#ifndef PRODUCT
+void Zone::PrintJSON(JSONStream* stream) const {
+  JSONObject jsobj(stream);
+  intptr_t capacity = CapacityInBytes();
+  intptr_t used_size = SizeInBytes();
+  jsobj.AddProperty("type", "_Zone");
+  jsobj.AddProperty("capacity", capacity);
+  jsobj.AddProperty("used", used_size);
+}
+#endif
 
 
 StackZone::StackZone(Thread* thread) : StackResource(thread), zone_() {

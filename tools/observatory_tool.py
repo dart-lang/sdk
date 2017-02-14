@@ -38,6 +38,19 @@ IGNORE_PATTERNS = shutil.ignore_patterns(
 
 usage = """observatory_tool.py [options]"""
 
+# Run |command|. If its return code is 0, return 0 and swallow its output.
+# If its return code is non-zero, emit its output unless |always_silent| is
+# True, and return the return code.
+def RunCommand(command, always_silent=False):
+  try:
+    subprocess.check_output(command, stderr=subprocess.STDOUT)
+    return 0
+  except subprocess.CalledProcessError as e:
+    if not always_silent:
+      print ("Command failed: " + ' '.join(command) + "\n" +
+              "output: " + e.output)
+    return e.returncode
+
 def CreateTimestampFile(options):
   if options.stamp != '':
     dir_name = os.path.dirname(options.stamp)
@@ -75,45 +88,41 @@ def ProcessOptions(options, args):
     print "--sdk expects 'True' or 'False' argument."
     return False
 
-  with open(os.devnull, 'wb') as silent_sink:
-    # Required options.
-    if options.command is None or options.directory is None:
-      return False
+  # Required options.
+  if options.command is None or options.directory is None:
+    return False
 
-    # Set a default value for pub_snapshot.
-    options.pub_snapshot = None
+  # Set a default value for pub_snapshot.
+  options.pub_snapshot = None
 
-    # If we have a working pub executable, try and use that.
-    # TODO(whesse): Drop the pub-executable option if it isn't used.
-    if options.pub_executable is not None:
-      try:
-        if 0 == subprocess.call([options.pub_executable, '--version'],
-                                stdout=silent_sink,
-                                stderr=silent_sink):
-          return True
-      except OSError as e:
-        pass
-    options.pub_executable = None
+  # If we have a working pub executable, try and use that.
+  # TODO(whesse): Drop the pub-executable option if it isn't used.
+  if options.pub_executable is not None:
+    try:
+      if 0 == RunCommand([options.pub_executable, '--version'],
+                         always_silent=True):
+        return True
+    except OSError as e:
+      pass
+  options.pub_executable = None
 
-    if options.sdk and utils.CheckedInSdkCheckExecutable():
-      # Use the checked in pub executable.
-      options.pub_snapshot = os.path.join(utils.CheckedInSdkPath(),
-                                          'bin',
-                                          'snapshots',
-                                          'pub.dart.snapshot');
-      try:
-        if 0 == subprocess.call([utils.CheckedInSdkExecutable(),
-                                 options.pub_snapshot,
-                                 '--version'],
-                                 stdout=silent_sink,
-                                 stderr=silent_sink):
-          return True
-      except OSError as e:
-        pass
-    options.pub_snapshot = None
+  if options.sdk and utils.CheckedInSdkCheckExecutable():
+    # Use the checked in pub executable.
+    options.pub_snapshot = os.path.join(utils.CheckedInSdkPath(),
+                                        'bin',
+                                        'snapshots',
+                                        'pub.dart.snapshot');
+    try:
+      if 0 == RunCommand([utils.CheckedInSdkExecutable(),
+                          options.pub_snapshot,
+                          '--version'], always_silent=True):
+        return True
+    except OSError as e:
+      pass
+  options.pub_snapshot = None
 
-    # We need a dart executable.
-    return (options.dart_executable is not None)
+  # We need a dart executable.
+  return (options.dart_executable is not None)
 
 def ChangeDirectory(directory):
   os.chdir(directory);
@@ -138,23 +147,21 @@ def PubCommand(dart_executable,
                pub_snapshot,
                command,
                silent):
-  with open(os.devnull, 'wb') as silent_sink:
-    if pub_executable is not None:
-      executable = [pub_executable]
-    elif pub_snapshot is not None:
-      executable = [utils.CheckedInSdkExecutable(), pub_snapshot]
-    else:
-      DisplayBootstrapWarning()
-      executable = [dart_executable, PUB_PATH]
-      # Prevent the bootstrap Dart executable from running in regular
-      # development flow.
-      # REMOVE THE FOLLOWING LINE TO USE the dart_bootstrap binary.
-      # return False
+  if pub_executable is not None:
+    executable = [pub_executable]
+  elif pub_snapshot is not None:
+    executable = [utils.CheckedInSdkExecutable(), pub_snapshot]
+  else:
     if not silent:
-      print >> sys.stderr, ('Running command "%s"') % (executable + command)
-    return subprocess.call(executable + command,
-                           stdout=silent_sink if silent else None,
-                           stderr=silent_sink if silent else None)
+      DisplayBootstrapWarning()
+    executable = [dart_executable, PUB_PATH]
+    # Prevent the bootstrap Dart executable from running in regular
+    # development flow.
+    # REMOVE THE FOLLOWING LINE TO USE the dart_bootstrap binary.
+    # return False
+  if not silent:
+    print >> sys.stderr, ('Running command "%s"') % (executable + command)
+  return RunCommand(executable + command)
 
 def Deploy(input_dir, output_dir):
   shutil.rmtree(output_dir)
@@ -188,7 +195,7 @@ def ExecuteCommand(options, args):
                       options.pub_executable,
                       options.pub_snapshot,
                       ['build',
-                       '-DOBS_VER=' + utils.GetVersion(),
+                       '-DOBS_VER=' + utils.GetVersion(ignore_svn_revision=True),
                        '--output', args[0]],
                       options.silent)
   elif (cmd == 'deploy'):

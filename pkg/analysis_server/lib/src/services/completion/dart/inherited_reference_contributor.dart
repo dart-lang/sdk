@@ -8,10 +8,10 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
@@ -61,35 +61,54 @@ class InheritedReferenceContributor extends DartCompletionContributor
     if (!request.includeIdentifiers) {
       return EMPTY_LIST;
     }
+
     ClassDeclaration classDecl = _enclosingClass(request.target);
     if (classDecl == null || classDecl.element == null) {
       return EMPTY_LIST;
     }
-
     containingLibrary = request.libraryElement;
+    return _computeSuggestionsForClass2(resolutionMap
+        .elementDeclaredByClassDeclaration(classDecl), request);
+  }
+
+  List<CompletionSuggestion> _computeSuggestionsForClass2(
+      ClassElement classElement, DartCompletionRequest request,
+      {bool skipChildClass: true}) {
     bool isFunctionalArgument = request.target.isFunctionalArgument();
     kind = isFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
-    OpType optype = (request as DartCompletionRequestImpl).opType;
-    for (InterfaceType type in classDecl.element.allSupertypes) {
-      if (!isFunctionalArgument) {
-        for (PropertyAccessorElement elem in type.accessors) {
-          if (elem.isGetter) {
-            if (optype.includeReturnValueSuggestions) {
-              addSuggestion(elem);
-            }
-          } else {
-            if (optype.includeVoidReturnSuggestions) {
-              addSuggestion(elem);
-            }
-          }
-        }
-      }
-      for (MethodElement elem in type.methods) {
-        if (elem.returnType == null) {
-          addSuggestion(elem);
-        } else if (!elem.returnType.isVoid) {
+    OpType optype = request.opType;
+
+    if (!skipChildClass) {
+      _addSuggestionsForType(classElement.type, optype,
+          isFunctionalArgument: isFunctionalArgument);
+    }
+
+    for (InterfaceType type in classElement.allSupertypes) {
+      _addSuggestionsForType(type, optype,
+          isFunctionalArgument: isFunctionalArgument);
+    }
+    return suggestions;
+  }
+
+  List<CompletionSuggestion> computeSuggestionsForClass(
+      ClassElement classElement, DartCompletionRequest request,
+      {bool skipChildClass: true}) {
+    if (!request.includeIdentifiers) {
+      return EMPTY_LIST;
+    }
+    containingLibrary = request.libraryElement;
+
+    return _computeSuggestionsForClass2(classElement, request,
+        skipChildClass: skipChildClass);
+  }
+
+  _addSuggestionsForType(InterfaceType type, OpType optype,
+      {bool isFunctionalArgument: false}) {
+    if (!isFunctionalArgument) {
+      for (PropertyAccessorElement elem in type.accessors) {
+        if (elem.isGetter) {
           if (optype.includeReturnValueSuggestions) {
             addSuggestion(elem);
           }
@@ -100,6 +119,18 @@ class InheritedReferenceContributor extends DartCompletionContributor
         }
       }
     }
-    return suggestions;
+    for (MethodElement elem in type.methods) {
+      if (elem.returnType == null) {
+        addSuggestion(elem);
+      } else if (!elem.returnType.isVoid) {
+        if (optype.includeReturnValueSuggestions) {
+          addSuggestion(elem);
+        }
+      } else {
+        if (optype.includeVoidReturnSuggestions) {
+          addSuggestion(elem);
+        }
+      }
+    }
   }
 }

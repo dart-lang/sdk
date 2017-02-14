@@ -155,6 +155,7 @@ namespace dart {
   KW(kCLASS, "class", 0, kKeyword)                                             \
   KW(kCONST, "const", 0, kKeyword)                                             \
   KW(kCONTINUE, "continue", 0, kKeyword)                                       \
+  KW(kCOVARIANT, "covariant", 0, kPseudoKeyword)                               \
   KW(kDEFAULT, "default", 0, kKeyword)                                         \
   KW(kDO, "do", 0, kKeyword)                                                   \
   KW(kELSE, "else", 0, kKeyword)                                               \

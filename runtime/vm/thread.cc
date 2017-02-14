@@ -8,6 +8,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
+#include "vm/json_stream.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/message_handler.h"
@@ -37,6 +38,8 @@ Thread::~Thread() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
+  // All zone allocated memory should be free by this point.
+  ASSERT(current_thread_memory_ == 0);
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -73,6 +76,8 @@ Thread::Thread(Isolate* isolate)
       os_thread_(NULL),
       thread_lock_(new Monitor()),
       zone_(NULL),
+      current_thread_memory_(0),
+      memory_high_watermark_(0),
       api_reusable_scope_(NULL),
       api_top_scope_(NULL),
       top_resource_(NULL),
@@ -90,7 +95,6 @@ Thread::Thread(Isolate* isolate)
       deferred_interrupts_(0),
       stack_overflow_count_(0),
       cha_(NULL),
-      type_range_cache_(NULL),
       deopt_id_(0),
       pending_functions_(GrowableObjectArray::null()),
       active_exception_(Object::null()),
@@ -205,6 +209,28 @@ void Thread::InitVMConstants() {
 }
 
 
+#ifndef PRODUCT
+// Collect information about each individual zone associated with this thread.
+void Thread::PrintJSON(JSONStream* stream) const {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "_Thread");
+  jsobj.AddPropertyF("id", "threads/%" Pd "",
+                     OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
+  jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
+  jsobj.AddPropertyF("_memoryHighWatermark", "%" Pu "", memory_high_watermark_);
+  Zone* zone = zone_;
+  {
+    JSONArray zone_info_array(&jsobj, "zones");
+    zone = zone_;
+    while (zone != NULL) {
+      zone_info_array.AddValue(zone);
+      zone = zone->previous();
+    }
+  }
+}
+#endif
+
+
 RawGrowableObjectArray* Thread::pending_functions() {
   if (pending_functions_ == GrowableObjectArray::null()) {
     pending_functions_ = GrowableObjectArray::New(Heap::kOld);
@@ -242,6 +268,27 @@ void Thread::set_sticky_error(const Error& value) {
 
 void Thread::clear_sticky_error() {
   sticky_error_ = Error::null();
+}
+
+
+const char* Thread::TaskKindToCString(TaskKind kind) {
+  switch (kind) {
+    case kUnknownTask:
+      return "kUnknownTask";
+    case kMutatorTask:
+      return "kMutatorTask";
+    case kCompilerTask:
+      return "kCompilerTask";
+    case kSweeperTask:
+      return "kSweeperTask";
+    case kMarkerTask:
+      return "kMarkerTask";
+    case kFinalizerTask:
+      return "kFinalizerTask";
+    default:
+      UNREACHABLE();
+      return "";
+  }
 }
 
 
@@ -465,7 +512,7 @@ void Thread::DeferOOBMessageInterrupts() {
   }
   if (FLAG_trace_service && FLAG_trace_service_verbose) {
     OS::Print("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
-              Dart::timestamp(), isolate()->name());
+              Dart::UptimeMillis(), isolate()->name());
   }
 }
 
@@ -488,7 +535,7 @@ void Thread::RestoreOOBMessageInterrupts() {
   }
   if (FLAG_trace_service && FLAG_trace_service_verbose) {
     OS::Print("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
-              Dart::timestamp(), isolate()->name());
+              Dart::UptimeMillis(), isolate()->name());
   }
 }
 
@@ -699,6 +746,12 @@ intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
 }
 
 
+bool Thread::IsValidHandle(Dart_Handle object) const {
+  return IsValidLocalHandle(object) || IsValidZoneHandle(object) ||
+         IsValidScopedHandle(object);
+}
+
+
 bool Thread::IsValidLocalHandle(Dart_Handle object) const {
   ApiLocalScope* scope = api_top_scope_;
   while (scope != NULL) {
@@ -711,14 +764,62 @@ bool Thread::IsValidLocalHandle(Dart_Handle object) const {
 }
 
 
-int Thread::CountLocalHandles() const {
-  int total = 0;
+intptr_t Thread::CountLocalHandles() const {
+  intptr_t total = 0;
   ApiLocalScope* scope = api_top_scope_;
   while (scope != NULL) {
     total += scope->local_handles()->CountHandles();
     scope = scope->previous();
   }
   return total;
+}
+
+
+bool Thread::IsValidZoneHandle(Dart_Handle object) const {
+  Zone* zone = zone_;
+  while (zone != NULL) {
+    if (zone->handles()->IsValidZoneHandle(reinterpret_cast<uword>(object))) {
+      return true;
+    }
+    zone = zone->previous();
+  }
+  return false;
+}
+
+
+intptr_t Thread::CountZoneHandles() const {
+  intptr_t count = 0;
+  Zone* zone = zone_;
+  while (zone != NULL) {
+    count += zone->handles()->CountZoneHandles();
+    zone = zone->previous();
+  }
+  ASSERT(count >= 0);
+  return count;
+}
+
+
+bool Thread::IsValidScopedHandle(Dart_Handle object) const {
+  Zone* zone = zone_;
+  while (zone != NULL) {
+    if (zone->handles()->IsValidScopedHandle(reinterpret_cast<uword>(object))) {
+      return true;
+    }
+    zone = zone->previous();
+  }
+  return false;
+}
+
+
+intptr_t Thread::CountScopedHandles() const {
+  intptr_t count = 0;
+  Zone* zone = zone_;
+  while (zone != NULL) {
+    count += zone->handles()->CountScopedHandles();
+    zone = zone->previous();
+  }
+  ASSERT(count >= 0);
+  return count;
 }
 
 

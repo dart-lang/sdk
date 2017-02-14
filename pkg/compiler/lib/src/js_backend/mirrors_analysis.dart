@@ -8,6 +8,7 @@ import '../common.dart';
 import '../common/resolution.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
 import '../universe/world_impact.dart';
@@ -24,8 +25,8 @@ class MirrorsAnalysis {
   /// Compute the impact for elements that are matched by the mirrors used
   /// annotation or, in lack thereof, all elements.
   WorldImpact computeImpactForReflectiveElements(
-      Iterable<ClassElement> recents,
-      Iterable<ClassElement> processedClasses,
+      Iterable<ClassEntity> recents,
+      Iterable<ClassEntity> processedClasses,
       Iterable<LibraryElement> loadedLibraries,
       {bool forResolution}) {
     MirrorsHandler handler = forResolution ? resolutionHandler : codegenHandler;
@@ -81,7 +82,7 @@ class MirrorsHandler {
     return includedEnclosing || _backend.requiredByMirrorSystem(element);
   }
 
-  /// Enqeue the constructor [ctor] if it is required for reflection.
+  /// Enqueue the constructor [ctor] if it is required for reflection.
   ///
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
@@ -98,7 +99,7 @@ class MirrorsHandler {
     }
   }
 
-  /// Enqeue the member [element] if it is required for reflection.
+  /// Enqueue the member [element] if it is required for reflection.
   ///
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
@@ -130,12 +131,12 @@ class MirrorsHandler {
     }
   }
 
-  /// Enqeue the member [element] if it is required for reflection.
+  /// Enqueue the member [element] if it is required for reflection.
   ///
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
   void _enqueueReflectiveElementsInClass(
-      ClassElement cls, Iterable<ClassElement> recents,
+      ClassElement cls, Iterable<ClassEntity> recents,
       {bool enclosingWasIncluded}) {
     if (cls.library.isInternalLibrary || cls.isInjected) return;
     bool includeClass = _shouldIncludeElementDueToMirrors(cls,
@@ -162,7 +163,7 @@ class MirrorsHandler {
     }
   }
 
-  /// Enqeue special classes that might not be visible by normal means or that
+  /// Enqueue special classes that might not be visible by normal means or that
   /// would not normally be enqueued:
   ///
   /// [Closure] is treated specially as it is the superclass of all closures.
@@ -181,10 +182,10 @@ class MirrorsHandler {
     }
   }
 
-  /// Enqeue all local members of the library [lib] if they are required for
+  /// Enqueue all local members of the library [lib] if they are required for
   /// reflection.
   void _enqueueReflectiveElementsInLibrary(
-      LibraryElement lib, Iterable<ClassElement> recents) {
+      LibraryElement lib, Iterable<ClassEntity> recents) {
     bool includeLibrary =
         _shouldIncludeElementDueToMirrors(lib, includedEnclosing: false);
     lib.forEachLocalMember((Element member) {
@@ -207,8 +208,8 @@ class MirrorsHandler {
   /// annotation or, in lack thereof, all elements.
   // TODO(johnniwinther): Compute [WorldImpact] instead of enqueuing directly.
   void enqueueReflectiveElements(
-      Iterable<ClassElement> recents,
-      Iterable<ClassElement> processedClasses,
+      Iterable<ClassEntity> recents,
+      Iterable<ClassEntity> processedClasses,
       Iterable<LibraryElement> loadedLibraries) {
     if (!hasEnqueuedReflectiveElements) {
       _logEnqueueReflectiveAction("!START enqueueAll");

@@ -50,9 +50,11 @@ void writeLibraryToText(Library library, {String path}) {
   }
 }
 
-void writeProgramToText(Program program, {String path, bool showExternal: false}) {
+void writeProgramToText(Program program,
+    {String path, bool showExternal: false, bool showOffsets: false}) {
   StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, showExternal: showExternal).writeProgramFile(program);
+  new Printer(buffer, showExternal: showExternal, showOffsets: showOffsets)
+      .writeProgramFile(program);
   if (path == null) {
     print(buffer);
   } else {

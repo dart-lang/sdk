@@ -8,12 +8,59 @@
 \usepackage[T1]{fontenc}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification  \\
-{4th edition draft}\\
+{5th edition draft}\\
 {\large Version 1.15.0}}
 
 % For information about Location Markers (and in particular the
 % commands \LMHash and \LMLabel), see the long comment at the
 % end of this file.
+
+% CHANGES
+% =======
+% Significant changes to the specification.
+%
+% 1.15
+% - Change how language specification describes control flow.
+% - Object initialization now specifies initialization order correctly.
+% - Specifies that leaving an await-for loop must wait for the subscription
+%   to be canceled.
+% - An await-for loop only pauses the subscription if it does something async.
+% - Assert statements may now also include a "message" operand.
+% - The Null type is now considered a subtype of all types in most cases.
+%
+% 1.14
+% - The call "C()" where "C" is a class name, is a now compile-time error.
+% - Changed description of rewrites that depended on a function literal.
+%   In many cases, the rewrite wasn't safe for asynchronous code.
+% - Removed generalized tear-offs.
+% - Allow "rethrow" to also end a switch case. Allow braces around switch cases.
+% - Allow using '=' as default-value separator for named parameters.
+% - Make it a compile-time error if a library includes the same part twice.
+% - Now more specific about the return types of sync*/async/async* functions
+%   in relation to return statements.
+% - Allow Unicode surrogate values in String literals.
+% - Make an initializing formal's value accessible in the initializer list.
+% - Allow any expression in assert statements (was only conditionalExpression).
+% - Allow trailing commas in argument and parameter lists.
+%
+% 1.11 - ECMA 408 - 4th Edition
+% - Specify that potentially constant expressions must be valid expressions
+%   if the parameters are non-constant.
+% - Make "??" a compile-time constant operator.
+% - Having multiple unnamed libraries no longer causes warnings.
+% - Specify null-aware operators for static methods.
+%
+% 1.10
+% - Allow mixins to have super-classes and super-calls.
+% - Specify static type checking for the implicit for-in iterator variable.
+% - Specify static types for a number of expressions where it was missing.
+% - Make calls on the exact type "Function" not cause warnings.
+% - Specify null-aware behavior of "e?.v++" and similar expressions.
+% - Specify that `package:` URIs are treated in an implementation dependent way.
+% - Require warning if for-in is used on object with no "iterator" member.
+%
+% 1.9 - ECMA-408 - 3rd Edition
+%
 
 \begin{document}
 \maketitle
@@ -195,8 +242,10 @@ A {\em namespace} is a mapping of names denoting declarations to actual declarat
 \LMHash{}
 A scope $S_0$ induces a namespace $NS_0$ that maps the simple name of each variable, type or function declaration $d$ declared in $S_0$ to $d$. Labels are not included in the induced namespace of a scope; instead they have their own dedicated namespace.
 
-\commentary{It is therefore impossible, e.g.,  to define a class that declares a method and a field with the same name in Dart. Similarly one cannot declare a top-level function with the same name as a library variable or class.
-  }
+\commentary{
+It is therefore impossible, e.g., to define a class that declares a method and a getter with the same name in Dart.
+Similarly one cannot declare a top-level function with the same name as a library variable or a class.
+}
 
 \LMHash{}
 It is a compile-time error if there is more than one entity with the same name declared in the same scope.
@@ -1058,7 +1107,7 @@ The instance getters of a class $C$ are those instance getters declared by $C$, 
 It is a compile-time error if a class has both a getter and a method with the same name. This restriction holds regardless of whether the getter is defined explicitly or implicitly, or whether the getter or the method are inherited or not.
 
 \commentary{
-This implies that a getter can never override a method, and a method can never override a getter or field.
+This implies that a getter can never override a method, and a method can never override a getter or an instance variable.
 }
 
 \LMHash{}
@@ -1245,7 +1294,9 @@ A {\em generative constructor} consists of a constructor name, a constructor par
 A {\em constructor parameter list} is a parenthesized, comma-separated list of formal constructor parameters. A {\em formal constructor parameter} is either a formal parameter (\ref{formalParameters}) or an initializing formal. An {\em initializing formal} has the form \code{\THIS{}.$id$}, where $id$ is the name of an instance variable of the immediately enclosing class.  It is a compile-time error if $id$ is not an instance variable of the immediately enclosing class. It is a compile-time error if an initializing formal is used by a function other than a non-redirecting generative constructor.
 
 \LMHash{}
-If an explicit type is attached to the initializing formal, that is its static type. Otherwise, the type of an initializing formal named $id$ is $T_{id}$, where $T_{id}$ is the type of the field named $id$ in the immediately enclosing class. It is a static warning if the static type of $id$ is not assignable to $T_{id}$.
+If an explicit type is attached to the initializing formal, that is its static type.
+Otherwise, the type of an initializing formal named $id$ is $T_{id}$, where $T_{id}$ is the type of the instance variable named $id$ in the immediately enclosing class.
+It is a static warning if the static type of $id$ is not assignable to $T_{id}$.
 
 \LMHash{}
 Initializing formals constitute an exception to the rule that every formal parameter introduces a local variable into the formal parameter scope (\ref{formalParameters}).
@@ -1259,8 +1310,9 @@ The type of the constructor is defined in terms of its formal parameters, includ
 }
 
 \LMHash{}
-Initializing formals are executed during the execution of generative constructors detailed below. Executing an initializing formal  \code{\THIS{}.$id$} causes the field $id$ of the immediately surrounding class to be assigned the value of the corresponding actual parameter, unless $id$ is a final variable that has already been initialized, in which case a runtime error occurs.
-
+Initializing formals are executed during the execution of generative constructors detailed below.
+Executing an initializing formal \code{\THIS{}.$id$} causes the instance variable $id$ of the immediately surrounding class to be assigned the value of the corresponding actual parameter,
+unless $id$ is a final variable that has already been initialized, in which case a runtime error occurs.
 
 \commentary{
 The above rule allows initializing formals to be used as optional parameters:
@@ -1390,8 +1442,7 @@ in the order they appear in the program.
 \LMHash{}
 Then if any instance variable of $i$ declared by the immediately enclosing class
 is not yet bound to a value,
-it is a dynamic error if such a variable is a \FINAL{} variable,
-otherwise all such variables are initialized with the \NULL{} value.
+all such variables are initialized with the \NULL{} value.
 
 \LMHash{}
 Then, unless the enclosing class is \code{Object}, the explicitly specified or
@@ -1411,7 +1462,9 @@ which must happen in the order the expressions occur in the program text.
 After the superinitializer has completed, the body of $k$ is executed in a scope where \THIS{} is bound to $i$.
 
 \rationale{
-This process ensures that no uninitialized final field is ever seen by code. Note that \THIS{} is not in scope on the right hand side of an initializer (see \ref{this}) so no instance method can execute during initialization: an instance method cannot be directly invoked, nor can \THIS{} be passed into any other code being invoked in the initializer.
+This process ensures that no uninitialized final instance variable is ever seen by code.
+Note that \THIS{} is not in scope on the right hand side of an initializer (see \ref{this}) so no instance method can execute during initialization:
+an instance method cannot be directly invoked, nor can \THIS{} be passed into any other code being invoked in the initializer.
 }
 
 \LMHash{}
@@ -1420,7 +1473,10 @@ execution of an initializer of the form \code{\THIS{}.$v$ = $e$}
 proceeds as follows:
 
 \LMHash{}
-First, the expression $e$ is evaluated to an object $o$. Then, the instance variable $v$ of $i$ is bound to $o$, unless $v$ is a final variable that has already been initialized, in which case a runtime error occurs. In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the actual type of the field $v$.
+First, the expression $e$ is evaluated to an object $o$.
+%%STRONG_MODE: The runtime error in the next sentence will be compile-time.
+Then, the instance variable $v$ of $i$ is bound to $o$, unless $v$ is a final variable that has already been initialized, in which case a runtime error occurs.
+In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the actual type of the instance variable $v$.
 
 \LMHash{}
 An initializer of the form \code{$v$ = $e$} is equivalent to an initializer of the form \code{\THIS{}.$v$ = $e$}.
@@ -1782,9 +1838,8 @@ It is a compile-time error to specify an \EXTENDS{} clause for class \code{Objec
 The scope of the \EXTENDS{} and \WITH{} clauses of a class $C$ is the type-parameter scope of $C$.
 
 \LMHash{}
-%It is a compile-time error if  the \EXTENDS{} clause of a class $C$ includes a type expression that does not denote a class available in the lexical scope of $C$.
-It is a compile-time error if  the \EXTENDS{} clause of a class $C$ specifies an enumerated type (\ref{enums}), a malformed  type or a deferred type (\ref{staticTypes}) as a superclass.
-% too strict? Do we e want extends List<Undeclared> to work as List<dynamic>?
+It is a compile-time error if the \EXTENDS{} clause of a class $C$ specifies a type variable (\ref{generics}), a type alias (\ref{typedef}), an enumerated type (\ref{enums}), a malformed type, or a deferred type (\ref{staticTypes}) as a superclass.
+It is a compile-time error if the \EXTENDS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface.
 
 \commentary{ The type parameters of a generic class are available in the lexical scope of the superclass clause, potentially shadowing classes in the surrounding scope. The following code is therefore illegal and should cause a compile-time error:
 }
@@ -1830,11 +1885,13 @@ the superclass chain of $S$ includes a class declared in $L_1$.
 A class may override instance members that would otherwise have been inherited from its superclass.
 
 \LMHash{}
-Let $C = S_0$ be a class declared in library $L$, and let $\{S_1 \ldots S_k\}$ be the set of all superclasses of $C$, where $S_i$ is the superclass of $S_{i-1}$ for $i \in 1 .. k$. Let $C$ declare a member $m$, and let  $m^\prime$ be a member of $S_j, j  \in 1 .. k$,  that has the same name as $m$, such that $m^\prime$ is accessible to $L$.  Then $m$ overrides $m^\prime$ if $m^\prime$ is not already overridden by a member of at least one of $S_1 \ldots S_{j-1}$ and neither $m$ nor $m^\prime$ are fields.
+Let $C = S_0$ be a class declared in library $L$, and let $\{S_1 \ldots S_k\}$ be the set of all superclasses of $C$, where $S_i$ is the superclass of $S_{i-1}$ for $i \in 1 .. k$.
+Let $C$ declare a member $m$, and let  $m^\prime$ be a member of $S_j, j  \in 1 .. k$,  that has the same name as $m$, such that $m^\prime$ is accessible to $L$.
+Then $m$ overrides $m^\prime$ if $m^\prime$ is not already overridden by a member of at least one of $S_1 \ldots S_{j-1}$ and neither $m$ nor $m^\prime$ are instance variables.
 
 %Let $C$ be a class declared in library $L$, with superclass $S$ and let $C$ declare an instance member $m$, and  assume $S$ declares an instance member $m^\prime$ with the same name as $m$. Then $m$ {\em overrides} $m^\prime$ iff $m^\prime$ is accessible (\ref{privacy}) to $L$, $m$ has the same name as  $m^\prime$  and neither $m$ nor $m^\prime$ are fields.
 
-\commentary{Fields never override each other. The getters and setters induced by fields do.}
+\commentary{Instance variables never override each other. The getters and setters induced by instance variables do.}
 
 \rationale{Again, a local definition of overriding would be preferable, but fails to account for library privacy.
 }
@@ -1861,7 +1918,9 @@ For convenience, here is a summary of the relevant rules. Remember that this is 
 
 \begin{enumerate}
 
-\item There is only one namespace for getters, setters, methods and constructors (\ref{scoping}). A field $f$ introduces a getter $f$ and a non-final field $f$ also introduces a setter $f=$ (\ref{instanceVariables}, \ref{staticVariables}). When we speak of members here, we mean accessible fields, getters, setters and methods (\ref{classes}).
+\item There is only one namespace for getters, setters, methods and constructors (\ref{scoping}).
+  An instance or static variable $f$ introduces a getter $f$ and a non-final instance or static variable $f$ also introduces a setter $f=$ (\ref{instanceVariables}, \ref{staticVariables}).
+  When we speak of members here, we mean accessible instance or static variables, getters, setters, and methods (\ref{classes}).
 \item You cannot have two  members with the same name in the same class - be they declared or inherited (\ref{scoping}, \ref{classes}).
 \item Static members are never inherited.
 \item It is a warning if you have an  static member named $m$ in your class or any superclass (even though it is not inherited) and an  instance member of the same name (\ref{instanceMethods}, \ref{getters}, \ref{setters}).
@@ -1918,7 +1977,9 @@ A class has a set of direct superinterfaces. This set includes the interface of 
 The scope of the \IMPLEMENTS{} clause of a class $C$ is the type-parameter scope of $C$.
 
 \LMHash{}
-It is a compile-time error if  the \IMPLEMENTS{}  clause of a class $C$ specifies a type variable as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies an enumerated type (\ref{enums}),  a malformed type or deferred type (\ref{staticTypes}) as a superinterface.  It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a type $T$ as a superinterface more than once.
+It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies a type variable (\ref{generics}), a type alias (\ref{typedef}), an enumerated type (\ref{enums}), a malformed type, or a deferred type (\ref{staticTypes}) as a superinterface.
+It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface.
+It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies a type $T$ as a superinterface more than once.
 It is a compile-time error if the superclass of a class $C$ is specified as a superinterface of $C$.
 
 \rationale{
@@ -2091,8 +2152,10 @@ The restriction on constructors simplifies the construction of mixin application
 \LMLabel{mixinApplication}
 
 \LMHash{}
-A mixin may be applied to a superclass, yielding a new class. Mixin application occurs when a mixin is mixed into a class declaration via its \WITH{} clause.  The mixin application may be used to extend a class per section (\ref{classes}); alternately, a class may be defined as a mixin application as described in this section.   It is a compile-time error if the \WITH{} clause of a mixin application $C$ includes a deferred type expression.
-
+A mixin may be applied to a superclass, yielding a new class.
+Mixin application occurs when a mixin is mixed into a class declaration via its \WITH{} clause.
+The mixin application may be used to extend a class per section (\ref{classes}); alternately, a class may be defined as a mixin application as described in this section.
+It is a compile-time error if the \WITH{} clause of a mixin application $C$ includes a type variable (\ref{generics}), a type alias (\ref{typedef}), an enumerated type (\ref{enums}), a malformed type, or a deferred type (\ref{staticTypes}).
 
 \begin{grammar}
 {\bf  mixinApplicationClass:}
@@ -2110,7 +2173,8 @@ A  mixin application of the form  \code{$S$ \WITH{} $M$;} defines a class  $C$ w
 A  mixin application of the form  \code{$S$ \WITH{} $M_1, \ldots, M_k$;} defines a class  $C$ whose superclass is the application of the mixin composition (\ref{mixinComposition}) $M_{k-1} * \ldots * M_1$ to $S$.
 
 \LMHash{}
-In both cases above, $C$ declares the same instance members as $M$ (respectively, $M_k$). If any of the instance fields of $M$ (respectively, $M_k$) have initializers, they are executed in the scope of $M$ (respectively, $M_k$) to initialize the corresponding fields of $C$.
+In both cases above, $C$ declares the same instance members as $M$ (respectively, $M_k$).
+If any of the instance variables of $M$ (respectively, $M_k$) have initializers, they are executed in the scope of $M$ (respectively, $M_k$) to initialize the corresponding instance variables of $C$.
 
 \LMHash{}
 Let $L_M$ be the library in which $M$ is declared.
@@ -2250,7 +2314,7 @@ Because type parameters are in scope in their bounds, we support F-bounded quant
 }
 
 \begin{dartCode}
-\INTERFACE{} Ordered<T> \{
+\CLASS{} Ordered<T> \{
   operator > (T x);
 \}
 
@@ -2320,12 +2384,12 @@ The normative versions of these  are given in the appropriate sections of this s
 
 %\begin{grammar}
 %classInterfaceInjection:
-      %class qualified typeParameters? interfaces '{\escapegrammar ;}'
+      %class qualified typeParameters? interfaces `{\escapegrammar ;}'
       %  .
 
 
 %interfaceInterfaceInjection:
-      %interface qualified typeParameters? superinterfaces '{\escapegrammar ;}'
+      %interface qualified typeParameters? superinterfaces `{\escapegrammar ;}'
     %.
 %\end{grammar}
 
@@ -2378,7 +2442,7 @@ It is possible to associate metadata with constructs that may not be accessible 
 }
 
 \LMHash{}
-Metadata can appear before a library, part header, class, typedef, type parameter, constructor, factory, function, field, parameter, or variable declaration and before an import, export or part directive.
+Metadata can appear before a library, part header, class, typedef, type parameter, constructor, factory, function, parameter, or variable declaration and before an import, export or part directive.
 
 \LMHash{}
 The constant expression given in an annotation  is type checked and evaluated in the scope surrounding the declaration being annotated.
@@ -2460,8 +2524,8 @@ The predefined Dart function \cd{identical()} is defined such that \code{identic
  OR
  \item $c_1$ and $c_2$ are constant lists that are defined to be identical in the specification of literal list expressions (\ref{lists}), OR
  \item $c_1$ and $c_2$ are constant maps that are defined to be identical in the specification of literal map expressions (\ref{maps}), OR
- \item $c_1$ and $c_2$ are constant objects of the same class $C$ and each member field of $c_1$ is identical to the corresponding field of $c_2$. OR
-\item $c_1$ and $c_2$ are the same object.
+ \item $c_1$ and $c_2$ are constant objects of the same class $C$ and the value of each instance variable of $c_1$ is identical to the value of the corresponding instance variable of $c_2$. OR
+ \item $c_1$ and $c_2$ are the same object.
 \end{itemize}
 
 \commentary{
@@ -2614,13 +2678,10 @@ The reserved word \NULL{} evaluates to the {\em null object}.
 
 \LMHash{}
 The null object is the sole instance of the built-in class \code{Null}. Attempting to instantiate \code{Null} causes a run-time error. It is a compile-time error for a class to extend, mix in or implement \code{Null}.
-The \code{Null} class declares no methods except those also declared by \code{Object}.
+The \code{Null} class extends the \code{Object} class and declares no methods except those also declared by \code{Object}.
 
 \LMHash{}
-The static type of \NULL{} is $\bot$.
-
-\rationale{The decision to use $\bot$ instead of \code{Null} allows \NULL{} to be be assigned everywhere without complaint by the static checker.
-}
+The static type of \NULL{} is the \code{Null} type.
 
 
 \subsection{Numbers}
@@ -3536,13 +3597,19 @@ Then:
 \begin{itemize}
 \item If during execution of the program, a constant object expression has already evaluated to an instance $j$ of class $R$ with type arguments $V_i, 1 \le i \le m$, then:
 \begin{itemize}
-\item For each instance variable $f$ of $i$, let $v_{if}$ be the value of the field $f$ in $i$, and let $v_{jf}$ be the value of the field $f$ in $j$. If  \code{identical($v_{if}$, $v_{jf}$)} for all fields $f$ in $i$, then the value of $e$ is $j$, otherwise the value of $e$ is $i$.
+\item For each instance variable $f$ of $i$, let $v_{if}$ be the value of the instance variable $f$ in $i$, and let $v_{jf}$ be the value of the instance variable $f$ in $j$.
+  If \code{identical($v_{if}$, $v_{jf}$)} for all instance variables $f$ in $i$ then the value of $e$ is $j$, otherwise the value of $e$ is $i$.
 \end{itemize}
 \item Otherwise the value of $e$ is $i$.
 \end{itemize}
 
 \commentary{
-In other words, constant objects are canonicalized.  In order to determine if an object is actually new, one has to compute it; then it can be compared to any cached instances. If an equivalent object exists in the cache, we throw away the newly created object and use the cached one. Objects are equivalent if they have identical fields and identical type arguments. Since the constructor cannot induce any side effects, the execution of the constructor is unobservable.  The constructor need only be executed once per call site, at compile-time.
+In other words, constant objects are canonicalized.
+In order to determine if an object is actually new, one has to compute it; then it can be compared to any cached instances.
+If an equivalent object exists in the cache, we throw away the newly created object and use the cached one.
+Objects are equivalent if they have identical type arguments and identical instance variables.
+Since the constructor cannot induce any side effects, the execution of the constructor is unobservable.
+The constructor need only be executed once per call site, at compile-time.
 }
 
 \LMHash{}
@@ -5069,8 +5136,9 @@ Then $e$ evaluates to $r$.
 \LMHash{}
 The static type of such an expression is the static type of $v$.
 
-
-\rationale{The above ensures that if $v$ is a field, the getter gets called exactly once. Likewise in the cases below.
+\rationale{
+The above ensures that if $v$ is a variable, the getter gets called exactly once.
+Likewise in the cases below.
 }
 
 \LMHash{}
@@ -5435,13 +5503,18 @@ The is-expression \code{$e$ \IS{}! $T$} is equivalent to \code{!($e$ \IS{} $T$)}
 Let $v$  be a local variable or a formal parameter. An is-expression of the form \code{$v$ \IS{} $T$} shows that $v$  has type $T$ iff $T$ is more specific than the type $S$ of the expression $v$ and  both $T \ne \DYNAMIC{}$ and $S \ne \DYNAMIC{}$.
 
 \rationale{
-The motivation for the ``shows that v has type T" relation is to reduce spurious warnings thereby enabling a more natural coding style. The rules in the current specification are deliberately kept simple. It would be upwardly compatible to refine these rules in the future; such a refinement would accept more code without warning, but not reject any code now warning-free.
+The motivation for the ``shows that v has type T" relation is to reduce spurious warnings thereby enabling a more natural coding style.
+The rules in the current specification are deliberately kept simple.
+It would be upwardly compatible to refine these rules in the future; such a refinement would accept more code without warning, but not reject any code now warning-free.
 
-The rule only applies to locals and parameters, as fields could be modified via side-effecting functions or methods that are not accessible to a local analysis.
+The rule only applies to locals and parameters, as instance or static variables could be modified via side-effecting functions or methods that are not accessible to a local analysis.
 
-It is pointless to deduce a weaker type than what is already known. Furthermore, this would lead to a situation where multiple types are associated with a variable at a given point, which complicates the specification. Hence the requirement that $T << S$ (we use $<<$ rather than subtyping because subtyping is not a partial order).
+It is pointless to deduce a weaker type than what is already known.
+Furthermore, this would lead to a situation where multiple types are associated with a variable at a given point, which complicates the specification.
+Hence the requirement that $T << S$ (we use $<<$ rather than subtyping because subtyping is not a partial order).
 
-We do not want to refine the type of a variable of type \DYNAMIC{}, as this could lead to more warnings rather than less.  The opposite requirement, that $T \ne \DYNAMIC{}$ is a safeguard lest $S$ ever be $\bot$.
+We do not want to refine the type of a variable of type \DYNAMIC{}, as this could lead to more warnings rather than fewer.
+The opposite requirement, that $T \ne \DYNAMIC{}$ is a safeguard lest $S$ ever be $\bot$.
 }
 
 \LMHash{}
@@ -5584,7 +5657,7 @@ A {\em variable declaration statement }declares a new local variable.
 
  \begin{grammar}
 {\bf localVariableDeclaration:}
-    initializedVariableDeclaration {\escapegrammar';'}
+    initializedVariableDeclaration `{\escapegrammar ;}'
   .
  \end{grammar}
 
@@ -7332,7 +7405,7 @@ A {\em type alias} declares a name for a type expression.
 	.
 
 {\bf functionTypeAlias:}
-       functionPrefix  typeParameters? formalParameterList '{\escapegrammar ;}'
+       functionPrefix  typeParameters? formalParameterList `{\escapegrammar ;}'
     .
 
     {\bf functionPrefix:}
@@ -7370,11 +7443,6 @@ If $I$ is listed in the \EXTENDS{} clause of $J$% or an interface injection decl
 \item If $J$ is a mixin application (\ref{mixinApplication}) of the mixin of $I$.
 \end{itemize}
 
-\commentary{
-
-
-}
-
 %\Q{Can wacky stuff happen with interface injection, e.g., a direct superinterface becomes indirect? What about side effects - loading order can affect type relationships.
 %}
 
@@ -7382,8 +7450,9 @@ If $I$ is listed in the \EXTENDS{} clause of $J$% or an interface injection decl
 A type $T$ is more specific than a type $S$, written $T << S$,  if one of the following conditions is met:
 \begin{itemize}
 \item $T$ is $S$.
-\item T is $\bot$.
-\item S is \DYNAMIC{}.
+\item $T$ is $\bot$.
+\item $T$ is \code{Null} and $S$ is not $\bot$.
+\item $S$ is \DYNAMIC{}.
 \item $S$ is a direct supertype of $T$.
 \item $T$ is a type parameter and $S$ is the upper bound of $T$.
 \item $T$ is a type parameter and $S$ is \cd{Object}.
@@ -7404,13 +7473,20 @@ $List <: List<String>$ and $List<int> <: List$, but $List<int>$ is not a subtype
 Although $<:$ is not a partial order on types, it does contain a partial order, namely $<<$. This means that, barring raw types, intuition about classical subtype rules does apply.
 }
 
+\commentary{
+The \code{Null} type is more specific than all non-$\bot$ types, even though
+it doesn't actually extend or implement those types.
+The other types are effectively treated as if they are {\em nullable},
+which makes \NULL{} assignable to them.
+}
+
 \LMHash{}
 $S$ is a supertype of $T$, written $S :> T$, iff $T$ is a subtype of $S$.
 
 \commentary{The supertypes of an interface are its direct supertypes and their supertypes. }
 
 \LMHash{}
-An interface type $T$ may be assigned to a type $S$, written  $T \Longleftrightarrow S$, iff either $T <: S$ or $S <: T$.
+An interface type $T$ may be assigned to a type $S$, written  $T \Longleftrightarrow S$, iff either $T <: S$, $S <: T$.
 
 \rationale{This rule may surprise readers accustomed to conventional typechecking. The intent of the $\Longleftrightarrow$ relation is not to ensure that an assignment is correct. Instead, it aims to only flag assignments that are almost certain to be erroneous, without precluding assignments that may work.
 

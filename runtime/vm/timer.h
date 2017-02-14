@@ -23,7 +23,7 @@ class Timer : public ValueObject {
 
   // Start timer.
   void Start() {
-    start_ = OS::GetCurrentTimeMicros();
+    start_ = OS::GetCurrentMonotonicMicros();
     running_ = true;
   }
 
@@ -31,7 +31,7 @@ class Timer : public ValueObject {
   void Stop() {
     ASSERT(start_ != 0);
     ASSERT(running());
-    stop_ = OS::GetCurrentTimeMicros();
+    stop_ = OS::GetCurrentMonotonicMicros();
     int64_t elapsed = ElapsedMicros();
     max_contiguous_ = Utils::Maximum(max_contiguous_, elapsed);
     // Make increment atomic in case it occurs in parallel with aggregation.
@@ -43,7 +43,7 @@ class Timer : public ValueObject {
   int64_t TotalElapsedTime() const {
     int64_t result = total_;
     if (running_) {
-      int64_t now = OS::GetCurrentTimeMicros();
+      int64_t now = OS::GetCurrentMonotonicMicros();
       result += (now - start_);
     }
     return result;
@@ -52,7 +52,7 @@ class Timer : public ValueObject {
   int64_t MaxContiguous() const {
     int64_t result = max_contiguous_;
     if (running_) {
-      int64_t now = OS::GetCurrentTimeMicros();
+      int64_t now = OS::GetCurrentMonotonicMicros();
       result = Utils::Maximum(result, now - start_);
     }
     return result;

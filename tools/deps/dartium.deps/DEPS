@@ -9,7 +9,7 @@ execfile(os.path.join(path, 'src', 'dart', 'tools', 'deps', 'dartium.deps', 'DEP
 
 vars.update({
   "dartium_chromium_commit": "7558afb6379171d7f96b2db68ae9d2b64b2c5544",
-  "dartium_webkit_commit": "e46ac6cf905ae6be30852fbee231cfd385c24420",
+  "dartium_webkit_commit": "8c167a4ffeaa5402dde4d9e113bb272b2e4640d2",
   "chromium_base_revision": "338390",
 
   # We use mirrors of all github repos to guarantee reproducibility and
@@ -47,11 +47,11 @@ vars.update({
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observatory_pub_packages_rev": "@26aad88f1c1915d39bbcbff3cad589e2402fdcf1",
   "package_config_rev": "@0.1.3",
-  "package_resolver_tag": "@1.0.2",
+  "package_resolver_tag": "@1.0.2+1",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
-  "pub_rev": "@9d707158fedc86fc2b02f62cdfe804902b098d9d",
+  "pub_rev": "@d7649be15213c43669a40c33af516d8eb210e876",
   "pub_semver_tag": "@1.2.0",
   "quiver_tag": "@0.21.4",
   "root_certificates_rev": "@aed07942ce98507d2be28cbd29e879525410c7fc",
@@ -69,7 +69,7 @@ vars.update({
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
 
-  "co19_rev": "@f05d5aee5930bfd487aedf832fbd7b832f502b15",
+  "co19_rev": "@cf831f58ac65f68f14824c0b1515f6b7814d94b8",
 })
 
 deps.update({

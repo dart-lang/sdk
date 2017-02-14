@@ -31,6 +31,7 @@ namespace dart {
 // Forward declarations.
 namespace kernel {
 class Program;
+class TreeNode;
 }
 
 #define DEFINE_FORWARD_DECLARATION(clazz) class clazz;
@@ -488,6 +489,7 @@ class Object {
   static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
   static RawClass* closure_data_class() { return closure_data_class_; }
+  static RawClass* signature_data_class() { return signature_data_class_; }
   static RawClass* redirection_data_class() { return redirection_data_class_; }
   static RawClass* field_class() { return field_class_; }
   static RawClass* literal_token_class() { return literal_token_class_; }
@@ -745,6 +747,7 @@ class Object {
   static RawClass* patch_class_class_;     // Class of the PatchClass vm object.
   static RawClass* function_class_;        // Class of the Function vm object.
   static RawClass* closure_data_class_;    // Class of ClosureData vm obj.
+  static RawClass* signature_data_class_;  // Class of SignatureData vm obj.
   static RawClass* redirection_data_class_;  // Class of RedirectionData vm obj.
   static RawClass* field_class_;             // Class of the Field vm object.
   static RawClass* literal_token_class_;     // Class of LiteralToken vm object.
@@ -757,7 +760,7 @@ class Object {
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;   // Class of PcDescriptors vm object.
   static RawClass* code_source_map_class_;  // Class of CodeSourceMap vm object.
-  static RawClass* stackmap_class_;         // Class of Stackmap vm object.
+  static RawClass* stackmap_class_;         // Class of StackMap vm object.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* deopt_info_class_;          // Class of DeoptInfo.
@@ -1506,7 +1509,7 @@ class Class : public Object {
   friend class Object;
   friend class Type;
   friend class Intrinsifier;
-  friend class Precompiler;
+  friend class ProgramVisitor;
 };
 
 
@@ -1742,6 +1745,7 @@ class TypeArguments : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Object);
   friend class AbstractType;
   friend class Class;
+  friend class ClearTypeHashVisitor;
 };
 
 
@@ -1974,7 +1978,8 @@ class ICData : public Object {
   // Adds one more class test to ICData. Length of 'classes' must be equal to
   // the number of arguments tested. Use only for num_args_tested > 1.
   void AddCheck(const GrowableArray<intptr_t>& class_ids,
-                const Function& target) const;
+                const Function& target,
+                intptr_t count = 1) const;
   // Adds sorted so that Smi is the first class-id. Use only for
   // num_args_tested == 1.
   void AddReceiverCheck(intptr_t receiver_class_id,
@@ -2033,7 +2038,7 @@ class ICData : public Object {
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
   bool HasOneTarget() const;
-  bool HasOnlyDispatcherTargets() const;
+  bool HasOnlyDispatcherOrImplicitAccessorTargets() const;
   bool HasReceiverClassId(intptr_t class_id) const;
 
   static RawICData* New(const Function& owner,
@@ -2344,6 +2349,8 @@ class Function : public Object {
 
   RawInstance* ImplicitInstanceClosure(const Instance& receiver) const;
 
+  RawSmi* GetClosureHashCode() const;
+
   // Redirection information for a redirecting factory.
   bool IsRedirectingFactory() const;
   RawType* RedirectionType() const;
@@ -2648,6 +2655,18 @@ class Function : public Object {
                 const TypeArguments& other_type_arguments,
                 Error* bound_error,
                 Heap::Space space) const;
+
+  bool IsDispatcherOrImplicitAccessor() const {
+    switch (kind()) {
+      case RawFunction::kImplicitGetter:
+      case RawFunction::kImplicitSetter:
+      case RawFunction::kNoSuchMethodDispatcher:
+      case RawFunction::kInvokeFieldDispatcher:
+        return true;
+      default:
+        return false;
+    }
+  }
 
   // Returns true if this function represents an explicit getter function.
   bool IsGetterFunction() const {
@@ -2976,6 +2995,7 @@ class Function : public Object {
   // RawFunction::VisitFunctionPointers accesses the private constructor of
   // Function.
   friend class RawFunction;
+  friend class ClassFinalizer;  // To reset parent_function.
 };
 
 
@@ -3000,9 +3020,36 @@ class ClosureData : public Object {
   RawInstance* implicit_static_closure() const { return raw_ptr()->closure_; }
   void set_implicit_static_closure(const Instance& closure) const;
 
+  RawObject* hash() const { return raw_ptr()->hash_; }
+  void set_hash(intptr_t value) const;
+
   static RawClosureData* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ClosureData, Object);
+  friend class Class;
+  friend class Function;
+  friend class HeapProfiler;
+};
+
+
+class SignatureData : public Object {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawSignatureData));
+  }
+
+ private:
+  // Enclosing function of this signature function.
+  RawFunction* parent_function() const { return raw_ptr()->parent_function_; }
+  void set_parent_function(const Function& value) const;
+
+  // Signature type of this signature function.
+  RawType* signature_type() const { return raw_ptr()->signature_type_; }
+  void set_signature_type(const Type& value) const;
+
+  static RawSignatureData* New();
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(SignatureData, Object);
   friend class Class;
   friend class Function;
   friend class HeapProfiler;
@@ -3120,7 +3167,7 @@ class Field : public Object {
                        bool is_final,
                        bool is_const,
                        bool is_reflectable,
-                       const Class& owner,
+                       const Object& owner,
                        const AbstractType& type,
                        TokenPosition token_pos);
 
@@ -3503,9 +3550,10 @@ class Script : public Object {
   }
   void set_compile_time_constants(const Array& value) const;
 
-  RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
-
-  RawArray* line_starts() const { return raw_ptr()->line_starts_; }
+  RawTokenStream* tokens() const {
+    ASSERT(kind() != RawScript::kKernelTag);
+    return raw_ptr()->tokens_;
+  }
 
   void set_line_starts(const Array& value) const;
 
@@ -3535,6 +3583,9 @@ class Script : public Object {
                         TokenPosition* first_token_index,
                         TokenPosition* last_token_index) const;
 
+  int32_t SourceFingerprint() const;
+  int32_t SourceFingerprint(TokenPosition start, TokenPosition end) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawScript));
   }
@@ -3555,6 +3606,7 @@ class Script : public Object {
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
+  RawArray* line_starts() const { return raw_ptr()->line_starts_; }
 
   static RawScript* New();
 
@@ -3712,9 +3764,14 @@ class Library : public Object {
 
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
-                        TokenPosition token_pos) const;
-  void AddFieldMetadata(const Field& field, TokenPosition token_pos) const;
-  void AddFunctionMetadata(const Function& func, TokenPosition token_pos) const;
+                        TokenPosition token_pos,
+                        kernel::TreeNode* kernel_node = NULL) const;
+  void AddFieldMetadata(const Field& field,
+                        TokenPosition token_pos,
+                        kernel::TreeNode* kernel_node = NULL) const;
+  void AddFunctionMetadata(const Function& func,
+                           TokenPosition token_pos,
+                           kernel::TreeNode* kernel_node = NULL) const;
   void AddLibraryMetadata(const Object& tl_owner,
                           TokenPosition token_pos) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
@@ -3881,7 +3938,8 @@ class Library : public Object {
   RawField* GetMetadataField(const String& metaname) const;
   void AddMetadata(const Object& owner,
                    const String& name,
-                   TokenPosition token_pos) const;
+                   TokenPosition token_pos,
+                   kernel::TreeNode* kernel_node = NULL) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
@@ -4161,8 +4219,8 @@ class Instructions : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
   friend class Code;
-  friend class AssemblyInstructionsWriter;
-  friend class BlobInstructionsWriter;
+  friend class AssemblyImageWriter;
+  friend class BlobImageWriter;
 };
 
 
@@ -4403,7 +4461,7 @@ class CodeSourceMap : public Object {
 };
 
 
-class Stackmap : public Object {
+class StackMap : public Object {
  public:
   static const intptr_t kNoMaximum = -1;
   static const intptr_t kNoMinimum = -1;
@@ -4427,7 +4485,7 @@ class Stackmap : public Object {
     StoreNonPointer(&raw_ptr()->slow_path_bit_count_, bit_count);
   }
 
-  bool Equals(const Stackmap& other) const {
+  bool Equals(const StackMap& other) const {
     if (Length() != other.Length()) {
       return false;
     }
@@ -4438,20 +4496,20 @@ class Stackmap : public Object {
   static const intptr_t kMaxLengthInBytes = kSmiMax;
 
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawStackmap) == OFFSET_OF_RETURNED_VALUE(RawStackmap, data));
+    ASSERT(sizeof(RawStackMap) == OFFSET_OF_RETURNED_VALUE(RawStackMap, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
     ASSERT(length >= 0);
     // The stackmap payload is in an array of bytes.
     intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-    return RoundedAllocationSize(sizeof(RawStackmap) + payload_size);
+    return RoundedAllocationSize(sizeof(RawStackMap) + payload_size);
   }
-  static RawStackmap* New(intptr_t pc_offset,
+  static RawStackMap* New(intptr_t pc_offset,
                           BitmapBuilder* bmap,
                           intptr_t register_bit_count);
 
-  static RawStackmap* New(intptr_t length,
+  static RawStackMap* New(intptr_t length,
                           intptr_t register_bit_count,
                           intptr_t pc_offset);
 
@@ -4465,7 +4523,7 @@ class Stackmap : public Object {
   bool GetBit(intptr_t bit_index) const;
   void SetBit(intptr_t bit_index, bool value) const;
 
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(Stackmap, Object);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(StackMap, Object);
   friend class BitmapBuilder;
   friend class Class;
 };
@@ -4482,7 +4540,7 @@ class ExceptionHandlers : public Object {
 
   uword HandlerPCOffset(intptr_t try_index) const;
   intptr_t OuterTryIndex(intptr_t try_index) const;
-  bool NeedsStacktrace(intptr_t try_index) const;
+  bool NeedsStackTrace(intptr_t try_index) const;
 
   void SetHandlerInfo(intptr_t try_index,
                       intptr_t outer_try_index,
@@ -4680,9 +4738,9 @@ class Code : public Object {
 
   RawArray* stackmaps() const { return raw_ptr()->stackmaps_; }
   void set_stackmaps(const Array& maps) const;
-  RawStackmap* GetStackmap(uint32_t pc_offset,
+  RawStackMap* GetStackMap(uint32_t pc_offset,
                            Array* stackmaps,
-                           Stackmap* map) const;
+                           StackMap* map) const;
 
   enum {
     kSCallTableOffsetEntry = 0,
@@ -5956,6 +6014,7 @@ class Type : public AbstractType {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
   friend class Class;
   friend class TypeArguments;
+  friend class ClearTypeHashVisitor;
 };
 
 
@@ -6128,6 +6187,7 @@ class TypeParameter : public AbstractType {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
   friend class Class;
+  friend class ClearTypeHashVisitor;
 };
 
 
@@ -6219,6 +6279,7 @@ class BoundedType : public AbstractType {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(BoundedType, AbstractType);
   friend class Class;
+  friend class ClearTypeHashVisitor;
 };
 
 
@@ -6889,6 +6950,8 @@ class String : public Instance {
                                 Heap::Space space = Heap::kNew);
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
+
+  static RawString* RemovePrivateKey(const String& name);
 
   static RawString* ScrubName(const String& name);
   static RawString* ScrubNameRetainPrivate(const String& name);
@@ -8375,7 +8438,7 @@ class SendPort : public Instance {
 
 
 // Internal stacktrace object used in exceptions for printing stack traces.
-class Stacktrace : public Instance {
+class StackTrace : public Instance {
  public:
   static const int kPreallocatedStackdepth = 30;
 
@@ -8391,9 +8454,9 @@ class Stacktrace : public Instance {
   void set_expand_inlined(bool value) const;
 
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawStacktrace));
+    return RoundedAllocationSize(sizeof(RawStackTrace));
   }
-  static RawStacktrace* New(const Array& code_array,
+  static RawStackTrace* New(const Array& code_array,
                             const Array& pc_offset_array,
                             Heap::Space space = Heap::kNew);
 
@@ -8406,7 +8469,7 @@ class Stacktrace : public Instance {
   void set_pc_offset_array(const Array& pc_offset_array) const;
   bool expand_inlined() const;
 
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(StackTrace, Instance);
   friend class Class;
   friend class Debugger;
 };
@@ -8652,6 +8715,26 @@ class UserTag : public Instance {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UserTag, Instance);
   friend class Class;
+};
+
+
+class ObjectPoolInfo : public ValueObject {
+ public:
+  explicit ObjectPoolInfo(const ObjectPool& pool)
+      : array_(TypedData::Handle(pool.info_array())) {}
+
+  explicit ObjectPoolInfo(const TypedData& info_array) : array_(info_array) {}
+
+  ObjectPool::EntryType InfoAt(intptr_t i) {
+    return static_cast<ObjectPool::EntryType>(array_.GetInt8(i));
+  }
+
+  void SetInfoAt(intptr_t i, ObjectPool::EntryType info) {
+    array_.SetInt8(i, static_cast<int8_t>(info));
+  }
+
+ private:
+  const TypedData& array_;
 };
 
 

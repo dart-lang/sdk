@@ -27,8 +27,10 @@ vars = {
   # Only use this temporarily while waiting for a mirror for a new package.
   "github_dartlang": "https://github.com/dart-lang/%s.git",
 
+  "github_testing": "https://github.com/peter-ahe-google/testing.git",
+
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@f05d5aee5930bfd487aedf832fbd7b832f502b15",
+  "co19_rev": "@cf831f58ac65f68f14824c0b1515f6b7814d94b8",
 
   # Revisions of GN related dependencies.
   "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",
@@ -43,10 +45,10 @@ vars = {
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
   "barback_tag" : "@0.15.2+9",
-  "bazel_worker_tag": "@0.1.1",
+  "bazel_worker_tag": "@0.1.2",
   "boolean_selector_tag" : "@1.0.2",
-  "boringssl_gen_rev": "@62c20247d582444cb2804f9ea4e3abaa6e47f6a5",
-  "boringssl_rev" : "@8d343b44bbab829d1a28fdef650ca95f7db4412e",
+  "boringssl_gen_rev": "@1a810313a0290e1caace9da73fa3ab89995ad2c7",
+  "boringssl_rev" : "@d519bf6be0b447fb80fbc539d4bff4479b5482a2",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.0.1+3",
@@ -57,8 +59,8 @@ vars = {
   "csslib_tag" : "@0.13.2",
   "dart2js_info_tag" : "@0.5.0",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@0.2.13",
-  "dartdoc_tag" : "@v0.9.8",
+  "dart_style_tag": "@0.2.16",
+  "dartdoc_tag" : "@v0.9.8+1",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@0.1.0",
   "glob_tag": "@1.1.3",
@@ -73,7 +75,7 @@ vars = {
   "isolate_tag": "@0.2.3",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.2",
-  "linter_tag": "@0.1.29",
+  "linter_rev": "@89f93362c5b48ef5192d77e9a28cf9590542669b",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@0.11.0",
   "matcher_tag": "@0.12.0+2",
@@ -84,17 +86,17 @@ vars = {
   "observatory_pub_packages_rev": "@26aad88f1c1915d39bbcbff3cad589e2402fdcf1",
   "observe_tag": "@0.13.5",
   "package_config_tag": "@1.0.0",
-  "package_resolver_tag": "@1.0.2",
-  "path_tag": "@1.3.9",
+  "package_resolver_tag": "@1.0.2+1",
+  "path_tag": "@1.4.1",
   "plugin_tag": "@0.2.0",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.2.4",
   "protobuf_tag": "@0.5.3",
-  "pub_rev": "@3dd04bd17ba269ccdd34502a253041dd96ded3be",
+  "pub_rev": "@53327f4a7ca2ddd20a40f6a94db61ac136371b03",
   "pub_semver_tag": "@1.3.0",
   "quiver_tag": "@0.22.0",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
-  "root_certificates_rev": "@aed07942ce98507d2be28cbd29e879525410c7fc",
+  "root_certificates_rev": "@0068d8911140e591ebb750af296e81940a9906f5",
   "scheduled_test_tag": "@0.12.6",
   "shelf_static_tag": "@0.2.4",
   "shelf_packages_handler_tag": "@1.0.0",
@@ -109,6 +111,7 @@ vars = {
   "stream_channel_tag": "@1.5.0",
   "string_scanner_tag": "@1.0.0",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
+  "testing_rev": "@2e196d51c147411a93a949109656be93626bda49",
   "test_reflective_loader_tag": "@0.1.0",
   "test_tag": "@0.12.15+6",
   "typed_data_tag": "@1.1.3",
@@ -235,7 +238,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
       (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_tag"),
   Var("dart_root") + "/third_party/pkg/linter":
-      (Var("github_mirror") % "linter") + Var("linter_tag"),
+      (Var("github_mirror") % "linter") + Var("linter_rev"),
   Var("dart_root") + "/third_party/pkg/logging":
       (Var("github_mirror") % "logging") + Var("logging_tag"),
   Var("dart_root") + "/third_party/pkg/markdown":
@@ -315,6 +318,8 @@ deps = {
       Var("sunflower_rev"),
   Var("dart_root") + "/third_party/pkg/test":
       (Var("github_mirror") % "test") + Var("test_tag"),
+  Var("dart_root") + "/third_party/testing":
+      Var("github_testing") + Var("testing_rev"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       (Var("github_mirror") % "test_reflective_loader") +
       Var("test_reflective_loader_tag"),

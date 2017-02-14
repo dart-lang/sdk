@@ -6,7 +6,7 @@ library dart2js.resolution.types;
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart'
     show
         AmbiguousElement,
@@ -63,17 +63,18 @@ class TypeResolver {
     return element;
   }
 
-  DartType resolveTypeAnnotation(MappingVisitor visitor, TypeAnnotation node,
+  ResolutionDartType resolveTypeAnnotation(
+      MappingVisitor visitor, TypeAnnotation node,
       {bool malformedIsError: false, bool deferredIsMalformed: true}) {
     ResolutionRegistry registry = visitor.registry;
 
     Identifier typeName;
-    DartType type;
+    ResolutionDartType type;
 
-    DartType checkNoTypeArguments(DartType type) {
-      List<DartType> arguments = new List<DartType>();
-      bool hasTypeArgumentMismatch =
-          resolveTypeArguments(visitor, node, const <DartType>[], arguments);
+    ResolutionDartType checkNoTypeArguments(ResolutionDartType type) {
+      List<ResolutionDartType> arguments = new List<ResolutionDartType>();
+      bool hasTypeArgumentMismatch = resolveTypeArguments(
+          visitor, node, const <ResolutionDartType>[], arguments);
       if (hasTypeArgumentMismatch) {
         return new MalformedType(
             new ErroneousElementX(MessageKind.TYPE_ARGUMENT_COUNT_MISMATCH,
@@ -93,12 +94,12 @@ class TypeResolver {
     } else {
       typeName = node.typeName.asIdentifier();
       if (identical(typeName.source, 'void')) {
-        type = const VoidType();
+        type = const ResolutionVoidType();
         checkNoTypeArguments(type);
         registry.useType(node, type);
         return type;
       } else if (identical(typeName.source, 'dynamic')) {
-        type = const DynamicType();
+        type = const ResolutionDynamicType();
         checkNoTypeArguments(type);
         registry.useType(node, type);
         return type;
@@ -108,9 +109,9 @@ class TypeResolver {
     Element element = resolveTypeName(prefixName, typeName, visitor.scope,
         deferredIsMalformed: deferredIsMalformed);
 
-    DartType reportFailureAndCreateType(
+    ResolutionDartType reportFailureAndCreateType(
         MessageKind messageKind, Map messageArguments,
-        {DartType userProvidedBadType,
+        {ResolutionDartType userProvidedBadType,
         Element erroneousElement,
         List<DiagnosticMessage> infos: const <DiagnosticMessage>[]}) {
       if (malformedIsError) {
@@ -126,8 +127,9 @@ class TypeResolver {
         erroneousElement = new ErroneousElementX(messageKind, messageArguments,
             typeName.source, visitor.enclosingElement);
       }
-      List<DartType> arguments = <DartType>[];
-      resolveTypeArguments(visitor, node, const <DartType>[], arguments);
+      List<ResolutionDartType> arguments = <ResolutionDartType>[];
+      resolveTypeArguments(
+          visitor, node, const <ResolutionDartType>[], arguments);
       return new MalformedType(
           erroneousElement, userProvidedBadType, arguments);
     }
@@ -149,11 +151,16 @@ class TypeResolver {
             element.messageKind, element.messageArguments,
             erroneousElement: element);
       } else {
-        type = const DynamicType();
+        type = const ResolutionDynamicType();
       }
     } else if (!element.impliesType) {
       type = reportFailureAndCreateType(
           MessageKind.NOT_A_TYPE, {'node': node.typeName});
+    } else if (element.library.isPlatformLibrary &&
+        element.name == 'FutureOr') {
+      type = const ResolutionDynamicType();
+      registry.useType(node, type);
+      return type;
     } else {
       bool addTypeVariableBoundsCheck = false;
       if (element.isClass) {
@@ -162,22 +169,22 @@ class TypeResolver {
         // [computeType].
         resolver.ensureClassWillBeResolvedInternal(cls);
         cls.computeType(resolution);
-        List<DartType> arguments = <DartType>[];
+        List<ResolutionDartType> arguments = <ResolutionDartType>[];
         bool hasTypeArgumentMismatch =
             resolveTypeArguments(visitor, node, cls.typeVariables, arguments);
         if (hasTypeArgumentMismatch) {
           type = new BadInterfaceType(
               cls.declaration,
-              new InterfaceType.forUserProvidedBadType(
+              new ResolutionInterfaceType.forUserProvidedBadType(
                   cls.declaration, arguments));
         } else {
           if (arguments.isEmpty) {
             type = cls.rawType;
           } else {
-            type = new InterfaceType(
+            type = new ResolutionInterfaceType(
                 cls.declaration, arguments.toList(growable: false));
             addTypeVariableBoundsCheck =
-                arguments.any((DartType type) => !type.isDynamic);
+                arguments.any((ResolutionDartType type) => !type.isDynamic);
           }
         }
       } else if (element.isTypedef) {
@@ -185,19 +192,22 @@ class TypeResolver {
         // TODO(johnniwinther): [ensureResolved] should imply [computeType].
         typdef.ensureResolved(resolution);
         typdef.computeType(resolution);
-        List<DartType> arguments = <DartType>[];
+        List<ResolutionDartType> arguments = <ResolutionDartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
             visitor, node, typdef.typeVariables, arguments);
         if (hasTypeArgumentMismatch) {
-          type = new BadTypedefType(typdef,
-              new TypedefType.forUserProvidedBadType(typdef, arguments));
+          type = new BadTypedefType(
+              typdef,
+              new ResolutionTypedefType.forUserProvidedBadType(
+                  typdef, arguments));
         } else {
           if (arguments.isEmpty) {
             type = typdef.rawType;
           } else {
-            type = new TypedefType(typdef, arguments.toList(growable: false));
+            type = new ResolutionTypedefType(
+                typdef, arguments.toList(growable: false));
             addTypeVariableBoundsCheck =
-                arguments.any((DartType type) => !type.isDynamic);
+                arguments.any((ResolutionDartType type) => !type.isDynamic);
           }
         }
       } else if (element.isTypeVariable) {
@@ -232,8 +242,8 @@ class TypeResolver {
 
   /// Checks the type arguments of [type] against the type variable bounds.
   void checkTypeVariableBounds(TypeAnnotation node, GenericType type) {
-    void checkTypeVariableBound(_, DartType typeArgument,
-        TypeVariableType typeVariable, DartType bound) {
+    void checkTypeVariableBound(_, ResolutionDartType typeArgument,
+        ResolutionTypeVariableType typeVariable, ResolutionDartType bound) {
       if (!types.isSubtype(typeArgument, bound)) {
         reporter.reportWarningMessage(
             node, MessageKind.INVALID_TYPE_VARIABLE_BOUND, {
@@ -254,8 +264,11 @@ class TypeResolver {
    * Returns [: true :] if the number of type arguments did not match the
    * number of type variables.
    */
-  bool resolveTypeArguments(MappingVisitor visitor, TypeAnnotation node,
-      List<DartType> typeVariables, List<DartType> arguments) {
+  bool resolveTypeArguments(
+      MappingVisitor visitor,
+      TypeAnnotation node,
+      List<ResolutionDartType> typeVariables,
+      List<ResolutionDartType> arguments) {
     if (node.typeArguments == null) {
       return false;
     }
@@ -270,7 +283,8 @@ class TypeResolver {
             typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
         typeArgumentCountMismatch = true;
       }
-      DartType argType = resolveTypeAnnotation(visitor, typeArguments.head);
+      ResolutionDartType argType =
+          resolveTypeAnnotation(visitor, typeArguments.head);
       // TODO(karlklose): rewrite to not modify [arguments].
       arguments.add(argType);
     }

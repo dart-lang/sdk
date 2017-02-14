@@ -137,7 +137,9 @@ bool Socket::IsBindError(intptr_t error_number) {
 
 
 intptr_t Socket::Available(intptr_t fd) {
-  return FDUtils::AvailableBytes(fd);
+  intptr_t available = FDUtils::AvailableBytes(fd);
+  LOG_INFO("Socket::Available(%ld) = %ld\n", fd, available);
+  return available;
 }
 
 

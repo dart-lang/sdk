@@ -347,7 +347,7 @@ class Utf8Decoder extends Converter<List<int>, String>
     StringBuffer buffer = new StringBuffer();
     _Utf8Decoder decoder = new _Utf8Decoder(buffer, _allowMalformed);
     decoder.convert(codeUnits, start, end);
-    decoder.close();
+    decoder.flush(codeUnits, end);
     return buffer.toString();
   }
 
@@ -370,8 +370,7 @@ class Utf8Decoder extends Converter<List<int>, String>
   // Override the base-classes bind, to provide a better type.
   Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 
-  external Converter<List<int>, dynamic/*=T*/> fuse/*<T>*/(
-      Converter<String, dynamic/*=T*/> next);
+  external Converter<List<int>, T> fuse<T>(Converter<String, T> next);
 
   external static String _convertIntercepted(
       bool allowMalformed, List<int> codeUnits, int start, int end);
@@ -432,11 +431,15 @@ class _Utf8Decoder {
    *
    * This method throws if the input was partial and the decoder was
    * constructed with `allowMalformed` set to `false`.
+   *
+   * The [source] and [offset] of the current position may be provided,
+   * and are included in the exception if one is thrown.
    */
-  void flush() {
+  void flush([List<int> source, int offset]) {
     if (hasPartialInput) {
       if (!_allowMalformed) {
-        throw new FormatException("Unfinished UTF-8 octet sequence");
+        throw new FormatException("Unfinished UTF-8 octet sequence",
+                                  source, offset);
       }
       _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
       _value = 0;
@@ -481,7 +484,8 @@ class _Utf8Decoder {
             expectedUnits = 0;
             if (!_allowMalformed) {
               throw new FormatException(
-                  "Bad UTF-8 encoding 0x${unit.toRadixString(16)}");
+                  "Bad UTF-8 encoding 0x${unit.toRadixString(16)}",
+                  codeUnits, i);
             }
             _isFirstCharacter = false;
             _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
@@ -497,7 +501,8 @@ class _Utf8Decoder {
           // encoding.
           if (!_allowMalformed) {
             throw new FormatException(
-                "Overlong encoding of 0x${value.toRadixString(16)}");
+                "Overlong encoding of 0x${value.toRadixString(16)}",
+                codeUnits, i - extraUnits - 1);
           }
           expectedUnits = extraUnits = 0;
           value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
@@ -505,7 +510,8 @@ class _Utf8Decoder {
         if (value > _FOUR_BYTE_LIMIT) {
           if (!_allowMalformed) {
             throw new FormatException("Character outside valid Unicode range: "
-                                      "0x${value.toRadixString(16)}");
+                                      "0x${value.toRadixString(16)}",
+                                      codeUnits, i - extraUnits - 1);
           }
           value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
         }
@@ -533,7 +539,8 @@ class _Utf8Decoder {
           // TODO(floitsch): should this be unit <= 0 ?
           if (!_allowMalformed) {
             throw new FormatException(
-                "Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}");
+                "Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}",
+                codeUnits, i - 1);
           }
           _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
         } else {
@@ -556,7 +563,8 @@ class _Utf8Decoder {
           }
           if (!_allowMalformed) {
             throw new FormatException(
-                "Bad UTF-8 encoding 0x${unit.toRadixString(16)}");
+                "Bad UTF-8 encoding 0x${unit.toRadixString(16)}",
+                codeUnits, i - 1);
           }
           value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
           expectedUnits = extraUnits = 0;

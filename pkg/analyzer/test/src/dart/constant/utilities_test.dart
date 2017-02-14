@@ -5,6 +5,7 @@
 library analyzer.test.src.dart.constant.utilities_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -65,7 +66,7 @@ class ConstantFinderTest {
     // Analyzer ignores annotations on enum constant declarations.
     Annotation annotation = AstTestFactory.annotation2(
         AstTestFactory.identifier3('A'), null, AstTestFactory.argumentList());
-    _node = new EnumConstantDeclaration(
+    _node = astFactory.enumConstantDeclaration(
         null, <Annotation>[annotation], AstTestFactory.identifier3('C'));
     expect(_findConstants(), isEmpty);
   }

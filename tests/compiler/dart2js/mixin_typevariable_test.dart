@@ -7,7 +7,7 @@ library mixin_typevariable_test;
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import "package:compiler/src/elements/elements.dart" show Element, ClassElement;
 
 void main() {
@@ -50,7 +50,8 @@ void testMixinSupertypes() {
             Expect.equals(
                 element, element.typeVariables.first.element.enclosingElement);
           }
-          for (InterfaceType supertype in element.allSupertypesAndSelf.types) {
+          for (ResolutionInterfaceType supertype
+              in element.allSupertypesAndSelf.types) {
             if (!supertype.typeArguments.isEmpty) {
               Expect.listEquals(element.typeVariables, supertype.typeArguments,
                   "Type argument mismatch on supertype $supertype of $element.");
@@ -96,8 +97,8 @@ void testNonTrivialSubstitutions() {
       """,
               expectNoWarningsOrErrors: true)
           .then((env) {
-        DartType _dynamic = env['dynamic'];
-        DartType _ = env['_'];
+        ResolutionDartType _dynamic = env['dynamic'];
+        ResolutionDartType _ = env['_'];
 
         ClassElement Object = env.getElement('Object');
         ClassElement A = env.getElement('A');
@@ -117,13 +118,14 @@ void testNonTrivialSubstitutions() {
         ClassElement F1_A_B = F1.superclass;
 
         void testSupertypes(ClassElement element,
-            Map<ClassElement, List<DartType>> typeArguments) {
+            Map<ClassElement, List<ResolutionDartType>> typeArguments) {
           if (element != Object) {
             Expect.isTrue(element.typeVariables.length == 1);
             Expect.equals(
                 element, element.typeVariables.first.element.enclosingElement);
           }
-          for (InterfaceType supertype in element.allSupertypesAndSelf.types) {
+          for (ResolutionInterfaceType supertype
+              in element.allSupertypesAndSelf.types) {
             if (typeArguments.containsKey(supertype.element)) {
               Expect.listEquals(
                   typeArguments[supertype.element],
@@ -151,7 +153,7 @@ void testNonTrivialSubstitutions() {
           B: [_dynamic, _dynamic]
         });
 
-        DartType D1_T = D1.typeVariables.first;
+        ResolutionDartType D1_T = D1.typeVariables.first;
         testSupertypes(D1, {
           A: [D1_T],
           B: [
@@ -159,7 +161,7 @@ void testNonTrivialSubstitutions() {
             instantiate(A, [D1_T])
           ]
         });
-        DartType D1_superclass_T = D1.superclass.typeVariables.first;
+        ResolutionDartType D1_superclass_T = D1.superclass.typeVariables.first;
         testSupertypes(D1.superclass, {
           A: [D1_superclass_T],
           B: [
@@ -167,7 +169,7 @@ void testNonTrivialSubstitutions() {
             instantiate(A, [D1_superclass_T])
           ]
         });
-        DartType D2_T = D2.typeVariables.first;
+        ResolutionDartType D2_T = D2.typeVariables.first;
         testSupertypes(D2, {
           A: [D2_T],
           B: [
@@ -198,7 +200,7 @@ void testNonTrivialSubstitutions() {
           ]
         });
 
-        DartType F1_T = F1.typeVariables.first;
+        ResolutionDartType F1_T = F1.typeVariables.first;
         testSupertypes(F1, {
           A: [_],
           B: [
@@ -206,7 +208,7 @@ void testNonTrivialSubstitutions() {
             instantiate(B, [F1_T, _])
           ]
         });
-        DartType F1_superclass_T = F1.superclass.typeVariables.first;
+        ResolutionDartType F1_superclass_T = F1.superclass.typeVariables.first;
         testSupertypes(F1.superclass, {
           A: [_],
           B: [
@@ -214,7 +216,7 @@ void testNonTrivialSubstitutions() {
             instantiate(B, [F1_superclass_T, _])
           ]
         });
-        DartType F2_T = F2.typeVariables.first;
+        ResolutionDartType F2_T = F2.typeVariables.first;
         testSupertypes(F2, {
           A: [_],
           B: [

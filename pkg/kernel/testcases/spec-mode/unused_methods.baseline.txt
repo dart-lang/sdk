@@ -1,0 +1,86 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class UnusedClass extends core::Object {
+  constructor •() → void
+    : super core::Object::•() {
+    core::print("Unused");
+  }
+}
+abstract class UsedAsBaseClass extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method usedInSubclass() → void {
+    core::print("Unused");
+  }
+  method calledFromB() → void {
+    this.calledFromSubclass();
+  }
+  method calledFromSubclass() → void {
+    core::print("Unused");
+  }
+}
+class UsedAsInterface extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method usedInSubclass() → void {
+    core::print("Unused");
+  }
+}
+class InstantiatedButMethodsUnused extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  method usedInSubclass() → void {
+    core::print("Unused");
+  }
+}
+class ClassA extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
+  constructor •() → void
+    : super self::UsedAsBaseClass::•()
+    ;
+  method usedInSubclass() → void {
+    core::print("A");
+  }
+}
+class ClassB extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
+  constructor •() → void
+    : super self::UsedAsBaseClass::•()
+    ;
+  method usedInSubclass() → void {
+    core::print("B");
+    this.calledFromB();
+  }
+  method calledFromSubclass() → void {}
+}
+static method baseClassCall(self::UsedAsBaseClass object) → void {
+  object.usedInSubclass();
+}
+static method interfaceCall(self::UsedAsInterface object) → void {
+  object.usedInSubclass();
+}
+static method exactCallA(self::ClassA object) → void {
+  object.usedInSubclass();
+}
+static method exactCallB(self::ClassB object) → void {
+  object.usedInSubclass();
+}
+static method unusedTopLevel() → dynamic {
+  core::print("Unused");
+}
+static method usedTopLevel() → dynamic {}
+static method main() → dynamic {
+  self::usedTopLevel();
+  self::ClassA a = new self::ClassA::•();
+  self::exactCallA(a);
+  self::baseClassCall(a);
+  self::interfaceCall(a);
+  self::ClassB b = new self::ClassB::•();
+  self::exactCallB(b);
+  self::baseClassCall(b);
+  self::interfaceCall(b);
+  new self::InstantiatedButMethodsUnused::•();
+}

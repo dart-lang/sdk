@@ -27,6 +27,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 import 'package:observatory/src/elements/source_inset.dart';
 import 'package:observatory/src/elements/view_footer.dart';
+import 'package:observatory/utils.dart';
 
 class IsolateViewElement extends HtmlElement implements Renderable {
   static const tag =
@@ -133,6 +134,7 @@ class IsolateViewElement extends HtmlElement implements Renderable {
   void render() {
     final uptime = new DateTime.now().difference(_isolate.startTime);
     final libraries = _isolate.libraries.toList();
+    final List<Thread> threads = _isolate.threads;
     children = [
       navBar([
         new NavTopMenuElement(queue: _r.queue),
@@ -267,6 +269,26 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                 ..children = [
                   new DivElement()
                     ..classes = ['memberName']
+                    ..text = 'allocated zone handle count',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..text = '${_isolate.numZoneHandles}'
+                ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = [
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'allocated scoped handle count',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..text = '${_isolate.numScopedHandles}'
+                ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = [
+                  new DivElement()
+                    ..classes = ['memberName']
                     ..text = 'object store',
                   new DivElement()
                     ..classes = ['memberValue']
@@ -274,6 +296,19 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                       new AnchorElement(href: Uris.objectStore(_isolate))
                         ..text = 'object store'
                     ]
+                ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = [
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'native memory usage high watermark'
+                    ..title = '''The maximum amount of native memory allocated
+                    by the isolate over it\'s life.''',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..text = Utils.formatSize(_isolate.memoryHighWatermark)
+                    ..title = '${_isolate.memoryHighWatermark}B'
                 ],
               new BRElement(),
               new DivElement()
@@ -294,6 +329,20 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                               ])
                             .toList()
                     ]
+                ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = [
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'threads (${threads.length})',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..children = [
+                      new CurlyBlockElement(queue: _r.queue)
+                        ..content = threads
+                          .map(_populateThreadInfo)
+                    ]
                 ]
             ],
           new HRElement(),
@@ -312,6 +361,72 @@ class IsolateViewElement extends HtmlElement implements Renderable {
           new ViewFooterElement(queue: _r.queue)
         ]
     ];
+  }
+
+  DivElement _populateThreadInfo(Thread t) {
+    int index = 0;
+    return new DivElement()
+      ..classes = ['indent']
+      ..children = [
+        new SpanElement()
+          ..text = '${t.id} ',
+        new CurlyBlockElement(queue: _r.queue)
+          ..content = [
+            new DivElement()
+              ..classes = ['indent']
+              ..text = 'kind ${t.kindString}',
+            new DivElement()
+              ..classes = ['indent']
+              ..title = '${t.memoryHighWatermark}B'
+              ..text =
+              'native memory usage high watermark ${Utils.formatSize(t.memoryHighWatermark)}',
+            new DivElement()
+              ..children = t.zones
+                .map((z) => new DivElement()
+                ..classes = ['indent']
+                ..children = [
+                  new DivElement()
+                    ..children = [
+                      new SpanElement()
+                        ..children = [
+                          new SpanElement()
+                            ..text = 'zone ${index++} ',
+                          new CurlyBlockElement(queue: _r.queue)
+                            ..content = [
+                              new DivElement()
+                                ..classes = ['memberList']
+                                ..children = [
+                                  new DivElement()
+                                    ..classes = ['memberItem']
+                                    ..children = [
+                                      new SpanElement()
+                                        ..classes = ['memberName']
+                                        ..text = 'used ',
+                                      new SpanElement()
+                                        ..classes = ['memberValue']
+                                        ..title = '${z.used}B'
+                                        ..text =
+                                        Utils.formatSize(z.used)
+                                    ],
+                                  new DivElement()
+                                    ..classes = ['memberItem']
+                                    ..children = [
+                                        new SpanElement()
+                                          ..classes = ['memberName']
+                                          ..text = 'capacity',
+                                        new SpanElement()
+                                          ..classes = ['memberValue']
+                                          ..title = '${z.capacity}B'
+                                          ..text =
+                                          Utils.formatSize(z.capacity)
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+          )]
+      ];
   }
 
   Future _loadExtraData() async {

@@ -31,6 +31,18 @@ main() {
     return check(code);
   });
 
+  test('do-while loop', () {
+    String code = '''
+main() {
+  var a = 0;
+  do {
+    a *= 2;
+  } while (a < 100);
+  return a;
+}''';
+    return check(code);
+  });
+
   test('for-in loop', () {
     String code = '''
 main() {
@@ -67,6 +79,23 @@ main() {
   var sum = 0;
   for (a in [1, 2, 3]) {
     sum += a;
+  }
+  return sum;
+}''';
+    return check(code, disableTypeInference: false);
+  });
+
+  test('for loop with break to label', () {
+    String code = '''
+var a = 0;
+main() {
+  var sum = 0;
+  outer: for (a in [1, 2, 3]) {
+    for (int i = 0; i < 10; i++) {
+      sum += a;
+      if (a + i < 5)
+        break outer;
+    }
   }
   return sum;
 }''';

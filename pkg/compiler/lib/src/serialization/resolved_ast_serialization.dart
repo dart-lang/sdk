@@ -7,7 +7,7 @@ library dart2js.serialization.resolved_ast;
 import '../common.dart';
 import '../common/resolution.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
@@ -237,7 +237,7 @@ class ResolvedAstSerializer extends Visitor {
       serializeElementReference(element, Key.ELEMENT, Key.NAME,
           getNodeDataEncoder(node), nodeElement);
     }
-    DartType type = elements.getType(node);
+    ResolutionDartType type = elements.getType(node);
     if (type != null) {
       getNodeDataEncoder(node).setType(Key.TYPE, type);
     }
@@ -250,7 +250,7 @@ class ResolvedAstSerializer extends Visitor {
     if (constant != null) {
       getNodeDataEncoder(node).setConstant(Key.CONSTANT, constant);
     }
-    DartType cachedType = elements.typesCache[node];
+    ResolutionDartType cachedType = elements.typesCache[node];
     if (cachedType != null) {
       getNodeDataEncoder(node).setType(Key.CACHED_TYPE, cachedType);
     }
@@ -587,12 +587,11 @@ class ResolvedAstDeserializer {
     }
     jumpTargetLabels.forEach((JumpTargetX jumpTarget, List<int> labelIds) {
       if (labelIds.isEmpty) return;
-      LinkBuilder<LabelDefinition> linkBuilder =
-          new LinkBuilder<LabelDefinition>();
+      List<LabelDefinition> labels = <LabelDefinition>[];
       for (int labelId in labelIds) {
-        linkBuilder.addLast(labelDefinitions[labelId]);
+        labels.add(labelDefinitions[labelId]);
       }
-      jumpTarget.labels = linkBuilder.toLink();
+      jumpTarget.labels = labels;
     });
 
     ListDecoder dataDecoder = objectDecoder.getList(Key.DATA, isOptional: true);
@@ -607,7 +606,8 @@ class ResolvedAstDeserializer {
         if (nodeElement != null) {
           elements[node] = nodeElement;
         }
-        DartType type = objectDecoder.getType(Key.TYPE, isOptional: true);
+        ResolutionDartType type =
+            objectDecoder.getType(Key.TYPE, isOptional: true);
         if (type != null) {
           elements.setType(node, type);
         }
@@ -621,7 +621,7 @@ class ResolvedAstDeserializer {
         if (constant != null) {
           elements.setConstant(node, constant);
         }
-        DartType cachedType =
+        ResolutionDartType cachedType =
             objectDecoder.getType(Key.CACHED_TYPE, isOptional: true);
         if (cachedType != null) {
           elements.typesCache[node] = cachedType;

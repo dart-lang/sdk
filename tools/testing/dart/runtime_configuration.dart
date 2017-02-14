@@ -4,16 +4,22 @@
 
 library runtime_configuration;
 
-import 'dart:io' show Platform;
+import 'dart:io' show Directory, File;
 
 import 'compiler_configuration.dart' show CommandArtifact;
 
 // TODO(ahe): Remove this import, we can precompute all the values required
 // from TestSuite once the refactoring is complete.
-import 'test_suite.dart' show TestSuite;
+import 'test_suite.dart' show TestSuite, TestUtils;
 
 import 'test_runner.dart' show Command, CommandBuilder;
 
+/// Describes the commands to run a given test case or its compiled output.
+///
+/// A single runtime configuration object exists per test suite, and is thus
+/// shared between multiple test cases, it should not be mutated after
+/// construction.
+//
 // TODO(ahe): I expect this class will become abstract very soon.
 class RuntimeConfiguration {
   // TODO(ahe): Remove this constructor and move the switch to
@@ -52,8 +58,8 @@ class RuntimeConfiguration {
       case 'vm':
         return new StandaloneDartRuntimeConfiguration();
 
-      case 'dart_app':
-        return new DartAppRuntimeConfiguration(useBlobs: useBlobs);
+      case 'flutter':
+        return new StandaloneFlutterEngineConfiguration();
 
       case 'dart_precompiled':
         if (configuration['system'] == 'android') {
@@ -63,6 +69,9 @@ class RuntimeConfiguration {
 
       case 'drt':
         return new DrtRuntimeConfiguration();
+
+      case 'self_check':
+        return new SelfCheckRuntimeConfiguration();
 
       default:
         throw "Unknown runtime '$runtime'";
@@ -87,6 +96,8 @@ class RuntimeConfiguration {
   }
 
   List<String> dart2jsPreambles(Uri preambleDir) => [];
+
+  bool get shouldSkipNegativeTests => false;
 }
 
 /// The 'none' runtime configuration.
@@ -218,22 +229,20 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       Map<String, String> environmentOverrides) {
     String script = artifact.filename;
     String type = artifact.mimeType;
-    if (script != null && type != 'application/dart') {
+    if (script != null &&
+        type != 'application/dart' &&
+        type != 'application/dart-snapshot') {
       throw "Dart VM cannot run files of type '$type'.";
     }
-    String executable = suite.configuration['noopt']
-        ? suite.dartVmNooptBinaryFileName
-        : suite.dartVmBinaryFileName;
+    String executable = suite.dartVmBinaryFileName;
     return <Command>[
       commandBuilder.getVmCommand(executable, arguments, environmentOverrides)
     ];
   }
 }
 
-class DartAppRuntimeConfiguration extends DartVmRuntimeConfiguration {
-  final bool useBlobs;
-  DartAppRuntimeConfiguration({bool useBlobs}) : useBlobs = useBlobs;
-
+/// The flutter engine binary, "sky_shell".
+class StandaloneFlutterEngineConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
       TestSuite suite,
       CommandBuilder commandBuilder,
@@ -242,21 +251,15 @@ class DartAppRuntimeConfiguration extends DartVmRuntimeConfiguration {
       Map<String, String> environmentOverrides) {
     String script = artifact.filename;
     String type = artifact.mimeType;
-    if (script != null && type != 'application/dart-snapshot') {
-      throw "dart_app cannot run files of type '$type'.";
+    if (script != null &&
+        type != 'application/dart' &&
+        type != 'application/dart-snapshot') {
+      throw "Flutter Engine cannot run files of type '$type'.";
     }
-
-    var args = new List();
-    args.addAll(arguments);
-    for (var i = 0; i < args.length; i++) {
-      if (args[i].endsWith(".dart")) {
-        args[i] = "${artifact.filename}/out.jitsnapshot";
-      }
-    }
-
+    String executable = suite.flutterEngineBinaryFileName;
+    var args = <String>['--non-interactive']..addAll(arguments);
     return <Command>[
-      commandBuilder.getVmCommand(suite.dartVmBinaryFileName,
-          args, environmentOverrides)
+      commandBuilder.getVmCommand(executable, args, environmentOverrides)
     ];
   }
 }
@@ -277,23 +280,20 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
-    var args = new List();
-    args.addAll(arguments);
-    for (var i = 0; i < args.length; i++) {
-      if (args[i].endsWith(".dart")) {
-        args[i] = "${artifact.filename}/out.aotsnapshot";
-      }
-    }
-
     return <Command>[
       commandBuilder.getVmCommand(suite.dartPrecompiledBinaryFileName,
-          args, environmentOverrides)
+          arguments, environmentOverrides)
     ];
   }
 }
 
 class DartPrecompiledAdbRuntimeConfiguration
       extends DartVmRuntimeConfiguration {
+  static const String DeviceDir =
+      '/data/local/tmp/precompilation-testing';
+  static const String DeviceTestDir =
+      '/data/local/tmp/precompilation-testing/test';
+
   final bool useBlobs;
   DartPrecompiledAdbRuntimeConfiguration({bool useBlobs}) : useBlobs = useBlobs;
 
@@ -319,6 +319,40 @@ class DartPrecompiledAdbRuntimeConfiguration
                                               useBlobs)
     ];
   }
+}
+
+class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
+  final List<String> selfCheckers = <String>[];
+
+  SelfCheckRuntimeConfiguration() {
+    searchForSelfCheckers();
+  }
+
+  void searchForSelfCheckers() {
+    Uri pkg = TestUtils.dartDirUri.resolve('pkg');
+    for (var entry in  new Directory.fromUri(pkg).listSync(recursive: true)) {
+      if (entry is File && entry.path.endsWith('_self_check.dart')) {
+        selfCheckers.add(entry.path);
+      }
+    }
+  }
+
+  List<Command> computeRuntimeCommands(
+      TestSuite suite,
+      CommandBuilder commandBuilder,
+      CommandArtifact artifact,
+      List<String> arguments,
+      Map<String, String> environmentOverrides) {
+    String executable = suite.dartVmBinaryFileName;
+    return selfCheckers
+        .map((String tester) => commandBuilder.getVmBatchCommand(
+            executable, tester, arguments, environmentOverrides,
+            checked: suite.configuration['checked']))
+        .toList();
+  }
+
+  @override
+  bool get shouldSkipNegativeTests => true;
 }
 
 /// Temporary runtime configuration for browser runtimes that haven't been

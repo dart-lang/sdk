@@ -83,7 +83,6 @@ BranchInstr* BranchSimplifier::CloneBranch(Zone* zone,
   ComparisonInstr* new_comparison =
       comparison->CopyWithNewOperands(new_left, new_right);
   BranchInstr* new_branch = new (zone) BranchInstr(new_comparison);
-  new_branch->set_is_checked(branch->is_checked());
   return new_branch;
 }
 

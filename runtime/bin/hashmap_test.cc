@@ -171,7 +171,7 @@ void TestSet(IntKeyHash hash, int size) {
 }
 
 
-UNIT_TEST_CASE(Set) {
+UNIT_TEST_CASE(HashMap_Basic) {
   TestSet(WordHash, 100);
   TestSet(Hash, 100);
   TestSet(CollisionHash1, 50);

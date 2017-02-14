@@ -4,7 +4,8 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import "../dart_types.dart" show DartType, InterfaceType;
+import "../elements/resolution_types.dart"
+    show ResolutionDartType, ResolutionInterfaceType;
 import "../elements/elements.dart"
     show
         AstElement,
@@ -29,6 +30,7 @@ abstract class UnresolvedVisitor {
   bool get isVoidContext;
   ir.Arguments buildArguments(NodeList arguments);
   ir.TreeNode visitForValue(Expression node);
+  void associateCompoundComponents(Accessor accessor, Node node);
 
   // TODO(ahe): Delete this method.
   ir.InvalidExpression handleUnresolved(Node node);
@@ -57,11 +59,15 @@ abstract class UnresolvedVisitor {
   ir.Expression buildThrowNoSuchMethodError(ir.Procedure exceptionBuilder,
       ir.Expression receiver, String memberName, ir.Arguments callArguments,
       [Element candidateTarget]) {
-    ir.Expression memberNameArg = new ir.SymbolLiteral(memberName);
-    ir.Expression positional = new ir.ListLiteral(callArguments.positional);
-    ir.Expression named = new ir.MapLiteral(callArguments.named.map((e) {
-      return new ir.MapEntry(new ir.SymbolLiteral(e.name), e.value);
-    }).toList());
+    ir.Expression memberNameArg =
+        markSynthetic(new ir.SymbolLiteral(memberName));
+    ir.Expression positional =
+        markSynthetic(new ir.ListLiteral(callArguments.positional));
+    ir.Expression named =
+        markSynthetic(new ir.MapLiteral(callArguments.named.map((e) {
+      return new ir.MapEntry(
+          markSynthetic(new ir.SymbolLiteral(e.name)), e.value);
+    }).toList()));
     if (candidateTarget is FunctionElement) {
       // Ensure [candidateTarget] has been resolved.
       possiblyErroneousFunctionToIr(candidateTarget);
@@ -72,13 +78,15 @@ abstract class UnresolvedVisitor {
         candidateTarget.hasFunctionSignature) {
       List<ir.Expression> existingArgumentsList = <ir.Expression>[];
       candidateTarget.functionSignature.forEachParameter((param) {
-        existingArgumentsList.add(new ir.StringLiteral(param.name));
+        existingArgumentsList
+            .add(markSynthetic(new ir.StringLiteral(param.name)));
       });
-      existingArguments = new ir.ListLiteral(existingArgumentsList);
+      existingArguments =
+          markSynthetic(new ir.ListLiteral(existingArgumentsList));
     } else {
       existingArguments = new ir.NullLiteral();
     }
-    return new ir.Throw(new ir.StaticInvocation(
+    ir.Expression construction = markSynthetic(new ir.StaticInvocation(
         exceptionBuilder,
         new ir.Arguments(<ir.Expression>[
           receiver,
@@ -87,6 +95,12 @@ abstract class UnresolvedVisitor {
           named,
           existingArguments
         ])));
+    return new ir.Throw(construction);
+  }
+
+  ir.Expression markSynthetic(ir.Expression expression) {
+    kernel.syntheticNodes.add(expression);
+    return expression;
   }
 
   /// Throws a NoSuchMethodError for an unresolved getter named [name].
@@ -111,6 +125,7 @@ abstract class UnresolvedVisitor {
   }
 
   ir.Expression buildThrowUnresolvedSuperGetter(String name) {
+    // TODO(sra): This is incorrect when the superclass defines noSuchMethod.
     return buildThrowNoSuchMethodError(kernel.getUnresolvedSuperGetterBuilder(),
         new ir.ThisExpression(), name, new ir.Arguments.empty());
   }
@@ -145,7 +160,7 @@ abstract class UnresolvedVisitor {
   ir.Expression visitUnresolvedClassConstructorInvoke(
       NewExpression node,
       ErroneousElement element,
-      DartType type,
+      ResolutionDartType type,
       NodeList arguments,
       Selector selector,
       _) {
@@ -158,7 +173,7 @@ abstract class UnresolvedVisitor {
   ir.Expression visitUnresolvedConstructorInvoke(
       NewExpression node,
       Element constructor,
-      DartType type,
+      ResolutionDartType type,
       NodeList arguments,
       Selector selector,
       _) {
@@ -199,7 +214,7 @@ abstract class UnresolvedVisitor {
   ir.Expression visitUnresolvedRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       _) {
@@ -256,16 +271,22 @@ abstract class UnresolvedVisitor {
       MethodElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new ClassStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildPostfixIncrement(new ir.Name(operator.selectorName),
+    var result = accessor.buildPostfixIncrement(
+        new ir.Name(operator.selectorName),
         voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
   }
 
   ir.Expression visitUnresolvedStaticSetterPrefix(Send node,
       MethodElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new ClassStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildPrefixIncrement(new ir.Name(operator.selectorName),
+    var result = accessor.buildPrefixIncrement(
+        new ir.Name(operator.selectorName),
         voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
   }
 
   ir.Expression visitUnresolvedStaticSetterSetIfNull(
@@ -278,6 +299,7 @@ abstract class UnresolvedVisitor {
 
   ir.Expression visitUnresolvedSuperBinary(
       Send node, Element element, BinaryOperator operator, Node argument, _) {
+    // TODO(sra): This is incorrect when the superclass defines noSuchMethod.
     return buildThrowNoSuchMethodError(
         kernel.getUnresolvedSuperMethodBuilder(),
         new ir.ThisExpression(),
@@ -508,25 +530,33 @@ abstract class UnresolvedVisitor {
       _) {
     var accessor = new TopLevelStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildCompoundAssignment(
+    var result = accessor.buildCompoundAssignment(
         new ir.Name(operator.selectorName), visitForValue(rhs),
         voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
   }
 
   ir.Expression visitUnresolvedTopLevelSetterPostfix(Send node,
       MethodElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new TopLevelStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildPostfixIncrement(new ir.Name(operator.selectorName),
+    var result = accessor.buildPostfixIncrement(
+        new ir.Name(operator.selectorName),
         voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
   }
 
   ir.Expression visitUnresolvedTopLevelSetterPrefix(Send node,
       MethodElement getter, Element element, IncDecOperator operator, _) {
     var accessor = new TopLevelStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildPrefixIncrement(new ir.Name(operator.selectorName),
+    var result = accessor.buildPrefixIncrement(
+        new ir.Name(operator.selectorName),
         voidContext: isVoidContext);
+    associateCompoundComponents(accessor, node);
+    return result;
   }
 
   ir.Expression visitUnresolvedTopLevelSetterSetIfNull(

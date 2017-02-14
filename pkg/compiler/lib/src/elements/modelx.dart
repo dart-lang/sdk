@@ -11,7 +11,6 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/class_members.dart' show ClassMemberMixin;
@@ -27,6 +26,7 @@ import '../tree/tree.dart';
 import '../util/util.dart';
 import 'common.dart';
 import 'elements.dart';
+import 'resolution_types.dart';
 import 'visitor.dart' show ElementVisitor;
 
 /// Object that identifies a declaration site.
@@ -163,7 +163,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   ClassElement get enclosingClass {
     for (Element e = this; e != null; e = e.enclosingElement) {
-      if (e.isClass) return e;
+      if (e.isClass) return e.declaration;
     }
     return null;
   }
@@ -266,7 +266,7 @@ class ErroneousElementX extends ElementX
 
   get effectiveTarget => this;
 
-  computeEffectiveTargetType(InterfaceType newType) => unsupported();
+  computeEffectiveTargetType(ResolutionInterfaceType newType) => unsupported();
 
   get definingConstructor => null;
 
@@ -290,7 +290,7 @@ class ErroneousElementX extends ElementX
   }
 
   @override
-  List<DartType> get typeVariables => unsupported();
+  List<ResolutionDartType> get typeVariables => unsupported();
 }
 
 /// A constructor that was synthesized to recover from a compile-time error.
@@ -378,7 +378,8 @@ class ErroneousConstructorElementX extends ErroneousElementX
   }
 
   @override
-  void setEffectiveTarget(ConstructorElement target, InterfaceType type,
+  void setEffectiveTarget(
+      ConstructorElement target, ResolutionInterfaceType type,
       {bool isMalformed: false}) {
     throw new UnsupportedError("setEffectiveTarget");
   }
@@ -565,7 +566,7 @@ abstract class AmbiguousElementX extends ElementX implements AmbiguousElement {
 
   bool get isTopLevel => false;
 
-  DynamicType get type => const DynamicType();
+  ResolutionDynamicType get type => const ResolutionDynamicType();
 }
 
 /// Element synthesized to diagnose an ambiguous import.
@@ -1274,7 +1275,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   void forEachLocalMember(f(Element member)) => importScope.forEach(f);
 
-  DartType computeType(Resolution resolution) => const DynamicType();
+  ResolutionDartType computeType(Resolution resolution) =>
+      const ResolutionDynamicType();
 
   Token get position => firstPosition;
 
@@ -1299,16 +1301,16 @@ class TypedefElementX extends ElementX
     with
         AstElementMixin,
         AnalyzableElementX,
-        TypeDeclarationElementX<TypedefType>
+        TypeDeclarationElementX<ResolutionTypedefType>
     implements TypedefElement {
   Typedef cachedNode;
 
   /**
    * The type annotation which defines this typedef.
    */
-  DartType aliasCache;
+  ResolutionDartType aliasCache;
 
-  DartType get alias {
+  ResolutionDartType get alias {
     assert(invariant(this, hasBeenCheckedForCycles,
         message: "$this has not been checked for cycles."));
     return aliasCache;
@@ -1340,7 +1342,7 @@ class TypedefElementX extends ElementX
    */
   FunctionSignature functionSignature;
 
-  TypedefType computeType(Resolution resolution) {
+  ResolutionTypedefType computeType(Resolution resolution) {
     if (thisTypeCache != null) return thisTypeCache;
     Typedef node = parseNode(resolution.parsingContext);
     setThisAndRawTypes(createTypeVariables(node.typeParameters));
@@ -1354,8 +1356,8 @@ class TypedefElementX extends ElementX
     }
   }
 
-  TypedefType createType(List<DartType> typeArguments) {
-    return new TypedefType(this, typeArguments);
+  ResolutionTypedefType createType(List<ResolutionDartType> typeArguments) {
+    return new ResolutionTypedefType(this, typeArguments);
   }
 
   Scope buildScope() {
@@ -1383,7 +1385,7 @@ class TypedefElementX extends ElementX
 // forwards its [computeType] and [parseNode] methods to this class.
 class VariableList implements DeclarationSite {
   VariableDefinitions definitions;
-  DartType type;
+  ResolutionDartType type;
   final Modifiers modifiers;
   List<MetadataAnnotation> metadataInternal;
 
@@ -1419,7 +1421,8 @@ class VariableList implements DeclarationSite {
     return definitions;
   }
 
-  DartType computeType(Element element, Resolution resolution) => type;
+  ResolutionDartType computeType(Element element, Resolution resolution) =>
+      type;
 }
 
 abstract class ConstantVariableMixin implements VariableElement {
@@ -1559,7 +1562,7 @@ abstract class VariableElementX extends ElementX
     definitionsCache = definitions;
   }
 
-  DartType computeType(Resolution resolution) {
+  ResolutionDartType computeType(Resolution resolution) {
     if (variables.type != null) return variables.type;
     // Call [parseNode] to ensure that [definitionsCache] and [initializerCache]
     // are set as a consequence of calling [computeType].
@@ -1567,7 +1570,7 @@ abstract class VariableElementX extends ElementX
     return variables.computeType(this, resolution);
   }
 
-  DartType get type {
+  ResolutionDartType get type {
     assert(invariant(this, variables.type != null,
         message: "Type has not been computed for $this."));
     return variables.type;
@@ -1638,7 +1641,7 @@ class ErroneousFieldElementX extends ElementX
       : variables = new VariableList(Modifiers.EMPTY)
           ..definitions = new VariableDefinitions(
               null, Modifiers.EMPTY, new NodeList.singleton(name))
-          ..type = const DynamicType(),
+          ..type = const ResolutionDynamicType(),
         super(name.source, ElementKind.FIELD, enclosingElement);
 
   VariableDefinitions get definitionsCache => variables.definitions;
@@ -1657,7 +1660,7 @@ class ErroneousFieldElementX extends ElementX
     throw new UnsupportedError("resolvedAst");
   }
 
-  DynamicType get type => const DynamicType();
+  ResolutionDynamicType get type => const ResolutionDynamicType();
 
   Token get token => node.getBeginToken();
 
@@ -1714,7 +1717,7 @@ class ErroneousFieldElementX extends ElementX
     throw new UnsupportedError("copyWithEnclosing");
   }
 
-  DartType computeType(Resolution resolution) => type;
+  ResolutionDartType computeType(Resolution resolution) => type;
 }
 
 /// [Element] for a parameter-like element.
@@ -1723,10 +1726,10 @@ class FormalElementX extends ElementX
     implements FormalElement {
   final VariableDefinitions definitions;
   final Identifier identifier;
-  DartType typeCache;
+  ResolutionDartType typeCache;
 
   @override
-  List<DartType> get typeVariables => functionSignature.typeVariables;
+  List<ResolutionDartType> get typeVariables => functionSignature.typeVariables;
 
   /**
    * Function signature for a variable with a function type. The signature is
@@ -1748,13 +1751,13 @@ class FormalElementX extends ElementX
 
   Node parseNode(ParsingContext parsing) => definitions;
 
-  DartType computeType(Resolution resolution) {
+  ResolutionDartType computeType(Resolution resolution) {
     assert(invariant(this, type != null,
         message: "Parameter type has not been set for $this."));
     return type;
   }
 
-  DartType get type {
+  ResolutionDartType get type {
     assert(invariant(this, typeCache != null,
         message: "Parameter type has not been set for $this."));
     return typeCache;
@@ -1777,7 +1780,7 @@ class FormalElementX extends ElementX
 
   VariableDefinitions get node => definitions;
 
-  FunctionType get functionType => type;
+  ResolutionFunctionType get functionType => type;
 
   accept(ElementVisitor visitor, arg) {
     return visitor.visitFormalElement(this, arg);
@@ -1896,7 +1899,7 @@ class ErroneousInitializingFormalElementX extends ParameterElementX
 
   bool get isMalformed => true;
 
-  DynamicType get type => const DynamicType();
+  ResolutionDynamicType get type => const ResolutionDynamicType();
 }
 
 class AbstractFieldElementX extends ElementX
@@ -1908,7 +1911,7 @@ class AbstractFieldElementX extends ElementX
   AbstractFieldElementX(String name, Element enclosing)
       : super(name, ElementKind.ABSTRACT_FIELD, enclosing);
 
-  DartType computeType(Compiler compiler) {
+  ResolutionDartType computeType(Compiler compiler) {
     throw "internal error: AbstractFieldElement has no type";
   }
 
@@ -1954,18 +1957,18 @@ class AbstractFieldElementX extends ElementX
 // TODO(karlklose): all these lists should have element type [FormalElement].
 class FunctionSignatureX extends FunctionSignatureCommon
     implements FunctionSignature {
-  final List<DartType> typeVariables;
+  final List<ResolutionDartType> typeVariables;
   final List<Element> requiredParameters;
   final List<Element> optionalParameters;
   final int requiredParameterCount;
   final int optionalParameterCount;
   final bool optionalParametersAreNamed;
   final List<Element> orderedOptionalParameters;
-  final FunctionType type;
+  final ResolutionFunctionType type;
   final bool hasOptionalParameters;
 
   FunctionSignatureX(
-      {this.typeVariables: const <DartType>[],
+      {this.typeVariables: const <ResolutionDartType>[],
       this.requiredParameters: const <Element>[],
       this.requiredParameterCount: 0,
       List<Element> optionalParameters: const <Element>[],
@@ -1980,7 +1983,7 @@ class FunctionSignatureX extends FunctionSignatureCommon
 abstract class BaseFunctionElementX extends ElementX
     with PatchMixin<FunctionElement>, AstElementMixin
     implements FunctionElement {
-  DartType typeCache;
+  ResolutionDartType typeCache;
   final Modifiers modifiers;
 
   List<FunctionElement> nestedClosures = new List<FunctionElement>();
@@ -2031,7 +2034,7 @@ abstract class BaseFunctionElementX extends ElementX
     return list;
   }
 
-  FunctionType computeType(Resolution resolution) {
+  ResolutionFunctionType computeType(Resolution resolution) {
     if (typeCache != null) return typeCache;
     _computeSignature(resolution);
     assert(invariant(this, typeCache != null,
@@ -2039,7 +2042,7 @@ abstract class BaseFunctionElementX extends ElementX
     return typeCache;
   }
 
-  FunctionType get type {
+  ResolutionFunctionType get type {
     assert(invariant(this, typeCache != null,
         message: "Type has not been computed for $this."));
     return typeCache;
@@ -2066,7 +2069,7 @@ abstract class BaseFunctionElementX extends ElementX
   AstElement get definingElement => implementation;
 
   @override
-  List<DartType> get typeVariables => functionSignature.typeVariables;
+  List<ResolutionDartType> get typeVariables => functionSignature.typeVariables;
 }
 
 abstract class FunctionElementX extends BaseFunctionElementX
@@ -2219,7 +2222,7 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
 
   /// Returns the empty list of type variables by default.
   @override
-  List<DartType> get typeVariables => functionSignature.typeVariables;
+  List<ResolutionDartType> get typeVariables => functionSignature.typeVariables;
 }
 
 abstract class ConstructorElementX extends FunctionElementX
@@ -2251,7 +2254,7 @@ abstract class ConstructorElementX extends FunctionElementX
 
   /// These fields are set by the post process queue when checking for cycles.
   ConstructorElement effectiveTargetInternal;
-  DartType _effectiveTargetType;
+  ResolutionDartType _effectiveTargetType;
   bool _isEffectiveTargetMalformed;
 
   bool get hasEffectiveTarget {
@@ -2288,7 +2291,7 @@ abstract class ConstructorElementX extends FunctionElementX
     return _redirectionDeferredPrefix;
   }
 
-  void setEffectiveTarget(ConstructorElement target, DartType type,
+  void setEffectiveTarget(ConstructorElement target, ResolutionDartType type,
       {bool isMalformed: false}) {
     if (isPatched) {
       patch.setEffectiveTarget(target, type, isMalformed: isMalformed);
@@ -2320,7 +2323,7 @@ abstract class ConstructorElementX extends FunctionElementX
     return this;
   }
 
-  DartType get effectiveTargetType {
+  ResolutionDartType get effectiveTargetType {
     if (isPatched) {
       return patch.effectiveTargetType;
     }
@@ -2329,7 +2332,8 @@ abstract class ConstructorElementX extends FunctionElementX
     return _effectiveTargetType;
   }
 
-  DartType computeEffectiveTargetType(InterfaceType newType) {
+  ResolutionDartType computeEffectiveTargetType(
+      ResolutionInterfaceType newType) {
     if (isPatched) {
       return patch.computeEffectiveTargetType(newType);
     }
@@ -2353,7 +2357,7 @@ abstract class ConstructorElementX extends FunctionElementX
 
   ConstructorElement get definingConstructor => null;
 
-  ClassElement get enclosingClass => enclosingElement;
+  ClassElement get enclosingClass => enclosingElement.declaration;
 }
 
 class DeferredLoaderGetterElementX extends GetterElementX
@@ -2363,7 +2367,8 @@ class DeferredLoaderGetterElementX extends GetterElementX
   DeferredLoaderGetterElementX(PrefixElement prefix)
       : this.prefix = prefix,
         super(Identifiers.loadLibrary, Modifiers.EMPTY, prefix, false) {
-    functionSignature = new FunctionSignatureX(type: new FunctionType(this));
+    functionSignature =
+        new FunctionSignatureX(type: new ResolutionFunctionType(this));
   }
 
   bool get isClassMember => false;
@@ -2409,6 +2414,51 @@ class ConstructorBodyElementX extends BaseFunctionElementX
     functionSignature = constructor.functionSignature;
   }
 
+  /// Returns the constructor body associated with the given constructor or
+  /// creates a new constructor body, if none can be found.
+  ///
+  /// Returns `null` if the constructor does not have a body.
+  static ConstructorBodyElementX createFromResolvedAst(
+      ResolvedAst constructorResolvedAst) {
+    ConstructorElement constructor =
+        constructorResolvedAst.element.implementation;
+    assert(constructor.isGenerativeConstructor);
+    if (constructorResolvedAst.kind != ResolvedAstKind.PARSED) return null;
+
+    FunctionExpression node = constructorResolvedAst.node;
+    // If we know the body doesn't have any code, we don't generate it.
+    if (!node.hasBody) return null;
+    if (node.hasEmptyBody) return null;
+    ClassElement classElement = constructor.enclosingClass;
+    ConstructorBodyElement bodyElement;
+    classElement.forEachBackendMember((Element backendMember) {
+      if (backendMember.isGenerativeConstructorBody) {
+        ConstructorBodyElement body = backendMember;
+        if (body.constructor == constructor) {
+          // TODO(kasperl): Find a way of stopping the iteration
+          // through the backend members.
+          bodyElement = backendMember;
+        }
+      }
+    });
+    if (bodyElement == null) {
+      bodyElement =
+          new ConstructorBodyElementX(constructorResolvedAst, constructor);
+      classElement.addBackendMember(bodyElement);
+
+      if (constructor.isPatch) {
+        // Create origin body element for patched constructors.
+        ConstructorBodyElementX patch = bodyElement;
+        ConstructorBodyElementX origin = new ConstructorBodyElementX(
+            constructorResolvedAst, constructor.origin);
+        origin.applyPatch(patch);
+        classElement.origin.addBackendMember(bodyElement.origin);
+      }
+    }
+    assert(bodyElement.isGenerativeConstructorBody);
+    return bodyElement;
+  }
+
   bool get hasNode => _resolvedAst.kind == ResolvedAstKind.PARSED;
 
   FunctionExpression get node => _resolvedAst.node;
@@ -2428,7 +2478,7 @@ class ConstructorBodyElementX extends BaseFunctionElementX
 
   bool get isInstanceMember => true;
 
-  FunctionType computeType(Resolution resolution) {
+  ResolutionFunctionType computeType(Resolution resolution) {
     DiagnosticReporter reporter = resolution.reporter;
     reporter.internalError(this, '$this.computeType.');
     return null;
@@ -2473,7 +2523,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
       : super('', ElementKind.GENERATIVE_CONSTRUCTOR, Modifiers.EMPTY,
             enclosing) {
     functionSignature = new FunctionSignatureX(
-        type: new FunctionType.synthesized(enclosingClass.thisType));
+        type: new ResolutionFunctionType.synthesized(enclosingClass.thisType));
     _resolvedAst =
         new SynthesizedResolvedAst(this, ResolvedAstKind.DEFAULT_CONSTRUCTOR);
   }
@@ -2496,7 +2546,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
 
   ResolvedAst get resolvedAst => _resolvedAst;
 
-  DartType get type {
+  ResolutionDartType get type {
     if (isDefaultConstructor) {
       return super.type;
     } else {
@@ -2510,7 +2560,8 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
     if (hasFunctionSignature) return;
     if (definingConstructor.isMalformed) {
       functionSignature = new FunctionSignatureX(
-          type: new FunctionType.synthesized(enclosingClass.thisType));
+          type:
+              new ResolutionFunctionType.synthesized(enclosingClass.thisType));
     }
     // TODO(johnniwinther): Ensure that the function signature (and with it the
     // function type) substitutes type variables correctly.
@@ -2550,9 +2601,9 @@ abstract class TypeDeclarationElementX<T extends GenericType>
    * used to distinguish explicit and implicit uses of the [dynamic]
    * type arguments. For instance should [:List:] be the [rawType] of the
    * [:List:] class element whereas [:List<dynamic>:] should be its own
-   * instantiation of [InterfaceType] with [:dynamic:] as type argument. Using
-   * this distinction, we can print the raw type with type arguments only when
-   * the input source has used explicit type arguments.
+   * instantiation of [ResolutionInterfaceType] with [:dynamic:] as type
+   * argument. Using this distinction, we can print the raw type with type
+   * arguments only when the input source has used explicit type arguments.
    *
    * This type is computed together with [thisType] in [computeType].
    */
@@ -2570,9 +2621,9 @@ abstract class TypeDeclarationElementX<T extends GenericType>
     return rawTypeCache;
   }
 
-  T createType(List<DartType> typeArguments);
+  T createType(List<ResolutionDartType> typeArguments);
 
-  void setThisAndRawTypes(List<DartType> typeParameters) {
+  void setThisAndRawTypes(List<ResolutionDartType> typeParameters) {
     assert(invariant(this, thisTypeCache == null,
         message: "This type has already been set on $this."));
     assert(invariant(this, rawTypeCache == null,
@@ -2581,32 +2632,33 @@ abstract class TypeDeclarationElementX<T extends GenericType>
     if (typeParameters.isEmpty) {
       rawTypeCache = thisTypeCache;
     } else {
-      List<DartType> dynamicParameters =
-          new List.filled(typeParameters.length, const DynamicType());
+      List<ResolutionDartType> dynamicParameters =
+          new List.filled(typeParameters.length, const ResolutionDynamicType());
       rawTypeCache = createType(dynamicParameters);
     }
   }
 
-  List<DartType> get typeVariables => thisType.typeArguments;
+  List<ResolutionDartType> get typeVariables => thisType.typeArguments;
 
   /**
    * Creates the type variables, their type and corresponding element, for the
    * type variables declared in [parameter] on [element]. The bounds of the type
    * variables are not set until [element] has been resolved.
    */
-  List<DartType> createTypeVariables(NodeList parameters) {
-    if (parameters == null) return const <DartType>[];
+  List<ResolutionDartType> createTypeVariables(NodeList parameters) {
+    if (parameters == null) return const <ResolutionDartType>[];
 
     // Create types and elements for type variable.
     Link<Node> nodes = parameters.nodes;
-    List<DartType> arguments =
+    List<ResolutionDartType> arguments =
         new List.generate(nodes.slowLength(), (int index) {
       TypeVariable node = nodes.head;
       String variableName = node.name.source;
       nodes = nodes.tail;
       TypeVariableElementX variableElement =
           new TypeVariableElementX(variableName, this, index, node);
-      TypeVariableType variableType = new TypeVariableType(variableElement);
+      ResolutionTypeVariableType variableType =
+          new ResolutionTypeVariableType(variableElement);
       variableElement.typeCache = variableType;
       return variableType;
     }, growable: false);
@@ -2623,14 +2675,14 @@ abstract class BaseClassElementX extends ElementX
         AstElementMixin,
         AnalyzableElementX,
         ClassElementCommon,
-        TypeDeclarationElementX<InterfaceType>,
+        TypeDeclarationElementX<ResolutionInterfaceType>,
         PatchMixin<ClassElement>,
         ClassMemberMixin
     implements ClassElement {
   final int id;
 
-  DartType supertype;
-  Link<DartType> interfaces;
+  ResolutionDartType supertype;
+  Link<ResolutionDartType> interfaces;
   int supertypeLoadState;
   int resolutionState;
   bool isProxy = false;
@@ -2650,7 +2702,7 @@ abstract class BaseClassElementX extends ElementX
   @override
   bool get isEnumClass => false;
 
-  InterfaceType computeType(Resolution resolution) {
+  ResolutionInterfaceType computeType(Resolution resolution) {
     if (isPatch) {
       origin.computeType(resolution);
       thisTypeCache = origin.thisType;
@@ -2663,7 +2715,7 @@ abstract class BaseClassElementX extends ElementX
   }
 
   void computeThisAndRawType(
-      Resolution resolution, List<DartType> typeVariables) {
+      Resolution resolution, List<ResolutionDartType> typeVariables) {
     if (thisTypeCache == null) {
       if (origin == null) {
         setThisAndRawTypes(typeVariables);
@@ -2675,11 +2727,11 @@ abstract class BaseClassElementX extends ElementX
   }
 
   @override
-  InterfaceType createType(List<DartType> typeArguments) {
-    return new InterfaceType(this, typeArguments);
+  ResolutionInterfaceType createType(List<ResolutionDartType> typeArguments) {
+    return new ResolutionInterfaceType(this, typeArguments);
   }
 
-  List<DartType> computeTypeParameters(ParsingContext parsing);
+  List<ResolutionDartType> computeTypeParameters(ParsingContext parsing);
 
   bool get isObject {
     assert(invariant(this, isResolved,
@@ -2787,7 +2839,7 @@ abstract class ClassElementX extends BaseClassElementX {
     addMember(constructor, reporter);
   }
 
-  List<DartType> computeTypeParameters(ParsingContext parsing) {
+  List<ResolutionDartType> computeTypeParameters(ParsingContext parsing) {
     ClassNode node = parseNode(parsing);
     return createTypeVariables(node.typeParameters);
   }
@@ -2855,8 +2907,8 @@ class EnumClassElementX extends ClassElementX
     return visitor.visitEnumClassElement(this, arg);
   }
 
-  List<DartType> computeTypeParameters(ParsingContext parsing) =>
-      const <DartType>[];
+  List<ResolutionDartType> computeTypeParameters(ParsingContext parsing) =>
+      const <ResolutionDartType>[];
 
   List<FieldElement> get enumValues {
     assert(invariant(this, _enumValues != null,
@@ -3092,7 +3144,7 @@ abstract class MixinApplicationElementX extends BaseClassElementX
     implements MixinApplicationElement {
   Link<ConstructorElement> constructors = new Link<ConstructorElement>();
 
-  InterfaceType mixinType;
+  ResolutionInterfaceType mixinType;
 
   MixinApplicationElementX(String name, Element enclosing, int id)
       : super(name, enclosing, id, STATE_NOT_STARTED);
@@ -3130,7 +3182,7 @@ abstract class MixinApplicationElementX extends BaseClassElementX
     addConstructor(constructor);
   }
 
-  List<DartType> computeTypeParameters(ParsingContext parsing) {
+  List<ResolutionDartType> computeTypeParameters(ParsingContext parsing) {
     NamedMixinApplication named = node.asNamedMixinApplication();
     if (named == null) {
       throw new SpannableAssertionFailure(
@@ -3209,7 +3261,7 @@ class JumpTargetX implements JumpTarget {
   final ExecutableElement executableContext;
   final Node statement;
   final int nestingLevel;
-  Link<LabelDefinition> labels = const Link<LabelDefinition>();
+  List<LabelDefinition> labels = <LabelDefinition>[];
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
@@ -3223,7 +3275,7 @@ class JumpTargetX implements JumpTarget {
 
   LabelDefinition addLabel(Label label, String labelName) {
     LabelDefinition result = new LabelDefinitionX(label, labelName, this);
-    labels = labels.prepend(result);
+    labels.add(result);
     return result;
   }
 
@@ -3237,8 +3289,8 @@ class TypeVariableElementX extends ElementX
     implements TypeVariableElement {
   final int index;
   final Node node;
-  TypeVariableType typeCache;
-  DartType boundCache;
+  ResolutionTypeVariableType typeCache;
+  ResolutionDartType boundCache;
 
   TypeVariableElementX(
       String name, GenericElement enclosing, this.index, this.node)
@@ -3246,15 +3298,15 @@ class TypeVariableElementX extends ElementX
 
   GenericElement get typeDeclaration => enclosingElement;
 
-  TypeVariableType computeType(Resolution resolution) => type;
+  ResolutionTypeVariableType computeType(Resolution resolution) => type;
 
-  TypeVariableType get type {
+  ResolutionTypeVariableType get type {
     assert(invariant(this, typeCache != null,
         message: "Type has not been set on $this."));
     return typeCache;
   }
 
-  DartType get bound {
+  ResolutionDartType get bound {
     assert(invariant(this, boundCache != null,
         message: "Bound has not been set on $this."));
     return boundCache;

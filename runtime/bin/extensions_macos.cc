@@ -11,10 +11,11 @@
 namespace dart {
 namespace bin {
 
-const char* kPrecompiledVMIsolateSymbolName = "kVmIsolateSnapshot";
-const char* kPrecompiledIsolateSymbolName = "kIsolateSnapshot";
-const char* kPrecompiledInstructionsSymbolName = "kInstructionsSnapshot";
-const char* kPrecompiledDataSymbolName = "kDataSnapshot";
+const char* kVmSnapshotDataSymbolName = "kDartVmSnapshotData";
+const char* kVmSnapshotInstructionsSymbolName = "kDartVmSnapshotInstructions";
+const char* kIsolateSnapshotDataSymbolName = "kDartIsolateSnapshotData";
+const char* kIsolateSnapshotInstructionsSymbolName =
+    "kDartIsolateSnapshotInstructions";
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
   return dlopen(library_file, RTLD_LAZY);

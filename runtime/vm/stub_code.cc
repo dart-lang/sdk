@@ -20,9 +20,11 @@ namespace dart {
 
 DEFINE_FLAG(bool, disassemble_stubs, false, "Disassemble generated stubs.");
 
-#define STUB_CODE_DECLARE(name) StubEntry* StubCode::name##_entry_ = NULL;
-VM_STUB_CODE_LIST(STUB_CODE_DECLARE);
+StubEntry* StubCode::entries_[kNumStubEntries] = {
+#define STUB_CODE_DECLARE(name) NULL,
+    VM_STUB_CODE_LIST(STUB_CODE_DECLARE)
 #undef STUB_CODE_DECLARE
+};
 
 
 StubEntry::StubEntry(const Code& code)
@@ -42,45 +44,22 @@ void StubEntry::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 #define STUB_CODE_GENERATE(name)                                               \
   code ^= Generate("_stub_" #name, StubCode::Generate##name##Stub);            \
-  name##_entry_ = new StubEntry(code);
+  entries_[k##name##Index] = new StubEntry(code);
 
 
 void StubCode::InitOnce() {
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // Stubs will be loaded from the snapshot.
+  UNREACHABLE();
+#else
   // Generate all the stubs.
   Code& code = Code::Handle();
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
-#else
-  UNREACHABLE();
 #endif  // DART_PRECOMPILED_RUNTIME
 }
 
 
 #undef STUB_CODE_GENERATE
-
-
-void StubCode::Push(Serializer* serializer) {
-#define WRITE_STUB(name) serializer->Push(StubCode::name##_entry()->code());
-  VM_STUB_CODE_LIST(WRITE_STUB);
-#undef WRITE_STUB
-}
-
-
-void StubCode::WriteRef(Serializer* serializer) {
-#define WRITE_STUB(name) serializer->WriteRef(StubCode::name##_entry()->code());
-  VM_STUB_CODE_LIST(WRITE_STUB);
-#undef WRITE_STUB
-}
-
-
-void StubCode::ReadRef(Deserializer* deserializer) {
-  Code& code = Code::Handle();
-#define READ_STUB(name)                                                        \
-  code ^= deserializer->ReadRef();                                             \
-  name##_entry_ = new StubEntry(code);
-  VM_STUB_CODE_LIST(READ_STUB);
-#undef READ_STUB
-}
 
 
 void StubCode::Init(Isolate* isolate) {}

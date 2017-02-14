@@ -11,9 +11,15 @@ import 'package:kernel/verifier.dart' show CheckParentPointers;
 import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart' show Compiler;
-import '../constants/expressions.dart' show TypeConstantExpression;
-import '../dart_types.dart'
-    show DartType, FunctionType, InterfaceType, TypeKind, TypeVariableType;
+import '../constants/expressions.dart'
+    show ConstantExpression, TypeConstantExpression;
+import '../elements/resolution_types.dart'
+    show
+        ResolutionDartType,
+        ResolutionFunctionType,
+        ResolutionInterfaceType,
+        ResolutionTypeKind,
+        ResolutionTypeVariableType;
 import '../diagnostics/messages.dart' show MessageKind;
 import '../diagnostics/spannable.dart' show Spannable;
 import '../elements/elements.dart'
@@ -74,6 +80,13 @@ class Kernel {
   final Map<ir.Node, Element> nodeToElement = <ir.Node, Element>{};
   final Map<ir.Node, Node> nodeToAst = <ir.Node, Node>{};
   final Map<ir.Node, Node> nodeToAstOperator = <ir.Node, Node>{};
+  // Synthetic nodes are nodes we generated that do not correspond to
+  // [ast.Node]s. A node should be in one of nodeToAst or syntheticNodes but not
+  // both.
+  final Set<ir.Node> syntheticNodes = new Set<ir.Node>();
+
+  final Map<ir.Node, ConstantExpression> parameterInitializerNodeToConstant =
+      <ir.Node, ConstantExpression>{};
 
   /// FIFO queue of work that needs to be completed before the returned AST
   /// nodes are correct.
@@ -144,10 +157,18 @@ class Kernel {
         Queue<ir.Member> members = new Queue<ir.Member>();
         library.implementation.forEachLocalMember((Element e) {
           if (e.isClass) {
-            classes.addFirst(classToIr(e));
+            ClassElement cls = e;
+            if (!cls.isResolved) return;
+            classes.addFirst(classToIr(cls));
           } else if (e.isFunction || e.isAccessor) {
+            if (!compiler.resolution.hasBeenResolved(e) && !e.isMalformed) {
+              return;
+            }
             members.addFirst(functionToIr(e));
           } else if (e.isField) {
+            if (!compiler.resolution.hasBeenResolved(e) && !e.isMalformed) {
+              return;
+            }
             members.addFirst(fieldToIr(e));
           } else if (e.isTypedef) {
             // Ignored, typedefs are unaliased on use.
@@ -180,8 +201,7 @@ class Kernel {
   ir.Class classToIr(ClassElement cls) {
     cls = cls.declaration;
     return classes.putIfAbsent(cls, () {
-      cls.ensureResolved(compiler.resolution);
-      compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
+      assert(cls.isResolved);
       String name = computeName(cls);
       ir.Class classNode = new ir.Class(
           name: name,
@@ -205,6 +225,10 @@ class Kernel {
         }
         cls.implementation
             .forEachMember((ClassElement enclosingClass, Element member) {
+          if (!compiler.resolution.hasBeenResolved(member) &&
+              !member.isMalformed) {
+            return;
+          }
           if (member.enclosingClass.declaration != cls) {
             // TODO(het): figure out why impact_test triggers this
             //internalError(cls, "`$member` isn't mine.");
@@ -276,7 +300,7 @@ class Kernel {
 
   bool hasHierarchyProblem(ClassElement cls) => cls.hasIncompleteHierarchy;
 
-  ir.InterfaceType interfaceTypeToIr(InterfaceType type) {
+  ir.InterfaceType interfaceTypeToIr(ResolutionInterfaceType type) {
     ir.Class cls = classToIr(type.element);
     if (type.typeArguments.isEmpty) {
       return cls.rawType;
@@ -285,7 +309,7 @@ class Kernel {
     }
   }
 
-  ir.Supertype supertypeToIr(InterfaceType type) {
+  ir.Supertype supertypeToIr(ResolutionInterfaceType type) {
     ir.Class cls = classToIr(type.element);
     if (type.typeArguments.isEmpty) {
       return cls.asRawSupertype;
@@ -294,13 +318,8 @@ class Kernel {
     }
   }
 
-  // TODO(ahe): Remove this method when dart2js support generic type arguments.
-  List<ir.TypeParameter> typeParametersNotImplemented() {
-    return const <ir.TypeParameter>[];
-  }
-
-  ir.FunctionType functionTypeToIr(FunctionType type) {
-    List<ir.TypeParameter> typeParameters = typeParametersNotImplemented();
+  ir.FunctionType functionTypeToIr(ResolutionFunctionType type) {
+    List<ir.TypeParameter> typeParameters = <ir.TypeParameter>[];
     int requiredParameterCount = type.parameterTypes.length;
     List<ir.DartType> positionalParameters =
         new List<ir.DartType>.from(typesToIr(type.parameterTypes))
@@ -317,11 +336,11 @@ class Kernel {
         requiredParameterCount: requiredParameterCount);
   }
 
-  ir.TypeParameterType typeVariableTypeToIr(TypeVariableType type) {
+  ir.TypeParameterType typeVariableTypeToIr(ResolutionTypeVariableType type) {
     return new ir.TypeParameterType(typeVariableToIr(type.element));
   }
 
-  List<ir.DartType> typesToIr(List<DartType> types) {
+  List<ir.DartType> typesToIr(List<ResolutionDartType> types) {
     List<ir.DartType> result = new List<ir.DartType>(types.length);
     for (int i = 0; i < types.length; i++) {
       result[i] = typeToIr(types[i]);
@@ -329,7 +348,7 @@ class Kernel {
     return result;
   }
 
-  List<ir.Supertype> supertypesToIr(List<DartType> types) {
+  List<ir.Supertype> supertypesToIr(List<ResolutionDartType> types) {
     List<ir.Supertype> result = new List<ir.Supertype>(types.length);
     for (int i = 0; i < types.length; i++) {
       result[i] = supertypeToIr(types[i]);
@@ -337,31 +356,28 @@ class Kernel {
     return result;
   }
 
-  ir.DartType typeToIr(DartType type) {
+  ir.DartType typeToIr(ResolutionDartType type) {
     switch (type.kind) {
-      case TypeKind.FUNCTION:
+      case ResolutionTypeKind.FUNCTION:
         return functionTypeToIr(type);
 
-      case TypeKind.INTERFACE:
+      case ResolutionTypeKind.INTERFACE:
         return interfaceTypeToIr(type);
 
-      case TypeKind.STATEMENT:
-        throw "Internal error: statement type: $type.";
-
-      case TypeKind.TYPEDEF:
+      case ResolutionTypeKind.TYPEDEF:
         type.computeUnaliased(compiler.resolution);
         return typeToIr(type.unaliased);
 
-      case TypeKind.TYPE_VARIABLE:
+      case ResolutionTypeKind.TYPE_VARIABLE:
         return typeVariableTypeToIr(type);
 
-      case TypeKind.MALFORMED_TYPE:
+      case ResolutionTypeKind.MALFORMED_TYPE:
         return const ir.InvalidType();
 
-      case TypeKind.DYNAMIC:
+      case ResolutionTypeKind.DYNAMIC:
         return const ir.DynamicType();
 
-      case TypeKind.VOID:
+      case ResolutionTypeKind.VOID:
         return const ir.VoidType();
     }
   }
@@ -409,8 +425,8 @@ class Kernel {
     }
     function = function.declaration;
     return functions.putIfAbsent(function, () {
-      compiler.resolution.ensureResolved(function);
-      compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
+      assert(compiler.resolution.hasBeenResolved(function) ||
+          function.isMalformed);
       function = function.implementation;
       ir.Member member;
       ir.Constructor constructor;
@@ -454,6 +470,8 @@ class Kernel {
           procedure.kind = irFunction.kind;
         }
         endFactoryScope(function);
+        irFunction.node.typeParameters
+            .addAll(typeVariablesToIr(function.typeVariables));
         member.transformerFlags = visitor.transformerFlags;
         assert(() {
           visitor.locals.forEach(checkMember);
@@ -481,14 +499,14 @@ class Kernel {
     assert(factoryTypeParameters.isEmpty);
     if (!function.isFactoryConstructor) return;
     ClassElement cls = function.enclosingClass;
-    for (DartType type in cls.typeVariables) {
+    for (ResolutionDartType type in cls.typeVariables) {
       if (type.isTypeVariable) {
         TypeVariableElement variable = type.element;
         factoryTypeParameters[variable] =
             new ir.TypeParameter(variable.name, null);
       }
     }
-    for (DartType type in cls.typeVariables) {
+    for (ResolutionDartType type in cls.typeVariables) {
       if (type.isTypeVariable) {
         TypeVariableElement variable = type.element;
         factoryTypeParameters[variable].bound = typeToIr(variable.bound);
@@ -507,8 +525,13 @@ class Kernel {
     }
     field = field.declaration;
     return fields.putIfAbsent(field, () {
+      // TODO(sigmund): remove `ensureResolved` here.  It appears we hit this
+      // case only in metadata: when a constant has a field that is never read,
+      // but it is initialized in the constant constructor.
       compiler.resolution.ensureResolved(field);
       compiler.enqueuer.resolution.emptyDeferredQueueForTesting();
+      assert(compiler.resolution.hasBeenResolved(field) || field.isMalformed);
+
       field = field.implementation;
       ir.DartType type =
           field.isMalformed ? const ir.InvalidType() : typeToIr(field.type);
@@ -548,22 +571,25 @@ class Kernel {
     return typeParameters.putIfAbsent(variable, () {
       ir.TypeParameter parameter = new ir.TypeParameter(variable.name, null);
       addWork(variable, () {
-        // TODO(ahe): This assignment will probably not be correct when dart2js
-        // supports generic methods.
-        ClassElement cls = variable.typeDeclaration;
-        cls.ensureResolved(compiler.resolution);
-        parameter.parent = classToIr(cls);
+        if (variable.typeDeclaration.isClass) {
+          ClassElement cls = variable.typeDeclaration;
+          assert(cls.isResolved);
+          parameter.parent = classToIr(cls);
+        } else {
+          FunctionElement method = variable.typeDeclaration;
+          parameter.parent = functionToIr(method).function;
+        }
         parameter.bound = typeToIr(variable.bound);
       });
       return parameter;
     });
   }
 
-  List<ir.TypeParameter> typeVariablesToIr(List<DartType> variables) {
+  List<ir.TypeParameter> typeVariablesToIr(List<ResolutionDartType> variables) {
     List<ir.TypeParameter> result =
         new List<ir.TypeParameter>(variables.length);
     for (int i = 0; i < variables.length; i++) {
-      TypeVariableType type = variables[i];
+      ResolutionTypeVariableType type = variables[i];
       result[i] = typeVariableToIr(type.element);
     }
     return result;
@@ -592,7 +618,7 @@ class Kernel {
   }
 
   ConstructorTarget computeEffectiveTarget(
-      ConstructorElement constructor, DartType type) {
+      ConstructorElement constructor, ResolutionDartType type) {
     constructor = constructor.implementation;
     Set<ConstructorElement> seen = new Set<ConstructorElement>();
     functionToIr(constructor);
@@ -683,12 +709,14 @@ class Kernel {
     LibraryElement library =
         compiler.libraryLoader.lookupLibrary(Uris.dart_core);
     ClassElement cls = library.implementation.localLookup(className);
+    cls.ensureResolved(compiler.resolution);
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, cls != null,
         message: 'dart:core class $className not found.'));
     ConstructorElement constructor = cls.lookupConstructor(constructorName);
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, constructor != null,
         message: "Constructor '$constructorName' not found "
             "in class '$className'."));
+    compiler.resolution.ensureResolved(constructor);
     return functionToIr(constructor);
   }
 
@@ -698,6 +726,7 @@ class Kernel {
     Element function = library.implementation.localLookup(name);
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, function != null,
         message: "dart:core method '$name' not found."));
+    compiler.resolution.ensureResolved(function);
     return functionToIr(function);
   }
 
@@ -756,7 +785,7 @@ class Kernel {
 
 class ConstructorTarget {
   final ConstructorElement element;
-  final DartType type;
+  final ResolutionDartType type;
 
   ConstructorTarget(this.element, this.type);
 

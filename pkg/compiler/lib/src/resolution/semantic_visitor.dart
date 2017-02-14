@@ -6,7 +6,7 @@ library dart2js.semantics_visitor;
 
 import '../common.dart';
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
@@ -1431,7 +1431,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() => expression is C;
   ///
-  R visitIs(Send node, Node expression, DartType type, A arg);
+  R visitIs(Send node, Node expression, ResolutionDartType type, A arg);
 
   /// Is not test of [expression] against [type].
   ///
@@ -1440,7 +1440,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() => expression is! C;
   ///
-  R visitIsNot(Send node, Node expression, DartType type, A arg);
+  R visitIsNot(Send node, Node expression, ResolutionDartType type, A arg);
 
   /// As cast of [expression] to [type].
   ///
@@ -1449,7 +1449,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() => expression as C;
   ///
-  R visitAs(Send node, Node expression, DartType type, A arg);
+  R visitAs(Send node, Node expression, ResolutionDartType type, A arg);
 
   /// Compound assignment expression of [rhs] with [operator] of the property on
   /// [receiver] whose getter and setter are defined by [getterSelector] and
@@ -2228,8 +2228,8 @@ abstract class SemanticSendVisitor<R, A> {
 
   /// If-null assignment expression of [rhs] to the type literal for the type
   /// variable [element]. That is, [rhs] is only evaluated and assigned, if
-  /// the value is of the [element] is `null`. The behavior is thus equivalent to
-  /// a type literal access.
+  /// the value is of the [element] is `null`. The behavior is thus equivalent
+  /// to a type literal access.
   ///
   /// For instance:
   ///
@@ -3867,7 +3867,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitGenerativeConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       A arg);
@@ -3888,7 +3888,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitRedirectingGenerativeConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       A arg);
@@ -3908,7 +3908,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       A arg);
@@ -3932,9 +3932,9 @@ abstract class SemanticSendVisitor<R, A> {
   R visitRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       ConstructorElement effectiveTarget,
-      InterfaceType effectiveTargetType,
+      ResolutionInterfaceType effectiveTargetType,
       NodeList arguments,
       CallStructure callStructure,
       A arg);
@@ -3953,7 +3953,7 @@ abstract class SemanticSendVisitor<R, A> {
   // TODO(johnniwinther): Change [type] to [InterfaceType] when is it not
   // `dynamic`.
   R visitUnresolvedConstructorInvoke(NewExpression node, Element constructor,
-      DartType type, NodeList arguments, Selector selector, A arg);
+      ResolutionDartType type, NodeList arguments, Selector selector, A arg);
 
   /// Invocation of a constructor on an unresolved [type] with [arguments].
   ///
@@ -3966,7 +3966,7 @@ abstract class SemanticSendVisitor<R, A> {
   // TODO(johnniwinther): Change [type] to [MalformedType] when is it not
   // `dynamic`.
   R visitUnresolvedClassConstructorInvoke(NewExpression node, Element element,
-      DartType type, NodeList arguments, Selector selector, A arg);
+      ResolutionDartType type, NodeList arguments, Selector selector, A arg);
 
   /// Constant invocation of a non-constant constructor.
   ///
@@ -3977,8 +3977,13 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() => const C(true, 42);
   ///
-  R errorNonConstantConstructorInvoke(NewExpression node, Element element,
-      DartType type, NodeList arguments, CallStructure callStructure, A arg);
+  R errorNonConstantConstructorInvoke(
+      NewExpression node,
+      Element element,
+      ResolutionDartType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg);
 
   /// Invocation of a constructor on an abstract [type] with [arguments].
   ///
@@ -3991,7 +3996,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitAbstractClassConstructorInvoke(
       NewExpression node,
       ConstructorElement element,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       A arg);
@@ -4012,7 +4017,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitUnresolvedRedirectingFactoryConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       A arg);
@@ -4029,7 +4034,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitConstructorIncompatibleInvoke(
       NewExpression node,
       ConstructorElement constructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       A arg);
@@ -4609,7 +4614,7 @@ abstract class SemanticDeclarationVisitor<R, A> {
       FunctionExpression node,
       ConstructorElement constructor,
       NodeList parameters,
-      InterfaceType redirectionType,
+      ResolutionInterfaceType redirectionType,
       ConstructorElement redirectionTarget,
       A arg);
 
@@ -4653,7 +4658,7 @@ abstract class SemanticDeclarationVisitor<R, A> {
   R visitSuperConstructorInvoke(
       Send node,
       ConstructorElement superConstructor,
-      InterfaceType type,
+      ResolutionInterfaceType type,
       NodeList arguments,
       CallStructure callStructure,
       A arg);
@@ -4671,7 +4676,7 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///     }
   ///
   R visitImplicitSuperConstructorInvoke(FunctionExpression node,
-      ConstructorElement superConstructor, InterfaceType type, A arg);
+      ConstructorElement superConstructor, ResolutionInterfaceType type, A arg);
 
   /// An super constructor invocation of an unresolved with [arguments] as
   /// found in generative constructor initializers.

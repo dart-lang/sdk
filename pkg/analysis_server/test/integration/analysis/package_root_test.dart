@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.analysis.packageRoot;
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -13,12 +11,13 @@ import '../integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(Test);
+    defineReflectiveTests(SetAnalysisRootsTest);
+    defineReflectiveTests(SetAnalysisRootsTest_Driver);
   });
 }
 
-@reflectiveTest
-class Test extends AbstractAnalysisServerIntegrationTest {
+class AbstractSetAnalysisRootsTest
+    extends AbstractAnalysisServerIntegrationTest {
   test_package_root() {
     String projPath = sourcePath('project');
     String mainPath = path.join(projPath, 'main.dart');
@@ -55,6 +54,7 @@ f() {}
     });
     sendAnalysisSetAnalysisRoots([projPath], [],
         packageRoots: {projPath: packagesPath});
+    sendAnalysisSetPriorityFiles([mainPath]);
     return analysisFinished.then((_) {
       // Verify that fooBarPath was properly resolved by checking that f()
       // refers to it.
@@ -76,4 +76,13 @@ f() {}
       expect(found, isTrue);
     });
   }
+}
+
+@reflectiveTest
+class SetAnalysisRootsTest extends AbstractSetAnalysisRootsTest {}
+
+@reflectiveTest
+class SetAnalysisRootsTest_Driver extends AbstractSetAnalysisRootsTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

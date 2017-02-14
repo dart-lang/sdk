@@ -45,7 +45,7 @@ class Symbol implements core.Symbol {
    * Source of RegExp matching a declarable operator names.
    *
    * The operators that can be declared using `operator` declarations are
-   * also the only ones allowed as symbols. The name of the oeprators is
+   * also the only ones allowed as symbols. The name of the operators is
    * the same as the operator itself except for unary minus, where the name
    * is "unary-".
    */
@@ -114,7 +114,7 @@ class Symbol implements core.Symbol {
 
   external int get hashCode;
 
-  toString() => 'Symbol("$_name")';
+  external toString();
 
   /// Platform-private accessor which cannot be called from user libraries.
   static String getName(Symbol symbol) => symbol._name;

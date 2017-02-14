@@ -5,6 +5,7 @@
 #include "vm/thread_registry.h"
 
 #include "vm/isolate.h"
+#include "vm/json_stream.h"
 #include "vm/lockers.h"
 
 namespace dart {
@@ -91,6 +92,56 @@ void ThreadRegistry::PrepareForGC() {
 }
 
 
+#ifndef PRODUCT
+void ThreadRegistry::PrintJSON(JSONStream* stream) const {
+  MonitorLocker ml(threads_lock());
+  JSONArray threads(stream);
+  Thread* current = active_list_;
+  while (current != NULL) {
+    threads.AddValue(current);
+    current = current->next_;
+  }
+}
+#endif
+
+
+bool ThreadRegistry::IsValidHandle(Dart_Handle handle) const {
+  MonitorLocker ml(threads_lock());
+  Thread* current = active_list_;
+  while (current != NULL) {
+    if (current->IsValidHandle(handle)) {
+      return true;
+    }
+    current = current->next_;
+  }
+  return false;
+}
+
+
+intptr_t ThreadRegistry::CountZoneHandles() const {
+  MonitorLocker ml(threads_lock());
+  intptr_t count = 0;
+  Thread* current = active_list_;
+  while (current != NULL) {
+    count += current->CountZoneHandles();
+    current = current->next_;
+  }
+  return count;
+}
+
+
+intptr_t ThreadRegistry::CountScopedHandles() const {
+  MonitorLocker ml(threads_lock());
+  intptr_t count = 0;
+  Thread* current = active_list_;
+  while (current != NULL) {
+    count += current->CountScopedHandles();
+    current = current->next_;
+  }
+  return count;
+}
+
+
 void ThreadRegistry::AddToActiveListLocked(Thread* thread) {
   ASSERT(thread != NULL);
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
@@ -131,6 +182,7 @@ Thread* ThreadRegistry::GetFromFreelistLocked(Isolate* isolate) {
   }
   return thread;
 }
+
 
 void ThreadRegistry::ReturnToFreelistLocked(Thread* thread) {
   ASSERT(thread != NULL);

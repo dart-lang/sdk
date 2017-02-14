@@ -158,7 +158,7 @@ class ApiMessageWriter : public BaseWriter {
  public:
   static const intptr_t kInitialSize = 512;
   ApiMessageWriter(uint8_t** buffer, ReAlloc alloc)
-      : BaseWriter(buffer, alloc, kInitialSize),
+      : BaseWriter(buffer, alloc, NULL, kInitialSize),
         object_id_(0),
         forward_list_(NULL),
         forward_list_length_(0),

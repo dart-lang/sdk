@@ -45,9 +45,14 @@ abstract class _HashSetBase<E> extends SetBase<E> {
  *
  * The set allows `null` as an element.
  *
- * Most simple operations on `HashSet` are done in (potentially amorteized)
+ * Most simple operations on `HashSet` are done in (potentially amortized)
  * constant time: [add], [contains], [remove], and [length], provided the hash
  * codes of objects are well distributed.
+ *
+ * The iteration order of the set is not specified and depends on
+ * the hashcodes of the provided elements. However, the order is stable:
+ * multiple iterations over the same set produce the same order, as long as
+ * the set is not modified.
  */
 abstract class HashSet<E> implements Set<E> {
   /**
@@ -62,7 +67,7 @@ abstract class HashSet<E> implements Set<E> {
    * to not be in the set when asking `contains`.
    *
    * If [equals] or [hashCode] are omitted, the set uses
-   * the elements' intrinsic [Object.operator==] and [Object.hashCode].
+   * the elements' intrinsic [Object.==] and [Object.hashCode].
    *
    * If you supply one of [equals] and [hashCode],
    * you should generally also to supply the other.
@@ -108,8 +113,10 @@ abstract class HashSet<E> implements Set<E> {
   /**
    * Create a hash set containing all [elements].
    *
-   * Creates a hash set as by `new HashSet<E>()` and adds each element of
-   * `elements` to this set in the order they are iterated.
+   * Creates a hash set as by `new HashSet<E>()` and adds all given [elements]
+   * to the set. The elements are added in order. If [elements] contains
+   * two entries that are equal, but not identical, then the first one is
+   * the one in the resulting set.
    *
    * All the [elements] should be assignable to [E].
    * The `elements` iterable itself may have any element type, so this

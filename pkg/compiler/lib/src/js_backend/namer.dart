@@ -13,8 +13,8 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../core_types.dart' show CoreClasses;
-import '../dart_types.dart';
+import '../core_types.dart' show CommonElements;
+import '../elements/resolution_types.dart';
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -23,6 +23,7 @@ import '../js/js.dart' show js;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
+import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../util/characters.dart';
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
@@ -134,18 +135,106 @@ part 'namer_names.dart';
  */
 class Namer {
   static const List<String> javaScriptKeywords = const <String>[
-    // These are current keywords.
-    "break", "delete", "function", "return", "typeof", "case", "do", "if",
-    "switch", "var", "catch", "else", "in", "this", "void", "continue",
-    "false", "instanceof", "throw", "while", "debugger", "finally", "new",
-    "true", "with", "default", "for", "null", "try",
+    // ES5 7.6.1.1 Keywords.
+    'break',
+    'do',
+    'instanceof',
+    'typeof',
+    'case',
+    'else',
+    'new',
+    'var',
+    'catch',
+    'finally',
+    'return',
+    'void',
+    'continue',
+    'for',
+    'switch',
+    'while',
+    'debugger',
+    'function',
+    'this',
+    'with',
+    'default',
+    'if',
+    'throw',
+    'delete',
+    'in',
+    'try',
 
-    // These are future keywords.
-    "abstract", "double", "goto", "native", "static", "boolean", "enum",
-    "implements", "package", "super", "byte", "export", "import", "private",
-    "synchronized", "char", "extends", "int", "protected", "throws",
-    "class", "final", "interface", "public", "transient", "const", "float",
-    "long", "short", "volatile"
+    // ES5 7.6.1.2 Future Reserved Words.
+    'class',
+    'enum',
+    'extends',
+    'super',
+    'const',
+    'export',
+    'import',
+
+    // ES5 7.6.1.2 Words with semantic restrictions.
+    'implements',
+    'let',
+    'private',
+    'public',
+    'yield',
+    'interface',
+    'package',
+    'protected',
+    'static',
+
+    // ES6 11.6.2.1 Keywords (including repeats of ES5 to ease comparison with
+    // documents).
+    'break',
+    'do',
+    'in',
+    'typeof',
+    'case',
+    'else',
+    'instanceof',
+    'var',
+    'catch',
+    'export',
+    'new',
+    'void',
+    'class',
+    'extends',
+    'return',
+    'while',
+    'const',
+    'finally',
+    'super',
+    'with',
+    'continue',
+    'for',
+    'switch',
+    'yield',
+    'debugger',
+    'function',
+    'this',
+    'default',
+    'if',
+    'throw',
+    'delete',
+    'import',
+    'try',
+
+    // ES6 11.6.2.1 Words with semantic restrictions.
+    'yield', 'let', 'static',
+
+    // ES6 11.6.2.2 Future Reserved Words.
+    'enum',
+    'await',
+
+    // ES6 11.6.2.2 / ES6 12.1.1 Words with semantic restrictions.
+    'implements',
+    'package',
+    'protected',
+    'interface',
+    'private',
+    'public',
+
+    // Other words to avoid due to non-standard keyword-like behavior.
   ];
 
   static const List<String> reservedPropertySymbols = const <String>[
@@ -236,12 +325,6 @@ class Namer {
     // https://developer.mozilla.org/en/New_in_JavaScript_1.8.1
     "getPrototypeOf", "let", "yield",
 
-    // "future reserved words"
-    "abstract", "int", "short", "boolean", "interface", "static", "byte",
-    "long", "char", "final", "native", "synchronized", "float", "package",
-    "throws", "goto", "private", "transient", "implements", "protected",
-    "volatile", "double", "public",
-
     // IE methods
     // (http://msdn.microsoft.com/en-us/library/ms535873(VS.85).aspx#)
     "attachEvent", "clientInformation", "clipboardData", "createPopup",
@@ -277,7 +360,7 @@ class Namer {
     "JavaArray", "JavaMember",
 
     // ES6 collections.
-    "Map",
+    "Map", "Set",
   ];
 
   static const List<String> reservedGlobalObjectNames = const <String>[
@@ -402,7 +485,9 @@ class Namer {
   static final RegExp IDENTIFIER = new RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
   static final RegExp NON_IDENTIFIER_CHAR = new RegExp(r'[^A-Za-z_0-9$]');
 
-  final Compiler compiler;
+  final JavaScriptBackend backend;
+  final ClosedWorld closedWorld;
+  final CodegenWorldBuilder codegenWorldBuilder;
 
   /// Used disambiguated names in the global namespace, issued by
   /// [_disambiguateGlobal], and [_disambiguateInternalGlobal].
@@ -459,23 +544,24 @@ class Namer {
   final Map<LibraryElement, String> _libraryKeys =
       new HashMap<LibraryElement, String>();
 
-  Namer(Compiler compiler)
-      : compiler = compiler,
-        constantHasher = new ConstantCanonicalHasher(compiler),
-        functionTypeNamer = new FunctionTypeNamer(compiler) {
+  Namer(JavaScriptBackend backend, this.closedWorld,
+      CodegenWorldBuilder codegenWorldBuilder)
+      : this.backend = backend,
+        this.codegenWorldBuilder = codegenWorldBuilder,
+        constantHasher = new ConstantCanonicalHasher(
+            backend.rtiEncoder, backend.reporter, codegenWorldBuilder),
+        functionTypeNamer = new FunctionTypeNamer(backend.rtiEncoder) {
     _literalAsyncPrefix = new StringBackedName(asyncPrefix);
     _literalGetterPrefix = new StringBackedName(getterPrefix);
     _literalSetterPrefix = new StringBackedName(setterPrefix);
     _literalLazyGetterPrefix = new StringBackedName(lazyGetterPrefix);
   }
 
-  JavaScriptBackend get backend => compiler.backend;
-
   BackendHelpers get helpers => backend.helpers;
 
-  DiagnosticReporter get reporter => compiler.reporter;
+  DiagnosticReporter get reporter => backend.reporter;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CommonElements get commonElements => closedWorld.commonElements;
 
   String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';
@@ -550,11 +636,14 @@ class Namer {
       case JsGetName.IS_INDEXABLE_FIELD_NAME:
         return operatorIs(helpers.jsIndexingBehaviorInterface);
       case JsGetName.NULL_CLASS_TYPE_NAME:
-        return runtimeTypeName(coreClasses.nullClass);
+        ClassElement nullClass = commonElements.nullClass;
+        return runtimeTypeName(nullClass);
       case JsGetName.OBJECT_CLASS_TYPE_NAME:
-        return runtimeTypeName(coreClasses.objectClass);
+        ClassElement objectClass = commonElements.objectClass;
+        return runtimeTypeName(objectClass);
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
-        return runtimeTypeName(coreClasses.functionClass);
+        ClassElement functionClass = commonElements.functionClass;
+        return runtimeTypeName(functionClass);
       default:
         reporter.reportErrorMessage(node, MessageKind.GENERIC,
             {'text': 'Error: Namer has no name for "$name".'});
@@ -591,8 +680,9 @@ class Namer {
   String constantLongName(ConstantValue constant) {
     String longName = constantLongNames[constant];
     if (longName == null) {
-      longName =
-          new ConstantNamingVisitor(compiler, constantHasher).getName(constant);
+      longName = new ConstantNamingVisitor(
+              backend.rtiEncoder, reporter, codegenWorldBuilder, constantHasher)
+          .getName(constant);
       constantLongNames[constant] = longName;
     }
     return longName;
@@ -689,10 +779,14 @@ class Namer {
   /// For example: fixedBackendPath for the static method createMap in the
   /// Map class of the goog.map JavaScript library would have path
   /// "goog.maps.Map".
-  String fixedBackendPath(Element element) {
+  String fixedBackendMethodPath(MethodElement element) {
+    return _fixedBackendPath(element);
+  }
+
+  String _fixedBackendPath(Element element) {
     if (!backend.isJsInterop(element)) return null;
     if (element.isInstanceMember) return 'this';
-    if (element.isConstructor) return fixedBackendPath(element.enclosingClass);
+    if (element.isConstructor) return _fixedBackendPath(element.enclosingClass);
     if (element.isLibrary) return 'self';
     var sb = new StringBuffer();
     sb..write(_jsNameHelper(element.library));
@@ -854,7 +948,6 @@ class Namer {
     // mangle the field names of classes extending native classes.
     // Methods on such classes are stored on the interceptor, not the instance,
     // so only fields have the potential to clash with a native property name.
-    ClosedWorld closedWorld = compiler.closedWorld;
     if (closedWorld.isUsedAsMixin(enclosingClass) ||
         _isShadowingSuperField(element) ||
         _isUserClassExtendingNative(enclosingClass)) {
@@ -1253,7 +1346,7 @@ class Namer {
 
   String suffixForGetInterceptor(Iterable<ClassEntity> classes) {
     String abbreviate(ClassElement cls) {
-      if (cls == coreClasses.objectClass) return "o";
+      if (cls == commonElements.objectClass) return "o";
       if (cls == helpers.jsStringClass) return "s";
       if (cls == helpers.jsArrayClass) return "a";
       if (cls == helpers.jsDoubleClass) return "d";
@@ -1369,7 +1462,7 @@ class Namer {
   ///         this.super$A$foo(); // super.foo()
   ///     }
   ///
-  jsAst.Name aliasedSuperMemberPropertyName(Element member) {
+  jsAst.Name aliasedSuperMemberPropertyName(MemberElement member) {
     assert(!member.isField); // Fields do not need super aliases.
     return _disambiguateInternalMember(member, () {
       String invocationName = operatorNameToIdentifier(member.name);
@@ -1411,9 +1504,19 @@ class Namer {
   }
 
   /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
+  // TODO(johnniwinther): Verify that the implementation can be changed to
+  // `globalObjectForLibrary(element.library)`.
+  String globalObjectForMethod(MethodElement element) =>
+      globalObjectFor(element);
+
+  /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
   String globalObjectFor(Element element) {
     if (_isPropertyOfStaticStateHolder(element)) return staticStateHolder;
-    LibraryElement library = element.library;
+    return globalObjectForLibrary(element.library);
+  }
+
+  /// Returns the [reservedGlobalObjectNames] for [library].
+  String globalObjectForLibrary(LibraryElement library) {
     if (library == helpers.interceptorsLibrary) return 'J';
     if (library.isInternalLibrary) return 'H';
     if (library.isPlatformLibrary) {
@@ -1475,18 +1578,18 @@ class Namer {
 
   String get functionTypeNamedParametersTag => r'named';
 
-  Map<FunctionType, jsAst.Name> functionTypeNameMap =
-      new HashMap<FunctionType, jsAst.Name>();
+  Map<ResolutionFunctionType, jsAst.Name> functionTypeNameMap =
+      new HashMap<ResolutionFunctionType, jsAst.Name>();
   final FunctionTypeNamer functionTypeNamer;
 
-  jsAst.Name getFunctionTypeName(FunctionType functionType) {
+  jsAst.Name getFunctionTypeName(ResolutionFunctionType functionType) {
     return functionTypeNameMap.putIfAbsent(functionType, () {
       String proposedName = functionTypeNamer.computeName(functionType);
       return getFreshName(instanceScope, proposedName);
     });
   }
 
-  jsAst.Name operatorIsType(DartType type) {
+  jsAst.Name operatorIsType(ResolutionDartType type) {
     if (type.isFunctionType) {
       // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
       return new CompoundName([
@@ -1643,7 +1746,9 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   static const MAX_EXTRA_LENGTH = 30;
   static const DEFAULT_TAG_LENGTH = 3;
 
-  final Compiler compiler;
+  final RuntimeTypesEncoder rtiEncoder;
+  final DiagnosticReporter reporter;
+  final CodegenWorldBuilder codegenWorldBuilder;
   final ConstantCanonicalHasher hasher;
 
   String root = null; // First word, usually a type name.
@@ -1651,9 +1756,8 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   List<String> fragments = <String>[];
   int length = 0;
 
-  ConstantNamingVisitor(this.compiler, this.hasher);
-
-  DiagnosticReporter get reporter => compiler.reporter;
+  ConstantNamingVisitor(
+      this.rtiEncoder, this.reporter, this.codegenWorldBuilder, this.hasher);
 
   String getName(ConstantValue constant) {
     _visit(constant);
@@ -1782,10 +1886,12 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   @override
   void visitConstructed(ConstructedConstantValue constant, [_]) {
     addRoot(constant.type.element.name);
-    constant.type.element.forEachInstanceField((_, FieldElement field) {
+    // TODO(johnniwinther): This should be accessed from a codegen closed world.
+    codegenWorldBuilder.forEachInstanceField(constant.type.element,
+        (_, FieldElement field) {
       if (failed) return;
       _visit(constant.fields[field]);
-    }, includeSuperAndInjectedMembers: true);
+    });
   }
 
   @override
@@ -1793,12 +1899,11 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     // Generates something like 'Type_String_k8F', using the simple name of the
     // type and a hash to disambiguate the same name in different libraries.
     addRoot('Type');
-    DartType type = constant.representedType;
+    ResolutionDartType type = constant.representedType;
     String name = type.element?.name;
     if (name == null) {
       // e.g. DartType 'dynamic' has no element.
-      JavaScriptBackend backend = compiler.backend;
-      name = backend.rtiEncoder.getTypeRepresentationForTypeConstant(type);
+      name = rtiEncoder.getTypeRepresentationForTypeConstant(type);
     }
     addIdentifier(name);
     add(getHashTag(constant, 3));
@@ -1806,7 +1911,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
 
   @override
   void visitInterceptor(InterceptorConstantValue constant, [_]) {
-    addRoot(constant.dispatchedType.element.name);
+    addRoot(constant.cls.name);
     add('methods');
   }
 
@@ -1846,12 +1951,13 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   static const _MASK = 0x1fffffff;
   static const _UINT32_LIMIT = 4 * 1024 * 1024 * 1024;
 
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
+  final RuntimeTypesEncoder rtiEncoder;
+  final CodegenWorldBuilder codegenWorldBuilder;
   final Map<ConstantValue, int> hashes = new Map<ConstantValue, int>();
 
-  ConstantCanonicalHasher(this.compiler);
-
-  DiagnosticReporter get reporter => compiler.reporter;
+  ConstantCanonicalHasher(
+      this.rtiEncoder, this.reporter, this.codegenWorldBuilder);
 
   int getHash(ConstantValue constant) => _visit(constant);
 
@@ -1909,24 +2015,24 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   @override
   int visitConstructed(ConstructedConstantValue constant, [_]) {
     int hash = _hashString(3, constant.type.element.name);
-    constant.type.element.forEachInstanceField((_, FieldElement field) {
+    codegenWorldBuilder.forEachInstanceField(constant.type.element,
+        (_, FieldElement field) {
       hash = _combine(hash, _visit(constant.fields[field]));
-    }, includeSuperAndInjectedMembers: true);
+    });
     return hash;
   }
 
   @override
   int visitType(TypeConstantValue constant, [_]) {
-    DartType type = constant.representedType;
-    JavaScriptBackend backend = compiler.backend;
+    ResolutionDartType type = constant.representedType;
     // This name includes the library name and type parameters.
-    String name = backend.rtiEncoder.getTypeRepresentationForTypeConstant(type);
+    String name = rtiEncoder.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
   }
 
   @override
   int visitInterceptor(InterceptorConstantValue constant, [_]) {
-    String typeName = constant.dispatchedType.element.name;
+    String typeName = constant.cls.name;
     return _hashString(5, typeName);
   }
 
@@ -2027,40 +2133,38 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 }
 
 class FunctionTypeNamer extends BaseDartTypeVisitor {
-  final Compiler compiler;
+  final RuntimeTypesEncoder rtiEncoder;
   StringBuffer sb;
 
-  FunctionTypeNamer(this.compiler);
+  FunctionTypeNamer(this.rtiEncoder);
 
-  JavaScriptBackend get backend => compiler.backend;
-
-  String computeName(DartType type) {
+  String computeName(ResolutionDartType type) {
     sb = new StringBuffer();
     visit(type);
     return sb.toString();
   }
 
-  visit(DartType type, [_]) {
+  visit(ResolutionDartType type, [_]) {
     type.accept(this, null);
   }
 
-  visitType(DartType type, _) {
+  visitType(ResolutionDartType type, _) {
     sb.write(type.name);
   }
 
-  visitFunctionType(FunctionType type, _) {
-    if (backend.rtiEncoder.isSimpleFunctionType(type)) {
+  visitFunctionType(ResolutionFunctionType type, _) {
+    if (rtiEncoder.isSimpleFunctionType(type)) {
       sb.write('args${type.parameterTypes.length}');
       return;
     }
     visit(type.returnType);
     sb.write('_');
-    for (DartType parameter in type.parameterTypes) {
+    for (ResolutionDartType parameter in type.parameterTypes) {
       sb.write('_');
       visit(parameter);
     }
     bool first = false;
-    for (DartType parameter in type.optionalParameterTypes) {
+    for (ResolutionDartType parameter in type.optionalParameterTypes) {
       if (!first) {
         sb.write('_');
       }
@@ -2070,7 +2174,7 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
     }
     if (!type.namedParameterTypes.isEmpty) {
       first = false;
-      for (DartType parameter in type.namedParameterTypes) {
+      for (ResolutionDartType parameter in type.namedParameterTypes) {
         if (!first) {
           sb.write('_');
         }

@@ -19,6 +19,7 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineMethodTest);
+    defineReflectiveTests(InlineMethodTest_Driver);
   });
 }
 
@@ -29,7 +30,7 @@ class InlineMethodTest extends RefactoringTest {
   bool inlineAll;
 
   test_access_FunctionElement() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 test(a, b) {
   return a + b;
 }
@@ -47,7 +48,7 @@ main() {
   }
 
   test_access_MethodElement() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 class A {
   test(a, b) {
     return a + b;
@@ -66,8 +67,8 @@ class A {
     expect(refactoring.isDeclaration, isTrue);
   }
 
-  test_bad_async_intoSyncStar() {
-    indexTestUnit(r'''
+  test_bad_async_intoSyncStar() async {
+    await indexTestUnit(r'''
 import 'dart:async';
 class A {
   Future<int> get test async => 42;
@@ -81,8 +82,8 @@ class A {
     return _assertConditionsFatal('Cannot inline async into sync*.');
   }
 
-  test_bad_async_targetIsSync_doesNotReturnFuture() {
-    indexTestUnit(r'''
+  test_bad_async_targetIsSync_doesNotReturnFuture() async {
+    await indexTestUnit(r'''
 import 'dart:async';
 class A {
   Future<int> get test async => 42;
@@ -98,8 +99,8 @@ class A {
         'Cannot inline async into a function that does not return a Future.');
   }
 
-  test_bad_asyncStar() {
-    indexTestUnit(r'''
+  test_bad_asyncStar() async {
+    await indexTestUnit(r'''
 import 'dart:async';
 class A {
   Stream<int> test() async* {
@@ -117,7 +118,7 @@ class A {
   }
 
   test_bad_cascadeInvocation() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 class A {
   foo() {}
   bar() {}
@@ -137,8 +138,8 @@ main() {
         expectedContextRange: location);
   }
 
-  test_bad_constructor() {
-    indexTestUnit(r'''
+  test_bad_constructor() async {
+    await indexTestUnit(r'''
 class A {
   A.named() {}
 }
@@ -149,7 +150,7 @@ class A {
   }
 
   test_bad_deleteSource_inlineOne() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 test(a, b) {
   return a + b;
 }
@@ -171,8 +172,8 @@ main() {
             'All references must be inlined to remove the source.');
   }
 
-  test_bad_notExecutableElement() {
-    indexTestUnit(r'''
+  test_bad_notExecutableElement() async {
+    await indexTestUnit(r'''
 main() {
 }
 ''');
@@ -181,8 +182,8 @@ main() {
     return _assertInvalidSelection();
   }
 
-  test_bad_notSimpleIdentifier() {
-    indexTestUnit(r'''
+  test_bad_notSimpleIdentifier() async {
+    await indexTestUnit(r'''
 main() {
   var test = 42;
   var res = test;
@@ -193,8 +194,8 @@ main() {
     return _assertInvalidSelection();
   }
 
-  test_bad_operator() {
-    indexTestUnit(r'''
+  test_bad_operator() async {
+    await indexTestUnit(r'''
 class A {
   operator -(other) => this;
 }
@@ -204,8 +205,8 @@ class A {
     return _assertConditionsFatal('Cannot inline operator.');
   }
 
-  test_bad_propertyAccessor_synthetic() {
-    indexTestUnit(r'''
+  test_bad_propertyAccessor_synthetic() async {
+    await indexTestUnit(r'''
 class A {
   int fff;
 }
@@ -219,8 +220,8 @@ main(A a) {
     return _assertInvalidSelection();
   }
 
-  test_bad_reference_toClassMethod() {
-    indexTestUnit(r'''
+  test_bad_reference_toClassMethod() async {
+    await indexTestUnit(r'''
 class A {
   test(a, b) {
     print(a);
@@ -236,8 +237,8 @@ main() {
     return _assertConditionsFatal('Cannot inline class method reference.');
   }
 
-  test_bad_severalReturns() {
-    indexTestUnit(r'''
+  test_bad_severalReturns() async {
+    await indexTestUnit(r'''
 test() {
   if (true) {
     return 1;
@@ -253,8 +254,8 @@ main() {
     return _assertConditionsError('Ambiguous return value.');
   }
 
-  test_fieldAccessor_getter() {
-    indexTestUnit(r'''
+  test_fieldAccessor_getter() async {
+    await indexTestUnit(r'''
 class A {
   var f;
   get foo {
@@ -279,8 +280,8 @@ main() {
 ''');
   }
 
-  test_fieldAccessor_getter_PropertyAccess() {
-    indexTestUnit(r'''
+  test_fieldAccessor_getter_PropertyAccess() async {
+    await indexTestUnit(r'''
 class A {
   var f;
   get foo {
@@ -311,8 +312,8 @@ main() {
 ''');
   }
 
-  test_fieldAccessor_setter() {
-    indexTestUnit(r'''
+  test_fieldAccessor_setter() async {
+    await indexTestUnit(r'''
 class A {
   var f;
   set foo(x) {
@@ -337,8 +338,8 @@ main() {
 ''');
   }
 
-  test_fieldAccessor_setter_PropertyAccess() {
-    indexTestUnit(r'''
+  test_fieldAccessor_setter_PropertyAccess() async {
+    await indexTestUnit(r'''
 class A {
   var f;
   set foo(x) {
@@ -369,8 +370,8 @@ main() {
 ''');
   }
 
-  test_function_expressionFunctionBody() {
-    indexTestUnit(r'''
+  test_function_expressionFunctionBody() async {
+    await indexTestUnit(r'''
 test(a, b) => a + b;
 main() {
   print(test(1, 2));
@@ -385,8 +386,8 @@ main() {
 ''');
   }
 
-  test_function_hasReturn_assign() {
-    indexTestUnit(r'''
+  test_function_hasReturn_assign() async {
+    await indexTestUnit(r'''
 test(a, b) {
   print(a);
   print(b);
@@ -409,8 +410,8 @@ main() {
 ''');
   }
 
-  test_function_hasReturn_hasReturnType() {
-    indexTestUnit(r'''
+  test_function_hasReturn_hasReturnType() async {
+    await indexTestUnit(r'''
 int test(a, b) {
   return a + b;
 }
@@ -427,8 +428,8 @@ main() {
 ''');
   }
 
-  test_function_hasReturn_noVars_oneUsage() {
-    indexTestUnit(r'''
+  test_function_hasReturn_noVars_oneUsage() async {
+    await indexTestUnit(r'''
 test(a, b) {
   print(a);
   print(b);
@@ -449,8 +450,8 @@ main() {
 ''');
   }
 
-  test_function_multilineString() {
-    indexTestUnit(r"""
+  test_function_multilineString() async {
+    await indexTestUnit(r"""
 main() {
   {
     test();
@@ -477,8 +478,8 @@ second line
 """);
   }
 
-  test_function_noReturn_hasVars_hasConflict_fieldSuperClass() {
-    indexTestUnit(r'''
+  test_function_noReturn_hasVars_hasConflict_fieldSuperClass() async {
+    await indexTestUnit(r'''
 class A {
   var c;
 }
@@ -507,8 +508,8 @@ class B extends A {
 ''');
   }
 
-  test_function_noReturn_hasVars_hasConflict_fieldThisClass() {
-    indexTestUnit(r'''
+  test_function_noReturn_hasVars_hasConflict_fieldThisClass() async {
+    await indexTestUnit(r'''
 class A {
   var c;
   foo() {
@@ -533,8 +534,8 @@ class A {
 ''');
   }
 
-  test_function_noReturn_hasVars_hasConflict_localAfter() {
-    indexTestUnit(r'''
+  test_function_noReturn_hasVars_hasConflict_localAfter() async {
+    await indexTestUnit(r'''
 test(a, b) {
   var c = a + b;
   print(c);
@@ -555,8 +556,8 @@ main() {
 ''');
   }
 
-  test_function_noReturn_hasVars_hasConflict_localBefore() {
-    indexTestUnit(r'''
+  test_function_noReturn_hasVars_hasConflict_localBefore() async {
+    await indexTestUnit(r'''
 test(a, b) {
   var c = a + b;
   print(c);
@@ -577,8 +578,8 @@ main() {
 ''');
   }
 
-  test_function_noReturn_hasVars_noConflict() {
-    indexTestUnit(r'''
+  test_function_noReturn_hasVars_noConflict() async {
+    await indexTestUnit(r'''
 test(a, b) {
   var c = a + b;
   print(c);
@@ -597,8 +598,8 @@ main() {
 ''');
   }
 
-  test_function_noReturn_noVars_oneUsage() {
-    indexTestUnit(r'''
+  test_function_noReturn_noVars_oneUsage() async {
+    await indexTestUnit(r'''
 test(a, b) {
   print(a);
   print(b);
@@ -617,8 +618,8 @@ main() {
 ''');
   }
 
-  test_function_noReturn_noVars_useIndentation() {
-    indexTestUnit(r'''
+  test_function_noReturn_noVars_useIndentation() async {
+    await indexTestUnit(r'''
 test(a, b) {
   print(a);
   print(b);
@@ -641,8 +642,8 @@ main() {
 ''');
   }
 
-  test_function_noReturn_voidReturnType() {
-    indexTestUnit(r'''
+  test_function_noReturn_voidReturnType() async {
+    await indexTestUnit(r'''
 void test(a, b) {
   print(a + b);
 }
@@ -659,8 +660,8 @@ main() {
 ''');
   }
 
-  test_function_notStatement_oneStatement_assign() {
-    indexTestUnit(r'''
+  test_function_notStatement_oneStatement_assign() async {
+    await indexTestUnit(r'''
 test(int p) {
   print(p * 2);
 }
@@ -681,8 +682,8 @@ main() {
 ''');
   }
 
-  test_function_notStatement_oneStatement_variableDeclaration() {
-    indexTestUnit(r'''
+  test_function_notStatement_oneStatement_variableDeclaration() async {
+    await indexTestUnit(r'''
 test(int p) {
   print(p * 2);
 }
@@ -701,8 +702,8 @@ main() {
 ''');
   }
 
-  test_function_notStatement_severalStatements() {
-    indexTestUnit(r'''
+  test_function_notStatement_severalStatements() async {
+    await indexTestUnit(r'''
 test(int p) {
   print(p);
   print(p * 2);
@@ -723,8 +724,8 @@ main() {
 ''');
   }
 
-  test_function_notStatement_zeroStatements() {
-    indexTestUnit(r'''
+  test_function_notStatement_zeroStatements() async {
+    await indexTestUnit(r'''
 test(int p) {
 }
 main() {
@@ -741,8 +742,8 @@ main() {
 ''');
   }
 
-  test_function_singleStatement() {
-    indexTestUnit(r'''
+  test_function_singleStatement() async {
+    await indexTestUnit(r'''
 var topLevelField = 0;
 test() {
   print(topLevelField);
@@ -761,8 +762,8 @@ main() {
 ''');
   }
 
-  test_getter_async_targetIsAsync() {
-    indexTestUnit(r'''
+  test_getter_async_targetIsAsync() async {
+    await indexTestUnit(r'''
 import 'dart:async';
 class A {
   Future<int> get test async => 42;
@@ -783,13 +784,13 @@ class A {
 ''');
   }
 
-  test_getter_async_targetIsAsyncStar() {
-    indexTestUnit(r'''
+  test_getter_async_targetIsAsyncStar() async {
+    await indexTestUnit(r'''
 import 'dart:async';
 class A {
   Future<int> get test async => 42;
-  Stream<int> foo() async {
-    return await test;
+  Stream<int> foo() async* {
+    yield await test;
   }
 }
 ''');
@@ -798,15 +799,15 @@ class A {
     return _assertSuccessfulRefactoring(r'''
 import 'dart:async';
 class A {
-  Stream<int> foo() async {
-    return await 42;
+  Stream<int> foo() async* {
+    yield await 42;
   }
 }
 ''');
   }
 
-  test_getter_async_targetIsSync() {
-    indexTestUnit(r'''
+  test_getter_async_targetIsSync() async {
+    await indexTestUnit(r'''
 import 'dart:async';
 class A {
   Future<int> get test async => 42;
@@ -827,8 +828,8 @@ class A {
 ''');
   }
 
-  test_getter_async_targetIsSync2() {
-    indexTestUnit(r'''
+  test_getter_async_targetIsSync2() async {
+    await indexTestUnit(r'''
 import 'dart:async';
 class A {
   Future<int> get test async => 42;
@@ -855,8 +856,8 @@ class A {
 ''');
   }
 
-  test_getter_classMember_instance() {
-    indexTestUnit(r'''
+  test_getter_classMember_instance() async {
+    await indexTestUnit(r'''
 class A {
   int f;
   int get result => f + 1;
@@ -877,8 +878,8 @@ main(A a) {
 ''');
   }
 
-  test_getter_classMember_static() {
-    indexTestUnit(r'''
+  test_getter_classMember_static() async {
+    await indexTestUnit(r'''
 class A {
   static int get result => 1 + 2;
 }
@@ -897,8 +898,8 @@ main() {
 ''');
   }
 
-  test_getter_topLevel() {
-    indexTestUnit(r'''
+  test_getter_topLevel() async {
+    await indexTestUnit(r'''
 String get message => 'Hello, World!';
 main() {
   print(message);
@@ -914,7 +915,7 @@ main() {
   }
 
   test_initialMode_all() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 test(a, b) {
   return a + b;
 }
@@ -930,7 +931,7 @@ main() {
   }
 
   test_initialMode_single() async {
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 test(a, b) {
   return a + b;
 }
@@ -947,8 +948,8 @@ main() {
     expect(refactoring.inlineAll, false);
   }
 
-  test_method_async() {
-    indexTestUnit(r'''
+  test_method_async() async {
+    await indexTestUnit(r'''
 import 'dart:async';
 class A {
   Future<int> test() async => 42;
@@ -969,13 +970,14 @@ class A {
 ''');
   }
 
-  test_method_async2() {
-    indexTestUnit(r'''
+  test_method_async2() async {
+    await indexTestUnit(r'''
 import 'dart:async';
 class A {
-  Future<int> test() async => 42;
-  Future foo() {
-    return [test(), test()];
+  Future<int> foo() async => 42;
+  Future<int> test() async => await foo();
+  Future bar() {
+    return new Future.value([test(), test()]);
   }
 }
 ''');
@@ -984,15 +986,16 @@ class A {
     return _assertSuccessfulRefactoring(r'''
 import 'dart:async';
 class A {
-  Future foo() async {
-    return [42, 42];
+  Future<int> foo() async => 42;
+  Future bar() async {
+    return new Future.value([(await foo()), (await foo())]);
   }
 }
 ''');
   }
 
-  test_method_emptyBody() {
-    indexTestUnit(r'''
+  test_method_emptyBody() async {
+    await indexTestUnit(r'''
 abstract class A {
   test();
 }
@@ -1005,8 +1008,8 @@ main(A a) {
     return _assertConditionsFatal('Cannot inline method without body.');
   }
 
-  test_method_fieldInstance() {
-    indexTestUnit(r'''
+  test_method_fieldInstance() async {
+    await indexTestUnit(r'''
 class A {
   var fA;
 }
@@ -1043,15 +1046,14 @@ main() {
 ''');
   }
 
-  test_method_fieldStatic() {
-    indexTestUnit(r'''
+  test_method_fieldStatic() async {
+    await indexTestUnit(r'''
 class A {
   static var FA = 1;
 }
 class B extends A {
   static var FB = 2;
   test() {
-    print(FA);
     print(FB);
     print(A.FA);
     print(B.FB);
@@ -1073,7 +1075,6 @@ class B extends A {
 }
 main() {
   B b = new B();
-  print(A.FA);
   print(B.FB);
   print(A.FA);
   print(B.FB);
@@ -1081,8 +1082,8 @@ main() {
 ''');
   }
 
-  test_method_fieldStatic_sameClass() {
-    indexTestUnit(r'''
+  test_method_fieldStatic_sameClass() async {
+    await indexTestUnit(r'''
 class A {
   static var F = 1;
   foo() {
@@ -1105,8 +1106,8 @@ class A {
 ''');
   }
 
-  test_method_methodInstance() {
-    indexTestUnit(r'''
+  test_method_methodInstance() async {
+    await indexTestUnit(r'''
 class A {
   ma() {}
 }
@@ -1141,8 +1142,8 @@ main(B b) {
 ''');
   }
 
-  test_method_methodStatic() {
-    indexTestUnit(r'''
+  test_method_methodStatic() async {
+    await indexTestUnit(r'''
 class A {
   static ma() {}
 }
@@ -1180,8 +1181,8 @@ main(B b) {
 ''');
   }
 
-  test_method_singleStatement() {
-    indexTestUnit(r'''
+  test_method_singleStatement() async {
+    await indexTestUnit(r'''
 class A {
   test() {
     print(0);
@@ -1202,8 +1203,8 @@ class A {
 ''');
   }
 
-  test_method_this() {
-    indexTestUnit(r'''
+  test_method_this() async {
+    await indexTestUnit(r'''
 class A {
   accept(B b) {}
 }
@@ -1236,8 +1237,8 @@ main() {
 ''');
   }
 
-  test_method_unqualifiedInvocation() {
-    indexTestUnit(r'''
+  test_method_unqualifiedInvocation() async {
+    await indexTestUnit(r'''
 class A {
   test(a, b) {
     print(a);
@@ -1262,8 +1263,8 @@ class A {
 ''');
   }
 
-  test_namedArgument_inBody() {
-    indexTestUnit(r'''
+  test_namedArgument_inBody() async {
+    await indexTestUnit(r'''
 fa(pa) => fb(pb: true);
 fb({pb: false}) {}
 main() {
@@ -1281,8 +1282,8 @@ main() {
 ''');
   }
 
-  test_namedArguments() {
-    indexTestUnit(r'''
+  test_namedArguments() async {
+    await indexTestUnit(r'''
 test({a: 0, b: 2}) {
   print(a + b);
 }
@@ -1301,9 +1302,9 @@ main() {
 ''');
   }
 
-  test_noArgument_named_hasDefault() {
+  test_noArgument_named_hasDefault() async {
     verifyNoTestUnitErrors = false;
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 test({a: 42}) {
   print(a);
 }
@@ -1320,9 +1321,9 @@ main() {
 ''');
   }
 
-  test_noArgument_positional_hasDefault() {
+  test_noArgument_positional_hasDefault() async {
     verifyNoTestUnitErrors = false;
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 test([a = 42]) {
   print(a);
 }
@@ -1339,9 +1340,9 @@ main() {
 ''');
   }
 
-  test_noArgument_positional_noDefault() {
+  test_noArgument_positional_noDefault() async {
     verifyNoTestUnitErrors = false;
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 test([a]) {
   print(a);
 }
@@ -1360,7 +1361,7 @@ main() {
 
   test_noArgument_required() async {
     verifyNoTestUnitErrors = false;
-    indexTestUnit(r'''
+    await indexTestUnit(r'''
 test(a) {
   print(a);
 }
@@ -1377,8 +1378,8 @@ main() {
         expectedContextRange: location);
   }
 
-  test_reference_expressionBody() {
-    indexTestUnit(r'''
+  test_reference_expressionBody() async {
+    await indexTestUnit(r'''
 String message() => 'Hello, World!';
 main() {
   print(message);
@@ -1393,8 +1394,8 @@ main() {
 ''');
   }
 
-  test_reference_noStatement() {
-    indexTestUnit(r'''
+  test_reference_noStatement() async {
+    await indexTestUnit(r'''
 test(a, b) {
   return a || b;
 }
@@ -1417,8 +1418,8 @@ baz(x) {}
 ''');
   }
 
-  test_reference_toLocal() {
-    indexTestUnit(r'''
+  test_reference_toLocal() async {
+    await indexTestUnit(r'''
 main() {
   test(a, b) {
     print(a);
@@ -1439,8 +1440,8 @@ main() {
 ''');
   }
 
-  test_reference_toTopLevel() {
-    indexTestUnit(r'''
+  test_reference_toTopLevel() async {
+    await indexTestUnit(r'''
 test(a, b) {
   print(a);
   print(b);
@@ -1461,8 +1462,8 @@ main() {
 ''');
   }
 
-  test_removeEmptyLinesBefore_method() {
-    indexTestUnit(r'''
+  test_removeEmptyLinesBefore_method() async {
+    await indexTestUnit(r'''
 class A {
   before() {
   }
@@ -1491,8 +1492,8 @@ class A {
 ''');
   }
 
-  test_setter_classMember_instance() {
-    indexTestUnit(r'''
+  test_setter_classMember_instance() async {
+    await indexTestUnit(r'''
 class A {
   int f;
   void set result(x) {
@@ -1515,8 +1516,8 @@ main(A a) {
 ''');
   }
 
-  test_setter_topLevel() {
-    indexTestUnit(r'''
+  test_setter_topLevel() async {
+    await indexTestUnit(r'''
 void set result(x) {
   print(x + 1);
 }
@@ -1533,8 +1534,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_oneUsage() {
-    indexTestUnit(r'''
+  test_singleExpression_oneUsage() async {
+    await indexTestUnit(r'''
 test(a, b) {
   return a + b;
 }
@@ -1551,8 +1552,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_oneUsage_keepMethod() {
-    indexTestUnit(r'''
+  test_singleExpression_oneUsage_keepMethod() async {
+    await indexTestUnit(r'''
 test(a, b) {
   return a + b;
 }
@@ -1573,8 +1574,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_twoUsages() {
-    indexTestUnit(r'''
+  test_singleExpression_twoUsages() async {
+    await indexTestUnit(r'''
 test(a, b) {
   return a + b;
 }
@@ -1593,8 +1594,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_twoUsages_inlineOne() {
-    indexTestUnit(r'''
+  test_singleExpression_twoUsages_inlineOne() async {
+    await indexTestUnit(r'''
 test(a, b) {
   return a + b;
 }
@@ -1616,8 +1617,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_wrapIntoParenthesized_alreadyInMethod() {
-    indexTestUnit(r'''
+  test_singleExpression_wrapIntoParenthesized_alreadyInMethod() async {
+    await indexTestUnit(r'''
 test(a, b) {
   return a * (b);
 }
@@ -1634,8 +1635,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_wrapIntoParenthesized_asNeeded() {
-    indexTestUnit(r'''
+  test_singleExpression_wrapIntoParenthesized_asNeeded() async {
+    await indexTestUnit(r'''
 test(a, b) {
   return a * b;
 }
@@ -1654,8 +1655,8 @@ main() {
 ''');
   }
 
-  test_singleExpression_wrapIntoParenthesized_bool() {
-    indexTestUnit(r'''
+  test_singleExpression_wrapIntoParenthesized_bool() async {
+    await indexTestUnit(r'''
 test(bool a, bool b) {
   return a || b;
 }
@@ -1713,6 +1714,12 @@ main(bool p, bool p2, bool p3) {
   void _createRefactoring(String search) {
     int offset = findOffset(search);
     refactoring = new InlineMethodRefactoring(
-        searchEngine, (element) async => element.unit, testUnit, offset);
+        searchEngine, getResolvedUnitWithElement, testUnit, offset);
   }
+}
+
+@reflectiveTest
+class InlineMethodTest_Driver extends InlineMethodTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

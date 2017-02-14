@@ -7,7 +7,7 @@
 library dart2js.serialization.values;
 
 import '../constants/expressions.dart';
-import '../dart_types.dart';
+import '../elements/resolution_types.dart';
 import '../elements/elements.dart';
 import 'keys.dart';
 
@@ -49,7 +49,7 @@ class ElementValue implements Value {
 }
 
 class TypeValue implements Value {
-  final DartType type;
+  final ResolutionDartType type;
   final Value id;
 
   TypeValue(this.type, this.id);

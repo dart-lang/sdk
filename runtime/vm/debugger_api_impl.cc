@@ -247,7 +247,7 @@ DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle handle,
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
   if (obj.IsUnhandledException()) {
     const UnhandledException& error = UnhandledException::Cast(obj);
-    Stacktrace& dart_stacktrace = Stacktrace::Handle(Z);
+    StackTrace& dart_stacktrace = StackTrace::Handle(Z);
     dart_stacktrace ^= error.stacktrace();
     if (dart_stacktrace.IsNull()) {
       *trace = NULL;
@@ -485,7 +485,7 @@ DART_EXPORT Dart_Handle Dart_SetStepOver() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   CHECK_DEBUGGER(I);
-  I->debugger()->SetStepOver();
+  I->debugger()->SetResumeAction(Debugger::kStepOver);
   return Api::Success();
 }
 
@@ -494,7 +494,7 @@ DART_EXPORT Dart_Handle Dart_SetStepInto() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   CHECK_DEBUGGER(I);
-  I->debugger()->SetSingleStep();
+  I->debugger()->SetResumeAction(Debugger::kStepInto);
   return Api::Success();
 }
 
@@ -503,7 +503,7 @@ DART_EXPORT Dart_Handle Dart_SetStepOut() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   CHECK_DEBUGGER(I);
-  I->debugger()->SetStepOut();
+  I->debugger()->SetResumeAction(Debugger::kStepOut);
   return Api::Success();
 }
 

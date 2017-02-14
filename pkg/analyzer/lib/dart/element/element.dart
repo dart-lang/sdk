@@ -37,6 +37,7 @@
 library analyzer.dart.element.element;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/resolution_base_classes.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
@@ -563,7 +564,7 @@ abstract class ConstructorElement
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class Element implements AnalysisTarget {
+abstract class Element implements AnalysisTarget, ResolutionTarget {
   /**
    * A comparator that can be used to sort elements by their name offset.
    * Elements with a smaller offset will be sorted to be before elements with a
@@ -718,7 +719,7 @@ abstract class Element implements AnalysisTarget {
    * Use the given [visitor] to visit this element. Return the value returned by
    * the visitor as a result of visiting this element.
    */
-  accept(ElementVisitor visitor);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/> visitor);
 
   /**
    * Return the documentation comment for this element as it appears in the
@@ -787,7 +788,8 @@ abstract class Element implements AnalysisTarget {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ElementAnnotation implements ConstantEvaluationTarget {
+abstract class ElementAnnotation
+    implements ConstantEvaluationTarget, ResolutionTarget {
   /**
    * An empty list of annotations.
    */
@@ -1015,7 +1017,14 @@ abstract class ElementLocation {
 /**
  * An object that can be used to visit an element structure.
  *
- * Clients may implement this class.
+ * Clients may not extend, implement or mix-in this class. There are classes
+ * that implement this interface that provide useful default behaviors in
+ * `package:analyzer/dart/ast/visitor.dart`. A couple of the most useful include
+ * * SimpleElementVisitor which implements every visit method by doing nothing,
+ * * RecursiveElementVisitor which will cause every node in a structure to be
+ *   visited, and
+ * * ThrowingElementVisitor which implements every visit method by throwing an
+ *   exception.
  */
 abstract class ElementVisitor<R> {
   R visitClassElement(ClassElement element);
@@ -1565,6 +1574,15 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
 
   @override
   MethodDeclaration computeNode();
+
+  /**
+   * Gets the reified type of a tear-off of this method.
+   *
+   * If any of the parameters in the method are covariant, they are replaced
+   * with Object in the returned type. If no covariant parameters are present,
+   * returns `this`.
+   */
+  FunctionType getReifiedType(DartType objectType);
 }
 
 /**

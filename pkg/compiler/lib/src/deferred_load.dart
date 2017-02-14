@@ -15,7 +15,7 @@ import 'constants/values.dart'
         ConstructedConstantValue,
         DeferredConstantValue,
         StringConstantValue;
-import 'dart_types.dart';
+import 'elements/resolution_types.dart';
 import 'elements/elements.dart'
     show
         AccessorElement,
@@ -278,27 +278,27 @@ class DeferredLoadTask extends CompilerTask {
     }
 
     /// Recursively collects all the dependencies of [type].
-    void collectTypeDependencies(DartType type) {
+    void collectTypeDependencies(ResolutionDartType type) {
       // TODO(het): we would like to separate out types that are only needed for
       // rti from types that are needed for their members.
       if (type is GenericType) {
         type.typeArguments.forEach(collectTypeDependencies);
       }
-      if (type is FunctionType) {
-        for (DartType argumentType in type.parameterTypes) {
+      if (type is ResolutionFunctionType) {
+        for (ResolutionDartType argumentType in type.parameterTypes) {
           collectTypeDependencies(argumentType);
         }
-        for (DartType argumentType in type.optionalParameterTypes) {
+        for (ResolutionDartType argumentType in type.optionalParameterTypes) {
           collectTypeDependencies(argumentType);
         }
-        for (DartType argumentType in type.namedParameterTypes) {
+        for (ResolutionDartType argumentType in type.namedParameterTypes) {
           collectTypeDependencies(argumentType);
         }
         collectTypeDependencies(type.returnType);
-      } else if (type is TypedefType) {
+      } else if (type is ResolutionTypedefType) {
         elements.add(type.element);
         collectTypeDependencies(type.unaliased);
-      } else if (type is InterfaceType) {
+      } else if (type is ResolutionInterfaceType) {
         elements.add(type.element);
       }
     }
@@ -338,7 +338,7 @@ class DeferredLoadTask extends CompilerTask {
                 default:
               }
             }, visitTypeUse: (TypeUse typeUse) {
-              DartType type = typeUse.type;
+              ResolutionDartType type = typeUse.type;
               switch (typeUse.kind) {
                 case TypeUseKind.TYPE_LITERAL:
                   if (type.isTypedef || type.isInterfaceType) {
@@ -420,7 +420,7 @@ class DeferredLoadTask extends CompilerTask {
       // If we see a class, add everything its live instance members refer
       // to.  Static members are not relevant, unless we are processing
       // extra dependencies due to mirrors.
-      void addLiveInstanceMember(Element element) {
+      void addLiveInstanceMember(_, Element element) {
         if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
         if (!isMirrorUsage && !element.isInstanceMember) return;
         elements.add(element);
@@ -428,11 +428,7 @@ class DeferredLoadTask extends CompilerTask {
       }
 
       ClassElement cls = element.declaration;
-      cls.forEachLocalMember(addLiveInstanceMember);
-      if (cls.implementation != cls) {
-        // TODO(ahe): Why doesn't ClassElement.forEachLocalMember do this?
-        cls.implementation.forEachLocalMember(addLiveInstanceMember);
-      }
+      cls.implementation.forEachMember(addLiveInstanceMember);
       for (var type in cls.implementation.allSupertypes) {
         elements.add(type.element.implementation);
       }
@@ -497,7 +493,8 @@ class DeferredLoadTask extends CompilerTask {
     if (constants.contains(constant)) return;
     constants.add(constant);
     if (constant is ConstructedConstantValue) {
-      _mapDependencies(element: constant.type.element, import: import);
+      ClassElement cls = constant.type.element;
+      _mapDependencies(element: cls, import: import);
     }
     constant.getDependencies().forEach((ConstantValue dependency) {
       _mapConstantDependencies(dependency, import);
@@ -548,8 +545,9 @@ class DeferredLoadTask extends CompilerTask {
 
     for (ConstantValue dependency in dependentConstants) {
       if (dependency is DeferredConstantValue) {
-        _mapConstantDependencies(dependency,
-            new _DeclaredDeferredImport(dependency.prefix.deferredImport));
+        PrefixElement prefix = dependency.prefix;
+        _mapConstantDependencies(
+            dependency, new _DeclaredDeferredImport(prefix.deferredImport));
       } else {
         _mapConstantDependencies(dependency, import);
       }
@@ -801,7 +799,8 @@ class DeferredLoadTask extends CompilerTask {
               metadata.ensureResolved(compiler.resolution);
               ConstantValue value =
                   compiler.constants.getConstantValue(metadata.constant);
-              Element element = value.getType(compiler.coreTypes).element;
+              ResolutionDartType type = value.getType(compiler.commonElements);
+              Element element = type.element;
               if (element == deferredLibraryClass) {
                 reporter.reportErrorMessage(
                     import, MessageKind.DEFERRED_OLD_SYNTAX);
@@ -1037,7 +1036,8 @@ class _DeclaredDeferredImport implements _DeferredImport {
         metadata.ensureResolved(compiler.resolution);
         ConstantValue value =
             compiler.constants.getConstantValue(metadata.constant);
-        Element element = value.getType(compiler.coreTypes).element;
+        ResolutionDartType type = value.getType(compiler.commonElements);
+        Element element = type.element;
         if (element == compiler.commonElements.deferredLibraryClass) {
           ConstructedConstantValue constant = value;
           StringConstantValue s = constant.fields.values.single;

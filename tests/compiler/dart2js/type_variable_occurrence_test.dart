@@ -7,7 +7,7 @@ library type_variable_occurrence_test;
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import "package:compiler/src/elements/elements.dart" show Element, ClassElement;
 
 void main() {
@@ -56,8 +56,9 @@ testTypeVariableOccurrence() {
         ClassElement A = env.getElement('A');
 
         expect(bool expectResult, String memberName) {
-          DartType memberType = env.getMemberType(A, memberName);
-          TypeVariableType typeVariable = memberType.typeVariableOccurrence;
+          ResolutionDartType memberType = env.getMemberType(A, memberName);
+          ResolutionTypeVariableType typeVariable =
+              memberType.typeVariableOccurrence;
           if (expectResult) {
             Expect.isNotNull(typeVariable);
             Expect.equals(A, Types.getClassContext(memberType));

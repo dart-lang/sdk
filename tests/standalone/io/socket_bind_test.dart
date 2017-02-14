@@ -4,10 +4,11 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+
+import 'test_utils.dart' show freeIPv4AndIPv6Port, retry;
 
 testBindShared(String host, bool v6Only) {
   asyncStart();
@@ -110,27 +111,6 @@ testListenCloseListenClose(String host) async {
   await client.drain();
 
   asyncEnd();
-}
-
-Future<int> freeIPv4AndIPv6Port() async {
-  var socket =
-    await ServerSocket.bind(InternetAddress.ANY_IP_V6, 0, v6Only: false);
-  int port = socket.port;
-  await socket.close();
-  return port;
-}
-
-Future retry(Future fun(), {int maxCount: 10}) async {
-  for (int i = 0; i < maxCount; i++) {
-    try {
-      // If there is no exception this will simply return, otherwise we keep
-      // trying.
-      return await fun();
-    } catch (_) {}
-    print("Failed to execute test closure in attempt $i "
-          "(${maxCount - i} retries left).");
-  }
-  return await fun();
 }
 
 main() async {

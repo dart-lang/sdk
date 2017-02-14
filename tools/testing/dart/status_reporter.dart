@@ -30,6 +30,12 @@ List<Map> LINUX_COMBINATIONS = [
     'archs': ['ia32'],
     'compiler': 'none'
   },
+  {
+    'runtimes': ['flutter_engine'],
+    'modes': ['debug', 'release'],
+    'archs': ['x64'],
+    'compiler': 'none'
+  },
 ];
 
 List<Map> MACOS_COMBINATIONS = [

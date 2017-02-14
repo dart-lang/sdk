@@ -118,8 +118,10 @@ class ConstantEvaluator {
    * [source]. The [typeProvider] is the type provider used to access known
    * types.
    */
-  ConstantEvaluator(this._source, this._typeProvider, {TypeSystem typeSystem})
-      : _typeSystem = typeSystem ?? new TypeSystemImpl();
+  ConstantEvaluator(this._source, TypeProvider typeProvider,
+      {TypeSystem typeSystem})
+      : _typeSystem = typeSystem ?? new TypeSystemImpl(typeProvider),
+        _typeProvider = typeProvider;
 
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = new RecordingErrorListener();

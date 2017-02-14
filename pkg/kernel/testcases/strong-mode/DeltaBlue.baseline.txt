@@ -1,7 +1,4 @@
-// dynamic is not a subtype of dart.core::int (DeltaBlue.dart:126:17)
-// dynamic is not a subtype of dart.core::int (DeltaBlue.dart:133:15)
-// dynamic is not a subtype of dart.core::int (DeltaBlue.dart:138:36)
-// dynamic is not a subtype of dart.core::int (DeltaBlue.dart:139:15)
+// dynamic is not a subtype of dart.core::int (DeltaBlue.dart:139:16)
 library;
 import self as self;
 import "dart:core" as core;
@@ -32,9 +29,6 @@ class Strength extends core::Object {
   static method weakest(self::Strength s1, self::Strength s2) → self::Strength {
     return self::Strength::weaker(s1, s2) ? s1 : s2;
   }
-  static method strongest(self::Strength s1, self::Strength s2) → self::Strength {
-    return self::Strength::stronger(s1, s2) ? s1 : s2;
-  }
 }
 abstract class Constraint extends core::Object {
   final field self::Strength strength;
@@ -56,20 +50,20 @@ abstract class Constraint extends core::Object {
     self::planner.{self::Planner::incrementalAdd}(this);
   }
   method satisfy(dynamic mark) → self::Constraint {
-    this.{self::Constraint::chooseMethod}(mark);
+    this.{self::Constraint::chooseMethod}(mark as core::int);
     if(!this.{self::Constraint::isSatisfied}()) {
       if(this.{self::Constraint::strength}.{core::Object::==}(self::REQUIRED)) {
         core::print("Could not satisfy a required constraint!");
       }
       return null;
     }
-    this.{self::Constraint::markInputs}(mark);
+    this.{self::Constraint::markInputs}(mark as core::int);
     self::Variable out = this.{self::Constraint::output}();
     self::Constraint overridden = out.{self::Variable::determinedBy};
     if(!overridden.{core::Object::==}(null))
       overridden.{self::Constraint::markUnsatisfied}();
     out.{self::Variable::determinedBy} = this;
-    if(!self::planner.{self::Planner::addPropagate}(this, mark))
+    if(!self::planner.{self::Planner::addPropagate}(this, mark as core::int))
       core::print("Cycle encountered");
     out.{self::Variable::mark} = mark;
     return overridden;
@@ -250,7 +244,7 @@ class Variable extends core::Object {
     : self::Variable::name = name, self::Variable::value = value, super core::Object::•()
     ;
   method addConstraint(self::Constraint c) → void {
-    this.{self::Variable::constraints}.{core::List::add}(c);
+    this.{self::Variable::constraints}.{core::List::add$cc}(c);
   }
   method removeConstraint(self::Constraint c) → void {
     this.{self::Variable::constraints}.{core::List::remove}(c);
@@ -305,7 +299,7 @@ class Planner extends core::Object {
     for (core::int i = 0; i.{core::num::<}(constraints.{core::List::length}); i = i.{core::num::+}(1)) {
       self::Constraint c = constraints.{core::List::[]}(i);
       if(c.{self::Constraint::isInput}() && c.{self::Constraint::isSatisfied}())
-        sources.{core::List::add}(c);
+        sources.{core::List::add$cc}(c);
     }
     return this.{self::Planner::makePlan}(sources);
   }
@@ -333,7 +327,7 @@ class Planner extends core::Object {
       for (core::int i = 0; i.{core::num::<}(v.{self::Variable::constraints}.{core::List::length}); i = i.{core::num::+}(1)) {
         self::Constraint c = v.{self::Variable::constraints}.{core::List::[]}(i);
         if(!c.{self::Constraint::isSatisfied}())
-          unsatisfied.{core::List::add}(c);
+          unsatisfied.{core::List::add$cc}(c);
       }
       self::Constraint determining = v.{self::Variable::determinedBy};
       for (core::int i = 0; i.{core::num::<}(v.{self::Variable::constraints}.{core::List::length}); i = i.{core::num::+}(1)) {
@@ -351,7 +345,7 @@ class Planner extends core::Object {
     for (core::int i = 0; i.{core::num::<}(v.{self::Variable::constraints}.{core::List::length}); i = i.{core::num::+}(1)) {
       self::Constraint c = v.{self::Variable::constraints}.{core::List::[]}(i);
       if(!c.{core::Object::==}(determining) && c.{self::Constraint::isSatisfied}())
-        coll.{core::List::add}(c);
+        coll.{core::List::add$cc}(c);
     }
   }
 }
@@ -361,10 +355,8 @@ class Plan extends core::Object {
     : super core::Object::•()
     ;
   method addConstraint(self::Constraint c) → void {
-    this.{self::Plan::list}.{core::List::add}(c);
+    this.{self::Plan::list}.{core::List::add$cc}(c);
   }
-  method size() → core::int
-    return this.{self::Plan::list}.{core::List::length};
   method execute() → void {
     for (core::int i = 0; i.{core::num::<}(this.{self::Plan::list}.{core::List::length}); i = i.{core::num::+}(1)) {
       this.{self::Plan::list}.{core::List::[]}(i).{self::Constraint::execute}();

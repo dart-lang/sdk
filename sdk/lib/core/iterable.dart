@@ -154,8 +154,7 @@ abstract class Iterable<E> {
    * on any element where the result isn't needed.
    * For example, [elementAt] may call `f` only once.
    */
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E e)) =>
-      new MappedIterable<E, dynamic/*=T*/>(this, f);
+  Iterable<T> map<T>(T f(E e)) => new MappedIterable<E, T>(this, f);
 
   /**
    * Returns a new lazy [Iterable] with all elements that satisfy the
@@ -193,8 +192,8 @@ abstract class Iterable<E> {
    *     print(duplicated); // => [1, 1, 2, 2, 3, 3]
    *
    */
-  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) =>
-      new ExpandIterable<E, dynamic/*=T*/>(this, f);
+  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
+      new ExpandIterable<E, T>(this, f);
 
   /**
    * Returns true if the collection contains an element equal to [element].
@@ -204,7 +203,7 @@ abstract class Iterable<E> {
    * equal to [element].
    *
    * The equality used to determine whether [element] is equal to an element of
-   * the iterable defaults to the [Object.operator==] of the element.
+   * the iterable defaults to the [Object.==] of the element.
    *
    * Some types of iterable may have a different equality used for its elements.
    * For example, a [Set] may have a custom equality
@@ -280,8 +279,7 @@ abstract class Iterable<E> {
    *     iterable.fold(0, (prev, element) => prev + element);
    *
    */
-  dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
-               dynamic/*=T*/ combine(var/*=T*/ previousValue, E element)) {
+  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;

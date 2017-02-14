@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -79,7 +81,7 @@ class IndexTest extends AbstractSingleUnitTest {
   }
 
   test_getDefinedNames_classMember() async {
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class A {
   test() {}
 }
@@ -100,7 +102,7 @@ class B {
   }
 
   test_getDefinedNames_topLevel() async {
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class A {} // A
 class B = Object with A;
 typedef C();
@@ -124,7 +126,7 @@ class NoMatchABCDE {}
   }
 
   test_getDefinedNames_topLevel2() async {
-    _indexTestUnit(
+    await _indexTestUnit(
         '''
 class A {} // A
 class B = Object with A;
@@ -141,11 +143,11 @@ class NoMatchABCDE {}
   }
 
   test_getRelations_isExtendedBy() async {
-    _indexTestUnit(r'''
+    await _indexTestUnit(r'''
 class A {}
 class B extends A {} // B
 ''');
-    Source source2 = _indexUnit(
+    Source source2 = await _indexUnit(
         '/test2.dart',
         r'''
 import 'test.dart';
@@ -159,7 +161,7 @@ class C extends A {} // C
   }
 
   test_getRelations_isReferencedBy() async {
-    _indexTestUnit(r'''
+    await _indexTestUnit(r'''
 main(int a, int b) {
 }
 ''');
@@ -171,7 +173,7 @@ main(int a, int b) {
   }
 
   test_getUnresolvedMemberReferences_qualified_resolved() async {
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class A {
   var test; // A
 }
@@ -188,7 +190,7 @@ main(A a) {
   }
 
   test_getUnresolvedMemberReferences_qualified_unresolved() async {
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class A {
   var test; // A
 }
@@ -210,7 +212,7 @@ main(p) {
   }
 
   test_getUnresolvedMemberReferences_unqualified_resolved() async {
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class A {
   var test;
   m() {
@@ -228,7 +230,7 @@ class A {
 
   test_getUnresolvedMemberReferences_unqualified_unresolved() async {
     verifyNoTestUnitErrors = false;
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class A {
   m() {
     print(test);
@@ -249,7 +251,7 @@ class A {
   }
 
   test_indexDeclarations_afterIndexUnit() async {
-    resolveTestUnit('''
+    await resolveTestUnit('''
 var a = 0;
 var b = a + 1;
 ''');
@@ -275,13 +277,13 @@ var b = a + 1;
   }
 
   test_indexDeclarations_nullUnitElement() async {
-    resolveTestUnit('');
+    await resolveTestUnit('');
     testUnit.element = null;
     index.indexDeclarations(testUnit);
   }
 
   test_indexUnit_nullLibraryElement() async {
-    resolveTestUnit('');
+    await resolveTestUnit('');
     CompilationUnitElement unitElement = new _CompilationUnitElementMock();
     expect(unitElement.library, isNull);
     testUnit.element = unitElement;
@@ -293,13 +295,13 @@ var b = a + 1;
   }
 
   test_indexUnit_nullUnitElement() async {
-    resolveTestUnit('');
+    await resolveTestUnit('');
     testUnit.element = null;
     index.indexUnit(testUnit);
   }
 
   test_removeContext() async {
-    _indexTestUnit('''
+    await _indexTestUnit('''
 class A {}
 ''');
     RegExp regExp = new RegExp(r'^A$');
@@ -315,8 +317,8 @@ class A {}
     RegExp regExp = new RegExp(r'^[AB]$');
     Source sourceA = addSource('/a.dart', 'class A {}');
     Source sourceB = addSource('/b.dart', 'class B {}');
-    CompilationUnit unitA = resolveLibraryUnit(sourceA);
-    CompilationUnit unitB = resolveLibraryUnit(sourceB);
+    CompilationUnit unitA = await resolveLibraryUnit(sourceA);
+    CompilationUnit unitB = await resolveLibraryUnit(sourceB);
     index.indexUnit(unitA);
     index.indexUnit(unitB);
     {
@@ -356,8 +358,8 @@ class A {}
         '${locations.join('\n')}');
   }
 
-  void _indexTestUnit(String code, {bool declOnly: false}) {
-    resolveTestUnit(code);
+  Future<Null> _indexTestUnit(String code, {bool declOnly: false}) async {
+    await resolveTestUnit(code);
     if (declOnly) {
       index.indexDeclarations(testUnit);
     } else {
@@ -365,9 +367,9 @@ class A {}
     }
   }
 
-  Source _indexUnit(String path, String code) {
+  Future<Source> _indexUnit(String path, String code) async {
     Source source = addSource(path, code);
-    CompilationUnit unit = resolveLibraryUnit(source);
+    CompilationUnit unit = await resolveLibraryUnit(source);
     index.indexUnit(unit);
     return source;
   }

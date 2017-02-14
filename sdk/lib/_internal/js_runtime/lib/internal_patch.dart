@@ -22,6 +22,9 @@ class Symbol implements core.Symbol {
     JS('', '#._hashCode = #', this, hash);
     return hash;
   }
+
+  @patch
+  toString() => 'Symbol("$_name")';
 }
 
 @patch

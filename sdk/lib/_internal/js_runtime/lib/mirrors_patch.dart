@@ -10,6 +10,12 @@ import 'dart:_js_mirrors' as js;
 @patch
 class MirrorSystem {
   @patch
+  LibraryMirror findLibrary(Symbol libraryName) {
+    return libraries.values.singleWhere(
+        (library) => library.simpleName == libraryName);
+  }
+
+  @patch
   static String getName(Symbol symbol) => js.getName(symbol);
 
   @patch
@@ -37,9 +43,9 @@ ClassMirror reflectClass(Type key) {
 }
 
 @patch
-TypeMirror reflectType(Type key) {
+TypeMirror reflectType(Type key, [List<Type> typeArguments]) {
   if (key == dynamic) {
     return currentMirrorSystem().dynamicType;
   }
-  return js.reflectType(key);
+  return js.reflectType(key, typeArguments);
 }

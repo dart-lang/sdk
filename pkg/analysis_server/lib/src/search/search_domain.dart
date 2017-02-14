@@ -141,21 +141,15 @@ class SearchDomainHandler implements protocol.RequestHandler {
    * Implement the `search.getTypeHierarchy` request.
    */
   Future getTypeHierarchy(protocol.Request request) async {
-    if (server.options.enableNewAnalysisDriver) {
-      // TODO(scheglov) implement for the new analysis driver
-      protocol.Response response =
-          new protocol.SearchGetTypeHierarchyResult(hierarchyItems: [])
-              .toResponse(request.id);
-      server.sendResponse(response);
-      return;
-    }
     var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     String file = params.file;
     // wait for analysis
-    if (params.superOnly == true) {
-      await server.onFileAnalysisComplete(file);
-    } else {
-      await server.onAnalysisComplete;
+    if (!server.options.enableNewAnalysisDriver) {
+      if (params.superOnly == true) {
+        await server.onFileAnalysisComplete(file);
+      } else {
+        await server.onAnalysisComplete;
+      }
     }
     // prepare element
     Element element = await server.getElementAtOffset(file, params.offset);

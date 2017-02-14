@@ -401,7 +401,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
    * during the call, and it checks for state changes after the call
    * that should cause further callbacks.
    */
-  void _guardCallback(callback) {
+  void _guardCallback(void callback()) {
     assert(!_inCallback);
     bool wasInputPaused = _isInputPaused;
     _state |= _STATE_IN_CALLBACK;

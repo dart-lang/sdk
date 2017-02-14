@@ -25,8 +25,8 @@ main() {
 void checkInstantiated(Compiler compiler, ClassElement cls, bool expected) {
   ResolutionEnqueuer enqueuer = compiler.enqueuer.resolution;
   bool isInstantiated =
-      enqueuer.universe.directlyInstantiatedClasses.contains(cls);
-  bool isProcessed = enqueuer.isClassProcessed(cls);
+      enqueuer.worldBuilder.directlyInstantiatedClasses.contains(cls);
+  bool isProcessed = enqueuer.processedClasses.contains(cls);
   Expect.equals(expected, isInstantiated,
       'Unexpected instantiation state of class $cls.');
   Expect.equals(
@@ -44,12 +44,10 @@ analyze(String code,
       compiler.resolution.wasProxyConstantComputedTestingOnly,
       "Unexpected computation of proxy constant.");
 
+  LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
   checkInstantiated(
-      compiler,
-      compiler.commonElements.coreLibrary.find('_Proxy'),
-      proxyConstantComputed);
-  checkInstantiated(compiler,
-      compiler.commonElements.coreLibrary.find('Deprecated'), deprecatedClass);
+      compiler, coreLibrary.find('_Proxy'), proxyConstantComputed);
+  checkInstantiated(compiler, coreLibrary.find('Deprecated'), deprecatedClass);
 
   LibraryElement jsHelperLibrary =
       compiler.libraryLoader.lookupLibrary(BackendHelpers.DART_JS_HELPER);

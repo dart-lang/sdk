@@ -863,15 +863,7 @@ main() { .!1 }''',
         'testCommentSnippets083b',
         '''
 main() { null.!1 }''',
-        <String>["1+toString"],
-        failingTests: '1');
-
-    buildTests(
-        'testCommentSnippets084',
-        '''
-class List{}class Map{}typedef X = !1Lis!2t with !3Ma!4p;''',
-        <String>["1+Map", "2+List", "2-Map", "3+List", "4+Map", "4-List"],
-        failingTests: '1234');
+        <String>["1+toString"]);
 
     buildTests(
         'testCommentSnippets085',
@@ -2436,10 +2428,8 @@ void r2(var vim, [va: 2, b: 3]) {
         '''
 !1class Aclass {}
 class Bclass !2extends!3 !4Aclass {}
-!5typedef Ctype = !6Bclass with !7Aclass;
-class Dclass extends !8Ctype {}
-!9abstract class Eclass implements Dclass,!C Ctype, Bclass {}
-class Fclass extends Bclass !Awith !B Eclass {}''',
+!5abstract class Eclass implements Aclass, Bclass {}
+class Fclass extends Bclass !6with !7 Eclass {}''',
         <String>[
           "1+class",
           "1-implements",
@@ -2449,21 +2439,13 @@ class Fclass extends Bclass !Awith !B Eclass {}''',
           "3+extends",
           "4+Aclass",
           "4-Bclass",
-          "5+typedef",
-          "6+Bclass",
-          "6-Ctype",
-          "7+Aclass",
-          "7-Bclass",
-          "8+Ctype",
-          "9+abstract",
-          "A+with",
-          "B+Eclass",
-          "B-Dclass",
-          "B-Ctype",
-          "C+Bclass",
-          "C-Eclass"
+          "5+abstract",
+          "6+with",
+          "7+Eclass",
+          "7-Dclass",
+          "7-Ctype",
         ],
-        failingTests: '23467ABC');
+        failingTests: '23467');
 
     // keywords
     buildTests(
@@ -2665,8 +2647,7 @@ main() {
 }''',
         <String>["1+true", "1+truefalse", "1-falsetrue"]);
 
-    buildTests('test020', '''var x = null.!1''', <String>["1+toString"],
-        failingTests: '1');
+    buildTests('test020', '''var x = null.!1''', <String>["1+toString"]);
 
     buildTests('test021', '''var x = .!1''', <String>["1-toString"]);
 

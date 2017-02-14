@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -14,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
@@ -44,9 +43,8 @@ typedef bool Predicate<E>(E argument);
 typedef void _ElementVisitorFunction(Element element);
 
 class BaseAnalysisDriverTest {
-  static final MockSdk sdk = new MockSdk();
-
   final MemoryResourceProvider provider = new MemoryResourceProvider();
+  DartSdk sdk;
   final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
 
@@ -55,7 +53,6 @@ class BaseAnalysisDriverTest {
 
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
-  final _Monitor idleStatusMonitor = new _Monitor();
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
   final List<AnalysisResult> allResults = <AnalysisResult>[];
 
@@ -102,7 +99,7 @@ class BaseAnalysisDriverTest {
   }
 
   void setUp() {
-    new MockSdk();
+    sdk = new MockSdk(resourceProvider: provider);
     testProject = _p('/test/lib');
     testFile = _p('/test/lib/test.dart');
     logger = new PerformanceLog(logBuffer);
@@ -113,6 +110,7 @@ class BaseAnalysisDriverTest {
         provider,
         byteStore,
         contentOverlay,
+        'test',
         new SourceFactory([
           new DartUriResolver(sdk),
           new PackageMapUriResolver(provider, <String, List<Folder>>{
@@ -122,12 +120,7 @@ class BaseAnalysisDriverTest {
         ], null, provider),
         new AnalysisOptionsImpl()..strongMode = true);
     scheduler.start();
-    driver.status.lastWhere((status) {
-      allStatuses.add(status);
-      if (status.isIdle) {
-        idleStatusMonitor.notify();
-      }
-    });
+    driver.status.listen(allStatuses.add);
     driver.results.listen(allResults.add);
   }
 
@@ -145,20 +138,5 @@ class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   visitElement(Element element) {
     function(element);
     super.visitElement(element);
-  }
-}
-
-class _Monitor {
-  Completer<Null> _completer = new Completer<Null>();
-
-  Future<Null> get signal async {
-    await _completer.future;
-    _completer = new Completer<Null>();
-  }
-
-  void notify() {
-    if (!_completer.isCompleted) {
-      _completer.complete(null);
-    }
   }
 }

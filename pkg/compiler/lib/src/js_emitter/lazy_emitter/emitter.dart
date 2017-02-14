@@ -9,15 +9,31 @@ import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue;
+import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
-    show ClassElement, Element, FieldElement, FunctionElement;
+    show ClassElement, Element, Entity, FieldElement, MethodElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
-import '../js_emitter.dart' show NativeEmitter;
-import '../js_emitter.dart' as emitterTask show Emitter;
+import '../../world.dart' show ClosedWorld;
+import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../js_emitter.dart' as emitterTask show Emitter, EmitterFactory;
 import '../model.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
 import 'model_emitter.dart';
+
+class EmitterFactory implements emitterTask.EmitterFactory {
+  @override
+  String get patchVersion => "lazy";
+
+  @override
+  bool get supportsReflection => false;
+
+  @override
+  Emitter createEmitter(
+      CodeEmitterTask task, Namer namer, ClosedWorld closedWorld) {
+    return new Emitter(task.compiler, namer, task.nativeEmitter);
+  }
+}
 
 class Emitter implements emitterTask.Emitter {
   final Compiler _compiler;
@@ -34,16 +50,10 @@ class Emitter implements emitterTask.Emitter {
   DiagnosticReporter get reporter => _compiler.reporter;
 
   @override
-  String get patchVersion => "lazy";
-
-  @override
   int emitProgram(ProgramBuilder programBuilder) {
     Program program = programBuilder.buildProgram();
     return _emitter.emitProgram(program);
   }
-
-  @override
-  bool get supportsReflection => false;
 
   // TODO(floitsch): copied from full emitter. Adjust or share.
   @override
@@ -87,7 +97,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.Expression isolateStaticClosureAccess(FunctionElement element) {
+  js.Expression isolateStaticClosureAccess(MethodElement element) {
     return _emitter.generateStaticClosureAccess(element);
   }
 
@@ -97,7 +107,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.PropertyAccess staticFunctionAccess(FunctionElement element) {
+  js.PropertyAccess staticFunctionAccess(MethodElement element) {
     return _globalPropertyAccess(element);
   }
 
@@ -122,7 +132,7 @@ class Emitter implements emitterTask.Emitter {
   }
 
   @override
-  js.Expression typeAccess(Element element) {
+  js.Expression typeAccess(Entity element) {
     // TODO(floitsch): minify 'ensureResolved'.
     // TODO(floitsch): don't emit `ensureResolved` for eager classes.
     return js.js('#.ensureResolved()', _globalPropertyAccess(element));
@@ -135,7 +145,7 @@ class Emitter implements emitterTask.Emitter {
     switch (builtin) {
       case JsBuiltin.dartObjectConstructor:
         return js.js.expressionTemplateYielding(
-            typeAccess(_compiler.coreClasses.objectClass));
+            typeAccess(_compiler.commonElements.objectClass));
 
       case JsBuiltin.isCheckPropertyToJsConstructorName:
         int isPrefixLength = namer.operatorIsPrefix.length;
@@ -177,6 +187,10 @@ class Emitter implements emitterTask.Emitter {
         return null;
     }
   }
+
+  @override
+  // TODO(het): Generate this correctly
+  int generatedSize(OutputUnit unit) => 0;
 
   @override
   void invalidateCaches() {}

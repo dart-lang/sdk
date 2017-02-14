@@ -44,7 +44,7 @@ main() {
 
     test('can compile in worker mode', () async {
       var args = executableArgs.toList()..add('--persistent_worker');
-      var process = await Process.start('dart', args);
+      var process = await Process.start(Platform.executable, args);
       var messageGrouper = new AsyncMessageGrouper(process.stdout);
 
       var request = new WorkRequest();
@@ -76,7 +76,33 @@ main() {
 
     test('can compile in basic mode', () {
       var args = executableArgs.toList()..addAll(compilerArgs);
-      var result = Process.runSync('dart', args);
+      var result = Process.runSync(Platform.executable, args);
+
+      expect(result.exitCode, EXIT_CODE_OK);
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isEmpty);
+      expect(outputJsFile.existsSync(), isTrue);
+    });
+
+    test('unknown options', () {
+      var args = new List<String>.from(executableArgs)
+        ..add('--does-not-exist')
+        ..addAll(compilerArgs);
+      var result = Process.runSync(Platform.executable, args);
+
+      expect(result.exitCode, 64);
+      expect(result.stdout,
+          contains('Could not find an option named "does-not-exist"'));
+      expect(result.stderr, isEmpty);
+      expect(outputJsFile.existsSync(), isFalse);
+    });
+
+    test('unknown options ignored', () {
+      var args = new List<String>.from(executableArgs)
+        ..add('--does-not-exist')
+        ..add('--ignore-unrecognized-flags')
+        ..addAll(compilerArgs);
+      var result = Process.runSync(Platform.executable, args);
 
       expect(result.exitCode, EXIT_CODE_OK);
       expect(result.stdout, isEmpty);
@@ -88,7 +114,7 @@ main() {
       argsFile.createSync();
       argsFile.writeAsStringSync(compilerArgs.join('\n'));
       var args = executableArgs.toList()..add('@${argsFile.path}');
-      var process = await Process.start('dart', args);
+      var process = await Process.start(Platform.executable, args);
       stderr.addStream(process.stderr);
       var futureProcessOutput = process.stdout.map(UTF8.decode).toList();
 
@@ -122,7 +148,7 @@ main() {
 
     test('can compile in basic mode', () {
       final dartSdkSummary = new File('lib/sdk/ddc_sdk.sum').absolute;
-      var result = Process.runSync('dart', [
+      var result = Process.runSync(Platform.executable, [
         'bin/dartdevc.dart',
         '--summary-extension=api.ds',
         '--no-source-map',
@@ -138,7 +164,7 @@ main() {
       expect(greetingJS.existsSync(), isTrue);
       expect(greetingSummary.existsSync(), isTrue);
 
-      result = Process.runSync('dart', [
+      result = Process.runSync(Platform.executable, [
         'bin/dartdevc.dart',
         '--no-source-map',
         '--no-summarize',
@@ -169,7 +195,12 @@ main() {
     });
 
     test('incorrect usage', () {
-      var result = Process.runSync('dart', ['bin/dartdevc.dart', '--dart-sdk-summary', dartSdkSummary.path, 'oops',]);
+      var result = Process.runSync(Platform.executable, [
+        'bin/dartdevc.dart',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
+        'oops',
+      ]);
       expect(result.exitCode, 64);
       expect(
           result.stdout, contains('Please include the output file location.'));
@@ -178,7 +209,7 @@ main() {
 
     test('compile errors', () {
       badFileDart.writeAsStringSync('main() => "hello world"');
-      var result = Process.runSync('dart', [
+      var result = Process.runSync(Platform.executable, [
         'bin/dartdevc.dart',
         '--no-source-map',
         '--dart-sdk-summary',
@@ -214,7 +245,7 @@ main() {
     });
 
     test('works if part and library supplied', () {
-      var result = Process.runSync('dart', [
+      var result = Process.runSync(Platform.executable, [
         'bin/dartdevc.dart',
         '--no-summarize',
         '--no-source-map',
@@ -232,7 +263,7 @@ main() {
     });
 
     test('works if part is not supplied', () {
-      var result = Process.runSync('dart', [
+      var result = Process.runSync(Platform.executable, [
         'bin/dartdevc.dart',
         '--no-summarize',
         '--no-source-map',
@@ -249,7 +280,7 @@ main() {
     });
 
     test('part without library is silently ignored', () {
-      var result = Process.runSync('dart', [
+      var result = Process.runSync(Platform.executable, [
         'bin/dartdevc.dart',
         '--no-summarize',
         '--no-source-map',

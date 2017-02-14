@@ -384,8 +384,8 @@ abstract class Stream<T> {
    * If a broadcast stream is listened to more than once, each subscription
    * will individually call [convert] on each data event.
    */
-  Stream/*<S>*/ map/*<S>*/(/*=S*/ convert(T event)) {
-    return new _MapStream<T, dynamic/*=S*/>(this, convert);
+  Stream<S> map<S>(S convert(T event)) {
+    return new _MapStream<T, S>(this, convert);
   }
 
   /**
@@ -398,15 +398,15 @@ abstract class Stream<T> {
    *
    * The returned stream is a broadcast stream if this stream is.
    */
-  Stream/*<E>*/ asyncMap/*<E>*/(convert(T event)) {
-    StreamController/*<E>*/ controller;
-    StreamSubscription/*<T>*/ subscription;
+  Stream<E> asyncMap<E>(convert(T event)) {
+    StreamController<E> controller;
+    StreamSubscription<T> subscription;
 
     void onListen() {
       final add = controller.add;
       assert(controller is _StreamController ||
              controller is _BroadcastStreamController);
-      final _EventSink/*<E>*/ eventSink =
+      final _EventSink<E> eventSink =
           controller as Object /*=_EventSink<E>*/;
       final addError = eventSink._addError;
       subscription = this.listen(
@@ -432,13 +432,13 @@ abstract class Stream<T> {
     }
 
     if (this.isBroadcast) {
-      controller = new StreamController/*<E>*/.broadcast(
+      controller = new StreamController<E>.broadcast(
         onListen: onListen,
         onCancel: () { subscription.cancel(); },
         sync: true
       );
     } else {
-      controller = new StreamController/*<E>*/(
+      controller = new StreamController<E>(
         onListen: onListen,
         onPause: () { subscription.pause(); },
         onResume: () { subscription.resume(); },
@@ -462,17 +462,17 @@ abstract class Stream<T> {
    *
    * The returned stream is a broadcast stream if this stream is.
    */
-  Stream/*<E>*/ asyncExpand/*<E>*/(Stream/*<E>*/ convert(T event)) {
-    StreamController/*<E>*/ controller;
+  Stream<E> asyncExpand<E>(Stream<E> convert(T event)) {
+    StreamController<E> controller;
     StreamSubscription<T> subscription;
     void onListen() {
       assert(controller is _StreamController ||
              controller is _BroadcastStreamController);
-      final _EventSink/*<E>*/ eventSink =
+      final _EventSink<E> eventSink =
           controller as Object /*=_EventSink<E>*/;
       subscription = this.listen(
           (T event) {
-            Stream/*<E>*/ newStream;
+            Stream<E> newStream;
             try {
               newStream = convert(event);
             } catch (e, s) {
@@ -490,13 +490,13 @@ abstract class Stream<T> {
       );
     }
     if (this.isBroadcast) {
-      controller = new StreamController/*<E>*/.broadcast(
+      controller = new StreamController<E>.broadcast(
         onListen: onListen,
         onCancel: () { subscription.cancel(); },
         sync: true
       );
     } else {
-      controller = new StreamController/*<E>*/(
+      controller = new StreamController<E>(
         onListen: onListen,
         onPause: () { subscription.pause(); },
         onResume: () { subscription.resume(); },
@@ -551,8 +551,8 @@ abstract class Stream<T> {
    * If a broadcast stream is listened to more than once, each subscription
    * will individually call `convert` and expand the events.
    */
-  Stream/*<S>*/ expand/*<S>*/(Iterable/*<S>*/ convert(T value)) {
-    return new _ExpandStream<T, dynamic/*=S*/>(this, convert);
+  Stream<S> expand<S>(Iterable<S> convert(T value)) {
+    return new _ExpandStream<T, S>(this, convert);
   }
 
   /**
@@ -585,8 +585,8 @@ abstract class Stream<T> {
    * The `streamTransformer` can decide whether it wants to return a
    * broadcast stream or not.
    */
-  Stream/*<S>*/ transform/*<S>*/(
-      StreamTransformer<T, dynamic/*=S*/ > streamTransformer) {
+  Stream<S> transform<S>(
+      StreamTransformer<T, S > streamTransformer) {
     return streamTransformer.bind(this);
   }
 
@@ -627,17 +627,17 @@ abstract class Stream<T> {
   }
 
   /** Reduces a sequence of values by repeatedly applying [combine]. */
-  Future/*<S>*/ fold/*<S>*/(var/*=S*/ initialValue,
-      /*=S*/ combine(var/*=S*/ previous, T element)) {
+  Future<S> fold<S>(S initialValue,
+      S combine(S previous, T element)) {
 
-    _Future/*<S>*/ result = new _Future/*<S>*/();
-    var/*=S*/ value = initialValue;
+    _Future<S> result = new _Future<S>();
+    S value = initialValue;
     StreamSubscription subscription;
     subscription = this.listen(
       (T element) {
         _runUserCode(
           () => combine(value, element),
-          (/*=S*/ newValue) { value = newValue; },
+          (S newValue) { value = newValue; },
           _cancelAndErrorClosure(subscription, result)
         );
       },
@@ -890,7 +890,7 @@ abstract class Stream<T> {
 
   /**
    * Discards all data on the stream, but signals when it's done or an error
-   * occured.
+   * occurred.
    *
    * When subscribing using [drain], cancelOnError will be true. This means
    * that the future will complete with the first error on the stream and then
@@ -899,8 +899,8 @@ abstract class Stream<T> {
    * In case of a `done` event the future completes with the given
    * [futureValue].
    */
-  Future/*<E>*/ drain/*<E>*/([/*=E*/ futureValue])
-      => listen(null, cancelOnError: true).asFuture/*<E>*/(futureValue);
+  Future<E> drain<E>([E futureValue])
+      => listen(null, cancelOnError: true).asFuture<E>(futureValue);
 
   /**
    * Provides at most the first [count] data events of this stream.
@@ -1351,7 +1351,7 @@ abstract class Stream<T> {
         // TODO(floitsch): the return type should be 'void', and the type
         // should be inferred.
         var registeredOnTimeout =
-            zone.registerUnaryCallback/*<dynamic, EventSink<T>>*/(onTimeout);
+            zone.registerUnaryCallback<dynamic, EventSink<T>>(onTimeout);
         _ControllerEventSinkWrapper wrapper =
             new _ControllerEventSinkWrapper(null);
         timeout = () {
@@ -1498,7 +1498,7 @@ abstract class StreamSubscription<T> {
    * In case of a `done` event the future completes with the given
    * [futureValue].
    */
-  Future/*<E>*/ asFuture/*<E>*/([var/*=E*/ futureValue]);
+  Future<E> asFuture<E>([E futureValue]);
 }
 
 
@@ -1623,7 +1623,7 @@ abstract class StreamSink<S> implements EventSink<S>, StreamConsumer<S> {
    * Returns the same future as [done].
    *
    * The stream sink may close before the [close] method is called, either due
-   * to an error or because it is itself provding events to someone who has
+   * to an error or because it is itself providing events to someone who has
    * stopped listening. In that case, the [done] future is completed first,
    * and the `close` method will return the `done` future when called.
    *

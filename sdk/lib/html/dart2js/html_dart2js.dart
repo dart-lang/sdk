@@ -1209,8 +1209,8 @@ class Blob extends Interceptor {
     return _create_2(blobParts, bag);
   }
 
-  static _create_1(parts) => JS('Blob', 'new Blob(#)', parts);
-  static _create_2(parts, bag) => JS('Blob', 'new Blob(#, #)', parts, bag);
+  static _create_1(parts) => JS('Blob', 'new self.Blob(#)', parts);
+  static _create_2(parts, bag) => JS('Blob', 'new self.Blob(#, #)', parts, bag);
 
   static _create_bag() => JS('var', '{}');
   static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
@@ -39644,6 +39644,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return value is String && _classListContains(_classListOf(_element), value);
   }
 
+  @ForceInline()
   static bool _add(Element _element, String value) {
     DomTokenList list = _classListOf(_element);
     // Compute returned result independently of action upon the set.
@@ -39652,6 +39653,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return added;
   }
 
+  @ForceInline()
   static bool _remove(Element _element, String value) {
     DomTokenList list = _classListOf(_element);
     bool removed = _classListContainsBeforeAddOrRemove(list, value);
@@ -40075,13 +40077,21 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   EventListener _onData;
   final bool _useCapture;
 
-  // TODO(jacobr): for full strong mode correctness we should write
-  // _onData = onData == null ? null : _wrapZone/*<Event, dynamic>*/((e) => onData(e as T))
-  // but that breaks 114 co19 tests as well as multiple html tests as it is reasonable
-  // to pass the wrong type of event object to an event listener as part of a
-  // test.
+  // TODO(leafp): It would be better to write this as
+  // _onData = onData == null ? null :
+  //   onData is _wrapZoneCallback<Event, dynamic>
+  //     ? _wrapZone/*<Event, dynamic>*/(onData)
+  //     : _wrapZone/*<Event, dynamic>*/((e) => onData(e as T))
+  // In order to support existing tests which pass the wrong type of events but
+  // use a more general listener, without causing as much slowdown for things
+  // which are typed correctly.  But this currently runs afoul of restrictions
+  // on is checks for compatibility with the VM.
   _EventStreamSubscription(this._target, this._eventType, void onData(T event),
-      this._useCapture) : _onData = _wrapZone/*<Event, dynamic>*/(onData) {
+                           this._useCapture) :
+      _onData = onData == null
+      ? null
+      : _wrapZone/*<Event, dynamic>*/((e) => (onData as dynamic)(e))
+  {
     _tryResume();
   }
 
@@ -43390,23 +43400,13 @@ _wrapZoneCallback/*<A, R>*/ _wrapZone/*<A, R>*/(_wrapZoneCallback/*<A, R>*/ call
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  // TODO(jacobr): we cast to _wrapZoneCallback/*<A, R>*/ to hack around missing
-  // generic method support in zones.
-  // ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
-  _wrapZoneCallback/*<A, R>*/ wrapped =
-      Zone.current.bindUnaryCallback(callback, runGuarded: true);
-  return wrapped;
+  return Zone.current.bindUnaryCallback/*<R, A>*/(callback, runGuarded: true);
 }
 
 _wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(_wrapZoneBinaryCallback/*<A, B, R>*/ callback) {
   if (Zone.current == Zone.ROOT) return callback;
   if (callback == null) return null;
-  // We cast to _wrapZoneBinaryCallback/*<A, B, R>*/ to hack around missing
-  // generic method support in zones.
-  // ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
-  _wrapZoneBinaryCallback/*<A, B, R>*/ wrapped =
-      Zone.current.bindBinaryCallback(callback, runGuarded: true);
-  return wrapped;
+  return Zone.current.bindBinaryCallback/*<R, A, B>*/(callback, runGuarded: true);
 }
 
 /**

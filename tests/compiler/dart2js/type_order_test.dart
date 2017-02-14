@@ -7,7 +7,7 @@ library type_order_test;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'type_test_helper.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import "package:compiler/src/elements/elements.dart"
     show Element, ClassElement, TypedefElement;
 
@@ -21,42 +21,43 @@ void main() {
       class Z {}
       """).then((env) {
         List types = [];
-        DartType add(DartType type) {
+        ResolutionDartType add(ResolutionDartType type) {
           types.add(type);
           return type;
         }
 
-        DartType dynamic_ = add(env['dynamic']);
-        DartType void_ = add(env['void']);
+        ResolutionDartType dynamic_ = add(env['dynamic']);
+        ResolutionDartType void_ = add(env['void']);
 
         ClassElement A = env.getElement('A');
         TypedefElement B = env.getElement('B');
         ClassElement C = env.getElement('C');
-        DartType X = add(env['X']);
-        DartType Y = add(env['Y']);
-        DartType Z = add(env['Z']);
+        ResolutionDartType X = add(env['X']);
+        ResolutionDartType Y = add(env['Y']);
+        ResolutionDartType Z = add(env['Z']);
 
-        InterfaceType A_this = add(A.thisType);
-        InterfaceType A_raw = add(A.rawType);
-        TypeVariableType AT = add(A_this.typeArguments[0]);
-        TypeVariableType AS = add(A_this.typeArguments[1]);
-        InterfaceType A_X_Y = add(instantiate(A, [X, Y]));
-        InterfaceType A_Y_X = add(instantiate(A, [Y, X]));
+        ResolutionInterfaceType A_this = add(A.thisType);
+        ResolutionInterfaceType A_raw = add(A.rawType);
+        ResolutionTypeVariableType AT = add(A_this.typeArguments[0]);
+        ResolutionTypeVariableType AS = add(A_this.typeArguments[1]);
+        ResolutionInterfaceType A_X_Y = add(instantiate(A, [X, Y]));
+        ResolutionInterfaceType A_Y_X = add(instantiate(A, [Y, X]));
 
-        TypedefType B_this = add(B.computeType(env.compiler.resolution));
-        TypedefType B_raw = add(B.rawType);
-        TypeVariableType BT = add(B_this.typeArguments[0]);
-        TypeVariableType BS = add(B_this.typeArguments[1]);
-        FunctionType B_this_alias = add(B.alias);
-        TypedefType B_X_Y = add(instantiate(B, [X, Y]));
-        FunctionType B_X_Y_alias = add(B_X_Y.unaliased);
-        TypedefType B_Y_X = add(instantiate(B, [Y, X]));
-        FunctionType B_Y_X_alias = add(B_Y_X.unaliased);
+        ResolutionTypedefType B_this =
+            add(B.computeType(env.compiler.resolution));
+        ResolutionTypedefType B_raw = add(B.rawType);
+        ResolutionTypeVariableType BT = add(B_this.typeArguments[0]);
+        ResolutionTypeVariableType BS = add(B_this.typeArguments[1]);
+        ResolutionFunctionType B_this_alias = add(B.alias);
+        ResolutionTypedefType B_X_Y = add(instantiate(B, [X, Y]));
+        ResolutionFunctionType B_X_Y_alias = add(B_X_Y.unaliased);
+        ResolutionTypedefType B_Y_X = add(instantiate(B, [Y, X]));
+        ResolutionFunctionType B_Y_X_alias = add(B_Y_X.unaliased);
 
-        InterfaceType C_this = add(C.thisType);
-        InterfaceType C_raw = add(C.rawType);
-        TypeVariableType CT = add(C_this.typeArguments[0]);
-        TypeVariableType CS = add(C_this.typeArguments[1]);
+        ResolutionInterfaceType C_this = add(C.thisType);
+        ResolutionInterfaceType C_raw = add(C.rawType);
+        ResolutionTypeVariableType CT = add(C_this.typeArguments[0]);
+        ResolutionTypeVariableType CS = add(C_this.typeArguments[1]);
 
         Expect.listEquals([
           void_,

@@ -159,22 +159,91 @@ String getRuntimeTypeAsString(var rti, {String onTypeVariable(int i)}) {
 String runtimeTypeToString(var rti, {String onTypeVariable(int i)}) {
   if (rti == null) {
     return 'dynamic';
-  } else if (isJsArray(rti)) {
+  }
+  if (isJsArray(rti)) {
     // A list representing a type with arguments.
     return getRuntimeTypeAsString(rti, onTypeVariable: onTypeVariable);
-  } else if (isJsFunction(rti)) {
+  }
+  if (isJsFunction(rti)) {
     // A reference to the constructor.
     return rawRtiToJsConstructorName(rti);
-  } else if (rti is int) {
-    if (onTypeVariable == null) {
-      return rti.toString();
-    } else {
-      return onTypeVariable(rti);
-    }
-  } else {
-    // TODO(ahe): Handle function types, and be sure to always return a string.
-    return null;
   }
+  if (rti is int) {
+    return '${onTypeVariable == null ? rti : onTypeVariable(rti)}';
+  }
+  if (JS('bool', 'typeof #.func != "undefined"', rti)) {
+    // If the RTI has typedef equivalence info (via mirrors), use that since the
+    // mirrors helpers will re-parse the generated string.
+
+    String typedefPropertyName = JS_GET_NAME(JsGetName.TYPEDEF_TAG);
+    var typedefInfo = JS('', '#[#]', rti, typedefPropertyName);
+    if (typedefInfo != null) {
+      return runtimeTypeToString(typedefInfo, onTypeVariable: onTypeVariable);
+    }
+    return _functionRtiToString(rti, onTypeVariable);
+  }
+  // We should not get here.
+  return 'unknown-reified-type';
+}
+
+String _functionRtiToString(var rti, String onTypeVariable(int i)) {
+  String returnTypeText;
+  if (JS('bool', '!!#.v', rti)) {
+    returnTypeText = 'void';
+  } else {
+    var returnRti = JS('', '#.ret', rti);
+    returnTypeText =
+        runtimeTypeToString(returnRti, onTypeVariable: onTypeVariable);
+  }
+
+  String argumentsText = '';
+  String sep = '';
+
+  bool hasArguments = JS('bool', '"args" in #', rti);
+  if (hasArguments) {
+    List arguments = JS('JSFixedArray', '#.args', rti);
+    for (var argument in arguments) {
+      argumentsText += sep;
+      argumentsText +=
+          runtimeTypeToString(argument, onTypeVariable: onTypeVariable);
+      sep = ', ';
+    }
+  }
+
+  bool hasOptionalArguments = JS('bool', '"opt" in #', rti);
+  if (hasOptionalArguments) {
+    List optionalArguments = JS('JSFixedArray', '#.opt', rti);
+    argumentsText += '$sep[';
+    sep = '';
+    for (var argument in optionalArguments) {
+      argumentsText += sep;
+      argumentsText +=
+          runtimeTypeToString(argument, onTypeVariable: onTypeVariable);
+      sep = ', ';
+    }
+    argumentsText += ']';
+  }
+
+  bool hasNamedArguments = JS('bool', '"named" in #', rti);
+  if (hasNamedArguments) {
+    var namedArguments = JS('', '#.named', rti);
+    argumentsText += '$sep{';
+    sep = '';
+    for (String name in extractKeys(namedArguments)) {
+      argumentsText += sep;
+      argumentsText += runtimeTypeToString(JS('', '#[#]', namedArguments, name),
+                                           onTypeVariable: onTypeVariable);
+      argumentsText += ' $name';
+      sep = ', ';
+    }
+    argumentsText += '}';
+  }
+
+  // TODO(sra): Below is the same format as the VM. Change to:
+  //
+  //     '${returnTypeText} Function(${argumentsText})';
+  //
+  return '(${argumentsText}) => ${returnTypeText}';
 }
 
 /**
@@ -188,7 +257,7 @@ String joinArguments(var types, int startIndex,
   assert(isJsArray(types));
   bool firstArgument = true;
   bool allDynamic = true;
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = new StringBuffer('');
   for (int index = startIndex; index < getLength(types); index++) {
     if (firstArgument) {
       firstArgument = false;
@@ -210,6 +279,10 @@ String joinArguments(var types, int startIndex,
  * In minified mode does *not* use unminified identifiers (even when present).
  */
 String getRuntimeTypeString(var object) {
+  // Check for function type first, since non-tearoff closures look like classes
+  // due to closure conversion.
+  var functionRti = extractFunctionTypeObjectFrom(object);
+  if (functionRti != null) return runtimeTypeToString(functionRti);
   String className = getClassName(object);
   if (object == null) return className;
   var rti = JS('var', r'#.$ti', object);
@@ -448,12 +521,13 @@ bool isSubtype(var s, var t) {
   if (isIdentical(s, t)) return true;
   // If either type is dynamic, [s] is a subtype of [t].
   if (s == null || t == null) return true;
+  if (isNullType(s)) return true;
   if (isDartFunctionType(t)) {
     return isFunctionSubtype(s, t);
   }
-  // Check function types against the Function class.
+  // Check function types against the Function class and the Object class.
   if (isDartFunctionType(s)) {
-    return isDartFunctionTypeRti(t);
+    return isDartFunctionTypeRti(t) || isDartObjectTypeRti(t);
   }
 
   // Get the object describing the class and check for the subtyping flag

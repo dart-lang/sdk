@@ -42,43 +42,42 @@ type UInt30 extends UInt {
 
 type MagicWord = big endian 32-bit unsigned integer
 
-type String {
-  UInt num_bytes;
-  Byte[num_bytes] utf8_bytes;
-}
-
-type StringTable {
-  UInt num_strings;
-  String[num_strings] strings;
-}
-
-type StringReference {
-  UInt index; // Index into the StringTable.
-}
-
-type LineStarts {
-  UInt lineCount;
-  // Delta encoded, e.g. 0, 10, 15, 7, 10 means 0, 10, 25, 32, 42.
-  UInt[lineCount] lineStarts;
-}
-
-type UriLineStarts {
-  StringTable uris;
-  LineStarts[uris.num_strings] lineStarts;
-}
-
-type UriReference {
-  UInt index; // Index into the URIs StringTable.
-}
-
-type FileOffset {
-  // Saved as number+1 to accommodate literal "-1".
-  UInt fileOffset;
-}
-
 type List<T> {
   UInt length;
   T[length] items;
+}
+
+type String {
+  List<Byte> utf8Bytes;
+}
+
+type StringTable {
+  List<String> strings;
+}
+
+type StringReference {
+  UInt index; // Index into the StringTable strings.
+}
+
+type Source {
+  String source;
+  // Line starts are delta-encoded (they are encoded as line lengths).  The list
+  // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
+  List<Uint> lineStarts;
+}
+
+type UriSource {
+  List<String> uris;
+  Source[uris.length] source;
+}
+
+type UriReference {
+  UInt index; // Index into the UriSource uris.
+}
+
+type FileOffset {
+  // Encoded as offset + 1 to accommodate -1 indicating no offset.
+  UInt fileOffset;
 }
 
 type Option<T> {
@@ -95,14 +94,13 @@ type Something<T> extends Option<T> {
 type ProgramFile {
   MagicWord magic = 0x90ABCDEF;
   StringTable strings;
-  UriLineStarts lineStartsMap;
-  List<Library> library;
+  UriSource sourceMap;
+  List<Library> libraries;
   LibraryProcedureReference mainMethod;
 }
 
 type LibraryReference {
-  // For library files, this is an index into the import table.
-  // For program files, this is an index into the list of libaries.
+  // Index into the ProgramFile libraries.
   UInt index;
 }
 
@@ -169,8 +167,11 @@ type Name {
 type Library {
   Byte flags (isExternal);
   StringReference name;
-  // A URI with the dart, package, or file scheme.  For file URIs, the path
-  // is an absolute path to the .dart file from which the library was created.
+  // A URI from which the library was created.  The URI has the dart, package,
+  // file, or app scheme.  For file URIs, the path is an absolute path to the
+  // .dart file from which the library was created.  For app URIs, the path is
+  // relative to an application root that was specified when the binary was
+  // generated.
   StringReference importUri;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
@@ -195,6 +196,7 @@ abstract type Class extends Node {}
 
 type NormalClass extends Class {
   Byte tag = 2;
+  FileOffset fileOffset;
   Byte flags (isAbstract, isTypeLevel);
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
@@ -210,6 +212,7 @@ type NormalClass extends Class {
 
 type MixinClass extends Class {
   Byte tag = 3;
+  FileOffset fileOffset;
   Byte flags (isAbstract, isTypeLevel);
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
@@ -227,6 +230,7 @@ abstract type Member extends Node {}
 type Field extends Member {
   Byte tag = 4;
   FileOffset fileOffset;
+  FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic);
   Name name;
   // An absolute path URI to the .dart file from which the field was created.
@@ -239,6 +243,8 @@ type Field extends Member {
 
 type Constructor extends Member {
   Byte tag = 5;
+  FileOffset fileOffset;
+  FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
   Name name;
   List<Expression> annotations;
@@ -258,6 +264,8 @@ enum ProcedureKind {
 
 type Procedure extends Member {
   Byte tag = 6;
+  FileOffset fileOffset;
+  FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
   Byte flags (isStatic, isAbstract, isExternal, isConst);
   Name name;
@@ -308,7 +316,10 @@ enum AsyncMarker {
 
 type FunctionNode {
   // Note: there is no tag on FunctionNode.
+  FileOffset fileOffset;
+  FileOffset fileEndOffset;
   Byte asyncMarker; // Index into AsyncMarker above.
+  Byte debuggable; // 1 for yes, 0 for no
   List<TypeParameter> typeParameters;
   UInt requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
@@ -349,22 +360,26 @@ type InvalidExpression extends Expression {
 
 type VariableGet extends Expression {
   Byte tag = 20;
+  FileOffset fileOffset;
   VariableReference variable;
 }
 
 type SpecializedVariableGet extends Expression {
   Byte tag = 128 + N; // Where 0 <= N < 8.
   // Equivalent to a VariableGet with index N.
+  FileOffset fileOffset;
 }
 
 type VariableSet extends Expression {
   Byte tag = 21;
+  FileOffset fileOffset;
   VariableReference variable;
   Expression value;
 }
 
 type SpecializedVariableSet extends Expression {
   Byte tag = 136 + N; // Where 0 <= N < 8.
+  FileOffset fileOffset;
   Expression value;
   // Equivalent to VariableSet with index N.
 }
@@ -517,11 +532,13 @@ type ConditionalExpression extends Expression {
 
 type StringConcatenation extends Expression {
   Byte tag = 36;
+  FileOffset fileOffset;
   List<Expression> expressions;
 }
 
 type IsExpression extends Expression {
   Byte tag = 37;
+  FileOffset fileOffset;
   Expression operand;
   DartType type;
 }
@@ -612,6 +629,7 @@ type ConstListLiteral extends Expression {
 
 type MapLiteral extends Expression {
   Byte tag = 50;
+  FileOffset fileOffset;
   DartType keyType;
   DartType valueType;
   List<MapEntry> entries;
@@ -758,6 +776,7 @@ type IfStatement extends Statement {
 
 type ReturnStatement extends Statement {
   Byte tag = 74;
+  FileOffset fileOffset;
   Option<Expression> expression;
 }
 
@@ -782,6 +801,7 @@ type TryFinally extends Statement {
 
 type YieldStatement extends Statement {
   Byte tag = 77;
+  FileOffset fileOffset;
   Byte flags (isYieldStar);
   Expression expression;
 }
@@ -792,6 +812,7 @@ type VariableDeclarationStatement extends Statement {
 }
 
 type VariableDeclaration {
+  FileOffset fileOffset;
   Byte flags (isFinal, isConst);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
@@ -808,6 +829,7 @@ type VariableDeclaration {
 
 type FunctionDeclaration extends Statement {
   Byte tag = 79;
+  FileOffset fileOffset;
   // The variable binding the function.  The variable is in scope
   // within the function for use as a self-reference.
   // Some of the fields in the variable are redundant, but its presence here

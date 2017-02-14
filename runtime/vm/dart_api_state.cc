@@ -14,6 +14,8 @@
 
 namespace dart {
 
+intptr_t ApiNativeScope::current_memory_usage_ = 0;
+
 BackgroundFinalizer::BackgroundFinalizer(Isolate* isolate,
                                          FinalizationQueue* queue)
     : isolate_(isolate), queue_(queue) {

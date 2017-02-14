@@ -38,7 +38,7 @@ void main() {
 
     test('produces errors when option absent', () async {
       var testPath = path.join(testDirectory, 'data/super_mixin_example.dart');
-      new Driver().start([testPath]);
+      await new Driver().start([testPath]);
 
       expect(exitCode, 3);
       var stdout = outSink.toString();
@@ -56,7 +56,7 @@ void main() {
 
     test('produces no errors when option present', () async {
       var testPath = path.join(testDirectory, 'data/super_mixin_example.dart');
-      new Driver().start(['--supermixin', testPath]);
+      await new Driver().start(['--supermixin', testPath]);
 
       expect(exitCode, 0);
       var stdout = outSink.toString();

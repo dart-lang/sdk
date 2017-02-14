@@ -33,10 +33,11 @@ typedef void AcceptField(
 class FieldVisitor {
   final Compiler compiler;
   final Namer namer;
+  final ClosedWorld closedWorld;
 
   JavaScriptBackend get backend => compiler.backend;
 
-  FieldVisitor(this.compiler, this.namer);
+  FieldVisitor(this.compiler, this.namer, this.closedWorld);
 
   /**
    * Invokes [f] for each of the fields of [element].
@@ -71,8 +72,9 @@ class FieldVisitor {
 
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can simplify its JavaScript constructor.
-    bool isInstantiated =
-        compiler.codegenWorld.directlyInstantiatedClasses.contains(element);
+    bool isInstantiated = compiler
+        .codegenWorldBuilder.directlyInstantiatedClasses
+        .contains(element);
 
     void visitField(Element holder, FieldElement field) {
       assert(invariant(element, field.isDeclaration));
@@ -140,7 +142,7 @@ class FieldVisitor {
     if (fieldAccessNeverThrows(field)) return false;
     if (backend.shouldRetainGetter(field)) return true;
     return field.isClassMember &&
-        compiler.codegenWorld.hasInvokedGetter(field, compiler.closedWorld);
+        compiler.codegenWorldBuilder.hasInvokedGetter(field, closedWorld);
   }
 
   bool fieldNeedsSetter(VariableElement field) {
@@ -149,7 +151,7 @@ class FieldVisitor {
     if (field.isFinal || field.isConst) return false;
     if (backend.shouldRetainSetter(field)) return true;
     return field.isClassMember &&
-        compiler.codegenWorld.hasInvokedSetter(field, compiler.closedWorld);
+        compiler.codegenWorldBuilder.hasInvokedSetter(field, closedWorld);
   }
 
   static bool fieldAccessNeverThrows(VariableElement field) {
@@ -164,7 +166,7 @@ class FieldVisitor {
   bool canAvoidGeneratedCheckedSetter(VariableElement member) {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember) return true;
-    DartType type = member.type;
+    ResolutionDartType type = member.type;
     return type.treatAsDynamic || type.isObject;
   }
 }

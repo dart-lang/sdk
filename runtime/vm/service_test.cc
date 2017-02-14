@@ -33,6 +33,7 @@ class ServiceTestMessageHandler : public MessageHandler {
   MessageStatus HandleMessage(Message* message) {
     if (_msg != NULL) {
       free(_msg);
+      _msg = NULL;
     }
 
     // Parse the message.
@@ -57,6 +58,8 @@ class ServiceTestMessageHandler : public MessageHandler {
       response ^= response_array.At(0);
       _msg = strdup(reinterpret_cast<char*>(response.DataAddr(0)));
     }
+
+    delete message;
 
     return kOK;
   }

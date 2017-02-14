@@ -10,10 +10,8 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_provider.dart';
@@ -292,6 +290,24 @@ abstract class ContextManager {
   AnalysisContext getContextFor(String path);
 
   /**
+   * Return the [AnalysisDriver] for the "innermost" context whose associated
+   * folder is or contains the given path.  ("innermost" refers to the nesting
+   * of contexts, so if there is a context for path /foo and a context for
+   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+   * the context for /foo/bar.)
+   *
+   * If no driver contains the given path, `null` is returned.
+   */
+  AnalysisDriver getDriverFor(String path);
+
+  /**
+   * Return a list of all of the analysis drivers reachable from the given
+   * [analysisRoot] (the driver associated with [analysisRoot] and all of its
+   * descendants).
+   */
+  List<AnalysisDriver> getDriversInAnalysisRoot(Folder analysisRoot);
+
+  /**
    * Return `true` if the given [path] is ignored by a [ContextInfo] whose
    * folder contains it.
    */
@@ -348,6 +364,11 @@ abstract class ContextManagerCallbacks {
    * changes that need to be applied to the context.
    */
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
+
+  /**
+   * The given [file] was removed from the folder analyzed in the [driver].
+   */
+  void applyFileRemoved(AnalysisDriver driver, String file);
 
   /**
    * Signals that the context manager has started to compute a package map (if
@@ -589,6 +610,35 @@ class ContextManagerImpl implements ContextManager {
   }
 
   @override
+  AnalysisDriver getDriverFor(String path) {
+    return _getInnermostContextInfoFor(path)?.analysisDriver;
+  }
+
+  @override
+  List<AnalysisDriver> getDriversInAnalysisRoot(Folder analysisRoot) {
+    List<AnalysisDriver> drivers = <AnalysisDriver>[];
+    void addContextAndDescendants(ContextInfo info) {
+      drivers.add(info.analysisDriver);
+      info.children.forEach(addContextAndDescendants);
+    }
+
+    ContextInfo innermostContainingInfo =
+        _getInnermostContextInfoFor(analysisRoot.path);
+    if (innermostContainingInfo != null) {
+      if (analysisRoot == innermostContainingInfo.folder) {
+        addContextAndDescendants(innermostContainingInfo);
+      } else {
+        for (ContextInfo info in innermostContainingInfo.children) {
+          if (analysisRoot.isOrContains(info.folder.path)) {
+            addContextAndDescendants(info);
+          }
+        }
+      }
+    }
+    return drivers;
+  }
+
+  @override
   bool isIgnored(String path) {
     ContextInfo info = rootInfo;
     do {
@@ -627,37 +677,25 @@ class ContextManagerImpl implements ContextManager {
       return;
     }
 
-    // In case options files are removed, revert to defaults.
+    AnalysisOptionsImpl analysisOptions;
     if (optionsRemoved) {
-      // Start with defaults.
-      info.context.analysisOptions = new AnalysisOptionsImpl();
-
+      // In case options files are removed, revert to defaults.
+      analysisOptions = new AnalysisOptionsImpl.from(defaultContextOptions);
       // Apply inherited options.
       options = _toStringMap(_getEmbeddedOptions(info));
-      if (options != null) {
-        configureContextOptions(info.context, options);
-      }
     } else {
+      analysisOptions =
+          new AnalysisOptionsImpl.from(info.context.analysisOptions);
       // Check for embedded options.
       Map embeddedOptions = _getEmbeddedOptions(info);
       if (embeddedOptions != null) {
         options = _toStringMap(new Merger().merge(embeddedOptions, options));
       }
     }
-
-    // Notify options processors.
-    AnalysisEngine.instance.optionsPlugin.optionsProcessors
-        .forEach((OptionsProcessor p) {
-      try {
-        p.optionsProcessed(info.context, options);
-      } catch (e, stacktrace) {
-        AnalysisEngine.instance.logger.logError(
-            'Error processing analysis options',
-            new CaughtException(e, stacktrace));
-      }
-    });
-
-    configureContextOptions(info.context, options);
+    if (options != null) {
+      applyToAnalysisOptions(analysisOptions, options);
+    }
+    info.context.analysisOptions = analysisOptions;
 
     // Nothing more to do.
     if (options == null) {
@@ -678,50 +716,19 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Process [options] for the given context [info].
    */
-  void processOptionsForDriver(ContextInfo info, Map<String, Object> options,
-      {bool optionsRemoved: false}) {
-    if (options == null && !optionsRemoved) {
-      return;
-    }
-    AnalysisOptions analysisOptions = info.analysisDriver.analysisOptions;
-
-    // In case options files are removed, revert to defaults.
-    if (optionsRemoved) {
-      // Start with defaults.
-      analysisOptions.resetToDefaults();
-
-      // Apply inherited options.
-      options = _toStringMap(_getEmbeddedOptions(info));
-      if (options != null) {
-        applyToAnalysisOptions(analysisOptions, options);
-      }
-    } else {
-      // Check for embedded options.
-      Map embeddedOptions = _getEmbeddedOptions(info);
-      if (embeddedOptions != null) {
-        options = _toStringMap(new Merger().merge(embeddedOptions, options));
-      }
-    }
-
-    // TODO(brianwilkerson) Figure out what to do here.
-//    // Notify options processors.
-//    AnalysisEngine.instance.optionsPlugin.optionsProcessors
-//        .forEach((OptionsProcessor p) {
-//      try {
-//        p.optionsProcessed(info.context, options);
-//      } catch (e, stacktrace) {
-//        AnalysisEngine.instance.logger.logError(
-//            'Error processing analysis options',
-//            new CaughtException(e, stacktrace));
-//      }
-//    });
-
-    applyToAnalysisOptions(analysisOptions, options);
-
-    // Nothing more to do.
+  void processOptionsForDriver(ContextInfo info,
+      AnalysisOptionsImpl analysisOptions, Map<String, Object> options) {
     if (options == null) {
       return;
     }
+
+    // Check for embedded options.
+    Map embeddedOptions = _getEmbeddedOptions(info);
+    if (embeddedOptions != null) {
+      options = _toStringMap(new Merger().merge(embeddedOptions, options));
+    }
+
+    applyToAnalysisOptions(analysisOptions, options);
 
     var analyzer = options[AnalyzerOptions.analyzer];
     if (analyzer is Map) {
@@ -978,15 +985,27 @@ class ContextManagerImpl implements ContextManager {
   void _checkForAnalysisOptionsUpdate(
       String path, ContextInfo info, ChangeType changeType) {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
-      var analysisContext = info.context;
-      if (analysisContext is context.AnalysisContextImpl) {
-        Map<String, Object> options =
-            readOptions(info.folder, info.disposition.packages);
-        processOptionsForContext(info, options,
-            optionsRemoved: changeType == ChangeType.REMOVE);
-        analysisContext.sourceFactory = _createSourceFactory(
-            analysisContext, analysisContext.analysisOptions, info.folder);
-        callbacks.applyChangesToContext(info.folder, new ChangeSet());
+      if (enableNewAnalysisDriver) {
+        AnalysisDriver driver = info.analysisDriver;
+        String contextRoot = info.folder.path;
+        ContextBuilder builder =
+            callbacks.createContextBuilder(info.folder, defaultContextOptions);
+        AnalysisOptions options = builder.getAnalysisOptions(contextRoot);
+        SourceFactory factory =
+            builder.createSourceFactory(contextRoot, options);
+        driver.configure(analysisOptions: options, sourceFactory: factory);
+        // TODO(brianwilkerson) Set exclusion patterns.
+      } else {
+        var analysisContext = info.context;
+        if (analysisContext is context.AnalysisContextImpl) {
+          Map<String, Object> options =
+              readOptions(info.folder, info.disposition.packages);
+          processOptionsForContext(info, options,
+              optionsRemoved: changeType == ChangeType.REMOVE);
+          analysisContext.sourceFactory = _createSourceFactory(
+              analysisContext, analysisContext.analysisOptions, info.folder);
+          callbacks.applyChangesToContext(info.folder, new ChangeSet());
+        }
       }
     }
   }
@@ -999,11 +1018,15 @@ class ContextManagerImpl implements ContextManager {
       String contextRoot = info.folder.path;
       ContextBuilder builder =
           callbacks.createContextBuilder(info.folder, defaultContextOptions);
-      AnalysisOptions options =
-          builder.getAnalysisOptions(info.context, contextRoot);
+      AnalysisOptions options = builder.getAnalysisOptions(contextRoot);
       SourceFactory factory = builder.createSourceFactory(contextRoot, options);
-      info.context.analysisOptions = options;
-      info.context.sourceFactory = factory;
+      if (enableNewAnalysisDriver) {
+        AnalysisDriver driver = info.analysisDriver;
+        driver.configure(analysisOptions: options, sourceFactory: factory);
+      } else {
+        info.context.analysisOptions = options;
+        info.context.sourceFactory = factory;
+      }
     }
   }
 
@@ -1015,11 +1038,11 @@ class ContextManagerImpl implements ContextManager {
    */
   List<String> _computeFlushedFiles(ContextInfo info) {
     if (enableNewAnalysisDriver) {
-      Set<String> flushedFiles = info.analysisDriver.knownFiles.toSet();
+      Set<String> flushedFiles = info.analysisDriver.addedFiles.toSet();
       for (ContextInfo contextInfo in rootInfo.descendants) {
         AnalysisDriver other = contextInfo.analysisDriver;
         if (other != info.analysisDriver) {
-          flushedFiles.removeAll(other.knownFiles);
+          flushedFiles.removeAll(other.addedFiles);
         }
       }
       return flushedFiles.toList(growable: false);
@@ -1142,30 +1165,12 @@ class ContextManagerImpl implements ContextManager {
 
     info.setDependencies(dependencies);
     if (enableNewAnalysisDriver) {
+      processOptionsForDriver(info, options, optionMap);
       info.analysisDriver = callbacks.addAnalysisDriver(folder, options);
     } else {
       info.context = callbacks.addContext(folder, options);
       _folderMap[folder] = info.context;
       info.context.name = folder.path;
-    }
-
-    // Look for pubspec-specified analysis configuration.
-    File pubspec;
-    if (packagespecFile?.exists == true) {
-      if (packagespecFile.shortName == PUBSPEC_NAME) {
-        pubspec = packagespecFile;
-      }
-    }
-    if (pubspec == null) {
-      Resource child = folder.getChild(PUBSPEC_NAME);
-      if (child.exists && child is File) {
-        pubspec = child;
-      }
-    }
-
-    if (enableNewAnalysisDriver) {
-      processOptionsForDriver(info, optionMap);
-    } else {
       processOptionsForContext(info, optionMap);
     }
 
@@ -1479,7 +1484,7 @@ class ContextManagerImpl implements ContextManager {
         }
 
         if (enableNewAnalysisDriver) {
-          info.analysisDriver.removeFile(path);
+          callbacks.applyFileRemoved(info.analysisDriver, path);
         } else {
           List<Source> sources = info.context.getSourcesWithFullName(path);
           if (!sources.isEmpty) {
@@ -1665,10 +1670,18 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _updateContextPackageUriResolver(Folder contextFolder) {
-    AnalysisContext context = folderMap[contextFolder];
-    context.sourceFactory =
-        _createSourceFactory(context, context.analysisOptions, contextFolder);
-    callbacks.updateContextPackageUriResolver(context);
+    if (enableNewAnalysisDriver) {
+      ContextInfo info = getContextInfoFor(contextFolder);
+      AnalysisDriver driver = info.analysisDriver;
+      SourceFactory sourceFactory =
+          _createSourceFactory(null, driver.analysisOptions, contextFolder);
+      driver.configure(sourceFactory: sourceFactory);
+    } else {
+      AnalysisContext context = folderMap[contextFolder];
+      context.sourceFactory =
+          _createSourceFactory(context, context.analysisOptions, contextFolder);
+      callbacks.updateContextPackageUriResolver(context);
+    }
   }
 
   /**

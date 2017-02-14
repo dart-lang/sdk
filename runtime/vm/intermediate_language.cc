@@ -3075,6 +3075,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     // Unoptimized code.
     ASSERT(!HasICData());
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
+                                   token_pos());
     bool is_smi_two_args_op = false;
     const StubEntry* stub_entry = TwoArgsSmiOpInlineCacheEntry(token_kind());
     if (stub_entry != NULL) {
@@ -3123,7 +3125,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   compiler->AddCurrentDescriptor(RawPcDescriptors::kIcCall, deopt_id(),
                                  token_pos());
-  compiler->RecordAfterCall(this);
+  compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
 
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
@@ -3271,7 +3273,7 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ StaticCall(ArgumentCount(), argdesc_kidx);
     compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                    token_pos());
-    compiler->RecordAfterCall(this);
+    compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
     __ PopLocal(locs()->out(0).reg());
   } else {
     const intptr_t ic_data_kidx = __ AddConstant(*call_ic_data);
@@ -3279,7 +3281,7 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ IndirectStaticCall(ArgumentCount(), argdesc_kidx);
     compiler->AddCurrentDescriptor(RawPcDescriptors::kUnoptStaticCall,
                                    deopt_id(), token_pos());
-    compiler->RecordAfterCall(this);
+    compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
   }
 #endif  // !defined(TARGET_ARCH_DBC)
 }
@@ -3322,6 +3324,11 @@ Environment* Environment::From(Zone* zone,
     env->values_.Add(new (zone) Value(definitions[i]));
   }
   return env;
+}
+
+
+void Environment::PushValue(Value* value) {
+  values_.Add(value);
 }
 
 
@@ -3609,7 +3616,7 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
         pieces.SetAt(store_index, Bool::Cast(obj).value() ? Symbols::True()
                                                           : Symbols::False());
       } else if (obj.IsNull()) {
-        pieces.SetAt(store_index, Symbols::Null());
+        pieces.SetAt(store_index, Symbols::null());
       } else {
         return this;
       }

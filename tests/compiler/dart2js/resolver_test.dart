@@ -8,7 +8,7 @@ import 'dart:collection';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/constants/expressions.dart';
-import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/modelx.dart';
 import 'package:compiler/src/resolution/constructors.dart';
 import 'package:compiler/src/resolution/members.dart';
@@ -147,11 +147,12 @@ Future testTypeVariables() {
   matchResolvedTypes(visitor, text, name, expectedElements) {
     VariableDefinitions definition = parseStatement(text);
     visitor.visit(definition.type);
-    InterfaceType type = visitor.registry.mapping.getType(definition.type);
+    ResolutionInterfaceType type =
+        visitor.registry.mapping.getType(definition.type);
     Expect.equals(
         definition.type.typeArguments.slowLength(), type.typeArguments.length);
     int index = 0;
-    for (DartType argument in type.typeArguments) {
+    for (ResolutionDartType argument in type.typeArguments) {
       Expect.equals(true, index < expectedElements.length);
       Expect.equals(expectedElements[index], argument.element);
       index++;
@@ -164,8 +165,10 @@ Future testTypeVariables() {
       ResolverVisitor visitor = compiler.resolverVisitor();
       compiler.parseScript('class Foo<T, U> {}');
       ClassElement foo = compiler.mainApp.find('Foo');
-      matchResolvedTypes(visitor, 'Foo<int, String> x;', 'Foo',
-          [compiler.coreClasses.intClass, compiler.coreClasses.stringClass]);
+      matchResolvedTypes(visitor, 'Foo<int, String> x;', 'Foo', [
+        compiler.commonElements.intClass,
+        compiler.commonElements.stringClass
+      ]);
       matchResolvedTypes(visitor, 'Foo<Foo, Foo> x;', 'Foo', [foo, foo]);
     }),
     MockCompiler.create((MockCompiler compiler) {
@@ -801,7 +804,7 @@ Future testClassHierarchy() {
       Expect.equals(0, collector.warnings.length);
       Expect.equals(0, collector.errors.length);
       ClassElement aElement = compiler.mainApp.find("A");
-      Link<DartType> supertypes = aElement.allSupertypes;
+      Link<ResolutionDartType> supertypes = aElement.allSupertypes;
       Expect.equals(<String>['B', 'C', 'Object'].toString(),
           asSortedStrings(supertypes).toString());
     }),
@@ -818,7 +821,7 @@ Future testClassHierarchy() {
       Expect.equals(0, collector.warnings.length);
       Expect.equals(0, collector.errors.length);
       ClassElement aElement = compiler.mainApp.find("C");
-      Link<DartType> supertypes = aElement.allSupertypes;
+      Link<ResolutionDartType> supertypes = aElement.allSupertypes;
       // Object is once per inheritance path, that is from both A and I.
       Expect.equals(
           <String>[
@@ -840,7 +843,7 @@ Future testClassHierarchy() {
       Expect.equals(0, collector.warnings.length);
       Expect.equals(0, collector.errors.length);
       ClassElement aElement = compiler.mainApp.find("E");
-      Link<DartType> supertypes = aElement.allSupertypes;
+      Link<ResolutionDartType> supertypes = aElement.allSupertypes;
       Expect.equals(<String>['A<E>', 'D', 'Object'].toString(),
           asSortedStrings(supertypes).toString());
     }),

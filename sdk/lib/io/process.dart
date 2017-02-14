@@ -229,7 +229,7 @@ abstract class Process {
    * get the original 32-bit value use `(0x100000000 + exitCode) &
    * 0xffffffff`.
    */
-  Future<int> exitCode;
+  Future<int> get exitCode;
 
   /**
    * Starts a process running the [executable] with the specified

@@ -9,7 +9,7 @@ part of dart.core;
  */
 abstract class Pattern {
   // NOTE: When using "start" index from the language library, call
-  // without an argument if start is zero. This allows backwards compatiblity
+  // without an argument if start is zero. This allows backwards compatibility
   // with implementations of the older interface that didn't have the start
   // index argument.
   /**
@@ -66,7 +66,7 @@ abstract class Pattern {
  *     my
  *     string
  *
- * Some patterns, regular expressions in particular, may record subtrings
+ * Some patterns, regular expressions in particular, may record substrings
  * that were part of the matching. These are called _groups_ in the Match
  * object. Some patterns may never have any groups, and their matches always
  * have zero [groupCount].

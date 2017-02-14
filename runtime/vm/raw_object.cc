@@ -145,10 +145,10 @@ intptr_t RawObject::SizeFromClass() const {
       instance_size = CodeSourceMap::InstanceSize(length);
       break;
     }
-    case kStackmapCid: {
-      const RawStackmap* map = reinterpret_cast<const RawStackmap*>(this);
+    case kStackMapCid: {
+      const RawStackMap* map = reinterpret_cast<const RawStackMap*>(this);
       intptr_t length = map->ptr()->length_;
-      instance_size = Stackmap::InstanceSize(length);
+      instance_size = StackMap::InstanceSize(length);
       break;
     }
     case kLocalVarDescriptorsCid: {
@@ -393,6 +393,14 @@ intptr_t RawClosureData::VisitClosureDataPointers(
 }
 
 
+intptr_t RawSignatureData::VisitSignatureDataPointers(
+    RawSignatureData* raw_obj,
+    ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return SignatureData::InstanceSize();
+}
+
+
 intptr_t RawRedirectionData::VisitRedirectionDataPointers(
     RawRedirectionData* raw_obj,
     ObjectPointerVisitor* visitor) {
@@ -607,9 +615,9 @@ intptr_t RawCodeSourceMap::VisitCodeSourceMapPointers(
 }
 
 
-intptr_t RawStackmap::VisitStackmapPointers(RawStackmap* raw_obj,
+intptr_t RawStackMap::VisitStackMapPointers(RawStackMap* raw_obj,
                                             ObjectPointerVisitor* visitor) {
-  return Stackmap::InstanceSize(raw_obj->ptr()->length_);
+  return StackMap::InstanceSize(raw_obj->ptr()->length_);
 }
 
 
@@ -955,12 +963,12 @@ intptr_t RawSendPort::VisitSendPortPointers(RawSendPort* raw_obj,
 }
 
 
-intptr_t RawStacktrace::VisitStacktracePointers(RawStacktrace* raw_obj,
+intptr_t RawStackTrace::VisitStackTracePointers(RawStackTrace* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return Stacktrace::InstanceSize();
+  return StackTrace::InstanceSize();
 }
 
 

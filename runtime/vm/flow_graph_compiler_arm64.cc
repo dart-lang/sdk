@@ -51,11 +51,6 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
 }
 
 
-bool FlowGraphCompiler::SupportsSinCos() {
-  return false;
-}
-
-
 bool FlowGraphCompiler::CanConvertUnboxedMintToDouble() {
   // ARM does not have a short instruction sequence for converting int64 to
   // double.
@@ -543,7 +538,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 
 // If instanceof type test cannot be performed successfully at compile time and
 // therefore eliminated, optimize it by adding inlined tests for:
-// - NULL -> return false.
+// - NULL -> return type == Null (type is not Object or dynamic).
 // - Smi -> compile time subtype check (only if dst class is not parameterized).
 // - Class equality (only if class is not parameterized).
 // Inputs:
@@ -557,6 +552,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            bool negate_result,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
+  ASSERT(!type.IsObjectType() && !type.IsDynamicType());
 
   // Preserve instantiator type arguments (R1).
   __ Push(R1);
@@ -565,13 +561,13 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
-    // A null object is only an instance of Object and dynamic, which has
-    // already been checked above (if the type is instantiated). So we can
-    // return false here if the instance is null (and if the type is
-    // instantiated).
+    // A null object is only an instance of Null, Object, and dynamic.
+    // Object and dynamic have already been checked above (if the type is
+    // instantiated). So we can return false here if the instance is null,
+    // unless the type is Null (and if the type is instantiated).
     // We can only inline this null check if the type is instantiated at compile
-    // time, since an uninstantiated type at compile time could be Object or
-    // dynamic at run time.
+    // time, since an uninstantiated type at compile time could be Null, Object,
+    // or dynamic at run time.
     __ CompareObject(R0, Object::null_object());
     __ b(type.IsNullType() ? &is_instance : &is_not_instance, EQ);
   }

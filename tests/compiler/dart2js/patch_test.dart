@@ -166,6 +166,59 @@ Future testPatchFunctionMetadata() async {
       "Unexpected patch metadata: ${patch.metadata}.");
 }
 
+Future testPatchFunctionGeneric() async {
+  var compiler = await applyPatch(
+      "external T test<T>();", "@patch T test<T>() { return null; } ");
+  Element origin = ensure(
+      compiler, "test", compiler.commonElements.coreLibrary.find,
+      expectIsPatched: true, checkHasBody: true);
+  ensure(compiler, "test", compiler.commonElements.coreLibrary.patch.find,
+      expectIsPatch: true, checkHasBody: true);
+  compiler.resolver.resolve(origin);
+
+  DiagnosticCollector collector = compiler.diagnosticCollector;
+  Expect.isTrue(
+      collector.warnings.isEmpty, "Unexpected warnings: ${collector.warnings}");
+  Expect.isTrue(
+      collector.errors.isEmpty, "Unexpected errors: ${collector.errors}");
+}
+
+Future testPatchFunctionGenericExtraTypeVariable() async {
+  var compiler = await applyPatch(
+      "external T test<T>();", "@patch T test<T, S>() { return null; } ");
+  Element origin = ensure(
+      compiler, "test", compiler.commonElements.coreLibrary.find,
+      expectIsPatched: true, checkHasBody: true);
+  ensure(compiler, "test", compiler.commonElements.coreLibrary.patch.find,
+      expectIsPatch: true, checkHasBody: true);
+  compiler.resolver.resolve(origin);
+
+  DiagnosticCollector collector = compiler.diagnosticCollector;
+  Expect.isTrue(
+      collector.warnings.isEmpty, "Unexpected warnings: ${collector.warnings}");
+  Expect.equals(1, collector.errors.length);
+  Expect.isTrue(collector.errors.first.message.kind ==
+      MessageKind.PATCH_TYPE_VARIABLES_MISMATCH);
+}
+
+Future testPatchFunctionGenericDifferentNames() async {
+  var compiler = await applyPatch(
+      "external T test<T, S>();", "@patch T test<S, T>() { return null; } ");
+  Element origin = ensure(
+      compiler, "test", compiler.commonElements.coreLibrary.find,
+      expectIsPatched: true, checkHasBody: true);
+  ensure(compiler, "test", compiler.commonElements.coreLibrary.patch.find,
+      expectIsPatch: true, checkHasBody: true);
+  compiler.resolver.resolve(origin);
+
+  DiagnosticCollector collector = compiler.diagnosticCollector;
+  Expect.isTrue(
+      collector.warnings.isEmpty, "Unexpected warnings: ${collector.warnings}");
+  Expect.equals(1, collector.errors.length);
+  Expect.isTrue(collector.errors.first.message.kind ==
+      MessageKind.PATCH_TYPE_VARIABLES_MISMATCH);
+}
+
 Future testPatchVersioned() async {
   String fullPatch = "test(){return 'string';}";
   String lazyPatch = "test(){return 'new and improved string';}";
@@ -920,7 +973,8 @@ Future testPatchAndSelector() async {
       """,
       runCompiler: true,
       analyzeOnly: true);
-  ClosedWorld world = compiler.openWorld.closeWorld(compiler.reporter);
+  compiler.closeResolution();
+  ClosedWorld world = compiler.resolutionWorldBuilder.closedWorldForTesting;
 
   ClassElement cls = ensure(
       compiler, "A", compiler.commonElements.coreLibrary.find,
@@ -940,7 +994,7 @@ Future testPatchAndSelector() async {
   Selector selector =
       new Selector.call(const PublicName('method'), CallStructure.NO_ARGS);
   TypeMask typeMask = new TypeMask.exact(cls, world);
-  FunctionElement method = cls.implementation.lookupLocalMember('method');
+  MethodElement method = cls.implementation.lookupLocalMember('method');
   method.computeType(compiler.resolution);
   Expect.isTrue(selector.applies(method));
   Expect.isTrue(typeMask.canHit(method, selector, world));
@@ -1086,6 +1140,9 @@ main() {
     await testPatchRedirectingConstructor();
     await testPatchFunction();
     await testPatchFunctionMetadata();
+    await testPatchFunctionGeneric();
+    await testPatchFunctionGenericExtraTypeVariable();
+    await testPatchFunctionGenericDifferentNames();
     await testPatchMember();
     await testPatchGetter();
     await testRegularMember();

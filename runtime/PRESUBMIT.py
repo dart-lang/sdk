@@ -5,6 +5,7 @@
 import os
 import cpplint
 import re
+import StringIO
 
 # memcpy does not handle overlapping memory regions. Even though this
 # is well documented it seems to be used in error quite often. To avoid
@@ -49,7 +50,17 @@ def CheckGn(input_api, output_api):
 
 
 def CheckFormatted(input_api, output_api):
-  return input_api.canned_checks.CheckPatchFormatted(input_api, output_api)
+  def convert_warning_to_error(presubmit_result):
+    if not presubmit_result.fatal:
+      # Convert this warning to an error.
+      stream = StringIO.StringIO()
+      presubmit_result.handle(stream)
+      message = stream.getvalue()
+      return output_api.PresubmitError(message)
+    return presubmit_result
+
+  results = input_api.canned_checks.CheckPatchFormatted(input_api, output_api)
+  return [convert_warning_to_error(r) for r in results]
 
 
 def CheckChangeOnUpload(input_api, output_api):
