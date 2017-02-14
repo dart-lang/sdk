@@ -467,7 +467,7 @@ abstract class Compiler implements LibraryLoaderListener {
     // multiple times. Implement a better mechanism where we can store
     // such caches in the compiler and get access to them through a
     // suitably maintained static reference to the current compiler.
-    StringToken.canonicalizer.clear();
+    StringToken.canonicalizedSubstrings.clear();
     Selector.canonicalizedValues.clear();
 
     // The selector objects held in static fields must remain canonical.
