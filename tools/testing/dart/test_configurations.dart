@@ -270,7 +270,7 @@ Future testConfigurations(List<Map> configurations) async {
     eventListener.add(new TestOutcomeLogWriter());
   }
   if (firstConf['copy_coredumps']) {
-    eventListener.add(new UnexpectedCrashDumpArchiver());
+    eventListener.add(new UnexpectedCrashLogger());
   }
 
   // The only progress indicator when listing tests should be the
