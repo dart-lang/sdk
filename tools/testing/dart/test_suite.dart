@@ -2229,6 +2229,9 @@ class TestUtils {
     if (compiler == "dart2js" && configuration["fast_startup"]) {
       args.add("--fast-startup");
     }
+    if (compiler == "dart2js" && configuration["dart2js_with_kernel"]) {
+      args.add("--use-kernel");
+    }
     if (compiler == "dart2analyzer") {
       args.add("--show-package-warnings");
       args.add("--enable-async");
