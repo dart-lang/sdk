@@ -266,9 +266,8 @@ class AnalyzerImpl {
       if (analysisDriver != null) {
         String path = librarySource.fullName;
         analysisDriver.priorityFiles = [path];
-        UnitElementResult elementResult =
-            await analysisDriver.getUnitElement(path);
-        return elementResult.element.library;
+        AnalysisResult analysisResult = await analysisDriver.getResult(path);
+        return analysisResult.unit.element.library;
       } else {
         return context.computeLibraryElement(librarySource);
       }

@@ -45,6 +45,4 @@ DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
 ANALYZER="$DART_ROOT/pkg/analyzer_cli/bin/analyzer.dart"
 
-DEV_OPTIONS="--use-analysis-driver-memory-byte-store"
-
-exec "$DART" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$ANALYZER" "$DEV_OPTIONS" "$SDK_ARG" "$@"
+exec "$DART" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$ANALYZER" "$SDK_ARG" "$@"
