@@ -48,4 +48,4 @@ This file is validated by `coverage_test.dart`.
 - [ ] execution.setSubscriptions
 
 ## diagnostic domain
-- [ ] diagnostic.getDiagnostics
+- [x] diagnostic.getDiagnostics
