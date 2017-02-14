@@ -165,6 +165,15 @@ abstract class ScannerTestBase {
     _assertToken(TokenType.AMPERSAND_EQ, "&=");
   }
 
+  void test_angle_brackets_are_ordinary_tokens() {
+    // Analyzer's token streams don't consider "<" to be an opener.
+    var lessThan = _scan('<>');
+    var greaterThan = lessThan.next;
+    expect(greaterThan.next.type, TokenType.EOF);
+    expect(lessThan, isNot(new isInstanceOf<BeginToken>()));
+    expect(greaterThan, isNot(new isInstanceOf<BeginToken>()));
+  }
+
   void test_async_star() {
     Token token = _scan("async*");
     expect(token.type, TokenType.IDENTIFIER);
@@ -697,6 +706,46 @@ abstract class ScannerTestBase {
     _assertToken(TokenType.LT_LT_EQ, "<<=");
   }
 
+  void test_matching_braces() {
+    var openBrace1 = _scan('{1: {2: 3}}') as BeginToken;
+    var one = openBrace1.next;
+    var colon1 = one.next;
+    var openBrace2 = colon1.next as BeginToken;
+    var two = openBrace2.next;
+    var colon2 = two.next;
+    var three = colon2.next;
+    var closeBrace1 = three.next;
+    var closeBrace2 = closeBrace1.next;
+    expect(closeBrace2.next.type, TokenType.EOF);
+    expect(openBrace1.endToken, same(closeBrace2));
+    expect(openBrace2.endToken, same(closeBrace1));
+  }
+
+  void test_matching_brackets() {
+    var openBracket1 = _scan('[1, [2]]') as BeginToken;
+    var one = openBracket1.next;
+    var comma = one.next;
+    var openBracket2 = comma.next as BeginToken;
+    var two = openBracket2.next;
+    var closeBracket1 = two.next;
+    var closeBracket2 = closeBracket1.next;
+    expect(closeBracket2.next.type, TokenType.EOF);
+    expect(openBracket1.endToken, same(closeBracket2));
+    expect(openBracket2.endToken, same(closeBracket1));
+  }
+
+  void test_matching_parens() {
+    var openParen1 = _scan('(f(x))') as BeginToken;
+    var f = openParen1.next;
+    var openParen2 = f.next as BeginToken;
+    var x = openParen2.next;
+    var closeParen1 = x.next;
+    var closeParen2 = closeParen1.next;
+    expect(closeParen2.next.type, TokenType.EOF);
+    expect(openParen1.endToken, same(closeParen2));
+    expect(openParen2.endToken, same(closeParen1));
+  }
+
   void test_minus() {
     _assertToken(TokenType.MINUS, "-");
   }
@@ -707,6 +756,49 @@ abstract class ScannerTestBase {
 
   void test_minus_minus() {
     _assertToken(TokenType.MINUS_MINUS, "--");
+  }
+
+  void test_mismatched_closer() {
+    // When openers and closers are mismatched, analyzer favors considering the
+    // closer to be mismatched, which means that `(])` parses as a pair of
+    // matched parentheses with an unmatched closing bracket between them.
+    var openParen = _scan('(])') as BeginToken;
+    var closeBracket = openParen.next;
+    var closeParen = closeBracket.next;
+    expect(closeParen.next.type, TokenType.EOF);
+    expect(openParen.endToken, same(closeParen));
+  }
+
+  void test_mismatched_opener() {
+    // When openers and closers are mismatched, analyzer favors considering the
+    // closer to be mismatched, which means that `([)` parses as three unmatched
+    // tokens.
+    var openParen = _scan('([)') as BeginToken;
+    var openBracket = openParen.next as BeginToken;
+    var closeParen = openBracket.next;
+    expect(closeParen.next.type, TokenType.EOF);
+    expect(openParen.endToken, isNull);
+    expect(openBracket.endToken, isNull);
+  }
+
+  void test_mismatched_opener_in_interpolation() {
+    // In an interpolation expression, analyzer considers a closing `}` to
+    // always matche the preceding unmatched `{`, even if there are intervening
+    // unmatched tokens, which means that `"${({(}}"` parses as though the open
+    // parens are unmatched but everything else is matched.
+    var stringStart = _scan(r'"${({(}}"');
+    var interpolationStart = stringStart.next as BeginToken;
+    var openParen1 = interpolationStart.next as BeginToken;
+    var openBrace = openParen1.next as BeginToken;
+    var openParen2 = openBrace.next as BeginToken;
+    var closeBrace = openParen2.next;
+    var interpolationEnd = closeBrace.next;
+    var stringEnd = interpolationEnd.next;
+    expect(stringEnd.next.type, TokenType.EOF);
+    expect(interpolationStart.endToken, same(interpolationEnd));
+    expect(openParen1.endToken, isNull);
+    expect(openBrace.endToken, same(closeBrace));
+    expect(openParen2.endToken, isNull);
   }
 
   void test_open_curly_bracket() {
@@ -1092,6 +1184,16 @@ abstract class ScannerTestBase {
   void test_unclosedPairInInterpolation() {
     ErrorListener listener = new ErrorListener();
     scanWithListener("'\${(}'", listener);
+  }
+
+  void test_unmatched_openers() {
+    var openBrace = _scan('{[(') as BeginToken;
+    var openBracket = openBrace.next as BeginToken;
+    var openParen = openBracket.next as BeginToken;
+    expect(openParen.next.type, TokenType.EOF);
+    expect(openBrace.endToken, isNull);
+    expect(openBracket.endToken, isNull);
+    expect(openParen.endToken, isNull);
   }
 
   void _assertComment(TokenType commentType, String source,

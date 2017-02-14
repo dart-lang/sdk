@@ -91,6 +91,22 @@ class ScannerTest_Fasta extends ScannerTestBase {
 
   @override
   @failingTest
+  void test_mismatched_closer() {
+    // TODO(paulberry,ahe): Fasta and analyzer recover this error differently.
+    // Figure out which recovery technique we want the front end to use.
+    super.test_mismatched_closer();
+  }
+
+  @override
+  @failingTest
+  void test_mismatched_opener() {
+    // TODO(paulberry,ahe): Fasta and analyzer recover this error differently.
+    // Figure out which recovery technique we want the front end to use.
+    super.test_mismatched_opener();
+  }
+
+  @override
+  @failingTest
   void test_scriptTag_withArgs() {
     // TODO(paulberry,ahe): script tags are needed by analyzer.
     super.test_scriptTag_withArgs();

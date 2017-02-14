@@ -8,7 +8,8 @@ import 'package:front_end/src/fasta/parser/error_kind.dart' show
     ErrorKind;
 
 import 'package:front_end/src/fasta/scanner/error_token.dart' show
-    ErrorToken;
+    ErrorToken,
+    UnmatchedToken;
 
 import 'package:front_end/src/fasta/scanner/keyword.dart' show
     Keyword;
@@ -25,6 +26,8 @@ import 'package:front_end/src/fasta/scanner/token.dart' show
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 
 import 'package:front_end/src/scanner/token.dart' as analyzer show
+    BeginToken,
+    BeginTokenWithComment,
     CommentToken,
     Keyword,
     KeywordToken,
@@ -61,6 +64,30 @@ analyzer.Token toAnalyzerTokenStream(
   // operations.
   analyzer.CommentToken currentCommentHead;
   analyzer.CommentToken currentCommentTail;
+  // Note: beginTokenStack and endTokenStack are seeded with a sentinel value
+  // so that we don't have to check if they're empty.
+  var beginTokenStack = <analyzer.BeginToken>[null];
+  var endTokenStack = <Token>[null];
+  void matchGroups(Token token, analyzer.Token translatedToken) {
+    // If this token closes a group, set the corresponding opener token
+    // to point to it.
+    if (identical(endTokenStack.last, token)) {
+      beginTokenStack.last.endToken = translatedToken;
+      beginTokenStack.removeLast();
+      endTokenStack.removeLast();
+    }
+    // If this token opens a group, and there is a matching closer that's not
+    // synthetic, put it on the stack.  The easiest way to tell whether the
+    // closer is synthetic is to see if it has the same offset as the opener.
+    if (translatedToken is analyzer.BeginToken &&
+        token is BeginGroupToken &&
+        token.endGroup != null &&
+        token.endGroup.charOffset != token.charOffset) {
+      beginTokenStack.add(translatedToken);
+      endTokenStack.add(token.endGroup);
+    }
+  }
+
   while (true) {
     if (token.info.kind == BAD_INPUT_TOKEN) {
       ErrorToken errorToken = token;
@@ -81,6 +108,7 @@ analyzer.Token toAnalyzerTokenStream(
       }
     } else {
       var translatedToken = toAnalyzerToken(token, currentCommentHead);
+      matchGroups(token, translatedToken);
       translatedToken.setNext(translatedToken);
       currentCommentHead = currentCommentTail = null;
       analyzerTokenTail.setNext(translatedToken);
@@ -103,10 +131,37 @@ analyzer.Token toAnalyzerTokenStream(
 Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
   Token tokenHead = new SymbolToken(EOF_INFO, -1);
   Token tokenTail = tokenHead;
+  // Note: beginTokenStack and endTokenStack are seeded with a sentinel value
+  // so that we don't have to check if they're empty.
+  var beginTokenStack = <BeginGroupToken>[null];
+  var endTokenStack = <analyzer.Token>[null];
+  void matchGroups(analyzer.Token analyzerToken, Token translatedToken) {
+    // If this token closes a group, set the corresponding opener token to point
+    // to it.
+    if (identical(endTokenStack.last, analyzerToken)) {
+      beginTokenStack.last.endGroup = translatedToken;
+      beginTokenStack.removeLast();
+      endTokenStack.removeLast();
+    }
+    // If this token opens a group, and there is a matching closer, put it on
+    // the stack.
+    // TODO(paulberry): generate synthetic closer tokens and "UnmatchedToken"
+    // tokens as appropriate.
+    // TODO(paulberry): match up "<" and ">"/">>" (analyzer doesn't match
+    // these).
+    if (translatedToken is BeginGroupToken &&
+        analyzerToken is analyzer.BeginToken &&
+        analyzerToken.endToken != null) {
+      beginTokenStack.add(translatedToken);
+      endTokenStack.add(analyzerToken.endToken);
+    }
+  }
+
   analyzer.Token translateAndAppend(analyzer.Token analyzerToken) {
     var token = fromAnalyzerToken(analyzerToken);
     tokenTail.next = token;
     tokenTail = token;
+    matchGroups(analyzerToken, token);
     return analyzerToken.next;
   }
 
@@ -380,6 +435,15 @@ analyzer.Token toAnalyzerToken(Token token,
     }
   }
 
+  analyzer.Token makeBeginToken(TokenType tokenType) {
+    if (commentToken == null) {
+      return new analyzer.BeginToken(tokenType, token.charOffset);
+    } else {
+      return new analyzer.BeginTokenWithComment(
+          tokenType, token.charOffset, commentToken);
+    }
+  }
+
   switch (token.kind) {
     case DOUBLE_TOKEN:
       return makeStringToken(TokenType.DOUBLE);
@@ -422,6 +486,12 @@ analyzer.Token toAnalyzerToken(Token token,
 
     case STRING_TOKEN:
       return makeStringToken(TokenType.STRING);
+
+    case OPEN_CURLY_BRACKET_TOKEN:
+    case OPEN_SQUARE_BRACKET_TOKEN:
+    case OPEN_PAREN_TOKEN:
+    case STRING_INTERPOLATION_TOKEN:
+      return makeBeginToken(getTokenType(token));
 
     default:
       if (commentToken == null) {
