@@ -12909,7 +12909,8 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
       if ((resolved == NULL) || (resolved_func_level < type_param_func_level)) {
         // The identifier is a function type parameter, possibly shadowing
         // 'resolved'.
-        if (type_param_func_level < FunctionLevel()) {
+        if ((FunctionLevel() > 0) &&
+            (type_param_func_level < FunctionLevel())) {
           // Make sure that the function instantiator is captured.
           CaptureFunctionInstantiator();
         }
@@ -14384,7 +14385,8 @@ AstNode* Parser::ParsePrimary() {
               (primary_func_level < type_param_func_level)) {
             // The identifier is a function type parameter, possibly shadowing
             // already resolved 'primary'.
-            if (type_param_func_level < FunctionLevel()) {
+            if ((FunctionLevel() > 0) &&
+                (type_param_func_level < FunctionLevel())) {
               // Make sure that the function instantiator is captured.
               CaptureFunctionInstantiator();
             }
