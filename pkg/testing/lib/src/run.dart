@@ -195,15 +195,17 @@ class SuiteRunner {
 
     bool isFirstTestDartSuite = true;
     for (TestDart suite in listTestDartSuites()) {
-      hasRunnableTests = true;
-      if (!isFirstTestDartSuite) {
-        suite.writeFirstImportOn(imports);
+      if (shouldRunSuite(suite)) {
+        hasRunnableTests = true;
+        if (isFirstTestDartSuite) {
+          suite.writeFirstImportOn(imports);
+        }
+        isFirstTestDartSuite = false;
+        suite.writeRunCommandOn(chain);
       }
-      isFirstTestDartSuite = true;
-      suite.writeRunCommandOn(chain);
     }
 
-    if (hasRunnableTests) return null;
+    if (!hasRunnableTests) return null;
 
     return """
 library testing.generated;
@@ -235,8 +237,10 @@ Future<Null> main() async {
   Future<bool> analyze(Uri packages) async {
     bool hasAnalyzerSuites = false;
     for (Analyze suite in listAnalyzerSuites()) {
-      hasAnalyzerSuites = true;
-      await suite.run(packages, testUris);
+      if (shouldRunSuite(suite)) {
+        hasAnalyzerSuites = true;
+        await suite.run(packages, testUris);
+      }
     }
     return hasAnalyzerSuites;
   }
