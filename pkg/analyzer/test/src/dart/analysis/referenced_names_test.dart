@@ -28,6 +28,18 @@ class U {
     expect(names, unorderedEquals(['A', 'B', 'C']));
   }
 
+  test_class_constructor_parameters() {
+    Set<String> names = _computeReferencedNames('''
+class U {
+  U(A a) {
+    a;
+    b;
+  }
+}
+''');
+    expect(names, unorderedEquals(['A', 'b']));
+  }
+
   test_class_field() {
     Set<String> names = _computeReferencedNames('''
 class U {
@@ -118,6 +130,16 @@ class U {
 }
 ''');
     expect(names, unorderedEquals(['A', 'b']));
+  }
+
+  test_class_method_parameters_dontHideNamedExpressionName() {
+    Set<String> names = _computeReferencedNames('''
+main() {
+  var p;
+  new C(p: p);
+}
+''');
+    expect(names, unorderedEquals(['C', 'p']));
   }
 
   test_class_method_typeParameters() {
