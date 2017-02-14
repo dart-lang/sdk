@@ -70,8 +70,7 @@ class Chain extends Suite {
       this.pattern, this.exclude, this.processMultitests)
       : super(name, kind, statusFile);
 
-  factory Chain.fromJsonMap(
-      Uri base, Map json, String name, String kind) {
+  factory Chain.fromJsonMap(Uri base, Map json, String name, String kind) {
     Uri source = base.resolve(json["source"]);
     Uri uri = base.resolve(json["path"]);
     Uri statusFile = base.resolve(json["status"]);
@@ -80,8 +79,8 @@ class Chain extends Suite {
     List<RegExp> exclude = new List<RegExp>.from(
         json["exclude"].map((String p) => new RegExp(p)));
     bool processMultitests = json["process-multitests"] ?? false;
-    return new Chain(
-        name, kind, source, uri, statusFile, pattern, exclude, processMultitests);
+    return new Chain(name, kind, source, uri, statusFile, pattern, exclude,
+        processMultitests);
   }
 
   void writeImportOn(StringSink sink) {

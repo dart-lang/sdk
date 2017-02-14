@@ -7,6 +7,9 @@ library testing.suite;
 import 'chain.dart' show
     Chain;
 
+import 'test_dart.dart' show
+    TestDart;
+
 /// Records the properties of a test suite.
 abstract class Suite {
   final String name;
@@ -26,6 +29,9 @@ abstract class Suite {
 
       case "chain":
         return new Chain.fromJsonMap(base, json, name, kind);
+
+      case "test_dart":
+        return new TestDart.fromJsonMap(base, json, name, kind);
 
       default:
         throw "Suite '$name' has unknown kind '$kind'.";

@@ -49,6 +49,9 @@ import 'suite.dart' show
     Dart,
     Suite;
 
+import 'test_dart.dart' show
+    TestDart;
+
 import 'zone_helper.dart' show
     acknowledgeControlMessages;
 
@@ -179,7 +182,16 @@ class SuiteRunner {
       suite.writeClosureOn(chain);
     }
 
-    if (testUris.isEmpty) return null;
+    bool hasTestDartSuite = false;
+    for (TestDart suite in suites.where((Suite suite) => suite is TestDart)) {
+      if (!hasTestDartSuite) {
+        suite.writeFirstImportOn(imports);
+      }
+      hasTestDartSuite = true;
+      suite.writeRunCommandOn(chain);
+    }
+
+    if (testUris.isEmpty && !hasTestDartSuite) return null;
 
     return """
 library testing.generated;

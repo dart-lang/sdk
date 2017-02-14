@@ -5,7 +5,10 @@
 library testing.stdio_process;
 
 import 'dart:async' show
+    EventSink,
     Future,
+    Stream,
+    StreamTransformer,
     Timer;
 
 import 'dart:convert' show
@@ -13,7 +16,12 @@ import 'dart:convert' show
 
 import 'dart:io' show
     Process,
-    ProcessSignal;
+    ProcessSignal,
+    Stdout;
+
+import 'dart:io' as io show
+    stderr,
+    stdout;
 
 import 'chain.dart' show
     Result;
@@ -33,36 +41,51 @@ class StdioProcess {
     }
   }
 
+  static StreamTransformer<String, String> transformToStdio(Stdout stdio) {
+    return new StreamTransformer<String, String>.fromHandlers(
+        handleData: (String data, EventSink<String> sink) {
+          sink.add(data);
+          stdio.write(data);
+        });
+  }
+
   static Future<StdioProcess> run(
       String executable, List<String> arguments,
-      {String input, Duration timeout: const Duration(seconds: 60)}) async {
+      {String input, Duration timeout: const Duration(seconds: 60),
+       bool suppressOutput: true}) async {
     Process process = await Process.start(executable, arguments);
     Timer timer;
     StringBuffer sb = new StringBuffer();
-    timer = new Timer(timeout, () {
-      sb.write("Process timed out: ");
-      sb.write(executable);
-      sb.write(" ");
-      sb.writeAll(arguments, " ");
-      sb.writeln();
-      sb.writeln("Sending SIGTERM to process");
-      process.kill();
-      timer = new Timer(const Duration(seconds: 10), () {
-        sb.writeln("Sending SIGKILL to process");
-        process.kill(ProcessSignal.SIGKILL);
+    if (timeout != null) {
+      timer = new Timer(timeout, () {
+        sb.write("Process timed out: ");
+        sb.write(executable);
+        sb.write(" ");
+        sb.writeAll(arguments, " ");
+        sb.writeln();
+        sb.writeln("Sending SIGTERM to process");
+        process.kill();
+        timer = new Timer(const Duration(seconds: 10), () {
+          sb.writeln("Sending SIGKILL to process");
+          process.kill(ProcessSignal.SIGKILL);
+        });
       });
-    });
+    }
     if (input != null) {
       process.stdin.write(input);
       await process.stdin.flush();
     }
     Future closeFuture = process.stdin.close();
-    Future<List<String>> stdoutFuture =
-        process.stdout.transform(UTF8.decoder).toList();
-    Future<List<String>> stderrFuture =
-        process.stderr.transform(UTF8.decoder).toList();
+    Stream stdoutStream = process.stdout.transform(UTF8.decoder);
+    Stream stderrStream = process.stderr.transform(UTF8.decoder);
+    if (!suppressOutput) {
+      stdoutStream = stdoutStream.transform(transformToStdio(io.stdout));
+      stderrStream = stderrStream.transform(transformToStdio(io.stderr));
+    }
+    Future<List<String>> stdoutFuture = stdoutStream.toList();
+    Future<List<String>> stderrFuture = stderrStream.toList();
     int exitCode = await process.exitCode;
-    timer.cancel();
+    timer?.cancel();
     sb.writeAll(await stdoutFuture);
     sb.writeAll(await stderrFuture);
     await closeFuture;
