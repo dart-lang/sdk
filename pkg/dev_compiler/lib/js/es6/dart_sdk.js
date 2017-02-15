@@ -19092,12 +19092,14 @@ async.Future$ = dart.flattenFutures(dart.generic(T => {
         return completer.future;
       };
     }
-    static forEach(input, f) {
-      let iterator = input[dartx.iterator];
-      return async.Future.doWhile(dart.fn(() => {
-        if (!dart.test(iterator.moveNext())) return false;
-        return async.Future.sync(dart.fn(() => dart.dcall(f, iterator.current), VoidTodynamic())).then(core.bool)(dart.fn(_ => true, dynamicTobool()));
-      }, VoidToObject()));
+    static forEach(T) {
+      return (input, f) => {
+        let iterator = input[dartx.iterator];
+        return async.Future.doWhile(dart.fn(() => {
+          if (!dart.test(iterator.moveNext())) return false;
+          return async.Future.sync(dart.fn(() => f(iterator.current), VoidTodynamic())).then(core.bool)(dart.fn(_ => true, dynamicTobool()));
+        }, VoidToObject()));
+      };
     }
     static doWhile(f) {
       let doneSignal = new async._Future();
@@ -19127,7 +19129,7 @@ async.Future$ = dart.flattenFutures(dart.generic(T => {
     statics: () => ({
       wait: dart.definiteFunctionType(T => [async.Future$(core.List$(T)), [core.Iterable$(async.Future$(T))], {eagerError: core.bool, cleanUp: dart.functionType(dart.void, [T])}]),
       any: dart.definiteFunctionType(T => [async.Future$(T), [core.Iterable$(async.Future$(T))]]),
-      forEach: dart.definiteFunctionType(async.Future, [core.Iterable, dynamicTodynamic()]),
+      forEach: dart.definiteFunctionType(T => [async.Future, [core.Iterable$(T), dart.functionType(dart.dynamic, [T])]]),
       doWhile: dart.definiteFunctionType(async.Future, [VoidTodynamic()])
     }),
     names: ['wait', 'any', 'forEach', 'doWhile']
