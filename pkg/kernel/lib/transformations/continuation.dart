@@ -198,8 +198,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       new VariableDeclaration(":async_op_then");
   final VariableDeclaration catchErrorContinuationVariable =
       new VariableDeclaration(":async_op_error");
-  final VariableDeclaration asyncStackTrace =
-      new VariableDeclaration(":async_stack_trace");
 
   LabeledStatement labeledBody;
 
@@ -216,9 +214,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
     // var :async_op_error;
     statements.add(catchErrorContinuationVariable);
-
-    // var :async_stack_trace;
-    statements.add(asyncStackTrace);
 
     // :async_op([:result, :exception, :stack_trace]) {
     //     modified <node.body>;
@@ -263,13 +258,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
         new VariableSet(
             catchErrorContinuationVariable, boundCatchErrorClosure));
     statements.add(catchErrorClosureVariableAssign);
-
-    // :async_stack_trace = _asyncStackTraceHelper();
-    final boundAsyncStackTrace = new StaticInvocation(
-        helper.asyncStackTraceHelper, new Arguments.empty());
-    final asyncStackTraceVariableAssign = new ExpressionStatement(
-        new VariableSet(asyncStackTrace, boundAsyncStackTrace));
-    statements.add(asyncStackTraceVariableAssign);
   }
 
   Statement buildWrappedBody() {
@@ -886,7 +874,6 @@ class HelperNodes {
   final Constructor streamIteratorConstructor;
   final Procedure asyncThenWrapper;
   final Procedure asyncErrorWrapper;
-  final Procedure asyncStackTraceHelper;
   final Procedure awaitHelper;
   final CoreTypes coreTypes;
 
@@ -904,7 +891,6 @@ class HelperNodes {
       this.streamControllerConstructor,
       this.asyncThenWrapper,
       this.asyncErrorWrapper,
-      this.asyncStackTraceHelper,
       this.awaitHelper,
       this.coreTypes);
 
@@ -987,7 +973,6 @@ class HelperNodes {
         findConstructor(streamControllerClass, ''),
         findProcedure(asyncLibrary, '_asyncThenWrapperHelper'),
         findProcedure(asyncLibrary, '_asyncErrorWrapperHelper'),
-        findProcedure(asyncLibrary, '_asyncStackTraceHelper'),
         findProcedure(asyncLibrary, '_awaitHelper'),
         new CoreTypes(program));
   }

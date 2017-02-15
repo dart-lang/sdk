@@ -44,7 +44,7 @@ vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 vm/regress_27201_test: CompileTimeError
-# vm/regress_28325_test: RuntimeError  # Issue 28055. Passes by mistake.
+vm/regress_28325_test: RuntimeError  # Issue 28055.
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
@@ -203,8 +203,9 @@ library_env_test/has_no_mirror_support: RuntimeError
 main_not_a_function_test/01: Crash
 redirecting_factory_reflection_test: RuntimeError
 
-# Casual async stack traces does not give exactly same stacktrace on kernel
+# Casual async stack traces are not implemented for Kernel.
 vm/causal_async_exception_stack_test: RuntimeError
+vm/causal_async_exception_stack2_test: RuntimeError
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
