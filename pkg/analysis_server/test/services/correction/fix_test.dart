@@ -427,6 +427,102 @@ class A {
 ''');
   }
 
+  test_addMissingRequiredArg_cons_single() async {
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+class A {
+  A({@required int a}) {}
+}
+main() {
+  A a = new A();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'package:meta/meta.dart';
+
+class A {
+  A({@required int a}) {}
+}
+main() {
+  A a = new A(a: null);
+}
+''');
+  }
+
+  test_addMissingRequiredArg_multiple() async {
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+test({@required int a, @required int bcd}) {}
+main() {
+  test(a: 3);
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'package:meta/meta.dart';
+
+test({@required int a, @required int bcd}) {}
+main() {
+  test(a: 3, bcd: null);
+}
+''');
+  }
+
+  test_addMissingRequiredArg_single() async {
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+test({@required int abc}) {}
+main() {
+  test();
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'package:meta/meta.dart';
+
+test({@required int abc}) {}
+main() {
+  test(abc: null);
+}
+''');
+  }
+
+  test_addMissingRequiredArg_single_normal() async {
+    _addMetaPackageSource();
+
+    await resolveTestUnit('''
+import 'package:meta/meta.dart';
+
+test(String x, {@required int abc}) {}
+main() {
+  test("foo");
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT,
+        '''
+import 'package:meta/meta.dart';
+
+test(String x, {@required int abc}) {}
+main() {
+  test("foo", abc: null);
+}
+''');
+  }
+
   test_addSync_asyncFor() async {
     await resolveTestUnit('''
 import 'dart:async';
@@ -5333,6 +5429,19 @@ import 'dart:math' as pref;
 main() {
   print(pref.E);
   print(pref.PI);
+}
+''');
+  }
+
+  void _addMetaPackageSource() {
+    addPackageSource('meta', 'meta.dart', r'''
+library meta;
+
+const Required required = const Required();
+
+class Required {
+  final String reason;
+  const Required([this.reason]);
 }
 ''');
   }
