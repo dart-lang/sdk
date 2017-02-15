@@ -15,6 +15,8 @@
       <excludeFolder url="file://$MODULE_DIR$/test/edit/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/integration/analysis/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/integration/completion/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/integration/diagnostic/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/test/integration/edit/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/integration/execution/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/integration/packages" />
       <excludeFolder url="file://$MODULE_DIR$/test/integration/search/packages" />
