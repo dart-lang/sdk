@@ -330,7 +330,6 @@ class _ServiceTesterRunner {
         await process.requestExit();
       });
     }, onError: (error, stackTrace) async {
-      print('onERROR FIRED!');
       if (testsDone) {
         print('Ignoring late exception during process exit:\n'
               '$error\n#stackTrace');
