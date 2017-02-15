@@ -1508,6 +1508,15 @@ class _UnitResynthesizer {
         unlinkedUnit,
         unlinkedPart,
         unitSource.shortName);
+
+    {
+      List<int> lineStarts = unlinkedUnit.lineStarts;
+      if (lineStarts.isEmpty) {
+        lineStarts = const <int>[0];
+      }
+      unit.lineInfo = new LineInfo(lineStarts);
+    }
+
     for (EntityRef t in linkedUnit.types) {
       linkedTypeMap[t.slot] = t;
     }

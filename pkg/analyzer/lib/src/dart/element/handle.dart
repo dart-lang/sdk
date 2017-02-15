@@ -209,6 +209,9 @@ class CompilationUnitElementHandle extends ElementHandle
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
   @override
+  LineInfo get lineInfo => actualElement.lineInfo;
+
+  @override
   Source get source => actualElement.source;
 
   @override

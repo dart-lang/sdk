@@ -1037,6 +1037,11 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
   static const String PARSED_UNIT_INPUT_NAME = 'PARSED_UNIT_INPUT_NAME';
 
   /**
+   * The name of the input whose value is the source line info.
+   */
+  static const String LINE_INFO_INPUT_NAME = 'LINE_INFO_INPUT_NAME';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -1068,6 +1073,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     LibrarySpecificUnit librarySpecificUnit = target;
     Source source = getRequiredSource();
     CompilationUnit unit = getRequiredInput(PARSED_UNIT_INPUT_NAME);
+    LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT_NAME);
     //
     // Try to get the existing CompilationUnitElement.
     //
@@ -1091,6 +1097,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
       CompilationUnitBuilder builder = new CompilationUnitBuilder();
       element = builder.buildCompilationUnit(
           source, unit, librarySpecificUnit.library);
+      (element as CompilationUnitElementImpl).lineInfo = lineInfo;
     } else {
       new DeclarationResolver().resolve(unit, element);
     }
@@ -1118,7 +1125,8 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      PARSED_UNIT_INPUT_NAME: PARSED_UNIT.of(unit.unit, flushOnAccess: true)
+      PARSED_UNIT_INPUT_NAME: PARSED_UNIT.of(unit.unit, flushOnAccess: true),
+      LINE_INFO_INPUT_NAME: LINE_INFO.of(unit.unit)
     };
   }
 

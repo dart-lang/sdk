@@ -1300,6 +1300,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   Source source;
 
+  @override
+  LineInfo lineInfo;
+
   /**
    * The source of the library containing this compilation unit.
    *

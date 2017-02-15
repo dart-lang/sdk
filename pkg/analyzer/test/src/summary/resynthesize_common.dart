@@ -260,6 +260,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     compareUriReferencedElements(resynthesized, original, desc);
     expect(resynthesized.source, original.source);
     expect(resynthesized.librarySource, original.librarySource);
+    compareLineInfo(resynthesized.lineInfo, original.lineInfo);
     expect(resynthesized.types.length, original.types.length,
         reason: '$desc types');
     for (int i = 0; i < resynthesized.types.length; i++) {
@@ -819,6 +820,11 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.isOnSwitchStatement, original.isOnSwitchStatement,
         reason: desc);
     compareElements(resynthesized, original, desc);
+  }
+
+  void compareLineInfo(LineInfo resynthesized, LineInfo original) {
+    expect(resynthesized.lineCount, original.lineCount);
+    expect(resynthesized.lineStarts, original.lineStarts);
   }
 
   void compareLocalElementsOfExecutable(ExecutableElement resynthesized,
