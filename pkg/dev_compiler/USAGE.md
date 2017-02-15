@@ -10,7 +10,7 @@ The easiest way to compile and run DDC generated code for now is via NodeJS.
 The following instructions are in a state of flux -- please expect them to
 change. If you find issues, please let us know.
 
-1.  Clone the [DDC repository](https://github.com/dart-lang/sdk) and
+1.  Follow the [Getting the Source](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source) steps, and
     set the environment variable `DDC_PATH` to the `pkg/dev_compiler`
     subdirectory within wherever you check that out.
 
