@@ -380,15 +380,7 @@ class AnalysisServer {
       }
       _analysisPerformanceLogger = new nd.PerformanceLog(sink);
     }
-    if (resourceProvider is PhysicalResourceProvider) {
-      byteStore = new MemoryCachingByteStore(
-          new EvictingFileByteStore(
-              resourceProvider.getStateLocation('.analysis-driver').path,
-              1024 * 1024 * 1024 /*1 GiB*/),
-          64 * 1024 * 1024 /*64 MiB*/);
-    } else {
-      byteStore = new MemoryByteStore();
-    }
+    byteStore = _createByteStore();
     analysisDriverScheduler =
         new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
@@ -837,23 +829,6 @@ class AnalysisServer {
     return null;
   }
 
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
-
   /**
    * Return a [Future] that completes with the resolved [CompilationUnit] for
    * the Dart file with the given [path], or with `null` if the file is not a
@@ -878,6 +853,23 @@ class AnalysisServer {
       return null;
     });
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Handle a [request] that was read from the communication channel.
@@ -1662,6 +1654,24 @@ class AnalysisServer {
       ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
       sendNotification(params.toNotification());
     }
+  }
+
+  /**
+   * If the state location can be accessed, return the file byte store,
+   * otherwise return the memory byte store.
+   */
+  ByteStore _createByteStore() {
+    const int M = 1024 * 1024 /*1 MiB*/;
+    const int G = 1024 * 1024 * 1024 /*1 GiB*/;
+    if (resourceProvider is PhysicalResourceProvider) {
+      Folder stateLocation =
+          resourceProvider.getStateLocation('.analysis-driver');
+      if (stateLocation != null) {
+        return new MemoryCachingByteStore(
+            new EvictingFileByteStore(stateLocation.path, G), 64 * M);
+      }
+    }
+    return new MemoryCachingByteStore(new NullByteStore(), 64 * M);
   }
 
   /**

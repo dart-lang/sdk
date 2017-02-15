@@ -21,6 +21,7 @@ import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -76,7 +77,8 @@ class Driver implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
       new PerformanceTag("Driver._analyzeAll");
 
-  static ByteStore analysisDriverByteStore = new MemoryByteStore();
+  static ByteStore analysisDriverMemoryByteStore = new MemoryByteStore();
+  static ByteStore analysisDriverFileByteStore = _createFileByteStore();
 
   /// The plugins that are defined outside the `analyzer_cli` package.
   List<Plugin> _userDefinedPlugins = <Plugin>[];
@@ -579,7 +581,7 @@ class Driver implements CommandLineStarter {
           scheduler,
           log,
           resourceProvider,
-          analysisDriverByteStore,
+          analysisDriverMemoryByteStore,
           new FileContentOverlay(),
           'test',
           context.sourceFactory,
@@ -723,6 +725,20 @@ class Driver implements CommandLineStarter {
     }
   }
 
+  static AnalysisOptionsImpl createAnalysisOptions(
+      file_system.ResourceProvider resourceProvider,
+      SourceFactory sourceFactory,
+      CommandLineOptions options) {
+    // Prepare context options.
+    AnalysisOptionsImpl analysisOptions =
+        createAnalysisOptionsForCommandLineOptions(options);
+
+    // Process analysis options file (and notify all interested parties).
+    _processAnalysisOptions(
+        resourceProvider, sourceFactory, analysisOptions, options);
+    return analysisOptions;
+  }
+
   static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
       CommandLineOptions options) {
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
@@ -738,20 +754,6 @@ class Driver implements CommandLineStarter {
     contextOptions.implicitCasts = options.implicitCasts;
     contextOptions.implicitDynamic = options.implicitDynamic;
     return contextOptions;
-  }
-
-  static AnalysisOptionsImpl createAnalysisOptions(
-      file_system.ResourceProvider resourceProvider,
-      SourceFactory sourceFactory,
-      CommandLineOptions options) {
-    // Prepare context options.
-    AnalysisOptionsImpl analysisOptions =
-        createAnalysisOptionsForCommandLineOptions(options);
-
-    // Process analysis options file (and notify all interested parties).
-    _processAnalysisOptions(
-        resourceProvider, sourceFactory, analysisOptions, options);
-    return analysisOptions;
   }
 
   static void setAnalysisContextOptions(
@@ -782,6 +784,22 @@ class Driver implements CommandLineStarter {
 
     // Set context options.
     context.analysisOptions = analysisOptions;
+  }
+
+  /**
+   * If the state location can be accessed, return the file byte store,
+   * otherwise return the memory byte store.
+   */
+  static ByteStore _createFileByteStore() {
+    const int M = 1024 * 1024 /*1 MiB*/;
+    const int G = 1024 * 1024 * 1024 /*1 GiB*/;
+    file_system.Folder stateLocation =
+        PhysicalResourceProvider.INSTANCE.getStateLocation('.analysis-driver');
+    if (stateLocation == null) {
+      return new MemoryByteStore();
+    }
+    return new MemoryCachingByteStore(
+        new EvictingFileByteStore(stateLocation.path, G), 64 * M);
   }
 
   /// Perform a deep comparison of two string lists.
