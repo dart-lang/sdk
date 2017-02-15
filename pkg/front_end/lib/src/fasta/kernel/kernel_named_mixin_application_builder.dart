@@ -16,6 +16,7 @@ import 'kernel_builder.dart' show
     LibraryBuilder,
     MetadataBuilder,
     NamedMixinApplicationBuilder,
+    TypeBuilder,
     TypeVariableBuilder;
 
 class KernelNamedMixinApplicationBuilder extends SourceClassBuilder
@@ -29,4 +30,8 @@ class KernelNamedMixinApplicationBuilder extends SourceClassBuilder
           interfaces, <String, Builder>{}, parent, null, charOffset);
 
   KernelTypeBuilder get mixinApplication => supertype;
+
+  // TODO(ahe): This is a bit odd, as it means this answers false to
+  // [isMixinApplication], but its superclass is the mixin application.
+  TypeBuilder get mixedInType => null;
 }

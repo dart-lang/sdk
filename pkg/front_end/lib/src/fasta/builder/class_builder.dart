@@ -33,6 +33,12 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
       this.members, LibraryBuilder parent, int charOffset)
       : super(metadata, modifiers, name, parent, charOffset);
 
+  /// Returns true if this class is the result of applying a mixin to its
+  /// superclass.
+  bool get isMixinApplication => mixedInType != null;
+
+  T get mixedInType;
+
   List<ConstructorReferenceBuilder> get constructorReferences => null;
 
   Map<String, Builder> get constructors;

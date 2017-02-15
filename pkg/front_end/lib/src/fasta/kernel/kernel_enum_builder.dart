@@ -52,7 +52,8 @@ import 'kernel_builder.dart' show
     KernelTypeBuilder,
     LibraryBuilder,
     MemberBuilder,
-    MetadataBuilder;
+    MetadataBuilder,
+    TypeBuilder;
 
 class KernelEnumBuilder extends SourceClassBuilder
     implements EnumBuilder<KernelTypeBuilder, InterfaceType> {
@@ -139,6 +140,8 @@ class KernelEnumBuilder extends SourceClassBuilder
     selfType.builder = enumBuilder;
     return enumBuilder;
   }
+
+  TypeBuilder get mixedInType => null;
 
   InterfaceType buildType(List<KernelTypeBuilder> arguments) {
     return cls.rawType;

@@ -5,16 +5,29 @@
 library fasta.kernel_mixin_application_builder;
 
 import 'package:kernel/ast.dart' show
-    Class,
     InterfaceType,
-    Supertype;
+    Supertype,
+    setParents;
+
+import '../modifier.dart' show
+    abstractMask;
 
 import 'kernel_builder.dart' show
+    Builder,
+    ConstructorReferenceBuilder,
+    KernelLibraryBuilder,
+    KernelNamedTypeBuilder,
     KernelTypeBuilder,
-    MixinApplicationBuilder;
+    KernelTypeVariableBuilder,
+    MixinApplicationBuilder,
+    TypeBuilder,
+    TypeVariableBuilder;
 
 import '../util/relativize.dart' show
     relativizeUri;
+
+import '../source/source_class_builder.dart' show
+    SourceClassBuilder;
 
 class KernelMixinApplicationBuilder
     extends MixinApplicationBuilder<KernelTypeBuilder>
@@ -23,10 +36,16 @@ class KernelMixinApplicationBuilder
 
   final String relativeFileUri;
 
+  final KernelLibraryBuilder library;
+
   Supertype builtType;
 
+  List<TypeVariableBuilder> typeVariables;
+
+  String subclassName;
+
   KernelMixinApplicationBuilder(KernelTypeBuilder supertype,
-      List<KernelTypeBuilder> mixins, int charOffset, Uri fileUri)
+      List<KernelTypeBuilder> mixins, this.library, int charOffset, Uri fileUri)
       : charOffset = charOffset,
         relativeFileUri = relativizeUri(fileUri),
         super(supertype, mixins, charOffset, fileUri);
@@ -35,28 +54,48 @@ class KernelMixinApplicationBuilder
 
   Supertype buildSupertype() {
     if (builtType != null) return builtType;
-    Supertype supertype =
-        this.supertype.buildSupertype()?.classNode?.asRawSupertype;
-    if (supertype == null) {
-      return null;
-    }
+    KernelTypeBuilder s = this.supertype;
     for (KernelTypeBuilder builder in mixins) {
-      Supertype mixin = builder.buildSupertype()?.classNode?.asRawSupertype;
-      if (mixin == null) {
-        return null;
-      }
-      Class application = new Class(
-          name: "${supertype.classNode.name}&${mixin.classNode.name}",
-          isAbstract: true,
-          supertype: supertype,
-          mixedInType: mixin,
-          typeParameters: null, // TODO(ahe): Compute these.
-          fileUri: relativeFileUri);
-      application.fileOffset = charOffset;
-      // TODO(ahe): Use asThisSupertype instead and translate type variables.
-      supertype = application.asRawSupertype;
+      s = applyMixin(s, builder);
     }
-    builtType = supertype;
+    builtType = s.buildSupertype();
     return builtType;
+  }
+
+  TypeBuilder applyMixin(TypeBuilder supertype, TypeBuilder mixin) {
+    KernelLibraryBuilder library = this.library.partOfLibrary ?? this.library;
+    List<TypeVariableBuilder> newTypeVariables;
+    List<KernelTypeBuilder> typeArguments;
+    if (typeVariables != null) {
+      newTypeVariables = library.copyTypeVariables(typeVariables);
+      Map<TypeVariableBuilder, TypeBuilder> substitution =
+          <TypeVariableBuilder, TypeBuilder>{};
+      typeArguments = <KernelTypeBuilder>[];
+      for (int i = 0; i < typeVariables.length; i++) {
+        substitution[typeVariables[i]] = newTypeVariables[i].asTypeBuilder();
+        typeArguments.add(typeVariables[i].asTypeBuilder());
+      }
+      supertype = supertype.subst(substitution);
+      mixin = mixin.subst(substitution);
+    }
+    // To reduce diff against dartk, we create a different name for mixin
+    // applications that have free type variables. We do this by setting
+    // [subclassName] when setting typeVariables.
+    String name = subclassName != null
+        ? "${subclassName}^${mixin.name}"
+        : "${supertype.name}&${mixin.name}";
+    SourceClassBuilder cls = new SourceClassBuilder(null, abstractMask, name,
+        newTypeVariables, supertype, null, <String, Builder>{}, library,
+        <ConstructorReferenceBuilder>[], charOffset, null, mixin);
+    library.addImplementationBuilder(name, cls, charOffset);
+    if (newTypeVariables != null) {
+      for (KernelTypeVariableBuilder t in newTypeVariables) {
+        cls.cls.typeParameters.add(t.parameter);
+      }
+      setParents(cls.cls.typeParameters, cls.cls);
+    }
+    return new KernelNamedTypeBuilder(name, typeArguments, charOffset,
+        library.fileUri)
+        ..builder = cls;
   }
 }

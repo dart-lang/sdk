@@ -53,11 +53,13 @@ class SourceClassBuilder extends KernelClassBuilder {
 
   final List<ConstructorReferenceBuilder> constructorReferences;
 
+  final KernelTypeBuilder mixedInType;
+
   SourceClassBuilder(List<MetadataBuilder> metadata, int modifiers,
       String name, List<TypeVariableBuilder> typeVariables,
-      KernelTypeBuilder supertype, List<KernelTypeBuilder>interfaces,
+      KernelTypeBuilder supertype, List<KernelTypeBuilder> interfaces,
       Map<String, Builder> members, LibraryBuilder parent,
-      this.constructorReferences, int charOffset, [Class cls])
+      this.constructorReferences, int charOffset, [Class cls, this.mixedInType])
       : cls = initializeClass(cls, name, parent, charOffset),
         membersInScope = computeMembersInScope(members),
         constructors = computeConstructors(members),
@@ -95,6 +97,7 @@ class SourceClassBuilder extends KernelClassBuilder {
       } while (builder != null);
     });
     cls.supertype = supertype?.buildSupertype();
+    cls.mixedInType = mixedInType?.buildSupertype();
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
