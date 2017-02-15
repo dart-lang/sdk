@@ -690,8 +690,10 @@ Dart_Handle DartUtils::PrepareForScriptLoading(bool is_service_isolate,
   Dart_Handle builtin_lib =
       Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
   RETURN_IF_ERROR(builtin_lib);
+  Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
   Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
   RETURN_IF_ERROR(io_lib);
+  Builtin::SetNativeResolver(Builtin::kIOLibrary);
 
   // Setup the builtin library in a persistent handle attached the isolate
   // specific data as we seem to lookup and use builtin lib a lot.

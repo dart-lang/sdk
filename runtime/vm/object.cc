@@ -1177,7 +1177,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
                                            "Object::Init");)
 
 #if defined(DART_NO_SNAPSHOT)
-  bool bootstrapping = true;
+  bool bootstrapping = Dart::vm_snapshot_kind() == Snapshot::kNone;
 #elif defined(DART_PRECOMPILED_RUNTIME)
   bool bootstrapping = false;
 #else
