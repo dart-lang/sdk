@@ -47,6 +47,7 @@ import '../elements/elements.dart'
         GetterElement,
         InitializingFormalElement,
         JumpTarget,
+        LibraryElement,
         LocalElement,
         LocalFunctionElement,
         LocalVariableElement,
@@ -202,6 +203,13 @@ class KernelVisitor extends Object
   final Map<CascadeReceiver, ir.VariableGet> cascadeReceivers =
       <CascadeReceiver, ir.VariableGet>{};
 
+  // This maps underlying Library elements to the corresponding DeferredImport
+  // object, via the prefix name (aka "bar" in
+  // "import foo.dart deferred as bar"). LibraryElement corresponds to the
+  // imported library element.
+  final Map<LibraryElement, Map<String, ir.DeferredImport>> deferredImports =
+      <LibraryElement, Map<String, ir.DeferredImport>>{};
+
   ir.Node associateElement(ir.Node node, Element element) {
     kernel.nodeToElement[node] = element;
     return node;
@@ -213,6 +221,10 @@ class KernelVisitor extends Object
   }
 
   bool isVoidContext = false;
+
+  /// If non-null, reference to a deferred library that a subsequent getter is
+  /// using.
+  ir.DeferredImport _deferredLibrary;
 
   KernelVisitor(this.currentElement, this.elements, this.kernel);
 
@@ -363,7 +375,15 @@ class KernelVisitor extends Object
   }
 
   @override
-  void previsitDeferredAccess(Send node, PrefixElement prefix, _) {}
+  void previsitDeferredAccess(Send node, PrefixElement prefix, _) {
+    // This is visited before any element access, and if it is deferred,
+    // prefix.isDeferred = true.
+    if (prefix != null && prefix.isDeferred) {
+      _deferredLibrary = getDeferredImport(prefix);
+    } else {
+      _deferredLibrary = null;
+    }
+  }
 
   @override
   internalError(Spannable spannable, String message) {
@@ -1994,7 +2014,14 @@ class KernelVisitor extends Object
   }
 
   ir.Expression buildStaticGet(Element element) {
-    return buildStaticAccessor(element).buildSimpleRead();
+    var expression = buildStaticAccessor(element).buildSimpleRead();
+    if (_deferredLibrary != null) {
+      ir.Let let = new ir.Let(
+          makeOrReuseVariable(new ir.CheckLibraryIsLoaded(_deferredLibrary)),
+          expression);
+      return let;
+    }
+    return expression;
   }
 
   @override
@@ -2229,24 +2256,36 @@ class KernelVisitor extends Object
     return buildIrFunction(ir.ProcedureKind.Getter, getter, body);
   }
 
+  ir.DeferredImport getDeferredImport(PrefixElement prefix) {
+    var map = deferredImports[prefix.deferredImport.importedLibrary] ??=
+        <String, ir.DeferredImport>{};
+    return map[prefix.name] ??= associateElement(
+        new ir.DeferredImport(
+            kernel.libraries[prefix.deferredImport.importedLibrary],
+            prefix.name),
+        prefix);
+  }
+
   @override
   ir.Expression handleStaticGetterGet(Send node, FunctionElement getter, _) {
     if (getter.isDeferredLoaderGetter) {
-      // TODO(ahe): Support deferred load.
-      return new ir.InvalidExpression();
+      return new ir.LoadLibrary(getDeferredImport(getter.enclosingElement));
     }
-    return buildStaticGet(getter);
+    var expression = buildStaticGet(getter);
+    return expression;
   }
 
   @override
   ir.Expression handleStaticGetterInvoke(Send node, FunctionElement getter,
       NodeList arguments, CallStructure callStructure, _) {
+    var expression;
     if (getter.isDeferredLoaderGetter) {
-      // TODO(ahe): Support deferred load.
-      return new ir.InvalidExpression();
+      expression =
+          new ir.LoadLibrary(getDeferredImport(getter.enclosingElement));
+    } else {
+      expression = buildStaticGet(getter);
     }
-    return associateNode(
-        buildCall(buildStaticGet(getter), callStructure, arguments), node);
+    return associateNode(buildCall(expression, callStructure, arguments), node);
   }
 
   @override

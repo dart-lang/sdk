@@ -37,8 +37,11 @@ class KernelTask extends CompilerTask {
   ///
   /// May enqueue more elements to the resolution queue.
   ir.Program buildProgram(LibraryElement library) {
+    var main = library.findExported(Identifiers.main);
+    if (main == null) {
+      main = _compiler.backend.helperForMissingMain();
+    }
     return new ir.Program(kernel.libraryDependencies(library.canonicalUri))
-      ..mainMethod =
-          kernel.functionToIr(library.findExported(Identifiers.main));
+      ..mainMethod = kernel.functionToIr(main);
   }
 }

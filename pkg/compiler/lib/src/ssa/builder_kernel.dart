@@ -593,6 +593,33 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   }
 
   @override
+  void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
+    HInstruction prefixConstant = graph.addConstantString(
+        new DartString.literal(checkLoad.import.name), closedWorld);
+    HInstruction uriConstant = graph.addConstantString(
+        new DartString.literal(compiler.deferredLoadTask.getImportDeferName(
+            // TODO(efortuna): Source information.
+            null,
+            astAdapter.getElement(checkLoad.import))),
+        closedWorld);
+    _pushStaticInvocation(astAdapter.checkDeferredIsLoaded,
+        [prefixConstant, uriConstant], astAdapter.checkDeferredIsLoadedType);
+  }
+
+  @override
+  void visitLoadLibrary(ir.LoadLibrary loadLibrary) {
+    // TODO(efortuna): Source information!
+    push(new HInvokeStatic(
+        backend.helpers.loadLibraryWrapper,
+        [
+          graph.addConstantString(
+              new DartString.literal(loadLibrary.import.name), closedWorld)
+        ],
+        commonMasks.nonNullType,
+        targetCanThrow: false));
+  }
+
+  @override
   void visitBlock(ir.Block block) {
     assert(!isAborted());
     for (ir.Statement statement in block.statements) {
@@ -1830,8 +1857,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       // Invoke the getter
       _pushStaticInvocation(staticTarget, const <HInstruction>[],
           astAdapter.returnTypeOf(staticTarget));
-    } else if (staticTarget is ir.Field && staticTarget.isConst) {
-      assert(staticTarget.initializer != null);
+    } else if (staticTarget is ir.Field &&
+        (staticTarget.isConst ||
+            staticTarget.isFinal && !_isLazyStatic(staticTarget))) {
       stack.add(graph.addConstant(
           astAdapter.getConstantFor(staticTarget.initializer), closedWorld));
     } else {

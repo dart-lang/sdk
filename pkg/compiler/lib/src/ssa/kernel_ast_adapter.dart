@@ -355,6 +355,13 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
     });
   }
 
+  ir.Procedure get checkDeferredIsLoaded =>
+      kernel.functions[_backend.helpers.checkDeferredIsLoaded];
+
+  TypeMask get checkDeferredIsLoadedType =>
+      TypeMaskFactory.inferredReturnTypeForElement(
+          _backend.helpers.checkDeferredIsLoaded, _globalInferenceResults);
+
   ir.Procedure get createInvocationMirror =>
       kernel.functions[_backend.helpers.createInvocationMirror];
 
