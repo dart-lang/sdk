@@ -229,6 +229,8 @@ class KernelTarget extends TargetImplementation {
       finishAllConstructors();
       loader.finishNativeMethods();
       transformMixinApplications();
+      // TODO(ahe): Don't call this from two different places.
+      setup_builtin_library.transformProgram(program);
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
       if (errors.isNotEmpty) {
         return handleInputError(uri, null, isFullProgram: true);
