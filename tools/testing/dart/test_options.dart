@@ -301,7 +301,7 @@ class TestOptionsParser {
           'no-tree-shake', 'Disable kernel IR tree shaking', ['--no-tree-shake'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'useDFE', 'Use Kernel Isolate', ['--use-dfe'], [], true,
+          'noDFE', 'Do not use Kernel Isolate', ['--no-dfe'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
           'useFasta', 'Use Fasta in Kernel Isolate', ['--use-fasta'], [], false,

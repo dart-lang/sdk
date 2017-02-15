@@ -69,7 +69,7 @@ abstract class CompilerConfiguration {
     bool useFastStartup = configuration['fast_startup'];
     bool useKernelInDart2js = configuration['dart2js_with_kernel'];
     bool verifyKernel = configuration['verify-ir'];
-    bool useDFE = configuration['useDFE'];
+    bool useDFE = !configuration['noDFE'];
     bool useFasta = configuration['useFasta'];
     bool treeShake = !configuration['no-tree-shake'];
 
