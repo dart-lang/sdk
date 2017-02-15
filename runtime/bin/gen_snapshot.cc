@@ -674,16 +674,6 @@ static void PrintUsage() {
 // clang-format on
 
 
-static void VerifyLoaded(Dart_Handle library) {
-  if (Dart_IsError(library)) {
-    const char* err_msg = Dart_GetError(library);
-    Log::PrintErr("Errors encountered while loading: %s\n", err_msg);
-    CHECK_RESULT(library);
-  }
-  ASSERT(Dart_IsLibrary(library));
-}
-
-
 static const char StubNativeFunctionName[] = "StubNativeFunction";
 
 
@@ -1120,7 +1110,7 @@ static void SetupForUriResolution() {
   // This is a generic dart snapshot which needs builtin library setup.
   Dart_Handle library =
       LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
-  VerifyLoaded(library);
+  CHECK_RESULT(library);
 }
 
 
@@ -1128,7 +1118,7 @@ static void SetupForGenericSnapshotCreation() {
   SetupForUriResolution();
 
   Dart_Handle library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
-  VerifyLoaded(library);
+  CHECK_RESULT(library);
   Dart_Handle result = Dart_FinalizeLoading(false);
   if (Dart_IsError(result)) {
     const char* err_msg = Dart_GetError(library);
@@ -1352,7 +1342,7 @@ int main(int argc, char** argv) {
     if (!is_kernel_file) {
       // Load the specified script.
       library = LoadSnapshotCreationScript(app_script_name);
-      VerifyLoaded(library);
+      CHECK_RESULT(library);
 
       ImportNativeEntryPointLibrariesIntoRoot(entry_points);
     }
