@@ -133,9 +133,7 @@ AnalysisError newAnalysisError_fromEngine(
  * Create a Location based on an [engine.Element].
  */
 Location newLocation_fromElement(engine.Element element) {
-  engine.AnalysisContext context = element.context;
-  engine.Source source = element.source;
-  if (context == null || source == null) {
+  if (element == null || element.source == null) {
     return null;
   }
   int offset = element.nameOffset;
@@ -145,17 +143,17 @@ Location newLocation_fromElement(engine.Element element) {
     offset = 0;
     length = 0;
   }
+  engine.CompilationUnitElement unitElement = _getUnitElement(element);
   engine.SourceRange range = new engine.SourceRange(offset, length);
-  return _locationForArgs(context, source, range);
+  return _locationForArgs(unitElement, range);
 }
 
 /**
  * Create a Location based on an [engine.SearchMatch].
  */
 Location newLocation_fromMatch(engine.SearchMatch match) {
-  engine.Element enclosingElement = match.element;
-  return _locationForArgs(
-      enclosingElement.context, enclosingElement.source, match.sourceRange);
+  engine.CompilationUnitElement unitElement = _getUnitElement(match.element);
+  return _locationForArgs(unitElement, match.sourceRange);
 }
 
 /**
@@ -165,10 +163,8 @@ Location newLocation_fromNode(engine.AstNode node) {
   engine.CompilationUnit unit =
       node.getAncestor((node) => node is engine.CompilationUnit);
   engine.CompilationUnitElement unitElement = unit.element;
-  engine.AnalysisContext context = unitElement.context;
-  engine.Source source = unitElement.source;
   engine.SourceRange range = new engine.SourceRange(node.offset, node.length);
-  return _locationForArgs(context, source, range);
+  return _locationForArgs(unitElement, range);
 }
 
 /**
@@ -176,10 +172,7 @@ Location newLocation_fromNode(engine.AstNode node) {
  */
 Location newLocation_fromUnit(
     engine.CompilationUnit unit, engine.SourceRange range) {
-  engine.CompilationUnitElement unitElement = unit.element;
-  engine.AnalysisContext context = unitElement.context;
-  engine.Source source = unitElement.source;
-  return _locationForArgs(context, source, range);
+  return _locationForArgs(unit.element, range);
 }
 
 /**
@@ -250,15 +243,33 @@ List<Element> _computePath(engine.Element element) {
   return path;
 }
 
+engine.CompilationUnitElement _getUnitElement(engine.Element element) {
+  if (element is engine.CompilationUnitElement) {
+    return element;
+  }
+  if (element?.enclosingElement is engine.LibraryElement) {
+    element = element.enclosingElement;
+  }
+  if (element is engine.LibraryElement) {
+    return element.definingCompilationUnit;
+  }
+  for (; element != null; element = element.enclosingElement) {
+    if (element is engine.CompilationUnitElement) {
+      return element;
+    }
+  }
+  return null;
+}
+
 /**
  * Creates a new [Location].
  */
-Location _locationForArgs(engine.AnalysisContext context, engine.Source source,
-    engine.SourceRange range) {
+Location _locationForArgs(
+    engine.CompilationUnitElement unitElement, engine.SourceRange range) {
   int startLine = 0;
   int startColumn = 0;
   try {
-    engine.LineInfo lineInfo = context.computeLineInfo(source);
+    engine.LineInfo lineInfo = unitElement.lineInfo;
     if (lineInfo != null) {
       engine.LineInfo_Location offsetLocation =
           lineInfo.getLocation(range.offset);
@@ -266,6 +277,6 @@ Location _locationForArgs(engine.AnalysisContext context, engine.Source source,
       startColumn = offsetLocation.columnNumber;
     }
   } on AnalysisException {}
-  return new Location(
-      source.fullName, range.offset, range.length, startLine, startColumn);
+  return new Location(unitElement.source.fullName, range.offset, range.length,
+      startLine, startColumn);
 }
