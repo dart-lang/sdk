@@ -17,7 +17,7 @@ import '../errors.dart' show
 import '../kernel/kernel_builder.dart' show
     Builder,
     KernelClassBuilder,
-    TypeBuilder;
+    KernelTypeBuilder;
 
 import '../modifier.dart' show
     abstractMask;
@@ -58,7 +58,7 @@ class DillClassBuilder extends KernelClassBuilder {
   /// superclass.
   bool get isMixinApplication => cls.isMixinApplication;
 
-  TypeBuilder get mixedInType => internalError("Not implemented.");
+  KernelTypeBuilder get mixedInType => internalError("Not implemented.");
 
   Builder findConstructorOrFactory(String name) => constructors[name];
 }
