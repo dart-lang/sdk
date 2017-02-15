@@ -10805,7 +10805,17 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.set_native_entry_symbol_resolver(NULL);
   result.set_is_in_fullsnapshot(false);
   result.StoreNonPointer(&result.raw_ptr()->corelib_imported_, true);
-  result.set_debuggable(!dart_private_scheme);
+  if (dart_private_scheme) {
+    // Never debug dart:_ libraries.
+    result.set_debuggable(false);
+  } else if (dart_scheme) {
+    // Only debug dart: libraries if we have been requested to show invisible
+    // frames.
+    result.set_debuggable(FLAG_show_invisible_frames);
+  } else {
+    // Default to debuggable for all other libraries.
+    result.set_debuggable(true);
+  }
   result.set_is_dart_scheme(dart_scheme);
   result.StoreNonPointer(&result.raw_ptr()->load_state_,
                          RawLibrary::kAllocated);
