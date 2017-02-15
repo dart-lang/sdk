@@ -29,8 +29,7 @@ class TestDart extends Suite {
 
   factory TestDart.fromJsonMap(Uri base, Map json, String name, String kind) {
     String common = json["common"] ?? "";
-    // TODO(ahe): Compute this value based on number of cores.
-    String processes = json["processes"] ?? "-j16";
+    String processes = json["processes"] ?? "-j${Platform.numberOfProcessors}";
     List<String> commandLines = json["command-lines"] ?? <String>[];
     return new TestDart(name, common, processes, commandLines);
   }
