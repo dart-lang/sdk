@@ -4829,7 +4829,7 @@ void FlowGraphBuilder::VisitMethodInvocation(MethodInvocation* node) {
 
 void FlowGraphBuilder::VisitDirectMethodInvocation(
     DirectMethodInvocation* node) {
-  const dart::String& method_name = H.DartMethodName(node->target()->name());
+  const dart::String& method_name = H.DartProcedureName(node->target());
   const Function& target = Function::ZoneHandle(
       Z, LookupMethodByMember(node->target(), method_name));
 
