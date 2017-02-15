@@ -63,21 +63,25 @@ analyzer.Token toAnalyzerTokenStream(
   // operations.
   analyzer.CommentToken currentCommentHead;
   analyzer.CommentToken currentCommentTail;
+
+  // Both fasta and analyzer have links from a "BeginToken" to its matching
+  // "EndToken" in a group (like parentheses and braces).  However, fasta may
+  // contain synthetic tokens from error recovery that are not mapped to the
+  // analyzer token stream.  We use these stacks to create the appropriate links
+  // for non-synthetic tokens in the way analyzer expects.
+
   // Note: beginTokenStack and endTokenStack are seeded with a sentinel value
   // so that we don't have to check if they're empty.
   var beginTokenStack = <analyzer.BeginToken>[null];
   var endTokenStack = <Token>[null];
+
   void matchGroups(Token token, analyzer.Token translatedToken) {
-    // If this token closes a group, set the corresponding opener token
-    // to point to it.
     if (identical(endTokenStack.last, token)) {
       beginTokenStack.last.endToken = translatedToken;
       beginTokenStack.removeLast();
       endTokenStack.removeLast();
     }
-    // If this token opens a group, and there is a matching closer that's not
-    // synthetic, put it on the stack.  The easiest way to tell whether the
-    // closer is synthetic is to see if it has the same offset as the opener.
+    // Synthetic end tokens use the same offset as the begin token.
     if (translatedToken is analyzer.BeginToken &&
         token is BeginGroupToken &&
         token.endGroup != null &&
@@ -130,14 +134,20 @@ analyzer.Token toAnalyzerTokenStream(
 Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
   Token tokenHead = new SymbolToken(EOF_INFO, -1);
   Token tokenTail = tokenHead;
+
+  // Both fasta and analyzer have links from a "BeginToken" to its matching
+  // "EndToken" in a group (like parentheses and braces).  However, only fasta
+  // makes these links for angle brackets.  We use these stacks to map the
+  // links from the analyzer token stream into equivalent links in the fasta
+  // token stream, and to create the links that fasta expects for angle
+  // brackets.
+
   // Note: beginTokenStack and endTokenStack are seeded with a sentinel value
   // so that we don't have to check if they're empty.
   var beginTokenStack = <BeginGroupToken>[null];
   var endTokenStack = <analyzer.Token>[null];
   var angleBracketStack = <BeginGroupToken>[];
   void matchGroups(analyzer.Token analyzerToken, Token translatedToken) {
-    // If this token closes a group, set the corresponding opener token to point
-    // to it.
     if (identical(endTokenStack.last, analyzerToken)) {
       angleBracketStack.clear();
       beginTokenStack.last.endGroup = translatedToken;
@@ -156,8 +166,6 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
         angleBracketStack.removeLast().endGroup = translatedToken;
       }
     }
-    // If this token opens a group, and there is a matching closer, put it on
-    // the stack.
     // TODO(paulberry): generate synthetic closer tokens and "UnmatchedToken"
     // tokens as appropriate.
     if (translatedToken is BeginGroupToken &&

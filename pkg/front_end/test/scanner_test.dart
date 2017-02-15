@@ -783,7 +783,7 @@ abstract class ScannerTestBase {
 
   void test_mismatched_opener_in_interpolation() {
     // In an interpolation expression, analyzer considers a closing `}` to
-    // always matche the preceding unmatched `{`, even if there are intervening
+    // always match the preceding unmatched `{`, even if there are intervening
     // unmatched tokens, which means that `"${({(}}"` parses as though the open
     // parens are unmatched but everything else is matched.
     var stringStart = _scan(r'"${({(}}"');
