@@ -720,6 +720,15 @@ void ScopeBuilder::VisitFunctionNode(FunctionNode* node) {
         scope_->CaptureVariable(temp);
       }
     }
+    if (FLAG_causal_async_stacks) {
+      // TODO(28777): Either remove the variable here, or update the dart side
+      // so we don't always generate it if this flag is not set.
+      LocalVariable* temp =
+          scope_->LookupVariable(Symbols::AsyncStackTraceVar(), true);
+      if (temp != NULL) {
+        scope_->CaptureVariable(temp);
+      }
+    }
   }
 }
 
@@ -2555,6 +2564,17 @@ Fragment FlowGraphBuilder::Return(TokenPosition position) {
         new (Z) DebugStepCheckInstr(position, RawPcDescriptors::kRuntimeCall);
   }
 
+  if (FLAG_causal_async_stacks &&
+      function.name() == Symbols::AsyncOperation().raw()) {
+    // We are returning from an asynchronous closure. Before we do that, be
+    // sure to clear the thread's asynchronous stack trace.
+    const Function& target = Function::ZoneHandle(
+        Z, I->object_store()->async_clear_thread_stack_trace());
+    ASSERT(!target.IsNull());
+    instructions += StaticCall(TokenPosition::kNoSource, target, 0);
+    instructions += Drop();
+  }
+
   ReturnInstr* return_instr = new (Z) ReturnInstr(position, value);
   if (exit_collector_ != NULL) exit_collector_->AddExit(return_instr);
 
@@ -3171,7 +3191,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
     // The code we are building will be executed right after we enter
     // the function and before any nested contexts are allocated.
     // Reset current context_depth_ to match this.
-    intptr_t current_context_depth = context_depth_;
+    const intptr_t current_context_depth = context_depth_;
     context_depth_ = scopes_->yield_jump_variable->owner()->context_level();
 
     // Prepend an entry corresponding to normal entry to the function.
@@ -3234,6 +3254,37 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
     }
     body = dispatch;
 
+    context_depth_ = current_context_depth;
+  }
+
+  if (FLAG_causal_async_stacks &&
+      dart_function.name() == Symbols::AsyncOperation().raw()) {
+    // The code we are building will be executed right after we enter
+    // the function and before any nested contexts are allocated.
+    // Reset current context_depth_ to match this.
+    const intptr_t current_context_depth = context_depth_;
+    context_depth_ = scopes_->yield_jump_variable->owner()->context_level();
+
+    Fragment instructions;
+    LocalScope* scope = parsed_function_->node_sequence()->scope();
+
+    const Function& target = Function::ZoneHandle(
+        Z, I->object_store()->async_set_thread_stack_trace());
+    ASSERT(!target.IsNull());
+
+    // Fetch and load :async_stack_trace
+    LocalVariable* async_stack_trace_var =
+        scope->LookupVariable(Symbols::AsyncStackTraceVar(), false);
+    ASSERT((async_stack_trace_var != NULL) &&
+           async_stack_trace_var->is_captured());
+    instructions += LoadLocal(async_stack_trace_var);
+    instructions += PushArgument();
+
+    // Call _asyncSetThreadStackTrace
+    instructions += StaticCall(TokenPosition::kNoSource, target, 1);
+    instructions += Drop();
+
+    body = instructions + body;
     context_depth_ = current_context_depth;
   }
 
