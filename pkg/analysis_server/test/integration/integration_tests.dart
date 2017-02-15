@@ -277,6 +277,11 @@ abstract class AbstractAnalysisServerIntegrationTest
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
   }
+
+  /**
+   * Read a source file with the given absolute [pathname].
+   */
+  String readFile(String pathname) => new File(pathname).readAsStringSync();
 }
 
 /**

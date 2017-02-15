@@ -33,7 +33,7 @@ This file is validated by `coverage_test.dart`.
 - [x] search.getTypeHierarchy
 
 ## edit domain
-- [ ] edit.format
+- [x] edit.format
 - [ ] edit.getAssists
 - [ ] edit.getAvailableRefactorings
 - [ ] edit.getFixes
