@@ -23,11 +23,13 @@ testMain() async {
 }
 
 var tests = [
+  hasStoppedAtBreakpoint,
+  markDartColonLibrariesDebuggable,
   (Isolate isolate) async {
     await isolate.reload();
     Library dartCore = isolate.libraries.firstWhere(
       (Library library) => library.uri == 'dart:core');
-    await dartCore.load();
+    await dartCore.reload();
     expect(dartCore.debuggable, equals(true));
   },
   stoppedInFunction('testMain', contains:true),

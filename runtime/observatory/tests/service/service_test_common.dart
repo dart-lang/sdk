@@ -206,6 +206,24 @@ Future<Isolate> hasPausedAtStart(Isolate isolate) {
   return hasPausedFor(isolate, ServiceEvent.kPauseStart);
 }
 
+Future<Isolate> markDartColonLibrariesDebuggable(Isolate isolate) async {
+  await isolate.reload();
+  for (Library lib in isolate.libraries) {
+    await lib.load();
+    if (lib.uri.startsWith('dart:') &&
+        !lib.uri.startsWith('dart:_')) {
+      var setDebugParams = {
+            'libraryId': lib.id,
+            'isDebuggable': true,
+          };
+      Map<String, dynamic> result =
+          await isolate.invokeRpcNoUpgrade('setLibraryDebuggable',
+                                           setDebugParams);
+    }
+  }
+  return isolate;
+}
+
 IsolateTest reloadSources([bool pause = false]) {
     return (Isolate isolate) async {
       Map<String, dynamic> params = <String, dynamic>{ };
