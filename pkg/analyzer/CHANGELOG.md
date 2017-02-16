@@ -1,3 +1,8 @@
+## 0.29.7
+
+* Enabled support for generic method syntax by default in the parser.
+* Support the latest version of `pkg/isolate`.
+
 ## 0.29.2
 * Add new ResolverMap class for accessing the results of resolution from the AST.  In a future release, this will replace the existing AST getters.
 * Add new base classes MethodReferenceExpression and ConstructorReferenceNode.
