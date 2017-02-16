@@ -77,9 +77,14 @@ bool File::IsClosed() {
 }
 
 
-void* File::Map(MapType type, int64_t position, int64_t length) {
+MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
   UNIMPLEMENTED();
   return NULL;
+}
+
+
+void MappedMemory::Unmap() {
+  UNIMPLEMENTED();
 }
 
 

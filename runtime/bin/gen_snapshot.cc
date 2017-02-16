@@ -1234,7 +1234,7 @@ static Dart_Isolate CreateServiceIsolate(const char* script_uri,
                                          void* data,
                                          char** error) {
   IsolateData* isolate_data =
-      new IsolateData(script_uri, package_root, package_config);
+      new IsolateData(script_uri, package_root, package_config, NULL);
   Dart_Isolate isolate = NULL;
   isolate = Dart_CreateIsolate(script_uri, main, isolate_snapshot_data, NULL,
                                NULL, isolate_data, error);
@@ -1330,32 +1330,37 @@ int main(int argc, char** argv) {
   init_params.file_close = DartUtils::CloseFile;
   init_params.entropy_source = DartUtils::EntropySource;
 
+  MappedMemory* mapped_vm_snapshot_data = NULL;
+  MappedMemory* mapped_isolate_snapshot_data = NULL;
   if (snapshot_kind == kScript) {
     File* file = File::Open(vm_snapshot_data_filename, File::kRead);
     if (file == NULL) {
       Log::PrintErr("Failed to open: %s\n", vm_snapshot_data_filename);
       return kErrorExitCode;
     }
-    void* buffer = file->Map(File::kReadOnly, 0, file->Length());
-    if (buffer == NULL) {
+    mapped_vm_snapshot_data = file->Map(File::kReadOnly, 0, file->Length());
+    if (mapped_vm_snapshot_data == NULL) {
       Log::PrintErr("Failed to read: %s\n", vm_snapshot_data_filename);
       return kErrorExitCode;
     }
     file->Close();
-    init_params.vm_snapshot_data = reinterpret_cast<const uint8_t*>(buffer);
+    init_params.vm_snapshot_data =
+        reinterpret_cast<const uint8_t*>(mapped_vm_snapshot_data->address());
 
     file = File::Open(isolate_snapshot_data_filename, File::kRead);
     if (file == NULL) {
       Log::PrintErr("Failed to open: %s\n", isolate_snapshot_data_filename);
       return kErrorExitCode;
     }
-    buffer = file->Map(File::kReadOnly, 0, file->Length());
-    if (buffer == NULL) {
+    mapped_isolate_snapshot_data =
+        file->Map(File::kReadOnly, 0, file->Length());
+    if (mapped_isolate_snapshot_data == NULL) {
       Log::PrintErr("Failed to read: %s\n", isolate_snapshot_data_filename);
       return kErrorExitCode;
     }
     file->Close();
-    isolate_snapshot_data = reinterpret_cast<const uint8_t*>(buffer);
+    isolate_snapshot_data = reinterpret_cast<const uint8_t*>(
+        mapped_isolate_snapshot_data->address());
   }
 
   char* error = Dart_Initialize(&init_params);
@@ -1366,7 +1371,7 @@ int main(int argc, char** argv) {
   }
 
   IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
-                                              commandline_packages_file);
+                                              commandline_packages_file, NULL);
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
                                             NULL, NULL, isolate_data, &error);
   if (isolate == NULL) {
@@ -1414,7 +1419,7 @@ int main(int argc, char** argv) {
 
     // Now we create an isolate into which we load all the code that needs to
     // be in the snapshot.
-    isolate_data = new IsolateData(NULL, NULL, NULL);
+    isolate_data = new IsolateData(NULL, NULL, NULL, NULL);
     const uint8_t* kernel = NULL;
     intptr_t kernel_length = 0;
     const bool is_kernel_file =
@@ -1510,6 +1515,8 @@ int main(int argc, char** argv) {
     free(error);
   }
   EventHandler::Stop();
+  delete mapped_vm_snapshot_data;
+  delete mapped_isolate_snapshot_data;
   return 0;
 }
 

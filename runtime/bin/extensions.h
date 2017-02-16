@@ -20,8 +20,9 @@ class Extensions {
                                    Dart_Handle parent_library);
 
   // Platform-specific implementations.
-  static void* LoadExtensionLibrary(const char* library_file);
+  static void* LoadLibrary(const char* library_file);
   static void* ResolveSymbol(void* lib_handle, const char* symbol);
+  static void UnloadLibrary(void* lib_handle);
 
  private:
   static Dart_Handle GetError();

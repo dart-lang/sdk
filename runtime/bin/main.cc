@@ -105,6 +105,7 @@ static bool trace_loading = false;
 static char* app_script_uri = NULL;
 static const uint8_t* app_isolate_snapshot_data = NULL;
 static const uint8_t* app_isolate_snapshot_instructions = NULL;
+static AppSnapshot* app_snapshot = NULL;
 
 
 static Dart_Isolate main_isolate = NULL;
@@ -816,6 +817,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   const uint8_t* isolate_snapshot_data = app_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
+  AppSnapshot* app_snapshot = NULL;
 #else
   // JIT: Main isolate starts from the app snapshot, if any. Other isolates
   // use the core libraries snapshot.
@@ -823,6 +825,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       core_isolate_snapshot_instructions;
+  AppSnapshot* app_snapshot = NULL;
   if ((app_isolate_snapshot_data != NULL) &&
       (is_main_isolate || ((app_script_uri != NULL) &&
                            (strcmp(script_uri, app_script_uri) == 0)))) {
@@ -830,17 +833,14 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     isolate_snapshot_data = app_isolate_snapshot_data;
     isolate_snapshot_instructions = app_isolate_snapshot_instructions;
   } else if (!is_main_isolate) {
-    const uint8_t* file_vm_snapshot_data = NULL;
-    const uint8_t* file_vm_snapshot_instructions = NULL;
-    const uint8_t* file_isolate_snapshot_data = NULL;
-    const uint8_t* file_isolate_snapshot_instructions = NULL;
-    if (Snapshot::ReadAppSnapshot(
-            script_uri, &file_vm_snapshot_data, &file_vm_snapshot_instructions,
-            &file_isolate_snapshot_data, &file_isolate_snapshot_instructions)) {
-      // TODO(rmacnak): We are leaking the snapshot when the isolate shuts down.
+    app_snapshot = Snapshot::TryReadAppSnapshot(script_uri);
+    if (app_snapshot != NULL) {
       isolate_run_app_snapshot = true;
-      isolate_snapshot_data = file_isolate_snapshot_data;
-      isolate_snapshot_instructions = file_isolate_snapshot_instructions;
+      const uint8_t* ignore_vm_snapshot_data;
+      const uint8_t* ignore_vm_snapshot_instructions;
+      app_snapshot->SetBuffers(
+          &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+          &isolate_snapshot_data, &isolate_snapshot_instructions);
     }
   }
 #endif
@@ -881,7 +881,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   }
 
   IsolateData* isolate_data =
-      new IsolateData(script_uri, package_root, packages_config);
+      new IsolateData(script_uri, package_root, packages_config, app_snapshot);
   // If the script is a Kernel binary, then we will try to bootstrap from the
   // script.
   Dart_Isolate isolate =
@@ -1639,10 +1639,12 @@ void main(int argc, char** argv) {
     Platform::Exit(kErrorExitCode);
   }
 
-  if (Snapshot::ReadAppSnapshot(
-          script_name, &vm_snapshot_data, &vm_snapshot_instructions,
-          &app_isolate_snapshot_data, &app_isolate_snapshot_instructions)) {
+  app_snapshot = Snapshot::TryReadAppSnapshot(script_name);
+  if (app_snapshot != NULL) {
     vm_run_app_snapshot = true;
+    app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,
+                             &app_isolate_snapshot_data,
+                             &app_isolate_snapshot_instructions);
   }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -1718,6 +1720,7 @@ void main(int argc, char** argv) {
   }
   EventHandler::Stop();
 
+  delete app_snapshot;
   free(app_script_uri);
 
   // Free copied argument strings if converted.

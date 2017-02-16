@@ -38,7 +38,7 @@ void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
         NULL,
     };
     const char* library_file = Concatenate(path_components);
-    void* library_handle = LoadExtensionLibrary(library_file);
+    void* library_handle = LoadLibrary(library_file);
     if (library_handle != NULL) {
       return library_handle;
     }
@@ -55,13 +55,13 @@ void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
         NULL,
     };
     const char* library_file = Concatenate(path_components);
-    return LoadExtensionLibrary(library_file);
+    return LoadLibrary(library_file);
   }
 }
 
 
 // IMPORTANT: In the absolute path case, do not extract the filename and search
-// for that by passing it to LoadExtensionLibrary. That can lead to confusion in
+// for that by passing it to LoadLibrary. That can lead to confusion in
 // which the absolute path is wrong, and a different version of the library is
 // loaded from the standard location.
 void* Extensions::ResolveAbsPathExtension(const char* extension_path) {

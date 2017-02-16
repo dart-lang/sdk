@@ -79,7 +79,7 @@ bool File::IsClosed() {
 }
 
 
-void* File::Map(MapType type, int64_t position, int64_t length) {
+MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
   ASSERT(handle_->fd() >= 0);
   int prot = PROT_NONE;
   switch (type) {
@@ -96,7 +96,15 @@ void* File::Map(MapType type, int64_t position, int64_t length) {
   if (addr == MAP_FAILED) {
     return NULL;
   }
-  return addr;
+  return new MappedMemory(addr, length);
+}
+
+
+void MappedMemory::Unmap() {
+  int result = munmap(address_, size_);
+  ASSERT(result == 0);
+  address_ = 0;
+  size_ = 0;
 }
 
 
