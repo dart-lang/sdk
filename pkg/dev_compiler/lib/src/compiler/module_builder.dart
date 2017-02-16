@@ -161,8 +161,19 @@ class LegacyModuleBuilder extends _ModuleBuilder {
       for (var importName in import.namedImports) {
         assert(!importName.isStar); // import * not supported in legacy modules.
         var asName = importName.asName ?? importName.name;
-        importStatements.add(js.statement(
-            'const # = #.#', [asName, moduleVar, importName.name.name]));
+        var fromName = importName.name.name;
+        // Load non-SDK modules on demand (i.e., deferred).
+        if (import.from.valueWithoutQuotes != dartSdkModule) {
+          importStatements.add(js.statement(
+              'let # = dart_library.defer(#, #, function (mod, lib) {'
+              '  # = mod;'
+              '  # = lib;'
+              '});',
+              [asName, moduleVar, js.string(fromName), moduleVar, asName]));
+        } else {
+          importStatements.add(js.statement(
+              'const # = #.#', [asName, moduleVar, importName.name.name]));
+        }
       }
     }
     statements.insertAll(0, importStatements);

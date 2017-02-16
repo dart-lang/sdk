@@ -6,6 +6,9 @@ import 'dart:collection';
 
 import '../js_ast/js_ast.dart';
 
+/// The ES6 name for the Dart SDK.  All dart:* libraries are in this module.
+const String dartSdkModule = 'dart_sdk';
+
 /// Unique instance for temporary variables. Will be renamed consistently
 /// across the entire file. Different instances will be named differently
 /// even if they have the same name, this makes it safe to use in code
