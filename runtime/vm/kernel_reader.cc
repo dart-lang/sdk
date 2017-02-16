@@ -288,28 +288,37 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
 
   ActiveClassScope active_class_scope(&active_class_, kernel_klass, &klass);
 
-  for (intptr_t i = 0; i < kernel_klass->fields().length(); i++) {
-    Field* kernel_field = kernel_klass->fields()[i];
-    ActiveMemberScope active_member_scope(&active_class_, kernel_field);
+  if (library.raw() == dart::Library::InternalLibrary() &&
+      klass.Name() == Symbols::ClassID().raw()) {
+    // If this is a dart:internal.ClassID class ignore field declarations
+    // contained in the Kernel file and instead inject our own const
+    // fields.
+    klass.InjectCIDFields();
+  } else {
+    for (intptr_t i = 0; i < kernel_klass->fields().length(); i++) {
+      Field* kernel_field = kernel_klass->fields()[i];
+      ActiveMemberScope active_member_scope(&active_class_, kernel_field);
 
-    const dart::String& name = H.DartFieldName(kernel_field->name());
-    const AbstractType& type =
-        T.TranslateTypeWithoutFinalization(kernel_field->type());
-    const Object& script_class =
-        ClassForScriptAt(klass, kernel_field->source_uri_index());
-    dart::Field& field = dart::Field::Handle(
-        Z, dart::Field::New(name, kernel_field->IsStatic(),
-                            // In the VM all const fields are implicitly final
-                            // whereas in Kernel they are not final because they
-                            // are not explicitly declared that way.
-                            kernel_field->IsFinal() || kernel_field->IsConst(),
-                            kernel_field->IsConst(),
-                            false,  // is_reflectable
-                            script_class, type, kernel_field->position()));
-    field.set_kernel_field(kernel_field);
-    field.set_has_initializer(kernel_field->initializer() != NULL);
-    GenerateFieldAccessors(klass, field, kernel_field);
-    klass.AddField(field);
+      const dart::String& name = H.DartFieldName(kernel_field->name());
+      const AbstractType& type =
+          T.TranslateTypeWithoutFinalization(kernel_field->type());
+      const Object& script_class =
+          ClassForScriptAt(klass, kernel_field->source_uri_index());
+      dart::Field& field = dart::Field::Handle(
+          Z,
+          dart::Field::New(name, kernel_field->IsStatic(),
+                           // In the VM all const fields are implicitly final
+                           // whereas in Kernel they are not final because they
+                           // are not explicitly declared that way.
+                           kernel_field->IsFinal() || kernel_field->IsConst(),
+                           kernel_field->IsConst(),
+                           false,  // is_reflectable
+                           script_class, type, kernel_field->position()));
+      field.set_kernel_field(kernel_field);
+      field.set_has_initializer(kernel_field->initializer() != NULL);
+      GenerateFieldAccessors(klass, field, kernel_field);
+      klass.AddField(field);
+    }
   }
 
   for (intptr_t i = 0; i < kernel_klass->constructors().length(); i++) {

@@ -4496,7 +4496,7 @@ void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
     Field* kernel_field = Field::Cast(target);
     const dart::Field& field =
         dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(kernel_field));
-    if (kernel_field->IsConst()) {
+    if (field.is_const()) {
       fragment_ = Constant(constant_evaluator_.EvaluateExpression(node));
     } else {
       const dart::Class& owner = dart::Class::Handle(Z, field.Owner());
