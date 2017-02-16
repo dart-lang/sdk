@@ -581,7 +581,9 @@ class Driver implements CommandLineStarter {
           scheduler,
           log,
           resourceProvider,
-          analysisDriverMemoryByteStore,
+          options.useAnalysisDriverMemoryByteStore
+              ? analysisDriverMemoryByteStore
+              : analysisDriverFileByteStore,
           new FileContentOverlay(),
           'test',
           context.sourceFactory,
