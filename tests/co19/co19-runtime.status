@@ -54,6 +54,7 @@ Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 [ ($runtime == vm || $runtime == dart_precompiled ) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
 LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269
+LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail  # Issue 28269
 
 [ ($runtime == vm || $runtime == dart_precompiled) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc64 && $arch != simdbc) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
