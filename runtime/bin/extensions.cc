@@ -38,7 +38,7 @@ void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
         NULL,
     };
     const char* library_file = Concatenate(path_components);
-    void* library_handle = LoadLibrary(library_file);
+    void* library_handle = LoadExtensionLibrary(library_file);
     if (library_handle != NULL) {
       return library_handle;
     }
@@ -55,7 +55,7 @@ void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
         NULL,
     };
     const char* library_file = Concatenate(path_components);
-    return LoadLibrary(library_file);
+    return LoadExtensionLibrary(library_file);
   }
 }
 

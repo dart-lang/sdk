@@ -20,7 +20,9 @@ class Extensions {
                                    Dart_Handle parent_library);
 
   // Platform-specific implementations.
-  static void* LoadLibrary(const char* library_file);
+  // Don't rename LoadExtensionLibrary to LoadLibrary since on Windows it
+  // conflicts with LoadLibraryW after mangling.
+  static void* LoadExtensionLibrary(const char* library_file);
   static void* ResolveSymbol(void* lib_handle, const char* symbol);
   static void UnloadLibrary(void* lib_handle);
 

@@ -191,7 +191,7 @@ class DylibAppSnapshot : public AppSnapshot {
 
 
 static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
-  void* library = Extensions::LoadLibrary(script_name);
+  void* library = Extensions::LoadExtensionLibrary(script_name);
   if (library == NULL) {
     return NULL;
   }

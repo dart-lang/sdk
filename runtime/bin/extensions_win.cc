@@ -19,7 +19,7 @@ const char* kIsolateSnapshotDataSymbolName = "_kDartIsolateSnapshotData";
 const char* kIsolateSnapshotInstructionsSymbolName =
     "_kDartIsolateSnapshotInstructions";
 
-void* Extensions::LoadLibrary(const char* library_file) {
+void* Extensions::LoadExtensionLibrary(const char* library_file) {
   SetLastError(0);
 
   // Convert to wchar_t string.
