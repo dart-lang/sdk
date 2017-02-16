@@ -15,14 +15,14 @@ TODO(devoncarew): We should track analysis server notifications here as well.
 - [x] analysis.getHover
 - [ ] analysis.getReachableSources
 - [ ] analysis.getLibraryDependencies
-- [ ] analysis.getNavigation
+- [x] analysis.getNavigation
 - [x] analysis.reanalyze
-- [ ] analysis.setAnalysisRoots
+- [x] analysis.setAnalysisRoots
 - [ ] analysis.setGeneralSubscriptions
 - [ ] analysis.setPriorityFiles
-- [ ] analysis.setSubscriptions
+- [x] analysis.setSubscriptions
 - [x] analysis.updateContent
-- [ ] analysis.updateOptions
+- [x] analysis.updateOptions
 
 ## completion domain
 - [x] completion.getSuggestions

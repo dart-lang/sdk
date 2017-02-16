@@ -125,6 +125,8 @@ abstract class AbstractAnalysisServerIntegrationTest
    */
   bool _subscribedToServerStatus = false;
 
+  List<AnalysisError> getErrors(String pathname) => currentAnalysisErrors[pathname];
+
   AbstractAnalysisServerIntegrationTest() {
     initializeInttestMixin();
   }
@@ -176,7 +178,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * The server is automatically started before every test, and a temporary
    * [sourceDirectory] is created.
    */
-  Future setUp() {
+  Future setUp() async {
     sourceDirectory = new Directory(Directory.systemTemp
         .createTempSync('analysisServer')
         .resolveSymbolicLinksSync());
@@ -193,13 +195,12 @@ abstract class AbstractAnalysisServerIntegrationTest
       // A server error should never happen during an integration test.
       fail('${params.message}\n${params.stackTrace}');
     });
-    return startServer().then((_) {
-      server.listenToOutput(dispatchNotification);
-      server.exitCode.then((_) {
-        skipShutdown = true;
-      });
-      return serverConnected.future;
+    await startServer();
+    server.listenToOutput(dispatchNotification);
+    server.exitCode.then((_) {
+      skipShutdown = true;
     });
+    return serverConnected.future;
   }
 
   /**
@@ -651,14 +652,12 @@ class Server {
   }
 
   /**
-   * Start the server.  If [debugServer] is `true`, the server will be started
-   * with "--debug", allowing a debugger to be attached. If [profileServer] is
-   * `true`, the server will be started with "--observe" and
-   * "--pause-isolates-on-exit", allowing the observatory to be used.
+   * Start the server. If [profileServer] is `true`, the server will be started
+   * with "--observe" and "--pause-isolates-on-exit", allowing the observatory
+   * to be used.
    */
   Future start(
       {bool checked: true,
-      bool debugServer: false,
       int diagnosticPort,
       bool enableNewAnalysisDriver: false,
       bool noErrorNotification: false,
@@ -678,9 +677,6 @@ class Server {
     //
     // Add VM arguments.
     //
-    if (debugServer) {
-      arguments.add('--debug');
-    }
     if (profileServer) {
       if (servicesPort == null) {
         arguments.add('--observe');
@@ -725,6 +721,9 @@ class Server {
     }
 //    print('Launching $serverPath');
 //    print('$dartBinary ${arguments.join(' ')}');
+    // TODO(devoncarew): We could experiment with instead launching the analysis
+    // server in a separate isolate. This would make it easier to debug the
+    // integration tests, and would like speed the tests up as well.
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
       process.exitCode.then((int code) {
