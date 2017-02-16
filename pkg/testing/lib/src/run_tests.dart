@@ -115,7 +115,7 @@ class CommandLine {
               return fail(
                   "Usage: run_tests.dart [$configPrefix=configuration_file]\n"
                   "Where configuration_file is one of:\n  "
-                  "${candiates.map((File file) => file.path).join('\n  ')}");
+                  "${candiates.map((file) => file.path).join('\n  ')}");
           }
         }
       }

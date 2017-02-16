@@ -131,6 +131,8 @@
 
   "analyze": {
 
+    "options": "../../.analysis_options",
+
     "uris": [
       "../../lib/src/fasta",
       "../../lib/src/fasta/analyzer",
