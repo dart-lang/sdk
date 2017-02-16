@@ -293,6 +293,8 @@ class ServerErrorMessage {
   ServerErrorMessage(this.message);
 
   dynamic get error => message['error'];
+
+  String toString() => message.toString();
 }
 
 /**
