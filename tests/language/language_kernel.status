@@ -234,6 +234,7 @@ hello_dart_test: Crash  # error: expected: cls.is_type_finalized()
 [ $compiler == dartk && $runtime == vm ]
 hello_dart_test: CompileTimeError  # VMOptions=--compile-all causes us to hit "native function VMServiceIO_Shutdown cannot be resolved"
 ct_const2_test: Pass, CompileTimeError  # VMOptions=--compile-all causes us to hit "native function VMServiceIO_Shutdown cannot be resolved"
+disassemble_test: Pass, Crash  # Multitest via multiple VMOptions! Hits assert "kind() != RawScript::kKernelTag". Issue 28790
 
 # Failures during Gardening shift: To be triaged!
 [ $compiler == dartk || $compiler == dartkp ]
