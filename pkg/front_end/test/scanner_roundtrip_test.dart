@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/analyzer/token_utils.dart';
-import 'package:front_end/src/scanner/errors.dart';
 import 'package:front_end/src/scanner/token.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'scanner_fasta_test.dart';
 import 'scanner_test.dart';
 
 main() {
@@ -32,13 +31,11 @@ class ScannerTest_RoundTrip extends ScannerTest {
         genericMethodComments: genericMethodComments,
         lazyAssignmentOperators: lazyAssignmentOperators);
     var fastaToken = fromAnalyzerTokenStream(analyzerToken);
-    return toAnalyzerTokenStream(fastaToken,
-        (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-      // Since [scanWithListener] reports errors to the listener, we don't
-      // expect any error tokens in the Fasta token stream; so this callback
-      // should never be called.
-      fail('Unexpected error reported: $errorCode, $offset, $arguments');
-    });
+    // Since [scanWithListener] reports errors to the listener, we don't
+    // expect any error tokens in the Fasta token stream, so we convert using
+    // ToAnalyzerTokenStreamConverter_NoErrors.
+    return new ToAnalyzerTokenStreamConverter_NoErrors()
+        .convertTokens(fastaToken);
   }
 
   @override
