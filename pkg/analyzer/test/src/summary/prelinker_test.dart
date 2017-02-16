@@ -4,8 +4,6 @@
 
 library analyzer.test.src.summary.prelinker_test;
 
-import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -36,24 +34,16 @@ class PrelinkerTest extends LinkedSummarizeAstTest {
   void serializeLibraryText(String text, {bool allowErrors: false}) {
     super.serializeLibraryText(text, allowErrors: allowErrors);
 
-    UnlinkedUnit getPart(String relativeUriStr) {
-      Uri relativeUri;
-      try {
-        relativeUri = Uri.parse(relativeUriStr);
-      } on FormatException {
-        return new UnlinkedUnitBuilder();
-      }
-
-      String absoluteUri =
-          resolveRelativeUri(linkerInputs.testDartUri, relativeUri).toString();
+    UnlinkedUnit getPart(String absoluteUri) {
       return linkerInputs.getUnit(absoluteUri);
     }
 
-    UnlinkedPublicNamespace getImport(String relativeUri) {
-      return getPart(relativeUri)?.publicNamespace;
+    UnlinkedPublicNamespace getImport(String absoluteUri) {
+      return getPart(absoluteUri)?.publicNamespace;
     }
 
     linked = new LinkedLibrary.fromBuffer(prelink(
+        linkerInputs.testDartUri.toString(),
         linkerInputs.unlinkedDefiningUnit,
         getPart,
         getImport,

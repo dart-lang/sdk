@@ -4462,6 +4462,20 @@ C v = null;
 ''');
   }
 
+  test_nameConflict_importWithRelativeUri_exportWithAbsolute() {
+    if (resourceProvider.pathContext.separator != '/') {
+      return;
+    }
+
+    addLibrarySource('/a.dart', 'class A {}');
+    addLibrarySource('/b.dart', 'export "/a.dart";');
+    checkLibrary('''
+import 'a.dart';
+import 'b.dart';
+A v = null;
+''');
+  }
+
   test_nested_generic_functions_in_generic_class_with_function_typed_params() {
     checkLibrary('''
 class C<T, U> {

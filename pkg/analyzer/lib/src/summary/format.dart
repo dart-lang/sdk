@@ -2114,8 +2114,8 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
   List<String> get parts => _parts ??= <String>[];
 
   /**
-   * URI for the compilation units listed in the library's `part` declarations.
-   * These URIs are relative to the importing library.
+   * Absolute URI for the compilation units listed in the library's `part`
+   * declarations, empty string for invalid URI.
    */
   void set parts(List<String> value) {
     this._parts = value;
@@ -2125,11 +2125,7 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
   String get uri => _uri ??= '';
 
   /**
-   * The relative URI of the dependent library.  This URI is relative to the
-   * importing library, even if there are intervening `export` declarations.
-   * So, for example, if `a.dart` imports `b/c.dart` and `b/c.dart` exports
-   * `d/e.dart`, the URI listed for `a.dart`'s dependency on `e.dart` will be
-   * `b/d/e.dart`.
+   * The absolute URI of the dependent library, e.g. `package:foo/bar.dart`.
    */
   void set uri(String value) {
     this._uri = value;

@@ -1179,17 +1179,13 @@ table EntityRef {
  */
 table LinkedDependency {
   /**
-   * URI for the compilation units listed in the library's `part` declarations.
-   * These URIs are relative to the importing library.
+   * Absolute URI for the compilation units listed in the library's `part`
+   * declarations, empty string for invalid URI.
    */
   parts:[string] (id: 1);
 
   /**
-   * The relative URI of the dependent library.  This URI is relative to the
-   * importing library, even if there are intervening `export` declarations.
-   * So, for example, if `a.dart` imports `b/c.dart` and `b/c.dart` exports
-   * `d/e.dart`, the URI listed for `a.dart`'s dependency on `e.dart` will be
-   * `b/d/e.dart`.
+   * The absolute URI of the dependent library, e.g. `package:foo/bar.dart`.
    */
   uri:string (id: 0);
 }
