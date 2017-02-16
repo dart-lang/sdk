@@ -181,7 +181,7 @@ class JsonEncoder extends Converter<Object, String>
    * Creates a JSON encoder.
    *
    * The JSON encoder handles numbers, strings, booleans, null, lists and
-   * maps directly.
+   * maps with string keys directly.
    *
    * Any other object is attempted converted by [toEncodable] to an
    * object that is of one of the convertible types.
@@ -189,7 +189,7 @@ class JsonEncoder extends Converter<Object, String>
    * If [toEncodable] is omitted, it defaults to calling `.toJson()` on
    * the object.
    */
-  const JsonEncoder([toEncodable(nonSerializable)])
+  const JsonEncoder([toEncodable(object)])
       : this.indent = null,
         this._toEncodable = toEncodable;
 
@@ -203,7 +203,7 @@ class JsonEncoder extends Converter<Object, String>
    * If [indent] is `null`, the output is encoded as a single line.
    *
    * The JSON encoder handles numbers, strings, booleans, null, lists and
-   * maps directly.
+   * maps with string keys directly.
    *
    * Any other object is attempted converted by [toEncodable] to an
    * object that is of one of the convertible types.
@@ -211,7 +211,7 @@ class JsonEncoder extends Converter<Object, String>
    * If [toEncodable] is omitted, it defaults to calling `.toJson()` on
    * the object.
    */
-  const JsonEncoder.withIndent(this.indent, [toEncodable(nonSerializable)])
+  const JsonEncoder.withIndent(this.indent, [toEncodable(object)])
       : this._toEncodable = toEncodable;
 
   /**
