@@ -1224,9 +1224,12 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.TypeLiteral visitClassTypeLiteralGet(
+  ir.Expression visitClassTypeLiteralGet(
       Send node, ConstantExpression constant, _) {
-    return buildTypeLiteral(constant);
+    var loadedCheckFunc =
+        _createCheckLibraryLoadedFuncIfNeeded(_deferredLibrary);
+    _deferredLibrary = null;
+    return loadedCheckFunc(buildTypeLiteral(constant));
   }
 
   @override
@@ -2014,14 +2017,10 @@ class KernelVisitor extends Object
   }
 
   ir.Expression buildStaticGet(Element element) {
-    var expression = buildStaticAccessor(element).buildSimpleRead();
-    if (_deferredLibrary != null) {
-      ir.Let let = new ir.Let(
-          makeOrReuseVariable(new ir.CheckLibraryIsLoaded(_deferredLibrary)),
-          expression);
-      return let;
-    }
-    return expression;
+    var loadedCheckFunc =
+        _createCheckLibraryLoadedFuncIfNeeded(_deferredLibrary);
+    _deferredLibrary = null;
+    return loadedCheckFunc(buildStaticAccessor(element).buildSimpleRead());
   }
 
   @override
@@ -2233,14 +2232,13 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.StaticInvocation handleStaticFunctionInvoke(
-      Send node,
-      MethodElement function,
-      NodeList arguments,
-      CallStructure callStructure,
-      _) {
-    return associateNode(
-        buildStaticInvoke(function, arguments, isConst: false), node);
+  ir.Expression handleStaticFunctionInvoke(Send node, MethodElement function,
+      NodeList arguments, CallStructure callStructure, _) {
+    var loadedCheckFunc =
+        _createCheckLibraryLoadedFuncIfNeeded(_deferredLibrary);
+    _deferredLibrary = null;
+    return loadedCheckFunc(associateNode(
+        buildStaticInvoke(function, arguments, isConst: false), node));
   }
 
   @override
@@ -2714,10 +2712,27 @@ class KernelVisitor extends Object
     return buildIrFunction(ir.ProcedureKind.Setter, setter, body);
   }
 
+  /// Return a function that accepts an expression and returns an expression. If
+  /// deferredImport is null, then the function returned is the identity
+  /// expression. Otherwise, it inserts a CheckLibraryIsLoaded call before
+  /// evaluating the expression.
+  _createCheckLibraryLoadedFuncIfNeeded(ir.DeferredImport deferredImport) {
+    if (deferredImport != null) {
+      return (ir.Expression inputExpression) => new ir.Let(
+          makeOrReuseVariable(new ir.CheckLibraryIsLoaded(deferredImport)),
+          inputExpression);
+    } else {
+      return (ir.Expression expr) => expr;
+    }
+  }
+
   @override
-  ir.TypeLiteral visitTypeVariableTypeLiteralGet(
+  ir.Expression visitTypeVariableTypeLiteralGet(
       Send node, TypeVariableElement element, _) {
-    return buildTypeVariable(element);
+    var loadedCheckFunc =
+        _createCheckLibraryLoadedFuncIfNeeded(_deferredLibrary);
+    _deferredLibrary = null;
+    return loadedCheckFunc(buildTypeVariable(element));
   }
 
   @override
@@ -2746,9 +2761,12 @@ class KernelVisitor extends Object
   }
 
   @override
-  ir.TypeLiteral visitTypedefTypeLiteralGet(
+  ir.Expression visitTypedefTypeLiteralGet(
       Send node, ConstantExpression constant, _) {
-    return buildTypeLiteral(constant);
+    var loadedCheckFunc =
+        _createCheckLibraryLoadedFuncIfNeeded(_deferredLibrary);
+    _deferredLibrary = null;
+    return loadedCheckFunc(buildTypeLiteral(constant));
   }
 
   @override

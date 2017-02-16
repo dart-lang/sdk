@@ -596,11 +596,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
     HInstruction prefixConstant = graph.addConstantString(
         new DartString.literal(checkLoad.import.name), closedWorld);
+    var prefixElement = astAdapter.getElement(checkLoad.import);
     HInstruction uriConstant = graph.addConstantString(
-        new DartString.literal(compiler.deferredLoadTask.getImportDeferName(
-            // TODO(efortuna): Source information.
-            null,
-            astAdapter.getElement(checkLoad.import))),
+        new DartString.literal(prefixElement.deferredImport.uri.toString()),
         closedWorld);
     _pushStaticInvocation(astAdapter.checkDeferredIsLoaded,
         [prefixConstant, uriConstant], astAdapter.checkDeferredIsLoadedType);
