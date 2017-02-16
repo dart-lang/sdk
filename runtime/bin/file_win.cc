@@ -116,7 +116,7 @@ MappedMemory* File::Map(File::MapType type, int64_t position, int64_t length) {
 
 
 void MappedMemory::Unmap() {
-  bool result = VirtualFree(address_, size_, MEM_RELEASE);
+  BOOL result = VirtualFree(address_, 0, MEM_RELEASE);
   ASSERT(result);
   address_ = 0;
   size_ = 0;
