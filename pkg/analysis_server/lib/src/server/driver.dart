@@ -248,11 +248,6 @@ class Driver implements ServerStarter {
       'disable-new-analysis-driver';
 
   /**
-   * The name of the option used to enable using pub summary manager.
-   */
-  static const String ENABLE_PUB_SUMMARY_MANAGER = 'enable-pub-summary-manager';
-
-  /**
    * The name of the option used to enable fined grained invalidation.
    */
   static const String FINER_GRAINED_INVALIDATION = 'finer-grained-invalidation';
@@ -395,8 +390,6 @@ class Driver implements ServerStarter {
         results[INCREMENTAL_RESOLUTION_VALIDATION];
     analysisServerOptions.enableNewAnalysisDriver =
         !results[DISABLE_NEW_ANALYSIS_DRIVER];
-    analysisServerOptions.enablePubSummaryManager =
-        results[ENABLE_PUB_SUMMARY_MANAGER];
     analysisServerOptions.finerGrainedInvalidation =
         results[FINER_GRAINED_INVALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
@@ -546,10 +539,6 @@ class Driver implements ServerStarter {
         negatable: false);
     parser.addFlag(DISABLE_NEW_ANALYSIS_DRIVER,
         help: "disable using new analysis driver",
-        defaultsTo: false,
-        negatable: false);
-    parser.addFlag(ENABLE_PUB_SUMMARY_MANAGER,
-        help: "enable using summaries for pub cache packages",
         defaultsTo: false,
         negatable: false);
     parser.addFlag(FINER_GRAINED_INVALIDATION,

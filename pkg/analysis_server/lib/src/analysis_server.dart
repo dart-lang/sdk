@@ -51,7 +51,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
@@ -320,11 +319,6 @@ class AnalysisServer {
    */
   ResolverProvider packageResolverProvider;
 
-  /**
-   * The manager of pub package summaries.
-   */
-  PubSummaryManager pubSummaryManager;
-
   nd.PerformanceLog _analysisPerformanceLogger;
   ByteStore byteStore;
   nd.AnalysisDriverScheduler analysisDriverScheduler;
@@ -424,8 +418,6 @@ class AnalysisServer {
     } else if (index != null) {
       searchEngine = new SearchEngineImpl(index, getAstProvider);
     }
-    pubSummaryManager =
-        new PubSummaryManager(resourceProvider, '${io.pid}.temp');
     Notification notification = new ServerConnectedParams(VERSION, io.pid,
             sessionId: instrumentationService.sessionId)
         .toNotification();
@@ -1793,7 +1785,6 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool enableNewAnalysisDriver = false;
-  bool enablePubSummaryManager = false;
   bool finerGrainedInvalidation = false;
   bool noErrorNotification = false;
   bool noIndex = false;
@@ -1975,9 +1966,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    if (analysisServer.options.enablePubSummaryManager) {
-      builderOptions.pubSummaryManager = analysisServer.pubSummaryManager;
-    }
     ContextBuilder builder = new ContextBuilder(resourceProvider,
         analysisServer.sdkManager, analysisServer.overlayState,
         options: builderOptions);

@@ -61,7 +61,6 @@ class ArgumentsTest {
     expect(defaultOptions.strongMode, true);
     expect(defaultOptions.implicitCasts, false);
     expect(defaultOptions.implicitDynamic, false);
-    expect(options.pubSummaryManager, isNull);
   }
 
   void test_createContextBuilderOptions_none() {
@@ -83,7 +82,6 @@ class ArgumentsTest {
     expect(defaultOptions.strongMode, false);
     expect(defaultOptions.implicitCasts, true);
     expect(defaultOptions.implicitDynamic, true);
-    expect(options.pubSummaryManager, isNull);
   }
 
   void test_createDartSdkManager_noPath_noSummaries() {
