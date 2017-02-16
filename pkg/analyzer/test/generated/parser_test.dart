@@ -38,10 +38,33 @@ main() {
  * Abstract base class for parser tests, which does not make assumptions about
  * which parser is used.
  */
-abstract class AbstractParserTestCase {
+abstract class AbstractParserTestCase implements ParserTestHelpers {
   void set enableGenericMethodComments(bool value);
 
   void set enableNnbd(bool value);
+
+  /**
+   * Set a flag indicating whether the parser is to parse part-of directives
+   * that specify a URI rather than a library name.
+   */
+  void set enableUriInPartOf(bool value);
+
+  /**
+   * Get the parser used by the test.
+   *
+   * Caller must first invoke [createParser].
+   */
+  Parser get parser;
+
+  /**
+   * Asserts that no errors occurred during parsing.
+   */
+  void assertNoErrors();
+
+  /**
+   * Prepares to parse using tokens scanned from the given [content] string.
+   */
+  void createParser(String content);
 
   CompilationUnit parseCompilationUnit(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
@@ -50,8 +73,32 @@ abstract class AbstractParserTestCase {
   CompilationUnit parseCompilationUnitWithOptions(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
 
+  /**
+   * Parse the given source as a compilation unit.
+   *
+   * @param source the source to be parsed
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the compilation unit that was parsed
+   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
+   *           not match those that are expected, or if the result would have been `null`
+   */
+  CompilationUnit parseDirectives(String source,
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
+
   Expression parseExpression(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
+
+  /**
+   * Parses a single top level member of a compilation unit (other than a
+   * directive), including any comment and/or metadata that precedes it.
+   */
+  CompilationUnitMember parseFullCompilationUnitMember();
+
+  /**
+   * Parses a single top level directive, including any comment and/or metadata
+   * that precedes it.
+   */
+  Directive parseFullDirective();
 
   Statement parseStatement(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[],
@@ -2999,6 +3046,11 @@ class ParserTestCase extends EngineTestCase
    */
   Parser parser;
 
+  @override
+  void assertNoErrors() {
+    listener.assertNoErrors();
+  }
+
   /**
    * Create the [parser] and [listener] used by a test. The [parser] will be
    * prepared to parse the tokens scanned from the given [content].
@@ -3084,6 +3136,17 @@ class ParserTestCase extends EngineTestCase
     return unit;
   }
 
+  @override
+  CompilationUnit parseDirectives(String source,
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
+    createParser(source);
+    CompilationUnit unit = parser.parseDirectives2();
+    expect(unit, isNotNull);
+    expect(unit.declarations, hasLength(0));
+    listener.assertErrorsWithCodes(errorCodes);
+    return unit;
+  }
+
   /**
    * Parse the given source as an expression.
    *
@@ -3109,10 +3172,7 @@ class ParserTestCase extends EngineTestCase
   CompilationUnitMember parseFullCompilationUnitMember() =>
       parser.parseCompilationUnitMember(parser.parseCommentAndMetadata());
 
-  /**
-   * Parses a single top level directive, including any comment and/or metadata
-   * that precedes it.
-   */
+  @override
   Directive parseFullDirective() =>
       parser.parseDirective(parser.parseCommentAndMetadata());
 
@@ -12894,12 +12954,14 @@ void''');
   }
 }
 
+@reflectiveTest
+class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {}
+
 /**
  * Tests which exercise the parser using a complete compilation unit or
  * compilation unit member.
  */
-@reflectiveTest
-class TopLevelParserTest extends ParserTestCase {
+abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
   void test_function_literal_allowed_at_toplevel() {
     parseCompilationUnit("var x = () {};");
   }
@@ -12946,8 +13008,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_abstract() {
     createParser('abstract class A {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.documentationComment, isNull);
@@ -12965,8 +13027,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_empty() {
     createParser('class A {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.documentationComment, isNull);
@@ -12984,8 +13046,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_extends() {
     createParser('class A extends B {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.documentationComment, isNull);
@@ -13003,8 +13065,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_extendsAndImplements() {
     createParser('class A extends B implements C {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.documentationComment, isNull);
@@ -13022,8 +13084,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_extendsAndWith() {
     createParser('class A extends B with C {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.documentationComment, isNull);
@@ -13042,8 +13104,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_extendsAndWithAndImplements() {
     createParser('class A extends B with C implements D {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.documentationComment, isNull);
@@ -13062,8 +13124,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_implements() {
     createParser('class A implements C {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.documentationComment, isNull);
@@ -13081,8 +13143,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_native() {
     createParser('class A native "nativeValue" {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     NativeClause nativeClause = declaration.nativeClause;
@@ -13096,8 +13158,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_nonEmpty() {
     createParser('class A {var f;}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.documentationComment, isNull);
@@ -13115,8 +13177,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_typeAlias_implementsC() {
     createParser('class A = Object with B implements C;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassTypeAlias>());
     ClassTypeAlias typeAlias = member;
     expect(typeAlias.typedefKeyword, isNotNull);
@@ -13132,8 +13194,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_typeAlias_withB() {
     createParser('class A = Object with B;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassTypeAlias>());
     ClassTypeAlias typeAlias = member;
     expect(typeAlias.typedefKeyword, isNotNull);
@@ -13149,8 +13211,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseClassDeclaration_typeParameters() {
     createParser('class A<B> {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.documentationComment, isNull);
@@ -13169,8 +13231,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
     createParser('abstract<dynamic> _abstract = new abstract.A();');
     CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    assertNoErrors();
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -13197,8 +13259,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnit_directives_multiple() {
     createParser("library l;\npart 'a.dart';");
     CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    assertNoErrors();
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(2));
     expect(unit.declarations, hasLength(0));
@@ -13207,8 +13269,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnit_directives_single() {
     createParser('library l;');
     CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    assertNoErrors();
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(1));
     expect(unit.declarations, hasLength(0));
@@ -13217,8 +13279,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnit_empty() {
     createParser('');
     CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    assertNoErrors();
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(0));
@@ -13227,8 +13289,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnit_exportAsPrefix() {
     createParser('export.A _export = new export.A();');
     CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    assertNoErrors();
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -13237,8 +13299,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
     createParser('export<dynamic> _export = new export.A();');
     CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    assertNoErrors();
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -13247,8 +13309,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
     createParser('operator<dynamic> _operator = new operator.A();');
     CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    assertNoErrors();
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -13257,8 +13319,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnit_script() {
     createParser('#! /bin/dart');
     CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    assertNoErrors();
     expect(unit.scriptTag, isNotNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(0));
@@ -13268,8 +13330,8 @@ class TopLevelParserTest extends ParserTestCase {
     ParserTestCase.parseFunctionBodies = false;
     createParser('f() { "\${n}"; }');
     CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    assertNoErrors();
     expect(unit.scriptTag, isNull);
     expect(unit.declarations, hasLength(1));
   }
@@ -13277,8 +13339,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnit_topLevelDeclaration() {
     createParser('class A {}');
     CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    assertNoErrors();
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -13287,8 +13349,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnit_typedefAsPrefix() {
     createParser('typedef.A _typedef = new typedef.A();');
     CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
+    expect(unit, isNotNull);
+    assertNoErrors();
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -13297,8 +13359,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_abstractAsPrefix() {
     createParser('abstract.A _abstract = new abstract.A();');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
     TopLevelVariableDeclaration declaration = member;
     expect(declaration.semicolon, isNotNull);
@@ -13308,8 +13370,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_class() {
     createParser('class A {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassDeclaration>());
     ClassDeclaration declaration = member;
     expect(declaration.name.name, "A");
@@ -13319,8 +13381,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_classTypeAlias() {
     createParser('abstract class A = B with C;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassTypeAlias>());
     ClassTypeAlias declaration = member;
     expect(declaration.name.name, "A");
@@ -13330,8 +13392,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_constVariable() {
     createParser('const int x = 0;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
     TopLevelVariableDeclaration declaration = member;
     expect(declaration.semicolon, isNotNull);
@@ -13341,8 +13403,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_finalVariable() {
     createParser('final x = 0;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
     TopLevelVariableDeclaration declaration = member;
     expect(declaration.semicolon, isNotNull);
@@ -13352,8 +13414,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_function_external_noType() {
     createParser('external f();');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.externalKeyword, isNotNull);
@@ -13364,8 +13426,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_function_external_type() {
     createParser('external int f();');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.externalKeyword, isNotNull);
@@ -13376,8 +13438,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_function_generic_noReturnType() {
     createParser('f<E>() {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.returnType, isNull);
@@ -13388,8 +13450,8 @@ class TopLevelParserTest extends ParserTestCase {
       test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
     createParser('f<@a E>() {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.returnType, isNull);
@@ -13399,8 +13461,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_function_generic_returnType() {
     createParser('E f<E>() {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.returnType, isNotNull);
@@ -13410,8 +13472,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_function_generic_void() {
     createParser('void f<T>(T t) {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.functionExpression, isNotNull);
@@ -13421,8 +13483,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_function_noType() {
     createParser('f() {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.functionExpression, isNotNull);
@@ -13432,8 +13494,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_function_type() {
     createParser('int f() {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.functionExpression, isNotNull);
@@ -13443,8 +13505,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_function_void() {
     createParser('void f() {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.returnType, isNotNull);
@@ -13453,8 +13515,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_getter_external_noType() {
     createParser('external get p;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.externalKeyword, isNotNull);
@@ -13465,8 +13527,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_getter_external_type() {
     createParser('external int get p;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.externalKeyword, isNotNull);
@@ -13477,8 +13539,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_getter_noType() {
     createParser('get p => 0;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.functionExpression, isNotNull);
@@ -13488,8 +13550,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_getter_type() {
     createParser('int get p => 0;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.functionExpression, isNotNull);
@@ -13499,8 +13561,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_setter_external_noType() {
     createParser('external set p(v);');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.externalKeyword, isNotNull);
@@ -13511,8 +13573,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_setter_external_type() {
     createParser('external void set p(int v);');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.externalKeyword, isNotNull);
@@ -13523,8 +13585,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_setter_noType() {
     createParser('set p(v) {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.functionExpression, isNotNull);
@@ -13534,8 +13596,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_setter_type() {
     createParser('void set p(int v) {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionDeclaration>());
     FunctionDeclaration declaration = member;
     expect(declaration.functionExpression, isNotNull);
@@ -13546,8 +13608,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_typeAlias_abstract() {
     createParser('abstract class C = S with M;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassTypeAlias>());
     ClassTypeAlias typeAlias = member;
     expect(typeAlias.typedefKeyword, isNotNull);
@@ -13564,8 +13626,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_typeAlias_generic() {
     createParser('class C<E> = S<E> with M<E> implements I<E>;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassTypeAlias>());
     ClassTypeAlias typeAlias = member;
     expect(typeAlias.typedefKeyword, isNotNull);
@@ -13582,8 +13644,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_typeAlias_implements() {
     createParser('class C = S with M implements I;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassTypeAlias>());
     ClassTypeAlias typeAlias = member;
     expect(typeAlias.typedefKeyword, isNotNull);
@@ -13600,8 +13662,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_typeAlias_noImplements() {
     createParser('class C = S with M;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<ClassTypeAlias>());
     ClassTypeAlias typeAlias = member;
     expect(typeAlias.typedefKeyword, isNotNull);
@@ -13618,8 +13680,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_typedef() {
     createParser('typedef F();');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<FunctionTypeAlias>());
     FunctionTypeAlias typeAlias = member;
     expect(typeAlias.name.name, "F");
@@ -13629,8 +13691,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_variable() {
     createParser('var x = 0;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
     TopLevelVariableDeclaration declaration = member;
     expect(declaration.semicolon, isNotNull);
@@ -13640,8 +13702,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_variableGet() {
     createParser('String get = null;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
     TopLevelVariableDeclaration declaration = member;
     expect(declaration.semicolon, isNotNull);
@@ -13651,8 +13713,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseCompilationUnitMember_variableSet() {
     createParser('String set = null;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
+    expect(member, isNotNull);
+    assertNoErrors();
     expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
     TopLevelVariableDeclaration declaration = member;
     expect(declaration.semicolon, isNotNull);
@@ -13662,8 +13724,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseDirective_export() {
     createParser("export 'lib/lib.dart';");
     Directive directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive, new isInstanceOf<ExportDirective>());
     ExportDirective exportDirective = directive;
     expect(exportDirective.keyword, isNotNull);
@@ -13675,8 +13737,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseDirective_import() {
     createParser("import 'lib/lib.dart';");
     Directive directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive, new isInstanceOf<ImportDirective>());
     ImportDirective importDirective = directive;
     expect(importDirective.keyword, isNotNull);
@@ -13690,8 +13752,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseDirective_library() {
     createParser("library l;");
     Directive directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive, new isInstanceOf<LibraryDirective>());
     LibraryDirective libraryDirective = directive;
     expect(libraryDirective.libraryKeyword, isNotNull);
@@ -13702,8 +13764,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseDirective_part() {
     createParser("part 'lib/lib.dart';");
     Directive directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive, new isInstanceOf<PartDirective>());
     PartDirective partDirective = directive;
     expect(partDirective.partKeyword, isNotNull);
@@ -13714,8 +13776,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseDirective_partOf() {
     createParser("part of l;");
     Directive directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive, new isInstanceOf<PartOfDirective>());
     PartOfDirective partOfDirective = directive;
     expect(partOfDirective.partKeyword, isNotNull);
@@ -13726,44 +13788,44 @@ class TopLevelParserTest extends ParserTestCase {
 
   void test_parseDirectives_complete() {
     CompilationUnit unit =
-        _parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
+        parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
     expect(unit.scriptTag, isNotNull);
     expect(unit.directives, hasLength(1));
   }
 
   void test_parseDirectives_empty() {
-    CompilationUnit unit = _parseDirectives("");
+    CompilationUnit unit = parseDirectives("");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
   }
 
   void test_parseDirectives_mixed() {
     CompilationUnit unit =
-        _parseDirectives("library l; class A {} part 'foo.dart';");
+        parseDirectives("library l; class A {} part 'foo.dart';");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(1));
   }
 
   void test_parseDirectives_multiple() {
-    CompilationUnit unit = _parseDirectives("library l;\npart 'a.dart';");
+    CompilationUnit unit = parseDirectives("library l;\npart 'a.dart';");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(2));
   }
 
   void test_parseDirectives_script() {
-    CompilationUnit unit = _parseDirectives("#! /bin/dart");
+    CompilationUnit unit = parseDirectives("#! /bin/dart");
     expect(unit.scriptTag, isNotNull);
     expect(unit.directives, hasLength(0));
   }
 
   void test_parseDirectives_single() {
-    CompilationUnit unit = _parseDirectives("library l;");
+    CompilationUnit unit = parseDirectives("library l;");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(1));
   }
 
   void test_parseDirectives_topLevelDeclaration() {
-    CompilationUnit unit = _parseDirectives("class A {}");
+    CompilationUnit unit = parseDirectives("class A {}");
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
   }
@@ -13771,8 +13833,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseEnumDeclaration_one() {
     createParser("enum E {ONE}");
     EnumDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
+    expect(declaration, isNotNull);
+    assertNoErrors();
     expect(declaration.documentationComment, isNull);
     expect(declaration.enumKeyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
@@ -13784,8 +13846,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseEnumDeclaration_trailingComma() {
     createParser("enum E {ONE,}");
     EnumDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
+    expect(declaration, isNotNull);
+    assertNoErrors();
     expect(declaration.documentationComment, isNull);
     expect(declaration.enumKeyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
@@ -13797,8 +13859,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseEnumDeclaration_two() {
     createParser("enum E {ONE, TWO}");
     EnumDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
+    expect(declaration, isNotNull);
+    assertNoErrors();
     expect(declaration.documentationComment, isNull);
     expect(declaration.enumKeyword, isNotNull);
     expect(declaration.leftBracket, isNotNull);
@@ -13810,8 +13872,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseExportDirective_configuration_multiple() {
     createParser("export 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
     ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.configurations, hasLength(2));
@@ -13824,8 +13886,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseExportDirective_configuration_single() {
     createParser("export 'lib/lib.dart' if (a.b == 'c.dart') '';");
     ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.configurations, hasLength(1));
@@ -13837,8 +13899,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseExportDirective_hide() {
     createParser("export 'lib/lib.dart' hide A, B;");
     ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.combinators, hasLength(1));
@@ -13848,8 +13910,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseExportDirective_hide_show() {
     createParser("export 'lib/lib.dart' hide A show B;");
     ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.combinators, hasLength(2));
@@ -13859,8 +13921,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseExportDirective_noCombinator() {
     createParser("export 'lib/lib.dart';");
     ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.combinators, hasLength(0));
@@ -13870,8 +13932,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseExportDirective_show() {
     createParser("export 'lib/lib.dart' show A, B;");
     ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.combinators, hasLength(1));
@@ -13881,8 +13943,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseExportDirective_show_hide() {
     createParser("export 'lib/lib.dart' show B hide A;");
     ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.combinators, hasLength(2));
@@ -13892,8 +13954,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseFunctionDeclaration_function() {
     createParser('/// Doc\nT f() {}');
     FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
+    expect(declaration, isNotNull);
+    assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
     expect((declaration.returnType as TypeName).name.name, 'T');
     expect(declaration.name, isNotNull);
@@ -13908,8 +13970,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseFunctionDeclaration_functionWithTypeParameters() {
     createParser('/// Doc\nT f<E>() {}');
     FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
+    expect(declaration, isNotNull);
+    assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
     expect((declaration.returnType as TypeName).name.name, 'T');
     expect(declaration.name, isNotNull);
@@ -13925,8 +13987,8 @@ class TopLevelParserTest extends ParserTestCase {
     enableGenericMethodComments = true;
     createParser('/// Doc\nT f/*<E>*/() {}');
     FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
+    expect(declaration, isNotNull);
+    assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
     expect((declaration.returnType as TypeName).name.name, 'T');
     expect(declaration.name, isNotNull);
@@ -13941,8 +14003,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseFunctionDeclaration_getter() {
     createParser('/// Doc\nT get p => 0;');
     FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
+    expect(declaration, isNotNull);
+    assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
     expect((declaration.returnType as TypeName).name.name, 'T');
     expect(declaration.name, isNotNull);
@@ -13957,8 +14019,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseFunctionDeclaration_setter() {
     createParser('/// Doc\nT set p(v) {}');
     FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
+    expect(declaration, isNotNull);
+    assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
     expect((declaration.returnType as TypeName).name.name, 'T');
     expect(declaration.name, isNotNull);
@@ -13974,8 +14036,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseGenericTypeAlias_noTypeParameters() {
     createParser('F = int Function(int);');
     GenericTypeAlias alias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(alias);
-    listener.assertNoErrors();
+    expect(alias, isNotNull);
+    assertNoErrors();
     expect(alias.name, isNotNull);
     expect(alias.name.name, 'F');
     expect(alias.typeParameters, isNull);
@@ -13988,8 +14050,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseGenericTypeAlias_typeParameters() {
     createParser('F<T> = T Function(T);');
     GenericTypeAlias alias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(alias);
-    listener.assertNoErrors();
+    expect(alias, isNotNull);
+    assertNoErrors();
     expect(alias.name, isNotNull);
     expect(alias.name.name, 'F');
     expect(alias.typeParameters, isNotNull);
@@ -14001,8 +14063,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseImportDirective_configuration_multiple() {
     createParser("import 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
     ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.configurations, hasLength(2));
@@ -14018,8 +14080,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseImportDirective_configuration_single() {
     createParser("import 'lib/lib.dart' if (a.b == 'c.dart') '';");
     ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.configurations, hasLength(1));
@@ -14034,8 +14096,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseImportDirective_deferred() {
     createParser("import 'lib/lib.dart' deferred as a;");
     ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNotNull);
@@ -14048,8 +14110,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseImportDirective_hide() {
     createParser("import 'lib/lib.dart' hide A, B;");
     ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
@@ -14062,8 +14124,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseImportDirective_noCombinator() {
     createParser("import 'lib/lib.dart';");
     ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
@@ -14076,8 +14138,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseImportDirective_prefix() {
     createParser("import 'lib/lib.dart' as a;");
     ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
@@ -14090,8 +14152,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseImportDirective_prefix_hide_show() {
     createParser("import 'lib/lib.dart' as a hide A show B;");
     ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
@@ -14104,8 +14166,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseImportDirective_prefix_show_hide() {
     createParser("import 'lib/lib.dart' as a show B hide A;");
     ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
@@ -14118,8 +14180,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseImportDirective_show() {
     createParser("import 'lib/lib.dart' show A, B;");
     ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.keyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
@@ -14132,8 +14194,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseLibraryDirective() {
     createParser('library l;');
     LibraryDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.libraryKeyword, isNotNull);
     expect(directive.name, isNotNull);
     expect(directive.semicolon, isNotNull);
@@ -14142,8 +14204,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parsePartDirective() {
     createParser("part 'lib/lib.dart';");
     PartDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
+    expect(directive, isNotNull);
+    assertNoErrors();
     expect(directive.partKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.semicolon, isNotNull);
@@ -14174,8 +14236,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_function_noParameters() {
     createParser('typedef bool F();');
     FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.parameters, isNotNull);
@@ -14187,8 +14249,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_function_noReturnType() {
     createParser('typedef F();');
     FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.parameters, isNotNull);
@@ -14200,8 +14262,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_function_parameterizedReturnType() {
     createParser('typedef A<B> F();');
     FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.parameters, isNotNull);
@@ -14213,8 +14275,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_function_parameters() {
     createParser('typedef bool F(Object value);');
     FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.parameters, isNotNull);
@@ -14226,8 +14288,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_function_typeParameters() {
     createParser('typedef bool F<E>();');
     FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.parameters, isNotNull);
@@ -14239,8 +14301,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_function_voidReturnType() {
     createParser('typedef void F();');
     FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.parameters, isNotNull);
@@ -14253,8 +14315,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_genericFunction_noParameters() {
     createParser('typedef F = bool Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNull);
@@ -14270,8 +14332,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_genericFunction_noReturnType() {
     createParser('typedef F = Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNull);
@@ -14287,8 +14349,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_genericFunction_parameterizedReturnType() {
     createParser('typedef F = A<B> Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNull);
@@ -14304,8 +14366,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_genericFunction_parameters() {
     createParser('typedef F = bool Function(Object value);');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNull);
@@ -14321,8 +14383,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_genericFunction_typeParameters() {
     createParser('typedef F = bool Function<E>();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNull);
@@ -14338,8 +14400,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_genericFunction_typeParameters_noParameters() {
     createParser('typedef F<T> = bool Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNotNull);
@@ -14355,8 +14417,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_genericFunction_typeParameters_noReturnType() {
     createParser('typedef F<T> = Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNotNull);
@@ -14373,8 +14435,8 @@ class TopLevelParserTest extends ParserTestCase {
       test_parseTypeAlias_genericFunction_typeParameters_parameterizedReturnType() {
     createParser('typedef F<T> = A<B> Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNotNull);
@@ -14390,8 +14452,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_genericFunction_typeParameters_parameters() {
     createParser('typedef F<T> = bool Function(Object value);');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNotNull);
@@ -14407,8 +14469,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_genericFunction_typeParameters_typeParameters() {
     createParser('typedef F<T> = bool Function<E>();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNotNull);
@@ -14424,8 +14486,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_genericFunction_typeParameters_voidReturnType() {
     createParser('typedef F<T> = void Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNotNull);
@@ -14441,8 +14503,8 @@ class TopLevelParserTest extends ParserTestCase {
   void test_parseTypeAlias_genericFunction_voidReturnType() {
     createParser('typedef F = void Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
     expect(typeAlias.typedefKeyword, isNotNull);
     expect(typeAlias.name, isNotNull);
     expect(typeAlias.typeParameters, isNull);
@@ -14452,24 +14514,5 @@ class TopLevelParserTest extends ParserTestCase {
     expect(functionType.parameters, isNotNull);
     expect(functionType.returnType, isNotNull);
     expect(functionType.typeParameters, isNull);
-  }
-
-  /**
-   * Parse the given source as a compilation unit.
-   *
-   * @param source the source to be parsed
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the compilation unit that was parsed
-   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   *           not match those that are expected, or if the result would have been `null`
-   */
-  CompilationUnit _parseDirectives(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    createParser(source);
-    CompilationUnit unit = parser.parseDirectives2();
-    expect(unit, isNotNull);
-    expect(unit.declarations, hasLength(0));
-    listener.assertErrorsWithCodes(errorCodes);
-    return unit;
   }
 }
