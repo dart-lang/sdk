@@ -26,35 +26,38 @@ EXECUTABLE_NAMES = {
   'win32': {
     'chrome': 'chrome.exe',
     'content_shell': 'content_shell.exe',
+    'dart_bootstrap': 'dart_bootstrap.exe',
     'dart': 'dart.exe',
-    'iexplore': 'iexplore.exe',
+    'dart_precompiled_runtime': 'dart_precompiled_runtime.exe',
     'firefox': 'firefox.exe',
+    'gen_snapshot': 'gen_snapshot.exe',
     'git': 'git.exe',
+    'iexplore': 'iexplore.exe',
     'svn': 'svn.exe',
-    'fletch': 'fletch.exe',
-    'fletch-vm': 'fletch-vm.exe',
   },
   'linux': {
     'chrome': 'chrome',
     'content_shell': 'content_shell',
+    'dart_bootstrap': 'dart_bootstrap',
     'dart': 'dart',
-    'firefox': 'firefox.exe',
+    'dart_precompiled_runtime': 'dart_precompiled_runtime',
+    'firefox': 'firefox',
+    'gen_snapshot': 'gen_snapshot',
     'git': 'git',
     'svn': 'svn',
-    'fletch': 'fletch',
-    'fletch-vm': 'fletch-vm',
   },
   'macos': {
     'chrome': 'Chrome',
     'chrome_helper': 'Chrome Helper',
     'content_shell': 'Content Shell',
+    'dart_bootstrap': 'dart_bootstrap',
     'dart': 'dart',
+    'dart_precompiled_runtime': 'dart_precompiled_runtime',
     'firefox': 'firefox',
-    'safari': 'Safari',
+    'gen_snapshot': 'gen_snapshot',
     'git': 'git',
+    'safari': 'Safari',
     'svn': 'svn',
-    'fletch': 'fletch',
-    'fletch-vm': 'fletch-vm',
   }
 }
 
@@ -74,8 +77,6 @@ def GetOptions():
   parser = optparse.OptionParser("usage: %prog [options]")
   parser.add_option("--kill_dart", default=True,
                     help="Kill all dart processes")
-  parser.add_option("--kill_fletch", default=True,
-                    help="Kill all fletch and fletch-vm processes")
   parser.add_option("--kill_vc", default=True,
                     help="Kill all git and svn processes")
   parser.add_option("--kill_browsers", default=False,
@@ -224,11 +225,9 @@ def KillVCSystems():
 
 def KillDart():
   status = Kill("dart", dump_stacks=True)
-  return status
-
-def KillFletch():
-  status = Kill("fletch")
-  status += Kill("fletch-vm")
+  status += Kill("dart_bootstrap", dump_stacks=True)
+  status += Kill("gen_snapshot", dump_stacks=True)
+  status += Kill("dart_precompiled_runtime", dump_stacks=True)
   return status
 
 def Main():
@@ -240,8 +239,6 @@ def Main():
       KillDart()
     else:
       status += KillDart()
-  if options.kill_fletch:
-    status += KillFletch()
   if options.kill_vc:
     status += KillVCSystems()
   if options.kill_browsers:
