@@ -31,18 +31,28 @@ dart_library =
   // This defers loading of a module until a library is actually used.
   const loadedModule = Symbol('loadedModule');
   dart_library.defer = function(module, name, patch) {
-    var revocable = Proxy.revocable(module, {
+    let done = false;
+    function loadDeferred() {
+      done = true;
+      var mod = module[loadedModule];
+      var lib = mod[name];
+      // Install unproxied module and library in caller's context.
+      patch(mod, lib);
+    }
+    // The deferred library object.  Note, the only legal operations on a Dart
+    // library object should be get (to read a top-level variable, method, or
+    // Class) or set (to write a top-level variable).
+    return new Proxy({}, {
       get: function(o, p) {
-        var mod = o[loadedModule];
-        var lib = mod[name];
-        // Install unproxied module and library in caller's context.
-        patch(mod, lib);
-        // Ensure proxy is only used on first access.
-        revocable.revoke();
-        return lib[p];
-      }
+        if (!done) loadDeferred();
+        return module[name][p];
+      },
+      set: function(o, p, value) {
+        if (!done) loadDeferred();
+        module[name][p] = value;
+        return true;
+      },
     });
-    return revocable.proxy;
   };
 
   class LibraryLoader {
@@ -85,6 +95,8 @@ dart_library =
       // Load the library
       let loader = this;
       let library = this._library;
+      library[dartLibraryName] = this._name;
+      library[libraryImports] = this._imports;
       library[loadedModule] = library;
       args.unshift(library);
 
@@ -95,22 +107,19 @@ dart_library =
       } else {
         // Load / parse other modules on demand.
         let done = false;
-        this._library = new Proxy(args, {
+        this._library = new Proxy(library, {
           get: function(o, name) {
-            if (done) {
-              return library[name];
+            if (!done) {
+              done = true;
+              loader._loader.apply(null, args);
+              loader._loader = null;
             }
-            done = true;
-            loader._loader.apply(null, o);
-            loader._loader = null;
-            return library[name];
+            return o[name];
           }
         });
       }
 
       this._state = LibraryLoader.READY;
-      this._library[dartLibraryName] = this._name;
-      this._library[libraryImports] = this._imports;
       return this._library;
     }
 
