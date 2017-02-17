@@ -702,7 +702,7 @@ static void PrintUsage() {
 "                                     libraries.                             \n"
 "                                                                            \n"
 " To create a core snapshot:                                                 \n"
-"   --snapshot-kind=core                                                     \n"
+"   --snapshot_kind=core                                                     \n"
 "   --vm_snapshot_data=<output-file>                                         \n"
 "   --isolate_snapshot_data=<output-file>                                    \n"
 "   [<dart-script-file>]                                                     \n"
@@ -712,7 +712,7 @@ static void PrintUsage() {
 " is created.                                                                \n"
 "                                                                            \n"
 " To create a script snapshot with respect to a given core snapshot:         \n"
-"   --snapshot-kind=script                                                   \n"
+"   --snapshot_kind=script                                                   \n"
 "   --vm_snapshot_data=<intput-file>                                         \n"
 "   --isolate_snapshot_data=<intput-file>                                    \n"
 "   --script_snapshot=<output-file>                                          \n"
@@ -724,7 +724,7 @@ static void PrintUsage() {
 "                                                                            \n"
 " To create an AOT application snapshot as blobs suitable for loading with   \n"
 " mmap:                                                                      \n"
-"   --snapshot-kind=app-aot-blobs                                            \n"
+"   --snapshot_kind=app-aot-blobs                                            \n"
 "   --vm_snapshot_data=<output-file>                                         \n"
 "   --vm_snapshot_instructions=<output-file>                                 \n"
 "   --isolate_snapshot_data=<output-file>                                    \n"
@@ -735,7 +735,7 @@ static void PrintUsage() {
 " To create an AOT application snapshot as assembly suitable for compilation \n"
 " as a static or dynamic library:                                            \n"
 " mmap:                                                                      \n"
-"   --snapshot-kind=app-aot-blobs                                            \n"
+"   --snapshot_kind=app-aot-blobs                                            \n"
 "   --assembly=<output-file>                                                 \n"
 "   {--embedder_entry_points_manifest=<input-file>}                          \n"
 "   <dart-script-file>                                                       \n"
@@ -1136,7 +1136,7 @@ static void CreateAndWriteScriptSnapshot() {
   CHECK_RESULT(result);
 
   // Now write it out to the specified file.
-  WriteSnapshotFile(script_snapshot_filename, buffer, size, true);
+  WriteSnapshotFile(script_snapshot_filename, buffer, size, false);
 }
 
 
