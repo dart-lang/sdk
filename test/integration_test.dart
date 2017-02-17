@@ -256,6 +256,26 @@ defineTests() {
               '2 files analyzed, 2 issues found, in'
             ]));
       });
+
+      test('package_imports_before_relative', () {
+        var packagesFilePath = new File('.packages').absolute.path;
+        dartlint.main([
+          '--packages',
+          packagesFilePath,
+          'test/_data/directives_ordering/package_imports_before_relative',
+          '--rules=directives_ordering'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              "Place 'package:' imports before relative imports.",
+              "import 'package:async/async.dart';  // LINT",
+              "Place 'package:' imports before relative imports.",
+              "import 'package:yaml/yaml.dart';  // LINT",
+              '3 files analyzed, 2 issues found, in'
+            ]));
+      });
     });
 
     group('only_throw_errors', () {
