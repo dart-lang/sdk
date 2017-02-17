@@ -36,6 +36,10 @@ typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
  * The computer for Dart assists.
  */
 class AssistProcessor {
+  static const FLUTTER_WIDGET_NAME = "Widget";
+  static const FLUTTER_WIDGET_URI =
+      "package:flutter/src/widgets/framework.dart";
+
   AnalysisContext analysisContext;
 
   Source source;
@@ -133,6 +137,7 @@ class AssistProcessor {
     _addProposal_joinVariableDeclaration_onAssignment();
     _addProposal_joinVariableDeclaration_onDeclaration();
     _addProposal_removeTypeAnnotation();
+    _addProposal_reparentFlutterWidget();
     _addProposal_replaceConditionalWithIfElse();
     _addProposal_replaceIfElseWithConditional();
     _addProposal_splitAndCondition();
@@ -1593,6 +1598,66 @@ class AssistProcessor {
     }
     // add proposal
     _addAssist(DartAssistKind.REMOVE_TYPE_ANNOTATION, []);
+  }
+
+  void _addProposal_reparentFlutterWidget() {
+    InstanceCreationExpression newExpr;
+    if (node is SimpleIdentifier) {
+      newExpr = node.getAncestor((node) => node is InstanceCreationExpression);
+      var args =
+          node.getAncestor((node) => node == newExpr || node is ArgumentList);
+      if (args != newExpr) {
+        _coverageMarker();
+        return;
+      }
+    } else if (node is InstanceCreationExpression) {
+      newExpr = node;
+    }
+    if (newExpr == null) {
+      _coverageMarker();
+      return;
+    }
+    ClassElement classElement = newExpr.staticElement?.enclosingElement;
+    InterfaceType superType = classElement?.allSupertypes
+        ?.firstWhere((InterfaceType type) => FLUTTER_WIDGET_NAME == type.name);
+    if (superType == null) {
+      _coverageMarker();
+      return;
+    }
+    Uri uri = superType.element?.source?.uri;
+    if (uri.toString() != FLUTTER_WIDGET_URI) {
+      _coverageMarker();
+      return;
+    }
+    String newExprSrc = utils.getNodeText(newExpr);
+    SourceBuilder sb = new SourceBuilder(file, newExpr.offset);
+    sb.append('new ');
+    sb.startPosition('WIDGET');
+    sb.append('widget');
+    sb.endPosition();
+    sb.append('(');
+    if (newExprSrc.contains(eol)) {
+      int newlineIdx = newExprSrc.lastIndexOf(eol);
+      if (newlineIdx == newExprSrc.length - 1) {
+        newlineIdx -= 1;
+      }
+      String indentOld = utils.getLinePrefix(newExpr.offset + 1 + newlineIdx);
+      String indentNew = '$indentOld${utils.getIndent(1)}';
+      sb.append(eol);
+      sb.append(indentNew);
+      newExprSrc = newExprSrc.replaceAll(
+          new RegExp("^$indentOld", multiLine: true), "$indentNew");
+      newExprSrc += ",$eol$indentOld";
+    }
+    sb.startPosition('CHILD');
+    sb.append('child');
+    sb.endPosition();
+    sb.append(': ');
+    sb.append(newExprSrc);
+    sb.append(')');
+    exitPosition = _newPosition(sb.offset + sb.length);
+    _insertBuilder(sb, newExpr.length);
+    _addAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, []);
   }
 
   void _addProposal_replaceConditionalWithIfElse() {

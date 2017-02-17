@@ -15,6 +15,8 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
@@ -3603,6 +3605,132 @@ final V = 1;
 ''');
   }
 
+  test_reparentFlutterWidget_OK_singleLine1() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': _flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+// start
+    return /*caret*/new Container();
+// end
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.REPARENT_FLUTTER_WIDGET,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+// start
+    return /*caret*/new widget(child: new Container());
+// end
+  }
+}
+''');
+  }
+
+  test_reparentFlutterWidget_OK_singleLine2() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': _flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+// start
+    return new ClipRect./*caret*/rect();
+// end
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.REPARENT_FLUTTER_WIDGET,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+// start
+    return new widget(child: new ClipRect./*caret*/rect());
+// end
+  }
+}
+''');
+  }
+
+  test_reparentFlutterWidget_BAD_singleLine() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': _flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+  var obj;
+// start
+    return new Container(child: obj.xyz./*caret*/abc);
+// end
+  }
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET);
+  }
+
+  test_reparentFlutterWidget_OK_multiLines1() async {
+    _configureFlutterPkg({
+      'src/widgets/framework.dart': _flutter_framework_code,
+    });
+    await resolveTestUnit('''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+    return new Container(
+// start
+      child: new /*caret*/DefaultTextStyle(
+        child: new Row(
+          children: <Widget>[
+            new Container(
+            ),
+          ],
+        ),
+      ),
+// end
+    );
+  }
+}
+''');
+    _setCaretLocation();
+    await assertHasAssist(
+        DartAssistKind.REPARENT_FLUTTER_WIDGET,
+        '''
+import 'package:flutter/src/widgets/framework.dart';
+class FakeFlutter {
+  main() {
+    return new Container(
+// start
+      child: new widget(
+        child: new /*caret*/DefaultTextStyle(
+          child: new Row(
+            children: <Widget>[
+              new Container(
+              ),
+            ],
+          ),
+        ),
+      ),
+// end
+    );
+  }
+}
+''');
+  }
+
   test_replaceConditionalWithIfElse_BAD_noEnclosingStatement() async {
     await resolveTestUnit('''
 var v = true ? 111 : 222;
@@ -4217,9 +4345,57 @@ main() {
     return positions;
   }
 
+  String flutterPkgLibPath = '/packages/flutter/lib';
+
+  /**
+   * Configures the [SourceFactory] to have the `flutter` package in
+   * `/packages/flutter/lib` folder.
+   */
+  void _configureFlutterPkg(Map<String, String> pathToCode) {
+    pathToCode.forEach((path, code) {
+      provider.newFile('$flutterPkgLibPath/$path', code);
+    });
+    // configure SourceFactory
+    Folder myPkgFolder = provider.getResource(flutterPkgLibPath);
+    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+      'flutter': [myPkgFolder]
+    });
+    SourceFactory sourceFactory = new SourceFactory(
+        [new DartUriResolver(sdk), pkgResolver, resourceResolver]);
+    if (enableNewAnalysisDriver) {
+      driver.configure(sourceFactory: sourceFactory);
+    } else {
+      context.sourceFactory = sourceFactory;
+    }
+    // force 'flutter' resolution
+    addSource(
+        '/tmp/other.dart',
+        pathToCode.keys
+            .map((path) => "import 'package:flutter/$path';")
+            .join('\n'));
+  }
+
+  String get _flutter_framework_code => '''
+class Widget {}
+class RenderObjectWidget extends Widget {}
+class StatelessWidget extends Widget {}
+class SingleChildRenderObjectWidget extends RenderObjectWidget {}
+class Transform extends SingleChildRenderObjectWidget {}
+class ClipRect extends SingleChildRenderObjectWidget { ClipRect.rect(){} }
+class AspectRatio extends SingleChildRenderObjectWidget {}
+class Container extends StatelessWidget { Container({child: null}){}}
+class DefaultTextStyle extends StatelessWidget { DefaultTextStyle({child: null}){}}
+class Row extends Widget { Row({children: null}){}}
+''';
+
   void _setStartEndSelection() {
     offset = findOffset('// start\n') + '// start\n'.length;
     length = findOffset('// end') - offset;
+  }
+
+  void _setCaretLocation() {
+    offset = findOffset('/*caret*/') + '/*caret*/'.length;
+    length = 0;
   }
 }
 

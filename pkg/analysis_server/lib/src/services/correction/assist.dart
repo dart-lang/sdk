@@ -119,6 +119,8 @@ class DartAssistKind {
       "Join 'if' statement with outer 'if' statement");
   static const JOIN_VARIABLE_DECLARATION = const AssistKind(
       'JOIN_VARIABLE_DECLARATION', 30, "Join variable declaration");
+  static const REPARENT_FLUTTER_WIDGET = const AssistKind(
+      "REPARENT_FLUTTER_WIDGET", 30, "Wrap new-expression with new widget");
   static const REMOVE_TYPE_ANNOTATION =
       const AssistKind('REMOVE_TYPE_ANNOTATION', 29, "Remove type annotation");
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(
