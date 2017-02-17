@@ -293,17 +293,9 @@ class CommandLineOptions {
     var parser = new ArgParser(allowTrailingOptions: true);
     defineAnalysisArguments(parser, hide: hide);
     parser
-      ..addFlag('batch',
-          abbr: 'b',
-          help: 'Read commands from standard input (for testing).',
-          defaultsTo: false,
-          negatable: false)
       ..addOption('format',
-          help: 'Specifies the format in which errors are displayed.')
-      ..addFlag('machine',
-          help: 'Print errors in a format suitable for parsing (deprecated).',
-          defaultsTo: false,
-          negatable: false)
+          help:
+              'Specifies the format in which errors are displayed. The only currently allowed value is \'machine\'.')
       ..addFlag('version',
           help: 'Print the analyzer version.',
           defaultsTo: false,
@@ -314,7 +306,6 @@ class CommandLineOptions {
           help: 'Do not show hint results.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag('disable-cache-flushing', defaultsTo: false, hide: true)
       ..addFlag(ignoreUnrecognizedFlagsFlag,
           help: 'Ignore unrecognized command line flags.',
           defaultsTo: false,
@@ -343,26 +334,24 @@ class CommandLineOptions {
           help: 'Show warnings from SDK imports (deprecated).',
           defaultsTo: false,
           negatable: false)
-      ..addOption('x-package-warnings-prefix',
-          help:
-              'Show warnings from package: imports that match the given prefix',
-          hide: true)
-      ..addOption('x-perf-report',
-          help: 'Writes a performance report to the given file (experimental).')
       ..addFlag('help',
           abbr: 'h',
-          help: 'Display this help message.\n'
-              'Add --verbose to show hidden options.',
+          help:
+              'Display this help message. Add --verbose to show hidden options.',
           defaultsTo: false,
           negatable: false)
       ..addFlag('verbose',
-          abbr: 'v', defaultsTo: false, help: 'Verbose output.')
+          abbr: 'v',
+          defaultsTo: false,
+          help: 'Verbose output.',
+          negatable: false)
       ..addOption('url-mapping',
           help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
               'analyzer to use "library.dart" as the source for an import '
               'of "libraryUri".',
           allowMultiple: true,
           splitCommas: false)
+
       //
       // Build mode.
       //
@@ -420,18 +409,27 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
+
       //
       // Hidden flags.
       //
-      ..addFlag('enable-async',
-          help: 'Enable support for the proposed async feature.',
+      ..addFlag('machine',
+          help: 'Print errors in a format suitable for parsing (deprecated).',
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addFlag('enable-enum',
-          help: 'Enable support for the proposed enum feature.',
+      ..addFlag('batch',
+          help: 'Read commands from standard input (for testing).',
           defaultsTo: false,
           negatable: false,
+          hide: hide)
+      ..addFlag('disable-cache-flushing', defaultsTo: false, hide: hide)
+      ..addOption('x-perf-report',
+          help: 'Writes a performance report to the given file (experimental).',
+          hide: hide)
+      ..addOption('x-package-warnings-prefix',
+          help:
+              'Show warnings from package: imports that match the given prefix',
           hide: hide)
       ..addFlag('enable-conditional-directives',
           help:
@@ -466,9 +464,6 @@ class CommandLineOptions {
           hide: hide);
 
     try {
-      // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061
-      args =
-          args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
         args = filterUnknownArguments(args, parser);
       }
