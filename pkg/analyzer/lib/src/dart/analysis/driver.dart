@@ -72,7 +72,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 21;
+  static const int DATA_VERSION = 22;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -247,7 +247,7 @@ class AnalysisDriver {
       SourceFactory sourceFactory,
       this._analysisOptions,
       {PackageBundle sdkBundle,
-      this.analyzeWithoutTasks: false})
+      this.analyzeWithoutTasks: true})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle {
