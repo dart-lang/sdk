@@ -5932,7 +5932,6 @@ class SimpleParserTest extends ParserTestCase {
     expect(variable.name, isNotNull);
   }
 
-  @failingTest
   void test_parseClassMember_getter_functionType() {
     createParser('int Function(int) get g {}');
     ClassMember member = parser.parseClassMember('C');
@@ -6262,7 +6261,6 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.body, isNotNull);
   }
 
-  @failingTest
   void test_parseClassMember_method_returnType_functionType() {
     createParser('int Function(String) m() {}');
     ClassMember member = parser.parseClassMember('C');
@@ -6378,7 +6376,6 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.body, isNotNull);
   }
 
-  @failingTest
   void test_parseClassMember_operator_functionType() {
     createParser('int Function() operator +(int Function() f) {}');
     ClassMember member = parser.parseClassMember('C');
@@ -7984,7 +7981,6 @@ void''');
     expect(defaultParameter.kind, kind);
   }
 
-  @failingTest
   void test_parseFormalParameter_covariant_type_function() {
     ParameterKind kind = ParameterKind.REQUIRED;
     createParser('covariant String Function(int) a');
@@ -8220,7 +8216,6 @@ void''');
     expect(defaultParameter.kind, kind);
   }
 
-  @failingTest
   void test_parseFormalParameter_type_function() {
     ParameterKind kind = ParameterKind.REQUIRED;
     createParser('String Function(int) a');
@@ -10018,6 +10013,13 @@ void''');
     expect(expressionStatement.expression, isNotNull);
   }
 
+  void test_parseNonLabeledStatement_variableDeclaration_final_namedFunction() {
+    createParser('final int Function = 0;');
+    Statement statement = parser.parseNonLabeledStatement();
+    expectNotNullIfNoErrors(statement);
+    listener.assertNoErrors();
+  }
+
   void test_parseNormalFormalParameter_field_const_noType() {
     createParser('const this.a)');
     NormalFormalParameter parameter = parser.parseNormalFormalParameter();
@@ -10939,7 +10941,6 @@ void''');
     expect(invocation.period, isNull);
   }
 
-  @failingTest
   void test_parseRelationalExpression_as_functionType_noReturnType() {
     createParser('x as Function(int)');
     Expression expression = parser.parseRelationalExpression();
@@ -10952,7 +10953,6 @@ void''');
     expect(asExpression.type, new isInstanceOf<GenericFunctionType>());
   }
 
-  @failingTest
   void test_parseRelationalExpression_as_functionType_returnType() {
     createParser('x as String Function(int)');
     Expression expression = parser.parseRelationalExpression();
@@ -11108,7 +11108,6 @@ void''');
     expect(statement.semicolon, isNotNull);
   }
 
-  @failingTest
   void test_parseReturnType_function() {
     createParser('A<B> Function<B>(B)');
     GenericFunctionType type = parser.parseReturnType(false);
@@ -11941,7 +11940,6 @@ void''');
     expect(statement.finallyBlock, isNotNull);
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_noReturnType_noParameters() {
     createParser('Function() v');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -11955,7 +11953,6 @@ void''');
     expect(parameterList.parameters, hasLength(0));
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_noReturnType_parameters() {
     createParser('Function(int, int) v');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -11982,7 +11979,6 @@ void''');
     expect((parameter.type as TypeName).name.name, 'int');
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_noReturnType_typeParameters() {
     createParser('Function<S, T>()');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -11998,7 +11994,6 @@ void''');
     expect(parameterList.parameters, hasLength(0));
   }
 
-  @failingTest
   void
       test_parseTypeAnnotation_function_noReturnType_typeParameters_parameters() {
     createParser('Function<T>(String, {T t})');
@@ -12022,7 +12017,6 @@ void''');
     listener.assertNoErrors();
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_function() {
     createParser('A Function(B, C) Function(D) v');
     // TODO(scheglov) improve the test to verify also the node properties
@@ -12031,7 +12025,6 @@ void''');
     listener.assertNoErrors();
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_noParameters() {
     createParser('List<int> Function()');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -12045,7 +12038,6 @@ void''');
     expect(parameterList.parameters, hasLength(0));
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_parameters() {
     createParser('List<int> Function(String s, int i)');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -12074,7 +12066,6 @@ void''');
     expect((parameter.type as TypeName).name.name, 'int');
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_simple() {
     createParser('A Function(B, C) v');
     // TODO(scheglov) improve the test to verify also the node properties
@@ -12083,7 +12074,6 @@ void''');
     listener.assertNoErrors();
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_typeParameters() {
     createParser('List<T> Function<T>()');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -12099,7 +12089,6 @@ void''');
     expect(parameterList.parameters, hasLength(0));
   }
 
-  @failingTest
   void
       test_parseTypeAnnotation_function_returnType_typeParameters_parameters() {
     createParser('List<T> Function<T>(String s, [T])');
@@ -12116,7 +12105,6 @@ void''');
     expect(parameterList.parameters, hasLength(2));
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_withArguments() {
     createParser('A<B> Function(C) v');
     // TODO(scheglov) improve this test to verify also the node properties
@@ -12268,7 +12256,6 @@ void''');
     expect(typeName.question, isNotNull);
   }
 
-  @failingTest
   void test_parseTypeParameter_bounded_functionType_noReturn() {
     createParser('A extends Function(int)');
     TypeParameter parameter = parser.parseTypeParameter();
@@ -12279,7 +12266,6 @@ void''');
     expect(parameter.name, isNotNull);
   }
 
-  @failingTest
   void test_parseTypeParameter_bounded_functionType_return() {
     createParser('A extends String Function(int)');
     TypeParameter parameter = parser.parseTypeParameter();
@@ -14319,7 +14305,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(typeAlias.typeParameters, isNull);
   }
 
-  @failingTest
   void test_parseTypeAlias_genericFunction_noParameters() {
     createParser('typedef F = bool Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
@@ -14336,7 +14321,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.typeParameters, isNull);
   }
 
-  @failingTest
   void test_parseTypeAlias_genericFunction_noReturnType() {
     createParser('typedef F = Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
@@ -14353,7 +14337,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.typeParameters, isNull);
   }
 
-  @failingTest
   void test_parseTypeAlias_genericFunction_parameterizedReturnType() {
     createParser('typedef F = A<B> Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
@@ -14370,7 +14353,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.typeParameters, isNull);
   }
 
-  @failingTest
   void test_parseTypeAlias_genericFunction_parameters() {
     createParser('typedef F = bool Function(Object value);');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
@@ -14387,7 +14369,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.typeParameters, isNull);
   }
 
-  @failingTest
   void test_parseTypeAlias_genericFunction_typeParameters() {
     createParser('typedef F = bool Function<E>();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
@@ -14404,7 +14385,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.typeParameters, isNotNull);
   }
 
-  @failingTest
   void test_parseTypeAlias_genericFunction_typeParameters_noParameters() {
     createParser('typedef F<T> = bool Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
@@ -14421,7 +14401,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.typeParameters, isNull);
   }
 
-  @failingTest
   void test_parseTypeAlias_genericFunction_typeParameters_noReturnType() {
     createParser('typedef F<T> = Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
@@ -14438,7 +14417,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.typeParameters, isNull);
   }
 
-  @failingTest
   void
       test_parseTypeAlias_genericFunction_typeParameters_parameterizedReturnType() {
     createParser('typedef F<T> = A<B> Function();');
@@ -14456,7 +14434,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.typeParameters, isNull);
   }
 
-  @failingTest
   void test_parseTypeAlias_genericFunction_typeParameters_parameters() {
     createParser('typedef F<T> = bool Function(Object value);');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
@@ -14473,7 +14450,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.typeParameters, isNull);
   }
 
-  @failingTest
   void test_parseTypeAlias_genericFunction_typeParameters_typeParameters() {
     createParser('typedef F<T> = bool Function<E>();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
@@ -14490,7 +14466,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.typeParameters, isNotNull);
   }
 
-  @failingTest
   void test_parseTypeAlias_genericFunction_typeParameters_voidReturnType() {
     createParser('typedef F<T> = void Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
@@ -14507,7 +14482,6 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.typeParameters, isNull);
   }
 
-  @failingTest
   void test_parseTypeAlias_genericFunction_voidReturnType() {
     createParser('typedef F = void Function();');
     GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
