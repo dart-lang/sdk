@@ -179,12 +179,27 @@ abstract class _TypedListBase {
   }
 
   int indexOf(element, [int start = 0]) {
-    return Lists.indexOf(this, element, start, this.length);
+    if (start >= this.length) {
+      return -1;
+    } else if (start < 0) {
+      start = 0;
+    }
+    for (int i = start; i < this.length; i++) {
+      if (this[i] == element) return i;
+    }
+    return -1;
   }
 
   int lastIndexOf(element, [int start = null]) {
-    if (start == null) start = this.length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    if (start == null || start >= this.length) {
+      start = this.length - 1;
+    } else if (start < 0) {
+      return -1;
+    }
+    for (int i = start; i >= 0; i--) {
+      if (this[i] == element) return i;
+    }
+    return -1;
   }
 
   void clear() {

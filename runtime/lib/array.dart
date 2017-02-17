@@ -60,10 +60,9 @@ class _List<E> extends FixedLengthListBase<E> {
   }
 
   List<E> sublist(int start, [int end]) {
-    Lists.indicesCheck(this, start, end);
-    if (end == null) end = this.length;
+    end = RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
-    if (start == end) return <E>[];
+    if (length == 0) return <E>[];
     var result = new _GrowableList<E>.withData(_slice(start, length, false));
     result._setLength(length);
     return result;
@@ -136,8 +135,7 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
   int get length native "List_getLength";
 
   List<E> sublist(int start, [int end]) {
-    Lists.indicesCheck(this, start, end);
-    if (end == null) end = this.length;
+    end = RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
     if (length == 0) return <E>[];
     List list = new _List(length);

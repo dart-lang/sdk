@@ -9,7 +9,6 @@
     # The above file needs to be first as it lists the parts below.
     'iterable.dart',
     'list.dart',
-    'lists.dart',
     'print.dart',
     'sort.dart',
     'symbol.dart',
