@@ -6,6 +6,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 
+typedef String _Generator(String libName, String className);
+
 /// Generates rule and rule test stub files (into `src/rules` and `test/rules`
 /// respectively), as well as the rule index (`rules.dart`).
 void main([List<String> args]) {
@@ -47,32 +49,27 @@ String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
 
 void generateRule(String libName, {String outDir}) {
   // Generate rule stub.
-  generateStub(libName, outDir: outDir);
+  generateStub(libName, 'lib/src/rules', _generateLib, outDir: outDir);
 
   // Generate test stub.
-  generateTest(libName, outDir: outDir);
+  generateStub(libName, 'test/rules', _generateTest, outDir: outDir);
 
   // Update rule registry.
   updateRuleRegistry(libName);
 }
 
-void generateStub(String libName, {String outDir}) {
-  final generated = _generateStub(libName, toClassName(libName));
+void generateStub(String libName, String stubPath, _Generator generator,
+    {String outDir}) {
+  final generated = generator(libName, toClassName(libName));
   if (outDir != null) {
-    final outPath = '$outDir/lib/src/rules/$libName.dart';
+    final outPath = '$outDir/$stubPath/$libName.dart';
+    final outFile = new File(outPath);
+    if (outFile.existsSync()) {
+      print('Warning: stub already exists at $outPath; skipping');
+      return;
+    }
     print('Writing to $outPath');
-    new File(outPath).writeAsStringSync(generated);
-  } else {
-    print(generated);
-  }
-}
-
-void generateTest(String libName, {String outDir}) {
-  final generated = _generateTest(libName, toClassName(libName));
-  if (outDir != null) {
-    final outPath = '$outDir/test/rules/$libName.dart';
-    print('Writing to $outPath');
-    new File(outPath).writeAsStringSync(generated);
+    outFile.writeAsStringSync(generated);
   } else {
     print(generated);
   }
@@ -97,7 +94,7 @@ void updateRuleRegistry(String libName) {
   print("  pub run test -N $libName");
 }
 
-String _generateStub(String libName, String className) => """
+String _generateLib(String libName, String className) => """
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -107,11 +104,11 @@ library linter.src.rules.$libName;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/linter.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
-const desc = r' ';
+const _desc = r' ';
 
-const details = r'''
+const _details = r'''
 
 **DO** ...
 
@@ -130,8 +127,8 @@ const details = r'''
 class $className extends LintRule {
   $className() : super(
           name: '$libName',
-            description: desc,
-            details: details,
+            description: _desc,
+            details: _details,
             group: Group.style);
 
   @override
