@@ -21,4 +21,4 @@ dev_dependencies:
   html: any
   test_reflective_loader: ^0.1.0
   typed_mock: '>=0.0.4 <1.0.0'
-  test: ^0.12.0
+  test: ^0.12.17

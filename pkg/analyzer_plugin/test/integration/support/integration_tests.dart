@@ -719,7 +719,7 @@ class Server {
     // and is outputting a stacktrace, because it ensures that we see the
     // entire stacktrace.  Use expectAsync() to prevent the test from
     // ending during this 1 second.
-    new Future.delayed(new Duration(seconds: 1), expectAsync(() {
+    new Future.delayed(new Duration(seconds: 1), expectAsync0(() {
       fail('Bad data received from server: $details');
     }));
   }
