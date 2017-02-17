@@ -735,12 +735,15 @@ class AnalysisDriver {
                 libraryContext.store,
                 library);
             Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
-            UnitAnalysisResult fileResult = results[file];
-            resolvedUnit = fileResult.unit;
-
-            // Store the result into the cache.
-            bytes = _storeResolvedUnit(
-                library, file, resolvedUnit, fileResult.errors);
+            for (FileState unitFile in results.keys) {
+              UnitAnalysisResult unitResult = results[unitFile];
+              List<int> unitBytes = _storeResolvedUnit(
+                  library, unitFile, unitResult.unit, unitResult.errors);
+              if (unitFile == file) {
+                bytes = unitBytes;
+                resolvedUnit = unitResult.unit;
+              }
+            }
           } else {
             ResolutionResult resolutionResult =
                 libraryContext.resolveUnit(library.source, file.source);
