@@ -1083,12 +1083,15 @@ class _LibraryResynthesizer {
       return <String>[referencedLibraryUri, partUri, name];
     }
     LinkedDependency dependency = linkedLibrary.dependencies[dependencyIndex];
-    Source referencedLibrarySource =
-        summaryResynthesizer.sourceFactory.forUri(dependency.uri);
+    Source referencedLibrarySource = summaryResynthesizer.sourceFactory
+        .resolveUri(librarySource, dependency.uri);
     String referencedLibraryUri = referencedLibrarySource.uri.toString();
     String partUri;
     if (unit != 0) {
-      partUri = dependency.parts[unit - 1];
+      String uri = dependency.parts[unit - 1];
+      Source partSource =
+          summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
+      partUri = partSource.uri.toString();
     } else {
       partUri = referencedLibraryUri;
     }
@@ -1131,7 +1134,7 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   @override
   LibraryElement buildImportedLibrary(int dependency) {
     String depUri = resynthesizer.linkedLibrary.dependencies[dependency].uri;
-    return _getLibraryByAbsoluteUri(depUri);
+    return _getLibraryByRelativeUri(depUri);
   }
 
   @override
@@ -1155,16 +1158,6 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   void patchTopLevelAccessors() {
     LibraryElementImpl library = resynthesizer.library;
     BuildLibraryElementUtils.patchTopLevelAccessors(library);
-  }
-
-  LibraryElementHandle _getLibraryByAbsoluteUri(String uriStr) {
-    Source source =
-        resynthesizer.summaryResynthesizer.sourceFactory.forUri(uriStr);
-    if (source == null) {
-      return null;
-    }
-    return new LibraryElementHandle(resynthesizer.summaryResynthesizer,
-        new ElementLocationImpl.con3(<String>[uriStr]));
   }
 
   LibraryElementHandle _getLibraryByRelativeUri(String depUri) {
