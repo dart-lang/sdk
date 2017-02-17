@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'create_context_test.dart' as create_context_test;
 import 'delete_context_test.dart' as delete_context_test;
 import 'map_uri_test.dart' as map_uri_test;
-import 'set_subscription_test.dart' as set_subscription_test;
+import 'set_subscriptions_test.dart' as set_subscription_test;
 
 main() {
   defineReflectiveSuite(() {

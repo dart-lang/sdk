@@ -10,15 +10,15 @@ import '../integration_tests.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SetSubscriptionTest);
+    defineReflectiveTests(SetSubscriptionsTest);
   });
 }
 
 @reflectiveTest
-class SetSubscriptionTest extends AbstractAnalysisServerIntegrationTest {
+class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
   // Bad state: Should not be used with the new analysis driver (#28806)
   @failingTest
-  test_create() async {
+  test_subscribe() async {
     writeFile(sourcePath('.packages'), 'foo:lib/');
     standardAnalysisSetup();
     await sendExecutionSetSubscriptions([ExecutionService.LAUNCH_DATA]);
