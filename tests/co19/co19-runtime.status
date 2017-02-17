@@ -226,4 +226,6 @@ LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow
 
 [ $runtime == vm && $mode == release && $system == linux && $arch == ia32]
 service/dev_fs_spawn_test: Pass, Fail # Issue 28411
+
+[ $runtime == vm && $system == linux && ($arch == x64 || $arch == ia32) ]
 co19/LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 28269
