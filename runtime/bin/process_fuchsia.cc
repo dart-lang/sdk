@@ -388,7 +388,7 @@ class ExitCodeHandler {
     item_count_--;
   }
 
-  // Interrupt message pipe.
+  // Interrupt channel.
   static mx_handle_t interrupt_in_;
   static mx_handle_t interrupt_out_;
 
