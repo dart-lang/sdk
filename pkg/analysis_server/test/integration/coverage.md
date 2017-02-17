@@ -15,14 +15,14 @@ TODO(devoncarew): We should track analysis server notifications here as well.
 - [x] analysis.getHover
 - [ ] analysis.getReachableSources
 - [ ] analysis.getLibraryDependencies
-- [x] analysis.getNavigation
+- [x] analysis.getNavigation (failing - see #28799)
 - [x] analysis.reanalyze
 - [x] analysis.setAnalysisRoots
 - [ ] analysis.setGeneralSubscriptions
 - [ ] analysis.setPriorityFiles
 - [x] analysis.setSubscriptions
 - [x] analysis.updateContent
-- [x] analysis.updateOptions
+- [x] analysis.updateOptions (failing - see #28800)
 
 ## completion domain
 - [x] completion.getSuggestions
@@ -47,7 +47,7 @@ TODO(devoncarew): We should track analysis server notifications here as well.
 - [x] execution.createContext
 - [x] execution.deleteContext
 - [x] execution.mapUri
-- [ ] execution.setSubscriptions
+- [x] execution.setSubscriptions (failing - see #28806)
 
 ## diagnostic domain
 - [x] diagnostic.getDiagnostics
