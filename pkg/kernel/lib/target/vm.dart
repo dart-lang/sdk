@@ -74,13 +74,7 @@ class VmTarget extends Target {
     }
 
     if (flags.treeShake) {
-      new TreeShaker(program,
-              hierarchy: _hierarchy,
-              coreTypes: coreTypes,
-              strongMode: strongMode,
-              programRoots: flags.programRoots)
-          .transform(program);
-      _hierarchy = null; // Hierarchy must be recomputed.
+      performTreeShaking(program);
     }
 
     cont.transformProgram(program);
@@ -93,5 +87,16 @@ class VmTarget extends Target {
     }
 
     new SanitizeForVM().transform(program);
+  }
+
+  void performTreeShaking(Program program) {
+    var coreTypes = new CoreTypes(program);
+    new TreeShaker(program,
+        hierarchy: _hierarchy,
+        coreTypes: coreTypes,
+        strongMode: strongMode,
+        programRoots: flags.programRoots)
+        .transform(program);
+    _hierarchy = null; // Hierarchy must be recomputed.
   }
 }

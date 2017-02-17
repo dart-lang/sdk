@@ -1,8 +1,8 @@
-// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-library test.kernel.closures.suite;
+library test.kernel.reify.suite;
 
 import 'dart:async' show Future;
 
@@ -35,6 +35,9 @@ import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/transformations/closure_conversion.dart'
     as closure_conversion;
 
+import 'package:kernel/transformations/generic_types_reification.dart'
+    as generic_types_reification;
+
 import 'package:package_config/discovery.dart' show loadPackagesFile;
 
 class TestContext extends ChainContext {
@@ -60,6 +63,7 @@ class TestContext extends ChainContext {
           const Print(),
           const SanityCheck(),
           const ClosureConversion(),
+          const GenericTypesReification(),
           const Print(),
           const SanityCheck(),
           new MatchExpectation(".expect",
@@ -140,11 +144,20 @@ class Kernel extends Step<TestDescription, Program, TestContext> {
       TestDescription description, TestContext testContext) async {
     try {
       DartLoader loader = await testContext.createLoader();
+
       Target target = getTarget(
           "vm", new TargetFlags(strongMode: testContext.options.strongMode));
+      // reifyTarget is used to add the GTR-specific runtime libraries
+      // when the program is being loaded
+      Target reifyTarget = getTarget(
+          "vmreify",
+          new TargetFlags(
+              strongMode: testContext.options.strongMode,
+              kernelRuntime: Platform.script.resolve('../../runtime/')));
+
       String path = description.file.path;
       Uri uri = Uri.base.resolve(path);
-      Program program = loader.loadProgram(uri, target: target);
+      Program program = loader.loadProgram(uri, target: reifyTarget);
       for (var error in loader.errors) {
         return fail(program, "$error");
       }
@@ -173,6 +186,21 @@ class ClosureConversion extends Step<Program, Program, TestContext> {
   }
 }
 
+class GenericTypesReification extends Step<Program, Program, TestContext> {
+  const GenericTypesReification();
+
+  String get name => "generic types reification";
+
+  Future<Result<Program>> run(Program program, TestContext testContext) async {
+    try {
+      program = generic_types_reification.transformProgram(program);
+      return pass(program);
+    } catch (e, s) {
+      return crash(e, s);
+    }
+  }
+}
+
 class Run extends Step<Uri, int, TestContext> {
   const Run();
 
@@ -182,8 +210,8 @@ class Run extends Step<Uri, int, TestContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      process = await StdioProcess
-          .run(context.vm.toFilePath(), [generated.path, "Hello, World!"]);
+      process =
+          await StdioProcess.run(context.vm.toFilePath(), [generated.path]);
       print(process.output);
     } finally {
       generated.parent.delete(recursive: true);

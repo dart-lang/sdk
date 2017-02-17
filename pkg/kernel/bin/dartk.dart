@@ -305,6 +305,7 @@ Future<CompilerOutcome> batchMain(
   TargetFlags targetFlags = new TargetFlags(
       strongMode: options['strong'],
       treeShake: options['tree-shake'],
+      kernelRuntime: Platform.script.resolve('../runtime/'),
       programRoots: programRoots);
   Target target = getTarget(options['target'], targetFlags);
 

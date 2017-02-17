@@ -9,6 +9,7 @@ import '../transformations/treeshaker.dart' show ProgramRoot;
 import 'flutter.dart';
 import 'vm.dart';
 import 'vmcc.dart';
+import 'vmreify.dart';
 
 final List<String> targetNames = targets.keys.toList();
 
@@ -16,8 +17,9 @@ class TargetFlags {
   bool strongMode;
   bool treeShake;
   List<ProgramRoot> programRoots;
+  Uri kernelRuntime;
 
-  TargetFlags({this.strongMode: false, this.treeShake: false, this.programRoots: const <ProgramRoot>[]});
+  TargetFlags({this.strongMode: false, this.treeShake: false, this.programRoots: const <ProgramRoot>[], this.kernelRuntime});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
@@ -26,6 +28,7 @@ final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'none': (TargetFlags flags) => new NoneTarget(flags),
   'vm': (TargetFlags flags) => new VmTarget(flags),
   'vmcc': (TargetFlags flags) => new VmClosureConvertedTarget(flags),
+  'vmreify': (TargetFlags flags) => new VmGenericTypesReifiedTarget(flags),
   'flutter': (TargetFlags flags) => new FlutterTarget(flags),
 };
 
