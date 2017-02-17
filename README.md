@@ -35,7 +35,7 @@ and see any violations of the `annotate_overrides`, `hash_and_equals`, and `pref
 ## Contributing
 
 Feedback is, of course, greatly appreciated and contributions are welcome! Please read the
-[contribution guidelines](CONTRIBUTING.md).
+[contribution guidelines](CONTRIBUTING.md); mechanics of writing lints are covered [here](doc/WritingLints.MD).
 
 ## Features and bugs
 

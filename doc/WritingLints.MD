@@ -60,6 +60,24 @@ Corresponding tests live in [test/rules](https://github.com/dart-lang/linter/tre
 
 Rule stubs can be generated with the [rule.dart](https://github.com/dart-lang/linter/blob/master/tool/rule.dart) 
 helper script and documentation gets generated with [doc.dart](https://github.com/dart-lang/linter/blob/master/tool/doc.dart). 
-Helper scripts can be invoked via `dart` or grinder (`pub run grinder docs:doc_location` and `pub run grinder rule:my_new_rule` respectively).
+Helper scripts can be invoked via `dart` or grinder (`pub run grinder docs:doc_location` and `pub run grinder rule:my_new_rule` respectively).  Using grinder, for example
+
+    $ pub run grinder rule:my_new_test
+    
+generates lint and test stubs in `lib/src/rules` and `test/rules`.
+
+### Running Tests
+
+Tests can be run using `pub` like so:
+
+    $ pub run test
+    
+or, assuming you want to run a single test, this: 
+
+    $ pub run test -N always_declare_return_types
+
+would only test `always_declare_return_types`.
+
+# Feedback is Welcome!
 
 Needless to say, details are under active development.  Feedback is most [welcome](https://github.com/dart-lang/linter/issues)!
