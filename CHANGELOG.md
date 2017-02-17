@@ -3,6 +3,10 @@
 ### Core library changes
 * `dart:core`: Added `Uri.isScheme` function to check the scheme of a URI.
    Example: `uri.isScheme("http")`. Ignores case when comparing.
+* `dart:core`: Make `UriData.parse` validate its input better.
+  If the data is base-64 encoded, the data is normalized wrt.
+  alphabet and padding, and it contains invalid base-64 data,
+  parsing fails. Also normalizes non-base-64 data.
 * `dart:io`: Added functions `File.lastAccessed`, `File.lastAccessedSync`,
   `File.setLastModified`, `File.setLastModifiedSync`, `File.setLastAccessed`,
   and `File.setLastAccessedSync`.
