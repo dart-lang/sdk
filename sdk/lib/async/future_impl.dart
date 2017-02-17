@@ -5,7 +5,7 @@
 part of dart.async;
 
 /** The onValue and onError handlers return either a value or a future */
-typedef dynamic/*T|Future<T>*/ _FutureOnValue<S, T>(S value);
+typedef FutureOr<T> _FutureOnValue<S, T>(S value);
 /** Test used by [Future.catchError] to handle skip some errors. */
 typedef bool _FutureErrorTest(var error);
 /** Used by [WhenFuture]. */
@@ -127,8 +127,8 @@ class _FutureListener<S, T> {
     return _onError != null;
   }
 
-  dynamic/*T|Future<T>*/ handleValue(S sourceResult) {
-    return _zone.runUnary<dynamic/*T|Future<T>*/, S>(
+  FutureOr<T> handleValue(S sourceResult) {
+    return _zone.runUnary<FutureOr<T>, S>(
         _onValue, sourceResult);
   }
 
@@ -138,16 +138,16 @@ class _FutureListener<S, T> {
     return _zone.runUnary<bool, dynamic>(_errorTest, asyncError.error);
   }
 
-  dynamic/*T|Future<T>*/ handleError(AsyncError asyncError) {
+  FutureOr<T> handleError(AsyncError asyncError) {
     assert(handlesError && hasErrorCallback);
     if (errorCallback is ZoneBinaryCallback) {
       var typedErrorCallback = errorCallback as Object
-          /*=ZoneBinaryCallback<Object/*T|Future<T>*/, Object, StackTrace>*/;
+          /*=ZoneBinaryCallback<FutureOr<T>, Object, StackTrace>*/;
       return _zone.runBinary(typedErrorCallback,
           asyncError.error,
           asyncError.stackTrace);
     } else {
-      return _zone.runUnary<dynamic/*T|Future<T>*/, dynamic>(
+      return _zone.runUnary<FutureOr<T>, dynamic>(
           errorCallback, asyncError.error);
     }
   }
