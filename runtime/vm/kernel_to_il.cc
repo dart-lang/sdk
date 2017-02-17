@@ -2452,9 +2452,10 @@ const dart::Field& MayCloneField(Zone* zone, const dart::Field& field) {
 
 
 Fragment FlowGraphBuilder::LoadField(const dart::Field& field) {
-  LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      Pop(), &MayCloneField(Z, field),
-      AbstractType::ZoneHandle(Z, field.type()), TokenPosition::kNoSource);
+  LoadFieldInstr* load =
+      new (Z) LoadFieldInstr(Pop(), &MayCloneField(Z, field),
+                             AbstractType::ZoneHandle(Z, field.type()),
+                             TokenPosition::kNoSource, parsed_function_);
   Push(load);
   return Fragment(load);
 }

@@ -1079,7 +1079,7 @@ bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   }
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
       new (Z) Value(call->ArgumentAt(0)), &field,
-      AbstractType::ZoneHandle(Z, field.type()), call->token_pos());
+      AbstractType::ZoneHandle(Z, field.type()), call->token_pos(), NULL);
   load->set_is_immutable(field.is_final());
 
   // Discard the environment from the original instruction because the load

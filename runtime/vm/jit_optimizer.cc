@@ -971,16 +971,11 @@ bool JitOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
                                                 RawFunction::kImplicitGetter)) {
     AddReceiverCheck(call);
   }
-  LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      new (Z) Value(call->ArgumentAt(0)), &field,
-      AbstractType::ZoneHandle(Z, field.type()), call->token_pos());
+  LoadFieldInstr* load = new (Z)
+      LoadFieldInstr(new (Z) Value(call->ArgumentAt(0)), &field,
+                     AbstractType::ZoneHandle(Z, field.type()),
+                     call->token_pos(), &flow_graph()->parsed_function());
   load->set_is_immutable(field.is_final());
-  if (field.guarded_cid() != kIllegalCid) {
-    if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
-      load->set_result_cid(field.guarded_cid());
-    }
-    flow_graph()->parsed_function().AddToGuardedFields(&field);
-  }
 
   // Discard the environment from the original instruction because the load
   // can't deoptimize.

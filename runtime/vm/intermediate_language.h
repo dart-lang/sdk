@@ -4289,7 +4289,8 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   LoadFieldInstr(Value* instance,
                  const Field* field,
                  const AbstractType& type,
-                 TokenPosition token_pos)
+                 TokenPosition token_pos,
+                 const ParsedFunction* parsed_function)
       : offset_in_bytes_(field->Offset()),
         type_(type),
         result_cid_(kDynamicCid),
@@ -4301,6 +4302,13 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
     // May be null if field is not an instance.
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instance);
+
+    if (parsed_function != NULL && field->guarded_cid() != kIllegalCid) {
+      if (!field->is_nullable() || (field->guarded_cid() == kNullCid)) {
+        set_result_cid(field->guarded_cid());
+      }
+      parsed_function->AddToGuardedFields(field);
+    }
   }
 
   void set_is_immutable(bool value) { immutable_ = value; }

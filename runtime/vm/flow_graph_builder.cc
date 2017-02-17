@@ -3414,16 +3414,10 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
   ValueGraphVisitor for_instance(owner());
   node->instance()->Visit(&for_instance);
   Append(for_instance);
-  LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      for_instance.value(), &node->field(),
-      AbstractType::ZoneHandle(Z, node->field().type()), node->token_pos());
-  if (node->field().guarded_cid() != kIllegalCid) {
-    if (!node->field().is_nullable() ||
-        (node->field().guarded_cid() == kNullCid)) {
-      load->set_result_cid(node->field().guarded_cid());
-    }
-    owner()->parsed_function().AddToGuardedFields(&node->field());
-  }
+  LoadFieldInstr* load =
+      new (Z) LoadFieldInstr(for_instance.value(), &node->field(),
+                             AbstractType::ZoneHandle(Z, node->field().type()),
+                             node->token_pos(), &owner()->parsed_function());
   ReturnDefinition(load);
 }
 

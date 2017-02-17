@@ -3081,7 +3081,7 @@ void AllocationSinking::CreateMaterializationAt(
         slots[i]->IsField()
             ? new (Z) LoadFieldInstr(
                   new (Z) Value(alloc), &Field::Cast(*slots[i]),
-                  AbstractType::ZoneHandle(Z), alloc->token_pos())
+                  AbstractType::ZoneHandle(Z), alloc->token_pos(), NULL)
             : new (Z) LoadFieldInstr(
                   new (Z) Value(alloc), Smi::Cast(*slots[i]).Value(),
                   AbstractType::ZoneHandle(Z), alloc->token_pos());
