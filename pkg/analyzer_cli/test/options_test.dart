@@ -122,7 +122,7 @@ main() {
 
       test('package root', () {
         CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '-p', 'bar', 'foo.dart']);
+            .parse(['--dart-sdk', '.', '--package-root', 'bar', 'foo.dart']);
         expect(options.packageRootPath, equals('bar'));
       });
 
