@@ -533,50 +533,8 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseClassDeclaration_abstract() {
-    // TODO(paulberry): Unhandled event: ClassBody
+    // TODO(paulberry): Implement AstBuilder.handleModifier
     super.test_parseClassDeclaration_abstract();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassDeclaration_empty() {
-    // TODO(paulberry): Unhandled event: ClassBody
-    super.test_parseClassDeclaration_empty();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassDeclaration_extends() {
-    // TODO(paulberry): Unhandled event: ClassBody
-    super.test_parseClassDeclaration_extends();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassDeclaration_extendsAndImplements() {
-    // TODO(paulberry): Unhandled event: ClassBody
-    super.test_parseClassDeclaration_extendsAndImplements();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassDeclaration_extendsAndWith() {
-    // TODO(paulberry): Unhandled event: TypeList
-    super.test_parseClassDeclaration_extendsAndWith();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassDeclaration_extendsAndWithAndImplements() {
-    // TODO(paulberry): Unhandled event: TypeList
-    super.test_parseClassDeclaration_extendsAndWithAndImplements();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassDeclaration_implements() {
-    // TODO(paulberry): Unhandled event: ClassBody
-    super.test_parseClassDeclaration_implements();
   }
 
   @override
@@ -595,15 +553,8 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseClassDeclaration_typeAlias_implementsC() {
-    // TODO(paulberry): Unhandled event: TypeList
-    super.test_parseClassDeclaration_typeAlias_implementsC();
-  }
-
-  @override
-  @failingTest
   void test_parseClassDeclaration_typeAlias_withB() {
-    // TODO(paulberry): Unhandled event: TypeList
+    // TODO(paulberry,ahe): capture `with` token.
     super.test_parseClassDeclaration_typeAlias_withB();
   }
 
@@ -681,13 +632,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnit_topLevelDeclaration() {
-    // TODO(paulberry): Unhandled event: ClassBody
-    super.test_parseCompilationUnit_topLevelDeclaration();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnit_typedefAsPrefix() {
     // TODO(paulberry): TODO(paulberry,ahe): Fasta parser doesn't appear to handle this case correctly.
     super.test_parseCompilationUnit_typedefAsPrefix();
@@ -702,15 +646,8 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnitMember_class() {
-    // TODO(paulberry): Unhandled event: ClassBody
-    super.test_parseCompilationUnitMember_class();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnitMember_classTypeAlias() {
-    // TODO(paulberry): Unhandled event: TypeList
+    // TODO(paulberry): Implement AstBuilder.handleModifier
     super.test_parseCompilationUnitMember_classTypeAlias();
   }
 
@@ -818,7 +755,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnitMember_typeAlias_abstract() {
-    // TODO(paulberry): Unhandled event: TypeList
+    // TODO(paulberry,ahe): Capture `=` token
     super.test_parseCompilationUnitMember_typeAlias_abstract();
   }
 
@@ -832,14 +769,14 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnitMember_typeAlias_implements() {
-    // TODO(paulberry): Unhandled event: TypeList
+    // TODO(paulberry,ahe): Capture `=` token
     super.test_parseCompilationUnitMember_typeAlias_implements();
   }
 
   @override
   @failingTest
   void test_parseCompilationUnitMember_typeAlias_noImplements() {
-    // TODO(paulberry): Unhandled event: TypeList
+    // TODO(paulberry,ahe): Capture `=` token
     super.test_parseCompilationUnitMember_typeAlias_noImplements();
   }
 
@@ -932,13 +869,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseDirectives_single() {
     // TODO(paulberry): Unhandled event: LibraryName
     super.test_parseDirectives_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseDirectives_topLevelDeclaration() {
-    // TODO(paulberry): Unhandled event: ClassBody
-    super.test_parseDirectives_topLevelDeclaration();
   }
 
   @override

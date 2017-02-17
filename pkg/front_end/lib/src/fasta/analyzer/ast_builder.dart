@@ -729,4 +729,162 @@ class AstBuilder extends ScopeListener {
     List<SimpleIdentifier> hiddenNames = pop();
     push(ast.hideCombinator(toAnalyzerToken(hideKeyword), hiddenNames));
   }
+
+  @override
+  void endTypeList(int count) {
+    debugEvent("TypeList");
+    push(popList(count) ?? NullValue.TypeList);
+  }
+
+  @override
+  void endClassBody(int memberCount, Token beginToken, Token endToken) {
+    debugEvent("ClassBody");
+    push(new _ClassBody(
+        beginToken, popList(memberCount) ?? <ClassMember>[], endToken));
+  }
+
+  @override
+  void endClassDeclaration(int interfacesCount, Token beginToken,
+      Token extendsKeyword, Token implementsKeyword, Token endToken) {
+    debugEvent("ClassDeclaration");
+    _ClassBody body = pop();
+    ImplementsClause implementsClause;
+    if (implementsKeyword != null) {
+      List<TypeName> interfaces = popList(interfacesCount);
+      implementsClause =
+          ast.implementsClause(toAnalyzerToken(implementsKeyword), interfaces);
+    }
+    ExtendsClause extendsClause;
+    WithClause withClause;
+    var supertype = pop();
+    if (supertype == null) {
+      // No extends clause
+    } else if (supertype is TypeName) {
+      extendsClause =
+          ast.extendsClause(toAnalyzerToken(extendsKeyword), supertype);
+    } else if (supertype is _MixinApplication) {
+      extendsClause = ast.extendsClause(
+          toAnalyzerToken(extendsKeyword), supertype.supertype);
+      withClause = ast.withClause(
+          toAnalyzerToken(supertype.withKeyword), supertype.mixinTypes);
+    } else {
+      internalError('Unexpected kind of supertype ${supertype.runtimeType}');
+    }
+    TypeParameterList typeParameters = pop();
+    SimpleIdentifier name = pop();
+    Token classKeyword;
+    // TODO(paulberry,ahe): This is a hack.  The parser should give us the class
+    // keyword.
+    if (identical(beginToken.value, 'abstract')) {
+      classKeyword = beginToken.next;
+    } else {
+      classKeyword = beginToken;
+    }
+    var modifiers = pop();
+    assert(modifiers == null); // TODO(paulberry)
+    analyzer.Token abstractKeyword;
+    List<Annotation> metadata = pop();
+    Comment comment = null; // TODO(paulberry)
+    push(ast.classDeclaration(
+        comment,
+        metadata,
+        abstractKeyword,
+        toAnalyzerToken(classKeyword),
+        name,
+        typeParameters,
+        extendsClause,
+        withClause,
+        implementsClause,
+        toAnalyzerToken(body.beginToken),
+        body.members,
+        toAnalyzerToken(body.endToken)));
+  }
+
+  @override
+  void endMixinApplication() {
+    debugEvent("MixinApplication");
+    List<TypeName> mixinTypes = pop();
+    // TODO(paulberry,ahe): the parser doesn't give us enough information to
+    // locate the "with" keyword.
+    Token withKeyword;
+    TypeName supertype = pop();
+    push(new _MixinApplication(supertype, withKeyword, mixinTypes));
+  }
+
+  @override
+  void endNamedMixinApplication(
+      Token beginToken, Token implementsKeyword, Token endToken) {
+    debugEvent("NamedMixinApplication");
+    ImplementsClause implementsClause;
+    if (implementsKeyword != null) {
+      List<TypeName> interfaces = pop();
+      implementsClause =
+          ast.implementsClause(toAnalyzerToken(implementsKeyword), interfaces);
+    }
+    _MixinApplication mixinApplication = pop();
+    var superclass = mixinApplication.supertype;
+    var withClause = ast.withClause(
+        toAnalyzerToken(mixinApplication.withKeyword),
+        mixinApplication.mixinTypes);
+    // TODO(paulberry,ahe): the parser should give us the "=" token.
+    analyzer.Token equals;
+    TypeParameterList typeParameters = pop();
+    SimpleIdentifier name = pop();
+    Token classKeyword;
+    // TODO(paulberry,ahe): This is a hack.  The parser should give us the class
+    // keyword.
+    if (identical(beginToken.value, 'abstract')) {
+      classKeyword = beginToken.next;
+    } else {
+      classKeyword = beginToken;
+    }
+    var modifiers = pop();
+    assert(modifiers == null); // TODO(paulberry)
+    analyzer.Token abstractKeyword;
+    List<Annotation> metadata = pop();
+    Comment comment = null; // TODO(paulberry)
+    push(ast.classTypeAlias(
+        comment,
+        metadata,
+        toAnalyzerToken(classKeyword),
+        name,
+        typeParameters,
+        equals,
+        abstractKeyword,
+        superclass,
+        withClause,
+        implementsClause,
+        toAnalyzerToken(endToken)));
+  }
+}
+
+/// Data structure placed on the stack to represent a class body.
+///
+/// This is needed because analyzer has no separate AST representation of a
+/// class body; it simply stores all of the relevant data in the
+/// [ClassDeclaration] object.
+class _ClassBody {
+  final Token beginToken;
+
+  final List<ClassMember> members;
+
+  final Token endToken;
+
+  _ClassBody(this.beginToken, this.members, this.endToken);
+}
+
+/// Data structure placed on the stack to represent a mixin application (a
+/// structure of the form "A with B, C").
+///
+/// This is needed because analyzer has no separate AST representation of a
+/// mixin application; it simply stores all of the relevant data in the
+/// [ClassDeclaration] or [ClassTypeAlias] object.
+class _MixinApplication {
+  final TypeName supertype;
+
+  final Token withKeyword;
+
+  final List<TypeName> mixinTypes;
+
+  _MixinApplication(this.supertype, this.withKeyword, this.mixinTypes);
 }

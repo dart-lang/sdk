@@ -59,12 +59,22 @@ class Listener {
 
   void beginClassBody(Token token) {}
 
+  /// Handle the end of the body of a class declaration.  The only substructures
+  /// are the class members.
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     logEvent("ClassBody");
   }
 
   void beginClassDeclaration(Token beginToken, Token name) {}
 
+  /// Handle the end of a class declaration.  Substructures:
+  /// - metadata
+  /// - modifiers
+  /// - class name
+  /// - type variables
+  /// - supertype (may be a mixin application)
+  /// - implemented types
+  /// - class body
   void endClassDeclaration(int interfacesCount, Token beginToken,
       Token extendsKeyword, Token implementsKeyword, Token endToken) {
     logEvent("ClassDeclaration");
@@ -228,12 +238,28 @@ class Listener {
 
   void beginMixinApplication(Token token) {}
 
+  /// Handle the end of a mixin application construct (e.g. "A with B, C").
+  /// Substructures:
+  /// - supertype
+  /// - mixin types (TypeList)
   void endMixinApplication() {
     logEvent("MixinApplication");
   }
 
   void beginNamedMixinApplication(Token beginToken, Token name) {}
 
+  /// Handle the end of a named mixin declaration.  Substructures:
+  /// - metadata
+  /// - modifiers
+  /// - class name
+  /// - type variables
+  /// - mixin application
+  /// - implemented types (TypeList)
+  ///
+  /// TODO(paulberry,ahe): it seems incosistent that for a named mixin
+  /// application, the implemented types are a TypeList, whereas for a class
+  /// declaration, each implemented type is listed separately on the stack, and
+  /// the number of implemented types is passed as a parameter.
   void endNamedMixinApplication(
       Token begin, Token implementsKeyword, Token endToken) {
     logEvent("NamedMixinApplication");
