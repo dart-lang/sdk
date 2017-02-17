@@ -83,6 +83,9 @@ front_end/test/incremental_kernel_generator_test: Skip # Issue 28698
 front_end/test/incremental_resolved_ast_generator_test: Skip # Issue 28698
 front_end/tool/perf_test: Skip # Issue 28698
 
+[ $runtime == vm && $use_sdk == true ]
+front_end/tool/fasta_perf_test: SkipByDesign # depends on patched_sdk which is not built into the sdk
+
 [ $runtime == vm && $system == windows]
 analysis_server/*: Skip # Issue 27557
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
