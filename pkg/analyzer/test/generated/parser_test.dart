@@ -13400,6 +13400,14 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(declaration.variables, isNotNull);
   }
 
+  void test_parseCompilationUnitMember_expressionFunctionBody_tokens() {
+    createParser('f() => 0;');
+    var f = parseFullCompilationUnitMember() as FunctionDeclaration;
+    var body = f.functionExpression.body as ExpressionFunctionBody;
+    expect(body.functionDefinition.lexeme, '=>');
+    expect(body.semicolon.lexeme, ';');
+  }
+
   void test_parseCompilationUnitMember_finalVariable() {
     createParser('final x = 0;');
     CompilationUnitMember member = parseFullCompilationUnitMember();

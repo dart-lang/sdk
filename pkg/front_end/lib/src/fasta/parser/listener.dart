@@ -4,15 +4,11 @@
 
 library fasta.parser.listener;
 
-import '../scanner/token.dart' show
-    BeginGroupToken,
-    Token;
+import '../scanner/token.dart' show BeginGroupToken, Token;
 
-import '../util/link.dart' show
-    Link;
+import '../util/link.dart' show Link;
 
-import 'error_kind.dart' show
-    ErrorKind;
+import 'error_kind.dart' show ErrorKind;
 
 /// A parser event listener that does nothing except throw exceptions
 /// on parser errors.
@@ -100,15 +96,13 @@ class Listener {
     logEvent("DoWhileStatement");
   }
 
-  void beginDoWhileStatementBody(Token token) {
-  }
+  void beginDoWhileStatementBody(Token token) {}
 
   void endDoWhileStatementBody(Token token) {
     logEvent("DoWhileStatementBody");
   }
 
-  void beginWhileStatementBody(Token token) {
-  }
+  void beginWhileStatementBody(Token token) {}
 
   void endWhileStatementBody(Token token) {
     logEvent("WhileStatementBody");
@@ -168,8 +162,7 @@ class Listener {
     logEvent("ForStatement");
   }
 
-  void beginForStatementBody(Token token) {
-  }
+  void beginForStatementBody(Token token) {}
 
   void endForStatementBody(Token token) {
     logEvent("ForStatementBody");
@@ -180,15 +173,13 @@ class Listener {
     logEvent("ForIn");
   }
 
-  void beginForInExpression(Token token) {
-  }
+  void beginForInExpression(Token token) {}
 
   void endForInExpression(Token token) {
     logEvent("ForInExpression");
   }
 
-  void beginForInBody(Token token) {
-  }
+  void beginForInBody(Token token) {}
 
   void endForInBody(Token token) {
     logEvent("ForInBody");
@@ -267,15 +258,13 @@ class Listener {
     logEvent("IfStatement");
   }
 
-  void beginThenStatement(Token token) {
-  }
+  void beginThenStatement(Token token) {}
 
   void endThenStatement(Token token) {
     logEvent("ThenStatement");
   }
 
-  void beginElseStatement(Token token) {
-  }
+  void beginElseStatement(Token token) {}
 
   void endElseStatement(Token token) {
     logEvent("ElseStatement");
@@ -312,8 +301,7 @@ class Listener {
     logEvent("InitializedIdentifier");
   }
 
-  void beginFieldInitializer(Token token) {
-  }
+  void beginFieldInitializer(Token token) {}
 
   void endFieldInitializer(Token assignment) {
     logEvent("FieldInitializer");
@@ -521,6 +509,15 @@ class Listener {
 
   void beginTopLevelMethod(Token token, Token name) {}
 
+  /// Handle the end of a top level method.  Substructures:
+  /// - metadata
+  /// - modifiers
+  /// - return type
+  /// - identifier
+  /// - type variables
+  /// - formal parameters
+  /// - async marker
+  /// - body
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     logEvent("TopLevelMethod");
   }
@@ -531,8 +528,7 @@ class Listener {
     logEvent("CaseMatch");
   }
 
-  void beginCatchClause(Token token) {
-  }
+  void beginCatchClause(Token token) {}
 
   void endCatchClause(Token token) {
     logEvent("CatchClause");
@@ -546,8 +542,7 @@ class Listener {
     logEvent("FinallyBlock");
   }
 
-  void endTryStatement(
-      int catchCount, Token tryKeyword, Token finallyKeyword) {
+  void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     logEvent("TryStatement");
   }
 
@@ -615,8 +610,7 @@ class Listener {
     logEvent("ConstExpression");
   }
 
-  void beginFunctionTypedFormalParameter(Token token) {
-  }
+  void beginFunctionTypedFormalParameter(Token token) {}
 
   void endFunctionTypedFormalParameter(Token token) {
     logEvent("FunctionTypedFormalParameter");
@@ -742,8 +736,7 @@ class Listener {
     logEvent("SuperExpression");
   }
 
-  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
-  }
+  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {}
 
   void handleSwitchCase(
       int labelCount,
@@ -802,8 +795,8 @@ class Listener {
 
   /// The parser noticed a syntax error, but was able to recover from it.
   void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
-    recoverableErrors.add(
-        new ParserError.fromTokens(token, token, kind, arguments));
+    recoverableErrors
+        .add(new ParserError.fromTokens(token, token, kind, arguments));
   }
 }
 
@@ -821,8 +814,7 @@ class ParserError {
   ParserError(this.beginOffset, this.endOffset, this.kind, this.arguments);
 
   ParserError.fromTokens(Token begin, Token end, ErrorKind kind, Map arguments)
-      : this(begin.charOffset, end.charOffset + end.charCount, kind,
-          arguments);
+      : this(begin.charOffset, end.charOffset + end.charCount, kind, arguments);
 
   String toString() => "@${beginOffset}: $kind $arguments";
 }

@@ -638,7 +638,9 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnit_builtIn_asFunctionName() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
+    // TODO(paulberry,ahe): Fasta's parser is confused when one of the built-in
+    // identifiers `export`, `import`, `library`, `part`, or `typedef` appears
+    // as the name of a top level function with an implicit return type.
     super.test_parseCompilationUnit_builtIn_asFunctionName();
   }
 
@@ -693,13 +695,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnit_skipFunctionBody_withInterpolation() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
-    super.test_parseCompilationUnit_skipFunctionBody_withInterpolation();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnit_topLevelDeclaration() {
     // TODO(paulberry): Unhandled event: ClassBody
     super.test_parseCompilationUnit_topLevelDeclaration();
@@ -750,14 +745,14 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnitMember_function_external_noType() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
+    // TODO(paulberry): Implement AstBuilder.handleModifier
     super.test_parseCompilationUnitMember_function_external_noType();
   }
 
   @override
   @failingTest
   void test_parseCompilationUnitMember_function_external_type() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
+    // TODO(paulberry): Implement AstBuilder.handleModifier
     super.test_parseCompilationUnitMember_function_external_type();
   }
 
@@ -794,20 +789,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnitMember_function_noType() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
-    super.test_parseCompilationUnitMember_function_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_function_type() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
-    super.test_parseCompilationUnitMember_function_type();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnitMember_function_void() {
     // TODO(paulberry): Unhandled event: VoidKeyword
     super.test_parseCompilationUnitMember_function_void();
@@ -816,35 +797,21 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnitMember_getter_external_noType() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
+    // TODO(paulberry): Implement AstBuilder.handleModifier
     super.test_parseCompilationUnitMember_getter_external_noType();
   }
 
   @override
   @failingTest
   void test_parseCompilationUnitMember_getter_external_type() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
+    // TODO(paulberry): Implement AstBuilder.handleModifier
     super.test_parseCompilationUnitMember_getter_external_type();
   }
 
   @override
   @failingTest
-  void test_parseCompilationUnitMember_getter_noType() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
-    super.test_parseCompilationUnitMember_getter_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_getter_type() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
-    super.test_parseCompilationUnitMember_getter_type();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnitMember_setter_external_noType() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
+    // TODO(paulberry): Implement AstBuilder.handleModifier
     super.test_parseCompilationUnitMember_setter_external_noType();
   }
 
@@ -853,13 +820,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseCompilationUnitMember_setter_external_type() {
     // TODO(paulberry): Unhandled event: VoidKeyword
     super.test_parseCompilationUnitMember_setter_external_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_setter_noType() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
-    super.test_parseCompilationUnitMember_setter_noType();
   }
 
   @override
@@ -1082,7 +1042,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseFunctionDeclaration_function() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
+    // TODO(paulberry): handle doc comments
     super.test_parseFunctionDeclaration_function();
   }
 
@@ -1104,14 +1064,14 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseFunctionDeclaration_getter() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
+    // TODO(paulberry): handle doc comments
     super.test_parseFunctionDeclaration_getter();
   }
 
   @override
   @failingTest
   void test_parseFunctionDeclaration_setter() {
-    // TODO(paulberry): Unhandled event: TopLevelMethod
+    // TODO(paulberry): handle doc comments
     super.test_parseFunctionDeclaration_setter();
   }
 
