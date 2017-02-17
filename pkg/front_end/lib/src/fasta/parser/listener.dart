@@ -116,6 +116,11 @@ class Listener {
 
   void beginExport(Token token) {}
 
+  /// Handle the end of an export directive.  Substructures:
+  /// - metadata
+  /// - uri
+  /// - conditional uris
+  /// - combinators
   void endExport(Token exportKeyword, Token semicolon) {
     logEvent("Export");
   }
@@ -236,6 +241,8 @@ class Listener {
 
   void beginHide(Token hideKeyword) {}
 
+  /// Handle the end of a "hide" combinator.  Substructures:
+  /// - hidden names (IdentifierList)
   void endHide(Token hideKeyword) {
     logEvent("Hide");
   }
@@ -272,6 +279,12 @@ class Listener {
 
   void beginImport(Token importKeyword) {}
 
+  /// Handle the end of an import directive.  Substructures:
+  /// - metadata
+  /// - uri
+  /// - conditional uris
+  /// - prefix identifier (only if asKeyword != null)
+  /// - combinators
   void endImport(Token importKeyword, Token DeferredKeyword, Token asKeyword,
       Token semicolon) {
     logEvent("Import");
@@ -457,6 +470,8 @@ class Listener {
 
   void beginShow(Token showKeyword) {}
 
+  /// Handle the end of a "show" combinator.  Substructures:
+  /// - shown names (IdentifierList)
   void endShow(Token showKeyword) {
     logEvent("Show");
   }

@@ -663,4 +663,70 @@ class AstBuilder extends ScopeListener {
     push(ast.compilationUnit(
         beginToken, scriptTag, directives, declarations, endToken));
   }
+
+  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
+      Token semicolon) {
+    debugEvent("Import");
+    List<Combinator> combinators = pop();
+    SimpleIdentifier prefix;
+    if (asKeyword != null) prefix = pop();
+    List<Configuration> configurations = pop();
+    assert(configurations == null); // TODO(paulberry)
+    StringLiteral uri = pop();
+    List<Annotation> metadata = pop();
+    assert(metadata == null);
+    // TODO(paulberry): capture doc comments.
+    Comment comment = null;
+    push(ast.importDirective(
+        comment,
+        metadata,
+        toAnalyzerToken(importKeyword),
+        uri,
+        configurations,
+        toAnalyzerToken(deferredKeyword),
+        toAnalyzerToken(asKeyword),
+        prefix,
+        combinators,
+        toAnalyzerToken(semicolon)));
+  }
+
+  void endExport(Token exportKeyword, Token semicolon) {
+    debugEvent("Export");
+    List<Combinator> combinators = pop();
+    List<Configuration> configurations = pop();
+    assert(configurations == null); // TODO(paulberry)
+    StringLiteral uri = pop();
+    List<Annotation> metadata = pop();
+    assert(metadata == null);
+    // TODO(paulberry): capture doc comments.
+    Comment comment = null;
+    push(ast.exportDirective(comment, metadata, toAnalyzerToken(exportKeyword),
+        uri, configurations, combinators, toAnalyzerToken(semicolon)));
+  }
+
+  @override
+  void endConditionalUris(int count) {
+    debugEvent("ConditionalUris");
+    push(popList(count) ?? NullValue.ConditionalUris);
+  }
+
+  @override
+  void endIdentifierList(int count) {
+    debugEvent("IdentifierList");
+    push(popList(count) ?? NullValue.IdentifierList);
+  }
+
+  @override
+  void endShow(Token showKeyword) {
+    debugEvent("Show");
+    List<SimpleIdentifier> shownNames = pop();
+    push(ast.showCombinator(toAnalyzerToken(showKeyword), shownNames));
+  }
+
+  @override
+  void endHide(Token hideKeyword) {
+    debugEvent("Hide");
+    List<SimpleIdentifier> hiddenNames = pop();
+    push(ast.hideCombinator(toAnalyzerToken(hideKeyword), hiddenNames));
+  }
 }

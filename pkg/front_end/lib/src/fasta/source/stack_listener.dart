@@ -4,26 +4,17 @@
 
 library fasta.stack_listener;
 
-import 'dart:collection' show
-    Queue;
+import 'dart:collection' show Queue;
 
-import 'package:front_end/src/fasta/parser.dart' show
-    ErrorKind,
-    Listener;
+import 'package:front_end/src/fasta/parser.dart' show ErrorKind, Listener;
 
-import 'package:front_end/src/fasta/scanner.dart' show
-    BeginGroupToken,
-    Token;
+import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
 
-import 'package:kernel/ast.dart' show
-    AsyncMarker;
+import 'package:kernel/ast.dart' show AsyncMarker;
 
-import '../errors.dart' show
-    inputError,
-    internalError;
+import '../errors.dart' show inputError, internalError;
 
-import '../quote.dart' show
-    unescapeString;
+import '../quote.dart' show unescapeString;
 
 enum NullValue {
   Arguments,
@@ -31,6 +22,7 @@ enum NullValue {
   BreakTarget,
   CascadeReceiver,
   Combinators,
+  ConditionalUris,
   ContinueTarget,
   Expression,
   FieldInitializer,
@@ -136,8 +128,7 @@ abstract class StackListener extends Listener {
     }
     if (recoverableErrors.isNotEmpty) {
       // TODO(ahe): Handle recoverable errors better.
-      inputError(uri, recoverableErrors.first.beginOffset,
-          recoverableErrors);
+      inputError(uri, recoverableErrors.first.beginOffset, recoverableErrors);
     }
   }
 

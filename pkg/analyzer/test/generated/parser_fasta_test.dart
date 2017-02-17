@@ -532,20 +532,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_import_as_show() {
-    // TODO(paulberry): Unhandled event: IdentifierList
-    super.test_import_as_show();
-  }
-
-  @override
-  @failingTest
-  void test_import_show_hide() {
-    // TODO(paulberry): Unhandled event: IdentifierList
-    super.test_import_show_hide();
-  }
-
-  @override
-  @failingTest
   void test_parseClassDeclaration_abstract() {
     // TODO(paulberry): Unhandled event: ClassBody
     super.test_parseClassDeclaration_abstract();
@@ -887,20 +873,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseDirective_export() {
-    // TODO(paulberry): Unhandled event: Export
-    super.test_parseDirective_export();
-  }
-
-  @override
-  @failingTest
-  void test_parseDirective_import() {
-    // TODO(paulberry): Unhandled event: Import
-    super.test_parseDirective_import();
-  }
-
-  @override
-  @failingTest
   void test_parseDirective_library() {
     // TODO(paulberry): Unhandled event: LibraryName
     super.test_parseDirective_library();
@@ -993,50 +965,15 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseExportDirective_configuration_multiple() {
-    // TODO(paulberry): Unhandled event: Export
+    // TODO(paulberry): Implement endConditionalUri
     super.test_parseExportDirective_configuration_multiple();
   }
 
   @override
   @failingTest
   void test_parseExportDirective_configuration_single() {
-    // TODO(paulberry): Unhandled event: Export
+    // TODO(paulberry): Implement endConditionalUri
     super.test_parseExportDirective_configuration_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseExportDirective_hide() {
-    // TODO(paulberry): Unhandled event: IdentifierList
-    super.test_parseExportDirective_hide();
-  }
-
-  @override
-  @failingTest
-  void test_parseExportDirective_hide_show() {
-    // TODO(paulberry): Unhandled event: IdentifierList
-    super.test_parseExportDirective_hide_show();
-  }
-
-  @override
-  @failingTest
-  void test_parseExportDirective_noCombinator() {
-    // TODO(paulberry): Unhandled event: Export
-    super.test_parseExportDirective_noCombinator();
-  }
-
-  @override
-  @failingTest
-  void test_parseExportDirective_show() {
-    // TODO(paulberry): Unhandled event: IdentifierList
-    super.test_parseExportDirective_show();
-  }
-
-  @override
-  @failingTest
-  void test_parseExportDirective_show_hide() {
-    // TODO(paulberry): Unhandled event: IdentifierList
-    super.test_parseExportDirective_show_hide();
   }
 
   @override
@@ -1078,64 +1015,15 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseImportDirective_configuration_multiple() {
-    // TODO(paulberry): Unhandled event: Import
+    // TODO(paulberry): Implement endConditionalUri
     super.test_parseImportDirective_configuration_multiple();
   }
 
   @override
   @failingTest
   void test_parseImportDirective_configuration_single() {
-    // TODO(paulberry): Unhandled event: Import
+    // TODO(paulberry): Implement endConditionalUri
     super.test_parseImportDirective_configuration_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseImportDirective_deferred() {
-    // TODO(paulberry): Unhandled event: Import
-    super.test_parseImportDirective_deferred();
-  }
-
-  @override
-  @failingTest
-  void test_parseImportDirective_hide() {
-    // TODO(paulberry): Unhandled event: IdentifierList
-    super.test_parseImportDirective_hide();
-  }
-
-  @override
-  @failingTest
-  void test_parseImportDirective_noCombinator() {
-    // TODO(paulberry): Unhandled event: Import
-    super.test_parseImportDirective_noCombinator();
-  }
-
-  @override
-  @failingTest
-  void test_parseImportDirective_prefix() {
-    // TODO(paulberry): Unhandled event: Import
-    super.test_parseImportDirective_prefix();
-  }
-
-  @override
-  @failingTest
-  void test_parseImportDirective_prefix_hide_show() {
-    // TODO(paulberry): Unhandled event: IdentifierList
-    super.test_parseImportDirective_prefix_hide_show();
-  }
-
-  @override
-  @failingTest
-  void test_parseImportDirective_prefix_show_hide() {
-    // TODO(paulberry): Unhandled event: IdentifierList
-    super.test_parseImportDirective_prefix_show_hide();
-  }
-
-  @override
-  @failingTest
-  void test_parseImportDirective_show() {
-    // TODO(paulberry): Unhandled event: IdentifierList
-    super.test_parseImportDirective_show();
   }
 
   @override
