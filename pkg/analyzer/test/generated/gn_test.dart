@@ -52,6 +52,23 @@ class GnPackageUriResolverTest extends _BaseTest {
         resolver.resolveAbsolute(Uri.parse('package:bogus/code.dart')), null);
   }
 
+  void test_resolveAddToCache() {
+    _addResources([
+      '/workspace/.jiri_root/',
+      '/workspace/out/debug-x87_128/gen/dart.sources/',
+      '/workspace/some/code/',
+      '/workspace/a/source/code.dart',
+    ]);
+    _setUp();
+    expect(
+        resolver.resolveAbsolute(Uri.parse('package:flutter/code.dart')), null);
+    provider.newFile(
+        _p('/workspace/out/debug-x87_128/gen/dart.sources/flutter'),
+        _p('/workspace/a/source'));
+    _assertResolve(
+        'package:flutter/code.dart', '/workspace/a/source/code.dart');
+  }
+
   void _addResources(List<String> paths) {
     for (String path in paths) {
       if (path.endsWith('/')) {
@@ -117,8 +134,8 @@ class GnWorkspaceTest extends _BaseTest {
         GnWorkspace.find(provider, _p('/workspace/some/code'));
     expect(workspace, isNotNull);
     expect(workspace.root, _p('/workspace'));
-    expect(workspace.packages.length, 1);
-    expect(workspace.packages['flutter'], '/path/to/source');
+    expect(workspace.packageMap.length, 1);
+    expect(workspace.packageMap['flutter'][0].path, '/path/to/source');
   }
 }
 
