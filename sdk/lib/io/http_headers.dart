@@ -612,7 +612,7 @@ class _HeaderValue implements HeaderValue {
   Map<String, String> _parameters;
   Map<String, String> _unmodifiableParameters;
 
-  _HeaderValue([String this._value = "", Map<String, String> parameters]) {
+  _HeaderValue([this._value = "", Map<String, String> parameters]) {
     if (parameters != null) {
       _parameters = new HashMap<String, String>.from(parameters);
     }

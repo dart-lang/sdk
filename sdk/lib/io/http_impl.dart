@@ -1673,7 +1673,7 @@ class _HttpClient implements HttpClient {
 
   String userAgent = _getHttpVersion();
 
-  _HttpClient(SecurityContext this._context);
+  _HttpClient(this._context);
 
   void set idleTimeout(Duration timeout) {
     _idleTimeout = timeout;

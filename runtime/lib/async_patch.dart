@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal";
+import "dart:_internal" hide Symbol;
 
 // We need to pass the value as first argument and leave the second and third
 // arguments empty (used for error handling).

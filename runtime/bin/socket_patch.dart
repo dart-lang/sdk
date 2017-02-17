@@ -144,9 +144,7 @@ class _InternetAddress implements InternetAddress {
 
   Future<InternetAddress> reverse() => _NativeSocket.reverseLookup(this);
 
-  _InternetAddress(String this.address,
-                   String this._host,
-                   List<int> this._in_addr);
+  _InternetAddress(this.address, this._host, this._in_addr);
 
   factory _InternetAddress.parse(String address) {
     if (address is !String) {
@@ -1527,7 +1525,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   var _subscription;
   var _detachReady;
 
-  _Socket(RawSocket this._raw) {
+  _Socket(this._raw) {
     _controller = new StreamController<List<int>>(sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,

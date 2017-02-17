@@ -357,7 +357,7 @@ class MappedIterable<S, T> extends Iterable<T> {
     return new MappedIterable<S, T>._(iterable, function);
   }
 
-  MappedIterable._(this._iterable, T this._f(S element));
+  MappedIterable._(this._iterable, this._f);
 
   Iterator<T> get iterator => new MappedIterator<S, T>(_iterable.iterator, _f);
 
@@ -383,7 +383,7 @@ class MappedIterator<S, T> extends Iterator<T> {
   final Iterator<S> _iterator;
   final _Transformation<S, T> _f;
 
-  MappedIterator(this._iterator, T this._f(S element));
+  MappedIterator(this._iterator, this._f);
 
   bool moveNext() {
     if (_iterator.moveNext()) {
@@ -406,7 +406,7 @@ class MappedListIterable<S, T> extends ListIterable<T> {
   final Iterable<S> _source;
   final _Transformation<S, T> _f;
 
-  MappedListIterable(this._source, T this._f(S value));
+  MappedListIterable(this._source, this._f);
 
   int get length => _source.length;
   T elementAt(int index) => _f(_source.elementAt(index));
@@ -419,7 +419,7 @@ class WhereIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate<E> _f;
 
-  WhereIterable(this._iterable, bool this._f(E element));
+  WhereIterable(this._iterable, this._f);
 
   Iterator<E> get iterator => new WhereIterator<E>(_iterable.iterator, _f);
 
@@ -431,7 +431,7 @@ class WhereIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
   final _ElementPredicate _f;
 
-  WhereIterator(this._iterator, bool this._f(E element));
+  WhereIterator(this._iterator, this._f);
 
   bool moveNext() {
     while (_iterator.moveNext()) {
@@ -451,7 +451,7 @@ class ExpandIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
   final _ExpandFunction<S, T> _f;
 
-  ExpandIterable(this._iterable, Iterable<T> this._f(S element));
+  ExpandIterable(this._iterable, this._f);
 
   Iterator<T> get iterator => new ExpandIterator<S, T>(_iterable.iterator, _f);
 }
@@ -465,7 +465,7 @@ class ExpandIterator<S, T> implements Iterator<T> {
   Iterator<T> _currentExpansion = const EmptyIterator();
   T _current;
 
-  ExpandIterator(this._iterator, Iterable<T> this._f(S element));
+  ExpandIterator(this._iterator, this._f);
 
   T get current => _current;
 
@@ -548,7 +548,7 @@ class TakeWhileIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate<E> _f;
 
-  TakeWhileIterable(this._iterable, bool this._f(E element));
+  TakeWhileIterable(this._iterable, this._f);
 
   Iterator<E> get iterator {
     return new TakeWhileIterator<E>(_iterable.iterator, _f);
@@ -560,7 +560,7 @@ class TakeWhileIterator<E> extends Iterator<E> {
   final _ElementPredicate<E> _f;
   bool _isFinished = false;
 
-  TakeWhileIterator(this._iterator, bool this._f(E element));
+  TakeWhileIterator(this._iterator, this._f);
 
   bool moveNext() {
     if (_isFinished) return false;
@@ -641,7 +641,7 @@ class SkipWhileIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
   final _ElementPredicate<E> _f;
 
-  SkipWhileIterable(this._iterable, bool this._f(E element));
+  SkipWhileIterable(this._iterable, this._f);
 
   Iterator<E> get iterator {
     return new SkipWhileIterator<E>(_iterable.iterator, _f);
@@ -653,7 +653,7 @@ class SkipWhileIterator<E> extends Iterator<E> {
   final _ElementPredicate<E> _f;
   bool _hasSkipped = false;
 
-  SkipWhileIterator(this._iterator, bool this._f(E element));
+  SkipWhileIterator(this._iterator, this._f);
 
   bool moveNext() {
     if (!_hasSkipped) {

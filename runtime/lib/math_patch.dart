@@ -99,11 +99,11 @@ double _log(double x) native "Math_log";
 
 class _Random implements Random {
   // Internal state of the random number generator.
-  final _state;
+  final Uint32List _state;
   static const _kSTATE_LO = 0;
   static const _kSTATE_HI = 1;  // Unused in Dart code.
 
-  _Random._withState(Uint32List this._state);
+  _Random._withState(this._state);
 
   // The algorithm used here is Multiply with Carry (MWC) with a Base b = 2^32.
   // http://en.wikipedia.org/wiki/Multiply-with-carry

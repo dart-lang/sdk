@@ -1287,9 +1287,7 @@ class _ExternalTwoByteString extends _StringBase implements String {
 
 
 class _StringMatch implements Match {
-  const _StringMatch(int this.start,
-                     String this.input,
-                     String this.pattern);
+  const _StringMatch(this.start, this.input, this.pattern);
 
   int get end => start + pattern.length;
   String operator[](int g) => group(g);

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:collection" show HashMap;
-import "dart:_internal";
+import "dart:_internal" hide Symbol;
 
 @patch class ReceivePort {
   @patch factory ReceivePort() = _ReceivePortImpl;

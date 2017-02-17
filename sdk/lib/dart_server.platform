@@ -23,7 +23,7 @@ io: io/io.dart
 isolate: isolate/isolate.dart
 math: math/math.dart
 mirrors: mirrors/mirrors.dart
-nativewrappers: html/dart2js/nativewrappers.dart
+nativewrappers: html/dartium/nativewrappers.dart
 typed_data: typed_data/typed_data.dart
 _native_typed_data: _internal/js_runtime/lib/native_typed_data.dart
 html: unsupported:

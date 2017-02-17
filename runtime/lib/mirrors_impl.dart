@@ -9,7 +9,7 @@ final _emptyList = new UnmodifiableListView([]);
 
 class _InternalMirrorError {
   final String _msg;
-  const _InternalMirrorError(String this._msg);
+  const _InternalMirrorError(this._msg);
   String toString() => _msg;
 }
 

@@ -159,9 +159,7 @@ class ArgumentError extends Error {
    * names differ from the interface, it might be more useful to use the
    * interface method's argument name (or just rename arguments to match).
    */
-  ArgumentError.value(value,
-                      [String this.name,
-                       String this.message])
+  ArgumentError.value(value, [this.name, this.message])
       : invalidValue = value,
         _hasValue = true;
 
@@ -499,7 +497,7 @@ class UnsupportedError extends Error {
  */
 class UnimplementedError extends Error implements UnsupportedError {
   final String message;
-  UnimplementedError([String this.message]);
+  UnimplementedError([this.message]);
   String toString() => (this.message != null
                         ? "UnimplementedError: $message"
                         : "UnimplementedError");

@@ -172,7 +172,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
   File _file;
   Future<RandomAccessFile> _openFuture;
 
-  _FileStreamConsumer(File this._file, FileMode mode) {
+  _FileStreamConsumer(this._file, FileMode mode) {
     _openFuture = _file.open(mode: mode);
   }
 
