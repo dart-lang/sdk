@@ -87,9 +87,6 @@ class CommandLineOptions {
   /// Whether to display version information
   final bool displayVersion;
 
-  /// Whether to enable null-aware operators (DEP 9).
-  final bool enableNullAwareOperators;
-
   /// Whether to treat type mismatches found during constant evaluation as
   /// errors.
   final bool enableTypeChecks;
@@ -165,13 +162,12 @@ class CommandLineOptions {
         disableCacheFlushing = args['disable-cache-flushing'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
-        enableNullAwareOperators = args['enable-null-aware-operators'],
         enableTypeChecks = args['enable_type_checks'],
         hintsAreFatal = args['fatal-hints'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
         lints = args['lints'],
         log = args['log'],
-        machineFormat = args['machine'] || args['format'] == 'machine',
+        machineFormat = args['format'] == 'machine',
         perfReport = args['x-perf-report'],
         shouldBatch = args['batch'],
         showPackageWarnings = args['show-package-warnings'] ||
@@ -228,7 +224,7 @@ class CommandLineOptions {
         }
       }
 
-      var sdkPath = options.dartSdkPath;
+      String sdkPath = options.dartSdkPath;
 
       // Check that SDK is specified.
       if (sdkPath == null) {
@@ -249,13 +245,6 @@ class CommandLineOptions {
         printAndFail("Cannot specify both '--package-root' and '--packages.");
         return null; // Only reachable in testing.
       }
-    }
-
-    // OK.  Report deprecated options.
-    if (options.enableNullAwareOperators) {
-      errorSink.writeln(
-          "Info: Option '--enable-null-aware-operators' is no longer needed. "
-          "Null aware operators are supported by default.");
     }
 
     // Build mode.
@@ -290,12 +279,21 @@ class CommandLineOptions {
     bool verbose = args.contains('-v') || args.contains('--verbose');
     bool hide = !verbose;
 
-    var parser = new ArgParser(allowTrailingOptions: true);
+    ArgParser parser = new ArgParser(allowTrailingOptions: true);
+
+    if (!hide) {
+      parser.addSeparator('General options:');
+    }
+
+    // TODO(devoncarew): This defines some hidden flags, which would be better
+    // defined with the rest of the hidden flags below (to group well with the
+    // other flags).
     defineAnalysisArguments(parser, hide: hide);
+
     parser
       ..addOption('format',
-          help:
-              'Specifies the format in which errors are displayed. The only currently allowed value is \'machine\'.')
+          help: 'Specifies the format in which errors are displayed; the only '
+              'currently allowed value is \'machine\'.')
       ..addFlag('version',
           help: 'Print the analyzer version.',
           defaultsTo: false,
@@ -350,11 +348,14 @@ class CommandLineOptions {
               'analyzer to use "library.dart" as the source for an import '
               'of "libraryUri".',
           allowMultiple: true,
-          splitCommas: false)
+          splitCommas: false);
 
-      //
-      // Build mode.
-      //
+    // Build mode options.
+    if (!hide) {
+      parser.addSeparator('Build mode flags:');
+    }
+
+    parser
       ..addFlag('persistent_worker',
           help: 'Enable Bazel persistent worker mode.',
           defaultsTo: false,
@@ -408,16 +409,14 @@ class CommandLineOptions {
           help: 'Exit with code 0 even if errors are found.',
           defaultsTo: false,
           negatable: false,
-          hide: hide)
+          hide: hide);
 
-      //
-      // Hidden flags.
-      //
-      ..addFlag('machine',
-          help: 'Print errors in a format suitable for parsing (deprecated).',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
+    // Hidden flags.
+    if (!hide) {
+      parser.addSeparator('Less frequently used flags:');
+    }
+
+    parser
       ..addFlag('batch',
           help: 'Read commands from standard input (for testing).',
           defaultsTo: false,
@@ -434,16 +433,6 @@ class CommandLineOptions {
       ..addFlag('enable-conditional-directives',
           help:
               'deprecated -- Enable support for conditional directives (DEP 40).',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('enable-null-aware-operators',
-          help: 'Enable support for null-aware operators (DEP 9).',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('enable-new-task-model',
-          help: 'deprecated -- Ennable new task model.',
           defaultsTo: false,
           negatable: false,
           hide: hide)
@@ -467,7 +456,7 @@ class CommandLineOptions {
       if (args.contains('--$ignoreUnrecognizedFlagsFlag')) {
         args = filterUnknownArguments(args, parser);
       }
-      var results = parser.parse(args);
+      ArgResults results = parser.parse(args);
 
       // Persistent worker.
       if (args.contains('--persistent_worker')) {
@@ -532,12 +521,15 @@ class CommandLineOptions {
     }
   }
 
-  static _showUsage(parser) {
-    errorSink
-        .writeln('Usage: $_binaryName [options...] <libraries to analyze...>');
-    errorSink.writeln(parser.getUsage());
-    errorSink.writeln('');
+  static _showUsage(ArgParser parser) {
     errorSink.writeln(
-        'For more information, see http://www.dartlang.org/tools/analyzer.');
+        'Usage: $_binaryName [options...] <directory or list of files>');
+    errorSink.writeln('');
+    errorSink.writeln(parser.usage);
+    errorSink.writeln('');
+    errorSink.writeln('''
+Run "dartanalyzer -h -v" for verbose help output, including less commonly used options.
+For more information, see http://www.dartlang.org/tools/analyzer.
+''');
   }
 }

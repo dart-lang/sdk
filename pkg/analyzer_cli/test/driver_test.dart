@@ -342,7 +342,7 @@ linter:
                 '--dart-sdk',
                 findSdkDirForSummaries(),
                 '--build-mode',
-                '--machine'
+                '--format=machine'
               ]..addAll(additionalArgs),
               options: 'data/options_tests_project/$optionsFileName');
         }

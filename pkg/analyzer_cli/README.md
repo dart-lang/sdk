@@ -68,13 +68,10 @@ The following are advanced options to use with dartanalyzer:
 
 The following options are deprecated:
 
-* `-p` _or_ `--package-root=`<br>
+* `--package-root=`<br>
   **Deprecated.** Specify the directory to search for any libraries that are
   imported using `package:`. _This option is replaced as of Dart 1.12 with
   `--packages`._
-
-* `--machine`<br>
-  **Deprecated.** Replaced by `--format`.
 
 * `--show-package-warnings`<br>
   **Deprecated.** Replaced by `--package-warnings`.

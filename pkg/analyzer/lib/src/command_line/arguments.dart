@@ -165,11 +165,6 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       hide: ddc);
   parser.addOption(sdkSummaryPathOption,
       help: 'The path to the Dart SDK summary file.', hide: hide);
-//  parser.addFlag(enableNullAwareOperatorsFlag, // 'enable-null-aware-operators'
-//      help: 'Enable support for null-aware operators (DEP 9).',
-//      defaultsTo: false,
-//      negatable: false,
-//      hide: hide || ddc);
   parser.addFlag(enableStrictCallChecksFlag,
       help: 'Fix issue 21938.',
       defaultsTo: false,
@@ -187,11 +182,6 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       defaultsTo: false,
       negatable: false,
       hide: hide);
-//  parser.addFlag('enable_type_checks',
-//      help: 'Check types in constant evaluation.',
-//      defaultsTo: false,
-//      negatable: false,
-//      hide: hide || ddc);
 }
 
 /**
