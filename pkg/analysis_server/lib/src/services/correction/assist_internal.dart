@@ -137,6 +137,7 @@ class AssistProcessor {
     _addProposal_joinVariableDeclaration_onAssignment();
     _addProposal_joinVariableDeclaration_onDeclaration();
     _addProposal_removeTypeAnnotation();
+    _addProposal_reparentFlutterList();
     _addProposal_reparentFlutterWidget();
     _addProposal_replaceConditionalWithIfElse();
     _addProposal_replaceIfElseWithConditional();
@@ -1600,32 +1601,66 @@ class AssistProcessor {
     _addAssist(DartAssistKind.REMOVE_TYPE_ANNOTATION, []);
   }
 
+  void _addProposal_reparentFlutterList() {
+    if (node is! ListLiteral) {
+      return;
+    }
+    if ((node as ListLiteral).elements.any((Expression exp) =>
+        !(exp is InstanceCreationExpression &&
+            _isFlutterInstanceCreationExpression(exp)))) {
+      _coverageMarker();
+      return;
+    }
+    String literalSrc = utils.getNodeText(node);
+    SourceBuilder sb = new SourceBuilder(file, node.offset);
+    int newlineIdx = literalSrc.lastIndexOf(eol);
+    if (newlineIdx < 0 || newlineIdx == literalSrc.length - 1) {
+      _coverageMarker();
+      return; // Lists need to be in multi-line format already.
+    }
+    String indentOld = utils.getLinePrefix(node.offset + 1 + newlineIdx);
+    String indentArg = '$indentOld${utils.getIndent(1)}';
+    String indentList = '$indentOld${utils.getIndent(2)}';
+    sb.append('[');
+    sb.append(eol);
+    sb.append(indentArg);
+    sb.append('new ');
+    sb.startPosition('WIDGET');
+    sb.append('widget');
+    sb.endPosition();
+    sb.append('(');
+    sb.append(eol);
+    sb.append(indentList);
+    // Linked editing not needed since arg is always a list.
+    sb.append('children: ');
+    sb.append(literalSrc.replaceAll(
+        new RegExp("^$indentOld", multiLine: true), "$indentList"));
+    sb.append(',');
+    sb.append(eol);
+    sb.append(indentArg);
+    sb.append('),');
+    sb.append(eol);
+    sb.append(indentOld);
+    sb.append(']');
+    exitPosition = _newPosition(sb.offset + sb.length);
+    _insertBuilder(sb, literalSrc.length);
+    _addAssist(DartAssistKind.REPARENT_FLUTTER_LIST, []);
+  }
+
   void _addProposal_reparentFlutterWidget() {
     InstanceCreationExpression newExpr;
     if (node is SimpleIdentifier) {
-      newExpr = node.getAncestor((node) => node is InstanceCreationExpression);
-      var args =
-          node.getAncestor((node) => node == newExpr || node is ArgumentList);
-      if (args != newExpr) {
-        _coverageMarker();
-        return;
+      if (node.parent is ConstructorName &&
+          node.parent.parent is InstanceCreationExpression) {
+        newExpr = node.parent.parent;
+      } else if (node.parent?.parent is ConstructorName &&
+          node.parent.parent?.parent is InstanceCreationExpression) {
+        newExpr = node.parent.parent.parent;
       }
     } else if (node is InstanceCreationExpression) {
       newExpr = node;
     }
-    if (newExpr == null) {
-      _coverageMarker();
-      return;
-    }
-    ClassElement classElement = newExpr.staticElement?.enclosingElement;
-    InterfaceType superType = classElement?.allSupertypes
-        ?.firstWhere((InterfaceType type) => FLUTTER_WIDGET_NAME == type.name);
-    if (superType == null) {
-      _coverageMarker();
-      return;
-    }
-    Uri uri = superType.element?.source?.uri;
-    if (uri.toString() != FLUTTER_WIDGET_URI) {
+    if (newExpr == null || !_isFlutterInstanceCreationExpression(newExpr)) {
       _coverageMarker();
       return;
     }
@@ -2259,6 +2294,24 @@ class AssistProcessor {
         exitPosition = _newPosition(exitOffset);
       }
     }
+  }
+
+  bool _isFlutterInstanceCreationExpression(
+      InstanceCreationExpression newExpr) {
+    ClassElement classElement = newExpr.staticElement?.enclosingElement;
+    InterfaceType superType = classElement?.allSupertypes?.firstWhere(
+        (InterfaceType type) => FLUTTER_WIDGET_NAME == type.name,
+        orElse: () => null);
+    if (superType == null) {
+      _coverageMarker();
+      return false;
+    }
+    Uri uri = superType.element?.source?.uri;
+    if (uri.toString() != FLUTTER_WIDGET_URI) {
+      _coverageMarker();
+      return false;
+    }
+    return true;
   }
 
   Position _newPosition(int offset) {
