@@ -1670,6 +1670,13 @@ class Foo {
     listener.assertErrorsWithCodes([ParserErrorCode.INVALID_COMMENT_REFERENCE]);
   }
 
+  void test_invalidConstructorName_with() {
+    createParser("C.with();");
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_CONSTRUCTOR_NAME]);
+  }
+
   void test_invalidHexEscape_invalidDigit() {
     createParser("'\\x0 a'");
     StringLiteral literal = parser.parseStringLiteral();

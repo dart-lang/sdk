@@ -1379,8 +1379,12 @@ class Parser {
       }
       return null;
     } else if (_tokenMatches(next, TokenType.PERIOD) &&
-        _tokenMatchesIdentifier(_peekAt(2)) &&
+        _tokenMatchesIdentifierOrKeyword(_peekAt(2)) &&
         _tokenMatches(_peekAt(3), TokenType.OPEN_PAREN)) {
+      if (!_tokenMatchesIdentifier(_peekAt(2))) {
+        _reportErrorForToken(ParserErrorCode.INVALID_CONSTRUCTOR_NAME,
+            _peekAt(2), [_peekAt(2).lexeme]);
+      }
       return _parseConstructor(
           commentAndMetadata,
           modifiers.externalKeyword,
@@ -1388,7 +1392,7 @@ class Parser {
           modifiers.factoryKeyword,
           parseSimpleIdentifier(),
           getAndAdvance(),
-          parseSimpleIdentifier(isDeclaration: true),
+          parseSimpleIdentifier(allowKeyword: true, isDeclaration: true),
           parseFormalParameterList());
     } else if (_tokenMatches(next, TokenType.OPEN_PAREN)) {
       TypeName returnType = _parseOptionalTypeNameComment();
@@ -4682,8 +4686,10 @@ class Parser {
    *     identifier ::=
    *         IDENTIFIER
    */
-  SimpleIdentifier parseSimpleIdentifier({bool isDeclaration: false}) {
-    if (_matchesIdentifier()) {
+  SimpleIdentifier parseSimpleIdentifier(
+      {bool allowKeyword: false, bool isDeclaration: false}) {
+    if (_matchesIdentifier() ||
+        (allowKeyword && _tokenMatchesIdentifierOrKeyword(_currentToken))) {
       return _parseSimpleIdentifierUnchecked(isDeclaration: isDeclaration);
     }
     _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
@@ -7960,6 +7966,13 @@ class Parser {
   bool _tokenMatchesIdentifier(Token token) =>
       _tokenMatches(token, TokenType.IDENTIFIER) ||
       _tokenMatchesPseudoKeyword(token);
+
+  /**
+   * Return `true` if the given [token] is either an identifier or a keyword.
+   */
+  bool _tokenMatchesIdentifierOrKeyword(Token token) =>
+      _tokenMatches(token, TokenType.IDENTIFIER) ||
+      _tokenMatches(token, TokenType.KEYWORD);
 
   /**
    * Return `true` if the given [token] matches the given [keyword].
