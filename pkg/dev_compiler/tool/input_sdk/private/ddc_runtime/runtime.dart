@@ -82,7 +82,10 @@ final global_ = JS('', '''
         window.SourceBufferList = new MediaSource().sourceBuffers.constructor;
       }
     }
-    return typeof window == "undefined" ? global : window;
+    var globalState = (typeof window != "undefined") ? window
+      : (typeof global != "undefined") ? global
+      : (typeof self != "undefined") ? self : {};
+    return globalState;
   }()
 ''');
 

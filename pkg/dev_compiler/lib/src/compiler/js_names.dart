@@ -110,6 +110,7 @@ class _FunctionScope {
 class _RenameVisitor extends VariableDeclarationVisitor {
   final pendingRenames = new Map<Object, Set<_FunctionScope>>();
 
+  final _FunctionScope globalScope = new _FunctionScope(null);
   final _FunctionScope rootScope = new _FunctionScope(null);
   _FunctionScope scope;
 
@@ -139,7 +140,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     }
     if (declScope == null) {
       // Assume it comes from the global scope.
-      declScope = rootScope;
+      declScope = globalScope;
       declScope.declared.add(id);
     }
     _markUsed(node, id, declScope);
@@ -149,7 +150,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     // If it needs rename, we can't add it to the used name set yet, instead we
     // will record all scopes it is visible in.
     Set<_FunctionScope> usedIn = null;
-    var rename = declScope != rootScope && needsRename(node);
+    var rename = declScope != globalScope && needsRename(node);
     if (rename) {
       usedIn = pendingRenames.putIfAbsent(id, () => new HashSet());
     }
