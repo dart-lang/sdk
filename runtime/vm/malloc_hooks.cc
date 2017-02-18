@@ -203,6 +203,9 @@ AddressMap* MallocHooksState::address_map_ = NULL;
 
 
 void MallocHooks::InitOnce() {
+  if (!FLAG_enable_malloc_hooks) {
+    return;
+  }
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
   ASSERT(!MallocHooksState::Active());
 
@@ -219,6 +222,9 @@ void MallocHooks::InitOnce() {
 
 
 void MallocHooks::TearDown() {
+  if (!FLAG_enable_malloc_hooks) {
+    return;
+  }
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
   ASSERT(MallocHooksState::Active());
 
@@ -235,6 +241,9 @@ void MallocHooks::TearDown() {
 
 
 void MallocHooks::ResetStats() {
+  if (!FLAG_enable_malloc_hooks) {
+    return;
+  }
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
   if (MallocHooksState::Active()) {
     MallocHooksState::ResetStats();
@@ -243,12 +252,18 @@ void MallocHooks::ResetStats() {
 
 
 bool MallocHooks::Active() {
+  if (!FLAG_enable_malloc_hooks) {
+    return false;
+  }
   ASSERT(MallocHooksState::malloc_hook_mutex()->IsOwnedByCurrentThread());
   return MallocHooksState::Active();
 }
 
 
 void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
+  if (!FLAG_enable_malloc_hooks) {
+    return;
+  }
   intptr_t allocated_memory = 0;
   intptr_t allocation_count = 0;
   bool add_usage = false;
@@ -271,12 +286,18 @@ void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
 
 
 intptr_t MallocHooks::allocation_count() {
+  if (!FLAG_enable_malloc_hooks) {
+    return 0;
+  }
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
   return MallocHooksState::allocation_count();
 }
 
 
 intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
+  if (!FLAG_enable_malloc_hooks) {
+    return 0;
+  }
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
   return MallocHooksState::heap_allocated_memory_in_bytes();
 }

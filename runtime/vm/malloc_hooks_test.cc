@@ -26,6 +26,9 @@ static void MallocHookTestBufferInitializer(volatile char* buffer,
 
 
 UNIT_TEST_CASE(BasicMallocHookTest) {
+  bool enable_malloc_hooks_saved = FLAG_enable_malloc_hooks;
+  FLAG_enable_malloc_hooks = true;
+
   MallocHooks::InitOnce();
   MallocHooks::ResetStats();
   EXPECT_EQ(0L, MallocHooks::allocation_count());
@@ -42,10 +45,15 @@ UNIT_TEST_CASE(BasicMallocHookTest) {
   EXPECT_EQ(0L, MallocHooks::allocation_count());
   EXPECT_EQ(0L, MallocHooks::heap_allocated_memory_in_bytes());
   MallocHooks::TearDown();
+
+  FLAG_enable_malloc_hooks = enable_malloc_hooks_saved;
 }
 
 
 UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
+  bool enable_malloc_hooks_saved = FLAG_enable_malloc_hooks;
+  FLAG_enable_malloc_hooks = true;
+
   MallocHooks::InitOnce();
   const intptr_t pre_hook_buffer_size = 3;
   char* pre_hook_buffer = new char[pre_hook_buffer_size];
@@ -73,6 +81,8 @@ UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
   EXPECT_EQ(0L, MallocHooks::allocation_count());
   EXPECT_EQ(0L, MallocHooks::heap_allocated_memory_in_bytes());
   MallocHooks::TearDown();
+
+  FLAG_enable_malloc_hooks = enable_malloc_hooks_saved;
 }
 
 };  // namespace dart
