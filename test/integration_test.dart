@@ -224,6 +224,40 @@ defineTests() {
       });
     });
 
+    group('directives_ordering', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('dart_imports_go_first', () {
+        var packagesFilePath = new File('.packages').absolute.path;
+        dartlint.main([
+          '--packages',
+          packagesFilePath,
+          'test/_data/directives_ordering/dart_imports_go_first',
+          '--rules=directives_ordering'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              "Place 'dart:' imports before other imports.",
+              "import 'dart:async';  // LINT",
+              "Place 'dart:' imports before other imports.",
+              "import 'dart:html';  // LINT",
+              '2 files analyzed, 2 issues found, in'
+            ]));
+      });
+    });
+
     group('only_throw_errors', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = new CollectingSink();
