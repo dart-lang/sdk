@@ -13762,6 +13762,30 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(libraryDirective.semicolon, isNotNull);
   }
 
+  void test_parseDirective_library_1_component() {
+    createParser("library a;");
+    var lib = parseFullDirective() as LibraryDirective;
+    expect(lib.name.components, hasLength(1));
+    expect(lib.name.components[0].name, 'a');
+  }
+
+  void test_parseDirective_library_2_components() {
+    createParser("library a.b;");
+    var lib = parseFullDirective() as LibraryDirective;
+    expect(lib.name.components, hasLength(2));
+    expect(lib.name.components[0].name, 'a');
+    expect(lib.name.components[1].name, 'b');
+  }
+
+  void test_parseDirective_library_3_components() {
+    createParser("library a.b.c;");
+    var lib = parseFullDirective() as LibraryDirective;
+    expect(lib.name.components, hasLength(3));
+    expect(lib.name.components[0].name, 'a');
+    expect(lib.name.components[1].name, 'b');
+    expect(lib.name.components[2].name, 'c');
+  }
+
   void test_parseDirective_part() {
     createParser("part 'lib/lib.dart';");
     Directive directive = parseFullDirective();
@@ -13772,6 +13796,30 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(partDirective.partKeyword, isNotNull);
     expect(partDirective.uri, isNotNull);
     expect(partDirective.semicolon, isNotNull);
+  }
+
+  void test_parseDirective_part_of_1_component() {
+    createParser("part of a;");
+    var partOf = parseFullDirective() as PartOfDirective;
+    expect(partOf.libraryName.components, hasLength(1));
+    expect(partOf.libraryName.components[0].name, 'a');
+  }
+
+  void test_parseDirective_part_of_2_components() {
+    createParser("part of a.b;");
+    var partOf = parseFullDirective() as PartOfDirective;
+    expect(partOf.libraryName.components, hasLength(2));
+    expect(partOf.libraryName.components[0].name, 'a');
+    expect(partOf.libraryName.components[1].name, 'b');
+  }
+
+  void test_parseDirective_part_of_3_components() {
+    createParser("part of a.b.c;");
+    var partOf = parseFullDirective() as PartOfDirective;
+    expect(partOf.libraryName.components, hasLength(3));
+    expect(partOf.libraryName.components[0].name, 'a');
+    expect(partOf.libraryName.components[1].name, 'b');
+    expect(partOf.libraryName.components[2].name, 'c');
   }
 
   void test_parseDirective_partOf() {

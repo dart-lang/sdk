@@ -53,6 +53,11 @@ class AstBuilder extends ScopeListener {
 
   bool isFirstIdentifier = false;
 
+  /// If `true`, the first call to [handleIdentifier] should push a
+  /// List<SimpleIdentifier> on the stack, and [handleQualified] should append
+  /// to the list.
+  var accumulateIdentifierComponents = false;
+
   AstBuilder(this.library, this.member, this.elementStore, Scope scope)
       : super(scope);
 
@@ -130,15 +135,23 @@ class AstBuilder extends ScopeListener {
     debugEvent("handleIdentifier");
     String name = token.value;
     SimpleIdentifier identifier = ast.simpleIdentifier(toAnalyzerToken(token));
-    if (isFirstIdentifier) {
-      Builder builder = scope.lookup(name, token.charOffset, uri);
-      if (builder != null) {
-        Element element = elementStore[builder];
-        assert(element != null);
-        identifier.staticElement = element;
+    if (accumulateIdentifierComponents) {
+      if (isFirstIdentifier) {
+        push([identifier]);
+      } else {
+        push(identifier);
       }
+    } else {
+      if (isFirstIdentifier) {
+        Builder builder = scope.lookup(name, token.charOffset, uri);
+        if (builder != null) {
+          Element element = elementStore[builder];
+          assert(element != null);
+          identifier.staticElement = element;
+        }
+      }
+      push(identifier);
     }
-    push(identifier);
     isFirstIdentifier = false;
   }
 
@@ -855,6 +868,69 @@ class AstBuilder extends ScopeListener {
         withClause,
         implementsClause,
         toAnalyzerToken(endToken)));
+  }
+
+  @override
+  void beginLibraryName(Token token) {
+    accumulateIdentifierComponents = true;
+    isFirstIdentifier = true;
+  }
+
+  @override
+  void endLibraryName(Token libraryKeyword, Token semicolon) {
+    debugEvent("LibraryName");
+    List<SimpleIdentifier> libraryName = pop();
+    var name = ast.libraryIdentifier(libraryName);
+    List<Annotation> metadata = pop();
+    Comment comment = null; // TODO(paulberry)
+    push(ast.libraryDirective(comment, metadata,
+        toAnalyzerToken(libraryKeyword), name, toAnalyzerToken(semicolon)));
+    accumulateIdentifierComponents = false;
+  }
+
+  @override
+  void handleQualified(Token period) {
+    if (accumulateIdentifierComponents) {
+      SimpleIdentifier identifier = pop();
+      List<SimpleIdentifier> list = pop();
+      list.add(identifier);
+      push(list);
+    } else {
+      // TODO(paulberry): implement.
+      logEvent('Qualified');
+    }
+  }
+
+  @override
+  void endPart(Token partKeyword, Token semicolon) {
+    debugEvent("Part");
+    StringLiteral uri = pop();
+    List<Annotation> metadata = pop();
+    Comment comment = null; // TODO(paulberry)
+    push(ast.partDirective(comment, metadata, toAnalyzerToken(partKeyword), uri,
+        toAnalyzerToken(semicolon)));
+  }
+
+  @override
+  void beginPartOf(Token token) {
+    accumulateIdentifierComponents = true;
+    isFirstIdentifier = true;
+  }
+
+  @override
+  void endPartOf(Token partKeyword, Token semicolon) {
+    debugEvent("PartOf");
+    List<SimpleIdentifier> libraryName = pop();
+    var name = ast.libraryIdentifier(libraryName);
+    StringLiteral uri = null; // TODO(paulberry)
+    // TODO(paulberry,ahe): seems hacky.  It would be nice if the parser passed
+    // in a reference to the "of" keyword.
+    var ofKeyword = partKeyword.next;
+    List<Annotation> metadata = pop();
+    Comment comment = null; // TODO(paulberry)
+    push(ast.partOfDirective(comment, metadata, toAnalyzerToken(partKeyword),
+        toAnalyzerToken(ofKeyword), uri, name, toAnalyzerToken(semicolon)));
+    accumulateIdentifierComponents = false;
   }
 }
 

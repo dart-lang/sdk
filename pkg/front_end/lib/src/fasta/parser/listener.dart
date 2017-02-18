@@ -405,6 +405,8 @@ class Listener {
 
   void beginLibraryName(Token token) {}
 
+  /// Handle the end of a library directive.  Substructures:
+  /// - Library name (a qualified identifier)
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     logEvent("LibraryName");
   }
@@ -465,12 +467,17 @@ class Listener {
 
   void beginPart(Token token) {}
 
+  /// Handle the end of a part directive.  Substructures:
+  /// - metadata
+  /// - uri
   void endPart(Token partKeyword, Token semicolon) {
     logEvent("Part");
   }
 
   void beginPartOf(Token token) {}
 
+  /// Handle the end of a "part of" directive.  Substructures:
+  /// - Library name (a qualified identifier)
   void endPartOf(Token partKeyword, Token semicolon) {
     logEvent("PartOf");
   }
@@ -765,6 +772,11 @@ class Listener {
     logEvent("ParenthesizedExpression");
   }
 
+  /// Handle a construct of the form "identifier.identifier" occurring in a part
+  /// of the grammar where expressions in general are not allowed.
+  /// Substructures:
+  /// - Qualified identifier (before the period)
+  /// - Identifier (after the period)
   void handleQualified(Token period) {
     logEvent("Qualified");
   }

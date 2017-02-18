@@ -583,20 +583,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnit_directives_multiple() {
-    // TODO(paulberry): Unhandled event: LibraryName
-    super.test_parseCompilationUnit_directives_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnit_directives_single() {
-    // TODO(paulberry): Unhandled event: LibraryName
-    super.test_parseCompilationUnit_directives_single();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnit_empty() {
     // TODO(paulberry): No objects placed on stack
     super.test_parseCompilationUnit_empty();
@@ -810,29 +796,8 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseDirective_library() {
-    // TODO(paulberry): Unhandled event: LibraryName
-    super.test_parseDirective_library();
-  }
-
-  @override
-  @failingTest
-  void test_parseDirective_part() {
-    // TODO(paulberry): Unhandled event: Part
-    super.test_parseDirective_part();
-  }
-
-  @override
-  @failingTest
-  void test_parseDirective_partOf() {
-    // TODO(paulberry): Unhandled event: PartOf
-    super.test_parseDirective_partOf();
-  }
-
-  @override
-  @failingTest
   void test_parseDirectives_complete() {
-    // TODO(paulberry): Unhandled event: LibraryName
+    // TODO(paulberry,ahe): Fasta doesn't support script tags yet.
     super.test_parseDirectives_complete();
   }
 
@@ -846,15 +811,11 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseDirectives_mixed() {
-    // TODO(paulberry): Unhandled event: LibraryName
+    // TODO(paulberry,ahe): This test verifies the analyzer parser's ability to
+    // stop parsing as soon as the first non-directive is encountered; this is
+    // useful for quickly traversing an import graph.  Consider adding a similar
+    // ability to Fasta's parser.
     super.test_parseDirectives_mixed();
-  }
-
-  @override
-  @failingTest
-  void test_parseDirectives_multiple() {
-    // TODO(paulberry): Unhandled event: LibraryName
-    super.test_parseDirectives_multiple();
   }
 
   @override
@@ -862,13 +823,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseDirectives_script() {
     // TODO(paulberry): No objects placed on stack
     super.test_parseDirectives_script();
-  }
-
-  @override
-  @failingTest
-  void test_parseDirectives_single() {
-    // TODO(paulberry): Unhandled event: LibraryName
-    super.test_parseDirectives_single();
   }
 
   @override
@@ -958,22 +912,11 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseLibraryDirective() {
-    // TODO(paulberry): Unhandled event: LibraryName
-    super.test_parseLibraryDirective();
-  }
-
-  @override
-  @failingTest
-  void test_parsePartDirective() {
-    // TODO(paulberry): Unhandled event: Part
-    super.test_parsePartDirective();
-  }
-
-  @override
-  @failingTest
   void test_parsePartOfDirective_name() {
-    // TODO(paulberry): Unhandled event: PartOf
+    // TODO(paulberry,ahe): Thes test verifies that even if URIs in "part of"
+    // declarations are enabled, a construct of the form "part of identifier;"
+    // is still properly handled.  URIs in "part of" declarations are not
+    // supported by Fasta yet.
     super.test_parsePartOfDirective_name();
   }
 
