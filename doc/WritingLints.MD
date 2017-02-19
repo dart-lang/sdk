@@ -66,6 +66,15 @@ Helper scripts can be invoked via `dart` or grinder (`pub run grinder docs:doc_l
     
 generates lint and test stubs in `lib/src/rules` and `test/rules`.
 
+### Analyzer APIs
+
+The linter has a close relationship with the `analyzer` package and at times reaches into non-public APIs.  For the most part, we have isolated these references in an [analyzer.dart utility library](https://github.com/dart-lang/linter/blob/master/lib/src/analyzer.dart).  *Whereever possible please use this library to access analyzer internals.*  
+
+  * If `analyzer.dart` is missing something please consider either opening an issue where we can discuss how best to add it. 
+  * If you find yourself tempted to make references to analyzer [implementation classes](http://dart-lang.github.io/linter/lints/implementation_imports.html) also consider opening an issue so that we can see how best to manage the new dependency.
+  
+Thanks!
+
 ### Running Tests
 
 The test suite run during the linter's CI, can be run locally like so:
