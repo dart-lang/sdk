@@ -68,16 +68,32 @@ generates lint and test stubs in `lib/src/rules` and `test/rules`.
 
 ### Running Tests
 
-Tests can be run using `pub` like so:
+The test suite run during the linter's CI, can be run locally like so:
+
+    $ dart test/all.dart
+
+alternatively, tests can be run using `pub`:
 
     $ pub run test
     
-or, assuming you want to run a single test, this: 
+Running a single test can be done using the `rule_debug` helper:
+
+    $ dart test/util/rule_debug.dart always_declare_return_types
+    
+would only test `always_declare_return_types`.  (This can be very handy if you want to run tests in the VM debugger).
+
+If you simply want to verify a test, you can run it solo in `pub`:
 
     $ pub run test -N always_declare_return_types
 
-would only test `always_declare_return_types`.
+### Utilities
+
+You'll notice when authoring a new rule that failures cause the AST of the test case to be displayed to `stdout`.  If you simply want to dump the AST of a given compilation unit, you can use the `spelunk` helper directly.  For example:
+
+    $ dart tool/spelunk.dart lib/src/rules.dart
+    
+would dump the AST of `rules.dart`.
 
 # Feedback is Welcome!
 
-Needless to say, details are under active development.  Feedback is most [welcome](https://github.com/dart-lang/linter/issues)!
+Details are under active development.  Feedback is most [welcome](https://github.com/dart-lang/linter/issues)!
