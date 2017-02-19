@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.17.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.18.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -2049,6 +2049,19 @@
           </field>
         </result>
       </request>
+      <request method="getServerPort">
+        <p>
+          Return the port of the diagnostic web server. If the server is not running
+          this call will start the server. If unable to start the diagnostic web server,
+          this call will return an error of <tt>DEBUG_PORT_COULD_NOT_BE_OPENED</tt>.
+        </p>
+        <result>
+          <field name="port">
+            <ref>int</ref>
+            <p>The diagnostic server port.</p>
+          </field>
+        </result>
+      </request>
     </domain>
     <types>
       <h2 class="domain"><a name="types">Types</a></h2>
@@ -3728,6 +3741,12 @@
               An "analysis.getErrors" or "analysis.getNavigation" request could
               not be satisfied because the content of the file changed before
               the requested results could be computed.
+            </p>
+          </value>
+          <value>
+            <code>DEBUG_PORT_COULD_NOT_BE_OPENED</code>
+            <p>
+              The server was unable to open a port for the diagnostic server.
             </p>
           </value>
           <value>

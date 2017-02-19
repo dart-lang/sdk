@@ -1053,6 +1053,23 @@ final Matcher isDiagnosticGetDiagnosticsResult = new LazyMatcher(() => new Match
   }));
 
 /**
+ * diagnostic.getServerPort params
+ */
+final Matcher isDiagnosticGetServerPortParams = isNull;
+
+/**
+ * diagnostic.getServerPort result
+ *
+ * {
+ *   "port": int
+ * }
+ */
+final Matcher isDiagnosticGetServerPortResult = new LazyMatcher(() => new MatchesJsonObject(
+  "diagnostic.getServerPort result", {
+    "port": isInt
+  }));
+
+/**
  * AddContentOverlay
  *
  * {
@@ -2103,6 +2120,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *
  * enum {
  *   CONTENT_MODIFIED
+ *   DEBUG_PORT_COULD_NOT_BE_OPENED
  *   FILE_NOT_ANALYZED
  *   FORMAT_INVALID_FILE
  *   FORMAT_WITH_ERRORS
@@ -2130,6 +2148,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  */
 final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "CONTENT_MODIFIED",
+  "DEBUG_PORT_COULD_NOT_BE_OPENED",
   "FILE_NOT_ANALYZED",
   "FORMAT_INVALID_FILE",
   "FORMAT_WITH_ERRORS",

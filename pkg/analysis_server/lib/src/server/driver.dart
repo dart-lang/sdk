@@ -11,6 +11,7 @@ import 'dart:math';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
+import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
@@ -371,9 +372,9 @@ class Driver implements ServerStarter {
     int port;
     bool serve_http = false;
     if (results[PORT_OPTION] != null) {
-      serve_http = true;
       try {
         port = int.parse(results[PORT_OPTION]);
+        serve_http = true;
       } on FormatException {
         print('Invalid port number: ${results[PORT_OPTION]}');
         print('');
@@ -444,11 +445,18 @@ class Driver implements ServerStarter {
               [instrumentationServer, fileBasedServer])
           : fileBasedServer;
     }
-    InstrumentationService service =
+    InstrumentationService instrumentationService =
         new InstrumentationService(instrumentationServer);
-    service.logVersion(_readUuid(service), results[CLIENT_ID],
-        results[CLIENT_VERSION], AnalysisServer.VERSION, defaultSdk.sdkVersion);
-    AnalysisEngine.instance.instrumentationService = service;
+    instrumentationService.logVersion(
+        _readUuid(instrumentationService),
+        results[CLIENT_ID],
+        results[CLIENT_VERSION],
+        AnalysisServer.VERSION,
+        defaultSdk.sdkVersion);
+    AnalysisEngine.instance.instrumentationService = instrumentationService;
+
+    _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
+
     //
     // Create the sockets and start listening for requests.
     //
@@ -456,7 +464,8 @@ class Driver implements ServerStarter {
         analysisServerOptions,
         new DartSdkManager(defaultSdkPath, useSummaries),
         defaultSdk,
-        service,
+        instrumentationService,
+        diagnosticServer,
         serverPlugin,
         fileResolverProvider,
         packageResolverProvider,
@@ -465,16 +474,17 @@ class Driver implements ServerStarter {
     stdioServer = new StdioAnalysisServer(socketServer);
     socketServer.userDefinedPlugins = _userDefinedPlugins;
 
+    diagnosticServer.httpServer = httpServer;
     if (serve_http) {
-      httpServer.serveHttp(port);
+      diagnosticServer.startOnPort(port);
     }
 
-    _captureExceptions(service, () {
+    _captureExceptions(instrumentationService, () {
       stdioServer.serveStdio().then((_) async {
         if (serve_http) {
           httpServer.close();
         }
-        await service.shutdown();
+        await instrumentationService.shutdown();
         exit(0);
       });
     },
@@ -650,4 +660,20 @@ class Driver implements ServerStarter {
       } catch (e) {}
     }
   }
+}
+
+/**
+ * Implements the [DiagnosticServer] class by wrapping an [HttpAnalysisServer].
+ */
+class _DiagnosticServerImpl extends DiagnosticServer {
+  HttpAnalysisServer httpServer;
+
+  _DiagnosticServerImpl();
+
+  Future startOnPort(int port) {
+    return httpServer.serveHttp(port);
+  }
+
+  @override
+  Future<int> getServerPort() => httpServer.serveHttp();
 }

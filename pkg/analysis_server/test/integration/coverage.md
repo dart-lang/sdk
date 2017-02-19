@@ -51,3 +51,4 @@ TODO(devoncarew): We should track analysis server notifications here as well.
 
 ## diagnostic domain
 - [x] diagnostic.getDiagnostics
+- [x] diagnostic.getServerPort

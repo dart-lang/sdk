@@ -20,6 +20,7 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -91,7 +92,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.17.0';
+  static final String VERSION = '1.18.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -329,6 +330,13 @@ class AnalysisServer {
   final Set<String> priorityFiles = new Set<String>();
 
   /**
+   * The DiagnosticServer for this AnalysisServer. If available, it can be used
+   * to start an http diagnostics server or return the port for an existing
+   * server.
+   */
+  DiagnosticServer diagnosticServer;
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -346,7 +354,8 @@ class AnalysisServer {
       this.options,
       this.sdkManager,
       this.instrumentationService,
-      {ResolverProvider fileResolverProvider: null,
+      {this.diagnosticServer,
+      ResolverProvider fileResolverProvider: null,
       ResolverProvider packageResolverProvider: null,
       bool useSingleContextManager: false,
       this.rethrowExceptions: true}) {

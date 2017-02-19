@@ -7759,6 +7759,109 @@ class DiagnosticGetDiagnosticsResult implements HasToJson {
     return JenkinsSmiHash.finish(hash);
   }
 }
+/**
+ * diagnostic.getServerPort params
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DiagnosticGetServerPortParams {
+  Request toRequest(String id) {
+    return new Request(id, "diagnostic.getServerPort", null);
+  }
+
+  @override
+  bool operator==(other) {
+    if (other is DiagnosticGetServerPortParams) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 367508704;
+  }
+}
+
+/**
+ * diagnostic.getServerPort result
+ *
+ * {
+ *   "port": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DiagnosticGetServerPortResult implements HasToJson {
+  int _port;
+
+  /**
+   * The diagnostic server port.
+   */
+  int get port => _port;
+
+  /**
+   * The diagnostic server port.
+   */
+  void set port(int value) {
+    assert(value != null);
+    this._port = value;
+  }
+
+  DiagnosticGetServerPortResult(int port) {
+    this.port = port;
+  }
+
+  factory DiagnosticGetServerPortResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      int port;
+      if (json.containsKey("port")) {
+        port = jsonDecoder.decodeInt(jsonPath + ".port", json["port"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "port");
+      }
+      return new DiagnosticGetServerPortResult(port);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "diagnostic.getServerPort result", json);
+    }
+  }
+
+  factory DiagnosticGetServerPortResult.fromResponse(Response response) {
+    return new DiagnosticGetServerPortResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["port"] = port;
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is DiagnosticGetServerPortResult) {
+      return port == other.port;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, port.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
 
 /**
  * AddContentOverlay
@@ -14204,6 +14307,7 @@ class RequestError implements HasToJson {
  *
  * enum {
  *   CONTENT_MODIFIED
+ *   DEBUG_PORT_COULD_NOT_BE_OPENED
  *   FILE_NOT_ANALYZED
  *   FORMAT_INVALID_FILE
  *   FORMAT_WITH_ERRORS
@@ -14238,6 +14342,11 @@ class RequestErrorCode implements Enum {
    * results could be computed.
    */
   static const RequestErrorCode CONTENT_MODIFIED = const RequestErrorCode._("CONTENT_MODIFIED");
+
+  /**
+   * The server was unable to open a port for the diagnostic server.
+   */
+  static const RequestErrorCode DEBUG_PORT_COULD_NOT_BE_OPENED = const RequestErrorCode._("DEBUG_PORT_COULD_NOT_BE_OPENED");
 
   /**
    * A request specified a FilePath which does not match a file in an analysis
@@ -14386,7 +14495,7 @@ class RequestErrorCode implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FILE_NOT_ANALYZED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, GET_NAVIGATION_INVALID_FILE, GET_REACHABLE_SOURCES_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_FILE_PATH_FORMAT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, ORGANIZE_DIRECTIVES_ERROR, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, DEBUG_PORT_COULD_NOT_BE_OPENED, FILE_NOT_ANALYZED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, GET_NAVIGATION_INVALID_FILE, GET_REACHABLE_SOURCES_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_FILE_PATH_FORMAT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, ORGANIZE_DIRECTIVES_ERROR, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
 
   final String name;
 
@@ -14396,6 +14505,8 @@ class RequestErrorCode implements Enum {
     switch (name) {
       case "CONTENT_MODIFIED":
         return CONTENT_MODIFIED;
+      case "DEBUG_PORT_COULD_NOT_BE_OPENED":
+        return DEBUG_PORT_COULD_NOT_BE_OPENED;
       case "FILE_NOT_ANALYZED":
         return FILE_NOT_ANALYZED;
       case "FORMAT_INVALID_FILE":
