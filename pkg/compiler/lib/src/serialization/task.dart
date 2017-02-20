@@ -4,8 +4,9 @@
 
 library dart2js.serialization.task;
 
-import 'dart:async' show EventSink, Future;
+import 'dart:async' show Future;
 
+import '../../compiler_new.dart';
 import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
@@ -105,8 +106,7 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
     });
   }
 
-  void serializeToSink(
-      EventSink<String> sink, Iterable<LibraryElement> libraries) {
+  void serializeToSink(OutputSink sink, Iterable<LibraryElement> libraries) {
     measure(() {
       sink
         ..add(createSerializer(libraries)

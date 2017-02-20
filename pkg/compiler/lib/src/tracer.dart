@@ -4,9 +4,8 @@
 
 library tracer;
 
-import 'dart:async' show EventSink;
-
-import '../compiler.dart' as api;
+import '../compiler_new.dart' as api;
+import 'compiler.dart' show Compiler;
 import 'js_backend/namer.dart' show Namer;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/ssa_tracer.dart' show HTracer;
@@ -32,16 +31,16 @@ class Tracer extends TracerUtil {
   final ClosedWorld closedWorld;
   final Namer namer;
   bool traceActive = false;
-  final EventSink<String> output;
+  final api.OutputSink output;
   final RegExp traceFilter;
 
-  Tracer(
-      this.closedWorld, this.namer, api.CompilerOutputProvider outputProvider)
+  Tracer(this.closedWorld, this.namer, Compiler compiler)
       : traceFilter = TRACE_FILTER_PATTERN == null
             ? null
             : new RegExp(TRACE_FILTER_PATTERN),
-        output =
-            TRACE_FILTER_PATTERN != null ? outputProvider('dart', 'cfg') : null;
+        output = TRACE_FILTER_PATTERN != null
+            ? compiler.outputProvider('dart', 'cfg', api.OutputType.debug)
+            : null;
 
   bool get isEnabled => traceFilter != null;
 
@@ -71,7 +70,7 @@ class Tracer extends TracerUtil {
 }
 
 abstract class TracerUtil {
-  EventSink<String> get output;
+  api.OutputSink get output;
   final Indentation _ind = new Indentation();
 
   void tag(String tagName, Function f) {

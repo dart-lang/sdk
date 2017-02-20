@@ -26,10 +26,10 @@ class TestRandomAccessFileOutputProvider implements CompilerOutput {
   TestRandomAccessFileOutputProvider(this.provider);
 
   @override
-  EventSink<String> createEventSink(String name, String extension) {
-    outputs.add(relativize(
-        provider.out, provider.createUri(name, extension), Platform.isWindows));
-    return NullSink.outputProvider(name, extension);
+  OutputSink createOutputSink(String name, String extension, OutputType type) {
+    outputs.add(relativize(provider.out,
+        provider.createUri(name, extension, type), Platform.isWindows));
+    return NullSink.outputProvider(name, extension, type);
   }
 }
 

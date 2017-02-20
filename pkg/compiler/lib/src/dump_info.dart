@@ -9,6 +9,7 @@ import 'dart:convert'
 
 import 'package:dart2js_info/info.dart';
 
+import '../compiler_new.dart';
 import 'closure.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
@@ -539,7 +540,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       infoCollector = new ElementInfoCollector(compiler, closedWorld)..run();
       StringBuffer jsonBuffer = new StringBuffer();
       dumpInfoJson(jsonBuffer, closedWorld);
-      compiler.outputProvider('', 'info.json')
+      compiler.outputProvider(compiler.options.outputUri.pathSegments.last,
+          'info.json', OutputType.info)
         ..add(jsonBuffer.toString())
         ..close();
     });

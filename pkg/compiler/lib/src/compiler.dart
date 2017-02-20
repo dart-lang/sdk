@@ -658,9 +658,10 @@ abstract class Compiler implements LibraryLoaderListener {
 
         if (options.resolveOnly && !compilationFailed) {
           reporter.log('Serializing to ${options.resolutionOutput}');
-          serialization
-              .serializeToSink(userOutputProvider.createEventSink('', 'data'),
-                  libraryLoader.libraries.where((LibraryElement library) {
+          serialization.serializeToSink(
+              userOutputProvider.createOutputSink(
+                  '', 'data', api.OutputType.serializationData),
+              libraryLoader.libraries.where((LibraryElement library) {
             return !serialization.isDeserialized(library);
           }));
         }
@@ -1081,16 +1082,17 @@ abstract class Compiler implements LibraryLoaderListener {
     }
   }
 
-  EventSink<String> outputProvider(String name, String extension) {
+  api.OutputSink outputProvider(
+      String name, String extension, api.OutputType type) {
     if (compilationFailed) {
       if (!options.generateCodeWithCompileTimeErrors || options.testMode) {
         // Disable output in test mode: The build bot currently uses the time
         // stamp of the generated file to determine whether the output is
         // up-to-date.
-        return new NullSink('$name.$extension');
+        return NullSink.outputProvider(name, extension, type);
       }
     }
-    return userOutputProvider.createEventSink(name, extension);
+    return userOutputProvider.createOutputSink(name, extension, type);
   }
 }
 

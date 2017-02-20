@@ -138,10 +138,11 @@ Future runTest(int index, Test test,
       options: options);
   Expect.isTrue(compilationResult.isSuccess,
       "Unsuccessful compilation of test:\n${test.code}");
-  String sourceMapText = collector.getOutput('', 'js.map');
+  String sourceMapText = collector.getOutput('', OutputType.sourceMap);
   SingleMapping sourceMap = parse(sourceMapText);
   if (writeJs) {
-    new File('out.js').writeAsStringSync(collector.getOutput('', 'js'));
+    new File('out.js')
+        .writeAsStringSync(collector.getOutput('', OutputType.js));
     new File('out.js.map').writeAsStringSync(sourceMapText);
   }
 

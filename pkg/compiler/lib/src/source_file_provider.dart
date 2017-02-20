@@ -257,44 +257,55 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
     }
   }
 
-  EventSink<String> call(String name, String extension) {
-    return createEventSink(name, extension);
-  }
-
-  Uri createUri(String name, String extension) {
+  Uri createUri(String name, String extension, OutputType type) {
     Uri uri;
-    if (extension == "deferred_map") {
-      uri = out.resolve(name);
-    } else if (name == '') {
-      if (extension == 'js' || extension == 'dart') {
-        uri = out;
-      } else if (extension == 'precompiled.js') {
-        uri = computePrecompiledUri(out);
-        onInfo("File ($uri) is compatible with header"
-            " \"Content-Security-Policy: script-src 'self'\"");
-      } else if (extension == 'js.map' || extension == 'dart.map') {
-        uri = sourceMapOut;
-      } else if (extension == 'info.json') {
-        String outName = out.path.substring(out.path.lastIndexOf('/') + 1);
-        uri = out.resolve('$outName.$extension');
-      } else if (extension == 'data') {
+    // TODO(johnniwinther): Unify handle of [name] and [extension] to prepare
+    // for using a single, possibly relative, [uri] as input.
+    switch (type) {
+      case OutputType.js:
+        if (name == '') {
+          uri = out;
+        } else {
+          uri = out.resolve('$name.$extension');
+        }
+        break;
+      case OutputType.sourceMap:
+        if (name == '') {
+          uri = sourceMapOut;
+        } else {
+          uri = out.resolve('$name.$extension');
+        }
+        break;
+      case OutputType.jsPart:
+        uri = out.resolve('$name.$extension');
+        break;
+      case OutputType.serializationData:
         if (resolutionOutput == null) {
           onFailure('Serialization target unspecified.');
         }
         uri = resolutionOutput;
-      } else {
-        onFailure('Unknown extension: $extension');
-      }
-    } else {
-      uri = out.resolve('$name.$extension');
+        break;
+      case OutputType.info:
+        if (name == '') {
+          name = out.pathSegments.last;
+        }
+        if (extension == '') {
+          uri = out.resolve(name);
+        } else {
+          uri = out.resolve('$name.$extension');
+        }
+        break;
+      case OutputType.debug:
+        uri = out.resolve('$name.$extension');
+        break;
+      default:
+        onFailure('Unknown output type: $type');
     }
     return uri;
   }
 
-  EventSink<String> createEventSink(String name, String extension) {
-    // TODO (johnniwinther, sigurdm): Make a better interface for
-    // output-providers.
-    Uri uri = createUri(name, extension);
+  OutputSink createOutputSink(String name, String extension, OutputType type) {
+    Uri uri = createUri(name, extension, type);
     bool isPrimaryOutput = uri == out;
 
     if (uri.scheme != 'file') {
@@ -332,18 +343,16 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
       }
     }
 
-    return new _EventSinkWrapper(writeStringSync, onDone);
+    return new _OutputSinkWrapper(writeStringSync, onDone);
   }
 }
 
-class _EventSinkWrapper extends EventSink<String> {
+class _OutputSinkWrapper extends OutputSink {
   var onAdd, onClose;
 
-  _EventSinkWrapper(this.onAdd, this.onClose);
+  _OutputSinkWrapper(this.onAdd, this.onClose);
 
   void add(String data) => onAdd(data);
-
-  void addError(error, [StackTrace stackTrace]) => throw error;
 
   void close() => onClose();
 }

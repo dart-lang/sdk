@@ -2264,7 +2264,7 @@ class JavaScriptBackend extends Target {
   WorldImpact onCodegenStart(ClosedWorld closedWorld) {
     _closedWorld = closedWorld;
     _namer = determineNamer(_closedWorld, compiler.codegenWorldBuilder);
-    tracer = new Tracer(_closedWorld, namer, compiler.outputProvider);
+    tracer = new Tracer(_closedWorld, namer, compiler);
     emitter.createEmitter(_namer, _closedWorld);
     lookupMapAnalysis.onCodegenStart();
     if (hasIsolateSupport) {

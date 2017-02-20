@@ -30,6 +30,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 
+import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
@@ -251,7 +252,7 @@ class ModelEmitter {
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
-        compiler.outputProvider('', 'js'), codeOutputListeners);
+        compiler.outputProvider('', 'js', OutputType.js), codeOutputListeners);
     outputBuffers[fragment] = mainOutput;
 
     js.Program program = new js.Program([
@@ -296,7 +297,8 @@ class ModelEmitter {
     String hunkPrefix = fragment.outputFileName;
 
     CodeOutput output = new StreamCodeOutput(
-        compiler.outputProvider(hunkPrefix, deferredExtension),
+        compiler.outputProvider(
+            hunkPrefix, deferredExtension, OutputType.jsPart),
         outputListeners);
 
     outputBuffers[fragment] = output;
@@ -381,7 +383,7 @@ class ModelEmitter {
         new SourceMapBuilder(sourceMapUri, fileUri, lineColumnProvider);
     output.forEachSourceLocation(sourceMapBuilder.addMapping);
     String sourceMap = sourceMapBuilder.build();
-    compiler.outputProvider(name, 'js.map')
+    compiler.outputProvider(name, 'js.map', OutputType.sourceMap)
       ..add(sourceMap)
       ..close();
   }
@@ -398,7 +400,7 @@ class ModelEmitter {
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
     compiler.outputProvider(
-        compiler.options.deferredMapUri.path, 'deferred_map')
+        compiler.options.deferredMapUri.path, '', OutputType.info)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
   }

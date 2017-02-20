@@ -6,6 +6,7 @@ library dart2js.serialization_compilation_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/filenames.dart';
 import '../memory_compiler.dart';
@@ -63,6 +64,6 @@ Future compile(Uri entryPoint,
         outputProvider: outputCollector);
   });
   if (verbose) {
-    print(outputCollector.getOutput('', 'js'));
+    print(outputCollector.getOutput('', OutputType.js));
   }
 }

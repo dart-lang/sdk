@@ -4,8 +4,7 @@
 
 library ssa.tracer;
 
-import 'dart:async' show EventSink;
-
+import '../../compiler_new.dart' show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../js_backend/namer.dart' show Namer;
 import '../tracer.dart';
@@ -20,7 +19,7 @@ import 'nodes.dart';
 class HTracer extends HGraphVisitor with TracerUtil {
   final ClosedWorld closedWorld;
   final Namer namer;
-  final EventSink<String> output;
+  final OutputSink output;
 
   HTracer(this.output, this.closedWorld, this.namer);
 

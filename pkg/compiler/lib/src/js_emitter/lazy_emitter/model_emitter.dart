@@ -20,6 +20,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 
+import '../../../compiler_new.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../core_types.dart' show CommonElements;
@@ -153,13 +154,13 @@ class ModelEmitter {
       String code = js.createCodeBuffer(fragmentsCode[i], compiler).getText();
       totalSize += code.length;
       compiler.outputProvider(
-          fragments[i + 1].outputFileName, deferredExtension)
+          fragments[i + 1].outputFileName, deferredExtension, OutputType.jsPart)
         ..add(code)
         ..close();
     }
 
     String mainCode = js.createCodeBuffer(mainAst, compiler).getText();
-    compiler.outputProvider(mainFragment.outputFileName, 'js')
+    compiler.outputProvider(mainFragment.outputFileName, 'js', OutputType.js)
       ..add(buildGeneratedBy(compiler))
       ..add(mainCode)
       ..close();

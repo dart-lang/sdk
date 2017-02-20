@@ -4,8 +4,7 @@
 
 library dart2js.code_output;
 
-import 'dart:async';
-
+import '../../compiler_new.dart';
 import 'source_information.dart';
 
 /// Listener interface for [CodeOutput] activity.
@@ -130,7 +129,7 @@ class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
 /// [CodeOutput] using a [CompilationOutput] as backend.
 class StreamCodeOutput extends AbstractCodeOutput {
   int length = 0;
-  final EventSink<String> output;
+  final OutputSink output;
   final List<CodeOutputListener> _listeners;
 
   StreamCodeOutput(this.output, [this._listeners]);

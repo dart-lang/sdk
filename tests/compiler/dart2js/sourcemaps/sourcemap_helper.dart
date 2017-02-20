@@ -25,7 +25,7 @@ import 'package:compiler/src/source_file_provider.dart';
 import '../memory_compiler.dart';
 import '../output_collector.dart';
 
-class SourceFileSink implements EventSink<String> {
+class SourceFileSink implements OutputSink {
   final String filename;
   StringBuffer sb = new StringBuffer();
   SourceFile sourceFile;
@@ -35,11 +35,6 @@ class SourceFileSink implements EventSink<String> {
   @override
   void add(String event) {
     sb.write(event);
-  }
-
-  @override
-  void addError(errorEvent, [StackTrace stackTrace]) {
-    // Ignore.
   }
 
   @override
@@ -59,7 +54,8 @@ class OutputProvider implements CompilerOutput {
     return null;
   }
 
-  SourceFileSink createSourceFileSink(String name, String extension) {
+  SourceFileSink createSourceFileSink(
+      String name, String extension, OutputType type) {
     String filename = '$name.$extension';
     SourceFileSink sink = new SourceFileSink(filename);
     Uri uri = Uri.parse(filename);
@@ -68,8 +64,8 @@ class OutputProvider implements CompilerOutput {
   }
 
   @override
-  EventSink<String> createEventSink(String name, String extension) {
-    return createSourceFileSink(name, extension);
+  OutputSink createOutputSink(String name, String extension, OutputType type) {
+    return createSourceFileSink(name, extension, type);
   }
 }
 
@@ -80,10 +76,10 @@ class CloningOutputProvider extends OutputProvider {
       : outputProvider = new RandomAccessFileOutputProvider(jsUri, jsMapUri);
 
   @override
-  EventSink<String> createEventSink(String name, String extension) {
-    EventSink<String> output = outputProvider(name, extension);
-    return new CloningEventSink(
-        [output, createSourceFileSink(name, extension)]);
+  OutputSink createOutputSink(String name, String extension, OutputType type) {
+    OutputSink output = outputProvider.createOutputSink(name, extension, type);
+    return new CloningOutputSink(
+        [output, createSourceFileSink(name, extension, type)]);
   }
 }
 
