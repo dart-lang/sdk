@@ -879,6 +879,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void handleNoVariableInitializer(Token token) {
+    debugEvent("NoVariableInitializer");
+  }
+
+  @override
   void endFieldInitializer(Token assignmentOperator) {
     debugEvent("FieldInitializer");
     assert(assignmentOperator.stringValue == "=");

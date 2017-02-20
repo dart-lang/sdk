@@ -352,8 +352,15 @@ class Listener {
 
   void beginVariableInitializer(Token token) {}
 
+  /// Handle the end of a variable initializer. Substructures:
+  /// - Initializer expression.
   void endVariableInitializer(Token assignmentOperator) {
     logEvent("VariableInitializer");
+  }
+
+  /// Used when a variable has no initializer.
+  void handleNoVariableInitializer(Token token) {
+    logEvent("NoVariableInitializer");
   }
 
   void beginInitializer(Token token) {}

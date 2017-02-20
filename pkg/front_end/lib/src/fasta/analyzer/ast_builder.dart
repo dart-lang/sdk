@@ -312,6 +312,11 @@ class AstBuilder extends ScopeListener {
         identifier, toAnalyzerToken(assignmentOperator), initializer));
   }
 
+  @override
+  void handleNoVariableInitializer(Token token) {
+    debugEvent("NoVariableInitializer");
+  }
+
   void endInitializedIdentifier() {
     debugEvent("InitializedIdentifier");
     AstNode node = pop();
