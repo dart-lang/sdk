@@ -4,6 +4,9 @@
 
 import "dart:_internal" hide Symbol;
 
+// Equivalent of calling FATAL from C++ code.
+_fatal(msg) native "DartAsync_fatal";
+
 // We need to pass the value as first argument and leave the second and third
 // arguments empty (used for error handling).
 // See vm/ast_transformer.cc for usage.
@@ -97,8 +100,8 @@ class _AsyncStarStreamController {
   // suspend;
   // if (controller.isCancelled) return;
   bool add(event) {
-    if (!onListenReceived) fatal("yield before stream is listened to!");
-    if (isSuspendedAtYield) fatal("unexpected yield");
+    if (!onListenReceived) _fatal("yield before stream is listened to");
+    if (isSuspendedAtYield) _fatal("unexpected yield");
     // If stream is cancelled, tell caller to exit the async generator.
     if (!controller.hasListener) {
       return true;
@@ -115,7 +118,7 @@ class _AsyncStarStreamController {
   // Returns true if the caller should terminate
   // execution of the generator.
   bool addStream(Stream stream) {
-    if (!onListenReceived) fatal("yield before stream is listened to!");
+    if (!onListenReceived) _fatal("yield before stream is listened to");
     // If stream is cancelled, tell caller to exit the async generator.
     if (!controller.hasListener) return true;
     isAdding = true;

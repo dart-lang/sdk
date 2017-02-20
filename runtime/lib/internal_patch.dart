@@ -44,9 +44,6 @@ bool _classRangeCheckNegative(int cid, int lowerLimit, int upperLimit) {
   return cid < lowerLimit || cid > upperLimit;
 }
 
-// Equivalent of calling FATAL from C++ code.
-fatal(msg) native "DartInternal_fatal";
-
 // Utility class now only used by the VM.
 class Lists {
   static void copy(List src, int srcStart,
