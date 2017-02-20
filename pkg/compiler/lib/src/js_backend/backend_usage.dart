@@ -15,25 +15,52 @@ import '../util/util.dart' show Setlet;
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
 
-class BackendUsage {
-  final CommonElements commonElements;
-  final BackendHelpers helpers;
-  final Resolution resolution;
+abstract class BackendUsage {
+  bool get needToInitializeIsolateAffinityTag;
+  bool get needToInitializeDispatchProperty;
+  bool usedByBackend(Element element);
+  Iterable<Element> get globalDependencies;
+}
+
+abstract class BackendUsageBuilder {
+  Element registerBackendUse(Element element);
+  void registerGlobalDependency(Element element);
+  void registerBackendImpact(
+      WorldImpactBuilder worldImpact, BackendImpact backendImpact);
+  void registerBackendStaticUse(
+      WorldImpactBuilder worldImpact, MethodElement element,
+      {bool isGlobal: false});
+  void registerBackendInstantiation(
+      WorldImpactBuilder worldImpact, ClassElement cls,
+      {bool isGlobal: false});
+  WorldImpact createImpactFor(BackendImpact impact);
+  void registerUsedMember(MemberElement member);
+}
+
+class BackendUsageImpl implements BackendUsage, BackendUsageBuilder {
+  final CommonElements _commonElements;
+  final BackendHelpers _helpers;
+  final Resolution _resolution;
   // TODO(johnniwinther): Remove the need for this.
   Setlet<Element> _globalDependencies;
 
   /// List of elements that the backend may use.
-  final Set<Element> helpersUsed = new Set<Element>();
+  final Set<Element> _helpersUsed = new Set<Element>();
 
-  bool needToInitializeIsolateAffinityTag = false;
-  bool needToInitializeDispatchProperty = false;
+  bool _needToInitializeIsolateAffinityTag = false;
+  bool _needToInitializeDispatchProperty = false;
 
-  BackendUsage(this.commonElements, this.helpers, this.resolution);
+  BackendUsageImpl(this._commonElements, this._helpers, this._resolution);
+
+  bool get needToInitializeIsolateAffinityTag =>
+      _needToInitializeIsolateAffinityTag;
+  bool get needToInitializeDispatchProperty =>
+      _needToInitializeDispatchProperty;
 
   /// The backend must *always* call this method when enqueuing an
   /// element. Calls done by the backend are not seen by global
   /// optimizations, so they would make these optimizations unsound.
-  /// Therefore we need to collect the list of helpers the backend may
+  /// Therefore we need to collect the list of _helpers the backend may
   /// use.
   // TODO(johnniwinther): Replace this with a more precise modelling; type
   // inference of these elements is disabled.
@@ -41,11 +68,11 @@ class BackendUsage {
     if (element == null) return null;
     assert(invariant(element, _isValidBackendUse(element),
         message: "Backend use of $element is not allowed."));
-    helpersUsed.add(element.declaration);
+    _helpersUsed.add(element.declaration);
     if (element.isClass && element.isPatched) {
       // Both declaration and implementation may declare fields, so we
-      // add both to the list of helpers.
-      helpersUsed.add(element.implementation);
+      // add both to the list of _helpers.
+      _helpersUsed.add(element.implementation);
     }
     return element;
   }
@@ -53,14 +80,14 @@ class BackendUsage {
   bool _isValidBackendUse(Element element) {
     assert(invariant(element, element.isDeclaration, message: ""));
     if (element is ConstructorElement &&
-        (element == helpers.streamIteratorConstructor ||
-            commonElements.isSymbolConstructor(element) ||
-            helpers.isSymbolValidatedConstructor(element) ||
-            element == helpers.syncCompleterConstructor)) {
+        (element == _helpers.streamIteratorConstructor ||
+            _commonElements.isSymbolConstructor(element) ||
+            _helpers.isSymbolValidatedConstructor(element) ||
+            element == _helpers.syncCompleterConstructor)) {
       // TODO(johnniwinther): These are valid but we could be more precise.
       return true;
-    } else if (element == commonElements.symbolClass ||
-        element == helpers.objectNoSuchMethod) {
+    } else if (element == _commonElements.symbolClass ||
+        element == _helpers.objectNoSuchMethod) {
       // TODO(johnniwinther): These are valid but we could be more precise.
       return true;
     } else if (element.implementationLibrary.isPatch ||
@@ -69,20 +96,20 @@ class BackendUsage {
         (element.library.isPlatformLibrary &&
             element.sourcePosition.uri.path
                 .contains('_internal/js_runtime/lib/')) ||
-        element.library == helpers.jsHelperLibrary ||
-        element.library == helpers.interceptorsLibrary ||
-        element.library == helpers.isolateHelperLibrary) {
+        element.library == _helpers.jsHelperLibrary ||
+        element.library == _helpers.interceptorsLibrary ||
+        element.library == _helpers.isolateHelperLibrary) {
       // TODO(johnniwinther): We should be more precise about these.
       return true;
-    } else if (element == commonElements.listClass ||
-        element == helpers.mapLiteralClass ||
-        element == commonElements.functionClass ||
-        element == commonElements.stringClass) {
+    } else if (element == _commonElements.listClass ||
+        element == _helpers.mapLiteralClass ||
+        element == _commonElements.functionClass ||
+        element == _commonElements.stringClass) {
       // TODO(johnniwinther): Avoid these.
       return true;
-    } else if (element == helpers.genericNoSuchMethod ||
-        element == helpers.unresolvedConstructorError ||
-        element == helpers.malformedTypeError) {
+    } else if (element == _helpers.genericNoSuchMethod ||
+        element == _helpers.unresolvedConstructorError ||
+        element == _helpers.malformedTypeError) {
       return true;
     }
     return false;
@@ -94,7 +121,7 @@ class BackendUsage {
         element.isField) {
       if (usedByBackend(element.enclosingElement)) return true;
     }
-    return helpersUsed.contains(element.declaration);
+    return _helpersUsed.contains(element.declaration);
   }
 
   WorldImpact createImpactFor(BackendImpact impact) {
@@ -118,7 +145,7 @@ class BackendUsage {
   void registerBackendInstantiation(
       WorldImpactBuilder worldImpact, ClassElement cls,
       {bool isGlobal: false}) {
-    cls.ensureResolved(resolution);
+    cls.ensureResolved(_resolution);
     registerBackendUse(cls);
     worldImpact.registerTypeUse(new TypeUse.instantiation(cls.rawType));
     if (isGlobal) {
@@ -157,12 +184,18 @@ class BackendUsage {
     for (BackendFeature feature in backendImpact.features) {
       switch (feature) {
         case BackendFeature.needToInitializeDispatchProperty:
-          needToInitializeDispatchProperty = true;
+          _needToInitializeDispatchProperty = true;
           break;
         case BackendFeature.needToInitializeIsolateAffinityTag:
-          needToInitializeIsolateAffinityTag = true;
+          _needToInitializeIsolateAffinityTag = true;
           break;
       }
+    }
+  }
+
+  void registerUsedMember(MemberElement member) {
+    if (member == _helpers.getIsolateAffinityTagMarker) {
+      _needToInitializeIsolateAffinityTag = true;
     }
   }
 

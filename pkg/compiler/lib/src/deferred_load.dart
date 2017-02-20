@@ -31,6 +31,7 @@ import 'elements/elements.dart'
         ResolvedAstKind,
         TypedefElement;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'resolution/resolution.dart' show AnalyzableElementX;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart' as ast;
@@ -158,6 +159,7 @@ class DeferredLoadTask extends CompilerTask {
 
   JavaScriptBackend get backend => compiler.backend;
   DiagnosticReporter get reporter => compiler.reporter;
+  BackendUsage get _backendUsage => backend.backendUsage;
 
   /// Returns the [OutputUnit] where [element] belongs.
   OutputUnit outputUnitForElement(Element element) {
@@ -680,7 +682,7 @@ class DeferredLoadTask extends CompilerTask {
               // are things that the backend needs but cannot associate with a
               // particular element, for example, startRootIsolate.  This set
               // also contains elements for which we lack precise information.
-              for (Element element in backend.backendUsage.globalDependencies) {
+              for (Element element in _backendUsage.globalDependencies) {
                 _mapDependencies(element: element, import: _fakeMainImport);
               }
 
