@@ -98,15 +98,6 @@ class ErrorReporter {
   }
 
   /**
-   * Creates an error with properties with the given [errorCode] and
-   * [arguments]. The [node] is used to compute the location of the error.
-   */
-  AnalysisErrorWithProperties newErrorWithProperties(
-          ErrorCode errorCode, AstNode node, List<Object> arguments) =>
-      new AnalysisErrorWithProperties(
-          _source, node.offset, node.length, errorCode, arguments);
-
-  /**
    * Report the given [error].
    */
   void reportError(AnalysisError error) {

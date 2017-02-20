@@ -857,7 +857,7 @@ part of 'lib.dart';
         (libraryUnit.directives[2] as PartDirective).element, same(secondPart));
   }
 
-  test_perform_error_missingLibraryDirectiveWithPart_hasCommon() {
+  test_perform_error_missingLibraryDirectiveWithPart() {
     _performBuildTask({
       '/lib.dart': '''
 part 'partA.dart';
@@ -872,27 +872,6 @@ part of my_lib;
     });
     _assertErrorsWithCodes(
         [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
-    AnalysisError error = errorListener.errors[0];
-    expect(error.getProperty(ErrorProperty.PARTS_LIBRARY_NAME), 'my_lib');
-  }
-
-  test_perform_error_missingLibraryDirectiveWithPart_noCommon() {
-    _performBuildTask({
-      '/lib.dart': '''
-part 'partA.dart';
-part 'partB.dart';
-''',
-      '/partA.dart': '''
-part of libA;
-        ''',
-      '/partB.dart': '''
-part of libB;
-'''
-    });
-    _assertErrorsWithCodes(
-        [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
-    AnalysisError error = errorListener.errors[0];
-    expect(error.getProperty(ErrorProperty.PARTS_LIBRARY_NAME), isNull);
   }
 
   test_perform_error_partDoesNotExist() {
