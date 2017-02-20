@@ -17,10 +17,12 @@ import 'world.dart' show ClosedWorld;
  * If non-null, we only trace methods whose name match the regexp defined by the
  * given pattern.
  */
-const String TRACE_FILTER_PATTERN = const String.fromEnvironment("DUMP_IR");
+String get TRACE_FILTER_PATTERN =>
+    TRACE_FILTER_PATTERN_FROM_ENVIRONMENT ?? TRACE_FILTER_PATTERN_FOR_TEST;
 
-final RegExp TRACE_FILTER =
-    TRACE_FILTER_PATTERN == null ? null : new RegExp(TRACE_FILTER_PATTERN);
+const String TRACE_FILTER_PATTERN_FROM_ENVIRONMENT =
+    const String.fromEnvironment("DUMP_IR");
+String TRACE_FILTER_PATTERN_FOR_TEST;
 
 /**
  * Dumps the intermediate representation after each phase in a format
@@ -31,15 +33,21 @@ class Tracer extends TracerUtil {
   final Namer namer;
   bool traceActive = false;
   final EventSink<String> output;
-  final bool isEnabled = TRACE_FILTER != null;
+  final RegExp traceFilter;
 
   Tracer(
       this.closedWorld, this.namer, api.CompilerOutputProvider outputProvider)
-      : output = TRACE_FILTER != null ? outputProvider('dart', 'cfg') : null;
+      : traceFilter = TRACE_FILTER_PATTERN == null
+            ? null
+            : new RegExp(TRACE_FILTER_PATTERN),
+        output =
+            TRACE_FILTER_PATTERN != null ? outputProvider('dart', 'cfg') : null;
+
+  bool get isEnabled => traceFilter != null;
 
   void traceCompilation(String methodName) {
     if (!isEnabled) return;
-    traceActive = TRACE_FILTER.hasMatch(methodName);
+    traceActive = traceFilter.hasMatch(methodName);
     if (!traceActive) return;
     tag("compilation", () {
       printProperty("name", methodName);

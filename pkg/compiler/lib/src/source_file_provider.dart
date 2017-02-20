@@ -261,16 +261,12 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
     return createEventSink(name, extension);
   }
 
-  EventSink<String> createEventSink(String name, String extension) {
+  Uri createUri(String name, String extension) {
     Uri uri;
-    bool isPrimaryOutput = false;
-    // TODO (johnniwinther, sigurdm): Make a better interface for
-    // output-providers.
     if (extension == "deferred_map") {
       uri = out.resolve(name);
     } else if (name == '') {
       if (extension == 'js' || extension == 'dart') {
-        isPrimaryOutput = true;
         uri = out;
       } else if (extension == 'precompiled.js') {
         uri = computePrecompiledUri(out);
@@ -292,6 +288,14 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
     } else {
       uri = out.resolve('$name.$extension');
     }
+    return uri;
+  }
+
+  EventSink<String> createEventSink(String name, String extension) {
+    // TODO (johnniwinther, sigurdm): Make a better interface for
+    // output-providers.
+    Uri uri = createUri(name, extension);
+    bool isPrimaryOutput = uri == out;
 
     if (uri.scheme != 'file') {
       onFailure('Unhandled scheme ${uri.scheme} in $uri.');
