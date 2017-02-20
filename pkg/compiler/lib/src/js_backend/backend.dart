@@ -519,8 +519,7 @@ class JavaScriptBackend extends Target implements EnqueuerListener {
         mirrorsData = new MirrorsData(compiler),
         this.compiler = compiler {
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
-    _backendUsage = new BackendUsage(
-        commonElements, helpers, resolution, compiler.globalDependencies);
+    _backendUsage = new BackendUsage(commonElements, helpers, resolution);
     _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
@@ -958,7 +957,11 @@ class JavaScriptBackend extends Target implements EnqueuerListener {
     return impactBuilder;
   }
 
-  void registerInstantiatedType(ResolutionInterfaceType type) {
+  void registerInstantiatedType(ResolutionInterfaceType type,
+      {bool isGlobal: false}) {
+    if (isGlobal) {
+      backendUsage.registerGlobalDependency(type.element);
+    }
     lookupMapAnalysis.registerInstantiatedType(type);
   }
 

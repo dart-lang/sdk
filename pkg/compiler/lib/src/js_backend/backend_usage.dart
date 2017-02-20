@@ -4,7 +4,6 @@
 
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
-import '../compiler.dart' show GlobalDependencyRegistry;
 import '../core_types.dart';
 import '../elements/elements.dart';
 import '../elements/resolution_types.dart';
@@ -12,6 +11,7 @@ import '../universe/selector.dart';
 import '../universe/use.dart';
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
+import '../util/util.dart' show Setlet;
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
 
@@ -19,7 +19,8 @@ class BackendUsage {
   final CommonElements commonElements;
   final BackendHelpers helpers;
   final Resolution resolution;
-  final GlobalDependencyRegistry globalDependencies;
+  // TODO(johnniwinther): Remove the need for this.
+  Setlet<Element> _globalDependencies;
 
   /// List of elements that the backend may use.
   final Set<Element> helpersUsed = new Set<Element>();
@@ -27,8 +28,7 @@ class BackendUsage {
   bool needToInitializeIsolateAffinityTag = false;
   bool needToInitializeDispatchProperty = false;
 
-  BackendUsage(this.commonElements, this.helpers, this.resolution,
-      this.globalDependencies);
+  BackendUsage(this.commonElements, this.helpers, this.resolution);
 
   /// The backend must *always* call this method when enqueuing an
   /// element. Calls done by the backend are not seen by global
@@ -111,7 +111,7 @@ class BackendUsage {
         // TODO(johnniwinther): Store the correct use in impacts.
         new StaticUse.foreignUse(element));
     if (isGlobal) {
-      globalDependencies.registerDependency(element);
+      registerGlobalDependency(element);
     }
   }
 
@@ -122,7 +122,7 @@ class BackendUsage {
     registerBackendUse(cls);
     worldImpact.registerTypeUse(new TypeUse.instantiation(cls.rawType));
     if (isGlobal) {
-      globalDependencies.registerDependency(cls);
+      registerGlobalDependency(cls);
     }
   }
 
@@ -165,4 +165,14 @@ class BackendUsage {
       }
     }
   }
+
+  void registerGlobalDependency(Element element) {
+    if (element == null) return;
+    if (_globalDependencies == null) {
+      _globalDependencies = new Setlet<Element>();
+    }
+    _globalDependencies.add(element.implementation);
+  }
+
+  Iterable<Element> get globalDependencies => _globalDependencies;
 }

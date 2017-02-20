@@ -680,8 +680,7 @@ class DeferredLoadTask extends CompilerTask {
               // are things that the backend needs but cannot associate with a
               // particular element, for example, startRootIsolate.  This set
               // also contains elements for which we lack precise information.
-              for (Element element
-                  in compiler.globalDependencies.otherDependencies) {
+              for (Element element in backend.backendUsage.globalDependencies) {
                 _mapDependencies(element: element, import: _fakeMainImport);
               }
 

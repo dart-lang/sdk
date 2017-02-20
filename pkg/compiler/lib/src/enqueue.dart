@@ -10,7 +10,7 @@ import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
-import 'compiler.dart' show Compiler, GlobalDependencyRegistry;
+import 'compiler.dart' show Compiler;
 import 'options.dart';
 import 'elements/elements.dart'
     show
@@ -49,7 +49,6 @@ class EnqueueTask extends CompilerTask {
         compiler.options.analyzeOnly && compiler.options.analyzeMain
             ? const DirectEnqueuerStrategy()
             : const TreeShakingEnqueuerStrategy(),
-        compiler.globalDependencies,
         compiler.backend,
         compiler.backend.nativeResolutionEnqueuer(),
         new ResolutionWorldBuilderImpl(
@@ -106,7 +105,7 @@ abstract class Enqueuer {
 
 abstract class EnqueuerListener {
   /// Called to instruct to the backend that [type] has been instantiated.
-  void registerInstantiatedType(InterfaceType type);
+  void registerInstantiatedType(InterfaceType type, {bool isGlobal});
 
   /// Called to notify to the backend that a class is being instantiated. Any
   /// backend specific [WorldImpact] of this is returned.
@@ -172,7 +171,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final String name;
   final CompilerOptions _options;
   final EnqueuerListener _listener;
-  final GlobalDependencyRegistry _globalDependencies;
   final native.NativeEnqueuer nativeEnqueuer;
 
   final EnqueuerStrategy strategy;
@@ -199,7 +197,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       this._options,
       this._reporter,
       this.strategy,
-      this._globalDependencies,
       this._listener,
       this.nativeEnqueuer,
       this._universe,
@@ -231,13 +228,11 @@ class ResolutionEnqueuer extends EnqueuerImpl {
           constructor: constructor,
           byMirrors: mirrorUsage,
           isRedirection: isRedirection);
-      if (globalDependency && !mirrorUsage) {
-        _globalDependencies.registerDependency(type.element);
-      }
       if (nativeUsage) {
         nativeEnqueuer.onInstantiatedType(type);
       }
-      _listener.registerInstantiatedType(type);
+      _listener.registerInstantiatedType(type,
+          isGlobal: globalDependency && !mirrorUsage);
     });
   }
 

@@ -445,7 +445,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     void staticUse(element) {
       impactBuilder.registerStaticUse(new StaticUse.foreignUse(element));
       backend.backendUsage.registerBackendUse(element);
-      compiler.globalDependencies.registerDependency(element);
+      backend.backendUsage.registerGlobalDependency(element);
     }
 
     staticUse(helpers.defineProperty);

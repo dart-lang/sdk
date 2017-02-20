@@ -43,7 +43,6 @@ import 'enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import 'environment.dart';
 import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
-import 'js_backend/backend_helpers.dart' as js_backend show BackendHelpers;
 import 'js_backend/js_backend.dart' as js_backend show JavaScriptBackend;
 import 'library_loader.dart'
     show
@@ -77,7 +76,7 @@ import 'universe/world_builder.dart'
 import 'universe/use.dart' show StaticUse, TypeUse;
 import 'universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
-import 'util/util.dart' show Link, Setlet;
+import 'util/util.dart' show Link;
 import 'world.dart' show ClosedWorld, ClosedWorldRefiner, ClosedWorldImpl;
 
 typedef CompilerDiagnosticReporter MakeReporterFunction(
@@ -100,15 +99,6 @@ abstract class Compiler implements LibraryLoaderListener {
    * Map from token to the first preceding comment token.
    */
   final TokenMap commentMap = new TokenMap();
-
-  /**
-   * Records global dependencies, that is, dependencies that don't
-   * correspond to a particular element.
-   *
-   * We should get rid of this and ensure that all dependencies are
-   * associated with a particular element.
-   */
-  GlobalDependencyRegistry globalDependencies;
 
   /// Options provided from command-line arguments.
   final CompilerOptions options;
@@ -212,10 +202,6 @@ abstract class Compiler implements LibraryLoaderListener {
     if (options.verbose) {
       progress = new Stopwatch()..start();
     }
-
-    // TODO(johnniwinther): Separate the dependency tracking from the enqueuing
-    // for global dependencies.
-    globalDependencies = new GlobalDependencyRegistry();
 
     backend = createBackend();
     enqueuer = backend.makeEnqueuer();
@@ -1899,26 +1885,6 @@ class CompilerResolution implements Resolution {
     }
     return _proxyConstant == value;
   }
-}
-
-class GlobalDependencyRegistry {
-  Setlet<Element> _otherDependencies;
-
-  GlobalDependencyRegistry();
-
-  void registerDependency(Element element) {
-    if (element == null) return;
-    if (_otherDependencies == null) {
-      _otherDependencies = new Setlet<Element>();
-    }
-    _otherDependencies.add(element.implementation);
-  }
-
-  Iterable<Element> get otherDependencies {
-    return _otherDependencies != null ? _otherDependencies : const <Element>[];
-  }
-
-  String get name => 'GlobalDependencies';
 }
 
 class _ScriptLoader implements ScriptLoader {

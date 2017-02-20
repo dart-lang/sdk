@@ -90,7 +90,6 @@ main(List<String> args) {
         compiler.options,
         compiler.reporter,
         const TreeShakingEnqueuerStrategy(),
-        compiler.globalDependencies,
         backend,
         backend.nativeResolutionEnqueuer(),
         new ResolutionWorldBuilderImpl(

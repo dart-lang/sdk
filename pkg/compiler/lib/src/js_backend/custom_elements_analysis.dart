@@ -173,7 +173,7 @@ class CustomElementsAnalysisJoin {
               .registerStaticUse(new StaticUse.foreignUse(constructor));
         }
         escapingConstructors
-            .forEach(compiler.globalDependencies.registerDependency);
+            .forEach(backend.backendUsage.registerGlobalDependency);
         // Force the generaton of the type constant that is the key to an entry
         // in the generated table.
         ConstantValue constant = makeTypeConstant(classElement);
