@@ -22,6 +22,7 @@ map: Crash
 mixin: Crash
 operators: Crash
 statements: Crash
+super_rasta_copy: Crash
 top_level_accessors: Crash
 typedef: Crash
 

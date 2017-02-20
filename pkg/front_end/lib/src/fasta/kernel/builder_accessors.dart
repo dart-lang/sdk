@@ -24,6 +24,7 @@ import 'frontend_accessors.dart' as kernel show
     NullAwarePropertyAccessor,
     PropertyAccessor,
     StaticAccessor,
+    SuperIndexAccessor,
     SuperPropertyAccessor,
     ThisIndexAccessor,
     ThisPropertyAccessor,
@@ -622,6 +623,28 @@ class ThisIndexAccessor extends kernel.ThisIndexAccessor with BuilderAccessor {
   }
 
   toString() => "ThisIndexAccessor()";
+}
+
+class SuperIndexAccessor
+    extends kernel.SuperIndexAccessor with BuilderAccessor {
+  final BuilderHelper helper;
+
+  final int charOffset;
+
+  SuperIndexAccessor(this.helper, this.charOffset, Expression index,
+      Member getter, Member setter)
+      : super(index, getter, setter);
+
+  String get plainNameForRead => "[]";
+
+  String get plainNameForWrite => "[]=";
+
+  Expression doInvocation(int charOffset, Arguments arguments) {
+    return buildMethodInvocation(buildSimpleRead(), new Name("call"), arguments,
+        charOffset);
+  }
+
+  toString() => "SuperIndexAccessor()";
 }
 
 class ThisPropertyAccessor extends kernel.ThisPropertyAccessor

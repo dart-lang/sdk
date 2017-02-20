@@ -104,6 +104,10 @@ final Name barName = new Name("|");
 
 final Name mustacheName = new Name("~/");
 
+final Name indexGetName = new Name("[]");
+
+final Name indexSetName = new Name("[]=");
+
 class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   final KernelLibraryBuilder library;
 
@@ -1445,24 +1449,37 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       Token openCurlyBracket, Token closeCurlyBracket) {
     debugEvent("IndexedExpression");
     Expression index = popForValue();
-    Expression receiver = popForValue();
-    push(IndexAccessor.make(this, openCurlyBracket.charOffset, receiver, index,
-            null, null));
+    var receiver = pop();
+    if (receiver is ThisAccessor && receiver.isSuper) {
+      push(new SuperIndexAccessor(
+              this, receiver.charOffset, index,
+              lookupSuperMember(indexGetName),
+              lookupSuperMember(indexSetName)));
+    } else {
+      push(IndexAccessor.make(this, openCurlyBracket.charOffset,
+              toValue(receiver), index, null, null));
+    }
   }
 
   @override
   void handleUnaryPrefixExpression(Token token) {
     debugEvent("UnaryPrefixExpression");
-    Expression expression = popForValue();
+    var receiver = pop();
     if (optional("!", token)) {
-      push(new Not(expression));
+      push(new Not(toValue(receiver)));
     } else {
       String operator = token.stringValue;
       if (optional("-", token)) {
         operator = "unary-";
       }
-      push(buildMethodInvocation(expression, new Name(operator),
-              new Arguments.empty(), token.charOffset));
+      if (receiver is ThisAccessor && receiver.isSuper) {
+        push(toSuperMethodInvocation(buildMethodInvocation(
+            new ThisExpression()..fileOffset = receiver.charOffset,
+            new Name(operator), new Arguments.empty(), token.charOffset)));
+      } else {
+        push(buildMethodInvocation(toValue(receiver), new Name(operator),
+                new Arguments.empty(), token.charOffset));
+      }
     }
   }
 
