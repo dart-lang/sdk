@@ -1540,15 +1540,20 @@ class Emitter implements js_emitter.Emitter {
     }
 
     if (generateSourceMap) {
-      mainOutput.add(generateSourceMapTag(
+      mainOutput.add(SourceMapBuilder.generateSourceMapTag(
           compiler.options.sourceMapUri, compiler.options.outputUri));
     }
 
     mainOutput.close();
 
     if (generateSourceMap) {
-      outputSourceMap(mainOutput, lineColumnCollector, '',
-          compiler.options.sourceMapUri, compiler.options.outputUri);
+      SourceMapBuilder.outputSourceMap(
+          mainOutput,
+          lineColumnCollector,
+          '',
+          compiler.options.sourceMapUri,
+          compiler.options.outputUri,
+          compiler.outputProvider);
     }
   }
 
@@ -1637,17 +1642,6 @@ class Emitter implements js_emitter.Emitter {
     }
     // Return the total program size.
     return outputBuffers.values.fold(0, (a, b) => a + b.length);
-  }
-
-  String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
-    if (sourceMapUri != null && fileUri != null) {
-      String sourceMapFileName = relativize(fileUri, sourceMapUri, false);
-      return '''
-
-//# sourceMappingURL=$sourceMapFileName
-''';
-    }
-    return '';
   }
 
   ClassBuilder getElementDescriptor(Element element, Fragment fragment) {
@@ -1898,9 +1892,10 @@ class Emitter implements js_emitter.Emitter {
               compiler.options.outputUri.replace(pathSegments: partSegments);
         }
 
-        output.add(generateSourceMapTag(mapUri, partUri));
+        output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
         output.close();
-        outputSourceMap(output, lineColumnCollector, partName, mapUri, partUri);
+        SourceMapBuilder.outputSourceMap(output, lineColumnCollector, partName,
+            mapUri, partUri, compiler.outputProvider);
       } else {
         output.close();
       }
@@ -1915,21 +1910,6 @@ class Emitter implements js_emitter.Emitter {
     if (compiler.commonElements.mirrorsLibrary != null) options.add('mirrors');
     if (compiler.options.useContentSecurityPolicy) options.add("CSP");
     return new jsAst.Comment(generatedBy(compiler, flavor: options.join(", ")));
-  }
-
-  void outputSourceMap(
-      CodeOutput output, LineColumnProvider lineColumnProvider, String name,
-      [Uri sourceMapUri, Uri fileUri]) {
-    if (!generateSourceMap) return;
-    // Create a source file for the compilation output. This allows using
-    // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
-    SourceMapBuilder sourceMapBuilder =
-        new SourceMapBuilder(sourceMapUri, fileUri, lineColumnProvider);
-    output.forEachSourceLocation(sourceMapBuilder.addMapping);
-    String sourceMap = sourceMapBuilder.build();
-    compiler.outputProvider(name, 'js.map', OutputType.sourceMap)
-      ..add(sourceMap)
-      ..close();
   }
 
   void outputDeferredMap() {

@@ -44,8 +44,9 @@ CodeBuffer createCodeBuffer(Node node, Compiler compiler,
       renamerForNames: renamerForNames);
   CodeBuffer outBuffer = new CodeBuffer();
   SourceInformationProcessor sourceInformationProcessor =
-      sourceInformationFactory
-          .createProcessor(new SourceLocationsMapper(outBuffer));
+      sourceInformationFactory.createProcessor(
+          new SourceMapperProviderImpl(outBuffer),
+          const SourceInformationReader());
   Dart2JSJavaScriptPrintingContext context =
       new Dart2JSJavaScriptPrintingContext(
           compiler.reporter, monitor, outBuffer, sourceInformationProcessor);

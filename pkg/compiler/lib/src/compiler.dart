@@ -267,6 +267,7 @@ abstract class Compiler implements LibraryLoaderListener {
     return new js_backend.JavaScriptBackend(this,
         generateSourceMap: options.generateSourceMap,
         useStartupEmitter: options.useStartupEmitter,
+        useMultiSourceInfo: options.useMultiSourceInfo,
         useNewSourceInfo: options.useNewSourceInfo,
         useKernel: options.useKernel);
   }

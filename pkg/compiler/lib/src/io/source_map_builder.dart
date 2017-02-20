@@ -4,12 +4,16 @@
 
 library dart2js.source_map_builder;
 
+import '../../compiler_new.dart' show OutputSink, OutputType;
 import '../util/uri_extras.dart' show relativize;
 import '../util/util.dart';
 import 'line_column_provider.dart';
+import 'code_output.dart' show SourceLocationsProvider, SourceLocations;
 import 'source_information.dart' show SourceLocation;
 
 class SourceMapBuilder {
+  final String version;
+
   /// The URI of the source map file.
   final Uri sourceMapUri;
 
@@ -19,8 +23,8 @@ class SourceMapBuilder {
   final LineColumnProvider lineColumnProvider;
   final List<SourceMapEntry> entries = new List<SourceMapEntry>();
 
-  SourceMapBuilder(
-      this.sourceMapUri, this.targetFileUri, this.lineColumnProvider);
+  SourceMapBuilder(this.version, this.sourceMapUri, this.targetFileUri,
+      this.lineColumnProvider);
 
   void addMapping(int targetOffset, SourceLocation sourceLocation) {
     entries.add(new SourceMapEntry(sourceLocation, targetOffset));
@@ -87,6 +91,7 @@ class SourceMapBuilder {
     StringBuffer buffer = new StringBuffer();
     buffer.write('{\n');
     buffer.write('  "version": 3,\n');
+    buffer.write('  "engine": "$version",\n');
     if (sourceMapUri != null && targetFileUri != null) {
       buffer.write(
           '  "file": "${relativize(sourceMapUri, targetFileUri, false)}",\n');
@@ -160,6 +165,57 @@ class SourceMapBuilder {
       }
 
       previousSourceLocation = sourceLocation;
+    });
+  }
+
+  /// Returns the source map tag to put at the end a .js file in [fileUri] to
+  /// make it point to the source map file in [sourceMapUri].
+  static String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
+    if (sourceMapUri != null && fileUri != null) {
+      String sourceMapFileName = relativize(fileUri, sourceMapUri, false);
+      return '''
+
+//# sourceMappingURL=$sourceMapFileName
+''';
+    }
+    return '';
+  }
+
+  /// Generates source map files for all [SourceLocations] in
+  /// [sourceLocationsProvider] for the .js code in [lineColumnProvider]
+  /// [sourceMapUri] is used to relativizes the URIs of the referenced source
+  /// files and the target [fileUri]. [name] and [outputProvider] are used to
+  /// create the [OutputSink] for the source map text.
+  static void outputSourceMap(
+      SourceLocationsProvider sourceLocationsProvider,
+      LineColumnProvider lineColumnProvider,
+      String name,
+      Uri sourceMapUri,
+      Uri fileUri,
+      OutputSink outputProvider(
+          String name, String extension, OutputType type)) {
+    // Create a source file for the compilation output. This allows using
+    // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
+    int index = 0;
+    sourceLocationsProvider.sourceLocations
+        .forEach((SourceLocations sourceLocations) {
+      SourceMapBuilder sourceMapBuilder = new SourceMapBuilder(
+          sourceLocations.name, sourceMapUri, fileUri, lineColumnProvider);
+      sourceLocations.forEachSourceLocation(sourceMapBuilder.addMapping);
+      String sourceMap = sourceMapBuilder.build();
+      String extension = 'js.map';
+      if (index > 0) {
+        if (name == '') {
+          name = fileUri != null ? fileUri.pathSegments.last : 'out.js';
+          extension = 'map.${sourceLocations.name}';
+        } else {
+          extension = 'js.map.${sourceLocations.name}';
+        }
+      }
+      outputProvider(name, extension, OutputType.sourceMap)
+        ..add(sourceMap)
+        ..close();
+      index++;
     });
   }
 }

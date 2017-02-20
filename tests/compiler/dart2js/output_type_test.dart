@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/dart2js.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/source_file_provider.dart';
@@ -75,7 +76,7 @@ main() {
       'tests/compiler/dart2js/data/deferred_helper.dart',
       '--out=custom.js',
       '--deferred-map=def/deferred.json',
-      '--dump-info',
+      Flags.dumpInfo,
     ], [
       'custom.js', 'custom.js.map',
       'custom.js_1.part.js', 'custom.js_1.part.js.map',
@@ -89,12 +90,15 @@ main() {
     TRACE_FILTER_PATTERN_FOR_TEST = null;
     await test([
       'tests/compiler/dart2js/data/deferred_helper.dart',
-      '--csp',
+      Flags.useContentSecurityPolicy,
+      Flags.useMultiSourceInfo,
     ], [
       'out.js',
       'out.js.map',
+      'out.js.map.v2',
       'out.js_1.part.js',
       'out.js_1.part.js.map',
+      'out.js_1.part.js.map.v2',
     ]);
     await test([
       'tests/compiler/dart2js/data/deferred_helper.dart',

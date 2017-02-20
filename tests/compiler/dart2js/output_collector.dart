@@ -44,9 +44,17 @@ class OutputCollector implements CompilerOutput {
 
   String getOutput(String name, OutputType type) {
     Map<String, BufferedOutputSink> sinkMap = outputMap[type];
-    if (sinkMap == null) return null;
+    if (sinkMap == null) {
+      print("No output available for $type.");
+      return null;
+    }
     BufferedOutputSink sink = sinkMap[name];
-    return sink != null ? sink.text : null;
+    if (sink == null) {
+      print("Output '$name' not found for $type. Available: ${sinkMap.keys}");
+      return null;
+    } else {
+      return sink.text;
+    }
   }
 
   /// `true` if any output has been collected.

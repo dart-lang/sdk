@@ -119,6 +119,22 @@ class RecordingPrintingContext extends LenientPrintingContext {
 }
 
 /// A [SourceMapper] that records the source locations on each node.
+class RecordingSourceMapperProvider implements SourceMapperProvider {
+  final SourceMapperProvider sourceMapperProvider;
+  final _LocationRecorder nodeToSourceLocationsMap;
+
+  RecordingSourceMapperProvider(
+      this.sourceMapperProvider, this.nodeToSourceLocationsMap);
+
+  @override
+  SourceMapper createSourceMapper(String name) {
+    return new RecordingSourceMapper(
+        sourceMapperProvider.createSourceMapper(name),
+        nodeToSourceLocationsMap);
+  }
+}
+
+/// A [SourceMapper] that records the source locations on each node.
 class RecordingSourceMapper implements SourceMapper {
   final SourceMapper sourceMapper;
   final _LocationRecorder nodeToSourceLocationsMap;
@@ -188,13 +204,16 @@ class RecordingSourceInformationStrategy
   }
 
   @override
-  SourceInformationProcessor createProcessor(SourceMapper sourceMapper) {
+  SourceInformationProcessor createProcessor(
+      SourceMapperProvider provider, SourceInformationReader reader) {
     LocationMap nodeToSourceLocationsMap = new _LocationRecorder();
     CodePositionRecorder codePositions = new CodePositionRecorder();
     return new RecordingSourceInformationProcessor(
         this,
         strategy.createProcessor(
-            new RecordingSourceMapper(sourceMapper, nodeToSourceLocationsMap)),
+            new RecordingSourceMapperProvider(
+                provider, nodeToSourceLocationsMap),
+            reader),
         codePositions,
         nodeToSourceLocationsMap);
   }
@@ -332,7 +351,9 @@ class SourceMapProcessor {
         CodePositionRecorder codePositions = subProcess.codePositions;
         CodePointComputer visitor =
             new CodePointComputer(sourceFileManager, code, nodeMap);
-        new JavaScriptTracer(codePositions, [visitor]).apply(node);
+        new JavaScriptTracer(
+                codePositions, const SourceInformationReader(), [visitor])
+            .apply(node);
         List<CodePoint> codePoints = visitor.codePoints;
         elementSourceMapInfos[element] = new SourceMapInfo(
             element, code, node, codePoints, codePositions, nodeMap);
@@ -350,7 +371,9 @@ class SourceMapProcessor {
       codePositions = process.codePositions;
       CodePointComputer visitor =
           new CodePointComputer(sourceFileManager, code, nodeMap);
-      new JavaScriptTracer(codePositions, [visitor]).apply(node);
+      new JavaScriptTracer(
+              codePositions, const SourceInformationReader(), [visitor])
+          .apply(node);
       List<CodePoint> codePoints = visitor.codePoints;
       mainSourceMapInfo = new SourceMapInfo(
           null, code, node, codePoints, codePositions, nodeMap);

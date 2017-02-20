@@ -39,7 +39,8 @@ void testSourceMapLocations(String codeWithMarkers) {
   SourceFile sourceFile = new StringSourceFile.fromName('<test script>', code);
   asyncTest(() => compileAll(sourceFile).then((CodeOutput output) {
         Set<int> locations = new Set<int>();
-        output
+        SourceLocations sourceLocations = output.sourceLocations.single;
+        sourceLocations
             .forEachSourceLocation((int offset, SourceLocation sourcePosition) {
           if (sourcePosition != null &&
               sourcePosition.sourceUri == sourceFile.uri) {

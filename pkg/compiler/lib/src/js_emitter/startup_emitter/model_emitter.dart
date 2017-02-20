@@ -266,15 +266,20 @@ class ModelEmitter {
         js.createCodeBuffer(program, compiler, monitor: compiler.dumpInfoTask));
 
     if (shouldGenerateSourceMap) {
-      mainOutput.add(generateSourceMapTag(
+      mainOutput.add(SourceMapBuilder.generateSourceMapTag(
           compiler.options.sourceMapUri, compiler.options.outputUri));
     }
 
     mainOutput.close();
 
     if (shouldGenerateSourceMap) {
-      outputSourceMap(mainOutput, lineColumnCollector, '',
-          compiler.options.sourceMapUri, compiler.options.outputUri);
+      SourceMapBuilder.outputSourceMap(
+          mainOutput,
+          lineColumnCollector,
+          '',
+          compiler.options.sourceMapUri,
+          compiler.options.outputUri,
+          compiler.outputProvider);
     }
   }
 
@@ -352,40 +357,15 @@ class ModelEmitter {
             compiler.options.outputUri.replace(pathSegments: partSegments);
       }
 
-      output.add(generateSourceMapTag(mapUri, partUri));
+      output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
       output.close();
-      outputSourceMap(output, lineColumnCollector, partName, mapUri, partUri);
+      SourceMapBuilder.outputSourceMap(output, lineColumnCollector, partName,
+          mapUri, partUri, compiler.outputProvider);
     } else {
       output.close();
     }
 
     return hash;
-  }
-
-  String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
-    if (sourceMapUri != null && fileUri != null) {
-      String sourceMapFileName = relativize(fileUri, sourceMapUri, false);
-      return '''
-
-//# sourceMappingURL=$sourceMapFileName
-''';
-    }
-    return '';
-  }
-
-  void outputSourceMap(
-      CodeOutput output, LineColumnProvider lineColumnProvider, String name,
-      [Uri sourceMapUri, Uri fileUri]) {
-    if (!shouldGenerateSourceMap) return;
-    // Create a source file for the compilation output. This allows using
-    // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
-    SourceMapBuilder sourceMapBuilder =
-        new SourceMapBuilder(sourceMapUri, fileUri, lineColumnProvider);
-    output.forEachSourceLocation(sourceMapBuilder.addMapping);
-    String sourceMap = sourceMapBuilder.build();
-    compiler.outputProvider(name, 'js.map', OutputType.sourceMap)
-      ..add(sourceMap)
-      ..close();
   }
 
   /// Writes a mapping from library-name to hunk files.

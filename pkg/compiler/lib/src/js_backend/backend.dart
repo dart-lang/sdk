@@ -30,6 +30,7 @@ import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../enqueue.dart'
     show Enqueuer, EnqueueTask, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
+import '../io/multi_information.dart' show MultiSourceInformationStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../io/start_end_information.dart'
@@ -520,19 +521,43 @@ class JavaScriptBackend extends Target {
 
   Tracer tracer;
 
+  static SourceInformationStrategy createSourceInformationStrategy(
+      {bool generateSourceMap: false,
+      bool useMultiSourceInfo: false,
+      bool useNewSourceInfo: false}) {
+    if (!generateSourceMap) return const JavaScriptSourceInformationStrategy();
+    if (useMultiSourceInfo) {
+      if (useNewSourceInfo) {
+        return const MultiSourceInformationStrategy(const [
+          const PositionSourceInformationStrategy(),
+          const StartEndSourceInformationStrategy()
+        ]);
+      } else {
+        return const MultiSourceInformationStrategy(const [
+          const StartEndSourceInformationStrategy(),
+          const PositionSourceInformationStrategy()
+        ]);
+      }
+    } else if (useNewSourceInfo) {
+      return const PositionSourceInformationStrategy();
+    } else {
+      return const StartEndSourceInformationStrategy();
+    }
+  }
+
   JavaScriptBackend(Compiler compiler,
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
+      bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
       bool useKernel: false})
       : rti = new _RuntimeTypes(compiler),
         rtiEncoder = new _RuntimeTypesEncoder(compiler),
         annotations = new Annotations(compiler),
-        this.sourceInformationStrategy = generateSourceMap
-            ? (useNewSourceInfo
-                ? new PositionSourceInformationStrategy()
-                : const StartEndSourceInformationStrategy())
-            : const JavaScriptSourceInformationStrategy(),
+        this.sourceInformationStrategy = createSourceInformationStrategy(
+            generateSourceMap: generateSourceMap,
+            useMultiSourceInfo: useMultiSourceInfo,
+            useNewSourceInfo: useNewSourceInfo),
         impacts = new BackendImpacts(compiler),
         frontend = new JSFrontendAccess(compiler),
         this.compiler = compiler {
