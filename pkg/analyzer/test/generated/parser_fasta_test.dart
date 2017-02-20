@@ -471,16 +471,9 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
   @override
   @failingTest
-  void test_function_literal_allowed_at_toplevel() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
-    super.test_function_literal_allowed_at_toplevel();
-  }
-
-  @override
-  @failingTest
   void
       test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
+    // TODO(paulberry): Unhandled event: Method
     super
         .test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer();
   }
@@ -489,7 +482,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void
       test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
+    // TODO(paulberry): Unhandled event: Method
     super
         .test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer();
   }
@@ -498,7 +491,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void
       test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
+    // TODO(paulberry): Unhandled event: Method
     super
         .test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer();
   }
@@ -507,7 +500,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void
       test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
+    // TODO(paulberry): Unhandled event: Method
     super
         .test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer();
   }
@@ -516,7 +509,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void
       test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
+    // TODO(paulberry): Unhandled event: Method
     super
         .test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer();
   }
@@ -525,7 +518,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void
       test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
+    // TODO(paulberry): Unhandled event: Method
     super
         .test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer();
   }
@@ -635,20 +628,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseCompilationUnitMember_classTypeAlias() {
     // TODO(paulberry): Implement AstBuilder.handleModifier
     super.test_parseCompilationUnitMember_classTypeAlias();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_constVariable() {
-    // TODO(paulberry): Unhandled event: FieldInitializer
-    super.test_parseCompilationUnitMember_constVariable();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_finalVariable() {
-    // TODO(paulberry): Unhandled event: FieldInitializer
-    super.test_parseCompilationUnitMember_finalVariable();
   }
 
   @override
@@ -771,27 +750,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseCompilationUnitMember_typedef() {
     // TODO(paulberry): Unhandled event: FunctionTypeAlias
     super.test_parseCompilationUnitMember_typedef();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_variable() {
-    // TODO(paulberry): Unhandled event: FieldInitializer
-    super.test_parseCompilationUnitMember_variable();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_variableGet() {
-    // TODO(paulberry): Unhandled event: FieldInitializer
-    super.test_parseCompilationUnitMember_variableGet();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_variableSet() {
-    // TODO(paulberry): Unhandled event: FieldInitializer
-    super.test_parseCompilationUnitMember_variableSet();
   }
 
   @override

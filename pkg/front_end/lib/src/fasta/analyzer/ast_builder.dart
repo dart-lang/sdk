@@ -321,6 +321,10 @@ class AstBuilder extends ScopeListener {
     debugEvent("InitializedIdentifier");
     AstNode node = pop();
     VariableDeclaration variable;
+    // TODO(paulberry): This seems kludgy.  It would be preferable if we
+    // could respond to a "handleNoVariableInitializer" event by converting a
+    // SimpleIdentifier into a VariableDeclaration, and then when this code was
+    // reached, node would always be a VariableDeclaration.
     if (node is VariableDeclaration) {
       variable = node;
     } else if (node is SimpleIdentifier) {
@@ -634,6 +638,8 @@ class AstBuilder extends ScopeListener {
   }
 
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
+    // TODO(paulberry): set up scopes properly to resolve parameters and type
+    // variables.
     debugEvent("TopLevelMethod");
     FunctionBody body = _endFunctionBody();
     FormalParameterList parameters = pop();
@@ -939,6 +945,50 @@ class AstBuilder extends ScopeListener {
     push(ast.partOfDirective(comment, metadata, toAnalyzerToken(partKeyword),
         toAnalyzerToken(ofKeyword), uri, name, toAnalyzerToken(semicolon)));
     accumulateIdentifierComponents = false;
+  }
+
+  void endUnnamedFunction(Token token) {
+    // TODO(paulberry): set up scopes properly to resolve parameters and type
+    // variables.  Note that this is tricky due to the handling of initializers
+    // in constructors, so the logic should be shared with BodyBuilder as much
+    // as possible.
+    debugEvent("UnnamedFunction");
+    var body = _endFunctionBody();
+    FormalParameterList parameters = pop();
+    TypeParameterList typeParameters = pop();
+    push(ast.functionExpression(typeParameters, parameters, body));
+  }
+
+  @override
+  void handleNoFieldInitializer(Token token) {
+    debugEvent("NoFieldInitializer");
+    SimpleIdentifier name = pop();
+    push(ast.variableDeclaration(name, null, null));
+  }
+
+  void endFieldInitializer(Token assignment) {
+    debugEvent("FieldInitializer");
+    Expression initializer = pop();
+    SimpleIdentifier name = pop();
+    push(ast.variableDeclaration(
+        name, toAnalyzerToken(assignment), initializer));
+  }
+
+  void endTopLevelFields(int count, Token beginToken, Token endToken) {
+    debugEvent("TopLevelFields");
+    List<VariableDeclaration> variables = popList(count);
+    TypeAnnotation type = pop();
+    // TODO(paulberry): the var/const/final keyword should be pointed to by
+    // beginToken.
+    var keyword = null; // TODO(paulberry)
+    var variableList = ast.variableDeclarationList(
+        null, null, toAnalyzerToken(keyword), type, variables);
+    var modifiers = pop();
+    assert(modifiers == null); // TODO(paulberry)
+    List<Annotation> metadata = pop();
+    Comment comment = null; // TODO(paulberry)
+    push(ast.topLevelVariableDeclaration(
+        comment, metadata, variableList, toAnalyzerToken(endToken)));
   }
 }
 

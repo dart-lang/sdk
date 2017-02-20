@@ -342,10 +342,13 @@ class Listener {
 
   void beginFieldInitializer(Token token) {}
 
+  /// Handle the end of a field initializer.  Substructures:
+  /// - Initializer expression
   void endFieldInitializer(Token assignment) {
     logEvent("FieldInitializer");
   }
 
+  /// Handle the lack of a field initializer.
   void handleNoFieldInitializer(Token token) {
     logEvent("NoFieldInitializer");
   }
@@ -556,6 +559,13 @@ class Listener {
 
   void beginTopLevelMember(Token token) {}
 
+  /// Handle the end of a top level variable declaration.  Substructures:
+  /// - Metadata
+  /// - Modifiers
+  /// - Type
+  /// - Repeated [count] times:
+  ///   - Variable name (identifier)
+  ///   - Field initializer
   /// Doesn't have a corresponding begin event, use [beginTopLevelMember]
   /// instead.
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
@@ -629,6 +639,12 @@ class Listener {
 
   void beginUnnamedFunction(Token token) {}
 
+  /// Handle the end of a function expression (e.g. "() { ... }").
+  /// Substructures:
+  /// - Type variables
+  /// - Formal parameters
+  /// - Async marker
+  /// - Body
   void endUnnamedFunction(Token token) {
     logEvent("UnnamedFunction");
   }
