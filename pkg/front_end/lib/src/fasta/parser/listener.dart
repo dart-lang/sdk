@@ -487,6 +487,7 @@ class Listener {
   void beginPartOf(Token token) {}
 
   /// Handle the end of a "part of" directive.  Substructures:
+  /// - Metadata
   /// - Library name (a qualified identifier)
   void endPartOf(Token partKeyword, Token semicolon) {
     logEvent("PartOf");

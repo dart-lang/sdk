@@ -27,6 +27,8 @@ import '../source/scope_listener.dart'
 import '../kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, ProcedureBuilder;
 
+import '../parser/parser.dart' show optional;
+
 import '../quote.dart';
 
 import '../source/outline_builder.dart' show asyncMarkerFromTokens;
@@ -802,7 +804,7 @@ class AstBuilder extends ScopeListener {
     Token classKeyword;
     // TODO(paulberry,ahe): This is a hack.  The parser should give us the class
     // keyword.
-    if (identical(beginToken.value, 'abstract')) {
+    if (optional('abstract', beginToken)) {
       classKeyword = beginToken.next;
     } else {
       classKeyword = beginToken;
