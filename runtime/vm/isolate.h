@@ -559,6 +559,8 @@ class Isolate : public BaseIsolate {
   bool all_classes_finalized() const { return all_classes_finalized_; }
   void set_all_classes_finalized(bool value) { all_classes_finalized_ = value; }
 
+  void set_remapping_cids(bool value) { remapping_cids_ = value; }
+
   // True during top level parsing.
   bool IsTopLevelParsing() {
     const intptr_t value =
@@ -806,6 +808,7 @@ class Isolate : public BaseIsolate {
 
   bool compilation_allowed_;
   bool all_classes_finalized_;
+  bool remapping_cids_;
 
   // Isolate list next pointer.
   Isolate* next_;

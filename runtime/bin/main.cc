@@ -1448,6 +1448,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
                   script_name);
       }
 
+      if (gen_snapshot_kind == kAppJIT) Dart_SortClasses();
+
       // The helper function _getMainClosure creates a closure for the main
       // entry point which is either explicitly or implictly exported from the
       // root library.

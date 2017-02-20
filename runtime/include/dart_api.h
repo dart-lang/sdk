@@ -3279,6 +3279,14 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
 
 
 /**
+ * Sorts the class-ids in depth first traversal order of the inheritance
+ * tree.  This is a costly operation, but it can make method dispatch
+ * more efficient and is done before writing snapshots.
+ */
+DART_EXPORT void Dart_SortClasses();
+
+
+/**
  *  Creates a snapshot that caches compiled code and type feedback for faster
  *  startup and quicker warmup in a subsequent process.
  *

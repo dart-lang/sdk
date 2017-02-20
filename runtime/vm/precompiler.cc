@@ -9,6 +9,7 @@
 #include "vm/ast_printer.h"
 #include "vm/branch_optimizer.h"
 #include "vm/cha.h"
+#include "vm/class_finalizer.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
@@ -427,7 +428,7 @@ void Precompiler::DoCompileAll(
       // because their class hasn't been finalized yet.
       FinalizeAllClasses();
 
-      SortClasses();
+      ClassFinalizer::SortClasses();
       TypeRangeCache trc(this, T, I->class_table()->NumCids());
       VerifyJITFeedback();
 
@@ -435,7 +436,7 @@ void Precompiler::DoCompileAll(
       PrecompileStaticInitializers();
 
       // Precompile constructors to compute type information for final fields.
-      ClearAllCode();
+      ClassFinalizer::ClearAllCode();
       PrecompileConstructors();
 
       for (intptr_t round = 0; round < FLAG_precompiler_rounds; round++) {
@@ -455,7 +456,7 @@ void Precompiler::DoCompileAll(
         //  - method-extractors
         // that are needed in early iterations but optimized away in later
         // iterations.
-        ClearAllCode();
+        ClassFinalizer::ClearAllCode();
 
         CollectDynamicFunctionNames();
 
@@ -616,24 +617,6 @@ void Precompiler::PrecompileConstructors() {
           Class::Handle(T->isolate()->class_table()->At(cid)).ToCString());
     }
   }
-}
-
-
-void Precompiler::ClearAllCode() {
-  class ClearCodeFunctionVisitor : public FunctionVisitor {
-    void Visit(const Function& function) {
-      function.ClearCode();
-      function.ClearICDataArray();
-    }
-  };
-  ClearCodeFunctionVisitor function_visitor;
-  ProgramVisitor::VisitFunctions(&function_visitor);
-
-  class ClearCodeClassVisitor : public ClassVisitor {
-    void Visit(const Class& cls) { cls.DisableAllocationStub(); }
-  };
-  ClearCodeClassVisitor class_visitor;
-  ProgramVisitor::VisitClasses(&class_visitor);
 }
 
 
@@ -2542,242 +2525,6 @@ void Precompiler::FinalizeAllClasses() {
   I->set_all_classes_finalized(true);
 }
 
-
-void Precompiler::SortClasses() {
-  ClassTable* table = I->class_table();
-  intptr_t num_cids = table->NumCids();
-  intptr_t* old_to_new_cid = new intptr_t[num_cids];
-  for (intptr_t cid = 0; cid < kNumPredefinedCids; cid++) {
-    old_to_new_cid[cid] = cid;  // The predefined classes cannot change cids.
-  }
-  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
-    old_to_new_cid[cid] = -1;
-  }
-
-  intptr_t next_new_cid = kNumPredefinedCids;
-  GrowableArray<intptr_t> dfs_stack;
-  Class& cls = Class::Handle(Z);
-  GrowableObjectArray& subclasses = GrowableObjectArray::Handle(Z);
-
-  // Object doesn't use its subclasses list.
-  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
-    if (!table->HasValidClassAt(cid)) {
-      continue;
-    }
-    cls = table->At(cid);
-    if (cls.is_patch()) {
-      continue;
-    }
-    if (cls.SuperClass() == I->object_store()->object_class()) {
-      dfs_stack.Add(cid);
-    }
-  }
-
-  while (dfs_stack.length() > 0) {
-    intptr_t cid = dfs_stack.RemoveLast();
-    ASSERT(table->HasValidClassAt(cid));
-    cls = table->At(cid);
-    ASSERT(!cls.IsNull());
-    if (old_to_new_cid[cid] == -1) {
-      old_to_new_cid[cid] = next_new_cid++;
-      if (FLAG_trace_precompiler) {
-        THR_Print("%" Pd ": %s, was %" Pd "\n", old_to_new_cid[cid],
-                  cls.ToCString(), cid);
-      }
-    }
-    subclasses = cls.direct_subclasses();
-    if (!subclasses.IsNull()) {
-      for (intptr_t i = 0; i < subclasses.Length(); i++) {
-        cls ^= subclasses.At(i);
-        ASSERT(!cls.IsNull());
-        dfs_stack.Add(cls.id());
-      }
-    }
-  }
-
-  // Top-level classes, typedefs, patch classes, etc.
-  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
-    if (old_to_new_cid[cid] == -1) {
-      old_to_new_cid[cid] = next_new_cid++;
-      if (FLAG_trace_precompiler && table->HasValidClassAt(cid)) {
-        cls = table->At(cid);
-        THR_Print("%" Pd ": %s, was %" Pd "\n", old_to_new_cid[cid],
-                  cls.ToCString(), cid);
-      }
-    }
-  }
-  ASSERT(next_new_cid == num_cids);
-
-  RemapClassIds(old_to_new_cid);
-  delete[] old_to_new_cid;
-  RehashTypes();  // Types use cid's as part of their hashes.
-}
-
-
-class CidRewriteVisitor : public ObjectVisitor {
- public:
-  explicit CidRewriteVisitor(intptr_t* old_to_new_cids)
-      : old_to_new_cids_(old_to_new_cids) {}
-
-  intptr_t Map(intptr_t cid) {
-    ASSERT(cid != -1);
-    return old_to_new_cids_[cid];
-  }
-
-  void VisitObject(RawObject* obj) {
-    if (obj->IsClass()) {
-      RawClass* cls = Class::RawCast(obj);
-      cls->ptr()->id_ = Map(cls->ptr()->id_);
-    } else if (obj->IsField()) {
-      RawField* field = Field::RawCast(obj);
-      field->ptr()->guarded_cid_ = Map(field->ptr()->guarded_cid_);
-      field->ptr()->is_nullable_ = Map(field->ptr()->is_nullable_);
-    } else if (obj->IsTypeParameter()) {
-      RawTypeParameter* param = TypeParameter::RawCast(obj);
-      param->ptr()->parameterized_class_id_ =
-          Map(param->ptr()->parameterized_class_id_);
-    } else if (obj->IsType()) {
-      RawType* type = Type::RawCast(obj);
-      RawObject* id = type->ptr()->type_class_id_;
-      if (!id->IsHeapObject()) {
-        type->ptr()->type_class_id_ =
-            Smi::New(Map(Smi::Value(Smi::RawCast(id))));
-      }
-    } else {
-      intptr_t old_cid = obj->GetClassId();
-      intptr_t new_cid = Map(old_cid);
-      if (old_cid != new_cid) {
-        // Don't touch objects that are unchanged. In particular, Instructions,
-        // which are write-protected.
-        obj->SetClassId(new_cid);
-      }
-    }
-  }
-
- private:
-  intptr_t* old_to_new_cids_;
-};
-
-
-void Precompiler::RemapClassIds(intptr_t* old_to_new_cid) {
-  // Code, ICData, allocation stubs have now-invalid cids.
-  ClearAllCode();
-
-  {
-    HeapIterationScope his;
-
-    // Update the class table. Do it before rewriting cids in headers, as the
-    // heap walkers load an object's size *after* calling the visitor.
-    I->class_table()->Remap(old_to_new_cid);
-
-    // Rewrite cids in headers and cids in Classes, Fields, Types and
-    // TypeParameters.
-    {
-      CidRewriteVisitor visitor(old_to_new_cid);
-      I->heap()->VisitObjects(&visitor);
-    }
-  }
-
-#if defined(DEBUG)
-  I->class_table()->Validate();
-  I->heap()->Verify();
-#endif
-}
-
-
-class ClearTypeHashVisitor : public ObjectVisitor {
- public:
-  explicit ClearTypeHashVisitor(Zone* zone)
-      : type_param_(TypeParameter::Handle(zone)),
-        type_(Type::Handle(zone)),
-        type_args_(TypeArguments::Handle(zone)),
-        bounded_type_(BoundedType::Handle(zone)) {}
-
-  void VisitObject(RawObject* obj) {
-    if (obj->IsTypeParameter()) {
-      type_param_ ^= obj;
-      type_param_.SetHash(0);
-    } else if (obj->IsType()) {
-      type_ ^= obj;
-      type_.SetHash(0);
-    } else if (obj->IsBoundedType()) {
-      bounded_type_ ^= obj;
-      bounded_type_.SetHash(0);
-    } else if (obj->IsTypeArguments()) {
-      type_args_ ^= obj;
-      type_args_.SetHash(0);
-    }
-  }
-
- private:
-  TypeParameter& type_param_;
-  Type& type_;
-  TypeArguments& type_args_;
-  BoundedType& bounded_type_;
-};
-
-
-void Precompiler::RehashTypes() {
-  // Clear all cached hash values.
-  {
-    HeapIterationScope his;
-    ClearTypeHashVisitor visitor(Z);
-    I->heap()->VisitObjects(&visitor);
-  }
-
-  // Rehash the canonical Types table.
-  ObjectStore* object_store = I->object_store();
-  GrowableObjectArray& types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  Array& types_array = Array::Handle(Z);
-  Type& type = Type::Handle(Z);
-  {
-    CanonicalTypeSet types_table(Z, object_store->canonical_types());
-    types_array = HashTables::ToArray(types_table, false);
-    for (intptr_t i = 0; i < types_array.Length(); i++) {
-      type ^= types_array.At(i);
-      types.Add(type);
-    }
-    types_table.Release();
-  }
-
-  intptr_t dict_size = Utils::RoundUpToPowerOfTwo(types.Length() * 4 / 3);
-  types_array = HashTables::New<CanonicalTypeSet>(dict_size, Heap::kOld);
-  CanonicalTypeSet types_table(Z, types_array.raw());
-  for (intptr_t i = 0; i < types.Length(); i++) {
-    type ^= types.At(i);
-    bool present = types_table.Insert(type);
-    ASSERT(!present || type.IsRecursive());
-  }
-  object_store->set_canonical_types(types_table.Release());
-
-  // Rehash the canonical TypeArguments table.
-  Array& typeargs_array = Array::Handle(Z);
-  GrowableObjectArray& typeargs =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  TypeArguments& typearg = TypeArguments::Handle(Z);
-  {
-    CanonicalTypeArgumentsSet typeargs_table(
-        Z, object_store->canonical_type_arguments());
-    typeargs_array = HashTables::ToArray(typeargs_table, false);
-    for (intptr_t i = 0; i < typeargs_array.Length(); i++) {
-      typearg ^= typeargs_array.At(i);
-      typeargs.Add(typearg);
-    }
-    typeargs_table.Release();
-  }
-
-  dict_size = Utils::RoundUpToPowerOfTwo(typeargs.Length() * 4 / 3);
-  typeargs_array =
-      HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld);
-  CanonicalTypeArgumentsSet typeargs_table(Z, typeargs_array.raw());
-  for (intptr_t i = 0; i < typeargs.Length(); i++) {
-    typearg ^= typeargs.At(i);
-    bool present = typeargs_table.Insert(typearg);
-    ASSERT(!present || typearg.IsRecursive());
-  }
-  object_store->set_canonical_type_arguments(typeargs_table.Release());
-}
 
 
 void Precompiler::VerifyJITFeedback() {

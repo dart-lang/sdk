@@ -828,6 +828,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       metrics_list_head_(NULL),
       compilation_allowed_(true),
       all_classes_finalized_(false),
+      remapping_cids_(false),
       next_(NULL),
       pause_loop_monitor_(NULL),
       loading_invalidation_gen_(kInvalidGen),
@@ -1909,10 +1910,7 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   raw_class = class_table()->At(cid);
 #endif  // !PRODUCT
   ASSERT(raw_class != NULL);
-#if !defined(DART_PRECOMPILER)
-  // This is temporarily untrue during a class id remap.
-  ASSERT(raw_class->ptr()->id_ == cid);
-#endif
+  ASSERT(remapping_cids_ || raw_class->ptr()->id_ == cid);
   return raw_class;
 }
 
