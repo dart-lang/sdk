@@ -19,13 +19,11 @@ import 'kernel_builder.dart' show
     KernelTypeBuilder,
     NamedTypeBuilder,
     TypeBuilder,
-    TypeDeclarationBuilder,
     TypeVariableBuilder;
 
-class KernelNamedTypeBuilder extends NamedTypeBuilder<KernelTypeBuilder>
+class KernelNamedTypeBuilder
+    extends NamedTypeBuilder<KernelTypeBuilder, DartType>
     implements KernelTypeBuilder {
-  TypeDeclarationBuilder<KernelTypeBuilder, DartType> builder;
-
   KernelNamedTypeBuilder(String name, List<KernelTypeBuilder> arguments,
       int charOffset, Uri fileUri)
       : super(name, arguments, charOffset, fileUri);

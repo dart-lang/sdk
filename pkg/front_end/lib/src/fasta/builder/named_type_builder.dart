@@ -14,19 +14,17 @@ import 'builder.dart' show
     TypeBuilder,
     TypeDeclarationBuilder;
 
-abstract class NamedTypeBuilder<T extends TypeBuilder> extends TypeBuilder {
+abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
   final String name;
 
   final List<T> arguments;
 
-  TypeDeclarationBuilder get builder;
-
-  void set builder(covariant TypeDeclarationBuilder b);
+  TypeDeclarationBuilder<T, R> builder;
 
   NamedTypeBuilder(this.name, this.arguments, int charOffset, Uri fileUri)
       : super(charOffset, fileUri);
 
-  InvalidTypeBuilder buildInvalidType(String name);
+  InvalidTypeBuilder<T, R> buildInvalidType(String name);
 
   void bind(TypeDeclarationBuilder builder) {
     this.builder = builder;
