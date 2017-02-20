@@ -1073,7 +1073,7 @@ class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
     assert(isClosed);
     bool canReachAll = true;
     if (mask != null) {
-      canReachAll = _backend.hasInvokeOnSupport &&
+      canReachAll = _backend.backendUsage.isInvokeOnUsed &&
           mask.needsNoSuchMethodHandling(selector, this);
     }
     return canReachAll ? commonMasks.dynamicType : mask;

@@ -90,7 +90,7 @@ main(List<String> args) {
         compiler.options,
         compiler.reporter,
         const TreeShakingEnqueuerStrategy(),
-        backend,
+        backend.resolutionEnqueuerListener,
         backend.nativeResolutionEnqueuer(),
         new ResolutionWorldBuilderImpl(
             compiler.backend, compiler.resolution, const OpenWorldStrategy()),
@@ -98,8 +98,8 @@ main(List<String> args) {
         'enqueuer from kernel');
     ClosedWorld closedWorld = computeClosedWorld(compiler, enqueuer);
 
-    checkResolutionEnqueuers(compiler.backend, compiler.backend,
-        compiler.enqueuer.resolution, enqueuer,
+    checkResolutionEnqueuers(compiler.backend.backendUsage,
+        compiler.backend.backendUsage, compiler.enqueuer.resolution, enqueuer,
         typeEquivalence: (ResolutionDartType a, ResolutionDartType b) {
       return areTypesEquivalent(unalias(a), unalias(b));
     }, elementFilter: (Element element) {

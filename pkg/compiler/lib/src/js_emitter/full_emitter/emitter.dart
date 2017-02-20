@@ -1033,7 +1033,8 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Expression generateLibraryDescriptor(
       LibraryElement library, Fragment fragment) {
     var uri = "";
-    if (!compiler.options.enableMinification || backend.mustPreserveUris) {
+    if (!compiler.options.enableMinification ||
+        backend.mirrorsData.mustPreserveUris) {
       uri = library.canonicalUri;
       if (uri.scheme == 'file' && compiler.options.outputUri != null) {
         uri =
@@ -1087,7 +1088,7 @@ class Emitter implements js_emitter.Emitter {
         .add(new jsAst.FunctionDeclaration(constructorName, constructorAst));
 
     String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
-    bool hasIsolateSupport = backend.hasIsolateSupport;
+    bool hasIsolateSupport = backend.backendUsage.isIsolateInUse;
     jsAst.Node fieldNamesArray;
     if (hasIsolateSupport) {
       fieldNamesArray =
@@ -1638,7 +1639,7 @@ class Emitter implements js_emitter.Emitter {
     });
     emitMainOutputUnit(program.mainFragment.outputUnit, mainOutput);
 
-    if (backend.requiresPreamble && !backend.htmlLibraryIsLoaded) {
+    if (backend.backendUsage.requiresPreamble && !backend.htmlLibraryIsLoaded) {
       reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
     // Return the total program size.

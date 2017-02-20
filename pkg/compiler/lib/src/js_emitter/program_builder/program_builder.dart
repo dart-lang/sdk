@@ -190,7 +190,7 @@ class ProgramBuilder {
         _buildTypeToInterceptorMap(), _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: collector.outputContainsConstantList,
-        hasIsolateSupport: backend.hasIsolateSupport);
+        hasIsolateSupport: backend.backendUsage.isIsolateInUse);
   }
 
   void _markEagerClasses() {
@@ -659,7 +659,7 @@ class ProgramBuilder {
   }
 
   bool _methodCanBeApplied(FunctionElement method) {
-    return backend.hasFunctionApplySupport &&
+    return backend.backendUsage.isFunctionApplyUsed &&
         closedWorld.getMightBePassedToApply(method);
   }
 

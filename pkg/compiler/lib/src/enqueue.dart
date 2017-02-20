@@ -49,7 +49,7 @@ class EnqueueTask extends CompilerTask {
         compiler.options.analyzeOnly && compiler.options.analyzeMain
             ? const DirectEnqueuerStrategy()
             : const TreeShakingEnqueuerStrategy(),
-        compiler.backend,
+        compiler.backend.resolutionEnqueuerListener,
         compiler.backend.nativeResolutionEnqueuer(),
         new ResolutionWorldBuilderImpl(
             compiler.backend, compiler.resolution, const OpenWorldStrategy()),
@@ -109,12 +109,12 @@ abstract class EnqueuerListener {
 
   /// Called to notify to the backend that a class is being instantiated. Any
   /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerInstantiatedClass(ClassEntity cls, {bool forResolution});
+  WorldImpact registerInstantiatedClass(ClassEntity cls);
 
   /// Called to notify to the backend that a class is implemented by an
   /// instantiated class. Any backend specific [WorldImpact] of this is
   /// returned.
-  WorldImpact registerImplementedClass(ClassEntity cls, {bool forResolution});
+  WorldImpact registerImplementedClass(ClassEntity cls);
 
   /// Called to register that a static function has been closurized. Any backend
   /// specific [WorldImpact] of this is returned.
@@ -123,8 +123,7 @@ abstract class EnqueuerListener {
   /// Called to instruct the backend to register that a closure exists for a
   /// function on an instantiated generic class. Any backend specific
   /// [WorldImpact] of this is returned.
-  WorldImpact registerClosureWithFreeTypeVariables(MemberEntity member,
-      {bool forResolution});
+  WorldImpact registerClosureWithFreeTypeVariables(MemberEntity member);
 
   /// Called to register that a member has been closurized. Any backend specific
   /// [WorldImpact] of this is returned.
@@ -132,7 +131,7 @@ abstract class EnqueuerListener {
 
   /// Called to register that [element] is statically known to be used. Any
   /// backend specific [WorldImpact] of this is returned.
-  WorldImpact registerUsedElement(MemberEntity member, {bool forResolution});
+  WorldImpact registerUsedElement(MemberEntity member);
 
   /// Called when [enqueuer]'s queue is empty, but before it is closed.
   ///
@@ -271,11 +270,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       // We only tell the backend once that [cls] was instantiated, so
       // any additional dependencies must be treated as global
       // dependencies.
-      applyImpact(
-          _listener.registerInstantiatedClass(cls, forResolution: true));
+      applyImpact(_listener.registerInstantiatedClass(cls));
     }
     if (useSet.contains(ClassUse.IMPLEMENTED)) {
-      applyImpact(_listener.registerImplementedClass(cls, forResolution: true));
+      applyImpact(_listener.registerImplementedClass(cls));
     }
   }
 
@@ -349,8 +347,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   void _registerClosurizedMember(MemberElement element) {
     assert(element.isInstanceMember);
     if (element.type.containsTypeVariables) {
-      applyImpact(_listener.registerClosureWithFreeTypeVariables(element,
-          forResolution: true));
+      applyImpact(_listener.registerClosureWithFreeTypeVariables(element));
       _universe.closuresWithFreeTypeVariables.add(element);
     }
     applyImpact(_listener.registerBoundClosure());
@@ -414,7 +411,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
           entity, "Resolution work list is closed. Trying to add $entity.");
     }
 
-    applyImpact(_listener.registerUsedElement(entity, forResolution: true));
+    applyImpact(_listener.registerUsedElement(entity));
     _universe.registerUsedElement(entity);
     _queue.add(workItem);
   }

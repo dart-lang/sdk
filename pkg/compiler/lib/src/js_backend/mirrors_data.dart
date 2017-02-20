@@ -9,8 +9,10 @@ import '../constants/values.dart';
 import '../elements/elements.dart';
 import '../elements/resolution_types.dart';
 import '../enqueue.dart';
+import '../options.dart';
 import '../world.dart';
 import '../util/emptyset.dart';
+import 'backend_helpers.dart';
 
 class MirrorsData {
   /// True if a call to preserveMetadataMarker has been seen.  This means that
@@ -35,6 +37,10 @@ class MirrorsData {
   /// True if there isn't sufficient @MirrorsUsed data.
   bool hasInsufficientMirrorsUsed = false;
 
+  /// True if a call to preserveUris has been seen and the preserve-uris flag
+  /// is set.
+  bool mustPreserveUris = false;
+
   /// List of symbols that the user has requested for reflection.
   final Set<String> symbolsUsed = new Set<String>();
 
@@ -48,6 +54,24 @@ class MirrorsData {
   final Compiler compiler;
 
   MirrorsData(this.compiler);
+
+  CompilerOptions get _options => compiler.options;
+
+  BackendHelpers get _helpers => compiler.backend.helpers;
+
+  void registerUsedMember(MemberElement member) {
+    if (member == _helpers.disableTreeShakingMarker) {
+      isTreeShakingDisabled = true;
+    } else if (member == _helpers.preserveNamesMarker) {
+      mustPreserveNames = true;
+    } else if (member == _helpers.preserveMetadataMarker) {
+      mustRetainMetadata = true;
+    } else if (member == _helpers.preserveUrisMarker) {
+      if (_options.preserveUris) mustPreserveUris = true;
+    } else if (member == _helpers.preserveLibraryNamesMarker) {
+      mustRetainLibraryNames = true;
+    }
+  }
 
   /// Should [element] (a getter) that would normally not be generated due to
   /// treeshaking be retained for reflection?
@@ -330,13 +354,13 @@ class MirrorsData {
     // As we do not think about closures as classes, yet, we have to make sure
     // their superclasses are available for reflection manually.
     if (foundClosure) {
-      ClassElement cls = compiler.backend.helpers.closureClass;
+      ClassElement cls = _helpers.closureClass;
       reflectableMembers.add(cls);
     }
     Set<Element> closurizedMembers =
         compiler.resolutionWorldBuilder.closurizedMembers;
     if (closurizedMembers.any(reflectableMembers.contains)) {
-      ClassElement cls = compiler.backend.helpers.boundClosureClass;
+      ClassElement cls = _helpers.boundClosureClass;
       reflectableMembers.add(cls);
     }
     // Add typedefs.

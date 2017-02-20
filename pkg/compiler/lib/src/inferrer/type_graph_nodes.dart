@@ -976,7 +976,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     JavaScriptBackend backend = compiler.backend;
     TypeMask maskToUse =
         inferrer.closedWorld.extendMaskIfReachesAll(selector, typeMask);
-    bool canReachAll = backend.hasInvokeOnSupport && (maskToUse != typeMask);
+    bool canReachAll =
+        backend.backendUsage.isInvokeOnUsed && (maskToUse != typeMask);
 
     // If this call could potentially reach all methods that satisfy
     // the untyped selector (through noSuchMethod's `Invocation`

@@ -195,7 +195,7 @@ class ModelEmitter {
     writeMainFragment(mainFragment, mainCode,
         isSplit: program.deferredFragments.isNotEmpty);
 
-    if (backend.requiresPreamble && !backend.htmlLibraryIsLoaded) {
+    if (backend.backendUsage.requiresPreamble && !backend.htmlLibraryIsLoaded) {
       reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
 

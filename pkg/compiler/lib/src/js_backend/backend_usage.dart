@@ -20,6 +20,21 @@ abstract class BackendUsage {
   bool get needToInitializeDispatchProperty;
   bool usedByBackend(Element element);
   Iterable<Element> get globalDependencies;
+
+  /// `true` if a core-library function requires the preamble file to function.
+  bool get requiresPreamble;
+
+  /// `true` if [BackendHelpers.invokeOnMethod] is used.
+  bool get isInvokeOnUsed;
+
+  /// `true` of `Object.runtimeType` is used.
+  bool get isRuntimeTypeUsed;
+
+  /// `true` if the `dart:isolate` library is in use.
+  bool get isIsolateInUse;
+
+  /// `true` if `Function.apply` is used.
+  bool get isFunctionApplyUsed;
 }
 
 abstract class BackendUsageBuilder {
@@ -35,6 +50,15 @@ abstract class BackendUsageBuilder {
       {bool isGlobal: false});
   WorldImpact createImpactFor(BackendImpact impact);
   void registerUsedMember(MemberElement member);
+
+  /// `true` of `Object.runtimeType` is used.
+  bool isRuntimeTypeUsed;
+
+  /// `true` if the `dart:isolate` library is in use.
+  bool isIsolateInUse;
+
+  /// `true` if `Function.apply` is used.
+  bool isFunctionApplyUsed;
 }
 
 class BackendUsageImpl implements BackendUsage, BackendUsageBuilder {
@@ -49,6 +73,21 @@ class BackendUsageImpl implements BackendUsage, BackendUsageBuilder {
 
   bool _needToInitializeIsolateAffinityTag = false;
   bool _needToInitializeDispatchProperty = false;
+
+  /// `true` if a core-library function requires the preamble file to function.
+  bool requiresPreamble = false;
+
+  /// `true` if [BackendHelpers.invokeOnMethod] is used.
+  bool isInvokeOnUsed = false;
+
+  /// `true` of `Object.runtimeType` is used.
+  bool isRuntimeTypeUsed = false;
+
+  /// `true` if the `dart:isolate` library is in use.
+  bool isIsolateInUse = false;
+
+  /// `true` if `Function.apply` is used.
+  bool isFunctionApplyUsed = false;
 
   BackendUsageImpl(this._commonElements, this._helpers, this._resolution);
 
@@ -196,6 +235,12 @@ class BackendUsageImpl implements BackendUsage, BackendUsageBuilder {
   void registerUsedMember(MemberElement member) {
     if (member == _helpers.getIsolateAffinityTagMarker) {
       _needToInitializeIsolateAffinityTag = true;
+    } else if (member == _helpers.requiresPreambleMarker) {
+      requiresPreamble = true;
+    } else if (member == _helpers.invokeOnMethod) {
+      isInvokeOnUsed = true;
+    } else if (_commonElements.isFunctionApplyMethod(member)) {
+      isFunctionApplyUsed = true;
     }
   }
 
