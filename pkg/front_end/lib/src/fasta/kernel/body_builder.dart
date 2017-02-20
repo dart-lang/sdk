@@ -36,7 +36,8 @@ import 'package:front_end/src/fasta/scanner/token.dart' show
 
 import '../errors.dart' show
     InputError,
-    internalError;
+    internalError,
+    printUnexpected;
 
 import '../source/scope_listener.dart' show
     JumpTargetKind,
@@ -2195,8 +2196,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Expression buildCompileTimeError(error, [int charOffset = -1]) {
-    String message = new InputError(uri, charOffset, error).format();
-    print(message);
+    String message = printUnexpected(uri, charOffset, error);
     Builder constructor = library.loader.getCompileTimeError();
     return new Throw(
         buildStaticInvocation(constructor.target,

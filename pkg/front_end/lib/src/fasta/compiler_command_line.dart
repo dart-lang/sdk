@@ -74,11 +74,11 @@ class CompilerCommandLine extends CommandLine {
     return new Set<String>.from(options["--fatal"] ?? <String>[]);
   }
 
-  bool get areErrorsFatal => fatal.contains("errors");
+  bool get errorsAreFatal => fatal.contains("errors");
 
-  bool get areWarningsFatal => fatal.contains("warnings");
+  bool get warningsAreFatal => fatal.contains("warnings");
 
-  bool get areNitsFatal => fatal.contains("nits");
+  bool get nitsAreFatal => fatal.contains("nits");
 
   static dynamic withGlobalOptions(String programName, List<String> arguments,
       dynamic f(CompilerContext context)) {

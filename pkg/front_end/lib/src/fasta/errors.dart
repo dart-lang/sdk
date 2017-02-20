@@ -20,7 +20,10 @@ import 'dart:io' show
 import 'colors.dart' show
     red;
 
-import 'messages.dart' as messages;
+import 'messages.dart' show
+    errorsAreFatal,
+    format,
+    isVerbose;
 
 const String defaultServerAddress = "http://127.0.0.1:59410/";
 
@@ -44,8 +47,7 @@ dynamic internalError(Object error, [Uri uri, int charOffset = -1]) {
   if (uri == null && charOffset == -1) {
     throw error;
   } else {
-    throw messages.format(
-        uri, charOffset, "Internal error: ${safeToString(error)}");
+    throw format(uri, charOffset, "Internal error: ${safeToString(error)}");
   }
 }
 
@@ -60,6 +62,20 @@ dynamic internalError(Object error, [Uri uri, int charOffset = -1]) {
 /// error".
 dynamic inputError(Uri uri, int charOffset, Object error) {
   throw new InputError(uri, charOffset, error);
+}
+
+String printUnexpected(Uri uri, int charOffset, String message) {
+  if (errorsAreFatal) {
+    if (isVerbose) print(StackTrace.current);
+    throw new InputError(uri, charOffset, message);
+  }
+  message = formatUnexpected(uri, charOffset, message);
+  print(message);
+  return message;
+}
+
+String formatUnexpected(Uri uri, int charOffset, String message) {
+  return format(uri, charOffset, colorError("Error: $message"));
 }
 
 String colorError(String message) {
@@ -80,10 +96,7 @@ class InputError {
 
   toString() => "InputError: $error";
 
-  String format() {
-    return messages.format(
-        uri, charOffset, colorError("Error: ${safeToString(error)}"));
-  }
+  String format() => formatUnexpected(uri, charOffset, safeToString(error));
 }
 
 class Crash {

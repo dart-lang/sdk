@@ -25,11 +25,19 @@ const bool hideNits = false;
 
 const bool hideWarnings = false;
 
+bool get errorsAreFatal => CompilerContext.current.options.errorsAreFatal;
+
+bool get nitsAreFatal => CompilerContext.current.options.nitsAreFatal;
+
+bool get warningsAreFatal => CompilerContext.current.options.warningsAreFatal;
+
+bool get isVerbose => CompilerContext.current.options.verbose;
+
 void warning(Uri uri, int charOffset, String message) {
   if (hideWarnings) return;
   print(format(uri, charOffset, colorWarning("Warning: $message")));
-  if (CompilerContext.current.options.areWarningsFatal) {
-    if (CompilerContext.current.options.verbose) print(StackTrace.current);
+  if (warningsAreFatal) {
+    if (isVerbose) print(StackTrace.current);
     throw new InputError(
         uri, charOffset, "Compilation aborted due to fatal warnings.");
   }
@@ -38,8 +46,8 @@ void warning(Uri uri, int charOffset, String message) {
 void nit(Uri uri, int charOffset, String message) {
   if (hideNits) return;
   print(format(uri, charOffset, colorNit("Nit: $message")));
-  if (CompilerContext.current.options.areNitsFatal) {
-    if (CompilerContext.current.options.verbose) print(StackTrace.current);
+  if (nitsAreFatal) {
+    if (isVerbose) print(StackTrace.current);
     throw new InputError(
         uri, charOffset, "Compilation aborted due to fatal nits.");
   }
