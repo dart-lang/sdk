@@ -173,10 +173,6 @@ abstract class BackendClasses {
   /// This either `Object.==`, `Intercepter.==` or `Null.==`.
   bool isDefaultEqualityImplementation(MemberEntity element);
 
-  /// Returns `true` if [cls] is an intercepted class.
-  // TODO(johnniwinther): Rename this to `isInterceptedClass`.
-  bool isInterceptorClass(ClassEntity cls);
-
   /// Returns `true` if [cls] is a native class.
   bool isNativeClass(ClassEntity element);
 

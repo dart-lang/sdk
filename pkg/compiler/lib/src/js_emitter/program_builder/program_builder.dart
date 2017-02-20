@@ -805,10 +805,11 @@ class ProgramBuilder {
   // We must evaluate these classes eagerly so that the prototype is
   // accessible.
   void _markEagerInterceptorClasses() {
-    Map<js.Name, Set<ClassElement>> specializedGetInterceptors =
-        backend.interceptorData.specializedGetInterceptors;
-    for (Set<ClassElement> classes in specializedGetInterceptors.values) {
-      for (ClassElement element in classes) {
+    Iterable<js.Name> names =
+        backend.oneShotInterceptorData.specializedGetInterceptorNames;
+    for (js.Name name in names) {
+      for (ClassElement element in backend.oneShotInterceptorData
+          .getSpecializedGetInterceptorsFor(name)) {
         Class cls = _classes[element];
         if (cls != null) cls.isEager = true;
       }
@@ -825,11 +826,11 @@ class ProgramBuilder {
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
 
-    Map<js.Name, Set<ClassElement>> specializedGetInterceptors =
-        backend.interceptorData.specializedGetInterceptors;
-    List<js.Name> names = specializedGetInterceptors.keys.toList()..sort();
+    Iterable<js.Name> names =
+        backend.oneShotInterceptorData.specializedGetInterceptorNames;
     return names.map((js.Name name) {
-      Set<ClassElement> classes = specializedGetInterceptors[name];
+      Set<ClassElement> classes =
+          backend.oneShotInterceptorData.getSpecializedGetInterceptorsFor(name);
       js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
       return new StaticStubMethod(name, holder, code);
     });
@@ -893,7 +894,7 @@ class ProgramBuilder {
     Holder holder = _registry.registerHolder(holderName);
 
     List<js.Name> names =
-        backend.interceptorData.oneShotInterceptors.keys.toList()..sort();
+        backend.oneShotInterceptorData.oneShotInterceptorNames;
     return names.map((js.Name name) {
       js.Expression code = stubGenerator.generateOneShotInterceptor(name);
       return new StaticStubMethod(name, holder, code);

@@ -1728,7 +1728,7 @@ class HFieldGet extends HFieldAccess {
     // [HFieldGet].
     if (sourceElement is ThisLocal) {
       ThisLocal thisLocal = sourceElement;
-      return closedWorld.backendClasses
+      return closedWorld.interceptorData
           .isInterceptorClass(thisLocal.enclosingClass);
     }
     return false;
@@ -2374,7 +2374,7 @@ class HThis extends HParameterValue {
   bool isCodeMotionInvariant() => true;
 
   bool isInterceptor(ClosedWorld closedWorld) {
-    return closedWorld.backendClasses
+    return closedWorld.interceptorData
         .isInterceptorClass(sourceElement.enclosingClass);
   }
 

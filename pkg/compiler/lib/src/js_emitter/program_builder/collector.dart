@@ -80,10 +80,11 @@ class Collector {
     // Go over specialized interceptors and then constants to know which
     // interceptors are needed.
     Set<ClassElement> needed = new Set<ClassElement>();
-    backend.interceptorData.specializedGetInterceptors
-        .forEach((_, Iterable<ClassElement> elements) {
-      needed.addAll(elements);
-    });
+    for (js.Name name
+        in backend.oneShotInterceptorData.specializedGetInterceptorNames) {
+      needed.addAll(backend.oneShotInterceptorData
+          .getSpecializedGetInterceptorsFor(name));
+    }
 
     // Add interceptors referenced by constants.
     needed.addAll(computeInterceptorsReferencedFromConstants());

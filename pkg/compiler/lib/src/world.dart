@@ -21,6 +21,7 @@ import 'elements/elements.dart'
         FieldElement;
 import 'elements/resolution_types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
+import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'ordered_typeset.dart';
 import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
 import 'universe/class_set.dart';
@@ -44,6 +45,8 @@ abstract class World {}
 abstract class ClosedWorld implements World {
   /// Access to core classes used by the backend.
   BackendClasses get backendClasses;
+
+  InterceptorData get interceptorData;
 
   CommonElements get commonElements;
 
@@ -385,6 +388,7 @@ enum ClassQuery {
 class ClosedWorldImpl implements ClosedWorld, ClosedWorldRefiner {
   final JavaScriptBackend _backend;
   BackendClasses get backendClasses => _backend.backendClasses;
+  InterceptorData get interceptorData => _backend.interceptorData;
   FunctionSet _allFunctions;
 
   final Iterable<TypedefElement> _allTypedefs;

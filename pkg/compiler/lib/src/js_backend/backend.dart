@@ -80,7 +80,7 @@ import 'checked_mode_helpers.dart';
 import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'enqueuer.dart';
-import 'interceptor_data.dart' show InterceptorData;
+import 'interceptor_data.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'mirrors_analysis.dart';
@@ -440,7 +440,9 @@ class JavaScriptBackend extends Target {
       new StagedWorldImpactBuilder();
 
   final NativeData nativeData = new NativeData();
+  InterceptorDataBuilder _interceptorDataBuilder;
   InterceptorData _interceptorData;
+  OneShotInterceptorData _oneShotInterceptorData;
   BackendUsageImpl _backendUsage;
   final MirrorsData mirrorsData;
   CheckedModeHelpers _checkedModeHelpers;
@@ -519,9 +521,10 @@ class JavaScriptBackend extends Target {
     functionCompiler =
         new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
     serialization = new JavaScriptBackendSerialization(this);
-    _interceptorData = new InterceptorData(nativeData, helpers, commonElements);
+    _interceptorDataBuilder =
+        new InterceptorDataBuilderImpl(nativeData, helpers, commonElements);
     backendClasses = new JavaScriptBackendClasses(
-        compiler.elementEnvironment, helpers, nativeData, _interceptorData);
+        compiler.elementEnvironment, helpers, nativeData);
     _resolutionEnqueuerListener = new ResolutionEnqueuerListener(this);
     _codegenEnqueuerListener = new CodegenEnqueuerListener(this);
   }
@@ -536,7 +539,17 @@ class JavaScriptBackend extends Target {
 
   Resolution get resolution => compiler.resolution;
 
-  InterceptorData get interceptorData => _interceptorData;
+  InterceptorData get interceptorData {
+    assert(invariant(NO_LOCATION_SPANNABLE, _interceptorData != null,
+        message: "InterceptorData has not been computed yet."));
+    return _interceptorData;
+  }
+
+  OneShotInterceptorData get oneShotInterceptorData {
+    assert(invariant(NO_LOCATION_SPANNABLE, _oneShotInterceptorData != null,
+        message: "OneShotInterceptorData has not been prepared yet."));
+    return _oneShotInterceptorData;
+  }
 
   BackendUsage get backendUsage => _backendUsage;
 
@@ -811,7 +824,10 @@ class JavaScriptBackend extends Target {
     rti.computeClassesNeedingRti(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     _registeredMetadata.clear();
-    interceptorData.onResolutionComplete(closedWorld);
+    _interceptorData =
+        _interceptorDataBuilder.onResolutionComplete(closedWorld);
+    _oneShotInterceptorData =
+        new OneShotInterceptorData(interceptorData, helpers);
   }
 
   void onTypeInferenceComplete() {
@@ -2149,7 +2165,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (Set<ClassElement> classes in impact.specializedGetInterceptors) {
-      backend.interceptorData
+      backend.oneShotInterceptorData
           .registerSpecializedGetInterceptor(classes, backend.namer);
     }
 
@@ -2244,10 +2260,8 @@ class JavaScriptBackendClasses implements BackendClasses {
   final ElementEnvironment _env;
   final BackendHelpers helpers;
   final NativeData _nativeData;
-  final InterceptorData _interceptorData;
 
-  JavaScriptBackendClasses(
-      this._env, this.helpers, this._nativeData, this._interceptorData);
+  JavaScriptBackendClasses(this._env, this.helpers, this._nativeData);
 
   ClassElement get intClass => helpers.jsIntClass;
   ClassElement get uint32Class => helpers.jsUInt32Class;
@@ -2283,11 +2297,6 @@ class JavaScriptBackendClasses implements BackendClasses {
     return classElement == helpers.commonElements.objectClass ||
         classElement == helpers.jsInterceptorClass ||
         classElement == helpers.jsNullClass;
-  }
-
-  @override
-  bool isInterceptorClass(ClassElement cls) {
-    return _interceptorData.isInterceptorClass(cls);
   }
 
   @override
@@ -2338,7 +2347,8 @@ abstract class EnqueuerListenerBase implements EnqueuerListener {
   CustomElementsAnalysis get customElementsAnalysis =>
       _backend.customElementsAnalysis;
   NativeData get nativeData => _backend.nativeData;
-  InterceptorData get interceptorData => _backend.interceptorData;
+  InterceptorDataBuilder get interceptorData =>
+      _backend._interceptorDataBuilder;
   RuntimeTypes get rti => _backend.rti;
   TypeVariableHandler get typeVariableHandler => _backend.typeVariableHandler;
   Resolution get resolution => _backend.resolution;
