@@ -114,6 +114,11 @@ class DartUnitHoverComputer {
     if (element is ParameterElement) {
       element = element.enclosingElement;
     }
+    if (element == null) {
+      // This can happen when the code is invalid, such as having a field formal
+      // parameter for a field that does not exist.
+      return null;
+    }
     // The documentation of the element itself.
     if (element.documentationComment != null) {
       return removeDartDocDelimiters(element.documentationComment);
