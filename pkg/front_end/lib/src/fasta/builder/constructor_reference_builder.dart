@@ -10,6 +10,9 @@ import 'builder.dart' show
     Builder,
     TypeBuilder;
 
+import '../messages.dart' show
+    warning;
+
 import 'scope.dart' show
     Scope;
 
@@ -54,7 +57,7 @@ class ConstructorReferenceBuilder extends Builder {
       target = builder.constructors[suffix ?? ""];
     }
     if (target == null) {
-      print("Couldn't find constructor $fullNameForErrors.");
+      warning(null, -1, "Couldn't find constructor '$fullNameForErrors'.");
     }
   }
 }

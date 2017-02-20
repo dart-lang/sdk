@@ -15,6 +15,7 @@ import 'package:front_end/src/fasta/scanner/io.dart' show
 
 import 'package:front_end/src/fasta/scanner.dart' show
     ErrorToken,
+    ScannerResult,
     Token,
     scan;
 
@@ -33,6 +34,9 @@ import 'package:kernel/core_types.dart' show
 import '../errors.dart' show
     InputError,
     inputError;
+
+import '../messages.dart' show
+    warning;
 
 import '../export.dart' show
     Export;
@@ -86,13 +90,16 @@ class SourceLoader<L> extends Loader<L> {
     try {
       List<int> bytes = await readBytesFromFile(uri);
       byteCount += bytes.length - 1;
-      Token token = scan(bytes).tokens;
+      ScannerResult result = scan(bytes);
+      Token token = result.tokens;
+      if (!suppressLexicalErrors) {
+        target.addLineStarts(library.fileUri, result.lineStarts);
+      }
       while (token is ErrorToken) {
         if (!suppressLexicalErrors) {
           ErrorToken error = token;
-          String message = new InputError(
-              uri, token.charOffset, error.assertionMessage).format();
-          print(message);
+          print(new InputError(uri, token.charOffset, error.assertionMessage)
+              .format());
         }
         token = token.next;
       }
@@ -128,6 +135,7 @@ class SourceLoader<L> extends Loader<L> {
       for (SourceLibraryBuilder part in library.parts) {
         Token tokens = await tokenize(part);
         if (tokens != null) {
+          listener.uri = part.fileUri;
           parser.parseUnit(tokens);
         }
       }
@@ -335,8 +343,8 @@ class SourceLoader<L> extends Loader<L> {
             reported.add(cls);
           }
         }
-        print("${cls.name} is a supertype of itself via "
-            "${involved.map((c) => c.name).join(' ')}");
+        warning(cls.fileUri, cls.charOffset, "'${cls.name}' is a supertype of "
+            "itself via '${involved.map((c) => c.name).join(' ')}'.");
       }
     });
     ticker.logMs("Found cycles");

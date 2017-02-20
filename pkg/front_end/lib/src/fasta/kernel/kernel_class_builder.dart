@@ -17,6 +17,9 @@ import 'package:kernel/ast.dart' show
 import '../errors.dart' show
     internalError;
 
+import '../messages.dart' show
+    warning;
+
 import 'kernel_builder.dart' show
     Builder,
     ClassBuilder,
@@ -105,9 +108,9 @@ abstract class KernelClassBuilder
             } else {
               // TODO(ahe): Throw NSM error. This requires access to core
               // types.
-              String message =
-                  "Missing constructor: ${redirectionTarget.fullNameForErrors}";
-              print(message);
+              String message = "Redirection constructor target not found: "
+                  "${redirectionTarget.fullNameForErrors}";
+              warning(library.fileUri, -1, message);
               builder.body = new ExpressionStatement(
                   new Throw(new StringLiteral(message)));
             }

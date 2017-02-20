@@ -9,6 +9,9 @@ import 'builder.dart' show
     LibraryBuilder,
     MemberBuilder;
 
+import '../messages.dart' show
+    warning;
+
 import 'package:kernel/ast.dart' show
     Member;
 
@@ -32,8 +35,8 @@ class PrefixBuilder extends Builder {
     // TODO(ahe): Move this to KernelPrefixBuilder.
     Builder builder = exports[name];
     if (builder == null) {
-      // TODO(ahe): Report error?
-      print("${this.name} has no member named $name");
+      warning(parent.fileUri, -1,
+          "'${this.name}' has no member named '$name'.");
     }
     if (builder is DillMemberBuilder) {
       return builder.member.isInstanceMember

@@ -73,4 +73,6 @@ abstract class TargetImplementation extends Target {
       loader.read(Uri.parse(uri));
     }
   }
+
+  void addLineStarts(Uri uri, List<int> lineStarts);
 }

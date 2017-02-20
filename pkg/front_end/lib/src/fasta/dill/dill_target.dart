@@ -45,6 +45,10 @@ class DillTarget extends TargetImplementation {
     loader = new DillLoader(this);
   }
 
+  void addLineStarts(Uri uri, List<int> lineStarts) {
+    internalError("Unsupported operation.");
+  }
+
   void read(Uri uri) {
     if (loader.input == null) {
       loader.input = uri;

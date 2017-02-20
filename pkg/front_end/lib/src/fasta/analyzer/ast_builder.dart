@@ -53,15 +53,18 @@ class AstBuilder extends ScopeListener {
 
   bool isFirstIdentifier = false;
 
+  @override
+  final Uri uri;
+
   /// If `true`, the first call to [handleIdentifier] should push a
   /// List<SimpleIdentifier> on the stack, and [handleQualified] should append
   /// to the list.
   var accumulateIdentifierComponents = false;
 
-  AstBuilder(this.library, this.member, this.elementStore, Scope scope)
-      : super(scope);
 
-  Uri get uri => library.fileUri ?? library.uri;
+  AstBuilder(this.library, this.member, this.elementStore, Scope scope,
+      [Uri uri])
+      : uri = uri ?? library.fileUri, super(scope);
 
   createJumpTarget(JumpTargetKind kind, int charOffset) {
     // TODO(ahe): Implement jump targets.

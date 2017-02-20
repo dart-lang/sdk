@@ -7,6 +7,9 @@ library fasta.builder;
 import '../errors.dart' show
     internalError;
 
+import '../messages.dart' show
+    nit;
+
 export 'class_builder.dart' show
     ClassBuilder;
 
@@ -127,16 +130,17 @@ abstract class Builder {
       preferred = other;
       hidden = this;
     } else {
-      print("${library.uri}: Note: '$name' is imported from both "
+      nit(library.fileUri, -1, "'$name' is imported from both "
           "'${getUri(this)}' and '${getUri(other)}'.");
       return library.buildAmbiguousBuilder(name, this, other, charOffset);
     }
     if (isLocal) {
-      print("${library.uri}: Note: local definition of '$name' hides imported "
+      nit(library.fileUri, -1, "Local definition of '$name' hides imported "
           "version from '${getUri(other)}'.");
     } else {
-      print("${library.uri}: import of '$name' (from '${getUri(preferred)}') "
-          "hides imported version from '${getUri(hidden)}'.");
+      nit(library.fileUri, -1, "Import of '$name' "
+          "(from '${getUri(preferred)}') hides imported version from "
+          "'${getUri(hidden)}'.");
     }
     return preferred;
   }

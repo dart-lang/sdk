@@ -8,6 +8,9 @@ import 'package:kernel/ast.dart' show
     DartType,
     DynamicType;
 
+import '../messages.dart' show
+    warning;
+
 import 'kernel_builder.dart' show
     InvalidTypeBuilder,
     KernelTypeBuilder;
@@ -19,14 +22,14 @@ class KernelInvalidTypeBuilder
 
   DartType buildType(List<KernelTypeBuilder> arguments) {
     // TODO(ahe): Implement error handling.
-    print("No type for: $name");
+    warning(fileUri, charOffset, "No type for: '$name'.");
     return const DynamicType();
   }
 
   /// [Arguments] have already been built.
   DartType buildTypesWithBuiltArguments(List<DartType> arguments) {
     // TODO(ahe): Implement error handling.
-    print("No type for: $name");
+    warning(fileUri, charOffset, "No type for: '$name'.");
     return const DynamicType();
   }
 }

@@ -78,14 +78,15 @@ class DietListener extends StackListener {
   /// this is the instance scope of [currentClass].
   Scope memberScope;
 
+  @override
+  Uri uri;
+
   DietListener(SourceLibraryBuilder library, this.elementStore, this.hierarchy,
       this.coreTypes, this.astKind)
       : library = library,
+        uri = library.fileUri,
         memberScope = library.scope,
         isDartLibrary = library.uri.scheme == "dart";
-
-  @override
-  Uri get uri => library.uri;
 
   void discard(int n) {
     for (int i =0; i < n; i++) {
@@ -192,7 +193,7 @@ class DietListener extends StackListener {
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     debugEvent("FunctionTypeAlias");
     discard(2); // Name + endToken.
-    checkEmpty();
+    checkEmpty(typedefKeyword.charOffset);
   }
 
   @override
@@ -213,7 +214,7 @@ class DietListener extends StackListener {
     debugEvent("TopLevelMethod");
     Token bodyToken = pop();
     String name = pop();
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
     buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name));
   }
 
@@ -363,7 +364,7 @@ class DietListener extends StackListener {
     debugEvent("FactoryMethod");
     BeginGroupToken bodyToken = pop();
     String name = pop();
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
       return;
     }
@@ -381,7 +382,7 @@ class DietListener extends StackListener {
     debugEvent("Method");
     Token bodyToken = pop();
     String name = pop();
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
     if (bodyToken == null) {
       return;
     }
@@ -394,10 +395,10 @@ class DietListener extends StackListener {
       case AstKind.Kernel:
         return new BodyBuilder(library, builder, memberScope,
             formalParameterScope, hierarchy, coreTypes, currentClass,
-            isInstanceMember);
+            isInstanceMember, uri);
 
       case AstKind.Analyzer:
-        return new AstBuilder(library, builder, elementStore, memberScope);
+        return new AstBuilder(library, builder, elementStore, memberScope, uri);
     }
 
     return internalError("Unknown $astKind");
@@ -423,7 +424,7 @@ class DietListener extends StackListener {
   @override
   void endMember() {
     debugEvent("Member");
-    checkEmpty();
+    checkEmpty(-1);
   }
 
   @override
@@ -440,7 +441,7 @@ class DietListener extends StackListener {
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassBody");
     currentClass = null;
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
     memberScope = library.scope;
   }
 
@@ -448,7 +449,7 @@ class DietListener extends StackListener {
   void endClassDeclaration(int interfacesCount, Token beginToken,
       Token extendsKeyword, Token implementsKeyword, Token endToken) {
     debugEvent("ClassDeclaration");
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
   }
 
   @override
@@ -456,7 +457,7 @@ class DietListener extends StackListener {
     debugEvent("Enum");
     discard(count);
     pop(); // Name.
-    checkEmpty();
+    checkEmpty(enumKeyword.charOffset);
   }
 
   @override
@@ -464,7 +465,7 @@ class DietListener extends StackListener {
       Token classKeyword, Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication");
     pop(); // Name.
-    checkEmpty();
+    checkEmpty(classKeyword.charOffset);
   }
 
   @override
@@ -490,7 +491,7 @@ class DietListener extends StackListener {
       Parser parser = new Parser(listener);
       token = parser.parseFormalParametersOpt(token);
       var formals = listener.pop();
-      listener.checkEmpty();
+      listener.checkEmpty(token.charOffset);
       listener.prepareInitializers();
       token = parser.parseInitializersOpt(token);
       token = parser.parseAsyncModifier(token);
@@ -499,7 +500,7 @@ class DietListener extends StackListener {
       bool allowAbstract = true;
       parser.parseFunctionBody(token, isExpression, allowAbstract);
       var body = listener.pop();
-      listener.checkEmpty();
+      listener.checkEmpty(token.charOffset);
       listener.finishFunction(formals, asyncModifier, body);
     } on InputError {
       rethrow;
@@ -515,7 +516,7 @@ class DietListener extends StackListener {
     } else {
       token = parser.parseMember(token);
     }
-    listener.checkEmpty();
+    listener.checkEmpty(token.charOffset);
   }
 
   Builder lookupBuilder(Token token, Token getOrSet, String name) {
@@ -531,7 +532,7 @@ class DietListener extends StackListener {
       builder = library.members[name];
     }
     if (builder == null) {
-      return internalError("@${token.charOffset}: builder not found: $name");
+      return internalError("Builder not found: $name", uri, token.charOffset);
     }
     if (builder.next != null) {
       Builder getterBuilder;
@@ -554,14 +555,13 @@ class DietListener extends StackListener {
     return builder;
   }
 
-  @override
-  void debugEvent(String name) {
-    // print("  ${stack.join('\n  ')}");
-    // print(name);
-  }
-
   bool get isTargetingDartVm {
     // TODO(ahe): Find a more reliable way to check if this is the Dart VM.
     return coreTypes.getCoreLibrary("dart:_js_helper") == null;
+  }
+
+  @override
+  void debugEvent(String name) {
+    // printEvent(name);
   }
 }

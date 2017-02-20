@@ -16,6 +16,8 @@ import '../errors.dart' show inputError, internalError;
 
 import '../quote.dart' show unescapeString;
 
+import '../messages.dart' as messages;
+
 enum NullValue {
   Arguments,
   Block,
@@ -121,10 +123,10 @@ abstract class StackListener extends Listener {
     debugEvent("Initializer");
   }
 
-  void checkEmpty() {
+  void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
-      internalError("${runtimeType}: Stack not empty $uri:\n"
-          "  ${stack.join('\n  ')}");
+      internalError("${runtimeType}: Stack not empty:\n"
+          "  ${stack.join('\n  ')}", uri, charOffset);
     }
     if (recoverableErrors.isNotEmpty) {
       // TODO(ahe): Handle recoverable errors better.
@@ -135,13 +137,13 @@ abstract class StackListener extends Listener {
   @override
   void endTopLevelDeclaration(Token token) {
     debugEvent("TopLevelDeclaration");
-    checkEmpty();
+    checkEmpty(token.charOffset);
   }
 
   @override
   void endCompilationUnit(int count, Token token) {
     debugEvent("CompilationUnit");
-    checkEmpty();
+    checkEmpty(token.charOffset);
   }
 
   @override
@@ -228,5 +230,13 @@ abstract class StackListener extends Listener {
   @override
   Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
     throw inputError(uri, token.charOffset, "$kind $arguments");
+  }
+
+  void nit(String message, [int charOffset = -1]) {
+    messages.nit(uri, charOffset, message);
+  }
+
+  void warning(String message, [int charOffset = -1]) {
+    messages.warning(uri, charOffset, message);
   }
 }

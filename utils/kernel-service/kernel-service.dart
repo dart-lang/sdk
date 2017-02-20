@@ -175,7 +175,7 @@ Future<CompilationResult> parseScriptImpl(DartLoaderBatch batch_loader,
             .toList(growable: false));
       }
     } on InputError catch (e) {
-      return new CompilationError(<String>[e.error]);
+      return new CompilationError(<String>[e.format()]);
     }
   } else {
     DartOptions dartOptions = new DartOptions(

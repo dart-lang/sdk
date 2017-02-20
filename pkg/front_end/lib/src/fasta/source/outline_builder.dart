@@ -141,7 +141,7 @@ class OutlineBuilder extends UnhandledListener {
     List<MetadataBuilder> metadata = pop();
     library.addExport(
         metadata, uri, conditionalUris, combinators, exportKeyword.charOffset);
-    checkEmpty();
+    checkEmpty(exportKeyword.charOffset);
   }
 
   @override
@@ -156,7 +156,7 @@ class OutlineBuilder extends UnhandledListener {
     library.addImport(metadata, uri, conditionalUris, prefix, combinators,
         deferredKeyword != null, importKeyword.charOffset,
         asKeyword?.next?.charOffset ?? -1);
-    checkEmpty();
+    checkEmpty(importKeyword.charOffset);
   }
 
   @override
@@ -165,7 +165,7 @@ class OutlineBuilder extends UnhandledListener {
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
     library.addPart(metadata, uri);
-    checkEmpty();
+    checkEmpty(partKeyword.charOffset);
   }
 
   @override
@@ -218,7 +218,7 @@ class OutlineBuilder extends UnhandledListener {
     List<MetadataBuilder> metadata = pop();
     library.addClass(metadata, modifiers, name, typeVariables, supertype,
         interfaces, beginToken.charOffset);
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
   }
 
   ProcedureKind computeProcedureKind(Token token) {
@@ -246,7 +246,7 @@ class OutlineBuilder extends UnhandledListener {
     int modifiers = Modifier.validate(pop(),
         isAbstract: kind == MethodBody.Abstract);
     List<MetadataBuilder> metadata = pop();
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
     library.addProcedure(metadata, modifiers, returnType, name,
         typeVariables, formals, asyncModifier, computeProcedureKind(getOrSet),
         beginToken.charOffset, nativeMethodName, isTopLevel: true);
@@ -334,7 +334,7 @@ class OutlineBuilder extends UnhandledListener {
     library.addNamedMixinApplication(
         metadata, name, typeVariables, modifiers, mixinApplication, interfaces,
         classKeyword.charOffset);
-    checkEmpty();
+    checkEmpty(classKeyword.charOffset);
   }
 
   @override
@@ -448,7 +448,7 @@ class OutlineBuilder extends UnhandledListener {
     String name = pop();
     List<MetadataBuilder> metadata = pop();
     library.addEnum(metadata, name, constants, enumKeyword.charOffset);
-    checkEmpty();
+    checkEmpty(enumKeyword.charOffset);
   }
 
   @override
@@ -467,7 +467,7 @@ class OutlineBuilder extends UnhandledListener {
     library.addFunctionTypeAlias(
         metadata, returnType, name, typeVariables, formals,
         typedefKeyword.charOffset);
-    checkEmpty();
+    checkEmpty(typedefKeyword.charOffset);
   }
 
   @override
@@ -478,7 +478,7 @@ class OutlineBuilder extends UnhandledListener {
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
     library.addFields(metadata, modifiers, type, names);
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
   }
 
   @override

@@ -79,8 +79,6 @@ import 'redirecting_factory_body.dart' show
 
 import 'kernel_builder.dart';
 
-const bool showNits = false;
-
 final Name callName = new Name("call");
 
 final Name plusName = new Name("+");
@@ -126,6 +124,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   final bool isDartLibrary;
 
+  @override
+  final Uri uri;
+
   Scope formalParameterScope;
 
   bool isFirstIdentifier = false;
@@ -148,7 +149,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   BodyBuilder(KernelLibraryBuilder library, this.member, Scope scope,
       this.formalParameterScope, this.hierarchy, this.coreTypes,
-      this.classBuilder, this.isInstanceMember)
+      this.classBuilder, this.isInstanceMember, this.uri)
       : enclosingScope = scope,
         library = library,
         isDartLibrary = library.uri.scheme == "dart",
@@ -273,9 +274,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  Uri get uri => library.fileUri ?? library.uri;
-
-  @override
   JumpTarget createJumpTarget(JumpTargetKind kind, int charOffset) {
     return new JumpTarget(kind, member, charOffset);
   }
@@ -340,7 +338,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void endMember() {
     debugEvent("Member");
-    checkEmpty();
+    checkEmpty(-1);
   }
 
   @override
@@ -1153,9 +1151,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return builder.buildTypesWithBuiltArguments(arguments);
     }
     if (builder == null)  {
-      print("$uri: Type not found: $name");
+      warning("Type not found: '$name'.", charOffset);
     } else {
-      print("$uri: Not a type: $name");
+      warning("Not a type: '$name'.", charOffset);
     }
     // TODO(ahe): Create an error somehow.
     return const DynamicType();
@@ -1300,7 +1298,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         FieldBuilder field = builder;
         if (type != null) {
           nit("Ignoring type on 'this' parameter '${name.name}'.",
-              name.fileOffset);
+              thisKeyword.charOffset);
         }
         type = field.target.type ?? const DynamicType();
         variable = new VariableDeclaration(name.name, type: type,
@@ -2167,7 +2165,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
     super.handleRecoverableError(token, kind, arguments);
     if (!hasParserError) {
-      print("$uri:${recoverableErrors.last}");
+      print(new InputError(uri, recoverableErrors.last.beginOffset,
+              recoverableErrors.last.kind).format());
     }
     hasParserError = true;
   }
@@ -2187,17 +2186,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       return token;
     }
     return super.handleUnrecoverableError(token, kind, arguments);
-  }
-
-  void warning(error, [int charOffset = -1]) {
-    String message = new InputError(uri, charOffset, error).format();
-    print(message);
-  }
-
-  void nit(error, [int charOffset = -1]) {
-    if (!showNits) return;
-    String message = new InputError(uri, charOffset, error).format();
-    print(message);
   }
 
   @override

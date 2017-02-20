@@ -16,6 +16,7 @@ import 'package:kernel/core_types.dart' show
     CoreTypes;
 
 import '../errors.dart' show
+    InputError,
     internalError;
 
 import 'frontend_accessors.dart' as kernel show
@@ -694,7 +695,7 @@ class VariableAccessor extends kernel.VariableAccessor
 Expression throwNoSuchMethodError(String name, Arguments arguments, Uri uri,
     int charOffset, CoreTypes coreTypes,
     {bool isSuper: false, isGetter: false, isSetter: false}) {
-  print("$uri:$charOffset: method not found: '$name'.");
+  print(new InputError(uri, charOffset, "Method not found: '$name'.").format());
   Constructor constructor = coreTypes.getCoreClass(
       "dart:core", "NoSuchMethodError").constructors.first;
   return new Throw(new ConstructorInvocation(

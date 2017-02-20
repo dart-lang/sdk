@@ -3609,7 +3609,7 @@ class Program extends TreeNode {
   Program([List<Library> libraries, Map<String, Source> uriToSource])
       : libraries = libraries ?? <Library>[],
         uriToSource = uriToSource ?? <String, Source>{} {
-    setParents(libraries, this);
+    setParents(this.libraries, this);
   }
 
   accept(TreeVisitor v) => v.visitProgram(this);

@@ -10,8 +10,8 @@ import 'package:kernel/ast.dart' show
     Supertype,
     VoidType;
 
-import '../errors.dart' show
-    inputError;
+import '../messages.dart' show
+    warning;
 
 import 'kernel_builder.dart' show
     KernelClassBuilder,
@@ -30,18 +30,19 @@ class KernelNamedTypeBuilder
 
   KernelInvalidTypeBuilder buildInvalidType(String name) {
     // TODO(ahe): Record error instead of printing.
-    print("$fileUri:$charOffset: Type not found: $name");
+    warning(fileUri, charOffset, "Type not found: '$name'.");
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }
 
   DartType handleMissingType() {
     // TODO(ahe): Record error instead of printing.
-    print("$fileUri:$charOffset: No type for: $name");
+    warning(fileUri, charOffset, "No type for: '$name'.");
     return const DynamicType();
   }
 
   Supertype handleMissingSuperType() {
-    throw inputError(fileUri, charOffset, "No type for: $name");
+    warning(fileUri, charOffset,  "No type for: '$name'.");
+    return null;
   }
 
   DartType build() {

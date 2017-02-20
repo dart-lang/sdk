@@ -75,6 +75,12 @@ import '../errors.dart' show
     reportCrash,
     resetCrashReporting;
 
+import '../util/relativize.dart' show
+    relativizeUri;
+
+import '../compiler_context.dart' show
+    CompilerContext;
+
 import 'kernel_builder.dart' show
     Builder,
     ClassBuilder,
@@ -92,16 +98,27 @@ import 'kernel_builder.dart' show
 
 class KernelTarget extends TargetImplementation {
   final DillTarget dillTarget;
+
+  /// Shared with [CompilerContext].
+  final Map<String, Source> uriToSource;
+
   SourceLoader<Library> loader;
   Program program;
 
   final List errors = [];
 
-  KernelTarget(DillTarget dillTarget, TranslateUri uriTranslator)
+  KernelTarget(DillTarget dillTarget, TranslateUri uriTranslator,
+      [Map<String, Source> uriToSource])
       : dillTarget = dillTarget,
+        uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
         super(dillTarget.ticker, uriTranslator) {
     resetCrashReporting();
     loader = new SourceLoader<Library>(this);
+  }
+
+  void addLineStarts(Uri uri, List<int> lineStarts) {
+    String fileUri = relativizeUri(uri);
+    uriToSource[fileUri] = new Source(lineStarts, fileUri);
   }
 
   void read(Uri uri) {
@@ -317,7 +334,9 @@ class KernelTarget extends TargetImplementation {
         program.mainMethod = builder.procedure;
       }
     }
-    setup_builtin_library.transformProgram(program);
+    if (errors.isEmpty || dillTarget.isLoaded) {
+      setup_builtin_library.transformProgram(program);
+    }
     ticker.logMs("Linked program");
     return program;
   }

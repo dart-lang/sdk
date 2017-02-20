@@ -11,11 +11,15 @@ import 'command_line.dart' show
     CommandLine,
     argumentError;
 
+import 'compiler_context.dart' show
+    CompilerContext;
+
 const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "-o": Uri,
   "--output": Uri,
   "--platform": Uri,
   "--packages": Uri,
+  "--fatal": ",",
 };
 
 class CompilerCommandLine extends CommandLine {
@@ -64,6 +68,26 @@ class CompilerCommandLine extends CommandLine {
     return options.containsKey("--compile-sdk")
         ? null
         : options["--platform"] ?? Uri.base.resolve("platform.dill");
+  }
+
+  Set<String> get fatal {
+    return new Set<String>.from(options["--fatal"] ?? <String>[]);
+  }
+
+  bool get areErrorsFatal => fatal.contains("errors");
+
+  bool get areWarningsFatal => fatal.contains("warnings");
+
+  bool get areNitsFatal => fatal.contains("nits");
+
+  static dynamic withGlobalOptions(String programName, List<String> arguments,
+      dynamic f(CompilerContext context)) {
+    return CompilerContext.withGlobalOptions(
+        new CompilerCommandLine(programName, arguments), f);
+  }
+
+  static CompilerCommandLine forRootContext() {
+    return new CompilerCommandLine("", [""]);
   }
 }
 
@@ -140,4 +164,12 @@ Supported options:
 
   --compile-sdk
     Compile the SDK from scratch instead of reading it from 'platform.dill'.
+
+  --fatal=errors
+  --fatal=warnings
+  --fatal=nits
+    Makes messages of the given kinds fatal, that is, immediately stop the
+    compiler with a non-zero exit-code. In --verbose mode, also display an
+    internal stack trace from the compiler. Multiple kinds can be separated by
+    commas, for example, --fatal=errors,warnings.
 """;

@@ -40,6 +40,9 @@ import 'package:kernel/type_algebra.dart' show
 import '../errors.dart' show
     internalError;
 
+import '../messages.dart' show
+    warning;
+
 import '../loader.dart' show
     Loader;
 
@@ -129,7 +132,8 @@ abstract class KernelFunctionBuilder
               substitution[parameter] = const DynamicType();
             }
           }
-          print("Can only use type variables in instance methods.");
+          warning(fileUri, charOffset,
+              "Can only use type variables in instance methods.");
           return substitute(type, substitution);
         }
         Set<TypeParameter> set = typeParameters.toSet();

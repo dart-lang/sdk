@@ -14,6 +14,9 @@ import '../combinator.dart' show
 import '../errors.dart' show
     internalError;
 
+import '../messages.dart' show
+    warning;
+
 import '../import.dart' show
     Import;
 
@@ -302,14 +305,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   void includePart(SourceLibraryBuilder<T, R> part) {
     if (name != null) {
       if (part.partOf == null) {
-        print("${part.uri} has no 'part of' declaration but is used as a part "
-            "by ${name} ($uri)");
+        warning(part.fileUri, -1, "Has no 'part of' declaration but is used as "
+            "a part by ${name} ($uri).");
         parts.remove(part);
         return;
       }
       if (part.partOf != name) {
-        print("${part.uri} is part of '${part.partOf}' but is used as a part "
-            "by '${name}' ($uri)");
+        warning(part.fileUri, -1, "Is part of '${part.partOf}' but is used as "
+            "a part by '${name}' ($uri).");
         parts.remove(part);
         return;
       }
