@@ -151,7 +151,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (canBeReflected || canBeApplied) {
       parameters.forEachParameter((Element parameter) {
         expressions.add(task.metadataCollector.reifyName(parameter.name));
-        if (backend.mustRetainMetadata) {
+        if (backend.mirrorsData.mustRetainMetadata) {
           Iterable<jsAst.Expression> metadataIndices =
               parameter.metadata.map((MetadataAnnotation annotation) {
             ConstantValue constant =

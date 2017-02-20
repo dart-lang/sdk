@@ -89,7 +89,7 @@ class TypeVariableHandler {
         _seenClassesWithTypeVariables = true;
       }
     } else {
-      if (_backend.isAccessibleByReflection(cls)) {
+      if (_backend.mirrorsData.isAccessibleByReflection(cls)) {
         processTypeVariablesOf(cls);
       }
     }

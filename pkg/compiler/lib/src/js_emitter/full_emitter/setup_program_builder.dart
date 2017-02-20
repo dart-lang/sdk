@@ -72,7 +72,7 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
   String defaultValuesField = namer.defaultValuesField;
   String methodsWithOptionalArgumentsField =
       namer.methodsWithOptionalArgumentsField;
-  String unmangledNameIndex = backend.mustRetainMetadata
+  String unmangledNameIndex = backend.mirrorsData.mustRetainMetadata
       ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
       : ' 2 * optionalParameterCount + requiredParameterCount + 3';
   String receiverParamName =
@@ -119,7 +119,7 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'initializeEmptyInstance': initializeEmptyInstanceAccess,
     'allClasses': allClassesAccess,
     'debugFastObjects': DEBUG_FAST_OBJECTS,
-    'isTreeShakingDisabled': backend.isTreeShakingDisabled,
+    'isTreeShakingDisabled': backend.mirrorsData.isTreeShakingDisabled,
     'precompiled': precompiledAccess,
     'finishedClassesAccess': finishedClassesAccess,
     'needsMixinSupport': emitter.needsMixinSupport,
@@ -130,7 +130,7 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
     'isObject': namer.operatorIs(compiler.commonElements.objectClass),
     'specProperty': js.string(namer.nativeSpecProperty),
     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
-    'hasRetainedMetadata': backend.hasRetainedMetadata,
+    'hasRetainedMetadata': backend.mirrorsData.hasRetainedMetadata,
     'types': typesAccess,
     'objectClassName': js.quoteName(
         namer.runtimeTypeName(compiler.commonElements.objectClass as Entity)),

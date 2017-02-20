@@ -448,12 +448,13 @@ class Emitter implements js_emitter.Emitter {
   /// This is used by js_mirrors.dart.
   String getReflectionName(elementOrSelector, jsAst.Name mangledName) {
     String name = elementOrSelector.name;
-    if (backend.shouldRetainName(name) ||
+    if (backend.mirrorsData.shouldRetainName(name) ||
         elementOrSelector is Element &&
             // Make sure to retain names of unnamed constructors, and
             // for common native types.
             ((name == '' &&
-                    backend.isAccessibleByReflection(elementOrSelector)) ||
+                    backend.mirrorsData
+                        .isAccessibleByReflection(elementOrSelector)) ||
                 _isNativeTypeNeedingReflectionName(elementOrSelector))) {
       // TODO(ahe): Enable the next line when I can tell the difference between
       // an instance method and a global.  They may have the same mangled name.
@@ -1040,10 +1041,10 @@ class Emitter implements js_emitter.Emitter {
       }
     }
 
-    String libraryName =
-        (!compiler.options.enableMinification || backend.mustRetainLibraryNames)
-            ? library.libraryName
-            : "";
+    String libraryName = (!compiler.options.enableMinification ||
+            backend.mirrorsData.mustRetainLibraryNames)
+        ? library.libraryName
+        : "";
 
     jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
 

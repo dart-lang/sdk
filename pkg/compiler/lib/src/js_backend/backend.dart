@@ -69,6 +69,7 @@ import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
+import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
@@ -77,6 +78,7 @@ import 'interceptor_data.dart' show InterceptorData;
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'mirrors_analysis.dart';
+import 'mirrors_data.dart';
 import 'namer.dart';
 import 'native_data.dart' show NativeData;
 import 'no_such_method_registry.dart';
@@ -343,9 +345,6 @@ class JavaScriptBackend extends Target {
   /// Maps special classes to their implementation (JSXxx) class.
   Map<ClassElement, ClassElement> implementationClasses;
 
-  bool needToInitializeIsolateAffinityTag = false;
-  bool needToInitializeDispatchProperty = false;
-
   Namer _namer;
 
   Namer get namer {
@@ -375,31 +374,9 @@ class JavaScriptBackend extends Target {
   final RuntimeTypes rti;
   final RuntimeTypesEncoder rtiEncoder;
 
-  /// True if a call to preserveMetadataMarker has been seen.  This means that
-  /// metadata must be retained for dart:mirrors to work correctly.
-  bool mustRetainMetadata = false;
-
-  /// True if any metadata has been retained.  This is slightly different from
-  /// [mustRetainMetadata] and tells us if any metadata was retained.  For
-  /// example, if [mustRetainMetadata] is true but there is no metadata in the
-  /// program, this variable will stil be false.
-  bool hasRetainedMetadata = false;
-
   /// True if a call to preserveUris has been seen and the preserve-uris flag
   /// is set.
   bool mustPreserveUris = false;
-
-  /// True if a call to preserveLibraryNames has been seen.
-  bool mustRetainLibraryNames = false;
-
-  /// True if a call to preserveNames has been seen.
-  bool mustPreserveNames = false;
-
-  /// True if a call to disableTreeShaking has been seen.
-  bool isTreeShakingDisabled = false;
-
-  /// True if there isn't sufficient @MirrorsUsed data.
-  bool hasInsufficientMirrorsUsed = false;
 
   /// True if a core-library function requires the preamble file to function.
   bool requiresPreamble = false;
@@ -428,35 +405,6 @@ class JavaScriptBackend extends Target {
 
   /// Set of elements for which metadata has been registered as dependencies.
   final Set<Element> _registeredMetadata = new Set<Element>();
-
-  /// List of elements that the user has requested for reflection.
-  final Set<Element> targetsUsed = new Set<Element>();
-
-  /// List of annotations provided by user that indicate that the annotated
-  /// element must be retained.
-  final Set<Element> metaTargetsUsed = new Set<Element>();
-
-  /// Set of methods that are needed by reflection. Computed using
-  /// [computeMembersNeededForReflection] on first use.
-  Set<Element> _membersNeededForReflection = null;
-  Iterable<Element> get membersNeededForReflection {
-    assert(_membersNeededForReflection != null);
-    return _membersNeededForReflection;
-  }
-
-  /// List of symbols that the user has requested for reflection.
-  final Set<String> symbolsUsed = new Set<String>();
-
-  /// List of elements that the backend may use.
-  final Set<Element> helpersUsed = new Set<Element>();
-
-  /// All the checked mode helpers.
-  static const checkedModeHelpers = CheckedModeHelper.helpers;
-
-  // Checked mode helpers indexed by name.
-  Map<String, CheckedModeHelper> checkedModeHelperByName =
-      new Map<String, CheckedModeHelper>.fromIterable(checkedModeHelpers,
-          key: (helper) => helper.name);
 
   TypeVariableHandler typeVariableHandler;
 
@@ -509,6 +457,9 @@ class JavaScriptBackend extends Target {
 
   final NativeData nativeData = new NativeData();
   InterceptorData _interceptorData;
+  BackendUsage _backendUsage;
+  final MirrorsData mirrorsData;
+  CheckedModeHelpers _checkedModeHelpers;
 
   BackendHelpers helpers;
   final BackendImpacts impacts;
@@ -560,8 +511,11 @@ class JavaScriptBackend extends Target {
             useNewSourceInfo: useNewSourceInfo),
         impacts = new BackendImpacts(compiler),
         frontend = new JSFrontendAccess(compiler),
+        mirrorsData = new MirrorsData(compiler),
         this.compiler = compiler {
     helpers = new BackendHelpers(compiler.elementEnvironment, commonElements);
+    _backendUsage = new BackendUsage(commonElements, helpers);
+    _checkedModeHelpers = new CheckedModeHelpers(commonElements, helpers);
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
     typeVariableHandler = new TypeVariableHandler(compiler);
@@ -594,6 +548,10 @@ class JavaScriptBackend extends Target {
   Resolution get resolution => compiler.resolution;
 
   InterceptorData get interceptorData => _interceptorData;
+
+  BackendUsage get backendUsage => _backendUsage;
+
+  CheckedModeHelpers get checkedModeHelpers => _checkedModeHelpers;
 
   /// Returns constant environment for the JavaScript interpretation of the
   /// constants.
@@ -639,95 +597,13 @@ class JavaScriptBackend extends Target {
         : new Namer(this, closedWorld, codegenWorldBuilder);
   }
 
-  /// The backend must *always* call this method when enqueuing an
-  /// element. Calls done by the backend are not seen by global
-  /// optimizations, so they would make these optimizations unsound.
-  /// Therefore we need to collect the list of helpers the backend may
-  /// use.
-  // TODO(johnniwinther): Replace this with a more precise modelling; type
-  // inference of these elements is disabled.
-  Element registerBackendUse(Element element) {
-    if (element == null) return null;
-    assert(invariant(element, _isValidBackendUse(element),
-        message: "Backend use of $element is not allowed."));
-    helpersUsed.add(element.declaration);
-    if (element.isClass && element.isPatched) {
-      // Both declaration and implementation may declare fields, so we
-      // add both to the list of helpers.
-      helpersUsed.add(element.implementation);
-    }
-    return element;
-  }
-
-  bool _isValidBackendUse(Element element) {
-    assert(invariant(element, element.isDeclaration, message: ""));
-    if (element is ConstructorElement &&
-        (element == helpers.streamIteratorConstructor ||
-            compiler.commonElements.isSymbolConstructor(element) ||
-            helpers.isSymbolValidatedConstructor(element) ||
-            element == helpers.syncCompleterConstructor)) {
-      // TODO(johnniwinther): These are valid but we could be more precise.
-      return true;
-    } else if (element == commonElements.symbolClass ||
-        element == helpers.objectNoSuchMethod) {
-      // TODO(johnniwinther): These are valid but we could be more precise.
-      return true;
-    } else if (element.implementationLibrary.isPatch ||
-        // Needed to detect deserialized injected elements, that is
-        // element declared in patch files.
-        (element.library.isPlatformLibrary &&
-            element.sourcePosition.uri.path
-                .contains('_internal/js_runtime/lib/')) ||
-        element.library == helpers.jsHelperLibrary ||
-        element.library == helpers.interceptorsLibrary ||
-        element.library == helpers.isolateHelperLibrary) {
-      // TODO(johnniwinther): We should be more precise about these.
-      return true;
-    } else if (element == commonElements.listClass ||
-        element == helpers.mapLiteralClass ||
-        element == commonElements.functionClass ||
-        element == commonElements.stringClass) {
-      // TODO(johnniwinther): Avoid these.
-      return true;
-    } else if (element == helpers.genericNoSuchMethod ||
-        element == helpers.unresolvedConstructorError ||
-        element == helpers.malformedTypeError) {
-      return true;
-    }
-    return false;
-  }
-
-  bool usedByBackend(Element element) {
-    if (element.isRegularParameter ||
-        element.isInitializingFormal ||
-        element.isField) {
-      if (usedByBackend(element.enclosingElement)) return true;
-    }
-    return helpersUsed.contains(element.declaration);
-  }
-
-  bool invokedReflectively(Element element) {
-    if (element.isRegularParameter || element.isInitializingFormal) {
-      ParameterElement parameter = element;
-      if (invokedReflectively(parameter.functionDeclaration)) return true;
-    }
-
-    if (element.isField) {
-      if (Elements.isStaticOrTopLevel(element) &&
-          (element.isFinal || element.isConst)) {
-        return false;
-      }
-    }
-
-    return isAccessibleByReflection(element.declaration);
-  }
-
   /// Returns true if global optimizations such as type inferencing
   /// can apply to this element. One category of elements that do not
   /// apply is runtime helpers that the backend calls, but the
   /// optimizations don't see those calls.
   bool canBeUsedForGlobalOptimizations(Element element) {
-    return !usedByBackend(element) && !invokedReflectively(element);
+    return !backendUsage.usedByBackend(element) &&
+        !mirrorsData.invokedReflectively(element);
   }
 
   /**
@@ -913,7 +789,7 @@ class JavaScriptBackend extends Target {
             // TODO(johnniwinther): Find the right [CallStructure].
             helper,
             null));
-        registerBackendUse(helper);
+        backendUsage.registerBackendUse(helper);
       }
       impactBuilder
           .registerTypeUse(new TypeUse.instantiation(backendClasses.typeType));
@@ -1120,7 +996,7 @@ class JavaScriptBackend extends Target {
     for (Entity entity in compiler.enqueuer.resolution.processedEntities) {
       processAnnotations(entity, closedWorldRefiner);
     }
-    computeMembersNeededForReflection(closedWorld);
+    mirrorsData.computeMembersNeededForReflection(closedWorld);
     rti.computeClassesNeedingRti(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     _registeredMetadata.clear();
@@ -1428,150 +1304,12 @@ class JavaScriptBackend extends Target {
     return element;
   }
 
-  /**
-   * Returns the checked mode helper that will be needed to do a type check/type
-   * cast on [type] at runtime. Note that this method is being called both by
-   * the resolver with interface types (int, String, ...), and by the SSA
-   * backend with implementation types (JSInt, JSString, ...).
-   */
-  CheckedModeHelper getCheckedModeHelper(ResolutionDartType type,
-      {bool typeCast}) {
-    return getCheckedModeHelperInternal(type,
-        typeCast: typeCast, nativeCheckOnly: false);
-  }
-
-  /**
-   * Returns the native checked mode helper that will be needed to do a type
-   * check/type cast on [type] at runtime. If no native helper exists for
-   * [type], [:null:] is returned.
-   */
-  CheckedModeHelper getNativeCheckedModeHelper(ResolutionDartType type,
-      {bool typeCast}) {
-    return getCheckedModeHelperInternal(type,
-        typeCast: typeCast, nativeCheckOnly: true);
-  }
-
-  /**
-   * Returns the checked mode helper for the type check/type cast for [type]. If
-   * [nativeCheckOnly] is [:true:], only names for native helpers are returned.
-   */
-  CheckedModeHelper getCheckedModeHelperInternal(ResolutionDartType type,
-      {bool typeCast, bool nativeCheckOnly}) {
-    String name = getCheckedModeHelperNameInternal(type,
-        typeCast: typeCast, nativeCheckOnly: nativeCheckOnly);
-    if (name == null) return null;
-    CheckedModeHelper helper = checkedModeHelperByName[name];
-    assert(helper != null);
-    return helper;
-  }
-
-  String getCheckedModeHelperNameInternal(ResolutionDartType type,
-      {bool typeCast, bool nativeCheckOnly}) {
-    assert(type.kind != ResolutionTypeKind.TYPEDEF);
-    if (type.isMalformed) {
-      // The same error is thrown for type test and type cast of a malformed
-      // type so we only need one check method.
-      return 'checkMalformedType';
-    }
-
-    if (type.isVoid) {
-      assert(!typeCast); // Cannot cast to void.
-      if (nativeCheckOnly) return null;
-      return 'voidTypeCheck';
-    }
-
-    if (type.isTypeVariable) {
-      return typeCast
-          ? 'subtypeOfRuntimeTypeCast'
-          : 'assertSubtypeOfRuntimeType';
-    }
-
-    if (type.isFunctionType) return null;
-
-    assert(invariant(NO_LOCATION_SPANNABLE, type.isInterfaceType,
-        message: "Unexpected type: $type (${type.kind})"));
-    ClassElement element = type.element;
-    bool nativeCheck =
-        nativeCheckOnly || emitter.nativeEmitter.requiresNativeIsCheck(element);
-
-    // TODO(13955), TODO(9731).  The test for non-primitive types should use an
-    // interceptor.  The interceptor should be an argument to HTypeConversion so
-    // that it can be optimized by standard interceptor optimizations.
-    nativeCheck = true;
-
-    var suffix = typeCast ? 'TypeCast' : 'TypeCheck';
-    if (element == helpers.jsStringClass ||
-        element == commonElements.stringClass) {
-      if (nativeCheckOnly) return null;
-      return 'string$suffix';
-    }
-
-    if (element == helpers.jsDoubleClass ||
-        element == commonElements.doubleClass) {
-      if (nativeCheckOnly) return null;
-      return 'double$suffix';
-    }
-
-    if (element == helpers.jsNumberClass ||
-        element == commonElements.numClass) {
-      if (nativeCheckOnly) return null;
-      return 'num$suffix';
-    }
-
-    if (element == helpers.jsBoolClass || element == commonElements.boolClass) {
-      if (nativeCheckOnly) return null;
-      return 'bool$suffix';
-    }
-
-    if (element == helpers.jsIntClass ||
-        element == commonElements.intClass ||
-        element == helpers.jsUInt32Class ||
-        element == helpers.jsUInt31Class ||
-        element == helpers.jsPositiveIntClass) {
-      if (nativeCheckOnly) return null;
-      return 'int$suffix';
-    }
-
-    if (commonElements.isNumberOrStringSupertype(element)) {
-      return nativeCheck
-          ? 'numberOrStringSuperNative$suffix'
-          : 'numberOrStringSuper$suffix';
-    }
-
-    if (commonElements.isStringOnlySupertype(element)) {
-      return nativeCheck ? 'stringSuperNative$suffix' : 'stringSuper$suffix';
-    }
-
-    if ((element == commonElements.listClass ||
-            element == helpers.jsArrayClass) &&
-        type.treatAsRaw) {
-      if (nativeCheckOnly) return null;
-      return 'list$suffix';
-    }
-
-    if (commonElements.isListSupertype(element)) {
-      return nativeCheck ? 'listSuperNative$suffix' : 'listSuper$suffix';
-    }
-
-    if (type.isInterfaceType && !type.treatAsRaw) {
-      return typeCast ? 'subtypeCast' : 'assertSubtype';
-    }
-
-    if (nativeCheck) {
-      // TODO(karlklose): can we get rid of this branch when we use
-      // interceptors?
-      return 'intercepted$suffix';
-    } else {
-      return 'property$suffix';
-    }
-  }
-
   void _registerCheckedModeHelpers(WorldImpactBuilder impactBuilder) {
     // We register all the helpers in the resolution queue.
     // TODO(13155): Find a way to register fewer helpers.
     List<Element> staticUses = <Element>[];
-    for (CheckedModeHelper helper in checkedModeHelpers) {
-      staticUses.add(helper.getStaticUse(compiler).element);
+    for (CheckedModeHelper helper in CheckedModeHelpers.helpers) {
+      staticUses.add(helper.getStaticUse(helpers).element);
     }
     impactTransformer.registerBackendImpact(
         impactBuilder, new BackendImpact(globalUses: staticUses));
@@ -1610,17 +1348,17 @@ class JavaScriptBackend extends Target {
   WorldImpact registerUsedElement(MemberElement element, {bool forResolution}) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     if (element == helpers.disableTreeShakingMarker) {
-      isTreeShakingDisabled = true;
+      mirrorsData.isTreeShakingDisabled = true;
     } else if (element == helpers.preserveNamesMarker) {
-      mustPreserveNames = true;
+      mirrorsData.mustPreserveNames = true;
     } else if (element == helpers.preserveMetadataMarker) {
-      mustRetainMetadata = true;
+      mirrorsData.mustRetainMetadata = true;
     } else if (element == helpers.preserveUrisMarker) {
       if (compiler.options.preserveUris) mustPreserveUris = true;
     } else if (element == helpers.preserveLibraryNamesMarker) {
-      mustRetainLibraryNames = true;
+      mirrorsData.mustRetainLibraryNames = true;
     } else if (element == helpers.getIsolateAffinityTagMarker) {
-      needToInitializeIsolateAffinityTag = true;
+      backendUsage.needToInitializeIsolateAffinityTag = true;
     } else if (element.isDeferredLoaderGetter) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
       if (!isLoadLibraryFunctionResolved) {
@@ -1687,47 +1425,6 @@ class JavaScriptBackend extends Target {
       compiler.dumpInfoTask.registerDependency(element);
     }
     return worldImpact;
-  }
-
-  /// Called when [:const Symbol(name):] is seen.
-  void registerConstSymbol(String name) {
-    symbolsUsed.add(name);
-    if (name.endsWith('=')) {
-      symbolsUsed.add(name.substring(0, name.length - 1));
-    }
-  }
-
-  /// Should [element] (a getter) that would normally not be generated due to
-  /// treeshaking be retained for reflection?
-  bool shouldRetainGetter(Element element) {
-    return isTreeShakingDisabled && isAccessibleByReflection(element);
-  }
-
-  /// Should [element] (a setter) hat would normally not be generated due to
-  /// treeshaking be retained for reflection?
-  bool shouldRetainSetter(Element element) {
-    return isTreeShakingDisabled && isAccessibleByReflection(element);
-  }
-
-  /// Should [name] be retained for reflection?
-  bool shouldRetainName(String name) {
-    if (hasInsufficientMirrorsUsed) return mustPreserveNames;
-    if (name == '') return false;
-    return symbolsUsed.contains(name);
-  }
-
-  bool retainMetadataOf(Element element) {
-    if (mustRetainMetadata) hasRetainedMetadata = true;
-    if (mustRetainMetadata && referencedFromMirrorSystem(element)) {
-      for (MetadataAnnotation metadata in element.metadata) {
-        metadata.ensureResolved(resolution);
-        ConstantValue constant =
-            constants.getConstantValueForMetadata(metadata);
-        constants.addCompileTimeConstantForEmission(constant);
-      }
-      return true;
-    }
-    return false;
   }
 
   /// This method is called immediately after the [library] and its parts have
@@ -1809,260 +1506,6 @@ class JavaScriptBackend extends Target {
     return new Future.value();
   }
 
-  /// Called by [MirrorUsageAnalyzerTask] after it has merged all @MirrorsUsed
-  /// annotations. The arguments corresponds to the unions of the corresponding
-  /// fields of the annotations.
-  void registerMirrorUsage(
-      Set<String> symbols, Set<Element> targets, Set<Element> metaTargets) {
-    if (symbols == null && targets == null && metaTargets == null) {
-      // The user didn't specify anything, or there are imports of
-      // 'dart:mirrors' without @MirrorsUsed.
-      hasInsufficientMirrorsUsed = true;
-      return;
-    }
-    if (symbols != null) symbolsUsed.addAll(symbols);
-    if (targets != null) {
-      for (Element target in targets) {
-        if (target.isAbstractField) {
-          AbstractFieldElement field = target;
-          targetsUsed.add(field.getter);
-          targetsUsed.add(field.setter);
-        } else {
-          targetsUsed.add(target);
-        }
-      }
-    }
-    if (metaTargets != null) metaTargetsUsed.addAll(metaTargets);
-  }
-
-  /**
-   * Returns `true` if [element] can be accessed through reflection, that is,
-   * is in the set of elements covered by a `MirrorsUsed` annotation.
-   *
-   * This property is used to tag emitted elements with a marker which is
-   * checked by the runtime system to throw an exception if an element is
-   * accessed (invoked, get, set) that is not accessible for the reflective
-   * system.
-   */
-  bool isAccessibleByReflection(Element element) {
-    if (element.isClass) {
-      element = getDartClass(element);
-    }
-    return membersNeededForReflection.contains(element);
-  }
-
-  /// Returns `true` if this member element needs reflection information at
-  /// runtime.
-  bool isMemberAccessibleByReflection(MemberElement element) {
-    return membersNeededForReflection.contains(element);
-  }
-
-  /// Returns true if this element has to be enqueued due to
-  /// mirror usage. Might be a subset of [referencedFromMirrorSystem] if
-  /// normal tree shaking is still active ([isTreeShakingDisabled] is false).
-  bool requiredByMirrorSystem(Element element) {
-    return hasInsufficientMirrorsUsed && isTreeShakingDisabled ||
-        matchesMirrorsMetaTarget(element) ||
-        targetsUsed.contains(element);
-  }
-
-  /// Returns true if this element is covered by a mirrorsUsed annotation.
-  ///
-  /// Note that it might still be ok to tree shake the element away if no
-  /// reflection is used in the program (and thus [isTreeShakingDisabled] is
-  /// still false). Therefore _do not_ use this predicate to decide inclusion
-  /// in the tree, use [requiredByMirrorSystem] instead.
-  bool referencedFromMirrorSystem(Element element, [recursive = true]) {
-    Element enclosing = recursive ? element.enclosingElement : null;
-
-    return hasInsufficientMirrorsUsed ||
-        matchesMirrorsMetaTarget(element) ||
-        targetsUsed.contains(element) ||
-        (enclosing != null && referencedFromMirrorSystem(enclosing));
-  }
-
-  /**
-   * Returns `true` if the element is needed because it has an annotation
-   * of a type that is used as a meta target for reflection.
-   */
-  bool matchesMirrorsMetaTarget(Element element) {
-    if (metaTargetsUsed.isEmpty) return false;
-    for (MetadataAnnotation metadata in element.metadata) {
-      // TODO(kasperl): It would be nice if we didn't have to resolve
-      // all metadata but only stuff that potentially would match one
-      // of the used meta targets.
-      metadata.ensureResolved(resolution);
-      ConstantValue value =
-          compiler.constants.getConstantValue(metadata.constant);
-      if (value == null) continue;
-      ResolutionDartType type = value.getType(compiler.commonElements);
-      if (metaTargetsUsed.contains(type.element)) return true;
-    }
-    return false;
-  }
-
-  /**
-   * Visits all classes and computes whether its members are needed for
-   * reflection.
-   *
-   * We have to precompute this set as we cannot easily answer the need for
-   * reflection locally when looking at the member: We lack the information by
-   * which classes a member is inherited. Called after resolution is complete.
-   *
-   * We filter out private libraries here, as their elements should not
-   * be visible by reflection unless some other interfaces makes them
-   * accessible.
-   */
-  void computeMembersNeededForReflection(ClosedWorld closedWorld) {
-    if (_membersNeededForReflection != null) return;
-    if (closedWorld.commonElements.mirrorsLibrary == null) {
-      _membersNeededForReflection = const ImmutableEmptySet<Element>();
-      return;
-    }
-    // Compute a mapping from class to the closures it contains, so we
-    // can include the correct ones when including the class.
-    Map<ClassElement, List<LocalFunctionElement>> closureMap =
-        new Map<ClassElement, List<LocalFunctionElement>>();
-    for (LocalFunctionElement closure
-        in compiler.resolutionWorldBuilder.allClosures) {
-      closureMap.putIfAbsent(closure.enclosingClass, () => []).add(closure);
-    }
-    bool foundClosure = false;
-    Set<Element> reflectableMembers = new Set<Element>();
-    ResolutionEnqueuer resolution = compiler.enqueuer.resolution;
-    for (ClassElement cls
-        in resolution.worldBuilder.directlyInstantiatedClasses) {
-      // Do not process internal classes.
-      if (cls.library.isInternalLibrary || cls.isInjected) continue;
-      if (referencedFromMirrorSystem(cls)) {
-        Set<Name> memberNames = new Set<Name>();
-        // 1) the class (should be resolved)
-        assert(invariant(cls, cls.isResolved));
-        reflectableMembers.add(cls);
-        // 2) its constructors (if resolved)
-        cls.constructors.forEach((Element constructor) {
-          if (resolution.hasBeenProcessed(constructor)) {
-            reflectableMembers.add(constructor);
-          }
-        });
-        // 3) all members, including fields via getter/setters (if resolved)
-        cls.forEachClassMember((Member member) {
-          MemberElement element = member.element;
-          if (resolution.hasBeenProcessed(element)) {
-            memberNames.add(member.name);
-            reflectableMembers.add(element);
-            element.nestedClosures
-                .forEach((SynthesizedCallMethodElementX callFunction) {
-              reflectableMembers.add(callFunction);
-              reflectableMembers.add(callFunction.closureClass);
-            });
-          }
-        });
-        // 4) all overriding members of subclasses/subtypes (should be resolved)
-        if (closedWorld.hasAnyStrictSubtype(cls)) {
-          closedWorld.forEachStrictSubtypeOf(cls, (ClassElement subcls) {
-            subcls.forEachClassMember((Member member) {
-              if (memberNames.contains(member.name)) {
-                // TODO(20993): find out why this assertion fails.
-                // assert(invariant(member.element,
-                //    resolution.hasBeenProcessed(member.element)));
-                if (resolution.hasBeenProcessed(member.element)) {
-                  reflectableMembers.add(member.element);
-                }
-              }
-            });
-          });
-        }
-        // 5) all its closures
-        List<LocalFunctionElement> closures = closureMap[cls];
-        if (closures != null) {
-          reflectableMembers.addAll(closures);
-          foundClosure = true;
-        }
-      } else {
-        // check members themselves
-        cls.constructors.forEach((ConstructorElement element) {
-          if (!resolution.hasBeenProcessed(element)) return;
-          if (referencedFromMirrorSystem(element, false)) {
-            reflectableMembers.add(element);
-          }
-        });
-        cls.forEachClassMember((Member member) {
-          if (!resolution.hasBeenProcessed(member.element)) return;
-          if (referencedFromMirrorSystem(member.element, false)) {
-            reflectableMembers.add(member.element);
-          }
-        });
-        // Also add in closures. Those might be reflectable is their enclosing
-        // member is.
-        List<LocalFunctionElement> closures = closureMap[cls];
-        if (closures != null) {
-          for (LocalFunctionElement closure in closures) {
-            MemberElement member = closure.memberContext;
-            if (referencedFromMirrorSystem(member, false)) {
-              reflectableMembers.add(closure);
-              foundClosure = true;
-            }
-          }
-        }
-      }
-    }
-    // We also need top-level non-class elements like static functions and
-    // global fields. We use the resolution queue to decide which elements are
-    // part of the live world.
-    for (LibraryElement lib in compiler.libraryLoader.libraries) {
-      if (lib.isInternalLibrary) continue;
-      lib.forEachLocalMember((Element member) {
-        if (!(member.isClass || member.isTypedef) &&
-            resolution.hasBeenProcessed(member) &&
-            referencedFromMirrorSystem(member)) {
-          reflectableMembers.add(member);
-        }
-      });
-    }
-    // And closures inside top-level elements that do not have a surrounding
-    // class. These will be in the [:null:] bucket of the [closureMap].
-    if (closureMap.containsKey(null)) {
-      for (Element closure in closureMap[null]) {
-        if (referencedFromMirrorSystem(closure)) {
-          reflectableMembers.add(closure);
-          foundClosure = true;
-        }
-      }
-    }
-    // As we do not think about closures as classes, yet, we have to make sure
-    // their superclasses are available for reflection manually.
-    if (foundClosure) {
-      ClassElement cls = helpers.closureClass;
-      reflectableMembers.add(cls);
-    }
-    Set<Element> closurizedMembers =
-        compiler.resolutionWorldBuilder.closurizedMembers;
-    if (closurizedMembers.any(reflectableMembers.contains)) {
-      ClassElement cls = helpers.boundClosureClass;
-      reflectableMembers.add(cls);
-    }
-    // Add typedefs.
-    reflectableMembers
-        .addAll(closedWorld.allTypedefs.where(referencedFromMirrorSystem));
-    // Register all symbols of reflectable elements
-    for (Element element in reflectableMembers) {
-      symbolsUsed.add(element.name);
-    }
-    _membersNeededForReflection = reflectableMembers;
-  }
-
-  // TODO(20791): compute closure classes after resolution and move this code to
-  // [computeMembersNeededForReflection].
-  void maybeMarkClosureAsNeededForReflection(
-      ClosureClassElement globalizedElement,
-      FunctionElement callFunction,
-      FunctionElement function) {
-    if (!_membersNeededForReflection.contains(function)) return;
-    _membersNeededForReflection.add(callFunction);
-    _membersNeededForReflection.add(globalizedElement);
-  }
-
   jsAst.Call generateIsJsIndexableCall(
       jsAst.Expression use1, jsAst.Expression use2) {
     String dispatchPropertyName = embeddedNames.DISPATCH_PROPERTY_NAME;
@@ -2097,7 +1540,7 @@ class JavaScriptBackend extends Target {
       });
     }
 
-    for (Element target in targetsUsed) {
+    for (Element target in mirrorsData.targetsUsed) {
       if (target == null) continue;
       if (target.isField) {
         staticFields.add(target);
@@ -2170,13 +1613,13 @@ class JavaScriptBackend extends Target {
       preMirrorsMethodCount = generatedCode.length;
     }
 
-    if (isTreeShakingDisabled) {
+    if (mirrorsData.isTreeShakingDisabled) {
       enqueuer.applyImpact(mirrorsAnalysis.computeImpactForReflectiveElements(
           recentClasses,
           enqueuer.processedClasses,
           compiler.libraryLoader.libraries,
           forResolution: enqueuer.isResolutionQueue));
-    } else if (!targetsUsed.isEmpty && enqueuer.isResolutionQueue) {
+    } else if (!mirrorsData.targetsUsed.isEmpty && enqueuer.isResolutionQueue) {
       // Add all static elements (not classes) that have been requested for
       // reflection. If there is no mirror-usage these are probably not
       // necessary, but the backend relies on them being resolved.
@@ -2185,12 +1628,12 @@ class JavaScriptBackend extends Target {
               forResolution: enqueuer.isResolutionQueue));
     }
 
-    if (mustPreserveNames) reporter.log('Preserving names.');
+    if (mirrorsData.mustPreserveNames) reporter.log('Preserving names.');
 
-    if (mustRetainMetadata) {
+    if (mirrorsData.mustRetainMetadata) {
       reporter.log('Retaining metadata.');
 
-      compiler.libraryLoader.libraries.forEach(retainMetadataOf);
+      compiler.libraryLoader.libraries.forEach(mirrorsData.retainMetadataOf);
 
       StagedWorldImpactBuilder impactBuilder = enqueuer.isResolutionQueue
           ? constantImpactsForResolution
@@ -2792,7 +2235,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     if (worldImpact.constSymbolNames.isNotEmpty) {
       registerBackendImpact(transformed, impacts.constSymbol);
       for (String constSymbolName in worldImpact.constSymbolNames) {
-        backend.registerConstSymbol(constSymbolName);
+        backend.mirrorsData.registerConstSymbol(constSymbolName);
       }
     }
 
@@ -2853,7 +2296,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   void registerBackendStaticUse(
       WorldImpactBuilder worldImpact, MethodElement element,
       {bool isGlobal: false}) {
-    backend.registerBackendUse(element);
+    backend.backendUsage.registerBackendUse(element);
     worldImpact.registerStaticUse(
         // TODO(johnniwinther): Store the correct use in impacts.
         new StaticUse.foreignUse(element));
@@ -2866,7 +2309,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       WorldImpactBuilder worldImpact, ClassElement cls,
       {bool isGlobal: false}) {
     cls.ensureResolved(backend.resolution);
-    backend.registerBackendUse(cls);
+    backend.backendUsage.registerBackendUse(cls);
     worldImpact.registerTypeUse(new TypeUse.instantiation(cls.rawType));
     if (isGlobal) {
       backend.compiler.globalDependencies.registerDependency(cls);
@@ -2889,7 +2332,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
     for (ResolutionInterfaceType instantiatedType
         in backendImpact.instantiatedTypes) {
-      backend.registerBackendUse(instantiatedType.element);
+      backend.backendUsage.registerBackendUse(instantiatedType.element);
       worldImpact.registerTypeUse(new TypeUse.instantiation(instantiatedType));
     }
     for (ClassElement cls in backendImpact.instantiatedClasses) {
@@ -2904,10 +2347,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     for (BackendFeature feature in backendImpact.features) {
       switch (feature) {
         case BackendFeature.needToInitializeDispatchProperty:
-          backend.needToInitializeDispatchProperty = true;
+          backend.backendUsage.needToInitializeDispatchProperty = true;
           break;
         case BackendFeature.needToInitializeIsolateAffinityTag:
-          backend.needToInitializeIsolateAffinityTag = true;
+          backend.backendUsage.needToInitializeIsolateAffinityTag = true;
           break;
       }
     }
@@ -2976,19 +2419,20 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       // calls to [enqueue] with the resolution enqueuer serve as assertions
       // that the helper was in fact added.
       // TODO(13155): Find a way to enqueue helpers lazily.
-      CheckedModeHelper helper =
-          backend.getCheckedModeHelper(type, typeCast: false);
+      CheckedModeHelper helper = backend.checkedModeHelpers
+          .getCheckedModeHelper(type, typeCast: false);
       if (helper != null) {
-        StaticUse staticUse = helper.getStaticUse(backend.compiler);
+        StaticUse staticUse = helper.getStaticUse(backend.helpers);
         transformed.registerStaticUse(staticUse);
-        backend.registerBackendUse(staticUse.element);
+        backend.backendUsage.registerBackendUse(staticUse.element);
       }
       // We also need the native variant of the check (for DOM types).
-      helper = backend.getNativeCheckedModeHelper(type, typeCast: false);
+      helper = backend.checkedModeHelpers
+          .getNativeCheckedModeHelper(type, typeCast: false);
       if (helper != null) {
-        StaticUse staticUse = helper.getStaticUse(backend.compiler);
+        StaticUse staticUse = helper.getStaticUse(backend.helpers);
         transformed.registerStaticUse(staticUse);
-        backend.registerBackendUse(staticUse.element);
+        backend.backendUsage.registerBackendUse(staticUse.element);
       }
     }
     if (!type.treatAsRaw || type.containsTypeVariables) {
@@ -3046,7 +2490,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (String name in impact.constSymbols) {
-      backend.registerConstSymbol(name);
+      backend.mirrorsData.registerConstSymbol(name);
     }
 
     for (Set<ClassElement> classes in impact.specializedGetInterceptors) {

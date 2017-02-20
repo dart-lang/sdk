@@ -43,7 +43,7 @@ void main() {
     var superclass =
         findElement(compiler, 'Super', Uri.parse('memory:lib.dart'));
     var subclass = findElement(compiler, 'Subclass');
-    var oracle = compiler.backend.isAccessibleByReflection;
+    var oracle = compiler.backend.mirrorsData.isAccessibleByReflection;
     print(superclass.lookupMember('_private'));
     Expect.isTrue(oracle(superclass.lookupMember('_private')));
     Expect.isFalse(oracle(subclass.lookupMember('_private')));

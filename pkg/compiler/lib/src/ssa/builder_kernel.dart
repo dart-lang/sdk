@@ -2445,7 +2445,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     bool value = false;
     switch (name) {
       case 'MUST_RETAIN_METADATA':
-        value = backend.mustRetainMetadata;
+        value = backend.mirrorsData.mustRetainMetadata;
         break;
       case 'USE_CONTENT_SECURITY_POLICY':
         value = compiler.options.useContentSecurityPolicy;

@@ -136,7 +136,8 @@ class TypeTestRegistry {
     }
 
     bool canBeReified(Element element) {
-      return (canTearOff(element) || backend.isAccessibleByReflection(element));
+      return (canTearOff(element) ||
+          backend.mirrorsData.isAccessibleByReflection(element));
     }
 
     // Find all types referenced from the types of elements that can be

@@ -13,10 +13,11 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../elements/resolution_types.dart';
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../tree/tree.dart';
@@ -1587,7 +1588,7 @@ class Namer {
     });
   }
 
-  jsAst.Name operatorIsType(ResolutionDartType type) {
+  jsAst.Name operatorIsType(DartType type) {
     if (type.isFunctionType) {
       // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
       return new CompoundName([
@@ -1596,7 +1597,8 @@ class Namer {
         getFunctionTypeName(type)
       ]);
     }
-    return operatorIs(type.element);
+    InterfaceType interfaceType = type;
+    return operatorIs(interfaceType.element);
   }
 
   jsAst.Name operatorIs(ClassElement element) {
@@ -1614,7 +1616,7 @@ class Namer {
     return name;
   }
 
-  jsAst.Name substitutionName(Element element) {
+  jsAst.Name substitutionName(ClassElement element) {
     return new CompoundName(
         [new StringBackedName(operatorAsPrefix), runtimeTypeName(element)]);
   }

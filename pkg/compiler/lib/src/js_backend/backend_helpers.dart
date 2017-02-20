@@ -55,6 +55,9 @@ class BackendHelpers {
   ClassEntity _findHelperClass(String name) =>
       _findClass(jsHelperLibrary, name);
 
+  // TODO(johnniwinther): Avoid the need for this (from [CheckedModeHelper]).
+  FunctionEntity findHelperFunction(String name) => _findHelperFunction(name);
+
   FunctionEntity _findHelperFunction(String name) =>
       _findLibraryMember(jsHelperLibrary, name);
 

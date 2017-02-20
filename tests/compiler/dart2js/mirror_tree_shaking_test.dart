@@ -29,7 +29,7 @@ main() {
     Expect.isFalse(backend
         .mirrorsAnalysis.codegenHandler.hasEnqueuedReflectiveStaticFields);
     Expect.isFalse(compiler.disableTypeInference);
-    Expect.isFalse(backend.hasRetainedMetadata);
+    Expect.isFalse(backend.mirrorsData.hasRetainedMetadata);
   });
 }
 

@@ -2889,8 +2889,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.isBooleanConversionCheck) {
       helper = const CheckedModeHelper('boolConversionCheck');
     } else {
-      helper =
-          backend.getCheckedModeHelper(type, typeCast: node.isCastTypeCheck);
+      helper = backend.checkedModeHelpers
+          .getCheckedModeHelper(type, typeCast: node.isCastTypeCheck);
     }
 
     if (helper == null) {

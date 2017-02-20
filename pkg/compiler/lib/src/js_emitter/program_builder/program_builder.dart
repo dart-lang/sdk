@@ -543,7 +543,7 @@ class ProgramBuilder {
         // If the program contains `const Symbol` names we have to retain them.
         String selectorName = selector.name;
         if (selector.isSetter) selectorName = "$selectorName=";
-        if (backend.symbolsUsed.contains(selectorName)) {
+        if (backend.mirrorsData.symbolsUsed.contains(selectorName)) {
           _symbolsMap[name] = selectorName;
         }
         noSuchMethodStubs.add(
@@ -655,7 +655,7 @@ class ProgramBuilder {
   }
 
   bool _methodCanBeReflected(FunctionElement method) {
-    return backend.isAccessibleByReflection(method);
+    return backend.mirrorsData.isAccessibleByReflection(method);
   }
 
   bool _methodCanBeApplied(FunctionElement method) {

@@ -99,7 +99,7 @@ class RuntimeTypeGenerator {
     /// dynamically at runtime. We also always generate tests against
     /// native classes.
     /// TODO(herhut): Generate tests for native classes dynamically, as well.
-    void generateIsTest(Element other) {
+    void generateIsTest(ClassElement other) {
       if (backend.isNative(classElement) || !classElement.isSubclassOf(other)) {
         result.properties[namer.operatorIs(other)] = js('1');
       }

@@ -2731,7 +2731,7 @@ class SsaBuilder extends ast.Visitor
     bool value = false;
     switch (name) {
       case 'MUST_RETAIN_METADATA':
-        value = backend.mustRetainMetadata;
+        value = backend.mirrorsData.mustRetainMetadata;
         break;
       case 'USE_CONTENT_SECURITY_POLICY':
         value = compiler.options.useContentSecurityPolicy;

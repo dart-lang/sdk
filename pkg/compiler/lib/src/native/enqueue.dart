@@ -444,7 +444,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   Iterable<ClassElement> _onFirstNativeClass(WorldImpactBuilder impactBuilder) {
     void staticUse(element) {
       impactBuilder.registerStaticUse(new StaticUse.foreignUse(element));
-      backend.registerBackendUse(element);
+      backend.backendUsage.registerBackendUse(element);
       compiler.globalDependencies.registerDependency(element);
     }
 
