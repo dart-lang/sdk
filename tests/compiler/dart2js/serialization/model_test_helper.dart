@@ -96,7 +96,10 @@ Future checkModels(Uri entryPoint,
 
   return measure(title, 'check models', () async {
     checkAllImpacts(compilerNormal, compilerDeserialized, verbose: verbose);
-    checkResolutionEnqueuers(compilerNormal.enqueuer.resolution,
+    checkResolutionEnqueuers(
+        compilerNormal.backend,
+        compilerDeserialized.backend,
+        compilerNormal.enqueuer.resolution,
         compilerDeserialized.enqueuer.resolution,
         verbose: verbose);
     checkClosedWorlds(
@@ -108,7 +111,10 @@ Future checkModels(Uri entryPoint,
 }
 
 void checkResolutionEnqueuers(
-    ResolutionEnqueuer enqueuer1, ResolutionEnqueuer enqueuer2,
+    JavaScriptBackend backend1,
+    JavaScriptBackend backend2,
+    ResolutionEnqueuer enqueuer1,
+    ResolutionEnqueuer enqueuer2,
     {bool typeEquivalence(ResolutionDartType a, ResolutionDartType b):
         areTypesEquivalent,
     bool elementFilter(Element element),
@@ -146,8 +152,6 @@ void checkResolutionEnqueuers(
       "Is-check mismatch", typeEquivalence,
       verbose: verbose);
 
-  JavaScriptBackend backend1 = enqueuer1.backend;
-  JavaScriptBackend backend2 = enqueuer2.backend;
   Expect.equals(backend1.hasInvokeOnSupport, backend2.hasInvokeOnSupport,
       "JavaScriptBackend.hasInvokeOnSupport mismatch");
   Expect.equals(

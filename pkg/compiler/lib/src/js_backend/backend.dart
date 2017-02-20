@@ -29,7 +29,12 @@ import '../elements/entities.dart';
 import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../enqueue.dart'
-    show Enqueuer, EnqueueTask, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
+    show
+        Enqueuer,
+        EnqueuerListener,
+        EnqueueTask,
+        ResolutionEnqueuer,
+        TreeShakingEnqueuerStrategy;
 import '../io/multi_information.dart' show MultiSourceInformationStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart' show SourceInformationStrategy;
@@ -305,7 +310,7 @@ enum SyntheticConstantKind {
   NAME
 }
 
-class JavaScriptBackend extends Target {
+class JavaScriptBackend extends Target implements EnqueuerListener {
   final Compiler compiler;
 
   String get patchVersion => emitter.patchVersion;
@@ -819,16 +824,11 @@ class JavaScriptBackend extends Target {
     }
   }
 
-  /// Called to notify to the backend that a class is being instantiated. Any
-  /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerInstantiatedClass(ClassElement cls,
       {bool forResolution}) {
     return _processClass(cls, forResolution: forResolution);
   }
 
-  /// Called to notify to the backend that a class is implemented by an
-  /// instantiated class. Any backend specific [WorldImpact] of this is
-  /// returned.
   WorldImpact registerImplementedClass(ClassElement cls, {bool forResolution}) {
     return _processClass(cls, forResolution: forResolution);
   }
@@ -961,8 +961,6 @@ class JavaScriptBackend extends Target {
     return impactBuilder;
   }
 
-  /// Called to instruct to the backend register [type] as instantiated on
-  /// [enqueuer].
   void registerInstantiatedType(ResolutionInterfaceType type) {
     lookupMapAnalysis.registerInstantiatedType(type);
   }
@@ -1020,10 +1018,7 @@ class JavaScriptBackend extends Target {
     return const WorldImpact();
   }
 
-  /// Called to instruct the backend to register that a closure exists for a
-  /// function on an instantiated generic class. Any backend specific
-  /// [WorldImpact] of this is returned.
-  WorldImpact registerClosureWithFreeTypeVariables(Element closure,
+  WorldImpact registerClosureWithFreeTypeVariables(MethodElement closure,
       {bool forResolution}) {
     if (forResolution || methodNeedsRti(closure)) {
       return _registerComputeSignature();
@@ -1031,14 +1026,10 @@ class JavaScriptBackend extends Target {
     return const WorldImpact();
   }
 
-  /// Called to register that a member has been closurized. Any backend specific
-  /// [WorldImpact] of this is returned.
   WorldImpact registerBoundClosure() {
     return impactTransformer.createImpactFor(impacts.memberClosure);
   }
 
-  /// Called to register that a static function has been closurized. Any backend
-  /// specific [WorldImpact] of this is returned.
   WorldImpact registerGetOfStaticFunction() {
     return impactTransformer.createImpactFor(impacts.staticClosure);
   }
@@ -1343,8 +1334,6 @@ class JavaScriptBackend extends Target {
     return _closedWorld.hasOnlySubclasses(classElement);
   }
 
-  /// Called to register that [element] is statically known to be used. Any
-  /// backend specific [WorldImpact] of this is returned.
   WorldImpact registerUsedElement(MemberElement element, {bool forResolution}) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     if (element == helpers.disableTreeShakingMarker) {
@@ -1551,22 +1540,6 @@ class JavaScriptBackend extends Target {
     return staticFields;
   }
 
-  /// Called when [enqueuer]'s queue is empty, but before it is closed.
-  ///
-  /// This is used, for example, by the JS backend to enqueue additional
-  /// elements needed for reflection. [recentClasses] is a collection of
-  /// all classes seen for the first time by the [enqueuer] since the last call
-  /// to [onQueueEmpty].
-  ///
-  /// A return value of [:true:] indicates that [recentClasses] has been
-  /// processed and its elements do not need to be seen in the next round. When
-  /// [:false:] is returned, [onQueueEmpty] will be called again once the
-  /// resolution queue has drained and [recentClasses] will be a superset of the
-  /// current value.
-  ///
-  /// There is no guarantee that a class is only present once in
-  /// [recentClasses], but every class seen by the [enqueuer] will be present in
-  /// [recentClasses] at least once.
   bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassEntity> recentClasses) {
     // Add elements used synthetically, that is, through features rather than
     // syntax, for instance custom elements.
