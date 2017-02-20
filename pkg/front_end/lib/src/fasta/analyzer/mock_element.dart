@@ -13,6 +13,7 @@ import '../builder/builder.dart' show
 
 import '../errors.dart' show
     internalError;
+import 'package:analyzer/src/generated/source.dart';
 
 abstract class MockElement extends Builder
     implements Element, LocalElement {
@@ -210,6 +211,9 @@ abstract class MockCompilationUnitElement extends MockElement
   }
 
   bool get hasLoadLibraryFunction => internalError("not supported.");
+
+  @override
+  LineInfo get lineInfo => internalError("not supported.");
 
   List<TopLevelVariableElement> get topLevelVariables {
     return internalError("not supported.");

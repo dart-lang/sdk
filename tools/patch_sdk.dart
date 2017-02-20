@@ -257,6 +257,11 @@ List<String> _patchLibrary(String name,
   return new List<String>.from(results.map((e) => e.toString()));
 }
 
+final String injectedCidFields = [
+  'Array', 'ExternalOneByteString', 'GrowableObjectArray',
+  'ImmutableArray', 'OneByteString', 'TwoByteString', 'Bigint'
+].map((name) => "static final int cid${name} = 0;").join('\n');
+
 /// Merge `@patch` declarations into `external` declarations.
 class PatchApplier extends GeneralizingAstVisitor {
   final StringEditBuffer edits;
@@ -274,6 +279,15 @@ class PatchApplier extends GeneralizingAstVisitor {
 
   void _merge(AstNode node, int pos) {
     var code = patch.contents.substring(node.offset, node.end);
+
+    // We inject a number of static fields into dart:internal.ClassID class.
+    // These fields represent various VM class ids and are only used to
+    // make core libraries compile. Kernel reader will actually ignore these
+    // fields and instead inject concrete constants into this class.
+    if (node is ClassDeclaration && node.name.name == 'ClassID') {
+      code = code.replaceFirst(
+          new RegExp(r'}$'), injectedCidFields + '}');
+    }
     edits.insert(pos, '\n' + code);
   }
 

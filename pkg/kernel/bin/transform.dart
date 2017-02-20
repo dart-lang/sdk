@@ -7,16 +7,18 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:kernel/verifier.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/transformations/continuation.dart' as cont;
-import 'package:kernel/transformations/infer_values.dart' as infer_values;
-import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/transformations/closure_conversion.dart' as closures;
+import 'package:kernel/transformations/continuation.dart' as cont;
+import 'package:kernel/transformations/empty.dart' as empty;
+import 'package:kernel/transformations/infer_values.dart' as infer_values;
+import 'package:kernel/transformations/method_call.dart' as method_call;
+import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
+import 'package:kernel/verifier.dart';
 
-import 'util.dart';
 import 'batch_util.dart';
+import 'util.dart';
 
 ArgParser parser = new ArgParser()
   ..addOption('format',
@@ -89,6 +91,12 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     case 'treeshake':
       program =
           treeshaker.transformProgram(program, programRoots: programRoots);
+      break;
+    case 'methodcall':
+      program = method_call.transformProgram(program);
+      break;
+    case 'empty':
+      program = empty.transformProgram(program);
       break;
     default:
       throw 'Unknown transformation';

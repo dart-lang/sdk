@@ -298,6 +298,15 @@ public interface AnalysisServer {
   public void diagnostic_getDiagnostics(GetDiagnosticsConsumer consumer);
 
   /**
+   * {@code diagnostic.getServerPort}
+   *
+   * Return the port of the diagnostic web server. If the server is not running this call will start
+   * the server. If unable to start the diagnostic web server, this call will return an error of
+   * DEBUG_PORT_COULD_NOT_BE_OPENED.
+   */
+  public void diagnostic_getServerPort(GetServerPortConsumer consumer);
+
+  /**
    * {@code edit.format}
    *
    * Format the contents of a single file. The currently selected region of text is passed in so that

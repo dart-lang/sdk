@@ -21,6 +21,23 @@ namespace bin {
 // Forward declaration.
 class FileHandle;
 
+class MappedMemory {
+ public:
+  MappedMemory(void* address, intptr_t size) : address_(address), size_(size) {}
+  ~MappedMemory() { Unmap(); }
+
+  void* address() const { return address_; }
+  intptr_t size() const { return size_; }
+
+ private:
+  void Unmap();
+
+  void* address_;
+  intptr_t size_;
+
+  DISALLOW_COPY_AND_ASSIGN(MappedMemory);
+};
+
 class File : public ReferenceCounted<File> {
  public:
   enum FileOpenMode {
@@ -83,7 +100,7 @@ class File : public ReferenceCounted<File> {
     kReadOnly = 0,
     kReadExecute = 1,
   };
-  void* Map(MapType type, int64_t position, int64_t length);
+  MappedMemory* Map(MapType type, int64_t position, int64_t length);
 
   // Read/Write attempt to transfer num_bytes to/from buffer. It returns
   // the number of bytes read/written.

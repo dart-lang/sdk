@@ -10,6 +10,22 @@
 namespace dart {
 namespace bin {
 
+class AppSnapshot {
+ public:
+  virtual ~AppSnapshot() {}
+
+  virtual void SetBuffers(const uint8_t** vm_data_buffer,
+                          const uint8_t** vm_instructions_buffer,
+                          const uint8_t** isolate_data_buffer,
+                          const uint8_t** isolate_instructions_buffer) = 0;
+
+ protected:
+  AppSnapshot() {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(AppSnapshot);
+};
+
 class Snapshot {
  public:
   static void GenerateScript(const char* snapshot_filename);
@@ -17,11 +33,7 @@ class Snapshot {
   static void GenerateAppAOTAsBlobs(const char* snapshot_filename);
   static void GenerateAppAOTAsAssembly(const char* snapshot_filename);
 
-  static bool ReadAppSnapshot(const char* script_name,
-                              const uint8_t** vm_data_buffer,
-                              const uint8_t** vm_instructions_buffer,
-                              const uint8_t** isolate_data_buffer,
-                              const uint8_t** isolate_instructions_buffer);
+  static AppSnapshot* TryReadAppSnapshot(const char* script_name);
 
  private:
   DISALLOW_ALLOCATION();

@@ -29,11 +29,11 @@ main() async {
     await foo();
   } catch (e, st) {
     expect(st.toString(), stringContainsInOrder([
-        'thrower',
+        'thrower', '.dart:8',
         '<asynchronous suspension>',
-        'generator',
+        'generator', '.dart:17',
         '<asynchronous suspension>',
-        'foo',
+        'foo', '.dart:21',
         '<asynchronous suspension>',
         'main',
         ]));
@@ -67,9 +67,9 @@ main() async {
     await thrower();
   } catch(e, st) {
     expect(st.toString(), stringContainsInOrder([
-           'thrower',
+           'thrower', '.dart:8',
            '<asynchronous suspension>',
-           'main',
+           'main', '.dart:67',
            ]));
   }
 }

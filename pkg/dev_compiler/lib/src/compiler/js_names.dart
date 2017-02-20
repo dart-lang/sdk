@@ -6,6 +6,9 @@ import 'dart:collection';
 
 import '../js_ast/js_ast.dart';
 
+/// The ES6 name for the Dart SDK.  All dart:* libraries are in this module.
+const String dartSdkModule = 'dart_sdk';
+
 /// Unique instance for temporary variables. Will be renamed consistently
 /// across the entire file. Different instances will be named differently
 /// even if they have the same name, this makes it safe to use in code
@@ -107,6 +110,7 @@ class _FunctionScope {
 class _RenameVisitor extends VariableDeclarationVisitor {
   final pendingRenames = new Map<Object, Set<_FunctionScope>>();
 
+  final _FunctionScope globalScope = new _FunctionScope(null);
   final _FunctionScope rootScope = new _FunctionScope(null);
   _FunctionScope scope;
 
@@ -136,7 +140,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     }
     if (declScope == null) {
       // Assume it comes from the global scope.
-      declScope = rootScope;
+      declScope = globalScope;
       declScope.declared.add(id);
     }
     _markUsed(node, id, declScope);
@@ -146,7 +150,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     // If it needs rename, we can't add it to the used name set yet, instead we
     // will record all scopes it is visible in.
     Set<_FunctionScope> usedIn = null;
-    var rename = declScope != rootScope && needsRename(node);
+    var rename = declScope != globalScope && needsRename(node);
     if (rename) {
       usedIn = pendingRenames.putIfAbsent(id, () => new HashSet());
     }

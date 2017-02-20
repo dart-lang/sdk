@@ -3,6 +3,8 @@ server calls.
 
 This file is validated by `coverage_test.dart`.
 
+TODO(devoncarew): We should track analysis server notifications here as well.
+
 ## server domain
 - [x] server.getVersion
 - [x] server.shutdown
@@ -13,14 +15,14 @@ This file is validated by `coverage_test.dart`.
 - [x] analysis.getHover
 - [ ] analysis.getReachableSources
 - [ ] analysis.getLibraryDependencies
-- [ ] analysis.getNavigation
+- [x] analysis.getNavigation (failing - see #28799)
 - [x] analysis.reanalyze
-- [ ] analysis.setAnalysisRoots
+- [x] analysis.setAnalysisRoots
 - [ ] analysis.setGeneralSubscriptions
 - [ ] analysis.setPriorityFiles
-- [ ] analysis.setSubscriptions
+- [x] analysis.setSubscriptions
 - [x] analysis.updateContent
-- [ ] analysis.updateOptions
+- [x] analysis.updateOptions (failing - see #28800)
 
 ## completion domain
 - [x] completion.getSuggestions
@@ -33,19 +35,20 @@ This file is validated by `coverage_test.dart`.
 - [x] search.getTypeHierarchy
 
 ## edit domain
-- [ ] edit.format
+- [x] edit.format
 - [ ] edit.getAssists
 - [ ] edit.getAvailableRefactorings
 - [ ] edit.getFixes
 - [ ] edit.getRefactoring
-- [ ] edit.sortMembers
-- [ ] edit.organizeDirectives
+- [x] edit.sortMembers
+- [x] edit.organizeDirectives
 
 ## execution domain
 - [x] execution.createContext
 - [x] execution.deleteContext
 - [x] execution.mapUri
-- [ ] execution.setSubscriptions
+- [x] execution.setSubscriptions (failing - see #28806)
 
 ## diagnostic domain
-- [ ] diagnostic.getDiagnostics
+- [x] diagnostic.getDiagnostics
+- [x] diagnostic.getServerPort

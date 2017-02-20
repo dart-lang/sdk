@@ -19,6 +19,7 @@ testMain() {
 
 var tests = [
   hasStoppedAtBreakpoint,
+  markDartColonLibrariesDebuggable,
   stoppedAtLine(17),
   stepInto,
 

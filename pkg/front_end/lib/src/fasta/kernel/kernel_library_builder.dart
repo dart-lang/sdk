@@ -92,7 +92,7 @@ class KernelLibraryBuilder
   KernelTypeBuilder addMixinApplication(KernelTypeBuilder supertype,
       List<KernelTypeBuilder> mixins, int charOffset) {
     KernelTypeBuilder type = new KernelMixinApplicationBuilder(
-        supertype, mixins, charOffset, fileUri);
+        supertype, mixins, this, charOffset, fileUri);
     return addType(type);
   }
 
@@ -225,23 +225,6 @@ class KernelLibraryBuilder
     if (builder is SourceClassBuilder) {
       Class cls = builder.build(this);
       library.addClass(cls);
-      Class superclass = cls.superclass;
-      if (superclass != null && superclass.isMixinApplication) {
-        List<Class> mixinApplications = <Class>[];
-        mixinApplicationClasses.add(cls);
-        while (superclass != null && superclass.isMixinApplication) {
-          if (superclass.parent == null) {
-            mixinApplications.add(superclass);
-          }
-          superclass = superclass.superclass;
-        }
-        for (Class cls in mixinApplications.reversed) {
-          // TODO(ahe): Should be able to move this into the above loop as long
-          // as we don't care about matching dartk perfectly.
-          library.addClass(cls);
-          mixinApplicationClasses.add(cls);
-        }
-      }
     } else if (builder is KernelFieldBuilder) {
       library.addMember(builder.build(library)..isStatic = true);
     } else if (builder is KernelProcedureBuilder) {
@@ -364,7 +347,7 @@ class KernelLibraryBuilder
   }
 
   @override
-  void includePart(KernelLibraryBuilder part) {
+  void includePart(covariant KernelLibraryBuilder part) {
     super.includePart(part);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);

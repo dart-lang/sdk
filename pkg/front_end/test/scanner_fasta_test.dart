@@ -41,10 +41,8 @@ class ScannerTest_Fasta extends ScannerTestBase {
     // Dart, remove this flag.
     var scanner = new fasta.StringScanner(source, includeComments: true);
     var token = scanner.tokenize();
-    return toAnalyzerTokenStream(token,
-        (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-      listener.errors.add(new TestError(offset, errorCode, arguments));
-    });
+    return new ToAnalyzerTokenStreamConverter_WithListener(listener)
+        .convertTokens(token);
   }
 
   @override
@@ -375,10 +373,34 @@ class ScannerTest_Fasta_Roundtrip extends ScannerTest_Fasta_Base {
   fasta.Token scan(String source) {
     var scanner = new fasta.StringScanner(source, includeComments: true);
     var fastaTokenStream = scanner.tokenize();
-    var analyzerTokenStream = toAnalyzerTokenStream(fastaTokenStream,
-        (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-      fail('Unexpected error: $errorCode, $offset, $arguments');
-    });
+    var analyzerTokenStream = new ToAnalyzerTokenStreamConverter_NoErrors()
+        .convertTokens(fastaTokenStream);
     return fromAnalyzerTokenStream(analyzerTokenStream);
+  }
+}
+
+/// Override of [ToAnalyzerTokenStreamConverter] that verifies that there are no
+/// errors.
+class ToAnalyzerTokenStreamConverter_NoErrors
+    extends ToAnalyzerTokenStreamConverter {
+  @override
+  void reportError(
+      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+    fail('Unexpected error: $errorCode, $offset, $arguments');
+  }
+}
+
+/// Override of [ToAnalyzerTokenStreamConverter] that records errors in an
+/// [ErrorListener].
+class ToAnalyzerTokenStreamConverter_WithListener
+    extends ToAnalyzerTokenStreamConverter {
+  final ErrorListener _listener;
+
+  ToAnalyzerTokenStreamConverter_WithListener(this._listener);
+
+  @override
+  void reportError(
+      ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+    _listener.errors.add(new TestError(offset, errorCode, arguments));
   }
 }

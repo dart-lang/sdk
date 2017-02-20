@@ -229,6 +229,8 @@ class KernelTarget extends TargetImplementation {
       finishAllConstructors();
       loader.finishNativeMethods();
       transformMixinApplications();
+      // TODO(ahe): Don't call this from two different places.
+      setup_builtin_library.transformProgram(program);
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
       if (errors.isNotEmpty) {
         return handleInputError(uri, null, isFullProgram: true);
@@ -344,6 +346,9 @@ class KernelTarget extends TargetImplementation {
       if (cls != objectClass) {
         cls.supertype ??= objectClass.asRawSupertype;
       }
+      if (builder.isMixinApplication) {
+        cls.mixedInType = builder.mixedInType.buildSupertype();
+      }
     }
     ticker.logMs("Installed Object as implicit superclass");
   }
@@ -366,7 +371,7 @@ class KernelTarget extends TargetImplementation {
 
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
-    if (!builder.constructors.isEmpty) return;
+    if (builder.isMixinApplication || builder.constructors.isNotEmpty) return;
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
     if (builder is NamedMixinApplicationBuilder) {

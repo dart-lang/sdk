@@ -41,6 +41,12 @@ main() {
           line.substring('##'.length, line.length - 'domain'.length).trim())
       .toSet();
 
+  // Remove any ' (test failed)' suffixes.
+  lines = lines.map((String line) {
+    int index = line.indexOf('(');
+    return index != -1 ? line.substring(0, index).trim() : line;
+  }).toList();
+
   // - [ ] server.getVersion
   Set<String> allMembers = lines
       .where((line) => line.startsWith('- '))

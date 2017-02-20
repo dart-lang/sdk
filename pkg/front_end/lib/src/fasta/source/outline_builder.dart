@@ -210,6 +210,10 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder supertype = pop();
     List<TypeVariableBuilder> typeVariables = pop();
     String name = pop();
+    if (typeVariables != null && supertype is MixinApplicationBuilder) {
+      supertype.typeVariables = typeVariables;
+      supertype.subclassName = name;
+    }
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
     library.addClass(metadata, modifiers, name, typeVariables, supertype,
@@ -321,6 +325,10 @@ class OutlineBuilder extends UnhandledListener {
     TypeBuilder mixinApplication = pop();
     List<TypeVariableBuilder> typeVariables = pop();
     String name = pop();
+    if (typeVariables != null && mixinApplication is MixinApplicationBuilder) {
+      mixinApplication.typeVariables = typeVariables;
+      mixinApplication.subclassName = name;
+    }
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
     library.addNamedMixinApplication(

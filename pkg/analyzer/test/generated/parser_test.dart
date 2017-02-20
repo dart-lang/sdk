@@ -30,6 +30,7 @@ main() {
     defineReflectiveTests(NonErrorParserTest);
     defineReflectiveTests(RecoveryParserTest);
     defineReflectiveTests(SimpleParserTest);
+    defineReflectiveTests(TopLevelParserTest);
   });
 }
 
@@ -37,10 +38,33 @@ main() {
  * Abstract base class for parser tests, which does not make assumptions about
  * which parser is used.
  */
-abstract class AbstractParserTestCase {
+abstract class AbstractParserTestCase implements ParserTestHelpers {
   void set enableGenericMethodComments(bool value);
 
   void set enableNnbd(bool value);
+
+  /**
+   * Set a flag indicating whether the parser is to parse part-of directives
+   * that specify a URI rather than a library name.
+   */
+  void set enableUriInPartOf(bool value);
+
+  /**
+   * Get the parser used by the test.
+   *
+   * Caller must first invoke [createParser].
+   */
+  Parser get parser;
+
+  /**
+   * Asserts that no errors occurred during parsing.
+   */
+  void assertNoErrors();
+
+  /**
+   * Prepares to parse using tokens scanned from the given [content] string.
+   */
+  void createParser(String content);
 
   CompilationUnit parseCompilationUnit(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
@@ -49,8 +73,32 @@ abstract class AbstractParserTestCase {
   CompilationUnit parseCompilationUnitWithOptions(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
 
+  /**
+   * Parse the given source as a compilation unit.
+   *
+   * @param source the source to be parsed
+   * @param errorCodes the error codes of the errors that are expected to be found
+   * @return the compilation unit that was parsed
+   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
+   *           not match those that are expected, or if the result would have been `null`
+   */
+  CompilationUnit parseDirectives(String source,
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
+
   Expression parseExpression(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
+
+  /**
+   * Parses a single top level member of a compilation unit (other than a
+   * directive), including any comment and/or metadata that precedes it.
+   */
+  CompilationUnitMember parseFullCompilationUnitMember();
+
+  /**
+   * Parses a single top level directive, including any comment and/or metadata
+   * that precedes it.
+   */
+  Directive parseFullDirective();
 
   Statement parseStatement(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[],
@@ -1622,6 +1670,13 @@ class Foo {
     listener.assertErrorsWithCodes([ParserErrorCode.INVALID_COMMENT_REFERENCE]);
   }
 
+  void test_invalidConstructorName_with() {
+    createParser("C.with();");
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrorsWithCodes([ParserErrorCode.INVALID_CONSTRUCTOR_NAME]);
+  }
+
   void test_invalidHexEscape_invalidDigit() {
     createParser("'\\x0 a'");
     StringLiteral literal = parser.parseStringLiteral();
@@ -2942,7 +2997,9 @@ class NonErrorParserTest extends ParserTestCase {
  * Implementation of [AbstractParserTestCase] specialized for testing the
  * analyzer parser.
  */
-class ParserTestCase extends EngineTestCase implements AbstractParserTestCase {
+class ParserTestCase extends EngineTestCase
+    with ParserTestHelpers
+    implements AbstractParserTestCase {
   /**
    * A flag indicating whether parser is to parse function bodies.
    */
@@ -2995,6 +3052,11 @@ class ParserTestCase extends EngineTestCase implements AbstractParserTestCase {
    * This field is typically initialized by invoking [createParser].
    */
   Parser parser;
+
+  @override
+  void assertNoErrors() {
+    listener.assertNoErrors();
+  }
 
   /**
    * Create the [parser] and [listener] used by a test. The [parser] will be
@@ -3081,6 +3143,17 @@ class ParserTestCase extends EngineTestCase implements AbstractParserTestCase {
     return unit;
   }
 
+  @override
+  CompilationUnit parseDirectives(String source,
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
+    createParser(source);
+    CompilationUnit unit = parser.parseDirectives2();
+    expect(unit, isNotNull);
+    expect(unit.declarations, hasLength(0));
+    listener.assertErrorsWithCodes(errorCodes);
+    return unit;
+  }
+
   /**
    * Parse the given source as an expression.
    *
@@ -3106,10 +3179,7 @@ class ParserTestCase extends EngineTestCase implements AbstractParserTestCase {
   CompilationUnitMember parseFullCompilationUnitMember() =>
       parser.parseCompilationUnitMember(parser.parseCommentAndMetadata());
 
-  /**
-   * Parses a single top level directive, including any comment and/or metadata
-   * that precedes it.
-   */
+  @override
   Directive parseFullDirective() =>
       parser.parseDirective(parser.parseCommentAndMetadata());
 
@@ -3172,6 +3242,29 @@ class ParserTestCase extends EngineTestCase implements AbstractParserTestCase {
   void setUp() {
     super.setUp();
     parseFunctionBodies = true;
+  }
+}
+
+/**
+ * Helper methods that aid in parser tests.
+ *
+ * Intended to be mixed in to parser test case classes.
+ */
+class ParserTestHelpers {
+  void expectCommentText(Comment comment, String expectedText) {
+    expect(comment.beginToken, same(comment.endToken));
+    expect(comment.beginToken.lexeme, expectedText);
+  }
+
+  void expectDottedName(DottedName name, List<String> expectedComponents) {
+    int count = expectedComponents.length;
+    NodeList<SimpleIdentifier> components = name.components;
+    expect(components, hasLength(count));
+    for (int i = 0; i < count; i++) {
+      SimpleIdentifier component = components[i];
+      expect(component, isNotNull);
+      expect(component.name, expectedComponents[i]);
+    }
   }
 }
 
@@ -4491,49 +4584,6 @@ class SimpleParserTest extends ParserTestCase {
     expect(literal.isSynthetic, isTrue);
   }
 
-  void test_function_literal_allowed_at_toplevel() {
-    parseCompilationUnit("var x = () {};");
-  }
-
-  void
-      test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
-    parseCompilationUnit("class C { C() : a = f(() {}); }");
-  }
-
-  void
-      test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
-    parseCompilationUnit("class C { C() : a = x[() {}]; }");
-  }
-
-  void
-      test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
-    parseCompilationUnit("class C { C() : a = [() {}]; }");
-  }
-
-  void
-      test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
-    parseCompilationUnit("class C { C() : a = {'key': () {}}; }");
-  }
-
-  void
-      test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
-    parseCompilationUnit("class C { C() : a = (() {}); }");
-  }
-
-  void
-      test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
-    parseCompilationUnit("class C { C() : a = \"\${(){}}\"; }");
-  }
-
-  void test_import_as_show() {
-    parseCompilationUnit("import 'dart:math' as M show E;");
-  }
-
-  void test_import_show_hide() {
-    parseCompilationUnit(
-        "import 'import1_lib.dart' show hide, show hide ugly;");
-  }
-
   void test_isFunctionDeclaration_nameButNoReturn_block() {
     expect(_isFunctionDeclaration("f() {}"), isTrue);
   }
@@ -5734,229 +5784,6 @@ class SimpleParserTest extends ParserTestCase {
     expect(section.propertyName, isNotNull);
   }
 
-  void test_parseClassDeclaration_abstract() {
-    createParser('abstract class A {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassDeclaration>());
-    ClassDeclaration declaration = member;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.abstractKeyword, isNotNull);
-    expect(declaration.extendsClause, isNull);
-    expect(declaration.implementsClause, isNull);
-    expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
-  }
-
-  void test_parseClassDeclaration_empty() {
-    createParser('class A {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassDeclaration>());
-    ClassDeclaration declaration = member;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.abstractKeyword, isNull);
-    expect(declaration.extendsClause, isNull);
-    expect(declaration.implementsClause, isNull);
-    expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
-  }
-
-  void test_parseClassDeclaration_extends() {
-    createParser('class A extends B {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassDeclaration>());
-    ClassDeclaration declaration = member;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.abstractKeyword, isNull);
-    expect(declaration.extendsClause, isNotNull);
-    expect(declaration.implementsClause, isNull);
-    expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
-  }
-
-  void test_parseClassDeclaration_extendsAndImplements() {
-    createParser('class A extends B implements C {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassDeclaration>());
-    ClassDeclaration declaration = member;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.abstractKeyword, isNull);
-    expect(declaration.extendsClause, isNotNull);
-    expect(declaration.implementsClause, isNotNull);
-    expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
-  }
-
-  void test_parseClassDeclaration_extendsAndWith() {
-    createParser('class A extends B with C {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassDeclaration>());
-    ClassDeclaration declaration = member;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.abstractKeyword, isNull);
-    expect(declaration.classKeyword, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.typeParameters, isNull);
-    expect(declaration.extendsClause, isNotNull);
-    expect(declaration.withClause, isNotNull);
-    expect(declaration.implementsClause, isNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-  }
-
-  void test_parseClassDeclaration_extendsAndWithAndImplements() {
-    createParser('class A extends B with C implements D {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassDeclaration>());
-    ClassDeclaration declaration = member;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.abstractKeyword, isNull);
-    expect(declaration.classKeyword, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.typeParameters, isNull);
-    expect(declaration.extendsClause, isNotNull);
-    expect(declaration.withClause, isNotNull);
-    expect(declaration.implementsClause, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-  }
-
-  void test_parseClassDeclaration_implements() {
-    createParser('class A implements C {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassDeclaration>());
-    ClassDeclaration declaration = member;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.abstractKeyword, isNull);
-    expect(declaration.extendsClause, isNull);
-    expect(declaration.implementsClause, isNotNull);
-    expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
-  }
-
-  void test_parseClassDeclaration_native() {
-    createParser('class A native "nativeValue" {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassDeclaration>());
-    ClassDeclaration declaration = member;
-    NativeClause nativeClause = declaration.nativeClause;
-    expect(nativeClause, isNotNull);
-    expect(nativeClause.nativeKeyword, isNotNull);
-    expect(nativeClause.name.stringValue, "nativeValue");
-    expect(nativeClause.beginToken, same(nativeClause.nativeKeyword));
-    expect(nativeClause.endToken, same(nativeClause.name.endToken));
-  }
-
-  void test_parseClassDeclaration_nonEmpty() {
-    createParser('class A {var f;}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassDeclaration>());
-    ClassDeclaration declaration = member;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.abstractKeyword, isNull);
-    expect(declaration.extendsClause, isNull);
-    expect(declaration.implementsClause, isNull);
-    expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(1));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
-  }
-
-  void test_parseClassDeclaration_typeAlias_implementsC() {
-    createParser('class A = Object with B implements C;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassTypeAlias>());
-    ClassTypeAlias typeAlias = member;
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-    expect(typeAlias.withClause, isNotNull);
-    expect(typeAlias.implementsClause, isNotNull);
-    expect(typeAlias.implementsClause.implementsKeyword, isNotNull);
-    expect(typeAlias.implementsClause.interfaces.length, 1);
-    expect(typeAlias.semicolon, isNotNull);
-  }
-
-  void test_parseClassDeclaration_typeAlias_withB() {
-    createParser('class A = Object with B;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassTypeAlias>());
-    ClassTypeAlias typeAlias = member;
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-    expect(typeAlias.withClause, isNotNull);
-    expect(typeAlias.withClause.withKeyword, isNotNull);
-    expect(typeAlias.withClause.mixinTypes.length, 1);
-    expect(typeAlias.implementsClause, isNull);
-    expect(typeAlias.semicolon, isNotNull);
-  }
-
-  void test_parseClassDeclaration_typeParameters() {
-    createParser('class A<B> {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassDeclaration>());
-    ClassDeclaration declaration = member;
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.abstractKeyword, isNull);
-    expect(declaration.extendsClause, isNull);
-    expect(declaration.implementsClause, isNull);
-    expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNotNull);
-    expect(declaration.typeParameters.typeParameters, hasLength(1));
-  }
-
   void test_parseClassMember_constructor_withInitializers() {
     // TODO(brianwilkerson) Test other kinds of class members: fields, getters
     // and setters.
@@ -6112,7 +5939,6 @@ class SimpleParserTest extends ParserTestCase {
     expect(variable.name, isNotNull);
   }
 
-  @failingTest
   void test_parseClassMember_getter_functionType() {
     createParser('int Function(int) get g {}');
     ClassMember member = parser.parseClassMember('C');
@@ -6442,7 +6268,6 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.body, isNotNull);
   }
 
-  @failingTest
   void test_parseClassMember_method_returnType_functionType() {
     createParser('int Function(String) m() {}');
     ClassMember member = parser.parseClassMember('C');
@@ -6558,7 +6383,6 @@ class SimpleParserTest extends ParserTestCase {
     expect(method.body, isNotNull);
   }
 
-  @failingTest
   void test_parseClassMember_operator_functionType() {
     createParser('int Function() operator +(int Function() f) {}');
     ClassMember member = parser.parseClassMember('C');
@@ -7260,499 +7084,6 @@ void''');
     expect(reference.offset, 15);
   }
 
-  void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
-    createParser('abstract<dynamic> _abstract = new abstract.A();');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-    expect(unit.declarations, hasLength(1));
-  }
-
-  void test_parseCompilationUnit_builtIn_asFunctionName() {
-    parseCompilationUnit('abstract(x) => 0;');
-    parseCompilationUnit('as(x) => 0;');
-    parseCompilationUnit('dynamic(x) => 0;');
-    parseCompilationUnit('export(x) => 0;');
-    parseCompilationUnit('external(x) => 0;');
-    parseCompilationUnit('factory(x) => 0;');
-    parseCompilationUnit('get(x) => 0;');
-    parseCompilationUnit('implements(x) => 0;');
-    parseCompilationUnit('import(x) => 0;');
-    parseCompilationUnit('library(x) => 0;');
-    parseCompilationUnit('operator(x) => 0;');
-    parseCompilationUnit('part(x) => 0;');
-    parseCompilationUnit('set(x) => 0;');
-    parseCompilationUnit('static(x) => 0;');
-    parseCompilationUnit('typedef(x) => 0;');
-  }
-
-  void test_parseCompilationUnit_directives_multiple() {
-    createParser("library l;\npart 'a.dart';");
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(2));
-    expect(unit.declarations, hasLength(0));
-  }
-
-  void test_parseCompilationUnit_directives_single() {
-    createParser('library l;');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(1));
-    expect(unit.declarations, hasLength(0));
-  }
-
-  void test_parseCompilationUnit_empty() {
-    createParser('');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-    expect(unit.declarations, hasLength(0));
-  }
-
-  void test_parseCompilationUnit_exportAsPrefix() {
-    createParser('export.A _export = new export.A();');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-    expect(unit.declarations, hasLength(1));
-  }
-
-  void test_parseCompilationUnit_exportAsPrefix_parameterized() {
-    createParser('export<dynamic> _export = new export.A();');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-    expect(unit.declarations, hasLength(1));
-  }
-
-  void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
-    createParser('operator<dynamic> _operator = new operator.A();');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-    expect(unit.declarations, hasLength(1));
-  }
-
-  void test_parseCompilationUnit_script() {
-    createParser('#! /bin/dart');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
-    expect(unit.scriptTag, isNotNull);
-    expect(unit.directives, hasLength(0));
-    expect(unit.declarations, hasLength(0));
-  }
-
-  void test_parseCompilationUnit_skipFunctionBody_withInterpolation() {
-    ParserTestCase.parseFunctionBodies = false;
-    createParser('f() { "\${n}"; }');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
-    expect(unit.scriptTag, isNull);
-    expect(unit.declarations, hasLength(1));
-  }
-
-  void test_parseCompilationUnit_topLevelDeclaration() {
-    createParser('class A {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-    expect(unit.declarations, hasLength(1));
-  }
-
-  void test_parseCompilationUnit_typedefAsPrefix() {
-    createParser('typedef.A _typedef = new typedef.A();');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    listener.assertNoErrors();
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-    expect(unit.declarations, hasLength(1));
-  }
-
-  void test_parseCompilationUnitMember_abstractAsPrefix() {
-    createParser('abstract.A _abstract = new abstract.A();');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
-    TopLevelVariableDeclaration declaration = member;
-    expect(declaration.semicolon, isNotNull);
-    expect(declaration.variables, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_class() {
-    createParser('class A {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassDeclaration>());
-    ClassDeclaration declaration = member;
-    expect(declaration.name.name, "A");
-    expect(declaration.members, hasLength(0));
-  }
-
-  void test_parseCompilationUnitMember_classTypeAlias() {
-    createParser('abstract class A = B with C;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassTypeAlias>());
-    ClassTypeAlias declaration = member;
-    expect(declaration.name.name, "A");
-    expect(declaration.abstractKeyword, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_constVariable() {
-    createParser('const int x = 0;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
-    TopLevelVariableDeclaration declaration = member;
-    expect(declaration.semicolon, isNotNull);
-    expect(declaration.variables, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_finalVariable() {
-    createParser('final x = 0;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
-    TopLevelVariableDeclaration declaration = member;
-    expect(declaration.semicolon, isNotNull);
-    expect(declaration.variables, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_function_external_noType() {
-    createParser('external f();');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.externalKeyword, isNotNull);
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNull);
-  }
-
-  void test_parseCompilationUnitMember_function_external_type() {
-    createParser('external int f();');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.externalKeyword, isNotNull);
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNull);
-  }
-
-  void test_parseCompilationUnitMember_function_generic_noReturnType() {
-    createParser('f<E>() {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.returnType, isNull);
-    expect(declaration.functionExpression.typeParameters, isNotNull);
-  }
-
-  void
-      test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
-    createParser('f<@a E>() {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.returnType, isNull);
-    expect(declaration.functionExpression.typeParameters, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_function_generic_returnType() {
-    createParser('E f<E>() {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.returnType, isNotNull);
-    expect(declaration.functionExpression.typeParameters, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_function_generic_void() {
-    createParser('void f<T>(T t) {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNull);
-  }
-
-  void test_parseCompilationUnitMember_function_noType() {
-    createParser('f() {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNull);
-  }
-
-  void test_parseCompilationUnitMember_function_type() {
-    createParser('int f() {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNull);
-  }
-
-  void test_parseCompilationUnitMember_function_void() {
-    createParser('void f() {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.returnType, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_getter_external_noType() {
-    createParser('external get p;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.externalKeyword, isNotNull);
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_getter_external_type() {
-    createParser('external int get p;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.externalKeyword, isNotNull);
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_getter_noType() {
-    createParser('get p => 0;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_getter_type() {
-    createParser('int get p => 0;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_setter_external_noType() {
-    createParser('external set p(v);');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.externalKeyword, isNotNull);
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_setter_external_type() {
-    createParser('external void set p(int v);');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.externalKeyword, isNotNull);
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_setter_noType() {
-    createParser('set p(v) {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_setter_type() {
-    createParser('void set p(int v) {}');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionDeclaration>());
-    FunctionDeclaration declaration = member;
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNotNull);
-    expect(declaration.returnType, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_typeAlias_abstract() {
-    createParser('abstract class C = S with M;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassTypeAlias>());
-    ClassTypeAlias typeAlias = member;
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name.name, "C");
-    expect(typeAlias.typeParameters, isNull);
-    expect(typeAlias.equals, isNotNull);
-    expect(typeAlias.abstractKeyword, isNotNull);
-    expect(typeAlias.superclass.name.name, "S");
-    expect(typeAlias.withClause, isNotNull);
-    expect(typeAlias.implementsClause, isNull);
-    expect(typeAlias.semicolon, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_typeAlias_generic() {
-    createParser('class C<E> = S<E> with M<E> implements I<E>;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassTypeAlias>());
-    ClassTypeAlias typeAlias = member;
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name.name, "C");
-    expect(typeAlias.typeParameters.typeParameters, hasLength(1));
-    expect(typeAlias.equals, isNotNull);
-    expect(typeAlias.abstractKeyword, isNull);
-    expect(typeAlias.superclass.name.name, "S");
-    expect(typeAlias.withClause, isNotNull);
-    expect(typeAlias.implementsClause, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_typeAlias_implements() {
-    createParser('class C = S with M implements I;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassTypeAlias>());
-    ClassTypeAlias typeAlias = member;
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name.name, "C");
-    expect(typeAlias.typeParameters, isNull);
-    expect(typeAlias.equals, isNotNull);
-    expect(typeAlias.abstractKeyword, isNull);
-    expect(typeAlias.superclass.name.name, "S");
-    expect(typeAlias.withClause, isNotNull);
-    expect(typeAlias.implementsClause, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_typeAlias_noImplements() {
-    createParser('class C = S with M;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<ClassTypeAlias>());
-    ClassTypeAlias typeAlias = member;
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name.name, "C");
-    expect(typeAlias.typeParameters, isNull);
-    expect(typeAlias.equals, isNotNull);
-    expect(typeAlias.abstractKeyword, isNull);
-    expect(typeAlias.superclass.name.name, "S");
-    expect(typeAlias.withClause, isNotNull);
-    expect(typeAlias.implementsClause, isNull);
-    expect(typeAlias.semicolon, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_typedef() {
-    createParser('typedef F();');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<FunctionTypeAlias>());
-    FunctionTypeAlias typeAlias = member;
-    expect(typeAlias.name.name, "F");
-    expect(typeAlias.parameters.parameters, hasLength(0));
-  }
-
-  void test_parseCompilationUnitMember_variable() {
-    createParser('var x = 0;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
-    TopLevelVariableDeclaration declaration = member;
-    expect(declaration.semicolon, isNotNull);
-    expect(declaration.variables, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_variableGet() {
-    createParser('String get = null;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
-    TopLevelVariableDeclaration declaration = member;
-    expect(declaration.semicolon, isNotNull);
-    expect(declaration.variables, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_variableSet() {
-    createParser('String set = null;');
-    CompilationUnitMember member = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(member);
-    listener.assertNoErrors();
-    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
-    TopLevelVariableDeclaration declaration = member;
-    expect(declaration.semicolon, isNotNull);
-    expect(declaration.variables, isNotNull);
-  }
-
   void test_parseConditionalExpression() {
     createParser('x ? y : z');
     ConditionalExpression expression = parser.parseConditionalExpression();
@@ -7772,7 +7103,7 @@ void''');
     listener.assertNoErrors();
     expect(configuration.ifKeyword, isNotNull);
     expect(configuration.leftParenthesis, isNotNull);
-    _expectDottedName(configuration.name, ["a", "b"]);
+    expectDottedName(configuration.name, ["a", "b"]);
     expect(configuration.equalToken, isNull);
     expect(configuration.value, isNull);
     expect(configuration.rightParenthesis, isNotNull);
@@ -7786,7 +7117,7 @@ void''');
     listener.assertNoErrors();
     expect(configuration.ifKeyword, isNotNull);
     expect(configuration.leftParenthesis, isNotNull);
-    _expectDottedName(configuration.name, ["a"]);
+    expectDottedName(configuration.name, ["a"]);
     expect(configuration.equalToken, isNull);
     expect(configuration.value, isNull);
     expect(configuration.rightParenthesis, isNotNull);
@@ -7800,7 +7131,7 @@ void''');
     listener.assertNoErrors();
     expect(configuration.ifKeyword, isNotNull);
     expect(configuration.leftParenthesis, isNotNull);
-    _expectDottedName(configuration.name, ["a", "b"]);
+    expectDottedName(configuration.name, ["a", "b"]);
     expect(configuration.equalToken, isNotNull);
     expect(configuration.value, isNotNull);
     expect(configuration.rightParenthesis, isNotNull);
@@ -7814,7 +7145,7 @@ void''');
     listener.assertNoErrors();
     expect(configuration.ifKeyword, isNotNull);
     expect(configuration.leftParenthesis, isNotNull);
-    _expectDottedName(configuration.name, ["a"]);
+    expectDottedName(configuration.name, ["a"]);
     expect(configuration.equalToken, isNotNull);
     expect(configuration.value, isNotNull);
     expect(configuration.rightParenthesis, isNotNull);
@@ -8049,115 +7380,6 @@ void''');
     expect(statement.semicolon, isNotNull);
   }
 
-  void test_parseDirective_export() {
-    createParser("export 'lib/lib.dart';");
-    Directive directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive, new isInstanceOf<ExportDirective>());
-    ExportDirective exportDirective = directive;
-    expect(exportDirective.keyword, isNotNull);
-    expect(exportDirective.uri, isNotNull);
-    expect(exportDirective.combinators, hasLength(0));
-    expect(exportDirective.semicolon, isNotNull);
-  }
-
-  void test_parseDirective_import() {
-    createParser("import 'lib/lib.dart';");
-    Directive directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive, new isInstanceOf<ImportDirective>());
-    ImportDirective importDirective = directive;
-    expect(importDirective.keyword, isNotNull);
-    expect(importDirective.uri, isNotNull);
-    expect(importDirective.asKeyword, isNull);
-    expect(importDirective.prefix, isNull);
-    expect(importDirective.combinators, hasLength(0));
-    expect(importDirective.semicolon, isNotNull);
-  }
-
-  void test_parseDirective_library() {
-    createParser("library l;");
-    Directive directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive, new isInstanceOf<LibraryDirective>());
-    LibraryDirective libraryDirective = directive;
-    expect(libraryDirective.libraryKeyword, isNotNull);
-    expect(libraryDirective.name, isNotNull);
-    expect(libraryDirective.semicolon, isNotNull);
-  }
-
-  void test_parseDirective_part() {
-    createParser("part 'lib/lib.dart';");
-    Directive directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive, new isInstanceOf<PartDirective>());
-    PartDirective partDirective = directive;
-    expect(partDirective.partKeyword, isNotNull);
-    expect(partDirective.uri, isNotNull);
-    expect(partDirective.semicolon, isNotNull);
-  }
-
-  void test_parseDirective_partOf() {
-    createParser("part of l;");
-    Directive directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive, new isInstanceOf<PartOfDirective>());
-    PartOfDirective partOfDirective = directive;
-    expect(partOfDirective.partKeyword, isNotNull);
-    expect(partOfDirective.ofKeyword, isNotNull);
-    expect(partOfDirective.libraryName, isNotNull);
-    expect(partOfDirective.semicolon, isNotNull);
-  }
-
-  void test_parseDirectives_complete() {
-    CompilationUnit unit =
-        _parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
-    expect(unit.scriptTag, isNotNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_empty() {
-    CompilationUnit unit = _parseDirectives("");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-  }
-
-  void test_parseDirectives_mixed() {
-    CompilationUnit unit =
-        _parseDirectives("library l; class A {} part 'foo.dart';");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_multiple() {
-    CompilationUnit unit = _parseDirectives("library l;\npart 'a.dart';");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(2));
-  }
-
-  void test_parseDirectives_script() {
-    CompilationUnit unit = _parseDirectives("#! /bin/dart");
-    expect(unit.scriptTag, isNotNull);
-    expect(unit.directives, hasLength(0));
-  }
-
-  void test_parseDirectives_single() {
-    CompilationUnit unit = _parseDirectives("library l;");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_topLevelDeclaration() {
-    CompilationUnit unit = _parseDirectives("class A {}");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-  }
-
   void test_parseDocumentationComment_block() {
     createParser('/** */ class');
     Comment comment = parser
@@ -8215,7 +7437,7 @@ void''');
     DottedName name = parser.parseDottedName();
     expectNotNullIfNoErrors(name);
     listener.assertNoErrors();
-    _expectDottedName(name, ["a", "b", "c"]);
+    expectDottedName(name, ["a", "b", "c"]);
   }
 
   void test_parseDottedName_single() {
@@ -8223,7 +7445,7 @@ void''');
     DottedName name = parser.parseDottedName();
     expectNotNullIfNoErrors(name);
     listener.assertNoErrors();
-    _expectDottedName(name, ["a"]);
+    expectDottedName(name, ["a"]);
   }
 
   void test_parseEmptyStatement() {
@@ -8232,45 +7454,6 @@ void''');
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
     expect(statement.semicolon, isNotNull);
-  }
-
-  void test_parseEnumDeclaration_one() {
-    createParser("enum E {ONE}");
-    EnumDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.enumKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.constants, hasLength(1));
-    expect(declaration.rightBracket, isNotNull);
-  }
-
-  void test_parseEnumDeclaration_trailingComma() {
-    createParser("enum E {ONE,}");
-    EnumDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.enumKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.constants, hasLength(1));
-    expect(declaration.rightBracket, isNotNull);
-  }
-
-  void test_parseEnumDeclaration_two() {
-    createParser("enum E {ONE, TWO}");
-    EnumDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.enumKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.constants, hasLength(2));
-    expect(declaration.rightBracket, isNotNull);
   }
 
   void test_parseEqualityExpression_normal() {
@@ -8293,88 +7476,6 @@ void''');
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.EQ_EQ);
     expect(expression.rightOperand, isNotNull);
-  }
-
-  void test_parseExportDirective_configuration_multiple() {
-    createParser("export 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
-    ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.configurations, hasLength(2));
-    _expectDottedName(directive.configurations[0].name, ['a']);
-    _expectDottedName(directive.configurations[1].name, ['c']);
-    expect(directive.combinators, hasLength(0));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseExportDirective_configuration_single() {
-    createParser("export 'lib/lib.dart' if (a.b == 'c.dart') '';");
-    ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.configurations, hasLength(1));
-    _expectDottedName(directive.configurations[0].name, ['a', 'b']);
-    expect(directive.combinators, hasLength(0));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseExportDirective_hide() {
-    createParser("export 'lib/lib.dart' hide A, B;");
-    ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.combinators, hasLength(1));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseExportDirective_hide_show() {
-    createParser("export 'lib/lib.dart' hide A show B;");
-    ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.combinators, hasLength(2));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseExportDirective_noCombinator() {
-    createParser("export 'lib/lib.dart';");
-    ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.combinators, hasLength(0));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseExportDirective_show() {
-    createParser("export 'lib/lib.dart' show A, B;");
-    ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.combinators, hasLength(1));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseExportDirective_show_hide() {
-    createParser("export 'lib/lib.dart' show B hide A;");
-    ExportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.combinators, hasLength(2));
-    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseExpression_assign() {
@@ -8887,7 +7988,6 @@ void''');
     expect(defaultParameter.kind, kind);
   }
 
-  @failingTest
   void test_parseFormalParameter_covariant_type_function() {
     ParameterKind kind = ParameterKind.REQUIRED;
     createParser('covariant String Function(int) a');
@@ -9123,7 +8223,6 @@ void''');
     expect(defaultParameter.kind, kind);
   }
 
-  @failingTest
   void test_parseFormalParameter_type_function() {
     ParameterKind kind = ParameterKind.REQUIRED;
     createParser('String Function(int) a');
@@ -9928,87 +9027,6 @@ void''');
     expect(functionBody, new isInstanceOf<EmptyFunctionBody>());
   }
 
-  void test_parseFunctionDeclaration_function() {
-    createParser('/// Doc\nT f() {}');
-    FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
-    _expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
-    expect(declaration.name, isNotNull);
-    FunctionExpression expression = declaration.functionExpression;
-    expect(expression, isNotNull);
-    expect(expression.body, isNotNull);
-    expect(expression.typeParameters, isNull);
-    expect(expression.parameters, isNotNull);
-    expect(declaration.propertyKeyword, isNull);
-  }
-
-  void test_parseFunctionDeclaration_functionWithTypeParameters() {
-    createParser('/// Doc\nT f<E>() {}');
-    FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
-    _expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
-    expect(declaration.name, isNotNull);
-    FunctionExpression expression = declaration.functionExpression;
-    expect(expression, isNotNull);
-    expect(expression.body, isNotNull);
-    expect(expression.typeParameters, isNotNull);
-    expect(expression.parameters, isNotNull);
-    expect(declaration.propertyKeyword, isNull);
-  }
-
-  void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
-    enableGenericMethodComments = true;
-    createParser('/// Doc\nT f/*<E>*/() {}');
-    FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
-    _expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
-    expect(declaration.name, isNotNull);
-    FunctionExpression expression = declaration.functionExpression;
-    expect(expression, isNotNull);
-    expect(expression.body, isNotNull);
-    expect(expression.typeParameters, isNotNull);
-    expect(expression.parameters, isNotNull);
-    expect(declaration.propertyKeyword, isNull);
-  }
-
-  void test_parseFunctionDeclaration_getter() {
-    createParser('/// Doc\nT get p => 0;');
-    FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
-    _expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
-    expect(declaration.name, isNotNull);
-    FunctionExpression expression = declaration.functionExpression;
-    expect(expression, isNotNull);
-    expect(expression.body, isNotNull);
-    expect(expression.typeParameters, isNull);
-    expect(expression.parameters, isNull);
-    expect(declaration.propertyKeyword, isNotNull);
-  }
-
-  void test_parseFunctionDeclaration_setter() {
-    createParser('/// Doc\nT set p(v) {}');
-    FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(declaration);
-    listener.assertNoErrors();
-    _expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
-    expect(declaration.name, isNotNull);
-    FunctionExpression expression = declaration.functionExpression;
-    expect(expression, isNotNull);
-    expect(expression.body, isNotNull);
-    expect(expression.typeParameters, isNull);
-    expect(expression.parameters, isNotNull);
-    expect(declaration.propertyKeyword, isNotNull);
-  }
-
   void test_parseFunctionDeclarationStatement() {
     createParser('void f(int p) => p * 2;');
     FunctionDeclarationStatement statement =
@@ -10091,41 +9109,13 @@ void''');
     expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
   }
 
-  @failingTest
-  void test_parseGenericTypeAlias_noTypeParameters() {
-    createParser('F = int Function(int);');
-    GenericTypeAlias alias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(alias);
-    listener.assertNoErrors();
-    expect(alias.name, isNotNull);
-    expect(alias.name.name, 'F');
-    expect(alias.typeParameters, isNull);
-    expect(alias.equals, isNotNull);
-    expect(alias.functionType, isNotNull);
-    expect(alias.semicolon, isNotNull);
-  }
-
-  @failingTest
-  void test_parseGenericTypeAlias_typeParameters() {
-    createParser('F<T> = T Function(T);');
-    GenericTypeAlias alias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(alias);
-    listener.assertNoErrors();
-    expect(alias.name, isNotNull);
-    expect(alias.name.name, 'F');
-    expect(alias.typeParameters, isNotNull);
-    expect(alias.equals, isNotNull);
-    expect(alias.functionType, isNotNull);
-    expect(alias.semicolon, isNotNull);
-  }
-
   void test_parseGetter_nonStatic() {
     createParser('/// Doc\nT get a;');
     MethodDeclaration method = parser.parseClassMember('C');
     expectNotNullIfNoErrors(method);
     listener.assertNoErrors();
     expect(method.body, isNotNull);
-    _expectCommentText(method.documentationComment, '/// Doc');
+    expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.name, isNotNull);
@@ -10141,7 +9131,7 @@ void''');
     expectNotNullIfNoErrors(method);
     listener.assertNoErrors();
     expect(method.body, isNotNull);
-    _expectCommentText(method.documentationComment, '/// Doc');
+    expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword.lexeme, 'static');
     expect(method.name, isNotNull);
@@ -10242,143 +9232,12 @@ void''');
     expect(clause.implementsKeyword, isNotNull);
   }
 
-  void test_parseImportDirective_configuration_multiple() {
-    createParser("import 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
-    ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.configurations, hasLength(2));
-    _expectDottedName(directive.configurations[0].name, ['a']);
-    _expectDottedName(directive.configurations[1].name, ['c']);
-    expect(directive.deferredKeyword, isNull);
-    expect(directive.asKeyword, isNull);
-    expect(directive.prefix, isNull);
-    expect(directive.combinators, hasLength(0));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseImportDirective_configuration_single() {
-    createParser("import 'lib/lib.dart' if (a.b == 'c.dart') '';");
-    ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.configurations, hasLength(1));
-    _expectDottedName(directive.configurations[0].name, ['a', 'b']);
-    expect(directive.deferredKeyword, isNull);
-    expect(directive.asKeyword, isNull);
-    expect(directive.prefix, isNull);
-    expect(directive.combinators, hasLength(0));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseImportDirective_deferred() {
-    createParser("import 'lib/lib.dart' deferred as a;");
-    ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.deferredKeyword, isNotNull);
-    expect(directive.asKeyword, isNotNull);
-    expect(directive.prefix, isNotNull);
-    expect(directive.combinators, hasLength(0));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseImportDirective_hide() {
-    createParser("import 'lib/lib.dart' hide A, B;");
-    ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.deferredKeyword, isNull);
-    expect(directive.asKeyword, isNull);
-    expect(directive.prefix, isNull);
-    expect(directive.combinators, hasLength(1));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseImportDirective_noCombinator() {
-    createParser("import 'lib/lib.dart';");
-    ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.deferredKeyword, isNull);
-    expect(directive.asKeyword, isNull);
-    expect(directive.prefix, isNull);
-    expect(directive.combinators, hasLength(0));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseImportDirective_prefix() {
-    createParser("import 'lib/lib.dart' as a;");
-    ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.deferredKeyword, isNull);
-    expect(directive.asKeyword, isNotNull);
-    expect(directive.prefix, isNotNull);
-    expect(directive.combinators, hasLength(0));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseImportDirective_prefix_hide_show() {
-    createParser("import 'lib/lib.dart' as a hide A show B;");
-    ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.deferredKeyword, isNull);
-    expect(directive.asKeyword, isNotNull);
-    expect(directive.prefix, isNotNull);
-    expect(directive.combinators, hasLength(2));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseImportDirective_prefix_show_hide() {
-    createParser("import 'lib/lib.dart' as a show B hide A;");
-    ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.deferredKeyword, isNull);
-    expect(directive.asKeyword, isNotNull);
-    expect(directive.prefix, isNotNull);
-    expect(directive.combinators, hasLength(2));
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parseImportDirective_show() {
-    createParser("import 'lib/lib.dart' show A, B;");
-    ImportDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.keyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.deferredKeyword, isNull);
-    expect(directive.asKeyword, isNull);
-    expect(directive.prefix, isNull);
-    expect(directive.combinators, hasLength(1));
-    expect(directive.semicolon, isNotNull);
-  }
-
   void test_parseInitializedIdentifierList_type() {
     createParser("/// Doc\nstatic T a = 1, b, c = 3;");
     FieldDeclaration declaration = parser.parseClassMember('C');
     expectNotNullIfNoErrors(declaration);
     listener.assertNoErrors();
-    _expectCommentText(declaration.documentationComment, '/// Doc');
+    expectCommentText(declaration.documentationComment, '/// Doc');
     VariableDeclarationList fields = declaration.fields;
     expect(fields, isNotNull);
     expect(fields.keyword, isNull);
@@ -10393,7 +9252,7 @@ void''');
     FieldDeclaration declaration = parser.parseClassMember('C');
     expectNotNullIfNoErrors(declaration);
     listener.assertNoErrors();
-    _expectCommentText(declaration.documentationComment, '/// Doc');
+    expectCommentText(declaration.documentationComment, '/// Doc');
     VariableDeclarationList fields = declaration.fields;
     expect(fields, isNotNull);
     expect(fields.keyword.lexeme, 'var');
@@ -10646,16 +9505,6 @@ void''');
     NodeList<TypeAnnotation> arguments = type.typeArguments.arguments;
     expect(arguments, hasLength(1));
     expect((arguments[0] as TypeName).question, isNotNull);
-  }
-
-  void test_parseLibraryDirective() {
-    createParser('library l;');
-    LibraryDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.libraryKeyword, isNotNull);
-    expect(directive.name, isNotNull);
-    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseLibraryIdentifier_multiple() {
@@ -11171,6 +10020,13 @@ void''');
     expect(expressionStatement.expression, isNotNull);
   }
 
+  void test_parseNonLabeledStatement_variableDeclaration_final_namedFunction() {
+    createParser('final int Function = 0;');
+    Statement statement = parser.parseNonLabeledStatement();
+    expectNotNullIfNoErrors(statement);
+    listener.assertNoErrors();
+  }
+
   void test_parseNormalFormalParameter_field_const_noType() {
     createParser('const this.a)');
     NormalFormalParameter parameter = parser.parseNormalFormalParameter();
@@ -11615,7 +10471,7 @@ void''');
     expectNotNullIfNoErrors(method);
     listener.assertNoErrors();
     expect(method.body, isNotNull);
-    _expectCommentText(method.documentationComment, '/// Doc');
+    expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.name, isNotNull);
@@ -11628,38 +10484,6 @@ void''');
 
   void test_parseOptionalReturnType() {
     // TODO(brianwilkerson) Implement tests for this method.
-  }
-
-  void test_parsePartDirective() {
-    createParser("part 'lib/lib.dart';");
-    PartDirective directive = parseFullDirective();
-    expectNotNullIfNoErrors(directive);
-    listener.assertNoErrors();
-    expect(directive.partKeyword, isNotNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parsePartOfDirective_name() {
-    enableUriInPartOf = true;
-    createParser("part of l;");
-    PartOfDirective directive = parseFullDirective();
-    expect(directive.partKeyword, isNotNull);
-    expect(directive.ofKeyword, isNotNull);
-    expect(directive.libraryName, isNotNull);
-    expect(directive.uri, isNull);
-    expect(directive.semicolon, isNotNull);
-  }
-
-  void test_parsePartOfDirective_uri() {
-    enableUriInPartOf = true;
-    createParser("part of 'lib.dart';");
-    PartOfDirective directive = parseFullDirective();
-    expect(directive.partKeyword, isNotNull);
-    expect(directive.ofKeyword, isNotNull);
-    expect(directive.libraryName, isNull);
-    expect(directive.uri, isNotNull);
-    expect(directive.semicolon, isNotNull);
   }
 
   void test_parsePostfixExpression_decrement() {
@@ -12124,7 +10948,6 @@ void''');
     expect(invocation.period, isNull);
   }
 
-  @failingTest
   void test_parseRelationalExpression_as_functionType_noReturnType() {
     createParser('x as Function(int)');
     Expression expression = parser.parseRelationalExpression();
@@ -12137,7 +10960,6 @@ void''');
     expect(asExpression.type, new isInstanceOf<GenericFunctionType>());
   }
 
-  @failingTest
   void test_parseRelationalExpression_as_functionType_returnType() {
     createParser('x as String Function(int)');
     Expression expression = parser.parseRelationalExpression();
@@ -12293,7 +11115,6 @@ void''');
     expect(statement.semicolon, isNotNull);
   }
 
-  @failingTest
   void test_parseReturnType_function() {
     createParser('A<B> Function<B>(B)');
     GenericFunctionType type = parser.parseReturnType(false);
@@ -12328,7 +11149,7 @@ void''');
     expectNotNullIfNoErrors(method);
     listener.assertNoErrors();
     expect(method.body, isNotNull);
-    _expectCommentText(method.documentationComment, '/// Doc');
+    expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
     expect(method.name, isNotNull);
@@ -12345,7 +11166,7 @@ void''');
     expectNotNullIfNoErrors(method);
     listener.assertNoErrors();
     expect(method.body, isNotNull);
-    _expectCommentText(method.documentationComment, '/// Doc');
+    expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword.lexeme, 'static');
     expect(method.name, isNotNull);
@@ -13126,290 +11947,6 @@ void''');
     expect(statement.finallyBlock, isNotNull);
   }
 
-  void test_parseTypeAlias_function_noParameters() {
-    createParser('typedef bool F();');
-    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.parameters, isNotNull);
-    expect(typeAlias.returnType, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-  }
-
-  void test_parseTypeAlias_function_noReturnType() {
-    createParser('typedef F();');
-    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.parameters, isNotNull);
-    expect(typeAlias.returnType, isNull);
-    expect(typeAlias.semicolon, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-  }
-
-  void test_parseTypeAlias_function_parameterizedReturnType() {
-    createParser('typedef A<B> F();');
-    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.parameters, isNotNull);
-    expect(typeAlias.returnType, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-  }
-
-  void test_parseTypeAlias_function_parameters() {
-    createParser('typedef bool F(Object value);');
-    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.parameters, isNotNull);
-    expect(typeAlias.returnType, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-  }
-
-  void test_parseTypeAlias_function_typeParameters() {
-    createParser('typedef bool F<E>();');
-    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.parameters, isNotNull);
-    expect(typeAlias.returnType, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-    expect(typeAlias.typeParameters, isNotNull);
-  }
-
-  void test_parseTypeAlias_function_voidReturnType() {
-    createParser('typedef void F();');
-    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.parameters, isNotNull);
-    expect(typeAlias.returnType, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-  }
-
-  @failingTest
-  void test_parseTypeAlias_genericFunction_noParameters() {
-    createParser('typedef F = bool Function();');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.typeParameters, isNull);
-  }
-
-  @failingTest
-  void test_parseTypeAlias_genericFunction_noReturnType() {
-    createParser('typedef F = Function();');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNull);
-    expect(functionType.typeParameters, isNull);
-  }
-
-  @failingTest
-  void test_parseTypeAlias_genericFunction_parameterizedReturnType() {
-    createParser('typedef F = A<B> Function();');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.typeParameters, isNull);
-  }
-
-  @failingTest
-  void test_parseTypeAlias_genericFunction_parameters() {
-    createParser('typedef F = bool Function(Object value);');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.typeParameters, isNull);
-  }
-
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters() {
-    createParser('typedef F = bool Function<E>();');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.typeParameters, isNotNull);
-  }
-
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters_noParameters() {
-    createParser('typedef F<T> = bool Function();');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.typeParameters, isNull);
-  }
-
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters_noReturnType() {
-    createParser('typedef F<T> = Function();');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNull);
-    expect(functionType.typeParameters, isNull);
-  }
-
-  @failingTest
-  void
-      test_parseTypeAlias_genericFunction_typeParameters_parameterizedReturnType() {
-    createParser('typedef F<T> = A<B> Function();');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.typeParameters, isNull);
-  }
-
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters_parameters() {
-    createParser('typedef F<T> = bool Function(Object value);');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.typeParameters, isNull);
-  }
-
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters_typeParameters() {
-    createParser('typedef F<T> = bool Function<E>();');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.typeParameters, isNotNull);
-  }
-
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters_voidReturnType() {
-    createParser('typedef F<T> = void Function();');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNotNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.typeParameters, isNull);
-  }
-
-  @failingTest
-  void test_parseTypeAlias_genericFunction_voidReturnType() {
-    createParser('typedef F = void Function();');
-    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
-    expectNotNullIfNoErrors(typeAlias);
-    listener.assertNoErrors();
-    expect(typeAlias.typedefKeyword, isNotNull);
-    expect(typeAlias.name, isNotNull);
-    expect(typeAlias.typeParameters, isNull);
-    expect(typeAlias.semicolon, isNotNull);
-    GenericFunctionType functionType = typeAlias.functionType;
-    expect(functionType, isNotNull);
-    expect(functionType.parameters, isNotNull);
-    expect(functionType.returnType, isNotNull);
-    expect(functionType.typeParameters, isNull);
-  }
-
-  @failingTest
   void test_parseTypeAnnotation_function_noReturnType_noParameters() {
     createParser('Function() v');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -13423,7 +11960,6 @@ void''');
     expect(parameterList.parameters, hasLength(0));
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_noReturnType_parameters() {
     createParser('Function(int, int) v');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -13450,7 +11986,6 @@ void''');
     expect((parameter.type as TypeName).name.name, 'int');
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_noReturnType_typeParameters() {
     createParser('Function<S, T>()');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -13466,7 +12001,6 @@ void''');
     expect(parameterList.parameters, hasLength(0));
   }
 
-  @failingTest
   void
       test_parseTypeAnnotation_function_noReturnType_typeParameters_parameters() {
     createParser('Function<T>(String, {T t})');
@@ -13490,7 +12024,6 @@ void''');
     listener.assertNoErrors();
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_function() {
     createParser('A Function(B, C) Function(D) v');
     // TODO(scheglov) improve the test to verify also the node properties
@@ -13499,7 +12032,6 @@ void''');
     listener.assertNoErrors();
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_noParameters() {
     createParser('List<int> Function()');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -13513,7 +12045,6 @@ void''');
     expect(parameterList.parameters, hasLength(0));
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_parameters() {
     createParser('List<int> Function(String s, int i)');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -13542,7 +12073,6 @@ void''');
     expect((parameter.type as TypeName).name.name, 'int');
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_simple() {
     createParser('A Function(B, C) v');
     // TODO(scheglov) improve the test to verify also the node properties
@@ -13551,7 +12081,6 @@ void''');
     listener.assertNoErrors();
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_typeParameters() {
     createParser('List<T> Function<T>()');
     GenericFunctionType functionType = parser.parseTypeAnnotation(false);
@@ -13567,7 +12096,6 @@ void''');
     expect(parameterList.parameters, hasLength(0));
   }
 
-  @failingTest
   void
       test_parseTypeAnnotation_function_returnType_typeParameters_parameters() {
     createParser('List<T> Function<T>(String s, [T])');
@@ -13584,7 +12112,6 @@ void''');
     expect(parameterList.parameters, hasLength(2));
   }
 
-  @failingTest
   void test_parseTypeAnnotation_function_returnType_withArguments() {
     createParser('A<B> Function(C) v');
     // TODO(scheglov) improve this test to verify also the node properties
@@ -13736,7 +12263,6 @@ void''');
     expect(typeName.question, isNotNull);
   }
 
-  @failingTest
   void test_parseTypeParameter_bounded_functionType_noReturn() {
     createParser('A extends Function(int)');
     TypeParameter parameter = parser.parseTypeParameter();
@@ -13747,7 +12273,6 @@ void''');
     expect(parameter.name, isNotNull);
   }
 
-  @failingTest
   void test_parseTypeParameter_bounded_functionType_return() {
     createParser('A extends String Function(int)');
     TypeParameter parameter = parser.parseTypeParameter();
@@ -14363,22 +12888,6 @@ void''');
     return value;
   }
 
-  void _expectCommentText(Comment comment, String expectedText) {
-    expect(comment.beginToken, same(comment.endToken));
-    expect(comment.beginToken.lexeme, expectedText);
-  }
-
-  void _expectDottedName(DottedName name, List<String> expectedComponents) {
-    int count = expectedComponents.length;
-    NodeList<SimpleIdentifier> components = name.components;
-    expect(components, hasLength(count));
-    for (int i = 0; i < count; i++) {
-      SimpleIdentifier component = components[i];
-      expect(component, isNotNull);
-      expect(component.name, expectedComponents[i]);
-    }
-  }
-
   /**
    * Invoke the method [Parser.isFunctionDeclaration] with the parser set to the token
    * stream produced by scanning the given source.
@@ -14436,23 +12945,1611 @@ void''');
     expectNotNullIfNoErrors(result);
     return result;
   }
+}
 
-  /**
-   * Parse the given source as a compilation unit.
-   *
-   * @param source the source to be parsed
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the compilation unit that was parsed
-   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   *           not match those that are expected, or if the result would have been `null`
-   */
-  CompilationUnit _parseDirectives(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    createParser(source);
-    CompilationUnit unit = parser.parseDirectives2();
+@reflectiveTest
+class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {}
+
+/**
+ * Tests which exercise the parser using a complete compilation unit or
+ * compilation unit member.
+ */
+abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
+  void test_function_literal_allowed_at_toplevel() {
+    parseCompilationUnit("var x = () {};");
+  }
+
+  void
+      test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
+    parseCompilationUnit("class C { C() : a = f(() {}); }");
+  }
+
+  void
+      test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
+    parseCompilationUnit("class C { C() : a = x[() {}]; }");
+  }
+
+  void
+      test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
+    parseCompilationUnit("class C { C() : a = [() {}]; }");
+  }
+
+  void
+      test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
+    parseCompilationUnit("class C { C() : a = {'key': () {}}; }");
+  }
+
+  void
+      test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
+    parseCompilationUnit("class C { C() : a = (() {}); }");
+  }
+
+  void
+      test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
+    parseCompilationUnit("class C { C() : a = \"\${(){}}\"; }");
+  }
+
+  void test_import_as_show() {
+    parseCompilationUnit("import 'dart:math' as M show E;");
+  }
+
+  void test_import_show_hide() {
+    parseCompilationUnit(
+        "import 'import1_lib.dart' show hide, show hide ugly;");
+  }
+
+  void test_parseClassDeclaration_abstract() {
+    createParser('abstract class A {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNotNull);
+    expect(declaration.extendsClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseClassDeclaration_empty() {
+    createParser('class A {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseClassDeclaration_extends() {
+    createParser('class A extends B {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNotNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseClassDeclaration_extendsAndImplements() {
+    createParser('class A extends B implements C {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNotNull);
+    expect(declaration.implementsClause, isNotNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseClassDeclaration_extendsAndWith() {
+    createParser('class A extends B with C {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.typeParameters, isNull);
+    expect(declaration.extendsClause, isNotNull);
+    expect(declaration.withClause, isNotNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+  }
+
+  void test_parseClassDeclaration_extendsAndWithAndImplements() {
+    createParser('class A extends B with C implements D {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.typeParameters, isNull);
+    expect(declaration.extendsClause, isNotNull);
+    expect(declaration.withClause, isNotNull);
+    expect(declaration.implementsClause, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+  }
+
+  void test_parseClassDeclaration_implements() {
+    createParser('class A implements C {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNull);
+    expect(declaration.implementsClause, isNotNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseClassDeclaration_native() {
+    createParser('class A native "nativeValue" {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    NativeClause nativeClause = declaration.nativeClause;
+    expect(nativeClause, isNotNull);
+    expect(nativeClause.nativeKeyword, isNotNull);
+    expect(nativeClause.name.stringValue, "nativeValue");
+    expect(nativeClause.beginToken, same(nativeClause.nativeKeyword));
+    expect(nativeClause.endToken, same(nativeClause.name.endToken));
+  }
+
+  void test_parseClassDeclaration_nonEmpty() {
+    createParser('class A {var f;}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.members, hasLength(1));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseClassDeclaration_typeAlias_implementsC() {
+    createParser('class A = Object with B implements C;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassTypeAlias>());
+    ClassTypeAlias typeAlias = member;
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.implementsClause, isNotNull);
+    expect(typeAlias.implementsClause.implementsKeyword, isNotNull);
+    expect(typeAlias.implementsClause.interfaces.length, 1);
+    expect(typeAlias.semicolon, isNotNull);
+  }
+
+  void test_parseClassDeclaration_typeAlias_withB() {
+    createParser('class A = Object with B;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassTypeAlias>());
+    ClassTypeAlias typeAlias = member;
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.withClause.withKeyword, isNotNull);
+    expect(typeAlias.withClause.mixinTypes.length, 1);
+    expect(typeAlias.implementsClause, isNull);
+    expect(typeAlias.semicolon, isNotNull);
+  }
+
+  void test_parseClassDeclaration_typeParameters() {
+    createParser('class A<B> {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.abstractKeyword, isNull);
+    expect(declaration.extendsClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.classKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNotNull);
+    expect(declaration.typeParameters.typeParameters, hasLength(1));
+  }
+
+  void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
+    createParser('abstract<dynamic> _abstract = new abstract.A();');
+    CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
+    assertNoErrors();
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnit_builtIn_asFunctionName() {
+    parseCompilationUnit('abstract(x) => 0;');
+    parseCompilationUnit('as(x) => 0;');
+    parseCompilationUnit('dynamic(x) => 0;');
+    parseCompilationUnit('export(x) => 0;');
+    parseCompilationUnit('external(x) => 0;');
+    parseCompilationUnit('factory(x) => 0;');
+    parseCompilationUnit('get(x) => 0;');
+    parseCompilationUnit('implements(x) => 0;');
+    parseCompilationUnit('import(x) => 0;');
+    parseCompilationUnit('library(x) => 0;');
+    parseCompilationUnit('operator(x) => 0;');
+    parseCompilationUnit('part(x) => 0;');
+    parseCompilationUnit('set(x) => 0;');
+    parseCompilationUnit('static(x) => 0;');
+    parseCompilationUnit('typedef(x) => 0;');
+  }
+
+  void test_parseCompilationUnit_directives_multiple() {
+    createParser("library l;\npart 'a.dart';");
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    assertNoErrors();
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(2));
     expect(unit.declarations, hasLength(0));
-    listener.assertErrorsWithCodes(errorCodes);
-    return unit;
+  }
+
+  void test_parseCompilationUnit_directives_single() {
+    createParser('library l;');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    assertNoErrors();
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(1));
+    expect(unit.declarations, hasLength(0));
+  }
+
+  void test_parseCompilationUnit_empty() {
+    createParser('');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    assertNoErrors();
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(0));
+  }
+
+  void test_parseCompilationUnit_exportAsPrefix() {
+    createParser('export.A _export = new export.A();');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    assertNoErrors();
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnit_exportAsPrefix_parameterized() {
+    createParser('export<dynamic> _export = new export.A();');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    assertNoErrors();
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
+    createParser('operator<dynamic> _operator = new operator.A();');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    assertNoErrors();
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnit_script() {
+    createParser('#! /bin/dart');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    assertNoErrors();
+    expect(unit.scriptTag, isNotNull);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(0));
+  }
+
+  void test_parseCompilationUnit_skipFunctionBody_withInterpolation() {
+    ParserTestCase.parseFunctionBodies = false;
+    createParser('f() { "\${n}"; }');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    assertNoErrors();
+    expect(unit.scriptTag, isNull);
+    expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnit_topLevelDeclaration() {
+    createParser('class A {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    assertNoErrors();
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnit_typedefAsPrefix() {
+    createParser('typedef.A _typedef = new typedef.A();');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expect(unit, isNotNull);
+    assertNoErrors();
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+    expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnitMember_abstractAsPrefix() {
+    createParser('abstract.A _abstract = new abstract.A();');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
+    TopLevelVariableDeclaration declaration = member;
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_class() {
+    createParser('class A {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.name.name, "A");
+    expect(declaration.members, hasLength(0));
+  }
+
+  void test_parseCompilationUnitMember_classTypeAlias() {
+    createParser('abstract class A = B with C;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassTypeAlias>());
+    ClassTypeAlias declaration = member;
+    expect(declaration.name.name, "A");
+    expect(declaration.abstractKeyword, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_constVariable() {
+    createParser('const int x = 0;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
+    TopLevelVariableDeclaration declaration = member;
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_expressionFunctionBody_tokens() {
+    createParser('f() => 0;');
+    var f = parseFullCompilationUnitMember() as FunctionDeclaration;
+    var body = f.functionExpression.body as ExpressionFunctionBody;
+    expect(body.functionDefinition.lexeme, '=>');
+    expect(body.semicolon.lexeme, ';');
+  }
+
+  void test_parseCompilationUnitMember_finalVariable() {
+    createParser('final x = 0;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
+    TopLevelVariableDeclaration declaration = member;
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_function_external_noType() {
+    createParser('external f();');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
+  void test_parseCompilationUnitMember_function_external_type() {
+    createParser('external int f();');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
+  void test_parseCompilationUnitMember_function_generic_noReturnType() {
+    createParser('f<E>() {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.returnType, isNull);
+    expect(declaration.functionExpression.typeParameters, isNotNull);
+  }
+
+  void
+      test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
+    createParser('f<@a E>() {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.returnType, isNull);
+    expect(declaration.functionExpression.typeParameters, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_function_generic_returnType() {
+    createParser('E f<E>() {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.returnType, isNotNull);
+    expect(declaration.functionExpression.typeParameters, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_function_generic_void() {
+    createParser('void f<T>(T t) {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
+  void test_parseCompilationUnitMember_function_noType() {
+    createParser('f() {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
+  void test_parseCompilationUnitMember_function_type() {
+    createParser('int f() {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
+  void test_parseCompilationUnitMember_function_void() {
+    createParser('void f() {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.returnType, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_getter_external_noType() {
+    createParser('external get p;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_getter_external_type() {
+    createParser('external int get p;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_getter_noType() {
+    createParser('get p => 0;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_getter_type() {
+    createParser('int get p => 0;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_setter_external_noType() {
+    createParser('external set p(v);');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_setter_external_type() {
+    createParser('external void set p(int v);');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.externalKeyword, isNotNull);
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_setter_noType() {
+    createParser('set p(v) {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_setter_type() {
+    createParser('void set p(int v) {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionDeclaration>());
+    FunctionDeclaration declaration = member;
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
+    expect(declaration.returnType, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_typeAlias_abstract() {
+    createParser('abstract class C = S with M;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassTypeAlias>());
+    ClassTypeAlias typeAlias = member;
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name.name, "C");
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.equals, isNotNull);
+    expect(typeAlias.abstractKeyword, isNotNull);
+    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.implementsClause, isNull);
+    expect(typeAlias.semicolon, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_typeAlias_generic() {
+    createParser('class C<E> = S<E> with M<E> implements I<E>;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassTypeAlias>());
+    ClassTypeAlias typeAlias = member;
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name.name, "C");
+    expect(typeAlias.typeParameters.typeParameters, hasLength(1));
+    expect(typeAlias.equals, isNotNull);
+    expect(typeAlias.abstractKeyword, isNull);
+    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.implementsClause, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_typeAlias_implements() {
+    createParser('class C = S with M implements I;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassTypeAlias>());
+    ClassTypeAlias typeAlias = member;
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name.name, "C");
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.equals, isNotNull);
+    expect(typeAlias.abstractKeyword, isNull);
+    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.implementsClause, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_typeAlias_noImplements() {
+    createParser('class C = S with M;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<ClassTypeAlias>());
+    ClassTypeAlias typeAlias = member;
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name.name, "C");
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.equals, isNotNull);
+    expect(typeAlias.abstractKeyword, isNull);
+    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.withClause, isNotNull);
+    expect(typeAlias.implementsClause, isNull);
+    expect(typeAlias.semicolon, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_typedef() {
+    createParser('typedef F();');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<FunctionTypeAlias>());
+    FunctionTypeAlias typeAlias = member;
+    expect(typeAlias.name.name, "F");
+    expect(typeAlias.parameters.parameters, hasLength(0));
+  }
+
+  void test_parseCompilationUnitMember_variable() {
+    createParser('var x = 0;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
+    TopLevelVariableDeclaration declaration = member;
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_variableGet() {
+    createParser('String get = null;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
+    TopLevelVariableDeclaration declaration = member;
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_variableSet() {
+    createParser('String set = null;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
+    TopLevelVariableDeclaration declaration = member;
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
+  }
+
+  void test_parseDirective_export() {
+    createParser("export 'lib/lib.dart';");
+    Directive directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive, new isInstanceOf<ExportDirective>());
+    ExportDirective exportDirective = directive;
+    expect(exportDirective.keyword, isNotNull);
+    expect(exportDirective.uri, isNotNull);
+    expect(exportDirective.combinators, hasLength(0));
+    expect(exportDirective.semicolon, isNotNull);
+  }
+
+  void test_parseDirective_import() {
+    createParser("import 'lib/lib.dart';");
+    Directive directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive, new isInstanceOf<ImportDirective>());
+    ImportDirective importDirective = directive;
+    expect(importDirective.keyword, isNotNull);
+    expect(importDirective.uri, isNotNull);
+    expect(importDirective.asKeyword, isNull);
+    expect(importDirective.prefix, isNull);
+    expect(importDirective.combinators, hasLength(0));
+    expect(importDirective.semicolon, isNotNull);
+  }
+
+  void test_parseDirective_library() {
+    createParser("library l;");
+    Directive directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive, new isInstanceOf<LibraryDirective>());
+    LibraryDirective libraryDirective = directive;
+    expect(libraryDirective.libraryKeyword, isNotNull);
+    expect(libraryDirective.name, isNotNull);
+    expect(libraryDirective.semicolon, isNotNull);
+  }
+
+  void test_parseDirective_library_1_component() {
+    createParser("library a;");
+    var lib = parseFullDirective() as LibraryDirective;
+    expect(lib.name.components, hasLength(1));
+    expect(lib.name.components[0].name, 'a');
+  }
+
+  void test_parseDirective_library_2_components() {
+    createParser("library a.b;");
+    var lib = parseFullDirective() as LibraryDirective;
+    expect(lib.name.components, hasLength(2));
+    expect(lib.name.components[0].name, 'a');
+    expect(lib.name.components[1].name, 'b');
+  }
+
+  void test_parseDirective_library_3_components() {
+    createParser("library a.b.c;");
+    var lib = parseFullDirective() as LibraryDirective;
+    expect(lib.name.components, hasLength(3));
+    expect(lib.name.components[0].name, 'a');
+    expect(lib.name.components[1].name, 'b');
+    expect(lib.name.components[2].name, 'c');
+  }
+
+  void test_parseDirective_part() {
+    createParser("part 'lib/lib.dart';");
+    Directive directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive, new isInstanceOf<PartDirective>());
+    PartDirective partDirective = directive;
+    expect(partDirective.partKeyword, isNotNull);
+    expect(partDirective.uri, isNotNull);
+    expect(partDirective.semicolon, isNotNull);
+  }
+
+  void test_parseDirective_part_of_1_component() {
+    createParser("part of a;");
+    var partOf = parseFullDirective() as PartOfDirective;
+    expect(partOf.libraryName.components, hasLength(1));
+    expect(partOf.libraryName.components[0].name, 'a');
+  }
+
+  void test_parseDirective_part_of_2_components() {
+    createParser("part of a.b;");
+    var partOf = parseFullDirective() as PartOfDirective;
+    expect(partOf.libraryName.components, hasLength(2));
+    expect(partOf.libraryName.components[0].name, 'a');
+    expect(partOf.libraryName.components[1].name, 'b');
+  }
+
+  void test_parseDirective_part_of_3_components() {
+    createParser("part of a.b.c;");
+    var partOf = parseFullDirective() as PartOfDirective;
+    expect(partOf.libraryName.components, hasLength(3));
+    expect(partOf.libraryName.components[0].name, 'a');
+    expect(partOf.libraryName.components[1].name, 'b');
+    expect(partOf.libraryName.components[2].name, 'c');
+  }
+
+  void test_parseDirective_partOf() {
+    createParser("part of l;");
+    Directive directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive, new isInstanceOf<PartOfDirective>());
+    PartOfDirective partOfDirective = directive;
+    expect(partOfDirective.partKeyword, isNotNull);
+    expect(partOfDirective.ofKeyword, isNotNull);
+    expect(partOfDirective.libraryName, isNotNull);
+    expect(partOfDirective.semicolon, isNotNull);
+  }
+
+  void test_parseDirectives_complete() {
+    CompilationUnit unit =
+        parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
+    expect(unit.scriptTag, isNotNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_empty() {
+    CompilationUnit unit = parseDirectives("");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+  }
+
+  void test_parseDirectives_mixed() {
+    CompilationUnit unit =
+        parseDirectives("library l; class A {} part 'foo.dart';");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_multiple() {
+    CompilationUnit unit = parseDirectives("library l;\npart 'a.dart';");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(2));
+  }
+
+  void test_parseDirectives_script() {
+    CompilationUnit unit = parseDirectives("#! /bin/dart");
+    expect(unit.scriptTag, isNotNull);
+    expect(unit.directives, hasLength(0));
+  }
+
+  void test_parseDirectives_single() {
+    CompilationUnit unit = parseDirectives("library l;");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_topLevelDeclaration() {
+    CompilationUnit unit = parseDirectives("class A {}");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+  }
+
+  void test_parseEnumDeclaration_one() {
+    createParser("enum E {ONE}");
+    EnumDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.enumKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.constants, hasLength(1));
+    expect(declaration.rightBracket, isNotNull);
+  }
+
+  void test_parseEnumDeclaration_trailingComma() {
+    createParser("enum E {ONE,}");
+    EnumDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.enumKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.constants, hasLength(1));
+    expect(declaration.rightBracket, isNotNull);
+  }
+
+  void test_parseEnumDeclaration_two() {
+    createParser("enum E {ONE, TWO}");
+    EnumDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.enumKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name, isNotNull);
+    expect(declaration.constants, hasLength(2));
+    expect(declaration.rightBracket, isNotNull);
+  }
+
+  void test_parseExportDirective_configuration_multiple() {
+    createParser("export 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
+    ExportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(2));
+    expectDottedName(directive.configurations[0].name, ['a']);
+    expectDottedName(directive.configurations[1].name, ['c']);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseExportDirective_configuration_single() {
+    createParser("export 'lib/lib.dart' if (a.b == 'c.dart') '';");
+    ExportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(1));
+    expectDottedName(directive.configurations[0].name, ['a', 'b']);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseExportDirective_hide() {
+    createParser("export 'lib/lib.dart' hide A, B;");
+    ExportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.combinators, hasLength(1));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseExportDirective_hide_show() {
+    createParser("export 'lib/lib.dart' hide A show B;");
+    ExportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.combinators, hasLength(2));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseExportDirective_noCombinator() {
+    createParser("export 'lib/lib.dart';");
+    ExportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseExportDirective_show() {
+    createParser("export 'lib/lib.dart' show A, B;");
+    ExportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.combinators, hasLength(1));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseExportDirective_show_hide() {
+    createParser("export 'lib/lib.dart' show B hide A;");
+    ExportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.combinators, hasLength(2));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseFunctionDeclaration_function() {
+    createParser('/// Doc\nT f() {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expectCommentText(declaration.documentationComment, '/// Doc');
+    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect(declaration.name, isNotNull);
+    FunctionExpression expression = declaration.functionExpression;
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNull);
+    expect(expression.parameters, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
+  void test_parseFunctionDeclaration_functionWithTypeParameters() {
+    createParser('/// Doc\nT f<E>() {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expectCommentText(declaration.documentationComment, '/// Doc');
+    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect(declaration.name, isNotNull);
+    FunctionExpression expression = declaration.functionExpression;
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNotNull);
+    expect(expression.parameters, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
+  void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
+    enableGenericMethodComments = true;
+    createParser('/// Doc\nT f/*<E>*/() {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expectCommentText(declaration.documentationComment, '/// Doc');
+    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect(declaration.name, isNotNull);
+    FunctionExpression expression = declaration.functionExpression;
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNotNull);
+    expect(expression.parameters, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
+  void test_parseFunctionDeclaration_getter() {
+    createParser('/// Doc\nT get p => 0;');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expectCommentText(declaration.documentationComment, '/// Doc');
+    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect(declaration.name, isNotNull);
+    FunctionExpression expression = declaration.functionExpression;
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNull);
+    expect(expression.parameters, isNull);
+    expect(declaration.propertyKeyword, isNotNull);
+  }
+
+  void test_parseFunctionDeclaration_setter() {
+    createParser('/// Doc\nT set p(v) {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expectCommentText(declaration.documentationComment, '/// Doc');
+    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect(declaration.name, isNotNull);
+    FunctionExpression expression = declaration.functionExpression;
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNull);
+    expect(expression.parameters, isNotNull);
+    expect(declaration.propertyKeyword, isNotNull);
+  }
+
+  @failingTest
+  void test_parseGenericTypeAlias_noTypeParameters() {
+    createParser('F = int Function(int);');
+    GenericTypeAlias alias = parseFullCompilationUnitMember();
+    expect(alias, isNotNull);
+    assertNoErrors();
+    expect(alias.name, isNotNull);
+    expect(alias.name.name, 'F');
+    expect(alias.typeParameters, isNull);
+    expect(alias.equals, isNotNull);
+    expect(alias.functionType, isNotNull);
+    expect(alias.semicolon, isNotNull);
+  }
+
+  @failingTest
+  void test_parseGenericTypeAlias_typeParameters() {
+    createParser('F<T> = T Function(T);');
+    GenericTypeAlias alias = parseFullCompilationUnitMember();
+    expect(alias, isNotNull);
+    assertNoErrors();
+    expect(alias.name, isNotNull);
+    expect(alias.name.name, 'F');
+    expect(alias.typeParameters, isNotNull);
+    expect(alias.equals, isNotNull);
+    expect(alias.functionType, isNotNull);
+    expect(alias.semicolon, isNotNull);
+  }
+
+  void test_parseImportDirective_configuration_multiple() {
+    createParser("import 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
+    ImportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(2));
+    expectDottedName(directive.configurations[0].name, ['a']);
+    expectDottedName(directive.configurations[1].name, ['c']);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNull);
+    expect(directive.prefix, isNull);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseImportDirective_configuration_single() {
+    createParser("import 'lib/lib.dart' if (a.b == 'c.dart') '';");
+    ImportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(1));
+    expectDottedName(directive.configurations[0].name, ['a', 'b']);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNull);
+    expect(directive.prefix, isNull);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseImportDirective_deferred() {
+    createParser("import 'lib/lib.dart' deferred as a;");
+    ImportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredKeyword, isNotNull);
+    expect(directive.asKeyword, isNotNull);
+    expect(directive.prefix, isNotNull);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseImportDirective_hide() {
+    createParser("import 'lib/lib.dart' hide A, B;");
+    ImportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNull);
+    expect(directive.prefix, isNull);
+    expect(directive.combinators, hasLength(1));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseImportDirective_noCombinator() {
+    createParser("import 'lib/lib.dart';");
+    ImportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNull);
+    expect(directive.prefix, isNull);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseImportDirective_prefix() {
+    createParser("import 'lib/lib.dart' as a;");
+    ImportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNotNull);
+    expect(directive.prefix, isNotNull);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseImportDirective_prefix_hide_show() {
+    createParser("import 'lib/lib.dart' as a hide A show B;");
+    ImportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNotNull);
+    expect(directive.prefix, isNotNull);
+    expect(directive.combinators, hasLength(2));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseImportDirective_prefix_show_hide() {
+    createParser("import 'lib/lib.dart' as a show B hide A;");
+    ImportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNotNull);
+    expect(directive.prefix, isNotNull);
+    expect(directive.combinators, hasLength(2));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseImportDirective_show() {
+    createParser("import 'lib/lib.dart' show A, B;");
+    ImportDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNull);
+    expect(directive.prefix, isNull);
+    expect(directive.combinators, hasLength(1));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseLibraryDirective() {
+    createParser('library l;');
+    LibraryDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.libraryKeyword, isNotNull);
+    expect(directive.name, isNotNull);
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parsePartDirective() {
+    createParser("part 'lib/lib.dart';");
+    PartDirective directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive.partKeyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parsePartOfDirective_name() {
+    enableUriInPartOf = true;
+    createParser("part of l;");
+    PartOfDirective directive = parseFullDirective();
+    expect(directive.partKeyword, isNotNull);
+    expect(directive.ofKeyword, isNotNull);
+    expect(directive.libraryName, isNotNull);
+    expect(directive.uri, isNull);
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parsePartOfDirective_uri() {
+    enableUriInPartOf = true;
+    createParser("part of 'lib.dart';");
+    PartOfDirective directive = parseFullDirective();
+    expect(directive.partKeyword, isNotNull);
+    expect(directive.ofKeyword, isNotNull);
+    expect(directive.libraryName, isNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseTypeAlias_function_noParameters() {
+    createParser('typedef bool F();');
+    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_function_noReturnType() {
+    createParser('typedef F();');
+    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_function_parameterizedReturnType() {
+    createParser('typedef A<B> F();');
+    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_function_parameters() {
+    createParser('typedef bool F(Object value);');
+    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_function_typeParameters() {
+    createParser('typedef bool F<E>();');
+    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNotNull);
+  }
+
+  void test_parseTypeAlias_function_voidReturnType() {
+    createParser('typedef void F();');
+    FunctionTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.parameters, isNotNull);
+    expect(typeAlias.returnType, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_noParameters() {
+    createParser('typedef F = bool Function();');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNotNull);
+    expect(functionType.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_noReturnType() {
+    createParser('typedef F = Function();');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNull);
+    expect(functionType.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_parameterizedReturnType() {
+    createParser('typedef F = A<B> Function();');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNotNull);
+    expect(functionType.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_parameters() {
+    createParser('typedef F = bool Function(Object value);');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNotNull);
+    expect(functionType.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_typeParameters() {
+    createParser('typedef F = bool Function<E>();');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNotNull);
+    expect(functionType.typeParameters, isNotNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_typeParameters_noParameters() {
+    createParser('typedef F<T> = bool Function();');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNotNull);
+    expect(functionType.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_typeParameters_noReturnType() {
+    createParser('typedef F<T> = Function();');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNull);
+    expect(functionType.typeParameters, isNull);
+  }
+
+  void
+      test_parseTypeAlias_genericFunction_typeParameters_parameterizedReturnType() {
+    createParser('typedef F<T> = A<B> Function();');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNotNull);
+    expect(functionType.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_typeParameters_parameters() {
+    createParser('typedef F<T> = bool Function(Object value);');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNotNull);
+    expect(functionType.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_typeParameters_typeParameters() {
+    createParser('typedef F<T> = bool Function<E>();');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNotNull);
+    expect(functionType.typeParameters, isNotNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_typeParameters_voidReturnType() {
+    createParser('typedef F<T> = void Function();');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNotNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNotNull);
+    expect(functionType.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_voidReturnType() {
+    createParser('typedef F = void Function();');
+    GenericTypeAlias typeAlias = parseFullCompilationUnitMember();
+    expect(typeAlias, isNotNull);
+    assertNoErrors();
+    expect(typeAlias.typedefKeyword, isNotNull);
+    expect(typeAlias.name, isNotNull);
+    expect(typeAlias.typeParameters, isNull);
+    expect(typeAlias.semicolon, isNotNull);
+    GenericFunctionType functionType = typeAlias.functionType;
+    expect(functionType, isNotNull);
+    expect(functionType.parameters, isNotNull);
+    expect(functionType.returnType, isNotNull);
+    expect(functionType.typeParameters, isNull);
   }
 }

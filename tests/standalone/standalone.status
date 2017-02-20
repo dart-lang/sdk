@@ -297,8 +297,9 @@ io/signals_test: Skip
 io/stdin_sync_test: Skip
 io/stdio_implicit_close_test: Skip
 io/stdio_nonblocking_test: Skip
-io/test_extension_test: Skip
 io/test_extension_fail_test: Skip
+io/test_extension_test: Skip
+io/windows_environment_test: Skip
 verbose_gc_to_bmu_test: Skip
 
 io/platform_test: RuntimeError # Expects to be running from 'dart' instead of 'dart_precompiled_runtime'

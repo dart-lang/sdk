@@ -9,7 +9,8 @@ import '../errors.dart' show
 
 import 'builder.dart' show
     TypeBuilder,
-    TypeDeclarationBuilder;
+    TypeDeclarationBuilder,
+    TypeVariableBuilder;
 
 import 'scope.dart' show
     Scope;
@@ -22,6 +23,16 @@ abstract class MixinApplicationBuilder<T extends TypeBuilder>
   MixinApplicationBuilder(this.supertype, this.mixins, int charOffset,
       Uri fileUri)
       : super(charOffset, fileUri);
+
+  void set typeVariables(List<TypeVariableBuilder> variables);
+
+  /// If this mixin application uses type variables, it needs a unique name
+  /// based on its subclass. If this name is provided, the name will be
+  /// `name^mixin`, otherwise it'll be `superclass&mixin`.
+  //
+  // TODO(ahe): This is to reduce diff against dartk. Consider if this is
+  // necessary.
+  void set subclassName(String value);
 
   String get name => null;
 

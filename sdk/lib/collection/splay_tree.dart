@@ -15,7 +15,7 @@ class _SplayTreeNode<K> {
   _SplayTreeNode<K> left;
   _SplayTreeNode<K> right;
 
-  _SplayTreeNode(K this.key);
+  _SplayTreeNode(this.key);
 }
 
 /**
@@ -25,7 +25,7 @@ class _SplayTreeNode<K> {
  */
 class _SplayTreeMapNode<K, V> extends _SplayTreeNode<K> {
   V value;
-  _SplayTreeMapNode(K key, V this.value) : super(key);
+  _SplayTreeMapNode(K key, this.value) : super(key);
 }
 
 /**

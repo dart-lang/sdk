@@ -30,6 +30,11 @@ public class RequestErrorCode {
   public static final String CONTENT_MODIFIED = "CONTENT_MODIFIED";
 
   /**
+   * The server was unable to open a port for the diagnostic server.
+   */
+  public static final String DEBUG_PORT_COULD_NOT_BE_OPENED = "DEBUG_PORT_COULD_NOT_BE_OPENED";
+
+  /**
    * A request specified a FilePath which does not match a file in an analysis root, or the requested
    * operation is not available for the file.
    */

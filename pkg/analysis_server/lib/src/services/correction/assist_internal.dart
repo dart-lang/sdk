@@ -36,6 +36,10 @@ typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
  * The computer for Dart assists.
  */
 class AssistProcessor {
+  static const FLUTTER_WIDGET_NAME = "Widget";
+  static const FLUTTER_WIDGET_URI =
+      "package:flutter/src/widgets/framework.dart";
+
   AnalysisContext analysisContext;
 
   Source source;
@@ -133,6 +137,8 @@ class AssistProcessor {
     _addProposal_joinVariableDeclaration_onAssignment();
     _addProposal_joinVariableDeclaration_onDeclaration();
     _addProposal_removeTypeAnnotation();
+    _addProposal_reparentFlutterList();
+    _addProposal_reparentFlutterWidget();
     _addProposal_replaceConditionalWithIfElse();
     _addProposal_replaceIfElseWithConditional();
     _addProposal_splitAndCondition();
@@ -1595,6 +1601,100 @@ class AssistProcessor {
     _addAssist(DartAssistKind.REMOVE_TYPE_ANNOTATION, []);
   }
 
+  void _addProposal_reparentFlutterList() {
+    if (node is! ListLiteral) {
+      return;
+    }
+    if ((node as ListLiteral).elements.any((Expression exp) =>
+        !(exp is InstanceCreationExpression &&
+            _isFlutterInstanceCreationExpression(exp)))) {
+      _coverageMarker();
+      return;
+    }
+    String literalSrc = utils.getNodeText(node);
+    SourceBuilder sb = new SourceBuilder(file, node.offset);
+    int newlineIdx = literalSrc.lastIndexOf(eol);
+    if (newlineIdx < 0 || newlineIdx == literalSrc.length - 1) {
+      _coverageMarker();
+      return; // Lists need to be in multi-line format already.
+    }
+    String indentOld = utils.getLinePrefix(node.offset + 1 + newlineIdx);
+    String indentArg = '$indentOld${utils.getIndent(1)}';
+    String indentList = '$indentOld${utils.getIndent(2)}';
+    sb.append('[');
+    sb.append(eol);
+    sb.append(indentArg);
+    sb.append('new ');
+    sb.startPosition('WIDGET');
+    sb.append('widget');
+    sb.endPosition();
+    sb.append('(');
+    sb.append(eol);
+    sb.append(indentList);
+    // Linked editing not needed since arg is always a list.
+    sb.append('children: ');
+    sb.append(literalSrc.replaceAll(
+        new RegExp("^$indentOld", multiLine: true), "$indentList"));
+    sb.append(',');
+    sb.append(eol);
+    sb.append(indentArg);
+    sb.append('),');
+    sb.append(eol);
+    sb.append(indentOld);
+    sb.append(']');
+    exitPosition = _newPosition(sb.offset + sb.length);
+    _insertBuilder(sb, literalSrc.length);
+    _addAssist(DartAssistKind.REPARENT_FLUTTER_LIST, []);
+  }
+
+  void _addProposal_reparentFlutterWidget() {
+    InstanceCreationExpression newExpr;
+    if (node is SimpleIdentifier) {
+      if (node.parent is ConstructorName &&
+          node.parent.parent is InstanceCreationExpression) {
+        newExpr = node.parent.parent;
+      } else if (node.parent?.parent is ConstructorName &&
+          node.parent.parent?.parent is InstanceCreationExpression) {
+        newExpr = node.parent.parent.parent;
+      }
+    } else if (node is InstanceCreationExpression) {
+      newExpr = node;
+    }
+    if (newExpr == null || !_isFlutterInstanceCreationExpression(newExpr)) {
+      _coverageMarker();
+      return;
+    }
+    String newExprSrc = utils.getNodeText(newExpr);
+    SourceBuilder sb = new SourceBuilder(file, newExpr.offset);
+    sb.append('new ');
+    sb.startPosition('WIDGET');
+    sb.append('widget');
+    sb.endPosition();
+    sb.append('(');
+    if (newExprSrc.contains(eol)) {
+      int newlineIdx = newExprSrc.lastIndexOf(eol);
+      if (newlineIdx == newExprSrc.length - 1) {
+        newlineIdx -= 1;
+      }
+      String indentOld = utils.getLinePrefix(newExpr.offset + 1 + newlineIdx);
+      String indentNew = '$indentOld${utils.getIndent(1)}';
+      sb.append(eol);
+      sb.append(indentNew);
+      newExprSrc = newExprSrc.replaceAll(
+          new RegExp("^$indentOld", multiLine: true), "$indentNew");
+      newExprSrc += ",$eol$indentOld";
+    }
+    sb.startPosition('CHILD');
+    sb.append('child');
+    sb.endPosition();
+    sb.append(': ');
+    sb.append(newExprSrc);
+    sb.append(')');
+    exitPosition = _newPosition(sb.offset + sb.length);
+    _insertBuilder(sb, newExpr.length);
+    _addAssist(DartAssistKind.REPARENT_FLUTTER_WIDGET, []);
+  }
+
   void _addProposal_replaceConditionalWithIfElse() {
     ConditionalExpression conditional = null;
     // may be on Statement with Conditional
@@ -2194,6 +2294,24 @@ class AssistProcessor {
         exitPosition = _newPosition(exitOffset);
       }
     }
+  }
+
+  bool _isFlutterInstanceCreationExpression(
+      InstanceCreationExpression newExpr) {
+    ClassElement classElement = newExpr.staticElement?.enclosingElement;
+    InterfaceType superType = classElement?.allSupertypes?.firstWhere(
+        (InterfaceType type) => FLUTTER_WIDGET_NAME == type.name,
+        orElse: () => null);
+    if (superType == null) {
+      _coverageMarker();
+      return false;
+    }
+    Uri uri = superType.element?.source?.uri;
+    if (uri.toString() != FLUTTER_WIDGET_URI) {
+      _coverageMarker();
+      return false;
+    }
+    return true;
   }
 
   Position _newPosition(int offset) {

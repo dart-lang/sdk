@@ -1008,6 +1008,7 @@ LibTest/isolate/SendPort/send_A02_t01: RuntimeError, OK  # Uses Isolate.spawn.
 LibTest/isolate/SendPort/send_A02_t04: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t05: Fail # Issue 13921
 LibTest/isolate/SendPort/send_A02_t06: Fail # Issue 13921
+WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: Pass, Slow
 WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # co19-roll r722: Please triage this failure.

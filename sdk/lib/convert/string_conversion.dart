@@ -193,7 +193,7 @@ abstract class StringConversionSinkMixin implements StringConversionSink {
  */
 class _StringSinkConversionSink extends StringConversionSinkBase {
   StringSink _stringSink;
-  _StringSinkConversionSink(StringSink this._stringSink);
+  _StringSinkConversionSink(this._stringSink);
 
   void close() {}
   void addSlice(String str, int start, int end, bool isLast) {

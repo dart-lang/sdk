@@ -27,6 +27,34 @@ dart_library =
   // Longer term, we can easily migrate to an existing JS module system:
   // ES6, AMD, RequireJS, ....
 
+  // Returns a proxy that delegates to the underlying loader.
+  // This defers loading of a module until a library is actually used.
+  const loadedModule = Symbol('loadedModule');
+  dart_library.defer = function(module, name, patch) {
+    let done = false;
+    function loadDeferred() {
+      done = true;
+      var mod = module[loadedModule];
+      var lib = mod[name];
+      // Install unproxied module and library in caller's context.
+      patch(mod, lib);
+    }
+    // The deferred library object.  Note, the only legal operations on a Dart
+    // library object should be get (to read a top-level variable, method, or
+    // Class) or set (to write a top-level variable).
+    return new Proxy({}, {
+      get: function(o, p) {
+        if (!done) loadDeferred();
+        return module[name][p];
+      },
+      set: function(o, p, value) {
+        if (!done) loadDeferred();
+        module[name][p] = value;
+        return true;
+      },
+    });
+  };
+
   class LibraryLoader {
 
     constructor(name, defaultValue, imports, loader) {
@@ -65,11 +93,33 @@ dart_library =
       let args = this.loadImports();
 
       // Load the library
-      args.unshift(this._library);
-      this._loader.apply(null, args);
+      let loader = this;
+      let library = this._library;
+      library[dartLibraryName] = this._name;
+      library[libraryImports] = this._imports;
+      library[loadedModule] = library;
+      args.unshift(library);
+
+      if (this._name == 'dart_sdk') {
+        // Eagerly load the SDK.
+        this._loader.apply(null, args);
+        loader._loader = null;
+      } else {
+        // Load / parse other modules on demand.
+        let done = false;
+        this._library = new Proxy(library, {
+          get: function(o, name) {
+            if (!done) {
+              done = true;
+              loader._loader.apply(null, args);
+              loader._loader = null;
+            }
+            return o[name];
+          }
+        });
+      }
+
       this._state = LibraryLoader.READY;
-      this._library[dartLibraryName] = this._name;
-      this._library[libraryImports] = this._imports;
       return this._library;
     }
 
@@ -121,14 +171,14 @@ dart_library =
     if (libraryName == null) libraryName = moduleName;
     let library = import_(moduleName)[libraryName];
     let dart_sdk = import_('dart_sdk');
+
     if (!_currentIsolate) {
-      // Create isolate and run main.
+      // Create isolate.
       _currentIsolate = true;
-      dart_sdk._isolate_helper.startRootIsolate(library.main, []);
-    } else {
-      // Main isolate is already initialized - just run main.
-      library.main();
+      dart_sdk._isolate_helper.startRootIsolate(() => {}, []);
     }
+
+    library.main();
   }
   dart_library.start = start;
 

@@ -146,21 +146,11 @@ Map<String, LinkedLibraryBuilder> setupForLink(Set<String> libraryUris,
       <String, LinkedLibraryBuilder>{};
   for (String absoluteUri in libraryUris) {
     Uri uri = Uri.parse(absoluteUri);
-
-    UnlinkedUnit getRelativeUnit(String relativeUriStr) {
-      Uri relativeUri;
-      try {
-        relativeUri = Uri.parse(relativeUriStr);
-      } on FormatException {
-        return new UnlinkedUnitBuilder();
-      }
-      return getUnit(resolveRelativeUri(uri, relativeUri).toString());
-    }
-
     linkedLibraries[absoluteUri] = prelink(
+        absoluteUri,
         getUnit(absoluteUri),
-        getRelativeUnit,
-        (String relativeUri) => getRelativeUnit(relativeUri)?.publicNamespace,
+        getUnit,
+        (String absoluteUri) => getUnit(absoluteUri)?.publicNamespace,
         getDeclaredVariable);
   }
   return linkedLibraries;
@@ -3371,9 +3361,8 @@ abstract class LibraryElementForLink<
           continue;
         }
 
-        String partAbsoluteUri = resolveRelativeUri(
-                _absoluteUri, partRelativeUri)
-            .toString();
+        String partAbsoluteUri =
+            resolveRelativeUri(_absoluteUri, partRelativeUri).toString();
         UnlinkedUnit partUnit = _linker.getUnit(partAbsoluteUri);
         _units.add(_makeUnitElement(
             partUnit ?? new UnlinkedUnitBuilder(), i + 1, partAbsoluteUri));
@@ -3415,19 +3404,19 @@ abstract class LibraryElementForLink<
   LibraryElementForLink _getDependency(int index) {
     LibraryElementForLink result = _dependencies[index];
     if (result == null) {
-      String relativeUriStr = _linkedLibrary.dependencies[index].uri;
-
-      Uri relativeUri;
-      try {
-        relativeUri = Uri.parse(relativeUriStr);
-      } on FormatException {
-        return null;
+      Uri uri;
+      String uriStr = _linkedLibrary.dependencies[index].uri;
+      if (uriStr.isEmpty) {
+        uri = _absoluteUri;
+      } else {
+        try {
+          uri = Uri.parse(uriStr);
+        } on FormatException {
+          return null;
+        }
       }
 
-      Uri absoluteUri = relativeUriStr.isEmpty
-          ? _absoluteUri
-          : resolveRelativeUri(_absoluteUri, relativeUri);
-      result = _linker.getLibrary(absoluteUri);
+      result = _linker.getLibrary(uri);
       _dependencies[index] = result;
     }
     return result;
@@ -3492,12 +3481,12 @@ class LibraryElementInBuildUnit
     Uri libraryUri = library._absoluteUri;
     List<String> partsRelativeToDependency =
         library.definingUnlinkedUnit.publicNamespace.parts;
-    List<String> partsRelativeToLibraryBeingLinked = partsRelativeToDependency
+    List<String> partsAbsolute = partsRelativeToDependency
         .map((partUri) =>
             resolveRelativeUri(libraryUri, Uri.parse(partUri)).toString())
         .toList();
     _linkedLibrary.dependencies.add(new LinkedDependencyBuilder(
-        parts: partsRelativeToLibraryBeingLinked, uri: libraryUri.toString()));
+        parts: partsAbsolute, uri: libraryUri.toString()));
     _dependencies.add(library);
     return result;
   }

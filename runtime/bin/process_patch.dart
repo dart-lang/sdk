@@ -182,7 +182,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
   _ProcessImpl(String path,
                List<String> arguments,
-               String this._workingDirectory,
+               this._workingDirectory,
                Map<String, String> environment,
                bool includeParentEnvironment,
                bool runInShell,

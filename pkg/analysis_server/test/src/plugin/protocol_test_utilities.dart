@@ -111,16 +111,16 @@ class ProtocolTestUtilities {
 
   /**
    * On return, increment [stringIndex] by 2 (or 3 if no [file] name is
-   * provided) and [intIndex] by 6.
+   * provided) and [intIndex] by 4.
    */
   plugin.AnalysisNavigationParams pluginNavigationParams(
           int stringIndex, int intIndex, {String file}) =>
       new plugin.AnalysisNavigationParams(
           file ?? fileName(stringIndex++), <plugin.NavigationRegion>[
-        new plugin.NavigationRegion(intIndex++, intIndex++, <int>[0])
+        new plugin.NavigationRegion(intIndex++, 2, <int>[0])
       ], <plugin.NavigationTarget>[
-        new plugin.NavigationTarget(plugin.ElementKind.FIELD, 0, intIndex++,
-            intIndex++, intIndex++, intIndex++)
+        new plugin.NavigationTarget(
+            plugin.ElementKind.FIELD, 0, intIndex++, 2, intIndex++, intIndex++)
       ], <String>[
         strings[stringIndex++],
         strings[stringIndex++]
@@ -230,16 +230,16 @@ class ProtocolTestUtilities {
 
   /**
    * On return, increment [stringIndex] by 2 (or 3 if no [file] name is
-   * provided) and [intIndex] by 6.
+   * provided) and [intIndex] by 4.
    */
   server.AnalysisNavigationParams serverNavigationParams(
           int stringIndex, int intIndex, {String file}) =>
       new server.AnalysisNavigationParams(
           file ?? fileName(stringIndex++), <server.NavigationRegion>[
-        new server.NavigationRegion(intIndex++, intIndex++, <int>[0])
+        new server.NavigationRegion(intIndex++, 2, <int>[0])
       ], <server.NavigationTarget>[
-        new server.NavigationTarget(server.ElementKind.FIELD, 0, intIndex++,
-            intIndex++, intIndex++, intIndex++)
+        new server.NavigationTarget(
+            server.ElementKind.FIELD, 0, intIndex++, 2, intIndex++, intIndex++)
       ], <String>[
         strings[stringIndex++],
         strings[stringIndex++]

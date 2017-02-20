@@ -18,16 +18,18 @@ main() {
   testRoundTrip("blåbærgrød", UTF8);
   testRoundTrip("blåbærgrød", LATIN1);
 
-  testUriEquals("data:,abc?d#e");
-  testUriEquals("DATA:,ABC?D#E");
-  testUriEquals("data:,a%20bc?d#e");
-  testUriEquals("DATA:,A%20BC?D#E");
-  testUriEquals("data:,a%62c?d#e");
-  testUriEquals("DATA:,A%42C?D#E");
+  testUriEquals("data:,abc?d");
+  testUriEquals("DATA:,ABC?D");
+  testUriEquals("data:,a%20bc?d");
+  testUriEquals("DATA:,A%20BC?D");
+  testUriEquals("data:,abc?d%23e");  // # must and will be is escaped.
+
+  // Test that UriData.uri normalizes path and query.
 
   testUtf8Encoding("\u1000\uffff");
   testBytes();
   testInvalidCharacters();
+  testNormalization();
   testErrors();
 }
 
@@ -158,6 +160,37 @@ void testBytes() {
   testLists(new List.unmodifiable(bytes));
 }
 
+void testNormalization() {
+  // Base-64 normalization.
+
+  // Normalized URI-alphabet characters.
+  Expect.equals("data:;base64,AA/+",
+      UriData.parse("data:;base64,AA_-").toString());
+  // Normalized escapes.
+  Expect.equals("data:;base64,AB==",
+      UriData.parse("data:;base64,A%42=%3D").toString());
+  Expect.equals("data:;base64,/+/+",
+      UriData.parse("data:;base64,%5F%2D%2F%2B").toString());
+  // Normalized padded data.
+  Expect.equals("data:;base64,AA==",
+      UriData.parse("data:;base64,AA%3D%3D").toString());
+  Expect.equals("data:;base64,AAA=",
+      UriData.parse("data:;base64,AAA%3D").toString());
+  // Normalized unpadded data.
+  Expect.equals("data:;base64,AA==",
+      UriData.parse("data:;base64,AA").toString());
+  Expect.equals("data:;base64,AAA=",
+      UriData.parse("data:;base64,AAA").toString());
+
+  // "URI normalization" of non-base64 content.
+  var uri = UriData.parse("data:,\x20\xa0");
+  Expect.equals("data:,%20%C2%A0", uri.toString());
+  uri = UriData.parse("data:,x://x@y:[z]:42/p/./?q=x&y=z#?#\u1234\u{12345}");
+  Expect.equals(
+      "data:,x://x@y:%5Bz%5D:42/p/./?q=x&y=z%23?%23%E1%88%B4%F0%92%8D%85",
+      uri.toString());
+}
+
 bool badArgument(e) => e is ArgumentError;
 bool badFormat(e) => e is FormatException;
 
@@ -218,29 +251,45 @@ void testErrors() {
   Expect.throws(() { UriData.parse("data:type/sub;k=v;base64");},
                 badFormat);
 
-  // Invalid base64 format (only detected when decodeing).
+  void formatError(String input) {
+    Expect.throws(() => UriData.parse("data:;base64,$input"), badFormat, input);
+  }
+
+  // Invalid base64 format (detected when parsed).
   for (var a = 0; a <= 4; a++) {
     for (var p = 0; p <= 4; p++) {
       // Base-64 encoding must have length divisible by four and no more
       // than two padding characters at the end.
       if (p < 3 && (a + p) % 4 == 0) continue;
-      uri = UriData.parse("data:;base64," + "A" * a + "=" * p);
-      Expect.throws(uri.contentAsBytes, badFormat);
+      if (p == 0 && a > 1) continue;
+      formatError("A" * a + "=" * p);
+      formatError("A" * a + "%3D" * p);
     }
   }
   // Invalid base64 encoding: padding not at end.
-  uri = UriData.parse("data:;base64,AA=A");
-  Expect.throws(uri.contentAsBytes, badFormat);
-  uri = UriData.parse("data:;base64,A=AA");
-  Expect.throws(uri.contentAsBytes, badFormat);
-  uri = UriData.parse("data:;base64,=AAA");
-  Expect.throws(uri.contentAsBytes, badFormat);
-  uri = UriData.parse("data:;base64,A==A");
-  Expect.throws(uri.contentAsBytes, badFormat);
-  uri = UriData.parse("data:;base64,==AA");
-  Expect.throws(uri.contentAsBytes, badFormat);
-  uri = UriData.parse("data:;base64,===A");
-  Expect.throws(uri.contentAsBytes, badFormat);
+  formatError("AA=A");
+  formatError("A=AA");
+  formatError("=AAA");
+  formatError("A==A");
+  formatError("==AA");
+  formatError("===A");
+  formatError("AAA%3D=");
+  formatError("A%3D==");
+
+  // Invalid unpadded data.
+  formatError("A");
+  formatError("AAAAA");
+
+  // Invalid characters.
+  formatError("AAA*");
+  formatError("AAA\x00");
+  formatError("AAA\\");
+  formatError("AAA,");
+
+  // Invalid escapes.
+  formatError("AAA%25");
+  formatError("AAA%7F");
+  formatError("AAA%7F");
 }
 
 /// Checks that two [Uri]s are exactly the same.

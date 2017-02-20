@@ -133,46 +133,38 @@ DartSdkManager createDartSdkManager(
  * then remove the [ddc] named argument from this method.
  */
 void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
+  parser.addOption(sdkPathOption, help: 'The path to the Dart SDK.');
+  parser.addOption(analysisOptionsFileOption,
+      help: 'Path to an analysis options file.');
+  parser.addOption(packageRootOption,
+      help: 'The path to a package root directory (deprecated). '
+          'This option cannot be used with --packages.');
+  parser.addFlag(strongModeFlag,
+      help: 'Enable strong static checks (https://goo.gl/DqcBsw).',
+      defaultsTo: ddc);
+  parser.addFlag(noImplicitCastsFlag,
+      negatable: false,
+      help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40).');
+  parser.addFlag(noImplicitDynamicFlag,
+      negatable: false,
+      help: 'Disable implicit dynamic (https://goo.gl/m0UgXD).');
+
+  //
+  // Hidden flags and options.
+  //
   parser.addOption(defineVariableOption,
       abbr: 'D',
       allowMultiple: true,
       help: 'Define environment variables. For example, "-Dfoo=bar" defines an '
-          'environment variable named "foo" whose value is "bar".');
-
-  parser.addOption(sdkPathOption, help: 'The path to the Dart SDK.');
-  parser.addOption(sdkSummaryPathOption,
-      help: 'The path to the Dart SDK summary file.', hide: hide);
-
-  parser.addOption(analysisOptionsFileOption,
-      help: 'Path to an analysis options file.');
-
-  parser.addOption(packageRootOption,
-      abbr: 'p',
-      help: 'The path to a package root directory (deprecated). '
-          'This option cannot be used with --packages.');
+          'environment variable named "foo" whose value is "bar".',
+      hide: hide);
   parser.addOption(packagesOption,
       help: 'The path to the package resolution configuration file, which '
           'supplies a mapping of package names to paths. This option cannot be '
           'used with --package-root.',
       hide: ddc);
-
-  parser.addFlag(strongModeFlag,
-      help: 'Enable strong static checks (https://goo.gl/DqcBsw)',
-      defaultsTo: ddc);
-  parser.addFlag(noImplicitCastsFlag,
-      negatable: false,
-      help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40)');
-  parser.addFlag(noImplicitDynamicFlag,
-      negatable: false,
-      help: 'Disable implicit dynamic (https://goo.gl/m0UgXD)');
-  //
-  // Hidden flags and options.
-  //
-//  parser.addFlag(enableNullAwareOperatorsFlag, // 'enable-null-aware-operators'
-//      help: 'Enable support for null-aware operators (DEP 9).',
-//      defaultsTo: false,
-//      negatable: false,
-//      hide: hide || ddc);
+  parser.addOption(sdkSummaryPathOption,
+      help: 'The path to the Dart SDK summary file.', hide: hide);
   parser.addFlag(enableStrictCallChecksFlag,
       help: 'Fix issue 21938.',
       defaultsTo: false,
@@ -190,11 +182,6 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       defaultsTo: false,
       negatable: false,
       hide: hide);
-//  parser.addFlag('enable_type_checks',
-//      help: 'Check types in constant evaluation.',
-//      defaultsTo: false,
-//      negatable: false,
-//      hide: hide || ddc);
 }
 
 /**

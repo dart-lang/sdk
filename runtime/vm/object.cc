@@ -1177,7 +1177,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
                                            "Object::Init");)
 
 #if defined(DART_NO_SNAPSHOT)
-  bool bootstrapping = true;
+  bool bootstrapping = Dart::vm_snapshot_kind() == Snapshot::kNone;
 #elif defined(DART_PRECOMPILED_RUNTIME)
   bool bootstrapping = false;
 #else
@@ -1669,6 +1669,13 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
 
     // Set up recognized state of all functions (core, math and typed data).
     MethodRecognizer::InitializeState();
+
+    // Adds static const fields (class ids) to the class 'ClassID');
+    lib = Library::LookupLibrary(thread, Symbols::DartInternal());
+    ASSERT(!lib.IsNull());
+    cls = lib.LookupClassAllowPrivate(Symbols::ClassID());
+    ASSERT(!cls.IsNull());
+    cls.InjectCIDFields();
 
     isolate->object_store()->InitKnownObjects();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -3154,6 +3161,32 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
     new_arr.SetAt(i + num_old_fields, *new_fields.At(i));
   }
   SetFields(new_arr);
+}
+
+
+void Class::InjectCIDFields() const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Field& field = Field::Handle(zone);
+  Smi& value = Smi::Handle(zone);
+  String& field_name = String::Handle(zone);
+
+#define CLASS_LIST_WITH_NULL(V)                                                \
+  V(Null)                                                                      \
+  CLASS_LIST_NO_OBJECT(V)
+
+#define ADD_SET_FIELD(clazz)                                                   \
+  field_name = Symbols::New(thread, "cid" #clazz);                             \
+  field =                                                                      \
+      Field::New(field_name, true, false, true, false, *this,                  \
+                 Type::Handle(Type::IntType()), TokenPosition::kMinSource);    \
+  value = Smi::New(k##clazz##Cid);                                             \
+  field.SetStaticValue(value, true);                                           \
+  AddField(field);
+
+  CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
+#undef ADD_SET_FIELD
+#undef CLASS_LIST_WITH_NULL
 }
 
 
@@ -10805,7 +10838,17 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.set_native_entry_symbol_resolver(NULL);
   result.set_is_in_fullsnapshot(false);
   result.StoreNonPointer(&result.raw_ptr()->corelib_imported_, true);
-  result.set_debuggable(!dart_private_scheme);
+  if (dart_private_scheme) {
+    // Never debug dart:_ libraries.
+    result.set_debuggable(false);
+  } else if (dart_scheme) {
+    // Only debug dart: libraries if we have been requested to show invisible
+    // frames.
+    result.set_debuggable(FLAG_show_invisible_frames);
+  } else {
+    // Default to debuggable for all other libraries.
+    result.set_debuggable(true);
+  }
   result.set_is_dart_scheme(dart_scheme);
   result.StoreNonPointer(&result.raw_ptr()->load_state_,
                          RawLibrary::kAllocated);

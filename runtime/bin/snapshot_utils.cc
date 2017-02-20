@@ -24,28 +24,72 @@ static const int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
 static const int64_t kAppSnapshotMagicNumber = 0xf6f6dcdc;
 static const int64_t kAppSnapshotPageSize = 4 * KB;
 
-static bool ReadAppSnapshotBlobs(const char* script_name,
-                                 const uint8_t** vm_data_buffer,
-                                 const uint8_t** vm_instructions_buffer,
-                                 const uint8_t** isolate_data_buffer,
-                                 const uint8_t** isolate_instructions_buffer) {
+class MappedAppSnapshot : public AppSnapshot {
+ public:
+  MappedAppSnapshot(MappedMemory* vm_snapshot_data,
+                    MappedMemory* vm_snapshot_instructions,
+                    MappedMemory* isolate_snapshot_data,
+                    MappedMemory* isolate_snapshot_instructions)
+      : vm_data_mapping_(vm_snapshot_data),
+        vm_instructions_mapping_(vm_snapshot_instructions),
+        isolate_data_mapping_(isolate_snapshot_data),
+        isolate_instructions_mapping_(isolate_snapshot_instructions) {}
+
+  ~MappedAppSnapshot() {
+    delete vm_data_mapping_;
+    delete vm_instructions_mapping_;
+    delete isolate_data_mapping_;
+    delete isolate_instructions_mapping_;
+  }
+
+  void SetBuffers(const uint8_t** vm_data_buffer,
+                  const uint8_t** vm_instructions_buffer,
+                  const uint8_t** isolate_data_buffer,
+                  const uint8_t** isolate_instructions_buffer) {
+    if (vm_data_mapping_ != NULL) {
+      *vm_data_buffer =
+          reinterpret_cast<const uint8_t*>(vm_data_mapping_->address());
+    }
+    if (vm_instructions_mapping_ != NULL) {
+      *vm_instructions_buffer =
+          reinterpret_cast<const uint8_t*>(vm_instructions_mapping_->address());
+    }
+    if (isolate_data_mapping_ != NULL) {
+      *isolate_data_buffer =
+          reinterpret_cast<const uint8_t*>(isolate_data_mapping_->address());
+    }
+    if (isolate_instructions_mapping_ != NULL) {
+      *isolate_instructions_buffer = reinterpret_cast<const uint8_t*>(
+          isolate_instructions_mapping_->address());
+    }
+  }
+
+ private:
+  MappedMemory* vm_data_mapping_;
+  MappedMemory* vm_instructions_mapping_;
+  MappedMemory* isolate_data_mapping_;
+  MappedMemory* isolate_instructions_mapping_;
+};
+
+
+static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
   File* file = File::Open(script_name, File::kRead);
   if (file == NULL) {
-    return false;
+    return NULL;
   }
   if (file->Length() < kAppSnapshotHeaderSize) {
     file->Release();
-    return false;
+    return NULL;
   }
   int64_t header[5];
   ASSERT(sizeof(header) == kAppSnapshotHeaderSize);
   if (!file->ReadFully(&header, kAppSnapshotHeaderSize)) {
     file->Release();
-    return false;
+    return NULL;
   }
   if (header[0] != kAppSnapshotMagicNumber) {
     file->Release();
-    return false;
+    return NULL;
   }
 
   int64_t vm_data_size = header[1];
@@ -68,121 +112,143 @@ static bool ReadAppSnapshotBlobs(const char* script_name,
         Utils::RoundUp(isolate_instructions_position, kAppSnapshotPageSize);
   }
 
+  MappedMemory* vm_data_mapping = NULL;
   if (vm_data_size != 0) {
-    *vm_data_buffer = reinterpret_cast<const uint8_t*>(
-        file->Map(File::kReadOnly, vm_data_position, vm_data_size));
-    if (vm_data_buffer == NULL) {
-      Log::PrintErr("Failed to memory map snapshot\n");
-      Platform::Exit(kErrorExitCode);
+    vm_data_mapping =
+        file->Map(File::kReadOnly, vm_data_position, vm_data_size);
+    if (vm_data_mapping == NULL) {
+      FATAL1("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
+  MappedMemory* vm_instr_mapping = NULL;
   if (vm_instructions_size != 0) {
-    *vm_instructions_buffer = reinterpret_cast<const uint8_t*>(file->Map(
-        File::kReadExecute, vm_instructions_position, vm_instructions_size));
-    if (*vm_instructions_buffer == NULL) {
-      Log::PrintErr("Failed to memory map snapshot\n");
-      Platform::Exit(kErrorExitCode);
+    vm_instr_mapping = file->Map(File::kReadExecute, vm_instructions_position,
+                                 vm_instructions_size);
+    if (vm_instr_mapping == NULL) {
+      FATAL1("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
-  *isolate_data_buffer = reinterpret_cast<const uint8_t*>(
-      file->Map(File::kReadOnly, isolate_data_position, isolate_data_size));
-  if (isolate_data_buffer == NULL) {
-    Log::PrintErr("Failed to memory map snapshot\n");
-    Platform::Exit(kErrorExitCode);
+  MappedMemory* isolate_data_mapping = NULL;
+  if (isolate_data_size != 0) {
+    isolate_data_mapping =
+        file->Map(File::kReadOnly, isolate_data_position, isolate_data_size);
+    if (isolate_data_mapping == NULL) {
+      FATAL1("Failed to memory map snapshot: %s\n", script_name);
+    }
   }
 
-  if (isolate_instructions_size == 0) {
-    *isolate_instructions_buffer = NULL;
-  } else {
-    *isolate_instructions_buffer = reinterpret_cast<const uint8_t*>(
+  MappedMemory* isolate_instr_mapping = NULL;
+  if (isolate_instructions_size != 0) {
+    isolate_instr_mapping =
         file->Map(File::kReadExecute, isolate_instructions_position,
-                  isolate_instructions_size));
-    if (*isolate_instructions_buffer == NULL) {
-      Log::PrintErr("Failed to memory map snapshot\n");
-      Platform::Exit(kErrorExitCode);
+                  isolate_instructions_size);
+    if (isolate_instr_mapping == NULL) {
+      FATAL1("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
   file->Release();
-  return true;
+  return new MappedAppSnapshot(vm_data_mapping, vm_instr_mapping,
+                               isolate_data_mapping, isolate_instr_mapping);
 }
 
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-static bool ReadAppSnapshotDynamicLibrary(
-    const char* script_name,
-    const uint8_t** vm_data_buffer,
-    const uint8_t** vm_instructions_buffer,
-    const uint8_t** isolate_data_buffer,
-    const uint8_t** isolate_instructions_buffer) {
+class DylibAppSnapshot : public AppSnapshot {
+ public:
+  DylibAppSnapshot(void* library,
+                   const uint8_t* vm_snapshot_data,
+                   const uint8_t* vm_snapshot_instructions,
+                   const uint8_t* isolate_snapshot_data,
+                   const uint8_t* isolate_snapshot_instructions)
+      : library_(library),
+        vm_snapshot_data_(vm_snapshot_data),
+        vm_snapshot_instructions_(vm_snapshot_instructions),
+        isolate_snapshot_data_(isolate_snapshot_data),
+        isolate_snapshot_instructions_(isolate_snapshot_instructions) {}
+
+  ~DylibAppSnapshot() { Extensions::UnloadLibrary(library_); }
+
+  void SetBuffers(const uint8_t** vm_data_buffer,
+                  const uint8_t** vm_instructions_buffer,
+                  const uint8_t** isolate_data_buffer,
+                  const uint8_t** isolate_instructions_buffer) {
+    *vm_data_buffer = vm_snapshot_data_;
+    *vm_instructions_buffer = vm_snapshot_instructions_;
+    *isolate_data_buffer = isolate_snapshot_data_;
+    *isolate_instructions_buffer = isolate_snapshot_instructions_;
+  }
+
+ private:
+  void* library_;
+  const uint8_t* vm_snapshot_data_;
+  const uint8_t* vm_snapshot_instructions_;
+  const uint8_t* isolate_snapshot_data_;
+  const uint8_t* isolate_snapshot_instructions_;
+};
+
+
+static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
   void* library = Extensions::LoadExtensionLibrary(script_name);
   if (library == NULL) {
-    return false;
+    return NULL;
   }
 
-  *vm_data_buffer = reinterpret_cast<const uint8_t*>(
+  const uint8_t* vm_data_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kVmSnapshotDataSymbolName));
-  if (*vm_data_buffer == NULL) {
-    Log::PrintErr("Failed to resolve symbol '%s'\n", kVmSnapshotDataSymbolName);
-    Platform::Exit(kErrorExitCode);
+  if (vm_data_buffer == NULL) {
+    FATAL1("Failed to resolve symbol '%s'\n", kVmSnapshotDataSymbolName);
   }
 
-  *vm_instructions_buffer = reinterpret_cast<const uint8_t*>(
+  const uint8_t* vm_instructions_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kVmSnapshotInstructionsSymbolName));
-  if (*vm_instructions_buffer == NULL) {
-    Log::PrintErr("Failed to resolve symbol '%s'\n",
-                  kVmSnapshotInstructionsSymbolName);
-    Platform::Exit(kErrorExitCode);
+  if (vm_instructions_buffer == NULL) {
+    FATAL1("Failed to resolve symbol '%s'\n",
+           kVmSnapshotInstructionsSymbolName);
   }
 
-  *isolate_data_buffer = reinterpret_cast<const uint8_t*>(
+  const uint8_t* isolate_data_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kIsolateSnapshotDataSymbolName));
-  if (*isolate_data_buffer == NULL) {
-    Log::PrintErr("Failed to resolve symbol '%s'\n",
-                  kIsolateSnapshotDataSymbolName);
-    Platform::Exit(kErrorExitCode);
+  if (isolate_data_buffer == NULL) {
+    FATAL1("Failed to resolve symbol '%s'\n", kIsolateSnapshotDataSymbolName);
   }
 
-  *isolate_instructions_buffer =
+  const uint8_t* isolate_instructions_buffer =
       reinterpret_cast<const uint8_t*>(Extensions::ResolveSymbol(
           library, kIsolateSnapshotInstructionsSymbolName));
-  if (*isolate_instructions_buffer == NULL) {
-    Log::PrintErr("Failed to resolve symbol '%s'\n",
-                  kIsolateSnapshotInstructionsSymbolName);
-    Platform::Exit(kErrorExitCode);
+  if (isolate_instructions_buffer == NULL) {
+    FATAL1("Failed to resolve symbol '%s'\n",
+           kIsolateSnapshotInstructionsSymbolName);
   }
 
-  return true;
+  return new DylibAppSnapshot(library, vm_data_buffer, vm_instructions_buffer,
+                              isolate_data_buffer, isolate_instructions_buffer);
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 
-bool Snapshot::ReadAppSnapshot(const char* script_name,
-                               const uint8_t** vm_data_buffer,
-                               const uint8_t** vm_instructions_buffer,
-                               const uint8_t** isolate_data_buffer,
-                               const uint8_t** isolate_instructions_buffer) {
+AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
   if (File::GetType(script_name, true) != File::kIsFile) {
     // If 'script_name' refers to a pipe, don't read to check for an app
     // snapshot since we cannot rewind if it isn't (and couldn't mmap it in
     // anyway if it was).
-    return false;
+    return NULL;
   }
-  if (ReadAppSnapshotBlobs(script_name, vm_data_buffer, vm_instructions_buffer,
-                           isolate_data_buffer, isolate_instructions_buffer)) {
-    return true;
+  AppSnapshot* snapshot = TryReadAppSnapshotBlobs(script_name);
+  if (snapshot != NULL) {
+    return snapshot;
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
   // For testing AOT with the standalone embedder, we also support loading
   // from a dynamic library to simulate what happens on iOS.
-  return ReadAppSnapshotDynamicLibrary(
-      script_name, vm_data_buffer, vm_instructions_buffer, isolate_data_buffer,
-      isolate_instructions_buffer);
-#else
-  return false;
+  snapshot = TryReadAppSnapshotDynamicLibrary(script_name);
+  if (snapshot != NULL) {
+    return snapshot;
+  }
 #endif  //  defined(DART_PRECOMPILED_RUNTIME)
+  return NULL;
 }
 
 

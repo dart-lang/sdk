@@ -4,11 +4,13 @@
 
 library analysis_server.src.domain_diagnostic;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
@@ -27,9 +29,6 @@ int _workItemCount(AnalysisContextImpl context) {
 /// Instances of the class [DiagnosticDomainHandler] implement a
 /// [RequestHandler] that handles requests in the `diagnostic` domain.
 class DiagnosticDomainHandler implements RequestHandler {
-  /// The name of the request used to get diagnostic information.
-  static const String DIAGNOSTICS = 'diagnostic.getDiagnostics';
-
   /// The analysis server that is using this handler to process requests.
   final AnalysisServer server;
 
@@ -37,7 +36,7 @@ class DiagnosticDomainHandler implements RequestHandler {
   /// [server].
   DiagnosticDomainHandler(this.server);
 
-  /// Answer the `diagnostic.diagnostics` request.
+  /// Answer the `diagnostic.getDiagnostics` request.
   Response computeDiagnostics(Request request) {
     List<ContextData> contexts = <ContextData>[];
     if (server.options.enableNewAnalysisDriver) {
@@ -101,12 +100,28 @@ class DiagnosticDomainHandler implements RequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == DIAGNOSTICS) {
+      if (requestName == DIAGNOSTIC_GET_DIAGNOSTICS) {
         return computeDiagnostics(request);
+      } else if (requestName == DIAGNOSTIC_GET_SERVER_PORT) {
+        handleGetServerPort(request);
+        return Response.DELAYED_RESPONSE;
       }
     } on RequestFailure catch (exception) {
       return exception.response;
     }
     return null;
+  }
+
+  /// Answer the `diagnostic.getServerPort` request.
+  Future handleGetServerPort(Request request) async {
+    try {
+      // Open a port (or return the existing one).
+      int port = await server.diagnosticServer.getServerPort();
+      server.sendResponse(
+          new DiagnosticGetServerPortResult(port).toResponse(request.id));
+    } catch (error) {
+      server
+          .sendResponse(new Response.debugPortCouldNotBeOpened(request, error));
+    }
   }
 }

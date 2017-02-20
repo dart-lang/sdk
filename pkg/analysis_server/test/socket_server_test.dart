@@ -119,6 +119,7 @@ class SocketServerTest {
         new FolderBasedDartSdk(resourceProvider,
             FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)),
         InstrumentationService.NULL_SERVICE,
+        null,
         serverPlugin,
         null,
         null,

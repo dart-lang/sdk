@@ -11,9 +11,13 @@ import 'package:kernel/ast.dart' show
     Procedure,
     ProcedureKind;
 
+import '../errors.dart' show
+    internalError;
+
 import '../kernel/kernel_builder.dart' show
     Builder,
-    KernelClassBuilder;
+    KernelClassBuilder,
+    KernelTypeBuilder;
 
 import '../modifier.dart' show
     abstractMask;
@@ -49,6 +53,12 @@ class DillClassBuilder extends KernelClassBuilder {
       }
     }
   }
+
+  /// Returns true if this class is the result of applying a mixin to its
+  /// superclass.
+  bool get isMixinApplication => cls.isMixinApplication;
+
+  KernelTypeBuilder get mixedInType => internalError("Not implemented.");
 
   Builder findConstructorOrFactory(String name) => constructors[name];
 }

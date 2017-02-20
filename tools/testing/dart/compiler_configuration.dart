@@ -67,8 +67,9 @@ abstract class CompilerConfiguration {
     bool hotReload = configuration['hot_reload'];
     bool hotReloadRollback = configuration['hot_reload_rollback'];
     bool useFastStartup = configuration['fast_startup'];
+    bool useKernelInDart2js = configuration['dart2js_with_kernel'];
     bool verifyKernel = configuration['verify-ir'];
-    bool useDFE = configuration['useDFE'];
+    bool useDFE = !configuration['noDFE'];
     bool useFasta = configuration['useFasta'];
     bool treeShake = !configuration['no-tree-shake'];
 
@@ -89,6 +90,7 @@ abstract class CompilerConfiguration {
             useSdk: useSdk,
             isCsp: isCsp,
             useFastStartup: useFastStartup,
+            useKernel: useKernelInDart2js,
             extraDart2jsOptions:
                 TestUtils.getExtraOptions(configuration, 'dart2js_options'));
       case 'app_jit':
@@ -535,6 +537,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   final bool isCsp;
   final bool useCps;
   final bool useFastStartup;
+  final bool useKernel;
   final List<String> extraDart2jsOptions;
   // We cache the extended environment to save memory.
   static Map<String, String> cpsFlagCache;
@@ -548,6 +551,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       bool this.useCps,
       bool this.isCsp,
       bool this.useFastStartup,
+      this.useKernel,
       this.extraDart2jsOptions})
       : super('dart2js',
             isDebug: isDebug,

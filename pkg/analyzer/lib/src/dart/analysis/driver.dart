@@ -72,7 +72,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 20;
+  static const int DATA_VERSION = 22;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -209,6 +209,11 @@ class AnalysisDriver {
   final _resultController = new StreamController<AnalysisResult>();
 
   /**
+   * Resolution signatures of the most recently produced results for files.
+   */
+  final Map<String, String> _lastProducedSignatures = {};
+
+  /**
    * Cached results for [_priorityFiles].
    */
   final Map<String, AnalysisResult> _priorityResults = {};
@@ -247,7 +252,7 @@ class AnalysisDriver {
       SourceFactory sourceFactory,
       this._analysisOptions,
       {PackageBundle sdkBundle,
-      this.analyzeWithoutTasks: false})
+      this.analyzeWithoutTasks: true})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle {
@@ -695,9 +700,15 @@ class AnalysisDriver {
    * Return `null` if the file is a part of an unknown library, so cannot be
    * analyzed yet. But [asIsIfPartWithoutLibrary] is `true`, then the file is
    * analyzed anyway, even without a library.
+   *
+   * Return [AnalysisResult._UNCHANGED] if [skipIfSameSignature] is `true` and
+   * the resolved signature of the file in its library is the same as the one
+   * that was the most recently produced to the client.
    */
   AnalysisResult _computeAnalysisResult(String path,
-      {bool withUnit: false, bool asIsIfPartWithoutLibrary: false}) {
+      {bool withUnit: false,
+      bool asIsIfPartWithoutLibrary: false,
+      bool skipIfSameSignature: false}) {
     FileState file = _fileTracker.fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -710,12 +721,23 @@ class AnalysisDriver {
       }
     }
 
+    // Prepare the signature and key.
+    String signature = _getResolvedUnitSignature(library, file);
+    String key = _getResolvedUnitKey(signature);
+
+    // Skip reading if the signature, so errors, are the same as the last time.
+    if (skipIfSameSignature) {
+      assert(!withUnit);
+      if (_lastProducedSignatures[path] == signature) {
+        return AnalysisResult._UNCHANGED;
+      }
+    }
+
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      String key = _getResolvedUnitKey(library, file);
       List<int> bytes = _byteStore.get(key);
       if (bytes != null) {
-        return _getAnalysisResultFromBytes(file, bytes);
+        return _getAnalysisResultFromBytes(file, signature, bytes);
       }
     }
 
@@ -735,12 +757,19 @@ class AnalysisDriver {
                 libraryContext.store,
                 library);
             Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
-            UnitAnalysisResult fileResult = results[file];
-            resolvedUnit = fileResult.unit;
-
-            // Store the result into the cache.
-            bytes = _storeResolvedUnit(
-                library, file, resolvedUnit, fileResult.errors);
+            for (FileState unitFile in results.keys) {
+              UnitAnalysisResult unitResult = results[unitFile];
+              List<int> unitBytes =
+                  _serializeResolvedUnit(unitResult.unit, unitResult.errors);
+              String unitSignature =
+                  _getResolvedUnitSignature(library, unitFile);
+              String unitKey = _getResolvedUnitKey(unitSignature);
+              _byteStore.put(unitKey, unitBytes);
+              if (unitFile == file) {
+                bytes = unitBytes;
+                resolvedUnit = unitResult.unit;
+              }
+            }
           } else {
             ResolutionResult resolutionResult =
                 libraryContext.resolveUnit(library.source, file.source);
@@ -748,12 +777,14 @@ class AnalysisDriver {
             List<AnalysisError> errors = resolutionResult.errors;
 
             // Store the result into the cache.
-            bytes = _storeResolvedUnit(library, file, resolvedUnit, errors);
+            bytes = _serializeResolvedUnit(resolvedUnit, errors);
+            _byteStore.put(key, bytes);
           }
 
           // Return the result, full or partial.
           _logger.writeln('Computed new analysis result.');
-          AnalysisResult result = _getAnalysisResultFromBytes(file, bytes,
+          AnalysisResult result = _getAnalysisResultFromBytes(
+              file, signature, bytes,
               content: withUnit ? file.content : null,
               withErrors: _fileTracker.addedFiles.contains(path),
               resolvedUnit: withUnit ? resolvedUnit : null);
@@ -844,7 +875,8 @@ class AnalysisDriver {
    * Load the [AnalysisResult] for the given [file] from the [bytes]. Set
    * optional [content] and [resolvedUnit].
    */
-  AnalysisResult _getAnalysisResultFromBytes(FileState file, List<int> bytes,
+  AnalysisResult _getAnalysisResultFromBytes(
+      FileState file, String signature, List<int> bytes,
       {String content, bool withErrors: true, CompilationUnit resolvedUnit}) {
     var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
     List<AnalysisError> errors = withErrors
@@ -859,6 +891,7 @@ class AnalysisDriver {
         content,
         file.contentHash,
         file.lineInfo,
+        signature,
         resolvedUnit,
         errors,
         unit.index);
@@ -885,11 +918,9 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the key to store fully resolved results for the [file] in the
-   * [library] into the cache.
+   * Return the key to store fully resolved results for the [signature].
    */
-  String _getResolvedUnitKey(FileState library, FileState file) {
-    String signature = _getResolvedUnitSignature(library, file);
+  String _getResolvedUnitKey(String signature) {
     return '$signature.resolved';
   }
 
@@ -1042,15 +1073,20 @@ class AnalysisDriver {
       }
     }
 
+    // Analyze a general file.
     if (_fileTracker.hasPendingFiles) {
-      // Analyze a general file.
       String path = _fileTracker.anyPendingFile;
       try {
-        AnalysisResult result = _computeAnalysisResult(path, withUnit: false);
+        AnalysisResult result = _computeAnalysisResult(path,
+            withUnit: false, skipIfSameSignature: true);
         if (result == null) {
           _partsToAnalyze.add(path);
+        } else if (result == AnalysisResult._UNCHANGED) {
+          // We found that the set of errors is the same as we produced the
+          // last time, so we don't need to produce it again now.
         } else {
           _resultController.add(result);
+          _lastProducedSignatures[result.path] = result._signature;
         }
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
@@ -1110,6 +1146,25 @@ class AnalysisDriver {
     _exceptionController.add(new ExceptionResult(path, caught, contextKey));
   }
 
+  /**
+   * Serialize the given [resolvedUnit] errors and index into bytes.
+   */
+  List<int> _serializeResolvedUnit(
+      CompilationUnit resolvedUnit, List<AnalysisError> errors) {
+    AnalysisDriverUnitIndexBuilder index = indexUnit(resolvedUnit);
+    return new AnalysisDriverResolvedUnitBuilder(
+            errors: errors
+                .map((error) => new AnalysisDriverUnitErrorBuilder(
+                    offset: error.offset,
+                    length: error.length,
+                    uniqueName: error.errorCode.uniqueName,
+                    message: error.message,
+                    correction: error.correction))
+                .toList(),
+            index: index)
+        .toBuffer();
+  }
+
   String _storeExceptionContext(
       String path, FileState libraryFile, exception, StackTrace stackTrace) {
     if (allowedNumberOfContextsToWrite <= 0) {
@@ -1157,30 +1212,6 @@ class AnalysisDriver {
     } catch (_) {
       return null;
     }
-  }
-
-  /**
-   * Store the fully resolved results for the [file] in the [library] into the
-   * cache and return the stored bytes.
-   */
-  List<int> _storeResolvedUnit(FileState library, FileState file,
-      CompilationUnit resolvedUnit, List<AnalysisError> errors) {
-    AnalysisDriverUnitIndexBuilder index = indexUnit(resolvedUnit);
-
-    String key = _getResolvedUnitKey(library, file);
-    List<int> bytes = new AnalysisDriverResolvedUnitBuilder(
-            errors: errors
-                .map((error) => new AnalysisDriverUnitErrorBuilder(
-                    offset: error.offset,
-                    length: error.length,
-                    uniqueName: error.errorCode.uniqueName,
-                    message: error.message,
-                    correction: error.correction))
-                .toList(),
-            index: index)
-        .toBuffer();
-    _byteStore.put(key, bytes);
-    return bytes;
   }
 }
 
@@ -1382,6 +1413,9 @@ class AnalysisDriverTestView {
  * any previously returned result, even inside of the same library.
  */
 class AnalysisResult {
+  static final _UNCHANGED = new AnalysisResult(
+      null, null, null, null, null, null, null, null, null, null, null, null);
+
   /**
    * The [AnalysisDriver] that produced this result.
    */
@@ -1425,6 +1459,13 @@ class AnalysisResult {
   final LineInfo lineInfo;
 
   /**
+   * The signature of the result based on the content of the file, and the
+   * transitive closure of files imported and exported by the the library of
+   * the requested file.
+   */
+  final String _signature;
+
+  /**
    * The fully resolved compilation unit for the [content].
    */
   final CompilationUnit unit;
@@ -1448,6 +1489,7 @@ class AnalysisResult {
       this.content,
       this.contentHash,
       this.lineInfo,
+      this._signature,
       this.unit,
       this.errors,
       this._index);

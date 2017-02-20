@@ -421,7 +421,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var source = library.source;
     // TODO(jmesserly): we need to split out HTML.
     if (source.uri.scheme == 'dart') {
-      return 'dart_sdk';
+      return JS.dartSdkModule;
     }
     var moduleName = _buildUnit.libraryToModule(source);
     if (moduleName == null) {

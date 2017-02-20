@@ -14,8 +14,10 @@ import 'package:analysis_server/src/status/get_handler2.dart';
 
 /**
  * Instances of the class [HttpServer] implement a simple HTTP server. The
- * primary responsibility of this server is to listen for an UPGRADE request and
- * to start an analysis server.
+ * server:
+ *
+ * - listens for an UPGRADE request in order to start an analysis server
+ * - serves diagnostic information as html pages
  */
 class HttpAnalysisServer {
   /**
@@ -49,6 +51,11 @@ class HttpAnalysisServer {
    */
   HttpAnalysisServer(this.socketServer);
 
+  /**
+   * Return the port this server is bound to.
+   */
+  Future<int> get boundPort async => (await _server)?.port;
+
   void close() {
     _server.then((HttpServer server) {
       server.close();
@@ -69,9 +76,20 @@ class HttpAnalysisServer {
   /**
    * Begin serving HTTP requests over the given port.
    */
-  void serveHttp(int port) {
-    _server = HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
-    _server.then(_handleServer).catchError((_) {/* Ignore errors. */});
+  Future<int> serveHttp([int initialPort]) async {
+    if (_server != null) {
+      return boundPort;
+    }
+
+    try {
+      _server =
+          HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, initialPort ?? 0);
+      HttpServer server = await _server;
+      _handleServer(server);
+      return server.port;
+    } catch (ignore) {
+      return null;
+    }
   }
 
   /**
@@ -111,6 +129,8 @@ class HttpAnalysisServer {
    * running an analysis server on a [WebSocket]-based communication channel.
    */
   void _handleWebSocket(WebSocket socket) {
+    // TODO(devoncarew): This serves the analysis server over a websocket
+    // connection for historical reasons (and should probably be removed).
     socketServer.createAnalysisServer(new WebSocketServerChannel(
         socket, socketServer.instrumentationService));
   }

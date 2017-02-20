@@ -22,33 +22,47 @@ namespace dart {
 class MallocHookScope {
  public:
   static void InitMallocHookFlag() {
+    MutexLocker ml(malloc_hook_scope_mutex_);
     ASSERT(in_malloc_hook_flag_ == kUnsetThreadLocalKey);
     in_malloc_hook_flag_ = OSThread::CreateThreadLocal();
     OSThread::SetThreadLocal(in_malloc_hook_flag_, 0);
   }
 
   static void DestroyMallocHookFlag() {
+    MutexLocker ml(malloc_hook_scope_mutex_);
     ASSERT(in_malloc_hook_flag_ != kUnsetThreadLocalKey);
     OSThread::DeleteThreadLocal(in_malloc_hook_flag_);
     in_malloc_hook_flag_ = kUnsetThreadLocalKey;
   }
 
   MallocHookScope() {
+    MutexLocker ml(malloc_hook_scope_mutex_);
     ASSERT(in_malloc_hook_flag_ != kUnsetThreadLocalKey);
     OSThread::SetThreadLocal(in_malloc_hook_flag_, 1);
   }
 
   ~MallocHookScope() {
+    MutexLocker ml(malloc_hook_scope_mutex_);
     ASSERT(in_malloc_hook_flag_ != kUnsetThreadLocalKey);
     OSThread::SetThreadLocal(in_malloc_hook_flag_, 0);
   }
 
   static bool IsInHook() {
-    ASSERT(in_malloc_hook_flag_ != kUnsetThreadLocalKey);
+    MutexLocker ml(malloc_hook_scope_mutex_);
+    if (in_malloc_hook_flag_ == kUnsetThreadLocalKey) {
+      // Bail out if the malloc hook flag is invalid. This means that
+      // MallocHookState::TearDown() has been called and MallocHookScope is no
+      // longer intitialized. Don't worry if MallocHookState::TearDown() is
+      // called before the hooks grab the mutex, since
+      // MallocHooksState::Active() is checked after the lock is taken before
+      // proceeding to act on the allocation/free.
+      return false;
+    }
     return OSThread::GetThreadLocal(in_malloc_hook_flag_);
   }
 
  private:
+  static Mutex* malloc_hook_scope_mutex_;
   static ThreadLocalKey in_malloc_hook_flag_;
 
   DISALLOW_ALLOCATION();
@@ -173,8 +187,11 @@ class MallocHooksState : public AllStatic {
 };
 
 
-// MallocHooks state / locks.
+// MallocHookScope state.
+Mutex* MallocHookScope::malloc_hook_scope_mutex_ = new Mutex();
 ThreadLocalKey MallocHookScope::in_malloc_hook_flag_ = kUnsetThreadLocalKey;
+
+// MallocHooks state / locks.
 bool MallocHooksState::active_ = false;
 intptr_t MallocHooksState::original_pid_ = MallocHooksState::kInvalidPid;
 Mutex* MallocHooksState::malloc_hook_mutex_ = new Mutex();
@@ -186,6 +203,9 @@ AddressMap* MallocHooksState::address_map_ = NULL;
 
 
 void MallocHooks::InitOnce() {
+  if (!FLAG_enable_malloc_hooks) {
+    return;
+  }
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
   ASSERT(!MallocHooksState::Active());
 
@@ -202,6 +222,9 @@ void MallocHooks::InitOnce() {
 
 
 void MallocHooks::TearDown() {
+  if (!FLAG_enable_malloc_hooks) {
+    return;
+  }
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
   ASSERT(MallocHooksState::Active());
 
@@ -218,6 +241,9 @@ void MallocHooks::TearDown() {
 
 
 void MallocHooks::ResetStats() {
+  if (!FLAG_enable_malloc_hooks) {
+    return;
+  }
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
   if (MallocHooksState::Active()) {
     MallocHooksState::ResetStats();
@@ -226,12 +252,18 @@ void MallocHooks::ResetStats() {
 
 
 bool MallocHooks::Active() {
+  if (!FLAG_enable_malloc_hooks) {
+    return false;
+  }
   ASSERT(MallocHooksState::malloc_hook_mutex()->IsOwnedByCurrentThread());
   return MallocHooksState::Active();
 }
 
 
 void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
+  if (!FLAG_enable_malloc_hooks) {
+    return;
+  }
   intptr_t allocated_memory = 0;
   intptr_t allocation_count = 0;
   bool add_usage = false;
@@ -254,12 +286,18 @@ void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
 
 
 intptr_t MallocHooks::allocation_count() {
+  if (!FLAG_enable_malloc_hooks) {
+    return 0;
+  }
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
   return MallocHooksState::allocation_count();
 }
 
 
 intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
+  if (!FLAG_enable_malloc_hooks) {
+    return 0;
+  }
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
   return MallocHooksState::heap_allocated_memory_in_bytes();
 }
@@ -270,11 +308,12 @@ void MallocHooksState::RecordAllocHook(const void* ptr, size_t size) {
     return;
   }
 
-  // Set the malloc hook flag before grabbing the mutex to avoid calling hooks
-  // again.
-  MallocHookScope mhs;
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
+  // Now that we hold the lock, check to make sure everything is still active.
   if ((ptr != NULL) && MallocHooksState::Active()) {
+    // Set the malloc hook flag to avoid calling hooks again if memory is
+    // allocated/freed below.
+    MallocHookScope mhs;
     MallocHooksState::IncrementHeapAllocatedMemoryInBytes(size);
     MallocHooksState::address_map()->Insert(ptr, size);
   }
@@ -286,11 +325,12 @@ void MallocHooksState::RecordFreeHook(const void* ptr) {
     return;
   }
 
-  // Set the malloc hook flag before grabbing the mutex to avoid calling hooks
-  // again.
-  MallocHookScope mhs;
   MutexLocker ml(MallocHooksState::malloc_hook_mutex());
+  // Now that we hold the lock, check to make sure everything is still active.
   if ((ptr != NULL) && MallocHooksState::Active()) {
+    // Set the malloc hook flag to avoid calling hooks again if memory is
+    // allocated/freed below.
+    MallocHookScope mhs;
     intptr_t size = 0;
     if (MallocHooksState::address_map()->Lookup(ptr, &size)) {
       MallocHooksState::DecrementHeapAllocatedMemoryInBytes(size);

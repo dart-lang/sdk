@@ -4,15 +4,11 @@
 
 library fasta.parser.listener;
 
-import '../scanner/token.dart' show
-    BeginGroupToken,
-    Token;
+import '../scanner/token.dart' show BeginGroupToken, Token;
 
-import '../util/link.dart' show
-    Link;
+import '../util/link.dart' show Link;
 
-import 'error_kind.dart' show
-    ErrorKind;
+import 'error_kind.dart' show ErrorKind;
 
 /// A parser event listener that does nothing except throw exceptions
 /// on parser errors.
@@ -63,12 +59,22 @@ class Listener {
 
   void beginClassBody(Token token) {}
 
+  /// Handle the end of the body of a class declaration.  The only substructures
+  /// are the class members.
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     logEvent("ClassBody");
   }
 
   void beginClassDeclaration(Token beginToken, Token name) {}
 
+  /// Handle the end of a class declaration.  Substructures:
+  /// - metadata
+  /// - modifiers
+  /// - class name
+  /// - type variables
+  /// - supertype (may be a mixin application)
+  /// - implemented types
+  /// - class body
   void endClassDeclaration(int interfacesCount, Token beginToken,
       Token extendsKeyword, Token implementsKeyword, Token endToken) {
     logEvent("ClassDeclaration");
@@ -100,15 +106,13 @@ class Listener {
     logEvent("DoWhileStatement");
   }
 
-  void beginDoWhileStatementBody(Token token) {
-  }
+  void beginDoWhileStatementBody(Token token) {}
 
   void endDoWhileStatementBody(Token token) {
     logEvent("DoWhileStatementBody");
   }
 
-  void beginWhileStatementBody(Token token) {
-  }
+  void beginWhileStatementBody(Token token) {}
 
   void endWhileStatementBody(Token token) {
     logEvent("WhileStatementBody");
@@ -122,6 +126,11 @@ class Listener {
 
   void beginExport(Token token) {}
 
+  /// Handle the end of an export directive.  Substructures:
+  /// - metadata
+  /// - uri
+  /// - conditional uris
+  /// - combinators
   void endExport(Token exportKeyword, Token semicolon) {
     logEvent("Export");
   }
@@ -168,8 +177,7 @@ class Listener {
     logEvent("ForStatement");
   }
 
-  void beginForStatementBody(Token token) {
-  }
+  void beginForStatementBody(Token token) {}
 
   void endForStatementBody(Token token) {
     logEvent("ForStatementBody");
@@ -180,15 +188,13 @@ class Listener {
     logEvent("ForIn");
   }
 
-  void beginForInExpression(Token token) {
-  }
+  void beginForInExpression(Token token) {}
 
   void endForInExpression(Token token) {
     logEvent("ForInExpression");
   }
 
-  void beginForInBody(Token token) {
-  }
+  void beginForInBody(Token token) {}
 
   void endForInBody(Token token) {
     logEvent("ForInBody");
@@ -232,12 +238,28 @@ class Listener {
 
   void beginMixinApplication(Token token) {}
 
+  /// Handle the end of a mixin application construct (e.g. "A with B, C").
+  /// Substructures:
+  /// - supertype
+  /// - mixin types (TypeList)
   void endMixinApplication() {
     logEvent("MixinApplication");
   }
 
   void beginNamedMixinApplication(Token beginToken, Token name) {}
 
+  /// Handle the end of a named mixin declaration.  Substructures:
+  /// - metadata
+  /// - modifiers
+  /// - class name
+  /// - type variables
+  /// - mixin application
+  /// - implemented types (TypeList)
+  ///
+  /// TODO(paulberry,ahe): it seems incosistent that for a named mixin
+  /// application, the implemented types are a TypeList, whereas for a class
+  /// declaration, each implemented type is listed separately on the stack, and
+  /// the number of implemented types is passed as a parameter.
   void endNamedMixinApplication(
       Token begin, Token implementsKeyword, Token endToken) {
     logEvent("NamedMixinApplication");
@@ -245,6 +267,8 @@ class Listener {
 
   void beginHide(Token hideKeyword) {}
 
+  /// Handle the end of a "hide" combinator.  Substructures:
+  /// - hidden names (IdentifierList)
   void endHide(Token hideKeyword) {
     logEvent("Hide");
   }
@@ -267,15 +291,13 @@ class Listener {
     logEvent("IfStatement");
   }
 
-  void beginThenStatement(Token token) {
-  }
+  void beginThenStatement(Token token) {}
 
   void endThenStatement(Token token) {
     logEvent("ThenStatement");
   }
 
-  void beginElseStatement(Token token) {
-  }
+  void beginElseStatement(Token token) {}
 
   void endElseStatement(Token token) {
     logEvent("ElseStatement");
@@ -283,6 +305,12 @@ class Listener {
 
   void beginImport(Token importKeyword) {}
 
+  /// Handle the end of an import directive.  Substructures:
+  /// - metadata
+  /// - uri
+  /// - conditional uris
+  /// - prefix identifier (only if asKeyword != null)
+  /// - combinators
   void endImport(Token importKeyword, Token DeferredKeyword, Token asKeyword,
       Token semicolon) {
     logEvent("Import");
@@ -312,8 +340,7 @@ class Listener {
     logEvent("InitializedIdentifier");
   }
 
-  void beginFieldInitializer(Token token) {
-  }
+  void beginFieldInitializer(Token token) {}
 
   void endFieldInitializer(Token assignment) {
     logEvent("FieldInitializer");
@@ -378,6 +405,8 @@ class Listener {
 
   void beginLibraryName(Token token) {}
 
+  /// Handle the end of a library directive.  Substructures:
+  /// - Library name (a qualified identifier)
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     logEvent("LibraryName");
   }
@@ -438,12 +467,17 @@ class Listener {
 
   void beginPart(Token token) {}
 
+  /// Handle the end of a part directive.  Substructures:
+  /// - metadata
+  /// - uri
   void endPart(Token partKeyword, Token semicolon) {
     logEvent("Part");
   }
 
   void beginPartOf(Token token) {}
 
+  /// Handle the end of a "part of" directive.  Substructures:
+  /// - Library name (a qualified identifier)
   void endPartOf(Token partKeyword, Token semicolon) {
     logEvent("PartOf");
   }
@@ -469,6 +503,8 @@ class Listener {
 
   void beginShow(Token showKeyword) {}
 
+  /// Handle the end of a "show" combinator.  Substructures:
+  /// - shown names (IdentifierList)
   void endShow(Token showKeyword) {
     logEvent("Show");
   }
@@ -521,6 +557,15 @@ class Listener {
 
   void beginTopLevelMethod(Token token, Token name) {}
 
+  /// Handle the end of a top level method.  Substructures:
+  /// - metadata
+  /// - modifiers
+  /// - return type
+  /// - identifier
+  /// - type variables
+  /// - formal parameters
+  /// - async marker
+  /// - body
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     logEvent("TopLevelMethod");
   }
@@ -531,8 +576,7 @@ class Listener {
     logEvent("CaseMatch");
   }
 
-  void beginCatchClause(Token token) {
-  }
+  void beginCatchClause(Token token) {}
 
   void endCatchClause(Token token) {
     logEvent("CatchClause");
@@ -546,8 +590,7 @@ class Listener {
     logEvent("FinallyBlock");
   }
 
-  void endTryStatement(
-      int catchCount, Token tryKeyword, Token finallyKeyword) {
+  void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     logEvent("TryStatement");
   }
 
@@ -615,8 +658,7 @@ class Listener {
     logEvent("ConstExpression");
   }
 
-  void beginFunctionTypedFormalParameter(Token token) {
-  }
+  void beginFunctionTypedFormalParameter(Token token) {}
 
   void endFunctionTypedFormalParameter(Token token) {
     logEvent("FunctionTypedFormalParameter");
@@ -730,6 +772,11 @@ class Listener {
     logEvent("ParenthesizedExpression");
   }
 
+  /// Handle a construct of the form "identifier.identifier" occurring in a part
+  /// of the grammar where expressions in general are not allowed.
+  /// Substructures:
+  /// - Qualified identifier (before the period)
+  /// - Identifier (after the period)
   void handleQualified(Token period) {
     logEvent("Qualified");
   }
@@ -742,8 +789,7 @@ class Listener {
     logEvent("SuperExpression");
   }
 
-  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
-  }
+  void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {}
 
   void handleSwitchCase(
       int labelCount,
@@ -802,8 +848,8 @@ class Listener {
 
   /// The parser noticed a syntax error, but was able to recover from it.
   void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
-    recoverableErrors.add(
-        new ParserError.fromTokens(token, token, kind, arguments));
+    recoverableErrors
+        .add(new ParserError.fromTokens(token, token, kind, arguments));
   }
 }
 
@@ -821,8 +867,7 @@ class ParserError {
   ParserError(this.beginOffset, this.endOffset, this.kind, this.arguments);
 
   ParserError.fromTokens(Token begin, Token end, ErrorKind kind, Map arguments)
-      : this(begin.charOffset, end.charOffset + end.charCount, kind,
-          arguments);
+      : this(begin.charOffset, end.charOffset + end.charCount, kind, arguments);
 
   String toString() => "@${beginOffset}: $kind $arguments";
 }

@@ -9,9 +9,16 @@ def writePatch(output_file_name, input_file_names):
   dart_file_names = filter(lambda name: name.endswith('.dart'),
                            input_file_names)
   with open(output_file_name, 'w') as output_file:
+    is_first = True
     for dart_file_name in dart_file_names:
       with open(dart_file_name, 'r') as dart_file:
-        output_file.write(dart_file.read())
+        if is_first:
+          output_file.write(dart_file.read())
+          is_first = False
+        else:
+          for line in dart_file.readlines():
+            if not line.startswith("import "):
+              output_file.write(line)
 
 
 def main():

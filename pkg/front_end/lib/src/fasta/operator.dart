@@ -77,4 +77,5 @@ String operatorToString(Operator operator) {
     case Operator.truncatingDivide: return "~/";
     case Operator.unaryMinus: return "unary-";
   }
+  return null;
 }

@@ -25,6 +25,7 @@ import '../builder/scope.dart' show
 
 import '../builder/builder.dart' show
     Builder,
+    ClassBuilder,
     ConstructorReferenceBuilder,
     FormalParameterBuilder,
     LibraryBuilder,
@@ -56,6 +57,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   final Scope scope = new Scope(<String, Builder>{}, null, isModifiable: false);
 
   final Uri fileUri;
+
+  final List<List> implementationBuilders = <List<List>>[];
 
   String name;
 
@@ -198,7 +201,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   TypeVariableBuilder addTypeVariable(String name, T bound, int charOffset);
 
   Builder addBuilder(String name, Builder builder, int charOffset) {
-    if (name.indexOf(".") != -1) {
+    if (name.indexOf(".") != -1 && name.indexOf("&") == -1) {
       addCompileTimeError(charOffset, "Only constructors and factories can have"
           " names containing a period ('.'): $name");
     }
@@ -231,24 +234,53 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         }
       });
       return existing;
-    } else if (existing != null && (existing.next != null ||
-            ((!existing.isGetter || !builder.isSetter) &&
-                (!existing.isSetter || !builder.isGetter)))) {
+    } else if (isDuplicatedDefinition(existing, builder)) {
       addCompileTimeError(charOffset, "Duplicated definition of '$name'.");
     }
     return members[name] = builder;
   }
 
+  bool isDuplicatedDefinition(Builder existing, Builder other) {
+    if (existing == null) return false;
+    Builder next = existing.next;
+    if (next == null) {
+      if (existing.isGetter && other.isSetter) return false;
+      if (existing.isSetter && other.isGetter) return false;
+    } else {
+      if (next is ClassBuilder && !next.isMixinApplication) return true;
+    }
+    if (existing is ClassBuilder && other is ClassBuilder) {
+      // We allow multiple mixin applications with the same name. An
+      // alternative is to share these mixin applications. This situation can
+      // happen if you have `class A extends Object with Mixin {}` and `class B
+      // extends Object with Mixin {}` in the same library.
+      return !existing.isMixinApplication || !other.isMixinApplication;
+    }
+    return true;
+  }
+
   void buildBuilder(Builder builder);
 
   R build() {
+    assert(implementationBuilders.isEmpty);
     members.forEach((String name, Builder builder) {
       do {
         buildBuilder(builder);
         builder = builder.next;
       } while (builder != null);
     });
+    for (List list in implementationBuilders) {
+      String name = list[0];
+      Builder builder = list[1];
+      int charOffset = list[2];
+      addBuilder(name, builder, charOffset);
+      buildBuilder(builder);
+    }
     return null;
+  }
+
+  void addImplementationBuilder(String name, Builder builder, int charOffset) {
+    implementationBuilders.add([name, builder, charOffset]);
   }
 
   void validatePart() {

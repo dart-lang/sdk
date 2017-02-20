@@ -195,7 +195,7 @@
 library dart.io;
 
 import 'dart:async';
-import 'dart:_internal';
+import 'dart:_internal' hide Symbol;
 import 'dart:collection' show HashMap,
                               HashSet,
                               Queue,
@@ -204,10 +204,11 @@ import 'dart:collection' show HashMap,
                               LinkedListEntry,
                               UnmodifiableMapView;
 import 'dart:convert';
-import 'dart:developer';
+import 'dart:developer' hide log;
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:nativewrappers';
 
 part 'bytes_builder.dart';
 part 'common.dart';

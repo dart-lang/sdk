@@ -2007,7 +2007,7 @@ class HttpException implements IOException {
   final String message;
   final Uri uri;
 
-  const HttpException(String this.message, {Uri this.uri});
+  const HttpException(this.message, {this.uri});
 
   String toString() {
     var b = new StringBuffer()

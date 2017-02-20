@@ -1630,6 +1630,23 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Return the port of the diagnostic web server. If the server is not running
+   * this call will start the server. If unable to start the diagnostic web
+   * server, this call will return an error of DEBUG_PORT_COULD_NOT_BE_OPENED.
+   *
+   * Returns
+   *
+   * port (int)
+   *
+   *   The diagnostic server port.
+   */
+  Future<DiagnosticGetServerPortResult> sendDiagnosticGetServerPort() async {
+    var result = await server.send("diagnostic.getServerPort", null);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new DiagnosticGetServerPortResult.fromJson(decoder, 'result', result);
+  }
+
+  /**
    * Initialize the fields in InttestMixin, and ensure that notifications will
    * be handled.
    */

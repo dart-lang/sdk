@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data' show Uint16List;
+
 @patch class StringBuffer {
   static const int _BUFFER_SIZE = 64;
   static const int _PARTS_TO_COMPACT = 128;

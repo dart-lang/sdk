@@ -889,18 +889,9 @@ abstract class _AstResynthesizeTestMixin
       return;
     }
 
-    Source resolveRelativeUri(String relativeUri) {
-      Source resolvedSource =
-          context.sourceFactory.resolveUri(librarySource, relativeUri);
-      if (resolvedSource == null && !allowMissingFiles) {
-        throw new StateError('Could not resolve $relativeUri in the context of '
-            '$librarySource (${librarySource.runtimeType})');
-      }
-      return resolvedSource;
-    }
-
-    UnlinkedUnit getPart(String relativeUri) {
-      return _getUnlinkedUnit(resolveRelativeUri(relativeUri));
+    UnlinkedUnit getPart(String absoluteUri) {
+      Source source = context.sourceFactory.forUri(absoluteUri);
+      return _getUnlinkedUnit(source);
     }
 
     UnlinkedPublicNamespace getImport(String relativeUri) {
@@ -909,10 +900,11 @@ abstract class _AstResynthesizeTestMixin
 
     UnlinkedUnit definingUnit = _getUnlinkedUnit(librarySource);
     if (definingUnit != null) {
-      LinkedLibraryBuilder linkedLibrary = prelink(
+      LinkedLibraryBuilder linkedLibrary = prelink(librarySource.uri.toString(),
           definingUnit, getPart, getImport, context.declaredVariables.get);
       linkedLibrary.dependencies.skip(1).forEach((LinkedDependency d) {
-        _serializeLibrary(resolveRelativeUri(d.uri));
+        Source source = context.sourceFactory.forUri(d.uri);
+        _serializeLibrary(source);
       });
     }
   }

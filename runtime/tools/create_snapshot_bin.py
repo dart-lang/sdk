@@ -24,11 +24,15 @@ def BuildOptions():
   result.add_option("--executable",
       action="store", type="string",
       help="path to snapshot generator executable")
+  result.add_option("--snapshot_kind",
+      action="store", type="string",
+      help="kind of snapshot to generate",
+      default="core")
   result.add_option("--vm_output_bin",
       action="store", type="string",
       help="output file name into which vm isolate snapshot in binary form " +
            "is generated")
-  result.add_option("--output_bin",
+  result.add_option("--isolate_output_bin",
       action="store", type="string",
       help="output file name into which isolate snapshot in binary form " +
            "is generated")
@@ -69,11 +73,14 @@ def ProcessOptions(options):
   if not options.executable:
     sys.stderr.write('--executable not specified\n')
     return False
+  if not options.snapshot_kind:
+    sys.stderr.write('--snapshot_kind not specified\n')
+    return False
   if not options.vm_output_bin:
     sys.stderr.write('--vm_output_bin not specified\n')
     return False
-  if not options.output_bin:
-    sys.stderr.write('--output_bin not specified\n')
+  if not options.isolate_output_bin:
+    sys.stderr.write('--isolate_output_bin not specified\n')
     return False
   if options.abi and not options.target_os == 'android':
     sys.stderr.write('--abi requires --target_os android\n')
@@ -116,8 +123,9 @@ def Main():
     script_args.append(''.join([ "--packages=", options.packages]))
 
   # First setup the vm isolate and regular isolate snapshot output filename.
+  script_args.append(''.join([ "--snapshot_kind=", options.snapshot_kind ]))
   script_args.append(''.join([ "--vm_snapshot_data=", options.vm_output_bin ]))
-  script_args.append(''.join([ "--isolate_snapshot_data=", options.output_bin ]))
+  script_args.append(''.join([ "--isolate_snapshot_data=", options.isolate_output_bin ]))
 
   # Specify the embedder entry points snapshot
   if options.embedder_entry_points_manifest:

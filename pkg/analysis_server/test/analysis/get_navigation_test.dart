@@ -49,18 +49,6 @@ main() {
     return _checkInvalid(file, -1, -1);
   }
 
-  test_fileWithoutContext() {
-    String file = '/outside.dart';
-    addFile(
-        file,
-        '''
-main() {
-  print(42);
-}
-''');
-    return _checkInvalid(file, -1, -1);
-  }
-
   test_importDirective() async {
     addTestFile('''
 import 'dart:math';
@@ -257,5 +245,18 @@ class GetNavigationTest_Driver extends GetNavigationTest {
     enableNewAnalysisDriver = true;
     generateSummaryFiles = true;
     super.setUp();
+  }
+
+  test_fileOutsideOfRoot() async {
+    testFile = '/outside.dart';
+    addTestFile('''
+main() {
+  var test = 0;
+  print(test);
+}
+''');
+    await _getNavigation(testFile, testCode.indexOf('test);'), 0);
+    assertHasRegion('test);');
+    assertHasTarget('test = 0');
   }
 }

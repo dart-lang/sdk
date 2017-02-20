@@ -2452,9 +2452,10 @@ const dart::Field& MayCloneField(Zone* zone, const dart::Field& field) {
 
 
 Fragment FlowGraphBuilder::LoadField(const dart::Field& field) {
-  LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      Pop(), &MayCloneField(Z, field),
-      AbstractType::ZoneHandle(Z, field.type()), TokenPosition::kNoSource);
+  LoadFieldInstr* load =
+      new (Z) LoadFieldInstr(Pop(), &MayCloneField(Z, field),
+                             AbstractType::ZoneHandle(Z, field.type()),
+                             TokenPosition::kNoSource, parsed_function_);
   Push(load);
   return Fragment(load);
 }
@@ -4496,7 +4497,7 @@ void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
     Field* kernel_field = Field::Cast(target);
     const dart::Field& field =
         dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(kernel_field));
-    if (kernel_field->IsConst()) {
+    if (field.is_const()) {
       fragment_ = Constant(constant_evaluator_.EvaluateExpression(node));
     } else {
       const dart::Class& owner = dart::Class::Handle(Z, field.Owner());
@@ -4778,7 +4779,7 @@ void FlowGraphBuilder::VisitMethodInvocation(MethodInvocation* node) {
 
 void FlowGraphBuilder::VisitDirectMethodInvocation(
     DirectMethodInvocation* node) {
-  const dart::String& method_name = H.DartMethodName(node->target()->name());
+  const dart::String& method_name = H.DartProcedureName(node->target());
   const Function& target = Function::ZoneHandle(
       Z, LookupMethodByMember(node->target(), method_name));
 

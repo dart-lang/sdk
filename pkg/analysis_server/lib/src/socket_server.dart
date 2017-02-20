@@ -8,6 +8,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -32,6 +33,7 @@ class SocketServer {
 
   final DartSdk defaultSdk;
   final InstrumentationService instrumentationService;
+  final DiagnosticServer diagnosticServer;
   final ServerPlugin serverPlugin;
   final ResolverProvider fileResolverProvider;
   final ResolverProvider packageResolverProvider;
@@ -53,6 +55,7 @@ class SocketServer {
       this.sdkManager,
       this.defaultSdk,
       this.instrumentationService,
+      this.diagnosticServer,
       this.serverPlugin,
       this.fileResolverProvider,
       this.packageResolverProvider,
@@ -98,6 +101,7 @@ class SocketServer {
         analysisServerOptions,
         sdkManager,
         instrumentationService,
+        diagnosticServer: diagnosticServer,
         fileResolverProvider: fileResolverProvider,
         packageResolverProvider: packageResolverProvider,
         useSingleContextManager: useSingleContextManager,

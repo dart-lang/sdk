@@ -76,7 +76,7 @@ class Driver implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
       new PerformanceTag("Driver._analyzeAll");
 
-  static ByteStore analysisDriverByteStore = new MemoryByteStore();
+  static ByteStore analysisDriverMemoryByteStore = new MemoryByteStore();
 
   /// The plugins that are defined outside the `analyzer_cli` package.
   List<Plugin> _userDefinedPlugins = <Plugin>[];
@@ -244,9 +244,16 @@ class Driver implements CommandLineStarter {
     // Check that each part has a corresponding source in the input list.
     for (Source part in parts) {
       bool found = false;
-      for (var lib in context.getLibrariesContaining(part)) {
-        if (libUris.contains(lib.uri)) {
+      if (analysisDriver != null) {
+        var partFile = analysisDriver.fsState.getFileForPath(part.fullName);
+        if (libUris.contains(partFile.library?.uri)) {
           found = true;
+        }
+      } else {
+        for (var lib in context.getLibrariesContaining(part)) {
+          if (libUris.contains(lib.uri)) {
+            found = true;
+          }
         }
       }
       if (!found) {
@@ -572,7 +579,7 @@ class Driver implements CommandLineStarter {
           scheduler,
           log,
           resourceProvider,
-          analysisDriverByteStore,
+          analysisDriverMemoryByteStore,
           new FileContentOverlay(),
           'test',
           context.sourceFactory,
@@ -716,6 +723,20 @@ class Driver implements CommandLineStarter {
     }
   }
 
+  static AnalysisOptionsImpl createAnalysisOptions(
+      file_system.ResourceProvider resourceProvider,
+      SourceFactory sourceFactory,
+      CommandLineOptions options) {
+    // Prepare context options.
+    AnalysisOptionsImpl analysisOptions =
+        createAnalysisOptionsForCommandLineOptions(options);
+
+    // Process analysis options file (and notify all interested parties).
+    _processAnalysisOptions(
+        resourceProvider, sourceFactory, analysisOptions, options);
+    return analysisOptions;
+  }
+
   static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
       CommandLineOptions options) {
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
@@ -731,20 +752,6 @@ class Driver implements CommandLineStarter {
     contextOptions.implicitCasts = options.implicitCasts;
     contextOptions.implicitDynamic = options.implicitDynamic;
     return contextOptions;
-  }
-
-  static AnalysisOptionsImpl createAnalysisOptions(
-      file_system.ResourceProvider resourceProvider,
-      SourceFactory sourceFactory,
-      CommandLineOptions options) {
-    // Prepare context options.
-    AnalysisOptionsImpl analysisOptions =
-        createAnalysisOptionsForCommandLineOptions(options);
-
-    // Process analysis options file (and notify all interested parties).
-    _processAnalysisOptions(
-        resourceProvider, sourceFactory, analysisOptions, options);
-    return analysisOptions;
   }
 
   static void setAnalysisContextOptions(

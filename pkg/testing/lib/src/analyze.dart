@@ -26,11 +26,13 @@ import 'suite.dart' show
     Suite;
 
 class Analyze extends Suite {
+  final Uri analysisOptions;
+
   final List<Uri> uris;
 
   final List<RegExp> exclude;
 
-  Analyze(this.uris, this.exclude)
+  Analyze(this.analysisOptions, this.uris, this.exclude)
       : super("analyze", "analyze", null);
 
   Future<Null> run(Uri packages, List<Uri> extraUris) {
@@ -38,18 +40,21 @@ class Analyze extends Suite {
     if (extraUris != null) {
       allUris.addAll(extraUris);
     }
-    return analyzeUris(packages, allUris, exclude);
+    return analyzeUris(analysisOptions, packages, allUris, exclude);
   }
 
   static Future<Analyze> fromJsonMap(
       Uri base, Map json, List<Suite> suites) async {
+    String optionsPath = json["options"];
+    Uri optionsUri = optionsPath == null ? null : base.resolve(optionsPath);
+
     List<Uri> uris = new List<Uri>.from(
         json["uris"].map((String relative) => base.resolve(relative)));
 
     List<RegExp> exclude =
         new List<RegExp>.from(json["exclude"].map((String p) => new RegExp(p)));
 
-    return new Analyze(uris, exclude);
+    return new Analyze(optionsUri, uris, exclude);
   }
 
   String toString() => "Analyze($uris, $exclude)";
@@ -104,7 +109,8 @@ Stream<AnalyzerDiagnostic> parseAnalyzerOutput(
 
 /// Run dartanalyzer on all tests in [uris].
 Future<Null> analyzeUris(
-    Uri packages, List<Uri> uris, List<RegExp> exclude) async {
+    Uri analysisOptions, Uri packages, List<Uri> uris,
+    List<RegExp> exclude) async {
   if (uris.isEmpty) return;
   const String analyzerPath = "bin/dartanalyzer";
   Uri analyzer = dartSdk.resolve(analyzerPath);
@@ -116,6 +122,9 @@ Future<Null> analyzeUris(
       "--package-warnings",
       "--format=machine",
   ];
+  if (analysisOptions != null) {
+    arguments.add("--options=${analysisOptions.toFilePath()}");
+  }
   arguments.addAll(uris.map((Uri uri) => uri.toFilePath()));
   if (isVerbose) {
     print("Running:\n  ${analyzer.toFilePath()} ${arguments.join(' ')}");
@@ -135,9 +144,6 @@ Future<Null> analyzeUris(
   Set<String> seen = new Set<String>();
   for (AnalyzerDiagnostic diagnostic in diagnostics) {
     String path = diagnostic.uri.path;
-    if (diagnostic.code == "DEPRECATED_MEMBER_USE") continue;
-    if (diagnostic.code == "MISSING_RETURN") continue;
-    if (diagnostic.code == "UNNECESSARY_CAST") continue;
     if (exclude.any((RegExp r) => path.contains(r))) continue;
     String message = "$diagnostic";
     if (seen.add(message)) {

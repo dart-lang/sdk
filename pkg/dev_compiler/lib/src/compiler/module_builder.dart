@@ -161,8 +161,19 @@ class LegacyModuleBuilder extends _ModuleBuilder {
       for (var importName in import.namedImports) {
         assert(!importName.isStar); // import * not supported in legacy modules.
         var asName = importName.asName ?? importName.name;
-        importStatements.add(js.statement(
-            'const # = #.#', [asName, moduleVar, importName.name.name]));
+        var fromName = importName.name.name;
+        // Load non-SDK modules on demand (i.e., deferred).
+        if (import.from.valueWithoutQuotes != dartSdkModule) {
+          importStatements.add(js.statement(
+              'let # = dart_library.defer(#, #, function (mod, lib) {'
+              '  # = mod;'
+              '  # = lib;'
+              '});',
+              [asName, moduleVar, js.string(fromName), moduleVar, asName]));
+        } else {
+          importStatements.add(js.statement(
+              'const # = #.#', [asName, moduleVar, importName.name.name]));
+        }
       }
     }
     statements.insertAll(0, importStatements);
@@ -201,7 +212,7 @@ class LegacyModuleBuilder extends _ModuleBuilder {
 /// Generates CommonJS modules (used by Node.js).
 class CommonJSModuleBuilder extends _ModuleBuilder {
   Program build(Program module) {
-    var importStatements = <Statement>[];
+    var importStatements = [js.statement("'use strict';"),];
 
     // Collect imports/exports/statements.
     visitProgram(module);
@@ -238,12 +249,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
       }
     }
 
-    // TODO(vsm): See https://github.com/dart-lang/sdk/issues/27309
-    // This extra level of indirection should be unnecessary.
-    var block =
-        js.statement("(function() { 'use strict'; #; })()", [statements]);
-
-    return new Program([block]);
+    return new Program(statements);
   }
 }
 

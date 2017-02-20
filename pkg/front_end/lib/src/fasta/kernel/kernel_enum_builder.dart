@@ -140,6 +140,8 @@ class KernelEnumBuilder extends SourceClassBuilder
     return enumBuilder;
   }
 
+  KernelTypeBuilder get mixedInType => null;
+
   InterfaceType buildType(List<KernelTypeBuilder> arguments) {
     return cls.rawType;
   }

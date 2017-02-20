@@ -75,7 +75,7 @@ bool File::IsClosed() {
 }
 
 
-void* File::Map(File::MapType type, int64_t position, int64_t length) {
+MappedMemory* File::Map(File::MapType type, int64_t position, int64_t length) {
   DWORD prot_alloc;
   DWORD prot_final;
   switch (type) {
@@ -111,7 +111,15 @@ void* File::Map(File::MapType type, int64_t position, int64_t length) {
     VirtualFree(addr, 0, MEM_RELEASE);
     return NULL;
   }
-  return addr;
+  return new MappedMemory(addr, length);
+}
+
+
+void MappedMemory::Unmap() {
+  BOOL result = VirtualFree(address_, 0, MEM_RELEASE);
+  ASSERT(result);
+  address_ = 0;
+  size_ = 0;
 }
 
 

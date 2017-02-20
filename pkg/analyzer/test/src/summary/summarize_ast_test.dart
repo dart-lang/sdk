@@ -224,6 +224,9 @@ class LinkerInputs {
   }
 
   UnlinkedUnit getUnit(String absoluteUri) {
+    if (absoluteUri == null) {
+      return null;
+    }
     UnlinkedUnit unit = _uriToUnit[absoluteUri] ??
         SerializedMockSdk.instance.uriToUnlinkedUnit[absoluteUri] ??
         _dependentUnlinkedUnits[absoluteUri];

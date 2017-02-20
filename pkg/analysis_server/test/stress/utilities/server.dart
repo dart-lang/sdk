@@ -608,9 +608,6 @@ class Server {
    *
    * If [checked] is `true`, the server's VM will be running in checked mode.
    *
-   * If [debugServer] is `true`, the server will be started with "--debug",
-   * allowing a debugger to be attached.
-   *
    * If [diagnosticPort] is not `null`, the server will serve status pages to
    * the specified port.
    *
@@ -625,7 +622,6 @@ class Server {
    */
   Future<Null> start(
       {bool checked: true,
-      bool debugServer: false,
       int diagnosticPort,
       bool enableNewAnalysisDriver: false,
       bool profileServer: false,
@@ -644,9 +640,6 @@ class Server {
     //
     // Add VM arguments.
     //
-    if (debugServer) {
-      arguments.add('--debug');
-    }
     if (profileServer) {
       if (servicesPort == null) {
         arguments.add('--observe');

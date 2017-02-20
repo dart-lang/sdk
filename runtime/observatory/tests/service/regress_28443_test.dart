@@ -61,6 +61,7 @@ Future<Isolate> stepThroughProgram(Isolate isolate) async {
 }
 
 var tests = [hasPausedAtStart,
+             markDartColonLibrariesDebuggable,
              setBreakpointAtLine(LINE_B),
              resumeIsolate,
              hasStoppedAtBreakpoint,

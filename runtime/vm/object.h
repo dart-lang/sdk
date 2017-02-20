@@ -1128,6 +1128,8 @@ class Class : public Object {
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
 
+  void InjectCIDFields() const;
+
   // Returns an array of all instance fields of this class and its superclasses
   // indexed by offset in words.
   // |original_classes| only has an effect when reloading. If true and we

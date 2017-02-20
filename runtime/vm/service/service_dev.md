@@ -1491,8 +1491,8 @@ A _FlagList_ represents the complete set of VM command line flags.
 ```
 class Frame extends Response {
   int index;
-  @Function function;
-  @Code code;
+  @Function function [optional];
+  @Code code [optional];
   SourceLocation location [optional];
   BoundVariable[] vars [optional];
   FrameKind kind [optional];

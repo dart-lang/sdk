@@ -7,10 +7,12 @@ part of dart.core;
 // Frequently used character codes.
 const int _SPACE = 0x20;
 const int _PERCENT = 0x25;
+const int _AMPERSAND = 0x26;
 const int _PLUS = 0x2B;
 const int _DOT = 0x2E;
 const int _SLASH = 0x2F;
 const int _COLON = 0x3A;
+const int _EQUALS = 0x3d;
 const int _UPPER_CASE_A = 0x41;
 const int _UPPER_CASE_Z = 0x5A;
 const int _LEFT_BRACKET = 0x5B;
@@ -1369,7 +1371,7 @@ class _Uri implements Uri {
    *
    * Always non-null.
    */
-  String _path;
+  final String path;
 
   // The query content, or null if there is no query.
   final String _query;
@@ -1401,11 +1403,21 @@ class _Uri implements Uri {
   Map<String, List<String>> _queryParameterLists;
 
   /// Internal non-verifying constructor. Only call with validated arguments.
+  ///
+  /// The components must be properly normalized.
+  ///
+  /// Use `null` for [_host] if there is no authority. In that case, always
+  /// pass `null` for [_port] and [_userInfo] as well.
+  ///
+  /// Use `null` for [_port], [_userInfo], [_query] and [_fragment] if there is
+  /// component of that type.
+  ///
+  /// The [path] and [scheme] are never empty.
   _Uri._internal(this.scheme,
                  this._userInfo,
                  this._host,
                  this._port,
-                 this._path,
+                 this.path,
                  this._query,
                  this._fragment);
 
@@ -1542,8 +1554,6 @@ class _Uri implements Uri {
     if (scheme == "https") return 443;
     return 0;
   }
-
-  String get path => _path;
 
   String get query => _query ?? "";
 
@@ -1847,7 +1857,7 @@ class _Uri implements Uri {
       path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
                        scheme, hasAuthority);
     } else {
-      path = this._path;
+      path = this.path;
       if ((isFile || (hasAuthority && !path.isEmpty)) &&
           !path.startsWith('/')) {
         path = "/" + path;
@@ -1873,7 +1883,7 @@ class _Uri implements Uri {
   Uri removeFragment() {
     if (!this.hasFragment) return this;
     return new _Uri._internal(scheme, _userInfo, _host, _port,
-                             _path, _query, null);
+                             path, _query, null);
   }
 
   List<String> get pathSegments {
@@ -1914,8 +1924,8 @@ class _Uri implements Uri {
   }
 
   Uri normalizePath() {
-    String path = _normalizePath(_path, scheme, hasAuthority);
-    if (identical(path, _path)) return this;
+    String path = _normalizePath(this.path, scheme, hasAuthority);
+    if (identical(path, this.path)) return this;
     return this.replace(path: path);
   }
 
@@ -2082,7 +2092,7 @@ class _Uri implements Uri {
 
   static String _makeUserInfo(String userInfo, int start, int end) {
     if (userInfo == null) return "";
-    return _normalize(userInfo, start, end, _userinfoTable);
+    return _normalizeOrSubstring(userInfo, start, end, _userinfoTable);
   }
 
   static String _makePath(String path, int start, int end,
@@ -2097,7 +2107,7 @@ class _Uri implements Uri {
     }
     var result;
     if (path != null) {
-      result = _normalize(path, start, end, _pathCharOrSlashTable);
+      result = _normalizeOrSubstring(path, start, end, _pathCharOrSlashTable);
     } else {
       result = pathSegments.map((s) =>
           _uriEncode(_pathCharTable, s, UTF8, false)).join("/");
@@ -2130,7 +2140,7 @@ class _Uri implements Uri {
       if (queryParameters != null) {
         throw new ArgumentError('Both query and queryParameters specified');
       }
-      return _normalize(query, start, end, _queryCharTable);
+      return _normalizeOrSubstring(query, start, end, _queryCharTable);
     }
     if (queryParameters == null) return null;
 
@@ -2162,7 +2172,7 @@ class _Uri implements Uri {
 
   static String _makeFragment(String fragment, int start, int end) {
     if (fragment == null) return null;
-    return _normalize(fragment, start, end, _queryCharTable);
+    return _normalizeOrSubstring(fragment, start, end, _queryCharTable);
   }
 
   /**
@@ -2185,8 +2195,8 @@ class _Uri implements Uri {
     }
     int firstDigit = source.codeUnitAt(index + 1);
     int secondDigit = source.codeUnitAt(index + 2);
-    int firstDigitValue = _parseHexDigit(firstDigit);
-    int secondDigitValue = _parseHexDigit(secondDigit);
+    int firstDigitValue = hexDigitValue(firstDigit);
+    int secondDigitValue = hexDigitValue(secondDigit);
     if (firstDigitValue < 0 || secondDigitValue < 0) {
       return "%";  // Marks the escape as invalid.
     }
@@ -2204,19 +2214,6 @@ class _Uri implements Uri {
     // Escape is retained, and is already non-lower case, so return null to
     // represent "no replacement necessary".
     return null;
-  }
-
-  // Converts a UTF-16 code-unit to its value as a hex digit.
-  // Returns -1 for non-hex digits.
-  static int _parseHexDigit(int char) {
-    const int zeroDigit = 0x30;
-    int digit = char ^ zeroDigit;
-    if (digit <= 9) return digit;
-    int lowerCase = char | 0x20;
-    if (_LOWER_CASE_A <= lowerCase && lowerCase <= _LOWER_CASE_F) {
-      return lowerCase - (_LOWER_CASE_A - 10);
-    }
-    return -1;
   }
 
   static String _escapeChar(int char) {
@@ -2255,6 +2252,18 @@ class _Uri implements Uri {
   }
 
   /**
+   * Normalizes using [_normalize] or returns substring of original.
+   *
+   * If [_normalize] returns `null` (original content is already normalized),
+   * this methods returns the substring if [component] from [start] to [end].
+   */
+  static String _normalizeOrSubstring(String component, int start, int end,
+                                      List<int> charTable) {
+    return _normalize(component, start, end, charTable) ??
+        component.substring(start, end);
+  }
+
+  /**
    * Runs through component checking that each character is valid and
    * normalize percent escapes.
    *
@@ -2262,9 +2271,12 @@ class _Uri implements Uri {
    * Each `%` character must be followed by two hex digits.
    * If the hex-digits are lower case letters, they are converted to
    * upper case.
+   *
+   * Returns `null` if the original content was already normalized.
    */
   static String _normalize(String component, int start, int end,
-                           List<int> charTable) {
+                           List<int> charTable,
+                           {bool escapeDelimiters = false}) {
     StringBuffer buffer;
     int sectionStart = start;
     int index = start;
@@ -2290,7 +2302,7 @@ class _Uri implements Uri {
           } else {
             sourceLength = 3;
           }
-        } else if (_isGeneralDelimiter(char)) {
+        } else if (!escapeDelimiters && _isGeneralDelimiter(char)) {
           _fail(component, index, "Invalid character");
         } else {
           sourceLength = 1;
@@ -2315,8 +2327,7 @@ class _Uri implements Uri {
       }
     }
     if (buffer == null) {
-      // Makes no copy if start == 0 and end == component.length.
-      return component.substring(start, end);
+      return null;
     }
     if (sectionStart < end) {
       buffer.write(component.substring(sectionStart, end));
@@ -2509,7 +2520,7 @@ class _Uri implements Uri {
         targetHost = this._host;
         targetPort = this._port;
         if (reference.path == "") {
-          targetPath = this._path;
+          targetPath = this.path;
           if (reference.hasQuery) {
             targetQuery = reference.query;
           } else {
@@ -2535,7 +2546,7 @@ class _Uri implements Uri {
                 targetPath = _removeDotSegments("/" + reference.path);
               }
             } else {
-              var mergedPath = _mergePaths(this._path, reference.path);
+              var mergedPath = _mergePaths(this.path, reference.path);
               if (this.hasScheme || this.hasAuthority || this.hasAbsolutePath) {
                 targetPath = _removeDotSegments(mergedPath);
               } else {
@@ -2572,9 +2583,9 @@ class _Uri implements Uri {
 
   bool get hasFragment => _fragment != null;
 
-  bool get hasEmptyPath => _path.isEmpty;
+  bool get hasEmptyPath => path.isEmpty;
 
-  bool get hasAbsolutePath => _path.startsWith('/');
+  bool get hasAbsolutePath => path.startsWith('/');
 
   String get origin {
     if (scheme == "") {
@@ -2652,7 +2663,7 @@ class _Uri implements Uri {
   }
 
   bool get _isPathAbsolute {
-    return _path != null && _path.startsWith('/');
+    return path != null && path.startsWith('/');
   }
 
   void _writeAuthority(StringSink ss) {
@@ -2742,13 +2753,11 @@ class _Uri implements Uri {
       result.putIfAbsent(key, _createList).add(value);
     }
 
-    const int _equals = 0x3d;
-    const int _ampersand = 0x26;
     while (i < query.length) {
       int char = query.codeUnitAt(i);
-      if (char == _equals) {
+      if (char == _EQUALS) {
         if (equalsIndex < 0) equalsIndex = i;
-      } else if (char == _ampersand) {
+      } else if (char == _AMPERSAND) {
         parsePair(start, equalsIndex, i);
         start = i + 1;
         equalsIndex = -1;
@@ -3149,10 +3158,10 @@ class UriData {
    * If there is a single separator left, it ends the "base64" marker.
    *
    * So the following separators are found for a text:
-   *
-   *     data:text/plain;foo=bar;base64,ARGLEBARGLE=
-   *         ^          ^   ^   ^      ^
-   *
+   * ```
+   * data:text/plain;foo=bar;base64,ARGLEBARGLE=
+   *     ^          ^   ^   ^      ^
+   * ```
    */
   final List<int> _separatorIndices;
 
@@ -3353,12 +3362,15 @@ class UriData {
    * percent-escapes for non-ASCII byte values that need an interpretation
    * to be converted to the corresponding string.
    *
-   * Parsing doesn't check the validity of any part, it just checks that the
-   * input has the correct structure with the correct sequence of `/`, `;`, `=`
-   * and `,` delimiters.
+   * Parsing checks that Base64 encoded data is valid, and it normalizes it
+   * to use the default Base64 alphabet and to use padding.
+   * Non-Base64 data is escaped using percent-escapes as necessary to make
+   * it valid, and existing escapes are case normalized.
    *
    * Accessing the individual parts may fail later if they turn out to have
-   * content that can't be decoded successfully as a string.
+   * content that can't be decoded successfully as a string, for example if
+   * existing percent escapes represent bytes that cannot be decoded
+   * by the chosen [Encoding] (see [contentAsString]).
    */
   static UriData parse(String uri) {
     if (uri.length >= 5) {
@@ -3388,17 +3400,14 @@ class UriData {
     String query = null;
     int colonIndex = _separatorIndices[0];
     int queryIndex = _text.indexOf('?', colonIndex + 1);
-    int end = null;
+    int end = _text.length;
     if (queryIndex >= 0) {
-      query = _text.substring(queryIndex + 1);
+      query = _Uri._normalizeOrSubstring(_text, queryIndex + 1, end, _Uri._queryCharTable);
       end = queryIndex;
     }
-    path = _text.substring(colonIndex + 1, end);
-    // TODO(lrn): This can generate a URI that isn't path normalized.
-    // That's perfectly reasonable - data URIs are not hierarchical,
-    // but it may make some consumers stumble.
-    // Should we at least do escape normalization?
-    _uriCache = new _Uri._internal("data", "", null, null, path, query, null);
+    path = _Uri._normalizeOrSubstring(_text, colonIndex + 1, end,
+        _Uri._pathCharOrSlashTable);
+    _uriCache = new _DataUri(this, path, query);
     return _uriCache;
   }
 
@@ -3408,6 +3417,9 @@ class UriData {
    * A data URI consists of a "media type" followed by data.
    * The media type starts with a MIME type and can be followed by
    * extra parameters.
+   * If the MIME type representation in the URI text contains URI escapes,
+   * they are unescaped in the returned string.
+   * If the value contain non-ASCII percent escapes, they are decoded as UTF-8.
    *
    * Example:
    *
@@ -3432,6 +3444,10 @@ class UriData {
    * If the parameters of the media type contains a `charset` parameter
    * then this returns its value, otherwise it returns `US-ASCII`,
    * which is the default charset for data URIs.
+   * If the value contain non-ASCII percent escapes, they are decoded as UTF-8.
+   *
+   * If the MIME type representation in the URI text contains URI escapes,
+   * they are unescaped in the returned string.
    */
   String get charset {
     int parameterStart = 1;
@@ -3503,10 +3519,8 @@ class UriData {
         result[index++] = codeUnit;
       } else {
         if (i + 2 < text.length) {
-          var digit1 = _Uri._parseHexDigit(text.codeUnitAt(i + 1));
-          var digit2 = _Uri._parseHexDigit(text.codeUnitAt(i + 2));
-          if (digit1 >= 0 && digit2 >= 0) {
-            int byte = digit1 * 16 + digit2;
+          int byte = parseHexByte(text, i + 1);
+          if (byte >= 0) {
             result[index++] = byte;
             i += 2;
             continue;
@@ -3561,8 +3575,8 @@ class UriData {
    * in the URI, which is reflected by the [charset] getter. This means that
    * [charset] may return a value even if `parameters["charset"]` is `null`.
    *
-   * If the values contain non-ASCII values or percent escapes, they default
-   * to being decoded as UTF-8.
+   * If the values contain non-ASCII values or percent escapes,
+   * they are decoded as UTF-8.
    */
   Map<String, String> get parameters {
     var result = <String, String>{};
@@ -3633,6 +3647,19 @@ class UriData {
       }
     }
     indices.add(i);
+    bool isBase64 = indices.length.isOdd;
+    if (isBase64) {
+      text = BASE64.normalize(text, i + 1, text.length);
+    } else {
+      // Validate "data" part, must only contain RFC 2396 'uric' characters
+      // (reserved, unreserved, or escape sequences).
+      // Normalize to this (throws on a fragment separator).
+      var data = _Uri._normalize(text, i + 1, text.length, _uricTable,
+                                 escapeDelimiters: true);
+      if (data != null) {
+        text = text.replaceRange(i + 1, text.length, data);
+      }
+    }
     return new UriData._(text, indices, sourceUri);
   }
 
@@ -3706,6 +3733,26 @@ class UriData {
   //
   // This is the same characters as in a URI query (which is URI pchar plus '?')
   static const _uricTable = _Uri._queryCharTable;
+
+  // Characters allowed in base-64 encoding (alphanumeric, '/', '+' and '=').
+  static const _base64Table = const [
+                //             LSB             MSB
+                //              |               |
+      0x0000,   // 0x00 - 0x0f  00000000 00000000
+      0x0000,   // 0x10 - 0x1f  00000000 00000000
+                //                          +   /
+      0x8800,   // 0x20 - 0x2f  00000000 00010001
+                //              01234567 89
+      0x03ff,   // 0x30 - 0x3f  11111111 11000000
+                //               ABCDEFG HIJKLMNO
+      0xfffe,   // 0x40 - 0x4f  01111111 11111111
+                //              PQRSTUVW XYZ
+      0x07ff,   // 0x50 - 0x5f  11111111 11100000
+                //               abcdefg hijklmno
+      0xfffe,   // 0x60 - 0x6f  01111111 11111111
+                //              pqrstuvw xyz
+      0x07ff,   // 0x70 - 0x7f  11111111 11100000
+  ];
 }
 
 // --------------------------------------------------------------------
@@ -4553,6 +4600,16 @@ class _SimpleUri implements Uri {
   }
 
   String toString() => _uri;
+}
+
+/// Special [_Uri] created from an existing [UriData].
+class _DataUri extends _Uri {
+  final UriData _data;
+
+  _DataUri(this._data, String path, String query)
+      : super._internal("data", null, null, null, path, query, null);
+
+  UriData get data => _data;
 }
 
 /// Checks whether [text] starts with "data:" at position [start].

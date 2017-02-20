@@ -25,8 +25,6 @@ import 'package:analyzer/src/generated/gn.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/workspace.dart';
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:args/args.dart';
@@ -140,7 +138,6 @@ class ContextBuilder {
     context.name = path;
     //_processAnalysisOptions(context, optionMap);
     declareVariables(context);
-    configureSummaries(context);
     return context;
   }
 
@@ -162,25 +159,6 @@ class ContextBuilder {
         options);
     declareVariablesInDriver(driver);
     return driver;
-  }
-
-  /**
-   * Configure the context to make use of summaries.
-   */
-  void configureSummaries(InternalAnalysisContext context) {
-    PubSummaryManager manager = builderOptions.pubSummaryManager;
-    if (manager != null) {
-      List<LinkedPubPackage> linkedBundles = manager.getLinkedBundles(context);
-      if (linkedBundles.isNotEmpty) {
-        SummaryDataStore store = new SummaryDataStore([]);
-        for (LinkedPubPackage package in linkedBundles) {
-          store.addBundle(null, package.unlinked);
-          store.addBundle(null, package.linked);
-        }
-        context.resultProvider =
-            new InputPackagesResultProvider(context, store);
-      }
-    }
   }
 
   Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
@@ -626,11 +604,6 @@ class ContextBuilderOptions {
    * or `null` if the normal lookup mechanism should be used.
    */
   String defaultPackagesDirectoryPath;
-
-  /**
-   * The manager of pub package summaries.
-   */
-  PubSummaryManager pubSummaryManager;
 
   /**
    * Initialize a newly created set of options

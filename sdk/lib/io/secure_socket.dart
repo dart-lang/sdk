@@ -446,12 +446,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       int requestedPort,
       this.is_server,
       this.context,
-      RawSocket this._socket,
+      this._socket,
       this._socketSubscription,
       this._bufferedData,
       this.requestClientCertificate,
       this.requireClientCertificate,
-      this.onBadCertificate(X509Certificate certificate),
+      this.onBadCertificate,
       List<String> supportedProtocols) {
     if (context == null) {
       context = SecurityContext.defaultContext;

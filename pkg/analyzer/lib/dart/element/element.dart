@@ -453,6 +453,11 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   bool get hasLoadLibraryFunction;
 
   /**
+   * Return the [LineInfo] for the [source], or `null` if not computed yet.
+   */
+  LineInfo get lineInfo;
+
+  /**
    * Return a list containing all of the top-level variables contained in this
    * compilation unit.
    */
@@ -719,7 +724,7 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
    * Use the given [visitor] to visit this element. Return the value returned by
    * the visitor as a result of visiting this element.
    */
-  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/> visitor);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor);
 
   /**
    * Return the documentation comment for this element as it appears in the

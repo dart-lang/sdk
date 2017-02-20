@@ -213,6 +213,13 @@ class TestOptionsParser {
           [],
           false,
           type: 'bool'),
+      new _TestOptionSpecification(
+          'dart2js_with_kernel',
+          'Enable the internal pipeline in dart2js to use kernel',
+          ['--dart2js-with-kernel'],
+          [],
+          false,
+          type: 'bool'),
       new _TestOptionSpecification('hot_reload', 'Run hot reload stress tests',
           ['--hot-reload'], [], false,
           type: 'bool'),
@@ -294,7 +301,7 @@ class TestOptionsParser {
           'no-tree-shake', 'Disable kernel IR tree shaking', ['--no-tree-shake'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'useDFE', 'Use Kernel Isolate', ['--use-dfe'], [], true,
+          'noDFE', 'Do not use Kernel Isolate', ['--no-dfe'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
           'useFasta', 'Use Fasta in Kernel Isolate', ['--use-fasta'], [], false,

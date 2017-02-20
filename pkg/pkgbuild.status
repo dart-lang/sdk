@@ -9,3 +9,6 @@ pkg/dev_compiler: SkipByDesign # we have relative paths to analyzer
 pkg/front_end: Fail # Issue 27655
 pkg/kernel: SkipByDesign # Issue 27937
 third_party/pkg/linter: SkipByDesign # Issue 27937
+
+[ $system == windows ]
+third_party/pkg/*: Pass, Slow

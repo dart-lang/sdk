@@ -75,6 +75,12 @@ var tests = [
     expect(asyncStack[2].toString(), contains('helper'));
     expect(asyncStack[3].kind, equals(M.FrameKind.asyncSuspensionMarker));
     expect(asyncStack[4].toString(), contains('testMain'));
+    // Line 21.
+    expect(await asyncStack[0].location.toUserString(), contains('.dart:21'));
+    // Line 27.
+    expect(await asyncStack[2].location.toUserString(), contains('.dart:27'));
+    // Line 30.
+    expect(await asyncStack[4].location.toUserString(), contains('.dart:33'));
   },
 ];
 

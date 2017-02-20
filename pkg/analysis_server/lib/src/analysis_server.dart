@@ -20,6 +20,7 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -51,7 +52,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/task/dart.dart';
@@ -92,7 +92,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.17.0';
+  static final String VERSION = '1.18.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -320,11 +320,6 @@ class AnalysisServer {
    */
   ResolverProvider packageResolverProvider;
 
-  /**
-   * The manager of pub package summaries.
-   */
-  PubSummaryManager pubSummaryManager;
-
   nd.PerformanceLog _analysisPerformanceLogger;
   ByteStore byteStore;
   nd.AnalysisDriverScheduler analysisDriverScheduler;
@@ -333,6 +328,13 @@ class AnalysisServer {
    * The set of the files that are currently priority.
    */
   final Set<String> priorityFiles = new Set<String>();
+
+  /**
+   * The DiagnosticServer for this AnalysisServer. If available, it can be used
+   * to start an http diagnostics server or return the port for an existing
+   * server.
+   */
+  DiagnosticServer diagnosticServer;
 
   /**
    * Initialize a newly created server to receive requests from and send
@@ -352,7 +354,8 @@ class AnalysisServer {
       this.options,
       this.sdkManager,
       this.instrumentationService,
-      {ResolverProvider fileResolverProvider: null,
+      {this.diagnosticServer,
+      ResolverProvider fileResolverProvider: null,
       ResolverProvider packageResolverProvider: null,
       bool useSingleContextManager: false,
       this.rethrowExceptions: true}) {
@@ -380,15 +383,7 @@ class AnalysisServer {
       }
       _analysisPerformanceLogger = new nd.PerformanceLog(sink);
     }
-    if (resourceProvider is PhysicalResourceProvider) {
-      byteStore = new MemoryCachingByteStore(
-          new EvictingFileByteStore(
-              resourceProvider.getStateLocation('.analysis-driver').path,
-              1024 * 1024 * 1024 /*1 GiB*/),
-          64 * 1024 * 1024 /*64 MiB*/);
-    } else {
-      byteStore = new MemoryByteStore();
-    }
+    byteStore = _createByteStore();
     analysisDriverScheduler =
         new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
@@ -432,8 +427,6 @@ class AnalysisServer {
     } else if (index != null) {
       searchEngine = new SearchEngineImpl(index, getAstProvider);
     }
-    pubSummaryManager =
-        new PubSummaryManager(resourceProvider, '${io.pid}.temp');
     Notification notification = new ServerConnectedParams(VERSION, io.pid,
             sessionId: instrumentationService.sessionId)
         .toNotification();
@@ -837,23 +830,6 @@ class AnalysisServer {
     return null;
   }
 
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
-
   /**
    * Return a [Future] that completes with the resolved [CompilationUnit] for
    * the Dart file with the given [path], or with `null` if the file is not a
@@ -878,6 +854,23 @@ class AnalysisServer {
       return null;
     });
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Handle a [request] that was read from the communication channel.
@@ -1665,6 +1658,24 @@ class AnalysisServer {
   }
 
   /**
+   * If the state location can be accessed, return the file byte store,
+   * otherwise return the memory byte store.
+   */
+  ByteStore _createByteStore() {
+    const int M = 1024 * 1024 /*1 MiB*/;
+    const int G = 1024 * 1024 * 1024 /*1 GiB*/;
+    if (resourceProvider is PhysicalResourceProvider) {
+      Folder stateLocation =
+          resourceProvider.getStateLocation('.analysis-driver');
+      if (stateLocation != null) {
+        return new MemoryCachingByteStore(
+            new EvictingFileByteStore(stateLocation.path, G), 64 * M);
+      }
+    }
+    return new MemoryCachingByteStore(new NullByteStore(), 64 * M);
+  }
+
+  /**
    * Return a set of all contexts whose associated folder is contained within,
    * or equal to, one of the resources in the given list of [resources].
    */
@@ -1783,7 +1794,6 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionApi = false;
   bool enableIncrementalResolutionValidation = false;
   bool enableNewAnalysisDriver = false;
-  bool enablePubSummaryManager = false;
   bool finerGrainedInvalidation = false;
   bool noErrorNotification = false;
   bool noIndex = false;
@@ -1965,9 +1975,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    if (analysisServer.options.enablePubSummaryManager) {
-      builderOptions.pubSummaryManager = analysisServer.pubSummaryManager;
-    }
     ContextBuilder builder = new ContextBuilder(resourceProvider,
         analysisServer.sdkManager, analysisServer.overlayState,
         options: builderOptions);

@@ -482,9 +482,11 @@ action("generate_snapshot_bin") {
   args = [
     "--executable",
     rebase_path("$gen_snapshot_dir/gen_snapshot"),
+    "--snapshot_kind",
+    "core",
     "--vm_output_bin",
     rebase_path(vm_isolate_snapshot, root_build_dir),
-    "--output_bin",
+    "--isolate_output_bin",
     rebase_path(isolate_snapshot, root_build_dir),
     "--target_os",
     current_os,
