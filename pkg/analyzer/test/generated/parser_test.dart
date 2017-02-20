@@ -13391,6 +13391,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     TopLevelVariableDeclaration declaration = member;
     expect(declaration.semicolon, isNotNull);
     expect(declaration.variables, isNotNull);
+    expect(declaration.variables.keyword.lexeme, 'const');
   }
 
   void test_parseCompilationUnitMember_expressionFunctionBody_tokens() {
@@ -13410,6 +13411,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     TopLevelVariableDeclaration declaration = member;
     expect(declaration.semicolon, isNotNull);
     expect(declaration.variables, isNotNull);
+    expect(declaration.variables.keyword.lexeme, 'final');
   }
 
   void test_parseCompilationUnitMember_function_external_noType() {
@@ -13689,6 +13691,19 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(typeAlias.parameters.parameters, hasLength(0));
   }
 
+  void test_parseCompilationUnitMember_typedVariable() {
+    createParser('int x = 0;');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
+    TopLevelVariableDeclaration declaration = member;
+    expect(declaration.semicolon, isNotNull);
+    expect(declaration.variables, isNotNull);
+    expect(declaration.variables.type, isNotNull);
+    expect(declaration.variables.keyword, isNull);
+  }
+
   void test_parseCompilationUnitMember_variable() {
     createParser('var x = 0;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
@@ -13698,6 +13713,7 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     TopLevelVariableDeclaration declaration = member;
     expect(declaration.semicolon, isNotNull);
     expect(declaration.variables, isNotNull);
+    expect(declaration.variables.keyword.lexeme, 'var');
   }
 
   void test_parseCompilationUnitMember_variableGet() {

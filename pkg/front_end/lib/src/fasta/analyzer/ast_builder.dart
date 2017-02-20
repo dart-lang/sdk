@@ -63,10 +63,10 @@ class AstBuilder extends ScopeListener {
   /// to the list.
   var accumulateIdentifierComponents = false;
 
-
   AstBuilder(this.library, this.member, this.elementStore, Scope scope,
       [Uri uri])
-      : uri = uri ?? library.fileUri, super(scope);
+      : uri = uri ?? library.fileUri,
+        super(scope);
 
   createJumpTarget(JumpTargetKind kind, int charOffset) {
     // TODO(ahe): Implement jump targets.
@@ -980,9 +980,12 @@ class AstBuilder extends ScopeListener {
     debugEvent("TopLevelFields");
     List<VariableDeclaration> variables = popList(count);
     TypeAnnotation type = pop();
-    // TODO(paulberry): the var/const/final keyword should be pointed to by
-    // beginToken.
-    var keyword = null; // TODO(paulberry)
+    var keyword;
+    if (optional('var', beginToken) ||
+        optional('const', beginToken) ||
+        optional('final', beginToken)) {
+      keyword = beginToken;
+    }
     var variableList = ast.variableDeclarationList(
         null, null, toAnalyzerToken(keyword), type, variables);
     var modifiers = pop();
