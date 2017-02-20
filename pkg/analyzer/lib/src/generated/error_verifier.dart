@@ -4908,6 +4908,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   void _checkForMustCallSuper(MethodDeclaration node) {
+    if (node.isStatic) {
+      return;
+    }
     MethodElement element = _findOverriddenMemberThatMustCallSuper(node);
     if (element != null) {
       _InvocationCollector collector = new _InvocationCollector();
@@ -6408,7 +6411,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     String name = member.name;
     ClassElement superclass = classElement.supertype?.element;
-    while (superclass != null) {
+    Set<ClassElement> visitedClasses = new Set<ClassElement>();
+    while (superclass != null && visitedClasses.add(superclass)) {
       ExecutableElement member = superclass.getMethod(name) ??
           superclass.getGetter(name) ??
           superclass.getSetter(name);
