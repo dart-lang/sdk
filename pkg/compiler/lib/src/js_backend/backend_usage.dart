@@ -3,13 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
+import '../common/resolution.dart' show Resolution;
+import '../compiler.dart' show GlobalDependencyRegistry;
 import '../core_types.dart';
 import '../elements/elements.dart';
+import '../elements/resolution_types.dart';
+import '../universe/selector.dart';
+import '../universe/use.dart';
+import '../universe/world_impact.dart'
+    show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
 import 'backend_helpers.dart';
+import 'backend_impact.dart';
 
 class BackendUsage {
   final CommonElements commonElements;
   final BackendHelpers helpers;
+  final Resolution resolution;
+  final GlobalDependencyRegistry globalDependencies;
 
   /// List of elements that the backend may use.
   final Set<Element> helpersUsed = new Set<Element>();
@@ -17,7 +27,8 @@ class BackendUsage {
   bool needToInitializeIsolateAffinityTag = false;
   bool needToInitializeDispatchProperty = false;
 
-  BackendUsage(this.commonElements, this.helpers);
+  BackendUsage(this.commonElements, this.helpers, this.resolution,
+      this.globalDependencies);
 
   /// The backend must *always* call this method when enqueuing an
   /// element. Calls done by the backend are not seen by global
@@ -84,5 +95,74 @@ class BackendUsage {
       if (usedByBackend(element.enclosingElement)) return true;
     }
     return helpersUsed.contains(element.declaration);
+  }
+
+  WorldImpact createImpactFor(BackendImpact impact) {
+    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    registerBackendImpact(impactBuilder, impact);
+    return impactBuilder;
+  }
+
+  void registerBackendStaticUse(
+      WorldImpactBuilder worldImpact, MethodElement element,
+      {bool isGlobal: false}) {
+    registerBackendUse(element);
+    worldImpact.registerStaticUse(
+        // TODO(johnniwinther): Store the correct use in impacts.
+        new StaticUse.foreignUse(element));
+    if (isGlobal) {
+      globalDependencies.registerDependency(element);
+    }
+  }
+
+  void registerBackendInstantiation(
+      WorldImpactBuilder worldImpact, ClassElement cls,
+      {bool isGlobal: false}) {
+    cls.ensureResolved(resolution);
+    registerBackendUse(cls);
+    worldImpact.registerTypeUse(new TypeUse.instantiation(cls.rawType));
+    if (isGlobal) {
+      globalDependencies.registerDependency(cls);
+    }
+  }
+
+  void registerBackendImpact(
+      WorldImpactBuilder worldImpact, BackendImpact backendImpact) {
+    for (Element staticUse in backendImpact.staticUses) {
+      assert(staticUse != null);
+      registerBackendStaticUse(worldImpact, staticUse);
+    }
+    for (Element staticUse in backendImpact.globalUses) {
+      assert(staticUse != null);
+      registerBackendStaticUse(worldImpact, staticUse, isGlobal: true);
+    }
+    for (Selector selector in backendImpact.dynamicUses) {
+      assert(selector != null);
+      worldImpact.registerDynamicUse(new DynamicUse(selector, null));
+    }
+    for (ResolutionInterfaceType instantiatedType
+        in backendImpact.instantiatedTypes) {
+      registerBackendUse(instantiatedType.element);
+      worldImpact.registerTypeUse(new TypeUse.instantiation(instantiatedType));
+    }
+    for (ClassElement cls in backendImpact.instantiatedClasses) {
+      registerBackendInstantiation(worldImpact, cls);
+    }
+    for (ClassElement cls in backendImpact.globalClasses) {
+      registerBackendInstantiation(worldImpact, cls, isGlobal: true);
+    }
+    for (BackendImpact otherImpact in backendImpact.otherImpacts) {
+      registerBackendImpact(worldImpact, otherImpact);
+    }
+    for (BackendFeature feature in backendImpact.features) {
+      switch (feature) {
+        case BackendFeature.needToInitializeDispatchProperty:
+          needToInitializeDispatchProperty = true;
+          break;
+        case BackendFeature.needToInitializeIsolateAffinityTag:
+          needToInitializeIsolateAffinityTag = true;
+          break;
+      }
+    }
   }
 }

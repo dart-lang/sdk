@@ -80,11 +80,11 @@ class TypeVariableHandler {
               "Class '$_typeVariableClass' should only have one constructor");
         }
         _typeVariableConstructor = _typeVariableClass.constructors.head;
-        _backend.impactTransformer.registerBackendStaticUse(
+        _backend.backendUsage.registerBackendStaticUse(
             impactBuilderForResolution, _typeVariableConstructor);
-        _backend.impactTransformer.registerBackendInstantiation(
+        _backend.backendUsage.registerBackendInstantiation(
             impactBuilderForResolution, _typeVariableClass);
-        _backend.impactTransformer.registerBackendStaticUse(
+        _backend.backendUsage.registerBackendStaticUse(
             impactBuilderForResolution, _backend.helpers.createRuntimeType);
         _seenClassesWithTypeVariables = true;
       }
