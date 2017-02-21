@@ -471,60 +471,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
   @override
   @failingTest
-  void
-      test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: Method
-    super
-        .test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
-  void
-      test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: Method
-    super
-        .test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
-  void
-      test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: Method
-    super
-        .test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
-  void
-      test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: Method
-    super
-        .test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
-  void
-      test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: Method
-    super
-        .test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
-  void
-      test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: Method
-    super
-        .test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
   void test_parseClassDeclaration_abstract() {
     // TODO(paulberry): Implement AstBuilder.handleModifier
     super.test_parseClassDeclaration_abstract();

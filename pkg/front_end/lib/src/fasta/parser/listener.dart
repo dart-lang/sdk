@@ -452,6 +452,16 @@ class Listener {
 
   void beginMethod(Token token, Token name) {}
 
+  /// Handle the end of a method declaration.  Substructures:
+  /// - metadata
+  /// - modifiers
+  /// - return type
+  /// - method name (identifier, possibly qualified)
+  /// - type variables
+  /// - formal parameters
+  /// - initializers
+  /// - async marker
+  /// - body
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     logEvent("Method");
   }

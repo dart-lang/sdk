@@ -1018,6 +1018,54 @@ class AstBuilder extends ScopeListener {
     push(ast.typeParameterList(toAnalyzerToken(beginToken), typeParameters,
         toAnalyzerToken(endToken)));
   }
+
+  @override
+  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
+    debugEvent("Method");
+    FunctionBody body = _endFunctionBody();
+    ConstructorName redirectedConstructor = null; // TODO(paulberry)
+    List<ConstructorInitializer> initializers = null; // TODO(paulberry)
+    Token separator = null; // TODO(paulberry)
+    FormalParameterList parameters = pop();
+    TypeParameterList typeParameters = pop();
+    var name = pop();
+    analyzer.Token propertyKeyword = toAnalyzerToken(getOrSet);
+    TypeAnnotation returnType = pop();
+    // TODO(paulberry): handle modifiers.
+    var modifiers = pop();
+    assert(modifiers == null);
+    Token externalKeyword = null; // TODO(paulberry)
+    Token constKeyword = null; // TODO(paulberry)
+    Token factoryKeyword = null; // TODO(paulberry)
+    List<Annotation> metadata = pop();
+    // TODO(paulberry): capture doc comments.
+    Comment comment = null;
+    SimpleIdentifier returnType2;
+    Token period;
+    SimpleIdentifier name2;
+    if (name is SimpleIdentifier) {
+      SimpleIdentifier returnType2 = name;
+    }
+    push(ast.constructorDeclaration(
+        comment,
+        metadata,
+        toAnalyzerToken(externalKeyword),
+        toAnalyzerToken(constKeyword),
+        toAnalyzerToken(factoryKeyword),
+        returnType2,
+        toAnalyzerToken(period),
+        name2,
+        parameters,
+        toAnalyzerToken(separator),
+        initializers,
+        redirectedConstructor,
+        body));
+  }
+
+  @override
+  void endMember() {
+    debugEvent("Member");
+  }
 }
 
 /// Data structure placed on the stack to represent a class body.
