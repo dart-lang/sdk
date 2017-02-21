@@ -11,30 +11,25 @@ import 'dart:isolate';
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 
-Future copyFileToDirectory(String file, String directory) {
+Future copyFileToDirectory(String file, String directory) async {
   String src = file;
   String dst = directory;
+  ProcessResult result;
   switch (Platform.operatingSystem) {
     case 'linux':
     case 'macos':
-      return Process.run('cp', [src, dst]);
+      result = await Process.run('cp', [src, dst]);
+      break;
     case 'windows':
-      return Process.run('cmd.exe', ['/C', 'copy $src $dst']);
+      result = await Process.run('cmd.exe', ['/C', 'copy $src $dst']);
+      break;
     default:
       Expect.fail('Unknown operating system ${Platform.operatingSystem}');
   }
-}
-
-String getNativeLibraryPath(String buildDirectory) {
-  switch (Platform.operatingSystem) {
-    case 'linux':
-      return join(buildDirectory, 'lib.target', 'libsample_extension.so');
-    case 'macos':
-      return join(buildDirectory, 'libsample_extension.dylib');
-    case 'windows':
-      return join(buildDirectory, 'sample_extension.dll');
-    default:
-      Expect.fail('Unknown operating system ${Platform.operatingSystem}');
+  if (result.exitCode != 0) {
+    print(result.stdout);
+    print(result.stderr);
+    throw "Failed to copy test file ($file) to temporary directory ($directory)";
   }
 }
 
@@ -57,10 +52,8 @@ Future testNativeExtensions(String snapshotKind) async {
     String testDirectory = tempDirectory.path;
     String sourceDirectory = Platform.script.resolve('..').toFilePath();
 
-    // Copy sample_extension shared library, sample_extension dart files and
-    // sample_extension tests to the temporary test directory.
-    await copyFileToDirectory(getNativeLibraryPath(buildDirectory),
-                              testDirectory);
+    // Copy sample_extension dart files and sample_extension tests to the
+    // temporary test directory.
     for (var file in ['sample_synchronous_extension.dart',
                       'sample_asynchronous_extension.dart',
                       'test_sample_synchronous_extension.dart',
