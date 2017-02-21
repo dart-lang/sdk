@@ -932,12 +932,17 @@ abstract class ScannerTestBase {
 
   void test_startAndEnd() {
     Token token = _scan("a");
+    expect(token.offset, 0);
     Token previous = token.previous;
     expect(previous.next, token);
     expect(previous.previous, previous);
+    expect(previous.type, TokenType.EOF);
+    expect(previous.offset, -1);
     Token next = token.next;
     expect(next.next, next);
     expect(next.previous, token);
+    expect(next.type, TokenType.EOF);
+    expect(next.offset, token.offset + token.length);
   }
 
   void test_string_multi_double() {

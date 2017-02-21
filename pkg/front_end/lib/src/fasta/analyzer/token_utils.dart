@@ -92,7 +92,7 @@ class ToAnalyzerTokenStreamConverter {
   /// Converts a stream of Fasta tokens (starting with [token] and continuing to
   /// EOF) to a stream of analyzer tokens.
   analyzer.Token convertTokens(Token token) {
-    _analyzerTokenHead = new analyzer.Token(null, 0);
+    _analyzerTokenHead = new analyzer.Token(TokenType.EOF, -1);
     _analyzerTokenHead.previous = _analyzerTokenHead;
     _analyzerTokenTail = _analyzerTokenHead;
     _currentCommentHead = null;
