@@ -9,10 +9,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r'Adhere to Effective Dart Guide directives sorting conventions.';
 const _dartImportGoFirst = r"Place 'dart:' imports before other imports.";
-const _packageImportBeforeRelative =
-    r"Place 'package:' imports before relative imports.";
+const _desc = r'Adhere to Effective Dart Guide directives sorting conventions.';
 const _details =
     r'''**DO** follow the conventions in the [Effective Dart Guide](https://www.dartlang.org/guides/language/effective-dart/style#ordering)
 
@@ -71,24 +69,49 @@ import 'package:foo/foo.dart';  // OK
 
 import 'a.dart';
 import 'b.dart';
+```
+
+**PREFER** placing “third-party” “package:” imports before other imports.
+
+**BAD:**
+```
+import 'package:myapp/io.dart';
+import 'package:myapp/util.dart';
+
+import 'package:bar/bar.dart';  // LINT
+import 'package:foo/foo.dart';  // LINT
+```
+
+**GOOD:**
+```
+import 'package:bar/bar.dart';  // OK
+import 'package:foo/foo.dart';  // OK
+
+import 'package:myapp/io.dart';
+import 'package:myapp/util.dart';
 
 ''';
 
-bool _isDartImport(Directive node) =>
-    (node as ImportDirective).uriContent.startsWith("dart:");
+const _packageImportBeforeRelative =
+    r"Place 'package:' imports before relative imports.";
+
+const _thirdPartyPackageImportBeforeOwn =
+    r"Place 'third-party' 'package:' imports before other imports.";
+
+bool _isAbsoluteImport(ImportDirective node) => node.uriContent.contains(":");
+
+bool _isDartImport(ImportDirective node) => node.uriContent.startsWith("dart:");
 
 bool _isImportDirective(Directive node) => node is ImportDirective;
 
-bool _isNotDartImport(Directive node) => !_isDartImport(node);
+bool _isNotDartImport(ImportDirective node) => !_isDartImport(node);
 
-bool _isPackageImport(Directive node) =>
-    (node as ImportDirective).uriContent.startsWith("package:");
+bool _isPackageImport(ImportDirective node) =>
+    node.uriContent.startsWith("package:");
 
-bool _isAbsoluteImport(Directive node) =>
-    (node as ImportDirective).uriContent.contains(":");
-
-class DirectivesOrdering extends LintRule {
+class DirectivesOrdering extends LintRule implements ProjectVisitor {
   _Visitor _visitor;
+  DartProject project;
 
   DirectivesOrdering()
       : super(
@@ -100,48 +123,109 @@ class DirectivesOrdering extends LintRule {
   }
 
   @override
+  ProjectVisitor getProjectVisitor() => this;
+
+  @override
   AstVisitor getVisitor() => _visitor;
+
+  @override
+  visit(DartProject project) {
+    this.project = project;
+  }
 
   void _reportLintWithDartImportGoFirstMessage(AstNode node) {
     _reportLintWithDescription(node, _dartImportGoFirst);
   }
 
   void _reportLintWithDescription(AstNode node, String description) {
-    if (node == null) {
-      return;
-    }
     reporter.reportErrorForNode(new LintCode(name, description), node, []);
   }
 
   void _reportLintWithPackageImportBeforeRelativeMessage(AstNode node) {
     _reportLintWithDescription(node, _packageImportBeforeRelative);
   }
+
+  void _reportLintWithThirdPartyPackageImportBeforeOwnMessage(AstNode node) {
+    _reportLintWithDescription(node, _thirdPartyPackageImportBeforeOwn);
+  }
+}
+
+class _PackageBox {
+  final String _packageName;
+  _PackageBox(this._packageName);
+
+  bool _isNotOwnPackageImport(ImportDirective node) =>
+      !_isOwnPackageImport(node);
+
+  bool _isOwnPackageImport(ImportDirective node) =>
+      node.uriContent.startsWith('package:$_packageName/');
 }
 
 class _Visitor extends SimpleAstVisitor {
   final DirectivesOrdering rule;
+
   _Visitor(this.rule);
+
+  DartProject get project => rule.project;
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    _checkDartImportGoFirst(node);
-    _checkPackageImportBeforeRelative(node);
+    Set<AstNode> lintedNodes = new Set<AstNode>();
+    _checkDartImportGoFirst(lintedNodes, node);
+    _checkPackageImportBeforeRelative(lintedNodes, node);
+    _checkThirdPartyImportBeforeOwn(lintedNodes, node);
   }
 
-  void _checkDartImportGoFirst(CompilationUnit node) {
-    node.directives
-        .where(_isImportDirective)
+  void _checkDartImportGoFirst(Set<AstNode> lintedNodes, CompilationUnit node) {
+    void reportDirective(ImportDirective directive) {
+      if (lintedNodes.add(directive)) {
+        rule._reportLintWithDartImportGoFirstMessage(directive);
+      }
+    }
+
+    _getImportDirectives(node)
         .skipWhile(_isDartImport)
         .where(_isDartImport)
-        .forEach(rule._reportLintWithDartImportGoFirstMessage);
+        .forEach(reportDirective);
   }
 
-  void _checkPackageImportBeforeRelative(CompilationUnit node) {
-    node.directives
-        .where(_isImportDirective)
+  void _checkPackageImportBeforeRelative(
+      Set<AstNode> lintedNodes, CompilationUnit node) {
+    void reportDirective(ImportDirective directive) {
+      if (lintedNodes.add(directive)) {
+        rule._reportLintWithPackageImportBeforeRelativeMessage(directive);
+      }
+    }
+
+    _getImportDirectives(node)
         .where(_isNotDartImport)
         .skipWhile(_isAbsoluteImport)
         .where(_isPackageImport)
-        .forEach(rule._reportLintWithPackageImportBeforeRelativeMessage);
+        .forEach(reportDirective);
   }
+
+  void _checkThirdPartyImportBeforeOwn(
+      Set<AstNode> lintedNodes, CompilationUnit node) {
+    if (project == null) {
+      return;
+    }
+
+    void reportDirective(ImportDirective directive) {
+      if (lintedNodes.add(directive)) {
+        rule._reportLintWithThirdPartyPackageImportBeforeOwnMessage(directive);
+      }
+    }
+
+    _PackageBox box = new _PackageBox(project.name);
+    _getImportDirectives(node)
+        .where(_isPackageImport)
+        .skipWhile(box._isNotOwnPackageImport)
+        .where(box._isNotOwnPackageImport)
+        .forEach(reportDirective);
+  }
+
+  Iterable<ImportDirective> _getImportDirectives(CompilationUnit node) =>
+      node.directives
+          .where(_isImportDirective)
+          .map((e) => e as ImportDirective);
 }
