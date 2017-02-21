@@ -651,13 +651,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnitMember_typedef() {
-    // TODO(paulberry): Unhandled event: FunctionTypeAlias
-    super.test_parseCompilationUnitMember_typedef();
-  }
-
-  @override
-  @failingTest
   void test_parseDirectives_complete() {
     // TODO(paulberry,ahe): Fasta doesn't support script tags yet.
     super.test_parseDirectives_complete();
@@ -792,44 +785,9 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseTypeAlias_function_noParameters() {
-    // TODO(paulberry): Unhandled event: FunctionTypeAlias
-    super.test_parseTypeAlias_function_noParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_function_noReturnType() {
-    // TODO(paulberry): Unhandled event: FunctionTypeAlias
-    super.test_parseTypeAlias_function_noReturnType();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeAlias_function_parameterizedReturnType() {
     // TODO(paulberry): Unhandled event: TypeArguments
     super.test_parseTypeAlias_function_parameterizedReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_function_parameters() {
-    // TODO(paulberry): Unhandled event: FunctionTypeAlias
-    super.test_parseTypeAlias_function_parameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_function_typeParameters() {
-    // TODO(paulberry): Unhandled event: FunctionTypeAlias
-    super.test_parseTypeAlias_function_typeParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_function_voidReturnType() {
-    // TODO(paulberry): Unhandled event: FunctionTypeAlias
-    super.test_parseTypeAlias_function_voidReturnType();
   }
 
   @override

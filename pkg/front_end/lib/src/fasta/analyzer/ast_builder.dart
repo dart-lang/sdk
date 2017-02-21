@@ -1076,6 +1076,27 @@ class AstBuilder extends ScopeListener {
     handleNoTypeArguments(token);
     endType(token, token);
   }
+
+  @override
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
+    debugEvent("FunctionTypeAlias");
+    FormalParameterList parameters = pop();
+    TypeParameterList typeParameters = pop();
+    SimpleIdentifier name = pop();
+    TypeAnnotation returnType = pop();
+    List<Annotation> metadata = pop();
+    // TODO(paulberry): capture doc comments.
+    Comment comment = null;
+    push(ast.functionTypeAlias(
+        comment,
+        metadata,
+        toAnalyzerToken(typedefKeyword),
+        returnType,
+        name,
+        typeParameters,
+        parameters,
+        toAnalyzerToken(endToken)));
+  }
 }
 
 /// Data structure placed on the stack to represent a class body.

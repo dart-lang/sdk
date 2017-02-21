@@ -232,6 +232,12 @@ class Listener {
 
   void beginFunctionTypeAlias(Token token) {}
 
+  /// Handle the end of a typedef declaration.  Substructures:
+  /// - Metadata
+  /// - Return type
+  /// - Name (identifier)
+  /// - Type variables
+  /// - Formal parameters
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     logEvent("FunctionTypeAlias");
   }
