@@ -1066,6 +1066,16 @@ class AstBuilder extends ScopeListener {
   void endMember() {
     debugEvent("Member");
   }
+
+  @override
+  void handleVoidKeyword(Token token) {
+    debugEvent("VoidKeyword");
+    // TODO(paulberry): is this sufficient, or do we need to hook the "void"
+    // keyword up to an element?
+    handleIdentifier(token);
+    handleNoTypeArguments(token);
+    endType(token, token);
+  }
 }
 
 /// Data structure placed on the stack to represent a class body.

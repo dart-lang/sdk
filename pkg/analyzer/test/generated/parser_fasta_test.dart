@@ -595,20 +595,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnitMember_function_generic_void() {
-    // TODO(paulberry): Unhandled event: VoidKeyword
-    super.test_parseCompilationUnitMember_function_generic_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_function_void() {
-    // TODO(paulberry): Unhandled event: VoidKeyword
-    super.test_parseCompilationUnitMember_function_void();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnitMember_getter_external_noType() {
     // TODO(paulberry): Implement AstBuilder.handleModifier
     super.test_parseCompilationUnitMember_getter_external_noType();
@@ -631,15 +617,8 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnitMember_setter_external_type() {
-    // TODO(paulberry): Unhandled event: VoidKeyword
+    // TODO(paulberry): Implement AstBuilder.handleModifier
     super.test_parseCompilationUnitMember_setter_external_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_setter_type() {
-    // TODO(paulberry): Unhandled event: VoidKeyword
-    super.test_parseCompilationUnitMember_setter_type();
   }
 
   @override
@@ -849,7 +828,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseTypeAlias_function_voidReturnType() {
-    // TODO(paulberry): Unhandled event: VoidKeyword
+    // TODO(paulberry): Unhandled event: FunctionTypeAlias
     super.test_parseTypeAlias_function_voidReturnType();
   }
 
