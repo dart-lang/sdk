@@ -222,7 +222,7 @@ not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-if_null_assignment_static_test/35: Crash  # Dartk Issue 28302
+deferred_regression_28678_test: RuntimeError # Issue 28335
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]

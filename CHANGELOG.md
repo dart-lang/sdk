@@ -1,3 +1,11 @@
+## 1.22.1 - 2017-02-22
+
+Patch release, resolves two issues:
+* Dart VM crash: [Issue 28072](https://github.com/dart-lang/sdk/issues/28757)
+
+* Dart VM bug combining types, await, and deferred loading: [Issue 28678](https://github.com/dart-lang/sdk/issues/28678)
+
+
 ## 1.22.0 - 2017-02-14
 
 ### Language
