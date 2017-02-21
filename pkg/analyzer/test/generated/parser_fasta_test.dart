@@ -645,13 +645,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseFormalParameterList_prefixedType() {
-    // TODO(scheglov): Unhandled event: Qualified
-    super.test_parseFormalParameterList_prefixedType();
-  }
-
-  @override
-  @failingTest
   void test_parseFormalParameterList_prefixedType_partial() {
     // TODO(scheglov): Unimplemented: errors
     super.test_parseFormalParameterList_prefixedType_partial();
@@ -1019,7 +1012,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
-    // TODO(paulberry): Unhandled event: Qualified
+    // TODO(paulberry): Unhandled event: ConstructorReference
     super.test_parseCompilationUnit_abstractAsPrefix_parameterized();
   }
 
@@ -1056,7 +1049,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
-    // TODO(paulberry): Unhandled event: Qualified
+    // TODO(paulberry): Unhandled event: ConstructorReference
     super.test_parseCompilationUnit_operatorAsPrefix_parameterized();
   }
 
@@ -1077,7 +1070,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnitMember_abstractAsPrefix() {
-    // TODO(paulberry): Unhandled event: Qualified
+    // TODO(paulberry): Unhandled event: ConstructorReference
     super.test_parseCompilationUnitMember_abstractAsPrefix();
   }
 

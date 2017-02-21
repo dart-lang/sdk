@@ -457,18 +457,22 @@ class AstBuilder extends ScopeListener {
   void endType(Token beginToken, Token endToken) {
     debugEvent("Type");
     TypeArgumentList arguments = pop();
-    SimpleIdentifier name = pop();
+    Identifier name = pop();
+    // TODO(paulberry,ahe): what if the type doesn't resolve to a class
+    // element?
     KernelClassElement cls = name.staticElement;
     if (cls == null) {
+      // TODO(paulberry): This is a kludge.  Ideally we should already have
+      // set the static element at the time that handleIdentifier was called.
       Builder builder = scope.lookup(name.name, beginToken.charOffset, uri);
       if (builder == null) {
         internalError("Undefined name: $name");
       }
-      // TODO(paulberry,ahe): what if the type doesn't resolve to a class
-      // element?
       cls = elementStore[builder];
       assert(cls != null);
-      name.staticElement = cls;
+      if (name is SimpleIdentifier) {
+        name.staticElement = cls;
+      }
     }
     push(ast.typeName(name, arguments)..type = cls.rawType);
   }
@@ -939,14 +943,20 @@ class AstBuilder extends ScopeListener {
 
   @override
   void handleQualified(Token period) {
+    SimpleIdentifier identifier = pop();
     if (accumulateIdentifierComponents) {
-      SimpleIdentifier identifier = pop();
       List<SimpleIdentifier> list = pop();
       list.add(identifier);
       push(list);
     } else {
-      // TODO(paulberry): implement.
-      logEvent('Qualified');
+      var prefix = pop();
+      if (prefix is SimpleIdentifier) {
+        // TODO(paulberry): resolve [identifier].
+        push(ast.prefixedIdentifier(prefix, toAnalyzerToken(period), identifier));
+      } else {
+        // TODO(paulberry): implement.
+        logEvent('Qualified with >1 dot');
+      }
     }
   }
 
