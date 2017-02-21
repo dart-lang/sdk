@@ -109,6 +109,7 @@ class Message {
         ..[4] = keys
         ..[5] = values;
     if (!sendIsolateServiceMessage(sendPort, request)) {
+      receivePort.close();
       _completer.complete(JSON.encode({
           'type': 'ServiceError',
           'id': '',
