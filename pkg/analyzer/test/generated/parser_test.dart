@@ -27,6 +27,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ComplexParserTest);
     defineReflectiveTests(ErrorParserTest);
+    defineReflectiveTests(FormalParameterParserTest);
     defineReflectiveTests(NonErrorParserTest);
     defineReflectiveTests(RecoveryParserTest);
     defineReflectiveTests(SimpleParserTest);
@@ -55,6 +56,12 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
    * Caller must first invoke [createParser].
    */
   Parser get parser;
+
+  /**
+   * Assert that the number and codes of errors occurred during parsing is the
+   * same the the [expectedErrorCodes].
+   */
+  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes);
 
   /**
    * Asserts that no errors occurred during parsing.
@@ -88,6 +95,13 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Expression parseExpression(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
 
+  FormalParameter parseFormalParameter(String code, ParameterKind kind,
+      {List<ErrorCode> errorCodes: const <ErrorCode>[]});
+
+  FormalParameterList parseFormalParameterList(String code,
+      {bool inFunctionType: false,
+      List<ErrorCode> errorCodes: const <ErrorCode>[]});
+
   /**
    * Parses a single top level member of a compilation unit (other than a
    * directive), including any comment and/or metadata that precedes it.
@@ -99,6 +113,9 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
    * that precedes it.
    */
   Directive parseFullDirective();
+
+  NormalFormalParameter parseNormalFormalParameter(String code,
+      {bool inFunctionType: false});
 
   Statement parseStatement(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[],
@@ -2971,6 +2988,1102 @@ void main() {
   }
 }
 
+/**
+ * Tests of the analyzer parser based on [FormalParameterParserTestMixin].
+ */
+@reflectiveTest
+class FormalParameterParserTest extends ParserTestCase
+    with FormalParameterParserTestMixin {}
+
+/**
+ * The class [FormalParameterParserTestMixin] defines parser tests that test
+ * the parsing of formal parameters.
+ */
+abstract class FormalParameterParserTestMixin
+    implements AbstractParserTestCase {
+  void test_parseFormalParameter_covariant_final_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseFormalParameter('covariant final a : null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_final_normal() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    FormalParameter parameter = parseFormalParameter('covariant final a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_final_positional() {
+    ParameterKind kind = ParameterKind.POSITIONAL;
+    FormalParameter parameter =
+        parseFormalParameter('covariant final a = null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_final_type_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseFormalParameter('covariant final A a : null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_final_type_normal() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    FormalParameter parameter =
+        parseFormalParameter('covariant final A a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_final_type_positional() {
+    ParameterKind kind = ParameterKind.POSITIONAL;
+    FormalParameter parameter =
+        parseFormalParameter('covariant final A a = null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_type_function() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    FormalParameter parameter =
+        parseFormalParameter('covariant String Function(int) a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, new isInstanceOf<GenericFunctionType>());
+    expect(simpleParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_type_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseFormalParameter('covariant A a : null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_type_normal() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    FormalParameter parameter =
+        parseFormalParameter('covariant A<B<C>> a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_type_positional() {
+    ParameterKind kind = ParameterKind.POSITIONAL;
+    FormalParameter parameter =
+        parseFormalParameter('covariant A a = null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_var_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseFormalParameter('covariant var a : null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_var_normal() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    FormalParameter parameter = parseFormalParameter('covariant var a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_covariant_var_positional() {
+    ParameterKind kind = ParameterKind.POSITIONAL;
+    FormalParameter parameter =
+        parseFormalParameter('covariant var a = null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_final_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter = parseFormalParameter('final a : null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_final_normal() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    FormalParameter parameter = parseFormalParameter('final a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_final_positional() {
+    ParameterKind kind = ParameterKind.POSITIONAL;
+    FormalParameter parameter = parseFormalParameter('final a = null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_final_type_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter = parseFormalParameter('final A a : null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_final_type_normal() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    FormalParameter parameter = parseFormalParameter('final A a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_final_type_positional() {
+    ParameterKind kind = ParameterKind.POSITIONAL;
+    FormalParameter parameter = parseFormalParameter('final A a = null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_type_function() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    FormalParameter parameter =
+        parseFormalParameter('String Function(int) a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, new isInstanceOf<GenericFunctionType>());
+    expect(simpleParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_type_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter = parseFormalParameter('A a : null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_type_normal() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    FormalParameter parameter = parseFormalParameter('A a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_type_positional() {
+    ParameterKind kind = ParameterKind.POSITIONAL;
+    FormalParameter parameter = parseFormalParameter('A a = null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_var_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter = parseFormalParameter('var a : null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_var_normal() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    FormalParameter parameter = parseFormalParameter('var a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_var_positional() {
+    ParameterKind kind = ParameterKind.POSITIONAL;
+    FormalParameter parameter = parseFormalParameter('var a = null', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameterList_empty() {
+    FormalParameterList list = parseFormalParameterList('()');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNull);
+    expect(list.parameters, hasLength(0));
+    expect(list.rightDelimiter, isNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_named_multiple() {
+    FormalParameterList list =
+        parseFormalParameterList('({A a : 1, B b, C c : 3})');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNotNull);
+    expect(list.parameters, hasLength(3));
+    expect(list.rightDelimiter, isNotNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_named_single() {
+    FormalParameterList list = parseFormalParameterList('({A a})');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNotNull);
+    expect(list.parameters, hasLength(1));
+    expect(list.rightDelimiter, isNotNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_named_trailing_comma() {
+    FormalParameterList list = parseFormalParameterList('(A a, {B b,})');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNotNull);
+    expect(list.parameters, hasLength(2));
+    expect(list.rightDelimiter, isNotNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_normal_multiple() {
+    FormalParameterList list = parseFormalParameterList('(A a, B b, C c)');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNull);
+    expect(list.parameters, hasLength(3));
+    expect(list.rightDelimiter, isNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_normal_named() {
+    FormalParameterList list = parseFormalParameterList('(A a, {B b})');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNotNull);
+    expect(list.parameters, hasLength(2));
+    expect(list.rightDelimiter, isNotNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_normal_named_inFunctionType() {
+    FormalParameterList list =
+        parseFormalParameterList('(A, {B b})', inFunctionType: true);
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNotNull);
+    expect(list.rightDelimiter, isNotNull);
+    expect(list.rightParenthesis, isNotNull);
+    NodeList<FormalParameter> parameters = list.parameters;
+    expect(parameters, hasLength(2));
+
+    expect(parameters[0], new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter required = parameters[0];
+    expect(required.identifier, isNull);
+    expect(required.type, new isInstanceOf<TypeName>());
+    expect((required.type as TypeName).name.name, 'A');
+
+    expect(parameters[1], new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter named = parameters[1];
+    expect(named.identifier, isNotNull);
+    expect(named.parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simple = named.parameter;
+    expect(simple.type, new isInstanceOf<TypeName>());
+    expect((simple.type as TypeName).name.name, 'B');
+  }
+
+  void test_parseFormalParameterList_normal_positional() {
+    FormalParameterList list = parseFormalParameterList('(A a, [B b])');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNotNull);
+    expect(list.parameters, hasLength(2));
+    expect(list.rightDelimiter, isNotNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_normal_single() {
+    FormalParameterList list = parseFormalParameterList('(A a)');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNull);
+    expect(list.parameters, hasLength(1));
+    expect(list.rightDelimiter, isNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_normal_single_Function() {
+    FormalParameterList list = parseFormalParameterList('(Function f)');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNull);
+    expect(list.parameters, hasLength(1));
+    expect(list.rightDelimiter, isNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_normal_single_trailing_comma() {
+    FormalParameterList list = parseFormalParameterList('(A a,)');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNull);
+    expect(list.parameters, hasLength(1));
+    expect(list.rightDelimiter, isNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_positional_multiple() {
+    FormalParameterList list =
+        parseFormalParameterList('([A a = null, B b, C c = null])');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNotNull);
+    expect(list.parameters, hasLength(3));
+    expect(list.rightDelimiter, isNotNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_positional_single() {
+    FormalParameterList list = parseFormalParameterList('([A a = null])');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNotNull);
+    expect(list.parameters, hasLength(1));
+    expect(list.rightDelimiter, isNotNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_positional_trailing_comma() {
+    FormalParameterList list = parseFormalParameterList('(A a, [B b,])');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNotNull);
+    expect(list.parameters, hasLength(2));
+    expect(list.rightDelimiter, isNotNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_prefixedType() {
+    FormalParameterList list = parseFormalParameterList('(io.File f)');
+    expect(list, isNotNull);
+    assertNoErrors();
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNull);
+    expect(list.parameters, hasLength(1));
+    expect(list.parameters[0].toSource(), 'io.File f');
+    expect(list.rightDelimiter, isNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_prefixedType_partial() {
+    FormalParameterList list = parseFormalParameterList('(io.)', errorCodes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+    expect(list, isNotNull);
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNull);
+    expect(list.parameters, hasLength(1));
+    expect(list.parameters[0].toSource(), 'io. ');
+    expect(list.rightDelimiter, isNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseFormalParameterList_prefixedType_partial2() {
+    FormalParameterList list = parseFormalParameterList('(io.,a)', errorCodes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+    expect(list, isNotNull);
+    expect(list.leftParenthesis, isNotNull);
+    expect(list.leftDelimiter, isNull);
+    expect(list.parameters, hasLength(2));
+    expect(list.parameters[0].toSource(), 'io. ');
+    expect(list.parameters[1].toSource(), 'a');
+    expect(list.rightDelimiter, isNull);
+    expect(list.rightParenthesis, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_field_const_noType() {
+    NormalFormalParameter parameter =
+        parseNormalFormalParameter('const this.a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FieldFormalParameter>());
+    FieldFormalParameter fieldParameter = parameter;
+    expect(fieldParameter.keyword, isNotNull);
+    expect(fieldParameter.type, isNull);
+    expect(fieldParameter.identifier, isNotNull);
+    expect(fieldParameter.parameters, isNull);
+  }
+
+  void test_parseNormalFormalParameter_field_const_type() {
+    NormalFormalParameter parameter =
+        parseNormalFormalParameter('const A this.a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FieldFormalParameter>());
+    FieldFormalParameter fieldParameter = parameter;
+    expect(fieldParameter.keyword, isNotNull);
+    expect(fieldParameter.type, isNotNull);
+    expect(fieldParameter.identifier, isNotNull);
+    expect(fieldParameter.parameters, isNull);
+  }
+
+  void test_parseNormalFormalParameter_field_final_noType() {
+    NormalFormalParameter parameter =
+        parseNormalFormalParameter('final this.a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FieldFormalParameter>());
+    FieldFormalParameter fieldParameter = parameter;
+    expect(fieldParameter.keyword, isNotNull);
+    expect(fieldParameter.type, isNull);
+    expect(fieldParameter.identifier, isNotNull);
+    expect(fieldParameter.parameters, isNull);
+  }
+
+  void test_parseNormalFormalParameter_field_final_type() {
+    NormalFormalParameter parameter =
+        parseNormalFormalParameter('final A this.a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FieldFormalParameter>());
+    FieldFormalParameter fieldParameter = parameter;
+    expect(fieldParameter.keyword, isNotNull);
+    expect(fieldParameter.type, isNotNull);
+    expect(fieldParameter.identifier, isNotNull);
+    expect(fieldParameter.parameters, isNull);
+  }
+
+  void test_parseNormalFormalParameter_field_function_nested() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('this.a(B b)');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FieldFormalParameter>());
+    FieldFormalParameter fieldParameter = parameter;
+    expect(fieldParameter.keyword, isNull);
+    expect(fieldParameter.type, isNull);
+    expect(fieldParameter.identifier, isNotNull);
+    FormalParameterList parameterList = fieldParameter.parameters;
+    expect(parameterList, isNotNull);
+    expect(parameterList.parameters, hasLength(1));
+  }
+
+  void test_parseNormalFormalParameter_field_function_noNested() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('this.a()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FieldFormalParameter>());
+    FieldFormalParameter fieldParameter = parameter;
+    expect(fieldParameter.keyword, isNull);
+    expect(fieldParameter.type, isNull);
+    expect(fieldParameter.identifier, isNotNull);
+    FormalParameterList parameterList = fieldParameter.parameters;
+    expect(parameterList, isNotNull);
+    expect(parameterList.parameters, hasLength(0));
+  }
+
+  void test_parseNormalFormalParameter_field_noType() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('this.a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FieldFormalParameter>());
+    FieldFormalParameter fieldParameter = parameter;
+    expect(fieldParameter.keyword, isNull);
+    expect(fieldParameter.type, isNull);
+    expect(fieldParameter.identifier, isNotNull);
+    expect(fieldParameter.parameters, isNull);
+  }
+
+  void test_parseNormalFormalParameter_field_type() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('A this.a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FieldFormalParameter>());
+    FieldFormalParameter fieldParameter = parameter;
+    expect(fieldParameter.keyword, isNull);
+    expect(fieldParameter.type, isNotNull);
+    expect(fieldParameter.identifier, isNotNull);
+    expect(fieldParameter.parameters, isNull);
+  }
+
+  void test_parseNormalFormalParameter_field_var() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('var this.a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FieldFormalParameter>());
+    FieldFormalParameter fieldParameter = parameter;
+    expect(fieldParameter.keyword, isNotNull);
+    expect(fieldParameter.type, isNull);
+    expect(fieldParameter.identifier, isNotNull);
+    expect(fieldParameter.parameters, isNull);
+  }
+
+  void test_parseNormalFormalParameter_function_noType() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('a()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_noType_nullable() {
+    enableNnbd = true;
+    NormalFormalParameter parameter = parseNormalFormalParameter('a()?');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
+    enableGenericMethodComments = true;
+    NormalFormalParameter parameter = parseNormalFormalParameter('a/*<E>*/()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNotNull);
+    expect(functionParameter.parameters, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_noType_typeParameters() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('a<E>()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNotNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
+    expect(functionParameter.question, isNull);
+  }
+
+  void
+      test_parseNormalFormalParameter_function_noType_typeParameters_nullable() {
+    enableNnbd = true;
+    NormalFormalParameter parameter = parseNormalFormalParameter('a<E>()?');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNotNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_type() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('A a()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
+  }
+
+  void test_parseNormalFormalParameter_function_type_nullable() {
+    enableNnbd = true;
+    NormalFormalParameter parameter = parseNormalFormalParameter('A a()?');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_type_typeParameterComments() {
+    enableGenericMethodComments = true;
+    NormalFormalParameter parameter =
+        parseNormalFormalParameter('A a/*<E>*/()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNotNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
+  }
+
+  void test_parseNormalFormalParameter_function_type_typeParameters() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('A a<E>()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNotNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
+  }
+
+  void test_parseNormalFormalParameter_function_type_typeParameters_nullable() {
+    enableNnbd = true;
+    NormalFormalParameter parameter = parseNormalFormalParameter('A a<E>()?');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNotNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_void() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('void a()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
+  }
+
+  void test_parseNormalFormalParameter_function_void_nullable() {
+    enableNnbd = true;
+    NormalFormalParameter parameter = parseNormalFormalParameter('void a()?');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_void_typeParameterComments() {
+    enableGenericMethodComments = true;
+    NormalFormalParameter parameter =
+        parseNormalFormalParameter('void a/*<E>*/()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNotNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
+  }
+
+  void test_parseNormalFormalParameter_function_void_typeParameters() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('void a<E>()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNotNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
+  }
+
+  void test_parseNormalFormalParameter_function_void_typeParameters_nullable() {
+    enableNnbd = true;
+    NormalFormalParameter parameter =
+        parseNormalFormalParameter('void a<E>()?');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNotNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_simple_const_noType() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('const a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_simple_const_type() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('const A a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_simple_final_noType() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('final a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_simple_final_type() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('final A a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_simple_noName() {
+    NormalFormalParameter parameter =
+        parseNormalFormalParameter('a', inFunctionType: true);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.identifier, isNull);
+  }
+
+  void test_parseNormalFormalParameter_simple_noType() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_simple_noType_namedCovariant() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('covariant');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_simple_type() {
+    NormalFormalParameter parameter = parseNormalFormalParameter('A a');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
+    SimpleFormalParameter simpleParameter = parameter;
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+  }
+}
+
 @reflectiveTest
 class NonErrorParserTest extends ParserTestCase {
   void test_constFactory_external() {
@@ -3052,6 +4165,11 @@ class ParserTestCase extends EngineTestCase
    * This field is typically initialized by invoking [createParser].
    */
   Parser parser;
+
+  @override
+  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
+    listener.assertErrorsWithCodes(expectedErrorCodes);
+  }
 
   @override
   void assertNoErrors() {
@@ -3172,6 +4290,26 @@ class ParserTestCase extends EngineTestCase
     return expression;
   }
 
+  @override
+  FormalParameter parseFormalParameter(String code, ParameterKind kind,
+      {List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+    createParser(code);
+    FormalParameter parameter = parser.parseFormalParameter(kind);
+    assertErrorsWithCodes(errorCodes);
+    return parameter;
+  }
+
+  @override
+  FormalParameterList parseFormalParameterList(String code,
+      {bool inFunctionType: false,
+      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+    createParser(code);
+    FormalParameterList list =
+        parser.parseFormalParameterList(inFunctionType: inFunctionType);
+    assertErrorsWithCodes(errorCodes);
+    return list;
+  }
+
   /**
    * Parses a single top level member of a compilation unit (other than a
    * directive), including any comment and/or metadata that precedes it.
@@ -3190,6 +4328,17 @@ class ParserTestCase extends EngineTestCase
   VariableDeclarationList parseFullVariableDeclarationList() =>
       parser.parseVariableDeclarationListAfterMetadata(
           parser.parseCommentAndMetadata());
+
+  @override
+  NormalFormalParameter parseNormalFormalParameter(String code,
+      {bool inFunctionType: false,
+      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+    createParser(code);
+    FormalParameter parameter =
+        parser.parseNormalFormalParameter(inFunctionType: inFunctionType);
+    assertErrorsWithCodes(errorCodes);
+    return parameter;
+  }
 
   /**
    * Parse the given [source] as a statement. The [errorCodes] are the error
@@ -7878,706 +9027,6 @@ void''');
     expect(result.type, isNotNull);
   }
 
-  void test_parseFormalParameter_covariant_final_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    createParser('covariant final a : null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_final_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    createParser('covariant final a');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_final_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    createParser('covariant final a = null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_final_type_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    createParser('covariant final A a : null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_final_type_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    createParser('covariant final A a');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_final_type_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    createParser('covariant final A a = null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_type_function() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    createParser('covariant String Function(int) a');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, new isInstanceOf<GenericFunctionType>());
-    expect(simpleParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_type_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    createParser('covariant A a : null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_type_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    createParser('covariant A<B<C>> a');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_type_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    createParser('covariant A a = null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_var_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    createParser('covariant var a : null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_var_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    createParser('covariant var a');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_covariant_var_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    createParser('covariant var a = null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_final_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    createParser('final a : null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_final_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    createParser('final a');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_final_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    createParser('final a = null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_final_type_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    createParser('final A a : null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_final_type_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    createParser('final A a');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_final_type_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    createParser('final A a = null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_type_function() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    createParser('String Function(int) a');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, new isInstanceOf<GenericFunctionType>());
-    expect(simpleParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_type_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    createParser('A a : null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_type_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    createParser('A a');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_type_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    createParser('A a = null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_var_named() {
-    ParameterKind kind = ParameterKind.NAMED;
-    createParser('var a : null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_var_normal() {
-    ParameterKind kind = ParameterKind.REQUIRED;
-    createParser('var a');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-  }
-
-  void test_parseFormalParameter_var_positional() {
-    ParameterKind kind = ParameterKind.POSITIONAL;
-    createParser('var a = null');
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter defaultParameter = parameter;
-    SimpleFormalParameter simpleParameter =
-        defaultParameter.parameter as SimpleFormalParameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.kind, kind);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.kind, kind);
-  }
-
-  void test_parseFormalParameterList_empty() {
-    createParser('()');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(0));
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_named_multiple() {
-    createParser('({A a : 1, B b, C c : 3})');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(3));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_named_single() {
-    createParser('({A a})');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_named_trailing_comma() {
-    createParser('(A a, {B b,})');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(2));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_multiple() {
-    createParser('(A a, B b, C c)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(3));
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_named() {
-    createParser('(A a, {B b})');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(2));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_named_inFunctionType() {
-    createParser('(A, {B b})');
-    FormalParameterList list =
-        parser.parseFormalParameterList(inFunctionType: true);
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-    NodeList<FormalParameter> parameters = list.parameters;
-    expect(parameters, hasLength(2));
-
-    expect(parameters[0], new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter required = parameters[0];
-    expect(required.identifier, isNull);
-    expect(required.type, new isInstanceOf<TypeName>());
-    expect((required.type as TypeName).name.name, 'A');
-
-    expect(parameters[1], new isInstanceOf<DefaultFormalParameter>());
-    DefaultFormalParameter named = parameters[1];
-    expect(named.identifier, isNotNull);
-    expect(named.parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simple = named.parameter;
-    expect(simple.type, new isInstanceOf<TypeName>());
-    expect((simple.type as TypeName).name.name, 'B');
-  }
-
-  void test_parseFormalParameterList_normal_positional() {
-    createParser('(A a, [B b])');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(2));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_single() {
-    createParser('(A a)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_single_Function() {
-    createParser('(Function f)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_normal_single_trailing_comma() {
-    createParser('(A a,)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_positional_multiple() {
-    createParser('([A a = null, B b, C c = null])');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(3));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_positional_single() {
-    createParser('([A a = null])');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_positional_trailing_comma() {
-    createParser('(A a, [B b,])');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNotNull);
-    expect(list.parameters, hasLength(2));
-    expect(list.rightDelimiter, isNotNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_prefixedType() {
-    createParser('(io.File f)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertNoErrors();
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.parameters[0].toSource(), 'io.File f');
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_prefixedType_partial() {
-    createParser('(io.)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes([
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
-    ]);
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(1));
-    expect(list.parameters[0].toSource(), 'io. ');
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
-  void test_parseFormalParameterList_prefixedType_partial2() {
-    createParser('(io.,a)');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes([
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
-    ]);
-    expect(list.leftParenthesis, isNotNull);
-    expect(list.leftDelimiter, isNull);
-    expect(list.parameters, hasLength(2));
-    expect(list.parameters[0].toSource(), 'io. ');
-    expect(list.parameters[1].toSource(), 'a');
-    expect(list.rightDelimiter, isNull);
-    expect(list.rightParenthesis, isNotNull);
-  }
-
   void test_parseForStatement_each_await() {
     createParser('await for (element in list) {}');
     Statement statement = parser.parseForStatement();
@@ -10025,444 +10474,6 @@ void''');
     Statement statement = parser.parseNonLabeledStatement();
     expectNotNullIfNoErrors(statement);
     listener.assertNoErrors();
-  }
-
-  void test_parseNormalFormalParameter_field_const_noType() {
-    createParser('const this.a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FieldFormalParameter>());
-    FieldFormalParameter fieldParameter = parameter;
-    expect(fieldParameter.keyword, isNotNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.identifier, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_const_type() {
-    createParser('const A this.a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FieldFormalParameter>());
-    FieldFormalParameter fieldParameter = parameter;
-    expect(fieldParameter.keyword, isNotNull);
-    expect(fieldParameter.type, isNotNull);
-    expect(fieldParameter.identifier, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_final_noType() {
-    createParser('final this.a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FieldFormalParameter>());
-    FieldFormalParameter fieldParameter = parameter;
-    expect(fieldParameter.keyword, isNotNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.identifier, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_final_type() {
-    createParser('final A this.a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FieldFormalParameter>());
-    FieldFormalParameter fieldParameter = parameter;
-    expect(fieldParameter.keyword, isNotNull);
-    expect(fieldParameter.type, isNotNull);
-    expect(fieldParameter.identifier, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_function_nested() {
-    createParser('this.a(B b))');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FieldFormalParameter>());
-    FieldFormalParameter fieldParameter = parameter;
-    expect(fieldParameter.keyword, isNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.identifier, isNotNull);
-    FormalParameterList parameterList = fieldParameter.parameters;
-    expect(parameterList, isNotNull);
-    expect(parameterList.parameters, hasLength(1));
-  }
-
-  void test_parseNormalFormalParameter_field_function_noNested() {
-    createParser('this.a())');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FieldFormalParameter>());
-    FieldFormalParameter fieldParameter = parameter;
-    expect(fieldParameter.keyword, isNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.identifier, isNotNull);
-    FormalParameterList parameterList = fieldParameter.parameters;
-    expect(parameterList, isNotNull);
-    expect(parameterList.parameters, hasLength(0));
-  }
-
-  void test_parseNormalFormalParameter_field_noType() {
-    createParser('this.a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FieldFormalParameter>());
-    FieldFormalParameter fieldParameter = parameter;
-    expect(fieldParameter.keyword, isNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.identifier, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_type() {
-    createParser('A this.a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FieldFormalParameter>());
-    FieldFormalParameter fieldParameter = parameter;
-    expect(fieldParameter.keyword, isNull);
-    expect(fieldParameter.type, isNotNull);
-    expect(fieldParameter.identifier, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_field_var() {
-    createParser('var this.a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FieldFormalParameter>());
-    FieldFormalParameter fieldParameter = parameter;
-    expect(fieldParameter.keyword, isNotNull);
-    expect(fieldParameter.type, isNull);
-    expect(fieldParameter.identifier, isNotNull);
-    expect(fieldParameter.parameters, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_noType() {
-    createParser('a())');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_function_noType_nullable() {
-    enableNnbd = true;
-    createParser('a()?)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
-    enableGenericMethodComments = true;
-    createParser('a/*<E>*/())');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_function_noType_typeParameters() {
-    createParser('a<E>())');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void
-      test_parseNormalFormalParameter_function_noType_typeParameters_nullable() {
-    enableNnbd = true;
-    createParser('a<E>()?)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_function_type() {
-    createParser('A a())');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_type_nullable() {
-    enableNnbd = true;
-    createParser('A a()?)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_function_type_typeParameterComments() {
-    enableGenericMethodComments = true;
-    createParser('A a/*<E>*/())');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_type_typeParameters() {
-    createParser('A a<E>())');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_type_typeParameters_nullable() {
-    enableNnbd = true;
-    createParser('A a<E>()?)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_function_void() {
-    createParser('void a())');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_void_nullable() {
-    enableNnbd = true;
-    createParser('void a()?)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_function_void_typeParameterComments() {
-    enableGenericMethodComments = true;
-    createParser('void a/*<E>*/())');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_void_typeParameters() {
-    createParser('void a<E>())');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_void_typeParameters_nullable() {
-    enableNnbd = true;
-    createParser('void a<E>()?)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_simple_const_noType() {
-    createParser('const a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_simple_const_type() {
-    createParser('const A a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_simple_final_noType() {
-    createParser('final a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_simple_final_type() {
-    createParser('final A a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.keyword, isNotNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_simple_noName() {
-    createParser('a)');
-    NormalFormalParameter parameter =
-        parser.parseNormalFormalParameter(inFunctionType: true);
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.identifier, isNull);
-  }
-
-  void test_parseNormalFormalParameter_simple_noType() {
-    createParser('a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_simple_noType_namedCovariant() {
-    createParser('covariant)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.covariantKeyword, isNull);
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNull);
-    expect(simpleParameter.identifier, isNotNull);
-  }
-
-  void test_parseNormalFormalParameter_simple_type() {
-    createParser('A a)');
-    NormalFormalParameter parameter = parser.parseNormalFormalParameter();
-    expectNotNullIfNoErrors(parameter);
-    listener.assertNoErrors();
-    expect(parameter, new isInstanceOf<SimpleFormalParameter>());
-    SimpleFormalParameter simpleParameter = parameter;
-    expect(simpleParameter.keyword, isNull);
-    expect(simpleParameter.type, isNotNull);
-    expect(simpleParameter.identifier, isNotNull);
   }
 
   void test_parseOperator() {

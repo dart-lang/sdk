@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/fasta/analyzer/ast_builder.dart';
 import 'package:front_end/src/fasta/analyzer/element_store.dart';
 import 'package:front_end/src/fasta/builder/scope.dart';
@@ -22,6 +23,7 @@ import 'parser_test.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ComplexParserTest_Fasta);
+    defineReflectiveTests(FormalParameterParserTest_Fasta);
     defineReflectiveTests(TopLevelParserTest_Fasta);
   });
 }
@@ -285,6 +287,12 @@ class FastaParserTestCase extends Object
   analyzer.Parser get parser => _parserProxy;
 
   @override
+  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
+    // TODO(scheglov): implement assertErrorsWithCodes
+    fail('Not implemented');
+  }
+
+  @override
   void assertNoErrors() {
     // TODO(paulberry): implement assertNoErrors
   }
@@ -323,6 +331,34 @@ class FastaParserTestCase extends Object
   }
 
   @override
+  FormalParameter parseFormalParameter(String code, ParameterKind kind,
+      {List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+    fasta.FormalParameterType type;
+    if (kind == ParameterKind.REQUIRED) {
+      type = fasta.FormalParameterType.REQUIRED;
+    } else if (kind == ParameterKind.POSITIONAL) {
+      type = fasta.FormalParameterType.POSITIONAL;
+    } else if (kind == ParameterKind.NAMED) {
+      type = fasta.FormalParameterType.NAMED;
+    } else {
+      fail('$kind');
+    }
+    return _runParser(
+        code,
+        (parser) => (token) => parser.parseFormalParameter(token, type),
+        errorCodes) as FormalParameter;
+  }
+
+  @override
+  FormalParameterList parseFormalParameterList(String code,
+      {bool inFunctionType: false,
+      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+    return _runParser(
+            code, (parser) => parser.parseFormalParameters, errorCodes)
+        as FormalParameterList;
+  }
+
+  @override
   CompilationUnitMember parseFullCompilationUnitMember() {
     return _parserProxy._run((parser) => parser.parseTopLevelDeclaration)
         as CompilationUnitMember;
@@ -332,6 +368,15 @@ class FastaParserTestCase extends Object
   Directive parseFullDirective() {
     return _parserProxy._run((parser) => parser.parseTopLevelDeclaration)
         as Directive;
+  }
+
+  @override
+  NormalFormalParameter parseNormalFormalParameter(String code,
+      {bool inFunctionType: false,
+      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+    FormalParameterList list = parseFormalParameterList('($code)',
+        inFunctionType: inFunctionType, errorCodes: errorCodes);
+    return list.parameters.single;
   }
 
   @override
@@ -351,6 +396,480 @@ class FastaParserTestCase extends Object
     }
     createParser(source);
     return _parserProxy._run(getParseFunction);
+  }
+}
+
+/**
+ * Tests of the fasta parser based on [FormalParameterParserTestMixin].
+ */
+@reflectiveTest
+class FormalParameterParserTest_Fasta extends FastaParserTestCase
+    with FormalParameterParserTestMixin {
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_final_named() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_covariant_final_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_final_normal() {
+    // TODO(scheglov): parse final
+    super.test_parseFormalParameter_covariant_final_normal();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_final_positional() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_covariant_final_positional();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_final_type_named() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_covariant_final_type_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_final_type_normal() {
+    // TODO(scheglov): parse final
+    super.test_parseFormalParameter_covariant_final_type_normal();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_final_type_positional() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_covariant_final_type_positional();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_type_function() {
+    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
+    super.test_parseFormalParameter_covariant_type_function();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_type_named() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_covariant_type_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_type_normal() {
+    // TODO(scheglov): Unhandled event: TypeArguments
+    super.test_parseFormalParameter_covariant_type_normal();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_type_positional() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_covariant_type_positional();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_var_named() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_covariant_var_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_var_normal() {
+    // TODO(scheglov): parse var
+    super.test_parseFormalParameter_covariant_var_normal();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_var_positional() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_covariant_var_positional();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_final_named() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_final_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_final_normal() {
+    // TODO(scheglov): parse final
+    super.test_parseFormalParameter_final_normal();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_final_positional() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_final_positional();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_final_type_named() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_final_type_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_final_type_normal() {
+    // TODO(scheglov): parse final
+    super.test_parseFormalParameter_final_type_normal();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_final_type_positional() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_final_type_positional();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_type_function() {
+    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
+    super.test_parseFormalParameter_type_function();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_type_named() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_type_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_type_positional() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_type_positional();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_var_named() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_var_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_var_normal() {
+    // TODO(scheglov): parse var
+    super.test_parseFormalParameter_var_normal();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_var_positional() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameter_var_positional();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_named_multiple() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameterList_named_multiple();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_named_single() {
+    // TODO(scheglov): Unhandled event: OptionalFormalParameters
+    super.test_parseFormalParameterList_named_single();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_named_trailing_comma() {
+    // TODO(scheglov): Unhandled event: OptionalFormalParameters
+    super.test_parseFormalParameterList_named_trailing_comma();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_normal_named() {
+    // TODO(scheglov): Unhandled event: OptionalFormalParameters
+    super.test_parseFormalParameterList_normal_named();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_normal_named_inFunctionType() {
+    // TODO(scheglov): Unhandled event: OptionalFormalParameters
+    super.test_parseFormalParameterList_normal_named_inFunctionType();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_normal_positional() {
+    // TODO(scheglov): Unhandled event: OptionalFormalParameters
+    super.test_parseFormalParameterList_normal_positional();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_positional_multiple() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameterList_positional_multiple();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_positional_single() {
+    // TODO(scheglov): Unhandled event: ValuedFormalParameter
+    super.test_parseFormalParameterList_positional_single();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_positional_trailing_comma() {
+    // TODO(scheglov): Unhandled event: OptionalFormalParameters
+    super.test_parseFormalParameterList_positional_trailing_comma();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_prefixedType() {
+    // TODO(scheglov): Unhandled event: Qualified
+    super.test_parseFormalParameterList_prefixedType();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_prefixedType_partial() {
+    // TODO(scheglov): Unimplemented: errors
+    super.test_parseFormalParameterList_prefixedType_partial();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_prefixedType_partial2() {
+    // TODO(scheglov): Unimplemented: errors
+    super.test_parseFormalParameterList_prefixedType_partial2();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_noType() {
+    // TODO(scheglov): 'this' can't be used here.
+    super.test_parseNormalFormalParameter_field_const_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_const_type() {
+    // TODO(scheglov): 'this' can't be used here.
+    super.test_parseNormalFormalParameter_field_const_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_final_noType() {
+    // TODO(scheglov): 'this' can't be used here.
+    super.test_parseNormalFormalParameter_field_final_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_final_type() {
+    // TODO(scheglov): 'this' can't be used here.
+    super.test_parseNormalFormalParameter_field_final_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_function_nested() {
+    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
+    super.test_parseNormalFormalParameter_field_function_nested();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_function_noNested() {
+    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
+    super.test_parseNormalFormalParameter_field_function_noNested();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_noType() {
+    // TODO(scheglov): 'this' can't be used here.
+    super.test_parseNormalFormalParameter_field_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_type() {
+    // TODO(scheglov): 'this' can't be used here.
+    super.test_parseNormalFormalParameter_field_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_field_var() {
+    // TODO(scheglov): 'this' can't be used here.
+    super.test_parseNormalFormalParameter_field_var();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_noType() {
+    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
+    super.test_parseNormalFormalParameter_function_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_noType_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super.test_parseNormalFormalParameter_function_noType_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
+    // TODO(scheglov): Not implemented: enableGenericMethodComments=
+    super
+        .test_parseNormalFormalParameter_function_noType_typeParameterComments();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_noType_typeParameters() {
+    // TODO(scheglov): Unhandled event: TypeVariable
+    super.test_parseNormalFormalParameter_function_noType_typeParameters();
+  }
+
+  @override
+  @failingTest
+  void
+      test_parseNormalFormalParameter_function_noType_typeParameters_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super
+        .test_parseNormalFormalParameter_function_noType_typeParameters_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_type() {
+    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
+    super.test_parseNormalFormalParameter_function_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_type_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super.test_parseNormalFormalParameter_function_type_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_type_typeParameterComments() {
+    // TODO(scheglov): Not implemented: enableGenericMethodComments=
+    super.test_parseNormalFormalParameter_function_type_typeParameterComments();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_type_typeParameters() {
+    // TODO(scheglov): Unhandled event: TypeVariable
+    super.test_parseNormalFormalParameter_function_type_typeParameters();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_type_typeParameters_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super
+        .test_parseNormalFormalParameter_function_type_typeParameters_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_void() {
+    // TODO(scheglov): Unhandled event: VoidKeyword
+    super.test_parseNormalFormalParameter_function_void();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_void_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super.test_parseNormalFormalParameter_function_void_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_void_typeParameterComments() {
+    // TODO(scheglov): Not implemented: enableGenericMethodComments=
+    super.test_parseNormalFormalParameter_function_void_typeParameterComments();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_void_typeParameters() {
+    // TODO(scheglov): Unhandled event: VoidKeyword
+    super.test_parseNormalFormalParameter_function_void_typeParameters();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_void_typeParameters_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super
+        .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_const_noType() {
+    // TODO(scheglov): parse const
+    super.test_parseNormalFormalParameter_simple_const_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_const_type() {
+    // TODO(scheglov): parse const
+    super.test_parseNormalFormalParameter_simple_const_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_final_noType() {
+    // TODO(scheglov): parse final
+    super.test_parseNormalFormalParameter_simple_final_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_final_type() {
+    // TODO(scheglov): parse final
+    super.test_parseNormalFormalParameter_simple_final_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_noName() {
+    // TODO(scheglov): in function type, type instead of parameter name
+    super.test_parseNormalFormalParameter_simple_noName();
   }
 }
 
