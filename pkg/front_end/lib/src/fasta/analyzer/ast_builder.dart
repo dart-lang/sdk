@@ -700,7 +700,6 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier prefix;
     if (asKeyword != null) prefix = pop();
     List<Configuration> configurations = pop();
-    assert(configurations == null); // TODO(paulberry)
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
     assert(metadata == null);
@@ -723,7 +722,6 @@ class AstBuilder extends ScopeListener {
     debugEvent("Export");
     List<Combinator> combinators = pop();
     List<Configuration> configurations = pop();
-    assert(configurations == null); // TODO(paulberry)
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
     assert(metadata == null);
@@ -731,6 +729,39 @@ class AstBuilder extends ScopeListener {
     Comment comment = null;
     push(ast.exportDirective(comment, metadata, toAnalyzerToken(exportKeyword),
         uri, configurations, combinators, toAnalyzerToken(semicolon)));
+  }
+
+  @override
+  void endDottedName(int count, Token firstIdentifier) {
+    debugEvent("DottedName");
+    List<SimpleIdentifier> components = popList(count);
+    push(ast.dottedName(components));
+  }
+
+  void endConditionalUri(Token ifKeyword, Token equalitySign) {
+    debugEvent("ConditionalUri");
+    StringLiteral libraryUri = pop();
+    // TODO(paulberry,ahe): the parser should report the right paren token to
+    // the listener.
+    Token rightParen = null;
+    StringLiteral value;
+    if (equalitySign != null) {
+      value = pop();
+    }
+    DottedName name = pop();
+    // TODO(paulberry,ahe): what if there is no `(` token due to an error in the
+    // file being parsed?  It seems like we need the parser to do adequate error
+    // recovery and then report both the ifKeyword and leftParen tokens to the
+    // listener.
+    Token leftParen = ifKeyword.next;
+    push(ast.configuration(
+        toAnalyzerToken(ifKeyword),
+        toAnalyzerToken(leftParen),
+        name,
+        toAnalyzerToken(equalitySign),
+        value,
+        toAnalyzerToken(rightParen),
+        libraryUri));
   }
 
   @override

@@ -330,6 +330,10 @@ class Listener {
 
   void beginConditionalUri(Token ifKeyword) {}
 
+  /// Handle the end of a conditional URI construct.  Substructures:
+  /// - Dotted name
+  /// - Condition (literal string; only present if [equalitySign] is not `null`)
+  /// - URI (literal string)
   void endConditionalUri(Token ifKeyword, Token equalitySign) {
     logEvent("ConditionalUri");
   }

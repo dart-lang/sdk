@@ -694,20 +694,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseExportDirective_configuration_multiple() {
-    // TODO(paulberry): Implement endConditionalUri
-    super.test_parseExportDirective_configuration_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseExportDirective_configuration_single() {
-    // TODO(paulberry): Implement endConditionalUri
-    super.test_parseExportDirective_configuration_single();
-  }
-
-  @override
-  @failingTest
   void test_parseFunctionDeclaration_function() {
     // TODO(paulberry): handle doc comments
     super.test_parseFunctionDeclaration_function();
@@ -740,20 +726,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseFunctionDeclaration_setter() {
     // TODO(paulberry): handle doc comments
     super.test_parseFunctionDeclaration_setter();
-  }
-
-  @override
-  @failingTest
-  void test_parseImportDirective_configuration_multiple() {
-    // TODO(paulberry): Implement endConditionalUri
-    super.test_parseImportDirective_configuration_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseImportDirective_configuration_single() {
-    // TODO(paulberry): Implement endConditionalUri
-    super.test_parseImportDirective_configuration_single();
   }
 
   @override
