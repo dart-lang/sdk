@@ -654,7 +654,7 @@ class AstBuilder extends ScopeListener {
     assert(modifiers == null);
     analyzer.Token externalKeyword = null;
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
     push(ast.functionDeclaration(
         comment,
@@ -703,7 +703,7 @@ class AstBuilder extends ScopeListener {
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
     assert(metadata == null);
-    // TODO(paulberry): capture doc comments.
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
     push(ast.importDirective(
         comment,
@@ -725,7 +725,7 @@ class AstBuilder extends ScopeListener {
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
     assert(metadata == null);
-    // TODO(paulberry): capture doc comments.
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
     push(ast.exportDirective(comment, metadata, toAnalyzerToken(exportKeyword),
         uri, configurations, combinators, toAnalyzerToken(semicolon)));
@@ -844,7 +844,8 @@ class AstBuilder extends ScopeListener {
     assert(modifiers == null); // TODO(paulberry)
     analyzer.Token abstractKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = null; // TODO(paulberry)
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+    Comment comment = null;
     push(ast.classDeclaration(
         comment,
         metadata,
@@ -901,7 +902,8 @@ class AstBuilder extends ScopeListener {
     assert(modifiers == null); // TODO(paulberry)
     analyzer.Token abstractKeyword;
     List<Annotation> metadata = pop();
-    Comment comment = null; // TODO(paulberry)
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+    Comment comment = null;
     push(ast.classTypeAlias(
         comment,
         metadata,
@@ -928,7 +930,8 @@ class AstBuilder extends ScopeListener {
     List<SimpleIdentifier> libraryName = pop();
     var name = ast.libraryIdentifier(libraryName);
     List<Annotation> metadata = pop();
-    Comment comment = null; // TODO(paulberry)
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+    Comment comment = null;
     push(ast.libraryDirective(comment, metadata,
         toAnalyzerToken(libraryKeyword), name, toAnalyzerToken(semicolon)));
     accumulateIdentifierComponents = false;
@@ -952,7 +955,8 @@ class AstBuilder extends ScopeListener {
     debugEvent("Part");
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
-    Comment comment = null; // TODO(paulberry)
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+    Comment comment = null;
     push(ast.partDirective(comment, metadata, toAnalyzerToken(partKeyword), uri,
         toAnalyzerToken(semicolon)));
   }
@@ -973,7 +977,8 @@ class AstBuilder extends ScopeListener {
     // in a reference to the "of" keyword.
     var ofKeyword = partKeyword.next;
     List<Annotation> metadata = pop();
-    Comment comment = null; // TODO(paulberry)
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+    Comment comment = null;
     push(ast.partOfDirective(comment, metadata, toAnalyzerToken(partKeyword),
         toAnalyzerToken(ofKeyword), uri, name, toAnalyzerToken(semicolon)));
     accumulateIdentifierComponents = false;
@@ -1021,7 +1026,8 @@ class AstBuilder extends ScopeListener {
     var modifiers = pop();
     assert(modifiers == null); // TODO(paulberry)
     List<Annotation> metadata = pop();
-    Comment comment = null; // TODO(paulberry)
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+    Comment comment = null;
     push(ast.topLevelVariableDeclaration(
         comment, metadata, variableList, toAnalyzerToken(endToken)));
   }
@@ -1036,7 +1042,8 @@ class AstBuilder extends ScopeListener {
     TypeAnnotation bound = pop();
     SimpleIdentifier name = pop();
     List<Annotation> metadata = null; // TODO(paulberry)
-    Comment comment = null; // TODO(paulberry)
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+    Comment comment = null;
     push(ast.typeParameter(
         comment, metadata, name, toAnalyzerToken(extendsOrSuper), bound));
   }
@@ -1068,7 +1075,7 @@ class AstBuilder extends ScopeListener {
     Token constKeyword = null; // TODO(paulberry)
     Token factoryKeyword = null; // TODO(paulberry)
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
     SimpleIdentifier returnType2;
     Token period;
@@ -1115,7 +1122,7 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier name = pop();
     TypeAnnotation returnType = pop();
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
     push(ast.functionTypeAlias(
         comment,
