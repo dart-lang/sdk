@@ -4,12 +4,6 @@
 
 library fasta.scanner.token;
 
-import 'dart:collection' show
-    HashSet;
-
-import 'dart:convert' show
-    UTF8;
-
 import 'keyword.dart' show
     Keyword;
 
