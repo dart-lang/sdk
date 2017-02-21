@@ -38,11 +38,6 @@ import 'translate_uri.dart' show
 import 'ast_kind.dart' show
     AstKind;
 
-// TODO(ahe): Remove this import. Instead make the SDK available as resource in
-// the executable, or something similar.
-import 'testing/kernel_chain.dart' show
-    computePatchedSdk;
-
 Future<KernelTarget> outline(List<String> arguments) async {
   try {
     return await CompilerCommandLine.withGlobalOptions(
@@ -96,9 +91,7 @@ Future<Uri> kompile(List<String> arguments) async {
 
 Future<KernelTarget> doOutline(CompilerContext c, Ticker ticker,
     [Uri output]) async {
-  Uri sdk = await computePatchedSdk();
-  ticker.logMs("Found patched SDK");
-  TranslateUri uriTranslator = await TranslateUri.parse(sdk);
+  TranslateUri uriTranslator = await TranslateUri.parse(c.options.sdk);
   ticker.logMs("Read packages file");
   DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
   KernelTarget kernelTarget =

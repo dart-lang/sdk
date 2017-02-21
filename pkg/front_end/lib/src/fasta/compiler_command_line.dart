@@ -15,11 +15,12 @@ import 'compiler_context.dart' show
     CompilerContext;
 
 const Map<String, dynamic> optionSpecification = const <String, dynamic>{
-  "-o": Uri,
-  "--output": Uri,
-  "--platform": Uri,
-  "--packages": Uri,
+  "--compile-sdk": Uri,
   "--fatal": ",",
+  "--output": Uri,
+  "--packages": Uri,
+  "--platform": Uri,
+  "-o": Uri,
 };
 
 class CompilerCommandLine extends CommandLine {
@@ -69,6 +70,8 @@ class CompilerCommandLine extends CommandLine {
         ? null
         : options["--platform"] ?? Uri.base.resolve("platform.dill");
   }
+
+  Uri get sdk => options["--compile-sdk"];
 
   Set<String> get fatal {
     return new Set<String>.from(options["--fatal"] ?? <String>[]);
@@ -162,7 +165,7 @@ Supported options:
   --dump-ir
     Print compiled libraries in Kernel source notation.
 
-  --compile-sdk
+  --compile-sdk=<patched_sdk>
     Compile the SDK from scratch instead of reading it from 'platform.dill'.
 
   --fatal=errors
