@@ -628,6 +628,10 @@ class Listener {
 
   void beginTypeVariable(Token token) {}
 
+  /// Handle the end of a type formal parameter (e.g. "X extends Y").
+  /// Substructures:
+  /// - Name (identifier)
+  /// - Type bound
   void endTypeVariable(Token token, Token extendsOrSuper) {
     logEvent("TypeVariable");
   }

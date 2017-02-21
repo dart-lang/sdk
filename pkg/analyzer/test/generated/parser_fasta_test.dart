@@ -553,13 +553,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseClassDeclaration_typeParameters() {
-    // TODO(paulberry): Unhandled event: TypeVariable
-    super.test_parseClassDeclaration_typeParameters();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
     // TODO(paulberry): Unhandled event: Qualified
     super.test_parseCompilationUnit_abstractAsPrefix_parameterized();
@@ -646,26 +639,12 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnitMember_function_generic_noReturnType() {
-    // TODO(paulberry): Unhandled event: TypeVariable
-    super.test_parseCompilationUnitMember_function_generic_noReturnType();
-  }
-
-  @override
-  @failingTest
   void
       test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
     // TODO(paulberry,ahe): Fasta doesn't appear to support annotated type
     // parameters.
     super
         .test_parseCompilationUnitMember_function_generic_noReturnType_annotated();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_function_generic_returnType() {
-    // TODO(paulberry): Unhandled event: TypeVariable
-    super.test_parseCompilationUnitMember_function_generic_returnType();
   }
 
   @override
@@ -727,7 +706,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnitMember_typeAlias_generic() {
-    // TODO(paulberry): Unhandled event: TypeVariable
+    // TODO(paulberry): Unhandled event: TypeArguments
     super.test_parseCompilationUnitMember_typeAlias_generic();
   }
 
@@ -828,7 +807,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseFunctionDeclaration_functionWithTypeParameters() {
-    // TODO(paulberry): Unhandled event: TypeVariable
+    // TODO(paulberry): handle doc comments
     super.test_parseFunctionDeclaration_functionWithTypeParameters();
   }
 
@@ -917,7 +896,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseTypeAlias_function_typeParameters() {
-    // TODO(paulberry): Unhandled event: TypeVariable
+    // TODO(paulberry): Unhandled event: FunctionTypeAlias
     super.test_parseTypeAlias_function_typeParameters();
   }
 

@@ -995,6 +995,29 @@ class AstBuilder extends ScopeListener {
     push(ast.topLevelVariableDeclaration(
         comment, metadata, variableList, toAnalyzerToken(endToken)));
   }
+
+  @override
+  void endTypeVariable(Token token, Token extendsOrSuper) {
+    // TODO(paulberry): set up scopes properly to resolve parameters and type
+    // variables.  Note that this is tricky due to the handling of initializers
+    // in constructors, so the logic should be shared with BodyBuilder as much
+    // as possible.
+    debugEvent("TypeVariable");
+    TypeAnnotation bound = pop();
+    SimpleIdentifier name = pop();
+    List<Annotation> metadata = null; // TODO(paulberry)
+    Comment comment = null; // TODO(paulberry)
+    push(ast.typeParameter(
+        comment, metadata, name, toAnalyzerToken(extendsOrSuper), bound));
+  }
+
+  @override
+  void endTypeVariables(int count, Token beginToken, Token endToken) {
+    debugEvent("TypeVariables");
+    List<TypeParameter> typeParameters = popList(count);
+    push(ast.typeParameterList(toAnalyzerToken(beginToken), typeParameters,
+        toAnalyzerToken(endToken)));
+  }
 }
 
 /// Data structure placed on the stack to represent a class body.
