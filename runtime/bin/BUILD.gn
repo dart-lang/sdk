@@ -699,35 +699,6 @@ if (defined(is_fuchsia) && is_fuchsia) {
       "$root_out_dir/hello_fuchsia.dart",
     ]
   }
-
-  executable("run_vm_tests_fuchsia") {
-    testonly = true
-    configs += [ "..:dart_config" ]
-    sources = [
-      "run_vm_tests_fuchsia.cc",
-    ]
-    libs = [
-      "launchpad",
-      "magenta",
-    ]
-  }
-}
-
-# This is only needed for the Fuchsia target build until the Observatory is
-# supported.
-dart_executable("dart_no_observatory") {
-  extra_deps = [
-    "..:libdart",
-    ":dart_snapshot_cc",
-  ]
-  if (defined(is_fuchsia) && is_fuchsia) {
-    extra_deps += [ ":hello_fuchsia" ]
-  }
-  extra_defines = [ "NO_OBSERVATORY" ]
-  extra_sources = [
-    "builtin_nolib.cc",
-    "observatory_assets_empty.cc",
-  ]
 }
 
 executable("process_test") {
