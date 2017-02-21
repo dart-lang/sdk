@@ -267,7 +267,7 @@ class Listener {
   /// declaration, each implemented type is listed separately on the stack, and
   /// the number of implemented types is passed as a parameter.
   void endNamedMixinApplication(
-      Token begin, Token implementsKeyword, Token endToken) {
+      Token begin, Token equals, Token implementsKeyword, Token endToken) {
     logEvent("NamedMixinApplication");
   }
 

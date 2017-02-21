@@ -842,7 +842,7 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endNamedMixinApplication(
-      Token beginToken, Token implementsKeyword, Token endToken) {
+      Token beginToken, Token equalsToken, Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication");
     ImplementsClause implementsClause;
     if (implementsKeyword != null) {
@@ -855,8 +855,7 @@ class AstBuilder extends ScopeListener {
     var withClause = ast.withClause(
         toAnalyzerToken(mixinApplication.withKeyword),
         mixinApplication.mixinTypes);
-    // TODO(paulberry,ahe): the parser should give us the "=" token.
-    analyzer.Token equals;
+    analyzer.Token equals = toAnalyzerToken(equalsToken);
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
     Token classKeyword;

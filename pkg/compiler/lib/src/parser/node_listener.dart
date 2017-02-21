@@ -136,7 +136,8 @@ class NodeListener extends ElementListener {
 
   @override
   void endNamedMixinApplication(
-      Token classKeyword, Token implementsKeyword, Token endToken) {
+      Token classKeyword, Token equals, Token implementsKeyword,
+      Token endToken) {
     NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
     Node mixinApplication = popNode();
     NodeList typeParameters = popNode();

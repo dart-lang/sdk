@@ -635,18 +635,9 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     super.test_parseCompilationUnitMember_typeAlias_generic();
   }
 
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_typeAlias_implements() {
-    // TODO(paulberry,ahe): Capture `=` token
-    super.test_parseCompilationUnitMember_typeAlias_implements();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_typeAlias_noImplements() {
-    // TODO(paulberry,ahe): Capture `=` token
-    super.test_parseCompilationUnitMember_typeAlias_noImplements();
+  void test_parseCompilationUnitMember_typedef() {
+    // TODO(paulberry): Unhandled event: FunctionTypeAlias
+    super.test_parseCompilationUnitMember_typedef();
   }
 
   @override

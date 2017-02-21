@@ -319,7 +319,8 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void endNamedMixinApplication(
-      Token classKeyword, Token implementsKeyword, Token endToken) {
+      Token classKeyword, Token equals, Token implementsKeyword,
+      Token endToken) {
     debugEvent("endNamedMixinApplication");
     List<TypeBuilder> interfaces = popIfNotNull(implementsKeyword);
     TypeBuilder mixinApplication = pop();
