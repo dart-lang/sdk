@@ -17,7 +17,9 @@ import 'package:front_end/src/fasta/parser.dart'
 class PartialParser extends TopLevelParser {
   PartialParser(Listener listener) : super(listener);
 
-  Token parseFormalParameters(Token token) => skipFormalParameters(token);
+  Token parseFormalParameters(Token token, {bool inFunctionType: false}) {
+    return skipFormalParameters(token);
+  }
 }
 
 class DietParserTask extends CompilerTask {

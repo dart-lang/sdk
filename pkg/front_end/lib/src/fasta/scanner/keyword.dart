@@ -5,7 +5,7 @@
 library fasta.scanner.keywords;
 
 import 'characters.dart' show
-    $a;
+    $a, $z, $A, $Z;
 
 import 'precedence.dart' show
     PrecedenceInfo;
@@ -77,6 +77,7 @@ class Keyword {
     const Keyword("async", isPseudo: true),
     const Keyword("await", isPseudo: true),
     const Keyword("deferred", isPseudo: true),
+    const Keyword("Function", isPseudo: true),
     const Keyword("hide", isPseudo: true),
     const Keyword("native", isPseudo: true),
     const Keyword("of", isPseudo: true),
@@ -121,10 +122,10 @@ class Keyword {
  * Abstract state in a state machine for scanning keywords.
  */
 abstract class KeywordState {
-  KeywordState(this.keyword);
-
   KeywordState next(int c);
-  final Keyword keyword;
+  KeywordState nextCapital(int c);
+
+  Keyword get keyword;
 
   static KeywordState _KEYWORD_STATE;
   static KeywordState get KEYWORD_STATE {
@@ -141,7 +142,9 @@ abstract class KeywordState {
 
   static KeywordState computeKeywordStateTable(
       int start, List<String> strings, int offset, int length) {
-    List<KeywordState> result = new List<KeywordState>(26);
+    bool isLowercase = true;
+
+    List<KeywordState> table = new List<KeywordState>($z - $A + 1);
     assert(length != 0);
     int chunk = 0;
     int chunkStart = -1;
@@ -152,10 +155,13 @@ abstract class KeywordState {
       }
       if (strings[i].length > start) {
         int c = strings[i].codeUnitAt(start);
+        if ($A <= c && c <= $Z) {
+          isLowercase = false;
+        }
         if (chunk != c) {
           if (chunkStart != -1) {
-            assert(result[chunk - $a] == null);
-            result[chunk - $a] = computeKeywordStateTable(
+            assert(table[chunk - $A] == null);
+            table[chunk - $A] = computeKeywordStateTable(
                 start + 1, strings, chunkStart, i - chunkStart);
           }
           chunkStart = i;
@@ -164,17 +170,19 @@ abstract class KeywordState {
       }
     }
     if (chunkStart != -1) {
-      assert(result[chunk - $a] == null);
-      result[chunk - $a] = computeKeywordStateTable(
+      assert(table[chunk - $A] == null);
+      table[chunk - $A] = computeKeywordStateTable(
           start + 1, strings, chunkStart, offset + length - chunkStart);
     } else {
       assert(length == 1);
       return new LeafKeywordState(strings[offset]);
     }
-    if (isLeaf) {
-      return new ArrayKeywordState(result, strings[offset]);
+    String syntax = isLeaf ? strings[offset] : null;
+    if (isLowercase) {
+      table = table.sublist($a - $A);
+      return new LowerCaseArrayKeywordState(table, syntax);
     } else {
-      return new ArrayKeywordState(result, null);
+      return new UpperCaseArrayKeywordState(table, syntax);
     }
   }
 }
@@ -182,13 +190,16 @@ abstract class KeywordState {
 /**
  * A state with multiple outgoing transitions.
  */
-class ArrayKeywordState extends KeywordState {
+abstract class ArrayKeywordState implements KeywordState {
   final List<KeywordState> table;
+  final Keyword keyword;
 
   ArrayKeywordState(List<KeywordState> this.table, String syntax)
-      : super((syntax == null) ? null : Keyword.keywords[syntax]);
+      : keyword = ((syntax == null) ? null : Keyword.keywords[syntax]);
 
-  KeywordState next(int c) => table[c - $a];
+  KeywordState next(int c);
+
+  KeywordState nextCapital(int c);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -210,13 +221,42 @@ class ArrayKeywordState extends KeywordState {
   }
 }
 
+class LowerCaseArrayKeywordState extends ArrayKeywordState {
+
+  LowerCaseArrayKeywordState(List<KeywordState> table, String syntax)
+      : super(table, syntax) {
+    assert(table.length == $z - $a + 1);
+  }
+
+  KeywordState next(int c) => table[c - $a];
+
+  KeywordState nextCapital(int c) => null;
+
+}
+
+class UpperCaseArrayKeywordState extends ArrayKeywordState {
+
+  UpperCaseArrayKeywordState(List<KeywordState> table, String syntax)
+      : super(table, syntax) {
+    assert(table.length == $z - $A + 1);
+  }
+
+  KeywordState next(int c) => table[c - $A];
+
+  KeywordState nextCapital(int c) => table[c - $A];
+
+}
+
 /**
  * A state that has no outgoing transitions.
  */
-class LeafKeywordState extends KeywordState {
-  LeafKeywordState(String syntax) : super(Keyword.keywords[syntax]);
+class LeafKeywordState implements KeywordState {
+  final Keyword keyword;
+
+  LeafKeywordState(String syntax) : keyword = Keyword.keywords[syntax];
 
   KeywordState next(int c) => null;
+  KeywordState nextCapital(int c) => null;
 
   String toString() => keyword.syntax;
 }
