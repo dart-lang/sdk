@@ -31,6 +31,8 @@ import '../tree/tree.dart';
 import '../util/util.dart' show Link, LinkBuilder;
 import 'package:front_end/src/fasta/parser.dart'
     show ErrorKind, Listener, ParserError, optional;
+import 'package:front_end/src/fasta/parser/identifier_context.dart'
+    show IdentifierContext;
 import 'partial_elements.dart'
     show
         PartialClassElement,
@@ -385,7 +387,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleIdentifier(Token token) {
+  void handleIdentifier(Token token, IdentifierContext context) {
     pushNode(new Identifier(token));
   }
 

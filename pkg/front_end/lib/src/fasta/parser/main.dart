@@ -26,8 +26,10 @@ import 'listener.dart' show
 import 'top_level_parser.dart' show
     TopLevelParser;
 
+import 'identifier_context.dart' show IdentifierContext;
+
 class DebugListener extends Listener {
-  void handleIdentifier(Token token) {
+  void handleIdentifier(Token token, IdentifierContext context) {
     logEvent("Identifier: ${token.value}");
   }
 

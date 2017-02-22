@@ -11,6 +11,8 @@ import 'package:front_end/src/fasta/parser/parser.dart' show
 import 'package:front_end/src/fasta/parser/error_kind.dart' show
     ErrorKind;
 
+import 'package:front_end/src/fasta/parser/identifier_context.dart' show IdentifierContext;
+
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/clone.dart' show
@@ -716,7 +718,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleIdentifier(Token token) {
+  void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
     String name = token.value;
     if (isFirstIdentifier) {

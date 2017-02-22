@@ -10,6 +10,8 @@ import '../util/link.dart' show Link;
 
 import 'error_kind.dart' show ErrorKind;
 
+import 'identifier_context.dart' show IdentifierContext;
+
 /// A parser event listener that does nothing except throw exceptions
 /// on parser errors.
 ///
@@ -714,7 +716,10 @@ class Listener {
     logEvent("FunctionTypedFormalParameter");
   }
 
-  void handleIdentifier(Token token) {
+  /// Handle an identifier token.
+  ///
+  /// [context] indicates what kind of construct the identifier appears in.
+  void handleIdentifier(Token token, IdentifierContext context) {
     logEvent("Identifier");
   }
 

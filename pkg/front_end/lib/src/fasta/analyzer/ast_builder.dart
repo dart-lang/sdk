@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart' show AsyncMarker;
 import '../errors.dart' show internalError;
 import '../kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, ProcedureBuilder;
+import '../parser/identifier_context.dart' show IdentifierContext;
 import '../quote.dart';
 import '../source/outline_builder.dart' show asyncMarkerFromTokens;
 import '../source/scope_listener.dart'
@@ -38,15 +39,8 @@ class AstBuilder extends ScopeListener {
 
   final ElementStore elementStore;
 
-  bool isFirstIdentifier = false;
-
   @override
   final Uri uri;
-
-  /// If `true`, the first call to [handleIdentifier] should push a
-  /// List<SimpleIdentifier> on the stack, and [handleQualified] should append
-  /// to the list.
-  var accumulateIdentifierComponents = false;
 
   AstBuilder(this.library, this.member, this.elementStore, Scope scope,
       [Uri uri])
@@ -117,22 +111,18 @@ class AstBuilder extends ScopeListener {
     push(ast.methodInvocation(null, null, null, null, arguments));
   }
 
-  void beginExpression(Token token) {
-    isFirstIdentifier = true;
-  }
-
-  void handleIdentifier(Token token) {
+  void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
     String name = token.value;
     SimpleIdentifier identifier = ast.simpleIdentifier(toAnalyzerToken(token));
-    if (accumulateIdentifierComponents) {
-      if (isFirstIdentifier) {
+    if (context.inLibraryOrPartOfDeclaration) {
+      if (!context.isContinuation) {
         push([identifier]);
       } else {
         push(identifier);
       }
     } else {
-      if (isFirstIdentifier) {
+      if (context.isScopeReference) {
         Builder builder = scope.lookup(name, token.charOffset, uri);
         if (builder != null) {
           Element element = elementStore[builder];
@@ -142,7 +132,6 @@ class AstBuilder extends ScopeListener {
       }
       push(identifier);
     }
-    isFirstIdentifier = false;
   }
 
   void endSend(Token token) {
@@ -392,10 +381,6 @@ class AstBuilder extends ScopeListener {
     push(ast.awaitExpression(toAnalyzerToken(beginToken), pop()));
   }
 
-  void beginLiteralSymbol(Token token) {
-    isFirstIdentifier = false;
-  }
-
   void handleLiteralBool(Token token) {
     debugEvent("LiteralBool");
     bool value = identical(token.stringValue, "true");
@@ -446,20 +431,7 @@ class AstBuilder extends ScopeListener {
     // TODO(paulberry,ahe): what if the type doesn't resolve to a class
     // element?  Try to share code with BodyBuilder.builderToFirstExpression.
     KernelClassElement cls = name.staticElement;
-    if (cls == null) {
-      // TODO(paulberry): This is a kludge.  Ideally we should already have
-      // set the static element at the time that handleIdentifier was called.
-      Builder builder = scope.lookup(name.name, beginToken.charOffset, uri);
-      if (builder == null) {
-        internalError("Undefined name: $name");
-      }
-      cls = elementStore[builder];
-      assert(cls != null);
-      if (name is SimpleIdentifier) {
-        name.staticElement = cls;
-      }
-    }
-    push(ast.typeName(name, arguments)..type = cls.rawType);
+    push(ast.typeName(name, arguments)..type = cls?.rawType);
   }
 
   void handleAsOperator(Token operator, Token endToken) {
@@ -889,12 +861,6 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void beginLibraryName(Token token) {
-    accumulateIdentifierComponents = true;
-    isFirstIdentifier = true;
-  }
-
-  @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("LibraryName");
     List<SimpleIdentifier> libraryName = pop();
@@ -904,27 +870,23 @@ class AstBuilder extends ScopeListener {
     Comment comment = null;
     push(ast.libraryDirective(comment, metadata,
         toAnalyzerToken(libraryKeyword), name, toAnalyzerToken(semicolon)));
-    accumulateIdentifierComponents = false;
   }
 
   @override
   void handleQualified(Token period) {
     SimpleIdentifier identifier = pop();
-    if (accumulateIdentifierComponents) {
-      List<SimpleIdentifier> list = pop();
-      list.add(identifier);
-      push(list);
+    var prefix = pop();
+    if (prefix is List) {
+      // We're just accumulating components into a list.
+      prefix.add(identifier);
+      push(prefix);
+    } else if (prefix is SimpleIdentifier) {
+      // TODO(paulberry): resolve [identifier].  Note that BodyBuilder handles
+      // this situation using SendAccessor.
+      push(ast.prefixedIdentifier(prefix, toAnalyzerToken(period), identifier));
     } else {
-      var prefix = pop();
-      if (prefix is SimpleIdentifier) {
-        // TODO(paulberry): resolve [identifier].  Note that BodyBuilder handles
-        // this situation using SendAccessor.
-        push(ast.prefixedIdentifier(
-            prefix, toAnalyzerToken(period), identifier));
-      } else {
-        // TODO(paulberry): implement.
-        logEvent('Qualified with >1 dot');
-      }
+      // TODO(paulberry): implement.
+      logEvent('Qualified with >1 dot');
     }
   }
 
@@ -937,12 +899,6 @@ class AstBuilder extends ScopeListener {
     Comment comment = null;
     push(ast.partDirective(comment, metadata, toAnalyzerToken(partKeyword), uri,
         toAnalyzerToken(semicolon)));
-  }
-
-  @override
-  void beginPartOf(Token token) {
-    accumulateIdentifierComponents = true;
-    isFirstIdentifier = true;
   }
 
   @override
@@ -959,7 +915,6 @@ class AstBuilder extends ScopeListener {
     Comment comment = null;
     push(ast.partOfDirective(comment, metadata, toAnalyzerToken(partKeyword),
         toAnalyzerToken(ofKeyword), uri, name, toAnalyzerToken(semicolon)));
-    accumulateIdentifierComponents = false;
   }
 
   void endUnnamedFunction(Token token) {
@@ -1097,7 +1052,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("VoidKeyword");
     // TODO(paulberry): is this sufficient, or do we need to hook the "void"
     // keyword up to an element?
-    handleIdentifier(token);
+    handleIdentifier(token, IdentifierContext.typeReference);
     handleNoTypeArguments(token);
     endType(token, token);
   }
