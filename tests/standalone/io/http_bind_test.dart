@@ -75,7 +75,7 @@ void main() {
   });
 }
 
-bool supportsIPV6() async {
+Future<bool> supportsIPV6() async {
   try {
     var socket = await ServerSocket.bind('::1', 0);
     await socket.close();
