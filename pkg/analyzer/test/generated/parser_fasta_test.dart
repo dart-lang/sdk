@@ -979,7 +979,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnit_exportAsPrefix() {
-    // TODO(paulberry): TODO(paulberry,ahe): Fasta parser doesn't appear to handle this case correctly.
+    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_exportAsPrefix();
   }
 
@@ -1007,7 +1007,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnit_typedefAsPrefix() {
-    // TODO(paulberry): TODO(paulberry,ahe): Fasta parser doesn't appear to handle this case correctly.
+    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_typedefAsPrefix();
   }
 
