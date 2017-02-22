@@ -444,7 +444,7 @@ class AstBuilder extends ScopeListener {
     TypeArgumentList arguments = pop();
     Identifier name = pop();
     // TODO(paulberry,ahe): what if the type doesn't resolve to a class
-    // element?
+    // element?  Try to share code with BodyBuilder.builderToFirstExpression.
     KernelClassElement cls = name.staticElement;
     if (cls == null) {
       // TODO(paulberry): This is a kludge.  Ideally we should already have
@@ -917,7 +917,8 @@ class AstBuilder extends ScopeListener {
     } else {
       var prefix = pop();
       if (prefix is SimpleIdentifier) {
-        // TODO(paulberry): resolve [identifier].
+        // TODO(paulberry): resolve [identifier].  Note that BodyBuilder handles
+        // this situation using SendAccessor.
         push(ast.prefixedIdentifier(
             prefix, toAnalyzerToken(period), identifier));
       } else {
@@ -1034,10 +1035,11 @@ class AstBuilder extends ScopeListener {
     List<ConstructorInitializer> initializers = null; // TODO(paulberry)
     Token separator = null; // TODO(paulberry)
     FormalParameterList parameters = pop();
-    TypeParameterList typeParameters = pop();
+    /* TypeParameterList typeParameters = */ pop(); // TODO(paulberry)
     var name = pop();
-    analyzer.Token propertyKeyword = toAnalyzerToken(getOrSet);
-    TypeAnnotation returnType = pop();
+    // TODO(paulberry)
+    // analyzer.Token propertyKeyword = toAnalyzerToken(getOrSet);
+    /* TypeAnnotation returnType = */ pop(); // TODO(paulberry)
 
     Token externalKeyword = null;
     Token constKeyword = null;
@@ -1067,7 +1069,7 @@ class AstBuilder extends ScopeListener {
     Token period;
     SimpleIdentifier name2;
     if (name is SimpleIdentifier) {
-      SimpleIdentifier returnType2 = name;
+      returnType2 = name;
     }
     push(ast.constructorDeclaration(
         comment,
