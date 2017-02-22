@@ -17,6 +17,9 @@ import '../export.dart' show
 import '../loader.dart' show
     Loader;
 
+import '../util/relativize.dart' show
+    relativizeUri;
+
 import 'builder.dart' show
     Builder,
     ClassBuilder,
@@ -36,7 +39,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   Uri get uri;
 
-  Uri get fileUri;
+  final Uri fileUri;
+  final String relativeFileUri;
 
   Map<String, Builder> get members;
 
@@ -46,7 +50,9 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   Map<String, Builder> get exports;
 
   LibraryBuilder(Uri fileUri)
-      : super(null, -1, fileUri);
+      : fileUri = fileUri,
+        relativeFileUri = relativizeUri(fileUri),
+        super(null, -1, fileUri);
 
   Builder addBuilder(String name, Builder builder, int charOffset);
 

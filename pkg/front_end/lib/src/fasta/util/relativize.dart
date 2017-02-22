@@ -10,5 +10,6 @@ String relativizeUri(Uri uri, {Uri base}) {
   if (uri == null) return null;
   base ??= Uri.base;
   String result = "$uri";
-  return result.startsWith("$base") ? result.substring("$base".length) : result;
+  final prefix = "$base";
+  return result.startsWith(prefix) ? result.substring(prefix.length) : result;
 }

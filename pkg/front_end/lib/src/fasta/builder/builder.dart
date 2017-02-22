@@ -99,6 +99,11 @@ abstract class Builder {
 
   Uri get fileUri => null;
 
+  String get relativeFileUri {
+    throw "The relativeFileUri method should be only called on subclasses "
+          "which have an efficient implementation of `relativeFileUri`!";
+  }
+
   /// Resolve types (lookup names in scope) recorded in this builder and return
   /// the number of types resolved.
   int resolveTypes(covariant Builder parent) => 0;

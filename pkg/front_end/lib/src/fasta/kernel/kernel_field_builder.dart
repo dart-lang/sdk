@@ -16,9 +16,6 @@ import 'kernel_builder.dart' show
     KernelTypeBuilder,
     MetadataBuilder;
 
-import '../util/relativize.dart' show
-    relativizeUri;
-
 class KernelFieldBuilder extends FieldBuilder<Expression> {
   final Field field;
   final List<MetadataBuilder> metadata;
@@ -27,7 +24,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
       Builder compilationUnit, int charOffset)
       : field =
-            new Field(null, fileUri: relativizeUri(compilationUnit?.fileUri))
+            new Field(null, fileUri: compilationUnit?.relativeFileUri)
                 ..fileOffset = charOffset,
         super(name, modifiers, compilationUnit, charOffset);
 

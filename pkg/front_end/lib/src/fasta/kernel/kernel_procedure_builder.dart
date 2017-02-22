@@ -46,9 +46,6 @@ import '../messages.dart' show
 import '../loader.dart' show
     Loader;
 
-import '../util/relativize.dart' show
-    relativizeUri;
-
 import 'kernel_builder.dart' show
     Builder,
     ClassBuilder,
@@ -189,7 +186,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       ProcedureKind kind, KernelLibraryBuilder compilationUnit, int charOffset,
       [String nativeMethodName, this.redirectionTarget])
       : procedure = new Procedure(null, kind, null,
-            fileUri: relativizeUri(compilationUnit?.fileUri)),
+            fileUri: compilationUnit?.relativeFileUri),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
