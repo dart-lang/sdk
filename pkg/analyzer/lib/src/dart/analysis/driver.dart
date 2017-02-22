@@ -631,9 +631,9 @@ class AnalysisDriver {
    * [UnitElementResult] for the file with the given [path], or with `null` if
    * the file cannot be analyzed.
    *
-   * The signature is based on the content of the file, and the transitive
-   * closure of files imported and exported by the the library of the requested
-   * file.
+   * The signature is based the APIs of the files of the library (including
+   * the file itself) of the requested file and the transitive closure of files
+   * imported and exported by the the library.
    */
   Future<String> getUnitElementSignature(String path) {
     if (!_fileTracker.fsState.hasUri(path)) {
@@ -820,7 +820,7 @@ class AnalysisDriver {
     try {
       CompilationUnitElement element =
           libraryContext.computeUnitElement(library.source, file.source);
-      String signature = _getResolvedUnitSignature(library, file);
+      String signature = library.transitiveSignature;
       return new UnitElementResult(path, file.contentHash, signature, element);
     } finally {
       libraryContext.dispose();
@@ -830,7 +830,7 @@ class AnalysisDriver {
   String _computeUnitElementSignature(String path) {
     FileState file = _fileTracker.fsState.getFileForPath(path);
     FileState library = file.library ?? file;
-    return _getResolvedUnitSignature(library, file);
+    return library.transitiveSignature;
   }
 
   /**
@@ -1705,9 +1705,9 @@ class UnitElementResult {
   final String contentHash;
 
   /**
-   * The signature of the [element] based on the content of the file, and the
-   * transitive closure of files imported and exported by the the library of
-   * the requested file.
+   * The signature of the [element] is based the APIs of the files of the
+   * library (including the file itself) of the requested file and the
+   * transitive closure of files imported and exported by the the library.
    */
   final String signature;
 
