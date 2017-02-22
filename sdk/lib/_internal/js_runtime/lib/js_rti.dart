@@ -96,7 +96,8 @@ getMangledTypeName(TypeImpl type) => type._typeName;
 @NoInline()
 Object setRuntimeTypeInfo(Object target, var rti) {
   assert(rti == null || isJsArray(rti));
-  JS('var', r'#.$ti = #', target, rti);
+  String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
+  JS('var', r'#[#] = #', target, rtiName, rti);
   return target;
 }
 
@@ -106,7 +107,8 @@ Object setRuntimeTypeInfo(Object target, var rti) {
  */
 getRuntimeTypeInfo(Object target) {
   if (target == null) return null;
-  return JS('var', r'#.$ti', target);
+  String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
+  return JS('var', r'#[#]', target, rtiName);
 }
 
 /**
@@ -171,7 +173,8 @@ String runtimeTypeToString(var rti, {String onTypeVariable(int i)}) {
   if (rti is int) {
     return '${onTypeVariable == null ? rti : onTypeVariable(rti)}';
   }
-  if (JS('bool', 'typeof #.func != "undefined"', rti)) {
+  String functionPropertyName = JS_GET_NAME(JsGetName.FUNCTION_TYPE_TAG);
+  if (JS('bool', 'typeof #[#] != "undefined"', rti, functionPropertyName)) {
     // If the RTI has typedef equivalence info (via mirrors), use that since the
     // mirrors helpers will re-parse the generated string.
 
@@ -188,10 +191,12 @@ String runtimeTypeToString(var rti, {String onTypeVariable(int i)}) {
 
 String _functionRtiToString(var rti, String onTypeVariable(int i)) {
   String returnTypeText;
-  if (JS('bool', '!!#.v', rti)) {
+  String voidTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG);
+  if (JS('bool', '!!#[#]', rti, voidTag)) {
     returnTypeText = 'void';
   } else {
-    var returnRti = JS('', '#.ret', rti);
+    String returnTypeTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG);
+    var returnRti = JS('', '#[#]', rti, returnTypeTag);
     returnTypeText =
         runtimeTypeToString(returnRti, onTypeVariable: onTypeVariable);
   }
@@ -199,9 +204,11 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
   String argumentsText = '';
   String sep = '';
 
-  bool hasArguments = JS('bool', '"args" in #', rti);
+  String requiredParamsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG);
+  bool hasArguments = JS('bool', '# in #', requiredParamsTag, rti);
   if (hasArguments) {
-    List arguments = JS('JSFixedArray', '#.args', rti);
+    List arguments = JS('JSFixedArray', '#[#]', rti, requiredParamsTag);
     for (var argument in arguments) {
       argumentsText += sep;
       argumentsText +=
@@ -210,9 +217,11 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
     }
   }
 
-  bool hasOptionalArguments = JS('bool', '"opt" in #', rti);
+  String optionalParamsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG);
+  bool hasOptionalArguments = JS('bool', '# in #', optionalParamsTag, rti);
   if (hasOptionalArguments) {
-    List optionalArguments = JS('JSFixedArray', '#.opt', rti);
+    List optionalArguments = JS('JSFixedArray', '#[#]', rti, optionalParamsTag);
     argumentsText += '$sep[';
     sep = '';
     for (var argument in optionalArguments) {
@@ -224,9 +233,11 @@ String _functionRtiToString(var rti, String onTypeVariable(int i)) {
     argumentsText += ']';
   }
 
-  bool hasNamedArguments = JS('bool', '"named" in #', rti);
+  String namedParamsTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG);
+  bool hasNamedArguments = JS('bool', '# in #', namedParamsTag, rti);
   if (hasNamedArguments) {
-    var namedArguments = JS('', '#.named', rti);
+    var namedArguments = JS('', '#[#]', rti, namedParamsTag);
     argumentsText += '$sep{';
     sep = '';
     for (String name in extractKeys(namedArguments)) {
@@ -285,7 +296,8 @@ String getRuntimeTypeString(var object) {
   if (functionRti != null) return runtimeTypeToString(functionRti);
   String className = getClassName(object);
   if (object == null) return className;
-  var rti = JS('var', r'#.$ti', object);
+  String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
+  var rti = JS('var', r'#[#]', object, rtiName);
   return "$className${joinArguments(rti, 0)}";
 }
 

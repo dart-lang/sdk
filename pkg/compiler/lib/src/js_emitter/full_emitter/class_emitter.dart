@@ -57,7 +57,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitConstructorsForCSP(cls);
     emitFields(cls, builder);
     if (cls.hasRtiField) {
-      builder.addField(namer.rtiFieldName);
+      builder.addField(namer.rtiFieldJsName);
     }
     emitCheckedClassSetters(cls, builder);
     emitClassGettersSettersForCSP(cls, builder);

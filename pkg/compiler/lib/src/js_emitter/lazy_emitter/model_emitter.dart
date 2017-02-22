@@ -627,7 +627,7 @@ class ModelEmitter {
     if (cls.isDirectlyInstantiated && !cls.isNative) {
       fieldNames = cls.fields.map((Field field) => field.name).toList();
       if (cls.hasRtiField) {
-        fieldNames.add(namer.rtiFieldName);
+        fieldNames.add(namer.rtiFieldJsName);
       }
     }
     js.Name name = cls.name;

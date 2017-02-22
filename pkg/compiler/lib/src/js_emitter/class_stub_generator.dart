@@ -40,8 +40,9 @@ class ClassStubGenerator {
     var typeParameters = const <jsAst.Parameter>[];
     var typeInits = const <jsAst.Expression>[];
     if (hasRtiField) {
-      typeParameters = namer.rtiFieldName;
-      typeInits = js('this.# = #', [namer.rtiFieldName, namer.rtiFieldName]);
+      var rtiName = namer.rtiFieldJsName;
+      typeParameters = rtiName
+      typeInits = js('this.# = #', [rtiName, rtiName]);
     }
     return js('function(#, #) { #; #; this.#();}', [
       fields,

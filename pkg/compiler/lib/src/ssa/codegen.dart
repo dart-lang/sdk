@@ -2969,7 +2969,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitTypeInfoReadRaw(HTypeInfoReadRaw node) {
     use(node.inputs[0]);
     js.Expression receiver = pop();
-    push(js.js(r'#.#', [receiver, backend.namer.rtiFieldName]));
+    push(js.js(r'#.#', [receiver, backend.namer.rtiFieldJsName]));
   }
 
   void visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
@@ -3061,7 +3061,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         js.Expression receiver = pop();
         js.Expression helper =
             backend.emitter.staticFunctionAccess(helperElement);
-        js.Expression rtiFieldName = backend.namer.rtiFieldName;
+        js.Expression rtiFieldName = backend.namer.rtiFieldJsName;
         push(js.js(r'#(#.# && #.#[#])', [
           helper,
           receiver,

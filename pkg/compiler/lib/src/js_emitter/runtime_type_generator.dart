@@ -354,7 +354,7 @@ class RuntimeTypeGenerator {
 
     Substitution substitution =
         backend.rti.getSubstitution(cls, element.typeDeclaration);
-    jsAst.Name rtiFieldName = backend.namer.rtiFieldName;
+    jsAst.Name rtiFieldName = backend.namer.rtiFieldJsName;
     if (substitution != null) {
       computeTypeVariable = js(r'#.apply(null, this.#)', [
         backend.rtiEncoder.getSubstitutionCodeForVariable(substitution, index),

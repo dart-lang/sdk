@@ -317,8 +317,12 @@ enum JsGetName {
   OPERATOR_AS_PREFIX,
   /// Name used for generated function types on classes and methods.
   SIGNATURE_NAME,
+  /// Name used to store runtime-type information.
+  RTI_NAME,
   /// Name used to tag typedefs.
   TYPEDEF_TAG,
+  /// Name used to tag a function type.
+  FUNCTION_TYPE_TAG,
   /// Name used to tag void return in function type representations in
   /// JavaScript.
   FUNCTION_TYPE_VOID_RETURN_TAG,

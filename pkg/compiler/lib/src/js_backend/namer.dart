@@ -476,8 +476,11 @@ class Namer {
   jsAst.Name get staticsPropertyName =>
       _staticsPropertyName ??= new StringBackedName('static');
 
-  jsAst.Name _rtiFieldName;
-  jsAst.Name get rtiFieldName => _rtiFieldName ??= new StringBackedName(r'$ti');
+  final String rtiName = r'$ti';
+
+  jsAst.Name _rtiFieldJsName;
+  jsAst.Name get rtiFieldJsName =>
+      _rtiFieldJsName ??= new StringBackedName(rtiName);
 
   // Name of property in a class description for the native dispatch metadata.
   final String nativeSpecProperty = '%';
@@ -621,8 +624,12 @@ class Namer {
         return asName(operatorAsPrefix);
       case JsGetName.SIGNATURE_NAME:
         return asName(operatorSignature);
+      case JsGetName.RTI_NAME:
+        return asName(rtiName);
       case JsGetName.TYPEDEF_TAG:
         return asName(typedefTag);
+      case JsGetName.FUNCTION_TYPE_TAG:
+        return asName(functionTypeTag);
       case JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG:
         return asName(functionTypeVoidReturnTag);
       case JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG:
