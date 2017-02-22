@@ -54,7 +54,9 @@ class CompilerCommandLine extends CommandLine {
     if (options.containsKey("--packages")) {
       return argumentError(usage, "Option '--packages' isn't supported yet.");
     }
-    if (arguments.isEmpty) {
+    if (programName == "compile_platform" && arguments.length != 2) {
+      return argumentError(usage, "Expected two arguments.");
+    } else if (arguments.isEmpty) {
       return argumentError(usage, "No Dart file specified.");
     }
   }
@@ -116,6 +118,11 @@ String computeUsage(String programName, bool verbose) {
     case "run":
       summary = "Runs a Dart program.";
       break;
+
+    case "compile_platform":
+      summary =
+          "Compiles Dart SDK platform to the Dill/Kernel IR format.";
+      basicUsage = "Usage: $programName [options] patched_sdk output\n";
   }
   StringBuffer sb = new StringBuffer(basicUsage);
   if (summary != null) {
