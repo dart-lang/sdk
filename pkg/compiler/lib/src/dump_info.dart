@@ -419,19 +419,13 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void reportInlined(Element element, Element inlinedFrom) {
+    element = element.declaration;
+    inlinedFrom = inlinedFrom.declaration;
+
     inlineCount.putIfAbsent(element, () => 0);
     inlineCount[element] += 1;
     inlineMap.putIfAbsent(inlinedFrom, () => new List<Element>());
     inlineMap[inlinedFrom].add(element);
-  }
-
-  final Map<Element, Set<Element>> _dependencies = {};
-  void registerDependency(Element target) {
-    if (compiler.options.dumpInfo) {
-      _dependencies
-          .putIfAbsent(compiler.currentElement, () => new Set())
-          .add(target);
-    }
   }
 
   void registerImpact(Element element, WorldImpact impact) {
@@ -552,6 +546,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     Stopwatch stopwatch = new Stopwatch();
     stopwatch.start();
 
+    AllInfo result = infoCollector.result;
+
     // Recursively build links to function uses
     Iterable<Element> functionElements =
         infoCollector._elementToInfo.keys.where((k) => k is FunctionElement);
@@ -566,6 +562,21 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         info.uses.add(new DependencyInfo(useInfo, '${selection.mask}'));
       }
     }
+
+    // Recursively build links to field uses
+    Iterable<Element> fieldElements =
+        infoCollector._elementToInfo.keys.where((k) => k is FieldElement);
+    for (FieldElement element in fieldElements) {
+      FieldInfo info = infoCollector._elementToInfo[element];
+      Iterable<Selection> uses = getRetaining(element, closedWorld);
+      // Don't bother recording an empty list of dependencies.
+      for (Selection selection in uses) {
+        Info useInfo = infoCollector._elementToInfo[selection.selectedElement];
+        if (useInfo == null) continue;
+        info.uses.add(new DependencyInfo(useInfo, '${selection.mask}'));
+      }
+    }
+
     // Notify the impact strategy impacts are no longer needed for dump info.
     compiler.impactStrategy.onImpactUsed(IMPACT_USE);
 
@@ -578,17 +589,6 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         if (inlinedInfo == null) continue;
         outerInfo.uses.add(new DependencyInfo(inlinedInfo, 'inlined'));
       }
-    }
-
-    AllInfo result = infoCollector.result;
-
-    for (Element element in _dependencies.keys) {
-      var a = infoCollector._elementToInfo[element];
-      if (a == null) continue;
-      result.dependencies[a] = _dependencies[element]
-          .map((o) => infoCollector._elementToInfo[o])
-          .where((o) => o != null)
-          .toList();
     }
 
     result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();

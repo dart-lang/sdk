@@ -2693,10 +2693,6 @@ class CodegenEnqueuerListener extends EnqueuerListenerBase {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
     _registerUsedElement(worldImpact, member, forResolution: false);
 
-    // TODO(sigmund): add other missing dependencies (internals, selectors
-    // enqueued after allocations).
-    dumpInfoTask.registerDependency(member);
-
     return worldImpact;
   }
 
