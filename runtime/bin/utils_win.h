@@ -77,10 +77,19 @@ class Utf8ToWideScope {
     wide_ = wide;
   }
 
+  Utf8ToWideScope(const char* utf8, intptr_t length) {
+    int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8, length, NULL, 0);
+    wchar_t* wide = new wchar_t[wide_len];
+    MultiByteToWideChar(CP_UTF8, 0, utf8, length, wide, wide_len);
+    length_ = wide_len;
+    wide_ = wide;
+  }
+
   ~Utf8ToWideScope() { delete[] wide_; }
 
   wchar_t* wide() const { return wide_; }
   intptr_t length() const { return length_; }
+  intptr_t size_in_bytes() const { return length_ * sizeof(*wide_); }
 
  private:
   intptr_t length_;

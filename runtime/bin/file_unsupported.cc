@@ -24,6 +24,12 @@ void FUNCTION_NAME(File_SetPointer)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_SetTranslation)(Dart_NativeArguments args) {
+  Dart_ThrowException(
+      DartUtils::NewInternalError("File is not supported on this platform"));
+}
+
+
 void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   Dart_ThrowException(
       DartUtils::NewInternalError("File is not supported on this platform"));

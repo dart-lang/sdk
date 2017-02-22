@@ -8,10 +8,12 @@
 #include "bin/platform.h"
 
 #include "bin/file.h"
+#include "bin/lockers.h"
 #include "bin/log.h"
 #if !defined(DART_IO_DISABLED) && !defined(PLATFORM_DISABLE_SOCKET)
 #include "bin/socket.h"
 #endif
+#include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 
@@ -27,7 +29,42 @@ char* Platform::resolved_executable_name_ = NULL;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
+class PlatformWin {
+ public:
+  static void InitOnce() {
+    platform_win_mutex_ = new Mutex();
+    saved_output_cp_ = -1;
+  }
+
+  static void SaveAndSetOutputCP() {
+    MutexLocker ml(platform_win_mutex_);
+    ASSERT(saved_output_cp_ == -1);
+    saved_output_cp_ = GetConsoleOutputCP();
+    SetConsoleOutputCP(CP_UTF8);
+  }
+
+  static void RestoreOutputCP() {
+    MutexLocker ml(platform_win_mutex_);
+    if (saved_output_cp_ != -1) {
+      SetConsoleOutputCP(saved_output_cp_);
+      saved_output_cp_ = -1;
+    }
+  }
+
+ private:
+  static Mutex* platform_win_mutex_;
+  static int saved_output_cp_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(PlatformWin);
+};
+
+int PlatformWin::saved_output_cp_ = -1;
+Mutex* PlatformWin::platform_win_mutex_ = NULL;
+
 bool Platform::Initialize() {
+  PlatformWin::InitOnce();
+  PlatformWin::SaveAndSetOutputCP();
   SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
   return true;
 }
@@ -124,6 +161,8 @@ const char* Platform::ResolveExecutablePath() {
 void Platform::Exit(int exit_code) {
   // TODO(zra): Remove once VM shuts down cleanly.
   ::dart::private_flag_windows_run_tls_destructors = false;
+  // Restore the console's output code page
+  PlatformWin::RestoreOutputCP();
   // On Windows we use ExitProcess so that threads can't clobber the exit_code.
   // See: https://code.google.com/p/nativeclient/issues/detail?id=2870
   ::ExitProcess(exit_code);

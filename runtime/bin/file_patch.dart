@@ -55,6 +55,7 @@ class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
   length() native "File_Length";
   flush() native "File_Flush";
   lock(int lock, int start, int end) native "File_Lock";
+  setTranslation(int translation) native "File_SetTranslation";
 }
 
 
