@@ -11,9 +11,7 @@ import 'dart:io';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -21,13 +19,11 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
+import 'package:analyzer_cli/src/error_severity.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
 
-/// The maximum number of sources for which AST structures should be kept in the cache.
-const int _maxCacheSize = 512;
-
-int currentTimeMillis() => new DateTime.now().millisecondsSinceEpoch;
+int get currentTimeMillis => new DateTime.now().millisecondsSinceEpoch;
 
 /// Analyzes single library [File].
 class AnalyzerImpl {
@@ -117,9 +113,9 @@ class AnalyzerImpl {
 
   /// Treats the [sourcePath] as the top level library and analyzes it using
   /// the analysis engine. If [printMode] is `0`, then no error or performance
-  /// information is printed. If [printMode] is `1`, then both will be printed.
-  /// If [printMode] is `2`, then only performance information will be printed,
-  /// and it will be marked as being for a cold VM.
+  /// information is printed. If [printMode] is `1`, then errors will be printed.
+  /// If [printMode] is `2`, then performance information will be printed, and
+  /// it will be marked as being for a cold VM.
   Future<ErrorSeverity> analyze({int printMode: 1}) async {
     setupForAnalysis();
     return await _analyze(printMode);
@@ -227,9 +223,10 @@ class AnalyzerImpl {
     }
   }
 
-  _printColdPerf() {
+  // TODO(devoncarew): This is never called.
+  void _printColdPerf() {
     // Print cold VM performance numbers.
-    int totalTime = currentTimeMillis() - startTime;
+    int totalTime = currentTimeMillis - startTime;
     int otherTime = totalTime;
     for (PerformanceTag tag in PerformanceTag.all) {
       if (tag != PerformanceTag.UNKNOWN) {
@@ -242,7 +239,7 @@ class AnalyzerImpl {
     outSink.writeln("total-cold:$totalTime");
   }
 
-  _printErrors() {
+  void _printErrors() {
     // The following is a hack. We currently print out to stderr to ensure that
     // when in batch mode we print to stderr, this is because the prints from
     // batch are made to stderr. The reason that options.shouldBatch isn't used
@@ -277,34 +274,6 @@ class AnalyzerImpl {
     }
   }
 
-  /// Compute the severity of the error; however:
-  ///   * if [options.enableTypeChecks] is false, then de-escalate checked-mode
-  ///   compile time errors to a severity of [ErrorSeverity.INFO].
-  ///   * if [options.hintsAreFatal] is true, escalate hints to errors.
-  ///   * if [options.lintsAreFatal] is true, escalate lints to errors.
-  static ErrorSeverity computeSeverity(
-      AnalysisError error, CommandLineOptions options,
-      [AnalysisOptions analysisOptions]) {
-    if (analysisOptions != null) {
-      ErrorProcessor processor =
-          ErrorProcessor.getProcessor(analysisOptions, error);
-      // If there is a processor for this error, defer to it.
-      if (processor != null) {
-        return processor.severity;
-      }
-    }
-
-    if (!options.enableTypeChecks &&
-        error.errorCode.type == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
-      return ErrorSeverity.INFO;
-    } else if (options.hintsAreFatal && error.errorCode is HintCode) {
-      return ErrorSeverity.ERROR;
-    } else if (options.lintsAreFatal && error.errorCode is LintCode) {
-      return ErrorSeverity.ERROR;
-    }
-    return error.errorCode.errorSeverity;
-  }
-
   /// Return the corresponding package directory or `null` if none is found.
   static JavaFile getPackageDirectoryFor(JavaFile sourceFile) {
     // We are going to ask parent file, so get absolute path.
@@ -322,42 +291,9 @@ class AnalyzerImpl {
     return null;
   }
 
-  /// Check various configuration options to get a desired severity for this
-  /// [error] (or `null` if it's to be suppressed).
-  static ProcessedSeverity processError(AnalysisError error,
-      CommandLineOptions options, AnalysisOptions analysisOptions) {
-    ErrorSeverity severity = computeSeverity(error, options, analysisOptions);
-    bool isOverridden = false;
-
-    // Skip TODOs categorically (unless escalated to ERROR or HINT.)
-    // https://github.com/dart-lang/sdk/issues/26215
-    if (error.errorCode.type == ErrorType.TODO &&
-        severity == ErrorSeverity.INFO) {
-      return null;
-    }
-
-    // First check for a filter.
-    if (severity == null) {
-      // Null severity means the error has been explicitly ignored.
-      return null;
-    } else {
-      isOverridden = true;
-    }
-
-    // If not overridden, some "natural" severities get globally filtered.
-    if (!isOverridden) {
-      // Check for global hint filtering.
-      if (severity == ErrorSeverity.INFO && options.disableHints) {
-        return null;
-      }
-    }
-
-    return new ProcessedSeverity(severity, isOverridden);
-  }
-
-  /// Return `true` if the given [path] is in the Pub cache.
-  static bool _isPathInPubCache(String path) {
-    List<String> parts = pathos.split(path);
+  /// Return `true` if the given [pathName] is in the Pub cache.
+  static bool _isPathInPubCache(String pathName) {
+    List<String> parts = path.split(pathName);
     if (parts.contains('.pub-cache')) {
       return true;
     }

@@ -43,7 +43,7 @@ import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
-import 'package:analyzer_cli/starter.dart';
+import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
 import 'package:linter/src/rules.dart' as linter;
 import 'package:package_config/discovery.dart' as pkg_discovery;
 import 'package:package_config/packages.dart' show Packages;
@@ -159,7 +159,7 @@ class Driver implements CommandLineStarter {
 
     if (options.perfReport != null) {
       String json = makePerfReport(
-          startTime, currentTimeMillis(), options, _analyzedFileCount, stats);
+          startTime, currentTimeMillis, options, _analyzedFileCount, stats);
       new io.File(options.perfReport).writeAsStringSync(json);
     }
   }
@@ -176,7 +176,17 @@ class Driver implements CommandLineStarter {
   /// Perform analysis according to the given [options].
   Future<ErrorSeverity> _analyzeAllImpl(CommandLineOptions options) async {
     if (!options.machineFormat) {
-      outSink.writeln("Analyzing ${options.sourceFiles}...");
+      List<String> fileNames = options.sourceFiles.map((String file) {
+        file = path.normalize(file);
+        if (file == '.') {
+          file = path.basename(path.current);
+        } else if (file == '..') {
+          file = path.basename(path.normalize(path.absolute(file)));
+        }
+        return file;
+      }).toList();
+
+      outSink.writeln("Analyzing ${fileNames.join(', ')}...");
     }
 
     // Create a context, or re-use the previous one.
@@ -187,11 +197,11 @@ class Driver implements CommandLineStarter {
       return ErrorSeverity.ERROR;
     }
 
-    // Add all the files to be analyzed en masse to the context.  Skip any
+    // Add all the files to be analyzed en masse to the context. Skip any
     // files that were added earlier (whether explicitly or implicitly) to
     // avoid causing those files to be unnecessarily re-read.
     Set<Source> knownSources = context.sources.toSet();
-    List<Source> sourcesToAnalyze = <Source>[];
+    Set<Source> sourcesToAnalyze = new Set<Source>();
     ChangeSet changeSet = new ChangeSet();
     for (String sourcePath in options.sourceFiles) {
       sourcePath = sourcePath.trim();
@@ -226,38 +236,43 @@ class Driver implements CommandLineStarter {
 
     // Analyze the libraries.
     ErrorSeverity allResult = ErrorSeverity.NONE;
-    var libUris = <Uri>[];
-    var parts = <Source>[];
+    List<Uri> libUris = <Uri>[];
+    Set<Source> partSources = new Set<Source>();
+
     for (Source source in sourcesToAnalyze) {
       SourceKind sourceKind = analysisDriver != null
           ? await analysisDriver.getSourceKind(source.fullName)
           : context.computeKindOf(source);
       if (sourceKind == SourceKind.PART) {
-        parts.add(source);
+        partSources.add(source);
         continue;
       }
+      // TODO(devoncarew): Analyzing each source individually causes errors to
+      // be reported multiple times (#25697).
       ErrorSeverity status = await _runAnalyzer(source, options);
       allResult = allResult.max(status);
       libUris.add(source.uri);
     }
 
     // Check that each part has a corresponding source in the input list.
-    for (Source part in parts) {
+    for (Source partSource in partSources) {
       bool found = false;
       if (analysisDriver != null) {
-        var partFile = analysisDriver.fsState.getFileForPath(part.fullName);
+        var partFile =
+            analysisDriver.fsState.getFileForPath(partSource.fullName);
         if (libUris.contains(partFile.library?.uri)) {
           found = true;
         }
       } else {
-        for (var lib in context.getLibrariesContaining(part)) {
+        for (var lib in context.getLibrariesContaining(partSource)) {
           if (libUris.contains(lib.uri)) {
             found = true;
           }
         }
       }
       if (!found) {
-        errorSink.writeln("${part.fullName} is a part and cannot be analyzed.");
+        errorSink.writeln(
+            "${partSource.fullName} is a part and cannot be analyzed.");
         errorSink.writeln("Please pass in a library that contains this part.");
         io.exitCode = ErrorSeverity.ERROR.ordinal;
         allResult = allResult.max(ErrorSeverity.ERROR);
@@ -467,6 +482,8 @@ class Driver implements CommandLineStarter {
 
     return new SourceFactory(resolvers, packageInfo.packages);
   }
+
+  // TODO(devoncarew): This needs to respect analysis_options excludes.
 
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
@@ -688,7 +705,7 @@ class Driver implements CommandLineStarter {
   /// Analyze a single source.
   Future<ErrorSeverity> _runAnalyzer(
       Source source, CommandLineOptions options) async {
-    int startTime = currentTimeMillis();
+    int startTime = currentTimeMillis;
     AnalyzerImpl analyzer = new AnalyzerImpl(_context.analysisOptions, _context,
         analysisDriver, source, options, stats, startTime);
     ErrorSeverity errorSeverity = await analyzer.analyze();

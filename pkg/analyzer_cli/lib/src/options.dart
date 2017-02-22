@@ -140,6 +140,9 @@ class CommandLineOptions {
   /// Whether to use memory byte store for analysis driver.
   final bool useAnalysisDriverMemoryByteStore;
 
+  /// Emit output in a verbose mode.
+  final bool verbose;
+
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(ArgResults args)
       : buildAnalysisOutput = args['build-analysis-output'],
@@ -177,7 +180,8 @@ class CommandLineOptions {
         implicitDynamic = !args['no-implicit-dynamic'],
         lintsAreFatal = args['fatal-lints'],
         useAnalysisDriverMemoryByteStore =
-            args['use-analysis-driver-memory-byte-store'];
+            args['use-analysis-driver-memory-byte-store'],
+        verbose = args['verbose'];
 
   /// The path to an analysis options file
   String get analysisOptionsFile =>
@@ -299,10 +303,6 @@ class CommandLineOptions {
           help: 'Do not show hint results.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag(ignoreUnrecognizedFlagsFlag,
-          help: 'Ignore unrecognized command line flags.',
-          defaultsTo: false,
-          negatable: false)
       ..addFlag('fatal-hints',
           help: 'Treat hints as fatal.', defaultsTo: false, negatable: false)
       ..addFlag('fatal-warnings',
@@ -337,13 +337,7 @@ class CommandLineOptions {
           abbr: 'v',
           defaultsTo: false,
           help: 'Verbose output.',
-          negatable: false)
-      ..addOption('url-mapping',
-          help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
-              'analyzer to use "library.dart" as the source for an import '
-              'of "libraryUri".',
-          allowMultiple: true,
-          splitCommas: false);
+          negatable: false);
 
     // Build mode options.
     if (!hide) {
@@ -406,6 +400,11 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
+      ..addFlag(ignoreUnrecognizedFlagsFlag,
+          help: 'Ignore unrecognized command line flags.',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
       ..addFlag('disable-cache-flushing', defaultsTo: false, hide: hide)
       ..addOption('x-perf-report',
           help: 'Writes a performance report to the given file (experimental).',
@@ -434,6 +433,13 @@ class CommandLineOptions {
           help: 'Use memory byte store, not the file system cache.',
           defaultsTo: false,
           negatable: false,
+          hide: hide)
+      ..addOption('url-mapping',
+          help: '--url-mapping=libraryUri,/path/to/library.dart directs the '
+              'analyzer to use "library.dart" as the source for an import '
+              'of "libraryUri".',
+          allowMultiple: true,
+          splitCommas: false,
           hide: hide);
 
     try {
