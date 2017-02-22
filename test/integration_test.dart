@@ -297,6 +297,26 @@ defineTests() {
             ]));
       });
 
+      test('export_directives_after_import_directives', () {
+        var packagesFilePath = new File('.packages').absolute.path;
+        dartlint.main([
+          '--packages',
+          packagesFilePath,
+          'test/_data/directives_ordering/export_directives_after_import_directives',
+          '--rules=directives_ordering'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              "Specify exports in a separate section after all imports.",
+              "export 'dummy.dart';  // LINT",
+              "Specify exports in a separate section after all imports.",
+              "export 'dummy2.dart';  // LINT",
+              '4 files analyzed, 2 issues found, in'
+            ]));
+      });
+
       test('lint_one_node_no_more_than_once', () {
         var packagesFilePath = new File('.packages').absolute.path;
         dartlint.main([
