@@ -267,7 +267,8 @@ class FixProcessor {
       _addFix_createConstructor_insteadOfSyntheticDefault();
       await _addFix_addMissingParameter();
     }
-    if (errorCode == HintCode.MISSING_REQUIRED_PARAM) {
+    if (errorCode == HintCode.MISSING_REQUIRED_PARAM ||
+        errorCode == HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS) {
       _addFix_addMissingRequiredArgument();
     }
     if (errorCode == StaticWarningCode.FUNCTION_WITHOUT_CALL) {
@@ -572,23 +573,20 @@ class FixProcessor {
     }
 
     if (targetElement is ExecutableElement) {
-      List<Expression> args = argumentList.arguments;
-      List<String> namedArgs = args
-          .where((e) => e is NamedExpression)
-          .map((e) => (e as NamedExpression).name.label.name)
-          .toList(growable: false);
-
-      List<ParameterElement> missingParams = targetElement.parameters
-          .where((p) => p.isRequired && !namedArgs.contains(p.name))
-          .toList(growable: false);
-      if (missingParams.isEmpty) {
-        return;
+      // Format: "Missing required argument 'foo"
+      List<String> parts = error.message.split("'");
+      if (parts.length < 2) {
+        return; // and error?
       }
+
+      // Grab just the name.
+      String paramName = parts[1];
 
       // add proposal
 
       SourceBuilder sb;
 
+      final List<Expression> args = argumentList.arguments;
       if (args.isEmpty) {
         sb = new SourceBuilder(file, argumentList.leftParenthesis.end);
       } else {
@@ -596,10 +594,11 @@ class FixProcessor {
         sb.append(', ');
       }
 
-      sb.append(missingParams.map((p) => '${p.name}: null').join(', '));
+      // In the future consider better values than null for specific element types.
+      sb.append('$paramName: null');
 
       _insertBuilder(sb, targetElement);
-      _addFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, []);
+      _addFix(DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT, [paramName]);
     }
   }
 

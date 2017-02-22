@@ -124,7 +124,7 @@ class DartFixKind {
   static const ADD_MISSING_PARAMETER_REQUIRED = const FixKind(
       'ADD_MISSING_PARAMETER_REQUIRED', 30, "Add required parameter");
   static const ADD_MISSING_REQUIRED_ARGUMENT = const FixKind(
-      'ADD_MISSING_REQUIRED_ARGUMENT', 30, "Add required argument");
+      'ADD_MISSING_REQUIRED_ARGUMENT', 30, "Add required argument '{0}'");
   static const ADD_NE_NULL = const FixKind('ADD_NE_NULL', 50, "Add != null");
   static const ADD_PACKAGE_DEPENDENCY = const FixKind(
       'ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
