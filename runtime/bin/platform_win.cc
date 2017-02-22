@@ -7,6 +7,8 @@
 
 #include "bin/platform.h"
 
+#include <crtdbg.h>
+
 #include "bin/file.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
@@ -34,6 +36,17 @@ class PlatformWin {
   static void InitOnce() {
     platform_win_mutex_ = new Mutex();
     saved_output_cp_ = -1;
+    // Set up a no-op handler so that CRT functions return an error instead of
+    // hitting an assertion failure.
+    // See: https://msdn.microsoft.com/en-us/library/a9yf33zb.aspx
+    _set_invalid_parameter_handler(InvalidParameterHandler);
+    // Disable the message box for assertions in the CRT in Debug builds.
+    // See: https://msdn.microsoft.com/en-us/library/1y71x448.aspx
+    _CrtSetReportMode(_CRT_ASSERT, 0);
+    // Disable dialog boxes for "critical" errors or when OpenFile cannot find
+    // the requested file. See:
+    // See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms680621(v=vs.85).aspx
+    SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
   }
 
   static void SaveAndSetOutputCP() {
@@ -55,6 +68,15 @@ class PlatformWin {
   static Mutex* platform_win_mutex_;
   static int saved_output_cp_;
 
+  static void InvalidParameterHandler(const wchar_t* expression,
+                                      const wchar_t* function,
+                                      const wchar_t* file,
+                                      unsigned int line,
+                                      uintptr_t reserved) {
+    // Doing nothing here means that the CRT call that invoked it will
+    // return an error code and/or set errno.
+  }
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(PlatformWin);
 };
@@ -65,7 +87,6 @@ Mutex* PlatformWin::platform_win_mutex_ = NULL;
 bool Platform::Initialize() {
   PlatformWin::InitOnce();
   PlatformWin::SaveAndSetOutputCP();
-  SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
   return true;
 }
 
