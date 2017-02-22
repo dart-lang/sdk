@@ -46,6 +46,7 @@ class Exceptions : AllStatic {
   enum ExceptionType {
     kNone,
     kRange,
+    kRangeMsg,
     kArgument,
     kArgumentValue,
     kNoSuchMethod,
@@ -74,6 +75,7 @@ class Exceptions : AllStatic {
                               const Integer& argument_value,
                               intptr_t expected_from,
                               intptr_t expected_to);
+  static void ThrowRangeErrorMsg(const char* msg);
   static void ThrowCompileTimeError(const LanguageError& error);
 
   // Returns a RawInstance if the exception is successfully created,

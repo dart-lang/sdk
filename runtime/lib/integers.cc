@@ -409,6 +409,12 @@ DEFINE_NATIVE_ENTRY(Bigint_getDigits, 1) {
 
 
 DEFINE_NATIVE_ENTRY(Bigint_allocate, 4) {
+  if (FLAG_limit_ints_to_64_bits) {
+    // The allocated Bigint value is not necessarily out of range, but it may
+    // be used as an operand in an operation resulting in a Bigint.
+    Exceptions::ThrowRangeErrorMsg(
+        "Integer operand requires conversion to Bigint");
+  }
   // First arg is null type arguments, since class Bigint is not parameterized.
   const Bool& neg = Bool::CheckedHandle(arguments->NativeArgAt(1));
   const Smi& used = Smi::CheckedHandle(arguments->NativeArgAt(2));

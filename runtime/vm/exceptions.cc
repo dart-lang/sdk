@@ -719,6 +719,13 @@ void Exceptions::ThrowRangeError(const char* argument_name,
 }
 
 
+void Exceptions::ThrowRangeErrorMsg(const char* msg) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, String::Handle(String::New(msg)));
+  Exceptions::ThrowByType(Exceptions::kRangeMsg, args);
+}
+
+
 void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, String::Handle(error.FormatMessage()));
@@ -740,6 +747,11 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::RangeError();
       constructor_name = &Symbols::DotRange();
+      break;
+    case kRangeMsg:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::RangeError();
+      constructor_name = &Symbols::Dot();
       break;
     case kArgument:
       library = Library::CoreLibrary();
