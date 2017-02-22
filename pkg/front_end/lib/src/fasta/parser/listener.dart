@@ -76,7 +76,8 @@ class Listener {
   /// - implemented types
   /// - class body
   void endClassDeclaration(int interfacesCount, Token beginToken,
-      Token extendsKeyword, Token implementsKeyword, Token endToken) {
+      Token classKeyword, Token extendsKeyword, Token implementsKeyword,
+      Token endToken) {
     logEvent("ClassDeclaration");
   }
 
@@ -267,7 +268,8 @@ class Listener {
   /// declaration, each implemented type is listed separately on the stack, and
   /// the number of implemented types is passed as a parameter.
   void endNamedMixinApplication(
-      Token begin, Token equals, Token implementsKeyword, Token endToken) {
+      Token begin, Token classKeyword, Token equals, Token implementsKeyword,
+      Token endToken) {
     logEvent("NamedMixinApplication");
   }
 

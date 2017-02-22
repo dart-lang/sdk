@@ -97,7 +97,8 @@ class NodeListener extends ElementListener {
 
   @override
   void endClassDeclaration(int interfacesCount, Token beginToken,
-      Token extendsKeyword, Token implementsKeyword, Token endToken) {
+      Token classKeyword, Token extendsKeyword, Token implementsKeyword,
+      Token endToken) {
     NodeList body = popNode();
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
@@ -136,15 +137,15 @@ class NodeListener extends ElementListener {
 
   @override
   void endNamedMixinApplication(
-      Token classKeyword, Token equals, Token implementsKeyword,
-      Token endToken) {
+      Token beginToken, Token classKeyword, Token equals,
+      Token implementsKeyword, Token endToken) {
     NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
     Node mixinApplication = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     Modifiers modifiers = popNode();
     pushNode(new NamedMixinApplication(name, typeParameters, modifiers,
-        mixinApplication, interfaces, classKeyword, endToken));
+        mixinApplication, interfaces, beginToken, endToken));
   }
 
   @override

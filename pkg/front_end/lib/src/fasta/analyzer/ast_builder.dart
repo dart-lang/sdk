@@ -4,45 +4,30 @@
 
 library fasta.analyzer.ast_builder;
 
+import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
+import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
+import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
+import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:front_end/src/fasta/scanner/token.dart'
     show BeginGroupToken, Token;
-
-import 'package:analyzer/analyzer.dart';
-
-import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
-
-import 'package:analyzer/dart/element/element.dart' show Element;
-
-import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
-
-import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
-
 import 'package:kernel/ast.dart' show AsyncMarker;
 
 import '../errors.dart' show internalError;
-
-import '../source/scope_listener.dart'
-    show JumpTargetKind, NullValue, Scope, ScopeListener;
-
 import '../kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, ProcedureBuilder;
-
-import '../parser/parser.dart' show optional;
-
 import '../quote.dart';
-
 import '../source/outline_builder.dart' show asyncMarkerFromTokens;
-
+import '../source/scope_listener.dart'
+    show JumpTargetKind, NullValue, Scope, ScopeListener;
+import 'analyzer.dart' show toKernel;
 import 'element_store.dart'
     show
         AnalyzerLocalVariableElemment,
         AnalyzerParameterElement,
         ElementStore,
         KernelClassElement;
-
 import 'token_utils.dart' show toAnalyzerToken;
-
-import 'analyzer.dart' show toKernel;
 
 class AstBuilder extends ScopeListener {
   final AstFactory ast = standard.astFactory;
@@ -804,8 +789,13 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endClassDeclaration(int interfacesCount, Token beginToken,
-      Token extendsKeyword, Token implementsKeyword, Token endToken) {
+  void endClassDeclaration(
+      int interfacesCount,
+      Token beginToken,
+      Token classKeyword,
+      Token extendsKeyword,
+      Token implementsKeyword,
+      Token endToken) {
     debugEvent("ClassDeclaration");
     _ClassBody body = pop();
     ImplementsClause implementsClause;
@@ -832,14 +822,6 @@ class AstBuilder extends ScopeListener {
     }
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
-    Token classKeyword;
-    // TODO(paulberry,ahe): This is a hack.  The parser should give us the class
-    // keyword.
-    if (optional('abstract', beginToken)) {
-      classKeyword = beginToken.next;
-    } else {
-      classKeyword = beginToken;
-    }
     Token abstractKeyword = _popOptionalSingleModifier();
     List<Annotation> metadata = pop();
     // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
@@ -871,8 +853,8 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endNamedMixinApplication(Token beginToken, Token equalsToken,
-      Token implementsKeyword, Token endToken) {
+  void endNamedMixinApplication(Token beginToken, Token classKeyword,
+      Token equalsToken, Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication");
     ImplementsClause implementsClause;
     if (implementsKeyword != null) {
@@ -888,14 +870,6 @@ class AstBuilder extends ScopeListener {
     analyzer.Token equals = toAnalyzerToken(equalsToken);
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
-    Token classKeyword;
-    // TODO(paulberry,ahe): This is a hack.  The parser should give us the class
-    // keyword.
-    if (identical(beginToken.value, 'abstract')) {
-      classKeyword = beginToken.next;
-    } else {
-      classKeyword = beginToken;
-    }
     Token abstractKeyword = _popOptionalSingleModifier();
     List<Annotation> metadata = pop();
     // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
@@ -944,7 +918,8 @@ class AstBuilder extends ScopeListener {
       var prefix = pop();
       if (prefix is SimpleIdentifier) {
         // TODO(paulberry): resolve [identifier].
-        push(ast.prefixedIdentifier(prefix, toAnalyzerToken(period), identifier));
+        push(ast.prefixedIdentifier(
+            prefix, toAnalyzerToken(period), identifier));
       } else {
         // TODO(paulberry): implement.
         logEvent('Qualified with >1 dot');

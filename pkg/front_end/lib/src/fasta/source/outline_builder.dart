@@ -204,7 +204,8 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void endClassDeclaration(int interfacesCount, Token beginToken,
-      Token extendsKeyword, Token implementsKeyword, Token endToken) {
+      Token classKeyword, Token extendsKeyword, Token implementsKeyword,
+      Token endToken) {
     debugEvent("endClassDeclaration");
     List<TypeBuilder> interfaces = popList(interfacesCount);
     TypeBuilder supertype = pop();
@@ -319,8 +320,8 @@ class OutlineBuilder extends UnhandledListener {
 
   @override
   void endNamedMixinApplication(
-      Token classKeyword, Token equals, Token implementsKeyword,
-      Token endToken) {
+      Token beginToken, Token classKeyword, Token equals,
+      Token implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
     List<TypeBuilder> interfaces = popIfNotNull(implementsKeyword);
     TypeBuilder mixinApplication = pop();
@@ -334,8 +335,8 @@ class OutlineBuilder extends UnhandledListener {
     List<MetadataBuilder> metadata = pop();
     library.addNamedMixinApplication(
         metadata, name, typeVariables, modifiers, mixinApplication, interfaces,
-        classKeyword.charOffset);
-    checkEmpty(classKeyword.charOffset);
+        beginToken.charOffset);
+    checkEmpty(beginToken.charOffset);
   }
 
   @override

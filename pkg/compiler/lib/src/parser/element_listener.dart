@@ -264,7 +264,8 @@ class ElementListener extends Listener {
 
   @override
   void endClassDeclaration(int interfacesCount, Token beginToken,
-      Token extendsKeyword, Token implementsKeyword, Token endToken) {
+      Token classKeyword, Token extendsKeyword, Token implementsKeyword,
+      Token endToken) {
     makeNodeList(interfacesCount, implementsKeyword, null, ","); // interfaces
     popNode(); // superType
     popNode(); // typeParameters
@@ -297,8 +298,8 @@ class ElementListener extends Listener {
 
   @override
   void endNamedMixinApplication(
-      Token classKeyword, Token equals, Token implementsKeyword,
-      Token endToken) {
+      Token beginToken, Token classKeyword, Token equals,
+      Token implementsKeyword, Token endToken) {
     NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
     MixinApplication mixinApplication = popNode();
     NodeList typeParameters = popNode();
@@ -310,7 +311,7 @@ class ElementListener extends Listener {
         modifiers,
         mixinApplication,
         interfaces,
-        classKeyword,
+        beginToken,
         endToken);
 
     int id = idGenerator.getNextFreeId();

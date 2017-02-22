@@ -447,7 +447,8 @@ class DietListener extends StackListener {
 
   @override
   void endClassDeclaration(int interfacesCount, Token beginToken,
-      Token extendsKeyword, Token implementsKeyword, Token endToken) {
+      Token classKeyword, Token extendsKeyword, Token implementsKeyword,
+      Token endToken) {
     debugEvent("ClassDeclaration");
     checkEmpty(beginToken.charOffset);
   }
@@ -462,11 +463,11 @@ class DietListener extends StackListener {
 
   @override
   void endNamedMixinApplication(
-      Token classKeyword, Token equals, Token implementsKeyword,
-      Token endToken) {
+      Token beginToken, Token classKeyword, Token equals,
+      Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication");
     pop(); // Name.
-    checkEmpty(classKeyword.charOffset);
+    checkEmpty(beginToken.charOffset);
   }
 
   @override

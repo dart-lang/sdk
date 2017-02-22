@@ -708,10 +708,13 @@ class Parser {
   Token parseClassOrNamedMixinApplication(Token token) {
     Token begin = token;
     Token abstractKeyword;
+    Token classKeyword = token;
     if (optional('abstract', token)) {
       abstractKeyword = token;
       token = token.next;
+      classKeyword = token;
     }
+    assert(optional('class', classKeyword));
     int modifierCount = 0;
     if (abstractKeyword != null) {
       parseModifier(abstractKeyword);
@@ -733,25 +736,27 @@ class Parser {
     if (optional('=', token)) {
       Token equals = token;
       token = token.next;
-      return parseNamedMixinApplication(token, begin, name, equals);
+      return parseNamedMixinApplication(token, begin, classKeyword, name,
+          equals);
     } else {
-      return parseClass(token, begin, name);
+      return parseClass(token, begin, classKeyword, name);
     }
   }
 
-  Token parseNamedMixinApplication(Token token, Token begin, Token name,
-      Token equals) {
+  Token parseNamedMixinApplication(Token token, Token begin, Token classKeyword,
+      Token name, Token equals) {
     token = parseMixinApplication(token);
     Token implementsKeyword = null;
     if (optional('implements', token)) {
       implementsKeyword = token;
       token = parseTypeList(token.next);
     }
-    listener.endNamedMixinApplication(begin, equals, implementsKeyword, token);
+    listener.endNamedMixinApplication(begin, classKeyword, equals,
+        implementsKeyword, token);
     return expect(';', token);
   }
 
-  Token parseClass(Token token, Token begin, Token name) {
+  Token parseClass(Token token, Token begin, Token classKeyword, Token name) {
     Token extendsKeyword;
     if (optional('extends', token)) {
       extendsKeyword = token;
@@ -775,7 +780,8 @@ class Parser {
     }
     token = parseClassBody(token);
     listener.endClassDeclaration(
-        interfacesCount, begin, extendsKeyword, implementsKeyword, token);
+        interfacesCount, begin, classKeyword, extendsKeyword,
+        implementsKeyword, token);
     return token.next;
   }
 
