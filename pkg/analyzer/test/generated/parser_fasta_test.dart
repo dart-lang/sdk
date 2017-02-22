@@ -1073,27 +1073,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseEnumDeclaration_one() {
-    // TODO(paulberry): Unhandled event: Enum
-    super.test_parseEnumDeclaration_one();
-  }
-
-  @override
-  @failingTest
-  void test_parseEnumDeclaration_trailingComma() {
-    // TODO(paulberry): Unhandled event: Enum
-    super.test_parseEnumDeclaration_trailingComma();
-  }
-
-  @override
-  @failingTest
-  void test_parseEnumDeclaration_two() {
-    // TODO(paulberry): Unhandled event: Enum
-    super.test_parseEnumDeclaration_two();
-  }
-
-  @override
-  @failingTest
   void test_parseFunctionDeclaration_function() {
     // TODO(paulberry): handle doc comments
     super.test_parseFunctionDeclaration_function();

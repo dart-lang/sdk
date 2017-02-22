@@ -77,8 +77,12 @@ class Listener {
   /// - supertype (may be a mixin application)
   /// - implemented types
   /// - class body
-  void endClassDeclaration(int interfacesCount, Token beginToken,
-      Token classKeyword, Token extendsKeyword, Token implementsKeyword,
+  void endClassDeclaration(
+      int interfacesCount,
+      Token beginToken,
+      Token classKeyword,
+      Token extendsKeyword,
+      Token implementsKeyword,
       Token endToken) {
     logEvent("ClassDeclaration");
   }
@@ -123,6 +127,11 @@ class Listener {
 
   void beginEnum(Token enumKeyword) {}
 
+  /// Handle the end of an enum declaration.  Substructures:
+  /// - Metadata
+  /// - Enum name (identifier)
+  /// - [count] times:
+  ///   - Enum value (identifier)
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     logEvent("Enum");
   }
@@ -269,9 +278,8 @@ class Listener {
   /// application, the implemented types are a TypeList, whereas for a class
   /// declaration, each implemented type is listed separately on the stack, and
   /// the number of implemented types is passed as a parameter.
-  void endNamedMixinApplication(
-      Token begin, Token classKeyword, Token equals, Token implementsKeyword,
-      Token endToken) {
+  void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
+      Token implementsKeyword, Token endToken) {
     logEvent("NamedMixinApplication");
   }
 

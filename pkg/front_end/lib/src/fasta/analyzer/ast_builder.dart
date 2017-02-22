@@ -121,6 +121,13 @@ class AstBuilder extends ScopeListener {
       } else {
         push(identifier);
       }
+    } else if (context == IdentifierContext.enumValueDeclaration) {
+      // TODO(paulberry): analyzer's ASTs allow for enumerated values to have
+      // metadata, but the spec doesn't permit it.
+      List<Annotation> metadata;
+      // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+      Comment comment = null;
+      push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       if (context.isScopeReference) {
         Builder builder = scope.lookup(name, token.charOffset, uri);
@@ -1076,6 +1083,28 @@ class AstBuilder extends ScopeListener {
         typeParameters,
         parameters,
         toAnalyzerToken(endToken)));
+  }
+
+  void endEnum(Token enumKeyword, Token endBrace, int count) {
+    debugEvent("Enum");
+    List<EnumConstantDeclaration> constants = popList(count);
+    // TODO(paulberry,ahe): the parser should pass in the openBrace token.
+    var openBrace = enumKeyword.next.next as BeginGroupToken;
+    // TODO(paulberry): what if the '}' is missing and the parser has performed
+    // error recovery?
+    Token closeBrace = openBrace.endGroup;
+    SimpleIdentifier name = pop();
+    List<Annotation> metadata = pop();
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+    Comment comment = null;
+    push(ast.enumDeclaration(
+        comment,
+        metadata,
+        toAnalyzerToken(enumKeyword),
+        name,
+        toAnalyzerToken(openBrace),
+        constants,
+        toAnalyzerToken(closeBrace)));
   }
 
   /**
