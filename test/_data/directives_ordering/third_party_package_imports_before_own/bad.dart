@@ -4,9 +4,9 @@
 
 import 'package:ansicolor/ansicolor.dart';  // OK
 
-import 'package:linter/src/formatter.dart'; // OK
+import 'package:linter/src/analyzer.dart';
 
 import 'package:async/async.dart';  // LINT
 import 'package:yaml/yaml.dart';  // LINT
 
-import 'package:linter/src/analyzer.dart'; // OK
+import 'package:linter/src/formatter.dart';

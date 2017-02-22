@@ -89,8 +89,48 @@ import 'package:foo/foo.dart';  // OK
 
 import 'package:myapp/io.dart';
 import 'package:myapp/util.dart';
+```
+
+**DO** specify exports in a separate section after all imports.
+
+**BAD:**
+```
+import 'src/error.dart';
+export 'src/error.dart'; // LINT
+import 'src/string_source.dart';
+```
+
+**GOOD:**
+```
+import 'src/error.dart';
+import 'src/string_source.dart';
+
+export 'src/error.dart'; // OK
+```
+
+**DO** sort sections alphabetically.
+
+**BAD:**
+```
+import 'package:foo/bar.dart'; // OK
+import 'package:bar/bar.dart'; // LINT
+
+import 'a/b.dart'; // OK
+import 'a.dart'; // LINT
+```
+
+**GOOD:**
+```
+import 'package:bar/bar.dart'; // OK
+import 'package:foo/bar.dart'; // OK
+
+import 'a.dart'; // OK
+import 'a/b.dart'; // OK
 
 ''';
+
+const _directiveSectionOrderedAlphabetically =
+    r"Sort directive sections alphabetically.";
 
 const _exportDirectiveAfterImportDirectives =
     r"Specify exports in a separate section after all imports.";
@@ -113,6 +153,8 @@ bool _isNotDartImport(ImportDirective node) => !_isDartImport(node);
 
 bool _isPackageImport(ImportDirective node) =>
     node.uriContent.startsWith("package:");
+
+bool _isRelativeImport(ImportDirective node) => !_isAbsoluteImport(node);
 
 class DirectivesOrdering extends LintRule implements ProjectVisitor {
   _Visitor _visitor;
@@ -146,6 +188,11 @@ class DirectivesOrdering extends LintRule implements ProjectVisitor {
     reporter.reportErrorForNode(new LintCode(name, description), node, []);
   }
 
+  void _reportLintWithDirectiveSectionOrderedAlphabeticallyMessage(
+      AstNode node) {
+    _reportLintWithDescription(node, _directiveSectionOrderedAlphabetically);
+  }
+
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
     _reportLintWithDescription(node, _exportDirectiveAfterImportDirectives);
   }
@@ -164,7 +211,7 @@ class _PackageBox {
   _PackageBox(this._packageName);
 
   bool _isNotOwnPackageImport(ImportDirective node) =>
-      !_isOwnPackageImport(node);
+      _isPackageImport(node) && !_isOwnPackageImport(node);
 
   bool _isOwnPackageImport(ImportDirective node) =>
       node.uriContent.startsWith('package:$_packageName/');
@@ -184,6 +231,7 @@ class _Visitor extends SimpleAstVisitor {
     _checkPackageImportBeforeRelative(lintedNodes, node);
     _checkThirdPartyImportBeforeOwn(lintedNodes, node);
     _checkExportDirectiveAfterImportDirective(lintedNodes, node);
+    _checkDirectiveSectionOrderedAlphabetically(lintedNodes, node);
   }
 
   void _checkDartImportGoFirst(Set<AstNode> lintedNodes, CompilationUnit node) {
@@ -197,6 +245,31 @@ class _Visitor extends SimpleAstVisitor {
         .skipWhile(_isDartImport)
         .where(_isDartImport)
         .forEach(reportDirective);
+  }
+
+  void _checkDirectiveSectionOrderedAlphabetically(
+      Set<AstNode> lintedNodes, CompilationUnit node) {
+    final importDirectives = _getImportDirectives(node);
+    final exportDirectives = _getExportDirectives(node);
+
+    final dartImports = importDirectives.where(_isDartImport);
+    final relativeImports = importDirectives.where(_isRelativeImport);
+
+    _checkSectionInOrder(lintedNodes, dartImports);
+    _checkSectionInOrder(lintedNodes, relativeImports);
+    _checkSectionInOrder(lintedNodes, exportDirectives);
+
+    if (project != null) {
+      _PackageBox packageBox = new _PackageBox(project.name);
+
+      final thirdPartyPackageImports =
+          importDirectives.where(packageBox._isNotOwnPackageImport);
+      final ownPackageImports =
+          importDirectives.where(packageBox._isOwnPackageImport);
+
+      _checkSectionInOrder(lintedNodes, thirdPartyPackageImports);
+      _checkSectionInOrder(lintedNodes, ownPackageImports);
+    }
   }
 
   void _checkExportDirectiveAfterImportDirective(
@@ -229,6 +302,24 @@ class _Visitor extends SimpleAstVisitor {
         .forEach(reportDirective);
   }
 
+  void _checkSectionInOrder(
+      Set<AstNode> lintedNodes, Iterable<NamespaceDirective> nodes) {
+    void reportDirective(NamespaceDirective directive) {
+      if (lintedNodes.add(directive)) {
+        rule._reportLintWithDirectiveSectionOrderedAlphabeticallyMessage(
+            directive);
+      }
+    }
+
+    NamespaceDirective previousDirective;
+    for (NamespaceDirective directive in nodes) {
+      if (previousDirective != null && previousDirective.uriContent.compareTo(directive.uriContent) > 0) {
+        reportDirective(directive);
+      }
+      previousDirective = directive;
+    }
+  }
+
   void _checkThirdPartyImportBeforeOwn(
       Set<AstNode> lintedNodes, CompilationUnit node) {
     if (project == null) {
@@ -248,6 +339,11 @@ class _Visitor extends SimpleAstVisitor {
         .where(box._isNotOwnPackageImport)
         .forEach(reportDirective);
   }
+
+  Iterable<ExportDirective> _getExportDirectives(CompilationUnit node) =>
+      node.directives
+          .where(_isExportDirective)
+          .map((e) => e as ExportDirective);
 
   Iterable<ImportDirective> _getImportDirectives(CompilationUnit node) =>
       node.directives
