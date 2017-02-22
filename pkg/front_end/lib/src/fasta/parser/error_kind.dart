@@ -30,7 +30,6 @@ enum ErrorKind {
   ExpectedType,
   ExtraneousModifier,
   ExtraneousModifierReplace,
-  InvalidInlineFunctionType,
   InvalidAwaitFor,
   InvalidSyncModifier,
   InvalidVoid,

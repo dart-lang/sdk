@@ -2144,9 +2144,6 @@ class LocalParameterElementZ extends ParameterElementZ
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
-
-  @override
-  bool get isUnnamed => false;
 }
 
 class InitializingFormalElementZ extends LocalParameterElementZ

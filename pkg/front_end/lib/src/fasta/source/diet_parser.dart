@@ -25,9 +25,7 @@ class DietParser extends ClassMemberParser {
   DietParser(Listener listener, {bool asyncAwaitKeywordsEnabled: false})
       : super(listener, asyncAwaitKeywordsEnabled: asyncAwaitKeywordsEnabled);
 
-  Token parseFormalParameters(Token token, {bool inFunctionType: false}) {
-    return skipFormals(token);
-  }
+  Token parseFormalParameters(Token token) => skipFormals(token);
 
   Token skipFormals(Token token) {
     listener.beginOptionalFormalParameters(token);

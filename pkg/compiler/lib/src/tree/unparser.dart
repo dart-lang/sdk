@@ -548,16 +548,9 @@ class Unparser extends Indentation implements Visitor {
     visit(node.expression);
   }
 
-  visitNominalTypeAnnotation(NominalTypeAnnotation node) {
+  visitTypeAnnotation(TypeAnnotation node) {
     visit(node.typeName);
     visit(node.typeArguments);
-  }
-
-  visitFunctionTypeAnnotation(FunctionTypeAnnotation node) {
-    visit(node.returnType);
-    write(' Function');
-    visit(node.typeParameters);
-    visit(node.formals);
   }
 
   visitTypeVariable(TypeVariable node) {
@@ -778,8 +771,8 @@ class Unparser extends Indentation implements Visitor {
       write(' ');
     }
     visit(node.name);
-    if (node.templateParameters != null) {
-      visit(node.templateParameters);
+    if (node.typeParameters != null) {
+      visit(node.typeParameters);
     }
     visit(node.formals);
     write(node.endToken.value);
@@ -909,10 +902,6 @@ class Unparser extends Indentation implements Visitor {
   }
 
   visitStringNode(StringNode node) {
-    throw 'internal error'; // Should not be called.
-  }
-
-  visitTypeAnnotation(TypeAnnotation node) {
     throw 'internal error'; // Should not be called.
   }
 }

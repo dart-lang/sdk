@@ -42,9 +42,7 @@ import 'node_listener.dart' show NodeListener;
 class ClassElementParser extends ClassMemberParser {
   ClassElementParser(Listener listener) : super(listener);
 
-  Token parseFormalParameters(Token token, {bool inFunctionType: false}) {
-    return skipFormalParameters(token);
-  }
+  Token parseFormalParameters(Token token) => skipFormalParameters(token);
 }
 
 abstract class PartialElement implements DeclarationSite {

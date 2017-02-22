@@ -233,22 +233,13 @@ class Listener {
 
   void beginFunctionTypeAlias(Token token) {}
 
-  /// Handle the end of a typedef declaration.
-  ///
-  /// If [equals] is null, then we have the following substructures:
+  /// Handle the end of a typedef declaration.  Substructures:
   /// - Metadata
   /// - Return type
   /// - Name (identifier)
-  /// - Template variables (type variables to the template)
+  /// - Type variables
   /// - Formal parameters
-  ///
-  /// If [equals] is not null, then the have the following substructures:
-  /// - Metadata
-  /// - Name (identifier)
-  /// - Template variables (type variables to the template)
-  /// - Type (FunctionTypeAnnotation)
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token equals, Token endToken) {
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     logEvent("FunctionTypeAlias");
   }
 
@@ -272,7 +263,7 @@ class Listener {
   /// - mixin application
   /// - implemented types (TypeList)
   ///
-  /// TODO(paulberry,ahe): it seems inconsistent that for a named mixin
+  /// TODO(paulberry,ahe): it seems incosistent that for a named mixin
   /// application, the implemented types are a TypeList, whereas for a class
   /// declaration, each implemented type is listed separately on the stack, and
   /// the number of implemented types is passed as a parameter.
@@ -643,16 +634,8 @@ class Listener {
     logEvent("TryStatement");
   }
 
-  void handleType(Token beginToken, Token endToken) {
+  void endType(Token beginToken, Token endToken) {
     logEvent("Type");
-  }
-
-  void handleNoName(Token token) {
-    logEvent("NoName");
-  }
-
-  void handleFunctionType(Token functionToken, Token endToken) {
-    logEvent("FunctionType");
   }
 
   void beginTypeArguments(Token token) {}

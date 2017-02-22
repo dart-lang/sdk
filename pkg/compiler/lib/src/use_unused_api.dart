@@ -155,7 +155,7 @@ void useNode(tree.Node node) {
     ..asSwitchStatement()
     ..asSyncForIn()
     ..asTryStatement()
-    ..asNominalTypeAnnotation()
+    ..asTypeAnnotation()
     ..asTypeVariable()
     ..asTypedef()
     ..asWhile()

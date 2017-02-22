@@ -133,7 +133,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken, Token endToken) {
+  void endType(Token beginToken, Token endToken) {
     debugEvent("Type");
     discard(1);
   }
@@ -190,8 +190,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFunctionTypeAlias(
-       Token typedefKeyword, Token equals, Token endToken) {
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     debugEvent("FunctionTypeAlias");
     discard(2); // Name + endToken.
     checkEmpty(typedefKeyword.charOffset);

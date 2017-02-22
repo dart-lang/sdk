@@ -149,9 +149,8 @@ Future testTypeVariables() {
     visitor.visit(definition.type);
     ResolutionInterfaceType type =
         visitor.registry.mapping.getType(definition.type);
-    NominalTypeAnnotation annotation = definition.type;
     Expect.equals(
-        annotation.typeArguments.slowLength(), type.typeArguments.length);
+        definition.type.typeArguments.slowLength(), type.typeArguments.length);
     int index = 0;
     for (ResolutionDartType argument in type.typeArguments) {
       Expect.equals(true, index < expectedElements.length);
@@ -701,8 +700,7 @@ Future testTopLevelFields() {
     Expect.equals(ElementKind.FIELD, element.kind);
     VariableDefinitions node =
         element.variables.parseNode(element, compiler.parsingContext);
-    NominalTypeAnnotation annotation = node.type;
-    Identifier typeName = annotation.typeName;
+    Identifier typeName = node.type.typeName;
     Expect.equals(typeName.source, 'int');
 
     compiler.parseScript("var b, c;");

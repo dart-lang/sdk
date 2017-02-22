@@ -346,7 +346,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleType(Token beginToken, Token endToken) {
+  void endType(Token beginToken, Token endToken) {
     debugEvent("Type");
     List<TypeBuilder> arguments = pop();
     String name = pop();
@@ -459,8 +459,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token equals, Token endToken) {
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     debugEvent("endFunctionTypeAlias");
     List<FormalParameterBuilder> formals = pop();
     List<TypeVariableBuilder> typeVariables = pop();

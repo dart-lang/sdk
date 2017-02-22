@@ -439,7 +439,7 @@ class AstBuilder extends ScopeListener {
     push(ast.symbolLiteral(toAnalyzerToken(hashToken), components));
   }
 
-  void handleType(Token beginToken, Token endToken) {
+  void endType(Token beginToken, Token endToken) {
     debugEvent("Type");
     TypeArgumentList arguments = pop();
     Identifier name = pop();

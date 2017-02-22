@@ -275,7 +275,6 @@ enum MessageKind {
   INVALID_RECEIVER_IN_INITIALIZER,
   INVALID_SOURCE_FILE_LOCATION,
   INVALID_SYMBOL,
-  INVALID_INLINE_FUNCTION_TYPE,
   INVALID_SYNC_MODIFIER,
   INVALID_TYPE_VARIABLE_BOUND,
   INVALID_UNNAMED_CONSTRUCTOR_NAME,
@@ -3319,16 +3318,6 @@ Please include the following information:
           "When run on the command-line, the compiled output might"
           " require a preamble file located in:\n"
           "  <sdk>/lib/_internal/js_runtime/lib/preambles."),
-
-      MessageKind.INVALID_INLINE_FUNCTION_TYPE: const MessageTemplate(
-          MessageKind.INVALID_INLINE_FUNCTION_TYPE,
-          "Invalid inline function type.",
-          howToFix: "Try changing the inline function type (as in 'int f()') to"
-             " a prefixed function type using the `Function` keyword (as in "
-             "'int Function() f').",
-          examples:
-              const ["typedef F = Function(int f(String x)); main() { F f; }"],
-      ),
 
       MessageKind.INVALID_SYNC_MODIFIER: const MessageTemplate(
           MessageKind.INVALID_SYNC_MODIFIER, "Invalid modifier 'sync'.",
