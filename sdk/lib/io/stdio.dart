@@ -275,7 +275,9 @@ class _StdSinkHelper implements IOSink {
 
   void set _translation(_FileTranslation t) {
     if (_isTranslatable) {
-      _sink._target._file.translation = t;
+      _IOSinkImpl sink = _sink;
+      _StdConsumer target = sink._target;
+      target._file.translation = t;
     }
   }
 
