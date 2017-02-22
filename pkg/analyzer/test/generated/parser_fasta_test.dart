@@ -505,13 +505,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseFormalParameter_final_normal() {
-    // TODO(scheglov): parse final
-    super.test_parseFormalParameter_final_normal();
-  }
-
-  @override
-  @failingTest
   void test_parseFormalParameter_final_positional() {
     // TODO(scheglov): Unhandled event: ValuedFormalParameter
     super.test_parseFormalParameter_final_positional();
@@ -522,13 +515,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   void test_parseFormalParameter_final_type_named() {
     // TODO(scheglov): Unhandled event: ValuedFormalParameter
     super.test_parseFormalParameter_final_type_named();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_final_type_normal() {
-    // TODO(scheglov): parse final
-    super.test_parseFormalParameter_final_type_normal();
   }
 
   @override
@@ -564,13 +550,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   void test_parseFormalParameter_var_named() {
     // TODO(scheglov): Unhandled event: ValuedFormalParameter
     super.test_parseFormalParameter_var_named();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_var_normal() {
-    // TODO(scheglov): parse var
-    super.test_parseFormalParameter_var_normal();
   }
 
   @override
@@ -832,34 +811,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseNormalFormalParameter_simple_const_noType() {
-    // TODO(scheglov): parse const
-    super.test_parseNormalFormalParameter_simple_const_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_simple_const_type() {
-    // TODO(scheglov): parse const
-    super.test_parseNormalFormalParameter_simple_const_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_simple_final_noType() {
-    // TODO(scheglov): parse final
-    super.test_parseNormalFormalParameter_simple_final_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_simple_final_type() {
-    // TODO(scheglov): parse final
-    super.test_parseNormalFormalParameter_simple_final_type();
-  }
-
-  @override
-  @failingTest
   void test_parseNormalFormalParameter_simple_noName() {
     // TODO(scheglov): in function type, type instead of parameter name
     super.test_parseNormalFormalParameter_simple_noName();
@@ -983,13 +934,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
   @override
   @failingTest
-  void test_parseClassDeclaration_abstract() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseClassDeclaration_abstract();
-  }
-
-  @override
-  @failingTest
   void test_parseClassDeclaration_native() {
     // TODO(paulberry): TODO(paulberry,ahe): Fasta parser doesn't appear to support "native" syntax yet.
     super.test_parseClassDeclaration_native();
@@ -1076,68 +1020,12 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnitMember_classTypeAlias() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_classTypeAlias();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_function_external_noType() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_function_external_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_function_external_type() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_function_external_type();
-  }
-
-  @override
-  @failingTest
   void
       test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
     // TODO(paulberry,ahe): Fasta doesn't appear to support annotated type
     // parameters.
     super
         .test_parseCompilationUnitMember_function_generic_noReturnType_annotated();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_getter_external_noType() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_getter_external_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_getter_external_type() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_getter_external_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_setter_external_noType() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_setter_external_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_setter_external_type() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_setter_external_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_typeAlias_abstract() {
-    // TODO(paulberry,ahe): Capture `=` token
-    super.test_parseCompilationUnitMember_typeAlias_abstract();
   }
 
   @override
