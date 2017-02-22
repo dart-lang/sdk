@@ -54,9 +54,6 @@ class CommandLineOptions {
   /// analyze function bodies to use summaries during future compilation steps.
   final bool buildSummaryOnlyDiet;
 
-  /// Whether to use exclude informative data from created summaries.
-  final bool buildSummaryExcludeInformative;
-
   /// The path to output the summary when creating summaries in build mode.
   final String buildSummaryOutput;
 
@@ -151,8 +148,6 @@ class CommandLineOptions {
         buildSummaryInputs = args['build-summary-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
-        buildSummaryExcludeInformative =
-            args['build-summary-exclude-informative'],
         buildSummaryOutput = args['build-summary-output'],
         buildSummaryOutputSemantic = args['build-summary-output-semantic'],
         buildSuppressExitCode = args['build-suppress-exit-code'],
@@ -389,19 +384,8 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
-      ..addFlag('build-summary-only-ast',
-          help: 'deprecated -- Generate summaries using ASTs.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
       ..addFlag('build-summary-only-diet',
           help: 'Diet parse function bodies.',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('build-summary-exclude-informative',
-          help: 'Exclude @informative information (docs, offsets, etc).  '
-              'Deprecated: please use --build-summary-output-semantic instead.',
           defaultsTo: false,
           negatable: false,
           hide: hide)

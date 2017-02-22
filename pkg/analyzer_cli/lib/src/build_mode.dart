@@ -188,17 +188,12 @@ class BuildMode {
     }
 
     // Write summary.
-    assembler = new PackageBundleAssembler(
-        excludeHashes: options.buildSummaryExcludeInformative &&
-            options.buildSummaryOutputSemantic == null);
+    assembler = new PackageBundleAssembler();
     if (_shouldOutputSummary) {
       _serializeAstBasedSummary(explicitSources);
       // Write the whole package bundle.
       assembler.recordDependencies(summaryDataStore);
       PackageBundleBuilder bundle = assembler.assemble();
-      if (options.buildSummaryExcludeInformative) {
-        bundle.flushInformative();
-      }
       if (options.buildSummaryOutput != null) {
         io.File file = new io.File(options.buildSummaryOutput);
         file.writeAsBytesSync(bundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
