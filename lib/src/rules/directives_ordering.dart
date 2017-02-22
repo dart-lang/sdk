@@ -92,6 +92,9 @@ import 'package:myapp/util.dart';
 
 ''';
 
+const _exportDirectiveAfterImportDirectives =
+    r"Specify exports in a separate section after all imports.";
+
 const _packageImportBeforeRelative =
     r"Place 'package:' imports before relative imports.";
 
@@ -101,6 +104,8 @@ const _thirdPartyPackageImportBeforeOwn =
 bool _isAbsoluteImport(ImportDirective node) => node.uriContent.contains(":");
 
 bool _isDartImport(ImportDirective node) => node.uriContent.startsWith("dart:");
+
+bool _isExportDirective(Directive node) => node is ExportDirective;
 
 bool _isImportDirective(Directive node) => node is ImportDirective;
 
@@ -141,6 +146,10 @@ class DirectivesOrdering extends LintRule implements ProjectVisitor {
     reporter.reportErrorForNode(new LintCode(name, description), node, []);
   }
 
+  void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
+    _reportLintWithDescription(node, _exportDirectiveAfterImportDirectives);
+  }
+
   void _reportLintWithPackageImportBeforeRelativeMessage(AstNode node) {
     _reportLintWithDescription(node, _packageImportBeforeRelative);
   }
@@ -174,6 +183,7 @@ class _Visitor extends SimpleAstVisitor {
     _checkDartImportGoFirst(lintedNodes, node);
     _checkPackageImportBeforeRelative(lintedNodes, node);
     _checkThirdPartyImportBeforeOwn(lintedNodes, node);
+    _checkExportDirectiveAfterImportDirective(lintedNodes, node);
   }
 
   void _checkDartImportGoFirst(Set<AstNode> lintedNodes, CompilationUnit node) {
@@ -186,6 +196,21 @@ class _Visitor extends SimpleAstVisitor {
     _getImportDirectives(node)
         .skipWhile(_isDartImport)
         .where(_isDartImport)
+        .forEach(reportDirective);
+  }
+
+  void _checkExportDirectiveAfterImportDirective(
+      Set<AstNode> lintedNodes, CompilationUnit node) {
+    void reportDirective(Directive directive) {
+      if (lintedNodes.add(directive)) {
+        rule._reportLintWithExportDirectiveAfterImportDirectiveMessage(
+            directive);
+      }
+    }
+
+    node.directives.reversed
+        .skipWhile(_isExportDirective)
+        .where(_isExportDirective)
         .forEach(reportDirective);
   }
 
