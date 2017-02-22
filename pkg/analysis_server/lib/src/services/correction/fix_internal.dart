@@ -576,7 +576,7 @@ class FixProcessor {
       // Format: "Missing required argument 'foo"
       List<String> parts = error.message.split("'");
       if (parts.length < 2) {
-        return; // and error?
+        return;
       }
 
       // Grab just the name.
