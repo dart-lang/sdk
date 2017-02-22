@@ -276,6 +276,44 @@ defineTests() {
               '3 files analyzed, 2 issues found, in'
             ]));
       });
+
+      test('third_party_package_imports_before_own', () {
+        var packagesFilePath = new File('.packages').absolute.path;
+        dartlint.main([
+          '--packages',
+          packagesFilePath,
+          'test/_data/directives_ordering/third_party_package_imports_before_own',
+          '--rules=directives_ordering'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              "Place 'third-party' 'package:' imports before other imports.",
+              "import 'package:async/async.dart';  // LINT",
+              "Place 'third-party' 'package:' imports before other imports.",
+              "import 'package:yaml/yaml.dart';  // LINT",
+              '1 file analyzed, 2 issues found, in'
+            ]));
+      });
+
+      test('lint_one_node_no_more_than_once', () {
+        var packagesFilePath = new File('.packages').absolute.path;
+        dartlint.main([
+          '--packages',
+          packagesFilePath,
+          'test/_data/directives_ordering/lint_one_node_no_more_than_once',
+          '--rules=directives_ordering'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              "Place 'package:' imports before relative imports.",
+              "import 'package:async/async.dart';  // LINT",
+              '2 files analyzed, 1 issue found, in'
+            ]));
+      });
     });
 
     group('only_throw_errors', () {
