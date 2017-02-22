@@ -1,0 +1,125 @@
+%This _sty_ file was developed by Hugh Osborne at the University of
+%Nijmegen, The Netherlands. It may be freely distributed under
+%condition that this notice is always included in any copy distributed.
+%No charge may be made for (copies of) this file, nor may any other
+%remuneration be requested.
+
+\typeout{Style-Option: `bnf' v1.1a <92/01/30> (Hugh Osborne/br)}
+
+\def\@actifygrammarchars{%
+	\catcode`\"\active%
+	\catcode`\:\active%
+	\catcode`\,\active%
+	\catcode`\;\active%
+	\catcode`\.\active%
+	\catcode`\<\active%
+	\catcode`\>\active}
+
+\def\@deactifygrammarchars{%
+	\@makeother\"%
+	\@makeother\:%
+	\@makeother\,%
+	\@makeother\;%
+	\@makeother\.%
+	\@makeother\<%
+	\@makeother\>}
+
+\let\escapegrammar=\@deactifygrammarchars
+
+\begingroup
+  \@deactifygrammarchars
+  \global\let\quotesymbol="
+  \global\let\lessthan=<
+  \global\let\greaterthan=>
+\endgroup
+
+\newif\if@outsidestring \@outsidestringtrue
+
+\def\@first#1#2{#1}
+\def\@second#1#2{#2}
+
+\begingroup
+
+\@actifygrammarchars
+
+   \gdef\@defcolon#1{
+    \catcode`\:\active
+    \def:{\def\newline{\hfill\break\hspace*{2em}}{\@deactifygrammarchars #1}}
+	\@makeother\:}
+
+   \gdef\@defcomma#1{
+    \catcode`\,\active
+    \def,{\def\newline{\hfill\break\hspace*{4em}}{\@deactifygrammarchars #1}}
+	\@makeother\,}
+
+   \gdef\@defsemicolon#1{
+    \catcode`\;\active
+    \def;{\def\newline{\hfill\break\hspace*{2em}}{\@deactifygrammarchars #1}}
+	\@makeother\;}
+
+   \gdef\@defperiod#1{
+    \catcode`\.\active
+    \def.{\def\newline{\vskip10pt plus10pt minus5pt}{\@deactifygrammarchars #1}}
+	\@makeother\.}
+
+   \gdef\@defnonterminal#1{
+    \catcode`\<\active
+    \catcode`\>\active
+    \def<{%
+		\begingroup%
+			\@first#1%
+			\@deactifygrammarchars%
+			\catcode`\>\active}
+    \def>{%
+			\@second#1%
+		\endgroup}
+	\@makeother\<
+	\@makeother\>}
+
+  \gdef\@defquote#1{
+	\catcode`\"\active
+    \def"{%
+		\if@outsidestring%
+			\@outsidestringfalse%
+			\begingroup%
+				\@deactifygrammarchars%
+				\catcode`\"\active%
+				\@first#1%
+		\else%
+				\@second#1%
+			\endgroup%
+			\@outsidestringtrue%
+		\fi}
+	\@makeother\"}
+
+\endgroup
+
+\let\@defterminal=\@defquote
+
+\newenvironment{grammar}%
+  {
+  \begin{quote}%
+   \@defaultchardefs%
+   \@dogrammarchars}%
+  {\@deactifygrammarchars%
+   \end{quote}
+ }
+
+\def\@dogrammarchars{
+  \@actifygrammarchars
+  \@ifnextchar [{\@deactifygrammarchars\@getchardef}{}}
+
+\def\@getchardef[(#1)#2]{
+  \@dogrammarchar{#1}[#2]
+  \@dogrammarchars}
+
+\def\@dogrammarchar#1[#2]{
+  \csname @def#1\endcsname{#2}}
+
+\def\@defaultchardefs{
+   \@defquote{{``}{''}}%
+   \@defnonterminal{{$<$}{$>$}}%
+   \@defcolon{:\\ {\hbox{  }}  }%
+   \@defsemicolon{ $|$\\{\hbox{  }}}%
+   \@defperiod{\\{\hbox{  }};\\  }%
+   \@defcomma{, }}%
