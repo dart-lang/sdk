@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  static factory fisk() → dynamic
+    invalid-statement;
+}
+class B extends self::A {
+  constructor •() → void
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic {
+  new self::B::•();
+}

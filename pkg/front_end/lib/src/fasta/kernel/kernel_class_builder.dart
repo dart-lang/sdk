@@ -32,6 +32,9 @@ import 'kernel_builder.dart' show
     TypeVariableBuilder,
     computeDefaultTypeArguments;
 
+import '../dill/dill_member_builder.dart' show
+    DillMemberBuilder;
+
 import 'redirecting_factory_body.dart' show
     RedirectingFactoryBody;
 
@@ -105,6 +108,8 @@ abstract class KernelClassBuilder
             if (targetBuilder is ProcedureBuilder) {
               Member target = targetBuilder.target;
               builder.body = new RedirectingFactoryBody(target);
+            } else if (targetBuilder is DillMemberBuilder) {
+              builder.body = new RedirectingFactoryBody(targetBuilder.member);
             } else {
               // TODO(ahe): Throw NSM error. This requires access to core
               // types.

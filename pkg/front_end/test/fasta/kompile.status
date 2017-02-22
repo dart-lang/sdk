@@ -21,6 +21,7 @@ invocations: Fail
 map: Crash
 mixin: Crash
 operators: Crash
+redirecting_constructor: Crash
 statements: Crash
 super_rasta_copy: Crash
 top_level_accessors: Crash
