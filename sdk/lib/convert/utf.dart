@@ -51,8 +51,8 @@ class Utf8Codec extends Encoding {
    * Decodes the UTF-8 [codeUnits] (a list of unsigned 8-bit integers) to the
    * corresponding string.
    *
-   * If the [codeUnits] start with a leading [UNICODE_BOM_CHARACTER_RUNE] this
-   * character is discarded.
+   * If the [codeUnits] start with the encoding of a
+   * [UNICODE_BOM_CHARACTER_RUNE], that character is discarded.
    *
    * If [allowMalformed] is `true` the decoder replaces invalid (or
    * unterminated) character sequences with the Unicode Replacement character
