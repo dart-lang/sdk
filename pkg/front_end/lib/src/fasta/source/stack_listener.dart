@@ -256,13 +256,13 @@ class Stack {
     return value is NullValue ? null : value;
   }
 
-  List<Object> popList(int count) {
+  List popList(int count) {
     assert(arrayLength >= count);
 
     final table = array;
     final length = arrayLength;
 
-    final tailList = new List<Object>.filled(count, null, growable: true);
+    final tailList = new List.filled(count, null, growable: true);
     final startIndex = length - count;
     for (int i = 0; i < count; i++) {
       final value = table[startIndex + i];
@@ -273,14 +273,14 @@ class Stack {
     return tailList;
   }
 
-  List<Object> get values {
-    final List<Object> list = new List<Object>(arrayLength);
+  List get values {
+    final List list = new List(arrayLength);
     list.setRange(0, arrayLength, array);
     return list;
   }
 
   void _grow() {
-    final List<Object> newTable = new List<Object>(array.length * 2);
+    final List newTable = new List(array.length * 2);
     newTable.setRange(0, array.length, array, 0);
     array = newTable;
   }
