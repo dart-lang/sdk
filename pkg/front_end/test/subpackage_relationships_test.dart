@@ -60,6 +60,7 @@ final subpackageRules = {
     'lib/src/fasta/dill',
     'lib/src/fasta/parser',
     'lib/src/fasta/source',
+    'lib/src/fasta/util',
   ]),
   'lib/src/fasta/dill': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
