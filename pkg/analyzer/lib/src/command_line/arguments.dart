@@ -160,7 +160,7 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       hide: hide);
   parser.addOption(packagesOption,
       help: 'The path to the package resolution configuration file, which '
-          'supplies a mapping of package names to paths. This option cannot be '
+          'supplies a mapping of package names\nto paths. This option cannot be '
           'used with --package-root.',
       hide: ddc);
   parser.addOption(sdkSummaryPathOption,

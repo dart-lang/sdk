@@ -172,7 +172,7 @@ class CommandLineOptions {
             args['package-warnings'] ||
             args['x-package-warnings-prefix'] != null,
         showPackageWarningsPrefix = args['x-package-warnings-prefix'],
-        showSdkWarnings = args['show-sdk-warnings'] || args['warnings'],
+        showSdkWarnings = args['sdk-warnings'],
         sourceFiles = args.rest,
         warningsAreFatal = args['fatal-warnings'],
         strongMode = args['strong'],
@@ -315,18 +315,6 @@ class CommandLineOptions {
           help: 'Show warnings from package: imports.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag('show-package-warnings',
-          help: 'Show warnings from package: imports (deprecated).',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag('warnings',
-          help: 'Show warnings from SDK imports.',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag('show-sdk-warnings',
-          help: 'Show warnings from SDK imports (deprecated).',
-          defaultsTo: false,
-          negatable: false)
       ..addFlag('help',
           abbr: 'h',
           help:
@@ -416,6 +404,16 @@ class CommandLineOptions {
       ..addFlag('enable-conditional-directives',
           help:
               'deprecated -- Enable support for conditional directives (DEP 40).',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('show-package-warnings',
+          help: 'Show warnings from package: imports (deprecated).',
+          defaultsTo: false,
+          negatable: false,
+          hide: hide)
+      ..addFlag('sdk-warnings',
+          help: 'Show warnings from SDK imports.',
           defaultsTo: false,
           negatable: false,
           hide: hide)
