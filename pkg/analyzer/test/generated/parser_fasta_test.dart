@@ -464,7 +464,7 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseFormalParameter_covariant_type_normal() {
-    // TODO(scheglov): Unhandled event: TypeArguments
+    // TODO(paulberry): Covariant keyword is not yet supported.
     super.test_parseFormalParameter_covariant_type_normal();
   }
 
@@ -986,7 +986,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
-    // TODO(paulberry): Unhandled event: TypeArguments
+    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_exportAsPrefix_parameterized();
   }
 
@@ -1026,13 +1026,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // parameters.
     super
         .test_parseCompilationUnitMember_function_generic_noReturnType_annotated();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_typeAlias_generic() {
-    // TODO(paulberry): Unhandled event: TypeArguments
-    super.test_parseCompilationUnitMember_typeAlias_generic();
   }
 
   void test_parseCompilationUnitMember_typedef() {
@@ -1123,13 +1116,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(paulberry,ahe): URIs in "part of" declarations are not supported by
     // Fasta.
     super.test_parsePartOfDirective_uri();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_function_parameterizedReturnType() {
-    // TODO(paulberry): Unhandled event: TypeArguments
-    super.test_parseTypeAlias_function_parameterizedReturnType();
   }
 
   @override

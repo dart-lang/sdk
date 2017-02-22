@@ -478,7 +478,8 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier name = pop();
     TypeName type = pop();
     Token keyword = _popOptionalSingleModifier();
-    pop(); // Metadata.
+    pop(); // TODO(paulberry): Metadata.
+    // TODO(paulberry): handle covariant keyword.
     SimpleFormalParameter node = ast.simpleFormalParameter(
         null, null, toAnalyzerToken(keyword), type, name);
     scope[name.name] = name.staticElement = new AnalyzerParameterElement(node);
@@ -1085,6 +1086,7 @@ class AstBuilder extends ScopeListener {
         toAnalyzerToken(endToken)));
   }
 
+  @override
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     debugEvent("Enum");
     List<EnumConstantDeclaration> constants = popList(count);
@@ -1105,6 +1107,14 @@ class AstBuilder extends ScopeListener {
         toAnalyzerToken(openBrace),
         constants,
         toAnalyzerToken(closeBrace)));
+  }
+
+  @override
+  void endTypeArguments(int count, Token beginToken, Token endToken) {
+    debugEvent("TypeArguments");
+    List<TypeAnnotation> arguments = popList(count);
+    push(ast.typeArgumentList(
+        toAnalyzerToken(beginToken), arguments, toAnalyzerToken(endToken)));
   }
 
   /**
