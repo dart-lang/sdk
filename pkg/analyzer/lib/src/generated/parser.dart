@@ -3354,7 +3354,10 @@ class Parser {
     TypeAnnotation functionType = parseTypeAnnotation(false);
     Token semicolon = _expect(TokenType.SEMICOLON);
     if (functionType is! GenericFunctionType) {
-      // TODO(brianwilkerson) Generate an error and recover (better than this).
+      // TODO(brianwilkerson) Generate a better error.
+      _reportErrorForToken(
+          ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, semicolon);
+      // TODO(brianwilkerson) Recover better than this.
       return astFactory.genericTypeAlias(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
@@ -5632,7 +5635,7 @@ class Parser {
     Token previous = startToken;
     Token next = startToken.next;
     while (next != previous) {
-      if (_tokenMatches(startToken, TokenType.LT)) {
+      if (_tokenMatches(next, TokenType.LT)) {
         depth++;
       } else if (_tokenMatches(next, TokenType.GT)) {
         depth--;
