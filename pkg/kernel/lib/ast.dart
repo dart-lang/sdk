@@ -1150,8 +1150,21 @@ class FunctionNode extends TreeNode {
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
 
+  /// Kernel async marker for the function.
+  ///
+  /// See also [dartAsyncMarker].
   AsyncMarker asyncMarker;
-  bool debuggable = true;
+
+  /// Dart async marker for the function.
+  ///
+  /// See also [asyncMarker].
+  ///
+  /// A Kernel function can represent a Dart function with a different async
+  /// marker.
+  ///
+  /// For example, when async/await is translated away,
+  /// a Dart async function might be represented by a Kernel sync function.
+  AsyncMarker dartAsyncMarker;
   List<TypeParameter> typeParameters;
   int requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
@@ -1167,7 +1180,8 @@ class FunctionNode extends TreeNode {
       int requiredParameterCount,
       this.returnType: const DynamicType(),
       this.inferredReturnValue,
-      this.asyncMarker: AsyncMarker.Sync})
+      this.asyncMarker: AsyncMarker.Sync,
+      this.dartAsyncMarker: AsyncMarker.Sync})
       : this.positionalParameters =
             positionalParameters ?? <VariableDeclaration>[],
         this.requiredParameterCount =

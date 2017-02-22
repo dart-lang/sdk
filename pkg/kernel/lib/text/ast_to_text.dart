@@ -499,7 +499,11 @@ class Printer extends Visitor<Null> {
     if (function.asyncMarker != AsyncMarker.Sync) {
       writeSpaced(getAsyncMarkerKeyword(function.asyncMarker));
     }
-    if (!function.debuggable) writeSpaced("/* not debuggable */");
+    if (function.dartAsyncMarker != AsyncMarker.Sync) {
+      writeSpaced("/* originally");
+      writeSpaced(getAsyncMarkerKeyword(function.dartAsyncMarker));
+      writeSpaced("*/");
+    }
     if (function.body != null) {
       writeFunctionBody(function.body, terminateLine: terminateLine);
     } else if (terminateLine) {

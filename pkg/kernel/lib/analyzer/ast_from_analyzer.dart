@@ -574,6 +574,8 @@ class ExpressionScope extends TypeScope {
     }
     int offset = formalParameters?.offset ?? body.offset;
     int endOffset = body.endToken.offset;
+    ast.AsyncMarker asyncMarker = getAsyncMarker(
+        isAsync: body.isAsynchronous, isStar: body.isGenerator);
     return new ast.FunctionNode(buildOptionalFunctionBody(body),
         typeParameters: typeParameters,
         positionalParameters: positional,
@@ -582,8 +584,8 @@ class ExpressionScope extends TypeScope {
         returnType: buildOptionalTypeAnnotation(returnType) ??
             inferredReturnType ??
             const ast.DynamicType(),
-        asyncMarker: getAsyncMarker(
-            isAsync: body.isAsynchronous, isStar: body.isGenerator))
+        asyncMarker: asyncMarker,
+        dartAsyncMarker: asyncMarker)
       ..fileOffset = offset
       ..fileEndOffset = endOffset;
   }

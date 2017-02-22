@@ -900,7 +900,7 @@ class FunctionNode : public TreeNode {
   virtual void VisitChildren(Visitor* visitor);
 
   AsyncMarker async_marker() { return async_marker_; }
-  bool debuggable() { return debuggable_; }
+  AsyncMarker dart_async_marker() { return dart_async_marker_; }
   TypeParameterList& type_parameters() { return type_parameters_; }
   int required_parameter_count() { return required_parameter_count_; }
   List<VariableDeclaration>& positional_parameters() {
@@ -919,7 +919,7 @@ class FunctionNode : public TreeNode {
         end_position_(TokenPosition::kNoSource) {}
 
   AsyncMarker async_marker_;
-  bool debuggable_;
+  AsyncMarker dart_async_marker_;
   TypeParameterList type_parameters_;
   int required_parameter_count_;
   List<VariableDeclaration> positional_parameters_;

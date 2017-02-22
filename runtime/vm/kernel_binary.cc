@@ -1901,7 +1901,8 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
   function->end_position_ = reader->ReadPosition();
   function->async_marker_ =
       static_cast<FunctionNode::AsyncMarker>(reader->ReadByte());
-  function->debuggable_ = reader->ReadByte() == 1 ? true : false;
+  function->dart_async_marker_ =
+      static_cast<FunctionNode::AsyncMarker>(reader->ReadByte());
   function->type_parameters().ReadFrom(reader);
   function->required_parameter_count_ = reader->ReadUInt();
   function->positional_parameters().ReadFromStatic<VariableDeclarationImpl>(

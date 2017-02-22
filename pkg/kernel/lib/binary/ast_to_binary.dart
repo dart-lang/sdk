@@ -437,7 +437,7 @@ class BinaryPrinter extends Visitor {
     writeOffset(node, node.fileOffset);
     writeOffset(node, node.fileEndOffset);
     writeByte(node.asyncMarker.index);
-    writeByte(node.debuggable ? 1 : 0);
+    writeByte(node.dartAsyncMarker.index);
     writeNodeList(node.typeParameters);
     writeUInt30(node.requiredParameterCount);
     writeVariableDeclarationList(node.positionalParameters);

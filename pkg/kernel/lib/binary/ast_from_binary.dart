@@ -477,7 +477,7 @@ class BinaryBuilder {
     int offset = readOffset();
     int endOffset = readOffset();
     AsyncMarker asyncMarker = AsyncMarker.values[readByte()];
-    bool debuggable = readByte() == 1 ? true : false;
+    AsyncMarker dartAsyncMarker = AsyncMarker.values[readByte()];
     int typeParameterStackHeight = typeParameterStack.length;
     var typeParameters = readAndPushTypeParameterList();
     var requiredParameterCount = readUInt();
@@ -499,10 +499,10 @@ class BinaryBuilder {
         namedParameters: named,
         returnType: returnType,
         inferredReturnValue: inferredReturnValue,
-        asyncMarker: asyncMarker)
+        asyncMarker: asyncMarker,
+        dartAsyncMarker: dartAsyncMarker)
       ..fileOffset = offset
-      ..fileEndOffset = endOffset
-      ..debuggable = debuggable;
+      ..fileEndOffset = endOffset;
   }
 
   void pushVariableDeclaration(VariableDeclaration variable) {

@@ -323,7 +323,8 @@ enum AsyncMarker {
   Sync,
   SyncStar,
   Async,
-  AsyncStar
+  AsyncStar,
+  SyncYielding
 }
 */
 
@@ -332,7 +333,7 @@ type FunctionNode {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte asyncMarker; // Index into AsyncMarker above.
-  Byte debuggable; // 1 for yes, 0 for no
+  Byte dartAsyncMarker; // Index into AsyncMarker above.
   List<TypeParameter> typeParameters;
   UInt requiredParameterCount;
   List<VariableDeclaration> positionalParameters;

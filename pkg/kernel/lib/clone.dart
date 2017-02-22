@@ -389,7 +389,9 @@ class CloneVisitor extends TreeVisitor {
         namedParameters: named,
         requiredParameterCount: node.requiredParameterCount,
         returnType: visitType(node.returnType),
-        asyncMarker: node.asyncMarker)..fileEndOffset = node.fileEndOffset;
+        asyncMarker: node.asyncMarker,
+        dartAsyncMarker: node.dartAsyncMarker)
+      ..fileEndOffset = node.fileEndOffset;
   }
 
   visitArguments(Arguments node) {

@@ -761,7 +761,8 @@ class MethodCallTransformer extends Transformer {
         namedParameters: [],
         requiredParameterCount: newParameters.length,
         returnType: function.returnType,
-        asyncMarker: function.asyncMarker);
+        asyncMarker: function.asyncMarker,
+        dartAsyncMarker: function.dartAsyncMarker);
     return functionNode;
   }
 
@@ -868,7 +869,8 @@ class MethodCallTransformer extends Transformer {
         namedParameters: [],
         requiredParameterCount: newParameterDeclarations.length,
         returnType: existing.function.returnType,
-        asyncMarker: existing.function.asyncMarker);
+        asyncMarker: existing.function.asyncMarker,
+        dartAsyncMarker: existing.function.dartAsyncMarker);
     final procedure = new Procedure(
         procedureName, ProcedureKind.Method, functionNode,
         isStatic: existing.isStatic, fileUri: existing.fileUri);
@@ -993,7 +995,8 @@ class MethodCallTransformer extends Transformer {
         namedParameters: [],
         requiredParameterCount: newParameterDeclarations.length,
         returnType: target.function.returnType,
-        asyncMarker: target.function.asyncMarker);
+        asyncMarker: target.function.asyncMarker,
+        dartAsyncMarker: target.function.dartAsyncMarker);
     final procedure = new Procedure(
         _createName(target.name, argumentsSignature),
         ProcedureKind.Method,
@@ -1050,7 +1053,8 @@ class MethodCallTransformer extends Transformer {
         namedParameters: [],
         requiredParameterCount: newParameterDeclarations.length,
         returnType: target.function.returnType,
-        asyncMarker: target.function.asyncMarker);
+        asyncMarker: target.function.asyncMarker,
+        dartAsyncMarker: target.function.dartAsyncMarker);
     final constructor = new Constructor(functionNode,
         name: _createName(target.name, argumentsSignature),
         isConst: target.isConst,

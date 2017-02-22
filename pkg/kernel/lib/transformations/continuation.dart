@@ -821,7 +821,6 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     enclosingFunction.body = new Block(statements);
     enclosingFunction.body.parent = enclosingFunction;
     enclosingFunction.asyncMarker = AsyncMarker.Sync;
-    enclosingFunction.debuggable = false;
     return enclosingFunction;
   }
 

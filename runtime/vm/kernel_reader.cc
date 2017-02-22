@@ -427,7 +427,25 @@ void KernelReader::ReadProcedure(const dart::Library& library,
   function.set_end_token_pos(kernel_procedure->end_position());
   owner.AddFunction(function);
   function.set_kernel_function(kernel_procedure);
-  function.set_is_debuggable(kernel_procedure->function()->debuggable());
+
+  function.set_is_debuggable(
+      kernel_procedure->function()->dart_async_marker() == FunctionNode::kSync);
+  switch (kernel_procedure->function()->dart_async_marker()) {
+    case FunctionNode::kSyncStar:
+      function.set_modifier(RawFunction::kSyncGen);
+      break;
+    case FunctionNode::kAsync:
+      function.set_modifier(RawFunction::kAsync);
+      break;
+    case FunctionNode::kAsyncStar:
+      function.set_modifier(RawFunction::kAsyncGen);
+      break;
+    default:
+      // no special modifier
+      break;
+  }
+  ASSERT(kernel_procedure->function()->async_marker() == FunctionNode::kSync);
+
   if (native_name != NULL) {
     function.set_native_name(*native_name);
   }
