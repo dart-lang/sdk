@@ -1172,22 +1172,22 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     _isFutureOf([_isObject])(invoke.staticType);
   }
 
-  test_futureOrNull_no_return_value() async {
+  test_futureOrNull_no_return() async {
     MethodInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
-    test() => f.then<Null>((int x) {return;});
+    test() => f.then<Null>((int x) {});
     ''');
     _isFunction2Of(_isInt, _isNull)(
         invoke.argumentList.arguments[0].staticType);
     _isFutureOfNull(invoke.staticType);
   }
 
-  test_futureOrNull_no_return() async {
+  test_futureOrNull_no_return_value() async {
     MethodInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
-    test() => f.then<Null>((int x) {});
+    test() => f.then<Null>((int x) {return;});
     ''');
     _isFunction2Of(_isInt, _isNull)(
         invoke.argumentList.arguments[0].staticType);
@@ -2659,6 +2659,22 @@ class D extends C {
   /*=T*/ f/*<T extends A>*/(/*=T*/ x) => null;
 }
 ''');
+  }
+
+  test_genericMethod_override_covariant_field() async {
+    Source source = addSource(r'''
+abstract class A {
+  num get x;
+  set x(covariant num);
+}
+
+class B extends A {
+  int x;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
   }
 
   test_genericMethod_override_invalidReturnType() async {
