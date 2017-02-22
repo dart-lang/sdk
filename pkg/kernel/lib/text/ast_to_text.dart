@@ -499,7 +499,8 @@ class Printer extends Visitor<Null> {
     if (function.asyncMarker != AsyncMarker.Sync) {
       writeSpaced(getAsyncMarkerKeyword(function.asyncMarker));
     }
-    if (function.dartAsyncMarker != AsyncMarker.Sync) {
+    if (function.dartAsyncMarker != AsyncMarker.Sync &&
+        function.dartAsyncMarker != function.asyncMarker) {
       writeSpaced("/* originally");
       writeSpaced(getAsyncMarkerKeyword(function.dartAsyncMarker));
       writeSpaced("*/");
