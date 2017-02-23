@@ -304,8 +304,8 @@ abstract class AstFactory {
    * Returns a documentation comment consisting of the given [tokens] and having
    * the given [references] (if supplied) embedded within it.
    */
-  Comment documentationComment(
-      List<Token> tokens, [List<CommentReference> references]);
+  Comment documentationComment(List<Token> tokens,
+      [List<CommentReference> references]);
 
   /**
    * Returns a newly created do loop.
@@ -422,6 +422,7 @@ abstract class AstFactory {
   FieldFormalParameter fieldFormalParameter(
       Comment comment,
       List<Annotation> metadata,
+      Token covariantKeyword,
       Token keyword,
       TypeAnnotation type,
       Token thisKeyword,
@@ -551,11 +552,37 @@ abstract class AstFactory {
   FunctionTypedFormalParameter functionTypedFormalParameter(
       Comment comment,
       List<Annotation> metadata,
+      Token covariantKeyword,
       TypeAnnotation returnType,
       SimpleIdentifier identifier,
       TypeParameterList typeParameters,
       FormalParameterList parameters,
       {Token question: null});
+
+  /**
+   * Initialize a newly created generic function type.
+   */
+  GenericFunctionType genericFunctionType(
+      TypeAnnotation returnType,
+      Token functionKeyword,
+      TypeParameterList typeParameters,
+      FormalParameterList _parameters);
+
+  /**
+   * Returns a newly created generic type alias. Either or both of the
+   * [comment] and [metadata] can be `null` if the variable list does not have
+   * the corresponding attribute. The [typeParameters] can be `null` if there
+   * are no type parameters.
+   */
+  GenericTypeAlias genericTypeAlias(
+      Comment comment,
+      List<Annotation> metadata,
+      Token typedefKeyword,
+      SimpleIdentifier name,
+      TypeParameterList typeParameters,
+      Token equals,
+      GenericFunctionType functionType,
+      Token semicolon);
 
   /**
    * Returns a newly created import show combinator.
@@ -848,6 +875,7 @@ abstract class AstFactory {
   SimpleFormalParameter simpleFormalParameter(
       Comment comment,
       List<Annotation> metadata,
+      Token covariantKeyword,
       Token keyword,
       TypeAnnotation type,
       SimpleIdentifier identifier);
@@ -897,6 +925,7 @@ abstract class AstFactory {
    */
   SwitchDefault switchDefault(List<Label> labels, Token keyword, Token colon,
       List<Statement> statements);
+
   /**
    * Returns a newly created switch statement. The list of [members] can be
    * `null` if there are no switch members.
@@ -991,19 +1020,6 @@ abstract class AstFactory {
       Token keyword,
       TypeAnnotation type,
       List<VariableDeclaration> variables);
-
-  /**
-   * Returns a newly created generic type alias. Either or both of the
-   * [comment] and [metadata] can be `null` if the variable list does not have
-   * the corresponding attribute. The [typeParameters] can be `null` if there
-   * are no type parameters.
-   */
-  GenericTypeAlias genericTypeAlias(Comment comment, List<Annotation> metadata, Token typedefKeyword, SimpleIdentifier name, TypeParameterList typeParameters, Token equals, GenericFunctionType functionType, Token semicolon);
-
-  /**
-   * Initialize a newly created generic function type.
-   */
-  GenericFunctionType genericFunctionType(TypeAnnotation returnType, Token functionKeyword, TypeParameterList typeParameters, FormalParameterList _parameters);
 
   /**
    * Returns a newly created variable declaration statement.

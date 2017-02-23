@@ -444,6 +444,7 @@ class AstCloner implements AstVisitor<AstNode> {
       astFactory.fieldFormalParameter(
           cloneNode(node.documentationComment),
           cloneNodeList(node.metadata),
+          cloneToken(node.covariantKeyword),
           cloneToken(node.keyword),
           cloneNode(node.type),
           cloneToken(node.thisKeyword),
@@ -545,6 +546,7 @@ class AstCloner implements AstVisitor<AstNode> {
       astFactory.functionTypedFormalParameter(
           cloneNode(node.documentationComment),
           cloneNodeList(node.metadata),
+          cloneToken(node.covariantKeyword),
           cloneNode(node.returnType),
           cloneNode(node.identifier),
           cloneNode(node.typeParameters),
@@ -818,6 +820,7 @@ class AstCloner implements AstVisitor<AstNode> {
       astFactory.simpleFormalParameter(
           cloneNode(node.documentationComment),
           cloneNodeList(node.metadata),
+          cloneToken(node.covariantKeyword),
           cloneToken(node.keyword),
           cloneNode(node.type),
           cloneNode(node.identifier));
@@ -3180,6 +3183,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       astFactory.fieldFormalParameter(
           _cloneNode(node.documentationComment),
           _cloneNodeList(node.metadata),
+          _mapToken(node.covariantKeyword),
           _mapToken(node.keyword),
           _cloneNode(node.type),
           _mapToken(node.thisKeyword),
@@ -3296,6 +3300,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       astFactory.functionTypedFormalParameter(
           _cloneNode(node.documentationComment),
           _cloneNodeList(node.metadata),
+          _mapToken(node.covariantKeyword),
           _cloneNode(node.returnType),
           _cloneNode(node.identifier),
           _cloneNode(node.typeParameters),
@@ -3663,6 +3668,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       astFactory.simpleFormalParameter(
           _cloneNode(node.documentationComment),
           _cloneNodeList(node.metadata),
+          _mapToken(node.covariantKeyword),
           _mapToken(node.keyword),
           _cloneNode(node.type),
           _cloneNode(node.identifier));

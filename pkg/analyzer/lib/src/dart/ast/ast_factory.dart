@@ -366,6 +366,7 @@ class AstFactoryImpl extends AstFactory {
   FieldFormalParameter fieldFormalParameter(
           Comment comment,
           List<Annotation> metadata,
+          Token covariantKeyword,
           Token keyword,
           TypeAnnotation type,
           Token thisKeyword,
@@ -373,8 +374,8 @@ class AstFactoryImpl extends AstFactory {
           SimpleIdentifier identifier,
           TypeParameterList typeParameters,
           FormalParameterList parameters) =>
-      new FieldFormalParameterImpl(comment, metadata, keyword, type,
-          thisKeyword, period, identifier, typeParameters, parameters);
+      new FieldFormalParameterImpl(comment, metadata, covariantKeyword, keyword,
+          type, thisKeyword, period, identifier, typeParameters, parameters);
 
   @override
   ForEachStatement forEachStatementWithDeclaration(
@@ -495,13 +496,14 @@ class AstFactoryImpl extends AstFactory {
   FunctionTypedFormalParameter functionTypedFormalParameter(
           Comment comment,
           List<Annotation> metadata,
+          Token covariantKeyword,
           TypeAnnotation returnType,
           SimpleIdentifier identifier,
           TypeParameterList typeParameters,
           FormalParameterList parameters,
           {Token question: null}) =>
-      new FunctionTypedFormalParameterImpl(comment, metadata, returnType,
-          identifier, typeParameters, parameters, question);
+      new FunctionTypedFormalParameterImpl(comment, metadata, covariantKeyword,
+          returnType, identifier, typeParameters, parameters, question);
 
   @override
   GenericFunctionType genericFunctionType(
@@ -774,11 +776,12 @@ class AstFactoryImpl extends AstFactory {
   SimpleFormalParameter simpleFormalParameter(
           Comment comment,
           List<Annotation> metadata,
+          Token covariantKeyword,
           Token keyword,
           TypeAnnotation type,
           SimpleIdentifier identifier) =>
       new SimpleFormalParameterImpl(
-          comment, metadata, keyword, type, identifier);
+          comment, metadata, covariantKeyword, keyword, type, identifier);
 
   @override
   SimpleIdentifier simpleIdentifier(Token token, {bool isDeclaration: false}) {

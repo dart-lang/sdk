@@ -512,7 +512,7 @@ class AstBuilder extends ScopeListener {
     FormalParameter node;
     if (thisKeyword == null) {
       node = ast.simpleFormalParameter(
-          null, null, toAnalyzerToken(keyword), type, name);
+          null, null, null, toAnalyzerToken(keyword), type, name);
     } else {
       // TODO(scheglov): Ideally the period token should be passed in.
       Token period = identical('.', thisKeyword.next?.stringValue)
@@ -521,6 +521,7 @@ class AstBuilder extends ScopeListener {
       TypeParameterList typeParameters; // TODO(scheglov)
       FormalParameterList formalParameters; // TODO(scheglov)
       node = ast.fieldFormalParameter(
+          null,
           null,
           null,
           toAnalyzerToken(keyword),

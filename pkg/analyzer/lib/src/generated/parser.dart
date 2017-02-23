@@ -4163,14 +4163,13 @@ class Parser {
       period = _expect(TokenType.PERIOD);
     }
     if (!_matchesIdentifier() && inFunctionType) {
-      SimpleFormalParameterImpl parameter = astFactory.simpleFormalParameter(
+      return astFactory.simpleFormalParameter(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
+          covariantKeyword,
           holder.keyword,
           holder.type,
           null);
-      parameter.covariantKeyword = covariantKeyword;
-      return parameter;
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
@@ -4185,22 +4184,20 @@ class Parser {
         if (enableNnbd && _matches(TokenType.QUESTION)) {
           question = getAndAdvance();
         }
-        FunctionTypedFormalParameterImpl parameter =
-            astFactory.functionTypedFormalParameter(
-                commentAndMetadata.comment,
-                commentAndMetadata.metadata,
-                holder.type,
-                astFactory.simpleIdentifier(identifier.token,
-                    isDeclaration: true),
-                typeParameters,
-                parameters,
-                question: question);
-        parameter.covariantKeyword = covariantKeyword;
-        return parameter;
-      } else {
-        FieldFormalParameterImpl parameter = astFactory.fieldFormalParameter(
+        return astFactory.functionTypedFormalParameter(
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
+            covariantKeyword,
+            holder.type,
+            astFactory.simpleIdentifier(identifier.token, isDeclaration: true),
+            typeParameters,
+            parameters,
+            question: question);
+      } else {
+        return astFactory.fieldFormalParameter(
+            commentAndMetadata.comment,
+            commentAndMetadata.metadata,
+            covariantKeyword,
             holder.keyword,
             holder.type,
             thisKeyword,
@@ -4208,8 +4205,6 @@ class Parser {
             identifier,
             typeParameters,
             parameters);
-        parameter.covariantKeyword = covariantKeyword;
-        return parameter;
       }
     } else if (typeParameters != null) {
       // TODO(brianwilkerson) Report an error. It looks like a function-typed
@@ -4231,9 +4226,10 @@ class Parser {
       // TODO(brianwilkerson) If there are type parameters but no parameters,
       // should we create a synthetic empty parameter list here so we can
       // capture the type parameters?
-      FieldFormalParameterImpl parameter = astFactory.fieldFormalParameter(
+      return astFactory.fieldFormalParameter(
           commentAndMetadata.comment,
           commentAndMetadata.metadata,
+          covariantKeyword,
           holder.keyword,
           type,
           thisKeyword,
@@ -4241,17 +4237,14 @@ class Parser {
           identifier,
           null,
           null);
-      parameter.covariantKeyword = covariantKeyword;
-      return parameter;
     }
-    SimpleFormalParameterImpl parameter = astFactory.simpleFormalParameter(
+    return astFactory.simpleFormalParameter(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
+        covariantKeyword,
         holder.keyword,
         type,
         astFactory.simpleIdentifier(identifier.token, isDeclaration: true));
-    parameter.covariantKeyword = covariantKeyword;
-    return parameter;
   }
 
   /**

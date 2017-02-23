@@ -5311,6 +5311,11 @@ abstract class NodeList<E extends AstNode> implements List<E> {
  */
 abstract class NormalFormalParameter extends FormalParameter {
   /**
+   * Set the token for the 'covariant' keyword to the given [token].
+   */
+  void set covariantKeyword(Token token);
+
+  /**
    * Return the documentation comment associated with this parameter, or `null`
    * if this parameter does not have a documentation comment associated with it.
    */
