@@ -28,9 +28,6 @@ import 'errors.dart' show
 import 'kernel/kernel_target.dart' show
     KernelTarget;
 
-import 'package:kernel/ast.dart' show
-    Program;
-
 import 'dill/dill_target.dart' show
     DillTarget;
 

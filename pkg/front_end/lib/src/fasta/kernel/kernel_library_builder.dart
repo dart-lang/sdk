@@ -61,7 +61,8 @@ class KernelLibraryBuilder
     extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
   final Library library;
 
-  final List<Class> mixinApplicationClasses = <Class>[];
+  final Map<String, SourceClassBuilder> mixinApplicationClasses =
+      <String, SourceClassBuilder>{};
 
   final List<List> argumentsWithMissingDefaultValues = <List>[];
 
@@ -351,7 +352,7 @@ class KernelLibraryBuilder
     super.includePart(part);
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
-    mixinApplicationClasses.addAll(part.mixinApplicationClasses);
+    assert(mixinApplicationClasses.isEmpty);
   }
 }
 

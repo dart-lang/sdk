@@ -64,9 +64,10 @@ class KernelMixinApplicationBuilder
 
   TypeBuilder applyMixin(TypeBuilder supertype, TypeBuilder mixin) {
     KernelLibraryBuilder library = this.library.partOfLibrary ?? this.library;
-    List<TypeVariableBuilder> newTypeVariables;
     List<KernelTypeBuilder> typeArguments;
+    List<TypeVariableBuilder> newTypeVariables;
     if (typeVariables != null) {
+      assert(subclassName != null);
       newTypeVariables = library.copyTypeVariables(typeVariables);
       Map<TypeVariableBuilder, TypeBuilder> substitution =
           <TypeVariableBuilder, TypeBuilder>{};
@@ -84,18 +85,32 @@ class KernelMixinApplicationBuilder
     String name = subclassName != null
         ? "${subclassName}^${mixin.name}"
         : "${supertype.name}&${mixin.name}";
-    SourceClassBuilder cls = new SourceClassBuilder(null, abstractMask, name,
-        newTypeVariables, supertype, null, <String, Builder>{}, library,
-        <ConstructorReferenceBuilder>[], charOffset, null, mixin);
-    library.addImplementationBuilder(name, cls, charOffset);
-    if (newTypeVariables != null) {
-      for (KernelTypeVariableBuilder t in newTypeVariables) {
-        cls.cls.typeParameters.add(t.parameter);
+
+    SourceClassBuilder cls =
+        library.mixinApplicationClasses.putIfAbsent(name, () {
+      SourceClassBuilder cls = new SourceClassBuilder(
+          null,
+          abstractMask,
+          name,
+          newTypeVariables,
+          supertype,
+          null,
+          <String, Builder>{},
+          library,
+          <ConstructorReferenceBuilder>[],
+          charOffset,
+          null,
+          mixin);
+      library.addImplementationBuilder(name, cls, charOffset);
+      if (newTypeVariables != null) {
+        for (KernelTypeVariableBuilder t in newTypeVariables) {
+          cls.cls.typeParameters.add(t.parameter);
+        }
+        setParents(cls.cls.typeParameters, cls.cls);
       }
-      setParents(cls.cls.typeParameters, cls.cls);
-    }
-    return new KernelNamedTypeBuilder(name, typeArguments, charOffset,
-        library.fileUri)
-        ..builder = cls;
+      return cls;
+    });
+    return new KernelNamedTypeBuilder(
+        name, typeArguments, charOffset, library.fileUri)..builder = cls;
   }
 }

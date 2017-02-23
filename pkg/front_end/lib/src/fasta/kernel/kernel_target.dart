@@ -194,16 +194,6 @@ class KernelTarget extends TargetImplementation {
     return result;
   }
 
-  List<Class> collectAllMixinApplications() {
-    List<Class> result = <Class>[];
-    loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library is KernelLibraryBuilder) {
-        result.addAll(library.mixinApplicationClasses);
-      }
-    });
-    return result;
-  }
-
   void breakCycle(ClassBuilder builder) {
     Class cls = builder.target;
     cls.implementedTypes.clear();

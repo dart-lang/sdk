@@ -52,20 +52,6 @@ abstract class Object&M1&M2 extends self::Object&M1 implements self::M2 {
   method m() → dynamic
     return core::print("M2");
 }
-abstract class Object&M1 extends core::Object implements self::M1 {
-  constructor •() → void
-    : super core::Object::•()
-    ;
-  method m() → dynamic
-    return core::print("M1");
-}
-abstract class Object&M1&M2 extends self::Object&M1 implements self::M2 {
-  constructor •() → void
-    : super self::Object&M1::•()
-    ;
-  method m() → dynamic
-    return core::print("M2");
-}
 abstract class D^G1<S extends core::Object> extends core::Object implements self::G1<self::D^G1::S> {
   constructor •() → void
     : super core::Object::•()
