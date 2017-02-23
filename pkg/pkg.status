@@ -29,10 +29,8 @@ front_end/test/fasta/sdk_test: SkipByDesign
 
 front_end/test/fasta/compile_test: Pass, Slow
 
-# Skip tests for Generic Types Reification. These tests aren't meant to
-# be run. Instead, they are transformed by the reify transformation
-# routines and compared atainst the expected outcomes.
-kernel/testcases/reify/*: Skip
+# These are not tests but input for tests.
+kernel/testcases/*: Skip
 
 [ $runtime != vm || $mode != release || $system == windows ]
 front_end/test/fasta/*: Skip
