@@ -11,34 +11,14 @@ import 'strong_test_helper.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CheckerTest);
+//    defineReflectiveTests(CheckerTest_Driver);
   });
 }
 
-void _addMetaLibrary() {
-  addFile(
-      r'''
-library meta;
-class _Checked { const _Checked(); }
-const Object checked = const _Checked();
-
-class _Virtual { const _Virtual(); }
-const Object virtual = const _Virtual();
-    ''',
-      name: '/meta.dart');
-}
-
 @reflectiveTest
-class CheckerTest {
-  void setUp() {
-    doSetUp();
-  }
-
-  void tearDown() {
-    doTearDown();
-  }
-
-  void test_awaitForInCastsStreamElementToVariable() {
-    checkFile('''
+class CheckerTest extends AbstractStrongTest {
+  test_awaitForInCastsStreamElementToVariable() async {
+    await checkFile('''
 import 'dart:async';
 
 abstract class MyStream<T> extends Stream<T> {
@@ -64,8 +44,8 @@ main() async {
 ''');
   }
 
-  void test_awaitForInCastsSupertypeSequenceToStream() {
-    checkFile('''
+  test_awaitForInCastsSupertypeSequenceToStream() async {
+    await checkFile('''
 main() async {
   dynamic d;
   await for (var i in /*info:DYNAMIC_CAST*/d) {}
@@ -76,8 +56,8 @@ main() async {
 ''');
   }
 
-  void test_binaryAndIndexOperators() {
-    checkFile('''
+  test_binaryAndIndexOperators() async {
+    await checkFile('''
 class A {
   A operator *(B b) => null;
   A operator /(B b) => null;
@@ -141,8 +121,8 @@ test() {
 ''');
   }
 
-  void test_callMethodOnFunctions() {
-    checkFile(r'''
+  test_callMethodOnFunctions() async {
+    await checkFile(r'''
 void f(int x) => print(x);
 main() {
   f.call(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
@@ -150,8 +130,8 @@ main() {
     ''');
   }
 
-  void test_castsInConditions() {
-    checkFile('''
+  test_castsInConditions() async {
+    await checkFile('''
 main() {
   bool b = true;
   num x = b ? 1 : 2.3;
@@ -162,8 +142,8 @@ main() {
 ''');
   }
 
-  void test_castsInConstantContexts() {
-    checkFile('''
+  test_castsInConstantContexts() async {
+    await checkFile('''
 class A {
   static const num n = 3.0;
   // The severe error is from constant evaluation where we know the
@@ -181,8 +161,8 @@ void foo(Object o) {
 ''');
   }
 
-  void test_classOverrideOfGrandInterface_interfaceOfAbstractSuperclass() {
-    checkFile('''
+  test_classOverrideOfGrandInterface_interfaceOfAbstractSuperclass() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -197,8 +177,8 @@ class T1 extends Base {
 ''');
   }
 
-  void test_classOverrideOfGrandInterface_interfaceOfConcreteSuperclass() {
-    checkFile('''
+  test_classOverrideOfGrandInterface_interfaceOfConcreteSuperclass() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -218,8 +198,8 @@ class T1 extends Base {
 ''');
   }
 
-  void test_classOverrideOfGrandInterface_interfaceOfInterfaceOfChild() {
-    checkFile('''
+  test_classOverrideOfGrandInterface_interfaceOfInterfaceOfChild() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -234,8 +214,8 @@ class T1 implements I2 {
 ''');
   }
 
-  void test_classOverrideOfGrandInterface_mixinOfInterfaceOfChild() {
-    checkFile('''
+  test_classOverrideOfGrandInterface_mixinOfInterfaceOfChild() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -250,8 +230,8 @@ class T1 implements I2 {
 ''');
   }
 
-  void test_classOverrideOfGrandInterface_superclassOfInterfaceOfChild() {
-    checkFile('''
+  test_classOverrideOfGrandInterface_superclassOfInterfaceOfChild() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -266,8 +246,8 @@ class T1 implements I2 {
 ''');
   }
 
-  void test_compoundAssignment_returnsDynamic() {
-    checkFile(r'''
+  test_compoundAssignment_returnsDynamic() async {
+    await checkFile(r'''
 class Foo {
   operator +(other) => null;
 }
@@ -280,8 +260,8 @@ main() {
     ''');
   }
 
-  void test_compoundAssignments() {
-    checkFile('''
+  test_compoundAssignments() async {
+    await checkFile('''
 class A {
   A operator *(B b) => null;
   A operator /(B b) => null;
@@ -369,9 +349,9 @@ test() {
 ''');
   }
 
-  void test_constantGenericTypeArg_explict() {
+  test_constantGenericTypeArg_explict() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26141
-    checkFile('''
+    await checkFile('''
 abstract class Equality<R> {}
 abstract class EqualityBase<R> implements Equality<R> {
   final C<R> c = const C<R>();
@@ -395,9 +375,9 @@ main() {
     ''');
   }
 
-  void test_constantGenericTypeArg_infer() {
+  test_constantGenericTypeArg_infer() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26141
-    checkFile('''
+    await checkFile('''
 abstract class Equality<Q> {}
 abstract class EqualityBase<R> implements Equality<R> {
   final C<R> c = /*info:INFERRED_TYPE_ALLOCATION*/const C();
@@ -421,9 +401,9 @@ main() {
     ''');
   }
 
-  void test_constructorInvalid() {
+  test_constructorInvalid() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26695
-    checkFile('''
+    await checkFile('''
 class A {
   B({ /*error:FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR*/this.test: 1.0 }) {}
   final double test = 0.0;
@@ -431,8 +411,8 @@ class A {
 ''');
   }
 
-  void test_constructors() {
-    checkFile('''
+  test_constructors() async {
+    await checkFile('''
 const num z = 25;
 Object obj = "world";
 
@@ -465,14 +445,14 @@ void main() {
 ''');
   }
 
-  void test_conversionAndDynamicInvoke() {
+  test_conversionAndDynamicInvoke() async {
     addFile(
         '''
 dynamic toString = (int x) => x + 42;
 dynamic hashCode = "hello";
 ''',
         name: '/helper.dart');
-    checkFile('''
+    await checkFile('''
 import 'helper.dart' as helper;
 
 class A {
@@ -547,9 +527,9 @@ void main() {
 ''');
   }
 
-  void test_covariantOverride() {
+  test_covariantOverride() async {
     _addMetaLibrary();
-    checkFile(r'''
+    await checkFile(r'''
 import 'meta.dart';
 class C {
   num f(num x) => x;
@@ -580,9 +560,9 @@ class G_error extends E implements D {
     ''');
   }
 
-  void test_covariantOverride_fields() {
+  test_covariantOverride_fields() async {
     _addMetaLibrary();
-    checkFile(r'''
+    await checkFile(r'''
 import 'meta.dart';
 class A {
   get foo => '';
@@ -604,9 +584,9 @@ class E extends D {
     ''');
   }
 
-  void test_covariantOverride_leastUpperBound() {
+  test_covariantOverride_leastUpperBound() async {
     _addMetaLibrary();
-    checkFile(r'''
+    await checkFile(r'''
 import "meta.dart";
 abstract class Top {}
 abstract class Left implements Top {}
@@ -629,9 +609,9 @@ abstract class TakesBottom implements TakesLeft, TakesRight {
     ''');
   }
 
-  void test_covariantOverride_markerIsInherited() {
+  test_covariantOverride_markerIsInherited() async {
     _addMetaLibrary();
-    checkFile(r'''
+    await checkFile(r'''
 import 'meta.dart';
 class C {
   num f(@checked num x) => x;
@@ -662,8 +642,8 @@ class G_error extends E implements D {
     ''');
   }
 
-  void test_dynamicInvocation() {
-    checkFile('''
+  test_dynamicInvocation() async {
+    await checkFile('''
 typedef dynamic A(dynamic x);
 class B {
   int call(int x) => x;
@@ -717,8 +697,8 @@ void main() {
 ''');
   }
 
-  void test_factoryConstructorDowncast() {
-    checkFile(r'''
+  test_factoryConstructorDowncast() async {
+    await checkFile(r'''
 class Animal {
   Animal();
   factory Animal.cat() => new Cat();
@@ -732,8 +712,8 @@ void main() {
 }''');
   }
 
-  void test_fieldFieldOverride() {
-    checkFile('''
+  test_fieldFieldOverride() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -761,8 +741,8 @@ class Child2 implements Base {
 ''');
   }
 
-  void test_fieldGetterOverride() {
-    checkFile('''
+  test_fieldGetterOverride() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -790,8 +770,8 @@ class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR*/Child2 implement
 ''');
   }
 
-  void test_fieldOverride_fuzzyArrows() {
-    checkFile('''
+  test_fieldOverride_fuzzyArrows() async {
+    await checkFile('''
 typedef void ToVoid<T>(T x);
 class F {
   final ToVoid<dynamic> f = null;
@@ -810,9 +790,9 @@ class H implements F {
  ''');
   }
 
-  void test_fieldOverride_virtual() {
+  test_fieldOverride_virtual() async {
     _addMetaLibrary();
-    checkFile(r'''
+    await checkFile(r'''
 import 'meta.dart';
 class C {
   @virtual int x;
@@ -840,8 +820,8 @@ class VirtualNotInherited extends OverrideWithField {
     ''');
   }
 
-  void test_fieldSetterOverride() {
-    checkFile('''
+  test_fieldSetterOverride() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -884,8 +864,8 @@ class Child2 implements Base {
 ''');
   }
 
-  void test_forInCastsIterateElementToVariable() {
-    checkFile('''
+  test_forInCastsIterateElementToVariable() async {
+    await checkFile('''
 main() {
   // Don't choke if sequence is not iterable.
   for (var i in /*error:FOR_IN_OF_INVALID_TYPE*/1234) {}
@@ -905,8 +885,8 @@ main() {
 ''');
   }
 
-  void test_forInCastsSupertypeSequenceToIterate() {
-    checkFile('''
+  test_forInCastsSupertypeSequenceToIterate() async {
+    await checkFile('''
 main() {
   dynamic d;
   for (var i in /*info:DYNAMIC_CAST*/d) {}
@@ -917,8 +897,8 @@ main() {
 ''');
   }
 
-  void test_forLoopVariable() {
-    checkFile('''
+  test_forLoopVariable() async {
+    await checkFile('''
 foo() {
   for (int i = 0; i < 10; i++) {
     i = /*error:INVALID_ASSIGNMENT*/"hi";
@@ -932,8 +912,8 @@ bar() {
 ''');
   }
 
-  void test_functionModifiers_async() {
-    checkFile('''
+  test_functionModifiers_async() async {
+    await checkFile('''
 import 'dart:async';
 import 'dart:math' show Random;
 
@@ -980,8 +960,8 @@ Future<String> issue_sdk_26404() async {
 ''');
   }
 
-  void test_functionModifiers_asyncStar() {
-    checkFile('''
+  test_functionModifiers_asyncStar() async {
+    await checkFile('''
 import 'dart:async';
 
 dynamic x;
@@ -1005,8 +985,8 @@ Stream<int> baz5() async* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new MyStream
 ''');
   }
 
-  void test_functionModifiers_syncStar() {
-    checkFile('''
+  test_functionModifiers_syncStar() async {
+    await checkFile('''
 dynamic x;
 
 bar1() sync* { yield x; }
@@ -1022,8 +1002,8 @@ Iterable<int> baz5() sync* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
 ''');
   }
 
-  void test_functionTypingAndSubtyping_classes() {
-    checkFile('''
+  test_functionTypingAndSubtyping_classes() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -1076,8 +1056,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_dynamic() {
-    checkFile('''
+  test_functionTypingAndSubtyping_dynamic() async {
+    await checkFile('''
 class A {}
 
 typedef dynamic Top(dynamic x);     // Top of the lattice
@@ -1122,7 +1102,7 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_dynamic_knownFunctions() {
+  test_functionTypingAndSubtyping_dynamic_knownFunctions() async {
     // Our lattice should look like this:
     //
     //
@@ -1138,7 +1118,7 @@ void main() {
     // static type errors, since they cannot succeed.
     // This makes some of what look like downcasts turn into
     // type errors below.
-    checkFile('''
+    await checkFile('''
 class A {}
 
 typedef dynamic BotTop(dynamic x);
@@ -1311,12 +1291,12 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_dynamicFunctions_closuresAreNotFuzzy() {
+  test_functionTypingAndSubtyping_dynamicFunctions_closuresAreNotFuzzy() async {
     // Regression test for definite function cases
     // https://github.com/dart-lang/sdk/issues/26118
     // https://github.com/dart-lang/sdk/issues/26156
     // https://github.com/dart-lang/sdk/issues/28087
-    checkFile('''
+    await checkFile('''
 void takesF(void f(int x)) {}
 
 typedef void TakesInt(int x);
@@ -1379,8 +1359,8 @@ void test2() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_functionLiteralVariance() {
-    checkFile('''
+  test_functionTypingAndSubtyping_functionLiteralVariance() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -1424,8 +1404,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_functionVariableVariance() {
-    checkFile('''
+  test_functionTypingAndSubtyping_functionVariableVariance() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -1462,8 +1442,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_higherOrderFunctionLiteral1() {
-    checkFile('''
+  test_functionTypingAndSubtyping_higherOrderFunctionLiteral1() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -1511,8 +1491,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_higherOrderFunctionLiteral2() {
-    checkFile('''
+  test_functionTypingAndSubtyping_higherOrderFunctionLiteral2() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -1560,8 +1540,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_higherOrderFunctionLiteral3() {
-    checkFile('''
+  test_functionTypingAndSubtyping_higherOrderFunctionLiteral3() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -1609,8 +1589,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_higherOrderFunctionVariables() {
-    checkFile('''
+  test_functionTypingAndSubtyping_higherOrderFunctionVariables() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -1649,8 +1629,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_instanceMethodVariance() {
-    checkFile('''
+  test_functionTypingAndSubtyping_instanceMethodVariance() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -1697,8 +1677,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_intAndObject() {
-    checkFile('''
+  test_functionTypingAndSubtyping_intAndObject() async {
+    await checkFile('''
 typedef Object Top(int x);      // Top of the lattice
 typedef int Left(int x);        // Left branch
 typedef int Left2(int x);       // Left branch
@@ -1755,8 +1735,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_namedAndOptionalParameters() {
-    checkFile('''
+  test_functionTypingAndSubtyping_namedAndOptionalParameters() async {
+    await checkFile('''
 class A {}
 
 typedef A FR(A x);
@@ -1873,8 +1853,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_objectsWithCallMethods() {
-    checkFile('''
+  test_functionTypingAndSubtyping_objectsWithCallMethods() async {
+    await checkFile('''
 typedef int I2I(int x);
 typedef num N2N(num x);
 class A {
@@ -1935,8 +1915,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_staticMethodVariance() {
-    checkFile('''
+  test_functionTypingAndSubtyping_staticMethodVariance() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -1982,8 +1962,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_subtypeOfUniversalType() {
-    checkFile('''
+  test_functionTypingAndSubtyping_subtypeOfUniversalType() async {
+    await checkFile('''
 void main() {
   nonGenericFn(x) => null;
   {
@@ -2017,8 +1997,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_uninferredClosure() {
-    checkFile('''
+  test_functionTypingAndSubtyping_uninferredClosure() async {
+    await checkFile('''
 typedef num Num2Num(num x);
 void main() {
   Num2Num g = /*info:INFERRED_TYPE_CLOSURE,error:INVALID_ASSIGNMENT*/(int x) { return x; };
@@ -2027,8 +2007,8 @@ void main() {
 ''');
   }
 
-  void test_functionTypingAndSubtyping_void() {
-    checkFile('''
+  test_functionTypingAndSubtyping_void() async {
+    await checkFile('''
 class A {
   void bar() => null;
   void foo() => bar(); // allowed
@@ -2036,8 +2016,8 @@ class A {
 ''');
   }
 
-  void test_genericClassMethodOverride() {
-    checkFile('''
+  test_genericClassMethodOverride() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -2055,8 +2035,8 @@ class Derived2<S extends B> extends Base<B> {
 ''');
   }
 
-  void test_genericFunctionWrongNumberOfArguments() {
-    checkFile(r'''
+  test_genericFunctionWrongNumberOfArguments() async {
+    await checkFile(r'''
 /*=T*/ foo/*<T>*/(/*=T*/ x, /*=T*/ y) => x;
 /*=T*/ bar/*<T>*/({/*=T*/ x, /*=T*/ y}) => x;
 
@@ -2081,8 +2061,8 @@ main() {
 ''');
   }
 
-  void test_genericMethodOverride() {
-    checkFile('''
+  test_genericMethodOverride() async {
+    await checkFile('''
 class Future<T> {
   /*=S*/ then/*<S>*/(/*=S*/ onValue(T t)) => null;
 }
@@ -2105,8 +2085,8 @@ class DerivedFuture4<A> extends Future<A> {
 ''');
   }
 
-  void test_genericMethodSuper() {
-    checkFile(r'''
+  test_genericMethodSuper() async {
+    await checkFile(r'''
 class A<T> {
   A<S> create<S extends T>() => new A<S>();
 }
@@ -2128,8 +2108,8 @@ class F extends A<num> {
     ''');
   }
 
-  void test_genericMethodSuperSubstitute() {
-    checkFile(r'''
+  test_genericMethodSuperSubstitute() async {
+    await checkFile(r'''
 class Clonable<T> {}
 class G<T> {
   create<A extends Clonable<T>, B extends Iterable<A>>() => null;
@@ -2140,8 +2120,8 @@ class H extends G<num> {
     ''');
   }
 
-  void test_getterGetterOverride() {
-    checkFile('''
+  test_getterGetterOverride() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -2162,8 +2142,8 @@ class Child extends Base {
 ''');
   }
 
-  void test_getterOverride_fuzzyArrows() {
-    checkFile('''
+  test_getterOverride_fuzzyArrows() async {
+    await checkFile('''
 typedef void ToVoid<T>(T x);
 
 class F {
@@ -2183,8 +2163,8 @@ class H implements F {
 ''');
   }
 
-  void test_ifForDoWhileStatementsUseBooleanConversion() {
-    checkFile('''
+  test_ifForDoWhileStatementsUseBooleanConversion() async {
+    await checkFile('''
 main() {
   dynamic dyn = 42;
   Object obj = 42;
@@ -2214,22 +2194,22 @@ main() {
 ''');
   }
 
-  void test_implicitCasts() {
+  test_implicitCasts() async {
     addFile('num n; int i = /*info:ASSIGNMENT_CAST*/n;');
-    check();
+    await check();
     // TODO(jmesserly): should not be emitting the hint as well as the error.
     // It is a "strong mode hint" however, so it will not be user visible.
     addFile(
         'num n; int i = /*info:ASSIGNMENT_CAST,error:INVALID_ASSIGNMENT*/n;');
-    check(implicitCasts: false);
+    await check(implicitCasts: false);
   }
 
-  void test_implicitCasts_genericMethods() {
+  test_implicitCasts_genericMethods() async {
     addFile('var x = <String>[].map((x) => "");');
-    check(implicitCasts: false);
+    await check(implicitCasts: false);
   }
 
-  void test_implicitCasts_numericOps() {
+  test_implicitCasts_numericOps() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26912
     addFile(r'''
 void f() {
@@ -2238,10 +2218,10 @@ void f() {
   x += y;
 }
     ''');
-    check(implicitCasts: false);
+    await check(implicitCasts: false);
   }
 
-  void test_implicitDynamic_field() {
+  test_implicitDynamic_field() async {
     addFile(r'''
 class C {
   var /*error:IMPLICIT_DYNAMIC_FIELD*/x0;
@@ -2253,10 +2233,10 @@ class C {
   dynamic y1 = (<dynamic>[])[0];
 }
     ''');
-    check(implicitDynamic: false);
+    await check(implicitDynamic: false);
   }
 
-  void test_implicitDynamic_function() {
+  test_implicitDynamic_function() async {
     addFile(r'''
 /*=T*/ a/*<T>*/(/*=T*/ t) => t;
 /*=T*/ b/*<T>*/() => null;
@@ -2284,10 +2264,10 @@ void main/*<S>*/() {
   (/*<T>*/() => /*info:UNNECESSARY_CAST*/null as dynamic/*=T*/)/*<int>*/();
 }
     ''');
-    check(implicitDynamic: false);
+    await check(implicitDynamic: false);
   }
 
-  void test_implicitDynamic_listLiteral() {
+  test_implicitDynamic_listLiteral() async {
     addFile(r'''
 
 var l0 = /*error:IMPLICIT_DYNAMIC_LIST_LITERAL*/[];
@@ -2301,10 +2281,10 @@ var l5 = <int>[];
 List<int> l6 = /*info:INFERRED_TYPE_LITERAL*/[];
 var l7 = /*info:INFERRED_TYPE_LITERAL*/[42];
     ''');
-    check(implicitDynamic: false);
+    await check(implicitDynamic: false);
   }
 
-  void test_implicitDynamic_mapLiteral() {
+  test_implicitDynamic_mapLiteral() async {
     addFile(r'''
 var m0 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
 Map m1 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
@@ -2319,10 +2299,10 @@ var m7 = <String, String>{};
 Map<String, String> m8 = /*info:INFERRED_TYPE_LITERAL*/{};
 var m9 = /*info:INFERRED_TYPE_LITERAL*/{'hi': 'there'};
     ''');
-    check(implicitDynamic: false);
+    await check(implicitDynamic: false);
   }
 
-  void test_implicitDynamic_method() {
+  test_implicitDynamic_method() async {
     addFile(r'''
 class C {
   /*=T*/ m/*<T>*/(/*=T*/ s) => s;
@@ -2348,10 +2328,10 @@ void f() {
   i = new D<int>().n();
 }
     ''');
-    check(implicitDynamic: false);
+    await check(implicitDynamic: false);
   }
 
-  void test_implicitDynamic_parameter() {
+  test_implicitDynamic_parameter() async {
     addFile(r'''
 const dynamic DYNAMIC_VALUE = 42;
 
@@ -2383,10 +2363,10 @@ class C {
 void ftf0(void x(/*error:IMPLICIT_DYNAMIC_PARAMETER*/y)) {}
 void ftf1(void x(int y)) {}
     ''');
-    check(implicitDynamic: false);
+    await check(implicitDynamic: false);
   }
 
-  void test_implicitDynamic_return() {
+  test_implicitDynamic_return() async {
     addFile(r'''
 // function
 /*error:IMPLICIT_DYNAMIC_RETURN*/f0() {return f0();}
@@ -2421,10 +2401,10 @@ void ftf1(dynamic f(int x)) {}
 var fe0 = (int x) => x as dynamic;
 var fe1 = (int x) => x;
     ''');
-    check(implicitDynamic: false);
+    await check(implicitDynamic: false);
   }
 
-  void test_implicitDynamic_static() {
+  test_implicitDynamic_static() async {
     addFile(r'''
 class C {
   static void test(int body()) {}
@@ -2436,10 +2416,10 @@ void main() {
   });
 }
 ''');
-    check(implicitDynamic: false);
+    await check(implicitDynamic: false);
   }
 
-  void test_implicitDynamic_type() {
+  test_implicitDynamic_type() async {
     addFile(r'''
 class C<T> {}
 class M1<T extends /*error:IMPLICIT_DYNAMIC_TYPE*/List> {}
@@ -2466,10 +2446,10 @@ A g(B b) {
   return /*info:INFERRED_TYPE_ALLOCATION*/new A();
 }
     ''');
-    check(implicitDynamic: false);
+    await check(implicitDynamic: false);
   }
 
-  void test_implicitDynamic_variable() {
+  test_implicitDynamic_variable() async {
     addFile(r'''
 var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x0;
 var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x1 = (<dynamic>[])[0];
@@ -2479,11 +2459,11 @@ var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x2,
 dynamic y0;
 dynamic y1 = (<dynamic>[])[0];
     ''');
-    check(implicitDynamic: false);
+    await check(implicitDynamic: false);
   }
 
-  void test_invalidOverrides_baseClassOverrideToChildInterface() {
-    checkFile('''
+  test_invalidOverrides_baseClassOverrideToChildInterface() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2500,8 +2480,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
 ''');
   }
 
-  void test_invalidOverrides_childOverride() {
-    checkFile('''
+  test_invalidOverrides_childOverride() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2545,8 +2525,8 @@ class T8 implements Base {
 ''');
   }
 
-  void test_invalidOverrides_childOverride2() {
-    checkFile('''
+  test_invalidOverrides_childOverride2() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2560,8 +2540,8 @@ class Test extends Base {
 ''');
   }
 
-  void test_invalidOverrides_classOverrideOfInterface() {
-    checkFile('''
+  test_invalidOverrides_classOverrideOfInterface() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2575,8 +2555,8 @@ class T1 implements I {
 ''');
   }
 
-  void test_invalidOverrides_doubleOverride() {
-    checkFile('''
+  test_invalidOverrides_doubleOverride() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2594,8 +2574,8 @@ class Test extends Parent {
 ''');
   }
 
-  void test_invalidOverrides_doubleOverride2() {
-    checkFile('''
+  test_invalidOverrides_doubleOverride2() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2612,8 +2592,8 @@ class Test extends Parent {
 ''');
   }
 
-  void test_invalidOverrides_grandChildOverride() {
-    checkFile('''
+  test_invalidOverrides_grandChildOverride() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2631,8 +2611,8 @@ class Test extends Parent {
 ''');
   }
 
-  void test_invalidOverrides_mixinOverrideOfInterface() {
-    checkFile('''
+  test_invalidOverrides_mixinOverrideOfInterface() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2650,8 +2630,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
 ''');
   }
 
-  void test_invalidOverrides_mixinOverrideToBase() {
-    checkFile('''
+  test_invalidOverrides_mixinOverrideToBase() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2677,8 +2657,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T3 extends Base
 ''');
   }
 
-  void test_invalidOverrides_mixinOverrideToMixin() {
-    checkFile('''
+  test_invalidOverrides_mixinOverrideToMixin() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2701,11 +2681,11 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
 ''');
   }
 
-  void test_invalidOverrides_noDuplicateMixinOverride() {
+  test_invalidOverrides_noDuplicateMixinOverride() async {
     // This is a regression test for a bug in an earlier implementation were
     // names were hiding errors if the first mixin override looked correct,
     // but subsequent ones did not.
-    checkFile('''
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2730,11 +2710,10 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
 ''');
   }
 
-  void
-      test_invalidOverrides_noErrorsIfSubclassCorrectlyOverrideBaseAndInterface() {
+  test_invalidOverrides_noErrorsIfSubclassCorrectlyOverrideBaseAndInterface() async {
     // This is a case were it is incorrect to say that the base class
     // incorrectly overrides the interface.
-    checkFile('''
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2764,8 +2743,8 @@ class T4 extends Object with Base implements I1 {
 ''');
   }
 
-  void test_invalidRuntimeChecks() {
-    checkFile('''
+  test_invalidRuntimeChecks() async {
+    await checkFile('''
 typedef int I2I(int x);
 typedef int D2I(x);
 typedef int II2I(int x, int y);
@@ -2818,8 +2797,8 @@ void main() {
 ''');
   }
 
-  void test_leastUpperBounds() {
-    checkFile('''
+  test_leastUpperBounds() async {
+    await checkFile('''
 typedef T Returns<T>();
 
 // regression test for https://github.com/dart-lang/sdk/issues/26094
@@ -2867,8 +2846,8 @@ class C {
 ''');
   }
 
-  void test_leastUpperBounds_fuzzyArrows() {
-    checkFile(r'''
+  test_leastUpperBounds_fuzzyArrows() async {
+    await checkFile(r'''
 typedef String TakesA<T>(T item);
 
 void main() {
@@ -2881,9 +2860,9 @@ void main() {
 ''');
   }
 
-  void test_loadLibrary() {
+  test_loadLibrary() async {
     addFile('''library lib1;''', name: '/lib1.dart');
-    checkFile(r'''
+    await checkFile(r'''
 import 'lib1.dart' deferred as lib1;
 import 'dart:async' show Future;
 main() {
@@ -2891,8 +2870,8 @@ main() {
 }''');
   }
 
-  void test_methodOverride() {
-    checkFile('''
+  test_methodOverride() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -2917,8 +2896,8 @@ class Child extends Base {
 ''');
   }
 
-  void test_methodOverride_fuzzyArrows() {
-    checkFile('''
+  test_methodOverride_fuzzyArrows() async {
+    await checkFile('''
 abstract class A {
   bool operator ==(Object object);
 }
@@ -2942,9 +2921,9 @@ class H implements F {
 ''');
   }
 
-  void test_methodTearoffStrictArrow() {
+  test_methodTearoffStrictArrow() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26393
-    checkFile(r'''
+    await checkFile(r'''
 class A {
   void foo(dynamic x) {}
   void test(void f(int x)) {
@@ -2954,8 +2933,8 @@ class A {
     ''');
   }
 
-  void test_mixinOverrideOfGrandInterface_interfaceOfAbstractSuperclass() {
-    checkFile('''
+  test_mixinOverrideOfGrandInterface_interfaceOfAbstractSuperclass() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2973,8 +2952,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
 ''');
   }
 
-  void test_mixinOverrideOfGrandInterface_interfaceOfConcreteSuperclass() {
-    checkFile('''
+  test_mixinOverrideOfGrandInterface_interfaceOfConcreteSuperclass() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -2994,8 +2973,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Base
 ''');
   }
 
-  void test_mixinOverrideOfGrandInterface_interfaceOfInterfaceOfChild() {
-    checkFile('''
+  test_mixinOverrideOfGrandInterface_interfaceOfInterfaceOfChild() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3014,8 +2993,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
 ''');
   }
 
-  void test_mixinOverrideOfGrandInterface_mixinOfInterfaceOfChild() {
-    checkFile('''
+  test_mixinOverrideOfGrandInterface_mixinOfInterfaceOfChild() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3034,8 +3013,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
 ''');
   }
 
-  void test_mixinOverrideOfGrandInterface_superclassOfInterfaceOfChild() {
-    checkFile('''
+  test_mixinOverrideOfGrandInterface_superclassOfInterfaceOfChild() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3054,9 +3033,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
 ''');
   }
 
-  void
-      test_noDuplicateReportsFromOverridingInterfaces_baseTypeAndMixinOverrideSameMethodInInterface() {
-    checkFile('''
+  test_noDuplicateReportsFromOverridingInterfaces_baseTypeAndMixinOverrideSameMethodInInterface() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3082,9 +3060,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
 ''');
   }
 
-  void
-      test_noDuplicateReportsFromOverridingInterfaces_twoGrandTypesOverrideSameMethodInInterface() {
-    checkFile('''
+  test_noDuplicateReportsFromOverridingInterfaces_twoGrandTypesOverrideSameMethodInInterface() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3111,9 +3088,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T2
 ''');
   }
 
-  void
-      test_noDuplicateReportsFromOverridingInterfaces_twoMixinsOverrideSameMethodInInterface() {
-    checkFile('''
+  test_noDuplicateReportsFromOverridingInterfaces_twoMixinsOverrideSameMethodInInterface() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3139,9 +3115,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1 extends Object
 ''');
   }
 
-  void
-      test_noDuplicateReportsFromOverridingInterfaces_typeAndBaseTypeOverrideSameMethodInInterface() {
-    checkFile('''
+  test_noDuplicateReportsFromOverridingInterfaces_typeAndBaseTypeOverrideSameMethodInInterface() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3167,9 +3142,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T2
 ''');
   }
 
-  void
-      test_noDuplicateReportsFromOverridingInterfaces_typeAndMixinOverrideSameMethodInInterface() {
-    checkFile('''
+  test_noDuplicateReportsFromOverridingInterfaces_typeAndMixinOverrideSameMethodInInterface() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3191,9 +3165,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T2
 ''');
   }
 
-  void
-      test_noDuplicateReportsFromOverridingInterfaces_typeOverridesSomeMethodInMultipleInterfaces() {
-    checkFile('''
+  test_noDuplicateReportsFromOverridingInterfaces_typeOverridesSomeMethodInMultipleInterfaces() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3212,8 +3185,8 @@ class T1 implements I2 {
 ''');
   }
 
-  void test_nullCoalescingOperator() {
-    checkFile('''
+  test_nullCoalescingOperator() async {
+    await checkFile('''
 class A {}
 class C<T> {}
 main() {
@@ -3229,8 +3202,8 @@ main() {
 ''');
   }
 
-  void test_nullCoalescingStrictArrow() {
-    checkFile(r'''
+  test_nullCoalescingStrictArrow() async {
+    await checkFile(r'''
 bool _alwaysTrue(x) => true;
 typedef bool TakesA<T>(T t);
 class C<T> {
@@ -3242,9 +3215,9 @@ class C<T> {
     ''');
   }
 
-  void test_optionalParams() {
+  test_optionalParams() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26155
-    checkFile(r'''
+    await checkFile(r'''
 void takesF(void f(int x)) {
   takesF(/*info:INFERRED_TYPE_CLOSURE,
            info:INFERRED_TYPE_CLOSURE*/([x]) { bool z = x.isEven; });
@@ -3254,7 +3227,7 @@ void takesF(void f(int x)) {
     ''');
   }
 
-  void test_overrideNarrowsType() {
+  test_overrideNarrowsType() async {
     addFile(r'''
 class A {}
 class B extends A {}
@@ -3268,13 +3241,13 @@ abstract class D extends C {
   n(A a);
 }
     ''');
-    check(implicitCasts: false);
+    await check(implicitCasts: false);
   }
 
-  void test_overrideNarrowsType_legalWithChecked() {
+  test_overrideNarrowsType_legalWithChecked() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25232
     _addMetaLibrary();
-    checkFile(r'''
+    await checkFile(r'''
 import 'meta.dart';
 abstract class A { void test(A arg) { } }
 abstract class B extends A { void test(@checked B arg) { } }
@@ -3284,10 +3257,10 @@ class D extends B implements A { }
     ''');
   }
 
-  void test_overrideNarrowsType_noDuplicateError() {
+  test_overrideNarrowsType_noDuplicateError() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25232
     _addMetaLibrary();
-    checkFile(r'''
+    await checkFile(r'''
 import 'meta.dart';
 abstract class A { void test(A arg) { } }
 abstract class B extends A {
@@ -3302,7 +3275,7 @@ class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
     ''');
   }
 
-  void test_privateOverride() {
+  test_privateOverride() async {
     addFile(
         '''
 import 'main.dart' as main;
@@ -3325,7 +3298,7 @@ class GrandChild extends main.Child {
 }
 ''',
         name: '/helper.dart');
-    checkFile('''
+    await checkFile('''
 import 'helper.dart' as helper;
 
 class Child extends helper.Base {
@@ -3338,8 +3311,8 @@ class Child extends helper.Base {
 ''');
   }
 
-  void test_proxy() {
-    checkFile(r'''
+  test_proxy() async {
+    await checkFile(r'''
 @proxy class C {}
 @proxy class D {
   var f;
@@ -3376,8 +3349,8 @@ m() {
     ''');
   }
 
-  void test_redirectingConstructor() {
-    checkFile('''
+  test_redirectingConstructor() async {
+    await checkFile('''
 class A {
   A(A x) {}
   A.two() : this(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
@@ -3385,8 +3358,8 @@ class A {
 ''');
   }
 
-  void test_relaxedCasts() {
-    checkFile('''
+  test_relaxedCasts() async {
+    await checkFile('''
 class A {}
 
 class L<T> {}
@@ -3466,8 +3439,8 @@ void main() {
 ''');
   }
 
-  void test_setterOverride_fuzzyArrows() {
-    checkFile('''
+  test_setterOverride_fuzzyArrows() async {
+    await checkFile('''
 typedef void ToVoid<T>(T x);
 class F {
   void set f(ToVoid<dynamic> x) {}
@@ -3492,8 +3465,8 @@ class H implements F {
  ''');
   }
 
-  void test_setterReturnTypes() {
-    checkFile('''
+  test_setterReturnTypes() async {
+    await checkFile('''
 void voidFn() => null;
 class A {
   set a(y) => 4;
@@ -3510,8 +3483,8 @@ class A {
 ''');
   }
 
-  void test_setterSetterOverride() {
-    checkFile('''
+  test_setterSetterOverride() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -3534,8 +3507,8 @@ class Child extends Base {
 ''');
   }
 
-  void test_superCallPlacement() {
-    checkFile('''
+  test_superCallPlacement() async {
+    await checkFile('''
 class Base {
   var x;
   Base() : x = print('Base.1') { print('Base.2'); }
@@ -3569,8 +3542,8 @@ main() => new Derived();
 ''');
   }
 
-  void test_superclassOverrideOfGrandInterface_interfaceOfAbstractSuperclass() {
-    checkFile('''
+  test_superclassOverrideOfGrandInterface_interfaceOfAbstractSuperclass() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3593,8 +3566,8 @@ class T1 extends Base {
 ''');
   }
 
-  void test_superclassOverrideOfGrandInterface_interfaceOfConcreteSuperclass() {
-    checkFile('''
+  test_superclassOverrideOfGrandInterface_interfaceOfConcreteSuperclass() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3612,8 +3585,8 @@ class T1 extends Base {
 ''');
   }
 
-  void test_superclassOverrideOfGrandInterface_interfaceOfInterfaceOfChild() {
-    checkFile('''
+  test_superclassOverrideOfGrandInterface_interfaceOfInterfaceOfChild() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3631,8 +3604,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
 ''');
   }
 
-  void test_superclassOverrideOfGrandInterface_mixinOfInterfaceOfChild() {
-    checkFile('''
+  test_superclassOverrideOfGrandInterface_mixinOfInterfaceOfChild() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3651,8 +3624,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
 ''');
   }
 
-  void test_superclassOverrideOfGrandInterface_superclassOfInterfaceOfChild() {
-    checkFile('''
+  test_superclassOverrideOfGrandInterface_superclassOfInterfaceOfChild() async {
+    await checkFile('''
 class A {}
 class B {}
 
@@ -3671,8 +3644,8 @@ class /*error:INCONSISTENT_METHOD_INHERITANCE*/T1
 ''');
   }
 
-  void test_superConstructor() {
-    checkFile('''
+  test_superConstructor() async {
+    await checkFile('''
 class A { A(A x) {} }
 class B extends A {
   B() : super(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
@@ -3680,8 +3653,8 @@ class B extends A {
 ''');
   }
 
-  void test_tearOffTreatedConsistentlyAsStrictArrow() {
-    checkFile(r'''
+  test_tearOffTreatedConsistentlyAsStrictArrow() async {
+    await checkFile(r'''
 void foo(void f(String x)) {}
 
 class A {
@@ -3707,8 +3680,8 @@ void test() {
     ''');
   }
 
-  void test_tearOffTreatedConsistentlyAsStrictArrowNamedParam() {
-    checkFile(r'''
+  test_tearOffTreatedConsistentlyAsStrictArrowNamedParam() async {
+    await checkFile(r'''
 typedef void Handler(String x);
 void foo({Handler f}) {}
 
@@ -3735,8 +3708,8 @@ void test() {
     ''');
   }
 
-  void test_ternaryOperator() {
-    checkFile('''
+  test_ternaryOperator() async {
+    await checkFile('''
 abstract class Comparable<T> {
   int compareTo(T other);
   static int compare(Comparable a, Comparable b) => a.compareTo(b);
@@ -3785,8 +3758,8 @@ void main() {
 ''');
   }
 
-  void test_typeCheckingLiterals() {
-    checkFile('''
+  test_typeCheckingLiterals() async {
+    await checkFile('''
 test() {
   num n = 3;
   int i = 3;
@@ -3830,8 +3803,8 @@ test() {
 ''');
   }
 
-  void test_typePromotionFromDynamic() {
-    checkFile(r'''
+  test_typePromotionFromDynamic() async {
+    await checkFile(r'''
 f() {
   dynamic x;
   if (x is int) {
@@ -3849,11 +3822,11 @@ g() {
 ''');
   }
 
-  void test_typePromotionFromTypeParameter() {
+  test_typePromotionFromTypeParameter() async {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/26965
     // https://github.com/dart-lang/sdk/issues/27040
-    checkFile(r'''
+    await checkFile(r'''
 void f/*<T>*/(/*=T*/ object) {
   if (object is String) print(object.substring(1));
 }
@@ -3879,10 +3852,10 @@ void h/*<T extends Clonable<T>>*/(/*=T*/ object) {
 ''');
   }
 
-  void test_typePromotionFromTypeParameterAndInference() {
+  test_typePromotionFromTypeParameterAndInference() async {
     // Regression test for:
     // https://github.com/dart-lang/sdk/issues/27040
-    checkFile(r'''
+    await checkFile(r'''
 void f/*<T extends num>*/(T x, T y) {
   var z = x;
   var f = () => x;
@@ -3907,8 +3880,8 @@ void f/*<T extends num>*/(T x, T y) {
     ''');
   }
 
-  void test_typeSubtyping_assigningClass() {
-    checkFile('''
+  test_typeSubtyping_assigningClass() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -3931,8 +3904,8 @@ void main() {
 ''');
   }
 
-  void test_typeSubtyping_assigningSubclass() {
-    checkFile('''
+  test_typeSubtyping_assigningSubclass() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 class C extends A {}
@@ -3958,8 +3931,8 @@ void main() {
 ''');
   }
 
-  void test_typeSubtyping_dynamicDowncasts() {
-    checkFile('''
+  test_typeSubtyping_dynamicDowncasts() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -3981,8 +3954,8 @@ void main() {
 ''');
   }
 
-  void test_typeSubtyping_dynamicIsTop() {
-    checkFile('''
+  test_typeSubtyping_dynamicIsTop() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 
@@ -4004,8 +3977,8 @@ void main() {
 ''');
   }
 
-  void test_typeSubtyping_interfaces() {
-    checkFile('''
+  test_typeSubtyping_interfaces() async {
+    await checkFile('''
 class A {}
 class B extends A {}
 class C extends A {}
@@ -4044,8 +4017,8 @@ void main() {
 ''');
   }
 
-  void test_unaryOperators() {
-    checkFile('''
+  test_unaryOperators() async {
+    await checkFile('''
 class A {
   A operator ~() => null;
   A operator +(int x) => null;
@@ -4095,33 +4068,33 @@ test() {
 }''');
   }
 
-  void test_unboundRedirectingConstructor() {
+  test_unboundRedirectingConstructor() async {
     // This is a regression test for https://github.com/dart-lang/sdk/issues/25071
-    checkFile('''
+    await checkFile('''
 class Foo {
   Foo() : /*error:REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR*/this.init();
 }
  ''');
   }
 
-  void test_unboundTypeName() {
-    checkFile('''
+  test_unboundTypeName() async {
+    await checkFile('''
 void main() {
    /*error:UNDEFINED_CLASS*/AToB y;
 }
 ''');
   }
 
-  void test_unboundVariable() {
-    checkFile('''
+  test_unboundVariable() async {
+    await checkFile('''
 void main() {
    dynamic y = /*error:UNDEFINED_IDENTIFIER*/unboundVariable;
 }
 ''');
   }
 
-  void test_universalFunctionSubtyping() {
-    checkFile(r'''
+  test_universalFunctionSubtyping() async {
+    await checkFile(r'''
 dynamic foo<T>(dynamic x) => x;
 
 void takesDtoD(dynamic f(dynamic x)) {}
@@ -4141,9 +4114,9 @@ class B extends A {
     ''');
   }
 
-  void test_voidSubtyping() {
+  test_voidSubtyping() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25069
-    checkFile('''
+    await checkFile('''
 typedef int Foo();
 void foo() {}
 void main () {
@@ -4151,4 +4124,23 @@ void main () {
 }
 ''');
   }
+
+  void _addMetaLibrary() {
+    addFile(
+        r'''
+library meta;
+class _Checked { const _Checked(); }
+const Object checked = const _Checked();
+
+class _Virtual { const _Virtual(); }
+const Object virtual = const _Virtual();
+    ''',
+        name: '/meta.dart');
+  }
 }
+
+//@reflectiveTest
+//class CheckerTest_Driver extends CheckerTest {
+//  @override
+//  bool get enableNewAnalysisDriver => true;
+//}
