@@ -348,10 +348,10 @@ class SummaryDataStore {
    * [dependencies].
    */
   SummaryDataStore(Iterable<String> summaryPaths,
-      {bool recordDependencyInfo: false})
+      {bool recordDependencyInfo: false, ResourceProvider resourceProvider})
       : dependencies =
             recordDependencyInfo ? <PackageDependencyInfoBuilder>[] : null {
-    summaryPaths.forEach(_fillMaps);
+    summaryPaths.forEach((String path) => _fillMaps(path, resourceProvider));
   }
 
   /**
@@ -412,6 +412,7 @@ class SummaryDataStore {
    * the given [unitUriString], or `null` if no such library is in the store.
    */
   List<String> getContainingLibraryUris(String unitUriString) {
+
     // The unit is the defining unit of a library.
     if (linkedMap.containsKey(unitUriString)) {
       return <String>[unitUriString];
@@ -432,9 +433,15 @@ class SummaryDataStore {
     return libraryUriStrings.isNotEmpty ? libraryUriStrings : null;
   }
 
-  void _fillMaps(String path) {
-    io.File file = new io.File(path);
-    List<int> buffer = file.readAsBytesSync();
+  void _fillMaps(String path, ResourceProvider resourceProvider) {
+    List<int> buffer;
+    if (resourceProvider != null) {
+      var file = resourceProvider.getFile(path);
+      buffer = file.readAsBytesSync();
+    } else {
+      io.File file = new io.File(path);
+      buffer = file.readAsBytesSync();
+    }
     PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
     addBundle(path, bundle);
   }
