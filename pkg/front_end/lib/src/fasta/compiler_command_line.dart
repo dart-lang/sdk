@@ -51,9 +51,6 @@ class CompilerCommandLine extends CommandLine {
     if (options.containsKey("-o") && options.containsKey("--output")) {
       return argumentError(usage, "Can't specify both '-o' and '--output'.");
     }
-    if (options.containsKey("--packages")) {
-      return argumentError(usage, "Option '--packages' isn't supported yet.");
-    }
     if (programName == "compile_platform" && arguments.length != 2) {
       return argumentError(usage, "Expected two arguments.");
     } else if (arguments.isEmpty) {
@@ -72,6 +69,8 @@ class CompilerCommandLine extends CommandLine {
         ? null
         : options["--platform"] ?? Uri.base.resolve("platform.dill");
   }
+
+  Uri get packages => options["--packages"] ?? Uri.base.resolve(".packages");
 
   Uri get sdk => options["--compile-sdk"];
 

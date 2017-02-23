@@ -406,6 +406,20 @@ template("generate_patched_sdk") {
                                      ],
                                      "list lines")
 
+    front_end_sources = exec_script("../../tools/list_dart_files.py",
+                                    [
+                                      "absolute",
+                                      rebase_path("../../pkg/front_end"),
+                                    ],
+                                    "list lines")
+
+    kernel_sources = exec_script("../../tools/list_dart_files.py",
+                                 [
+                                   "absolute",
+                                   rebase_path("../../pkg/kernel"),
+                                 ],
+                                 "list lines")
+
     # We list the `patch_sdk.dart` tool here because the [script] (which is
     # implicitly an input) will call it.
     inputs = [
@@ -426,6 +440,10 @@ template("generate_patched_sdk") {
 
     # Add all the concatenated patch files.
     inputs += concatenation_files
+
+    # Add some front-end dependencies
+    inputs += front_end_sources
+    inputs += kernel_sources
 
     outputs = [
       # Instead of listing all outputs we list a single well-known one.
@@ -448,6 +466,7 @@ template("generate_patched_sdk") {
       rebase_path("../../sdk"),
       rebase_path(patches_dir, root_build_dir),
       rebase_path(patched_sdk_dir, root_build_dir),
+      rebase_path("../../.packages"),
     ]
   }
 }

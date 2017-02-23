@@ -12,32 +12,26 @@ import 'dart:math' as math;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
+import 'package:front_end/src/fasta/bin/compile_platform.dart' as
+    compile_platform;
 
-void main(List<String> argv) {
+Future main(List<String> argv) async {
   var base = path.fromUri(Platform.script);
   var dartDir = path.dirname(path.dirname(path.absolute(base)));
 
-  if (argv.length != 4 ||
-      !argv.isEmpty && argv.first != 'vm' && argv.first != 'ddc') {
-    var self = path.relative(base);
-    print('Usage: $self MODE SDK_DIR PATCH_DIR OUTPUT_DIR');
-    print('MODE must be one of ddc or vm.');
+  if (argv.length != 5 || argv.first != 'vm') {
+    final self = path.relative(base);
+    print('Usage: $self vm SDK_DIR PATCH_DIR OUTPUT_DIR PACKAGES');
 
-    var toolDir = path.relative(path.dirname(base));
-    var sdkExample = path.join(toolDir, 'input_sdk');
-    var patchExample = path.join(sdkExample, 'patch');
-    var outExample =
-        path.relative(path.normalize(path.join('gen', 'patched_sdk')));
+    final repositoryDir = path.relative(path.dirname(path.dirname(base)));
+    final sdkExample = path.relative(path.join(repositoryDir, 'sdk'));
+    final packagesExample = path.relative(
+        path.join(repositoryDir, '.packages'));
+    final patchExample = path.relative(
+        path.join(repositoryDir, 'out', 'DebugX64', 'obj', 'gen', 'patch'));
+    final outExample = path.relative(path.join(repositoryDir, 'out', 'DebugX64',
+                                               'obj', 'gen', 'patched_sdk'));
     print('For example:');
-    print('\$ $self ddc $sdkExample $patchExample $outExample');
-
-    var repositoryDir = path.relative(path.dirname(path.dirname(base)));
-    sdkExample = path.relative(path.join(repositoryDir, 'sdk'));
-    patchExample = path.relative(path.join(repositoryDir, 'out', 'DebugX64',
-                                           'obj', 'gen', 'patch'));
-    outExample = path.relative(path.join(repositoryDir, 'out', 'DebugX64',
-                                         'obj', 'gen', 'patched_sdk'));
-    print('or:');
     print('\$ $self vm $sdkExample $patchExample $outExample');
 
     exit(1);
@@ -48,6 +42,7 @@ void main(List<String> argv) {
   var sdkLibIn = path.join(input, 'lib');
   var patchIn = argv[2];
   var sdkOut = path.join(argv[3], 'lib');
+  var packagesFile = argv[4];
 
   var privateIn = path.join(input, 'private');
   var INTERNAL_PATH = '_internal/compiler/js_lib/';
@@ -180,8 +175,8 @@ void main(List<String> argv) {
       }
     }
   }
-  if (mode == 'vm') {
 
+  if (mode == 'vm') {
     for (var tuple in [['_builtin', 'builtin.dart']]) {
       var vmLibrary = tuple[0];
       var dartFile = tuple[1];
@@ -198,6 +193,10 @@ void main(List<String> argv) {
       _writeSync(libraryOut, new File(libraryIn).readAsStringSync());
     }
   }
+
+  await compile_platform.main(<String>[
+    '--packages', packagesFile, sdkOut, path.join(sdkOut, 'platform.dill')
+  ]);
 }
 
 /// Writes a file, creating the directory if needed.

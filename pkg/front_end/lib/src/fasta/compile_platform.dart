@@ -60,7 +60,8 @@ Future compilePlatform(CompilerContext c, Ticker ticker) async {
     print("Compiling $patchedSdk to $output");
   }
 
-  TranslateUri uriTranslator = await TranslateUri.parse(patchedSdk);
+  TranslateUri uriTranslator = await TranslateUri.parse(
+      patchedSdk, c.options.packages);
   ticker.logMs("Read packages file");
 
   DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
