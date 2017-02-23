@@ -247,7 +247,8 @@ class BuildMode {
       FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
           resourceProvider.getFolder(options.dartSdkPath), options.strongMode);
       dartSdk.analysisOptions =
-          Driver.createAnalysisOptionsForCommandLineOptions(options);
+          Driver.createAnalysisOptionsForCommandLineOptions(
+              resourceProvider, options);
       dartSdk.useSummary = !options.buildSummaryOnly;
       sdk = dartSdk;
       sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
@@ -265,8 +266,7 @@ class BuildMode {
     ]);
 
     // Set context options.
-    Driver.setAnalysisContextOptions(
-        resourceProvider, context.sourceFactory, context, options,
+    Driver.setAnalysisContextOptions(resourceProvider, context, options,
         (AnalysisOptionsImpl contextOptions) {
       if (options.buildSummaryOnlyDiet) {
         contextOptions.analyzeFunctionBodies = false;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'analysis_options_test.dart' as analysis_options_test;
 import 'build_mode_test.dart' as build_mode_test;
 import 'driver_test.dart' as driver_test;
 import 'embedder_test.dart' as embedder_test;
@@ -16,6 +17,7 @@ import 'super_mixin_test.dart' as super_mixin_test;
 //import 'strong_mode_test.dart' as strong_mode_test;
 
 main() {
+  analysis_options_test.main();
   build_mode_test.main();
   driver_test.main();
   embedder_test.main();
