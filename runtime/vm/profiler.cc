@@ -168,7 +168,7 @@ Sample* SampleBuffer::ReserveSampleAndLink(Sample* previous) {
   ASSERT(previous != NULL);
   intptr_t next_index = ReserveSampleSlot();
   Sample* next = At(next_index);
-  next->Init(previous->isolate(), previous->timestamp(), previous->tid());
+  next->Init(previous->port(), previous->timestamp(), previous->tid());
   next->set_head_sample(false);
   // Mark that previous continues at next.
   previous->SetContinuationIndex(next_index);
@@ -321,7 +321,7 @@ bool SampleFilter::TaskFilterSample(Sample* sample) {
 
 
 ClearProfileVisitor::ClearProfileVisitor(Isolate* isolate)
-    : SampleVisitor(isolate) {}
+    : SampleVisitor(isolate->main_port()) {}
 
 
 void ClearProfileVisitor::VisitSample(Sample* sample) {
@@ -357,15 +357,17 @@ static void DumpStackFrame(intptr_t frame_index, uword pc) {
 
 class ProfilerStackWalker : public ValueObject {
  public:
-  ProfilerStackWalker(Isolate* isolate,
+  ProfilerStackWalker(Dart_Port port_id,
                       Sample* head_sample,
-                      SampleBuffer* sample_buffer)
-      : isolate_(isolate),
+                      SampleBuffer* sample_buffer,
+                      intptr_t skip_count = 0)
+      : port_id_(port_id),
         sample_(head_sample),
         sample_buffer_(sample_buffer),
+        skip_count_(skip_count),
+        frames_skipped_(0),
         frame_index_(0),
         total_frames_(0) {
-    ASSERT(isolate_ != NULL);
     if (sample_ == NULL) {
       ASSERT(sample_buffer_ == NULL);
     } else {
@@ -375,6 +377,11 @@ class ProfilerStackWalker : public ValueObject {
   }
 
   bool Append(uword pc) {
+    if (frames_skipped_ < skip_count_) {
+      frames_skipped_++;
+      return true;
+    }
+
     if (sample_ == NULL) {
       DumpStackFrame(frame_index_, pc);
       frame_index_++;
@@ -404,9 +411,11 @@ class ProfilerStackWalker : public ValueObject {
   }
 
  protected:
-  Isolate* isolate_;
+  Dart_Port port_id_;
   Sample* sample_;
   SampleBuffer* sample_buffer_;
+  intptr_t skip_count_;
+  intptr_t frames_skipped_;
   intptr_t frame_index_;
   intptr_t total_frames_;
 };
@@ -424,8 +433,14 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
                           uword fp,
                           uword sp,
                           bool exited_dart_code,
-                          bool allocation_sample)
-      : ProfilerStackWalker(thread->isolate(), sample, sample_buffer),
+                          bool allocation_sample,
+                          intptr_t skip_count = 0)
+      : ProfilerStackWalker((thread->isolate() != NULL)
+                                ? thread->isolate()->main_port()
+                                : ILLEGAL_PORT,
+                            sample,
+                            sample_buffer,
+                            skip_count),
         pc_(reinterpret_cast<uword*>(pc)),
         fp_(reinterpret_cast<uword*>(fp)),
         sp_(reinterpret_cast<uword*>(sp)),
@@ -597,15 +612,16 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 //
 class ProfilerNativeStackWalker : public ProfilerStackWalker {
  public:
-  ProfilerNativeStackWalker(Isolate* isolate,
+  ProfilerNativeStackWalker(Dart_Port port_id,
                             Sample* sample,
                             SampleBuffer* sample_buffer,
                             uword stack_lower,
                             uword stack_upper,
                             uword pc,
                             uword fp,
-                            uword sp)
-      : ProfilerStackWalker(isolate, sample, sample_buffer),
+                            uword sp,
+                            intptr_t skip_count = 0)
+      : ProfilerStackWalker(port_id, sample, sample_buffer, skip_count),
         stack_upper_(stack_upper),
         original_pc_(pc),
         original_fp_(fp),
@@ -614,6 +630,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
 
   void walk() {
     const uword kMaxStep = VirtualMemory::PageSize();
+
     Append(original_pc_);
 
     uword* pc = reinterpret_cast<uword*>(original_pc_);
@@ -796,6 +813,29 @@ static void CollectSample(Isolate* isolate,
 }
 
 
+static bool ValidateThreadStackBounds(uintptr_t fp,
+                                      uintptr_t sp,
+                                      uword stack_lower,
+                                      uword stack_upper) {
+  if (stack_lower >= stack_upper) {
+    // Stack boundary is invalid.
+    return false;
+  }
+
+  if ((sp < stack_lower) || (sp >= stack_upper)) {
+    // Stack pointer is outside thread's stack boundary.
+    return false;
+  }
+
+  if ((fp < stack_lower) || (fp >= stack_upper)) {
+    // Frame pointer is outside threads's stack boundary.
+    return false;
+  }
+
+  return true;
+}
+
+
 // Get |isolate|'s stack boundary and verify that |sp| and |fp| are within
 // it. If |get_os_thread_bounds| is true then if |isolate| stackbounds are
 // not available we fallback to using underlying OS thread bounds. This only
@@ -807,8 +847,12 @@ static bool GetAndValidateThreadStackBounds(Thread* thread,
                                             uword* stack_lower,
                                             uword* stack_upper,
                                             bool get_os_thread_bounds = false) {
-  ASSERT(thread != NULL);
-  OSThread* os_thread = thread->os_thread();
+  OSThread* os_thread = NULL;
+  if (thread != NULL) {
+    os_thread = thread->os_thread();
+  } else {
+    os_thread = OSThread::Current();
+  }
   ASSERT(os_thread != NULL);
   ASSERT(stack_lower != NULL);
   ASSERT(stack_upper != NULL);
@@ -844,22 +888,7 @@ static bool GetAndValidateThreadStackBounds(Thread* thread,
     *stack_lower = sp;
   }
 
-  if (*stack_lower >= *stack_upper) {
-    // Stack boundary is invalid.
-    return false;
-  }
-
-  if ((sp < *stack_lower) || (sp >= *stack_upper)) {
-    // Stack pointer is outside thread's stack boundary.
-    return false;
-  }
-
-  if ((fp < *stack_lower) || (fp >= *stack_upper)) {
-    // Frame pointer is outside threads's stack boundary.
-    return false;
-  }
-
-  return true;
+  return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper);
 }
 
 
@@ -887,7 +916,7 @@ static Sample* SetupSample(Thread* thread,
   Isolate* isolate = thread->isolate();
   ASSERT(sample_buffer != NULL);
   Sample* sample = sample_buffer->ReserveSample();
-  sample->Init(isolate, OS::GetCurrentMonotonicMicros(), tid);
+  sample->Init(isolate->main_port(), OS::GetCurrentMonotonicMicros(), tid);
   uword vm_tag = thread->vm_tag();
 #if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
   // When running in the simulator, the runtime entry function address
@@ -905,6 +934,23 @@ static Sample* SetupSample(Thread* thread,
 }
 
 
+static Sample* SetupSampleNative(SampleBuffer* sample_buffer, ThreadId tid) {
+  Sample* sample = sample_buffer->ReserveSample();
+  sample->Init(ILLEGAL_PORT, OS::GetCurrentMonotonicMicros(), tid);
+  sample->set_is_native_allocation_sample(true);
+
+  Thread* thread = Thread::Current();
+
+  // TODO(bkonyi) Any samples created while a current thread doesn't exist are
+  // ignored by the NativeAllocationSampleFilter since the default task is
+  // kUnknownTask. Is this what we want to do?
+  if (thread != NULL) {
+    sample->set_thread_task(thread->task_kind());
+  }
+  return sample;
+}
+
+
 static bool CheckIsolate(Isolate* isolate) {
   if ((isolate == NULL) || (Dart::vm_isolate() == NULL)) {
     // No isolate.
@@ -912,18 +958,6 @@ static bool CheckIsolate(Isolate* isolate) {
   }
   return isolate != Dart::vm_isolate();
 }
-
-
-#if defined(TARGET_OS_WINDOWS)
-__declspec(noinline) static uintptr_t GetProgramCounter() {
-  return reinterpret_cast<uintptr_t>(_ReturnAddress());
-}
-#else
-static uintptr_t __attribute__((noinline)) GetProgramCounter() {
-  return reinterpret_cast<uintptr_t>(
-      __builtin_extract_return_addr(__builtin_return_address(0)));
-}
-#endif
 
 
 void Profiler::DumpStackTrace(void* context) {
@@ -944,7 +978,7 @@ void Profiler::DumpStackTrace(void* context) {
 void Profiler::DumpStackTrace() {
   uintptr_t sp = Thread::GetCurrentStackPointer();
   uintptr_t fp = 0;
-  uintptr_t pc = GetProgramCounter();
+  uintptr_t pc = OS::GetProgramCounter();
 
   COPY_FP_REGISTER(fp);
 
@@ -992,7 +1026,8 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc) {
   }
 
   ProfilerNativeStackWalker native_stack_walker(
-      isolate, NULL, NULL, stack_lower, stack_upper, pc, fp, sp);
+      (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT, NULL, NULL,
+      stack_lower, stack_upper, pc, fp, sp);
   native_stack_walker.walk();
   OS::PrintErr("-- End of DumpStackTrace\n");
 }
@@ -1017,7 +1052,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 
   uintptr_t sp = Thread::GetCurrentStackPointer();
   uintptr_t fp = 0;
-  uintptr_t pc = GetProgramCounter();
+  uintptr_t pc = OS::GetProgramCounter();
 
   COPY_FP_REGISTER(fp);
 
@@ -1039,7 +1074,8 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 
   if (FLAG_profile_vm) {
     ProfilerNativeStackWalker native_stack_walker(
-        isolate, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
+        (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT, sample,
+        sample_buffer, stack_lower, stack_upper, pc, fp, sp);
     native_stack_walker.walk();
   } else if (exited_dart_code) {
     ProfilerDartStackWalker dart_exit_stack_walker(
@@ -1048,11 +1084,49 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
     dart_exit_stack_walker.walk();
   } else {
     // Fall back.
-    uintptr_t pc = GetProgramCounter();
+    uintptr_t pc = OS::GetProgramCounter();
     Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
     sample->SetAllocationCid(cid);
     sample->SetAt(0, pc);
   }
+}
+
+
+Sample* Profiler::SampleNativeAllocation(intptr_t skip_count) {
+  SampleBuffer* sample_buffer = Profiler::sample_buffer();
+  if (sample_buffer == NULL) {
+    return NULL;
+  }
+
+  uintptr_t sp = Thread::GetCurrentStackPointer();
+  uintptr_t fp = 0;
+  uintptr_t pc = OS::GetProgramCounter();
+
+  COPY_FP_REGISTER(fp);
+
+  uword stack_lower = 0;
+  uword stack_upper = 0;
+  if (!InitialRegisterCheck(pc, fp, sp)) {
+    AtomicOperations::IncrementInt64By(
+        &counters_.failure_native_allocation_sample, 1);
+    return NULL;
+  }
+
+  if (!(OSThread::GetCurrentStackBounds(&stack_lower, &stack_upper) &&
+        ValidateThreadStackBounds(fp, sp, stack_lower, stack_upper))) {
+    // Could not get stack boundary.
+    AtomicOperations::IncrementInt64By(
+        &counters_.failure_native_allocation_sample, 1);
+    return NULL;
+  }
+
+  OSThread* os_thread = OSThread::Current();
+  Sample* sample = SetupSampleNative(sample_buffer, os_thread->trace_id());
+  ProfilerNativeStackWalker native_stack_walker(
+      ILLEGAL_PORT, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp,
+      skip_count);
+  native_stack_walker.walk();
+  return sample;
 }
 
 
@@ -1181,7 +1255,8 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   ProfilerNativeStackWalker native_stack_walker(
-      isolate, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
+      (isolate != NULL) ? isolate->main_port() : ILLEGAL_PORT, sample,
+      sample_buffer, stack_lower, stack_upper, pc, fp, sp);
   const bool exited_dart_code = thread->HasExitedDartCode();
   ProfilerDartStackWalker dart_stack_walker(thread, sample, sample_buffer,
                                             stack_lower, stack_upper, pc, fp,
@@ -1341,7 +1416,9 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
       // An inner sample in a chain of samples.
       continue;
     }
-    if (sample->isolate() != filter->isolate()) {
+    // If we're requesting all the native allocation samples, we don't care
+    // whether or not we're in the same isolate as the sample.
+    if (sample->port() != filter->port()) {
       // Another isolate.
       continue;
     }
@@ -1420,7 +1497,7 @@ Sample* SampleBuffer::Next(Sample* sample) {
   // Sanity check.
   ASSERT(sample != next_sample);
   // Detect invalid chaining.
-  if (sample->isolate() != next_sample->isolate()) {
+  if (sample->port() != next_sample->port()) {
     return NULL;
   }
   if (sample->timestamp() != next_sample->timestamp()) {
