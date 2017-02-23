@@ -3216,6 +3216,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // it depends on the numbering of loads from the previous
           // load-elimination.
           if (FLAG_loop_invariant_code_motion) {
+            flow_graph->RenameUsesDominatedByRedefinitions();
+            DEBUG_ASSERT(flow_graph->VerifyRedefinitions());
             LICM licm(flow_graph);
             licm.Optimize();
             DEBUG_ASSERT(flow_graph->VerifyUseLists());

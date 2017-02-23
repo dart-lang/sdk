@@ -483,7 +483,37 @@ bool FlowGraph::VerifyUseLists() {
       VerifyUseListsInInstruction(it.Current());
     }
   }
+
   return true;  // Return true so we can ASSERT validation.
+}
+
+
+// Verify that a redefinition dominates all uses of the redefined value.
+bool FlowGraph::VerifyRedefinitions() {
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator instr_it(block_it.Current());
+         !instr_it.Done(); instr_it.Advance()) {
+      RedefinitionInstr* redefinition = instr_it.Current()->AsRedefinition();
+      if (redefinition != NULL) {
+        Definition* original = redefinition->value()->definition();
+        for (Value::Iterator it(original->input_use_list()); !it.Done();
+             it.Advance()) {
+          Value* original_use = it.Current();
+          if (original_use->instruction() == redefinition) {
+            continue;
+          }
+          if (original_use->instruction()->IsDominatedBy(redefinition)) {
+            FlowGraphPrinter::PrintGraph("VerifyRedefinitions", this);
+            THR_Print("%s\n", redefinition->ToCString());
+            THR_Print("use=%s\n", original_use->instruction()->ToCString());
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
 }
 
 
@@ -2091,6 +2121,21 @@ void FlowGraph::RenameDominatedUses(Definition* def,
     Value* use = it.Current();
     if (IsDominatedUse(dom, use)) {
       use->BindTo(other);
+    }
+  }
+}
+
+
+void FlowGraph::RenameUsesDominatedByRedefinitions() {
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator instr_it(block_it.Current());
+         !instr_it.Done(); instr_it.Advance()) {
+      RedefinitionInstr* redefinition = instr_it.Current()->AsRedefinition();
+      if (redefinition != NULL) {
+        Definition* original = redefinition->value()->definition();
+        RenameDominatedUses(original, redefinition, redefinition);
+      }
     }
   }
 }
