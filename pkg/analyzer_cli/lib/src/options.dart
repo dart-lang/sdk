@@ -163,7 +163,7 @@ class CommandLineOptions {
         enableTypeChecks = args['enable_type_checks'],
         hintsAreFatal = args['fatal-hints'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
-        lints = args['lints'],
+        lints = args[lintsFlag],
         log = args['log'],
         machineFormat = args['format'] == 'machine',
         perfReport = args['x-perf-report'],
@@ -297,8 +297,6 @@ class CommandLineOptions {
           help: 'Print the analyzer version.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag('lints',
-          help: 'Show lint results.', defaultsTo: false, negatable: false)
       ..addFlag('no-hints',
           help: 'Do not show hint results.',
           defaultsTo: false,

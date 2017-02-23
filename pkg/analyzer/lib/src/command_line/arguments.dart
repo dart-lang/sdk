@@ -20,6 +20,7 @@ const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
 const String enableStrictCallChecksFlag = 'enable-strict-call-checks';
 const String enableSuperMixinFlag = 'supermixin';
 const String ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
+const String lintsFlag = 'lints';
 const String noImplicitCastsFlag = 'no-implicit-casts';
 const String noImplicitDynamicFlag = 'no-implicit-dynamic';
 const String packageRootOption = 'package-root';
@@ -46,6 +47,9 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args) {
   }
   if (args.wasParsed(strongModeFlag)) {
     options.strongMode = args[strongModeFlag];
+  }
+  if (args.wasParsed(lintsFlag)) {
+    options.lint = args[lintsFlag];
   }
 }
 
@@ -182,6 +186,10 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       defaultsTo: false,
       negatable: false,
       hide: hide);
+  if (!ddc) {
+    parser.addFlag(lintsFlag,
+        help: 'Show lint results.', defaultsTo: false, negatable: true);
+  }
 }
 
 /**
