@@ -5,11 +5,6 @@ This file is validated by `coverage_test.dart`.
 
 TODO(devoncarew): We should track analysis server notifications here as well.
 
-## server domain
-- [x] server.getVersion
-- [x] server.shutdown
-- [x] server.setSubscriptions
-
 ## analysis domain
 - [x] analysis.getErrors
 - [x] analysis.getHover
@@ -27,12 +22,9 @@ TODO(devoncarew): We should track analysis server notifications here as well.
 ## completion domain
 - [x] completion.getSuggestions
 
-## search domain
-- [ ] search.findElementReferences
-- [ ] search.findMemberDeclarations
-- [ ] search.findMemberReferences
-- [ ] search.findTopLevelDeclarations
-- [x] search.getTypeHierarchy
+## diagnostic domain
+- [x] diagnostic.getDiagnostics
+- [x] diagnostic.getServerPort
 
 ## edit domain
 - [x] edit.format
@@ -49,6 +41,14 @@ TODO(devoncarew): We should track analysis server notifications here as well.
 - [x] execution.mapUri
 - [x] execution.setSubscriptions (failing - see #28806)
 
-## diagnostic domain
-- [x] diagnostic.getDiagnostics
-- [x] diagnostic.getServerPort
+## search domain
+- [ ] search.findElementReferences
+- [ ] search.findMemberDeclarations
+- [ ] search.findMemberReferences
+- [ ] search.findTopLevelDeclarations
+- [x] search.getTypeHierarchy
+
+## server domain
+- [x] server.getVersion
+- [x] server.shutdown
+- [x] server.setSubscriptions

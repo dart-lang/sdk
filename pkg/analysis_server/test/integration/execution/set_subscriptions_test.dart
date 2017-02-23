@@ -16,9 +16,9 @@ main() {
 
 @reflectiveTest
 class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
-  // Bad state: Should not be used with the new analysis driver (#28806)
   @failingTest
   test_subscribe() async {
+    // Bad state: Should not be used with the new analysis driver (#28806)
     writeFile(sourcePath('.packages'), 'foo:lib/');
     standardAnalysisSetup();
     await sendExecutionSetSubscriptions([ExecutionService.LAUNCH_DATA]);

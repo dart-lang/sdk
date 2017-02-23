@@ -139,6 +139,7 @@ class NoAnalysisErrorsIntegrationTest_Driver
   @failingTest
   @override
   test_detect_simple_error() {
+    // Errors are reported with noErrorNotification: true (#28869).
     return super.test_detect_simple_error();
   }
 }

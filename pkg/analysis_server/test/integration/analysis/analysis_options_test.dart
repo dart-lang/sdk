@@ -83,14 +83,16 @@ class OptionsIntegrationTest_Driver extends AbstractOptionsIntegrationTest {
 
   @failingTest
   test_option_warning_newOptionFile() async {
-    //   TimeoutException after 0:00:30.000000: Test timed out after 30 seconds.
+    // TimeoutException after 0:00:30.000000: Test timed out after 30 seconds
+    // (#28868).
     //return super.test_option_warning_newOptionFile();
     fail('Test timed out');
   }
 
   @failingTest
   test_option_warning_oldOptionFile() async {
-    //   TimeoutException after 0:00:30.000000: Test timed out after 30 seconds.
+    // TimeoutException after 0:00:30.000000: Test timed out after 30 seconds
+    // (#28868).
     //return super.test_option_warning_oldOptionFile();
     fail('Test timed out');
   }
