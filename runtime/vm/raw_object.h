@@ -1152,7 +1152,7 @@ class RawCode : public RawObject {
   NOT_IN_PRECOMPILED(RawArray* comments_);
   RawObject** to() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
+    return reinterpret_cast<RawObject**>(&ptr()->code_source_map_);
 #else
     return reinterpret_cast<RawObject**>(&ptr()->comments_);
 #endif
