@@ -122,6 +122,15 @@ class File : public ReferenceCounted<File> {
   bool WriteFully(const void* buffer, int64_t num_bytes);
   bool WriteByte(uint8_t byte) { return WriteFully(&byte, 1); }
 
+  bool Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) {
+    va_list args;
+    va_start(args, format);
+    bool result = VPrint(format, args);
+    va_end(args);
+    return result;
+  }
+  bool VPrint(const char* format, va_list args);
+
   // Get the length of the file. Returns a negative value if the length cannot
   // be determined (e.g. not seekable device).
   int64_t Length();

@@ -10,6 +10,14 @@
 #include "platform/globals.h"
 
 namespace dart {
+
+// Forward declaration.
+template <typename T>
+class MallocGrowableArray;
+
+}  // namespace dart
+
+namespace dart {
 namespace bin {
 
 // Forward declaration.
@@ -55,11 +63,16 @@ class IsolateData {
     ASSERT((loader_ == NULL) || (loader == NULL));
     loader_ = loader;
   }
+  MallocGrowableArray<char*>* dependencies() const { return dependencies_; }
+  void set_dependencies(MallocGrowableArray<char*>* deps) {
+    dependencies_ = deps;
+  }
 
  private:
   Dart_Handle builtin_lib_;
   Loader* loader_;
   AppSnapshot* app_snapshot_;
+  MallocGrowableArray<char*>* dependencies_;
 
   DISALLOW_COPY_AND_ASSIGN(IsolateData);
 };

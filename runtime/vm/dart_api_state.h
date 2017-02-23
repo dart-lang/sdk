@@ -723,15 +723,17 @@ class ApiNativeScope {
 // environment. When outside an isolate environment it picks the zone
 // from the current native scope.
 template <typename T>
-class ApiGrowableArray : public BaseGrowableArray<T, ValueObject> {
+class ApiGrowableArray : public BaseGrowableArray<T, ValueObject, Zone> {
  public:
   explicit ApiGrowableArray(int initial_capacity)
-      : BaseGrowableArray<T, ValueObject>(initial_capacity,
-                                          ApiNativeScope::Current()->zone()) {}
+      : BaseGrowableArray<T, ValueObject, Zone>(
+            initial_capacity,
+            ApiNativeScope::Current()->zone()) {}
   ApiGrowableArray()
-      : BaseGrowableArray<T, ValueObject>(ApiNativeScope::Current()->zone()) {}
+      : BaseGrowableArray<T, ValueObject, Zone>(
+            ApiNativeScope::Current()->zone()) {}
   ApiGrowableArray(intptr_t initial_capacity, Zone* zone)
-      : BaseGrowableArray<T, ValueObject>(initial_capacity, zone) {}
+      : BaseGrowableArray<T, ValueObject, Zone>(initial_capacity, zone) {}
 };
 
 

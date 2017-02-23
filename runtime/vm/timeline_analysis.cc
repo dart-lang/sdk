@@ -5,6 +5,7 @@
 #include "vm/timeline_analysis.h"
 
 #include "vm/flags.h"
+#include "vm/isolate.h"
 #include "vm/log.h"
 #include "vm/os_thread.h"
 

@@ -185,6 +185,27 @@ int64_t File::Write(const void* buffer, int64_t num_bytes) {
 }
 
 
+bool File::VPrint(const char* format, va_list args) {
+  // Measure.
+  va_list measure_args;
+  va_copy(measure_args, args);
+  intptr_t len = _vscprintf(format, measure_args);
+  va_end(measure_args);
+
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+
+  // Print.
+  va_list print_args;
+  va_copy(print_args, args);
+  _vsnprintf(buffer, len + 1, format, print_args);
+  va_end(print_args);
+
+  bool result = WriteFully(buffer, len);
+  free(buffer);
+  return result;
+}
+
+
 int64_t File::Position() {
   ASSERT(handle_->fd() >= 0);
   return _lseeki64(handle_->fd(), 0, SEEK_CUR);
