@@ -111,6 +111,7 @@ class DartLoader implements ReferenceLevelLoader {
   final bool ignoreRedirectingFactories;
 
   LibraryElement _libraryBeingLoaded = null;
+  ClassElement _classBeingPromotedToMixin = null;
 
   bool get strongMode => context.analysisOptions.strongMode;
 
@@ -146,6 +147,10 @@ class DartLoader implements ReferenceLevelLoader {
   /// in the library, since the AST builder will rebuild the member lists.
   bool isLibraryBeingLoaded(LibraryElement element) {
     return _libraryBeingLoaded == element;
+  }
+
+  bool isClassBeingPromotedToMixin(ClassElement element) {
+    return _classBeingPromotedToMixin == element;
   }
 
   void _buildLibraryBody(LibraryElement element, ast.Library library,
@@ -394,12 +399,14 @@ class DartLoader implements ReferenceLevelLoader {
   void promoteToMixinLevel(ast.Class classNode, ClassElement element,
       NamedCompilationUnitMember astNode) {
     if (classNode.level.index >= ast.ClassLevel.Mixin.index) return;
+    _classBeingPromotedToMixin = element;
     promoteToHierarchyLevel(classNode);
     classNode.level = ast.ClassLevel.Mixin;
     // Clear out the member references that were put in the class.
     // The AST builder will load them all put back in the right order.
     classNode..fields.clear()..procedures.clear()..constructors.clear();
     new ClassBodyBuilder(this, classNode, element).build(astNode);
+    _classBeingPromotedToMixin = null;
 
     // Ensure mixed-in classes are available.
     for (var mixin in element.mixins) {
@@ -409,7 +416,7 @@ class DartLoader implements ReferenceLevelLoader {
 
   /// Ensures that [element] eventually becomes loaded at least at mixin level.
   void _ensureMixinBecomesLoaded(ClassElement element) {
-    if (isLibraryBeingLoaded(element.library)) {
+    if (isClassBeingPromotedToMixin(element)) {
       return;
     }
     var class_ = getClassReference(element);
@@ -454,7 +461,7 @@ class DartLoader implements ReferenceLevelLoader {
     if (parent is ClassElement) {
       var class_ = getClassReference(parent);
       node.parent = class_;
-      if (!isLibraryBeingLoaded(element.library)) {
+      if (!isClassBeingPromotedToMixin(parent)) {
         class_.addMember(node);
       }
     } else {

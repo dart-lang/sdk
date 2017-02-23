@@ -438,15 +438,19 @@ class TypeScope extends ReferenceScope {
     // Initialize type parameters in two passes: put them into scope,
     // and compute the bounds afterwards while they are all in scope.
     var typeParameters = <ast.TypeParameter>[];
+    var typeParameterElements =
+        element is ConstructorElement && element.isFactory
+            ? element.enclosingElement.typeParameters
+            : element.typeParameters;
     if (strongMode || element is ConstructorElement) {
-      for (var parameter in element.typeParameters) {
+      for (var parameter in typeParameterElements) {
         var parameterNode = new ast.TypeParameter(parameter.name);
         typeParameters.add(parameterNode);
         localTypeParameters[parameter] = parameterNode;
       }
     }
     for (int i = 0; i < typeParameters.length; ++i) {
-      var parameter = element.typeParameters[i];
+      var parameter = typeParameterElements[i];
       var parameterNode = typeParameters[i];
       parameterNode.bound = parameter.bound == null
           ? defaultTypeParameterBound
