@@ -832,7 +832,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     _emitClassTypeTests(classElem, className, body);
 
     _defineNamedConstructors(ctors, body, className, isCallableTransitive);
-    _emitVirtualFieldSymbols(className, body);
+    _emitVirtualFieldSymbols(classElem, body);
     _emitClassSignature(
         methods, allFields, classElem, ctors, extensions, className, body);
     _defineExtensionMembers(extensions, className, body);
@@ -1090,10 +1090,10 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   void _emitVirtualFieldSymbols(
-      JS.Expression className, List<JS.Statement> body) {
+      ClassElement classElement, List<JS.Statement> body) {
     _classProperties.virtualFields.forEach((field, virtualField) {
-      body.add(js.statement('const # = Symbol(#.name + "." + #.toString());',
-          [virtualField, className, _declareMemberName(field.getter)]));
+      body.add(js.statement('const # = Symbol(#);',
+          [virtualField, js.string('${classElement.name}.${field.name}')]));
     });
   }
 

@@ -53780,10 +53780,10 @@ math.Rectangle$ = dart.generic(T => {
       return new (RectangleOfT())(left, top, width, height);
     }
   }
-  const left$ = Symbol(Rectangle.name + "." + 'left'.toString());
-  const top$ = Symbol(Rectangle.name + "." + 'top'.toString());
-  const width$ = Symbol(Rectangle.name + "." + 'width'.toString());
-  const height$ = Symbol(Rectangle.name + "." + 'height'.toString());
+  const left$ = Symbol("Rectangle.left");
+  const top$ = Symbol("Rectangle.top");
+  const width$ = Symbol("Rectangle.width");
+  const height$ = Symbol("Rectangle.height");
   dart.setSignature(Rectangle, {
     constructors: () => ({
       new: dart.definiteFunctionType(math.Rectangle$(T), [T, T, T, T]),
@@ -53850,8 +53850,8 @@ math.MutableRectangle$ = dart.generic(T => {
       this[_height] = height;
     }
   }
-  const left$ = Symbol(MutableRectangle.name + "." + 'left'.toString());
-  const top$ = Symbol(MutableRectangle.name + "." + 'top'.toString());
+  const left$ = Symbol("MutableRectangle.left");
+  const top$ = Symbol("MutableRectangle.top");
   MutableRectangle[dart.implements] = () => [RectangleOfT()];
   dart.setSignature(MutableRectangle, {
     constructors: () => ({
@@ -77256,12 +77256,12 @@ html$.InputElementBase = class InputElementBase extends core.Object {
     this[value$] = value;
   }
 };
-const autofocus = Symbol(html$.InputElementBase.name + "." + 'autofocus'.toString());
-const disabled = Symbol(html$.InputElementBase.name + "." + 'disabled'.toString());
-const incremental = Symbol(html$.InputElementBase.name + "." + 'incremental'.toString());
-const indeterminate = Symbol(html$.InputElementBase.name + "." + 'indeterminate'.toString());
-const name = Symbol(html$.InputElementBase.name + "." + 'name'.toString());
-const value$ = Symbol(html$.InputElementBase.name + "." + 'value'.toString());
+const autofocus = Symbol("InputElementBase.autofocus");
+const disabled = Symbol("InputElementBase.disabled");
+const incremental = Symbol("InputElementBase.incremental");
+const indeterminate = Symbol("InputElementBase.indeterminate");
+const name = Symbol("InputElementBase.name");
+const value$ = Symbol("InputElementBase.value");
 html$.InputElementBase[dart.implements] = () => [html$.Element];
 dart.setSignature(html$.InputElementBase, {
   fields: () => ({
@@ -77382,16 +77382,16 @@ html$.TextInputElementBase = class TextInputElementBase extends core.Object {
     this[selectionStart] = value;
   }
 };
-const autocomplete = Symbol(html$.TextInputElementBase.name + "." + 'autocomplete'.toString());
-const maxLength = Symbol(html$.TextInputElementBase.name + "." + 'maxLength'.toString());
-const pattern = Symbol(html$.TextInputElementBase.name + "." + 'pattern'.toString());
-const placeholder = Symbol(html$.TextInputElementBase.name + "." + 'placeholder'.toString());
-const readOnly = Symbol(html$.TextInputElementBase.name + "." + 'readOnly'.toString());
-const required = Symbol(html$.TextInputElementBase.name + "." + 'required'.toString());
-const size = Symbol(html$.TextInputElementBase.name + "." + 'size'.toString());
-const selectionDirection = Symbol(html$.TextInputElementBase.name + "." + 'selectionDirection'.toString());
-const selectionEnd = Symbol(html$.TextInputElementBase.name + "." + 'selectionEnd'.toString());
-const selectionStart = Symbol(html$.TextInputElementBase.name + "." + 'selectionStart'.toString());
+const autocomplete = Symbol("TextInputElementBase.autocomplete");
+const maxLength = Symbol("TextInputElementBase.maxLength");
+const pattern = Symbol("TextInputElementBase.pattern");
+const placeholder = Symbol("TextInputElementBase.placeholder");
+const readOnly = Symbol("TextInputElementBase.readOnly");
+const required = Symbol("TextInputElementBase.required");
+const size = Symbol("TextInputElementBase.size");
+const selectionDirection = Symbol("TextInputElementBase.selectionDirection");
+const selectionEnd = Symbol("TextInputElementBase.selectionEnd");
+const selectionStart = Symbol("TextInputElementBase.selectionStart");
 html$.TextInputElementBase[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.TextInputElementBase, {
   fields: () => ({
@@ -77446,7 +77446,7 @@ html$.SearchInputElement = class SearchInputElement extends core.Object {
     return html$.InputElement.new({type: 'search'})[dartx.type] == 'search';
   }
 };
-const dirName = Symbol(html$.SearchInputElement.name + "." + 'dirName'.toString());
+const dirName = Symbol("SearchInputElement.dirName");
 html$.SearchInputElement[dart.implements] = () => [html$.TextInputElementBase];
 dart.setSignature(html$.SearchInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.SearchInputElement, [])}),
@@ -77468,7 +77468,7 @@ html$.TextInputElement = class TextInputElement extends core.Object {
     this[dirName$] = value;
   }
 };
-const dirName$ = Symbol(html$.TextInputElement.name + "." + 'dirName'.toString());
+const dirName$ = Symbol("TextInputElement.dirName");
 html$.TextInputElement[dart.implements] = () => [html$.TextInputElementBase];
 dart.setSignature(html$.TextInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.TextInputElement, [])}),
@@ -77574,15 +77574,15 @@ html$.EmailInputElement = class EmailInputElement extends core.Object {
     return html$.InputElement.new({type: 'email'})[dartx.type] == 'email';
   }
 };
-const autocomplete$ = Symbol(html$.EmailInputElement.name + "." + 'autocomplete'.toString());
-const autofocus$ = Symbol(html$.EmailInputElement.name + "." + 'autofocus'.toString());
-const maxLength$ = Symbol(html$.EmailInputElement.name + "." + 'maxLength'.toString());
-const multiple = Symbol(html$.EmailInputElement.name + "." + 'multiple'.toString());
-const pattern$ = Symbol(html$.EmailInputElement.name + "." + 'pattern'.toString());
-const placeholder$ = Symbol(html$.EmailInputElement.name + "." + 'placeholder'.toString());
-const readOnly$ = Symbol(html$.EmailInputElement.name + "." + 'readOnly'.toString());
-const required$ = Symbol(html$.EmailInputElement.name + "." + 'required'.toString());
-const size$ = Symbol(html$.EmailInputElement.name + "." + 'size'.toString());
+const autocomplete$ = Symbol("EmailInputElement.autocomplete");
+const autofocus$ = Symbol("EmailInputElement.autofocus");
+const maxLength$ = Symbol("EmailInputElement.maxLength");
+const multiple = Symbol("EmailInputElement.multiple");
+const pattern$ = Symbol("EmailInputElement.pattern");
+const placeholder$ = Symbol("EmailInputElement.placeholder");
+const readOnly$ = Symbol("EmailInputElement.readOnly");
+const required$ = Symbol("EmailInputElement.required");
+const size$ = Symbol("EmailInputElement.size");
 html$.EmailInputElement[dart.implements] = () => [html$.TextInputElementBase];
 dart.setSignature(html$.EmailInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.EmailInputElement, [])}),
@@ -77666,10 +77666,10 @@ html$.RangeInputElementBase = class RangeInputElementBase extends core.Object {
     this[valueAsNumber] = value;
   }
 };
-const max = Symbol(html$.RangeInputElementBase.name + "." + 'max'.toString());
-const min = Symbol(html$.RangeInputElementBase.name + "." + 'min'.toString());
-const step = Symbol(html$.RangeInputElementBase.name + "." + 'step'.toString());
-const valueAsNumber = Symbol(html$.RangeInputElementBase.name + "." + 'valueAsNumber'.toString());
+const max = Symbol("RangeInputElementBase.max");
+const min = Symbol("RangeInputElementBase.min");
+const step = Symbol("RangeInputElementBase.step");
+const valueAsNumber = Symbol("RangeInputElementBase.valueAsNumber");
 html$.RangeInputElementBase[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.RangeInputElementBase, {
   fields: () => ({
@@ -77720,9 +77720,9 @@ html$.DateInputElement = class DateInputElement extends core.Object {
     return html$.InputElement.new({type: 'date'})[dartx.type] == 'date';
   }
 };
-const valueAsDate = Symbol(html$.DateInputElement.name + "." + 'valueAsDate'.toString());
-const readOnly$0 = Symbol(html$.DateInputElement.name + "." + 'readOnly'.toString());
-const required$0 = Symbol(html$.DateInputElement.name + "." + 'required'.toString());
+const valueAsDate = Symbol("DateInputElement.valueAsDate");
+const readOnly$0 = Symbol("DateInputElement.readOnly");
+const required$0 = Symbol("DateInputElement.required");
 html$.DateInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.DateInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.DateInputElement, [])}),
@@ -77772,9 +77772,9 @@ html$.MonthInputElement = class MonthInputElement extends core.Object {
     return html$.InputElement.new({type: 'month'})[dartx.type] == 'month';
   }
 };
-const valueAsDate$ = Symbol(html$.MonthInputElement.name + "." + 'valueAsDate'.toString());
-const readOnly$1 = Symbol(html$.MonthInputElement.name + "." + 'readOnly'.toString());
-const required$1 = Symbol(html$.MonthInputElement.name + "." + 'required'.toString());
+const valueAsDate$ = Symbol("MonthInputElement.valueAsDate");
+const readOnly$1 = Symbol("MonthInputElement.readOnly");
+const required$1 = Symbol("MonthInputElement.required");
 html$.MonthInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.MonthInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.MonthInputElement, [])}),
@@ -77824,9 +77824,9 @@ html$.WeekInputElement = class WeekInputElement extends core.Object {
     return html$.InputElement.new({type: 'week'})[dartx.type] == 'week';
   }
 };
-const valueAsDate$0 = Symbol(html$.WeekInputElement.name + "." + 'valueAsDate'.toString());
-const readOnly$2 = Symbol(html$.WeekInputElement.name + "." + 'readOnly'.toString());
-const required$2 = Symbol(html$.WeekInputElement.name + "." + 'required'.toString());
+const valueAsDate$0 = Symbol("WeekInputElement.valueAsDate");
+const readOnly$2 = Symbol("WeekInputElement.readOnly");
+const required$2 = Symbol("WeekInputElement.required");
 html$.WeekInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.WeekInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.WeekInputElement, [])}),
@@ -77876,9 +77876,9 @@ html$.TimeInputElement = class TimeInputElement extends core.Object {
     return html$.InputElement.new({type: 'time'})[dartx.type] == 'time';
   }
 };
-const valueAsDate$1 = Symbol(html$.TimeInputElement.name + "." + 'valueAsDate'.toString());
-const readOnly$3 = Symbol(html$.TimeInputElement.name + "." + 'readOnly'.toString());
-const required$3 = Symbol(html$.TimeInputElement.name + "." + 'required'.toString());
+const valueAsDate$1 = Symbol("TimeInputElement.valueAsDate");
+const readOnly$3 = Symbol("TimeInputElement.readOnly");
+const required$3 = Symbol("TimeInputElement.required");
 html$.TimeInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.TimeInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.TimeInputElement, [])}),
@@ -77921,8 +77921,8 @@ html$.LocalDateTimeInputElement = class LocalDateTimeInputElement extends core.O
     return html$.InputElement.new({type: 'datetime-local'})[dartx.type] == 'datetime-local';
   }
 };
-const readOnly$4 = Symbol(html$.LocalDateTimeInputElement.name + "." + 'readOnly'.toString());
-const required$4 = Symbol(html$.LocalDateTimeInputElement.name + "." + 'required'.toString());
+const readOnly$4 = Symbol("LocalDateTimeInputElement.readOnly");
+const required$4 = Symbol("LocalDateTimeInputElement.required");
 html$.LocalDateTimeInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.LocalDateTimeInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.LocalDateTimeInputElement, [])}),
@@ -77964,9 +77964,9 @@ html$.NumberInputElement = class NumberInputElement extends core.Object {
     return html$.InputElement.new({type: 'number'})[dartx.type] == 'number';
   }
 };
-const placeholder$0 = Symbol(html$.NumberInputElement.name + "." + 'placeholder'.toString());
-const readOnly$5 = Symbol(html$.NumberInputElement.name + "." + 'readOnly'.toString());
-const required$5 = Symbol(html$.NumberInputElement.name + "." + 'required'.toString());
+const placeholder$0 = Symbol("NumberInputElement.placeholder");
+const readOnly$5 = Symbol("NumberInputElement.readOnly");
+const required$5 = Symbol("NumberInputElement.required");
 html$.NumberInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.NumberInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.NumberInputElement, [])}),
@@ -78019,8 +78019,8 @@ html$.CheckboxInputElement = class CheckboxInputElement extends core.Object {
     this[required$6] = value;
   }
 };
-const checked = Symbol(html$.CheckboxInputElement.name + "." + 'checked'.toString());
-const required$6 = Symbol(html$.CheckboxInputElement.name + "." + 'required'.toString());
+const checked = Symbol("CheckboxInputElement.checked");
+const required$6 = Symbol("CheckboxInputElement.required");
 html$.CheckboxInputElement[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.CheckboxInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.CheckboxInputElement, [])}),
@@ -78051,8 +78051,8 @@ html$.RadioButtonInputElement = class RadioButtonInputElement extends core.Objec
     this[required$7] = value;
   }
 };
-const checked$ = Symbol(html$.RadioButtonInputElement.name + "." + 'checked'.toString());
-const required$7 = Symbol(html$.RadioButtonInputElement.name + "." + 'required'.toString());
+const checked$ = Symbol("RadioButtonInputElement.checked");
+const required$7 = Symbol("RadioButtonInputElement.required");
 html$.RadioButtonInputElement[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.RadioButtonInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.RadioButtonInputElement, [])}),
@@ -78097,10 +78097,10 @@ html$.FileUploadInputElement = class FileUploadInputElement extends core.Object 
     this[files] = value;
   }
 };
-const accept = Symbol(html$.FileUploadInputElement.name + "." + 'accept'.toString());
-const multiple$ = Symbol(html$.FileUploadInputElement.name + "." + 'multiple'.toString());
-const required$8 = Symbol(html$.FileUploadInputElement.name + "." + 'required'.toString());
-const files = Symbol(html$.FileUploadInputElement.name + "." + 'files'.toString());
+const accept = Symbol("FileUploadInputElement.accept");
+const multiple$ = Symbol("FileUploadInputElement.multiple");
+const required$8 = Symbol("FileUploadInputElement.required");
+const files = Symbol("FileUploadInputElement.files");
 html$.FileUploadInputElement[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.FileUploadInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.FileUploadInputElement, [])}),
@@ -78163,11 +78163,11 @@ html$.SubmitButtonInputElement = class SubmitButtonInputElement extends core.Obj
     this[formTarget] = value;
   }
 };
-const formAction = Symbol(html$.SubmitButtonInputElement.name + "." + 'formAction'.toString());
-const formEnctype = Symbol(html$.SubmitButtonInputElement.name + "." + 'formEnctype'.toString());
-const formMethod = Symbol(html$.SubmitButtonInputElement.name + "." + 'formMethod'.toString());
-const formNoValidate = Symbol(html$.SubmitButtonInputElement.name + "." + 'formNoValidate'.toString());
-const formTarget = Symbol(html$.SubmitButtonInputElement.name + "." + 'formTarget'.toString());
+const formAction = Symbol("SubmitButtonInputElement.formAction");
+const formEnctype = Symbol("SubmitButtonInputElement.formEnctype");
+const formMethod = Symbol("SubmitButtonInputElement.formMethod");
+const formNoValidate = Symbol("SubmitButtonInputElement.formNoValidate");
+const formTarget = Symbol("SubmitButtonInputElement.formTarget");
 html$.SubmitButtonInputElement[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.SubmitButtonInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.SubmitButtonInputElement, [])}),
@@ -78261,15 +78261,15 @@ html$.ImageButtonInputElement = class ImageButtonInputElement extends core.Objec
     this[width] = value;
   }
 };
-const alt = Symbol(html$.ImageButtonInputElement.name + "." + 'alt'.toString());
-const formAction$ = Symbol(html$.ImageButtonInputElement.name + "." + 'formAction'.toString());
-const formEnctype$ = Symbol(html$.ImageButtonInputElement.name + "." + 'formEnctype'.toString());
-const formMethod$ = Symbol(html$.ImageButtonInputElement.name + "." + 'formMethod'.toString());
-const formNoValidate$ = Symbol(html$.ImageButtonInputElement.name + "." + 'formNoValidate'.toString());
-const formTarget$ = Symbol(html$.ImageButtonInputElement.name + "." + 'formTarget'.toString());
-const height = Symbol(html$.ImageButtonInputElement.name + "." + 'height'.toString());
-const src = Symbol(html$.ImageButtonInputElement.name + "." + 'src'.toString());
-const width = Symbol(html$.ImageButtonInputElement.name + "." + 'width'.toString());
+const alt = Symbol("ImageButtonInputElement.alt");
+const formAction$ = Symbol("ImageButtonInputElement.formAction");
+const formEnctype$ = Symbol("ImageButtonInputElement.formEnctype");
+const formMethod$ = Symbol("ImageButtonInputElement.formMethod");
+const formNoValidate$ = Symbol("ImageButtonInputElement.formNoValidate");
+const formTarget$ = Symbol("ImageButtonInputElement.formTarget");
+const height = Symbol("ImageButtonInputElement.height");
+const src = Symbol("ImageButtonInputElement.src");
+const width = Symbol("ImageButtonInputElement.width");
 html$.ImageButtonInputElement[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.ImageButtonInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html$.ImageButtonInputElement, [])}),
@@ -81594,7 +81594,7 @@ html$.NavigatorCpu = class NavigatorCpu extends _interceptors.Interceptor {
     super.hardwareConcurrency = value;
   }
 };
-const hardwareConcurrency = Symbol(html$.NavigatorCpu.name + "." + 'hardwareConcurrency'.toString());
+const hardwareConcurrency = Symbol("NavigatorCpu.hardwareConcurrency");
 dart.setSignature(html$.NavigatorCpu, {
   constructors: () => ({_: dart.definiteFunctionType(html$.NavigatorCpu, [])}),
   fields: () => ({hardwareConcurrency: core.int})
@@ -81656,13 +81656,13 @@ html$.NavigatorID = class NavigatorID extends _interceptors.Interceptor {
     super.userAgent = value;
   }
 };
-const appCodeName = Symbol(html$.NavigatorID.name + "." + 'appCodeName'.toString());
-const appName = Symbol(html$.NavigatorID.name + "." + 'appName'.toString());
-const appVersion = Symbol(html$.NavigatorID.name + "." + 'appVersion'.toString());
-const dartEnabled = Symbol(html$.NavigatorID.name + "." + 'dartEnabled'.toString());
-const platform = Symbol(html$.NavigatorID.name + "." + 'platform'.toString());
-const product = Symbol(html$.NavigatorID.name + "." + 'product'.toString());
-const userAgent = Symbol(html$.NavigatorID.name + "." + 'userAgent'.toString());
+const appCodeName = Symbol("NavigatorID.appCodeName");
+const appName = Symbol("NavigatorID.appName");
+const appVersion = Symbol("NavigatorID.appVersion");
+const dartEnabled = Symbol("NavigatorID.dartEnabled");
+const platform = Symbol("NavigatorID.platform");
+const product = Symbol("NavigatorID.product");
+const userAgent = Symbol("NavigatorID.userAgent");
 dart.setSignature(html$.NavigatorID, {
   constructors: () => ({_: dart.definiteFunctionType(html$.NavigatorID, [])}),
   fields: () => ({
@@ -81705,8 +81705,8 @@ html$.NavigatorLanguage = class NavigatorLanguage extends _interceptors.Intercep
     super.languages = value;
   }
 };
-const language = Symbol(html$.NavigatorLanguage.name + "." + 'language'.toString());
-const languages = Symbol(html$.NavigatorLanguage.name + "." + 'languages'.toString());
+const language = Symbol("NavigatorLanguage.language");
+const languages = Symbol("NavigatorLanguage.languages");
 dart.setSignature(html$.NavigatorLanguage, {
   constructors: () => ({_: dart.definiteFunctionType(html$.NavigatorLanguage, [])}),
   fields: () => ({
@@ -81729,7 +81729,7 @@ html$.NavigatorOnLine = class NavigatorOnLine extends _interceptors.Interceptor 
     super.onLine = value;
   }
 };
-const onLine = Symbol(html$.NavigatorOnLine.name + "." + 'onLine'.toString());
+const onLine = Symbol("NavigatorOnLine.onLine");
 dart.setSignature(html$.NavigatorOnLine, {
   constructors: () => ({_: dart.definiteFunctionType(html$.NavigatorOnLine, [])}),
   fields: () => ({onLine: core.bool})
@@ -87006,7 +87006,7 @@ html$.ShadowRoot = class ShadowRoot extends html$.DocumentFragment {
     html$.ShadowRoot._shadowRootDeprecationReport();
   }
 };
-const innerHtml = Symbol(html$.ShadowRoot.name + "." + dartx.innerHtml.toString());
+const innerHtml = Symbol("ShadowRoot.innerHtml");
 dart.setSignature(html$.ShadowRoot, {
   constructors: () => ({_: dart.definiteFunctionType(html$.ShadowRoot, [])}),
   fields: () => ({
@@ -90799,17 +90799,17 @@ html$.UrlUtils = class UrlUtils extends _interceptors.Interceptor {
     this[username] = value;
   }
 };
-const hash = Symbol(html$.UrlUtils.name + "." + 'hash'.toString());
-const host = Symbol(html$.UrlUtils.name + "." + 'host'.toString());
-const hostname = Symbol(html$.UrlUtils.name + "." + 'hostname'.toString());
-const href = Symbol(html$.UrlUtils.name + "." + 'href'.toString());
-const origin = Symbol(html$.UrlUtils.name + "." + 'origin'.toString());
-const password = Symbol(html$.UrlUtils.name + "." + 'password'.toString());
-const pathname = Symbol(html$.UrlUtils.name + "." + 'pathname'.toString());
-const port = Symbol(html$.UrlUtils.name + "." + 'port'.toString());
-const protocol = Symbol(html$.UrlUtils.name + "." + 'protocol'.toString());
-const search = Symbol(html$.UrlUtils.name + "." + 'search'.toString());
-const username = Symbol(html$.UrlUtils.name + "." + 'username'.toString());
+const hash = Symbol("UrlUtils.hash");
+const host = Symbol("UrlUtils.host");
+const hostname = Symbol("UrlUtils.hostname");
+const href = Symbol("UrlUtils.href");
+const origin = Symbol("UrlUtils.origin");
+const password = Symbol("UrlUtils.password");
+const pathname = Symbol("UrlUtils.pathname");
+const port = Symbol("UrlUtils.port");
+const protocol = Symbol("UrlUtils.protocol");
+const search = Symbol("UrlUtils.search");
+const username = Symbol("UrlUtils.username");
 dart.setSignature(html$.UrlUtils, {
   constructors: () => ({_: dart.definiteFunctionType(html$.UrlUtils, [])}),
   fields: () => ({
@@ -90919,15 +90919,15 @@ html$.UrlUtilsReadOnly = class UrlUtilsReadOnly extends _interceptors.Intercepto
     super.search = value;
   }
 };
-const hash$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'hash'.toString());
-const host$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'host'.toString());
-const hostname$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'hostname'.toString());
-const href$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'href'.toString());
-const origin$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'origin'.toString());
-const pathname$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'pathname'.toString());
-const port$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'port'.toString());
-const protocol$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'protocol'.toString());
-const search$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'search'.toString());
+const hash$ = Symbol("UrlUtilsReadOnly.hash");
+const host$ = Symbol("UrlUtilsReadOnly.host");
+const hostname$ = Symbol("UrlUtilsReadOnly.hostname");
+const href$ = Symbol("UrlUtilsReadOnly.href");
+const origin$ = Symbol("UrlUtilsReadOnly.origin");
+const pathname$ = Symbol("UrlUtilsReadOnly.pathname");
+const port$ = Symbol("UrlUtilsReadOnly.port");
+const protocol$ = Symbol("UrlUtilsReadOnly.protocol");
+const search$ = Symbol("UrlUtilsReadOnly.search");
 dart.setSignature(html$.UrlUtilsReadOnly, {
   constructors: () => ({_: dart.definiteFunctionType(html$.UrlUtilsReadOnly, [])}),
   fields: () => ({
@@ -103046,11 +103046,11 @@ svg$.FilterPrimitiveStandardAttributes = class FilterPrimitiveStandardAttributes
     super.y = value;
   }
 };
-const height$ = Symbol(svg$.FilterPrimitiveStandardAttributes.name + "." + 'height'.toString());
-const result = Symbol(svg$.FilterPrimitiveStandardAttributes.name + "." + 'result'.toString());
-const width$ = Symbol(svg$.FilterPrimitiveStandardAttributes.name + "." + 'width'.toString());
-const x = Symbol(svg$.FilterPrimitiveStandardAttributes.name + "." + 'x'.toString());
-const y = Symbol(svg$.FilterPrimitiveStandardAttributes.name + "." + 'y'.toString());
+const height$ = Symbol("FilterPrimitiveStandardAttributes.height");
+const result = Symbol("FilterPrimitiveStandardAttributes.result");
+const width$ = Symbol("FilterPrimitiveStandardAttributes.width");
+const x = Symbol("FilterPrimitiveStandardAttributes.x");
+const y = Symbol("FilterPrimitiveStandardAttributes.y");
 dart.setSignature(svg$.FilterPrimitiveStandardAttributes, {
   constructors: () => ({_: dart.definiteFunctionType(svg$.FilterPrimitiveStandardAttributes, [])}),
   fields: () => ({
@@ -103089,8 +103089,8 @@ svg$.FitToViewBox = class FitToViewBox extends _interceptors.Interceptor {
     super.viewBox = value;
   }
 };
-const preserveAspectRatio = Symbol(svg$.FitToViewBox.name + "." + 'preserveAspectRatio'.toString());
-const viewBox = Symbol(svg$.FitToViewBox.name + "." + 'viewBox'.toString());
+const preserveAspectRatio = Symbol("FitToViewBox.preserveAspectRatio");
+const viewBox = Symbol("FitToViewBox.viewBox");
 dart.setSignature(svg$.FitToViewBox, {
   constructors: () => ({_: dart.definiteFunctionType(svg$.FitToViewBox, [])}),
   fields: () => ({
@@ -106332,9 +106332,9 @@ svg$.Tests = class Tests extends _interceptors.Interceptor {
     super.systemLanguage = value;
   }
 };
-const requiredExtensions = Symbol(svg$.Tests.name + "." + 'requiredExtensions'.toString());
-const requiredFeatures = Symbol(svg$.Tests.name + "." + 'requiredFeatures'.toString());
-const systemLanguage = Symbol(svg$.Tests.name + "." + 'systemLanguage'.toString());
+const requiredExtensions = Symbol("Tests.requiredExtensions");
+const requiredFeatures = Symbol("Tests.requiredFeatures");
+const systemLanguage = Symbol("Tests.systemLanguage");
 dart.setSignature(svg$.Tests, {
   constructors: () => ({_: dart.definiteFunctionType(svg$.Tests, [])}),
   fields: () => ({
@@ -106667,7 +106667,7 @@ svg$.UriReference = class UriReference extends _interceptors.Interceptor {
     super.href = value;
   }
 };
-const href$0 = Symbol(svg$.UriReference.name + "." + 'href'.toString());
+const href$0 = Symbol("UriReference.href");
 dart.setSignature(svg$.UriReference, {
   constructors: () => ({_: dart.definiteFunctionType(svg$.UriReference, [])}),
   fields: () => ({href: svg$.AnimatedString})
@@ -106856,7 +106856,7 @@ svg$.ZoomAndPan = class ZoomAndPan extends _interceptors.Interceptor {
     this[zoomAndPan] = value;
   }
 };
-const zoomAndPan = Symbol(svg$.ZoomAndPan.name + "." + 'zoomAndPan'.toString());
+const zoomAndPan = Symbol("ZoomAndPan.zoomAndPan");
 dart.setSignature(svg$.ZoomAndPan, {
   constructors: () => ({_: dart.definiteFunctionType(svg$.ZoomAndPan, [])}),
   fields: () => ({zoomAndPan: core.int}),
