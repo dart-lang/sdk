@@ -48,8 +48,12 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args) {
   if (args.wasParsed(strongModeFlag)) {
     options.strongMode = args[strongModeFlag];
   }
-  if (args.wasParsed(lintsFlag)) {
-    options.lint = args[lintsFlag];
+  try {
+    if (args.wasParsed(lintsFlag)) {
+      options.lint = args[lintsFlag];
+    }
+  } on ArgumentError {
+    // lints were not defined - ignore and fall through
   }
 }
 
