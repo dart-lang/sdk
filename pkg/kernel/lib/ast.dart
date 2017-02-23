@@ -56,6 +56,9 @@ export 'visitor.dart';
 import 'type_propagation/type_propagation.dart';
 export 'type_propagation/type_propagation.dart';
 
+import 'canonical_name.dart' show CanonicalName;
+export 'canonical_name.dart' show CanonicalName;
+
 import 'transformations/flags.dart';
 import 'text/ast_to_text.dart';
 import 'type_algebra.dart';
@@ -152,11 +155,86 @@ abstract class TreeNode extends Node {
   }
 }
 
+/// An AST node that can be referenced by other nodes.
+///
+/// There is a single [reference] belonging to this node, providing a level of
+/// indirection that is needed during serialization.
+abstract class NamedNode extends TreeNode {
+  final Reference reference;
+
+  NamedNode(Reference reference)
+      : this.reference = reference ?? new Reference() {
+    this.reference.node = this;
+  }
+
+  CanonicalName get canonicalName => reference?.canonicalName;
+}
+
+/// Indirection between a reference and its definition.
+///
+/// There is only one reference object per [NamedNode].
+class Reference {
+  CanonicalName canonicalName;
+  NamedNode node;
+
+  String toString() {
+    if (canonicalName != null) {
+      return 'Reference to $canonicalName';
+    }
+    if (node != null) {
+      return 'Reference to $node';
+    }
+    return 'Unbound reference';
+  }
+
+  Library get asLibrary {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A library was expected';
+    }
+    return node as Library;
+  }
+
+  Class get asClass {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A class was expected';
+    }
+    return node as Class;
+  }
+
+  Member get asMember {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A member was expected';
+    }
+    return node as Member;
+  }
+
+  Field get asField {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A field was expected';
+    }
+    return node as Field;
+  }
+
+  Constructor get asConstructor {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A constructor was expected';
+    }
+    return node as Constructor;
+  }
+
+  Procedure get asProcedure {
+    if (node == null) {
+      throw '$this is not bound to an AST node. A procedure was expected';
+    }
+    return node as Procedure;
+  }
+}
+
 // ------------------------------------------------------------------------
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-class Library extends TreeNode implements Comparable<Library> {
+class Library extends NamedNode implements Comparable<Library> {
   /// An import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, `app`, or `file` scheme.
@@ -191,11 +269,13 @@ class Library extends TreeNode implements Comparable<Library> {
       List<Class> classes,
       List<Procedure> procedures,
       List<Field> fields,
-      this.fileUri})
+      this.fileUri,
+      Reference reference})
       : this.deferredImports = imports ?? <DeferredImport>[],
         this.classes = classes ?? <Class>[],
         this.procedures = procedures ?? <Procedure>[],
-        this.fields = fields ?? <Field>[] {
+        this.fields = fields ?? <Field>[],
+        super(reference) {
     setParents(this.classes, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
@@ -222,6 +302,20 @@ class Library extends TreeNode implements Comparable<Library> {
   void addClass(Class class_) {
     class_.parent = this;
     classes.add(class_);
+  }
+
+  void computeCanonicalNames() {
+    assert(canonicalName != null);
+    for (var field in fields) {
+      canonicalName.getChildFromMember(field).bindTo(field.reference);
+    }
+    for (var member in procedures) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
+    for (var class_ in classes) {
+      canonicalName.getChild(class_.name).bindTo(class_.reference);
+      class_.computeCanonicalNames();
+    }
   }
 
   accept(TreeVisitor v) => v.visitLibrary(this);
@@ -254,12 +348,16 @@ class Library extends TreeNode implements Comparable<Library> {
 
 /// An import of form: `import <url> deferred as <name>;`.
 class DeferredImport extends TreeNode {
-  Library importedLibrary;
+  Reference importedLibraryReference;
   String name;
 
-  DeferredImport(this.importedLibrary, this.name);
+  DeferredImport(Library importedLibrary, String name)
+      : this.byReference(importedLibrary.reference, name);
+
+  DeferredImport.byReference(this.importedLibraryReference, this.name);
 
   Library get enclosingLibrary => parent;
+  Library get importedLibrary => importedLibraryReference.asLibrary;
 
   accept(TreeVisitor v) => v.visitDeferredImport(this);
 
@@ -321,7 +419,7 @@ enum ClassLevel {
 /// use those from its mixed-in type.  However, the IR does not enforce this
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
-class Class extends TreeNode {
+class Class extends NamedNode {
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
 
@@ -378,16 +476,31 @@ class Class extends TreeNode {
       List<Constructor> constructors,
       List<Procedure> procedures,
       List<Field> fields,
-      this.fileUri})
+      this.fileUri,
+      Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <Supertype>[],
         this.fields = fields ?? <Field>[],
         this.constructors = constructors ?? <Constructor>[],
-        this.procedures = procedures ?? <Procedure>[] {
+        this.procedures = procedures ?? <Procedure>[],
+        super(reference) {
     setParents(this.typeParameters, this);
     setParents(this.constructors, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
+  }
+
+  void computeCanonicalNames() {
+    assert(canonicalName != null);
+    for (var member in fields) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
+    for (var member in procedures) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
+    for (var member in constructors) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
   }
 
   /// The immediate super class, or `null` if this is the root class.
@@ -522,14 +635,7 @@ class Class extends TreeNode {
 //                            MEMBERS
 // ------------------------------------------------------------------------
 
-/// A indirect reference to a member, which can be updated to point at another
-/// member at a later time.
-class _MemberAccessor {
-  Member target;
-  _MemberAccessor(this.target);
-}
-
-abstract class Member extends TreeNode {
+abstract class Member extends NamedNode {
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
@@ -559,7 +665,7 @@ abstract class Member extends TreeNode {
   // TODO(asgerf): It might be worthwhile to put this on classes as well.
   int transformerFlags = 0;
 
-  Member(this.name);
+  Member(this.name, Reference reference) : super(reference);
 
   Class get enclosingClass => parent is Class ? parent : null;
   Library get enclosingLibrary => parent is Class ? parent.parent : parent;
@@ -617,9 +723,6 @@ abstract class Member extends TreeNode {
   bool get containsSuperCalls {
     return transformerFlags & TransformerFlag.superCalls != 0;
   }
-
-  _MemberAccessor get _getterInterface;
-  _MemberAccessor get _setterInterface;
 }
 
 /// A field declaration.
@@ -627,8 +730,6 @@ abstract class Member extends TreeNode {
 /// The implied getter and setter for the field are not represented explicitly,
 /// but can be made explicit if needed.
 class Field extends Member {
-  _MemberAccessor _getterInterface, _setterInterface;
-
   DartType type; // Not null. Defaults to DynamicType.
   InferredValue inferredValue; // May be null.
   int flags = 0;
@@ -647,10 +748,9 @@ class Field extends Member {
       bool hasImplicitGetter,
       bool hasImplicitSetter,
       int transformerFlags: 0,
-      this.fileUri})
-      : super(name) {
-    _getterInterface = new _MemberAccessor(this);
-    _setterInterface = new _MemberAccessor(this);
+      this.fileUri,
+      Reference reference})
+      : super(name, reference) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
@@ -750,46 +850,6 @@ class Field extends Member {
   DartType get getterType => type;
   DartType get setterType => isMutable ? type : const BottomType();
 
-  /// Makes all [PropertyGet]s that have this field as its interface target
-  /// use [getter] as its interface target instead.
-  ///
-  /// That can be used to introduce an explicit getter for a field instead of
-  /// its implicit getter.
-  ///
-  /// This method only updates the stored interface target -- the caller must
-  /// ensure that [getter] actually becomes the target for dispatches that
-  /// would previously hit the implicit field getter.
-  ///
-  /// [DirectPropertyGet]s are not affected, and will continue to access the
-  /// field directly. [PropertyGet] nodes created after the call will not be
-  /// affected until the method is called again.
-  ///
-  /// Existing [ClassHierarchy] instances are not affected by this call.
-  void replaceGetterInterfaceWith(Procedure getter) {
-    _getterInterface.target = getter;
-    _getterInterface = new _MemberAccessor(this);
-  }
-
-  /// Makes all [PropertySet]s that have this field as its interface target
-  /// use [setter] as its interface target instead.
-  ///
-  /// That can be used to introduce an explicit setter for a field instead of
-  /// its implicit setter.
-  ///
-  /// This method only updates the stored interface target -- the caller must
-  /// ensure that [setter] actually becomes the target for dispatches that
-  /// would previously hit the implicit field setter.
-  ///
-  /// [DirectPropertySet] and [FieldInitializer]s are not affected, and will
-  /// continue to access the field directly.  [PropertySet] nodes created after
-  /// the call will not be affected until the method is called again.
-  ///
-  /// Existing [ClassHierarchy] instances are not affected by this call.
-  void replaceSetterInterfaceWith(Procedure setter) {
-    _setterInterface.target = setter;
-    _setterInterface = new _MemberAccessor(this);
-  }
-
   Location _getLocationInEnclosingFile(int offset) {
     return enclosingProgram.getLocation(fileUri, offset);
   }
@@ -813,9 +873,10 @@ class Constructor extends Member {
       bool isConst: false,
       bool isExternal: false,
       List<Initializer> initializers,
-      int transformerFlags: 0})
+      int transformerFlags: 0,
+      Reference reference})
       : this.initializers = initializers ?? <Initializer>[],
-        super(name) {
+        super(name, reference) {
     function?.parent = this;
     setParents(this.initializers, this);
     this.isConst = isConst;
@@ -864,14 +925,6 @@ class Constructor extends Member {
 
   DartType get getterType => const BottomType();
   DartType get setterType => const BottomType();
-
-  _MemberAccessor get _getterInterface {
-    throw 'Constructors cannot be used as getters';
-  }
-
-  _MemberAccessor get _setterInterface {
-    throw 'Constructors cannot be used as setters';
-  }
 }
 
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
@@ -890,7 +943,6 @@ class Constructor extends Member {
 /// For operators, this is the token for the operator, e.g. `+` or `==`,
 /// except for the unary minus operator, whose name is `unary-`.
 class Procedure extends Member {
-  _MemberAccessor _reference;
   ProcedureKind kind;
   int flags = 0;
   FunctionNode function; // Body is null if and only if abstract or external.
@@ -904,9 +956,9 @@ class Procedure extends Member {
       bool isExternal: false,
       bool isConst: false,
       int transformerFlags: 0,
-      this.fileUri})
-      : super(name) {
-    _reference = new _MemberAccessor(this);
+      this.fileUri,
+      Reference reference})
+      : super(name, reference) {
     function?.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
@@ -979,9 +1031,6 @@ class Procedure extends Member {
         : const BottomType();
   }
 
-  _MemberAccessor get _getterInterface => _reference;
-  _MemberAccessor get _setterInterface => _reference;
-
   Location _getLocationInEnclosingFile(int offset) {
     return enclosingProgram.getLocation(fileUri, offset);
   }
@@ -1027,11 +1076,20 @@ class InvalidInitializer extends Initializer {
 //  exactly once, and that no fields are assigned twice in the initializer list.
 class FieldInitializer extends Initializer {
   /// Reference to the field being initialized.  Not null.
-  Field field;
+  Reference fieldReference;
   Expression value;
 
-  FieldInitializer(this.field, this.value) {
+  FieldInitializer(Field field, Expression value)
+      : this.byReference(field?.reference, value);
+
+  FieldInitializer.byReference(this.fieldReference, this.value) {
     value?.parent = this;
+  }
+
+  Field get field => fieldReference?.node;
+
+  void set field(Field field) {
+    fieldReference = field?.reference;
   }
 
   accept(InitializerVisitor v) => v.visitFieldInitializer(this);
@@ -1060,11 +1118,20 @@ class FieldInitializer extends Initializer {
 // from the extends clause.
 class SuperInitializer extends Initializer {
   /// Reference to the constructor being invoked in the super class. Not null.
-  Constructor target;
+  Reference targetReference;
   Arguments arguments;
 
-  SuperInitializer(this.target, this.arguments) {
+  SuperInitializer(Constructor target, Arguments arguments)
+      : this.byReference(getMemberReference(target), arguments);
+
+  SuperInitializer.byReference(this.targetReference, this.arguments) {
     arguments?.parent = this;
+  }
+
+  Constructor get target => targetReference?.asConstructor;
+
+  void set target(Constructor target) {
+    targetReference = getMemberReference(target);
   }
 
   accept(InitializerVisitor v) => v.visitSuperInitializer(this);
@@ -1089,11 +1156,20 @@ class SuperInitializer extends Initializer {
 // constructor has a body or if there is a cycle in the initializer calls.
 class RedirectingInitializer extends Initializer {
   /// Reference to the constructor being invoked in the same class. Not null.
-  Constructor target;
+  Reference targetReference;
   Arguments arguments;
 
-  RedirectingInitializer(this.target, this.arguments) {
+  RedirectingInitializer(Constructor target, Arguments arguments)
+      : this.byReference(getMemberReference(target), arguments);
+
+  RedirectingInitializer.byReference(this.targetReference, this.arguments) {
     arguments?.parent = this;
+  }
+
+  Constructor get target => targetReference?.asConstructor;
+
+  void set target(Constructor target) {
+    targetReference = getMemberReference(target);
   }
 
   accept(InitializerVisitor v) => v.visitRedirectingInitializer(this);
@@ -1402,17 +1478,20 @@ class PropertyGet extends Expression {
   Expression receiver;
   Name name;
 
-  _MemberAccessor _interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  PropertyGet(this.receiver, this.name, [Member interfaceTarget]) {
+  PropertyGet(Expression receiver, Name name, [Member interfaceTarget])
+      : this.byReference(receiver, name, getMemberReference(interfaceTarget));
+
+  PropertyGet.byReference(
+      this.receiver, this.name, this.interfaceTargetReference) {
     receiver?.parent = this;
-    this.interfaceTarget = interfaceTarget;
   }
 
-  Member get interfaceTarget => _interfaceTargetReference?.target;
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
 
-  void set interfaceTarget(Member newTarget) {
-    _interfaceTargetReference = newTarget?._getterInterface;
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReference(member);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -1459,18 +1538,23 @@ class PropertySet extends Expression {
   Name name;
   Expression value;
 
-  _MemberAccessor _interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  PropertySet(this.receiver, this.name, this.value, [Member interfaceTarget]) {
+  PropertySet(Expression receiver, Name name, Expression value,
+      [Member interfaceTarget])
+      : this.byReference(
+            receiver, name, value, getMemberReference(interfaceTarget));
+
+  PropertySet.byReference(
+      this.receiver, this.name, this.value, this.interfaceTargetReference) {
     receiver?.parent = this;
     value?.parent = this;
-    this.interfaceTarget = interfaceTarget;
   }
 
-  Member get interfaceTarget => _interfaceTargetReference?.target;
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
 
-  void set interfaceTarget(Member newTarget) {
-    _interfaceTargetReference = newTarget?._setterInterface;
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReference(member);
   }
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
@@ -1498,10 +1582,19 @@ class PropertySet extends Expression {
 /// Directly read a field, call a getter, or tear off a method.
 class DirectPropertyGet extends Expression {
   Expression receiver;
-  Member target;
+  Reference targetReference;
 
-  DirectPropertyGet(this.receiver, this.target) {
+  DirectPropertyGet(Expression receiver, Member target)
+      : this.byReference(receiver, getMemberReference(target));
+
+  DirectPropertyGet.byReference(this.receiver, this.targetReference) {
     receiver?.parent = this;
+  }
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member target) {
+    targetReference = getMemberReference(target);
   }
 
   visitChildren(Visitor v) {
@@ -1532,12 +1625,22 @@ class DirectPropertyGet extends Expression {
 /// Evaluates to the value of [value].
 class DirectPropertySet extends Expression {
   Expression receiver;
-  Member target;
+  Reference targetReference;
   Expression value;
 
-  DirectPropertySet(this.receiver, this.target, this.value) {
+  DirectPropertySet(Expression receiver, Member target, Expression value)
+      : this.byReference(receiver, getMemberReference(target), value);
+
+  DirectPropertySet.byReference(
+      this.receiver, this.targetReference, this.value) {
     receiver?.parent = this;
     value?.parent = this;
+  }
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member target) {
+    targetReference = getMemberReference(target);
   }
 
   visitChildren(Visitor v) {
@@ -1565,12 +1668,23 @@ class DirectPropertySet extends Expression {
 /// Directly call an instance method, bypassing ordinary dispatch.
 class DirectMethodInvocation extends InvocationExpression {
   Expression receiver;
-  Procedure target;
+  Reference targetReference;
   Arguments arguments;
 
-  DirectMethodInvocation(this.receiver, this.target, this.arguments) {
+  DirectMethodInvocation(
+      Expression receiver, Procedure target, Arguments arguments)
+      : this.byReference(receiver, getMemberReference(target), arguments);
+
+  DirectMethodInvocation.byReference(
+      this.receiver, this.targetReference, this.arguments) {
     receiver?.parent = this;
     arguments?.parent = this;
+  }
+
+  Procedure get target => targetReference?.asProcedure;
+
+  void set target(Procedure target) {
+    targetReference = getMemberReference(target);
   }
 
   Name get name => target?.name;
@@ -1615,16 +1729,17 @@ class DirectMethodInvocation extends InvocationExpression {
 /// This may invoke a getter, read a field, or tear off a method.
 class SuperPropertyGet extends Expression {
   Name name;
-  _MemberAccessor _interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  SuperPropertyGet(this.name, [Member interfaceTarget]) {
-    _interfaceTargetReference = interfaceTarget?._getterInterface;
-  }
+  SuperPropertyGet(Name name, [Member interfaceTarget])
+      : this.byReference(name, getMemberReference(interfaceTarget));
 
-  Member get interfaceTarget => _interfaceTargetReference?.target;
+  SuperPropertyGet.byReference(this.name, this.interfaceTargetReference);
 
-  void set interfaceTarget(Member newTarget) {
-    _interfaceTargetReference = newTarget?._getterInterface;
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
+
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReference(member);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -1656,17 +1771,20 @@ class SuperPropertyGet extends Expression {
 class SuperPropertySet extends Expression {
   Name name;
   Expression value;
-  _MemberAccessor _interfaceTargetReference;
+  Reference interfaceTargetReference;
 
-  SuperPropertySet(this.name, this.value, [Member interfaceTarget]) {
+  SuperPropertySet(Name name, Expression value, Member interfaceTarget)
+      : this.byReference(name, value, getMemberReference(interfaceTarget));
+
+  SuperPropertySet.byReference(
+      this.name, this.value, this.interfaceTargetReference) {
     value?.parent = this;
-    _interfaceTargetReference = interfaceTarget?._setterInterface;
   }
 
-  Member get interfaceTarget => _interfaceTargetReference?.target;
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
 
-  void set interfaceTarget(Member newTarget) {
-    _interfaceTargetReference = newTarget?._setterInterface;
+  void set interfaceTarget(Member member) {
+    interfaceTargetReference = getMemberReference(member);
   }
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
@@ -1689,9 +1807,17 @@ class SuperPropertySet extends Expression {
 /// Read a static field, call a static getter, or tear off a static method.
 class StaticGet extends Expression {
   /// A static field, getter, or method (for tear-off).
-  Member target;
+  Reference targetReference;
 
-  StaticGet(this.target);
+  StaticGet(Member target) : this.byReference(getMemberReference(target));
+
+  StaticGet.byReference(this.targetReference);
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member target) {
+    targetReference = getMemberReference(target);
+  }
 
   DartType getStaticType(TypeEnvironment types) => target.getterType;
 
@@ -1709,11 +1835,20 @@ class StaticGet extends Expression {
 /// Evaluates to the value of [value].
 class StaticSet extends Expression {
   /// A mutable static field or a static setter.
-  Member target;
+  Reference targetReference;
   Expression value;
 
-  StaticSet(this.target, this.value) {
+  StaticSet(Member target, Expression value)
+      : this.byReference(getMemberReference(target), value);
+
+  StaticSet.byReference(this.targetReference, this.value) {
     value?.parent = this;
+  }
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member target) {
+    targetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
@@ -1809,12 +1944,23 @@ class MethodInvocation extends InvocationExpression {
   Name name;
   Arguments arguments;
 
-  Procedure interfaceTarget;
+  Reference interfaceTargetReference;
 
-  MethodInvocation(this.receiver, this.name, this.arguments,
-      [this.interfaceTarget]) {
+  MethodInvocation(Expression receiver, Name name, Arguments arguments,
+      [Procedure interfaceTarget])
+      : this.byReference(
+            receiver, name, arguments, getMemberReference(interfaceTarget));
+
+  MethodInvocation.byReference(
+      this.receiver, this.name, this.arguments, this.interfaceTargetReference) {
     receiver?.parent = this;
     arguments?.parent = this;
+  }
+
+  Procedure get interfaceTarget => interfaceTargetReference?.asProcedure;
+
+  void set interfaceTarget(Member target) {
+    interfaceTargetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -1878,10 +2024,21 @@ class SuperMethodInvocation extends InvocationExpression {
   Name name;
   Arguments arguments;
 
-  Procedure interfaceTarget;
+  Reference interfaceTargetReference;
 
-  SuperMethodInvocation(this.name, this.arguments, this.interfaceTarget) {
+  SuperMethodInvocation(Name name, Arguments arguments,
+      [Procedure interfaceTarget])
+      : this.byReference(name, arguments, getMemberReference(interfaceTarget));
+
+  SuperMethodInvocation.byReference(
+      this.name, this.arguments, this.interfaceTargetReference) {
     arguments?.parent = this;
+  }
+
+  Procedure get interfaceTarget => interfaceTargetReference?.asProcedure;
+
+  void set interfaceTarget(Procedure target) {
+    interfaceTargetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -1917,7 +2074,7 @@ class SuperMethodInvocation extends InvocationExpression {
 ///
 /// The provided arguments might not match the parameters of the target.
 class StaticInvocation extends InvocationExpression {
-  Procedure target;
+  Reference targetReference;
   Arguments arguments;
 
   /// True if this is a constant call to an external constant factory.
@@ -1925,8 +2082,19 @@ class StaticInvocation extends InvocationExpression {
 
   Name get name => target?.name;
 
-  StaticInvocation(this.target, this.arguments, {this.isConst: false}) {
+  StaticInvocation(Procedure target, Arguments arguments, {bool isConst: false})
+      : this.byReference(getMemberReference(target), arguments,
+            isConst: isConst);
+
+  StaticInvocation.byReference(this.targetReference, this.arguments,
+      {this.isConst: false}) {
     arguments?.parent = this;
+  }
+
+  Procedure get target => targetReference?.asProcedure;
+
+  void set target(Procedure target) {
+    targetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -1958,14 +2126,26 @@ class StaticInvocation extends InvocationExpression {
 // `classTypeArguments`? They are quite different from type arguments to
 // generic functions.
 class ConstructorInvocation extends InvocationExpression {
-  Constructor target;
+  Reference targetReference;
   Arguments arguments;
   bool isConst;
 
   Name get name => target?.name;
 
-  ConstructorInvocation(this.target, this.arguments, {this.isConst: false}) {
+  ConstructorInvocation(Constructor target, Arguments arguments,
+      {bool isConst: false})
+      : this.byReference(getMemberReference(target), arguments,
+            isConst: isConst);
+
+  ConstructorInvocation.byReference(this.targetReference, this.arguments,
+      {this.isConst: false}) {
     arguments?.parent = this;
+  }
+
+  Constructor get target => targetReference?.asConstructor;
+
+  void set target(Constructor target) {
+    targetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -3214,17 +3394,21 @@ class FunctionDeclaration extends Statement {
 abstract class Name implements Node {
   final int hashCode;
   final String name;
+  Reference get libraryName;
   Library get library;
   bool get isPrivate;
 
   Name._internal(this.hashCode, this.name);
 
-  factory Name(String name, [Library library]) {
+  factory Name(String name, [Library library]) =>
+      new Name.byReference(name, library?.reference);
+
+  factory Name.byReference(String name, Reference libraryName) {
     /// Use separate subclasses for the public and private case to save memory
     /// for public names.
     if (name.startsWith('_')) {
-      assert(library != null);
-      return new _PrivateName(name, library);
+      assert(libraryName != null);
+      return new _PrivateName(name, libraryName);
     } else {
       return new _PublicName(name);
     }
@@ -3242,21 +3426,24 @@ abstract class Name implements Node {
 }
 
 class _PrivateName extends Name {
-  final Library library;
+  final Reference libraryName;
   bool get isPrivate => true;
 
-  _PrivateName(String name, Library library)
-      : this.library = library,
-        super._internal(_computeHashCode(name, library), name);
+  _PrivateName(String name, Reference libraryName)
+      : this.libraryName = libraryName,
+        super._internal(_computeHashCode(name, libraryName), name);
 
   String toString() => library != null ? '$library::$name' : name;
 
-  static int _computeHashCode(String name, Library library) {
-    return 131 * name.hashCode + 17 * library.hashCode;
+  Library get library => libraryName.asLibrary;
+
+  static int _computeHashCode(String name, Reference libraryName) {
+    return 131 * name.hashCode + 17 * libraryName.hashCode;
   }
 }
 
 class _PublicName extends Name {
+  Reference get libraryName => null;
   Library get library => null;
   bool get isPrivate => false;
 
@@ -3336,14 +3523,18 @@ class BottomType extends DartType {
 }
 
 class InterfaceType extends DartType {
-  final Class classNode;
+  final Reference className;
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
   /// list is omitted, 'dynamic' type arguments are filled in.
   InterfaceType(Class classNode, [List<DartType> typeArguments])
-      : this.classNode = classNode,
-        this.typeArguments = typeArguments ?? _defaultTypeArguments(classNode);
+      : this.byReference(getClassReference(classNode),
+            typeArguments ?? _defaultTypeArguments(classNode));
+
+  InterfaceType.byReference(this.className, this.typeArguments);
+
+  Class get classNode => className.asClass;
 
   static List<DartType> _defaultTypeArguments(Class classNode) {
     if (classNode.typeParameters.length == 0) {
@@ -3365,7 +3556,7 @@ class InterfaceType extends DartType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is InterfaceType) {
-      if (classNode != other.classNode) return false;
+      if (className != other.className) return false;
       if (typeArguments.length != other.typeArguments.length) return false;
       for (int i = 0; i < typeArguments.length; ++i) {
         if (typeArguments[i] != other.typeArguments[i]) return false;
@@ -3377,7 +3568,7 @@ class InterfaceType extends DartType {
   }
 
   int get hashCode {
-    int hash = 0x3fffffff & classNode.hashCode;
+    int hash = 0x3fffffff & className.hashCode;
     for (int i = 0; i < typeArguments.length; ++i) {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
@@ -3565,10 +3756,15 @@ class TypeParameter extends TreeNode {
 }
 
 class Supertype extends Node {
-  final Class classNode;
+  final Reference className;
   final List<DartType> typeArguments;
 
-  Supertype(this.classNode, this.typeArguments);
+  Supertype(Class classNode, List<DartType> typeArguments)
+      : this.byReference(getClassReference(classNode), typeArguments);
+
+  Supertype.byReference(this.className, this.typeArguments);
+
+  Class get classNode => className.asClass;
 
   accept(Visitor v) => v.visitSupertype(this);
 
@@ -3584,7 +3780,7 @@ class Supertype extends Node {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is Supertype) {
-      if (classNode != other.classNode) return false;
+      if (className != other.className) return false;
       if (typeArguments.length != other.typeArguments.length) return false;
       for (int i = 0; i < typeArguments.length; ++i) {
         if (typeArguments[i] != other.typeArguments[i]) return false;
@@ -3596,7 +3792,7 @@ class Supertype extends Node {
   }
 
   int get hashCode {
-    int hash = 0x3fffffff & classNode.hashCode;
+    int hash = 0x3fffffff & className.hashCode;
     for (int i = 0; i < typeArguments.length; ++i) {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
@@ -3610,6 +3806,8 @@ class Supertype extends Node {
 
 /// A way to bundle up all the libraries in a program.
 class Program extends TreeNode {
+  final CanonicalName root = new CanonicalName.root();
+
   final List<Library> libraries;
 
   /// Map from a source file uri to a line-starts table and source code.
@@ -3618,12 +3816,29 @@ class Program extends TreeNode {
   final Map<String, Source> uriToSource;
 
   /// Reference to the main method in one of the libraries.
-  Procedure mainMethod;
+  Reference mainMethodName;
 
   Program([List<Library> libraries, Map<String, Source> uriToSource])
       : libraries = libraries ?? <Library>[],
         uriToSource = uriToSource ?? <String, Source>{} {
     setParents(this.libraries, this);
+  }
+
+  void computeCanonicalNames() {
+    for (var library in libraries) {
+      root.getChildFromUri(library.importUri).bindTo(library.reference);
+      library.computeCanonicalNames();
+    }
+  }
+
+  void unbindCanonicalNames() {
+    root.unbindAll();
+  }
+
+  Procedure get mainMethod => mainMethodName?.asProcedure;
+
+  void set mainMethod(Procedure main) {
+    mainMethodName = getMemberReference(main);
   }
 
   accept(TreeVisitor v) => v.visitProgram(this);
@@ -3765,4 +3980,54 @@ class Source {
   final String source;
 
   Source(this.lineStarts, this.source);
+}
+
+/// Returns the [Reference] object for the given member.
+///
+/// Returns `null` if the member is `null`.
+Reference getMemberReference(Member member) {
+  return member?.reference;
+}
+
+/// Returns the [Reference] object for the given class.
+///
+/// Returns `null` if the class is `null`.
+Reference getClassReference(Class class_) {
+  return class_?.reference;
+}
+
+/// Returns the canonical name of [member], or throws an exception if the
+/// member has not been assigned a canonical name yet.
+///
+/// Returns `null` if the member is `null`.
+CanonicalName getCanonicalNameOfMember(Member member) {
+  if (member == null) return null;
+  if (member.canonicalName == null) {
+    throw '$member has no canonical name';
+  }
+  return member.canonicalName;
+}
+
+/// Returns the canonical name of [class_], or throws an exception if the
+/// class has not been assigned a canonical name yet.
+///
+/// Returns `null` if the class is `null`.
+CanonicalName getCanonicalNameOfClass(Class class_) {
+  if (class_ == null) return null;
+  if (class_.canonicalName == null) {
+    throw '$class_ has no canonical name';
+  }
+  return class_.canonicalName;
+}
+
+/// Returns the canonical name of [library], or throws an exception if the
+/// library has not been assigned a canonical name yet.
+///
+/// Returns `null` if the library is `null`.
+CanonicalName getCanonicalNameOfLibrary(Library library) {
+  if (library == null) return null;
+  if (library.canonicalName == null) {
+    throw '$library has no canonical name';
+  }
+  return library.canonicalName;
 }

@@ -10,7 +10,7 @@ import 'dart:io' show Directory, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:kernel/kernel.dart' show Repository, loadProgramFromBinary;
+import 'package:kernel/kernel.dart' show loadProgramFromBinary;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
@@ -24,8 +24,6 @@ import 'package:kernel/verifier.dart' show verifyProgram;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-
-import 'package:kernel/binary/loader.dart' show BinaryLoader;
 
 Future<bool> fileExists(Uri base, String path) async {
   return await new File.fromUri(base.resolve(path)).exists();
@@ -119,6 +117,7 @@ class WriteDill extends Step<Program, Uri, ChainContext> {
     IOSink sink = generated.openWrite();
     try {
       new BinaryPrinter(sink).writeProgramFile(program);
+      program.unbindCanonicalNames();
     } catch (e, s) {
       return fail(uri, e, s);
     } finally {
@@ -152,9 +151,12 @@ class Copy extends Step<Program, Program, ChainContext> {
   Future<Result<Program>> run(Program program, _) async {
     BytesCollector sink = new BytesCollector();
     new BinaryPrinter(sink).writeProgramFile(program);
+    program.unbindCanonicalNames();
     Uint8List bytes = sink.collect();
-    BinaryLoader loader = new BinaryLoader(new Repository());
-    return pass(new BinaryBuilder(loader, bytes).readProgramFile());
+    var newProgram = new Program();
+    new BinaryBuilder(bytes).readProgram(newProgram);
+    newProgram.unbindCanonicalNames();
+    return pass(newProgram);
   }
 }
 

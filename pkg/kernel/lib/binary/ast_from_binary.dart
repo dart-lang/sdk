@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.ast_from_binary;
 
-import '../ast.dart';
-import 'tag.dart';
-import 'loader.dart';
 import 'dart:convert';
-import 'package:kernel/transformations/flags.dart';
+
+import '../ast.dart';
+import '../transformations/flags.dart';
+import 'tag.dart';
 
 class ParseError {
   String filename;
@@ -21,8 +21,6 @@ class ParseError {
 }
 
 class BinaryBuilder {
-  final BinaryReferenceLoader loader;
-  final List<Library> importTable = <Library>[];
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final List<LabeledStatement> labelStack = <LabeledStatement>[];
   int labelStackBase = 0;
@@ -31,16 +29,19 @@ class BinaryBuilder {
   final String filename;
   final List<int> _bytes;
   int _byteIndex = 0;
-  Library _currentLibrary;
   List<String> _stringTable;
   List<String> _sourceUriTable;
+  List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
+  Library _currentLibrary;
 
   // If something goes wrong, this list should indicate what library,
   // class, and member was being built.
   List<String> debugPath = <String>[];
 
-  BinaryBuilder(this.loader, this._bytes, [this.filename]);
+  bool _isReadingLibraryImplementation = false;
+
+  BinaryBuilder(this._bytes, [this.filename]);
 
   fail(String message) {
     throw new ParseError(message,
@@ -126,10 +127,10 @@ class BinaryBuilder {
 
   InferredValue readOptionalInferredValue() {
     if (readAndCheckOptionTag()) {
-      Class baseClass = readClassReference(allowNull: true);
+      Reference baseClass = readClassReference(allowNull: true);
       BaseClassKind baseClassKind = BaseClassKind.values[readByte()];
       int valueBits = readByte();
-      return new InferredValue(baseClass, baseClassKind, valueBits);
+      return new InferredValue.byReference(baseClass, baseClassKind, valueBits);
     }
     return null;
   }
@@ -170,7 +171,82 @@ class BinaryBuilder {
     }
   }
 
-  Program readProgramFile() {
+  /// Reads a list of named nodes, reusing any existing objects already in the
+  /// linking tree. The nodes are merged into [list], and if reading the library
+  /// implementation, the order is corrected.
+  ///
+  /// [readObject] should read the object definition and its canonical name.
+  /// If an existing object is bound to the canonical name, the existing object
+  /// must be reused and returned.
+  void _mergeNamedNodeList(
+      List<NamedNode> list, NamedNode readObject(), TreeNode parent) {
+    if (_isReadingLibraryImplementation) {
+      // When reading the library implementation, overwrite the whole list
+      // with the new one.
+      _fillTreeNodeList(list, readObject, parent);
+    } else {
+      // When reading an external library, the results should either be:
+      // - merged with the existing external library definition (if any)
+      // - ignored if the library implementation is already in memory
+      int numberOfNodes = readUInt();
+      for (int i = 0; i < numberOfNodes; ++i) {
+        var value = readObject();
+        // We use the parent pointer of a node to determine if it already is in
+        // the AST and hence should not be added again.
+        if (value.parent == null) {
+          list.add(value..parent = parent);
+        }
+      }
+    }
+  }
+
+  void readLinkTable(CanonicalName linkRoot) {
+    int length = readUInt();
+    _linkTable = new List<CanonicalName>(length);
+    for (int i = 0; i < length; ++i) {
+      int biasedParentIndex = readUInt();
+      String name = readStringReference();
+      var parent =
+          biasedParentIndex == 0 ? linkRoot : _linkTable[biasedParentIndex - 1];
+      _linkTable[i] = parent.getChild(name);
+    }
+  }
+
+  /// Deserializes a kernel program and stores it in [program].
+  ///
+  /// When linking with a non-empty program, canonical names must have been
+  /// computed ahead of time.
+  ///
+  /// The input bytes may contain multiple files concatenated.
+  void readProgram(Program program) {
+    while (_byteIndex < _bytes.length) {
+      _readOneProgram(program);
+    }
+  }
+
+  /// Reads a single program file from the input and loads it into [program],
+  /// overwriting and reusing any existing data in the program.
+  ///
+  /// When linking with a non-empty program, canonical names must have been
+  /// computed ahead of time.
+  ///
+  /// This should *only* be used when there is a reason to not allow
+  /// concatenated files.
+  void readSingleFileProgram(Program program) {
+    _readOneProgram(program);
+    if (_byteIndex < _bytes.length) {
+      if (_byteIndex + 3 < _bytes.length) {
+        int magic = readMagicWord();
+        if (magic == Tag.ProgramFile) {
+          throw 'Concatenated program file given when a single program '
+              'was expected.';
+        }
+      }
+      throw 'Unrecognized bytes following program data';
+    }
+  }
+
+  void _readOneProgram(Program program) {
     int magic = readMagicWord();
     if (magic != Tag.ProgramFile) {
       throw fail('This is not a binary dart file. '
@@ -178,22 +254,21 @@ class BinaryBuilder {
     }
     readStringTable();
     Map<String, Source> uriToSource = readUriToSource();
-    importTable.length = readUInt();
-    for (int i = 0; i < importTable.length; ++i) {
-      importTable[i] = new Library(null);
-    }
-    for (int i = 0; i < importTable.length; ++i) {
-      _currentLibrary = importTable[i];
-      readLibrary();
+    program.uriToSource.addAll(uriToSource);
+    readLinkTable(program.root);
+    int numberOfLibraries = readUInt();
+    List<Library> libraries = new List<Library>(numberOfLibraries);
+    for (int i = 0; i < numberOfLibraries; ++i) {
+      libraries[i] = readLibrary(program);
     }
     var mainMethod = readMemberReference(allowNull: true);
-    return new Program(importTable, uriToSource)..mainMethod = mainMethod;
+    program.mainMethodName ??= mainMethod;
   }
 
   Map<String, Source> readUriToSource() {
     readSourceUriTable();
     int length = _sourceUriTable.length;
-    Map<String, Source> uriToLineStarts = <String, Source>{};
+    Map<String, Source> uriToSource = <String, Source>{};
     for (int i = 0; i < length; ++i) {
       String uri = _sourceUriTable[i];
       String sourceCode = readStringEntry();
@@ -205,24 +280,19 @@ class BinaryBuilder {
         lineStarts[j] = lineStart;
         previousLineStart = lineStart;
       }
-      uriToLineStarts[uri] = new Source(lineStarts, sourceCode);
+      uriToSource[uri] = new Source(lineStarts, sourceCode);
     }
-    return uriToLineStarts;
+    return uriToSource;
   }
 
-  void _fillLazilyLoadedList(
-      List<TreeNode> list, void buildObject(int tag, int index)) {
-    int length = readUInt();
-    list.length = length;
-    for (int i = 0; i < length; ++i) {
-      int tag = readByte();
-      buildObject(tag, i);
-    }
+  CanonicalName readCanonicalNameReference() {
+    var index = readUInt();
+    if (index == 0) return null;
+    return _linkTable[index - 1];
   }
 
-  Library readLibraryReference() {
-    int index = readUInt();
-    return importTable[index];
+  Reference readLibraryReference() {
+    return readCanonicalNameReference().getReference();
   }
 
   DeferredImport readDeferredImportReference() {
@@ -230,159 +300,120 @@ class BinaryBuilder {
     return _currentLibrary.deferredImports[index];
   }
 
-  Class readClassReference({bool allowNull: false}) {
-    int tag = readByte();
-    if (tag == Tag.NullReference) {
-      if (!allowNull) {
-        throw 'Expected a class reference to be valid but was `null`.';
-      }
-      return null;
-    } else {
-      var library = readLibraryReference();
-      int index = readUInt();
-      return loader.getClassReference(library, tag, index);
+  Reference readClassReference({bool allowNull: false}) {
+    var name = readCanonicalNameReference();
+    if (name == null && !allowNull) {
+      throw 'Expected a class reference to be valid but was `null`.';
     }
+    return name?.getReference();
   }
 
-  Member readMemberReference({bool allowNull: false}) {
-    int tag = readByte();
-    switch (tag) {
-      case Tag.LibraryFieldReference:
-      case Tag.LibraryProcedureReference:
-        var library = readLibraryReference();
-        var index = readUInt();
-        return loader.getLibraryMemberReference(library, tag, index);
-
-      case Tag.ClassFieldReference:
-      case Tag.ClassConstructorReference:
-      case Tag.ClassProcedureReference:
-        var classNode = readClassReference();
-        var index = readUInt();
-        return loader.getClassMemberReference(classNode, tag, index);
-
-      case Tag.NullReference:
-        if (!allowNull) {
-          throw 'Expected a member reference to be valid but was `null`.';
-        }
-        return null;
-
-      default:
-        throw fail('Invalid member reference tag: $tag');
+  Reference readMemberReference({bool allowNull: false}) {
+    var name = readCanonicalNameReference();
+    if (name == null && !allowNull) {
+      throw 'Expected a member reference to be valid but was `null`.';
     }
+    return name?.getReference();
   }
 
   Name readName() {
     String text = readStringReference();
     if (text.isNotEmpty && text[0] == '_') {
-      return new Name(text, readLibraryReference());
+      return new Name.byReference(text, readLibraryReference());
     } else {
       return new Name(text);
     }
   }
 
-  Uri readImportUri() {
-    return Uri.parse(readStringReference());
-  }
-
-  void readLibrary() {
+  Library readLibrary(Program program) {
     int flags = readByte();
-    _currentLibrary.isExternal = (flags & 0x1) != 0;
-    _currentLibrary.name = readStringOrNullIfEmpty();
-    _currentLibrary.importUri = readImportUri();
-    debugPath.add(_currentLibrary.name ??
-        _currentLibrary.importUri?.toString() ??
-        'library');
-
+    bool isExternal = (flags & 0x1) != 0;
+    _isReadingLibraryImplementation = !isExternal;
+    var canonicalName = readCanonicalNameReference();
+    Reference reference = canonicalName.getReference();
+    Library library = reference.node;
+    bool shouldWriteData = library == null || _isReadingLibraryImplementation;
+    if (library == null) {
+      library =
+          new Library(Uri.parse(canonicalName.name), reference: reference);
+      program.libraries.add(library..parent = program);
+    }
+    _currentLibrary = library;
+    String name = readStringOrNullIfEmpty();
     // TODO(jensj): We currently save (almost the same) uri twice.
-    _currentLibrary.fileUri = readUriReference();
+    String fileUri = readUriReference();
 
-    _readDeferredImports(_currentLibrary);
-    _fillLazilyLoadedList(_currentLibrary.classes, (int tag, int index) {
-      readClass(loader.getClassReference(_currentLibrary, tag, index), tag);
-    });
-    _fillLazilyLoadedList(_currentLibrary.fields, (int tag, int index) {
-      readField(
-          loader.getLibraryMemberReference(_currentLibrary, tag, index), tag);
-    });
-    _fillLazilyLoadedList(_currentLibrary.procedures, (int tag, int index) {
-      readProcedure(
-          loader.getLibraryMemberReference(_currentLibrary, tag, index), tag);
-    });
+    if (shouldWriteData) {
+      library.isExternal = isExternal;
+      library.name = name;
+      library.fileUri = fileUri;
+    }
+
+    _readDeferredImports(library);
+
+    debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
+
+    _mergeNamedNodeList(library.classes, readClass, library);
+    _mergeNamedNodeList(library.fields, readField, library);
+    _mergeNamedNodeList(library.procedures, readProcedure, library);
+
     debugPath.removeLast();
+    _currentLibrary = null;
+    return library;
   }
 
   void _readDeferredImports(Library library) {
-    int count = readUInt();
-    library.deferredImports.length = count;
-    for (int i = 0; i < count; ++i) {
-      var importNode = _readDeferredImport();
-      library.deferredImports.add(importNode..parent = library);
+    int length = readUInt();
+    if (library.isExternal) {
+      assert(length == 0);
+      return;
+    }
+    library.deferredImports.length = length;
+    for (int i = 0; i < length; ++i) {
+      library.deferredImports[i] = new DeferredImport.byReference(
+          readLibraryReference(), readStringReference())..parent = library;
     }
   }
 
-  DeferredImport _readDeferredImport() {
-    return new DeferredImport(readLibraryReference(), readStringReference());
-  }
-
-  void readClass(Class node, int tag) {
-    assert(node != null);
-    switch (tag) {
-      case Tag.NormalClass:
-        readNormalClass(node);
-        break;
-      case Tag.MixinClass:
-        readMixinClass(node);
-        break;
-      default:
-        throw fail('Invalid class tag: $tag');
+  Class readClass() {
+    int tag = readByte();
+    assert(tag == Tag.Class);
+    var canonicalName = readCanonicalNameReference();
+    var reference = canonicalName.getReference();
+    Class node = reference.node;
+    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
+    if (node == null) {
+      node = new Class(reference: reference)..level = ClassLevel.Temporary;
     }
-  }
-
-  void readNormalClass(Class node) {
     node.fileOffset = readOffset();
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
     int levelIndex = (flags >> 1) & 0x3;
-    node.level = ClassLevel.values[levelIndex + 1];
-    node.name = readStringOrNullIfEmpty();
-    node.fileUri = readUriReference();
-    node.annotations = readAnnotationList(node);
+    var level = ClassLevel.values[levelIndex + 1];
+    if (level.index >= node.level.index) {
+      node.level = level;
+    }
+    var name = readStringOrNullIfEmpty();
+    var fileUri = readUriReference();
+    var annotations = readAnnotationList(node);
     debugPath.add(node.name ?? 'normal-class');
     readAndPushTypeParameterList(node.typeParameters, node);
-    node.supertype = readSupertypeOption();
+    var supertype = readSupertypeOption();
+    var mixedInType = readSupertypeOption();
     _fillNonTreeNodeList(node.implementedTypes, readSupertype);
-    _fillLazilyLoadedList(node.fields, (int tag, int index) {
-      readField(loader.getClassMemberReference(node, tag, index), tag);
-    });
-    _fillLazilyLoadedList(node.constructors, (int tag, int index) {
-      readConstructor(loader.getClassMemberReference(node, tag, index), tag);
-    });
-    _fillLazilyLoadedList(node.procedures, (int tag, int index) {
-      readProcedure(loader.getClassMemberReference(node, tag, index), tag);
-    });
+    _mergeNamedNodeList(node.fields, readField, node);
+    _mergeNamedNodeList(node.constructors, readConstructor, node);
+    _mergeNamedNodeList(node.procedures, readProcedure, node);
     typeParameterStack.length = 0;
     debugPath.removeLast();
-  }
-
-  void readMixinClass(Class node) {
-    node.fileOffset = readOffset();
-    int flags = readByte();
-    node.isAbstract = flags & 0x1 != 0;
-    int levelIndex = (flags >> 1) & 0x3;
-    node.level = ClassLevel.values[levelIndex];
-    node.name = readStringOrNullIfEmpty();
-    node.fileUri = readUriReference();
-    node.annotations = readAnnotationList(node);
-    debugPath.add(node.name ?? 'mixin-class');
-    readAndPushTypeParameterList(node.typeParameters, node);
-    node.supertype = readSupertype();
-    node.mixedInType = readSupertype();
-    _fillNonTreeNodeList(node.implementedTypes, readDartType);
-    _fillLazilyLoadedList(node.constructors, (int tag, int index) {
-      readConstructor(loader.getClassMemberReference(node, tag, index), tag);
-    });
-    typeParameterStack.length = 0;
-    debugPath.removeLast();
+    if (shouldWriteData) {
+      node.name = name;
+      node.fileUri = fileUri;
+      node.annotations = annotations;
+      node.supertype = supertype;
+      node.mixedInType = mixedInType;
+    }
+    return node;
   }
 
   int getAndResetTransformerFlags() {
@@ -396,58 +427,114 @@ class BinaryBuilder {
     _transformerFlags |= flags;
   }
 
-  void readField(Field node, int tag) {
-    // Note: as with readProcedure and readConstructor, the tag parameter
-    // is unused, but we pass it in to clarify that the tag has already been
-    // consumed from the input.
+  Field readField() {
+    int tag = readByte();
     assert(tag == Tag.Field);
-    node.fileOffset = readOffset();
-    node.fileEndOffset = readOffset();
-    node.flags = readByte();
-    node.name = readName();
-    node.fileUri = readUriReference();
-    node.annotations = readAnnotationList(node);
+    var canonicalName = readCanonicalNameReference();
+    var reference = canonicalName.getReference();
+    Field node = reference.node;
+    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
+    if (node == null) {
+      node = new Field(null, reference: reference);
+    }
+    int fileOffset = readOffset();
+    int fileEndOffset = readOffset();
+    int flags = readByte();
+    var name = readName();
+    var fileUri = readUriReference();
+    var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'field');
-    node.type = readDartType();
-    node.inferredValue = readOptionalInferredValue();
-    node.initializer = readExpressionOption();
-    node.initializer?.parent = node;
-    node.transformerFlags = getAndResetTransformerFlags();
+    var type = readDartType();
+    var inferredValue = readOptionalInferredValue();
+    var initializer = readExpressionOption();
+    int transformerFlags = getAndResetTransformerFlags();
     debugPath.removeLast();
+    if (shouldWriteData) {
+      node.fileOffset = fileOffset;
+      node.fileEndOffset = fileEndOffset;
+      node.flags = flags;
+      node.name = name;
+      node.fileUri = fileUri;
+      node.annotations = annotations;
+      node.type = type;
+      node.inferredValue = inferredValue;
+      node.initializer = initializer;
+      node.initializer?.parent = node;
+      node.transformerFlags = transformerFlags;
+    }
+    return node;
   }
 
-  void readConstructor(Constructor node, int tag) {
+  Constructor readConstructor() {
+    int tag = readByte();
     assert(tag == Tag.Constructor);
-    node.fileOffset = readOffset();
-    node.fileEndOffset = readOffset();
-    node.flags = readByte();
-    node.name = readName();
-    node.annotations = readAnnotationList(node);
+    var canonicalName = readCanonicalNameReference();
+    var reference = canonicalName.getReference();
+    Constructor node = reference.node;
+    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
+    if (node == null) {
+      node = new Constructor(null, reference: reference);
+    }
+    var fileOffset = readOffset();
+    var fileEndOffset = readOffset();
+    var flags = readByte();
+    var name = readName();
+    var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'constructor');
-    node.function = readFunctionNode()..parent = node;
-    pushVariableDeclarations(node.function.positionalParameters);
-    pushVariableDeclarations(node.function.namedParameters);
+    var function = readFunctionNode();
+    pushVariableDeclarations(function.positionalParameters);
+    pushVariableDeclarations(function.namedParameters);
     _fillTreeNodeList(node.initializers, readInitializer, node);
     variableStack.length = 0;
-    node.transformerFlags = getAndResetTransformerFlags();
+    var transformerFlags = getAndResetTransformerFlags();
     debugPath.removeLast();
+    if (shouldWriteData) {
+      node.fileOffset = fileOffset;
+      node.fileEndOffset = fileEndOffset;
+      node.flags = flags;
+      node.name = name;
+      node.annotations = annotations;
+      node.function = function..parent = node;
+      node.transformerFlags = transformerFlags;
+    }
+    return node;
   }
 
-  void readProcedure(Procedure node, int tag) {
+  Procedure readProcedure() {
+    int tag = readByte();
     assert(tag == Tag.Procedure);
-    node.fileOffset = readOffset();
-    node.fileEndOffset = readOffset();
+    var canonicalName = readCanonicalNameReference();
+    var reference = canonicalName.getReference();
+    Procedure node = reference.node;
+    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
+    if (node == null) {
+      node = new Procedure(null, null, null, reference: reference);
+    }
+    var fileOffset = readOffset();
+    var fileEndOffset = readOffset();
     int kindIndex = readByte();
-    node.kind = ProcedureKind.values[kindIndex];
-    node.flags = readByte();
-    node.name = readName();
-    node.fileUri = readUriReference();
-    node.annotations = readAnnotationList(node);
+    var kind = ProcedureKind.values[kindIndex];
+    var flags = readByte();
+    var name = readName();
+    var fileUri = readUriReference();
+    var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'procedure');
-    node.function = readFunctionNodeOption();
-    node.function?.parent = node;
-    node.transformerFlags = getAndResetTransformerFlags();
+    var function = readFunctionNodeOption();
+    var transformerFlags = getAndResetTransformerFlags();
     debugPath.removeLast();
+    if (shouldWriteData) {
+      node.fileOffset = fileOffset;
+      node.fileEndOffset = fileEndOffset;
+      node.kind = kind;
+      node.flags = flags;
+      node.name = name;
+      node.fileUri = fileUri;
+      node.annotations = annotations;
+      node.function = function;
+      node.function?.parent = node;
+      node.transformerFlags = transformerFlags;
+    }
+    return node;
   }
 
   Initializer readInitializer() {
@@ -456,11 +543,13 @@ class BinaryBuilder {
       case Tag.InvalidInitializer:
         return new InvalidInitializer();
       case Tag.FieldInitializer:
-        return new FieldInitializer(readMemberReference(), readExpression());
+        return new FieldInitializer.byReference(
+            readMemberReference(), readExpression());
       case Tag.SuperInitializer:
-        return new SuperInitializer(readMemberReference(), readArguments());
+        return new SuperInitializer.byReference(
+            readMemberReference(), readArguments());
       case Tag.RedirectingInitializer:
-        return new RedirectingInitializer(
+        return new RedirectingInitializer.byReference(
             readMemberReference(), readArguments());
       case Tag.LocalInitializer:
         return new LocalInitializer(readAndPushVariableDeclaration());
@@ -571,34 +660,40 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.PropertyGet:
         int offset = readOffset();
-        return new PropertyGet(
+        return new PropertyGet.byReference(
             readExpression(), readName(), readMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.PropertySet:
         int offset = readOffset();
-        return new PropertySet(readExpression(), readName(), readExpression(),
+        return new PropertySet.byReference(
+            readExpression(),
+            readName(),
+            readExpression(),
             readMemberReference(allowNull: true))..fileOffset = offset;
       case Tag.SuperPropertyGet:
         addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperPropertyGet(
+        return new SuperPropertyGet.byReference(
             readName(), readMemberReference(allowNull: true));
       case Tag.SuperPropertySet:
         addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperPropertySet(
+        return new SuperPropertySet.byReference(
             readName(), readExpression(), readMemberReference(allowNull: true));
       case Tag.DirectPropertyGet:
-        return new DirectPropertyGet(readExpression(), readMemberReference());
+        return new DirectPropertyGet.byReference(
+            readExpression(), readMemberReference());
       case Tag.DirectPropertySet:
-        return new DirectPropertySet(
+        return new DirectPropertySet.byReference(
             readExpression(), readMemberReference(), readExpression());
       case Tag.StaticGet:
         int offset = readOffset();
-        return new StaticGet(readMemberReference())..fileOffset = offset;
+        return new StaticGet.byReference(readMemberReference())
+          ..fileOffset = offset;
       case Tag.StaticSet:
-        return new StaticSet(readMemberReference(), readExpression());
+        return new StaticSet.byReference(
+            readMemberReference(), readExpression());
       case Tag.MethodInvocation:
         int offset = readOffset();
-        return new MethodInvocation(
+        return new MethodInvocation.byReference(
             readExpression(),
             readName(),
             readArguments(),
@@ -606,28 +701,32 @@ class BinaryBuilder {
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperMethodInvocation(
+        return new SuperMethodInvocation.byReference(
             readName(), readArguments(), readMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.DirectMethodInvocation:
-        return new DirectMethodInvocation(
+        return new DirectMethodInvocation.byReference(
             readExpression(), readMemberReference(), readArguments());
       case Tag.StaticInvocation:
         int offset = readOffset();
-        return new StaticInvocation(readMemberReference(), readArguments(),
-            isConst: false)..fileOffset = offset;
+        return new StaticInvocation.byReference(
+            readMemberReference(), readArguments(), isConst: false)
+          ..fileOffset = offset;
       case Tag.ConstStaticInvocation:
         int offset = readOffset();
-        return new StaticInvocation(readMemberReference(), readArguments(),
-            isConst: true)..fileOffset = offset;
+        return new StaticInvocation.byReference(
+            readMemberReference(), readArguments(), isConst: true)
+          ..fileOffset = offset;
       case Tag.ConstructorInvocation:
         int offset = readOffset();
-        return new ConstructorInvocation(readMemberReference(), readArguments(),
-            isConst: false)..fileOffset = offset;
+        return new ConstructorInvocation.byReference(
+            readMemberReference(), readArguments(), isConst: false)
+          ..fileOffset = offset;
       case Tag.ConstConstructorInvocation:
         int offset = readOffset();
-        return new ConstructorInvocation(readMemberReference(), readArguments(),
-            isConst: true)..fileOffset = offset;
+        return new ConstructorInvocation.byReference(
+            readMemberReference(), readArguments(), isConst: true)
+          ..fileOffset = offset;
       case Tag.Not:
         return new Not(readExpression());
       case Tag.LogicalExpression:
@@ -856,7 +955,7 @@ class BinaryBuilder {
 
   Supertype readSupertype() {
     InterfaceType type = readDartType();
-    return new Supertype(type.classNode, type.typeArguments);
+    return new Supertype.byReference(type.className, type.typeArguments);
   }
 
   Supertype readSupertypeOption() {
@@ -895,9 +994,11 @@ class BinaryBuilder {
       case Tag.VoidType:
         return const VoidType();
       case Tag.InterfaceType:
-        return new InterfaceType(readClassReference(), readDartTypeList());
+        return new InterfaceType.byReference(
+            readClassReference(), readDartTypeList());
       case Tag.SimpleInterfaceType:
-        return new InterfaceType(readClassReference(), const <DartType>[]);
+        return new InterfaceType.byReference(
+            readClassReference(), const <DartType>[]);
       case Tag.FunctionType:
         int typeParameterStackHeight = typeParameterStack.length;
         var typeParameters = readAndPushTypeParameterList();
@@ -929,7 +1030,7 @@ class BinaryBuilder {
     if (list == null) {
       list = new List<TypeParameter>.generate(
           length, (i) => new TypeParameter(null, null)..parent = parent);
-    } else {
+    } else if (list.length != length) {
       list.length = length;
       for (int i = 0; i < length; ++i) {
         list[i] = new TypeParameter(null, null)..parent = parent;

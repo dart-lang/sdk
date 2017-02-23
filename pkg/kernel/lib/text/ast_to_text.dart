@@ -37,11 +37,15 @@ class Disambiguator<T> {
 NameSystem globalDebuggingNames = new NameSystem();
 
 String debugLibraryName(Library node) {
-  return node.name ?? globalDebuggingNames.nameLibrary(node);
+  return node == null
+      ? 'null'
+      : node.name ?? globalDebuggingNames.nameLibrary(node);
 }
 
 String debugClassName(Class node) {
-  return node.name ?? globalDebuggingNames.nameClass(node);
+  return node == null
+      ? 'null'
+      : node.name ?? globalDebuggingNames.nameClass(node);
 }
 
 String debugQualifiedClassName(Class node) {

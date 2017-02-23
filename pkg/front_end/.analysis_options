@@ -21,3 +21,5 @@ analyzer:
     # Allow deprecated calls (although it would be nice to have a distinction
     # between internal and external deprecated calls).
     deprecated_member_use: ignore
+  exclude:
+    - test/fasta/**

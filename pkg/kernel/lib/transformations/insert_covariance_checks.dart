@@ -11,7 +11,6 @@ import '../log.dart';
 import '../type_algebra.dart';
 import '../type_environment.dart';
 
-// TODO: Should helper be removed?
 DartType substituteBounds(DartType type, Map<TypeParameter, DartType> upper,
     Map<TypeParameter, DartType> lower) {
   return Substitution
@@ -117,8 +116,8 @@ class _ClassTransformer {
   Map<TypeParameter, DartType> superUpperBounds;
 
   /// Members for which a checked entry point must be created in this current
-  /// class.
-  Set<Member> membersNeedingCheckedEntryPoint = new Set<Member>();
+  /// class, indexed by name.
+  Map<Name, Member> membersNeedingCheckedEntryPoint = <Name, Member>{};
 
   _ClassTransformer(this.host, InsertCovarianceChecks global)
       : hierarchy = global.hierarchy,
@@ -158,9 +157,8 @@ class _ClassTransformer {
   /// Ensures that a checked entry point for [member] will be emitted in the
   /// current class.
   void requireLocalCheckedEntryPoint(Member member) {
-    if (membersNeedingCheckedEntryPoint.add(member)) {
-      global.membersWithCheckedEntryPoint.add(member);
-    }
+    membersNeedingCheckedEntryPoint[member.name] = member;
+    global.membersWithCheckedEntryPoint.add(member);
   }
 
   void transformClass() {
@@ -225,7 +223,7 @@ class _ClassTransformer {
       }
     });
 
-    for (Member member in membersNeedingCheckedEntryPoint) {
+    for (Member member in membersNeedingCheckedEntryPoint.values) {
       ownSubstitution = getSubstitutionMap(
           hierarchy.getClassAsInstanceOf(host, member.enclosingClass));
       ownSubstitution = ensureMutable(ownSubstitution);

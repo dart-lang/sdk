@@ -124,8 +124,9 @@ class FeContext extends TestContext {
       DartLoader loader = await createLoader();
       Target target = getTarget(
           "vm", new TargetFlags(strongMode: options.strongMode));
-      Program program = loader.loadProgram(
+      loader.loadProgram(
           Uri.base.resolve("pkg/fasta/test/platform.dart"), target: target);
+      var program = loader.program;
       if (loader.errors.isNotEmpty) {
         throw loader.errors.join("\n");
       }

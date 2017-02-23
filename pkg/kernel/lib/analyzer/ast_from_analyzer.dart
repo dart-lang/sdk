@@ -2869,9 +2869,10 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
         }
         if (constructorsField == null) {
           ast.ListLiteral literal = new ast.ListLiteral(<ast.Expression>[]);
-          constructorsField = new ast.Field(constructors, isStatic: true,
-              initializer: literal, fileUri: classNode.fileUri)
-              ..fileOffset = classNode.fileOffset;
+          constructorsField = new ast.Field(constructors,
+              isStatic: true,
+              initializer: literal,
+              fileUri: classNode.fileUri)..fileOffset = classNode.fileOffset;
           classNode.addMember(constructorsField);
         }
         ast.ListLiteral literal = constructorsField.initializer;
@@ -2887,7 +2888,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
       }
       var function = procedure.function;
       function.body = new ast.ExpressionStatement(expression)
-          ..parent = function;
+        ..parent = function;
     }
   }
 

@@ -117,7 +117,7 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
 
   SyncStarFunctionRewriter(helper, enclosingFunction)
       : iteratorVariable = new VariableDeclaration(':iterator')
-            ..type = helper.iteratorClass.rawType,
+          ..type = helper.iteratorClass.rawType,
         super(helper, enclosingFunction);
 
   FunctionNode rewrite() {
@@ -156,8 +156,8 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     //    :iterator.isYieldEach=
     // and return `true` as long as it did something and `false` when it's done.
     return new Block(<Statement>[
-        enclosingFunction.body.accept(this),
-        new ReturnStatement(new BoolLiteral(false))
+      enclosingFunction.body.accept(this),
+      new ReturnStatement(new BoolLiteral(false))
     ]);
   }
 
@@ -786,8 +786,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
       }
     }
     var completerTypeArguments = <DartType>[returnType];
-    var completerType = new InterfaceType(
-        helper.completerClass, completerTypeArguments);
+    var completerType =
+        new InterfaceType(helper.completerClass, completerTypeArguments);
 
     // final Completer<T> :completer = new Completer<T>.sync();
     completerVariable = new VariableDeclaration(":completer",
@@ -798,8 +798,7 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
         type: completerType);
     statements.add(completerVariable);
 
-    returnVariable = new VariableDeclaration(
-        ":return_value", type: returnType);
+    returnVariable = new VariableDeclaration(":return_value", type: returnType);
     statements.add(returnVariable);
 
     setupAsyncContinuations(statements);

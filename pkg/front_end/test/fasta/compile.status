@@ -8,6 +8,7 @@
 
 await: Fail
 invocations: Fail
+mixin: Fail
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail

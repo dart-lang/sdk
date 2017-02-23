@@ -11,12 +11,9 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/ast.dart';
 
+import 'package:kernel/kernel.dart';
 import 'package:kernel/verifier.dart';
 import 'package:kernel/text/ast_to_text.dart' show Printer;
-
-import 'package:kernel/repository.dart' show Repository;
-
-import 'package:kernel/binary/loader.dart' show BinaryLoader;
 
 import 'transformation/remove_generics.dart';
 import 'transformation/transformer.dart'
@@ -82,8 +79,7 @@ main(List<String> arguments) async {
     output = Uri.base.resolve(arguments[1]);
   }
   Uri uri = Uri.base.resolve(path);
-  Repository repository = new Repository();
-  Program program = new BinaryLoader(repository).loadProgram(uri.toFilePath());
+  Program program = loadProgramFromBinary(uri.toFilePath());
 
   RuntimeLibrary runtimeLibrary = findRuntimeTypeLibrary(program);
   Library mainLibrary = program.mainMethod.enclosingLibrary;
@@ -105,7 +101,7 @@ main(List<String> arguments) async {
     }
     try {
       // Check that we can read the binary file.
-      new BinaryLoader(new Repository()).loadProgram(output.toFilePath());
+      loadProgramFromBinary(output.toFilePath());
     } catch (e) {
       print("Error when attempting to read $output.");
       rethrow;

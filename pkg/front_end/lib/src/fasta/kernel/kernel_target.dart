@@ -347,6 +347,7 @@ class KernelTarget extends TargetImplementation {
     IOSink sink = output.openWrite();
     try {
       new BinaryPrinter(sink).writeProgramFile(program);
+      program.unbindCanonicalNames();
     } finally {
       await sink.close();
     }

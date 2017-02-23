@@ -18,6 +18,78 @@ void VisitList(List<T>* list, Visitor* visitor) {
 }
 
 
+CanonicalName::CanonicalName() : is_referenced_(false) {}
+
+
+CanonicalName::~CanonicalName() {
+  for (intptr_t i = 0; i < children_.length(); ++i) {
+    delete children_[i];
+  }
+}
+
+
+CanonicalName* CanonicalName::NewRoot() {
+  return new CanonicalName();
+}
+
+
+void CanonicalName::BindTo(LinkedNode* new_target) {
+  ASSERT(new_target != NULL);
+  if (definition_ == new_target) return;
+  ASSERT(definition_ == NULL);
+  ASSERT(new_target->canonical_name_ == NULL);
+  definition_ = new_target;
+  new_target->canonical_name_ = this;
+}
+
+
+void CanonicalName::Unbind() {
+  if (definition_ == NULL) return;
+  ASSERT(definition_->canonical_name_ == this);
+  definition_->canonical_name_ = NULL;
+  definition_ = NULL;
+}
+
+
+CanonicalName* CanonicalName::AddChild(String* name) {
+  CanonicalName* child = new CanonicalName();
+  child->parent_ = this;
+  child->name_ = name;
+  children_.Add(child);
+  return child;
+}
+
+
+Library* CanonicalName::AsLibrary() {
+  return Library::Cast(definition());
+}
+
+
+Class* CanonicalName::AsClass() {
+  return Class::Cast(definition());
+}
+
+
+Member* CanonicalName::AsMember() {
+  return Member::Cast(definition());
+}
+
+
+Field* CanonicalName::AsField() {
+  return Field::Cast(definition());
+}
+
+
+Constructor* CanonicalName::AsConstructor() {
+  return Constructor::Cast(definition());
+}
+
+
+Procedure* CanonicalName::AsProcedure() {
+  return Procedure::Cast(definition());
+}
+
+
 Node::~Node() {}
 
 
@@ -27,6 +99,9 @@ TreeNode::~TreeNode() {}
 void TreeNode::AcceptVisitor(Visitor* visitor) {
   AcceptTreeVisitor(visitor);
 }
+
+
+LinkedNode::~LinkedNode() {}
 
 
 Library::~Library() {}

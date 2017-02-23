@@ -67,14 +67,15 @@ abstract class Accessor {
       bool voidContext: false,
       Procedure interfaceTarget}) {
     if (voidContext) {
-      return buildPrefixIncrement(binaryOperator, offset: offset,
-          voidContext: true, interfaceTarget: interfaceTarget);
+      return buildPrefixIncrement(binaryOperator,
+          offset: offset, voidContext: true, interfaceTarget: interfaceTarget);
     }
     var value = new VariableDeclaration.forValue(_makeRead());
     valueAccess() => new VariableGet(value);
     var dummy = new VariableDeclaration.forValue(_makeWrite(
-        builtBinary = makeBinary(valueAccess(), binaryOperator, interfaceTarget,
-            new IntLiteral(1), offset: offset),
+        builtBinary = makeBinary(
+            valueAccess(), binaryOperator, interfaceTarget, new IntLiteral(1),
+            offset: offset),
         true));
     return _finish(makeLet(value, makeLet(dummy, valueAccess())));
   }

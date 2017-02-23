@@ -20,7 +20,6 @@ import 'dart:typed_data' show
     Uint8List;
 
 import 'package:kernel/kernel.dart' show
-    Repository,
     loadProgramFromBinary;
 
 import 'package:kernel/text/ast_to_text.dart' show
@@ -44,9 +43,6 @@ import 'package:kernel/binary/ast_to_binary.dart' show
 import 'package:kernel/binary/ast_from_binary.dart' show
     BinaryBuilder;
 
-import 'package:kernel/binary/loader.dart' show
-    BinaryLoader;
-
 import 'package:analyzer/src/generated/sdk.dart' show
     DartSdk;
 
@@ -59,9 +55,6 @@ import 'package:kernel/target/targets.dart' show
     Target,
     TargetFlags,
     getTarget;
-
-import 'package:kernel/repository.dart' show
-    Repository;
 
 import 'package:testing/testing.dart' show
     Chain,
@@ -143,8 +136,8 @@ abstract class TestContext extends ChainContext {
             packagePath: packages.toFilePath());
 
   Future<DartLoader> createLoader() async {
-    Repository repository = new Repository();
-    return new DartLoader(repository, options, await loadPackagesFile(packages),
+    Program program = new Program();
+    return new DartLoader(program, options, await loadPackagesFile(packages),
         ignoreRedirectingFactories: false, dartSdk: dartSdk);
   }
 
@@ -173,8 +166,8 @@ class Kernel extends Step<TestDescription, Program, TestContext> {
       DartLoader loader = await testContext.createLoader();
       Target target = getTarget(
           "vm", new TargetFlags(strongMode: testContext.options.strongMode));
-      Program program =
-          loader.loadProgram(description.uri, target: target);
+      loader.loadProgram(description.uri, target: target);
+      Program program = loader.program;
       for (var error in loader.errors) {
         return fail(program, "$error");
       }
@@ -280,6 +273,7 @@ class WriteDill extends Step<Program, Uri, TestContext> {
     IOSink sink = generated.openWrite();
     try {
       new BinaryPrinter(sink).writeProgramFile(program);
+      program.unbindCanonicalNames();
     } catch (e, s) {
       return fail(uri, e, s);
     } finally {
@@ -313,9 +307,10 @@ class Copy extends Step<Program, Program, TestContext> {
   Future<Result<Program>> run(Program program, _) async {
     BytesCollector sink = new BytesCollector();
     new BinaryPrinter(sink).writeProgramFile(program);
+    program.unbindCanonicalNames();
     Uint8List bytes = sink.collect();
-    BinaryLoader loader = new BinaryLoader(new Repository());
-    return pass(new BinaryBuilder(loader, bytes).readProgramFile());
+    new BinaryBuilder(bytes).readProgram(program);
+    return pass(program);
   }
 }
 

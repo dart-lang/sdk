@@ -185,9 +185,10 @@ Future<CompilationResult> parseScriptImpl(DartLoaderBatch batch_loader,
         packagePath: packageConfig,
         customUriMappings: const {},
         declaredVariables: const {});
+    program = new Program();
     DartLoader loader =
-        await batch_loader.getLoader(new Repository(), dartOptions);
-    program = loader.loadProgram(fileName, target: target);
+        await batch_loader.getLoader(program, dartOptions);
+    loader.loadProgram(fileName, target: target);
 
     if (loader.errors.isNotEmpty) {
       return new CompilationError(loader.errors.toList(growable: false));

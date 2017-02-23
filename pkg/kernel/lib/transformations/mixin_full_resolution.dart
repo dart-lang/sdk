@@ -115,7 +115,7 @@ class MixinFullResolution {
       for (var superclassConstructor in class_.superclass.constructors) {
         var forwardingConstructor =
             buildForwardingConstructor(superclassCloner, superclassConstructor);
-        class_.constructors.add(forwardingConstructor..parent = class_);
+        class_.addMember(forwardingConstructor);
       }
     }
 

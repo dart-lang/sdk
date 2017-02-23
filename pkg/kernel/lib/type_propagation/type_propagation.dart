@@ -64,7 +64,7 @@ enum BaseClassKind {
 /// its base class and its bitmask.  The InferredValue object represents the
 /// intersection of these two value sets.
 class InferredValue extends Node {
-  final Class baseClass;
+  final Reference baseClassReference;
   final BaseClassKind baseClassKind;
 
   /// A bitmask of the flags defined in [ValueBit], refining the set of values.
@@ -79,11 +79,17 @@ class InferredValue extends Node {
   /// class could be found.
   final int valueBits;
 
-  InferredValue(this.baseClass, this.baseClassKind,
-      [this.valueBits = ValueBit.all]) {
+  InferredValue(Class baseClass, BaseClassKind baseClassKind,
+      [int valueBits = ValueBit.all])
+      : this.byReference(baseClass?.reference, baseClassKind, valueBits);
+
+  InferredValue.byReference(
+      this.baseClassReference, this.baseClassKind, this.valueBits) {
     assert(baseClass != null || baseClassKind == BaseClassKind.None);
     assert(baseClass == null || baseClassKind != BaseClassKind.None);
   }
+
+  Class get baseClass => baseClassReference?.asClass;
 
   InferredValue withBitmask(int newBitmask) {
     if (newBitmask == valueBits) return this;

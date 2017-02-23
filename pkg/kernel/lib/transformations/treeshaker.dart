@@ -896,16 +896,6 @@ class _TreeShakingTransformer extends Transformer {
   }
 
   void transform(Program program) {
-    for (var library in program.libraries) {
-      if (!shaker.forceShaking && library.importUri.scheme == 'dart') {
-        // The backend expects certain things to be present in the core
-        // libraries, so we currently don't shake off anything there.
-        continue;
-      }
-      library.transformChildren(this);
-      // Note: we can't shake off empty libraries yet since we don't check if
-      // there are private names that use the library.
-    }
     for (Expression node in shaker._typedCalls) {
       // We should not leave dangling references, so if the target of a typed
       // call has been removed, we must remove the reference.  The receiver of
@@ -919,11 +909,22 @@ class _TreeShakingTransformer extends Transformer {
         node.interfaceTarget = _translateInterfaceTarget(node.interfaceTarget);
       }
     }
+    for (var library in program.libraries) {
+      if (!shaker.forceShaking && library.importUri.scheme == 'dart') {
+        // The backend expects certain things to be present in the core
+        // libraries, so we currently don't shake off anything there.
+        continue;
+      }
+      library.transformChildren(this);
+      // Note: we can't shake off empty libraries yet since we don't check if
+      // there are private names that use the library.
+    }
   }
 
   Class visitClass(Class node) {
     switch (shaker.getClassRetention(node)) {
       case ClassRetention.None:
+        node.canonicalName?.unbind();
         return null; // Remove the class.
 
       case ClassRetention.Namespace:
@@ -954,6 +955,7 @@ class _TreeShakingTransformer extends Transformer {
   Member defaultMember(Member node) {
     if (!shaker.isMemberBodyUsed(node)) {
       if (!shaker.isMemberOverridden(node)) {
+        node.canonicalName?.unbind();
         return null;
       }
       if (node is Procedure) {

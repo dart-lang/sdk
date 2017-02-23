@@ -18,9 +18,6 @@ import 'package:analyzer/dart/element/element.dart' show
     ExportElement,
     LibraryElement;
 
-import 'package:kernel/kernel.dart' show
-    Repository;
-
 import 'package:kernel/ast.dart' show
     Field,
     Library,
@@ -40,9 +37,6 @@ import 'package:kernel/target/targets.dart' show
     Target,
     TargetFlags,
     getTarget;
-
-import 'package:kernel/repository.dart' show
-    Repository;
 
 import 'package:kernel/ast.dart' show
     Program;
@@ -85,13 +79,13 @@ main(List<String> arguments) async {
   Uri output = Uri.base.resolveUri(new Uri.file(arguments.single));
   DartOptions options = new DartOptions(
       strongMode: false, sdk: await dartAotSdk.value, packagePath: null);
-  Repository repository = new Repository();
-  DartLoader loader = new DartLoader(repository, options, null,
+  Program program = new Program();
+  DartLoader loader = new DartLoader(program, options, null,
       ignoreRedirectingFactories: false,
       dartSdk: createDartSdk(options.sdk, strongMode: options.strongMode));
   Target target = getTarget(
       "vm", new TargetFlags(strongMode: options.strongMode));
-  Program program = loader.loadProgram(
+  loader.loadProgram(
       Uri.base.resolve("pkg/fasta/test/platform.dart"), target: target);
   if (loader.errors.isNotEmpty) {
     inputError(null, null, loader.errors.join("\n"));
