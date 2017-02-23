@@ -13,7 +13,7 @@ class Attribute {
   final id = 123;
 }
 
-class Name {
+abstract class Name {
   Name(this.name);
   final String name;
   get attr;
