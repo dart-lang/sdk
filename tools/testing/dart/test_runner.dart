@@ -32,6 +32,7 @@ import "utils.dart";
 
 const int CRASHING_BROWSER_EXITCODE = -10;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
+const int NON_UTF_FAKE_EXITCODE = 0xFFFD;
 
 const MESSAGE_CANNOT_OPEN_DISPLAY = 'Gtk-WARNING **: cannot open display';
 const MESSAGE_FAILED_TO_RUN_COMMAND = 'Failed to run command. return code=1';
@@ -984,7 +985,9 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
   Expectation result(TestCase testCase) {
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
-    return hasFailed(testCase) ? Expectation.FAIL : Expectation.PASS;
+    if (hasFailed(testCase)) return Expectation.FAIL;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
+    return Expectation.PASS;
   }
 
   bool get hasCrashed {
@@ -1030,6 +1033,8 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
   bool hasFailed(TestCase testCase) {
     return testCase.isNegative ? !didFail(testCase) : didFail(testCase);
   }
+
+  bool get hasNonUtf8 => exitCode == NON_UTF_FAKE_EXITCODE;
 
   Expectation _negateOutcomeIfNegativeTest(
       Expectation outcome, bool isNegative) {
@@ -1086,6 +1091,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     if (_infraFailure) {
       return Expectation.IGNORE;
@@ -1396,6 +1402,7 @@ class BrowserControllerTestOutcome extends CommandOutputImpl
   Expectation result(TestCase testCase) {
     // Handle timeouts first
     if (_result.didTimeout) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     // Multitests are handled specially
     if (testCase.hasRuntimeError) {
@@ -1428,6 +1435,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     // Get the errors/warnings from the analyzer
     List<String> errors = [];
@@ -1517,6 +1525,7 @@ class VmCommandOutputImpl extends CommandOutputImpl
     if (exitCode == DART_VM_EXITCODE_DFE_ERROR) return Expectation.DARTK_CRASH;
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     // Multitests are handled specially
     if (testCase.expectCompileError) {
@@ -1577,6 +1586,7 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
           ? Expectation.IGNORE
           : Expectation.TIMEOUT;
     }
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     // Handle dart2js specific crash detection
     if (exitCode == DART2JS_EXITCODE_CRASH ||
@@ -1654,6 +1664,7 @@ class JsCommandlineOutputImpl extends CommandOutputImpl
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     if (testCase.hasRuntimeError) {
       if (exitCode != 0) return Expectation.PASS;
@@ -1675,6 +1686,7 @@ class PubCommandOutputImpl extends CommandOutputImpl {
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     if (exitCode == 0) {
       return Expectation.PASS;
@@ -1756,6 +1768,7 @@ class OutputLog {
   List<int> tail;
   List<int> complete;
   bool dataDropped = false;
+  bool hasNonUtf8 = false;
 
   OutputLog();
 
@@ -1782,6 +1795,29 @@ class OutputLog {
       ? tail.sublist(tail.length - TAIL_LENGTH)
       : tail;
 
+
+  void _checkUtf8(List<int> data) {
+    try {
+      UTF8.decode(data, allowMalformed: false);
+    } on FormatException catch (e) {
+      hasNonUtf8 = true;
+      String malformed = UTF8.decode(data, allowMalformed: true);
+      data..clear()
+          ..addAll(malformed.codeUnits)
+          ..addAll("""
+
+  *****************************************************************************
+
+  test.dart: The output of this test contained non-UTF8 formatted data.
+
+  *****************************************************************************
+
+  """
+          .codeUnits);
+    }
+  }
+
+
   List<int> toList() {
     if (complete == null) {
       complete = head;
@@ -1790,7 +1826,7 @@ class OutputLog {
 
 *****************************************************************************
 
-Data removed due to excessive length
+test.dart: Data was removed due to excessive length
 
 *****************************************************************************
 
@@ -1802,6 +1838,7 @@ Data removed due to excessive length
       }
       head = null;
       tail = null;
+      _checkUtf8(complete);
     }
     return complete;
   }
@@ -2036,12 +2073,21 @@ class RunningProcess {
   }
 
   CommandOutput _createCommandOutput(ProcessCommand command, int exitCode) {
+    List<int> stdoutData = stdout.toList();
+    List<int> stderrData = stderr.toList();
+    if (stdout.hasNonUtf8 || stderr.hasNonUtf8) {
+      // If the output contained non-utf8 formatted data, then make the exit
+      // code non-zero if it isn't already.
+      if (exitCode == 0) {
+        exitCode = NON_UTF_FAKE_EXITCODE;
+      }
+    }
     var commandOutput = createCommandOutput(
         command,
         exitCode,
         timedOut,
-        stdout.toList(),
-        stderr.toList(),
+        stdoutData,
+        stderrData,
         new DateTime.now().difference(startTime),
         compilationSkipped,
         pid);
