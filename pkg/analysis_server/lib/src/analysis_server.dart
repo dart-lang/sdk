@@ -126,7 +126,7 @@ class AnalysisServer {
    * The subset of notifications are those to which plugins may contribute.
    * This field is `null` when the new plugin support is disabled.
    */
-  final NotificationManager notificationManager = null;
+  final NotificationManager notificationManager;
 
   /**
    * The [ResourceProvider] using which paths are converted into [Resource]s.
@@ -374,7 +374,10 @@ class AnalysisServer {
       ResolverProvider fileResolverProvider: null,
       ResolverProvider packageResolverProvider: null,
       bool useSingleContextManager: false,
-      this.rethrowExceptions: true}) {
+      this.rethrowExceptions: true})
+      // TODO(brianwilkerson) Initialize notificationManager to
+      // "new NotificationManager(channel, resourceProvider)"
+      : notificationManager = null {
     _performance = performanceDuringStartup;
     defaultContextOptions.incremental = true;
     defaultContextOptions.incrementalApi =
@@ -1235,6 +1238,9 @@ class AnalysisServer {
    */
   void setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths, Map<String, String> packageRoots) {
+    if (notificationManager != null) {
+      notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
+    }
     try {
       contextManager.setRoots(includedPaths, excludedPaths, packageRoots);
     } on UnimplementedError catch (e) {
@@ -1248,6 +1254,9 @@ class AnalysisServer {
    */
   void setAnalysisSubscriptions(
       Map<AnalysisService, Set<String>> subscriptions) {
+    if (notificationManager != null) {
+      notificationManager.setSubscriptions(subscriptions);
+    }
     if (options.enableNewAnalysisDriver) {
       this.analysisServices = subscriptions;
       Iterable<nd.AnalysisDriver> drivers = driverMap.values;

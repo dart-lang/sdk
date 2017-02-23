@@ -54,7 +54,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_folding() {
     manager.setSubscriptions({
-      server.AnalysisService.FOLDING: [fileA, fileB]
+      server.AnalysisService.FOLDING: new Set.from([fileA, fileB])
     });
     plugin.FoldingRegion pluginRegion1 = pluginFoldingRegion(10, 3);
     plugin.FoldingRegion pluginRegion2 = pluginFoldingRegion(20, 6);
@@ -69,7 +69,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_highlights() {
     manager.setSubscriptions({
-      server.AnalysisService.HIGHLIGHTS: [fileA, fileB]
+      server.AnalysisService.HIGHLIGHTS: new Set.from([fileA, fileB])
     });
     plugin.HighlightRegion pluginRegion1 = pluginHighlightRegion(10, 3);
     plugin.HighlightRegion pluginRegion2 = pluginHighlightRegion(20, 6);
@@ -85,7 +85,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_naviation() {
     manager.setSubscriptions({
-      server.AnalysisService.NAVIGATION: [fileA, fileB]
+      server.AnalysisService.NAVIGATION: new Set.from([fileA, fileB])
     });
     plugin.AnalysisNavigationParams pluginParams =
         pluginNavigationParams(0, 0, file: fileA);
@@ -98,7 +98,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_occurences() {
     manager.setSubscriptions({
-      server.AnalysisService.OCCURRENCES: [fileA, fileB]
+      server.AnalysisService.OCCURRENCES: new Set.from([fileA, fileB])
     });
     plugin.Occurrences pluginOccurrences1 = pluginOccurrences(0, 0);
     plugin.Occurrences pluginOccurrences2 = pluginOccurrences(5, 7);
@@ -114,7 +114,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_handlePluginNotification_outline() {
     manager.setSubscriptions({
-      server.AnalysisService.OUTLINE: [fileA, fileB]
+      server.AnalysisService.OUTLINE: new Set.from([fileA, fileB])
     });
     plugin.Outline pluginOutline1 = pluginOutline(0, 0);
     plugin.AnalysisOutlineParams params =
@@ -170,7 +170,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_recordFoldingRegions_withSubscription() {
     manager.setSubscriptions({
-      server.AnalysisService.FOLDING: [fileA, fileB]
+      server.AnalysisService.FOLDING: new Set.from([fileA, fileB])
     });
     //
     // Regions should be reported when they are recorded.
@@ -209,7 +209,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_recordHighlightRegions_withSubscription() {
     manager.setSubscriptions({
-      server.AnalysisService.HIGHLIGHTS: [fileA, fileB]
+      server.AnalysisService.HIGHLIGHTS: new Set.from([fileA, fileB])
     });
     //
     // Regions should be reported when they are recorded.
@@ -249,7 +249,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_recordNavigationParams_withSubscription() {
     manager.setSubscriptions({
-      server.AnalysisService.NAVIGATION: [fileA, fileB]
+      server.AnalysisService.NAVIGATION: new Set.from([fileA, fileB])
     });
     //
     // Parameters should be reported when they are recorded.
@@ -317,7 +317,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   void test_recordOccurrences_withSubscription() {
     manager.setSubscriptions({
-      server.AnalysisService.OCCURRENCES: [fileA, fileB]
+      server.AnalysisService.OCCURRENCES: new Set.from([fileA, fileB])
     });
     //
     // Occurrences should be reported when they are recorded.
@@ -360,7 +360,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     // TODO(brianwilkerson) Figure out outlines. What should we do when merge
     // cannot produce a single outline?
     manager.setSubscriptions({
-      server.AnalysisService.OUTLINE: [fileA, fileB]
+      server.AnalysisService.OUTLINE: new Set.from([fileA, fileB])
     });
     //
     // Outlines should be reported when they are recorded.
