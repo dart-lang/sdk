@@ -6,6 +6,8 @@ library dart2js.parser.node_listener;
 
 import '../common.dart';
 import '../elements/elements.dart' show CompilationUnitElement;
+import 'package:front_end/src/fasta/parser/parser.dart'
+    show FormalParameterType;
 import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
     show INDEX_INFO;
 import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
@@ -229,7 +231,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword) {
+  void endFormalParameter(Token thisKeyword, FormalParameterType kind) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -767,6 +769,10 @@ class NodeListener extends ElementListener {
     Expression parameterName = popNode();
     pushNode(new SendSet(null, parameterName, new Operator(equals),
         new NodeList.singleton(defaultValue)));
+  }
+
+  @override
+  void handleFormalParameterWithoutValue(Token token) {
   }
 
   @override

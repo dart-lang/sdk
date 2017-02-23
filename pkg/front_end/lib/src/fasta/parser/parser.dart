@@ -490,7 +490,7 @@ class Parser {
     return expect(')', token);
   }
 
-  Token parseFormalParameter(Token token, FormalParameterType type,
+  Token parseFormalParameter(Token token, FormalParameterType kind,
       {bool inFunctionType: false}) {
     token = parseMetadataStar(token, forParameter: true);
     listener.beginFormalParameter(token);
@@ -504,7 +504,7 @@ class Parser {
       token = token.next;
     }
     token = parseModifiers(token);
-    bool isNamedParameter = type == FormalParameterType.NAMED;
+    bool isNamedParameter = kind == FormalParameterType.NAMED;
 
     Token thisKeyword = null;
     if (inFunctionType && isNamedParameter) {
@@ -564,15 +564,17 @@ class Parser {
       Token equal = token;
       token = parseExpression(token.next);
       listener.handleValuedFormalParameter(equal, token);
-      if (type.isRequired) {
+      if (kind.isRequired) {
         reportRecoverableError(
             equal, ErrorKind.RequiredParameterWithDefault);
-      } else if (type.isPositional && identical(':', value)) {
+      } else if (kind.isPositional && identical(':', value)) {
         reportRecoverableError(
             equal, ErrorKind.PositionalParameterWithEquals);
       }
+    } else {
+      listener.handleFormalParameterWithoutValue(token);
     }
-    listener.endFormalParameter(thisKeyword);
+    listener.endFormalParameter(thisKeyword, kind);
     return token;
   }
 

@@ -9,6 +9,7 @@ import '../scanner/token.dart' show BeginGroupToken, Token;
 import '../util/link.dart' show Link;
 
 import 'error_kind.dart' show ErrorKind;
+import 'parser.dart' show FormalParameterType;
 
 import 'identifier_context.dart' show IdentifierContext;
 
@@ -163,7 +164,7 @@ class Listener {
 
   void beginFormalParameter(Token token) {}
 
-  void endFormalParameter(Token thisKeyword) {
+  void endFormalParameter(Token thisKeyword, FormalParameterType kind) {
     logEvent("FormalParameter");
   }
 
@@ -899,6 +900,10 @@ class Listener {
 
   void handleValuedFormalParameter(Token equals, Token token) {
     logEvent("ValuedFormalParameter");
+  }
+
+  void handleFormalParameterWithoutValue(Token token) {
+    logEvent("FormalParameterWithoutValue");
   }
 
   void handleVoidKeyword(Token token) {

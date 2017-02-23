@@ -333,20 +333,19 @@ class FastaParserTestCase extends Object
   @override
   FormalParameter parseFormalParameter(String code, ParameterKind kind,
       {List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
-    fasta.FormalParameterType type;
+    String parametersCode;
     if (kind == ParameterKind.REQUIRED) {
-      type = fasta.FormalParameterType.REQUIRED;
+      parametersCode = '($code)';
     } else if (kind == ParameterKind.POSITIONAL) {
-      type = fasta.FormalParameterType.POSITIONAL;
+      parametersCode = '([$code])';
     } else if (kind == ParameterKind.NAMED) {
-      type = fasta.FormalParameterType.NAMED;
+      parametersCode = '({$code})';
     } else {
       fail('$kind');
     }
-    return _runParser(
-        code,
-        (parser) => (token) => parser.parseFormalParameter(token, type),
-        errorCodes) as FormalParameter;
+    FormalParameterList list = parseFormalParameterList(parametersCode,
+        inFunctionType: false, errorCodes: errorCodes);
+    return list.parameters.single;
   }
 
   @override
@@ -498,65 +497,9 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseFormalParameter_final_named() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_final_named();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_final_positional() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_final_positional();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_final_type_named() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_final_type_named();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_final_type_positional() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_final_type_positional();
-  }
-
-  @override
-  @failingTest
   void test_parseFormalParameter_type_function() {
     // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
     super.test_parseFormalParameter_type_function();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_type_named() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_type_named();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_type_positional() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_type_positional();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_var_named() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_var_named();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_var_positional() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_var_positional();
   }
 
   @override

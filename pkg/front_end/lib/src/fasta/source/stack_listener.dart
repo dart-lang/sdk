@@ -35,6 +35,7 @@ enum NullValue {
   Initializers,
   Metadata,
   Modifiers,
+  ParameterDefaultValue,
   SwitchScope,
   Type,
   TypeArguments,
