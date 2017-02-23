@@ -7,6 +7,7 @@
 /// This is currently designed as an offline tool, but we could automate it.
 
 import 'dart:io';
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:analyzer/analyzer.dart';
@@ -194,12 +195,28 @@ Future main(List<String> argv) async {
     }
   }
 
-  await compile_platform.main(<String>[
-    '--packages',
-    new Uri.file(packagesFile).toString(),
-    sdkOut,
-    path.join(sdkOut, 'platform.dill')
-  ]);
+  // TODO(kustermann): We suppress compiler hints/warnings/errors temporarily
+  // because everyone building the `runtime` target will get these now.
+  // We should remove the suppression again once the underlying issues have
+  // been fixed (either in fasta or the dart files in the patched_sdk).
+  final capturedLines = <String>[];
+  try {
+    await runZoned(() async {
+      await compile_platform.main(<String>[
+        '--packages',
+        new Uri.file(packagesFile).toString(),
+        sdkOut,
+        path.join(sdkOut, 'platform.dill')
+      ]);
+    }, zoneSpecification: new ZoneSpecification(print: (_, _2, _3, line) {
+      capturedLines.add(line);
+    }));
+  } catch (_) {
+    for (final line in capturedLines) {
+      print(line);
+    }
+    rethrow;
+  }
 }
 
 /// Writes a file, creating the directory if needed.
