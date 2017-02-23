@@ -143,9 +143,9 @@ a:focus, a:hover {
       To ease interoperability with Lisp-based clients (which may not
       be able to easily distinguish between empty lists, empty maps,
       and null), client-to-server communication is allowed to replace
-      any instance of "<tt>{}</tt>" or "<tt>[]</tt>" with null. The
+      any instance of “<tt>{}</tt>” or “<tt>[]</tt>” with null. The
       server will always properly represent empty lists as
-      "<tt>[]</tt>" and empty maps as "<tt>{}</tt>".
+      “<tt>[]</tt>” and empty maps as “<tt>{}</tt>”.
     </p>
     <h3>Communication Structure</h3>
     <p>
@@ -2062,7 +2062,7 @@ a:focus, a:hover {
               structure of the data is dependent on the kind of
               refactoring being performed. The data that is expected is
               documented in the section titled <a href="#refactorings">Refactorings</a>, labeled as
-              "Options". This field can be omitted if the refactoring
+              “Options”. This field can be omitted if the refactoring
               does not require any options or if the values of those
               options are not known.
             </p>
@@ -2096,7 +2096,7 @@ a:focus, a:hover {
               of the data is dependent on the kind of refactoring
               being created. The data that is returned is documented
               in the section titled <a href="#refactorings">Refactorings</a>, labeled as
-              "Feedback".
+              “Feedback”.
             </p>
           </dd><dt class="field"><b>change (<span style="color:#999999">optional</span> <a href="#type_SourceChange">SourceChange</a>)</b></dt><dd>
             
@@ -2349,10 +2349,6 @@ a:focus, a:hover {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
-        <p>
-          <b><i>Deprecated</i></b>: the analysis server no longer fires
-          <tt>LAUNCH_DATA</tt> events.
-        </p>
         <p>
           Subscribe for services. All previous subscriptions are replaced by the
           given set of services.
@@ -3314,8 +3310,8 @@ a:focus, a:hover {
             
             <p>
               A human-readable description of the kind of element being
-              referenced (such as "class" or "function type
-              alias"). This data is omitted if there is no referenced
+              referenced (such as “class” or “function type
+              alias”). This data is omitted if there is no referenced
               element.
             </p>
           </dd><dt class="field"><b>isDeprecated (<span style="color:#999999">optional</span> bool)</b></dt><dd>
@@ -4509,8 +4505,8 @@ a:focus, a:hover {
             
             <p>
               The human-readable description of the kind of element being
-              renamed (such as "class" or "function type
-              alias").
+              renamed (such as “class” or “function type
+              alias”).
             </p>
           </dd><dt class="field"><b>oldName (String)</b></dt><dd>
             

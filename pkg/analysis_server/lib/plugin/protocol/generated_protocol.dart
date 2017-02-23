@@ -6227,7 +6227,7 @@ class EditGetRefactoringParams implements HasToJson {
    * Data used to provide values provided by the user. The structure of the
    * data is dependent on the kind of refactoring being performed. The data
    * that is expected is documented in the section titled Refactorings, labeled
-   * as "Options". This field can be omitted if the refactoring does not
+   * as “Options”. This field can be omitted if the refactoring does not
    * require any options or if the values of those options are not known.
    */
   RefactoringOptions get options => _options;
@@ -6236,7 +6236,7 @@ class EditGetRefactoringParams implements HasToJson {
    * Data used to provide values provided by the user. The structure of the
    * data is dependent on the kind of refactoring being performed. The data
    * that is expected is documented in the section titled Refactorings, labeled
-   * as "Options". This field can be omitted if the refactoring does not
+   * as “Options”. This field can be omitted if the refactoring does not
    * require any options or if the values of those options are not known.
    */
   void set options(RefactoringOptions value) {
@@ -6432,7 +6432,7 @@ class EditGetRefactoringResult implements HasToJson {
    * Data used to provide feedback to the user. The structure of the data is
    * dependent on the kind of refactoring being created. The data that is
    * returned is documented in the section titled Refactorings, labeled as
-   * "Feedback".
+   * “Feedback”.
    */
   RefactoringFeedback get feedback => _feedback;
 
@@ -6440,7 +6440,7 @@ class EditGetRefactoringResult implements HasToJson {
    * Data used to provide feedback to the user. The structure of the data is
    * dependent on the kind of refactoring being created. The data that is
    * returned is documented in the section titled Refactorings, labeled as
-   * "Feedback".
+   * “Feedback”.
    */
   void set feedback(RefactoringFeedback value) {
     this._feedback = value;
@@ -11571,14 +11571,14 @@ class HoverInformation implements HasToJson {
 
   /**
    * A human-readable description of the kind of element being referenced (such
-   * as "class" or "function type alias"). This data is omitted if there is no
+   * as “class” or “function type alias”). This data is omitted if there is no
    * referenced element.
    */
   String get elementKind => _elementKind;
 
   /**
    * A human-readable description of the kind of element being referenced (such
-   * as "class" or "function type alias"). This data is omitted if there is no
+   * as “class” or “function type alias”). This data is omitted if there is no
    * referenced element.
    */
   void set elementKind(String value) {
@@ -16976,13 +16976,13 @@ class RenameFeedback extends RefactoringFeedback {
 
   /**
    * The human-readable description of the kind of element being renamed (such
-   * as "class" or "function type alias").
+   * as “class” or “function type alias”).
    */
   String get elementKindName => _elementKindName;
 
   /**
    * The human-readable description of the kind of element being renamed (such
-   * as "class" or "function type alias").
+   * as “class” or “function type alias”).
    */
   void set elementKindName(String value) {
     assert(value != null);

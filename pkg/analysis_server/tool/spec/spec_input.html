@@ -41,9 +41,9 @@
       To ease interoperability with Lisp-based clients (which may not
       be able to easily distinguish between empty lists, empty maps,
       and null), client-to-server communication is allowed to replace
-      any instance of "<tt>{}</tt>" or "<tt>[]</tt>" with null. The
+      any instance of “<tt>{}</tt>” or “<tt>[]</tt>” with null. The
       server will always properly represent empty lists as
-      "<tt>[]</tt>" and empty maps as "<tt>{}</tt>".
+      “<tt>[]</tt>” and empty maps as “<tt>{}</tt>”.
     </p>
     <h3>Communication Structure</h3>
     <p>
@@ -1733,7 +1733,7 @@
               refactoring being performed. The data that is expected is
               documented in the section titled <a
               href="#refactorings">Refactorings</a>, labeled as
-              "Options". This field can be omitted if the refactoring
+              “Options”. This field can be omitted if the refactoring
               does not require any options or if the values of those
               options are not known.
             </p>
@@ -1774,7 +1774,7 @@
               being created. The data that is returned is documented
               in the section titled <a
               href="#refactorings">Refactorings</a>, labeled as
-              "Feedback".
+              “Feedback”.
             </p>
           </field>
           <field name="change" optional="true">
@@ -1984,10 +1984,6 @@
         </result>
       </request>
       <request method="setSubscriptions">
-        <p>
-          <b><i>Deprecated</i></b>: the analysis server no longer fires
-          <tt>LAUNCH_DATA</tt> events.
-        </p>
         <p>
           Subscribe for services. All previous subscriptions are replaced by the
           given set of services.
@@ -3131,8 +3127,8 @@
             <ref>String</ref>
             <p>
               A human-readable description of the kind of element being
-              referenced (such as "class" or "function type
-              alias"). This data is omitted if there is no referenced
+              referenced (such as “class” or “function type
+              alias”). This data is omitted if there is no referenced
               element.
             </p>
           </field>
@@ -4560,8 +4556,8 @@
             <ref>String</ref>
             <p>
               The human-readable description of the kind of element being
-              renamed (such as "class" or "function type
-              alias").
+              renamed (such as “class” or “function type
+              alias”).
             </p>
           </field>
           <field name="oldName">
