@@ -49,6 +49,10 @@ class AstBuilder extends ScopeListener {
   /// to the list.
   var accumulateIdentifierComponents = false;
 
+  /// The name of the class currently being parsed, or `null` if no class is
+  /// being parsed.
+  String className;
+
   AstBuilder(this.library, this.member, this.elementStore, Scope scope,
       [Uri uri])
       : uri = uri ?? library.fileUri,
@@ -143,6 +147,8 @@ class AstBuilder extends ScopeListener {
           assert(element != null);
           identifier.staticElement = element;
         }
+      } else if (context == IdentifierContext.classDeclaration) {
+        className = identifier.name;
       }
       push(identifier);
     }
@@ -851,6 +857,8 @@ class AstBuilder extends ScopeListener {
     }
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
+    assert(className == name.name);
+    className = null;
     Token abstractKeyword = _popOptionalSingleModifier();
     List<Annotation> metadata = pop();
     // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
@@ -1070,7 +1078,7 @@ class AstBuilder extends ScopeListener {
         factoryKeyword = modifier;
       } else {
         // TODO(scheglov): Report error.
-        internalError("Invalid modifier. Report an error.");
+        internalError("Invalid modifier ($value). Report an error.");
       }
     }
 
