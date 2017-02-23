@@ -317,7 +317,8 @@ enum JsGetName {
   OPERATOR_AS_PREFIX,
   /// Name used for generated function types on classes and methods.
   SIGNATURE_NAME,
-  /// Name used to store runtime-type information.
+  /// Name of JavaScript property used to store runtime-type information on
+  /// instances of parametrized classes.
   RTI_NAME,
   /// Name used to tag typedefs.
   TYPEDEF_TAG,
