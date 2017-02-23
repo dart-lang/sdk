@@ -8,6 +8,7 @@
 
 await: Fail
 invocations: Fail
+function_type_recovery: Crash
 mixin: Fail
 
 rasta/abstract_constructor: Fail

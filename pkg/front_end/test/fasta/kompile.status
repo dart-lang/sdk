@@ -15,6 +15,7 @@ default_values: Crash
 expressions: Crash
 fibonacci: Crash
 for_in_scope: Crash
+function_type_recovery: Crash
 functions: Crash
 implicit_this: Crash
 invocations: Fail

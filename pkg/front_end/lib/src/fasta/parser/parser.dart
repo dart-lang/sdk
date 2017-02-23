@@ -531,15 +531,15 @@ class Parser {
       }
     }
 
-    // Generalized function types don't allow inline function types.
-    // The following isn't allowed:
-    //    int Function(int bar(String x)).
     if (optional('(', token)) {
       Token inlineFunctionTypeStart = token;
       listener.beginFunctionTypedFormalParameter(token);
       listener.handleNoTypeVariables(token);
       token = parseFormalParameters(token);
       listener.endFunctionTypedFormalParameter(token);
+      // Generalized function types don't allow inline function types.
+      // The following isn't allowed:
+      //    int Function(int bar(String x)).
       if (inFunctionType) {
         reportRecoverableError(
             inlineFunctionTypeStart, ErrorKind.InvalidInlineFunctionType);
@@ -550,6 +550,9 @@ class Parser {
       token = parseTypeVariablesOpt(token);
       token = parseFormalParameters(token);
       listener.endFunctionTypedFormalParameter(token);
+      // Generalized function types don't allow inline function types.
+      // The following isn't allowed:
+      //    int Function(int bar(String x)).
       if (inFunctionType) {
         reportRecoverableError(
             inlineFunctionTypeStart, ErrorKind.InvalidInlineFunctionType);
