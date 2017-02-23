@@ -3,12 +3,30 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+Language/Expressions/Function_Invocation/async_cleanup_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Expressions/Function_Invocation/async_cleanup_t03: Skip # https://github.com/dart-lang/sdk/issues/28873
+Language/Expressions/Function_Invocation/async_cleanup_t05: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Expressions/Function_Invocation/async_cleanup_t06: Skip # https://github.com/dart-lang/sdk/issues/28873
+Language/Expressions/Function_Invocation/async_cleanup_t08: Skip # https://github.com/dart-lang/sdk/issues/28873
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t03: Skip # https://github.com/dart-lang/sdk/issues/28873
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t05: Skip # https://github.com/dart-lang/sdk/issues/28873
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t06: Skip # https://github.com/dart-lang/sdk/issues/28873
+Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t08: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/dom/mutation-event-remove-inserted-node_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/dom/shadow/event-path-not-in-document_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/forms/search-popup-crasher_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/loader/stateobjects/replacestate-in-onunload_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/replaced/preferred-widths_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/replaced/table-percent-width_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/table/table-colgroup-present-after-table-row_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/table/table-with-content-width-exceeding-max-width_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/text/find-case-folding_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/text/zero-width-characters-complex-script_t01.dart: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/transforms/hit-test-large-scale_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LibTest/html/Window/postMessage_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+WebPlatformTest/dom/EventTarget/dispatchEvent_A02_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError # compiler cancelled: cannot resolve type T
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError, OK # co19 issue 258
