@@ -7,10 +7,6 @@
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
 
-# This test checks that the test runner correctly detects and reports non-utf8
-# output from a test.
-io/non_utf8_output_test: NonUtf8Output, OK
-
 io/raw_socket_test: Pass, RuntimeError # Issue 28288
 io/http_close_test: Pass, RuntimeError # Issue 28380
 packages_file_test: Skip # Issue 26715
@@ -36,6 +32,9 @@ env_test: Skip # This is testing a vm command line parsing scenario.
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
 package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
+# This test checks that the test runner correctly detects and reports non-utf8
+# output from a test.
+io/non_utf8_output_test: NonUtf8Output, OK
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $checked ]
 # These tests have type errors on purpose.
