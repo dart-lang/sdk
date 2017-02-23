@@ -266,12 +266,6 @@ void OS::DebugBreak() {
 }
 
 
-uintptr_t DART_NOINLINE OS::GetProgramCounter() {
-  return reinterpret_cast<uintptr_t>(
-      __builtin_extract_return_addr(__builtin_return_address(0)));
-}
-
-
 char* OS::StrNDup(const char* s, intptr_t n) {
 // strndup has only been added to Mac OS X in 10.7. We are supplying
 // our own copy here if needed.

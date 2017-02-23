@@ -27,7 +27,7 @@ class BaseDirectChainedHashMap : public B {
 
   BaseDirectChainedHashMap(const BaseDirectChainedHashMap& other);
 
-  virtual ~BaseDirectChainedHashMap() {
+  ~BaseDirectChainedHashMap() {
     allocator_->template Free<HashMapListElement>(array_, array_size_);
     allocator_->template Free<HashMapListElement>(lists_, lists_size_);
   }
@@ -42,7 +42,7 @@ class BaseDirectChainedHashMap : public B {
 
   bool IsEmpty() const { return count_ == 0; }
 
-  virtual void Clear() {
+  void Clear() {
     if (!IsEmpty()) {
       count_ = 0;
       InitArray(array_, array_size_);

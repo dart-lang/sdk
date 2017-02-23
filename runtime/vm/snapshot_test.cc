@@ -12,7 +12,6 @@
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
-#include "vm/malloc_hooks.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
 #include "vm/unicode.h"
@@ -1123,11 +1122,6 @@ static void IterateScripts(const Library& lib) {
 }
 
 ISOLATE_UNIT_TEST_CASE(GenerateSource) {
-  // Disable stack trace collection for this test as it results in a timeout.
-  bool stack_trace_collection_enabled =
-      MallocHooks::stack_trace_collection_enabled();
-  MallocHooks::set_stack_trace_collection_enabled(false);
-
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs =
@@ -1141,9 +1135,6 @@ ISOLATE_UNIT_TEST_CASE(GenerateSource) {
     OS::Print("Generating source for library: %s\n", uri.ToCString());
     IterateScripts(lib);
   }
-
-  MallocHooks::set_stack_trace_collection_enabled(
-      stack_trace_collection_enabled);
 }
 
 

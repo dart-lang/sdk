@@ -265,11 +265,6 @@ void OS::DebugBreak() {
 }
 
 
-DART_NOINLINE uintptr_t OS::GetProgramCounter() {
-  return reinterpret_cast<uintptr_t>(_ReturnAddress());
-}
-
-
 char* OS::StrNDup(const char* s, intptr_t n) {
   intptr_t len = strlen(s);
   if ((n < 0) || (len < 0)) {
