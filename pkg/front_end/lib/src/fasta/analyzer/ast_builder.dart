@@ -472,16 +472,35 @@ class AstBuilder extends ScopeListener {
 
   void endFormalParameter(Token thisKeyword) {
     debugEvent("FormalParameter");
-    if (thisKeyword != null) {
-      internalError("'this' can't be used here.");
-    }
     SimpleIdentifier name = pop();
     TypeName type = pop();
     Token keyword = _popOptionalSingleModifier();
     pop(); // TODO(paulberry): Metadata.
     // TODO(paulberry): handle covariant keyword.
-    SimpleFormalParameter node = ast.simpleFormalParameter(
-        null, null, toAnalyzerToken(keyword), type, name);
+
+    FormalParameter node;
+    if (thisKeyword == null) {
+      node = ast.simpleFormalParameter(
+          null, null, toAnalyzerToken(keyword), type, name);
+    } else {
+      // TODO(scheglov): Ideally the period token should be passed in.
+      Token period = identical('.', thisKeyword.next?.stringValue)
+          ? thisKeyword.next
+          : null;
+      TypeParameterList typeParameters; // TODO(scheglov)
+      FormalParameterList formalParameters; // TODO(scheglov)
+      node = ast.fieldFormalParameter(
+          null,
+          null,
+          toAnalyzerToken(keyword),
+          type,
+          toAnalyzerToken(thisKeyword),
+          toAnalyzerToken(period),
+          name,
+          typeParameters,
+          formalParameters);
+    }
+
     scope[name.name] = name.staticElement = new AnalyzerParameterElement(node);
     push(node);
   }

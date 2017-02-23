@@ -638,34 +638,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseNormalFormalParameter_field_const_noType() {
-    // TODO(scheglov): 'this' can't be used here.
-    super.test_parseNormalFormalParameter_field_const_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_const_type() {
-    // TODO(scheglov): 'this' can't be used here.
-    super.test_parseNormalFormalParameter_field_const_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_final_noType() {
-    // TODO(scheglov): 'this' can't be used here.
-    super.test_parseNormalFormalParameter_field_final_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_final_type() {
-    // TODO(scheglov): 'this' can't be used here.
-    super.test_parseNormalFormalParameter_field_final_type();
-  }
-
-  @override
-  @failingTest
   void test_parseNormalFormalParameter_field_function_nested() {
     // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
     super.test_parseNormalFormalParameter_field_function_nested();
@@ -676,27 +648,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   void test_parseNormalFormalParameter_field_function_noNested() {
     // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
     super.test_parseNormalFormalParameter_field_function_noNested();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_noType() {
-    // TODO(scheglov): 'this' can't be used here.
-    super.test_parseNormalFormalParameter_field_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_type() {
-    // TODO(scheglov): 'this' can't be used here.
-    super.test_parseNormalFormalParameter_field_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_var() {
-    // TODO(scheglov): 'this' can't be used here.
-    super.test_parseNormalFormalParameter_field_var();
   }
 
   @override
