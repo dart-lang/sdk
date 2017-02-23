@@ -1582,7 +1582,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * For example given the type `class C<T> { C(T arg); }`, the generic function
    * type is `<T>(T) -> C<T>`.
    */
-  FunctionType _constructorToGenericFunctionType(
+  static FunctionType constructorToGenericFunctionType(
       ConstructorElement constructor) {
     // TODO(jmesserly): it may be worth making this available from the
     // constructor. It's nice if our inference code can operate uniformly on
@@ -1621,6 +1621,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     type = type.substitute2(freshTypeVars, typeVars);
 
     var function = new FunctionElementImpl("", -1);
+    function.enclosingElement = cls;
     function.isSynthetic = true;
     function.returnType = type.returnType;
     function.typeParameters = freshVarElements;
@@ -2043,7 +2044,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     var rawElement = (originalElement as ConstructorMember).baseElement;
 
     FunctionType constructorType =
-        _constructorToGenericFunctionType(rawElement);
+        constructorToGenericFunctionType(rawElement);
 
     ArgumentList arguments = node.argumentList;
     FunctionType inferred = _inferGenericInvoke(node, constructorType,

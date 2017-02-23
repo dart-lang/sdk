@@ -67,6 +67,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -1680,12 +1681,21 @@ class ConstructorElementForLink extends ExecutableElementForLink_NonLocal
   ClassElementImpl get enclosingElement => super.enclosingClass;
 
   @override
+  String get identifier => name;
+
+  @override
   bool get isCycleFree {
     if (!_constNode.isEvaluated) {
       new ConstDependencyWalker().walk(_constNode);
     }
     return _constNode.isCycleFree;
   }
+
+  @override
+  DartType get returnType => enclosingElement.type;
+
+  @override
+  List<TypeParameterElement> get typeParameters => const [];
 
   /**
    * Perform const cycle detection on this constructor.
@@ -2321,27 +2331,47 @@ class ExprTypeComputer {
   }
 
   void _doInvokeConstructor() {
-    int numNamed = _getNextInt();
-    int numPositional = _getNextInt();
-    // TODO(paulberry): don't just pop the args; use their types
-    // to infer the type of type arguments.
-    stack.length -= numNamed + numPositional;
-    strPtr += numNamed;
+    int numNamed = unlinkedConst.ints[intPtr++];
+    int numPositional = unlinkedConst.ints[intPtr++];
+    List<String> namedArgNames = _getNextStrings(numNamed);
+    List<DartType> namedArgTypeList = _popList(numNamed);
+    List<DartType> positionalArgTypes = _popList(numPositional);
+
     EntityRef ref = _getNextRef();
-    ClassElementForLink_Class element =
-        unit.resolveConstructorClassRef(ref.reference).asClass;
-    if (element != null) {
-      stack.add(element.buildType((int i) {
-        // Type argument explicitly specified.
-        if (i < ref.typeArguments.length) {
-          return unit.resolveTypeRef(
-              ref.typeArguments[i], function.typeParameterContext);
+    ReferenceableElementForLink refElement = unit.resolveRef(ref.reference);
+    ConstructorElementForLink constructorElement = refElement.asConstructor;
+
+    if (constructorElement != null) {
+      stack.add(() {
+        if (ref.typeArguments.isNotEmpty) {
+          return constructorElement.enclosingClass.buildType((int i) {
+            if (i < ref.typeArguments.length) {
+              return unit.resolveTypeRef(
+                  ref.typeArguments[i], function.typeParameterContext);
+            } else {
+              return null;
+            }
+          }, const <int>[]);
         } else {
-          return null;
+          FunctionType rawType = StaticTypeAnalyzer
+              .constructorToGenericFunctionType(constructorElement);
+          FunctionType inferredType = _inferExecutableType(
+              rawType,
+              numNamed,
+              numPositional,
+              namedArgNames,
+              namedArgTypeList,
+              positionalArgTypes, const <DartType>[]);
+          if (identical(inferredType, rawType)) {
+            inferredType = linker.typeSystem.instantiateToBounds(rawType);
+          }
+          return inferredType.returnType;
         }
-      }, const []));
+      }());
     } else {
-      stack.add(DynamicTypeImpl.instance);
+      ClassElementForLink classElement =
+          unit.resolveConstructorClassRef(ref.reference).asClass;
+      stack.add(classElement?.type ?? DynamicTypeImpl.instance);
     }
   }
 

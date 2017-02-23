@@ -174,36 +174,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
     super.test_constructors_inferFromArguments_const();
   }
 
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_factory() {
-    super.test_constructors_inferFromArguments_factory();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_named() {
-    super.test_constructors_inferFromArguments_named();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_namedFactory() {
-    super.test_constructors_inferFromArguments_namedFactory();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_redirecting() {
-    super.test_constructors_inferFromArguments_redirecting();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_redirectingFactory() {
-    super.test_constructors_inferFromArguments_redirectingFactory();
-  }
-
   void test_infer_extractIndex_custom() {
     var unit = checkFile('''
 class A {
