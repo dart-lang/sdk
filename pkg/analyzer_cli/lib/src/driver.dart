@@ -13,7 +13,6 @@ import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
@@ -32,12 +31,10 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
@@ -225,11 +222,7 @@ class Driver implements CommandLineStarter {
         sourcesToAnalyze.add(source);
       }
 
-      if (analysisDriver != null) {
-        files.forEach((file) {
-          analysisDriver.addFile(file.path);
-        });
-      } else {
+      if (analysisDriver == null) {
         context.applyChanges(changeSet);
       }
     }
