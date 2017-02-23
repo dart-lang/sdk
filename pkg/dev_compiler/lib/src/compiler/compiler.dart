@@ -68,7 +68,8 @@ class ModuleCompiler {
   factory ModuleCompiler(AnalyzerOptions options,
       {ResourceProvider resourceProvider,
       String analysisRoot,
-      List<UriResolver> fileResolvers}) {
+      List<UriResolver> fileResolvers,
+      SummaryDataStore summaryData}) {
     // TODO(danrubel): refactor with analyzer CLI into analyzer common code
     AnalysisEngine.instance.processRequiredPlugins();
 
@@ -85,8 +86,8 @@ class ModuleCompiler {
     var sdkResolver = new DartUriResolver(sdk);
 
     // Read the summaries.
-    var summaryData =
-        new SummaryDataStore(options.summaryPaths, recordDependencyInfo: true);
+    summaryData ??=
+        new SummaryDataStore(options.summaryPaths, resourceProvider: resourceProvider, recordDependencyInfo: true);
     var sdkSummaryBundle = sdk.getLinkedBundle();
     if (sdkSummaryBundle != null) {
       summaryData.addBundle(null, sdkSummaryBundle);
