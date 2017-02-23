@@ -195,7 +195,10 @@ Future main(List<String> argv) async {
   }
 
   await compile_platform.main(<String>[
-    '--packages', packagesFile, sdkOut, path.join(sdkOut, 'platform.dill')
+    '--packages',
+    new Uri.file(packagesFile).toString(),
+    sdkOut,
+    path.join(sdkOut, 'platform.dill')
   ]);
 }
 
