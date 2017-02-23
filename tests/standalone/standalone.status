@@ -393,6 +393,7 @@ io/secure_socket_test: RuntimeError
 io/raw_secure_socket_test: RuntimeError
 io/https_bad_certificate_test: RuntimeError
 io/secure_server_closing_test: RuntimeError
+io/console_unicode_test: Skip # https://github.com/dart-lang/sdk/issues/28872
 
 [ $system == android && $runtime == dart_precompiled && $mode == release && $arch == arm]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
