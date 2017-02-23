@@ -159,20 +159,24 @@ class ExecutionDomainHandler implements RequestHandler {
    * Implement the 'execution.setSubscriptions' request.
    */
   Response setSubscriptions(Request request) {
-    List<ExecutionService> subscriptions =
-        new ExecutionSetSubscriptionsParams.fromRequest(request).subscriptions;
-    if (subscriptions.contains(ExecutionService.LAUNCH_DATA)) {
-      if (onFileAnalyzed == null) {
-        onFileAnalyzed = server.onFileAnalyzed.listen(_fileAnalyzed);
-        _reportCurrentFileStatus();
-      }
+    if (server.options.enableNewAnalysisDriver) {
+      return new ExecutionSetSubscriptionsResult().toResponse(request.id);
     } else {
-      if (onFileAnalyzed != null) {
-        onFileAnalyzed.cancel();
-        onFileAnalyzed = null;
+      List<ExecutionService> subscriptions =
+          new ExecutionSetSubscriptionsParams.fromRequest(request).subscriptions;
+      if (subscriptions.contains(ExecutionService.LAUNCH_DATA)) {
+        if (onFileAnalyzed == null) {
+          onFileAnalyzed = server.onFileAnalyzed.listen(_fileAnalyzed);
+          _reportCurrentFileStatus();
+        }
+      } else {
+        if (onFileAnalyzed != null) {
+          onFileAnalyzed.cancel();
+          onFileAnalyzed = null;
+        }
       }
+      return new ExecutionSetSubscriptionsResult().toResponse(request.id);
     }
-    return new ExecutionSetSubscriptionsResult().toResponse(request.id);
   }
 
   void _fileAnalyzed(ChangeNotice notice) {

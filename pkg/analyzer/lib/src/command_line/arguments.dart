@@ -173,7 +173,7 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
   parser.addFlag(enableInitializingFormalAccessFlag,
       help:
           'Enable support for allowing access to field formal parameters in a '
-          'constructor\'s initializer list',
+          'constructor\'s initializer list.',
       defaultsTo: false,
       negatable: false,
       hide: hide || ddc);

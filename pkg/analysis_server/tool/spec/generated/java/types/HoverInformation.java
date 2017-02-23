@@ -89,8 +89,8 @@ public class HoverInformation {
   private final String elementDescription;
 
   /**
-   * A human-readable description of the kind of element being referenced (such as “class” or
-   * “function type alias”). This data is omitted if there is no referenced element.
+   * A human-readable description of the kind of element being referenced (such as "class" or
+   * "function type alias"). This data is omitted if there is no referenced element.
    */
   private final String elementKind;
 
@@ -228,8 +228,8 @@ public class HoverInformation {
   }
 
   /**
-   * A human-readable description of the kind of element being referenced (such as “class” or
-   * “function type alias”). This data is omitted if there is no referenced element.
+   * A human-readable description of the kind of element being referenced (such as "class" or
+   * "function type alias"). This data is omitted if there is no referenced element.
    */
   public String getElementKind() {
     return elementKind;

@@ -350,7 +350,7 @@ class CommandLineOptions {
           hide: hide)
       ..addOption('build-summary-input',
           help: 'Path to a summary file that contains information from a '
-              'previous analysis run.  May be specified multiple times.',
+              'previous analysis run; may be specified multiple times.',
           allowMultiple: true,
           hide: hide)
       ..addOption('build-summary-output',
@@ -399,7 +399,7 @@ class CommandLineOptions {
           hide: hide)
       ..addOption('x-package-warnings-prefix',
           help:
-              'Show warnings from package: imports that match the given prefix',
+              'Show warnings from package: imports that match the given prefix.',
           hide: hide)
       ..addFlag('enable-conditional-directives',
           help:
@@ -490,7 +490,7 @@ class CommandLineOptions {
           return null; // Only reachable in testing.
         }
       } else if (results['version']) {
-        outSink.write('$_binaryName version ${_getVersion()}');
+        outSink.writeln('$_binaryName version ${_getVersion()}');
         exitHandler(0);
         return null; // Only reachable in testing.
       } else {
