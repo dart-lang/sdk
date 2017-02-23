@@ -291,6 +291,7 @@ class Mutex {
   ThreadId owner_;
 #endif  // defined(DEBUG)
 
+  friend class MallocLocker;
   friend class MutexLocker;
   friend class SafepointMutexLocker;
   friend class OSThreadIterator;
