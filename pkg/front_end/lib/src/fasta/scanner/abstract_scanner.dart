@@ -241,7 +241,7 @@ abstract class AbstractScanner implements Scanner {
     if (($A <= next && next <= $Z) ||
         identical(next, $_) ||
         identical(next, $$)) {
-      return tokenizeIdentifier(next, scanOffset, true);
+      return tokenizeKeywordOrIdentifier(next, true);
     }
 
     if (identical(next, $LT)) {
@@ -808,6 +808,16 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeKeywordOrIdentifier(int next, bool allowDollar) {
     KeywordState state = KeywordState.KEYWORD_STATE;
     int start = scanOffset;
+    // We allow a leading capital character.
+    if ($A <= next && next <= $Z) {
+      state = state.nextCapital(next);
+      next = advance();
+    } else if ($a <= next && next <= $z){
+      // Do the first next call outside the loop to avoid an additional test
+      // and to make the loop monomorphic.
+      state = state.next(next);
+      next = advance();
+    }
     while (state != null && $a <= next && next <= $z) {
       state = state.next(next);
       next = advance();
@@ -945,12 +955,11 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeInterpolatedIdentifier(int next) {
     appendPrecedenceToken(STRING_INTERPOLATION_IDENTIFIER_INFO);
 
-    if ($a <= next && next <= $z) {
+    if ($a <= next && next <= $z ||
+        $A <= next && next <= $Z ||
+        identical(next, $_)) {
       beginToken(); // The identifier starts here.
       next = tokenizeKeywordOrIdentifier(next, false);
-    } else if (($A <= next && next <= $Z) || identical(next, $_)) {
-      beginToken(); // The identifier starts here.
-      next = tokenizeIdentifier(next, scanOffset, false);
     } else {
       unterminated(r'$', shouldAdvance: false);
     }

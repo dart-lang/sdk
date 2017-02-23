@@ -34,6 +34,7 @@ dart_style:third_party/pkg_tested/dart_style/lib
 dartdoc:third_party/pkg/dartdoc/lib
 dev_compiler:pkg/dev_compiler/lib
 expect:pkg/expect/lib
+fasta:pkg/fasta/lib
 fixnum:third_party/pkg/fixnum/lib
 front_end:pkg/front_end/lib
 func:third_party/pkg/func/lib

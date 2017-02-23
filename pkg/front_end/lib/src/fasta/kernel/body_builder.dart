@@ -1172,7 +1172,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endType(Token beginToken, Token endToken) {
+  void handleType(Token beginToken, Token endToken) {
     // TODO(ahe): The scope is wrong for return types of generic functions.
     debugEvent("Type");
     List<DartType> arguments = pop();

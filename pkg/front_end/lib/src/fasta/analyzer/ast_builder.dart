@@ -431,7 +431,7 @@ class AstBuilder extends ScopeListener {
     push(ast.symbolLiteral(toAnalyzerToken(hashToken), components));
   }
 
-  void endType(Token beginToken, Token endToken) {
+  void handleType(Token beginToken, Token endToken) {
     debugEvent("Type");
     TypeArgumentList arguments = pop();
     Identifier name = pop();
@@ -1062,28 +1062,52 @@ class AstBuilder extends ScopeListener {
     // keyword up to an element?
     handleIdentifier(token, IdentifierContext.typeReference);
     handleNoTypeArguments(token);
-    endType(token, token);
+    handleType(token, token);
   }
 
   @override
-  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
+  void endFunctionTypeAlias(
+      Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("FunctionTypeAlias");
-    FormalParameterList parameters = pop();
-    TypeParameterList typeParameters = pop();
-    SimpleIdentifier name = pop();
-    TypeAnnotation returnType = pop();
-    List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
-    push(ast.functionTypeAlias(
-        comment,
-        metadata,
-        toAnalyzerToken(typedefKeyword),
-        returnType,
-        name,
-        typeParameters,
-        parameters,
-        toAnalyzerToken(endToken)));
+    if (equals == null) {
+      FormalParameterList parameters = pop();
+      TypeParameterList typeParameters = pop();
+      SimpleIdentifier name = pop();
+      TypeAnnotation returnType = pop();
+      List<Annotation> metadata = pop();
+      // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+      Comment comment = null;
+      push(ast.functionTypeAlias(
+          comment,
+          metadata,
+          toAnalyzerToken(typedefKeyword),
+          returnType,
+          name,
+          typeParameters,
+          parameters,
+          toAnalyzerToken(endToken)));
+    } else {
+      TypeAnnotation type = pop();
+      TypeParameterList templateParameters = pop();
+      SimpleIdentifier name = pop();
+      List<Annotation> metadata = pop();
+      // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+      Comment comment = null;
+      if (type is! GenericFunctionType) {
+        // TODO(paulberry) Generate an error and recover (better than
+        // this).
+        type = null;
+      }
+      push(ast.genericTypeAlias(
+          comment,
+          metadata,
+          toAnalyzerToken(typedefKeyword),
+          name,
+          templateParameters,
+          toAnalyzerToken(equals),
+          type,
+          toAnalyzerToken(endToken)));
+    }
   }
 
   @override

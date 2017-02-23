@@ -51,6 +51,10 @@ abstract class Visitor<R> {
   R visitForIn(ForIn node) => visitLoop(node);
   R visitFunctionDeclaration(FunctionDeclaration node) => visitStatement(node);
   R visitFunctionExpression(FunctionExpression node) => visitExpression(node);
+  R visitFunctionTypeAnnotation(FunctionTypeAnnotation node) {
+    return visitTypeAnnotation(node);
+  }
+
   R visitGotoStatement(GotoStatement node) => visitStatement(node);
   R visitIdentifier(Identifier node) => visitExpression(node);
   R visitImport(Import node) => visitLibraryDependency(node);
@@ -82,6 +86,10 @@ abstract class Visitor<R> {
 
   R visitNewExpression(NewExpression node) => visitExpression(node);
   R visitNodeList(NodeList node) => visitNode(node);
+  R visitNominalTypeAnnotation(NominalTypeAnnotation node) {
+    return visitTypeAnnotation(node);
+  }
+
   R visitOperator(Operator node) => visitIdentifier(node);
   R visitParenthesizedExpression(ParenthesizedExpression node) {
     return visitExpression(node);
@@ -179,6 +187,10 @@ abstract class Visitor1<R, A> {
     return visitExpression(node, arg);
   }
 
+  R visitFunctionTypeAnnotation(FunctionTypeAnnotation node, A arg) {
+    return visitTypeAnnotation(node, arg);
+  }
+
   R visitGotoStatement(GotoStatement node, A arg) {
     return visitStatement(node, arg);
   }
@@ -228,6 +240,10 @@ abstract class Visitor1<R, A> {
 
   R visitNewExpression(NewExpression node, A arg) => visitExpression(node, arg);
   R visitNodeList(NodeList node, A arg) => visitNode(node, arg);
+  R visitNominalTypeAnnotation(NominalTypeAnnotation node, A arg) {
+    visitTypeAnnotation(node, arg);
+  }
+
   R visitOperator(Operator node, A arg) => visitIdentifier(node, arg);
   R visitParenthesizedExpression(ParenthesizedExpression node, A arg) {
     return visitExpression(node, arg);
@@ -263,8 +279,8 @@ abstract class Visitor1<R, A> {
   R visitLiteralSymbol(LiteralSymbol node, A arg) => visitExpression(node, arg);
   R visitThrow(Throw node, A arg) => visitExpression(node, arg);
   R visitTryStatement(TryStatement node, A arg) => visitStatement(node, arg);
-  R visitTypeAnnotation(TypeAnnotation node, A arg) => visitNode(node, arg);
   R visitTypedef(Typedef node, A arg) => visitNode(node, arg);
+  R visitTypeAnnotation(TypeAnnotation node, A arg) => visitNode(node, arg);
   R visitTypeVariable(TypeVariable node, A arg) => visitNode(node, arg);
   R visitVariableDefinitions(VariableDefinitions node, A arg) {
     return visitStatement(node, arg);
@@ -363,6 +379,7 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   ForIn asForIn() => null;
   FunctionDeclaration asFunctionDeclaration() => null;
   FunctionExpression asFunctionExpression() => null;
+  FunctionTypeAnnotation asFunctionTypeAnnotation() => null;
   Identifier asIdentifier() => null;
   If asIf() => null;
   Import asImport() => null;
@@ -386,6 +403,7 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   NamedMixinApplication asNamedMixinApplication() => null;
   NewExpression asNewExpression() => null;
   NodeList asNodeList() => null;
+  NominalTypeAnnotation asNominalTypeAnnotation() => null;
   Operator asOperator() => null;
   ParenthesizedExpression asParenthesizedExpression() => null;
   Part asPart() => null;
@@ -404,7 +422,6 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   SwitchStatement asSwitchStatement() => null;
   Throw asThrow() => null;
   TryStatement asTryStatement() => null;
-  TypeAnnotation asTypeAnnotation() => null;
   TypeVariable asTypeVariable() => null;
   Typedef asTypedef() => null;
   VariableDefinitions asVariableDefinitions() => null;
@@ -489,7 +506,7 @@ class ClassNode extends Node {
 }
 
 class MixinApplication extends Node {
-  final TypeAnnotation superclass;
+  final NominalTypeAnnotation superclass;
   final NodeList mixins;
 
   MixinApplication(this.superclass, this.mixins);
@@ -514,8 +531,6 @@ class MixinApplication extends Node {
   Token getEndToken() => mixins.getEndToken();
 }
 
-// TODO(kasperl): Let this share some structure with the typedef for function
-// type aliases?
 class NamedMixinApplication extends Node implements MixinApplication {
   final Identifier name;
   final NodeList typeParameters;
@@ -530,7 +545,7 @@ class NamedMixinApplication extends Node implements MixinApplication {
   NamedMixinApplication(this.name, this.typeParameters, this.modifiers,
       this.mixinApplication, this.interfaces, this.classKeyword, this.endToken);
 
-  TypeAnnotation get superclass => mixinApplication.superclass;
+  NominalTypeAnnotation get superclass => mixinApplication.superclass;
   NodeList get mixins => mixinApplication.mixins;
 
   MixinApplication asMixinApplication() => this;
@@ -1723,17 +1738,22 @@ class Rethrow extends Statement {
   Token getEndToken() => endToken;
 }
 
-class TypeAnnotation extends Node {
+abstract class TypeAnnotation extends Node {
+}
+
+class NominalTypeAnnotation extends TypeAnnotation {
   final Expression typeName;
   final NodeList typeArguments;
 
-  TypeAnnotation(Expression this.typeName, NodeList this.typeArguments);
+  NominalTypeAnnotation(this.typeName, this.typeArguments);
 
-  TypeAnnotation asTypeAnnotation() => this;
+  NominalTypeAnnotation asNominalTypeAnnotation() => this;
 
-  accept(Visitor visitor) => visitor.visitTypeAnnotation(this);
+  accept(Visitor visitor) => visitor.visitNominalTypeAnnotation(this);
 
-  accept1(Visitor1 visitor, arg) => visitor.visitTypeAnnotation(this, arg);
+  accept1(Visitor1 visitor, arg) {
+    return visitor.visitNominalTypeAnnotation(this, arg);
+  }
 
   visitChildren(Visitor visitor) {
     typeName.accept(visitor);
@@ -1829,7 +1849,13 @@ class VariableDefinitions extends Statement {
     return token;
   }
 
-  Token getEndToken() => definitions.getEndToken();
+  Token getEndToken() {
+    var result = definitions.getEndToken();
+    if (result != null) return result;
+    assert(definitions.nodes.length == 1);
+    assert(definitions.nodes.last == null);
+    return type.getEndToken();
+  }
 }
 
 abstract class Loop extends Statement {
@@ -2857,16 +2883,30 @@ class Combinator extends Node {
 }
 
 class Typedef extends Node {
+  final bool isGeneralizedTypeAlias;
+
+  /// Parameters to the template.
+  ///
+  /// For example, `T` and `S` are template parameters in the following
+  /// typedef: `typedef F<S, T> = Function(S, T)`, or, in the inlined syntax,
+  /// `typedef F<S, T>(S x, T y)`.
+  final NodeList templateParameters;
+
   final TypeAnnotation returnType;
   final Identifier name;
+  /// The generic type parameters to the function type.
+  ///
+  /// For example `A` and `B` (but not `T`) are type parameters in
+  /// `typedef F<T> = Function<A, B>(A, B, T)`;
   final NodeList typeParameters;
   final NodeList formals;
 
   final Token typedefKeyword;
   final Token endToken;
 
-  Typedef(this.returnType, this.name, this.typeParameters, this.formals,
-      this.typedefKeyword, this.endToken);
+  Typedef(this.isGeneralizedTypeAlias, this.templateParameters, this.returnType,
+      this.name, this.typeParameters, this.formals, this.typedefKeyword,
+      this.endToken);
 
   Typedef asTypedef() => this;
 
@@ -2875,6 +2915,7 @@ class Typedef extends Node {
   accept1(Visitor1 visitor, arg) => visitor.visitTypedef(this, arg);
 
   visitChildren(Visitor visitor) {
+    if (templateParameters != null) templateParameters.accept(visitor);
     if (returnType != null) returnType.accept(visitor);
     name.accept(visitor);
     if (typeParameters != null) typeParameters.accept(visitor);
@@ -2882,6 +2923,7 @@ class Typedef extends Node {
   }
 
   visitChildren1(Visitor1 visitor, arg) {
+    if (templateParameters != null) templateParameters.accept1(visitor, arg);
     if (returnType != null) returnType.accept1(visitor, arg);
     name.accept1(visitor, arg);
     if (typeParameters != null) typeParameters.accept1(visitor, arg);
@@ -2891,6 +2933,43 @@ class Typedef extends Node {
   Token getBeginToken() => typedefKeyword;
 
   Token getEndToken() => endToken;
+}
+
+class FunctionTypeAnnotation extends TypeAnnotation {
+  final TypeAnnotation returnType;
+  final Token functionToken;
+  final NodeList typeParameters;
+  final NodeList formals;
+
+  FunctionTypeAnnotation(
+      this.returnType, this.functionToken, this.typeParameters, this.formals);
+
+  FunctionTypeAnnotation asFunctionTypeAnnotation() => this;
+
+  accept(Visitor visitor) => visitor.visitFunctionTypeAnnotation(this);
+
+  accept1(Visitor1 visitor, arg) {
+    return visitor.visitFunctionTypeAnnotation(this, arg);
+  }
+
+  visitChildren(Visitor visitor) {
+    if (returnType != null) returnType.accept(visitor);
+    if (typeParameters != null) typeParameters.accept(visitor);
+    formals.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (returnType != null) returnType.accept1(visitor, arg);
+    if (typeParameters != null) typeParameters.accept1(visitor, arg);
+    formals.accept1(visitor, arg);
+  }
+
+  Token getBeginToken() {
+    if (returnType != null) return returnType.getBeginToken();
+    return functionToken;
+  }
+
+  Token getEndToken() => formals.getEndToken();
 }
 
 class TryStatement extends Statement {
@@ -3139,6 +3218,8 @@ class ErrorNode extends Node
   get type => null;
 
   // Typedef.
+  get isGeneralizedTypeAlias => null;
+  get templateParameters => null;
   get typeParameters => null;
   get formals => null;
   get typedefKeyword => null;

@@ -126,13 +126,60 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
+  void endFunctionTypeAlias(
+      Token typedefKeyword, Token equals, Token endToken) {
+    bool isGeneralizedTypeAlias;
+    NodeList templateParameters;
+    TypeAnnotation returnType;
+    Identifier name;
+    NodeList typeParameters;
+    NodeList formals;
+    if (equals == null) {
+      isGeneralizedTypeAlias = false;
+      formals = popNode();
+      templateParameters = popNode();
+      name = popNode();
+      returnType = popNode();
+    } else {
+      // TODO(floitsch): keep using the `FunctionTypeAnnotation' node.
+      isGeneralizedTypeAlias = true;
+      Node type = popNode();
+      if (type.asFunctionTypeAnnotation() == null) {
+        // TODO(floitsch): The parser should diagnose this problem, not
+        // this listener.
+        // However, this problem goes away, when we allow aliases for
+        // non-function types too.
+        reportFatalError(type, 'Expected a function type.');
+      }
+      FunctionTypeAnnotation functionType = type;
+      templateParameters = popNode();
+      name = popNode();
+      returnType = functionType.returnType;
+      typeParameters = functionType.typeParameters;
+      formals = functionType.formals;
+    }
+    pushNode(new Typedef(
+        isGeneralizedTypeAlias,
+        templateParameters,
+        returnType,
+        name,
+        typeParameters,
+        formals,
+        typedefKeyword,
+        endToken));
+  }
+
+  void handleNoName(Token token) {
+    pushNode(null);
+  }
+
+  @override
+  void handleFunctionType(Token functionToken, Token endToken) {
     NodeList formals = popNode();
     NodeList typeParameters = popNode();
-    Identifier name = popNode();
     TypeAnnotation returnType = popNode();
-    pushNode(new Typedef(
-        returnType, name, typeParameters, formals, typedefKeyword, endToken));
+    pushNode(new FunctionTypeAnnotation(
+        returnType, functionToken, typeParameters, formals));
   }
 
   @override
@@ -229,7 +276,7 @@ class NodeListener extends ElementListener {
     NodeList typeArguments = popNode();
     Node classReference = popNode();
     if (typeArguments != null) {
-      classReference = new TypeAnnotation(classReference, typeArguments);
+      classReference = new NominalTypeAnnotation(classReference, typeArguments);
     } else {
       Identifier identifier = classReference.asIdentifier();
       Send send = classReference.asSend();
@@ -867,7 +914,7 @@ class NodeListener extends ElementListener {
       NodeList typeArguments = popNode();
       Node receiver = popNode();
       if (typeArguments != null) {
-        receiver = new TypeAnnotation(receiver, typeArguments);
+        receiver = new NominalTypeAnnotation(receiver, typeArguments);
         recoverableError(typeArguments, 'Type arguments are not allowed here.');
       } else {
         Identifier identifier = receiver.asIdentifier();

@@ -618,7 +618,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     return result;
   }
 
-  ConstructorResult visitTypeAnnotation(TypeAnnotation node) {
+  ConstructorResult visitNominalTypeAnnotation(NominalTypeAnnotation node) {
     // This is not really resolving a type-annotation, but the name of the
     // constructor. Therefore we allow deferred types.
     ResolutionDartType type = resolver.resolveTypeAnnotation(node,

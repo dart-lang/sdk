@@ -45,6 +45,9 @@ vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 vm/regress_27201_test: CompileTimeError
 vm/regress_28325_test: RuntimeError  # Issue 28055.
+generic_function_typedef2_test: DartkCrash # Issue 27969
+generic_function_typedef_test: DartkCrash # Issue 27969
+function_type/function_type*: DartkCrash # Issue 27969
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
