@@ -11,7 +11,7 @@ import 'strong_test_helper.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CheckerTest);
-//    defineReflectiveTests(CheckerTest_Driver);
+    defineReflectiveTests(CheckerTest_Driver);
   });
 }
 
@@ -4139,8 +4139,14 @@ const Object virtual = const _Virtual();
   }
 }
 
-//@reflectiveTest
-//class CheckerTest_Driver extends CheckerTest {
-//  @override
-//  bool get enableNewAnalysisDriver => true;
-//}
+@reflectiveTest
+class CheckerTest_Driver extends CheckerTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_covariantOverride_fields() async {
+    await super.test_covariantOverride_fields();
+  }
+}

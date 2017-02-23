@@ -17,7 +17,9 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -226,6 +228,9 @@ class AbstractStrongTest {
   MemoryResourceProvider _resourceProvider = new MemoryResourceProvider();
   bool _checkCalled = false;
 
+  AnalysisContext _context = null;
+  AnalysisDriver _driver = null;
+
   bool get enableNewAnalysisDriver => false;
 
   /// Adds a file to check. The file should contain:
@@ -287,18 +292,31 @@ class AbstractStrongTest {
     }
 
     CompilationUnit mainUnit;
-    AnalysisContext context = null;
-    AnalysisDriver driver = null;
     if (enableNewAnalysisDriver) {
-      // TODO(scheglov)
+      StringBuffer logBuffer = new StringBuffer();
+      FileContentOverlay fileContentOverlay = new FileContentOverlay();
+      PerformanceLog log = new PerformanceLog(logBuffer);
+      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+      _driver = new AnalysisDriver(
+          scheduler,
+          log,
+          _resourceProvider,
+          new MemoryByteStore(),
+          fileContentOverlay,
+          'test',
+          sourceFactory,
+          analysisOptions);
+      scheduler.start();
+
+      mainUnit = (await _driver.getResult(mainFile.path)).unit;
     } else {
-      context = AnalysisEngine.instance.createAnalysisContext();
-      context.analysisOptions = analysisOptions;
-      context.sourceFactory = sourceFactory;
+      _context = AnalysisEngine.instance.createAnalysisContext();
+      _context.analysisOptions = analysisOptions;
+      _context.sourceFactory = sourceFactory;
 
       // Run the checker on /main.dart.
       Source mainSource = sourceFactory.forUri2(mainFile.toUri());
-      mainUnit = context.resolveCompilationUnit2(mainSource, mainSource);
+      mainUnit = _context.resolveCompilationUnit2(mainSource, mainSource);
     }
 
     var collector = new _ErrorCollector(analysisOptions);
@@ -318,7 +336,7 @@ class AbstractStrongTest {
           continue;
         }
 
-        var analysisResult = await _resolve(context, driver, source);
+        var analysisResult = await _resolve(source);
 
         errors.addAll(analysisResult.errors.where((e) =>
             // TODO(jmesserly): these are usually intentional dynamic calls.
@@ -351,18 +369,19 @@ class AbstractStrongTest {
   void tearDown() {
     // This is a sanity check, in case only addFile is called.
     expect(_checkCalled, true, reason: 'must call check() method in test case');
+    _context?.dispose();
+    _driver?.dispose();
     AnalysisEngine.instance.clearCaches();
   }
 
-  Future<_TestAnalysisResult> _resolve(
-      AnalysisContext context, AnalysisDriver driver, Source source) async {
+  Future<_TestAnalysisResult> _resolve(Source source) async {
     if (enableNewAnalysisDriver) {
-      // TODO(scheglov) implement
-      throw new UnimplementedError();
+      var result = await _driver.getResult(source.fullName);
+      return new _TestAnalysisResult(source, result.unit, result.errors);
     } else {
-      List<Source> libraries = context.getLibrariesContaining(source);
-      var unit = context.resolveCompilationUnit2(source, libraries.single);
-      var errors = context.computeErrors(source);
+      List<Source> libraries = _context.getLibrariesContaining(source);
+      var unit = _context.resolveCompilationUnit2(source, libraries.single);
+      var errors = _context.computeErrors(source);
       return new _TestAnalysisResult(source, unit, errors);
     }
   }

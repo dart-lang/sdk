@@ -16,6 +16,7 @@ import '../strong/strong_test_helper.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonNullCheckerTest);
+    defineReflectiveTests(NonNullCheckerTest_Driver);
   });
 }
 
@@ -313,4 +314,10 @@ class A {
     addFile('int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x;');
     await check(nonnullableTypes: <String>['dart:core,int']);
   }
+}
+
+@reflectiveTest
+class NonNullCheckerTest_Driver extends NonNullCheckerTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

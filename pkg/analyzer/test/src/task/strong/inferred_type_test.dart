@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(jmesserly): this file needs to be refactored, it's a port from
-// package:dev_compiler's tests
-/// Tests for type inference.
 library analyzer.test.src.task.strong.inferred_type_test;
 
 import 'dart:async';
@@ -19,6 +16,7 @@ import 'strong_test_helper.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InferredTypeTest);
+    defineReflectiveTests(InferredTypeTest_Driver);
   });
 }
 
@@ -5474,5 +5472,137 @@ class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
   Future<CompilationUnitElement> checkFileElement(String content) async {
     CompilationUnit unit = await checkFile(content);
     return (unit).element;
+  }
+}
+
+@reflectiveTest
+class InferredTypeTest_Driver extends InferredTypeTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @failingTest
+  @override
+  test_blockBodiedLambdas_basic_topLevel() async {
+    await super.test_blockBodiedLambdas_basic_topLevel();
+  }
+
+  @failingTest
+  @override
+  test_blockBodiedLambdas_LUB_topLevel() async {
+    await super.test_blockBodiedLambdas_LUB_topLevel();
+  }
+
+  @failingTest
+  @override
+  test_inferCorrectlyOnMultipleVariablesDeclaredTogether() async {
+    await super.test_inferCorrectlyOnMultipleVariablesDeclaredTogether();
+  }
+
+  @failingTest
+  @override
+  test_inferredType_opAssignToProperty_prefixedIdentifier() async {
+    await super.test_inferredType_opAssignToProperty_prefixedIdentifier();
+  }
+
+  @failingTest
+  @override
+  test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface() async {
+    await super
+        .test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface();
+  }
+
+  @failingTest
+  @override
+  test_nullCoalescingOperator() async {
+    await super.test_nullCoalescingOperator();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_closureCall() async {
+    await super.test_unsafeBlockClosureInference_closureCall();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_constructorCall_implicitTypeParam() async {
+    await super
+        .test_unsafeBlockClosureInference_constructorCall_implicitTypeParam();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() async {
+    await super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment() async {
+    await super
+        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
+    await super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment() async {
+    await super
+        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_implicitTypeParam() async {
+    await super
+        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment() async {
+    await super
+        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() async {
+    await super
+        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment() async {
+    await super
+        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() async {
+    await super
+        .test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_methodCall_implicitTypeParam() async {
+    await super.test_unsafeBlockClosureInference_methodCall_implicitTypeParam();
+  }
+
+  @failingTest
+  @override
+  test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment() async {
+    await super
+        .test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment();
   }
 }
