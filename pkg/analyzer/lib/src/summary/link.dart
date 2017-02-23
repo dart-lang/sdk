@@ -416,6 +416,16 @@ abstract class ClassElementForLink extends Object
         name, () => UndefinedElementForLink.instance);
   }
 
+  @override
+  FieldElement getField(String name) {
+    for (FieldElement fieldElement in fields) {
+      if (name == fieldElement.name) {
+        return fieldElement;
+      }
+    }
+    return null;
+  }
+
   /**
    * Perform type inference and cycle detection on this class and
    * store the resulting information in [compilationUnit].
@@ -2803,6 +2813,46 @@ class FieldElementForLink_EnumField extends FieldElementForLink
   String toString() => '$enclosingElement.$name';
 }
 
+class FieldFormalParameterElementForLink extends ParameterElementForLink
+    implements FieldFormalParameterElement {
+  FieldElement _field;
+  DartType _type;
+
+  FieldFormalParameterElementForLink(
+      ParameterParentElementForLink enclosingElement,
+      UnlinkedParam unlinkedParam,
+      TypeParameterizedElementMixin typeParameterContext,
+      CompilationUnitElementForLink compilationUnit,
+      int parameterIndex)
+      : super(enclosingElement, unlinkedParam, typeParameterContext,
+            compilationUnit, parameterIndex);
+
+  @override
+  FieldElement get field {
+    if (_field == null) {
+      Element enclosingConstructor = enclosingElement;
+      if (enclosingConstructor is ConstructorElement) {
+        Element enclosingClass = enclosingConstructor.enclosingElement;
+        if (enclosingClass is ClassElement) {
+          FieldElement field = enclosingClass.getField(_unlinkedParam.name);
+          if (field != null && !field.isSynthetic) {
+            _field = field;
+          }
+        }
+      }
+    }
+    return _field;
+  }
+
+  @override
+  bool get isInitializingFormal => true;
+
+  @override
+  DartType get type {
+    return _type ??= field?.type ?? DynamicTypeImpl.instance;
+  }
+}
+
 /**
  * Element representing a function-typed parameter resynthesied from a summary
  * during linking.
@@ -3922,6 +3972,31 @@ class ParameterElementForLink implements ParameterElementImpl {
     }
   }
 
+  factory ParameterElementForLink.forFactory(
+      ParameterParentElementForLink enclosingElement,
+      UnlinkedParam unlinkedParameter,
+      TypeParameterizedElementMixin typeParameterContext,
+      CompilationUnitElementForLink compilationUnit,
+      int parameterIndex) {
+    if (unlinkedParameter.isInitializingFormal) {
+      return new FieldFormalParameterElementForLink(
+          enclosingElement,
+          unlinkedParameter,
+          typeParameterContext,
+          typeParameterContext.enclosingUnit.resynthesizerContext
+              as CompilationUnitElementForLink,
+          parameterIndex);
+    } else {
+      return new ParameterElementForLink(
+          enclosingElement,
+          unlinkedParameter,
+          typeParameterContext,
+          typeParameterContext.enclosingUnit.resynthesizerContext
+              as CompilationUnitElementForLink,
+          parameterIndex);
+    }
+  }
+
   @override
   String get displayName => _unlinkedParam.name;
 
@@ -4084,7 +4159,7 @@ abstract class ParameterParentElementForLink implements Element {
       _parameters = new List<ParameterElement>(numParameters);
       for (int i = 0; i < numParameters; i++) {
         UnlinkedParam unlinkedParam = unlinkedParameters[i];
-        _parameters[i] = new ParameterElementForLink(
+        _parameters[i] = new ParameterElementForLink.forFactory(
             this,
             unlinkedParam,
             typeParameterContext,

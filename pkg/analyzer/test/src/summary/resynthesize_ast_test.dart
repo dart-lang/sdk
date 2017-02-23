@@ -159,21 +159,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
     super.test_circularReference_viaClosures_initializerTypes();
   }
 
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments() {
-    // TODO(jmesserly): does this need to be implemented in AST summaries?
-    // The test might need a change as well to not be based on local variable
-    // types, which don't seem to be available.
-    super.test_constructors_inferFromArguments();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_const() {
-    super.test_constructors_inferFromArguments_const();
-  }
-
   void test_infer_extractIndex_custom() {
     var unit = checkFile('''
 class A {
