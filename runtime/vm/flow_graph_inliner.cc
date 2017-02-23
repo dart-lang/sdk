@@ -780,7 +780,14 @@ class CallSiteInliner : public ValueObject {
         {
           CSTAT_TIMER_SCOPE(thread(), graphinliner_parse_timer);
           parsed_function = GetParsedFunction(function, &in_cache);
+          if (!function.CanBeInlined()) {
+            // As a side effect of parsing the function, it may be marked
+            // as not inlinable. This happens for async and async* functions
+            // when causal stack traces are being tracked.
+            return false;
+          }
         }
+
 
         // Build the callee graph.
         InlineExitCollector* exit_collector =
