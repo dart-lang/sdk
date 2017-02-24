@@ -29,14 +29,14 @@ main() {
   });
 
   test('pair constructor', () {
-    var m = const LookupMap.pair(A, "the-text-for-A");
+    var m = const LookupMap<dynamic, String>.pair(A, "the-text-for-A");
     expect(m[A], 'the-text-for-A');
     expect(m[B], null);
   });
 
   test('nested lookup', () {
     var m = const LookupMap(const [],
-        const [const LookupMap.pair(A, "the-text-for-A")]);
+        const [const LookupMap<dynamic, String>.pair(A, "the-text-for-A")]);
     expect(m[A], 'the-text-for-A');
     expect(m[B], null);
   });
