@@ -317,6 +317,38 @@ defineTests() {
             ]));
       });
 
+      test('sort_directive_sections_alphabetically', () {
+        var packagesFilePath = new File('.packages').absolute.path;
+        dartlint.main([
+          '--packages',
+          packagesFilePath,
+          'test/_data/directives_ordering/sort_directive_sections_alphabetically',
+          '--rules=directives_ordering'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              "Sort directive sections alphabetically.",
+              "import 'dart:convert'; // LINT",
+              "Sort directive sections alphabetically.",
+              "import 'package:charcode/ascii.dart'; // LINT",
+              "Sort directive sections alphabetically.",
+              "import 'package:ansicolor/ansicolor.dart'; // LINT",
+              "Sort directive sections alphabetically.",
+              "import 'package:linter/src/formatter.dart'; // LINT",
+              "Sort directive sections alphabetically.",
+              "import 'dummy3.dart'; // LINT",
+              "Sort directive sections alphabetically.",
+              "import 'dummy2.dart'; // LINT",
+              "Sort directive sections alphabetically.",
+              "import 'dummy1.dart'; // LINT",
+              "Sort directive sections alphabetically.",
+              "export 'dummy1.dart'; // LINT",
+              '5 files analyzed, 8 issues found, in'
+            ]));
+      });
+
       test('lint_one_node_no_more_than_once', () {
         var packagesFilePath = new File('.packages').absolute.path;
         dartlint.main([
