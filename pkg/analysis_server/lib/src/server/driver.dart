@@ -277,11 +277,6 @@ class Driver implements ServerStarter {
   static const String NEW_ANALYSIS_DRIVER_LOG = 'new-analysis-driver-log';
 
   /**
-   * The name of the flag used to disable error notifications.
-   */
-  static const String NO_ERROR_NOTIFICATION = "no-error-notification";
-
-  /**
    * The name of the flag used to disable the index.
    */
   static const String NO_INDEX = "no-index";
@@ -393,7 +388,6 @@ class Driver implements ServerStarter {
         !results[DISABLE_NEW_ANALYSIS_DRIVER];
     analysisServerOptions.finerGrainedInvalidation =
         results[FINER_GRAINED_INVALIDATION];
-    analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
         results[USE_ANALISYS_HIGHLIGHT2];
@@ -569,10 +563,6 @@ class Driver implements ServerStarter {
             " status and performance information");
     parser.addOption(INTERNAL_DELAY_FREQUENCY);
     parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
-    parser.addFlag(NO_ERROR_NOTIFICATION,
-        help: "disable sending all analysis error notifications to the server",
-        defaultsTo: false,
-        negatable: false);
     parser.addFlag(NO_INDEX,
         help: "disable indexing sources", defaultsTo: false, negatable: false);
     parser.addFlag(USE_ANALISYS_HIGHLIGHT2,

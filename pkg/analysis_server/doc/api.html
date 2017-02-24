@@ -281,9 +281,10 @@ a:focus, a:hover {
     <dl>
       <dt>--no-error-notification</dt>
       <dd>
-      Disable notifications about errors (see analysis.error). If this
-      flag is not specified then notifications will be sent for all
-      errors produced for all files in the actual analysis roots.
+        <p><b>Deprecated</b></p>
+        Disable notifications about errors (see analysis.error). If this
+        flag is not specified then notifications will be sent for all
+        errors produced for all files in the actual analysis roots.
       </dd>
     </dl>
     <dl>
@@ -1069,10 +1070,6 @@ a:focus, a:hover {
           Reports the errors associated with a given file. The set of
           errors included in the notification is always a complete
           list that supersedes any previously reported errors.
-        </p>
-        <p>
-          It is only possible to unsubscribe from this notification by
-          using the command-line flag --no-error-notification.
         </p>
         
       <h4>parameters:</h4><dl><dt class="field"><b>file (<a href="#type_FilePath">FilePath</a>)</b></dt><dd>

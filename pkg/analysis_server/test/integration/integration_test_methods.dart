@@ -608,9 +608,6 @@ abstract class IntegrationTestMixin {
    * included in the notification is always a complete list that supersedes any
    * previously reported errors.
    *
-   * It is only possible to unsubscribe from this notification by using the
-   * command-line flag --no-error-notification.
-   *
    * Parameters
    *
    * file (FilePath)

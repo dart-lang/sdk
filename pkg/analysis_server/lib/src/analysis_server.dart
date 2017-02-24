@@ -244,11 +244,6 @@ class AnalysisServer {
   ServerPerformance _performance;
 
   /**
-   * The option possibly set from the server initialization which disables error notifications.
-   */
-  bool _noErrorNotification;
-
-  /**
    * The [Completer] that completes when analysis is complete.
    */
   Completer _onAnalysisCompleteCompleter;
@@ -427,7 +422,6 @@ class AnalysisServer {
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
-    _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
     _onFileAnalyzedController = new StreamController.broadcast();
@@ -1450,7 +1444,7 @@ class AnalysisServer {
    * absolute path.
    */
   bool shouldSendErrorsNotificationFor(String file) {
-    return !_noErrorNotification && contextManager.isInAnalysisRoot(file);
+    return contextManager.isInAnalysisRoot(file);
   }
 
   void shutdown() {
@@ -1820,7 +1814,6 @@ class AnalysisServerOptions {
   bool enableIncrementalResolutionValidation = false;
   bool enableNewAnalysisDriver = false;
   bool finerGrainedInvalidation = false;
-  bool noErrorNotification = false;
   bool noIndex = false;
   bool useAnalysisHighlight2 = false;
   String fileReadMode = 'as-is';
