@@ -560,7 +560,7 @@ class DietListener extends StackListener {
 
   bool get isTargetingDartVm {
     // TODO(ahe): Find a more reliable way to check if this is the Dart VM.
-    return coreTypes.getCoreLibrary("dart:_js_helper") == null;
+    return !coreTypes.containsLibrary("dart:_js_helper");
   }
 
   @override

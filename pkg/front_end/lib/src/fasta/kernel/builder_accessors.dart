@@ -719,7 +719,7 @@ Expression throwNoSuchMethodError(String name, Arguments arguments, Uri uri,
     int charOffset, CoreTypes coreTypes,
     {bool isSuper: false, isGetter: false, isSetter: false}) {
   print(new InputError(uri, charOffset, "Method not found: '$name'.").format());
-  Constructor constructor = coreTypes.getCoreClass(
+  Constructor constructor = coreTypes.getClass(
       "dart:core", "NoSuchMethodError").constructors.first;
   return new Throw(new ConstructorInvocation(
       constructor,

@@ -888,7 +888,7 @@ class MethodCallTransformer extends Transformer {
   ConstructorInvocation _createInvocation(
       String methodName, Arguments callArguments) {
     if (_invocationMirrorConstructor == null) {
-      Class clazz = coreTypes.getCoreClass('dart:core', '_InvocationMirror');
+      Class clazz = coreTypes.getClass('dart:core', '_InvocationMirror');
       _invocationMirrorConstructor = clazz.constructors[0];
     }
 
@@ -932,10 +932,7 @@ class MethodCallTransformer extends Transformer {
 
   /// Create a fixed length list containing given expressions.
   Expression _fixedLengthList(List<Expression> list) {
-    if (_listFrom == null) {
-      Class clazz = coreTypes.getCoreClass('dart:core', 'List');
-      _listFrom = clazz.procedures.firstWhere((c) => c.name.name == "from");
-    }
+    _listFrom ??= coreTypes.getMember('dart:core', 'List', 'from');
     return new StaticInvocation(
         _listFrom,
         new Arguments([new ListLiteral(list)],

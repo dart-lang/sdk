@@ -236,7 +236,7 @@ class Builder {
     latticePointForAllFunctions =
         getLatticePointForSubtypesOfClass(coreTypes.functionClass);
 
-    identicalFunction = coreTypes.getCoreProcedure('dart:core', 'identical');
+    identicalFunction = coreTypes.getTopLevelMember('dart:core', 'identical');
 
     // Seed bitmasks for built-in values.
     constraints.addBitmaskInput(ValueBit.null_, nullNode);

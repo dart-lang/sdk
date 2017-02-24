@@ -893,85 +893,22 @@ class HelperNodes {
       this.coreTypes);
 
   factory HelperNodes.fromProgram(Program program) {
-    Library findLibrary(String name) {
-      Uri uri = Uri.parse(name);
-      for (var library in program.libraries) {
-        if (library.importUri == uri) return library;
-      }
-      throw 'Library "$name" not found';
-    }
-
-    Class findClass(Library library, String name) {
-      for (var klass in library.classes) {
-        if (klass.name == name) return klass;
-      }
-      throw 'Class "$name" not found';
-    }
-
-    Procedure findFactoryConstructor(Class klass, String name) {
-      for (var procedure in klass.procedures) {
-        if (procedure.isStatic && procedure.name.name == name) return procedure;
-      }
-      throw 'Factory constructor "$klass.$name" not found';
-    }
-
-    Constructor findConstructor(Class klass, String name) {
-      for (var constructor in klass.constructors) {
-        if (constructor.name.name == name) return constructor;
-      }
-      throw 'Constructor "$klass.$name" not found';
-    }
-
-    Procedure findProcedure(Library library, String name) {
-      for (var procedure in library.procedures) {
-        if (procedure.name.name == name ||
-            procedure.name.name == '${library.name}::${name}') {
-          return procedure;
-        }
-      }
-      throw 'Procedure "$name" not found';
-    }
-
-    var asyncLibrary = findLibrary('dart:async');
-    var coreLibrary = findLibrary('dart:core');
-
-    var completerClass = findClass(asyncLibrary, 'Completer');
-    var futureClass = findClass(asyncLibrary, 'Future');
-    var iteratorClass = findClass(coreLibrary, 'Iterator');
-
-    // The VM's dart:async implementation has renamed _StreamIteratorImpl to
-    // _StreamIterator.  To support both old and new library implementations we
-    // look for the old name first and then the new name.
-    var streamIteratorClass;
-    try {
-      streamIteratorClass = findClass(asyncLibrary, '_StreamIteratorImpl');
-    } catch (e) {
-      if (e == 'Class "_StreamIteratorImpl" not found') {
-        streamIteratorClass = findClass(asyncLibrary, '_StreamIterator');
-      } else {
-        rethrow;
-      }
-    }
-
-    var syncIterableClass = findClass(coreLibrary, '_SyncIterable');
-    var streamControllerClass =
-        findClass(asyncLibrary, '_AsyncStarStreamController');
-
+    var coreTypes = new CoreTypes(program);
     return new HelperNodes(
-        asyncLibrary,
-        coreLibrary,
-        iteratorClass,
-        futureClass,
-        completerClass,
-        findProcedure(coreLibrary, 'print'),
-        findFactoryConstructor(completerClass, 'sync'),
-        findConstructor(syncIterableClass, ''),
-        findConstructor(streamIteratorClass, ''),
-        findFactoryConstructor(futureClass, 'microtask'),
-        findConstructor(streamControllerClass, ''),
-        findProcedure(asyncLibrary, '_asyncThenWrapperHelper'),
-        findProcedure(asyncLibrary, '_asyncErrorWrapperHelper'),
-        findProcedure(asyncLibrary, '_awaitHelper'),
-        new CoreTypes(program));
+        coreTypes.getLibrary('dart:async'),
+        coreTypes.getLibrary('dart:core'),
+        coreTypes.getClass('dart:core', 'Iterator'),
+        coreTypes.getClass('dart:async', 'Future'),
+        coreTypes.getClass('dart:async', 'Completer'),
+        coreTypes.getTopLevelMember('dart:core', 'print'),
+        coreTypes.getMember('dart:async', 'Completer', 'sync'),
+        coreTypes.getMember('dart:core', '_SyncIterable', ''),
+        coreTypes.getMember('dart:async', '_StreamIterator', ''),
+        coreTypes.getMember('dart:async', 'Future', 'microtask'),
+        coreTypes.getMember('dart:async', '_AsyncStarStreamController', ''),
+        coreTypes.getTopLevelMember('dart:async', '_asyncThenWrapperHelper'),
+        coreTypes.getTopLevelMember('dart:async', '_asyncErrorWrapperHelper'),
+        coreTypes.getTopLevelMember('dart:async', '_awaitHelper'),
+        coreTypes);
   }
 }
