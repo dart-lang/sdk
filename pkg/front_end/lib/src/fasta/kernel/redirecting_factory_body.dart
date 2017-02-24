@@ -5,14 +5,25 @@
 library fasta.redirecting_factory_body;
 
 import 'package:kernel/ast.dart' show
-    InvalidStatement,
+    ExpressionStatement,
+    InvalidExpression,
+    Let,
     Member,
-    Procedure;
+    Procedure,
+    StaticGet,
+    VariableDeclaration;
 
-class RedirectingFactoryBody extends InvalidStatement {
-  final Member target;
+class RedirectingFactoryBody extends ExpressionStatement {
+  RedirectingFactoryBody(Member target)
+      : super(new Let(
+              new VariableDeclaration.forValue(new StaticGet(target)),
+              new InvalidExpression()));
 
-  RedirectingFactoryBody(this.target);
+  Member get target {
+    Let let = expression;
+    StaticGet staticGet = let.variable.initializer;
+    return staticGet.target;
+  }
 }
 
 bool isRedirectingFactory(Member member) {

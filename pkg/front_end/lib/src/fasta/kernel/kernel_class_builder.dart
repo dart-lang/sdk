@@ -7,9 +7,14 @@ library fasta.kernel_class_builder;
 import 'package:kernel/ast.dart' show
     Class,
     DartType,
+    Expression,
     ExpressionStatement,
+    Field,
     InterfaceType,
+    ListLiteral,
     Member,
+    Name,
+    StaticGet,
     StringLiteral,
     Supertype,
     Throw;
@@ -24,6 +29,7 @@ import 'kernel_builder.dart' show
     Builder,
     ClassBuilder,
     ConstructorReferenceBuilder,
+    KernelLibraryBuilder,
     KernelProcedureBuilder,
     KernelTypeBuilder,
     LibraryBuilder,
@@ -94,10 +100,13 @@ abstract class KernelClassBuilder
     }
   }
 
-  int resolveConstructors(LibraryBuilder library) {
+  int resolveConstructors(KernelLibraryBuilder library) {
     int count = super.resolveConstructors(library);
     if (count != 0) {
-      members.forEach((String name, Builder builder) {
+      // Copy keys to avoid concurrent modification error.
+      List<String> names = members.keys.toList();
+      for (String name in names) {
+        Builder builder = members[name];
         if (builder is KernelProcedureBuilder && builder.isFactory) {
           // Compute the immediate redirection target, not the effective.
           ConstructorReferenceBuilder redirectionTarget =
@@ -105,6 +114,7 @@ abstract class KernelClassBuilder
           if (redirectionTarget != null) {
             assert(builder.actualBody == null);
             Builder targetBuilder = redirectionTarget.target;
+            addRedirectingConstructor(builder, library);
             if (targetBuilder is ProcedureBuilder) {
               Member target = targetBuilder.target;
               builder.body = new RedirectingFactoryBody(target);
@@ -121,8 +131,38 @@ abstract class KernelClassBuilder
             }
           }
         }
-      });
+      }
     }
     return count;
+  }
+
+  void addRedirectingConstructor(KernelProcedureBuilder constructor,
+      KernelLibraryBuilder library) {
+    // Add a new synthetic field to this class for representing factory
+    // constructors. This is used to support resolving such constructors in
+    // source code.
+    //
+    // The synthetic field looks like this:
+    //
+    //     final _redirecting# = [c1, ..., cn];
+    //
+    // Where each c1 ... cn are an instance of [StaticGet] whose target is
+    // [constructor.target].
+    //
+    // TODO(ahe): Generate the correct factory body instead.
+    DillMemberBuilder constructorsField =
+        members.putIfAbsent("_redirecting#", () {
+      ListLiteral literal = new ListLiteral(<Expression>[]);
+      Name name = new Name("_redirecting#", library.library);
+      Field field = new Field(name, isStatic: true,
+          initializer: literal, fileUri: cls.fileUri)
+          ..fileOffset = cls.fileOffset;
+      cls.addMember(field);
+      return new DillMemberBuilder(field, this);
+    });
+    Field field = constructorsField.target;
+    ListLiteral literal = field.initializer;
+    literal.expressions.add(
+        new StaticGet(constructor.target)..parent = literal);
   }
 }

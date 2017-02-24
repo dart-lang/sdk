@@ -53,6 +53,7 @@ class DillLoader extends Loader<Library> {
   void setProgram(Program program) {
     assert(input != null);
     this.program = program;
+    program.unbindCanonicalNames();
     for (Library library in program.libraries) {
       read(library.importUri).library = library;
     }

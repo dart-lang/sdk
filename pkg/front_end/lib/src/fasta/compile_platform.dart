@@ -7,7 +7,7 @@ library fasta.compile_platform;
 import 'dart:async' show
     Future;
 
-import 'package:kernel/verifier.dart' show
+import 'kernel/verifier.dart' show
     verifyProgram;
 
 import 'ticker.dart' show

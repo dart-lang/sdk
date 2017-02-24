@@ -34,8 +34,8 @@ import 'package:kernel/ast.dart' show
     Library,
     Program;
 
-import 'package:kernel/verifier.dart' show
-    VerifyingVisitor;
+import '../kernel/verifier.dart' show
+    verifyProgram;
 
 import 'package:kernel/binary/ast_to_binary.dart' show
     BinaryPrinter;
@@ -209,7 +209,7 @@ class Verify extends Step<Program, Program, TestContext> {
 
   Future<Result<Program>> run(Program program, TestContext testContext) async {
     try {
-      program.accept(new VerifyingVisitor()..isOutline = !fullCompile);
+      verifyProgram(program, isOutline: !fullCompile);
       return pass(program);
     } catch (e, s) {
       return new Result<Program>(

@@ -10,7 +10,7 @@ import 'dart:async' show
 import 'dart:io' show
     exitCode;
 
-import 'package:kernel/verifier.dart' show
+import 'kernel/verifier.dart' show
     verifyProgram;
 
 import 'compiler_command_line.dart' show
