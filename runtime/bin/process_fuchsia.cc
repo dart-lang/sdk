@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <launchpad/launchpad.h>
 #include <launchpad/vmo.h>
+#include <magenta/process.h>
 #include <magenta/status.h>
 #include <magenta/syscalls.h>
 #include <magenta/syscalls/object.h>

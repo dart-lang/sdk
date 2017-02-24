@@ -7,6 +7,7 @@
 
 #include "vm/virtual_memory.h"
 
+#include <magenta/process.h>
 #include <magenta/status.h>
 #include <magenta/syscalls.h>
 #include <sys/mman.h>
