@@ -206,7 +206,7 @@ Future main(List<String> argv) async {
       await compile_platform.main(<String>[
         '--packages',
         new Uri.file(packagesFile).toString(),
-        outDir,
+        new Uri.directory(outDir).toString(),
         path.join(outDir, 'platform.dill')
       ]);
     }, zoneSpecification: new ZoneSpecification(print: (_, _2, _3, line) {
