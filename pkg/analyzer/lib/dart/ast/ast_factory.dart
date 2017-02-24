@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/scanner/token.dart';
+import 'package:meta/meta.dart';
 
 /**
  * A collection of factory methods which may be used to create concrete
@@ -304,8 +305,8 @@ abstract class AstFactory {
    * Returns a documentation comment consisting of the given [tokens] and having
    * the given [references] (if supplied) embedded within it.
    */
-  Comment documentationComment(
-      List<Token> tokens, [List<CommentReference> references]);
+  Comment documentationComment(List<Token> tokens,
+      [List<CommentReference> references]);
 
   /**
    * Returns a newly created do loop.
@@ -429,6 +430,27 @@ abstract class AstFactory {
       SimpleIdentifier identifier,
       TypeParameterList typeParameters,
       FormalParameterList parameters);
+
+  /**
+   * Returns a newly created formal parameter. Either or both of the
+   * [comment] and [metadata] can be `null` if the parameter does not have the
+   * corresponding attribute. The [keyword] can be `null` if there is a type.
+   * The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
+   * [period] can be `null` if the keyword 'this' was not provided.  The
+   * [parameters] can be `null` if this is not a function-typed field formal
+   * parameter.
+   */
+  FieldFormalParameter fieldFormalParameter2(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token covariantKeyword,
+      Token keyword,
+      TypeAnnotation type,
+      @required Token thisKeyword,
+      @required Token period,
+      @required SimpleIdentifier identifier,
+      TypeParameterList typeParameters,
+      FormalParameterList parameters});
 
   /**
    * Returns a newly created for-each statement whose loop control variable
@@ -556,6 +578,47 @@ abstract class AstFactory {
       TypeParameterList typeParameters,
       FormalParameterList parameters,
       {Token question: null});
+
+  /**
+   * Returns a newly created formal parameter. Either or both of the
+   * [comment] and [metadata] can be `null` if the parameter does not have the
+   * corresponding attribute. The [returnType] can be `null` if no return type
+   * was specified.
+   */
+  FunctionTypedFormalParameter functionTypedFormalParameter2(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token covariantKeyword,
+      TypeAnnotation returnType,
+      @required SimpleIdentifier identifier,
+      TypeParameterList typeParameters,
+      @required FormalParameterList parameters,
+      Token question});
+
+  /**
+   * Initialize a newly created generic function type.
+   */
+  GenericFunctionType genericFunctionType(
+      TypeAnnotation returnType,
+      Token functionKeyword,
+      TypeParameterList typeParameters,
+      FormalParameterList _parameters);
+
+  /**
+   * Returns a newly created generic type alias. Either or both of the
+   * [comment] and [metadata] can be `null` if the variable list does not have
+   * the corresponding attribute. The [typeParameters] can be `null` if there
+   * are no type parameters.
+   */
+  GenericTypeAlias genericTypeAlias(
+      Comment comment,
+      List<Annotation> metadata,
+      Token typedefKeyword,
+      SimpleIdentifier name,
+      TypeParameterList typeParameters,
+      Token equals,
+      GenericFunctionType functionType,
+      Token semicolon);
 
   /**
    * Returns a newly created import show combinator.
@@ -853,6 +916,20 @@ abstract class AstFactory {
       SimpleIdentifier identifier);
 
   /**
+   * Returns a newly created formal parameter. Either or both of the
+   * [comment] and [metadata] can be `null` if the parameter does not have the
+   * corresponding attribute. The [keyword] can be `null` if a type was
+   * specified. The [type] must be `null` if the keyword is 'var'.
+   */
+  SimpleFormalParameter simpleFormalParameter2(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token covariantKeyword,
+      Token keyword,
+      TypeAnnotation type,
+      @required SimpleIdentifier identifier});
+
+  /**
    * Returns a newly created identifier.
    */
   SimpleIdentifier simpleIdentifier(Token token, {bool isDeclaration: false});
@@ -897,6 +974,7 @@ abstract class AstFactory {
    */
   SwitchDefault switchDefault(List<Label> labels, Token keyword, Token colon,
       List<Statement> statements);
+
   /**
    * Returns a newly created switch statement. The list of [members] can be
    * `null` if there are no switch members.
@@ -991,19 +1069,6 @@ abstract class AstFactory {
       Token keyword,
       TypeAnnotation type,
       List<VariableDeclaration> variables);
-
-  /**
-   * Returns a newly created generic type alias. Either or both of the
-   * [comment] and [metadata] can be `null` if the variable list does not have
-   * the corresponding attribute. The [typeParameters] can be `null` if there
-   * are no type parameters.
-   */
-  GenericTypeAlias genericTypeAlias(Comment comment, List<Annotation> metadata, Token typedefKeyword, SimpleIdentifier name, TypeParameterList typeParameters, Token equals, GenericFunctionType functionType, Token semicolon);
-
-  /**
-   * Initialize a newly created generic function type.
-   */
-  GenericFunctionType genericFunctionType(TypeAnnotation returnType, Token functionKeyword, TypeParameterList typeParameters, FormalParameterList _parameters);
 
   /**
    * Returns a newly created variable declaration statement.

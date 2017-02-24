@@ -4163,14 +4163,13 @@ class Parser {
       period = _expect(TokenType.PERIOD);
     }
     if (!_matchesIdentifier() && inFunctionType) {
-      SimpleFormalParameterImpl parameter = astFactory.simpleFormalParameter(
-          commentAndMetadata.comment,
-          commentAndMetadata.metadata,
-          holder.keyword,
-          holder.type,
-          null);
-      parameter.covariantKeyword = covariantKeyword;
-      return parameter;
+      return astFactory.simpleFormalParameter2(
+          comment: commentAndMetadata.comment,
+          metadata: commentAndMetadata.metadata,
+          covariantKeyword: covariantKeyword,
+          keyword: holder.keyword,
+          type: holder.type,
+          identifier: null);
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
@@ -4185,31 +4184,28 @@ class Parser {
         if (enableNnbd && _matches(TokenType.QUESTION)) {
           question = getAndAdvance();
         }
-        FunctionTypedFormalParameterImpl parameter =
-            astFactory.functionTypedFormalParameter(
-                commentAndMetadata.comment,
-                commentAndMetadata.metadata,
-                holder.type,
-                astFactory.simpleIdentifier(identifier.token,
-                    isDeclaration: true),
-                typeParameters,
-                parameters,
-                question: question);
-        parameter.covariantKeyword = covariantKeyword;
-        return parameter;
+        return astFactory.functionTypedFormalParameter2(
+            comment: commentAndMetadata.comment,
+            metadata: commentAndMetadata.metadata,
+            covariantKeyword: covariantKeyword,
+            returnType: holder.type,
+            identifier: astFactory.simpleIdentifier(identifier.token,
+                isDeclaration: true),
+            typeParameters: typeParameters,
+            parameters: parameters,
+            question: question);
       } else {
-        FieldFormalParameterImpl parameter = astFactory.fieldFormalParameter(
-            commentAndMetadata.comment,
-            commentAndMetadata.metadata,
-            holder.keyword,
-            holder.type,
-            thisKeyword,
-            period,
-            identifier,
-            typeParameters,
-            parameters);
-        parameter.covariantKeyword = covariantKeyword;
-        return parameter;
+        return astFactory.fieldFormalParameter2(
+            comment: commentAndMetadata.comment,
+            metadata: commentAndMetadata.metadata,
+            covariantKeyword: covariantKeyword,
+            keyword: holder.keyword,
+            type: holder.type,
+            thisKeyword: thisKeyword,
+            period: period,
+            identifier: identifier,
+            typeParameters: typeParameters,
+            parameters: parameters);
       }
     } else if (typeParameters != null) {
       // TODO(brianwilkerson) Report an error. It looks like a function-typed
@@ -4231,27 +4227,24 @@ class Parser {
       // TODO(brianwilkerson) If there are type parameters but no parameters,
       // should we create a synthetic empty parameter list here so we can
       // capture the type parameters?
-      FieldFormalParameterImpl parameter = astFactory.fieldFormalParameter(
-          commentAndMetadata.comment,
-          commentAndMetadata.metadata,
-          holder.keyword,
-          type,
-          thisKeyword,
-          period,
-          identifier,
-          null,
-          null);
-      parameter.covariantKeyword = covariantKeyword;
-      return parameter;
+      return astFactory.fieldFormalParameter2(
+          comment: commentAndMetadata.comment,
+          metadata: commentAndMetadata.metadata,
+          covariantKeyword: covariantKeyword,
+          keyword: holder.keyword,
+          type: type,
+          thisKeyword: thisKeyword,
+          period: period,
+          identifier: identifier);
     }
-    SimpleFormalParameterImpl parameter = astFactory.simpleFormalParameter(
-        commentAndMetadata.comment,
-        commentAndMetadata.metadata,
-        holder.keyword,
-        type,
-        astFactory.simpleIdentifier(identifier.token, isDeclaration: true));
-    parameter.covariantKeyword = covariantKeyword;
-    return parameter;
+    return astFactory.simpleFormalParameter2(
+        comment: commentAndMetadata.comment,
+        metadata: commentAndMetadata.metadata,
+        covariantKeyword: covariantKeyword,
+        keyword: holder.keyword,
+        type: type,
+        identifier:
+            astFactory.simpleIdentifier(identifier.token, isDeclaration: true));
   }
 
   /**

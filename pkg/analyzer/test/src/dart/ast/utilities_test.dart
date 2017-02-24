@@ -1972,16 +1972,13 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitFieldFormalParameter_functionTyped_typeParameters() {
     _assertSource(
         "A this.a<E, F>(b)",
-        astFactory.fieldFormalParameter(
-            null,
-            null,
-            null,
-            AstTestFactory.typeName4('A'),
-            TokenFactory.tokenFromKeyword(Keyword.THIS),
-            TokenFactory.tokenFromType(TokenType.PERIOD),
-            AstTestFactory.identifier3('a'),
-            AstTestFactory.typeParameterList(['E', 'F']),
-            AstTestFactory.formalParameterList(
+        astFactory.fieldFormalParameter2(
+            type: AstTestFactory.typeName4('A'),
+            thisKeyword: TokenFactory.tokenFromKeyword(Keyword.THIS),
+            period: TokenFactory.tokenFromType(TokenType.PERIOD),
+            identifier: AstTestFactory.identifier3('a'),
+            typeParameters: AstTestFactory.typeParameterList(['E', 'F']),
+            parameters: AstTestFactory.formalParameterList(
                 [AstTestFactory.simpleFormalParameter3("b")])));
   }
 
@@ -2505,13 +2502,11 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitFunctionTypedFormalParameter_typeParameters() {
     _assertSource(
         "T f<E>()",
-        astFactory.functionTypedFormalParameter(
-            null,
-            null,
-            AstTestFactory.typeName4("T"),
-            AstTestFactory.identifier3('f'),
-            AstTestFactory.typeParameterList(['E']),
-            AstTestFactory.formalParameterList([])));
+        astFactory.functionTypedFormalParameter2(
+            returnType: AstTestFactory.typeName4("T"),
+            identifier: AstTestFactory.identifier3('f'),
+            typeParameters: AstTestFactory.typeParameterList(['E']),
+            parameters: AstTestFactory.formalParameterList([])));
   }
 
   void test_visitIfStatement_withElse() {
@@ -4326,16 +4321,13 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFieldFormalParameter_functionTyped_typeParameters() {
     _assertSource(
         "A this.a<E, F>(b)",
-        astFactory.fieldFormalParameter(
-            null,
-            null,
-            null,
-            AstTestFactory.typeName4('A'),
-            TokenFactory.tokenFromKeyword(Keyword.THIS),
-            TokenFactory.tokenFromType(TokenType.PERIOD),
-            AstTestFactory.identifier3('a'),
-            AstTestFactory.typeParameterList(['E', 'F']),
-            AstTestFactory.formalParameterList(
+        astFactory.fieldFormalParameter2(
+            type: AstTestFactory.typeName4('A'),
+            thisKeyword: TokenFactory.tokenFromKeyword(Keyword.THIS),
+            period: TokenFactory.tokenFromType(TokenType.PERIOD),
+            identifier: AstTestFactory.identifier3('a'),
+            typeParameters: AstTestFactory.typeParameterList(['E', 'F']),
+            parameters: AstTestFactory.formalParameterList(
                 [AstTestFactory.simpleFormalParameter3("b")])));
   }
 
@@ -4859,13 +4851,11 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFunctionTypedFormalParameter_typeParameters() {
     _assertSource(
         "T f<E>()",
-        astFactory.functionTypedFormalParameter(
-            null,
-            null,
-            AstTestFactory.typeName4("T"),
-            AstTestFactory.identifier3('f'),
-            AstTestFactory.typeParameterList(['E']),
-            AstTestFactory.formalParameterList([])));
+        astFactory.functionTypedFormalParameter2(
+            returnType: AstTestFactory.typeName4("T"),
+            identifier: AstTestFactory.identifier3('f'),
+            typeParameters: AstTestFactory.typeParameterList(['E']),
+            parameters: AstTestFactory.formalParameterList([])));
   }
 
   void test_visitIfStatement_withElse() {

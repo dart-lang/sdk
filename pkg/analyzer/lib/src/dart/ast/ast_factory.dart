@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/scanner/token.dart';
+import 'package:meta/meta.dart';
 
 /**
  * Concrete implementation of [AstFactory] based on the standard AST
@@ -373,8 +374,23 @@ class AstFactoryImpl extends AstFactory {
           SimpleIdentifier identifier,
           TypeParameterList typeParameters,
           FormalParameterList parameters) =>
-      new FieldFormalParameterImpl(comment, metadata, keyword, type,
+      new FieldFormalParameterImpl(comment, metadata, null, keyword, type,
           thisKeyword, period, identifier, typeParameters, parameters);
+
+  @override
+  FieldFormalParameter fieldFormalParameter2(
+          {Comment comment,
+          List<Annotation> metadata,
+          Token covariantKeyword,
+          Token keyword,
+          TypeAnnotation type,
+          @required Token thisKeyword,
+          @required Token period,
+          @required SimpleIdentifier identifier,
+          TypeParameterList typeParameters,
+          FormalParameterList parameters}) =>
+      new FieldFormalParameterImpl(comment, metadata, covariantKeyword, keyword,
+          type, thisKeyword, period, identifier, typeParameters, parameters);
 
   @override
   ForEachStatement forEachStatementWithDeclaration(
@@ -500,8 +516,21 @@ class AstFactoryImpl extends AstFactory {
           TypeParameterList typeParameters,
           FormalParameterList parameters,
           {Token question: null}) =>
-      new FunctionTypedFormalParameterImpl(comment, metadata, returnType,
+      new FunctionTypedFormalParameterImpl(comment, metadata, null, returnType,
           identifier, typeParameters, parameters, question);
+
+  @override
+  FunctionTypedFormalParameter functionTypedFormalParameter2(
+          {Comment comment,
+          List<Annotation> metadata,
+          Token covariantKeyword,
+          TypeAnnotation returnType,
+          @required SimpleIdentifier identifier,
+          TypeParameterList typeParameters,
+          @required FormalParameterList parameters,
+          Token question}) =>
+      new FunctionTypedFormalParameterImpl(comment, metadata, covariantKeyword,
+          returnType, identifier, typeParameters, parameters, question);
 
   @override
   GenericFunctionType genericFunctionType(
@@ -778,7 +807,18 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation type,
           SimpleIdentifier identifier) =>
       new SimpleFormalParameterImpl(
-          comment, metadata, keyword, type, identifier);
+          comment, metadata, null, keyword, type, identifier);
+
+  @override
+  SimpleFormalParameter simpleFormalParameter2(
+          {Comment comment,
+          List<Annotation> metadata,
+          Token covariantKeyword,
+          Token keyword,
+          TypeAnnotation type,
+          @required SimpleIdentifier identifier}) =>
+      new SimpleFormalParameterImpl(
+          comment, metadata, covariantKeyword, keyword, type, identifier);
 
   @override
   SimpleIdentifier simpleIdentifier(Token token, {bool isDeclaration: false}) {
