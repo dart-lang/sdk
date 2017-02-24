@@ -3590,6 +3590,19 @@ var f = /*warning:UNSAFE_BLOCK_CLOSURE_INFERENCE,
     expect(f.type.toString(), '() → Null');
   }
 
+  test_inferredType_cascade() async {
+    var mainUnit = await checkFileElement('''
+class A {
+  int a;
+  List<int> b;
+  void m() {}
+}
+var v = new A()..a = 1..b.add(2)..m();
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'A');
+  }
+
   test_inferredType_customBinaryOp() async {
     var mainUnit = await checkFileElement('''
 class C {

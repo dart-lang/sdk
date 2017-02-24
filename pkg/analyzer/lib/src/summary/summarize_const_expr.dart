@@ -632,7 +632,9 @@ abstract class AbstractConstExprSerializer {
       references.add(ref);
       operations.add(UnlinkedExprOperation.pushReference);
     } else {
-      _serialize(expr.target);
+      if (!expr.isCascaded) {
+        _serialize(expr.target);
+      }
       strings.add(expr.propertyName.name);
       operations.add(UnlinkedExprOperation.extractProperty);
     }
