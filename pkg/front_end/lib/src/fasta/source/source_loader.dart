@@ -71,6 +71,8 @@ import '../ast_kind.dart' show
     AstKind;
 
 class SourceLoader<L> extends Loader<L> {
+  final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
+
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
@@ -88,7 +90,10 @@ class SourceLoader<L> extends Loader<L> {
       return inputError(library.uri, -1, "Not found: ${library.uri}.");
     }
     try {
-      List<int> bytes = await readBytesFromFile(uri);
+      List<int> bytes = sourceBytes[uri];
+      if (bytes == null) {
+        bytes = sourceBytes[uri] = await readBytesFromFile(uri);
+      }
       byteCount += bytes.length - 1;
       ScannerResult result = scan(bytes);
       Token token = result.tokens;
