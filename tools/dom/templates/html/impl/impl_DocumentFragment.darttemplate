@@ -62,7 +62,7 @@ $endif
 
 
   String get innerHtml {
-    final e = new DivElement();
+    final e = new Element.tag("div");
     e.append(this.clone(true));
     return e.innerHtml;
   }

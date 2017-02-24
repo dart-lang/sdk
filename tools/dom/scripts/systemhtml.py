@@ -463,19 +463,6 @@ js_support_checks = dict({
             else ElemSupportStr(_html_element_constructors[key])) for key in
     _js_support_checks_basic_element_with_constructors +
     _js_support_checks_additional_element).items())
-
-
-# JavaScript element class names of elements for which createElement does not
-# always return exactly the right element, either because it might not be
-# supported, or some browser does something weird.
-_js_unreliable_element_factories = set(
-    _js_support_checks_basic_element_with_constructors +
-    _js_support_checks_additional_element +
-    [
-        'HTMLEmbedElement',
-        'HTMLObjectElement',
-    ])
-
 # ------------------------------------------------------------------------------
 
 class HtmlDartInterfaceGenerator(object):
@@ -816,26 +803,6 @@ class Dart2JSBackend(HtmlDartGenerator):
   def GenerateCustomFactory(self, constructor_info):
     # Custom factory will be taken from the template.
     return self._interface.doc_js_name in _js_custom_constructors
-
-  def MakeFactoryCall(self, factory, method, arguments, constructor_info):
-    if factory is 'document' and method is 'createElement' \
-        and not ',' in arguments \
-        and not self._HasUnreliableFactoryConstructor():
-      return emitter.Format(
-          "JS('returns:$INTERFACE_NAME;creates:$INTERFACE_NAME;new:true',"
-          " '#.$METHOD(#)', $FACTORY, $ARGUMENTS)",
-          INTERFACE_NAME=self._interface_type_info.interface_name(),
-          FACTORY=factory,
-          METHOD=method,
-          ARGUMENTS=arguments)
-    return emitter.Format(
-        '$FACTORY.$METHOD($ARGUMENTS)',
-        FACTORY=factory,
-        METHOD=method,
-        ARGUMENTS=arguments)
-
-  def _HasUnreliableFactoryConstructor(self):
-    return self._interface.doc_js_name in _js_unreliable_element_factories
 
   def IsConstructorArgumentOptional(self, argument):
     return argument.optional

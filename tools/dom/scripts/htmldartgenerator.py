@@ -572,30 +572,32 @@ class HtmlDartGenerator(object):
       # TODO(antonm): use common dispatcher generation for this case as well.
       has_optional = any(param_info.is_optional
           for param_info in constructor_info.param_infos)
-      factory_call = self.MakeFactoryCall(
-          factory_name, factory_constructor_name, factory_parameters,
-          constructor_info)
+
       if not has_optional:
         self._members_emitter.Emit(
             '\n  $(METADATA)'
             'factory $CTOR($PARAMS) => '
-            '$FACTORY_CALL;\n',
+            '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
             CTOR=constructor_info._ConstructorFullName(self._DartType),
             PARAMS=constructor_info.ParametersAsDeclaration(InputType),
-            FACTORY_CALL=factory_call,
-            METADATA=metadata)
+            FACTORY=factory_name,
+            METADATA=metadata,
+            CTOR_FACTORY_NAME=factory_constructor_name,
+            FACTORY_PARAMS=factory_parameters)
       else:
         inits = self._members_emitter.Emit(
             '\n  $(METADATA)'
             'factory $CONSTRUCTOR($PARAMS) {\n'
-            '    $CONSTRUCTOR e = $FACTORY_CALL;\n'
+            '    $CONSTRUCTOR e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
             '$!INITS'
             '    return e;\n'
             '  }\n',
             CONSTRUCTOR=constructor_info._ConstructorFullName(self._DartType),
             METADATA=metadata,
-            FACTORY_CALL=factory_call,
-            PARAMS=constructor_info.ParametersAsDeclaration(InputType))
+            FACTORY=factory_name,
+            CTOR_FACTORY_NAME=factory_constructor_name,
+            PARAMS=constructor_info.ParametersAsDeclaration(InputType),
+            FACTORY_PARAMS=factory_parameters)
 
         for index, param_info in enumerate(constructor_info.param_infos):
           if param_info.is_optional:

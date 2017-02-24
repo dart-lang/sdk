@@ -4722,14 +4722,14 @@ class SvgElement extends Element implements GlobalEventHandlers {
   }
 
   String get outerHtml {
-    final container = new DivElement();
+    final container = new Element.tag("div");
     final SvgElement cloned = this.clone(true);
     container.children.add(cloned);
     return container.innerHtml;
   }
 
   String get innerHtml {
-    final container = new DivElement();
+    final container = new Element.tag("div");
     final SvgElement cloned = this.clone(true);
     container.children.addAll(cloned.children);
     return container.innerHtml;

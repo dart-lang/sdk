@@ -308,13 +308,6 @@ class DartiumBackend(HtmlDartGenerator):
   def IsConstructorArgumentOptional(self, argument):
     return IsOptional(argument)
 
-  def MakeFactoryCall(self, factory, method, arguments, constructor_info):
-    return emitter.Format(
-        '$FACTORY.$METHOD($ARGUMENTS)',
-        FACTORY=factory,
-        METHOD=method,
-        ARGUMENTS=arguments)
-
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
     constructor_callback_cpp_name = name + 'constructorCallback'
     self._EmitConstructorInfrastructure(

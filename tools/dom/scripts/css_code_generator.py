@@ -107,7 +107,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   factory $CLASSNAME() => new CssStyleDeclaration.css('');
 
   factory $CLASSNAME.css(String css) {
-    final style = new DivElement().style;
+    final style = new Element.tag('div').style;
     style.cssText = css;
     return style;
   }
