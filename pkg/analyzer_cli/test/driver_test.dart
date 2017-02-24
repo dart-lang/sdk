@@ -348,7 +348,7 @@ linter:
         }
 
         test('no stats', () async {
-          await doDrive('data/test_file.dart');
+          await doDrive(path.join('data', 'test_file.dart'));
           // Should not print stat summary.
           expect(outSink.toString(), isEmpty);
           expect(errorSink.toString(), isEmpty);
@@ -358,20 +358,20 @@ linter:
         test(
             'Fails if file not found, even when --build-suppress-exit-code is given',
             () async {
-          await doDrive('data/non_existent_file.dart',
+          await doDrive(path.join('data', 'non_existent_file.dart'),
               additionalArgs: ['--build-suppress-exit-code']);
           expect(exitCode, isNot(0));
         });
 
         test('Fails if there are errors', () async {
-          await doDrive('data/file_with_error.dart');
+          await doDrive(path.join('data', 'file_with_error.dart'));
           expect(exitCode, isNot(0));
         });
 
         test(
             'Succeeds if there are errors, when --build-suppress-exit-code is given',
             () async {
-          await doDrive('data/file_with_error.dart',
+          await doDrive(path.join('data', 'file_with_error.dart'),
               additionalArgs: ['--build-suppress-exit-code']);
           expect(exitCode, 0);
         });
