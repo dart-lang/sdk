@@ -488,7 +488,6 @@ class AstTestFactory {
       astFactory.fieldFormalParameter(
           null,
           null,
-          null,
           keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
           type,
           TokenFactory.tokenFromKeyword(Keyword.THIS),
@@ -611,7 +610,7 @@ class AstTestFactory {
   static FunctionTypedFormalParameter functionTypedFormalParameter(
           TypeAnnotation returnType, String identifier,
           [List<FormalParameter> parameters]) =>
-      astFactory.functionTypedFormalParameter(null, null, null, returnType,
+      astFactory.functionTypedFormalParameter(null, null, returnType,
           identifier3(identifier), null, formalParameterList(parameters));
 
   static HideCombinator hideCombinator(List<SimpleIdentifier> identifiers) =>
@@ -1068,7 +1067,6 @@ class AstTestFactory {
   static SimpleFormalParameter simpleFormalParameter2(
           Keyword keyword, TypeAnnotation type, String parameterName) =>
       astFactory.simpleFormalParameter(
-          null,
           null,
           null,
           keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),

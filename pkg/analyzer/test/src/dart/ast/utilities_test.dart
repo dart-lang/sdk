@@ -1976,7 +1976,6 @@ class ToSourceVisitor2Test extends EngineTestCase {
             null,
             null,
             null,
-            null,
             AstTestFactory.typeName4('A'),
             TokenFactory.tokenFromKeyword(Keyword.THIS),
             TokenFactory.tokenFromType(TokenType.PERIOD),
@@ -2507,7 +2506,6 @@ class ToSourceVisitor2Test extends EngineTestCase {
     _assertSource(
         "T f<E>()",
         astFactory.functionTypedFormalParameter(
-            null,
             null,
             null,
             AstTestFactory.typeName4("T"),
@@ -4332,7 +4330,6 @@ class ToSourceVisitorTest extends EngineTestCase {
             null,
             null,
             null,
-            null,
             AstTestFactory.typeName4('A'),
             TokenFactory.tokenFromKeyword(Keyword.THIS),
             TokenFactory.tokenFromType(TokenType.PERIOD),
@@ -4863,7 +4860,6 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource(
         "T f<E>()",
         astFactory.functionTypedFormalParameter(
-            null,
             null,
             null,
             AstTestFactory.typeName4("T"),

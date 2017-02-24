@@ -4457,7 +4457,6 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   FieldFormalParameterImpl(
       CommentImpl comment,
       List<Annotation> metadata,
-      Token covariantKeyword,
       this.keyword,
       TypeAnnotationImpl type,
       this.thisKeyword,
@@ -4465,7 +4464,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
       FormalParameterListImpl parameters)
-      : super(comment, metadata, covariantKeyword, identifier) {
+      : super(comment, metadata, identifier) {
     _type = _becomeParentOf(type);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
@@ -5575,13 +5574,12 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   FunctionTypedFormalParameterImpl(
       CommentImpl comment,
       List<Annotation> metadata,
-      Token covariantKeyword,
       TypeAnnotationImpl returnType,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
       FormalParameterListImpl parameters,
       this.question)
-      : super(comment, metadata, covariantKeyword, identifier) {
+      : super(comment, metadata, identifier) {
     _returnType = _becomeParentOf(returnType);
     _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
@@ -8140,7 +8138,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
    * corresponding attribute.
    */
   NormalFormalParameterImpl(CommentImpl comment, List<Annotation> metadata,
-      this.covariantKeyword, SimpleIdentifierImpl identifier) {
+      SimpleIdentifierImpl identifier) {
     _comment = _becomeParentOf(comment);
     _metadata = new NodeListImpl<Annotation>(this, metadata);
     _identifier = _becomeParentOf(identifier);
@@ -9239,14 +9237,9 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
    * corresponding attribute. The [keyword] can be `null` if a type was
    * specified. The [type] must be `null` if the keyword is 'var'.
    */
-  SimpleFormalParameterImpl(
-      CommentImpl comment,
-      List<Annotation> metadata,
-      Token covariantKeyword,
-      this.keyword,
-      TypeAnnotationImpl type,
-      SimpleIdentifierImpl identifier)
-      : super(comment, metadata, covariantKeyword, identifier) {
+  SimpleFormalParameterImpl(CommentImpl comment, List<Annotation> metadata,
+      this.keyword, TypeAnnotationImpl type, SimpleIdentifierImpl identifier)
+      : super(comment, metadata, identifier) {
     _type = _becomeParentOf(type);
   }
 
