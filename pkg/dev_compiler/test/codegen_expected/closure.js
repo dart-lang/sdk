@@ -64,10 +64,6 @@ closure.Foo$ = dart.generic(T => {
   }
   dart.addTypeTests(Foo);
   dart.setSignature(Foo, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(closure.Foo$(T), [core.int, T]),
-      build: dart.definiteFunctionType(closure.Foo$(T), [])
-    }),
     fields: () => ({
       i: core.int,
       b: core.bool,
@@ -85,13 +81,6 @@ closure.Foo$ = dart.generic(T => {
       function_params: dart.definiteFunctionType(dart.dynamic, [dynamic__Toint(), dynamic__Todynamic(), closure.Callback]),
       run: dart.definiteFunctionType(dart.dynamic, [core.List, core.String, StringToList(), FnToListOfint()], {h: MapOfMap$Map()})
     }),
-    sfields: () => ({
-      some_static_constant: core.String,
-      some_static_final: core.String,
-      some_static_var: core.String
-    }),
-    sgetters: () => ({staticProp: dart.definiteFunctionType(core.String, [])}),
-    ssetters: () => ({staticProp: dart.definiteFunctionType(dart.void, [core.String])}),
     statics: () => ({named_params: dart.definiteFunctionType(dart.dynamic, [dart.dynamic], {b: dart.dynamic, c: core.int})}),
     names: ['named_params']
   });
@@ -111,9 +100,6 @@ closure.Baz = class Baz extends dart.mixin(closure.Foo$(core.int), closure.Bar) 
   }
 };
 dart.addSimpleTypeTests(closure.Baz);
-dart.setSignature(closure.Baz, {
-  constructors: () => ({new: dart.definiteFunctionType(closure.Baz, [core.int])})
-});
 closure.main = function(args): void {
 };
 dart.fn(closure.main, dynamicTovoid());

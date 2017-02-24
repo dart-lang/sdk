@@ -1824,7 +1824,11 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (node.isAbstract) {
         continue;
       }
-
+      if (node.isStatic &&
+          !options.emitMetadata &&
+          (node.isGetter || node.isSetter)) {
+        continue;
+      }
       List<JS.Property> tMember;
       Function getOverride;
       Function lookup;
@@ -1851,12 +1855,6 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
 
       DartType reifiedType = elementToType(element);
-      var type = _emitAnnotatedFunctionType(reifiedType, node.metadata,
-          parameters: node.parameters?.parameters,
-          nameType: options.hoistSignatureTypes,
-          hoistType: options.hoistSignatureTypes,
-          definite: true);
-
       // Don't add redundant signatures for inherited methods whose signature
       // did not change.  If we are not overriding, or if the thing we are
       // overriding has a different reified type from ourselves, we must
@@ -1867,11 +1865,19 @@ class CodeGenerator extends GeneralizingAstVisitor
                   lookup(name, library: currentLibrary, thisType: false)) !=
               reifiedType;
 
+      var type = _emitAnnotatedFunctionType(reifiedType, node.metadata,
+          parameters: node.parameters?.parameters,
+          nameType: options.hoistSignatureTypes,
+          hoistType: options.hoistSignatureTypes,
+          definite: true);
+
       if (needsSignature) {
         var memberName = _declareMemberName(element);
         var property = new JS.Property(memberName, type);
         tMember.add(property);
-        // TODO(vsm): Why do we need this?
+        // We record the names of static methods seperately so we can
+        // attach metadata to them individually.
+        // TODO(leafp): Revisit this.
         if (node.isStatic && !node.isGetter && !node.isSetter) {
           sNames.add(memberName);
         }
@@ -1881,28 +1887,32 @@ class CodeGenerator extends GeneralizingAstVisitor
     var tInstanceFields = <JS.Property>[];
     var tStaticFields = <JS.Property>[];
     for (FieldDeclaration node in fields) {
-      for (VariableDeclaration field in node.fields.variables) {
-        var element = field.element as FieldElement;
-        var memberName = _declareMemberName(element.getter);
-        var type = _emitAnnotatedType(element.type, node.metadata);
-        var property = new JS.Property(memberName, type);
-        (node.isStatic ? tStaticFields : tInstanceFields).add(property);
+      if (!node.isStatic || options.emitMetadata) {
+        for (VariableDeclaration field in node.fields.variables) {
+          var element = field.element as FieldElement;
+          var memberName = _declareMemberName(element.getter);
+          var type = _emitAnnotatedType(element.type, node.metadata);
+          var property = new JS.Property(memberName, type);
+          (node.isStatic ? tStaticFields : tInstanceFields).add(property);
+        }
       }
     }
 
     var tCtors = <JS.Property>[];
-    for (ConstructorDeclaration node in ctors) {
-      var memberName = _constructorName(node.element);
-      var element = resolutionMap.elementDeclaredByConstructorDeclaration(node);
-      var type = _emitAnnotatedFunctionType(element.type, node.metadata,
-          parameters: node.parameters.parameters,
-          nameType: options.hoistSignatureTypes,
-          hoistType: options.hoistSignatureTypes,
-          definite: true);
-      var property = new JS.Property(memberName, type);
-      tCtors.add(property);
+    if (options.emitMetadata) {
+      for (ConstructorDeclaration node in ctors) {
+        var memberName = _constructorName(node.element);
+        var element =
+            resolutionMap.elementDeclaredByConstructorDeclaration(node);
+        var type = _emitAnnotatedFunctionType(element.type, node.metadata,
+            parameters: node.parameters.parameters,
+            nameType: options.hoistSignatureTypes,
+            hoistType: options.hoistSignatureTypes,
+            definite: true);
+        var property = new JS.Property(memberName, type);
+        tCtors.add(property);
+      }
     }
-
     var sigFields = <JS.Property>[];
     if (!tCtors.isEmpty) {
       sigFields.add(_buildSignatureField('constructors', tCtors));
@@ -1930,7 +1940,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
     if (!tStaticMethods.isEmpty) {
       assert(!sNames.isEmpty);
-      // TODO(vsm): Why do we need this names field?
+      // Emit names so that we can lazily attach metadata to statics
+      // TODO(leafp): revisit this strategy
       var aNames = new JS.Property(
           _propertyName('names'), new JS.ArrayInitializer(sNames));
       sigFields.add(_buildSignatureField('statics', tStaticMethods));
