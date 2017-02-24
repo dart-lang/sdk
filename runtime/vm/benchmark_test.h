@@ -11,6 +11,7 @@
 #include "vm/globals.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/malloc_hooks.h"
 #include "vm/object.h"
 #include "vm/zone.h"
 
@@ -35,6 +36,9 @@ extern const uint8_t* core_isolate_snapshot_instructions;
   static void Dart_BenchmarkHelper##name(Benchmark* benchmark,                 \
                                          Thread* thread);                      \
   void Dart_Benchmark##name(Benchmark* benchmark) {                            \
+    bool __stack_trace_collection_enabled__ =                                  \
+        MallocHooks::stack_trace_collection_enabled();                         \
+    MallocHooks::set_stack_trace_collection_enabled(false);                    \
     FLAG_old_gen_growth_space_ratio = 100;                                     \
     BenchmarkIsolateScope __isolate__(benchmark);                              \
     Thread* __thread__ = Thread::Current();                                    \
@@ -42,6 +46,8 @@ extern const uint8_t* core_isolate_snapshot_instructions;
     StackZone __zone__(__thread__);                                            \
     HandleScope __hs__(__thread__);                                            \
     Dart_BenchmarkHelper##name(benchmark, __thread__);                         \
+    MallocHooks::set_stack_trace_collection_enabled(                           \
+        __stack_trace_collection_enabled__);                                   \
   }                                                                            \
   static void Dart_BenchmarkHelper##name(Benchmark* benchmark, Thread* thread)
 

@@ -4,7 +4,8 @@
 
 #include "platform/globals.h"
 
-#if !defined(DART_USE_TCMALLOC) || defined(PRODUCT)
+#if !defined(DART_USE_TCMALLOC) || defined(PRODUCT) ||                         \
+    defined(TARGET_ARCH_DBC) || defined(TARGET_OS_FUCHSIA)
 
 #include "vm/malloc_hooks.h"
 
@@ -16,6 +17,21 @@ void MallocHooks::InitOnce() {
 
 
 void MallocHooks::TearDown() {
+  // Do nothing.
+}
+
+
+bool MallocHooks::ProfilingEnabled() {
+  return false;
+}
+
+
+bool MallocHooks::stack_trace_collection_enabled() {
+  return false;
+}
+
+
+void MallocHooks::set_stack_trace_collection_enabled(bool enabled) {
   // Do nothing.
 }
 
@@ -46,4 +62,5 @@ intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
 
 }  // namespace dart
 
-#endif  // defined(DART_USE_TCMALLOC) || defined(PRODUCT)
+#endif  // !defined(DART_USE_TCMALLOC) || defined(PRODUCT) ||
+        // defined(TARGET_ARCH_DBC) || defined(TARGET_OS_FUCHSIA)
