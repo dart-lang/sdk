@@ -52,8 +52,8 @@ public class RenameFeedback extends RefactoringFeedback {
   private final int length;
 
   /**
-   * The human-readable description of the kind of element being renamed (such as “class” or
-   * “function type alias”).
+   * The human-readable description of the kind of element being renamed (such as "class" or
+   * "function type alias").
    */
   private final String elementKindName;
 
@@ -106,8 +106,8 @@ public class RenameFeedback extends RefactoringFeedback {
   }
 
   /**
-   * The human-readable description of the kind of element being renamed (such as “class” or
-   * “function type alias”).
+   * The human-readable description of the kind of element being renamed (such as "class" or
+   * "function type alias").
    */
   public String getElementKindName() {
     return elementKindName;

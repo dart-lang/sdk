@@ -39,7 +39,7 @@ TODO(devoncarew): We should track analysis server notifications here as well.
 - [x] execution.createContext
 - [x] execution.deleteContext
 - [x] execution.mapUri
-- [x] execution.setSubscriptions (failing - see #28806)
+- [x] execution.setSubscriptions
 
 ## search domain
 - [ ] search.findElementReferences
