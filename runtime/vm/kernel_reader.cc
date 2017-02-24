@@ -436,9 +436,11 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       break;
     case FunctionNode::kAsync:
       function.set_modifier(RawFunction::kAsync);
+      function.set_is_inlinable(!FLAG_causal_async_stacks);
       break;
     case FunctionNode::kAsyncStar:
       function.set_modifier(RawFunction::kAsyncGen);
+      function.set_is_inlinable(!FLAG_causal_async_stacks);
       break;
     default:
       // no special modifier
