@@ -28,7 +28,7 @@ class GoodMutable {
 
 class MultipleMutable {
   var _label = 'hola mundo! GoodMutable', _offender = 'mumble mumble!'; // LINT
-  var _someOther; // LINT
+  var _never_initialized_field; // OK
 
   MultipleMutable() : _someOther = 5;
 
