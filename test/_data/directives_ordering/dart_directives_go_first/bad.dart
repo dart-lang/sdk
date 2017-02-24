@@ -4,5 +4,10 @@
 
 import 'dart:math';  // OK
 import 'dummy.dart';
-import 'dart:async';  // LINT
 import 'dart:html';  // LINT
+import 'dart:isolate';  // LINT
+
+export 'dart:math';  // OK
+export 'dummy.dart';
+export 'dart:html';  // LINT
+export 'dart:isolate';  // LINT
