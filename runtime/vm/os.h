@@ -95,9 +95,6 @@ class OS {
   // Debug break.
   static void DebugBreak();
 
-  // Returns the current program counter.
-  static uintptr_t GetProgramCounter();
-
   // Not all platform support strndup.
   static char* StrNDup(const char* s, intptr_t n);
   static intptr_t StrNLen(const char* s, intptr_t n);
