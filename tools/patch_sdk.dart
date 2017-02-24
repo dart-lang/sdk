@@ -42,7 +42,8 @@ Future main(List<String> argv) async {
   var input = argv[1];
   var sdkLibIn = path.join(input, 'lib');
   var patchIn = argv[2];
-  var sdkOut = path.join(argv[3], 'lib');
+  var outDir = argv[3];
+  var sdkOut = path.join(outDir, 'lib');
   var packagesFile = argv[4];
 
   var privateIn = path.join(input, 'private');
@@ -205,8 +206,8 @@ Future main(List<String> argv) async {
       await compile_platform.main(<String>[
         '--packages',
         new Uri.file(packagesFile).toString(),
-        sdkOut,
-        path.join(sdkOut, 'platform.dill')
+        outDir,
+        path.join(outDir, 'platform.dill')
       ]);
     }, zoneSpecification: new ZoneSpecification(print: (_, _2, _3, line) {
       capturedLines.add(line);
