@@ -2372,7 +2372,7 @@ class ExprTypeComputer {
               namedArgNames,
               namedArgTypeList,
               positionalArgTypes, const <DartType>[]);
-          if (identical(inferredType, rawType)) {
+          if (inferredType == null || identical(inferredType, rawType)) {
             inferredType = linker.typeSystem.instantiateToBounds(rawType);
           }
           return inferredType.returnType;

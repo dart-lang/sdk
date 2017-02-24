@@ -696,6 +696,26 @@ main() {
         'C<dynamic>');
   }
 
+  test_constructors_inferFromArguments_argumentNotAssignable() async {
+    var unit = await checkFileElement('''
+class A {}
+
+typedef T F<T>();
+
+class C<T extends A> {
+  C(F<T> f);
+}
+
+class NotA {}
+NotA myF() => null;
+
+var V = /*info:INFERRED_TYPE_ALLOCATION*/new
+          /*error:COULD_NOT_INFER*/C(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/myF);
+''');
+    var vars = unit.topLevelVariables;
+    expect(vars[0].type.toString(), 'C<A>');
+  }
+
   test_constructors_inferFromArguments_const() async {
     var unit = await checkFileElement('''
 class C<T> {
