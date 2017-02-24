@@ -105,6 +105,10 @@ class _Visitor extends SimpleAstVisitor {
         return;
       }
 
+      if (variable.initializer == null){
+        return;
+      }
+
       final isMutated = DartTypeUtilities
           .traverseNodesInDFS(compilationUnit)
           .where((n) =>
