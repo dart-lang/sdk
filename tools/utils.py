@@ -702,6 +702,25 @@ class UnexpectedCrash(object):
   def __str__(self):
     return "%s: %s %s" % (self.test, self.binary, self.pid)
 
+class SiteConfigBotoFileDisabler(object):
+  def __init__(self):
+    self._old_aws = None
+    self._old_boto = None
+
+  def __enter__(self):
+    self._old_aws = os.environ.get('AWS_CREDENTIAL_FILE', None)
+    self._old_boto = os.environ.get('BOTO_CONFIG', None)
+
+    if self._old_aws:
+      del os.environ['AWS_CREDENTIAL_FILE']
+    if self._old_boto:
+      del os.environ['BOTO_CONFIG']
+
+  def __exit__(self, *_):
+    if self._old_aws:
+      os.environ['AWS_CREDENTIAL_FILE'] = self._old_aws
+    if self._old_boto:
+      os.environ['BOTO_CONFIG'] = self._old_boto
 
 class PosixCoredumpEnabler(object):
   def __init__(self):
@@ -832,8 +851,12 @@ class BaseCoreDumpArchiver(object):
           print '----> %s' % crash
 
         sys.stdout.flush()
-        self._archive(archive_crashes)
 
+        # We disable usage of the boto file installed on the bots due to an
+        # issue introduced by
+        # https://chrome-internal-review.googlesource.com/c/331136
+        with SiteConfigBotoFileDisabler():
+          self._archive(archive_crashes)
     finally:
       self._cleanup()
 
