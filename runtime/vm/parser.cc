@@ -3578,16 +3578,20 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     ASSERT(!func.is_generated_body());
     // The code of an async function is synthesized. Disable debugging.
     func.set_is_debuggable(false);
-    // In order to collect causal asynchronous stacks efficiently we rely on
-    // this function not being inlined.
-    func.set_is_inlinable(!FLAG_causal_async_stacks);
+    if (FLAG_causal_async_stacks) {
+      // In order to collect causal asynchronous stacks efficiently we rely on
+      // this function not being inlined.
+      func.set_is_inlinable(false);
+    }
     generated_body_closure = OpenAsyncFunction(func.token_pos());
   } else if (func.IsAsyncClosure()) {
     // The closure containing the body of an async function is debuggable.
     ASSERT(func.is_debuggable());
-    // In order to collect causal asynchronous stacks efficiently we rely on
-    // this function not being inlined.
-    func.set_is_inlinable(!FLAG_causal_async_stacks);
+    if (FLAG_causal_async_stacks) {
+      // In order to collect causal asynchronous stacks efficiently we rely on
+      // this function not being inlined.
+      func.set_is_inlinable(false);
+    }
     OpenAsyncClosure();
   } else if (func.IsSyncGenerator()) {
     // The code of a sync generator is synthesized. Disable debugging.
@@ -3599,16 +3603,20 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     async_temp_scope_ = current_block_->scope;
   } else if (func.IsAsyncGenerator()) {
     func.set_is_debuggable(false);
-    // In order to collect causal asynchronous stacks efficiently we rely on
-    // this function not being inlined.
-    func.set_is_inlinable(!FLAG_causal_async_stacks);
+    if (FLAG_causal_async_stacks) {
+      // In order to collect causal asynchronous stacks efficiently we rely on
+      // this function not being inlined.
+      func.set_is_inlinable(false);
+    }
     generated_body_closure = OpenAsyncGeneratorFunction(func.token_pos());
   } else if (func.IsAsyncGenClosure()) {
     // The closure containing the body of an async* function is debuggable.
     ASSERT(func.is_debuggable());
-    // In order to collect causal asynchronous stacks efficiently we rely on
-    // this function not being inlined.
-    func.set_is_inlinable(!FLAG_causal_async_stacks);
+    if (FLAG_causal_async_stacks) {
+      // In order to collect causal asynchronous stacks efficiently we rely on
+      // this function not being inlined.
+      func.set_is_inlinable(false);
+    }
     OpenAsyncGeneratorClosure();
   }
 
