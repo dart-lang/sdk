@@ -25,7 +25,7 @@ Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fai
 Language/Expressions/Instance_Creation/Const/abstract_class_t01: Pass, Fail # co19 issue 66
 Language/Expressions/Instance_Creation/Const/abstract_class_t03: Pass, Fail # co19 issue 66
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
-LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: RuntimeError # Issue 27183
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: RuntimeError # co19 issue 89
 LibTest/core/Expando/Expando_A03_t01: RuntimeError # Issue 17735
 LibTest/core/Expando/Expando_A03_t03: RuntimeError # Issue 17735
 LibTest/core/Expando/Expando_A03_t04: RuntimeError # Issue 17735
