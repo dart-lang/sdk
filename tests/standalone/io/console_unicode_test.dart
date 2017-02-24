@@ -6,26 +6,25 @@ import 'dart:convert';
 import 'dart:io';
 
 main() {
+  String canary = "Canary";
   String spades = "These are three black spades: ♠♠♠";
   String german = "German characters: aäbcdefghijklmnoöpqrsßtuüvwxyz";
 
+  stdout.writeln(canary);
   stdout.writeln(spades);
   stdout.writeln(german);
   print(spades);
   print(german);
 
-  stdout.add(spades.runes.toList());
-  stdout.writeln();
-  stdout.add(german.runes.toList());
+  stdout.add(canary.runes.toList());
   stdout.writeln();
 
-  stdout.add(spades.codeUnits);
-  stdout.writeln();
-  stdout.add(german.codeUnits);
-  stdout.writeln();
-
+  stdout.writeln(canary);
   stdout.writeln(spades);
   stdout.writeln(german);
   print(spades);
   print(german);
+
+  stdout.add(canary.codeUnits);
+  stdout.writeln();
 }
