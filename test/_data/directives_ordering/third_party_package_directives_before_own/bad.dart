@@ -2,9 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math';
 import 'package:ansicolor/ansicolor.dart';  // OK
-import 'dummy.dart';
+
+import 'package:linter/src/analyzer.dart';
+
 import 'package:async/async.dart';  // LINT
 import 'package:yaml/yaml.dart';  // LINT
-import 'dummy2.dart'; // OK
+
+import 'package:linter/src/formatter.dart';
+
+export 'package:ansicolor/ansicolor.dart';  // OK
+
+export 'package:linter/src/analyzer.dart';
+
+export 'package:async/async.dart';  // LINT
+export 'package:yaml/yaml.dart';  // LINT
+
+export 'package:linter/src/formatter.dart';

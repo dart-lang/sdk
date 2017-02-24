@@ -237,32 +237,36 @@ defineTests() {
         exitCode = 0;
       });
 
-      test('dart_imports_go_first', () {
+      test('dart_directives_go_first', () {
         var packagesFilePath = new File('.packages').absolute.path;
         dartlint.main([
           '--packages',
           packagesFilePath,
-          'test/_data/directives_ordering/dart_imports_go_first',
+          'test/_data/directives_ordering/dart_directives_go_first',
           '--rules=directives_ordering'
         ]);
         expect(exitCode, 1);
         expect(
             collectingOut.trim(),
             stringContainsInOrder([
-              "Place 'dart:' imports before other imports.",
-              "import 'dart:async';  // LINT",
               "Place 'dart:' imports before other imports.",
               "import 'dart:html';  // LINT",
-              '2 files analyzed, 2 issues found, in'
+              "Place 'dart:' imports before other imports.",
+              "import 'dart:isolate';  // LINT",
+              "Place 'dart:' exports before other exports.",
+              "export 'dart:html';  // LINT",
+              "Place 'dart:' exports before other exports.",
+              "export 'dart:isolate';  // LINT",
+              '2 files analyzed, 4 issues found, in'
             ]));
       });
 
-      test('package_imports_before_relative', () {
+      test('package_directives_before_relative', () {
         var packagesFilePath = new File('.packages').absolute.path;
         dartlint.main([
           '--packages',
           packagesFilePath,
-          'test/_data/directives_ordering/package_imports_before_relative',
+          'test/_data/directives_ordering/package_directives_before_relative',
           '--rules=directives_ordering'
         ]);
         expect(exitCode, 1);
@@ -270,19 +274,23 @@ defineTests() {
             collectingOut.trim(),
             stringContainsInOrder([
               "Place 'package:' imports before relative imports.",
-              "import 'package:async/async.dart';  // LINT",
+              "import 'package:async/src/async_cache.dart'; // LINT",
               "Place 'package:' imports before relative imports.",
-              "import 'package:yaml/yaml.dart';  // LINT",
-              '3 files analyzed, 2 issues found, in'
+              "import 'package:yaml/yaml.dart'; // LINT",
+              "Place 'package:' exports before relative exports.",
+              "export 'package:async/src/async_cache.dart'; // LINT",
+              "Place 'package:' exports before relative exports.",
+              "export 'package:yaml/yaml.dart'; // LINT",
+              '3 files analyzed, 4 issues found, in'
             ]));
       });
 
-      test('third_party_package_imports_before_own', () {
+      test('third_party_package_directives_before_own', () {
         var packagesFilePath = new File('.packages').absolute.path;
         dartlint.main([
           '--packages',
           packagesFilePath,
-          'test/_data/directives_ordering/third_party_package_imports_before_own',
+          'test/_data/directives_ordering/third_party_package_directives_before_own',
           '--rules=directives_ordering'
         ]);
         expect(exitCode, 1);
@@ -293,7 +301,11 @@ defineTests() {
               "import 'package:async/async.dart';  // LINT",
               "Place 'third-party' 'package:' imports before other imports.",
               "import 'package:yaml/yaml.dart';  // LINT",
-              '1 file analyzed, 2 issues found, in'
+              "Place 'third-party' 'package:' exports before other exports.",
+              "export 'package:async/async.dart';  // LINT",
+              "Place 'third-party' 'package:' exports before other exports.",
+              "export 'package:yaml/yaml.dart';  // LINT",
+              '1 file analyzed, 4 issues found, in'
             ]));
       });
 
@@ -344,8 +356,16 @@ defineTests() {
               "Sort directive sections alphabetically.",
               "import 'dummy1.dart'; // LINT",
               "Sort directive sections alphabetically.",
+              "export 'dart:convert'; // LINT",
+              "Sort directive sections alphabetically.",
+              "export 'package:charcode/ascii.dart'; // LINT",
+              "Sort directive sections alphabetically.",
+              "export 'package:ansicolor/ansicolor.dart'; // LINT",
+              "Sort directive sections alphabetically.",
+              "export 'package:linter/src/formatter.dart'; // LINT",
+              "Sort directive sections alphabetically.",
               "export 'dummy1.dart'; // LINT",
-              '5 files analyzed, 8 issues found, in'
+              '5 files analyzed, 12 issues found, in'
             ]));
       });
 
