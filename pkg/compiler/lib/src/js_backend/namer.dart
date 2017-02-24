@@ -1881,6 +1881,29 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   @override
   void visitConstructed(ConstructedConstantValue constant, [_]) {
     addRoot(constant.type.element.name);
+
+    // Recognize enum constants and only include the index.
+    final Map<FieldEntity, ConstantValue> fieldMap = constant.fields;
+    int size = fieldMap.length;
+    if (size == 1 || size == 2) {
+      FieldEntity indexField;
+      for (FieldEntity field in fieldMap.keys) {
+        String name = field.name;
+        if (name == 'index') {
+          indexField = field;
+        } else if (name == '_name') {
+          // Ingore _name field.
+        } else {
+          indexField = null;
+          break;
+        }
+      }
+      if (indexField != null) {
+        _visit(constant.fields[indexField]);
+        return;
+      }
+    }
+
     // TODO(johnniwinther): This should be accessed from a codegen closed world.
     codegenWorldBuilder.forEachInstanceField(constant.type.element,
         (_, FieldElement field) {

@@ -46,6 +46,7 @@ enum AstKind {
   ENUM_CONSTRUCTOR,
   ENUM_CONSTANT,
   ENUM_INDEX_FIELD,
+  ENUM_NAME_FIELD,
   ENUM_VALUES_FIELD,
   ENUM_TO_STRING,
   FACTORY,
@@ -111,6 +112,8 @@ class ResolvedAstSerializer extends Visitor {
     if (element.enclosingClass is EnumClassElement) {
       if (element.name == 'index') {
         kind = AstKind.ENUM_INDEX_FIELD;
+      } else if (element.name == '_name') {
+        kind = AstKind.ENUM_NAME_FIELD;
       } else if (element.name == 'values') {
         kind = AstKind.ENUM_VALUES_FIELD;
       } else if (element.name == 'toString') {
@@ -417,6 +420,14 @@ class ResolvedAstDeserializer {
               builder.modifiers(isFinal: true),
               new NodeList.singleton(identifier));
           return node;
+        case AstKind.ENUM_NAME_FIELD:
+          AstBuilder builder = new AstBuilder(element.sourcePosition.begin);
+          Identifier identifier = builder.identifier('_name');
+          VariableDefinitions node = new VariableDefinitions(
+              null,
+              builder.modifiers(isFinal: true),
+              new NodeList.singleton(identifier));
+          return node;
         case AstKind.ENUM_VALUES_FIELD:
           EnumClassElement enumClass = element.enclosingClass;
           AstBuilder builder = new AstBuilder(element.sourcePosition.begin);
@@ -465,19 +476,20 @@ class ResolvedAstDeserializer {
               'toString',
               null,
               builder.argumentList([]),
-              builder.returnStatement(builder.indexGet(
-                  builder.mapLiteral(mapEntries, isConst: true),
-                  builder.reference(builder.identifier('index')))));
+              builder.returnStatement(
+                  builder.reference(builder.identifier('_name'))));
           return toStringNode;
         case AstKind.ENUM_CONSTRUCTOR:
           AstBuilder builder = new AstBuilder(element.sourcePosition.begin);
           VariableDefinitions indexDefinition =
               builder.initializingFormal('index');
+          VariableDefinitions nameDefinition =
+              builder.initializingFormal('_name');
           FunctionExpression constructorNode = builder.functionExpression(
               builder.modifiers(isConst: true),
               element.enclosingClass.name,
               null,
-              builder.argumentList([indexDefinition]),
+              builder.argumentList([indexDefinition, nameDefinition]),
               builder.emptyStatement());
           return constructorNode;
         case AstKind.ENUM_CONSTANT:
@@ -487,8 +499,13 @@ class ResolvedAstDeserializer {
           AstBuilder builder = new AstBuilder(element.sourcePosition.begin);
           Identifier name = builder.identifier(element.name);
 
+          String enumString = "${enumClass.name}.${element.name}";
           Expression initializer = builder.newExpression(
-              enumClass.name, builder.argumentList([builder.literalInt(index)]),
+              enumClass.name,
+              builder.argumentList([
+                builder.literalInt(index),
+                builder.literalString(enumString)
+              ]),
               isConst: true);
           SendSet definition = builder.createDefinition(name, initializer);
 
