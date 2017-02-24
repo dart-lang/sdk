@@ -263,7 +263,7 @@ void MallocHooksState::TearDown() {
 
 
 void MallocHooks::InitOnce() {
-  if (!FLAG_enable_malloc_hooks) {
+  if (!FLAG_enable_malloc_hooks || MallocHooks::Active()) {
     return;
   }
   MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
@@ -282,7 +282,7 @@ void MallocHooks::InitOnce() {
 
 
 void MallocHooks::TearDown() {
-  if (!FLAG_enable_malloc_hooks) {
+  if (!FLAG_enable_malloc_hooks || !MallocHooks::Active()) {
     return;
   }
   MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
