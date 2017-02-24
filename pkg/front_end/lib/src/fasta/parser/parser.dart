@@ -499,8 +499,10 @@ class Parser {
     // modifier.
     // This enables the case where `covariant` is the name of the parameter:
     //    void foo(covariant);
+    Token covariantKeyword;
     if (identical(token.stringValue, 'covariant') &&
         (token.next.isIdentifier() || isModifier(token.next))) {
+      covariantKeyword = token;
       token = token.next;
     }
     token = parseModifiers(token);
@@ -574,7 +576,7 @@ class Parser {
     } else {
       listener.handleFormalParameterWithoutValue(token);
     }
-    listener.endFormalParameter(thisKeyword, kind);
+    listener.endFormalParameter(covariantKeyword, thisKeyword, kind);
     return token;
   }
 

@@ -372,7 +372,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      FormalParameterType kind) {
     debugEvent("FormalParameter");
     String name = pop();
     TypeBuilder type = pop();

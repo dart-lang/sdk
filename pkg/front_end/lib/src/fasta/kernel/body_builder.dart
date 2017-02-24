@@ -1277,7 +1277,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, FormalParameterType kind) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      FormalParameterType kind) {
     debugEvent("FormalParameter");
     // TODO(ahe): Need beginToken here.
     int charOffset = thisKeyword?.charOffset;

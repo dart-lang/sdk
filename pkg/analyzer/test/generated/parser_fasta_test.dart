@@ -771,93 +771,9 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     with FormalParameterParserTestMixin {
   @override
   @failingTest
-  void test_parseFormalParameter_covariant_final_named() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_covariant_final_named();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_covariant_final_normal() {
-    // TODO(scheglov): parse final
-    super.test_parseFormalParameter_covariant_final_normal();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_covariant_final_positional() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_covariant_final_positional();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_covariant_final_type_named() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_covariant_final_type_named();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_covariant_final_type_normal() {
-    // TODO(scheglov): parse final
-    super.test_parseFormalParameter_covariant_final_type_normal();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_covariant_final_type_positional() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_covariant_final_type_positional();
-  }
-
-  @override
-  @failingTest
   void test_parseFormalParameter_covariant_type_function() {
     // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
     super.test_parseFormalParameter_covariant_type_function();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_covariant_type_named() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_covariant_type_named();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_covariant_type_normal() {
-    // TODO(paulberry): Covariant keyword is not yet supported.
-    super.test_parseFormalParameter_covariant_type_normal();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_covariant_type_positional() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_covariant_type_positional();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_covariant_var_named() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_covariant_var_named();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_covariant_var_normal() {
-    // TODO(scheglov): parse var
-    super.test_parseFormalParameter_covariant_var_normal();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_covariant_var_positional() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameter_covariant_var_positional();
   }
 
   @override
