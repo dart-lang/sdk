@@ -696,7 +696,7 @@ class ChangedWorkingDirectory(object):
 class UnexpectedCrash(object):
   def __init__(self, test, pid, binary):
     self.test = test
-    self.pid = pid 
+    self.pid = pid
     self.binary = binary
 
   def __str__(self):
@@ -849,7 +849,8 @@ class BaseCoreDumpArchiver(object):
         missing.append(crash)
     self._upload(files)
     if missing:
-      raise Exception('Missing crash dumps for: %s' % ', '.join(missing))
+      raise Exception('Missing crash dumps for: %s' % ', '.join(
+          [str(c) for c in missing]))
 
   def _upload(self, files):
     bot_utils = GetBotUtils()
