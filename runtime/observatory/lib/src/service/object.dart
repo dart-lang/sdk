@@ -4404,7 +4404,7 @@ class ServiceMetric extends ServiceObject implements M.Metric {
   String toString() => "ServiceMetric($_id)";
 }
 
-void printFrames(List<Frame> frames) async {
+Future<Null> printFrames(List<Frame> frames) async {
   for (int i = 0; i < frames.length; i++) {
     final Frame frame = frames[i];
     String frameText = await frame.toUserString();
@@ -4459,7 +4459,7 @@ class Frame extends ServiceObject implements M.Frame {
     }
   }
 
-  String toUserString() async {
+  Future<String> toUserString() async {
     if (function != null) {
       return "Frame([$kind] ${function.qualifiedName} "
              "${await location.toUserString()})";
