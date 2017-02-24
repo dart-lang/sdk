@@ -264,9 +264,6 @@ abstract class IntegrationTestMixin {
    * included in the notification is always a complete list that supersedes any
    * previously reported errors.
    *
-   * TODO: Decide whether we need to support the '--no-error-notification'
-   * option.
-   *
    * Parameters
    *
    * file (FilePath)
