@@ -39,8 +39,8 @@ import 'package:front_end/src/fasta/util/link.dart' show
 abstract class ArrayBasedScanner extends AbstractScanner {
   bool hasErrors = false;
 
-  ArrayBasedScanner(bool includeComments)
-      : super(includeComments);
+  ArrayBasedScanner(bool includeComments, {int numberOfBytesHint})
+      : super(includeComments, numberOfBytesHint: numberOfBytesHint);
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]

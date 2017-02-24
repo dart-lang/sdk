@@ -4,6 +4,13 @@
 
 library fasta.scanner.abstract_scanner;
 
+import 'dart:collection' show
+    ListMixin;
+
+import 'dart:typed_data' show
+    Uint16List,
+    Uint32List;
+
 import '../scanner.dart' show
     ErrorToken,
     Scanner,
@@ -55,9 +62,10 @@ abstract class AbstractScanner implements Scanner {
    */
   Token tail;
 
-  final List<int> lineStarts = <int>[0];
+  final List<int> lineStarts;
 
-  AbstractScanner(this.includeComments) {
+  AbstractScanner(this.includeComments, {int numberOfBytesHint})
+      : lineStarts = new LineStarts(numberOfBytesHint) {
     this.tail = this.tokens;
   }
 
@@ -1173,4 +1181,81 @@ PrecedenceInfo closeBraceInfoFor(BeginGroupToken begin) {
     '<': GT_INFO,
     r'${': CLOSE_CURLY_BRACKET_INFO,
   }[begin.value];
+}
+
+class LineStarts extends Object with ListMixin<int> {
+  List<int> array;
+  int arrayLength = 0;
+
+  LineStarts(int numberOfBytesHint) {
+    // Let's assume the average Dart file is 300 bytes.
+    if (numberOfBytesHint == null) numberOfBytesHint = 300;
+
+    // Let's assume we have on average 22 bytes per line.
+    final int expectedNumberOfLines = 1 + (numberOfBytesHint ~/ 22);
+
+    if (numberOfBytesHint > 65535) {
+      array = new Uint32List(expectedNumberOfLines);
+    } else {
+      array = new Uint16List(expectedNumberOfLines);
+    }
+
+    // The first line starts at character offset 0.
+    add(0);
+  }
+
+  // Implement abstract members used by [ListMixin]
+
+  int get length => arrayLength;
+
+  int operator[](int index) {
+    assert(index < arrayLength);
+    return array[index];
+  }
+
+  void set length(int newLength) {
+    if (newLength > array.length) {
+      grow(newLength);
+    }
+    arrayLength = newLength;
+  }
+
+  void operator[]=(int index, int value) {
+    if (value > 65535 && array is! Uint32List) {
+      switchToUint32(array.length);
+    }
+    array[index] = value;
+  }
+
+  // Specialize methods from [ListMixin].
+  void add(int value) {
+    if (arrayLength >= array.length) {
+      grow(0);
+    }
+    if (value > 65535 && array is! Uint32List) {
+      switchToUint32(array.length);
+    }
+    array[arrayLength++] = value;
+  }
+
+  // Helper methods.
+
+  void grow(int newLengthMinimum) {
+    int newLength = array.length * 2;
+    if (newLength < newLengthMinimum) newLength = newLengthMinimum;
+
+    if (array is Uint16List) {
+      final newArray = new Uint16List(newLength);
+      newArray.setRange(0, arrayLength, array);
+      array = newArray;
+    } else {
+      switchToUint32(newLength);
+    }
+  }
+
+  void switchToUint32(int newLength) {
+    final newArray = new Uint32List(newLength);
+    newArray.setRange(0, arrayLength, array);
+    array = newArray;
+  }
 }
