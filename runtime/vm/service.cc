@@ -3235,6 +3235,28 @@ static bool GetAllocationSamples(Thread* thread, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_native_allocation_samples_params[] = {
+    NO_ISOLATE_PARAMETER,
+    new EnumParameter("tags", true, tags_enum_names),
+    new Int64Parameter("timeOriginMicros", false),
+    new Int64Parameter("timeExtentMicros", false),
+    NULL,
+};
+
+
+static bool GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
+  Profile::TagOrder tag_order =
+      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
+  int64_t time_origin_micros =
+      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
+  int64_t time_extent_micros =
+      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+  ProfilerService::PrintNativeAllocationJSON(js, tag_order, time_origin_micros,
+                                             time_extent_micros);
+  return true;
+}
+
+
 static const MethodParameter* clear_cpu_profile_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,
 };
@@ -4057,6 +4079,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_allocation_profile_params },
   { "_getAllocationSamples", GetAllocationSamples,
       get_allocation_samples_params },
+  { "_getNativeAllocationSamples", GetNativeAllocationSamples,
+      get_native_allocation_samples_params },
   { "getClassList", GetClassList,
     get_class_list_params },
   { "_getCpuProfile", GetCpuProfile,

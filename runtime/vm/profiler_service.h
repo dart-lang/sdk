@@ -419,6 +419,11 @@ class ProfilerService : public AllStatic {
                                   int64_t time_origin_micros,
                                   int64_t time_extent_micros);
 
+  static void PrintNativeAllocationJSON(JSONStream* stream,
+                                        Profile::TagOrder tag_order,
+                                        int64_t time_origin_micros,
+                                        int64_t time_extent_micros);
+
   static void PrintTimelineJSON(JSONStream* stream,
                                 Profile::TagOrder tag_order,
                                 int64_t time_origin_micros,
