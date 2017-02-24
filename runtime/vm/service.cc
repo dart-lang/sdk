@@ -1515,16 +1515,23 @@ static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate->object_store()->libraries());
   ASSERT(!libs.IsNull());
-  intptr_t id = 0;
-  if (!GetIntegerId(parts[1], &id)) {
-    return Object::sentinel().raw();
-  }
-  if ((id < 0) || (id >= libs.Length())) {
-    return Object::sentinel().raw();
-  }
+  const String& id = String::Handle(String::New(parts[1]));
+  // Scan for private key.
+  String& private_key = String::Handle();
   Library& lib = Library::Handle();
-  lib ^= libs.At(id);
-  ASSERT(!lib.IsNull());
+  bool lib_found = false;
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    ASSERT(!lib.IsNull());
+    private_key ^= lib.private_key();
+    if (private_key.Equals(id)) {
+      lib_found = true;
+      break;
+    }
+  }
+  if (!lib_found) {
+    return Object::sentinel().raw();
+  }
   if (num_parts == 2) {
     return lib.raw();
   }

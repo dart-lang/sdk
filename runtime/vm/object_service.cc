@@ -448,8 +448,9 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (lib.IsNull()) {
     jsobj.AddServiceId(*this);
   } else {
-    jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s/%" Px64 "",
-                            lib.index(), encoded_uri, load_timestamp());
+    const String& lib_id = String::Handle(lib.private_key());
+    jsobj.AddFixedServiceId("libraries/%s/scripts/%s/%" Px64 "",
+                            lib_id.ToCString(), encoded_uri, load_timestamp());
   }
   jsobj.AddPropertyStr("uri", uri);
   jsobj.AddProperty("_kind", GetKindAsCString());
@@ -499,11 +500,10 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  intptr_t id = index();
-  ASSERT(id >= 0);
+  const String& id = String::Handle(private_key());
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Library", ref);
-  jsobj.AddFixedServiceId("libraries/%" Pd "", id);
+  jsobj.AddFixedServiceId("libraries/%s", id.ToCString());
   const String& vm_name = String::Handle(name());
   const String& scrubbed_name = String::Handle(String::ScrubName(vm_name));
   AddNameProperties(&jsobj, scrubbed_name.ToCString(), vm_name.ToCString());
