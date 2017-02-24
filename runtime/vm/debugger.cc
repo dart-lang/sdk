@@ -1680,7 +1680,7 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   // asynchronous dispatch mechanisms.
   StackFrameIterator iterator(false);
   StackFrame* frame = iterator.NextFrame();
-  while (synchronous_stack_trace_length >= 0) {
+  while (synchronous_stack_trace_length > 0) {
     ASSERT(frame != NULL);
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();

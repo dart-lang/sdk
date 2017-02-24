@@ -70,6 +70,10 @@ var tests = [
     // Has causal frames (we are inside a function called by an async function)
     expect(stack['asyncCausalFrames'], isNotNull);
     var asyncStack = stack['asyncCausalFrames'];
+    print('async:');
+    await printFrames(asyncStack);
+    print('sync:');
+    await printFrames(stack['frames']);
     expect(asyncStack[0].toString(), contains('foobar'));
     expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
     expect(asyncStack[2].toString(), contains('helper'));
