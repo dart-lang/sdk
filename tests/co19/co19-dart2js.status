@@ -10431,3 +10431,6 @@ LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: Crash # CPS integrity vio
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented, about 75% tests crash
+
+[ $compiler == dart2js && $host_checked ]
+Language/Types/Function_Types/call_t01: Crash # Issue 28894
