@@ -62,7 +62,7 @@ class DartLinter implements AnalysisErrorListener {
 
   Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
     List<AnalysisErrorInfo> errors = [];
-    var analysisDriver = new AnalysisDriver(options);
+    var analysisDriver = new LintDriver(options);
     errors.addAll(analysisDriver.analyze(files.where((f) => isDartFile(f))));
     numSourcesAnalyzed = analysisDriver.numSourcesAnalyzed;
     files.where((f) => isPubspecFile(f)).forEach((p) {
@@ -363,7 +363,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   @override
   Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
     List<AnalysisErrorInfo> errors = [];
-    var analysisDriver = new AnalysisDriver(options);
+    var analysisDriver = new LintDriver(options);
     errors.addAll(analysisDriver.analyze(files.where((f) => isDartFile(f))));
     numSourcesAnalyzed = analysisDriver.numSourcesAnalyzed;
     files.where((f) => isPubspecFile(f)).forEach((p) {
