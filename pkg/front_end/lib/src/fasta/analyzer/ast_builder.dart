@@ -487,6 +487,7 @@ class AstBuilder extends ScopeListener {
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     debugEvent("OptionalFormalParameters");
+    push(new _OptionalFormalParameters(popList(count), beginToken, endToken));
   }
 
   void handleValuedFormalParameter(Token equals, Token token) {
@@ -545,9 +546,25 @@ class AstBuilder extends ScopeListener {
 
   void endFormalParameters(int count, Token beginToken, Token endToken) {
     debugEvent("FormalParameters");
-    List<FormalParameter> parameters = popList(count) ?? <FormalParameter>[];
-    push(ast.formalParameterList(toAnalyzerToken(beginToken), parameters, null,
-        null, toAnalyzerToken(endToken)));
+    List rawParameters = popList(count) ?? const <Object>[];
+    List<FormalParameter> parameters = <FormalParameter>[];
+    Token leftDelimiter;
+    Token rightDelimiter;
+    for (Object raw in rawParameters) {
+      if (raw is _OptionalFormalParameters) {
+        parameters.addAll(raw.parameters);
+        leftDelimiter = raw.leftDelimiter;
+        rightDelimiter = raw.rightDelimiter;
+      } else {
+        parameters.add(raw as FormalParameter);
+      }
+    }
+    push(ast.formalParameterList(
+        toAnalyzerToken(beginToken),
+        parameters,
+        toAnalyzerToken(leftDelimiter),
+        toAnalyzerToken(rightDelimiter),
+        toAnalyzerToken(endToken)));
   }
 
   void handleCatchBlock(Token onKeyword, Token catchKeyword) {
@@ -1267,4 +1284,14 @@ class _ParameterDefaultValue {
   final Expression value;
 
   _ParameterDefaultValue(this.separator, this.value);
+}
+
+/// Data structure placed on the stack as a container for optional parameters.
+class _OptionalFormalParameters {
+  final List<FormalParameter> parameters;
+  final Token leftDelimiter;
+  final Token rightDelimiter;
+
+  _OptionalFormalParameters(
+      this.parameters, this.leftDelimiter, this.rightDelimiter);
 }

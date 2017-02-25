@@ -785,65 +785,9 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseFormalParameterList_named_multiple() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameterList_named_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameterList_named_single() {
-    // TODO(scheglov): Unhandled event: OptionalFormalParameters
-    super.test_parseFormalParameterList_named_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameterList_named_trailing_comma() {
-    // TODO(scheglov): Unhandled event: OptionalFormalParameters
-    super.test_parseFormalParameterList_named_trailing_comma();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameterList_normal_named() {
-    // TODO(scheglov): Unhandled event: OptionalFormalParameters
-    super.test_parseFormalParameterList_normal_named();
-  }
-
-  @override
-  @failingTest
   void test_parseFormalParameterList_normal_named_inFunctionType() {
     // TODO(scheglov): Unhandled event: OptionalFormalParameters
     super.test_parseFormalParameterList_normal_named_inFunctionType();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameterList_normal_positional() {
-    // TODO(scheglov): Unhandled event: OptionalFormalParameters
-    super.test_parseFormalParameterList_normal_positional();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameterList_positional_multiple() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameterList_positional_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameterList_positional_single() {
-    // TODO(scheglov): Unhandled event: ValuedFormalParameter
-    super.test_parseFormalParameterList_positional_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameterList_positional_trailing_comma() {
-    // TODO(scheglov): Unhandled event: OptionalFormalParameters
-    super.test_parseFormalParameterList_positional_trailing_comma();
   }
 
   @override
