@@ -56,8 +56,15 @@ class Function {
   static apply(Function f,
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {
-    // TODO(vsm): Handle named args:
-    // https://github.com/dart-lang/sdk/issues/27257
+    positionalArguments ??= [];
+    // dcall expects the namedArguments as a JS map in the last slot.
+    if (namedArguments != null && namedArguments.isNotEmpty) {
+      var map = JS('', '{}');
+      namedArguments.forEach((symbol, arg) {
+        JS('', '#[#] = #', map, _symbolToString(symbol), arg);
+      });
+      positionalArguments = new List.from(positionalArguments)..add(map);
+    }
     return JS('', 'dart.dcall.apply(null, [#].concat(#))', f, positionalArguments);
   }
 

@@ -32629,6 +32629,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   core.Function = class Function extends core.Object {
     static apply(f, positionalArguments, namedArguments) {
       if (namedArguments === void 0) namedArguments = null;
+      let t = positionalArguments;
+      t == null ? positionalArguments = [] : t;
+      if (namedArguments != null && dart.test(namedArguments[dartx.isNotEmpty])) {
+        let map = {};
+        namedArguments[dartx.forEach](dart.fn((symbol, arg) => {
+          map[core._symbolToString(symbol)] = arg;
+        }, SymbolAnddynamicToNull()));
+        positionalArguments = core.List.from(positionalArguments);
+        positionalArguments[dartx.add](map);
+      }
       return dart.dcall.apply(null, [f].concat(positionalArguments));
     }
     static _toMangledNames(namedArguments) {

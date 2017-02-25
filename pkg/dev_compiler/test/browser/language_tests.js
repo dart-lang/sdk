@@ -79,7 +79,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'bit_operations_test_none_multi': fail,  // DDC/dart2js canonicalize bitop results to unsigned
       'branch_canonicalization_test': fail,  // JS bit operations truncate to 32 bits.
       'call_closurization_test': fail, // Functions do not expose a "call" method.
-      'call_function_apply_test': fail, // Function.apply not really implemented.
       'call_through_null_getter_test': fail, // null errors are not converted to NoSuchMethodErrors.
       'call_with_no_such_method_test': fail, // Function.apply not really implemented.
       'canonical_const2_test': fail,
@@ -94,7 +93,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'cast_test_13_multi': fail,
       'cast_test_14_multi': fail,
       'cast_test_15_multi': fail,
-      'classes_static_method_clash_test': fail,
       'code_after_try_is_executed_test_01_multi': fail,
       'compile_time_constant10_test_none_multi': fail,
       'compile_time_constant_a_test': fail,
@@ -282,7 +280,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
     'corelib': {
       'apply2_test': fail,
       'apply3_test': fail,
-      'apply_test': fail,
       'big_integer_parsed_arith_vm_test': fail,
       'big_integer_parsed_div_rem_vm_test': fail,
       'big_integer_parsed_mul_div_vm_test': fail,
@@ -518,7 +515,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'equality_test': fail,
       'fake_function_with_call_test': fail,
       'field_type_test': fail,
-      'function_apply_mirrors_test': fail,
       'function_type_mirror_test': fail,
       'generic_f_bounded_test_01_multi': fail,
       'generic_f_bounded_test_none_multi': fail,
