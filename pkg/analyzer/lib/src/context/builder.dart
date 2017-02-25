@@ -393,11 +393,6 @@ class ContextBuilder {
       if (workspace.hasFlutterDependency) {
         source =
             sourceFactory.forUri('package:flutter/analysis_options_user.yaml');
-        if (resourceProvider.pathContext.separator == r'\') {
-          // echo some debugging information
-          print('>>> hasFlutterDependency');
-          print('>>> source: ${source?.fullName}');
-        }
       }
       if (source == null || !source.exists()) {
         source =
