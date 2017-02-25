@@ -5263,6 +5263,95 @@ f() {
     verify([source]);
   }
 
+  test_privateCollisionInMixinApplication_mixinAndMixin() async {
+    addNamedSource(
+        '/lib1.dart',
+        '''
+class A {
+  int _x;
+}
+
+class B {
+  int _x;
+}
+''');
+    Source source = addSource('''
+import 'lib1.dart';
+class C extends Object with A, B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION]);
+    verify([source]);
+  }
+
+  test_privateCollisionInMixinApplication_mixinAndMixin_indirect() async {
+    addNamedSource(
+        '/lib1.dart',
+        '''
+class A {
+  int _x;
+}
+
+class B {
+  int _x;
+}
+''');
+    Source source = addSource('''
+import 'lib1.dart';
+class C extends Object with A {}
+class D extends C with B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION]);
+    verify([source]);
+  }
+
+  test_privateCollisionInMixinApplication_superclassAndMixin() async {
+    addNamedSource(
+        '/lib1.dart',
+        '''
+class A {
+  int _x;
+}
+
+class B {
+  int _x;
+}
+''');
+    Source source = addSource('''
+import 'lib1.dart';
+class C extends A with B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION]);
+    verify([source]);
+  }
+
+  test_privateCollisionInMixinApplication_superclassAndMixin_same() async {
+    addNamedSource(
+        '/lib1.dart',
+        '''
+class A {
+  int _x;
+}
+
+class B {
+  int _x;
+}
+''');
+    Source source = addSource('''
+import 'lib1.dart';
+class C extends A with A {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION]);
+    verify([source]);
+  }
+
   test_privateOptionalParameter() async {
     Source source = addSource("f({var _p}) {}");
     await computeAnalysisResult(source);
