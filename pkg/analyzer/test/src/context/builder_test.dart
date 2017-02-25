@@ -735,17 +735,11 @@ linter:
   rules:
     - mock_lint_rule
 ''');
-    String projPath = resourceProvider.convertPath('/some/directory/path');
-    AnalysisOptions options = builder.getAnalysisOptions(projPath);
+    AnalysisOptions options = builder.getAnalysisOptions(
+        resourceProvider.convertPath('/some/directory/path'));
     // TODO(danrubel) fix on Windows
     if (resourceProvider.absolutePathContext.separator != r'\') {
       _expectEqualOptions(options, expected);
-    } else {
-      // echo some debugging information
-      print('>>> projPath: $projPath');
-      print('>>>   ${builderOptions.defaultAnalysisOptionsFilePath}');
-      print('>>> getOptionsFile: ${builder.getOptionsFile(projPath)}');
-      fail('>>>>>>> Fail to echo test output on bots <<<<<<<');
     }
   }
 
