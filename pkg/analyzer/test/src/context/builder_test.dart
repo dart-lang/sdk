@@ -105,13 +105,7 @@ const Map<String, LibraryInfo> libraries = const {
 
   @override
   void setUp() {
-    resourceProvider = new MemoryResourceProvider(
-        // On Windows, ensure that the current drive matches
-        // the drive inserted by MemoryResourceProvider.convertPath
-        // so that packages are mapped to the correct drive
-        context: path.style == path.Style.windows
-            ? new path.Context(current: 'C:\\')
-            : null);
+    resourceProvider = new MemoryResourceProvider();
     pathContext = resourceProvider.pathContext;
     new MockSdk(resourceProvider: resourceProvider);
     sdkManager =
@@ -728,32 +722,24 @@ linter:
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.lint = true;
     expected.lintRules = <Linter>[_mockLintRule];
-    String packagesFilePath =
-        resourceProvider.convertPath('/some/directory/path/.packages');
-    print('>>> packages: $packagesFilePath');
-    createFile(packagesFilePath, 'flutter:/pkg/flutter/lib/');
-    String optionsFilePath = resourceProvider
-        .convertPath('/pkg/flutter/lib/analysis_options_user.yaml');
-    print('>>> options: $optionsFilePath');
     createFile(
-        optionsFilePath,
+        resourceProvider.convertPath('/some/directory/path/.packages'),
+        '''
+flutter:/pkg/flutter/lib/
+''');
+    createFile(
+        resourceProvider
+            .convertPath('/pkg/flutter/lib/analysis_options_user.yaml'),
         '''
 linter:
   rules:
     - mock_lint_rule
 ''');
-    String projPath = resourceProvider.convertPath('/some/directory/path');
-    AnalysisOptions options = builder.getAnalysisOptions(projPath);
+    AnalysisOptions options = builder.getAnalysisOptions(
+        resourceProvider.convertPath('/some/directory/path'));
     // TODO(danrubel) fix on Windows
     if (resourceProvider.absolutePathContext.separator != r'\') {
       _expectEqualOptions(options, expected);
-    } else {
-      // echo some debugging information
-      print('>>> projPath: $projPath');
-      print('>>>   ${builderOptions.defaultAnalysisOptionsFilePath}');
-      print('>>> getOptionsFile: ${builder.getOptionsFile(projPath)}');
-      _expectEqualOptions(options, expected);
-      fail('>>>>>>> Fail to echo test output on bots <<<<<<<');
     }
   }
 
