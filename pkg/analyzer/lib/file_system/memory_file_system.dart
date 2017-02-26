@@ -36,7 +36,12 @@ class MemoryResourceProvider implements ResourceProvider {
 
   MemoryResourceProvider(
       {pathos.Context context, @deprecated bool isWindows: false})
-      : _pathContext = (context ??= pathos.context),
+      : _pathContext = (context ??= pathos.style == pathos.Style.windows
+            // On Windows, ensure that the current drive matches
+            // the drive inserted by MemoryResourceProvider.convertPath
+            // so that packages are mapped to the correct drive
+            ? new pathos.Context(current: 'C:\\')
+            : pathos.context),
         absolutePathContext =
             new AbsolutePathContext(context.style == pathos.Style.windows);
 

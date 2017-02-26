@@ -722,24 +722,32 @@ linter:
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.lint = true;
     expected.lintRules = <Linter>[_mockLintRule];
+    String packagesFilePath =
+        resourceProvider.convertPath('/some/directory/path/.packages');
+    print('>>> packages: $packagesFilePath');
+    createFile(packagesFilePath, 'flutter:/pkg/flutter/lib/');
+    String optionsFilePath = resourceProvider
+        .convertPath('/pkg/flutter/lib/analysis_options_user.yaml');
+    print('>>> options: $optionsFilePath');
     createFile(
-        resourceProvider.convertPath('/some/directory/path/.packages'),
-        '''
-flutter:/pkg/flutter/lib/
-''');
-    createFile(
-        resourceProvider
-            .convertPath('/pkg/flutter/lib/analysis_options_user.yaml'),
+        optionsFilePath,
         '''
 linter:
   rules:
     - mock_lint_rule
 ''');
-    AnalysisOptions options = builder.getAnalysisOptions(
-        resourceProvider.convertPath('/some/directory/path'));
+    String projPath = resourceProvider.convertPath('/some/directory/path');
+    AnalysisOptions options = builder.getAnalysisOptions(projPath);
     // TODO(danrubel) fix on Windows
     if (resourceProvider.absolutePathContext.separator != r'\') {
       _expectEqualOptions(options, expected);
+    } else {
+      // echo some debugging information
+      print('>>> projPath: $projPath');
+      print('>>>   ${builderOptions.defaultAnalysisOptionsFilePath}');
+      print('>>> getOptionsFile: ${builder.getOptionsFile(projPath)}');
+      _expectEqualOptions(options, expected);
+      fail('>>>>>>> Fail to echo test output on bots <<<<<<<');
     }
   }
 
