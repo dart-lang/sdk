@@ -129,7 +129,12 @@ main() {
           try {
             Directory.current = path.join(tempDirPath, 'proj');
             Driver driver = new Driver();
-            await driver.start([path.join('lib', 'file.dart')]);
+            try {
+              await driver.start([path.join('lib', 'file.dart')]);
+            } catch (e) {
+              print('>>>>>\n${errorSink.toString()}\n<<<<<');
+              rethrow;
+            }
             expect(errorSink.toString(), isEmpty);
             expect(outSink.toString(), contains('No issues found'));
             expect(exitCode, 0);
