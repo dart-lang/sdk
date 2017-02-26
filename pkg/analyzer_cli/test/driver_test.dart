@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
+import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:yaml/src/yaml_node.dart';
@@ -122,6 +123,8 @@ main() {
         // Copy to temp dir so that existing analysis options
         // in the test directory hierarchy do not interfere
         await withTempDirAsync((String tempDirPath) async {
+          String dartSdkPath = getSdkDir(<String>[])?.path;
+          print('>>> dartSdkPath: $dartSdkPath');
           await recursiveCopy(
               new Directory(path.join(testDirectory, 'data', 'bazel')),
               tempDirPath);
@@ -129,7 +132,16 @@ main() {
           try {
             Directory.current = path.join(tempDirPath, 'proj');
             Driver driver = new Driver();
-            await driver.start([path.join('lib', 'file.dart')]);
+            try {
+              await driver.start([
+                path.join('lib', 'file.dart'),
+                '--dart-sdk',
+                dartSdkPath,
+              ]);
+            } catch (e) {
+              print('>>>>>\n${errorSink.toString()}\n<<<<<');
+              rethrow;
+            }
             expect(errorSink.toString(), isEmpty);
             expect(outSink.toString(), contains('No issues found'));
             expect(exitCode, 0);
