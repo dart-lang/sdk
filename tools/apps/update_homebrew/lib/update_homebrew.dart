@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart';
 import 'package:googleapis/storage/v1.dart' as storage;
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 
 const GITHUB_REPO = 'dart-lang/homebrew-dart';
 
@@ -17,6 +18,8 @@ const x64File = 'sdk/dartsdk-macos-x64-release.zip';
 const ia32File = 'sdk/dartsdk-macos-ia32-release.zip';
 const dartiumFile = 'dartium/dartium-macos-x64-release.zip';
 const contentShellFile = 'dartium/content_shell-macos-x64-release.zip';
+
+const dartRbFileName = 'dart.rb';
 
 Future<String> getHash256(
     String channel, String revision, String download) async {
@@ -52,7 +55,8 @@ Future<String> getVersion(String channel, String revision) async {
 
 Future<Map> getCurrentRevisions(String repository) async {
   var revisions = <String, String>{};
-  var lines = await (new File('$repository/dart.rb')).readAsLines();
+  var lines =
+      await (new File(p.join(repository, dartRbFileName))).readAsLines();
 
   for (var channel in CHANNELS) {
     /// This RegExp between release/ and /sdk matches
@@ -97,7 +101,7 @@ Future writeHomebrewInfo(
 
   var stableVersion = await getVersion('stable', revisions['stable']);
 
-  await new File('$repository/dart.rb').writeAsString(
+  await new File(p.join(repository, dartRbFileName)).writeAsString(
       createDartFormula(revisions, hashes, devVersion, stableVersion),
       flush: true);
 }
