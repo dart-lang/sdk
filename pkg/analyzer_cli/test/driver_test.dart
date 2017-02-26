@@ -123,7 +123,7 @@ main() {
         // Copy to temp dir so that existing analysis options
         // in the test directory hierarchy do not interfere
         await withTempDirAsync((String tempDirPath) async {
-          String dartSdkPath = getSdkDir(<String>[])?.path;
+          String dartSdkPath = path.absolute(getSdkDir(<String>[]).path);
           print('>>> dartSdkPath: $dartSdkPath');
           await recursiveCopy(
               new Directory(path.join(testDirectory, 'data', 'bazel')),
