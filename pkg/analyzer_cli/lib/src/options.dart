@@ -250,12 +250,10 @@ class CommandLineOptions {
     if (options.buildModePersistentWorker && !options.buildMode) {
       printAndFail('The option --persisten_worker can be used only '
           'together with --build-mode.');
-      return null; // Only reachable in testing.
     }
     if (options.buildSummaryOnlyDiet && !options.buildSummaryOnly) {
       printAndFail('The option --build-summary-only-diet can be used only '
           'together with --build-summary-only.');
-      return null; // Only reachable in testing.
     }
 
     return options;
