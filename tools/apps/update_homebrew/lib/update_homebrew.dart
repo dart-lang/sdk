@@ -109,77 +109,76 @@ Future writeHomebrewInfo(
 String createDartFormula(
         Map revisions, Map hashes, String devVersion, String stableVersion) =>
     '''
-require 'formula'
-
 class Dart < Formula
-  homepage 'https://www.dartlang.org/'
+  desc "The Dart SDK"
+  homepage "https://www.dartlang.org/"
 
-  version '$stableVersion'
+  version "$stableVersion"
   if MacOS.prefer_64_bit?
-    url '$urlBase/stable/release/${revisions['stable']}/$x64File'
-    sha256 '${hashes['stable'][x64File]}'
+    url "$urlBase/stable/release/${revisions['stable']}/$x64File"
+    sha256 "${hashes['stable'][x64File]}"
   else
-    url '$urlBase/stable/release/${revisions['stable']}/$ia32File'
-    sha256 '${hashes['stable'][ia32File]}'
+    url "$urlBase/stable/release/${revisions['stable']}/$ia32File"
+    sha256 "${hashes['stable'][ia32File]}"
   end
-
-  option 'with-content-shell', 'Download and install content_shell -- headless Dartium for testing'
-  option 'with-dartium', 'Download and install Dartium -- Chromium with Dart'
 
   devel do
-    version '$devVersion'
+    version "$devVersion"
     if MacOS.prefer_64_bit?
-      url '$urlBase/dev/release/${revisions['dev']}/$x64File'
-      sha256 '${hashes['dev'][x64File]}'
+      url "$urlBase/dev/release/${revisions['dev']}/$x64File"
+      sha256 "${hashes['dev'][x64File]}"
     else
-      url '$urlBase/dev/release/${revisions['dev']}/$ia32File'
-      sha256 '${hashes['dev'][ia32File]}'
+      url "$urlBase/dev/release/${revisions['dev']}/$ia32File"
+      sha256 "${hashes['dev'][ia32File]}"
     end
 
-    resource 'content_shell' do
-      version '$devVersion'
-      url '$urlBase/dev/release/${revisions['dev']}/$contentShellFile'
-      sha256 '${hashes['dev'][contentShellFile]}'
+    resource "content_shell" do
+      version "$devVersion"
+      url "$urlBase/dev/release/${revisions['dev']}/$contentShellFile"
+      sha256 "${hashes['dev'][contentShellFile]}"
     end
 
-    resource 'dartium' do
-      version '$devVersion'
-      url '$urlBase/dev/release/${revisions['dev']}/$dartiumFile'
-      sha256 '${hashes['dev'][dartiumFile]}'
+    resource "dartium" do
+      version "$devVersion"
+      url "$urlBase/dev/release/${revisions['dev']}/$dartiumFile"
+      sha256 "${hashes['dev'][dartiumFile]}"
     end
   end
 
-  resource 'content_shell' do
-    version '$stableVersion'
-    url '$urlBase/stable/release/${revisions['stable']}/$contentShellFile'
-    sha256 '${hashes['stable'][contentShellFile]}'
+  option "with-content-shell", "Download and install content_shell -- headless Dartium for testing"
+  option "with-dartium", "Download and install Dartium -- Chromium with Dar"
+
+  resource "content_shell" do
+    version "$stableVersion"
+    url "$urlBase/stable/release/${revisions['stable']}/$contentShellFile"
+    sha256 "${hashes['stable'][contentShellFile]}"
   end
 
-  resource 'dartium' do
-    version '$stableVersion'
-    url '$urlBase/stable/release/${revisions['stable']}/$dartiumFile'
-    sha256 '${hashes['stable'][dartiumFile]}'
+  resource "dartium" do
+    version "$stableVersion"
+    url "$urlBase/stable/release/${revisions['stable']}/$dartiumFile"
+    sha256 "${hashes['stable'][dartiumFile]}"
   end
 
   def install
-    libexec.install Dir['*']
+    libexec.install Dir["*"]
     bin.install_symlink "#{libexec}/bin/dart"
     bin.write_exec_script Dir["#{libexec}/bin/{pub,dart?*}"]
 
-    if build.with? 'dartium'
-      dartium_binary = 'Chromium.app/Contents/MacOS/Chromium'
-      prefix.install resource('dartium')
+    if build.with? "dartium"
+      dartium_binary = "Chromium.app/Contents/MacOS/Chromium"
+      prefix.install resource("dartium")
       (bin+"dartium").write shim_script dartium_binary
     end
 
-    if build.with? 'content-shell'
-      content_shell_binary = 'Content Shell.app/Contents/MacOS/Content Shell'
-      prefix.install resource('content_shell')
+    if build.with? "content-shell"
+      content_shell_binary = "Content Shell.app/Contents/MacOS/Content Shell"
+      prefix.install resource("content_shell")
       (bin+"content_shell").write shim_script content_shell_binary
     end
   end
 
-  def shim_script target
+  def shim_script(target)
     <<-EOS.undent
       #!/usr/bin/env bash
       exec "#{prefix}/#{target}" "\$@"
@@ -197,7 +196,7 @@ class Dart < Formula
   end
 
   test do
-    (testpath/'sample.dart').write <<-EOS.undent
+    (testpath/"sample.dart").write <<-EOS.undent
       void main() {
         print(r"test message");
       }
