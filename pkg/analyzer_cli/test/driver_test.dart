@@ -124,7 +124,6 @@ main() {
         // in the test directory hierarchy do not interfere
         await withTempDirAsync((String tempDirPath) async {
           String dartSdkPath = path.absolute(getSdkDir(<String>[]).path);
-          print('>>> dartSdkPath: $dartSdkPath');
           await recursiveCopy(
               new Directory(path.join(testDirectory, 'data', 'bazel')),
               tempDirPath);
@@ -139,7 +138,9 @@ main() {
                 dartSdkPath,
               ]);
             } catch (e) {
-              print('>>>>>\n${errorSink.toString()}\n<<<<<');
+              print('=== debug info ===');
+              print('dartSdkPath: $dartSdkPath');
+              print('stderr:\n${errorSink.toString()}');
               rethrow;
             }
             expect(errorSink.toString(), isEmpty);
