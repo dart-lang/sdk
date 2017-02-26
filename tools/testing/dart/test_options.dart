@@ -304,7 +304,7 @@ class TestOptionsParser {
           'noDFE', 'Do not use Kernel Isolate', ['--no-dfe'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
-          'useFasta', 'Use Fasta in Kernel Isolate', ['--use-fasta'], [], false,
+          'noUseFasta', 'Use Fasta in Kernel Isolate', ['--no-use-fasta'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
           'list', 'List tests only, do not run them', ['--list'], [], false,

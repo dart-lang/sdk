@@ -228,6 +228,7 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       List<String> arguments,
       Map<String, String> environmentOverrides) {
     final bool needsDFERunner = suite.configuration['compiler'] == 'dartk' &&
+        suite.configuration['noUseFasta'] &&
         !suite.configuration['noBatch'];
     String script = artifact.filename;
     String type = artifact.mimeType;
