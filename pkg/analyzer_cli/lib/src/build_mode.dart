@@ -159,6 +159,15 @@ class BuildMode {
       return ErrorSeverity.ERROR;
     }
 
+    // BuildMode expects sourceFiles in the format "<uri>|<filepath>",
+    // but the rest of the code base does not understand this format.
+    // Rewrite sourceFiles, stripping the "<uri>|" prefix, so that it
+    // does not cause problems with code that does not expect this format.
+    options.rewriteSourceFiles(options.sourceFiles
+        .map((String uriPipePath) =>
+            uriPipePath.substring(uriPipePath.indexOf('|') + 1))
+        .toList());
+
     // Prepare the analysis context.
     _createContext();
 
