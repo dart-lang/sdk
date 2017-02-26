@@ -722,25 +722,21 @@ linter:
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.lint = true;
     expected.lintRules = <Linter>[_mockLintRule];
+    String packagesFilePath =
+        resourceProvider.convertPath('/some/directory/path/.packages');
+    createFile(packagesFilePath, 'flutter:/pkg/flutter/lib/');
+    String optionsFilePath = resourceProvider
+        .convertPath('/pkg/flutter/lib/analysis_options_user.yaml');
     createFile(
-        resourceProvider.convertPath('/some/directory/path/.packages'),
-        '''
-flutter:/pkg/flutter/lib/
-''');
-    createFile(
-        resourceProvider
-            .convertPath('/pkg/flutter/lib/analysis_options_user.yaml'),
+        optionsFilePath,
         '''
 linter:
   rules:
     - mock_lint_rule
 ''');
-    AnalysisOptions options = builder.getAnalysisOptions(
-        resourceProvider.convertPath('/some/directory/path'));
-    // TODO(danrubel) fix on Windows
-    if (resourceProvider.absolutePathContext.separator != r'\') {
-      _expectEqualOptions(options, expected);
-    }
+    String projPath = resourceProvider.convertPath('/some/directory/path');
+    AnalysisOptions options = builder.getAnalysisOptions(projPath);
+    _expectEqualOptions(options, expected);
   }
 
   void test_getAnalysisOptions_default_noOverrides() {

@@ -30,10 +30,7 @@ class SourceFactoryImplTest extends AbstractContextTest {
       new _MockPackages(packageUriMap),
     );
     Uri uri = sourceFactory.restoreUri(newSource('/pkgs/somepkg/lib'));
-    // TODO(danrubel) fix on Windows
-    if (resourceProvider.absolutePathContext.separator != r'\') {
-      expect(uri, Uri.parse('package:foo/'));
-    }
+    expect(uri, Uri.parse('package:foo/'));
   }
 }
 
