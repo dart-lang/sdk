@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library update_homebrew;
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:googleapis/common/common.dart' show DownloadOptions, Media;
+import 'package:_discoveryapis_commons/_discoveryapis_commons.dart';
 import 'package:googleapis/storage/v1.dart' as storage;
 import 'package:http/http.dart' as http;
 import 'package:stack_trace/stack_trace.dart';
@@ -113,7 +111,8 @@ Future writeHomebrewInfo(String channel, String revision) async {
 }
 
 String createDartFormula(
-    Map revisions, Map hashes, String devVersion, String stableVersion) => '''
+        Map revisions, Map hashes, String devVersion, String stableVersion) =>
+    '''
 require 'formula'
 
 class Dart < Formula
@@ -223,7 +222,7 @@ Future runGit(List<String> args) async {
   print(result.stderr);
 }
 
-main(args) async {
+main(List<String> args) async {
   final parser = new ArgParser()
     ..addOption('revision', abbr: 'r')
     ..addOption('channel', abbr: 'c', allowed: ['dev', 'stable'])
@@ -243,7 +242,7 @@ main(args) async {
     gitEnvironment = {'GIT_SSH': sshWrapper, 'SSH_KEY_PATH': key};
   }
 
-  Chain.capture(() async {
+  await Chain.capture(() async {
     var tempDir = await Directory.systemTemp.createTemp('update_homebrew');
 
     try {
