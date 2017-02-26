@@ -12,9 +12,6 @@ import 'package:googleapis/storage/v1.dart' as storage;
 import 'package:http/http.dart' as http;
 import 'package:stack_trace/stack_trace.dart';
 
-String repository; // The path to the temporary git checkout of dart-homebrew.
-Map gitEnvironment; // Pass a wrapper script for SSH to git in the environment.
-
 const GITHUB_REPO = 'dart-lang/homebrew-dart';
 
 const CHANNELS = const ['dev', 'stable'];
@@ -59,7 +56,7 @@ Future<String> getVersion(String channel, String revision) async {
   }
 }
 
-Future<Map> getCurrentRevisions() async {
+Future<Map> getCurrentRevisions(String repository) async {
   var revisions = <String, String>{};
   var lines = await (new File('$repository/dart.rb')).readAsLines();
 
@@ -92,8 +89,9 @@ Future<Map> getHashes(Map revisions) async {
   return hashes;
 }
 
-Future writeHomebrewInfo(String channel, String revision) async {
-  var revisions = await getCurrentRevisions();
+Future writeHomebrewInfo(
+    String channel, String revision, String repository) async {
+  var revisions = await getCurrentRevisions(repository);
 
   if (revisions[channel] == revision) {
     print("Channel $channel is already at revision $revision in homebrew.");
@@ -212,7 +210,8 @@ class Dart < Formula
 end
 ''';
 
-Future runGit(List<String> args) async {
+Future runGit(List<String> args, String repository,
+    Map<String, String> gitEnvironment) async {
   print("git ${args.join(' ')}");
 
   var result = await Process.run('git', args,
@@ -233,8 +232,11 @@ main(List<String> args) async {
   if ([revision, channel].contains(null)) {
     print("Usage: update_homebrew.dart -r revision -c channel [-k ssh_key]\n"
         "  ssh_key should allow pushes to ${GITHUB_REPO} on github");
+    exitCode = 1;
     return;
   }
+
+  Map<String, String> gitEnvironment;
 
   final key = options['key'];
   if (key != null) {
@@ -246,23 +248,25 @@ main(List<String> args) async {
     var tempDir = await Directory.systemTemp.createTemp('update_homebrew');
 
     try {
-      repository = tempDir.path;
+      var repository = tempDir.path;
 
-      await runGit(['clone', 'git@github.com:${GITHUB_REPO}.git', '.']);
-      await writeHomebrewInfo(channel, revision);
+      await runGit(['clone', 'git@github.com:${GITHUB_REPO}.git', '.'],
+          repository, gitEnvironment);
+      await writeHomebrewInfo(channel, revision, repository);
       await runGit([
         'commit',
         '-a',
         '-m',
         'Updated $channel branch to revision $revision'
-      ]);
+      ], repository, gitEnvironment);
 
-      await runGit(['push']);
+      await runGit(['push'], repository, gitEnvironment);
     } finally {
       await tempDir.delete(recursive: true);
     }
   }, onError: (error, chain) {
     print(error);
     print(chain.terse);
+    exitCode = 1;
   });
 }
