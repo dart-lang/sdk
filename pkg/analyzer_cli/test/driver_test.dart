@@ -117,6 +117,27 @@ main() {
         ]);
         expect(exitCode, 3);
       });
+
+      test('bazel workspace relative path', () async {
+        // Copy to temp dir so that existing analysis options
+        // in the test directory hierarchy do not interfere
+        await withTempDirAsync((String tempDirPath) async {
+          await recursiveCopy(
+              new Directory(path.join(testDirectory, 'data', 'bazel')),
+              tempDirPath);
+          Directory origWorkingDir = Directory.current;
+          try {
+            Directory.current = path.join(tempDirPath, 'proj');
+            Driver driver = new Driver();
+            await driver.start([path.join('lib', 'file.dart')]);
+            expect(errorSink.toString(), isEmpty);
+            expect(outSink.toString(), contains('No issues found'));
+            expect(exitCode, 0);
+          } finally {
+            Directory.current = origWorkingDir;
+          }
+        });
+      });
     });
 
     group('linter', () {

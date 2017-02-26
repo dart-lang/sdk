@@ -7,12 +7,11 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'utils.dart' show testDirectory, withTempDir;
+import 'utils.dart' show recursiveCopy, testDirectory, withTempDirAsync;
 
 main() {
   defineReflectiveTests(OptionsTest);
 }
-
 
 @reflectiveTest
 class OptionsTest {
@@ -28,23 +27,13 @@ class OptionsTest {
   }
 
   test_options() async {
-    Future<Null> copy(FileSystemEntity src, String dstPath) async {
-      if (src is Directory) {
-        await (new Directory(dstPath)).create(recursive: true);
-        for (FileSystemEntity entity in src.listSync()) {
-          await copy(entity, path.join(dstPath, path.basename(entity.path)));
-        }
-      } else if (src is File) {
-        await src.copy(dstPath);
-      }
-    }
-
     // Copy to temp dir so that existing analysis options
     // in the test directory hierarchy do not interfere
     var projDir = path.join(testDirectory, 'data', 'flutter_analysis_options');
-    await withTempDir((String tempDirPath) async {
-      await copy(new Directory(projDir), tempDirPath);
-      var expectedPath = path.join(tempDirPath, 'somepkgs', 'flutter', 'lib', 'analysis_options_user.yaml');
+    await withTempDirAsync((String tempDirPath) async {
+      await recursiveCopy(new Directory(projDir), tempDirPath);
+      var expectedPath = path.join(tempDirPath, 'somepkgs', 'flutter', 'lib',
+          'analysis_options_user.yaml');
       expect(FileSystemEntity.isFileSync(expectedPath), isTrue);
       await runner.run2([
         "--packages",
