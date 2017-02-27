@@ -1253,18 +1253,14 @@ class AnalysisServer {
     }
     if (options.enableNewAnalysisDriver) {
       this.analysisServices = subscriptions;
-      Iterable<nd.AnalysisDriver> drivers = driverMap.values;
-      if (drivers.isNotEmpty) {
-        Set<String> allNewFiles =
-            subscriptions.values.expand((files) => files).toSet();
-        for (String file in allNewFiles) {
-          nd.AnalysisDriver driver = drivers.firstWhere(
-              (driver) => driver.addedFiles.contains(file),
-              orElse: () => drivers.first);
-          // The result will be produced by the "results" stream with
-          // the fully resolved unit, and processed with sending analysis
-          // notifications as it happens after content changes.
-          driver.getResult(file).catchError((exception, stackTrace) {});
+      Set<String> allNewFiles =
+          subscriptions.values.expand((files) => files).toSet();
+      for (String file in allNewFiles) {
+        // The result will be produced by the "results" stream with
+        // the fully resolved unit, and processed with sending analysis
+        // notifications as it happens after content changes.
+        if (AnalysisEngine.isDartFileName(file)) {
+          getAnalysisResult(file);
         }
       }
       return;
