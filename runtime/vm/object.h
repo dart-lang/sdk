@@ -8302,16 +8302,16 @@ class LinkedHashMap : public Instance {
 
 class Closure : public Instance {
  public:
+  RawTypeArguments* instantiator() const { return raw_ptr()->instantiator_; }
+  static intptr_t instantiator_offset() {
+    return OFFSET_OF(RawClosure, instantiator_);
+  }
+
   RawFunction* function() const { return raw_ptr()->function_; }
   static intptr_t function_offset() { return OFFSET_OF(RawClosure, function_); }
 
   RawContext* context() const { return raw_ptr()->context_; }
   static intptr_t context_offset() { return OFFSET_OF(RawClosure, context_); }
-
-  RawTypeArguments* instantiator() const { return raw_ptr()->instantiator_; }
-  static intptr_t instantiator_offset() {
-    return OFFSET_OF(RawClosure, instantiator_);
-  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClosure));
@@ -8324,7 +8324,8 @@ class Closure : public Instance {
     return true;
   }
 
-  static RawClosure* New(const Function& function,
+  static RawClosure* New(const TypeArguments& instantiator,
+                         const Function& function,
                          const Context& context,
                          Heap::Space space = Heap::kNew);
 

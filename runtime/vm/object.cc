@@ -6907,8 +6907,9 @@ RawInstance* Function::ImplicitStaticClosure() const {
     ObjectStore* object_store = isolate->object_store();
     const Context& context =
         Context::Handle(zone, object_store->empty_context());
-    Instance& closure =
-        Instance::Handle(zone, Closure::New(*this, context, Heap::kOld));
+    const TypeArguments& instantiator = TypeArguments::Handle(zone);
+    Instance& closure = Instance::Handle(
+        zone, Closure::New(instantiator, *this, context, Heap::kOld));
     set_implicit_static_closure(closure);
   }
   return implicit_static_closure();
@@ -6917,17 +6918,16 @@ RawInstance* Function::ImplicitStaticClosure() const {
 
 RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
   ASSERT(IsImplicitClosureFunction());
-  const Type& signature_type = Type::Handle(SignatureType());
-  const Class& cls = Class::Handle(signature_type.type_class());
-  const Context& context = Context::Handle(Context::New(1));
+  Zone* zone = Thread::Current()->zone();
+  const Type& signature_type = Type::Handle(zone, SignatureType());
+  const Class& cls = Class::Handle(zone, signature_type.type_class());
+  const Context& context = Context::Handle(zone, Context::New(1));
   context.SetAt(0, receiver);
-  const Instance& result = Instance::Handle(Closure::New(*this, context));
+  TypeArguments& instantiator = TypeArguments::Handle(zone);
   if (cls.IsGeneric()) {
-    const TypeArguments& type_arguments =
-        TypeArguments::Handle(receiver.GetTypeArguments());
-    result.SetTypeArguments(type_arguments);
+    instantiator = receiver.GetTypeArguments();
   }
-  return result.raw();
+  return Closure::New(instantiator, *this, context);
 }
 
 
@@ -22385,7 +22385,8 @@ const char* Closure::ToCString() const {
 }
 
 
-RawClosure* Closure::New(const Function& function,
+RawClosure* Closure::New(const TypeArguments& instantiator,
+                         const Function& function,
                          const Context& context,
                          Heap::Space space) {
   Closure& result = Closure::Handle();
@@ -22394,6 +22395,7 @@ RawClosure* Closure::New(const Function& function,
         Object::Allocate(Closure::kClassId, Closure::InstanceSize(), space);
     NoSafepointScope no_safepoint;
     result ^= raw;
+    result.StorePointer(&result.raw_ptr()->instantiator_, instantiator.raw());
     result.StorePointer(&result.raw_ptr()->function_, function.raw());
     result.StorePointer(&result.raw_ptr()->context_, context.raw());
   }
