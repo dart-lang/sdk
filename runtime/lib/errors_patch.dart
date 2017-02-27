@@ -232,10 +232,10 @@ class _InternalError {
 
   // This constructor seems to be called with either strings or
   // values read from another NoSuchMethodError.
-  NoSuchMethodError._withType(Object this._receiver,
+  NoSuchMethodError._withType(this._receiver,
                               /*String|Symbol*/ memberName,
                               this._invocation_type,
-                              List this._arguments,
+                              this._arguments,
                               Map<dynamic, dynamic> namedArguments,
                               [List existingArgumentNames = null])
       : this._memberName =
