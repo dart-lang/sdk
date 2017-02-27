@@ -4685,14 +4685,7 @@ class Code : public Object {
     StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
   }
 
-  RawArray* await_token_positions() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return Array::null();
-#else
-    return raw_ptr()->await_token_positions_;
-#endif
-  }
-
+  RawArray* await_token_positions() const;
   void SetAwaitTokenPositions(const Array& await_token_positions) const;
 
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas

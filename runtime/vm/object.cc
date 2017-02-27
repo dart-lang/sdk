@@ -14632,6 +14632,14 @@ void Code::DumpSourcePositions() const {
 }
 
 
+RawArray* Code::await_token_positions() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
+  return raw_ptr()->await_token_positions_;
+#endif
+}
+
 RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
   ASSERT(num_variables >= 0);
   ASSERT(Object::context_class() != Class::null());

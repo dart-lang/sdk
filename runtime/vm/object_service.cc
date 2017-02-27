@@ -870,7 +870,9 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 void Code::SetAwaitTokenPositions(const Array& await_token_positions) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   StorePointer(&raw_ptr()->await_token_positions_, await_token_positions.raw());
+#endif
 }
 
 
