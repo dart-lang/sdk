@@ -631,6 +631,14 @@ class FastaParserTestCase extends Object
   }
 
   @override
+  set enableLazyAssignmentOperators(bool value) {
+    // TODO: implement enableLazyAssignmentOperators
+    if (value == true) {
+      throw new UnimplementedError();
+    }
+  }
+
+  @override
   set enableNnbd(bool value) {
     if (value == true) {
       // TODO(paulberry,ahe): non-null-by-default syntax is not supported by
