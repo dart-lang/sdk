@@ -47,7 +47,10 @@ class ObjectPointerVisitor;
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
   V(_AsyncStarStreamControllerConstructor, "_AsyncStarStreamController.")      \
   V(Controller, ":controller")                                                 \
+  V(ControllerStream, ":controller_stream")                                    \
+  V(Controller2, "controller")                                                 \
   V(Stream, "stream")                                                          \
+  V(_StreamImpl, "_StreamImpl")                                                \
   V(isPaused, "isPaused")                                                      \
   V(AddError, "addError")                                                      \
   V(AddStream, "addStream")                                                    \
@@ -127,6 +130,7 @@ class ObjectPointerVisitor;
   V(AsyncStackTraceHelper, "_asyncStackTraceHelper")                           \
   V(AsyncAwaitHelper, "_awaitHelper")                                          \
   V(Await, "await")                                                            \
+  V(_Awaiter, "_awaiter")                                                      \
   V(AwaitTempVarPrefix, ":await_temp_var_")                                    \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
@@ -218,6 +222,7 @@ class ObjectPointerVisitor;
   V(_RegExp, "_RegExp")                                                        \
   V(RegExp, "RegExp")                                                          \
   V(ColonMatcher, ":matcher")                                                  \
+  V(ColonStream, ":stream")                                                    \
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
   V(Double, "double")                                                          \
@@ -429,7 +434,8 @@ class ObjectPointerVisitor;
   V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
   V(GetRuntimeType, "get:runtimeType")                                         \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
-  V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")
+  V(DartDeveloperCausalAsyncStacks, "dart.developer.causal_async_stacks")      \
+  V(_AsyncStarListenHelper, "_asyncStarListenHelper")
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

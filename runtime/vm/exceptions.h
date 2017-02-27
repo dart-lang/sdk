@@ -99,6 +99,7 @@ struct ExceptionHandlerInfo {
   int16_t outer_try_index;     // Try block index of enclosing try block.
   int8_t needs_stacktrace;     // True if a stacktrace is needed.
   int8_t has_catch_all;        // Catches all exceptions.
+  int8_t is_generated;         // True if this is a generated handler.
 };
 
 }  // namespace dart

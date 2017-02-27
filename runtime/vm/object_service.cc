@@ -869,6 +869,11 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
+void Code::SetAwaitTokenPositions(const Array& await_token_positions) const {
+  StorePointer(&raw_ptr()->await_token_positions_, await_token_positions.raw());
+}
+
+
 void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   // TODO(turnidge): Should the user level type for Context be Context

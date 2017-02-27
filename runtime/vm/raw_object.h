@@ -1141,6 +1141,7 @@ class RawCode : public RawObject {
   RawArray* stackmaps_;
   RawArray* inlined_id_to_function_;
   RawCodeSourceMap* code_source_map_;
+  NOT_IN_PRECOMPILED(RawArray* await_token_positions_);
   NOT_IN_PRECOMPILED(RawInstructions* active_instructions_);
   NOT_IN_PRECOMPILED(RawArray* deopt_info_array_);
   // (code-offset, function, code) triples.

@@ -12493,7 +12493,9 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        intptr_t outer_try_index,
                                        uword handler_pc_offset,
                                        bool needs_stacktrace,
-                                       bool has_catch_all) const {
+                                       bool has_catch_all,
+                                       TokenPosition token_pos,
+                                       bool is_generated) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
   NoSafepointScope no_safepoint;
   ExceptionHandlerInfo* info =
@@ -12506,6 +12508,7 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
   info->handler_pc_offset = handler_pc_offset;
   info->needs_stacktrace = needs_stacktrace;
   info->has_catch_all = has_catch_all;
+  info->is_generated = is_generated;
 }
 
 void ExceptionHandlers::GetHandlerInfo(intptr_t try_index,
@@ -12531,6 +12534,12 @@ intptr_t ExceptionHandlers::OuterTryIndex(intptr_t try_index) const {
 bool ExceptionHandlers::NeedsStackTrace(intptr_t try_index) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
   return raw_ptr()->data()[try_index].needs_stacktrace;
+}
+
+
+bool ExceptionHandlers::IsGenerated(intptr_t try_index) const {
+  ASSERT((try_index >= 0) && (try_index < num_entries()));
+  return raw_ptr()->data()[try_index].is_generated;
 }
 
 
@@ -12612,7 +12621,7 @@ RawExceptionHandlers* ExceptionHandlers::New(const Array& handled_types_data) {
 
 
 const char* ExceptionHandlers::ToCString() const {
-#define FORMAT1 "%" Pd " => %#x  (%" Pd " types) (outer %d)\n"
+#define FORMAT1 "%" Pd " => %#x  (%" Pd " types) (outer %d) %s\n"
 #define FORMAT2 "  %d. %s\n"
   if (num_entries() == 0) {
     return "empty ExceptionHandlers\n";
@@ -12628,7 +12637,8 @@ const char* ExceptionHandlers::ToCString() const {
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
     len += OS::SNPrint(NULL, 0, FORMAT1, i, info.handler_pc_offset, num_types,
-                       info.outer_try_index);
+                       info.outer_try_index,
+                       info.is_generated ? "(generated)" : "");
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
       ASSERT(!type.IsNull());
@@ -12646,7 +12656,8 @@ const char* ExceptionHandlers::ToCString() const {
         handled_types.IsNull() ? 0 : handled_types.Length();
     num_chars +=
         OS::SNPrint((buffer + num_chars), (len - num_chars), FORMAT1, i,
-                    info.handler_pc_offset, num_types, info.outer_try_index);
+                    info.handler_pc_offset, num_types, info.outer_try_index,
+                    info.is_generated ? "(generated)" : "");
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
       num_chars += OS::SNPrint((buffer + num_chars), (len - num_chars), FORMAT2,
