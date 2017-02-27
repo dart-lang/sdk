@@ -1705,10 +1705,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   Label loop, found, not_found, next_iteration;
   // EDX: Entry start.
   // ECX: instance class id.
-  // EBX: instance type arguments.
+  // EBX: instance type arguments (still null if closure).
   __ SmiTag(ECX);
   __ cmpl(ECX, Immediate(Smi::RawValue(kClosureCid)));
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  __ movl(EBX, FieldAddress(EAX, Closure::instantiator_offset()));
   __ movl(ECX, FieldAddress(EAX, Closure::function_offset()));
   // ECX: instance class id as Smi or function.
   __ Bind(&loop);

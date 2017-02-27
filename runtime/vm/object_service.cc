@@ -982,6 +982,10 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
   // Add all fields in layout order, from superclass to subclass.
   GrowableArray<Class*> classes;
   Class& cls = Class::Handle(this->clazz());
+  if (IsClosure()) {
+    // Closure fields are not instances. Skip them.
+    cls = cls.SuperClass();
+  }
   do {
     classes.Add(&Class::Handle(cls.raw()));
     cls = cls.SuperClass();
@@ -1038,6 +1042,7 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 
   PrintSharedInstanceJSON(&jsobj, ref);
+  // TODO(regis): Wouldn't it be simpler to provide a Closure::PrintJSONImpl()?
   if (IsClosure()) {
     jsobj.AddProperty("kind", "Closure");
   } else {
@@ -1045,6 +1050,7 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   jsobj.AddServiceId(*this);
   if (IsClosure()) {
+    // TODO(regis): How about closureInstantiator?
     jsobj.AddProperty("closureFunction",
                       Function::Handle(Closure::Cast(*this).function()));
     jsobj.AddProperty("closureContext",

@@ -1432,12 +1432,10 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
 
     // Class that represents the Dart class _Closure and C++ class Closure.
     cls = Class::New<Closure>();
-    cls.set_type_arguments_field_offset(Closure::type_arguments_offset());
-    cls.set_num_type_arguments(0);  // Although a closure has type_arguments_.
-    cls.set_num_own_type_arguments(0);
+    object_store->set_closure_class(cls);
+    cls.ResetFinalization();  // To calculate field offsets from Dart source.
     RegisterPrivateClass(cls, Symbols::_Closure(), core_lib);
     pending_classes.Add(cls);
-    object_store->set_closure_class(cls);
 
     cls = Class::New<WeakProperty>();
     object_store->set_weak_property_class(cls);
@@ -2530,7 +2528,6 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
 
 
 void Class::CalculateFieldOffsets() const {
-  ASSERT(id() != kClosureCid);  // Class _Closure is prefinalized.
   Array& flds = Array::Handle(fields());
   const Class& super = Class::Handle(SuperClass());
   intptr_t offset = 0;
@@ -3634,7 +3631,7 @@ void Class::SetRefinalizeAfterPatch() const {
 
 
 void Class::ResetFinalization() const {
-  ASSERT(IsTopLevel());
+  ASSERT(IsTopLevel() || IsClosureClass());
   set_state_bits(
       ClassFinalizedBits::update(RawClass::kAllocated, raw_ptr()->state_bits_));
   set_state_bits(TypeFinalizedBit::update(false, raw_ptr()->state_bits_));
@@ -15572,7 +15569,8 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
     }
     const Class& scope_cls = Class::Handle(type.type_class());
     ASSERT(scope_cls.NumTypeArguments() > 0);
-    TypeArguments& type_arguments = TypeArguments::Handle(GetTypeArguments());
+    TypeArguments& type_arguments =
+        TypeArguments::Handle(Closure::Cast(*this).instantiator());
     type =
         Type::New(scope_cls, type_arguments, TokenPosition::kNoSource, space);
     type.set_signature(signature);
@@ -15668,7 +15666,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     const Function& signature =
         Function::Handle(zone, Closure::Cast(*this).function());
     const TypeArguments& type_arguments =
-        TypeArguments::Handle(zone, GetTypeArguments());
+        TypeArguments::Handle(zone, Closure::Cast(*this).instantiator());
     // TODO(regis): If signature function is generic, pass its type parameters
     // as function instantiator, otherwise pass null.
     // Pass the closure context as well to the the IsSubtypeOf call.

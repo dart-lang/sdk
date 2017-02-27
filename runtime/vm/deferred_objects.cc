@@ -297,45 +297,6 @@ void DeferredObject::Fill() {
         }
       }
     }
-  } else if (cls.id() == kClosureCid) {
-    // TODO(regis): It would be better to programmatically add these fields to
-    // the VM Closure class. Declaring them in the Dart class _Closure does not
-    // work, because the class is prefinalized and CalculateFieldOffsets is
-    // therefore not called. Resetting the finalization state may be an option.
-    const Closure& closure = Closure::Cast(*object_);
-
-    Smi& offset = Smi::Handle();
-    Object& value = Object::Handle();
-
-    for (intptr_t i = 0; i < field_count_; i++) {
-      offset ^= GetFieldOffset(i);
-      if (offset.Value() == Closure::type_arguments_offset()) {
-        TypeArguments& arguments = TypeArguments::Handle();
-        arguments ^= GetValue(i);
-        closure.SetTypeArguments(arguments);
-        if (FLAG_trace_deoptimization_verbose) {
-          OS::PrintErr("    closure@type_arguments (offset %" Pd ") <- %s\n",
-                       offset.Value(), value.ToCString());
-        }
-      } else if (offset.Value() == Closure::function_offset()) {
-        Function& function = Function::Handle();
-        function ^= GetValue(i);
-        closure.set_function(function);
-        if (FLAG_trace_deoptimization_verbose) {
-          OS::PrintErr("    closure@function (offset %" Pd ") <- %s\n",
-                       offset.Value(), value.ToCString());
-        }
-      } else {
-        ASSERT(offset.Value() == Closure::context_offset());
-        Context& context = Context::Handle();
-        context ^= GetValue(i);
-        closure.set_context(context);
-        if (FLAG_trace_deoptimization_verbose) {
-          OS::PrintErr("    closure@context (offset %" Pd ") <- %s\n",
-                       offset.Value(), value.ToCString());
-        }
-      }
-    }
   } else {
     const Instance& obj = Instance::Cast(*object_);
 

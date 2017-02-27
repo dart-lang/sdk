@@ -398,17 +398,16 @@ static void UpdateTypeTestCache(
   }
   const Class& instance_class = Class::Handle(instance.clazz());
   Object& instance_class_id_or_function = Object::Handle();
+  TypeArguments& instance_type_arguments = TypeArguments::Handle();
   if (instance_class.IsClosureClass()) {
     instance_class_id_or_function = Closure::Cast(instance).function();
+    instance_type_arguments = Closure::Cast(instance).instantiator();
   } else {
     instance_class_id_or_function = Smi::New(instance_class.id());
+    if (instance_class.NumTypeArguments() > 0) {
+      instance_type_arguments = instance.GetTypeArguments();
+    }
   }
-  TypeArguments& instance_type_arguments = TypeArguments::Handle();
-  if (instance_class.IsClosureClass() ||
-      (instance_class.NumTypeArguments() > 0)) {
-    instance_type_arguments = instance.GetTypeArguments();
-  }
-
   const intptr_t len = new_cache.NumberOfChecks();
   if (len >= FLAG_max_subtype_cache_entries) {
     return;

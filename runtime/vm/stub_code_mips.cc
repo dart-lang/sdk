@@ -1882,11 +1882,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, found, not_found, next_iteration;
   // T0: instance class id.
-  // T1: instance type arguments.
+  // T1: instance type arguments (still null if closure).
   // T2: Entry start.
   // T7: null.
   __ SmiTag(T0);
   __ BranchNotEqual(T0, Immediate(Smi::RawValue(kClosureCid)), &loop);
+  __ lw(T1, FieldAddress(A0, Closure::instantiator_offset()));
   __ lw(T0, FieldAddress(A0, Closure::function_offset()));
   // T0: instance class id as Smi or function.
   __ Bind(&loop);

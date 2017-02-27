@@ -267,8 +267,23 @@ static void Finish(Thread* thread, bool from_kernel) {
   // instances. This allows us to just finalize function types without going
   // through the hoops of trying to compile their scope class.
   ObjectStore* object_store = thread->isolate()->object_store();
-  Class& cls = Class::Handle(thread->zone(), object_store->closure_class());
+  Zone* zone = thread->zone();
+  Class& cls = Class::Handle(zone, object_store->closure_class());
   Compiler::CompileClass(cls);
+
+#if defined(DEBUG)
+  // Verify that closure field offsets are identical in Dart and C++.
+  const Array& fields = Array::Handle(zone, cls.fields());
+  ASSERT(fields.Length() == 3);
+  Field& field = Field::Handle(zone);
+  field ^= fields.At(0);
+  ASSERT(field.Offset() == Closure::instantiator_offset());
+  field ^= fields.At(1);
+  ASSERT(field.Offset() == Closure::function_offset());
+  field ^= fields.At(2);
+  ASSERT(field.Offset() == Closure::context_offset());
+#endif  // defined(DEBUG)
+
   // Eagerly compile Bool class, bool constants are used from within compiler.
   cls = object_store->bool_class();
   Compiler::CompileClass(cls);
