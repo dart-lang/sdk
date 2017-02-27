@@ -739,6 +739,13 @@ class Listener {
 
   void beginFunctionTypedFormalParameter(Token token) {}
 
+  /// Handle the end of a function typed formal parameter.  Substructures:
+  /// - metadata
+  /// - modifiers
+  /// - return type
+  /// - parameter name (simple identifier)
+  /// - type parameters
+  /// - formal parameters
   void endFunctionTypedFormalParameter(Token token) {
     logEvent("FunctionTypedFormalParameter");
   }

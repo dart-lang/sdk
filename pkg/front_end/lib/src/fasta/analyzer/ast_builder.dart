@@ -505,40 +505,78 @@ class AstBuilder extends ScopeListener {
       Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     debugEvent("FormalParameter");
     _ParameterDefaultValue defaultValue = pop();
-    SimpleIdentifier name = pop();
-    TypeName type = pop();
-    Token keyword = _popOptionalSingleModifier();
-    pop(); // TODO(paulberry): Metadata.
+
+    AstNode nameOrFunctionTypedParameter = pop();
 
     FormalParameter node;
-    if (thisKeyword == null) {
-      node = ast.simpleFormalParameter2(
-          covariantKeyword: toAnalyzerToken(covariantKeyword),
-          keyword: toAnalyzerToken(keyword),
-          type: type,
-          identifier: name);
+    SimpleIdentifier name;
+    if (nameOrFunctionTypedParameter is FunctionTypedFormalParameter) {
+      node = nameOrFunctionTypedParameter;
+      name = nameOrFunctionTypedParameter.identifier;
     } else {
-      // TODO(scheglov): Ideally the period token should be passed in.
-      Token period = identical('.', thisKeyword.next?.stringValue)
-          ? thisKeyword.next
-          : null;
-      TypeParameterList typeParameters; // TODO(scheglov)
-      FormalParameterList formalParameters; // TODO(scheglov)
-      node = ast.fieldFormalParameter2(
-          covariantKeyword: toAnalyzerToken(covariantKeyword),
-          keyword: toAnalyzerToken(keyword),
-          type: type,
-          thisKeyword: toAnalyzerToken(thisKeyword),
-          period: toAnalyzerToken(period),
-          identifier: name,
-          typeParameters: typeParameters,
-          parameters: formalParameters);
+      name = nameOrFunctionTypedParameter;
+      TypeName type = pop();
+      Token keyword = _popOptionalSingleModifier();
+      pop(); // TODO(paulberry): Metadata.
+      if (thisKeyword == null) {
+        node = ast.simpleFormalParameter2(
+            covariantKeyword: toAnalyzerToken(covariantKeyword),
+            keyword: toAnalyzerToken(keyword),
+            type: type,
+            identifier: name);
+      } else {
+        // TODO(scheglov): Ideally the period token should be passed in.
+        Token period = identical('.', thisKeyword.next?.stringValue)
+            ? thisKeyword.next
+            : null;
+        TypeParameterList typeParameters; // TODO(scheglov)
+        FormalParameterList formalParameters; // TODO(scheglov)
+        node = ast.fieldFormalParameter2(
+            covariantKeyword: toAnalyzerToken(covariantKeyword),
+            keyword: toAnalyzerToken(keyword),
+            type: type,
+            thisKeyword: toAnalyzerToken(thisKeyword),
+            period: toAnalyzerToken(period),
+            identifier: name,
+            typeParameters: typeParameters,
+            parameters: formalParameters);
+      }
     }
 
     if (defaultValue != null) {
       node = ast.defaultFormalParameter(node, _toAnalyzerParameterKind(kind),
           toAnalyzerToken(defaultValue.separator), defaultValue.value);
     }
+
+    scope[name.name] = name.staticElement = new AnalyzerParameterElement(node);
+    push(node);
+  }
+
+  @override
+  void endFunctionTypedFormalParameter(Token token) {
+    debugEvent("FunctionTypedFormalParameter");
+
+    FormalParameterList formalParameters = pop();
+    TypeParameterList typeParameters = pop();
+    SimpleIdentifier name = pop();
+    TypeName returnType = pop();
+
+    {
+      List<Token> modifiers = pop();
+      if (modifiers.isNotEmpty) {
+        // TODO(scheglov): Report error.
+        internalError('Unexpected modifier. Report an error.');
+      }
+    }
+
+    pop(); // TODO(paulberry): Metadata.
+
+    FormalParameter node;
+    node = ast.functionTypedFormalParameter2(
+        returnType: returnType,
+        identifier: name,
+        typeParameters: typeParameters,
+        parameters: formalParameters);
 
     scope[name.name] = name.staticElement = new AnalyzerParameterElement(node);
     push(node);

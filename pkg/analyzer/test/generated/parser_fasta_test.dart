@@ -828,13 +828,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseNormalFormalParameter_function_noType() {
-    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
-    super.test_parseNormalFormalParameter_function_noType();
-  }
-
-  @override
-  @failingTest
   void test_parseNormalFormalParameter_function_noType_nullable() {
     // TODO(scheglov): Not implemented: Nnbd
     super.test_parseNormalFormalParameter_function_noType_nullable();
@@ -850,25 +843,11 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseNormalFormalParameter_function_noType_typeParameters() {
-    // TODO(scheglov): Unhandled event: TypeVariable
-    super.test_parseNormalFormalParameter_function_noType_typeParameters();
-  }
-
-  @override
-  @failingTest
   void
       test_parseNormalFormalParameter_function_noType_typeParameters_nullable() {
     // TODO(scheglov): Not implemented: Nnbd
     super
         .test_parseNormalFormalParameter_function_noType_typeParameters_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_type() {
-    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
-    super.test_parseNormalFormalParameter_function_type();
   }
 
   @override
@@ -887,24 +866,10 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseNormalFormalParameter_function_type_typeParameters() {
-    // TODO(scheglov): Unhandled event: TypeVariable
-    super.test_parseNormalFormalParameter_function_type_typeParameters();
-  }
-
-  @override
-  @failingTest
   void test_parseNormalFormalParameter_function_type_typeParameters_nullable() {
     // TODO(scheglov): Not implemented: Nnbd
     super
         .test_parseNormalFormalParameter_function_type_typeParameters_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_void() {
-    // TODO(scheglov): Unhandled event: VoidKeyword
-    super.test_parseNormalFormalParameter_function_void();
   }
 
   @override
@@ -919,13 +884,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
   void test_parseNormalFormalParameter_function_void_typeParameterComments() {
     // TODO(scheglov): Not implemented: enableGenericMethodComments=
     super.test_parseNormalFormalParameter_function_void_typeParameterComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_void_typeParameters() {
-    // TODO(scheglov): Unhandled event: VoidKeyword
-    super.test_parseNormalFormalParameter_function_void_typeParameters();
   }
 
   @override
