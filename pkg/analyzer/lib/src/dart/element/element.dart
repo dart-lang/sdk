@@ -2663,6 +2663,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   }
 
   @override
+  String toSource() => annotationAst.toSource();
+
+  @override
   String toString() => '@$element';
 }
 
