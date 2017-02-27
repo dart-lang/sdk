@@ -113,7 +113,8 @@ Future<CompilationResult> parseScriptImpl(
   Target target = getTarget("vm", new TargetFlags(strongMode: false));
 
   Program program;
-  final uriTranslator = await TranslateUri.parse(new Uri.file(packageConfig));
+  final uriTranslator =
+      await TranslateUri.parse(null, new Uri.file(packageConfig));
   final Ticker ticker = new Ticker(isVerbose: verbose);
   final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
   dillTarget.read(new Uri.directory(sdkPath).resolve('platform.dill'));
