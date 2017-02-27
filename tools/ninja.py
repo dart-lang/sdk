@@ -260,11 +260,14 @@ def RunOneBuildCommand(build_config, args):
 
 
 def RunOneGomaBuildCommand(args):
-  print ' '.join(args)
-  process = subprocess.Popen(args, stdin=None)
-  process.wait()
-  print (' '.join(args) + " done.")
-  return process.returncode
+  try:
+    print ' '.join(args)
+    process = subprocess.Popen(args, stdin=None)
+    process.wait()
+    print (' '.join(args) + " done.")
+    return process.returncode
+  except KeyboardInterrupt:
+    return 1
 
 
 def Main():
