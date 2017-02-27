@@ -3123,9 +3123,10 @@ void Parser::ParseConstructorRedirection(const Class& cls,
     if (cls.LookupFactory(ctor_name) != Function::null()) {
       ReportError(call_pos,
                   "redirection constructor '%s' must not be a factory",
-                  ctor_name.ToCString());
+                  String::Handle(Z, String::ScrubName(ctor_name)).ToCString());
     }
-    ReportError(call_pos, "constructor '%s' not found", ctor_name.ToCString());
+    ReportError(call_pos, "constructor '%s' not found",
+                String::Handle(Z, String::ScrubName(ctor_name)).ToCString());
   }
   if (current_function().is_const() && !redirect_ctor.is_const()) {
     ReportError(call_pos, "redirection constructor '%s' must be const",
