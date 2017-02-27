@@ -90,7 +90,7 @@ class OutlineBuilder extends UnhandledListener {
         isDartLibrary = library.uri.scheme == "dart";
 
   @override
-  Uri get uri => library.uri;
+  Uri get uri => library.fileUri;
 
   @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
