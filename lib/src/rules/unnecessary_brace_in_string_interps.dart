@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.unnecessary_brace_in_string_interp;
+library linter.src.rules.unnecessary_brace_in_string_interps;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -33,10 +33,10 @@ final RegExp identifierPart = new RegExp(r'^[a-zA-Z0-9_]');
 bool isIdentifierPart(Token token) =>
     token is StringToken && token.lexeme.startsWith(identifierPart);
 
-class UnnecessaryBraceInStringInterp extends LintRule {
-  UnnecessaryBraceInStringInterp()
+class UnnecessaryBraceInStringInterps extends LintRule {
+  UnnecessaryBraceInStringInterps()
       : super(
-            name: 'unnecessary_brace_in_string_interp',
+            name: 'unnecessary_brace_in_string_interps',
             description: desc,
             details: details,
             group: Group.style);

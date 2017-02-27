@@ -50,7 +50,7 @@ import 'package:linter/src/rules/prefer_is_empty.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
 import 'package:linter/src/rules/public_member_api_docs.dart';
-import 'package:linter/src/rules/recursive_getter.dart';
+import 'package:linter/src/rules/recursive_getters.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/sort_constructors_first.dart';
 import 'package:linter/src/rules/sort_unnamed_constructors_first.dart';
@@ -60,10 +60,10 @@ import 'package:linter/src/rules/throw_in_finally.dart';
 import 'package:linter/src/rules/type_annotate_public_apis.dart';
 import 'package:linter/src/rules/type_init_formals.dart';
 import 'package:linter/src/rules/unawaited_futures.dart';
-import 'package:linter/src/rules/unnecessary_brace_in_string_interp.dart';
+import 'package:linter/src/rules/unnecessary_brace_in_string_interps.dart';
 import 'package:linter/src/rules/unnecessary_getters_setters.dart';
-import 'package:linter/src/rules/unnecessary_null_aware_assignment.dart';
-import 'package:linter/src/rules/unnecessary_null_in_if_null_operator.dart';
+import 'package:linter/src/rules/unnecessary_null_aware_assignments.dart';
+import 'package:linter/src/rules/unnecessary_null_in_if_null_operators.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
 import 'package:linter/src/rules/valid_regexps.dart';
 
@@ -114,7 +114,7 @@ void registerLintRules() {
     ..register(new PreferIsNotEmpty())
     ..register(new PublicMemberApiDocs())
     ..register(new PubPackageNames())
-    ..register(new RecursiveGetter())
+    ..register(new RecursiveGetters())
     ..registerDefault(new SlashForDocComments())
     ..register(new SortConstructorsFirst())
     ..register(new SortUnnamedConstructorsFirst())
@@ -124,9 +124,9 @@ void registerLintRules() {
     ..register(new TypeAnnotatePublicApis())
     ..registerDefault(new TypeInitFormals())
     ..register(new UnawaitedFutures())
-    ..registerDefault(new UnnecessaryBraceInStringInterp())
-    ..registerDefault(new UnnecessaryNullAwareAssignment())
-    ..registerDefault(new UnnecessaryNullInIfNullOperator())
+    ..registerDefault(new UnnecessaryBraceInStringInterps())
+    ..registerDefault(new UnnecessaryNullAwareAssignments())
+    ..registerDefault(new UnnecessaryNullInIfNullOperators())
     // Disabled pending fix: https://github.com/dart-lang/linter/issues/35
     //..register(new UnnecessaryGetters())
     ..register(new UnnecessaryGettersSetters())

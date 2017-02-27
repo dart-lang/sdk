@@ -2,37 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library linter.src.rules.unnecessary_null_in_if_null_operator;
+library linter.src.rules.unnecessary_null_aware_assignments;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
-const desc = 'Avoid null in if null operator';
+const desc = 'Avoid null in null-aware assignment';
 
 const details = '''
-Avoid null as operand in if null operator. `a ?? null` and `null ?? a` can both
-be replaced by `a`.
+Avoid null in null-aware assignment. `a ??= null` can be removed.
 
 **GOOD:**
 
 ```
-var x = a ?? 1;
+var x;
+x ??= 1;
 ```
 
 **BAD:**
 
 ```
-var x = a ?? null;
-var y = null ?? 1;
+var x;
+x ??= null;
 ```
 ''';
 
-class UnnecessaryNullInIfNullOperator extends LintRule {
-  UnnecessaryNullInIfNullOperator()
+class UnnecessaryNullAwareAssignments extends LintRule {
+  UnnecessaryNullAwareAssignments()
       : super(
-            name: 'unnecessary_null_in_if_null_operator',
+            name: 'unnecessary_null_aware_assignments',
             description: desc,
             details: details,
             group: Group.style);
@@ -47,9 +47,9 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitBinaryExpression(BinaryExpression node) {
-    if (node.operator.type == TokenType.QUESTION_QUESTION &&
-        (node.rightOperand is NullLiteral || node.leftOperand is NullLiteral)) {
+  visitAssignmentExpression(AssignmentExpression node) {
+    if (node.operator.type == TokenType.QUESTION_QUESTION_EQ &&
+        node.rightHandSide is NullLiteral) {
       rule.reportLint(node);
     }
   }
