@@ -1263,6 +1263,7 @@ final Matcher isCompletionId = isString;
  *   "docSummary": optional String
  *   "docComplete": optional String
  *   "declaringType": optional String
+ *   "defaultArgumentListString": optional String
  *   "element": optional Element
  *   "returnType": optional String
  *   "parameterNames": optional List<String>
@@ -1287,6 +1288,7 @@ final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObje
     "docSummary": isString,
     "docComplete": isString,
     "declaringType": isString,
+    "defaultArgumentListString": isString,
     "element": isElement,
     "returnType": isString,
     "parameterNames": isListOf(isString),
