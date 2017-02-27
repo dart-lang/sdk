@@ -272,6 +272,8 @@ public interface AnalysisServer {
   /**
    * {@code analysis.updateOptions}
    *
+   * Deprecated: all of the options can be set by users in an analysis options file.
+   *
    * Update the options controlling analysis based on the given set of options. Any options that are
    * not included in the analysis options will not be changed. If there are options in the analysis
    * options that are not valid, they will be silently ignored.
