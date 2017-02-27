@@ -37,6 +37,7 @@ import 'token_constants.dart';
 import 'characters.dart';
 
 abstract class AbstractScanner implements Scanner {
+  /// If true, include comments in the token stream.
   final bool includeComments;
 
   /**
@@ -408,20 +409,9 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeTag(int next) {
-    // # or #!.*[\n\r]
-    if (scanOffset == 0) {
-      if (identical(peek(), $BANG)) {
-        int start = scanOffset + 1;
-        bool asciiOnly = true;
-        do {
-          next = advance();
-          if (next > 127) asciiOnly = false;
-        } while (!identical(next, $LF) &&
-            !identical(next, $CR) &&
-            !identical(next, $EOF));
-        if (!asciiOnly) handleUnicode(start);
-        return next;
-      }
+    // #!.*[\n\r]
+    if (scanOffset == 0 && identical(peek(), $BANG)) {
+      tokenizeSingleLineComment(next, scanOffset);
     }
     appendPrecedenceToken(HASH_INFO);
     return advance();
