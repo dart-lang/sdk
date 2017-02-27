@@ -757,7 +757,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token endToken) {
+  void endFunctionTypedFormalParameter(Token covariantKeyword,
+      Token thisKeyword, FormalParameterType kind) {
     NodeList formals = popNode();
     NodeList typeVariables = popNode();
     Identifier name = popNode();

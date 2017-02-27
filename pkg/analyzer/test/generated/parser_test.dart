@@ -7530,12 +7530,43 @@ abstract class FormalParameterParserTestMixin
     expect(fieldParameter.parameters, isNull);
   }
 
+  void test_parseNormalFormalParameter_function_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    var defaultParameter =
+        parseFormalParameter('a() : null', kind) as DefaultFormalParameter;
+    var functionParameter =
+        defaultParameter.parameter as FunctionTypedFormalParameter;
+    assertNoErrors();
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.kind, kind);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
   void test_parseNormalFormalParameter_function_noType() {
     NormalFormalParameter parameter = parseNormalFormalParameter('a()');
     expect(parameter, isNotNull);
     assertNoErrors();
     expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
     FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_noType_covariant() {
+    NormalFormalParameter parameter =
+        parseNormalFormalParameter('covariant a()');
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<FunctionTypedFormalParameter>());
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.covariantKeyword, isNotNull);
     expect(functionParameter.returnType, isNull);
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);

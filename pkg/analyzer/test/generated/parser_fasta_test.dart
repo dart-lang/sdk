@@ -814,20 +814,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseNormalFormalParameter_field_function_nested() {
-    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
-    super.test_parseNormalFormalParameter_field_function_nested();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_field_function_noNested() {
-    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
-    super.test_parseNormalFormalParameter_field_function_noNested();
-  }
-
-  @override
-  @failingTest
   void test_parseNormalFormalParameter_function_noType_nullable() {
     // TODO(scheglov): Not implemented: Nnbd
     super.test_parseNormalFormalParameter_function_noType_nullable();

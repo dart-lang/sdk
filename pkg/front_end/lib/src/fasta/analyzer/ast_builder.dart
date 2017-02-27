@@ -510,7 +510,7 @@ class AstBuilder extends ScopeListener {
 
     FormalParameter node;
     SimpleIdentifier name;
-    if (nameOrFunctionTypedParameter is FunctionTypedFormalParameter) {
+    if (nameOrFunctionTypedParameter is FormalParameter) {
       node = nameOrFunctionTypedParameter;
       name = nameOrFunctionTypedParameter.identifier;
     } else {
@@ -529,17 +529,13 @@ class AstBuilder extends ScopeListener {
         Token period = identical('.', thisKeyword.next?.stringValue)
             ? thisKeyword.next
             : null;
-        TypeParameterList typeParameters; // TODO(scheglov)
-        FormalParameterList formalParameters; // TODO(scheglov)
         node = ast.fieldFormalParameter2(
             covariantKeyword: toAnalyzerToken(covariantKeyword),
             keyword: toAnalyzerToken(keyword),
             type: type,
             thisKeyword: toAnalyzerToken(thisKeyword),
             period: toAnalyzerToken(period),
-            identifier: name,
-            typeParameters: typeParameters,
-            parameters: formalParameters);
+            identifier: name);
       }
     }
 
@@ -553,7 +549,8 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token token) {
+  void endFunctionTypedFormalParameter(
+      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     debugEvent("FunctionTypedFormalParameter");
 
     FormalParameterList formalParameters = pop();
@@ -572,11 +569,27 @@ class AstBuilder extends ScopeListener {
     pop(); // TODO(paulberry): Metadata.
 
     FormalParameter node;
-    node = ast.functionTypedFormalParameter2(
-        returnType: returnType,
-        identifier: name,
-        typeParameters: typeParameters,
-        parameters: formalParameters);
+    if (thisKeyword == null) {
+      node = ast.functionTypedFormalParameter2(
+          covariantKeyword: toAnalyzerToken(covariantKeyword),
+          returnType: returnType,
+          identifier: name,
+          typeParameters: typeParameters,
+          parameters: formalParameters);
+    } else {
+      // TODO(scheglov): Ideally the period token should be passed in.
+      Token period = identical('.', thisKeyword?.next?.stringValue)
+          ? thisKeyword.next
+          : null;
+      node = ast.fieldFormalParameter2(
+          covariantKeyword: toAnalyzerToken(covariantKeyword),
+          type: returnType,
+          thisKeyword: toAnalyzerToken(thisKeyword),
+          period: toAnalyzerToken(period),
+          identifier: name,
+          typeParameters: typeParameters,
+          parameters: formalParameters);
+    }
 
     scope[name.name] = name.staticElement = new AnalyzerParameterElement(node);
     push(node);

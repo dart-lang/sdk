@@ -397,7 +397,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token token) {
+  void endFunctionTypedFormalParameter(Token covariantKeyword,
+      Token thisKeyword, FormalParameterType kind) {
     debugEvent("FunctionTypedFormalParameter");
     pop(); // Function type parameters.
     pop(); // Type variables.

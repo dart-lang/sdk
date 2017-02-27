@@ -746,7 +746,8 @@ class Listener {
   /// - parameter name (simple identifier)
   /// - type parameters
   /// - formal parameters
-  void endFunctionTypedFormalParameter(Token token) {
+  void endFunctionTypedFormalParameter(Token covariantKeyword, Token thisKeyword,
+      FormalParameterType kind) {
     logEvent("FunctionTypedFormalParameter");
   }
 

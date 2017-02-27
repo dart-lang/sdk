@@ -1339,7 +1339,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token token) {
+  void endFunctionTypedFormalParameter(Token covariantKeyword,
+      Token thisKeyword, FormalParameterType kind) {
     debugEvent("FunctionTypedFormalParameter");
     if (inCatchClause || functionNestingLevel != 0) {
       exitLocalScope();

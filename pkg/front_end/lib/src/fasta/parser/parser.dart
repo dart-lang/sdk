@@ -538,7 +538,8 @@ class Parser {
       listener.beginFunctionTypedFormalParameter(token);
       listener.handleNoTypeVariables(token);
       token = parseFormalParameters(token);
-      listener.endFunctionTypedFormalParameter(token);
+      listener.endFunctionTypedFormalParameter(
+          covariantKeyword, thisKeyword, kind);
       // Generalized function types don't allow inline function types.
       // The following isn't allowed:
       //    int Function(int bar(String x)).
@@ -551,7 +552,8 @@ class Parser {
       listener.beginFunctionTypedFormalParameter(token);
       token = parseTypeVariablesOpt(token);
       token = parseFormalParameters(token);
-      listener.endFunctionTypedFormalParameter(token);
+      listener.endFunctionTypedFormalParameter(
+          covariantKeyword, thisKeyword, kind);
       // Generalized function types don't allow inline function types.
       // The following isn't allowed:
       //    int Function(int bar(String x)).
