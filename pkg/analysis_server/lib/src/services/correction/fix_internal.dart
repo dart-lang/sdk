@@ -78,7 +78,8 @@ class DefaultFixContributor extends DartFixContributor {
   Future<List<Fix>> internalComputeFixes(DartFixContext context) async {
     try {
       FixProcessor processor = new FixProcessor(context);
-      return processor.compute();
+      List<Fix> fixes = await processor.compute();
+      return fixes;
     } on CancelCorrectionException {
       return Fix.EMPTY_LIST;
     }
