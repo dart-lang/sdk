@@ -12,6 +12,7 @@ Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t03: Skip # https
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t05: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t06: Skip # https://github.com/dart-lang/sdk/issues/28873
 Language/Statements/Yield_and_Yield_Each/Yield/execution_async_t08: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/css/font-face-cache-bug_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/mutation-event-remove-inserted-node_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/dom/shadow/event-path-not-in-document_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
@@ -38,15 +39,19 @@ LayoutTests/fast/text/find-hidden-text_t01: Skip # https://github.com/dart-lang/
 LayoutTests/fast/text/find-quotes_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/text/find-spaces_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/text/international/cjk-segmentation_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
-LayoutTests/fast/text/zero-width-characters-complex-script_t01.dart: Skip # https://github.com/dart-lang/sdk/issues/28873
+LayoutTests/fast/text/zero-width-characters-complex-script_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/transforms/hit-test-large-scale_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/transforms/scrollIntoView-transformed_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/writing-mode/percentage-margins-absolute_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-abort_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t02: Skip # https://github.com/dart-lang/sdk/issues/28873
 LayoutTests/fast/xpath/ambiguous-operators_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+LibTest/html/Element/addEventListener_A01_t04: Skip # https://github.com/dart-lang/sdk/issues/28873
+LibTest/html/IFrameElement/addEventListener_A01_t04: Skip # https://github.com/dart-lang/sdk/issues/28873
 LibTest/html/Window/postMessage_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+WebPlatformTest/Utils/test/asyncTestFail_t02: Skip # https://github.com/dart-lang/sdk/issues/28873
 WebPlatformTest/dom/EventTarget/dispatchEvent_A02_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
+WebPlatformTest/webstorage/event_local_storageeventinit_t01: Skip # https://github.com/dart-lang/sdk/issues/28873
 
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError # compiler cancelled: cannot resolve type T
 Language/Classes/Constructors/Generative_Constructors/execution_of_a_superinitializer_t01: RuntimeError, OK # co19 issue 258
