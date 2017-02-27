@@ -1120,7 +1120,7 @@ _processLoadRequest(request) {
     break;
     case _Dart_kResolveAsFilePath:
       String uri = request[4];
-      Uri resolvedUri = Uri.parse(uri);
+      Uri resolvedUri = Uri.parse(_sanitizeWindowsPath(uri));
       try {
         if (resolvedUri.scheme == 'package') {
           resolvedUri = loaderState._resolvePackageUri(resolvedUri);
