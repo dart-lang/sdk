@@ -287,33 +287,6 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
 }
 
 
-const ICData& AotOptimizer::TrySpecializeICData(const ICData& ic_data,
-                                                intptr_t cid) {
-  ASSERT(ic_data.NumArgsTested() == 1);
-
-  if ((ic_data.NumberOfUsedChecks() == 1) && ic_data.HasReceiverClassId(cid)) {
-    return ic_data;  // Nothing to do
-  }
-
-  const Function& function =
-      Function::Handle(Z, ic_data.GetTargetForReceiverClassId(cid));
-  // TODO(fschneider): Try looking up the function on the class if it is
-  // not found in the ICData.
-  if (!function.IsNull()) {
-    const ICData& new_ic_data = ICData::ZoneHandle(
-        Z, ICData::New(Function::Handle(Z, ic_data.Owner()),
-                       String::Handle(Z, ic_data.target_name()),
-                       Object::empty_array(),  // Dummy argument descriptor.
-                       ic_data.deopt_id(), ic_data.NumArgsTested(), false));
-    new_ic_data.SetDeoptReasons(ic_data.DeoptReasons());
-    new_ic_data.AddReceiverCheck(cid, function);
-    return new_ic_data;
-  }
-
-  return ic_data;
-}
-
-
 static bool ClassIdIsOneOf(intptr_t class_id,
                            const GrowableArray<intptr_t>& class_ids) {
   for (intptr_t i = 0; i < class_ids.length(); i++) {

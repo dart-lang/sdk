@@ -13526,10 +13526,12 @@ void ICData::SetEntryPointAt(intptr_t index, const Smi& value) const {
 }
 
 
-RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
+RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id,
+                                                 intptr_t* count_return) const {
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     if (GetReceiverClassIdAt(i) == class_id) {
+      *count_return = GetCountAt(i);
       return GetTargetAt(i);
     }
   }

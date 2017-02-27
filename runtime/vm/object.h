@@ -2009,7 +2009,8 @@ class ICData : public Object {
   intptr_t GetClassIdAt(intptr_t index, intptr_t arg_nr) const;
 
   RawFunction* GetTargetAt(intptr_t index) const;
-  RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
+  RawFunction* GetTargetForReceiverClassId(intptr_t class_id,
+                                           intptr_t* count_return) const;
 
   RawObject* GetTargetOrCodeAt(intptr_t index) const;
   void SetCodeAt(intptr_t index, const Code& value) const;

@@ -2742,6 +2742,8 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   virtual bool CanDeoptimize() const { return true; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Instance calls that are specialized by the optimizer need a
     // deoptimization descriptor before the call.
