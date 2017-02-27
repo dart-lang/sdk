@@ -32,8 +32,8 @@ import 'package:kernel/core_types.dart' show
     CoreTypes;
 
 import '../errors.dart' show
-    InputError,
-    inputError;
+    inputError,
+    printUnexpected;
 
 import '../messages.dart' show
     warning;
@@ -103,8 +103,7 @@ class SourceLoader<L> extends Loader<L> {
       while (token is ErrorToken) {
         if (!suppressLexicalErrors) {
           ErrorToken error = token;
-          print(new InputError(uri, token.charOffset, error.assertionMessage)
-              .format());
+          printUnexpected(uri, token.charOffset, error.assertionMessage);
         }
         token = token.next;
       }

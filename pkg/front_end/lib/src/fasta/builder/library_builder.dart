@@ -9,7 +9,8 @@ import '../combinator.dart' show
 
 import '../errors.dart' show
     InputError,
-    internalError;
+    internalError,
+    printUnexpected;
 
 import '../export.dart' show
     Export;
@@ -63,9 +64,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   void addCompileTimeError(int charOffset, Object message, [Uri fileUri]) {
     fileUri ??= this.fileUri;
-    InputError error = new InputError(fileUri, charOffset, message);
-    compileTimeErrors.add(error);
-    print(error.format());
+    printUnexpected(fileUri, charOffset, message);
+    compileTimeErrors.add(new InputError(fileUri, charOffset, message));
   }
 
   bool addToExportScope(String name, Builder member);

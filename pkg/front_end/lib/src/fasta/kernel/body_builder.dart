@@ -37,7 +37,6 @@ import 'package:front_end/src/fasta/scanner/token.dart' show
     isMinusOperator;
 
 import '../errors.dart' show
-    InputError,
     internalError,
     printUnexpected;
 
@@ -1578,13 +1577,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
-      {bool isConst: false}) {
+      {bool isConst: false, int charOffset: -1}) {
     List<TypeParameter> typeParameters = target.function.typeParameters;
     if (target is Constructor) {
       typeParameters = target.enclosingClass.typeParameters;
     }
     if (!addDefaultArguments(target.function, arguments, typeParameters)) {
-      return throwNoSuchMethodError(target.name.name, arguments, -1);
+      return throwNoSuchMethodError(target.name.name, arguments, charOffset);
     }
     if (target is Constructor) {
       return new ConstructorInvocation(target, arguments)
@@ -1695,7 +1694,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (target is Constructor ||
           (target is Procedure && target.kind == ProcedureKind.Factory)) {
         push(buildStaticInvocation(
-                target, arguments, isConst: optional("const", token)));
+                target, arguments, isConst: optional("const", token),
+                charOffset: token.charOffset));
         return;
       } else {
         errorName = debugName(type.name, name);
@@ -2196,8 +2196,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   void handleRecoverableError(Token token, ErrorKind kind, Map arguments) {
     super.handleRecoverableError(token, kind, arguments);
     if (!hasParserError) {
-      print(new InputError(uri, recoverableErrors.last.beginOffset,
-              recoverableErrors.last.kind).format());
+      printUnexpected(uri, recoverableErrors.last.beginOffset,
+          '${recoverableErrors.last.kind}');
     }
     hasParserError = true;
   }

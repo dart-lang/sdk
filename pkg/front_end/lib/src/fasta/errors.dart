@@ -65,13 +65,14 @@ dynamic inputError(Uri uri, int charOffset, Object error) {
 }
 
 String printUnexpected(Uri uri, int charOffset, String message) {
+  String formattedMessage = formatUnexpected(uri, charOffset, message);
   if (errorsAreFatal) {
+    print(formattedMessage);
     if (isVerbose) print(StackTrace.current);
     throw new InputError(uri, charOffset, message);
   }
-  message = formatUnexpected(uri, charOffset, message);
-  print(message);
-  return message;
+  print(formattedMessage);
+  return formattedMessage;
 }
 
 String formatUnexpected(Uri uri, int charOffset, String message) {
