@@ -46,6 +46,7 @@ import 'package:linter/src/rules/prefer_const_constructors.dart';
 import 'package:linter/src/rules/prefer_contains.dart';
 import 'package:linter/src/rules/prefer_final_fields.dart';
 import 'package:linter/src/rules/prefer_final_locals.dart';
+import 'package:linter/src/rules/prefer_interpolation_to_compose_strings.dart';
 import 'package:linter/src/rules/prefer_is_empty.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
@@ -111,6 +112,7 @@ void registerLintRules() {
     ..register(new PreferContainsOverIndexOf())
     ..register(new PreferFinalFields())
     ..register(new PreferFinalLocals())
+    ..register(new PreferInterpolationToComposeStrings())
     ..register(new PreferIsEmpty())
     ..register(new PreferIsNotEmpty())
     ..register(new PublicMemberApiDocs())
