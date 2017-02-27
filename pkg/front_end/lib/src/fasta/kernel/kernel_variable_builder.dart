@@ -13,9 +13,10 @@ import 'kernel_builder.dart' show
 class KernelVariableBuilder extends Builder {
   final VariableDeclaration variable;
 
-  KernelVariableBuilder(VariableDeclaration variable, Builder parent)
+  KernelVariableBuilder(
+      VariableDeclaration variable, Builder parent, Uri fileUri)
       : variable = variable,
-        super(parent, variable.fileOffset, parent.fileUri);
+        super(parent, variable.fileOffset, fileUri);
 
   bool get isLocal => true;
 

@@ -917,9 +917,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     push(variable);
     scope[variable.name] = new KernelVariableBuilder(variable,
-        // TODO(ahe): This should be `member ?? classBuilder ?? part`, but we
-        // don't have an object representing the current part.
-        member ?? classBuilder);
+        member ?? classBuilder ?? library, uri);
   }
 
   @override
@@ -1761,9 +1759,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new FunctionDeclaration(variable,
             new FunctionNode(new InvalidStatement())));
     scope[variable.name] = new KernelVariableBuilder(variable,
-        // TODO(ahe): This should be `member ?? classBuilder ?? part`, but we
-        // don't have an object representing the current part.
-        member ?? classBuilder);
+        member ?? classBuilder ?? library, uri);
     enterLocalScope();
   }
 
@@ -2662,11 +2658,13 @@ class FormalParameters {
     if (required.length == 0 && optional == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
     for (VariableDeclaration parameter in required) {
-      local[parameter.name] = new KernelVariableBuilder(parameter, builder);
+      local[parameter.name] =
+          new KernelVariableBuilder(parameter, builder, builder.fileUri);
     }
     if (optional != null) {
       for (VariableDeclaration parameter in optional.formals) {
-        local[parameter.name] = new KernelVariableBuilder(parameter, builder);
+        local[parameter.name] =
+            new KernelVariableBuilder(parameter, builder, builder.fileUri);
       }
     }
     return new Scope(local, parent, isModifiable: false);
