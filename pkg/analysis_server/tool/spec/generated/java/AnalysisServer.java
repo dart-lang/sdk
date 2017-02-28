@@ -272,6 +272,8 @@ public interface AnalysisServer {
   /**
    * {@code analysis.updateOptions}
    *
+   * Deprecated: all of the options can be set by users in an analysis options file.
+   *
    * Update the options controlling analysis based on the given set of options. Any options that are
    * not included in the analysis options will not be changed. If there are options in the analysis
    * options that are not valid, they will be silently ignored.
@@ -378,7 +380,7 @@ public interface AnalysisServer {
    *         validated and no change be generated.
    * @param options Data used to provide values provided by the user. The structure of the data is
    *         dependent on the kind of refactoring being performed. The data that is expected is
-   *         documented in the section titled Refactorings, labeled as “Options”. This field can be
+   *         documented in the section titled Refactorings, labeled as "Options". This field can be
    *         omitted if the refactoring does not require any options or if the values of those
    *         options are not known.
    */
@@ -466,6 +468,8 @@ public interface AnalysisServer {
 
   /**
    * {@code execution.setSubscriptions}
+   *
+   * Deprecated: the analysis server no longer fires LAUNCH_DATA events.
    *
    * Subscribe for services. All previous subscriptions are replaced by the given set of services.
    *

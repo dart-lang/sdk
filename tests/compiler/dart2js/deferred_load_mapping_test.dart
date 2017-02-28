@@ -4,6 +4,7 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
+import 'package:compiler/compiler_new.dart';
 import 'memory_source_file_helper.dart';
 import "memory_compiler.dart";
 
@@ -16,7 +17,7 @@ void main() {
         outputProvider: collector);
     CompilerImpl compiler = result.compiler;
     // Ensure a mapping file is output.
-    Expect.isNotNull(collector.getOutput("deferred_map.json", "deferred_map"));
+    Expect.isNotNull(collector.getOutput("deferred_map.json", OutputType.info));
 
     Map mapping = compiler.deferredLoadTask.computeDeferredMap();
     // Test structure of mapping.

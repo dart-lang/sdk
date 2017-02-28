@@ -4,37 +4,27 @@
 
 library fasta.analyzer;
 
-import 'package:analyzer/analyzer.dart' show
-    AstNode;
+import 'package:analyzer/analyzer.dart' show AstNode;
 
-import 'package:analyzer/dart/element/element.dart' show
-    LocalElement;
+import 'package:analyzer/dart/element/element.dart' show LocalElement;
 
-import 'package:kernel/analyzer/ast_from_analyzer.dart' show
-    ExpressionScope;
+import 'package:kernel/analyzer/ast_from_analyzer.dart' show ExpressionScope;
 
-import 'package:kernel/ast.dart' show
-    Library,
-    TreeNode;
+import 'package:kernel/ast.dart' show Library, TreeNode;
 
-import '../builder/scope.dart' show
-    Scope;
+import '../builder/scope.dart' show Scope;
 
-import '../kernel/kernel_builder.dart' show
-    Builder,
-    KernelFormalParameterBuilder;
+import '../kernel/kernel_builder.dart'
+    show Builder, KernelFormalParameterBuilder;
 
-import 'element_store.dart' show
-    ElementStore;
+import 'element_store.dart' show ElementStore;
 
-export 'ast_builder.dart' show
-    AstBuilder;
+export 'ast_builder.dart' show AstBuilder;
 
-export 'element_store.dart' show
-    ElementStore;
+export 'element_store.dart' show ElementStore;
 
-TreeNode toKernel(AstNode node, ElementStore store, Library library,
-    Scope scope) {
+TreeNode toKernel(
+    AstNode node, ElementStore store, Library library, Scope scope) {
   ExpressionScope expressionScope = new ExpressionScope(store, library);
   scope.local.forEach((String name, Builder builder) {
     if (builder is KernelFormalParameterBuilder) {

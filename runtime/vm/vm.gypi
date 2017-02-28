@@ -1338,6 +1338,7 @@
             '../sdk',
             '<(gen_source_dir)/patches',
             '<(PRODUCT_DIR)/patched_sdk',
+            '../.packages',
           ],
         },
       ],

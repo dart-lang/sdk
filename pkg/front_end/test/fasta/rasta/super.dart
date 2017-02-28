@@ -31,8 +31,8 @@ class B extends A {
   get b => null;
   set c(x) {}
   final d;
-  set i(x) {}}
-
+  set i(x) {}
+}
 
 class C extends B {
   test() {

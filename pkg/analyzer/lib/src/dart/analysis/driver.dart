@@ -72,7 +72,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 22;
+  static const int DATA_VERSION = 25;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -631,9 +631,9 @@ class AnalysisDriver {
    * [UnitElementResult] for the file with the given [path], or with `null` if
    * the file cannot be analyzed.
    *
-   * The signature is based on the content of the file, and the transitive
-   * closure of files imported and exported by the the library of the requested
-   * file.
+   * The signature is based the APIs of the files of the library (including
+   * the file itself) of the requested file and the transitive closure of files
+   * imported and exported by the the library.
    */
   Future<String> getUnitElementSignature(String path) {
     if (!_fileTracker.fsState.hasUri(path)) {
@@ -786,7 +786,6 @@ class AnalysisDriver {
           AnalysisResult result = _getAnalysisResultFromBytes(
               file, signature, bytes,
               content: withUnit ? file.content : null,
-              withErrors: _fileTracker.addedFiles.contains(path),
               resolvedUnit: withUnit ? resolvedUnit : null);
           if (withUnit && _priorityFiles.contains(path)) {
             _priorityResults[path] = result;
@@ -820,7 +819,7 @@ class AnalysisDriver {
     try {
       CompilationUnitElement element =
           libraryContext.computeUnitElement(library.source, file.source);
-      String signature = _getResolvedUnitSignature(library, file);
+      String signature = library.transitiveSignature;
       return new UnitElementResult(path, file.contentHash, signature, element);
     } finally {
       libraryContext.dispose();
@@ -830,7 +829,7 @@ class AnalysisDriver {
   String _computeUnitElementSignature(String path) {
     FileState file = _fileTracker.fsState.getFileForPath(path);
     FileState library = file.library ?? file;
-    return _getResolvedUnitSignature(library, file);
+    return library.transitiveSignature;
   }
 
   /**
@@ -877,11 +876,9 @@ class AnalysisDriver {
    */
   AnalysisResult _getAnalysisResultFromBytes(
       FileState file, String signature, List<int> bytes,
-      {String content, bool withErrors: true, CompilationUnit resolvedUnit}) {
+      {String content, CompilationUnit resolvedUnit}) {
     var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    List<AnalysisError> errors = withErrors
-        ? _getErrorsFromSerialized(file, unit.errors)
-        : const <AnalysisError>[];
+    List<AnalysisError> errors = _getErrorsFromSerialized(file, unit.errors);
     return new AnalysisResult(
         this,
         _sourceFactory,
@@ -1705,9 +1702,9 @@ class UnitElementResult {
   final String contentHash;
 
   /**
-   * The signature of the [element] based on the content of the file, and the
-   * transitive closure of files imported and exported by the the library of
-   * the requested file.
+   * The signature of the [element] is based the APIs of the files of the
+   * library (including the file itself) of the requested file and the
+   * transitive closure of files imported and exported by the the library.
    */
   final String signature;
 

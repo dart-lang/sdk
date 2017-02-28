@@ -30,8 +30,10 @@ env_test: Skip # This is testing a vm command line parsing scenario.
 
 [ $runtime == vm || $runtime == dart_precompiled ]
 package/package_isolate_test: Fail # Issue 12474
-io/observatory_test: Fail
 package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
+# This test checks that the test runner correctly detects and reports non-utf8
+# output from a test.
+io/non_utf8_output_test: NonUtf8Output, OK
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $checked ]
 # These tests have type errors on purpose.
@@ -97,6 +99,11 @@ io/file_constructor_test: fail
 # This is runtime test.
 io/process_exit_negative_test: Skip
 
+io/http_parser_test: Pass, CompileTimeError # Issue 28843
+io/http_headers_test: Pass, CompileTimeError # Issue 28843
+io/http_cookie_date_test: Pass, CompileTimeError # Issue 28843
+io/web_socket_protocol_processor_test: Pass, CompileTimeError # Issue 28843
+
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649
 
@@ -131,9 +138,6 @@ deferred_transitive_import_error_test: Skip # Contains intentional errors.
 dart_developer_env_test: SkipByDesign # Unsupported by dart2js
 dart_developer_disabled_env_test: SkipByDesign # Unsupported by dart2js
 
-[ $compiler == dart2js && $cps_ir && $checked ]
-*: Skip # `assert` not implemented
-
 [ $runtime == vm && ($arch == arm || $arch == arm64) ]
 io/file_stream_test: Skip # Issue 26109
 io/file_typed_data_test: Skip # Issue 26109
@@ -151,7 +155,6 @@ medium_integer_test: Pass # The test only fails at runtime, not at compilation.
 oom_error_stacktrace_test: Pass # The test only fails at runtime.
 
 [ $compiler == dart2js && $fast_startup ]
-io/observatory_test: Fail # mirrors not supported.
 io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
 io/test_harness_analyzer_test: CompileTimeError # Imports dart:mirrors
 io/test_runner_test: CompileTimeError # Imports dart:mirrors
@@ -388,6 +391,9 @@ io/secure_socket_test: RuntimeError
 io/raw_secure_socket_test: RuntimeError
 io/https_bad_certificate_test: RuntimeError
 io/secure_server_closing_test: RuntimeError
+# The Android command runner doesn't correctly handle non-UTF8 formatted output.
+# https://github.com/dart-lang/sdk/issues/28872
+io/non_utf8_output_test: Skip
 
 [ $system == android && $runtime == dart_precompiled && $mode == release && $arch == arm]
 io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 28426
@@ -403,7 +409,6 @@ io/test_runner_test: Pass, Slow # Slow.
 io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
 
 [ $builder_tag == no_ipv6 ]
-io/http_bind_test: SkipByDesign
 io/raw_datagram_socket_test: SkipByDesign
 io/socket_source_address_test: SkipByDesign
 io/socket_bind_test: SkipByDesign

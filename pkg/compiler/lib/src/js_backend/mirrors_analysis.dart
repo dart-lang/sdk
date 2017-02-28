@@ -79,7 +79,8 @@ class MirrorsHandler {
    */
   bool _shouldIncludeElementDueToMirrors(Element element,
       {bool includedEnclosing}) {
-    return includedEnclosing || _backend.requiredByMirrorSystem(element);
+    return includedEnclosing ||
+        _backend.mirrorsData.requiredByMirrorSystem(element);
   }
 
   /// Enqueue the constructor [ctor] if it is required for reflection.
@@ -173,7 +174,7 @@ class MirrorsHandler {
   void _enqueueReflectiveSpecialClasses() {
     Iterable<ClassElement> classes = _backend.classesRequiredForReflection;
     for (ClassElement cls in classes) {
-      if (_backend.referencedFromMirrorSystem(cls)) {
+      if (_backend.mirrorsData.referencedFromMirrorSystem(cls)) {
         _logEnqueueReflectiveAction(cls);
         cls.ensureResolved(_resolution);
         impactBuilder

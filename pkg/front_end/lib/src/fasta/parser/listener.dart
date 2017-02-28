@@ -9,6 +9,9 @@ import '../scanner/token.dart' show BeginGroupToken, Token;
 import '../util/link.dart' show Link;
 
 import 'error_kind.dart' show ErrorKind;
+import 'parser.dart' show FormalParameterType;
+
+import 'identifier_context.dart' show IdentifierContext;
 
 /// A parser event listener that does nothing except throw exceptions
 /// on parser errors.
@@ -75,8 +78,13 @@ class Listener {
   /// - supertype (may be a mixin application)
   /// - implemented types
   /// - class body
-  void endClassDeclaration(int interfacesCount, Token beginToken,
-      Token extendsKeyword, Token implementsKeyword, Token endToken) {
+  void endClassDeclaration(
+      int interfacesCount,
+      Token beginToken,
+      Token classKeyword,
+      Token extendsKeyword,
+      Token implementsKeyword,
+      Token endToken) {
     logEvent("ClassDeclaration");
   }
 
@@ -120,6 +128,11 @@ class Listener {
 
   void beginEnum(Token enumKeyword) {}
 
+  /// Handle the end of an enum declaration.  Substructures:
+  /// - Metadata
+  /// - Enum name (identifier)
+  /// - [count] times:
+  ///   - Enum value (identifier)
   void endEnum(Token enumKeyword, Token endBrace, int count) {
     logEvent("Enum");
   }
@@ -151,7 +164,8 @@ class Listener {
 
   void beginFormalParameter(Token token) {}
 
-  void endFormalParameter(Token thisKeyword) {
+  void endFormalParameter(
+      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     logEvent("FormalParameter");
   }
 
@@ -232,7 +246,22 @@ class Listener {
 
   void beginFunctionTypeAlias(Token token) {}
 
-  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
+  /// Handle the end of a typedef declaration.
+  ///
+  /// If [equals] is null, then we have the following substructures:
+  /// - Metadata
+  /// - Return type
+  /// - Name (identifier)
+  /// - Template variables (type variables to the template)
+  /// - Formal parameters
+  ///
+  /// If [equals] is not null, then the have the following substructures:
+  /// - Metadata
+  /// - Name (identifier)
+  /// - Template variables (type variables to the template)
+  /// - Type (FunctionTypeAnnotation)
+  void endFunctionTypeAlias(
+      Token typedefKeyword, Token equals, Token endToken) {
     logEvent("FunctionTypeAlias");
   }
 
@@ -256,12 +285,12 @@ class Listener {
   /// - mixin application
   /// - implemented types (TypeList)
   ///
-  /// TODO(paulberry,ahe): it seems incosistent that for a named mixin
+  /// TODO(paulberry,ahe): it seems inconsistent that for a named mixin
   /// application, the implemented types are a TypeList, whereas for a class
   /// declaration, each implemented type is listed separately on the stack, and
   /// the number of implemented types is passed as a parameter.
-  void endNamedMixinApplication(
-      Token begin, Token implementsKeyword, Token endToken) {
+  void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
+      Token implementsKeyword, Token endToken) {
     logEvent("NamedMixinApplication");
   }
 
@@ -324,6 +353,10 @@ class Listener {
 
   void beginConditionalUri(Token ifKeyword) {}
 
+  /// Handle the end of a conditional URI construct.  Substructures:
+  /// - Dotted name
+  /// - Condition (literal string; only present if [equalitySign] is not `null`)
+  /// - URI (literal string)
   void endConditionalUri(Token ifKeyword, Token equalitySign) {
     logEvent("ConditionalUri");
   }
@@ -342,18 +375,28 @@ class Listener {
 
   void beginFieldInitializer(Token token) {}
 
+  /// Handle the end of a field initializer.  Substructures:
+  /// - Initializer expression
   void endFieldInitializer(Token assignment) {
     logEvent("FieldInitializer");
   }
 
+  /// Handle the lack of a field initializer.
   void handleNoFieldInitializer(Token token) {
     logEvent("NoFieldInitializer");
   }
 
   void beginVariableInitializer(Token token) {}
 
+  /// Handle the end of a variable initializer. Substructures:
+  /// - Initializer expression.
   void endVariableInitializer(Token assignmentOperator) {
     logEvent("VariableInitializer");
+  }
+
+  /// Used when a variable has no initializer.
+  void handleNoVariableInitializer(Token token) {
+    logEvent("NoVariableInitializer");
   }
 
   void beginInitializer(Token token) {}
@@ -442,6 +485,16 @@ class Listener {
 
   void beginMethod(Token token, Token name) {}
 
+  /// Handle the end of a method declaration.  Substructures:
+  /// - metadata
+  /// - modifiers
+  /// - return type
+  /// - method name (identifier, possibly qualified)
+  /// - type variables
+  /// - formal parameters
+  /// - initializers
+  /// - async marker
+  /// - body
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     logEvent("Method");
   }
@@ -477,6 +530,7 @@ class Listener {
   void beginPartOf(Token token) {}
 
   /// Handle the end of a "part of" directive.  Substructures:
+  /// - Metadata
   /// - Library name (a qualified identifier)
   void endPartOf(Token partKeyword, Token semicolon) {
     logEvent("PartOf");
@@ -549,6 +603,13 @@ class Listener {
 
   void beginTopLevelMember(Token token) {}
 
+  /// Handle the end of a top level variable declaration.  Substructures:
+  /// - Metadata
+  /// - Modifiers
+  /// - Type
+  /// - Repeated [count] times:
+  ///   - Variable name (identifier)
+  ///   - Field initializer
   /// Doesn't have a corresponding begin event, use [beginTopLevelMember]
   /// instead.
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
@@ -594,8 +655,16 @@ class Listener {
     logEvent("TryStatement");
   }
 
-  void endType(Token beginToken, Token endToken) {
+  void handleType(Token beginToken, Token endToken) {
     logEvent("Type");
+  }
+
+  void handleNoName(Token token) {
+    logEvent("NoName");
+  }
+
+  void handleFunctionType(Token functionToken, Token endToken) {
+    logEvent("FunctionType");
   }
 
   void beginTypeArguments(Token token) {}
@@ -610,6 +679,10 @@ class Listener {
 
   void beginTypeVariable(Token token) {}
 
+  /// Handle the end of a type formal parameter (e.g. "X extends Y").
+  /// Substructures:
+  /// - Name (identifier)
+  /// - Type bound
   void endTypeVariable(Token token, Token extendsOrSuper) {
     logEvent("TypeVariable");
   }
@@ -622,6 +695,12 @@ class Listener {
 
   void beginUnnamedFunction(Token token) {}
 
+  /// Handle the end of a function expression (e.g. "() { ... }").
+  /// Substructures:
+  /// - Type variables
+  /// - Formal parameters
+  /// - Async marker
+  /// - Body
   void endUnnamedFunction(Token token) {
     logEvent("UnnamedFunction");
   }
@@ -660,11 +739,22 @@ class Listener {
 
   void beginFunctionTypedFormalParameter(Token token) {}
 
-  void endFunctionTypedFormalParameter(Token token) {
+  /// Handle the end of a function typed formal parameter.  Substructures:
+  /// - metadata
+  /// - modifiers
+  /// - return type
+  /// - parameter name (simple identifier)
+  /// - type parameters
+  /// - formal parameters
+  void endFunctionTypedFormalParameter(
+      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     logEvent("FunctionTypedFormalParameter");
   }
 
-  void handleIdentifier(Token token) {
+  /// Handle an identifier token.
+  ///
+  /// [context] indicates what kind of construct the identifier appears in.
+  void handleIdentifier(Token token, IdentifierContext context) {
     logEvent("Identifier");
   }
 
@@ -819,6 +909,10 @@ class Listener {
 
   void handleValuedFormalParameter(Token equals, Token token) {
     logEvent("ValuedFormalParameter");
+  }
+
+  void handleFormalParameterWithoutValue(Token token) {
+    logEvent("FormalParameterWithoutValue");
   }
 
   void handleVoidKeyword(Token token) {

@@ -4,31 +4,30 @@
 
 library fasta.quote;
 
-import 'errors.dart' show
-    inputError,
-    internalError;
+import 'errors.dart' show inputError, internalError;
 
-import 'package:front_end/src/fasta/scanner/characters.dart' show
-    $BACKSLASH,
-    $BS,
-    $CLOSE_CURLY_BRACKET,
-    $CR,
-    $FF,
-    $LF,
-    $OPEN_CURLY_BRACKET,
-    $SPACE,
-    $TAB,
-    $VTAB,
-    $b,
-    $f,
-    $n,
-    $r,
-    $t,
-    $u,
-    $v,
-    $x,
-    hexDigitValue,
-    isHexDigit;
+import 'package:front_end/src/fasta/scanner/characters.dart'
+    show
+        $BACKSLASH,
+        $BS,
+        $CLOSE_CURLY_BRACKET,
+        $CR,
+        $FF,
+        $LF,
+        $OPEN_CURLY_BRACKET,
+        $SPACE,
+        $TAB,
+        $VTAB,
+        $b,
+        $f,
+        $n,
+        $r,
+        $t,
+        $u,
+        $v,
+        $x,
+        hexDigitValue,
+        isHexDigit;
 
 enum Quote {
   Single,
@@ -125,14 +124,15 @@ String unescapeFirstStringPart(String first, Quote quote) {
 }
 
 String unescapeLastStringPart(String last, Quote quote) {
-  return unescape(last.substring(0, last.length - lastQuoteLength(quote)),
-      quote);
+  return unescape(
+      last.substring(0, last.length - lastQuoteLength(quote)), quote);
 }
 
 String unescapeString(String string) {
   Quote quote = analyzeQuote(string);
-  return unescape(string.substring(
-      firstQuoteLength(string, quote), string.length - lastQuoteLength(quote)),
+  return unescape(
+      string.substring(firstQuoteLength(string, quote),
+          string.length - lastQuoteLength(quote)),
       quote);
 }
 
@@ -168,11 +168,13 @@ String unescapeCodeUnits(List<int> codeUnits) {
   error(int offset, String message) {
     inputError(null, null, message);
   }
+
   for (int i = 0; i < codeUnits.length; i++) {
     int code = codeUnits[i];
     if (code == $BACKSLASH) {
       if (codeUnits.length == ++i) return error(i, incompleteSequence);
       code = codeUnits[i];
+
       /// `\n` for newline, equivalent to `\x0A`.
       /// `\r` for carriage return, equivalent to `\x0D`.
       /// `\f` for form feed, equivalent to `\x0C`.

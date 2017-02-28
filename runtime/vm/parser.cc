@@ -3121,12 +3121,12 @@ void Parser::ParseConstructorRedirection(const Class& cls,
       Function::ZoneHandle(Z, cls.LookupConstructor(ctor_name));
   if (redirect_ctor.IsNull()) {
     if (cls.LookupFactory(ctor_name) != Function::null()) {
-      ReportError(
-          call_pos, "redirection constructor '%s' must not be a factory",
-          String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString());
+      ReportError(call_pos,
+                  "redirection constructor '%s' must not be a factory",
+                  String::Handle(Z, String::ScrubName(ctor_name)).ToCString());
     }
     ReportError(call_pos, "constructor '%s' not found",
-                String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString());
+                String::Handle(Z, String::ScrubName(ctor_name)).ToCString());
   }
   if (current_function().is_const() && !redirect_ctor.is_const()) {
     ReportError(call_pos, "redirection constructor '%s' must be const",
@@ -3578,16 +3578,20 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     ASSERT(!func.is_generated_body());
     // The code of an async function is synthesized. Disable debugging.
     func.set_is_debuggable(false);
-    // In order to collect causal asynchronous stacks efficiently we rely on
-    // this function not being inlined.
-    func.set_is_inlinable(!FLAG_causal_async_stacks);
+    if (FLAG_causal_async_stacks) {
+      // In order to collect causal asynchronous stacks efficiently we rely on
+      // this function not being inlined.
+      func.set_is_inlinable(false);
+    }
     generated_body_closure = OpenAsyncFunction(func.token_pos());
   } else if (func.IsAsyncClosure()) {
     // The closure containing the body of an async function is debuggable.
     ASSERT(func.is_debuggable());
-    // In order to collect causal asynchronous stacks efficiently we rely on
-    // this function not being inlined.
-    func.set_is_inlinable(!FLAG_causal_async_stacks);
+    if (FLAG_causal_async_stacks) {
+      // In order to collect causal asynchronous stacks efficiently we rely on
+      // this function not being inlined.
+      func.set_is_inlinable(false);
+    }
     OpenAsyncClosure();
   } else if (func.IsSyncGenerator()) {
     // The code of a sync generator is synthesized. Disable debugging.
@@ -3599,16 +3603,20 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     async_temp_scope_ = current_block_->scope;
   } else if (func.IsAsyncGenerator()) {
     func.set_is_debuggable(false);
-    // In order to collect causal asynchronous stacks efficiently we rely on
-    // this function not being inlined.
-    func.set_is_inlinable(!FLAG_causal_async_stacks);
+    if (FLAG_causal_async_stacks) {
+      // In order to collect causal asynchronous stacks efficiently we rely on
+      // this function not being inlined.
+      func.set_is_inlinable(false);
+    }
     generated_body_closure = OpenAsyncGeneratorFunction(func.token_pos());
   } else if (func.IsAsyncGenClosure()) {
     // The closure containing the body of an async* function is debuggable.
     ASSERT(func.is_debuggable());
-    // In order to collect causal asynchronous stacks efficiently we rely on
-    // this function not being inlined.
-    func.set_is_inlinable(!FLAG_causal_async_stacks);
+    if (FLAG_causal_async_stacks) {
+      // In order to collect causal asynchronous stacks efficiently we rely on
+      // this function not being inlined.
+      func.set_is_inlinable(false);
+    }
     OpenAsyncGeneratorClosure();
   }
 
@@ -4700,7 +4708,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     } else {
       // Not patching a class, but it has been found. This must be one of the
       // pre-registered classes from object.cc or a duplicate definition.
-      if (!(cls.is_prefinalized() ||
+      if (!(cls.is_prefinalized() || cls.IsClosureClass() ||
             RawObject::IsImplicitFieldClassId(cls.id()))) {
         ReportError(classname_pos, "class '%s' is already defined",
                     class_name.ToCString());

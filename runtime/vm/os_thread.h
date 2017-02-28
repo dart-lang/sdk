@@ -116,7 +116,7 @@ class OSThread : public BaseThread {
   bool ThreadInterruptsEnabled();
 
   // The currently executing thread, or NULL if not yet initialized.
-  static OSThread* Current() {
+  static OSThread* TryCurrent() {
     BaseThread* thread = GetCurrentTLS();
     OSThread* os_thread = NULL;
     if (thread != NULL) {
@@ -126,7 +126,15 @@ class OSThread : public BaseThread {
         Thread* vm_thread = reinterpret_cast<Thread*>(thread);
         os_thread = GetOSThreadFromThread(vm_thread);
       }
-    } else {
+    }
+    return os_thread;
+  }
+
+  // The currently executing thread. If there is no currently executing thread,
+  // a new OSThread is created and returned.
+  static OSThread* Current() {
+    OSThread* os_thread = TryCurrent();
+    if (os_thread == NULL) {
       os_thread = CreateAndSetUnknownThread();
     }
     return os_thread;
@@ -291,6 +299,7 @@ class Mutex {
   ThreadId owner_;
 #endif  // defined(DEBUG)
 
+  friend class MallocLocker;
   friend class MutexLocker;
   friend class SafepointMutexLocker;
   friend class OSThreadIterator;

@@ -33,7 +33,6 @@ static method main() → dynamic {
   dynamic closures = <dynamic>[];
   dynamic closures2 = <dynamic>[];
   final mock::Context #context = new mock::Context::•(1);
-  #context.parent = null;
   #context.[]=(0, null);
   {
     mock::Context #context = new mock::Context::•(1);

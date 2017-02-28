@@ -134,7 +134,7 @@ main() {
 
       test('sdk warnings', () {
         CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--warnings', 'foo.dart']);
+            .parse(['--dart-sdk', '.', '--sdk-warnings', 'foo.dart']);
         expect(options.showSdkWarnings, isTrue);
       });
 

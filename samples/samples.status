@@ -29,5 +29,5 @@ sample_extension/test/*: Skip # Issue 14705
 [ $compiler == precompiler ]
 sample_extension/test/*: Skip # These tests attempt to spawn another script using the precompiled runtime.
 
-[ $compiler == app_jit ]
-sample_extension/test/*: Skip # Shared use of a temp directory
+[ $compiler == none && $runtime == vm && $system == windows && $mode == debug ]
+sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # Issue 28842

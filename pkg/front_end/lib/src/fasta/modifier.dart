@@ -4,8 +4,7 @@
 
 library fasta.modifier;
 
-import 'errors.dart' show
-    internalError;
+import 'errors.dart' show internalError;
 
 enum ModifierEnum {
   Abstract,

@@ -4,80 +4,57 @@
 
 library fasta.builder;
 
-import '../errors.dart' show
-    internalError;
+import '../errors.dart' show internalError;
 
-export 'class_builder.dart' show
-    ClassBuilder;
+import '../messages.dart' show nit;
 
-export 'field_builder.dart' show
-    FieldBuilder;
+export 'class_builder.dart' show ClassBuilder;
 
-export 'library_builder.dart' show
-    LibraryBuilder;
+export 'field_builder.dart' show FieldBuilder;
 
-export 'procedure_builder.dart' show
-    ProcedureBuilder;
+export 'library_builder.dart' show LibraryBuilder;
 
-export 'type_builder.dart' show
-    TypeBuilder;
+export 'procedure_builder.dart' show ProcedureBuilder;
 
-export 'formal_parameter_builder.dart' show
-    FormalParameterBuilder;
+export 'type_builder.dart' show TypeBuilder;
 
-export 'metadata_builder.dart' show
-    MetadataBuilder;
+export 'formal_parameter_builder.dart' show FormalParameterBuilder;
 
-export 'type_variable_builder.dart' show
-    TypeVariableBuilder;
+export 'metadata_builder.dart' show MetadataBuilder;
 
-export 'function_type_alias_builder.dart' show
-    FunctionTypeAliasBuilder;
+export 'type_variable_builder.dart' show TypeVariableBuilder;
 
-export 'named_mixin_application_builder.dart' show
-    NamedMixinApplicationBuilder;
+export 'function_type_alias_builder.dart' show FunctionTypeAliasBuilder;
 
-export 'mixin_application_builder.dart' show
-    MixinApplicationBuilder;
+export 'named_mixin_application_builder.dart' show NamedMixinApplicationBuilder;
 
-export 'enum_builder.dart' show
-    EnumBuilder;
+export 'mixin_application_builder.dart' show MixinApplicationBuilder;
 
-export 'type_declaration_builder.dart' show
-    TypeDeclarationBuilder;
+export 'enum_builder.dart' show EnumBuilder;
 
-export 'named_type_builder.dart' show
-    NamedTypeBuilder;
+export 'type_declaration_builder.dart' show TypeDeclarationBuilder;
 
-export 'constructor_reference_builder.dart' show
-    ConstructorReferenceBuilder;
+export 'named_type_builder.dart' show NamedTypeBuilder;
 
-export '../source/unhandled_listener.dart' show
-    Unhandled;
+export 'constructor_reference_builder.dart' show ConstructorReferenceBuilder;
 
-export 'member_builder.dart' show
-    MemberBuilder;
+export '../source/unhandled_listener.dart' show Unhandled;
 
-export 'modifier_builder.dart' show
-    ModifierBuilder;
+export 'member_builder.dart' show MemberBuilder;
 
-export 'prefix_builder.dart' show
-    PrefixBuilder;
+export 'modifier_builder.dart' show ModifierBuilder;
 
-export 'invalid_type_builder.dart' show
-    InvalidTypeBuilder;
+export 'prefix_builder.dart' show PrefixBuilder;
 
-export 'mixed_accessor.dart' show
-    MixedAccessor;
+export 'invalid_type_builder.dart' show InvalidTypeBuilder;
 
-export 'scope.dart' show
-    AccessErrorBuilder;
+export 'mixed_accessor.dart' show MixedAccessor;
 
-export 'dynamic_type_builder.dart' show
-    DynamicTypeBuilder;
+export 'scope.dart' show AccessErrorBuilder;
 
-import 'library_builder.dart' show
-    LibraryBuilder;
+export 'dynamic_type_builder.dart' show DynamicTypeBuilder;
+
+import 'library_builder.dart' show LibraryBuilder;
 
 abstract class Builder {
   /// Used when multiple things with the same name are declared within the same
@@ -96,6 +73,11 @@ abstract class Builder {
 
   Uri get fileUri => null;
 
+  String get relativeFileUri {
+    throw "The relativeFileUri method should be only called on subclasses "
+        "which have an efficient implementation of `relativeFileUri`!";
+  }
+
   /// Resolve types (lookup names in scope) recorded in this builder and return
   /// the number of types resolved.
   int resolveTypes(covariant Builder parent) => 0;
@@ -108,8 +90,8 @@ abstract class Builder {
   ///
   /// This method handles this case according to the Dart language
   /// specification.
-  Builder combineAmbiguousImport(String name, Builder other,
-      LibraryBuilder library) {
+  Builder combineAmbiguousImport(
+      String name, Builder other, LibraryBuilder library) {
     if (other == this) return this;
     bool isLocal = false;
     Builder preferred;
@@ -127,16 +109,26 @@ abstract class Builder {
       preferred = other;
       hidden = this;
     } else {
-      print("${library.uri}: Note: '$name' is imported from both "
+      nit(
+          library.fileUri,
+          -1,
+          "'$name' is imported from both "
           "'${getUri(this)}' and '${getUri(other)}'.");
       return library.buildAmbiguousBuilder(name, this, other, charOffset);
     }
     if (isLocal) {
-      print("${library.uri}: Note: local definition of '$name' hides imported "
+      nit(
+          library.fileUri,
+          -1,
+          "Local definition of '$name' hides imported "
           "version from '${getUri(other)}'.");
     } else {
-      print("${library.uri}: import of '$name' (from '${getUri(preferred)}') "
-          "hides imported version from '${getUri(hidden)}'.");
+      nit(
+          library.fileUri,
+          -1,
+          "Import of '$name' "
+          "(from '${getUri(preferred)}') hides imported version from "
+          "'${getUri(hidden)}'.");
     }
     return preferred;
   }

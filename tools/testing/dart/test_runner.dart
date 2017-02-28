@@ -32,6 +32,7 @@ import "utils.dart";
 
 const int CRASHING_BROWSER_EXITCODE = -10;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
+const int NON_UTF_FAKE_EXITCODE = 0xFFFD;
 
 const MESSAGE_CANNOT_OPEN_DISPLAY = 'Gtk-WARNING **: cannot open display';
 const MESSAGE_FAILED_TO_RUN_COMMAND = 'Failed to run command. return code=1';
@@ -363,25 +364,14 @@ class AnalysisCommand extends ProcessCommand {
 }
 
 class VmCommand extends ProcessCommand {
-  final bool needsDFERunner;
   VmCommand._(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides,
-      bool this.needsDFERunner)
+      Map<String, String> environmentOverrides)
       : super._("vm", executable, arguments, environmentOverrides);
-
-  void _buildHashCode(HashCodeBuilder builder) {
-    super._buildHashCode(builder);
-    builder.add(needsDFERunner);
-  }
-
-  bool _equal(VmCommand other) =>
-      super._equal(other) && needsDFERunner == other.needsDFERunner;
 }
 
 class VmBatchCommand extends ProcessCommand implements VmCommand {
   final String dartFile;
   final bool checked;
-  final needsDFERunner = false;
 
   VmBatchCommand._(String executable, String dartFile, List<String> arguments,
       Map<String, String> environmentOverrides, {this.checked: true})
@@ -650,8 +640,8 @@ class CommandBuilder {
   }
 
   VmCommand getVmCommand(String executable, List<String> arguments,
-      Map<String, String> environmentOverrides, {bool needsDFERunner: false}) {
-    var command = new VmCommand._(executable, arguments, environmentOverrides, needsDFERunner);
+      Map<String, String> environmentOverrides) {
+    var command = new VmCommand._(executable, arguments, environmentOverrides);
     return _getUniqueCommand(command);
   }
 
@@ -984,7 +974,9 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
   Expectation result(TestCase testCase) {
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
-    return hasFailed(testCase) ? Expectation.FAIL : Expectation.PASS;
+    if (hasFailed(testCase)) return Expectation.FAIL;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
+    return Expectation.PASS;
   }
 
   bool get hasCrashed {
@@ -1030,6 +1022,8 @@ class CommandOutputImpl extends UniqueObject implements CommandOutput {
   bool hasFailed(TestCase testCase) {
     return testCase.isNegative ? !didFail(testCase) : didFail(testCase);
   }
+
+  bool get hasNonUtf8 => exitCode == NON_UTF_FAKE_EXITCODE;
 
   Expectation _negateOutcomeIfNegativeTest(
       Expectation outcome, bool isNegative) {
@@ -1086,6 +1080,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     if (_infraFailure) {
       return Expectation.IGNORE;
@@ -1396,6 +1391,7 @@ class BrowserControllerTestOutcome extends CommandOutputImpl
   Expectation result(TestCase testCase) {
     // Handle timeouts first
     if (_result.didTimeout) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     // Multitests are handled specially
     if (testCase.hasRuntimeError) {
@@ -1428,6 +1424,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     // Get the errors/warnings from the analyzer
     List<String> errors = [];
@@ -1517,6 +1514,7 @@ class VmCommandOutputImpl extends CommandOutputImpl
     if (exitCode == DART_VM_EXITCODE_DFE_ERROR) return Expectation.DARTK_CRASH;
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     // Multitests are handled specially
     if (testCase.expectCompileError) {
@@ -1577,6 +1575,7 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
           ? Expectation.IGNORE
           : Expectation.TIMEOUT;
     }
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     // Handle dart2js specific crash detection
     if (exitCode == DART2JS_EXITCODE_CRASH ||
@@ -1654,6 +1653,7 @@ class JsCommandlineOutputImpl extends CommandOutputImpl
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     if (testCase.hasRuntimeError) {
       if (exitCode != 0) return Expectation.PASS;
@@ -1675,6 +1675,7 @@ class PubCommandOutputImpl extends CommandOutputImpl {
     // Handle crashes and timeouts first
     if (hasCrashed) return Expectation.CRASH;
     if (hasTimedOut) return Expectation.TIMEOUT;
+    if (hasNonUtf8) return Expectation.NON_UTF8_ERROR;
 
     if (exitCode == 0) {
       return Expectation.PASS;
@@ -1756,6 +1757,7 @@ class OutputLog {
   List<int> tail;
   List<int> complete;
   bool dataDropped = false;
+  bool hasNonUtf8 = false;
 
   OutputLog();
 
@@ -1782,6 +1784,29 @@ class OutputLog {
       ? tail.sublist(tail.length - TAIL_LENGTH)
       : tail;
 
+
+  void _checkUtf8(List<int> data) {
+    try {
+      UTF8.decode(data, allowMalformed: false);
+    } on FormatException catch (e) {
+      hasNonUtf8 = true;
+      String malformed = UTF8.decode(data, allowMalformed: true);
+      data..clear()
+          ..addAll(malformed.codeUnits)
+          ..addAll("""
+
+  *****************************************************************************
+
+  test.dart: The output of this test contained non-UTF8 formatted data.
+
+  *****************************************************************************
+
+  """
+          .codeUnits);
+    }
+  }
+
+
   List<int> toList() {
     if (complete == null) {
       complete = head;
@@ -1790,7 +1815,7 @@ class OutputLog {
 
 *****************************************************************************
 
-Data removed due to excessive length
+test.dart: Data was removed due to excessive length
 
 *****************************************************************************
 
@@ -1802,6 +1827,7 @@ Data removed due to excessive length
       }
       head = null;
       tail = null;
+      _checkUtf8(complete);
     }
     return complete;
   }
@@ -1864,12 +1890,10 @@ class RunningProcess {
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
   Map configuration;
-  List<String> preArguments;
 
   RunningProcess(this.command,
                  this.timeout,
-                 {this.configuration,
-                  this.preArguments});
+                 {this.configuration});
 
   Future<CommandOutput> run() {
     completer = new Completer<CommandOutput>();
@@ -1886,9 +1910,6 @@ class RunningProcess {
       } else {
         var processEnvironment = _createProcessEnvironment();
         var args = command.arguments;
-        if (preArguments != null) {
-          args = []..addAll(preArguments)..addAll(args);
-        }
         Future processFuture = io.Process.start(
             command.executable, args,
             environment: processEnvironment,
@@ -2036,12 +2057,21 @@ class RunningProcess {
   }
 
   CommandOutput _createCommandOutput(ProcessCommand command, int exitCode) {
+    List<int> stdoutData = stdout.toList();
+    List<int> stderrData = stderr.toList();
+    if (stdout.hasNonUtf8 || stderr.hasNonUtf8) {
+      // If the output contained non-utf8 formatted data, then make the exit
+      // code non-zero if it isn't already.
+      if (exitCode == 0) {
+        exitCode = NON_UTF_FAKE_EXITCODE;
+      }
+    }
     var commandOutput = createCommandOutput(
         command,
         exitCode,
         timedOut,
-        stdout.toList(),
-        stderr.toList(),
+        stdoutData,
+        stderrData,
         new DateTime.now().difference(startTime),
         compilationSkipped,
         pid);
@@ -2284,102 +2314,6 @@ class BatchRunnerProcess  {
       if (a[key] != b[key]) return false;
     }
     return true;
-  }
-}
-
-class BatchDFEProcess  {
-  io.Process _process;
-  int _port = -1;
-  Function _processExitHandler;
-
-  Completer terminating = null;
-
-  bool locked = false;
-
-  Future<int> acquire() async {
-    try {
-      assert(!locked);
-      locked = true;
-      if (_process == null) {
-        await _startProcess();
-      }
-      return _port;
-    } catch(e) {
-      locked = false;
-      rethrow;
-    }
-  }
-
-  void release() {
-    locked = false;
-  }
-
-  Future terminate() {
-    locked = true;
-    if (_process == null) {
-      return new Future.value(true);
-    }
-    if (terminating == null) {
-      terminating = new Completer();
-      _process.kill();
-    }
-    return terminating.future;
-  }
-
-  _onExit(exitCode) {
-    if (terminating != null) {
-      terminating.complete();
-      return;
-    }
-
-    _process = null;
-    locked = false;
-    _port = -1;
-  }
-
-  static Future<String> _firstLine(stream) {
-    var completer = new Completer<String>();
-    stream.transform(UTF8.decoder)
-          .transform(new LineSplitter())
-          .listen((line) {
-      if (!completer.isCompleted) {
-        completer.complete(line);
-      }
-      // We need to drain a pipe continuously.
-    }, onDone: () {
-      if (!completer.isCompleted) {
-        completer.completeError(
-            "DFE kernel compiler server did not sucessfully start up");
-      }
-    });
-    return completer.future;
-  }
-
-  Future _startProcess() async {
-    final executable = io.Platform.executable;
-    final arguments = ['utils/kernel-service/kernel-service.dart', '--batch'];
-
-    try {
-      _port = -1;
-      _process = await io.Process.start(executable, arguments);
-      _process.exitCode.then(_onExit);
-      _process.stderr.transform(UTF8.decoder).listen(DebugLogger.error);
-
-      final readyMsg = await _firstLine(_process.stdout);
-      final data = readyMsg.split(' ');
-      assert(data[0] == 'READY');
-
-      _port = int.parse(data[1]);
-    } catch (e) {
-      print("Process error:");
-      print("  Command: $executable ${arguments.join(' ')}");
-      print("  Error: $e");
-      // If there is an error starting a batch process, chances are that
-      // it will always fail. So rather than re-trying a 1000+ times, we
-      // exit.
-      io.exit(1);
-      return true;
-    }
   }
 }
 
@@ -2691,8 +2625,6 @@ class CommandExecutorImpl implements CommandExecutor {
   // We keep a BrowserTestRunner for every configuration.
   final _browserTestRunners = new Map<Map, BrowserTestRunner>();
 
-  List<BatchDFEProcess> _dfeProcesses = null;
-
   bool _finishing = false;
 
   CommandExecutorImpl(
@@ -2717,13 +2649,9 @@ class CommandExecutorImpl implements CommandExecutor {
       return Future.wait(futures);
     }
 
-    Future _terminateDFEWorkers() =>
-      Future.wait((_dfeProcesses ?? <BatchDFEProcess>[]).map((p) => p.terminate()));
-
     return Future.wait([
       _terminateBatchRunners(),
       _terminateBrowserRunners(),
-      _terminateDFEWorkers()
     ]);
   }
 
@@ -2772,13 +2700,6 @@ class CommandExecutorImpl implements CommandExecutor {
           adbDevicePool.releaseDevice(device);
         });
       });
-    } else if (command is VmCommand && command.needsDFERunner) {
-      final runner = _getDFEProcess();
-      return runner.acquire().then((port) {
-        return new RunningProcess(command, timeout,
-            configuration: globalConfiguration,
-            preArguments: ['-DDFE_WORKER_PORT=${port}']).run();
-      }).whenComplete(() => runner.release());
     } else if (command is VmBatchCommand) {
       var name = command.displayName;
       return _getBatchRunner(command.displayName + command.dartFile)
@@ -2880,12 +2801,6 @@ class CommandExecutorImpl implements CommandExecutor {
       if (!runner._currentlyRunning) return runner;
     }
     throw new Exception('Unable to find inactive batch runner.');
-  }
-
-  BatchDFEProcess _getDFEProcess() {
-    _dfeProcesses ??= new List<BatchDFEProcess>.generate(maxProcesses,
-        (_) => new BatchDFEProcess());
-    return _dfeProcesses.firstWhere((runner) => !runner.locked);
   }
 
   Future<CommandOutput> _startBrowserControllerTest(

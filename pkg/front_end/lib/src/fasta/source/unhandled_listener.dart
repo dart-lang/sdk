@@ -4,15 +4,11 @@
 
 library fasta.unhandled_listener;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show
-    Token;
+import 'package:front_end/src/fasta/scanner/token.dart' show Token;
 
-import 'stack_listener.dart' show
-    NullValue,
-    StackListener;
+import 'stack_listener.dart' show NullValue, StackListener;
 
-export 'stack_listener.dart' show
-    NullValue;
+export 'stack_listener.dart' show NullValue;
 
 // TODO(ahe): Get rid of this.
 enum Unhandled {
@@ -39,7 +35,7 @@ abstract class UnhandledListener extends StackListener {
   void endConditionalUri(Token ifKeyword, Token equalitySign) {
     debugEvent("ConditionalUri");
     pop(); // URI.
-    popIfNotNull(equalitySign);  // String.
+    popIfNotNull(equalitySign); // String.
     pop(); // DottedName.
     push(Unhandled.ConditionalUri);
   }

@@ -761,7 +761,8 @@ class MethodCallTransformer extends Transformer {
         namedParameters: [],
         requiredParameterCount: newParameters.length,
         returnType: function.returnType,
-        asyncMarker: function.asyncMarker);
+        asyncMarker: function.asyncMarker,
+        dartAsyncMarker: function.dartAsyncMarker);
     return functionNode;
   }
 
@@ -868,7 +869,8 @@ class MethodCallTransformer extends Transformer {
         namedParameters: [],
         requiredParameterCount: newParameterDeclarations.length,
         returnType: existing.function.returnType,
-        asyncMarker: existing.function.asyncMarker);
+        asyncMarker: existing.function.asyncMarker,
+        dartAsyncMarker: existing.function.dartAsyncMarker);
     final procedure = new Procedure(
         procedureName, ProcedureKind.Method, functionNode,
         isStatic: existing.isStatic, fileUri: existing.fileUri);
@@ -886,7 +888,7 @@ class MethodCallTransformer extends Transformer {
   ConstructorInvocation _createInvocation(
       String methodName, Arguments callArguments) {
     if (_invocationMirrorConstructor == null) {
-      Class clazz = coreTypes.getCoreClass('dart:core', '_InvocationMirror');
+      Class clazz = coreTypes.getClass('dart:core', '_InvocationMirror');
       _invocationMirrorConstructor = clazz.constructors[0];
     }
 
@@ -930,10 +932,7 @@ class MethodCallTransformer extends Transformer {
 
   /// Create a fixed length list containing given expressions.
   Expression _fixedLengthList(List<Expression> list) {
-    if (_listFrom == null) {
-      Class clazz = coreTypes.getCoreClass('dart:core', 'List');
-      _listFrom = clazz.procedures.firstWhere((c) => c.name.name == "from");
-    }
+    _listFrom ??= coreTypes.getMember('dart:core', 'List', 'from');
     return new StaticInvocation(
         _listFrom,
         new Arguments([new ListLiteral(list)],
@@ -993,7 +992,8 @@ class MethodCallTransformer extends Transformer {
         namedParameters: [],
         requiredParameterCount: newParameterDeclarations.length,
         returnType: target.function.returnType,
-        asyncMarker: target.function.asyncMarker);
+        asyncMarker: target.function.asyncMarker,
+        dartAsyncMarker: target.function.dartAsyncMarker);
     final procedure = new Procedure(
         _createName(target.name, argumentsSignature),
         ProcedureKind.Method,
@@ -1050,7 +1050,8 @@ class MethodCallTransformer extends Transformer {
         namedParameters: [],
         requiredParameterCount: newParameterDeclarations.length,
         returnType: target.function.returnType,
-        asyncMarker: target.function.asyncMarker);
+        asyncMarker: target.function.asyncMarker,
+        dartAsyncMarker: target.function.dartAsyncMarker);
     final constructor = new Constructor(functionNode,
         name: _createName(target.name, argumentsSignature),
         isConst: target.isConst,

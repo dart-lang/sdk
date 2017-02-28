@@ -227,8 +227,6 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
-    final bool needsDFERunner = suite.configuration['compiler'] == 'dartk' &&
-        !suite.configuration['noBatch'];
     String script = artifact.filename;
     String type = artifact.mimeType;
     if (script != null &&
@@ -238,7 +236,7 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     }
     String executable = suite.dartVmBinaryFileName;
     return <Command>[
-      commandBuilder.getVmCommand(executable, arguments, environmentOverrides, needsDFERunner: needsDFERunner)
+      commandBuilder.getVmCommand(executable, arguments, environmentOverrides)
     ];
   }
 }

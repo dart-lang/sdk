@@ -36,10 +36,6 @@ abstract class Object&M1 = core::Object with self::M1 {
 }
 abstract class Object&M1&M2 = self::Object&M1 with self::M2 {
 }
-abstract class Object&M1 = core::Object with self::M1 {
-}
-abstract class Object&M1&M2 = self::Object&M1 with self::M2 {
-}
 abstract class D^G1<S extends core::Object> = core::Object with self::G1<self::D^G1::S> {
 }
 static method main() → dynamic

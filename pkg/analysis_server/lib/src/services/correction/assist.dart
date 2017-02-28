@@ -119,6 +119,10 @@ class DartAssistKind {
       "Join 'if' statement with outer 'if' statement");
   static const JOIN_VARIABLE_DECLARATION = const AssistKind(
       'JOIN_VARIABLE_DECLARATION', 30, "Join variable declaration");
+  static const MOVE_FLUTTER_WIDGET_DOWN = const AssistKind(
+      "MOVE_FLUTTER_WIDGET_DOWN", 30, "Move widget down");
+  static const MOVE_FLUTTER_WIDGET_UP = const AssistKind(
+      "MOVE_FLUTTER_WIDGET_UP", 30, "Move widget up");
   static const REPARENT_FLUTTER_LIST = const AssistKind(
       "REPARENT_FLUTTER_LIST", 30, "Wrap widget list with new widget");
   static const REPARENT_FLUTTER_WIDGET = const AssistKind(

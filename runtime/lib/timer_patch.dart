@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:_internal' hide Symbol;
+
 @patch class Timer {
   @patch static Timer _createTimer(Duration duration, void callback()) {
     // TODO(iposva): Remove _TimerFactory and use VMLibraryHooks exclusively.

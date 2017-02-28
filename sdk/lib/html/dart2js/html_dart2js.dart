@@ -160,7 +160,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable()
   factory AnchorElement({String href}) {
-    AnchorElement e = document.createElement("a");
+    AnchorElement e = JS('returns:AnchorElement;creates:AnchorElement;new:true', '#.createElement(#)', document, "a");
     if (href != null) e.href = href;
     return e;
   }
@@ -799,7 +799,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
 
   @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable()
-  factory AreaElement() => document.createElement("area");
+  factory AreaElement() => JS('returns:AreaElement;creates:AreaElement;new:true', '#.createElement(#)', document, "area");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1026,7 +1026,7 @@ class BRElement extends HtmlElement {
 
   @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable()
-  factory BRElement() => document.createElement("br");
+  factory BRElement() => JS('returns:BRElement;creates:BRElement;new:true', '#.createElement(#)', document, "br");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1066,7 +1066,7 @@ class BaseElement extends HtmlElement {
 
   @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable()
-  factory BaseElement() => document.createElement("base");
+  factory BaseElement() => JS('returns:BaseElement;creates:BaseElement;new:true', '#.createElement(#)', document, "base");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1590,7 +1590,7 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
 
   @DomName('HTMLBodyElement.HTMLBodyElement')
   @DocsEditable()
-  factory BodyElement() => document.createElement("body");
+  factory BodyElement() => JS('returns:BodyElement;creates:BodyElement;new:true', '#.createElement(#)', document, "body");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1677,7 +1677,7 @@ class ButtonElement extends HtmlElement {
 
   @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable()
-  factory ButtonElement() => document.createElement("button");
+  factory ButtonElement() => JS('returns:ButtonElement;creates:ButtonElement;new:true', '#.createElement(#)', document, "button");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1863,7 +1863,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable()
   factory CanvasElement({int width, int height}) {
-    CanvasElement e = document.createElement("canvas");
+    CanvasElement e = JS('returns:CanvasElement;creates:CanvasElement;new:true', '#.createElement(#)', document, "canvas");
     if (width != null) e.width = width;
     if (height != null) e.height = height;
     return e;
@@ -4051,7 +4051,7 @@ class CssStyleDeclaration  extends Interceptor with
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
   factory CssStyleDeclaration.css(String css) {
-    final style = new Element.tag('div').style;
+    final style = new DivElement().style;
     style.cssText = css;
     return style;
   }
@@ -8936,7 +8936,7 @@ class DListElement extends HtmlElement {
 
   @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable()
-  factory DListElement() => document.createElement("dl");
+  factory DListElement() => JS('returns:DListElement;creates:DListElement;new:true', '#.createElement(#)', document, "dl");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -9758,7 +9758,7 @@ class DivElement extends HtmlElement {
 
   @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable()
-  factory DivElement() => document.createElement("div");
+  factory DivElement() => JS('returns:DivElement;creates:DivElement;new:true', '#.createElement(#)', document, "div");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -10746,7 +10746,7 @@ class DocumentFragment extends Node implements NonElementParentNode, ParentNode 
 
 
   String get innerHtml {
-    final e = new Element.tag("div");
+    final e = new DivElement();
     e.append(this.clone(true));
     return e.innerHtml;
   }
@@ -13029,8 +13029,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *     var myElement = new Element.tag('unknownTag');
    *     print(myElement is UnknownElement); // 'true'
    *
-   * For standard elements it is more preferable to use the type constructors:
+   * For standard elements it is better to use the element type constructors:
+   *
    *     var element = new DivElement();
+   *
+   * It is better to use e.g `new CanvasElement()` because the type of the
+   * expression is `CanvasElement`, whereas the type of `Element.tag` is the
+   * less specific `Element`.
    *
    * See also:
    *
@@ -13041,147 +13046,147 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
 
   /// Creates a new `<a>` element.
   ///
-  /// This is identical to calling `new Element.tag('a')`.
-  factory Element.a() => new Element.tag('a');
+  /// This is equivalent to calling `new Element.tag('a')`.
+  factory Element.a() => new AnchorElement();
 
   /// Creates a new `<article>` element.
   ///
-  /// This is identical to calling `new Element.tag('article')`.
+  /// This is equivalent to calling `new Element.tag('article')`.
   factory Element.article() => new Element.tag('article');
 
   /// Creates a new `<aside>` element.
   ///
-  /// This is identical to calling `new Element.tag('aside')`.
+  /// This is equivalent to calling `new Element.tag('aside')`.
   factory Element.aside() => new Element.tag('aside');
 
   /// Creates a new `<audio>` element.
   ///
-  /// This is identical to calling `new Element.tag('audio')`.
+  /// This is equivalent to calling `new Element.tag('audio')`.
   factory Element.audio() => new Element.tag('audio');
 
   /// Creates a new `<br>` element.
   ///
-  /// This is identical to calling `new Element.tag('br')`.
-  factory Element.br() => new Element.tag('br');
+  /// This is equivalent to calling `new Element.tag('br')`.
+  factory Element.br() => new BRElement();
 
   /// Creates a new `<canvas>` element.
   ///
-  /// This is identical to calling `new Element.tag('canvas')`.
-  factory Element.canvas() => new Element.tag('canvas');
+  /// This is equivalent to calling `new Element.tag('canvas')`.
+  factory Element.canvas() => new CanvasElement();
 
   /// Creates a new `<div>` element.
   ///
-  /// This is identical to calling `new Element.tag('div')`.
-  factory Element.div() => new Element.tag('div');
+  /// This is equivalent to calling `new Element.tag('div')`.
+  factory Element.div() => new DivElement();
 
   /// Creates a new `<footer>` element.
   ///
-  /// This is identical to calling `new Element.tag('footer')`.
+  /// This is equivalent to calling `new Element.tag('footer')`.
   factory Element.footer() => new Element.tag('footer');
 
   /// Creates a new `<header>` element.
   ///
-  /// This is identical to calling `new Element.tag('header')`.
+  /// This is equivalent to calling `new Element.tag('header')`.
   factory Element.header() => new Element.tag('header');
 
   /// Creates a new `<hr>` element.
   ///
-  /// This is identical to calling `new Element.tag('hr')`.
+  /// This is equivalent to calling `new Element.tag('hr')`.
   factory Element.hr() => new Element.tag('hr');
 
   /// Creates a new `<iframe>` element.
   ///
-  /// This is identical to calling `new Element.tag('iframe')`.
+  /// This is equivalent to calling `new Element.tag('iframe')`.
   factory Element.iframe() => new Element.tag('iframe');
 
   /// Creates a new `<img>` element.
   ///
-  /// This is identical to calling `new Element.tag('img')`.
+  /// This is equivalent to calling `new Element.tag('img')`.
   factory Element.img() => new Element.tag('img');
 
   /// Creates a new `<li>` element.
   ///
-  /// This is identical to calling `new Element.tag('li')`.
+  /// This is equivalent to calling `new Element.tag('li')`.
   factory Element.li() => new Element.tag('li');
 
   /// Creates a new `<nav>` element.
   ///
-  /// This is identical to calling `new Element.tag('nav')`.
+  /// This is equivalent to calling `new Element.tag('nav')`.
   factory Element.nav() => new Element.tag('nav');
 
   /// Creates a new `<ol>` element.
   ///
-  /// This is identical to calling `new Element.tag('ol')`.
+  /// This is equivalent to calling `new Element.tag('ol')`.
   factory Element.ol() => new Element.tag('ol');
 
   /// Creates a new `<option>` element.
   ///
-  /// This is identical to calling `new Element.tag('option')`.
+  /// This is equivalent to calling `new Element.tag('option')`.
   factory Element.option() => new Element.tag('option');
 
   /// Creates a new `<p>` element.
   ///
-  /// This is identical to calling `new Element.tag('p')`.
+  /// This is equivalent to calling `new Element.tag('p')`.
   factory Element.p() => new Element.tag('p');
 
   /// Creates a new `<pre>` element.
   ///
-  /// This is identical to calling `new Element.tag('pre')`.
+  /// This is equivalent to calling `new Element.tag('pre')`.
   factory Element.pre() => new Element.tag('pre');
 
   /// Creates a new `<section>` element.
   ///
-  /// This is identical to calling `new Element.tag('section')`.
+  /// This is equivalent to calling `new Element.tag('section')`.
   factory Element.section() => new Element.tag('section');
 
   /// Creates a new `<select>` element.
   ///
-  /// This is identical to calling `new Element.tag('select')`.
+  /// This is equivalent to calling `new Element.tag('select')`.
   factory Element.select() => new Element.tag('select');
 
   /// Creates a new `<span>` element.
   ///
-  /// This is identical to calling `new Element.tag('span')`.
+  /// This is equivalent to calling `new Element.tag('span')`.
   factory Element.span() => new Element.tag('span');
 
   /// Creates a new `<svg>` element.
   ///
-  /// This is identical to calling `new Element.tag('svg')`.
+  /// This is equivalent to calling `new Element.tag('svg')`.
   factory Element.svg() => new Element.tag('svg');
 
   /// Creates a new `<table>` element.
   ///
-  /// This is identical to calling `new Element.tag('table')`.
+  /// This is equivalent to calling `new Element.tag('table')`.
   factory Element.table() => new Element.tag('table');
 
   /// Creates a new `<td>` element.
   ///
-  /// This is identical to calling `new Element.tag('td')`.
+  /// This is equivalent to calling `new Element.tag('td')`.
   factory Element.td() => new Element.tag('td');
 
   /// Creates a new `<textarea>` element.
   ///
-  /// This is identical to calling `new Element.tag('textarea')`.
+  /// This is equivalent to calling `new Element.tag('textarea')`.
   factory Element.textarea() => new Element.tag('textarea');
 
   /// Creates a new `<th>` element.
   ///
-  /// This is identical to calling `new Element.tag('th')`.
+  /// This is equivalent to calling `new Element.tag('th')`.
   factory Element.th() => new Element.tag('th');
 
   /// Creates a new `<tr>` element.
   ///
-  /// This is identical to calling `new Element.tag('tr')`.
+  /// This is equivalent to calling `new Element.tag('tr')`.
   factory Element.tr() => new Element.tag('tr');
 
   /// Creates a new `<ul>` element.
   ///
-  /// This is identical to calling `new Element.tag('ul')`.
+  /// This is equivalent to calling `new Element.tag('ul')`.
   factory Element.ul() => new Element.tag('ul');
 
   /// Creates a new `<video>` element.
   ///
-  /// This is identical to calling `new Element.tag('video')`.
+  /// This is equivalent to calling `new Element.tag('video')`.
   factory Element.video() => new Element.tag('video');
 
   /**
@@ -16625,7 +16630,7 @@ class FieldSetElement extends HtmlElement {
 
   @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable()
-  factory FieldSetElement() => document.createElement("fieldset");
+  factory FieldSetElement() => JS('returns:FieldSetElement;creates:FieldSetElement;new:true', '#.createElement(#)', document, "fieldset");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17555,7 +17560,7 @@ class FormElement extends HtmlElement {
 
   @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable()
-  factory FormElement() => document.createElement("form");
+  factory FormElement() => JS('returns:FormElement;creates:FormElement;new:true', '#.createElement(#)', document, "form");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -18568,7 +18573,7 @@ class HRElement extends HtmlElement {
 
   @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable()
-  factory HRElement() => document.createElement("hr");
+  factory HRElement() => JS('returns:HRElement;creates:HRElement;new:true', '#.createElement(#)', document, "hr");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -18654,7 +18659,7 @@ class HeadElement extends HtmlElement {
 
   @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable()
-  factory HeadElement() => document.createElement("head");
+  factory HeadElement() => JS('returns:HeadElement;creates:HeadElement;new:true', '#.createElement(#)', document, "head");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -18712,27 +18717,27 @@ class HeadingElement extends HtmlElement {
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h1() => document.createElement("h1");
+  factory HeadingElement.h1() => JS('returns:HeadingElement;creates:HeadingElement;new:true', '#.createElement(#)', document, "h1");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h2() => document.createElement("h2");
+  factory HeadingElement.h2() => JS('returns:HeadingElement;creates:HeadingElement;new:true', '#.createElement(#)', document, "h2");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h3() => document.createElement("h3");
+  factory HeadingElement.h3() => JS('returns:HeadingElement;creates:HeadingElement;new:true', '#.createElement(#)', document, "h3");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h4() => document.createElement("h4");
+  factory HeadingElement.h4() => JS('returns:HeadingElement;creates:HeadingElement;new:true', '#.createElement(#)', document, "h4");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h5() => document.createElement("h5");
+  factory HeadingElement.h5() => JS('returns:HeadingElement;creates:HeadingElement;new:true', '#.createElement(#)', document, "h5");
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable()
-  factory HeadingElement.h6() => document.createElement("h6");
+  factory HeadingElement.h6() => JS('returns:HeadingElement;creates:HeadingElement;new:true', '#.createElement(#)', document, "h6");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -19215,7 +19220,7 @@ class HtmlHtmlElement extends HtmlElement {
 
   @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable()
-  factory HtmlHtmlElement() => document.createElement("html");
+  factory HtmlHtmlElement() => JS('returns:HtmlHtmlElement;creates:HtmlHtmlElement;new:true', '#.createElement(#)', document, "html");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20115,7 +20120,7 @@ class IFrameElement extends HtmlElement {
 
   @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable()
-  factory IFrameElement() => document.createElement("iframe");
+  factory IFrameElement() => JS('returns:IFrameElement;creates:IFrameElement;new:true', '#.createElement(#)', document, "iframe");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20243,7 +20248,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable()
   factory ImageElement({String src, int width, int height}) {
-    ImageElement e = document.createElement("img");
+    ImageElement e = JS('returns:ImageElement;creates:ImageElement;new:true', '#.createElement(#)', document, "img");
     if (src != null) e.src = src;
     if (width != null) e.width = width;
     if (height != null) e.height = height;
@@ -21523,7 +21528,7 @@ class LIElement extends HtmlElement {
 
   @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable()
-  factory LIElement() => document.createElement("li");
+  factory LIElement() => JS('returns:LIElement;creates:LIElement;new:true', '#.createElement(#)', document, "li");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -21549,7 +21554,7 @@ class LabelElement extends HtmlElement {
 
   @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable()
-  factory LabelElement() => document.createElement("label");
+  factory LabelElement() => JS('returns:LabelElement;creates:LabelElement;new:true', '#.createElement(#)', document, "label");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -21583,7 +21588,7 @@ class LegendElement extends HtmlElement {
 
   @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable()
-  factory LegendElement() => document.createElement("legend");
+  factory LegendElement() => JS('returns:LegendElement;creates:LegendElement;new:true', '#.createElement(#)', document, "legend");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -21609,7 +21614,7 @@ class LinkElement extends HtmlElement {
 
   @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable()
-  factory LinkElement() => document.createElement("link");
+  factory LinkElement() => JS('returns:LinkElement;creates:LinkElement;new:true', '#.createElement(#)', document, "link");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -21761,7 +21766,7 @@ class MapElement extends HtmlElement {
 
   @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable()
-  factory MapElement() => document.createElement("map");
+  factory MapElement() => JS('returns:MapElement;creates:MapElement;new:true', '#.createElement(#)', document, "map");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23180,7 +23185,7 @@ class MenuElement extends HtmlElement {
 
   @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable()
-  factory MenuElement() => document.createElement("menu");
+  factory MenuElement() => JS('returns:MenuElement;creates:MenuElement;new:true', '#.createElement(#)', document, "menu");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23427,7 +23432,7 @@ class MetaElement extends HtmlElement {
 
   @DomName('HTMLMetaElement.HTMLMetaElement')
   @DocsEditable()
-  factory MetaElement() => document.createElement("meta");
+  factory MetaElement() => JS('returns:MetaElement;creates:MetaElement;new:true', '#.createElement(#)', document, "meta");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25768,7 +25773,7 @@ class OListElement extends HtmlElement {
 
   @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable()
-  factory OListElement() => document.createElement("ol");
+  factory OListElement() => JS('returns:OListElement;creates:OListElement;new:true', '#.createElement(#)', document, "ol");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25892,7 +25897,7 @@ class OptGroupElement extends HtmlElement {
 
   @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable()
-  factory OptGroupElement() => document.createElement("optgroup");
+  factory OptGroupElement() => JS('returns:OptGroupElement;creates:OptGroupElement;new:true', '#.createElement(#)', document, "optgroup");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26106,7 +26111,7 @@ class ParagraphElement extends HtmlElement {
 
   @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable()
-  factory ParagraphElement() => document.createElement("p");
+  factory ParagraphElement() => JS('returns:ParagraphElement;creates:ParagraphElement;new:true', '#.createElement(#)', document, "p");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26129,7 +26134,7 @@ class ParamElement extends HtmlElement {
 
   @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable()
-  factory ParamElement() => document.createElement("param");
+  factory ParamElement() => JS('returns:ParamElement;creates:ParamElement;new:true', '#.createElement(#)', document, "param");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27244,7 +27249,7 @@ class PreElement extends HtmlElement {
 
   @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable()
-  factory PreElement() => document.createElement("pre");
+  factory PreElement() => JS('returns:PreElement;creates:PreElement;new:true', '#.createElement(#)', document, "pre");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27669,7 +27674,7 @@ class QuoteElement extends HtmlElement {
 
   @DomName('HTMLQuoteElement.HTMLQuoteElement')
   @DocsEditable()
-  factory QuoteElement() => document.createElement("q");
+  factory QuoteElement() => JS('returns:QuoteElement;creates:QuoteElement;new:true', '#.createElement(#)', document, "q");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28920,7 +28925,7 @@ class ScriptElement extends HtmlElement {
 
   @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable()
-  factory ScriptElement() => document.createElement("script");
+  factory ScriptElement() => JS('returns:ScriptElement;creates:ScriptElement;new:true', '#.createElement(#)', document, "script");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29154,7 +29159,7 @@ class SelectElement extends HtmlElement {
 
   @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable()
-  factory SelectElement() => document.createElement("select");
+  factory SelectElement() => JS('returns:SelectElement;creates:SelectElement;new:true', '#.createElement(#)', document, "select");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30238,7 +30243,7 @@ class SourceElement extends HtmlElement {
 
   @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable()
-  factory SourceElement() => document.createElement("source");
+  factory SourceElement() => JS('returns:SourceElement;creates:SourceElement;new:true', '#.createElement(#)', document, "source");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30315,7 +30320,7 @@ class SpanElement extends HtmlElement {
 
   @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable()
-  factory SpanElement() => document.createElement("span");
+  factory SpanElement() => JS('returns:SpanElement;creates:SpanElement;new:true', '#.createElement(#)', document, "span");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31410,7 +31415,7 @@ class StyleElement extends HtmlElement {
 
   @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable()
-  factory StyleElement() => document.createElement("style");
+  factory StyleElement() => JS('returns:StyleElement;creates:StyleElement;new:true', '#.createElement(#)', document, "style");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31608,7 +31613,7 @@ class TableCaptionElement extends HtmlElement {
 
   @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable()
-  factory TableCaptionElement() => document.createElement("caption");
+  factory TableCaptionElement() => JS('returns:TableCaptionElement;creates:TableCaptionElement;new:true', '#.createElement(#)', document, "caption");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31630,7 +31635,7 @@ class TableCellElement extends HtmlElement {
 
   @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable()
-  factory TableCellElement() => document.createElement("td");
+  factory TableCellElement() => JS('returns:TableCellElement;creates:TableCellElement;new:true', '#.createElement(#)', document, "td");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31668,7 +31673,7 @@ class TableColElement extends HtmlElement {
 
   @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable()
-  factory TableColElement() => document.createElement("col");
+  factory TableColElement() => JS('returns:TableColElement;creates:TableColElement;new:true', '#.createElement(#)', document, "col");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31741,7 +31746,7 @@ class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.HTMLTableElement')
   @DocsEditable()
-  factory TableElement() => document.createElement("table");
+  factory TableElement() => JS('returns:TableElement;creates:TableElement;new:true', '#.createElement(#)', document, "table");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -31851,7 +31856,7 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.HTMLTableRowElement')
   @DocsEditable()
-  factory TableRowElement() => document.createElement("tr");
+  factory TableRowElement() => JS('returns:TableRowElement;creates:TableRowElement;new:true', '#.createElement(#)', document, "tr");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -32039,7 +32044,7 @@ class TextAreaElement extends HtmlElement {
 
   @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable()
-  factory TextAreaElement() => document.createElement("textarea");
+  factory TextAreaElement() => JS('returns:TextAreaElement;creates:TextAreaElement;new:true', '#.createElement(#)', document, "textarea");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -32649,7 +32654,7 @@ class TitleElement extends HtmlElement {
 
   @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable()
-  factory TitleElement() => document.createElement("title");
+  factory TitleElement() => JS('returns:TitleElement;creates:TitleElement;new:true', '#.createElement(#)', document, "title");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -33304,7 +33309,7 @@ class UListElement extends HtmlElement {
 
   @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable()
-  factory UListElement() => document.createElement("ul");
+  factory UListElement() => JS('returns:UListElement;creates:UListElement;new:true', '#.createElement(#)', document, "ul");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -33724,7 +33729,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
 
   @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable()
-  factory VideoElement() => document.createElement("video");
+  factory VideoElement() => JS('returns:VideoElement;creates:VideoElement;new:true', '#.createElement(#)', document, "video");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *

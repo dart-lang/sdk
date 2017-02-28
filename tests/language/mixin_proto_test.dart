@@ -26,11 +26,15 @@ class C extends A with B {
   bar() => 499;
 }
 
+@NoInline()
+@AssumeDynamic()
+confuse(x) => x;
+
 main() {
   var all = [new A(), new B(), new C()];
-  Expect.equals(44, all[0].foo());
-  Expect.equals(22, all[0].bar());
-  Expect.equals(42, all[1].foo());
-  Expect.equals(42, all[2].foo());
-  Expect.equals(499, all[2].bar());
+  Expect.equals(44, confuse(all[0]).foo());
+  Expect.equals(22, confuse(all[0]).bar());
+  Expect.equals(42, confuse(all[1]).foo());
+  Expect.equals(42, confuse(all[2]).foo());
+  Expect.equals(499, confuse(all[2]).bar());
 }

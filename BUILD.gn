@@ -137,6 +137,10 @@ action("create_sdk") {
   if (defined(is_fuchsia) && is_fuchsia_host) {
     args += [ "--copy_libs" ]
   }
+  if (defined(is_fuchsia) && (is_fuchsia || is_fuchsia_host)) {
+    # The binaries are already stripped.
+    args += [ "--disable_stripping" ]
+  }
 }
 
 group("dart2js") {

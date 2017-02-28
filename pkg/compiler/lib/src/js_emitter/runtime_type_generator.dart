@@ -99,7 +99,7 @@ class RuntimeTypeGenerator {
     /// dynamically at runtime. We also always generate tests against
     /// native classes.
     /// TODO(herhut): Generate tests for native classes dynamically, as well.
-    void generateIsTest(Element other) {
+    void generateIsTest(ClassElement other) {
       if (backend.isNative(classElement) || !classElement.isSubclassOf(other)) {
         result.properties[namer.operatorIs(other)] = js('1');
       }
@@ -354,7 +354,7 @@ class RuntimeTypeGenerator {
 
     Substitution substitution =
         backend.rti.getSubstitution(cls, element.typeDeclaration);
-    jsAst.Name rtiFieldName = backend.namer.rtiFieldName;
+    jsAst.Name rtiFieldName = backend.namer.rtiFieldJsName;
     if (substitution != null) {
       computeTypeVariable = js(r'#.apply(null, this.#)', [
         backend.rtiEncoder.getSubstitutionCodeForVariable(substitution, index),

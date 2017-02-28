@@ -2881,7 +2881,7 @@ RawObject* Simulator::Call(const Code& code,
       RawObject* instance_cid_or_function;
       if (cid == kClosureCid) {
         RawClosure* closure = static_cast<RawClosure*>(instance);
-        instance_type_arguments = closure->ptr()->type_arguments_;
+        instance_type_arguments = closure->ptr()->instantiator_;
         instance_cid_or_function = closure->ptr()->function_;
       } else {
         instance_cid_or_function = Smi::New(cid);
@@ -2970,7 +2970,7 @@ RawObject* Simulator::Call(const Code& code,
         RawObject* instance_cid_or_function;
         if (cid == kClosureCid) {
           RawClosure* closure = static_cast<RawClosure*>(instance);
-          instance_type_arguments = closure->ptr()->type_arguments_;
+          instance_type_arguments = closure->ptr()->instantiator_;
           instance_cid_or_function = closure->ptr()->function_;
         } else {
           instance_cid_or_function = Smi::New(cid);

@@ -119,7 +119,6 @@ let _FutureOfint = () => (_FutureOfint = dart.constFn(async._Future$(core.int)))
 let VoidToObject = () => (VoidToObject = dart.constFn(dart.functionType(core.Object, [])))();
 let Stream = () => (Stream = dart.constFn(async.Stream$()))();
 let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.functionType(dart.void, [])))();
-let TimerTovoid = () => (TimerTovoid = dart.constFn(dart.functionType(dart.void, [async.Timer])))();
 let MapOfdynamic$int = () => (MapOfdynamic$int = dart.constFn(core.Map$(dart.dynamic, core.int)))();
 let dynamicTodynamic = () => (dynamicTodynamic = dart.constFn(dart.functionType(dart.dynamic, [dart.dynamic])))();
 let InternalMap = () => (InternalMap = dart.constFn(_js_helper.InternalMap$()))();
@@ -147,12 +146,8 @@ let ListOfTypeVariableMirror = () => (ListOfTypeVariableMirror = dart.constFn(co
 let MapOfSymbol$MethodMirror = () => (MapOfSymbol$MethodMirror = dart.constFn(core.Map$(core.Symbol, mirrors.MethodMirror)))();
 let JSArrayOfType = () => (JSArrayOfType = dart.constFn(_interceptors.JSArray$(core.Type)))();
 let ListOfParameterMirror = () => (ListOfParameterMirror = dart.constFn(core.List$(mirrors.ParameterMirror)))();
-let ListOfFloat32x4 = () => (ListOfFloat32x4 = dart.constFn(core.List$(typed_data.Float32x4)))();
-let ListOfInt32x4 = () => (ListOfInt32x4 = dart.constFn(core.List$(typed_data.Int32x4)))();
-let ListOfFloat64x2 = () => (ListOfFloat64x2 = dart.constFn(core.List$(typed_data.Float64x2)))();
 let IterableOfdouble = () => (IterableOfdouble = dart.constFn(core.Iterable$(core.double)))();
 let IterableOfint = () => (IterableOfint = dart.constFn(core.Iterable$(core.int)))();
-let ListOfdouble = () => (ListOfdouble = dart.constFn(core.List$(core.double)))();
 let ZoneBinaryCallbackOfdynamic$dynamic$StackTrace = () => (ZoneBinaryCallbackOfdynamic$dynamic$StackTrace = dart.constFn(async.ZoneBinaryCallback$(dart.dynamic, dart.dynamic, core.StackTrace)))();
 let _StreamImpl = () => (_StreamImpl = dart.constFn(async._StreamImpl$()))();
 let _ControllerStream = () => (_ControllerStream = dart.constFn(async._ControllerStream$()))();
@@ -241,6 +236,7 @@ let _StreamHandlerTransformer = () => (_StreamHandlerTransformer = dart.constFn(
 let _SubscriptionTransformer = () => (_SubscriptionTransformer = dart.constFn(async._SubscriptionTransformer$()))();
 let _StreamSubscriptionTransformer = () => (_StreamSubscriptionTransformer = dart.constFn(async._StreamSubscriptionTransformer$()))();
 let _BoundSubscriptionStream = () => (_BoundSubscriptionStream = dart.constFn(async._BoundSubscriptionStream$()))();
+let TimerTovoid = () => (TimerTovoid = dart.constFn(dart.functionType(dart.void, [async.Timer])))();
 let ZoneCallback = () => (ZoneCallback = dart.constFn(async.ZoneCallback$()))();
 let ZoneUnaryCallback = () => (ZoneUnaryCallback = dart.constFn(async.ZoneUnaryCallback$()))();
 let ZoneBinaryCallback = () => (ZoneBinaryCallback = dart.constFn(async.ZoneBinaryCallback$()))();
@@ -342,13 +338,12 @@ let Codec = () => (Codec = dart.constFn(convert.Codec$()))();
 let ComparableOfString = () => (ComparableOfString = dart.constFn(core.Comparable$(core.String)))();
 let List = () => (List = dart.constFn(core.List$()))();
 let StreamOfListOfint = () => (StreamOfListOfint = dart.constFn(async.Stream$(ListOfint())))();
-let MapOfString$Encoding = () => (MapOfString$Encoding = dart.constFn(core.Map$(core.String, convert.Encoding)))();
 let Converter = () => (Converter = dart.constFn(convert.Converter$()))();
 let SinkOfListOfint = () => (SinkOfListOfint = dart.constFn(core.Sink$(ListOfint())))();
 let StreamOfString = () => (StreamOfString = dart.constFn(async.Stream$(core.String)))();
 let SinkOfString = () => (SinkOfString = dart.constFn(core.Sink$(core.String)))();
 let ChunkedConversionSink = () => (ChunkedConversionSink = dart.constFn(convert.ChunkedConversionSink$()))();
-let ListOfintTovoid = () => (ListOfintTovoid = dart.constFn(dart.functionType(dart.void, [ListOfint()])))();
+let _ChunkedConversionCallbackOfListOfint = () => (_ChunkedConversionCallbackOfListOfint = dart.constFn(convert._ChunkedConversionCallback$(ListOfint())))();
 let _ChunkedConversionCallback = () => (_ChunkedConversionCallback = dart.constFn(convert._ChunkedConversionCallback$()))();
 let ChunkedConverter = () => (ChunkedConverter = dart.constFn(convert.ChunkedConverter$()))();
 let _SimpleCallbackSink = () => (_SimpleCallbackSink = dart.constFn(convert._SimpleCallbackSink$()))();
@@ -402,7 +397,6 @@ let FutureOfListOfint = () => (FutureOfListOfint = dart.constFn(async.Future$(Li
 let FutureOrOfFile = () => (FutureOrOfFile = dart.constFn(async.FutureOr$(io.File)))();
 let FutureOfFile = () => (FutureOfFile = dart.constFn(async.Future$(io.File)))();
 let FutureOrOfListOfint = () => (FutureOrOfListOfint = dart.constFn(async.FutureOr$(ListOfint())))();
-let ListOfFileSystemEntityType = () => (ListOfFileSystemEntityType = dart.constFn(core.List$(io.FileSystemEntityType)))();
 let StreamOfHttpRequest = () => (StreamOfHttpRequest = dart.constFn(async.Stream$(io.HttpRequest)))();
 let ListOfRedirectInfo = () => (ListOfRedirectInfo = dart.constFn(core.List$(io.RedirectInfo)))();
 let HashMapOfString$ListOfString = () => (HashMapOfString$ListOfString = dart.constFn(collection.HashMap$(core.String, ListOfString())))();
@@ -412,11 +406,11 @@ let FutureOfHttpClientResponse = () => (FutureOfHttpClientResponse = dart.constF
 let StreamSubscriptionOfListOfint = () => (StreamSubscriptionOfListOfint = dart.constFn(async.StreamSubscription$(ListOfint())))();
 let FutureOrOfHttpClientResponse = () => (FutureOrOfHttpClientResponse = dart.constFn(async.FutureOr$(io.HttpClientResponse)))();
 let _StreamSinkImpl = () => (_StreamSinkImpl = dart.constFn(io._StreamSinkImpl$()))();
-let StreamConsumerOfListOfint = () => (StreamConsumerOfListOfint = dart.constFn(async.StreamConsumer$(ListOfint())))();
 let _HttpOutboundMessage = () => (_HttpOutboundMessage = dart.constFn(io._HttpOutboundMessage$()))();
 let CompleterOfHttpClientResponse = () => (CompleterOfHttpClientResponse = dart.constFn(async.Completer$(io.HttpClientResponse)))();
 let JSArrayOfRedirectInfo = () => (JSArrayOfRedirectInfo = dart.constFn(_interceptors.JSArray$(io.RedirectInfo)))();
 let JSArrayOfFuture = () => (JSArrayOfFuture = dart.constFn(_interceptors.JSArray$(async.Future)))();
+let StreamConsumerOfListOfint = () => (StreamConsumerOfListOfint = dart.constFn(async.StreamConsumer$(ListOfint())))();
 let CompleterOf_HttpIncoming = () => (CompleterOf_HttpIncoming = dart.constFn(async.Completer$(io._HttpIncoming)))();
 let X509CertificateTobool = () => (X509CertificateTobool = dart.constFn(dart.functionType(core.bool, [io.X509Certificate])))();
 let FutureOfSecureSocket = () => (FutureOfSecureSocket = dart.constFn(async.Future$(io.SecureSocket)))();
@@ -437,7 +431,6 @@ let UriToString = () => (UriToString = dart.constFn(dart.functionType(core.Strin
 let MapOfString$_ConnectionTarget = () => (MapOfString$_ConnectionTarget = dart.constFn(core.Map$(core.String, io._ConnectionTarget)))();
 let ListOf_Credentials = () => (ListOf_Credentials = dart.constFn(core.List$(io._Credentials)))();
 let ListOf_ProxyCredentials = () => (ListOf_ProxyCredentials = dart.constFn(core.List$(io._ProxyCredentials)))();
-let MapOfint$_HttpConnection = () => (MapOfint$_HttpConnection = dart.constFn(core.Map$(core.int, io._HttpConnection)))();
 let HashMapOfint$_HttpConnection = () => (HashMapOfint$_HttpConnection = dart.constFn(collection.HashMap$(core.int, io._HttpConnection)))();
 let LinkedListOf_HttpConnection = () => (LinkedListOf_HttpConnection = dart.constFn(collection.LinkedList$(io._HttpConnection)))();
 let StreamControllerOfHttpRequest = () => (StreamControllerOfHttpRequest = dart.constFn(async.StreamController$(io.HttpRequest)))();
@@ -445,7 +438,6 @@ let HttpRequestTovoid = () => (HttpRequestTovoid = dart.constFn(dart.functionTyp
 let MapOfint$_HttpServer = () => (MapOfint$_HttpServer = dart.constFn(core.Map$(core.int, io._HttpServer)))();
 let ListOf_Proxy = () => (ListOf_Proxy = dart.constFn(core.List$(io._Proxy)))();
 let FutureOfSocket = () => (FutureOfSocket = dart.constFn(async.Future$(io.Socket)))();
-let ListOfbool = () => (ListOfbool = dart.constFn(core.List$(core.bool)))();
 let StreamOfint = () => (StreamOfint = dart.constFn(async.Stream$(core.int)))();
 let StreamControllerOf_HttpIncoming = () => (StreamControllerOf_HttpIncoming = dart.constFn(async.StreamController$(io._HttpIncoming)))();
 let _HttpIncomingTovoid = () => (_HttpIncomingTovoid = dart.constFn(dart.functionType(dart.void, [io._HttpIncoming])))();
@@ -468,7 +460,6 @@ let CompleterOf_RawSecureSocket = () => (CompleterOf_RawSecureSocket = dart.cons
 let StreamControllerOfRawSocketEvent = () => (StreamControllerOfRawSocketEvent = dart.constFn(async.StreamController$(io.RawSocketEvent)))();
 let RawSocketEventTovoid = () => (RawSocketEventTovoid = dart.constFn(dart.functionType(dart.void, [io.RawSocketEvent])))();
 let StreamOfRawSocketEvent = () => (StreamOfRawSocketEvent = dart.constFn(async.Stream$(io.RawSocketEvent)))();
-let X509CertificateTodynamic = () => (X509CertificateTodynamic = dart.constFn(dart.functionType(dart.dynamic, [io.X509Certificate])))();
 let intToListOfint = () => (intToListOfint = dart.constFn(dart.functionType(ListOfint(), [core.int])))();
 let StreamOfRawSocket = () => (StreamOfRawSocket = dart.constFn(async.Stream$(io.RawSocket)))();
 let StreamOfSocket = () => (StreamOfSocket = dart.constFn(async.Stream$(io.Socket)))();
@@ -491,6 +482,10 @@ let RectangleOfnum = () => (RectangleOfnum = dart.constFn(math.Rectangle$(core.n
 let _RectangleBase = () => (_RectangleBase = dart.constFn(math._RectangleBase$()))();
 let Rectangle = () => (Rectangle = dart.constFn(math.Rectangle$()))();
 let MutableRectangle = () => (MutableRectangle = dart.constFn(math.MutableRectangle$()))();
+let ListOfdouble = () => (ListOfdouble = dart.constFn(core.List$(core.double)))();
+let ListOfFloat32x4 = () => (ListOfFloat32x4 = dart.constFn(core.List$(typed_data.Float32x4)))();
+let ListOfInt32x4 = () => (ListOfInt32x4 = dart.constFn(core.List$(typed_data.Int32x4)))();
+let ListOfFloat64x2 = () => (ListOfFloat64x2 = dart.constFn(core.List$(typed_data.Float64x2)))();
 let EventStreamProviderOfEvent = () => (EventStreamProviderOfEvent = dart.constFn(html$.EventStreamProvider$(html$.Event)))();
 let EventStreamProviderOfVersionChangeEvent = () => (EventStreamProviderOfVersionChangeEvent = dart.constFn(html$.EventStreamProvider$(indexed_db.VersionChangeEvent)))();
 let FutureOfDatabase = () => (FutureOfDatabase = dart.constFn(async.Future$(indexed_db.Database)))();
@@ -505,14 +500,12 @@ let IterableOfNode = () => (IterableOfNode = dart.constFn(core.Iterable$(html$.N
 let ListOfNode = () => (ListOfNode = dart.constFn(core.List$(html$.Node)))();
 let ListOfElement = () => (ListOfElement = dart.constFn(core.List$(html$.Element)))();
 let IterableOfMapOfString$dynamic = () => (IterableOfMapOfString$dynamic = dart.constFn(core.Iterable$(MapOfString$dynamic())))();
-let EventStreamProviderOfWheelEvent = () => (EventStreamProviderOfWheelEvent = dart.constFn(html$.EventStreamProvider$(html$.WheelEvent)))();
-let EventStreamProviderOfTransitionEvent = () => (EventStreamProviderOfTransitionEvent = dart.constFn(html$.EventStreamProvider$(html$.TransitionEvent)))();
+let _CustomEventStreamProviderOfWheelEvent = () => (_CustomEventStreamProviderOfWheelEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.WheelEvent)))();
+let _CustomEventStreamProviderOfTransitionEvent = () => (_CustomEventStreamProviderOfTransitionEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.TransitionEvent)))();
 let EventStreamProviderOfMouseEvent = () => (EventStreamProviderOfMouseEvent = dart.constFn(html$.EventStreamProvider$(html$.MouseEvent)))();
 let EventStreamProviderOfClipboardEvent = () => (EventStreamProviderOfClipboardEvent = dart.constFn(html$.EventStreamProvider$(html$.ClipboardEvent)))();
 let EventStreamProviderOfKeyboardEvent = () => (EventStreamProviderOfKeyboardEvent = dart.constFn(html$.EventStreamProvider$(html$.KeyboardEvent)))();
 let EventStreamProviderOfTouchEvent = () => (EventStreamProviderOfTouchEvent = dart.constFn(html$.EventStreamProvider$(html$.TouchEvent)))();
-let _CustomEventStreamProviderOfWheelEvent = () => (_CustomEventStreamProviderOfWheelEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.WheelEvent)))();
-let _CustomEventStreamProviderOfTransitionEvent = () => (_CustomEventStreamProviderOfTransitionEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.TransitionEvent)))();
 let ListOfEntry = () => (ListOfEntry = dart.constFn(core.List$(html$.Entry)))();
 let EventStreamProviderOfProgressEvent = () => (EventStreamProviderOfProgressEvent = dart.constFn(html$.EventStreamProvider$(html$.ProgressEvent)))();
 let EventStreamProviderOfMediaKeyEvent = () => (EventStreamProviderOfMediaKeyEvent = dart.constFn(html$.EventStreamProvider$(html$.MediaKeyEvent)))();
@@ -531,8 +524,8 @@ let ListOfFile = () => (ListOfFile = dart.constFn(core.List$(html$.File)))();
 let CompleterOfString = () => (CompleterOfString = dart.constFn(async.Completer$(core.String)))();
 let CompleterOfMetadata = () => (CompleterOfMetadata = dart.constFn(async.Completer$(html$.Metadata)))();
 let CompleterOfListOfEntry = () => (CompleterOfListOfEntry = dart.constFn(async.Completer$(ListOfEntry())))();
-let EventStreamProviderOfSecurityPolicyViolationEvent = () => (EventStreamProviderOfSecurityPolicyViolationEvent = dart.constFn(html$.EventStreamProvider$(html$.SecurityPolicyViolationEvent)))();
 let ListOfStyleSheet = () => (ListOfStyleSheet = dart.constFn(core.List$(html$.StyleSheet)))();
+let EventStreamProviderOfSecurityPolicyViolationEvent = () => (EventStreamProviderOfSecurityPolicyViolationEvent = dart.constFn(html$.EventStreamProvider$(html$.SecurityPolicyViolationEvent)))();
 let ImmutableListMixin = () => (ImmutableListMixin = dart.constFn(html$.ImmutableListMixin$()))();
 let ElementAndElementToint = () => (ElementAndElementToint = dart.constFn(dart.functionType(core.int, [html$.Element, html$.Element])))();
 let ElementTobool = () => (ElementTobool = dart.constFn(dart.functionType(core.bool, [html$.Element])))();
@@ -546,6 +539,7 @@ let ListOfFontFace = () => (ListOfFontFace = dart.constFn(core.List$(html$.FontF
 let ListOfGamepadButton = () => (ListOfGamepadButton = dart.constFn(core.List$(html$.GamepadButton)))();
 let CompleterOfGeoposition = () => (CompleterOfGeoposition = dart.constFn(async.Completer$(html$.Geoposition)))();
 let StreamControllerOfGeoposition = () => (StreamControllerOfGeoposition = dart.constFn(async.StreamController$(html$.Geoposition)))();
+let EventStreamProviderOfWheelEvent = () => (EventStreamProviderOfWheelEvent = dart.constFn(html$.EventStreamProvider$(html$.WheelEvent)))();
 let _CustomEventStreamProviderOfEvent = () => (_CustomEventStreamProviderOfEvent = dart.constFn(html$._CustomEventStreamProvider$(html$.Event)))();
 let CompleterOfHttpRequest = () => (CompleterOfHttpRequest = dart.constFn(async.Completer$(html$.HttpRequest)))();
 let dynamicToNull = () => (dynamicToNull = dart.constFn(dart.functionType(core.Null, [dart.dynamic])))();
@@ -558,7 +552,6 @@ let EventStreamProviderOfMidiMessageEvent = () => (EventStreamProviderOfMidiMess
 let ListOfMimeType = () => (ListOfMimeType = dart.constFn(core.List$(html$.MimeType)))();
 let ListOfMutationRecord = () => (ListOfMutationRecord = dart.constFn(core.List$(html$.MutationRecord)))();
 let _wrapZoneBinaryCallbackOfListOfMutationRecord$MutationObserver$void = () => (_wrapZoneBinaryCallbackOfListOfMutationRecord$MutationObserver$void = dart.constFn(html$._wrapZoneBinaryCallback$(ListOfMutationRecord(), html$.MutationObserver, dart.void)))();
-let MapOfString$bool = () => (MapOfString$bool = dart.constFn(core.Map$(core.String, core.bool)))();
 let CompleterOfMediaStream = () => (CompleterOfMediaStream = dart.constFn(async.Completer$(html$.MediaStream)))();
 let NodeTobool = () => (NodeTobool = dart.constFn(dart.functionType(core.bool, [html$.Node])))();
 let ComparatorOfNode = () => (ComparatorOfNode = dart.constFn(core.Comparator$(html$.Node)))();
@@ -588,17 +581,16 @@ let ListOfTextTrackCue = () => (ListOfTextTrackCue = dart.constFn(core.List$(htm
 let ListOfTextTrack = () => (ListOfTextTrack = dart.constFn(core.List$(html$.TextTrack)))();
 let EventStreamProviderOfTrackEvent = () => (EventStreamProviderOfTrackEvent = dart.constFn(html$.EventStreamProvider$(html$.TrackEvent)))();
 let ListOfTouch = () => (ListOfTouch = dart.constFn(core.List$(html$.Touch)))();
-let ListOfTrackDefault = () => (ListOfTrackDefault = dart.constFn(core.List$(html$.TrackDefault)))();
 let EventStreamProviderOfCloseEvent = () => (EventStreamProviderOfCloseEvent = dart.constFn(html$.EventStreamProvider$(html$.CloseEvent)))();
 let CompleterOfnum = () => (CompleterOfnum = dart.constFn(async.Completer$(core.num)))();
 let EventStreamProviderOfDeviceMotionEvent = () => (EventStreamProviderOfDeviceMotionEvent = dart.constFn(html$.EventStreamProvider$(html$.DeviceMotionEvent)))();
 let EventStreamProviderOfDeviceOrientationEvent = () => (EventStreamProviderOfDeviceOrientationEvent = dart.constFn(html$.EventStreamProvider$(html$.DeviceOrientationEvent)))();
 let EventStreamProviderOfAnimationEvent = () => (EventStreamProviderOfAnimationEvent = dart.constFn(html$.EventStreamProvider$(html$.AnimationEvent)))();
-let EventStreamProviderOfBeforeUnloadEvent = () => (EventStreamProviderOfBeforeUnloadEvent = dart.constFn(html$.EventStreamProvider$(html$.BeforeUnloadEvent)))();
 let _EventStreamOfBeforeUnloadEvent = () => (_EventStreamOfBeforeUnloadEvent = dart.constFn(html$._EventStream$(html$.BeforeUnloadEvent)))();
 let StreamControllerOfBeforeUnloadEvent = () => (StreamControllerOfBeforeUnloadEvent = dart.constFn(async.StreamController$(html$.BeforeUnloadEvent)))();
 let _ElementEventStreamImplOfBeforeUnloadEvent = () => (_ElementEventStreamImplOfBeforeUnloadEvent = dart.constFn(html$._ElementEventStreamImpl$(html$.BeforeUnloadEvent)))();
 let _ElementListEventStreamImplOfBeforeUnloadEvent = () => (_ElementListEventStreamImplOfBeforeUnloadEvent = dart.constFn(html$._ElementListEventStreamImpl$(html$.BeforeUnloadEvent)))();
+let EventStreamProviderOfBeforeUnloadEvent = () => (EventStreamProviderOfBeforeUnloadEvent = dart.constFn(html$.EventStreamProvider$(html$.BeforeUnloadEvent)))();
 let ElementListOfElement = () => (ElementListOfElement = dart.constFn(html$.ElementList$(html$.Element)))();
 let ListOfRectangleOfnum = () => (ListOfRectangleOfnum = dart.constFn(core.List$(RectangleOfnum())))();
 let ListOfGamepad = () => (ListOfGamepad = dart.constFn(core.List$(html$.Gamepad)))();
@@ -617,14 +609,11 @@ let _wrapZoneCallbackOfEvent$dynamic = () => (_wrapZoneCallbackOfEvent$dynamic =
 let _EventStreamSubscription = () => (_EventStreamSubscription = dart.constFn(html$._EventStreamSubscription$()))();
 let CustomStream = () => (CustomStream = dart.constFn(html$.CustomStream$()))();
 let _CustomEventStreamImpl = () => (_CustomEventStreamImpl = dart.constFn(html$._CustomEventStreamImpl$()))();
-let EventStreamProviderOfKeyEvent = () => (EventStreamProviderOfKeyEvent = dart.constFn(html$.EventStreamProvider$(html$.KeyEvent)))();
 let CustomStreamOfKeyEvent = () => (CustomStreamOfKeyEvent = dart.constFn(html$.CustomStream$(html$.KeyEvent)))();
 let _StreamPool = () => (_StreamPool = dart.constFn(html$._StreamPool$()))();
 let _CustomEventStreamProvider = () => (_CustomEventStreamProvider = dart.constFn(html$._CustomEventStreamProvider$()))();
-let MapOfString$Function = () => (MapOfString$Function = dart.constFn(core.Map$(core.String, core.Function)))();
 let JSArrayOfKeyEvent = () => (JSArrayOfKeyEvent = dart.constFn(_interceptors.JSArray$(html$.KeyEvent)))();
 let ListOfKeyEvent = () => (ListOfKeyEvent = dart.constFn(core.List$(html$.KeyEvent)))();
-let MapOfString$int = () => (MapOfString$int = dart.constFn(core.Map$(core.String, core.int)))();
 let JSArrayOfNodeValidator = () => (JSArrayOfNodeValidator = dart.constFn(_interceptors.JSArray$(html$.NodeValidator)))();
 let ListOfNodeValidator = () => (ListOfNodeValidator = dart.constFn(core.List$(html$.NodeValidator)))();
 let _WrappedList = () => (_WrappedList = dart.constFn(html$._WrappedList$()))();
@@ -839,7 +828,7 @@ let RandomAccessFileToFutureOrOfFile = () => (RandomAccessFileToFutureOrOfFile =
 let dynamicToFutureOrOfListOfint = () => (dynamicToFutureOrOfListOfint = dart.constFn(dart.definiteFunctionType(FutureOrOfListOfint(), [dart.dynamic])))();
 let dynamicToFileStat = () => (dynamicToFileStat = dart.constFn(dart.definiteFunctionType(io.FileStat, [dart.dynamic])))();
 let StringAndListOfStringToListOfString = () => (StringAndListOfStringToListOfString = dart.constFn(dart.definiteFunctionType(ListOfString(), [core.String, ListOfString()])))();
-let ListOfintTovoid$ = () => (ListOfintTovoid$ = dart.constFn(dart.definiteFunctionType(dart.void, [ListOfint()])))();
+let ListOfintTovoid = () => (ListOfintTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [ListOfint()])))();
 let StringAndListOfStringToNull = () => (StringAndListOfStringToNull = dart.constFn(dart.definiteFunctionType(core.Null, [core.String, ListOfString()])))();
 let CookieToString = () => (CookieToString = dart.constFn(dart.definiteFunctionType(core.String, [io.Cookie])))();
 let CookieTobool = () => (CookieTobool = dart.constFn(dart.definiteFunctionType(core.bool, [io.Cookie])))();
@@ -997,28 +986,28 @@ dart.mixin = function(base, ...mixins) {
     methods: () => {
       let s = {};
       for (let m of mixins) {
-        dart.copyProperties(s, m[dart._methodSig]);
+        if (m[dart._methodSig]) dart.copyProperties(s, m[dart._methodSig]);
       }
       return s;
     },
     fields: () => {
       let s = {};
       for (let m of mixins) {
-        dart.copyProperties(s, m[dart._fieldSig]);
+        if (m[dart._fieldSig]) dart.copyProperties(s, m[dart._fieldSig]);
       }
       return s;
     },
     getters: () => {
       let s = {};
       for (let m of mixins) {
-        dart.copyProperties(s, m[dart._getterSig]);
+        if (m[dart._getterSig]) dart.copyProperties(s, m[dart._getterSig]);
       }
       return s;
     },
     setters: () => {
       let s = {};
       for (let m of mixins) {
-        dart.copyProperties(s, m[dart._setterSig]);
+        if (m[dart._setterSig]) dart.copyProperties(s, m[dart._setterSig]);
       }
       return s;
     }
@@ -1314,7 +1303,9 @@ dart.registerExtension = function(jsType, dartExtType) {
   jsProto[dart._extensionType] = dartExtType;
   dart._installProperties(jsProto, extProto);
   function updateSig(sigF) {
-    let originalSigFn = dart.getOwnPropertyDescriptor(dartExtType, sigF).get;
+    let originalDesc = dart.getOwnPropertyDescriptor(dartExtType, sigF);
+    if (originalDesc === void 0) return;
+    let originalSigFn = originalDesc.get;
     dart.assert(originalSigFn);
     dart.defineMemoizedGetter(jsType, sigF, originalSigFn);
   }
@@ -1330,7 +1321,9 @@ dart.defineExtensionMembers = function(type, methodNames) {
     dart.defineProperty(proto, dart.getExtensionSymbol(name), method);
   }
   function upgradeSig(sigF) {
-    let originalSigFn = dart.getOwnPropertyDescriptor(type, sigF).get;
+    let originalSigDesc = dart.getOwnPropertyDescriptor(type, sigF);
+    if (originalSigDesc === void 0) return;
+    let originalSigFn = originalSigDesc.get;
     dart.defineMemoizedGetter(type, sigF, function() {
       let sig = originalSigFn();
       let propertyNames = Object.getOwnPropertyNames(sig);
@@ -2688,7 +2681,6 @@ core.Object._check = function check_Object(o) {
   return dart.check(o, this);
 };
 dart.setSignature(core.Object, {
-  constructors: () => ({new: dart.definiteFunctionType(core.Object, [])}),
   getters: () => ({
     hashCode: dart.definiteFunctionType(core.int, []),
     runtimeType: dart.definiteFunctionType(core.Type, [])
@@ -2710,7 +2702,6 @@ dart.TypeRep = class TypeRep extends core.Object {
 };
 dart.TypeRep[dart.implements] = () => [core.Type];
 dart.setSignature(dart.TypeRep, {
-  constructors: () => ({new: dart.definiteFunctionType(dart.TypeRep, [])}),
   getters: () => ({name: dart.definiteFunctionType(core.String, [])})
 });
 dart.Dynamic = class Dynamic extends dart.TypeRep {
@@ -2735,7 +2726,6 @@ dart.LazyJSType = class LazyJSType extends core.Object {
 };
 dart.LazyJSType[dart.implements] = () => [core.Type];
 dart.setSignature(dart.LazyJSType, {
-  constructors: () => ({new: dart.definiteFunctionType(dart.LazyJSType, [dart.dynamic, dart.dynamic])}),
   fields: () => ({
     [_jsTypeCallback]: dart.dynamic,
     [_dartName]: dart.dynamic
@@ -2781,7 +2771,6 @@ dart.WrappedType = class WrappedType extends core.Type {
   }
 };
 dart.setSignature(dart.WrappedType, {
-  constructors: () => ({new: dart.definiteFunctionType(dart.WrappedType, [dart.dynamic])}),
   fields: () => ({[_wrappedType]: dart.dynamic})
 });
 const _stringValue = Symbol('_stringValue');
@@ -2837,7 +2826,6 @@ dart.AbstractFunctionType = class AbstractFunctionType extends dart.TypeRep {
   }
 };
 dart.setSignature(dart.AbstractFunctionType, {
-  constructors: () => ({new: dart.definiteFunctionType(dart.AbstractFunctionType, [])}),
   fields: () => ({[_stringValue]: core.String})
 });
 dart._fnTypeNamedArgMap = new Map();
@@ -2894,7 +2882,6 @@ dart.FunctionType = class FunctionType extends dart.AbstractFunctionType {
   }
 };
 dart.setSignature(dart.FunctionType, {
-  constructors: () => ({new: dart.definiteFunctionType(dart.FunctionType, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic])}),
   fields: () => ({
     returnType: dart.dynamic,
     args: dart.dynamic,
@@ -2942,7 +2929,6 @@ dart.Typedef = class Typedef extends dart.AbstractFunctionType {
   }
 };
 dart.setSignature(dart.Typedef, {
-  constructors: () => ({new: dart.definiteFunctionType(dart.Typedef, [dart.dynamic, dart.dynamic])}),
   fields: () => ({
     [_name]: dart.dynamic,
     [_closure]: dart.dynamic,
@@ -3092,7 +3078,6 @@ dart.InvocationImpl = class InvocationImpl extends core.Invocation {
   }
 };
 dart.setSignature(dart.InvocationImpl, {
-  constructors: () => ({new: dart.definiteFunctionType(dart.InvocationImpl, [dart.dynamic, core.List], {namedArguments: dart.dynamic, isMethod: core.bool, isGetter: core.bool, isSetter: core.bool})}),
   fields: () => ({
     memberName: core.Symbol,
     positionalArguments: core.List,
@@ -3113,7 +3098,6 @@ dart._MethodStats = class _MethodStats extends core.Object {
   }
 };
 dart.setSignature(dart._MethodStats, {
-  constructors: () => ({new: dart.definiteFunctionType(dart._MethodStats, [core.String, core.String])}),
   fields: () => ({
     typeName: core.String,
     frame: core.String,
@@ -3162,14 +3146,7 @@ _debugger.JsonMLConfig = class JsonMLConfig extends core.Object {
   }
 };
 dart.setSignature(_debugger.JsonMLConfig, {
-  constructors: () => ({new: dart.definiteFunctionType(_debugger.JsonMLConfig, [core.String])}),
-  fields: () => ({name: core.String}),
-  sfields: () => ({
-    none: _debugger.JsonMLConfig,
-    skipDart: _debugger.JsonMLConfig,
-    keyToString: _debugger.JsonMLConfig,
-    asClass: _debugger.JsonMLConfig
-  })
+  fields: () => ({name: core.String})
 });
 dart.defineLazy(_debugger.JsonMLConfig, {
   get none() {
@@ -3293,7 +3270,6 @@ _debugger.NameValuePair = class NameValuePair extends core.Object {
   }
 };
 dart.setSignature(_debugger.NameValuePair, {
-  constructors: () => ({new: dart.definiteFunctionType(_debugger.NameValuePair, [], {name: core.String, value: core.Object, config: _debugger.JsonMLConfig, hideName: core.bool})}),
   fields: () => ({
     name: core.String,
     value: core.Object,
@@ -3311,7 +3287,6 @@ _debugger.MapEntry = class MapEntry extends core.Object {
   }
 };
 dart.setSignature(_debugger.MapEntry, {
-  constructors: () => ({new: dart.definiteFunctionType(_debugger.MapEntry, [], {key: core.Object, value: core.Object})}),
   fields: () => ({
     key: core.Object,
     value: core.Object
@@ -3355,7 +3330,6 @@ _debugger.IterableSpan = class IterableSpan extends core.Object {
   }
 };
 dart.setSignature(_debugger.IterableSpan, {
-  constructors: () => ({new: dart.definiteFunctionType(_debugger.IterableSpan, [core.int, core.int, core.Iterable])}),
   fields: () => ({
     start: core.int,
     end: core.int,
@@ -3378,7 +3352,6 @@ _debugger.Library = class Library extends core.Object {
   }
 };
 dart.setSignature(_debugger.Library, {
-  constructors: () => ({new: dart.definiteFunctionType(_debugger.Library, [core.String, core.Object])}),
   fields: () => ({
     name: core.String,
     object: core.Object
@@ -3390,7 +3363,6 @@ _debugger.NamedConstructor = class NamedConstructor extends core.Object {
   }
 };
 dart.setSignature(_debugger.NamedConstructor, {
-  constructors: () => ({new: dart.definiteFunctionType(_debugger.NamedConstructor, [core.Object])}),
   fields: () => ({object: core.Object})
 });
 _debugger.HeritageClause = class HeritageClause extends core.Object {
@@ -3400,7 +3372,6 @@ _debugger.HeritageClause = class HeritageClause extends core.Object {
   }
 };
 dart.setSignature(_debugger.HeritageClause, {
-  constructors: () => ({new: dart.definiteFunctionType(_debugger.HeritageClause, [core.String, core.List])}),
   fields: () => ({
     name: core.String,
     types: core.List
@@ -3465,7 +3436,6 @@ _debugger.JsonMLElement = class JsonMLElement extends core.Object {
   }
 };
 dart.setSignature(_debugger.JsonMLElement, {
-  constructors: () => ({new: dart.definiteFunctionType(_debugger.JsonMLElement, [dart.dynamic])}),
   fields: () => ({
     [_attributes]: dart.dynamic,
     [_jsonML]: core.List
@@ -3543,7 +3513,6 @@ _debugger.JsonMLFormatter = class JsonMLFormatter extends core.Object {
   }
 };
 dart.setSignature(_debugger.JsonMLFormatter, {
-  constructors: () => ({new: dart.definiteFunctionType(_debugger.JsonMLFormatter, [_debugger.DartFormatter])}),
   fields: () => ({
     [_simpleFormatter]: _debugger.DartFormatter,
     customFormattersOn: core.bool
@@ -3606,7 +3575,6 @@ _debugger.DartFormatter = class DartFormatter extends core.Object {
   }
 };
 dart.setSignature(_debugger.DartFormatter, {
-  constructors: () => ({new: dart.definiteFunctionType(_debugger.DartFormatter, [])}),
   fields: () => ({[_formatters]: ListOfFormatter()}),
   methods: () => ({
     preview: dart.definiteFunctionType(core.String, [dart.dynamic, dart.dynamic]),
@@ -3669,8 +3637,7 @@ dart.setSignature(_debugger.ObjectFormatter, {
     preview: dart.definiteFunctionType(core.String, [dart.dynamic]),
     hasChildren: dart.definiteFunctionType(core.bool, [dart.dynamic]),
     children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
-  }),
-  sfields: () => ({_customNames: SetOfString()})
+  })
 });
 dart.defineLazy(_debugger.ObjectFormatter, {
   get _customNames() {
@@ -4080,7 +4047,6 @@ _foreign_helper.JSExportName = class JSExportName extends core.Object {
   }
 };
 dart.setSignature(_foreign_helper.JSExportName, {
-  constructors: () => ({new: dart.definiteFunctionType(_foreign_helper.JSExportName, [core.String])}),
   fields: () => ({name: core.String})
 });
 _foreign_helper.JS_CURRENT_ISOLATE_CONTEXT = function() {
@@ -4166,7 +4132,6 @@ _foreign_helper.JS_CONST = class JS_CONST extends core.Object {
   }
 };
 dart.setSignature(_foreign_helper.JS_CONST, {
-  constructors: () => ({new: dart.definiteFunctionType(_foreign_helper.JS_CONST, [core.String])}),
   fields: () => ({code: core.String})
 });
 _foreign_helper.JS_STRING_CONCAT = function(a, b) {
@@ -4177,9 +4142,6 @@ _foreign_helper._Rest = class _Rest extends core.Object {
   new() {
   }
 };
-dart.setSignature(_foreign_helper._Rest, {
-  constructors: () => ({new: dart.definiteFunctionType(_foreign_helper._Rest, [])})
-});
 _foreign_helper.rest = dart.const(new _foreign_helper._Rest());
 _foreign_helper.spread = function(args) {
   dart.throw(new core.StateError('The spread function cannot be called, ' + 'it should be compiled away.'));
@@ -4190,9 +4152,6 @@ _interceptors.Interceptor = class Interceptor extends core.Object {
   }
 };
 dart.addTypeTests(_interceptors.Interceptor);
-dart.setSignature(_interceptors.Interceptor, {
-  constructors: () => ({new: dart.definiteFunctionType(_interceptors.Interceptor, [])})
-});
 _interceptors.getInterceptor = function(obj) {
   return obj;
 };
@@ -4217,9 +4176,6 @@ _interceptors.JSBool = class JSBool extends _interceptors.Interceptor {
   }
 };
 _interceptors.JSBool[dart.implements] = () => [core.bool];
-dart.setSignature(_interceptors.JSBool, {
-  constructors: () => ({new: dart.definiteFunctionType(_interceptors.JSBool, [])})
-});
 dart.registerExtension(dart.global.Boolean, _interceptors.JSBool);
 _interceptors.JSIndexable$ = dart.generic(E => {
   class JSIndexable extends core.Object {}
@@ -4240,17 +4196,11 @@ _interceptors.JavaScriptObject = class JavaScriptObject extends _interceptors.In
   }
 };
 _interceptors.JavaScriptObject[dart.implements] = () => [_interceptors.JSObject];
-dart.setSignature(_interceptors.JavaScriptObject, {
-  constructors: () => ({new: dart.definiteFunctionType(_interceptors.JavaScriptObject, [])})
-});
 _interceptors.PlainJavaScriptObject = class PlainJavaScriptObject extends _interceptors.JavaScriptObject {
   new() {
     super.new();
   }
 };
-dart.setSignature(_interceptors.PlainJavaScriptObject, {
-  constructors: () => ({new: dart.definiteFunctionType(_interceptors.PlainJavaScriptObject, [])})
-});
 _interceptors.UnknownJavaScriptObject = class UnknownJavaScriptObject extends _interceptors.JavaScriptObject {
   new() {
     super.new();
@@ -4259,9 +4209,6 @@ _interceptors.UnknownJavaScriptObject = class UnknownJavaScriptObject extends _i
     return String(this);
   }
 };
-dart.setSignature(_interceptors.UnknownJavaScriptObject, {
-  constructors: () => ({new: dart.definiteFunctionType(_interceptors.UnknownJavaScriptObject, [])})
-});
 _interceptors.findInterceptorConstructorForType = function(type) {
 };
 dart.fn(_interceptors.findInterceptorConstructorForType, TypeTodynamic());
@@ -4849,13 +4796,6 @@ _interceptors.JSArray$ = dart.generic(E => {
   dart.addTypeTests(JSArray);
   JSArray[dart.implements] = () => [ListOfE(), JSIndexableOfE()];
   dart.setSignature(JSArray, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(_interceptors.JSArray$(E), []),
-      typed: dart.definiteFunctionType(_interceptors.JSArray$(E), [dart.dynamic]),
-      of: dart.definiteFunctionType(_interceptors.JSArray$(E), [dart.dynamic]),
-      markFixed: dart.definiteFunctionType(_interceptors.JSArray$(E), [dart.dynamic]),
-      markGrowable: dart.definiteFunctionType(_interceptors.JSArray$(E), [dart.dynamic])
-    }),
     getters: () => ({
       [dartx.first]: dart.definiteFunctionType(E, []),
       [dartx.last]: dart.definiteFunctionType(E, []),
@@ -4996,7 +4936,6 @@ _interceptors.ArrayIterator$ = dart.generic(E => {
   dart.addTypeTests(ArrayIterator);
   ArrayIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(ArrayIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_interceptors.ArrayIterator$(E), [JSArrayOfE()])}),
     fields: () => ({
       [_iterable]: JSArrayOfE(),
       [_length]: core.int,
@@ -5505,7 +5444,6 @@ _interceptors.JSNumber = class JSNumber extends _interceptors.Interceptor {
 };
 _interceptors.JSNumber[dart.implements] = () => [core.int, core.double];
 dart.setSignature(_interceptors.JSNumber, {
-  constructors: () => ({new: dart.definiteFunctionType(_interceptors.JSNumber, [])}),
   getters: () => ({
     [dartx.isNegative]: dart.definiteFunctionType(core.bool, []),
     [dartx.isNaN]: dart.definiteFunctionType(core.bool, []),
@@ -5562,10 +5500,6 @@ dart.setSignature(_interceptors.JSNumber, {
     [dartx.modInverse]: dart.definiteFunctionType(core.int, [core.int]),
     [dartx.gcd]: dart.definiteFunctionType(core.int, [core.int]),
     [dartx['~']]: dart.definiteFunctionType(core.int, [])
-  }),
-  sfields: () => ({
-    _MIN_INT32: core.int,
-    _MAX_INT32: core.int
   }),
   statics: () => ({
     _handleIEtoString: dart.definiteFunctionType(core.String, [core.String]),
@@ -6009,7 +5943,6 @@ _interceptors.JSString = class JSString extends _interceptors.Interceptor {
 };
 _interceptors.JSString[dart.implements] = () => [core.String, JSIndexableOfString()];
 dart.setSignature(_interceptors.JSString, {
-  constructors: () => ({new: dart.definiteFunctionType(_interceptors.JSString, [])}),
   getters: () => ({
     [dartx.codeUnits]: dart.definiteFunctionType(core.List$(core.int), []),
     [dartx.runes]: dart.definiteFunctionType(core.Runes, []),
@@ -6100,13 +6033,6 @@ core.double = class double extends core.num {
   }
 };
 dart.setSignature(core.double, {
-  sfields: () => ({
-    NAN: core.double,
-    INFINITY: core.double,
-    NEGATIVE_INFINITY: core.double,
-    MIN_POSITIVE: core.double,
-    MAX_FINITE: core.double
-  }),
   statics: () => ({parse: dart.definiteFunctionType(core.double, [core.String], [StringTodouble()])}),
   names: ['parse']
 });
@@ -6932,7 +6858,6 @@ core.int._check = function check_int(o) {
   return dart.check(o, core.int);
 };
 dart.setSignature(core.int, {
-  constructors: () => ({fromEnvironment: dart.definiteFunctionType(core.int, [core.String], {defaultValue: core.int})}),
   statics: () => ({parse: dart.definiteFunctionType(core.int, [core.String], {radix: core.int, onError: StringToint()})}),
   names: ['parse']
 });
@@ -6955,7 +6880,6 @@ _internal.CodeUnits = class CodeUnits extends _internal.UnmodifiableListBase$(co
 };
 dart.addSimpleTypeTests(_internal.CodeUnits);
 dart.setSignature(_internal.CodeUnits, {
-  constructors: () => ({new: dart.definiteFunctionType(_internal.CodeUnits, [core.String])}),
   fields: () => ({[_string]: core.String}),
   getters: () => ({length: dart.definiteFunctionType(core.int, [])}),
   methods: () => ({_get: dart.definiteFunctionType(core.int, [core.int])}),
@@ -6978,7 +6902,6 @@ core.Iterable$ = dart.generic(E => {
   let VoidToE = () => (VoidToE = dart.constFn(dart.functionType(E, [])))();
   let ETobool = () => (ETobool = dart.constFn(dart.functionType(core.bool, [E])))();
   let ETovoid = () => (ETovoid = dart.constFn(dart.functionType(dart.void, [E])))();
-  let intToE = () => (intToE = dart.constFn(dart.functionType(E, [core.int])))();
   dart.defineExtensionNames([
     'map',
     'where',
@@ -7209,11 +7132,6 @@ core.Iterable$ = dart.generic(E => {
   }
   dart.addTypeTests(Iterable);
   dart.setSignature(Iterable, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(core.Iterable$(E), []),
-      generate: dart.definiteFunctionType(core.Iterable$(E), [core.int], [intToE()]),
-      empty: dart.definiteFunctionType(core.Iterable$(E), [])
-    }),
     getters: () => ({
       length: dart.definiteFunctionType(core.int, []),
       isEmpty: dart.definiteFunctionType(core.bool, []),
@@ -7495,7 +7413,6 @@ _internal.ListIterable$ = dart.generic(E => {
   }
   ListIterable[dart.implements] = () => [_internal.EfficientLength];
   dart.setSignature(ListIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.ListIterable$(E), [])}),
     getters: () => ({iterator: dart.definiteFunctionType(core.Iterator$(E), [])}),
     methods: () => ({reduce: dart.definiteFunctionType(E, [dynamicAndEToE()])})
   });
@@ -7614,7 +7531,6 @@ _internal.SubListIterable$ = dart.generic(E => {
     }
   }
   dart.setSignature(SubListIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.SubListIterable$(E), [IterableOfE(), core.int, core.int])}),
     fields: () => ({
       [_iterable$]: IterableOfE(),
       [_start]: core.int,
@@ -7668,7 +7584,6 @@ _internal.ListIterator$ = dart.generic(E => {
   dart.addTypeTests(ListIterator);
   ListIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(ListIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.ListIterator$(E), [IterableOfE()])}),
     fields: () => ({
       [_iterable$]: IterableOfE(),
       [_length$]: core.int,
@@ -7729,10 +7644,6 @@ _internal.MappedIterable$ = dart.generic((S, T) => {
   }
   dart.defineNamedConstructor(MappedIterable, '_');
   dart.setSignature(MappedIterable, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(_internal.MappedIterable$(S, T), [IterableOfS(), _TransformationOfS$T()]),
-      _: dart.definiteFunctionType(_internal.MappedIterable$(S, T), [IterableOfS(), _TransformationOfS$T()])
-    }),
     fields: () => ({
       [_iterable$]: IterableOfS(),
       [_f]: _TransformationOfS$T()
@@ -7752,17 +7663,12 @@ _internal.MappedIterable$ = dart.generic((S, T) => {
 });
 _internal.MappedIterable = MappedIterable();
 _internal.EfficientLengthMappedIterable$ = dart.generic((S, T) => {
-  let IterableOfS = () => (IterableOfS = dart.constFn(core.Iterable$(S)))();
-  let SToT = () => (SToT = dart.constFn(dart.functionType(T, [S])))();
   class EfficientLengthMappedIterable extends _internal.MappedIterable$(S, T) {
     new(iterable, func) {
       super._(iterable, func);
     }
   }
   EfficientLengthMappedIterable[dart.implements] = () => [_internal.EfficientLength];
-  dart.setSignature(EfficientLengthMappedIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.EfficientLengthMappedIterable$(S, T), [IterableOfS(), SToT()])})
-  });
   return EfficientLengthMappedIterable;
 });
 _internal.EfficientLengthMappedIterable = EfficientLengthMappedIterable();
@@ -7795,7 +7701,6 @@ _internal.MappedIterator$ = dart.generic((S, T) => {
     }
   }
   dart.setSignature(MappedIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.MappedIterator$(S, T), [IteratorOfS(), _TransformationOfS$T()])}),
     fields: () => ({
       [_current$]: T,
       [_iterator]: IteratorOfS(),
@@ -7826,7 +7731,6 @@ _internal.MappedListIterable$ = dart.generic((S, T) => {
   }
   MappedListIterable[dart.implements] = () => [_internal.EfficientLength];
   dart.setSignature(MappedListIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.MappedListIterable$(S, T), [IterableOfS(), _TransformationOfS$T()])}),
     fields: () => ({
       [_source]: IterableOfS(),
       [_f]: _TransformationOfS$T()
@@ -7856,7 +7760,6 @@ _internal.WhereIterable$ = dart.generic(E => {
     }
   }
   dart.setSignature(WhereIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.WhereIterable$(E), [IterableOfE(), _ElementPredicateOfE()])}),
     fields: () => ({
       [_iterable$]: IterableOfE(),
       [_f]: _ElementPredicateOfE()
@@ -7888,7 +7791,6 @@ _internal.WhereIterator$ = dart.generic(E => {
     }
   }
   dart.setSignature(WhereIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.WhereIterator$(E), [IteratorOfE(), _ElementPredicateOfE()])}),
     fields: () => ({
       [_iterator]: IteratorOfE(),
       [_f]: _ElementPredicateOfE()
@@ -7908,7 +7810,6 @@ _internal.ExpandIterable$ = dart.generic((S, T) => {
   let ExpandIteratorOfS$T = () => (ExpandIteratorOfS$T = dart.constFn(_internal.ExpandIterator$(S, T)))();
   let IterableOfS = () => (IterableOfS = dart.constFn(core.Iterable$(S)))();
   let _ExpandFunctionOfS$T = () => (_ExpandFunctionOfS$T = dart.constFn(_internal._ExpandFunction$(S, T)))();
-  let IterableOfT = () => (IterableOfT = dart.constFn(core.Iterable$(T)))();
   class ExpandIterable extends core.Iterable$(T) {
     new(iterable, f) {
       this[_iterable$] = iterable;
@@ -7920,7 +7821,6 @@ _internal.ExpandIterable$ = dart.generic((S, T) => {
     }
   }
   dart.setSignature(ExpandIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.ExpandIterable$(S, T), [IterableOfS(), _ExpandFunctionOfS$T()])}),
     fields: () => ({
       [_iterable$]: IterableOfS(),
       [_f]: _ExpandFunctionOfS$T()
@@ -7937,7 +7837,6 @@ _internal.ExpandIterator$ = dart.generic((S, T) => {
   let _ExpandFunctionOfS$T = () => (_ExpandFunctionOfS$T = dart.constFn(_internal._ExpandFunction$(S, T)))();
   let EmptyIteratorOfT = () => (EmptyIteratorOfT = dart.constFn(_internal.EmptyIterator$(T)))();
   let IteratorOfT = () => (IteratorOfT = dart.constFn(core.Iterator$(T)))();
-  let IterableOfT = () => (IterableOfT = dart.constFn(core.Iterable$(T)))();
   class ExpandIterator extends core.Object {
     new(iterator, f) {
       this[_iterator] = iterator;
@@ -7966,7 +7865,6 @@ _internal.ExpandIterator$ = dart.generic((S, T) => {
   dart.addTypeTests(ExpandIterator);
   ExpandIterator[dart.implements] = () => [IteratorOfT()];
   dart.setSignature(ExpandIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.ExpandIterator$(S, T), [IteratorOfS(), _ExpandFunctionOfS$T()])}),
     fields: () => ({
       [_iterator]: IteratorOfS(),
       [_f]: _ExpandFunctionOfS$T(),
@@ -8006,10 +7904,6 @@ _internal.TakeIterable$ = dart.generic(E => {
   }
   dart.defineNamedConstructor(TakeIterable, '_');
   dart.setSignature(TakeIterable, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(_internal.TakeIterable$(E), [IterableOfE(), core.int]),
-      _: dart.definiteFunctionType(_internal.TakeIterable$(E), [IterableOfE(), core.int])
-    }),
     fields: () => ({
       [_iterable$]: IterableOfE(),
       [_takeCount]: core.int
@@ -8021,7 +7915,6 @@ _internal.TakeIterable$ = dart.generic(E => {
 });
 _internal.TakeIterable = TakeIterable();
 _internal.EfficientLengthTakeIterable$ = dart.generic(E => {
-  let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
   class EfficientLengthTakeIterable extends _internal.TakeIterable$(E) {
     new(iterable, takeCount) {
       super._(iterable, takeCount);
@@ -8033,9 +7926,7 @@ _internal.EfficientLengthTakeIterable$ = dart.generic(E => {
     }
   }
   EfficientLengthTakeIterable[dart.implements] = () => [_internal.EfficientLength];
-  dart.setSignature(EfficientLengthTakeIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.EfficientLengthTakeIterable$(E), [IterableOfE(), core.int])})
-  });
+  dart.setSignature(EfficientLengthTakeIterable, {});
   dart.defineExtensionMembers(EfficientLengthTakeIterable, ['length']);
   return EfficientLengthTakeIterable;
 });
@@ -8063,7 +7954,6 @@ _internal.TakeIterator$ = dart.generic(E => {
     }
   }
   dart.setSignature(TakeIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.TakeIterator$(E), [IteratorOfE(), core.int])}),
     fields: () => ({
       [_iterator]: IteratorOfE(),
       [_remaining]: core.int
@@ -8089,7 +7979,6 @@ _internal.TakeWhileIterable$ = dart.generic(E => {
     }
   }
   dart.setSignature(TakeWhileIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.TakeWhileIterable$(E), [IterableOfE(), _ElementPredicateOfE()])}),
     fields: () => ({
       [_iterable$]: IterableOfE(),
       [_f]: _ElementPredicateOfE()
@@ -8124,7 +8013,6 @@ _internal.TakeWhileIterator$ = dart.generic(E => {
     }
   }
   dart.setSignature(TakeWhileIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.TakeWhileIterator$(E), [IteratorOfE(), _ElementPredicateOfE()])}),
     fields: () => ({
       [_iterator]: IteratorOfE(),
       [_f]: _ElementPredicateOfE(),
@@ -8171,10 +8059,6 @@ _internal.SkipIterable$ = dart.generic(E => {
   }
   dart.defineNamedConstructor(SkipIterable, '_');
   dart.setSignature(SkipIterable, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(_internal.SkipIterable$(E), [IterableOfE(), core.int]),
-      _: dart.definiteFunctionType(_internal.SkipIterable$(E), [IterableOfE(), core.int])
-    }),
     fields: () => ({
       [_iterable$]: IterableOfE(),
       [_skipCount]: core.int
@@ -8186,7 +8070,6 @@ _internal.SkipIterable$ = dart.generic(E => {
 });
 _internal.SkipIterable = SkipIterable();
 _internal.EfficientLengthSkipIterable$ = dart.generic(E => {
-  let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
   class EfficientLengthSkipIterable extends _internal.SkipIterable$(E) {
     new(iterable, skipCount) {
       super._(iterable, skipCount);
@@ -8198,9 +8081,7 @@ _internal.EfficientLengthSkipIterable$ = dart.generic(E => {
     }
   }
   EfficientLengthSkipIterable[dart.implements] = () => [_internal.EfficientLength];
-  dart.setSignature(EfficientLengthSkipIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.EfficientLengthSkipIterable$(E), [IterableOfE(), core.int])})
-  });
+  dart.setSignature(EfficientLengthSkipIterable, {});
   dart.defineExtensionMembers(EfficientLengthSkipIterable, ['length']);
   return EfficientLengthSkipIterable;
 });
@@ -8224,7 +8105,6 @@ _internal.SkipIterator$ = dart.generic(E => {
     }
   }
   dart.setSignature(SkipIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.SkipIterator$(E), [IteratorOfE(), core.int])}),
     fields: () => ({
       [_iterator]: IteratorOfE(),
       [_skipCount]: core.int
@@ -8250,7 +8130,6 @@ _internal.SkipWhileIterable$ = dart.generic(E => {
     }
   }
   dart.setSignature(SkipWhileIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.SkipWhileIterable$(E), [IterableOfE(), _ElementPredicateOfE()])}),
     fields: () => ({
       [_iterable$]: IterableOfE(),
       [_f]: _ElementPredicateOfE()
@@ -8285,7 +8164,6 @@ _internal.SkipWhileIterator$ = dart.generic(E => {
     }
   }
   dart.setSignature(SkipWhileIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.SkipWhileIterator$(E), [IteratorOfE(), _ElementPredicateOfE()])}),
     fields: () => ({
       [_iterator]: IteratorOfE(),
       [_f]: _ElementPredicateOfE(),
@@ -8404,7 +8282,6 @@ _internal.EmptyIterable$ = dart.generic(E => {
   }
   EmptyIterable[dart.implements] = () => [_internal.EfficientLength];
   dart.setSignature(EmptyIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.EmptyIterable$(E), [])}),
     getters: () => ({iterator: dart.definiteFunctionType(core.Iterator$(E), [])}),
     methods: () => ({singleWhere: dart.definiteFunctionType(E, [ETobool()], {orElse: VoidToE()})})
   });
@@ -8453,7 +8330,6 @@ _internal.EmptyIterator$ = dart.generic(E => {
   dart.addTypeTests(EmptyIterator);
   EmptyIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(EmptyIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.EmptyIterator$(E), [])}),
     getters: () => ({current: dart.definiteFunctionType(E, [])}),
     methods: () => ({moveNext: dart.definiteFunctionType(core.bool, [])})
   });
@@ -8604,7 +8480,6 @@ _internal._ListIndicesIterable = class _ListIndicesIterable extends _internal.Li
 };
 dart.addSimpleTypeTests(_internal._ListIndicesIterable);
 dart.setSignature(_internal._ListIndicesIterable, {
-  constructors: () => ({new: dart.definiteFunctionType(_internal._ListIndicesIterable, [core.List])}),
   fields: () => ({[_backedList]: core.List})
 });
 dart.defineExtensionMembers(_internal._ListIndicesIterable, ['elementAt', 'length']);
@@ -8678,7 +8553,6 @@ _internal.ListMapView$ = dart.generic(E => {
   dart.addTypeTests(ListMapView);
   ListMapView[dart.implements] = () => [MapOfint$E()];
   dart.setSignature(ListMapView, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.ListMapView$(E), [ListOfE()])}),
     fields: () => ({[_values]: ListOfE()}),
     getters: () => ({
       length: dart.definiteFunctionType(core.int, []),
@@ -8733,7 +8607,6 @@ _internal.ReversedListIterable$ = dart.generic(E => {
     }
   }
   dart.setSignature(ReversedListIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_internal.ReversedListIterable$(E), [IterableOfE()])}),
     fields: () => ({[_source]: IterableOfE()})
   });
   dart.defineExtensionMembers(ReversedListIterable, ['elementAt', 'length']);
@@ -9104,7 +8977,6 @@ _internal.Sort = class Sort extends core.Object {
   }
 };
 dart.setSignature(_internal.Sort, {
-  sfields: () => ({_INSERTION_SORT_THRESHOLD: core.int}),
   statics: () => ({
     sort: dart.definiteFunctionType(E => [dart.void, [core.List$(E), dart.functionType(core.int, [E, E])]]),
     sortRange: dart.definiteFunctionType(E => [dart.void, [core.List$(E), core.int, core.int, dart.functionType(core.int, [E, E])]]),
@@ -9170,25 +9042,11 @@ dart.defineNamedConstructor(_internal.Symbol, 'unvalidated');
 dart.defineNamedConstructor(_internal.Symbol, 'validated');
 _internal.Symbol[dart.implements] = () => [core.Symbol];
 dart.setSignature(_internal.Symbol, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_internal.Symbol, [core.String]),
-    es6: dart.definiteFunctionType(_internal.Symbol, [core.String, dart.dynamic]),
-    unvalidated: dart.definiteFunctionType(_internal.Symbol, [core.String]),
-    validated: dart.definiteFunctionType(_internal.Symbol, [core.String])
-  }),
   fields: () => ({
     [_name$]: core.String,
     [_nativeSymbol]: dart.dynamic
   }),
   methods: () => ({'==': dart.definiteFunctionType(core.bool, [core.Object])}),
-  sfields: () => ({
-    reservedWordRE: core.String,
-    publicIdentifierRE: core.String,
-    identifierRE: core.String,
-    operatorRE: core.String,
-    publicSymbolPattern: core.RegExp,
-    symbolPattern: core.RegExp
-  }),
   statics: () => ({
     getName: dart.definiteFunctionType(core.String, [_internal.Symbol]),
     getNativeSymbol: dart.definiteFunctionType(dart.dynamic, [_internal.Symbol]),
@@ -9336,7 +9194,6 @@ _isolate_helper._Manager = class _Manager extends core.Object {
   }
 };
 dart.setSignature(_isolate_helper._Manager, {
-  constructors: () => ({new: dart.definiteFunctionType(_isolate_helper._Manager, [core.Function])}),
   fields: () => ({
     nextIsolateId: core.int,
     currentManagerId: core.int,
@@ -9620,7 +9477,6 @@ _isolate_helper._IsolateContext = class _IsolateContext extends core.Object {
 };
 _isolate_helper._IsolateContext[dart.implements] = () => [_foreign_helper.IsolateContext];
 dart.setSignature(_isolate_helper._IsolateContext, {
-  constructors: () => ({new: dart.definiteFunctionType(_isolate_helper._IsolateContext, [])}),
   fields: () => ({
     id: core.int,
     ports: MapOfint$RawReceivePortImpl(),
@@ -9721,7 +9577,6 @@ _isolate_helper._EventLoop = class _EventLoop extends core.Object {
   }
 };
 dart.setSignature(_isolate_helper._EventLoop, {
-  constructors: () => ({new: dart.definiteFunctionType(_isolate_helper._EventLoop, [])}),
   fields: () => ({
     events: QueueOf_IsolateEvent(),
     [_activeJsAsyncCount]: core.int
@@ -9751,7 +9606,6 @@ _isolate_helper._IsolateEvent = class _IsolateEvent extends core.Object {
   }
 };
 dart.setSignature(_isolate_helper._IsolateEvent, {
-  constructors: () => ({new: dart.definiteFunctionType(_isolate_helper._IsolateEvent, [_isolate_helper._IsolateContext, core.Function, core.String])}),
   fields: () => ({
     isolate: _isolate_helper._IsolateContext,
     fn: core.Function,
@@ -10053,12 +9907,6 @@ _isolate_helper.IsolateNatives = class IsolateNatives extends core.Object {
   }
 };
 dart.setSignature(_isolate_helper.IsolateNatives, {
-  sfields: () => ({
-    enableSpawnWorker: dart.dynamic,
-    thisScript: core.String,
-    workerIds: ExpandoOfint()
-  }),
-  sgetters: () => ({currentIsolate: dart.definiteFunctionType(isolate.Isolate, [])}),
   statics: () => ({
     computeThisScript: dart.definiteFunctionType(core.String, []),
     computeThisScriptJsshell: dart.definiteFunctionType(core.String, []),
@@ -10107,7 +9955,6 @@ _isolate_helper._BaseSendPort = class _BaseSendPort extends core.Object {
 };
 _isolate_helper._BaseSendPort[dart.implements] = () => [isolate.SendPort];
 dart.setSignature(_isolate_helper._BaseSendPort, {
-  constructors: () => ({new: dart.definiteFunctionType(_isolate_helper._BaseSendPort, [core.int])}),
   fields: () => ({[_isolateId]: core.int}),
   methods: () => ({[_checkReplyTo]: dart.definiteFunctionType(dart.void, [isolate.SendPort])})
 });
@@ -10143,7 +9990,6 @@ _isolate_helper._NativeJsSendPort = class _NativeJsSendPort extends _isolate_hel
 };
 _isolate_helper._NativeJsSendPort[dart.implements] = () => [isolate.SendPort];
 dart.setSignature(_isolate_helper._NativeJsSendPort, {
-  constructors: () => ({new: dart.definiteFunctionType(_isolate_helper._NativeJsSendPort, [_isolate_helper.RawReceivePortImpl, core.int])}),
   fields: () => ({[_receivePort]: _isolate_helper.RawReceivePortImpl}),
   methods: () => ({send: dart.definiteFunctionType(dart.void, [dart.dynamic])})
 });
@@ -10175,7 +10021,6 @@ _isolate_helper._WorkerSendPort = class _WorkerSendPort extends _isolate_helper.
 };
 _isolate_helper._WorkerSendPort[dart.implements] = () => [isolate.SendPort];
 dart.setSignature(_isolate_helper._WorkerSendPort, {
-  constructors: () => ({new: dart.definiteFunctionType(_isolate_helper._WorkerSendPort, [core.int, core.int, core.int])}),
   fields: () => ({
     [_workerId]: core.int,
     [_receivePortId]: core.int
@@ -10234,11 +10079,6 @@ dart.defineNamedConstructor(_isolate_helper.RawReceivePortImpl, 'weak');
 dart.defineNamedConstructor(_isolate_helper.RawReceivePortImpl, '_controlPort');
 _isolate_helper.RawReceivePortImpl[dart.implements] = () => [isolate.RawReceivePort];
 dart.setSignature(_isolate_helper.RawReceivePortImpl, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_isolate_helper.RawReceivePortImpl, [core.Function]),
-    weak: dart.definiteFunctionType(_isolate_helper.RawReceivePortImpl, [core.Function]),
-    _controlPort: dart.definiteFunctionType(_isolate_helper.RawReceivePortImpl, [])
-  }),
   fields: () => ({
     [_id]: core.int,
     [_handler]: core.Function,
@@ -10250,8 +10090,7 @@ dart.setSignature(_isolate_helper.RawReceivePortImpl, {
     [_close]: dart.definiteFunctionType(dart.void, []),
     close: dart.definiteFunctionType(dart.void, []),
     [_add]: dart.definiteFunctionType(dart.void, [dart.dynamic])
-  }),
-  sfields: () => ({_nextFreeId: core.int})
+  })
 });
 _isolate_helper.RawReceivePortImpl._nextFreeId = 1;
 const _rawPort = Symbol('_rawPort');
@@ -10295,11 +10134,6 @@ async.Stream$ = dart.generic(T => {
   let TTodynamic = () => (TTodynamic = dart.constFn(dart.functionType(dart.dynamic, [T])))();
   let TAndTTobool = () => (TAndTTobool = dart.constFn(dart.functionType(core.bool, [T, T])))();
   let EventSinkOfTTovoid = () => (EventSinkOfTTovoid = dart.constFn(dart.functionType(dart.void, [EventSinkOfT()])))();
-  let FutureOfT = () => (FutureOfT = dart.constFn(async.Future$(T)))();
-  let IterableOfFutureOfT = () => (IterableOfFutureOfT = dart.constFn(core.Iterable$(FutureOfT())))();
-  let IterableOfT = () => (IterableOfT = dart.constFn(core.Iterable$(T)))();
-  let intToT = () => (intToT = dart.constFn(dart.functionType(T, [core.int])))();
-  let EventSinkOfTToEventSink = () => (EventSinkOfTToEventSink = dart.constFn(dart.functionType(async.EventSink, [EventSinkOfT()])))();
   let TToNull = () => (TToNull = dart.constFn(dart.definiteFunctionType(core.Null, [T])))();
   let VoidTo_IterablePendingEventsOfT = () => (VoidTo_IterablePendingEventsOfT = dart.constFn(dart.definiteFunctionType(_IterablePendingEventsOfT(), [])))();
   let VoidToT = () => (VoidToT = dart.constFn(dart.definiteFunctionType(T, [])))();
@@ -10954,16 +10788,6 @@ async.Stream$ = dart.generic(T => {
   dart.addTypeTests(Stream);
   dart.defineNamedConstructor(Stream, '_internal');
   dart.setSignature(Stream, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(async.Stream$(T), []),
-      _internal: dart.definiteFunctionType(async.Stream$(T), []),
-      empty: dart.definiteFunctionType(async.Stream$(T), []),
-      fromFuture: dart.definiteFunctionType(async.Stream$(T), [FutureOfT()]),
-      fromFutures: dart.definiteFunctionType(async.Stream$(T), [IterableOfFutureOfT()]),
-      fromIterable: dart.definiteFunctionType(async.Stream$(T), [IterableOfT()]),
-      periodic: dart.definiteFunctionType(async.Stream$(T), [core.Duration], [intToT()]),
-      eventTransformed: dart.definiteFunctionType(async.Stream$(T), [async.Stream, EventSinkOfTToEventSink()])
-    }),
     getters: () => ({
       isBroadcast: dart.definiteFunctionType(core.bool, []),
       length: dart.definiteFunctionType(async.Future$(core.int), []),
@@ -11040,11 +10864,6 @@ dart.defineNamedConstructor(_isolate_helper.ReceivePortImpl, 'weak');
 dart.defineNamedConstructor(_isolate_helper.ReceivePortImpl, 'fromRawReceivePort');
 _isolate_helper.ReceivePortImpl[dart.implements] = () => [isolate.ReceivePort];
 dart.setSignature(_isolate_helper.ReceivePortImpl, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_isolate_helper.ReceivePortImpl, []),
-    weak: dart.definiteFunctionType(_isolate_helper.ReceivePortImpl, []),
-    fromRawReceivePort: dart.definiteFunctionType(_isolate_helper.ReceivePortImpl, [isolate.RawReceivePort])
-  }),
   fields: () => ({
     [_rawPort]: isolate.RawReceivePort,
     [_controller]: async.StreamController
@@ -11123,10 +10942,6 @@ _isolate_helper.TimerImpl = class TimerImpl extends core.Object {
 dart.defineNamedConstructor(_isolate_helper.TimerImpl, 'periodic');
 _isolate_helper.TimerImpl[dart.implements] = () => [async.Timer];
 dart.setSignature(_isolate_helper.TimerImpl, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_isolate_helper.TimerImpl, [core.int, VoidTovoid()]),
-    periodic: dart.definiteFunctionType(_isolate_helper.TimerImpl, [core.int, TimerTovoid()])
-  }),
   fields: () => ({
     [_once]: core.bool,
     [_inEventLoop]: core.bool,
@@ -11168,10 +10983,6 @@ _isolate_helper.CapabilityImpl = class CapabilityImpl extends core.Object {
 dart.defineNamedConstructor(_isolate_helper.CapabilityImpl, '_internal');
 _isolate_helper.CapabilityImpl[dart.implements] = () => [isolate.Capability];
 dart.setSignature(_isolate_helper.CapabilityImpl, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_isolate_helper.CapabilityImpl, []),
-    _internal: dart.definiteFunctionType(_isolate_helper.CapabilityImpl, [core.int])
-  }),
   fields: () => ({[_id]: core.int}),
   methods: () => ({'==': dart.definiteFunctionType(core.bool, [core.Object])})
 });
@@ -11308,7 +11119,6 @@ _isolate_helper._Serializer = class _Serializer extends core.Object {
   }
 };
 dart.setSignature(_isolate_helper._Serializer, {
-  constructors: () => ({new: dart.definiteFunctionType(_isolate_helper._Serializer, [], {serializeSendPorts: dart.dynamic})}),
   fields: () => ({
     [_serializeSendPorts]: core.bool,
     serializedObjectIds: MapOfdynamic$int()
@@ -11522,7 +11332,6 @@ _isolate_helper._Deserializer = class _Deserializer extends core.Object {
   }
 };
 dart.setSignature(_isolate_helper._Deserializer, {
-  constructors: () => ({new: dart.definiteFunctionType(_isolate_helper._Deserializer, [], {adjustSendPorts: dart.dynamic})}),
   fields: () => ({
     [_adjustSendPorts]: core.bool,
     deserializedObjects: core.List
@@ -11582,9 +11391,6 @@ _js_helper._Patch = class _Patch extends core.Object {
   new() {
   }
 };
-dart.setSignature(_js_helper._Patch, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper._Patch, [])})
-});
 _js_helper.patch = dart.const(new _js_helper._Patch());
 _js_helper.InternalMap$ = dart.generic((K, V) => {
   let MapOfK$V = () => (MapOfK$V = dart.constFn(core.Map$(K, V)))();
@@ -11882,17 +11688,6 @@ _js_helper.Primitives = class Primitives extends core.Object {
   }
 };
 dart.setSignature(_js_helper.Primitives, {
-  sfields: () => ({
-    mirrorFunctionCacheName: core.String,
-    mirrorInvokeCacheName: core.String,
-    DOLLAR_CHAR_VALUE: core.int,
-    timerFrequency: core.int,
-    timerTicks: core.Function
-  }),
-  sgetters: () => ({
-    isD8: dart.definiteFunctionType(core.bool, []),
-    isJsshell: dart.definiteFunctionType(core.bool, [])
-  }),
   statics: () => ({
     initializeStatics: dart.definiteFunctionType(dart.void, [core.int]),
     objectHashCode: dart.definiteFunctionType(core.int, [dart.dynamic]),
@@ -12034,7 +11829,6 @@ core.Error = class Error extends core.Object {
   }
 };
 dart.setSignature(core.Error, {
-  constructors: () => ({new: dart.definiteFunctionType(core.Error, [])}),
   getters: () => ({stackTrace: dart.definiteFunctionType(core.StackTrace, [])}),
   statics: () => ({
     safeToString: dart.definiteFunctionType(core.String, [core.Object]),
@@ -12056,7 +11850,6 @@ _js_helper.NullError = class NullError extends core.Error {
 };
 _js_helper.NullError[dart.implements] = () => [core.NoSuchMethodError];
 dart.setSignature(_js_helper.NullError, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.NullError, [core.String, dart.dynamic])}),
   fields: () => ({
     [_message]: core.String,
     [_method]: core.String
@@ -12080,7 +11873,6 @@ _js_helper.JsNoSuchMethodError = class JsNoSuchMethodError extends core.Error {
 };
 _js_helper.JsNoSuchMethodError[dart.implements] = () => [core.NoSuchMethodError];
 dart.setSignature(_js_helper.JsNoSuchMethodError, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.JsNoSuchMethodError, [core.String, dart.dynamic])}),
   fields: () => ({
     [_message]: core.String,
     [_method]: core.String,
@@ -12097,7 +11889,6 @@ _js_helper.UnknownJsTypeError = class UnknownJsTypeError extends core.Error {
   }
 };
 dart.setSignature(_js_helper.UnknownJsTypeError, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.UnknownJsTypeError, [core.String])}),
   fields: () => ({[_message]: core.String})
 });
 _js_helper.getTraceFromException = function(exception) {
@@ -12122,7 +11913,6 @@ _js_helper._StackTrace = class _StackTrace extends core.Object {
 };
 _js_helper._StackTrace[dart.implements] = () => [core.StackTrace];
 dart.setSignature(_js_helper._StackTrace, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper._StackTrace, [dart.dynamic])}),
   fields: () => ({
     [_exception]: dart.dynamic,
     [_trace]: core.String
@@ -12165,7 +11955,6 @@ _js_helper.Creates = class Creates extends core.Object {
   }
 };
 dart.setSignature(_js_helper.Creates, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.Creates, [core.String])}),
   fields: () => ({types: core.String})
 });
 _js_helper.Returns = class Returns extends core.Object {
@@ -12174,7 +11963,6 @@ _js_helper.Returns = class Returns extends core.Object {
   }
 };
 dart.setSignature(_js_helper.Returns, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.Returns, [core.String])}),
   fields: () => ({types: core.String})
 });
 _js_helper.JSName = class JSName extends core.Object {
@@ -12183,7 +11971,6 @@ _js_helper.JSName = class JSName extends core.Object {
   }
 };
 dart.setSignature(_js_helper.JSName, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.JSName, [core.String])}),
   fields: () => ({name: core.String})
 });
 _js_helper.JavaScriptIndexingBehavior = class JavaScriptIndexingBehavior extends core.Object {};
@@ -12203,10 +11990,6 @@ _js_helper.TypeErrorImplementation = class TypeErrorImplementation extends core.
 dart.defineNamedConstructor(_js_helper.TypeErrorImplementation, 'fromMessage');
 _js_helper.TypeErrorImplementation[dart.implements] = () => [core.TypeError];
 dart.setSignature(_js_helper.TypeErrorImplementation, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_js_helper.TypeErrorImplementation, [core.Object, core.Object, core.Object]),
-    fromMessage: dart.definiteFunctionType(_js_helper.TypeErrorImplementation, [core.String])
-  }),
   fields: () => ({message: core.String})
 });
 _js_helper.CastErrorImplementation = class CastErrorImplementation extends core.Error {
@@ -12220,7 +12003,6 @@ _js_helper.CastErrorImplementation = class CastErrorImplementation extends core.
 };
 _js_helper.CastErrorImplementation[dart.implements] = () => [core.CastError];
 dart.setSignature(_js_helper.CastErrorImplementation, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.CastErrorImplementation, [core.Object, core.Object, core.Object])}),
   fields: () => ({message: core.String})
 });
 _js_helper.StrongModeTypeError = class StrongModeTypeError extends core.Error {
@@ -12234,7 +12016,6 @@ _js_helper.StrongModeTypeError = class StrongModeTypeError extends core.Error {
 };
 _js_helper.StrongModeTypeError[dart.implements] = () => [core.TypeError, core.StrongModeError];
 dart.setSignature(_js_helper.StrongModeTypeError, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.StrongModeTypeError, [core.Object, core.Object, core.Object])}),
   fields: () => ({message: core.String})
 });
 _js_helper.StrongModeCastError = class StrongModeCastError extends core.Error {
@@ -12248,7 +12029,6 @@ _js_helper.StrongModeCastError = class StrongModeCastError extends core.Error {
 };
 _js_helper.StrongModeCastError[dart.implements] = () => [core.CastError, core.StrongModeError];
 dart.setSignature(_js_helper.StrongModeCastError, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.StrongModeCastError, [core.Object, core.Object, core.Object])}),
   fields: () => ({message: core.String})
 });
 _js_helper.StrongModeErrorImplementation = class StrongModeErrorImplementation extends core.Error {
@@ -12262,7 +12042,6 @@ _js_helper.StrongModeErrorImplementation = class StrongModeErrorImplementation e
 };
 _js_helper.StrongModeErrorImplementation[dart.implements] = () => [core.StrongModeError];
 dart.setSignature(_js_helper.StrongModeErrorImplementation, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.StrongModeErrorImplementation, [core.String])}),
   fields: () => ({message: core.String})
 });
 core.FallThroughError = class FallThroughError extends core.Error {
@@ -12270,9 +12049,6 @@ core.FallThroughError = class FallThroughError extends core.Error {
     super.new();
   }
 };
-dart.setSignature(core.FallThroughError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.FallThroughError, [])})
-});
 _js_helper.FallThroughErrorImplementation = class FallThroughErrorImplementation extends core.FallThroughError {
   new() {
     super.new();
@@ -12281,9 +12057,6 @@ _js_helper.FallThroughErrorImplementation = class FallThroughErrorImplementation
     return "Switch case fall-through.";
   }
 };
-dart.setSignature(_js_helper.FallThroughErrorImplementation, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.FallThroughErrorImplementation, [])})
-});
 _js_helper.RuntimeError = class RuntimeError extends core.Error {
   new(message) {
     this.message = message;
@@ -12294,7 +12067,6 @@ _js_helper.RuntimeError = class RuntimeError extends core.Error {
   }
 };
 dart.setSignature(_js_helper.RuntimeError, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.RuntimeError, [dart.dynamic])}),
   fields: () => ({message: dart.dynamic})
 });
 core.AssertionError = class AssertionError extends core.Error {
@@ -12305,9 +12077,6 @@ core.AssertionError = class AssertionError extends core.Error {
     return "Assertion failed";
   }
 };
-dart.setSignature(core.AssertionError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.AssertionError, [])})
-});
 _js_helper.AssertionErrorWithMessage = class AssertionErrorWithMessage extends core.AssertionError {
   new(message) {
     this[_message] = message;
@@ -12318,7 +12087,6 @@ _js_helper.AssertionErrorWithMessage = class AssertionErrorWithMessage extends c
   }
 };
 dart.setSignature(_js_helper.AssertionErrorWithMessage, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.AssertionErrorWithMessage, [core.Object])}),
   fields: () => ({[_message]: core.Object})
 });
 _js_helper.random64 = function() {
@@ -12352,7 +12120,6 @@ _js_helper.SyncIterator$ = dart.generic(E => {
   dart.addTypeTests(SyncIterator);
   SyncIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(SyncIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_js_helper.SyncIterator$(E), [dart.dynamic])}),
     fields: () => ({
       [_jsIterator]: dart.dynamic,
       [_current$0]: E
@@ -12413,7 +12180,6 @@ collection.IterableBase$ = dart.generic(E => {
     }
   }
   dart.setSignature(IterableBase, {
-    constructors: () => ({new: dart.definiteFunctionType(collection.IterableBase$(E), [])}),
     statics: () => ({
       iterableToShortString: dart.definiteFunctionType(core.String, [core.Iterable], [core.String, core.String]),
       iterableToFullString: dart.definiteFunctionType(core.String, [core.Iterable], [core.String, core.String])
@@ -12439,7 +12205,6 @@ _js_helper.SyncIterable$ = dart.generic(E => {
     }
   }
   dart.setSignature(SyncIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_js_helper.SyncIterable$(E), [dart.dynamic, dart.dynamic])}),
     fields: () => ({
       [_generator]: dart.dynamic,
       [_args]: dart.dynamic
@@ -12463,23 +12228,16 @@ _js_helper.NoThrows = class NoThrows extends core.Object {
   new() {
   }
 };
-dart.setSignature(_js_helper.NoThrows, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.NoThrows, [])})
-});
 _js_helper.NoInline = class NoInline extends core.Object {
   new() {
   }
 };
-dart.setSignature(_js_helper.NoInline, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.NoInline, [])})
-});
 _js_helper.Native = class Native extends core.Object {
   new(name) {
     this.name = name;
   }
 };
 dart.setSignature(_js_helper.Native, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.Native, [core.String])}),
   fields: () => ({name: core.String})
 });
 _js_helper.JsPeerInterface = class JsPeerInterface extends core.Object {
@@ -12489,16 +12247,12 @@ _js_helper.JsPeerInterface = class JsPeerInterface extends core.Object {
   }
 };
 dart.setSignature(_js_helper.JsPeerInterface, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.JsPeerInterface, [], {name: core.String})}),
   fields: () => ({name: core.String})
 });
 _js_helper.SupportJsExtensionMethods = class SupportJsExtensionMethods extends core.Object {
   new() {
   }
 };
-dart.setSignature(_js_helper.SupportJsExtensionMethods, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.SupportJsExtensionMethods, [])})
-});
 const _length$0 = Symbol('_length');
 const _strings = Symbol('_strings');
 const _nums = Symbol('_nums');
@@ -12803,10 +12557,6 @@ _js_helper.JsLinkedHashMap$ = dart.generic((K, V) => {
   dart.addTypeTests(JsLinkedHashMap);
   JsLinkedHashMap[dart.implements] = () => [LinkedHashMapOfK$V(), InternalMapOfK$V()];
   dart.setSignature(JsLinkedHashMap, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(_js_helper.JsLinkedHashMap$(K, V), []),
-      es6: dart.definiteFunctionType(_js_helper.JsLinkedHashMap$(K, V), [])
-    }),
     fields: () => ({
       [_length$0]: core.int,
       [_strings]: dart.dynamic,
@@ -12916,7 +12666,6 @@ _js_helper.LinkedHashMapCell$ = dart.generic((K, V) => {
   }
   dart.addTypeTests(LinkedHashMapCell);
   dart.setSignature(LinkedHashMapCell, {
-    constructors: () => ({new: dart.definiteFunctionType(_js_helper.LinkedHashMapCell$(K, V), [K, V])}),
     fields: () => ({
       hashMapCellKey: K,
       hashMapCellValue: V,
@@ -12963,7 +12712,6 @@ _js_helper.LinkedHashMapKeyIterable$ = dart.generic(E => {
   }
   LinkedHashMapKeyIterable[dart.implements] = () => [_internal.EfficientLength];
   dart.setSignature(LinkedHashMapKeyIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(_js_helper.LinkedHashMapKeyIterable$(E), [JsLinkedHashMapOfE$dynamic()])}),
     fields: () => ({[_map]: JsLinkedHashMapOfE$dynamic()}),
     getters: () => ({iterator: dart.definiteFunctionType(core.Iterator$(E), [])})
   });
@@ -13009,7 +12757,6 @@ _js_helper.LinkedHashMapKeyIterator$ = dart.generic(E => {
   dart.addTypeTests(LinkedHashMapKeyIterator);
   LinkedHashMapKeyIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(LinkedHashMapKeyIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(_js_helper.LinkedHashMapKeyIterator$(E), [JsLinkedHashMapOfE$dynamic(), core.int])}),
     fields: () => ({
       [_map]: JsLinkedHashMapOfE$dynamic(),
       [_modifications]: core.int,
@@ -13163,7 +12910,6 @@ _js_helper.JSSyntaxRegExp = class JSSyntaxRegExp extends core.Object {
 };
 _js_helper.JSSyntaxRegExp[dart.implements] = () => [core.RegExp];
 dart.setSignature(_js_helper.JSSyntaxRegExp, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.JSSyntaxRegExp, [core.String], {multiLine: core.bool, caseSensitive: core.bool})}),
   fields: () => ({
     pattern: core.String,
     [_nativeRegExp]: dart.dynamic,
@@ -13227,7 +12973,6 @@ _js_helper._MatchImplementation = class _MatchImplementation extends core.Object
 };
 _js_helper._MatchImplementation[dart.implements] = () => [core.Match];
 dart.setSignature(_js_helper._MatchImplementation, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper._MatchImplementation, [core.Pattern, ListOfString()])}),
   fields: () => ({
     pattern: core.Pattern,
     [_match]: ListOfString()
@@ -13261,7 +13006,6 @@ _js_helper._AllMatchesIterable = class _AllMatchesIterable extends collection.It
 };
 dart.addSimpleTypeTests(_js_helper._AllMatchesIterable);
 dart.setSignature(_js_helper._AllMatchesIterable, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper._AllMatchesIterable, [_js_helper.JSSyntaxRegExp, core.String, core.int])}),
   fields: () => ({
     [_re]: _js_helper.JSSyntaxRegExp,
     [_string$]: core.String,
@@ -13303,7 +13047,6 @@ _js_helper._AllMatchesIterator = class _AllMatchesIterator extends core.Object {
 };
 _js_helper._AllMatchesIterator[dart.implements] = () => [IteratorOfMatch()];
 dart.setSignature(_js_helper._AllMatchesIterator, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper._AllMatchesIterator, [_js_helper.JSSyntaxRegExp, core.String, core.int])}),
   fields: () => ({
     [_regExp]: _js_helper.JSSyntaxRegExp,
     [_string$]: core.String,
@@ -13364,7 +13107,6 @@ _js_helper.StringMatch = class StringMatch extends core.Object {
 };
 _js_helper.StringMatch[dart.implements] = () => [core.Match];
 dart.setSignature(_js_helper.StringMatch, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper.StringMatch, [core.int, core.String, core.String])}),
   fields: () => ({
     start: core.int,
     input: core.String,
@@ -13407,7 +13149,6 @@ _js_helper._StringAllMatchesIterable = class _StringAllMatchesIterable extends c
 };
 dart.addSimpleTypeTests(_js_helper._StringAllMatchesIterable);
 dart.setSignature(_js_helper._StringAllMatchesIterable, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper._StringAllMatchesIterable, [core.String, core.String, core.int])}),
   fields: () => ({
     [_input]: core.String,
     [_pattern]: core.String,
@@ -13446,7 +13187,6 @@ _js_helper._StringAllMatchesIterator = class _StringAllMatchesIterator extends c
 };
 _js_helper._StringAllMatchesIterator[dart.implements] = () => [IteratorOfMatch()];
 dart.setSignature(_js_helper._StringAllMatchesIterator, {
-  constructors: () => ({new: dart.definiteFunctionType(_js_helper._StringAllMatchesIterator, [core.String, core.String, core.int])}),
   fields: () => ({
     [_input]: core.String,
     [_pattern]: core.String,
@@ -14007,7 +13747,6 @@ _js_mirrors.JsInstanceMirror = class JsInstanceMirror extends _js_mirrors.JsObje
 dart.defineNamedConstructor(_js_mirrors.JsInstanceMirror, '_');
 _js_mirrors.JsInstanceMirror[dart.implements] = () => [mirrors.InstanceMirror];
 dart.setSignature(_js_mirrors.JsInstanceMirror, {
-  constructors: () => ({_: dart.definiteFunctionType(_js_mirrors.JsInstanceMirror, [dart.dynamic])}),
   fields: () => ({reflectee: dart.dynamic}),
   getters: () => ({
     hasReflectee: dart.definiteFunctionType(core.bool, []),
@@ -14044,7 +13783,6 @@ _js_mirrors.JsClosureMirror = class JsClosureMirror extends _js_mirrors.JsInstan
 dart.defineNamedConstructor(_js_mirrors.JsClosureMirror, '_');
 _js_mirrors.JsClosureMirror[dart.implements] = () => [mirrors.ClosureMirror];
 dart.setSignature(_js_mirrors.JsClosureMirror, {
-  constructors: () => ({_: dart.definiteFunctionType(_js_mirrors.JsClosureMirror, [dart.dynamic])}),
   methods: () => ({apply: dart.definiteFunctionType(mirrors.InstanceMirror, [core.List], [MapOfSymbol$dynamic()])})
 });
 const _metadata$ = Symbol('_metadata');
@@ -14266,7 +14004,6 @@ _js_mirrors.JsClassMirror = class JsClassMirror extends _js_mirrors.JsMirror {
 dart.defineNamedConstructor(_js_mirrors.JsClassMirror, '_');
 _js_mirrors.JsClassMirror[dart.implements] = () => [mirrors.ClassMirror];
 dart.setSignature(_js_mirrors.JsClassMirror, {
-  constructors: () => ({_: dart.definiteFunctionType(_js_mirrors.JsClassMirror, [core.Type])}),
   fields: () => ({
     [_cls]: core.Type,
     simpleName: core.Symbol,
@@ -14334,7 +14071,6 @@ _js_mirrors.JsVariableMirror = class JsVariableMirror extends _js_mirrors.JsMirr
 dart.defineNamedConstructor(_js_mirrors.JsVariableMirror, '_');
 _js_mirrors.JsVariableMirror[dart.implements] = () => [mirrors.VariableMirror];
 dart.setSignature(_js_mirrors.JsVariableMirror, {
-  constructors: () => ({_: dart.definiteFunctionType(_js_mirrors.JsVariableMirror, [core.Symbol, core.Type, core.List])}),
   fields: () => ({
     [_symbol]: core.Symbol,
     [_name$0]: core.String,
@@ -14385,9 +14121,6 @@ _js_mirrors.JsParameterMirror = class JsParameterMirror extends _js_mirrors.JsVa
 };
 dart.defineNamedConstructor(_js_mirrors.JsParameterMirror, '_');
 _js_mirrors.JsParameterMirror[dart.implements] = () => [mirrors.ParameterMirror];
-dart.setSignature(_js_mirrors.JsParameterMirror, {
-  constructors: () => ({_: dart.definiteFunctionType(_js_mirrors.JsParameterMirror, [core.Symbol, core.Type, core.List])})
-});
 const _params = Symbol('_params');
 const _createParameterMirrorList = Symbol('_createParameterMirrorList');
 let const$2;
@@ -14528,11 +14261,6 @@ dart.defineNamedConstructor(_js_mirrors.JsMethodMirror, '_instanceMethod');
 dart.defineNamedConstructor(_js_mirrors.JsMethodMirror, '_staticMethod');
 _js_mirrors.JsMethodMirror[dart.implements] = () => [mirrors.MethodMirror];
 dart.setSignature(_js_mirrors.JsMethodMirror, {
-  constructors: () => ({
-    _constructor: dart.definiteFunctionType(_js_mirrors.JsMethodMirror, [_js_mirrors.JsClassMirror, core.Symbol, dart.dynamic]),
-    _instanceMethod: dart.definiteFunctionType(_js_mirrors.JsMethodMirror, [_js_mirrors.JsClassMirror, core.Symbol, dart.dynamic]),
-    _staticMethod: dart.definiteFunctionType(_js_mirrors.JsMethodMirror, [_js_mirrors.JsClassMirror, core.Symbol, dart.dynamic])
-  }),
   fields: () => ({
     [_symbol]: core.Symbol,
     [_name$0]: core.String,
@@ -14579,17 +14307,9 @@ _metadata.SupportedBrowser = class SupportedBrowser extends core.Object {
   }
 };
 dart.setSignature(_metadata.SupportedBrowser, {
-  constructors: () => ({new: dart.definiteFunctionType(_metadata.SupportedBrowser, [core.String], [core.String])}),
   fields: () => ({
     browserName: core.String,
     minimumVersion: core.String
-  }),
-  sfields: () => ({
-    CHROME: core.String,
-    FIREFOX: core.String,
-    IE: core.String,
-    OPERA: core.String,
-    SAFARI: core.String
   })
 });
 _metadata.SupportedBrowser.CHROME = "Chrome";
@@ -14601,32 +14321,22 @@ _metadata.Experimental = class Experimental extends core.Object {
   new() {
   }
 };
-dart.setSignature(_metadata.Experimental, {
-  constructors: () => ({new: dart.definiteFunctionType(_metadata.Experimental, [])})
-});
 _metadata.DomName = class DomName extends core.Object {
   new(name) {
     this.name = name;
   }
 };
 dart.setSignature(_metadata.DomName, {
-  constructors: () => ({new: dart.definiteFunctionType(_metadata.DomName, [core.String])}),
   fields: () => ({name: core.String})
 });
 _metadata.DocsEditable = class DocsEditable extends core.Object {
   new() {
   }
 };
-dart.setSignature(_metadata.DocsEditable, {
-  constructors: () => ({new: dart.definiteFunctionType(_metadata.DocsEditable, [])})
-});
 _metadata.Unstable = class Unstable extends core.Object {
   new() {
   }
 };
-dart.setSignature(_metadata.Unstable, {
-  constructors: () => ({new: dart.definiteFunctionType(_metadata.Unstable, [])})
-});
 dart.defineExtensionNames([
   'lengthInBytes',
   'runtimeType',
@@ -14772,273 +14482,6 @@ typed_data.Float32x4 = class Float32x4 extends core.Object {
     return new _native_typed_data.NativeFloat32x4.fromFloat64x2(v);
   }
 };
-dart.setSignature(typed_data.Float32x4, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Float32x4, [core.double, core.double, core.double, core.double]),
-    splat: dart.definiteFunctionType(typed_data.Float32x4, [core.double]),
-    zero: dart.definiteFunctionType(typed_data.Float32x4, []),
-    fromInt32x4Bits: dart.definiteFunctionType(typed_data.Float32x4, [typed_data.Int32x4]),
-    fromFloat64x2: dart.definiteFunctionType(typed_data.Float32x4, [typed_data.Float64x2])
-  }),
-  sfields: () => ({
-    XXXX: core.int,
-    XXXY: core.int,
-    XXXZ: core.int,
-    XXXW: core.int,
-    XXYX: core.int,
-    XXYY: core.int,
-    XXYZ: core.int,
-    XXYW: core.int,
-    XXZX: core.int,
-    XXZY: core.int,
-    XXZZ: core.int,
-    XXZW: core.int,
-    XXWX: core.int,
-    XXWY: core.int,
-    XXWZ: core.int,
-    XXWW: core.int,
-    XYXX: core.int,
-    XYXY: core.int,
-    XYXZ: core.int,
-    XYXW: core.int,
-    XYYX: core.int,
-    XYYY: core.int,
-    XYYZ: core.int,
-    XYYW: core.int,
-    XYZX: core.int,
-    XYZY: core.int,
-    XYZZ: core.int,
-    XYZW: core.int,
-    XYWX: core.int,
-    XYWY: core.int,
-    XYWZ: core.int,
-    XYWW: core.int,
-    XZXX: core.int,
-    XZXY: core.int,
-    XZXZ: core.int,
-    XZXW: core.int,
-    XZYX: core.int,
-    XZYY: core.int,
-    XZYZ: core.int,
-    XZYW: core.int,
-    XZZX: core.int,
-    XZZY: core.int,
-    XZZZ: core.int,
-    XZZW: core.int,
-    XZWX: core.int,
-    XZWY: core.int,
-    XZWZ: core.int,
-    XZWW: core.int,
-    XWXX: core.int,
-    XWXY: core.int,
-    XWXZ: core.int,
-    XWXW: core.int,
-    XWYX: core.int,
-    XWYY: core.int,
-    XWYZ: core.int,
-    XWYW: core.int,
-    XWZX: core.int,
-    XWZY: core.int,
-    XWZZ: core.int,
-    XWZW: core.int,
-    XWWX: core.int,
-    XWWY: core.int,
-    XWWZ: core.int,
-    XWWW: core.int,
-    YXXX: core.int,
-    YXXY: core.int,
-    YXXZ: core.int,
-    YXXW: core.int,
-    YXYX: core.int,
-    YXYY: core.int,
-    YXYZ: core.int,
-    YXYW: core.int,
-    YXZX: core.int,
-    YXZY: core.int,
-    YXZZ: core.int,
-    YXZW: core.int,
-    YXWX: core.int,
-    YXWY: core.int,
-    YXWZ: core.int,
-    YXWW: core.int,
-    YYXX: core.int,
-    YYXY: core.int,
-    YYXZ: core.int,
-    YYXW: core.int,
-    YYYX: core.int,
-    YYYY: core.int,
-    YYYZ: core.int,
-    YYYW: core.int,
-    YYZX: core.int,
-    YYZY: core.int,
-    YYZZ: core.int,
-    YYZW: core.int,
-    YYWX: core.int,
-    YYWY: core.int,
-    YYWZ: core.int,
-    YYWW: core.int,
-    YZXX: core.int,
-    YZXY: core.int,
-    YZXZ: core.int,
-    YZXW: core.int,
-    YZYX: core.int,
-    YZYY: core.int,
-    YZYZ: core.int,
-    YZYW: core.int,
-    YZZX: core.int,
-    YZZY: core.int,
-    YZZZ: core.int,
-    YZZW: core.int,
-    YZWX: core.int,
-    YZWY: core.int,
-    YZWZ: core.int,
-    YZWW: core.int,
-    YWXX: core.int,
-    YWXY: core.int,
-    YWXZ: core.int,
-    YWXW: core.int,
-    YWYX: core.int,
-    YWYY: core.int,
-    YWYZ: core.int,
-    YWYW: core.int,
-    YWZX: core.int,
-    YWZY: core.int,
-    YWZZ: core.int,
-    YWZW: core.int,
-    YWWX: core.int,
-    YWWY: core.int,
-    YWWZ: core.int,
-    YWWW: core.int,
-    ZXXX: core.int,
-    ZXXY: core.int,
-    ZXXZ: core.int,
-    ZXXW: core.int,
-    ZXYX: core.int,
-    ZXYY: core.int,
-    ZXYZ: core.int,
-    ZXYW: core.int,
-    ZXZX: core.int,
-    ZXZY: core.int,
-    ZXZZ: core.int,
-    ZXZW: core.int,
-    ZXWX: core.int,
-    ZXWY: core.int,
-    ZXWZ: core.int,
-    ZXWW: core.int,
-    ZYXX: core.int,
-    ZYXY: core.int,
-    ZYXZ: core.int,
-    ZYXW: core.int,
-    ZYYX: core.int,
-    ZYYY: core.int,
-    ZYYZ: core.int,
-    ZYYW: core.int,
-    ZYZX: core.int,
-    ZYZY: core.int,
-    ZYZZ: core.int,
-    ZYZW: core.int,
-    ZYWX: core.int,
-    ZYWY: core.int,
-    ZYWZ: core.int,
-    ZYWW: core.int,
-    ZZXX: core.int,
-    ZZXY: core.int,
-    ZZXZ: core.int,
-    ZZXW: core.int,
-    ZZYX: core.int,
-    ZZYY: core.int,
-    ZZYZ: core.int,
-    ZZYW: core.int,
-    ZZZX: core.int,
-    ZZZY: core.int,
-    ZZZZ: core.int,
-    ZZZW: core.int,
-    ZZWX: core.int,
-    ZZWY: core.int,
-    ZZWZ: core.int,
-    ZZWW: core.int,
-    ZWXX: core.int,
-    ZWXY: core.int,
-    ZWXZ: core.int,
-    ZWXW: core.int,
-    ZWYX: core.int,
-    ZWYY: core.int,
-    ZWYZ: core.int,
-    ZWYW: core.int,
-    ZWZX: core.int,
-    ZWZY: core.int,
-    ZWZZ: core.int,
-    ZWZW: core.int,
-    ZWWX: core.int,
-    ZWWY: core.int,
-    ZWWZ: core.int,
-    ZWWW: core.int,
-    WXXX: core.int,
-    WXXY: core.int,
-    WXXZ: core.int,
-    WXXW: core.int,
-    WXYX: core.int,
-    WXYY: core.int,
-    WXYZ: core.int,
-    WXYW: core.int,
-    WXZX: core.int,
-    WXZY: core.int,
-    WXZZ: core.int,
-    WXZW: core.int,
-    WXWX: core.int,
-    WXWY: core.int,
-    WXWZ: core.int,
-    WXWW: core.int,
-    WYXX: core.int,
-    WYXY: core.int,
-    WYXZ: core.int,
-    WYXW: core.int,
-    WYYX: core.int,
-    WYYY: core.int,
-    WYYZ: core.int,
-    WYYW: core.int,
-    WYZX: core.int,
-    WYZY: core.int,
-    WYZZ: core.int,
-    WYZW: core.int,
-    WYWX: core.int,
-    WYWY: core.int,
-    WYWZ: core.int,
-    WYWW: core.int,
-    WZXX: core.int,
-    WZXY: core.int,
-    WZXZ: core.int,
-    WZXW: core.int,
-    WZYX: core.int,
-    WZYY: core.int,
-    WZYZ: core.int,
-    WZYW: core.int,
-    WZZX: core.int,
-    WZZY: core.int,
-    WZZZ: core.int,
-    WZZW: core.int,
-    WZWX: core.int,
-    WZWY: core.int,
-    WZWZ: core.int,
-    WZWW: core.int,
-    WWXX: core.int,
-    WWXY: core.int,
-    WWXZ: core.int,
-    WWXW: core.int,
-    WWYX: core.int,
-    WWYY: core.int,
-    WWYZ: core.int,
-    WWYW: core.int,
-    WWZX: core.int,
-    WWZY: core.int,
-    WWZZ: core.int,
-    WWZW: core.int,
-    WWWX: core.int,
-    WWWY: core.int,
-    WWWZ: core.int,
-    WWWW: core.int
-  })
-});
 typed_data.Float32x4.XXXX = 0;
 typed_data.Float32x4.XXXY = 64;
 typed_data.Float32x4.XXXZ = 128;
@@ -15366,12 +14809,6 @@ dart.defineNamedConstructor(_native_typed_data.NativeFloat32x4List, '_externalSt
 dart.defineNamedConstructor(_native_typed_data.NativeFloat32x4List, '_slowFromList');
 _native_typed_data.NativeFloat32x4List[dart.implements] = () => [typed_data.Float32x4List];
 dart.setSignature(_native_typed_data.NativeFloat32x4List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeFloat32x4List, [core.int]),
-    _externalStorage: dart.definiteFunctionType(_native_typed_data.NativeFloat32x4List, [_native_typed_data.NativeFloat32List]),
-    _slowFromList: dart.definiteFunctionType(_native_typed_data.NativeFloat32x4List, [ListOfFloat32x4()]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeFloat32x4List, [ListOfFloat32x4()])
-  }),
   fields: () => ({[_storage]: _native_typed_data.NativeFloat32List}),
   getters: () => ({
     buffer: dart.definiteFunctionType(typed_data.ByteBuffer, []),
@@ -15406,271 +14843,6 @@ typed_data.Int32x4 = class Int32x4 extends core.Object {
     return _native_typed_data.NativeInt32x4.fromFloat32x4Bits(x);
   }
 };
-dart.setSignature(typed_data.Int32x4, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Int32x4, [core.int, core.int, core.int, core.int]),
-    bool: dart.definiteFunctionType(typed_data.Int32x4, [core.bool, core.bool, core.bool, core.bool]),
-    fromFloat32x4Bits: dart.definiteFunctionType(typed_data.Int32x4, [typed_data.Float32x4])
-  }),
-  sfields: () => ({
-    XXXX: core.int,
-    XXXY: core.int,
-    XXXZ: core.int,
-    XXXW: core.int,
-    XXYX: core.int,
-    XXYY: core.int,
-    XXYZ: core.int,
-    XXYW: core.int,
-    XXZX: core.int,
-    XXZY: core.int,
-    XXZZ: core.int,
-    XXZW: core.int,
-    XXWX: core.int,
-    XXWY: core.int,
-    XXWZ: core.int,
-    XXWW: core.int,
-    XYXX: core.int,
-    XYXY: core.int,
-    XYXZ: core.int,
-    XYXW: core.int,
-    XYYX: core.int,
-    XYYY: core.int,
-    XYYZ: core.int,
-    XYYW: core.int,
-    XYZX: core.int,
-    XYZY: core.int,
-    XYZZ: core.int,
-    XYZW: core.int,
-    XYWX: core.int,
-    XYWY: core.int,
-    XYWZ: core.int,
-    XYWW: core.int,
-    XZXX: core.int,
-    XZXY: core.int,
-    XZXZ: core.int,
-    XZXW: core.int,
-    XZYX: core.int,
-    XZYY: core.int,
-    XZYZ: core.int,
-    XZYW: core.int,
-    XZZX: core.int,
-    XZZY: core.int,
-    XZZZ: core.int,
-    XZZW: core.int,
-    XZWX: core.int,
-    XZWY: core.int,
-    XZWZ: core.int,
-    XZWW: core.int,
-    XWXX: core.int,
-    XWXY: core.int,
-    XWXZ: core.int,
-    XWXW: core.int,
-    XWYX: core.int,
-    XWYY: core.int,
-    XWYZ: core.int,
-    XWYW: core.int,
-    XWZX: core.int,
-    XWZY: core.int,
-    XWZZ: core.int,
-    XWZW: core.int,
-    XWWX: core.int,
-    XWWY: core.int,
-    XWWZ: core.int,
-    XWWW: core.int,
-    YXXX: core.int,
-    YXXY: core.int,
-    YXXZ: core.int,
-    YXXW: core.int,
-    YXYX: core.int,
-    YXYY: core.int,
-    YXYZ: core.int,
-    YXYW: core.int,
-    YXZX: core.int,
-    YXZY: core.int,
-    YXZZ: core.int,
-    YXZW: core.int,
-    YXWX: core.int,
-    YXWY: core.int,
-    YXWZ: core.int,
-    YXWW: core.int,
-    YYXX: core.int,
-    YYXY: core.int,
-    YYXZ: core.int,
-    YYXW: core.int,
-    YYYX: core.int,
-    YYYY: core.int,
-    YYYZ: core.int,
-    YYYW: core.int,
-    YYZX: core.int,
-    YYZY: core.int,
-    YYZZ: core.int,
-    YYZW: core.int,
-    YYWX: core.int,
-    YYWY: core.int,
-    YYWZ: core.int,
-    YYWW: core.int,
-    YZXX: core.int,
-    YZXY: core.int,
-    YZXZ: core.int,
-    YZXW: core.int,
-    YZYX: core.int,
-    YZYY: core.int,
-    YZYZ: core.int,
-    YZYW: core.int,
-    YZZX: core.int,
-    YZZY: core.int,
-    YZZZ: core.int,
-    YZZW: core.int,
-    YZWX: core.int,
-    YZWY: core.int,
-    YZWZ: core.int,
-    YZWW: core.int,
-    YWXX: core.int,
-    YWXY: core.int,
-    YWXZ: core.int,
-    YWXW: core.int,
-    YWYX: core.int,
-    YWYY: core.int,
-    YWYZ: core.int,
-    YWYW: core.int,
-    YWZX: core.int,
-    YWZY: core.int,
-    YWZZ: core.int,
-    YWZW: core.int,
-    YWWX: core.int,
-    YWWY: core.int,
-    YWWZ: core.int,
-    YWWW: core.int,
-    ZXXX: core.int,
-    ZXXY: core.int,
-    ZXXZ: core.int,
-    ZXXW: core.int,
-    ZXYX: core.int,
-    ZXYY: core.int,
-    ZXYZ: core.int,
-    ZXYW: core.int,
-    ZXZX: core.int,
-    ZXZY: core.int,
-    ZXZZ: core.int,
-    ZXZW: core.int,
-    ZXWX: core.int,
-    ZXWY: core.int,
-    ZXWZ: core.int,
-    ZXWW: core.int,
-    ZYXX: core.int,
-    ZYXY: core.int,
-    ZYXZ: core.int,
-    ZYXW: core.int,
-    ZYYX: core.int,
-    ZYYY: core.int,
-    ZYYZ: core.int,
-    ZYYW: core.int,
-    ZYZX: core.int,
-    ZYZY: core.int,
-    ZYZZ: core.int,
-    ZYZW: core.int,
-    ZYWX: core.int,
-    ZYWY: core.int,
-    ZYWZ: core.int,
-    ZYWW: core.int,
-    ZZXX: core.int,
-    ZZXY: core.int,
-    ZZXZ: core.int,
-    ZZXW: core.int,
-    ZZYX: core.int,
-    ZZYY: core.int,
-    ZZYZ: core.int,
-    ZZYW: core.int,
-    ZZZX: core.int,
-    ZZZY: core.int,
-    ZZZZ: core.int,
-    ZZZW: core.int,
-    ZZWX: core.int,
-    ZZWY: core.int,
-    ZZWZ: core.int,
-    ZZWW: core.int,
-    ZWXX: core.int,
-    ZWXY: core.int,
-    ZWXZ: core.int,
-    ZWXW: core.int,
-    ZWYX: core.int,
-    ZWYY: core.int,
-    ZWYZ: core.int,
-    ZWYW: core.int,
-    ZWZX: core.int,
-    ZWZY: core.int,
-    ZWZZ: core.int,
-    ZWZW: core.int,
-    ZWWX: core.int,
-    ZWWY: core.int,
-    ZWWZ: core.int,
-    ZWWW: core.int,
-    WXXX: core.int,
-    WXXY: core.int,
-    WXXZ: core.int,
-    WXXW: core.int,
-    WXYX: core.int,
-    WXYY: core.int,
-    WXYZ: core.int,
-    WXYW: core.int,
-    WXZX: core.int,
-    WXZY: core.int,
-    WXZZ: core.int,
-    WXZW: core.int,
-    WXWX: core.int,
-    WXWY: core.int,
-    WXWZ: core.int,
-    WXWW: core.int,
-    WYXX: core.int,
-    WYXY: core.int,
-    WYXZ: core.int,
-    WYXW: core.int,
-    WYYX: core.int,
-    WYYY: core.int,
-    WYYZ: core.int,
-    WYYW: core.int,
-    WYZX: core.int,
-    WYZY: core.int,
-    WYZZ: core.int,
-    WYZW: core.int,
-    WYWX: core.int,
-    WYWY: core.int,
-    WYWZ: core.int,
-    WYWW: core.int,
-    WZXX: core.int,
-    WZXY: core.int,
-    WZXZ: core.int,
-    WZXW: core.int,
-    WZYX: core.int,
-    WZYY: core.int,
-    WZYZ: core.int,
-    WZYW: core.int,
-    WZZX: core.int,
-    WZZY: core.int,
-    WZZZ: core.int,
-    WZZW: core.int,
-    WZWX: core.int,
-    WZWY: core.int,
-    WZWZ: core.int,
-    WZWW: core.int,
-    WWXX: core.int,
-    WWXY: core.int,
-    WWXZ: core.int,
-    WWXW: core.int,
-    WWYX: core.int,
-    WWYY: core.int,
-    WWYZ: core.int,
-    WWYW: core.int,
-    WWZX: core.int,
-    WWZY: core.int,
-    WWZZ: core.int,
-    WWZW: core.int,
-    WWWX: core.int,
-    WWWY: core.int,
-    WWWZ: core.int,
-    WWWW: core.int
-  })
-});
 typed_data.Int32x4.XXXX = 0;
 typed_data.Int32x4.XXXY = 64;
 typed_data.Int32x4.XXXZ = 128;
@@ -15998,12 +15170,6 @@ dart.defineNamedConstructor(_native_typed_data.NativeInt32x4List, '_externalStor
 dart.defineNamedConstructor(_native_typed_data.NativeInt32x4List, '_slowFromList');
 _native_typed_data.NativeInt32x4List[dart.implements] = () => [typed_data.Int32x4List];
 dart.setSignature(_native_typed_data.NativeInt32x4List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeInt32x4List, [core.int]),
-    _externalStorage: dart.definiteFunctionType(_native_typed_data.NativeInt32x4List, [typed_data.Int32List]),
-    _slowFromList: dart.definiteFunctionType(_native_typed_data.NativeInt32x4List, [ListOfInt32x4()]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeInt32x4List, [ListOfInt32x4()])
-  }),
   fields: () => ({[_storage]: typed_data.Int32List}),
   getters: () => ({
     buffer: dart.definiteFunctionType(typed_data.ByteBuffer, []),
@@ -16041,14 +15207,6 @@ typed_data.Float64x2 = class Float64x2 extends core.Object {
     return new _native_typed_data.NativeFloat64x2.fromFloat32x4(v);
   }
 };
-dart.setSignature(typed_data.Float64x2, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Float64x2, [core.double, core.double]),
-    splat: dart.definiteFunctionType(typed_data.Float64x2, [core.double]),
-    zero: dart.definiteFunctionType(typed_data.Float64x2, []),
-    fromFloat32x4: dart.definiteFunctionType(typed_data.Float64x2, [typed_data.Float32x4])
-  })
-});
 _native_typed_data.NativeFloat64x2List = class NativeFloat64x2List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Float64x2), _internal.FixedLengthListMixin$(typed_data.Float64x2)) {
   new(length) {
     this[_storage] = _native_typed_data.NativeFloat64List.new(dart.notNull(length) * 2);
@@ -16114,12 +15272,6 @@ dart.defineNamedConstructor(_native_typed_data.NativeFloat64x2List, '_externalSt
 dart.defineNamedConstructor(_native_typed_data.NativeFloat64x2List, '_slowFromList');
 _native_typed_data.NativeFloat64x2List[dart.implements] = () => [typed_data.Float64x2List];
 dart.setSignature(_native_typed_data.NativeFloat64x2List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeFloat64x2List, [core.int]),
-    _externalStorage: dart.definiteFunctionType(_native_typed_data.NativeFloat64x2List, [_native_typed_data.NativeFloat64List]),
-    _slowFromList: dart.definiteFunctionType(_native_typed_data.NativeFloat64x2List, [ListOfFloat64x2()]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeFloat64x2List, [ListOfFloat64x2()])
-  }),
   fields: () => ({[_storage]: _native_typed_data.NativeFloat64List}),
   getters: () => ({
     buffer: dart.definiteFunctionType(typed_data.ByteBuffer, []),
@@ -16391,10 +15543,6 @@ _native_typed_data.NativeByteData = class NativeByteData extends _native_typed_d
 };
 _native_typed_data.NativeByteData[dart.implements] = () => [typed_data.ByteData];
 dart.setSignature(_native_typed_data.NativeByteData, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeByteData, [core.int]),
-    view: dart.definiteFunctionType(_native_typed_data.NativeByteData, [typed_data.ByteBuffer, core.int, core.int])
-  }),
   methods: () => ({
     [dartx.getFloat32]: dart.definiteFunctionType(core.double, [core.int], [typed_data.Endianness]),
     [_getFloat32]: dart.definiteFunctionType(core.double, [core.int], [core.bool]),
@@ -16567,11 +15715,6 @@ _native_typed_data.NativeFloat32List = class NativeFloat32List extends _native_t
 };
 _native_typed_data.NativeFloat32List[dart.implements] = () => [typed_data.Float32List];
 dart.setSignature(_native_typed_data.NativeFloat32List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeFloat32List, [core.int]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeFloat32List, [ListOfdouble()]),
-    view: dart.definiteFunctionType(_native_typed_data.NativeFloat32List, [typed_data.ByteBuffer, core.int, core.int])
-  }),
   statics: () => ({
     _create1: dart.definiteFunctionType(_native_typed_data.NativeFloat32List, [dart.dynamic]),
     _create2: dart.definiteFunctionType(_native_typed_data.NativeFloat32List, [dart.dynamic, dart.dynamic]),
@@ -16616,11 +15759,6 @@ _native_typed_data.NativeFloat64List = class NativeFloat64List extends _native_t
 };
 _native_typed_data.NativeFloat64List[dart.implements] = () => [typed_data.Float64List];
 dart.setSignature(_native_typed_data.NativeFloat64List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeFloat64List, [core.int]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeFloat64List, [ListOfdouble()]),
-    view: dart.definiteFunctionType(_native_typed_data.NativeFloat64List, [typed_data.ByteBuffer, core.int, core.int])
-  }),
   statics: () => ({
     _create1: dart.definiteFunctionType(_native_typed_data.NativeFloat64List, [dart.dynamic]),
     _create2: dart.definiteFunctionType(_native_typed_data.NativeFloat64List, [dart.dynamic, dart.dynamic]),
@@ -16670,11 +15808,6 @@ _native_typed_data.NativeInt16List = class NativeInt16List extends _native_typed
 };
 _native_typed_data.NativeInt16List[dart.implements] = () => [typed_data.Int16List];
 dart.setSignature(_native_typed_data.NativeInt16List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeInt16List, [core.int]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeInt16List, [ListOfint()]),
-    view: dart.definiteFunctionType(_native_typed_data.NativeInt16List, [_native_typed_data.NativeByteBuffer, core.int, core.int])
-  }),
   methods: () => ({[dartx._get]: dart.definiteFunctionType(core.int, [core.int])}),
   statics: () => ({
     _create1: dart.definiteFunctionType(_native_typed_data.NativeInt16List, [dart.dynamic]),
@@ -16725,11 +15858,6 @@ _native_typed_data.NativeInt32List = class NativeInt32List extends _native_typed
 };
 _native_typed_data.NativeInt32List[dart.implements] = () => [typed_data.Int32List];
 dart.setSignature(_native_typed_data.NativeInt32List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeInt32List, [core.int]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeInt32List, [ListOfint()]),
-    view: dart.definiteFunctionType(_native_typed_data.NativeInt32List, [typed_data.ByteBuffer, core.int, core.int])
-  }),
   methods: () => ({[dartx._get]: dart.definiteFunctionType(core.int, [core.int])}),
   statics: () => ({
     _create1: dart.definiteFunctionType(_native_typed_data.NativeInt32List, [dart.dynamic]),
@@ -16780,11 +15908,6 @@ _native_typed_data.NativeInt8List = class NativeInt8List extends _native_typed_d
 };
 _native_typed_data.NativeInt8List[dart.implements] = () => [typed_data.Int8List];
 dart.setSignature(_native_typed_data.NativeInt8List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeInt8List, [core.int]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeInt8List, [ListOfint()]),
-    view: dart.definiteFunctionType(_native_typed_data.NativeInt8List, [typed_data.ByteBuffer, core.int, core.int])
-  }),
   methods: () => ({[dartx._get]: dart.definiteFunctionType(core.int, [core.int])}),
   statics: () => ({
     _create1: dart.definiteFunctionType(_native_typed_data.NativeInt8List, [dart.dynamic]),
@@ -16835,11 +15958,6 @@ _native_typed_data.NativeUint16List = class NativeUint16List extends _native_typ
 };
 _native_typed_data.NativeUint16List[dart.implements] = () => [typed_data.Uint16List];
 dart.setSignature(_native_typed_data.NativeUint16List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeUint16List, [core.int]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeUint16List, [ListOfint()]),
-    view: dart.definiteFunctionType(_native_typed_data.NativeUint16List, [typed_data.ByteBuffer, core.int, core.int])
-  }),
   methods: () => ({[dartx._get]: dart.definiteFunctionType(core.int, [core.int])}),
   statics: () => ({
     _create1: dart.definiteFunctionType(_native_typed_data.NativeUint16List, [dart.dynamic]),
@@ -16890,11 +16008,6 @@ _native_typed_data.NativeUint32List = class NativeUint32List extends _native_typ
 };
 _native_typed_data.NativeUint32List[dart.implements] = () => [typed_data.Uint32List];
 dart.setSignature(_native_typed_data.NativeUint32List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeUint32List, [core.int]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeUint32List, [ListOfint()]),
-    view: dart.definiteFunctionType(_native_typed_data.NativeUint32List, [typed_data.ByteBuffer, core.int, core.int])
-  }),
   methods: () => ({[dartx._get]: dart.definiteFunctionType(core.int, [core.int])}),
   statics: () => ({
     _create1: dart.definiteFunctionType(_native_typed_data.NativeUint32List, [dart.dynamic]),
@@ -16952,11 +16065,6 @@ _native_typed_data.NativeUint8ClampedList = class NativeUint8ClampedList extends
 };
 _native_typed_data.NativeUint8ClampedList[dart.implements] = () => [typed_data.Uint8ClampedList];
 dart.setSignature(_native_typed_data.NativeUint8ClampedList, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeUint8ClampedList, [core.int]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeUint8ClampedList, [ListOfint()]),
-    view: dart.definiteFunctionType(_native_typed_data.NativeUint8ClampedList, [typed_data.ByteBuffer, core.int, core.int])
-  }),
   methods: () => ({[dartx._get]: dart.definiteFunctionType(core.int, [core.int])}),
   statics: () => ({
     _create1: dart.definiteFunctionType(_native_typed_data.NativeUint8ClampedList, [dart.dynamic]),
@@ -17015,11 +16123,6 @@ _native_typed_data.NativeUint8List = class NativeUint8List extends _native_typed
 };
 _native_typed_data.NativeUint8List[dart.implements] = () => [typed_data.Uint8List];
 dart.setSignature(_native_typed_data.NativeUint8List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeUint8List, [core.int]),
-    fromList: dart.definiteFunctionType(_native_typed_data.NativeUint8List, [ListOfint()]),
-    view: dart.definiteFunctionType(_native_typed_data.NativeUint8List, [typed_data.ByteBuffer, core.int, core.int])
-  }),
   methods: () => ({[dartx._get]: dart.definiteFunctionType(core.int, [core.int])}),
   statics: () => ({
     _create1: dart.definiteFunctionType(_native_typed_data.NativeUint8List, [dart.dynamic]),
@@ -17285,15 +16388,6 @@ dart.defineNamedConstructor(_native_typed_data.NativeFloat32x4, '_doubles');
 dart.defineNamedConstructor(_native_typed_data.NativeFloat32x4, '_truncated');
 _native_typed_data.NativeFloat32x4[dart.implements] = () => [typed_data.Float32x4];
 dart.setSignature(_native_typed_data.NativeFloat32x4, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeFloat32x4, [core.double, core.double, core.double, core.double]),
-    splat: dart.definiteFunctionType(_native_typed_data.NativeFloat32x4, [core.double]),
-    zero: dart.definiteFunctionType(_native_typed_data.NativeFloat32x4, []),
-    fromInt32x4Bits: dart.definiteFunctionType(_native_typed_data.NativeFloat32x4, [typed_data.Int32x4]),
-    fromFloat64x2: dart.definiteFunctionType(_native_typed_data.NativeFloat32x4, [typed_data.Float64x2]),
-    _doubles: dart.definiteFunctionType(_native_typed_data.NativeFloat32x4, [core.double, core.double, core.double, core.double]),
-    _truncated: dart.definiteFunctionType(_native_typed_data.NativeFloat32x4, [core.double, core.double, core.double, core.double])
-  }),
   fields: () => ({
     x: core.double,
     y: core.double,
@@ -17327,10 +16421,6 @@ dart.setSignature(_native_typed_data.NativeFloat32x4, {
     sqrt: dart.definiteFunctionType(typed_data.Float32x4, []),
     reciprocal: dart.definiteFunctionType(typed_data.Float32x4, []),
     reciprocalSqrt: dart.definiteFunctionType(typed_data.Float32x4, [])
-  }),
-  sfields: () => ({
-    _list: _native_typed_data.NativeFloat32List,
-    _uint32view: typed_data.Uint32List
   }),
   statics: () => ({_truncate: dart.definiteFunctionType(dart.dynamic, [dart.dynamic])}),
   names: ['_truncate']
@@ -17517,12 +16607,6 @@ dart.defineNamedConstructor(_native_typed_data.NativeInt32x4, 'bool');
 dart.defineNamedConstructor(_native_typed_data.NativeInt32x4, '_truncated');
 _native_typed_data.NativeInt32x4[dart.implements] = () => [typed_data.Int32x4];
 dart.setSignature(_native_typed_data.NativeInt32x4, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeInt32x4, [core.int, core.int, core.int, core.int]),
-    bool: dart.definiteFunctionType(_native_typed_data.NativeInt32x4, [core.bool, core.bool, core.bool, core.bool]),
-    fromFloat32x4Bits: dart.definiteFunctionType(_native_typed_data.NativeInt32x4, [typed_data.Float32x4]),
-    _truncated: dart.definiteFunctionType(_native_typed_data.NativeInt32x4, [core.int, core.int, core.int, core.int])
-  }),
   fields: () => ({
     x: core.int,
     y: core.int,
@@ -17555,7 +16639,6 @@ dart.setSignature(_native_typed_data.NativeInt32x4, {
     withFlagW: dart.definiteFunctionType(typed_data.Int32x4, [core.bool]),
     select: dart.definiteFunctionType(typed_data.Float32x4, [typed_data.Float32x4, typed_data.Float32x4])
   }),
-  sfields: () => ({_list: _native_typed_data.NativeInt32List}),
   statics: () => ({_truncate: dart.definiteFunctionType(dart.dynamic, [dart.dynamic])}),
   names: ['_truncate']
 });
@@ -17653,13 +16736,6 @@ dart.defineNamedConstructor(_native_typed_data.NativeFloat64x2, 'fromFloat32x4')
 dart.defineNamedConstructor(_native_typed_data.NativeFloat64x2, '_doubles');
 _native_typed_data.NativeFloat64x2[dart.implements] = () => [typed_data.Float64x2];
 dart.setSignature(_native_typed_data.NativeFloat64x2, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(_native_typed_data.NativeFloat64x2, [core.double, core.double]),
-    splat: dart.definiteFunctionType(_native_typed_data.NativeFloat64x2, [core.double]),
-    zero: dart.definiteFunctionType(_native_typed_data.NativeFloat64x2, []),
-    fromFloat32x4: dart.definiteFunctionType(_native_typed_data.NativeFloat64x2, [typed_data.Float32x4]),
-    _doubles: dart.definiteFunctionType(_native_typed_data.NativeFloat64x2, [core.double, core.double])
-  }),
   fields: () => ({
     x: core.double,
     y: core.double
@@ -17679,10 +16755,6 @@ dart.setSignature(_native_typed_data.NativeFloat64x2, {
     min: dart.definiteFunctionType(typed_data.Float64x2, [typed_data.Float64x2]),
     max: dart.definiteFunctionType(typed_data.Float64x2, [typed_data.Float64x2]),
     sqrt: dart.definiteFunctionType(typed_data.Float64x2, [])
-  }),
-  sfields: () => ({
-    _list: _native_typed_data.NativeFloat64List,
-    _uint32View: _native_typed_data.NativeUint32List
   })
 });
 dart.defineLazy(_native_typed_data.NativeFloat64x2, {
@@ -17745,7 +16817,6 @@ async.AsyncError = class AsyncError extends core.Object {
 };
 async.AsyncError[dart.implements] = () => [core.Error];
 dart.setSignature(async.AsyncError, {
-  constructors: () => ({new: dart.definiteFunctionType(async.AsyncError, [core.Object, core.StackTrace])}),
   fields: () => ({
     error: core.Object,
     stackTrace: core.StackTrace
@@ -17771,7 +16842,6 @@ async._UncaughtAsyncError = class _UncaughtAsyncError extends async.AsyncError {
   }
 };
 dart.setSignature(async._UncaughtAsyncError, {
-  constructors: () => ({new: dart.definiteFunctionType(async._UncaughtAsyncError, [dart.dynamic, core.StackTrace])}),
   statics: () => ({_getBestStackTrace: dart.definiteFunctionType(core.StackTrace, [dart.dynamic, core.StackTrace])}),
   names: ['_getBestStackTrace']
 });
@@ -17832,7 +16902,6 @@ async._ControllerStream$ = dart.generic(T => {
     }
   }
   dart.setSignature(_ControllerStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._ControllerStream$(T), [_StreamControllerLifecycleOfT()])}),
     fields: () => ({[_controller$]: _StreamControllerLifecycleOfT()}),
     methods: () => ({'==': dart.definiteFunctionType(core.bool, [core.Object])})
   });
@@ -17840,7 +16909,6 @@ async._ControllerStream$ = dart.generic(T => {
 });
 async._ControllerStream = _ControllerStream();
 async._BroadcastStream$ = dart.generic(T => {
-  let _StreamControllerLifecycleOfT = () => (_StreamControllerLifecycleOfT = dart.constFn(async._StreamControllerLifecycle$(T)))();
   class _BroadcastStream extends async._ControllerStream$(T) {
     new(controller) {
       super.new(controller);
@@ -17849,9 +16917,6 @@ async._BroadcastStream$ = dart.generic(T => {
       return true;
     }
   }
-  dart.setSignature(_BroadcastStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._BroadcastStream$(T), [_StreamControllerLifecycleOfT()])})
-  });
   return _BroadcastStream;
 });
 async._BroadcastStream = _BroadcastStream();
@@ -18185,7 +17250,6 @@ async._BufferingStreamSubscription$ = dart.generic(T => {
   dart.addTypeTests(_BufferingStreamSubscription);
   _BufferingStreamSubscription[dart.implements] = () => [StreamSubscriptionOfT(), _EventSinkOfT(), _EventDispatchOfT()];
   dart.setSignature(_BufferingStreamSubscription, {
-    constructors: () => ({new: dart.definiteFunctionType(async._BufferingStreamSubscription$(T), [TTovoid(), core.Function, VoidTovoid(), core.bool])}),
     fields: () => ({
       [_onData]: TTovoid(),
       [_onError]: core.Function,
@@ -18232,17 +17296,6 @@ async._BufferingStreamSubscription$ = dart.generic(T => {
       [_sendDone]: dart.definiteFunctionType(dart.void, []),
       [_guardCallback]: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
       [_checkState]: dart.definiteFunctionType(dart.void, [core.bool])
-    }),
-    sfields: () => ({
-      _STATE_CANCEL_ON_ERROR: core.int,
-      _STATE_CLOSED: core.int,
-      _STATE_INPUT_PAUSED: core.int,
-      _STATE_CANCELED: core.int,
-      _STATE_WAIT_FOR_CANCEL: core.int,
-      _STATE_IN_CALLBACK: core.int,
-      _STATE_HAS_PENDING: core.int,
-      _STATE_PAUSE_COUNT: core.int,
-      _STATE_PAUSE_COUNT_SHIFT: core.int
     })
   });
   return _BufferingStreamSubscription;
@@ -18259,7 +17312,6 @@ async._BufferingStreamSubscription._STATE_PAUSE_COUNT = 128;
 async._BufferingStreamSubscription._STATE_PAUSE_COUNT_SHIFT = 7;
 async._ControllerSubscription$ = dart.generic(T => {
   let _StreamControllerLifecycleOfT = () => (_StreamControllerLifecycleOfT = dart.constFn(async._StreamControllerLifecycle$(T)))();
-  let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
   class _ControllerSubscription extends async._BufferingStreamSubscription$(T) {
     new(controller, onData, onError, onDone, cancelOnError) {
       this[_controller$] = controller;
@@ -18276,7 +17328,6 @@ async._ControllerSubscription$ = dart.generic(T => {
     }
   }
   dart.setSignature(_ControllerSubscription, {
-    constructors: () => ({new: dart.definiteFunctionType(async._ControllerSubscription$(T), [_StreamControllerLifecycleOfT(), TTovoid(), core.Function, VoidTovoid(), core.bool])}),
     fields: () => ({[_controller$]: _StreamControllerLifecycleOfT()})
   });
   return _ControllerSubscription;
@@ -18284,8 +17335,6 @@ async._ControllerSubscription$ = dart.generic(T => {
 async._ControllerSubscription = _ControllerSubscription();
 async._BroadcastSubscription$ = dart.generic(T => {
   let _BroadcastSubscriptionOfT = () => (_BroadcastSubscriptionOfT = dart.constFn(async._BroadcastSubscription$(T)))();
-  let _StreamControllerLifecycleOfT = () => (_StreamControllerLifecycleOfT = dart.constFn(async._StreamControllerLifecycle$(T)))();
-  let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
   class _BroadcastSubscription extends async._ControllerSubscription$(T) {
     new(controller, onData, onError, onDone, cancelOnError) {
       this[_eventState] = 0;
@@ -18314,7 +17363,6 @@ async._BroadcastSubscription$ = dart.generic(T => {
     [_onResume]() {}
   }
   dart.setSignature(_BroadcastSubscription, {
-    constructors: () => ({new: dart.definiteFunctionType(async._BroadcastSubscription$(T), [_StreamControllerLifecycleOfT(), TTovoid(), core.Function, VoidTovoid(), core.bool])}),
     fields: () => ({
       [_eventState]: core.int,
       [_next$]: _BroadcastSubscriptionOfT(),
@@ -18328,11 +17376,6 @@ async._BroadcastSubscription$ = dart.generic(T => {
       [_expectsEvent]: dart.definiteFunctionType(core.bool, [core.int]),
       [_toggleEventId]: dart.definiteFunctionType(dart.void, []),
       [_setRemoveAfterFiring]: dart.definiteFunctionType(dart.void, [])
-    }),
-    sfields: () => ({
-      _STATE_EVENT_ID: core.int,
-      _STATE_FIRING: core.int,
-      _STATE_REMOVE_AFTER_FIRING: core.int
     })
   });
   return _BroadcastSubscription;
@@ -18591,7 +17634,6 @@ async._BroadcastStreamController$ = dart.generic(T => {
   dart.addTypeTests(_BroadcastStreamController);
   _BroadcastStreamController[dart.implements] = () => [StreamControllerOfT(), _StreamControllerLifecycleOfT(), _EventSinkOfT(), _EventDispatchOfT()];
   dart.setSignature(_BroadcastStreamController, {
-    constructors: () => ({new: dart.definiteFunctionType(async._BroadcastStreamController$(T), [async.ControllerCallback, async.ControllerCancelCallback])}),
     fields: () => ({
       onListen: async.ControllerCallback,
       onCancel: async.ControllerCancelCallback,
@@ -18638,13 +17680,6 @@ async._BroadcastStreamController$ = dart.generic(T => {
       [_close$]: dart.definiteFunctionType(dart.void, []),
       [_forEachListener]: dart.definiteFunctionType(dart.void, [_BufferingStreamSubscriptionOfTTovoid()]),
       [_callOnCancel]: dart.definiteFunctionType(dart.void, [])
-    }),
-    sfields: () => ({
-      _STATE_INITIAL: core.int,
-      _STATE_EVENT_ID: core.int,
-      _STATE_FIRING: core.int,
-      _STATE_CLOSED: core.int,
-      _STATE_ADDSTREAM: core.int
     })
   });
   return _BroadcastStreamController;
@@ -18709,7 +17744,6 @@ async._SyncBroadcastStreamController$ = dart.generic(T => {
   }
   _SyncBroadcastStreamController[dart.implements] = () => [SynchronousStreamControllerOfT()];
   dart.setSignature(_SyncBroadcastStreamController, {
-    constructors: () => ({new: dart.definiteFunctionType(async._SyncBroadcastStreamController$(T), [VoidTovoid(), VoidTovoid()])}),
     methods: () => ({
       [_sendData]: dart.definiteFunctionType(dart.void, [T]),
       [_sendError]: dart.definiteFunctionType(dart.void, [core.Object, core.StackTrace]),
@@ -18750,7 +17784,6 @@ async._AsyncBroadcastStreamController$ = dart.generic(T => {
     }
   }
   dart.setSignature(_AsyncBroadcastStreamController, {
-    constructors: () => ({new: dart.definiteFunctionType(async._AsyncBroadcastStreamController$(T), [VoidTovoid(), VoidTovoid()])}),
     methods: () => ({
       [_sendData]: dart.definiteFunctionType(dart.void, [T]),
       [_sendError]: dart.definiteFunctionType(dart.void, [core.Object, core.StackTrace]),
@@ -18823,7 +17856,6 @@ async._AsBroadcastStreamController$ = dart.generic(T => {
   }
   _AsBroadcastStreamController[dart.implements] = () => [_EventDispatchOfT()];
   dart.setSignature(_AsBroadcastStreamController, {
-    constructors: () => ({new: dart.definiteFunctionType(async._AsBroadcastStreamController$(T), [VoidTovoid(), VoidTovoid()])}),
     fields: () => ({[_pending]: _StreamImplEventsOfT()}),
     getters: () => ({[_hasPending]: dart.definiteFunctionType(core.bool, [])}),
     methods: () => ({[_addPendingEvent]: dart.definiteFunctionType(dart.void, [async._DelayedEvent])})
@@ -18899,7 +17931,6 @@ async.DeferredLibrary = class DeferredLibrary extends core.Object {
   }
 };
 dart.setSignature(async.DeferredLibrary, {
-  constructors: () => ({new: dart.definiteFunctionType(async.DeferredLibrary, [core.String], {uri: core.String})}),
   fields: () => ({
     libraryName: core.String,
     uri: core.String
@@ -18917,7 +17948,6 @@ async.DeferredLoadException = class DeferredLoadException extends core.Object {
 };
 async.DeferredLoadException[dart.implements] = () => [core.Exception];
 dart.setSignature(async.DeferredLoadException, {
-  constructors: () => ({new: dart.definiteFunctionType(async.DeferredLoadException, [core.String])}),
   fields: () => ({[_s]: core.String})
 });
 async.FutureOr$ = dart.generic(T => {
@@ -18928,9 +17958,6 @@ async.FutureOr$ = dart.generic(T => {
   }
   dart.addTypeTests(FutureOr);
   dart.defineNamedConstructor(FutureOr, '_');
-  dart.setSignature(FutureOr, {
-    constructors: () => ({_: dart.definiteFunctionType(async.FutureOr$(T), [])})
-  });
   return FutureOr;
 });
 async.FutureOr = FutureOr();
@@ -19119,15 +18146,6 @@ async.Future$ = dart.flattenFutures(dart.generic(T => {
   }
   dart.addTypeTests(Future);
   dart.setSignature(Future, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(async.Future$(T), [VoidTodynamic()]),
-      microtask: dart.definiteFunctionType(async.Future$(T), [VoidTodynamic()]),
-      sync: dart.definiteFunctionType(async.Future$(T), [VoidTodynamic()]),
-      value: dart.definiteFunctionType(async.Future$(T), [], [dart.dynamic]),
-      error: dart.definiteFunctionType(async.Future$(T), [core.Object], [core.StackTrace]),
-      delayed: dart.definiteFunctionType(async.Future$(T), [core.Duration], [VoidTodynamic()])
-    }),
-    sfields: () => ({_nullFuture: async._Future}),
     statics: () => ({
       wait: dart.definiteFunctionType(T => [async.Future$(core.List$(T)), [core.Iterable$(async.Future$(T))], {eagerError: core.bool, cleanUp: dart.functionType(dart.void, [T])}]),
       any: dart.definiteFunctionType(T => [async.Future$(T), [core.Iterable$(async.Future$(T))]]),
@@ -19159,7 +18177,6 @@ async.TimeoutException = class TimeoutException extends core.Object {
 };
 async.TimeoutException[dart.implements] = () => [core.Exception];
 dart.setSignature(async.TimeoutException, {
-  constructors: () => ({new: dart.definiteFunctionType(async.TimeoutException, [core.String], [core.Duration])}),
   fields: () => ({
     message: core.String,
     duration: core.Duration
@@ -19177,12 +18194,6 @@ async.Completer$ = dart.generic(T => {
     }
   }
   dart.addTypeTests(Completer);
-  dart.setSignature(Completer, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(async.Completer$(T), []),
-      sync: dart.definiteFunctionType(async.Completer$(T), [])
-    })
-  });
   return Completer;
 });
 async.Completer = Completer();
@@ -19376,11 +18387,6 @@ async._FutureListener$ = dart.generic((S, T) => {
   dart.defineNamedConstructor(_FutureListener, 'catchError');
   dart.defineNamedConstructor(_FutureListener, 'whenComplete');
   dart.setSignature(_FutureListener, {
-    constructors: () => ({
-      then: dart.definiteFunctionType(async._FutureListener$(S, T), [_FutureOfT(), _FutureOnValueOfS$T(), core.Function]),
-      catchError: dart.definiteFunctionType(async._FutureListener$(S, T), [_FutureOfT(), core.Function, async._FutureErrorTest]),
-      whenComplete: dart.definiteFunctionType(async._FutureListener$(S, T), [_FutureOfT(), async._FutureAction])
-    }),
     fields: () => ({
       [_nextListener]: async._FutureListener,
       result: _FutureOfT(),
@@ -19405,18 +18411,6 @@ async._FutureListener$ = dart.generic((S, T) => {
       matchesErrorTest: dart.definiteFunctionType(core.bool, [async.AsyncError]),
       handleError: dart.definiteFunctionType(dart.dynamic, [async.AsyncError]),
       handleWhenComplete: dart.definiteFunctionType(dart.dynamic, [])
-    }),
-    sfields: () => ({
-      MASK_VALUE: core.int,
-      MASK_ERROR: core.int,
-      MASK_TEST_ERROR: core.int,
-      MASK_WHENCOMPLETE: core.int,
-      STATE_CHAIN: core.int,
-      STATE_THEN: core.int,
-      STATE_THEN_ONERROR: core.int,
-      STATE_CATCHERROR: core.int,
-      STATE_CATCHERROR_TEST: core.int,
-      STATE_WHENCOMPLETE: core.int
     })
   });
   return _FutureListener;
@@ -19924,11 +18918,6 @@ async._Future$ = dart.flattenFutures(dart.generic(T => {
   dart.defineNamedConstructor(_Future, 'immediateError');
   _Future[dart.implements] = () => [FutureOfT()];
   dart.setSignature(_Future, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(async._Future$(T), []),
-      immediate: dart.definiteFunctionType(async._Future$(T), [dart.dynamic]),
-      immediateError: dart.definiteFunctionType(async._Future$(T), [dart.dynamic], [core.StackTrace])
-    }),
     fields: () => ({
       [_state]: core.int,
       [_zone]: async.Zone,
@@ -19968,13 +18957,6 @@ async._Future$ = dart.flattenFutures(dart.generic(T => {
       [_asyncCompleteError]: dart.definiteFunctionType(dart.void, [dart.dynamic, core.StackTrace]),
       timeout: dart.definiteFunctionType(async.Future$(T), [core.Duration], {onTimeout: VoidTodynamic()})
     }),
-    sfields: () => ({
-      _INCOMPLETE: core.int,
-      _PENDING_COMPLETE: core.int,
-      _CHAINED: core.int,
-      _VALUE: core.int,
-      _ERROR: core.int
-    }),
     statics: () => ({
       _chainForeignFuture: dart.definiteFunctionType(dart.void, [async.Future, async._Future]),
       _chainCoreFuture: dart.definiteFunctionType(dart.void, [async._Future, async._Future]),
@@ -19998,7 +18980,6 @@ async._AsyncCallbackEntry = class _AsyncCallbackEntry extends core.Object {
   }
 };
 dart.setSignature(async._AsyncCallbackEntry, {
-  constructors: () => ({new: dart.definiteFunctionType(async._AsyncCallbackEntry, [async._AsyncCallback])}),
   fields: () => ({
     callback: async._AsyncCallback,
     next: async._AsyncCallbackEntry
@@ -20137,7 +19118,6 @@ async._AsyncRun = class _AsyncRun extends core.Object {
   }
 };
 dart.setSignature(async._AsyncRun, {
-  sfields: () => ({_scheduleImmediateClosure: async._TakeCallback}),
   statics: () => ({
     _scheduleImmediate: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
     _initializeScheduleImmediate: dart.definiteFunctionType(async._TakeCallback, []),
@@ -20194,7 +19174,6 @@ async.StreamView$ = dart.generic(T => {
     }
   }
   dart.setSignature(StreamView, {
-    constructors: () => ({new: dart.definiteFunctionType(async.StreamView$(T), [StreamOfT()])}),
     fields: () => ({[_stream]: StreamOfT()}),
     methods: () => ({listen: dart.definiteFunctionType(async.StreamSubscription$(T), [TTovoid()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool})})
   });
@@ -20219,13 +19198,6 @@ async.StreamSink = StreamSink();
 async.StreamTransformer$ = dart.generic((S, T) => {
   let _StreamSubscriptionTransformerOfS$T = () => (_StreamSubscriptionTransformerOfS$T = dart.constFn(async._StreamSubscriptionTransformer$(S, T)))();
   let _StreamHandlerTransformerOfS$T = () => (_StreamHandlerTransformerOfS$T = dart.constFn(async._StreamHandlerTransformer$(S, T)))();
-  let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
-  let StreamOfSAndboolToStreamSubscriptionOfT = () => (StreamOfSAndboolToStreamSubscriptionOfT = dart.constFn(dart.functionType(StreamSubscriptionOfT(), [StreamOfS(), core.bool])))();
-  let SAndEventSinkOfTTovoid = () => (SAndEventSinkOfTTovoid = dart.constFn(dart.functionType(dart.void, [S, EventSinkOfT()])))();
-  let StreamSubscriptionOfT = () => (StreamSubscriptionOfT = dart.constFn(async.StreamSubscription$(T)))();
-  let EventSinkOfT = () => (EventSinkOfT = dart.constFn(async.EventSink$(T)))();
-  let ObjectAndStackTraceAndEventSinkOfTTovoid = () => (ObjectAndStackTraceAndEventSinkOfTTovoid = dart.constFn(dart.functionType(dart.void, [core.Object, core.StackTrace, EventSinkOfT()])))();
-  let EventSinkOfTTovoid = () => (EventSinkOfTTovoid = dart.constFn(dart.functionType(dart.void, [EventSinkOfT()])))();
   class StreamTransformer extends core.Object {
     static new(transformer) {
       return new (_StreamSubscriptionTransformerOfS$T())(transformer);
@@ -20235,27 +19207,17 @@ async.StreamTransformer$ = dart.generic((S, T) => {
     }
   }
   dart.addTypeTests(StreamTransformer);
-  dart.setSignature(StreamTransformer, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(async.StreamTransformer$(S, T), [StreamOfSAndboolToStreamSubscriptionOfT()]),
-      fromHandlers: dart.definiteFunctionType(async.StreamTransformer$(S, T), [], {handleData: SAndEventSinkOfTTovoid(), handleError: ObjectAndStackTraceAndEventSinkOfTTovoid(), handleDone: EventSinkOfTTovoid()})
-    })
-  });
   return StreamTransformer;
 });
 async.StreamTransformer = StreamTransformer();
 async.StreamIterator$ = dart.generic(T => {
   let _StreamIteratorImplOfT = () => (_StreamIteratorImplOfT = dart.constFn(async._StreamIteratorImpl$(T)))();
-  let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
   class StreamIterator extends core.Object {
     static new(stream) {
       return new (_StreamIteratorImplOfT())(stream);
     }
   }
   dart.addTypeTests(StreamIterator);
-  dart.setSignature(StreamIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(async.StreamIterator$(T), [StreamOfT()])})
-  });
   return StreamIterator;
 });
 async.StreamIterator = StreamIterator();
@@ -20280,7 +19242,6 @@ async._ControllerEventSinkWrapper$ = dart.generic(T => {
   dart.addTypeTests(_ControllerEventSinkWrapper);
   _ControllerEventSinkWrapper[dart.implements] = () => [EventSinkOfT()];
   dart.setSignature(_ControllerEventSinkWrapper, {
-    constructors: () => ({new: dart.definiteFunctionType(async._ControllerEventSinkWrapper$(T), [async.EventSink])}),
     fields: () => ({[_sink]: async.EventSink}),
     methods: () => ({
       add: dart.definiteFunctionType(dart.void, [T]),
@@ -20317,12 +19278,6 @@ async.StreamController$ = dart.generic(T => {
   }
   dart.addTypeTests(StreamController);
   StreamController[dart.implements] = () => [StreamSinkOfT()];
-  dart.setSignature(StreamController, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(async.StreamController$(T), [], {onListen: VoidTovoid(), onPause: VoidTovoid(), onResume: VoidTovoid(), onCancel: VoidTodynamic(), sync: core.bool}),
-      broadcast: dart.definiteFunctionType(async.StreamController$(T), [], {onListen: VoidTovoid(), onCancel: VoidTovoid(), sync: core.bool})
-    })
-  });
   return StreamController;
 });
 async.StreamController = StreamController();
@@ -20600,7 +19555,6 @@ async._StreamController$ = dart.generic(T => {
   dart.addTypeTests(_StreamController);
   _StreamController[dart.implements] = () => [StreamControllerOfT(), _StreamControllerLifecycleOfT(), _EventSinkOfT(), _EventDispatchOfT()];
   dart.setSignature(_StreamController, {
-    constructors: () => ({new: dart.definiteFunctionType(async._StreamController$(T), [async.ControllerCallback, async.ControllerCallback, async.ControllerCallback, async.ControllerCancelCallback])}),
     fields: () => ({
       [_varData]: dart.dynamic,
       [_state]: core.int,
@@ -20640,14 +19594,6 @@ async._StreamController$ = dart.generic(T => {
       [_recordCancel]: dart.definiteFunctionType(async.Future, [StreamSubscriptionOfT()]),
       [_recordPause]: dart.definiteFunctionType(dart.void, [StreamSubscriptionOfT()]),
       [_recordResume]: dart.definiteFunctionType(dart.void, [StreamSubscriptionOfT()])
-    }),
-    sfields: () => ({
-      _STATE_INITIAL: core.int,
-      _STATE_SUBSCRIBED: core.int,
-      _STATE_CANCELED: core.int,
-      _STATE_SUBSCRIPTION_MASK: core.int,
-      _STATE_CLOSED: core.int,
-      _STATE_ADDSTREAM: core.int
     })
   });
   return _StreamController;
@@ -20777,7 +19723,6 @@ async._StreamSinkWrapper$ = dart.generic(T => {
   dart.addTypeTests(_StreamSinkWrapper);
   _StreamSinkWrapper[dart.implements] = () => [StreamSinkOfT()];
   dart.setSignature(_StreamSinkWrapper, {
-    constructors: () => ({new: dart.definiteFunctionType(async._StreamSinkWrapper$(T), [async.StreamController])}),
     fields: () => ({[_target]: async.StreamController}),
     getters: () => ({done: dart.definiteFunctionType(async.Future, [])}),
     methods: () => ({
@@ -20791,7 +19736,6 @@ async._StreamSinkWrapper$ = dart.generic(T => {
 });
 async._StreamSinkWrapper = _StreamSinkWrapper();
 async._AddStreamState$ = dart.generic(T => {
-  let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
   class _AddStreamState extends core.Object {
     new(controller, source, cancelOnError) {
       this.addStreamFuture = new async._Future();
@@ -20825,7 +19769,6 @@ async._AddStreamState$ = dart.generic(T => {
   }
   dart.addTypeTests(_AddStreamState);
   dart.setSignature(_AddStreamState, {
-    constructors: () => ({new: dart.definiteFunctionType(async._AddStreamState$(T), [_EventSinkOfT(), async.Stream, core.bool])}),
     fields: () => ({
       addStreamFuture: async._Future,
       addSubscription: async.StreamSubscription
@@ -20843,7 +19786,6 @@ async._AddStreamState$ = dart.generic(T => {
 });
 async._AddStreamState = _AddStreamState();
 async._StreamControllerAddStreamState$ = dart.generic(T => {
-  let _StreamControllerOfT = () => (_StreamControllerOfT = dart.constFn(async._StreamController$(T)))();
   class _StreamControllerAddStreamState extends async._AddStreamState$(T) {
     new(controller, varData, source, cancelOnError) {
       this.varData = varData;
@@ -20854,7 +19796,6 @@ async._StreamControllerAddStreamState$ = dart.generic(T => {
     }
   }
   dart.setSignature(_StreamControllerAddStreamState, {
-    constructors: () => ({new: dart.definiteFunctionType(async._StreamControllerAddStreamState$(T), [_StreamControllerOfT(), dart.dynamic, async.Stream, core.bool])}),
     fields: () => ({varData: dart.dynamic})
   });
   return _StreamControllerAddStreamState;
@@ -20897,7 +19838,6 @@ async._GeneratedStreamImpl$ = dart.generic(T => {
     }
   }
   dart.setSignature(_GeneratedStreamImpl, {
-    constructors: () => ({new: dart.definiteFunctionType(async._GeneratedStreamImpl$(T), [_EventGeneratorOfT()])}),
     fields: () => ({
       [_pending]: _EventGeneratorOfT(),
       [_isUsed]: core.bool
@@ -20951,11 +19891,6 @@ async._PendingEvents$ = dart.generic(T => {
     methods: () => ({
       schedule: dart.definiteFunctionType(dart.void, [_EventDispatchOfT()]),
       cancelSchedule: dart.definiteFunctionType(dart.void, [])
-    }),
-    sfields: () => ({
-      _STATE_UNSCHEDULED: core.int,
-      _STATE_SCHEDULED: core.int,
-      _STATE_CANCELED: core.int
     })
   });
   return _PendingEvents;
@@ -20967,7 +19902,6 @@ async._PendingEvents._STATE_CANCELED = 3;
 async._IterablePendingEvents$ = dart.generic(T => {
   let _EventDispatchOfT = () => (_EventDispatchOfT = dart.constFn(async._EventDispatch$(T)))();
   let IteratorOfT = () => (IteratorOfT = dart.constFn(core.Iterator$(T)))();
-  let IterableOfT = () => (IterableOfT = dart.constFn(core.Iterable$(T)))();
   class _IterablePendingEvents extends async._PendingEvents$(T) {
     new(data) {
       this[_iterator$] = data[dartx.iterator];
@@ -21004,7 +19938,6 @@ async._IterablePendingEvents$ = dart.generic(T => {
     }
   }
   dart.setSignature(_IterablePendingEvents, {
-    constructors: () => ({new: dart.definiteFunctionType(async._IterablePendingEvents$(T), [IterableOfT()])}),
     fields: () => ({[_iterator$]: IteratorOfT()}),
     getters: () => ({isEmpty: dart.definiteFunctionType(core.bool, [])}),
     methods: () => ({
@@ -21058,7 +19991,6 @@ async._DelayedData$ = dart.generic(T => {
     }
   }
   dart.setSignature(_DelayedData, {
-    constructors: () => ({new: dart.definiteFunctionType(async._DelayedData$(T), [T])}),
     fields: () => ({value: T}),
     methods: () => ({perform: dart.definiteFunctionType(dart.void, [_EventDispatchOfT()])})
   });
@@ -21077,7 +20009,6 @@ async._DelayedError = class _DelayedError extends async._DelayedEvent {
 };
 dart.addSimpleTypeTests(async._DelayedError);
 dart.setSignature(async._DelayedError, {
-  constructors: () => ({new: dart.definiteFunctionType(async._DelayedError, [dart.dynamic, core.StackTrace])}),
   fields: () => ({
     error: dart.dynamic,
     stackTrace: core.StackTrace
@@ -21099,7 +20030,6 @@ async._DelayedDone = class _DelayedDone extends core.Object {
 };
 async._DelayedDone[dart.implements] = () => [async._DelayedEvent];
 dart.setSignature(async._DelayedDone, {
-  constructors: () => ({new: dart.definiteFunctionType(async._DelayedDone, [])}),
   getters: () => ({next: dart.definiteFunctionType(async._DelayedEvent, [])}),
   setters: () => ({next: dart.definiteFunctionType(dart.void, [async._DelayedEvent])}),
   methods: () => ({perform: dart.definiteFunctionType(dart.void, [async._EventDispatch])})
@@ -21255,7 +20185,6 @@ async._DoneStreamSubscription$ = dart.generic(T => {
   dart.addTypeTests(_DoneStreamSubscription);
   _DoneStreamSubscription[dart.implements] = () => [StreamSubscriptionOfT()];
   dart.setSignature(_DoneStreamSubscription, {
-    constructors: () => ({new: dart.definiteFunctionType(async._DoneStreamSubscription$(T), [async._DoneHandler])}),
     fields: () => ({
       [_zone]: async.Zone,
       [_state]: core.int,
@@ -21276,11 +20205,6 @@ async._DoneStreamSubscription$ = dart.generic(T => {
       cancel: dart.definiteFunctionType(async.Future, []),
       asFuture: dart.definiteFunctionType(E => [async.Future$(E), [], [E]]),
       [_sendDone]: dart.definiteFunctionType(dart.void, [])
-    }),
-    sfields: () => ({
-      _DONE_SENT: core.int,
-      _SCHEDULED: core.int,
-      _PAUSED: core.int
     })
   });
   return _DoneStreamSubscription;
@@ -21369,7 +20293,6 @@ async._AsBroadcastStream$ = dart.generic(T => {
     }
   }
   dart.setSignature(_AsBroadcastStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._AsBroadcastStream$(T), [StreamOfT(), _BroadcastCallbackOfT(), _BroadcastCallbackOfT()])}),
     fields: () => ({
       [_source$]: StreamOfT(),
       [_onListenHandler]: _BroadcastCallbackOfT(),
@@ -21431,7 +20354,6 @@ async._BroadcastSubscriptionWrapper$ = dart.generic(T => {
   dart.addTypeTests(_BroadcastSubscriptionWrapper);
   _BroadcastSubscriptionWrapper[dart.implements] = () => [StreamSubscriptionOfT()];
   dart.setSignature(_BroadcastSubscriptionWrapper, {
-    constructors: () => ({new: dart.definiteFunctionType(async._BroadcastSubscriptionWrapper$(T), [async._AsBroadcastStream])}),
     fields: () => ({[_stream]: async._AsBroadcastStream}),
     getters: () => ({isPaused: dart.definiteFunctionType(core.bool, [])}),
     methods: () => ({
@@ -21452,7 +20374,6 @@ const _futureOrPrefetch = Symbol('_futureOrPrefetch');
 const _clear = Symbol('_clear');
 async._StreamIteratorImpl$ = dart.generic(T => {
   let StreamIteratorOfT = () => (StreamIteratorOfT = dart.constFn(async.StreamIterator$(T)))();
-  let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
   class _StreamIteratorImpl extends core.Object {
     new(stream) {
       this[_subscription] = null;
@@ -21563,7 +20484,6 @@ async._StreamIteratorImpl$ = dart.generic(T => {
   dart.addTypeTests(_StreamIteratorImpl);
   _StreamIteratorImpl[dart.implements] = () => [StreamIteratorOfT()];
   dart.setSignature(_StreamIteratorImpl, {
-    constructors: () => ({new: dart.definiteFunctionType(async._StreamIteratorImpl$(T), [StreamOfT()])}),
     fields: () => ({
       [_subscription]: async.StreamSubscription,
       [_current$1]: T,
@@ -21578,14 +20498,6 @@ async._StreamIteratorImpl$ = dart.generic(T => {
       [_onData]: dart.definiteFunctionType(dart.void, [T]),
       [_onError]: dart.definiteFunctionType(dart.void, [core.Object], [core.StackTrace]),
       [_onDone]: dart.definiteFunctionType(dart.void, [])
-    }),
-    sfields: () => ({
-      _STATE_FOUND: core.int,
-      _STATE_DONE: core.int,
-      _STATE_MOVING: core.int,
-      _STATE_EXTRA_DATA: core.int,
-      _STATE_EXTRA_ERROR: core.int,
-      _STATE_EXTRA_DONE: core.int
     })
   });
   return _StreamIteratorImpl;
@@ -21615,7 +20527,6 @@ async._EmptyStream$ = dart.generic(T => {
     }
   }
   dart.setSignature(_EmptyStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._EmptyStream$(T), [])}),
     methods: () => ({listen: dart.definiteFunctionType(async.StreamSubscription$(T), [TTovoid()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool})})
   });
   return _EmptyStream;
@@ -21713,7 +20624,6 @@ async._ForwardingStream$ = dart.generic((S, T) => {
     }
   }
   dart.setSignature(_ForwardingStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._ForwardingStream$(S, T), [StreamOfS()])}),
     fields: () => ({[_source$]: StreamOfS()}),
     methods: () => ({
       listen: dart.definiteFunctionType(async.StreamSubscription$(T), [TTovoid()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool}),
@@ -21729,7 +20639,6 @@ async._ForwardingStream = _ForwardingStream();
 async._ForwardingStreamSubscription$ = dart.generic((S, T) => {
   let _ForwardingStreamOfS$T = () => (_ForwardingStreamOfS$T = dart.constFn(async._ForwardingStream$(S, T)))();
   let StreamSubscriptionOfS = () => (StreamSubscriptionOfS = dart.constFn(async.StreamSubscription$(S)))();
-  let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
   class _ForwardingStreamSubscription extends async._BufferingStreamSubscription$(T) {
     new(stream, onData, onError, onDone, cancelOnError) {
       this[_stream] = stream;
@@ -21774,7 +20683,6 @@ async._ForwardingStreamSubscription$ = dart.generic((S, T) => {
     }
   }
   dart.setSignature(_ForwardingStreamSubscription, {
-    constructors: () => ({new: dart.definiteFunctionType(async._ForwardingStreamSubscription$(S, T), [_ForwardingStreamOfS$T(), TTovoid(), core.Function, VoidTovoid(), core.bool])}),
     fields: () => ({
       [_stream]: _ForwardingStreamOfS$T(),
       [_subscription]: StreamSubscriptionOfS()
@@ -21806,7 +20714,6 @@ const _test = Symbol('_test');
 async._WhereStream$ = dart.generic(T => {
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
   let _PredicateOfT = () => (_PredicateOfT = dart.constFn(async._Predicate$(T)))();
-  let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
   class _WhereStream extends async._ForwardingStream$(T, T) {
     new(source, test) {
       this[_test] = test;
@@ -21830,7 +20737,6 @@ async._WhereStream$ = dart.generic(T => {
     }
   }
   dart.setSignature(_WhereStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._WhereStream$(T), [StreamOfT(), _PredicateOfT()])}),
     fields: () => ({[_test]: _PredicateOfT()})
   });
   return _WhereStream;
@@ -21844,7 +20750,6 @@ async._Transformation = _Transformation$();
 const _transform = Symbol('_transform');
 async._MapStream$ = dart.generic((S, T) => {
   let _TransformationOfS$T = () => (_TransformationOfS$T = dart.constFn(async._Transformation$(S, T)))();
-  let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
   class _MapStream extends async._ForwardingStream$(S, T) {
     new(source, transform) {
@@ -21867,7 +20772,6 @@ async._MapStream$ = dart.generic((S, T) => {
     }
   }
   dart.setSignature(_MapStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._MapStream$(S, T), [StreamOfS(), _TransformationOfS$T()])}),
     fields: () => ({[_transform]: _TransformationOfS$T()})
   });
   return _MapStream;
@@ -21876,7 +20780,6 @@ async._MapStream = _MapStream();
 const _expand = Symbol('_expand');
 async._ExpandStream$ = dart.generic((S, T) => {
   let _TransformationOfS$IterableOfT = () => (_TransformationOfS$IterableOfT = dart.constFn(async._Transformation$(S, IterableOfT())))();
-  let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
   let IterableOfT = () => (IterableOfT = dart.constFn(core.Iterable$(T)))();
   class _ExpandStream extends async._ForwardingStream$(S, T) {
@@ -21899,7 +20802,6 @@ async._ExpandStream$ = dart.generic((S, T) => {
     }
   }
   dart.setSignature(_ExpandStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._ExpandStream$(S, T), [StreamOfS(), _TransformationOfS$IterableOfT()])}),
     fields: () => ({[_expand]: _TransformationOfS$IterableOfT()})
   });
   return _ExpandStream;
@@ -21908,7 +20810,6 @@ async._ExpandStream = _ExpandStream();
 async._ErrorTest = dart.typedef('_ErrorTest', () => dart.functionType(core.bool, [dart.dynamic]));
 async._HandleErrorStream$ = dart.generic(T => {
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
-  let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
   class _HandleErrorStream extends async._ForwardingStream$(T, T) {
     new(source, onError, test) {
       this[_transform] = onError;
@@ -21947,7 +20848,6 @@ async._HandleErrorStream$ = dart.generic(T => {
     }
   }
   dart.setSignature(_HandleErrorStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._HandleErrorStream$(T), [StreamOfT(), core.Function, dynamicTobool()])}),
     fields: () => ({
       [_transform]: core.Function,
       [_test]: async._ErrorTest
@@ -21962,7 +20862,6 @@ async._TakeStream$ = dart.generic(T => {
   let _StateStreamSubscriptionOfT = () => (_StateStreamSubscriptionOfT = dart.constFn(async._StateStreamSubscription$(T)))();
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
   let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
-  let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
   class _TakeStream extends async._ForwardingStream$(T, T) {
     new(source, count) {
       this[_count] = count;
@@ -21988,7 +20887,6 @@ async._TakeStream$ = dart.generic(T => {
     }
   }
   dart.setSignature(_TakeStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._TakeStream$(T), [StreamOfT(), core.int])}),
     fields: () => ({[_count]: core.int})
   });
   return _TakeStream;
@@ -21997,8 +20895,6 @@ async._TakeStream = _TakeStream();
 const _sharedState = Symbol('_sharedState');
 const _flag = Symbol('_flag');
 async._StateStreamSubscription$ = dart.generic(T => {
-  let _ForwardingStreamOfT$T = () => (_ForwardingStreamOfT$T = dart.constFn(async._ForwardingStream$(T, T)))();
-  let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
   class _StateStreamSubscription extends async._ForwardingStreamSubscription$(T, T) {
     new(stream, onData, onError, onDone, cancelOnError, sharedState) {
       this[_sharedState] = sharedState;
@@ -22018,7 +20914,6 @@ async._StateStreamSubscription$ = dart.generic(T => {
     }
   }
   dart.setSignature(_StateStreamSubscription, {
-    constructors: () => ({new: dart.definiteFunctionType(async._StateStreamSubscription$(T), [_ForwardingStreamOfT$T(), TTovoid(), core.Function, VoidTovoid(), core.bool, dart.dynamic])}),
     fields: () => ({[_sharedState]: dart.dynamic}),
     getters: () => ({
       [_flag]: dart.definiteFunctionType(core.bool, []),
@@ -22035,7 +20930,6 @@ async._StateStreamSubscription = _StateStreamSubscription();
 async._TakeWhileStream$ = dart.generic(T => {
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
   let _PredicateOfT = () => (_PredicateOfT = dart.constFn(async._Predicate$(T)))();
-  let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
   class _TakeWhileStream extends async._ForwardingStream$(T, T) {
     new(source, test) {
       this[_test] = test;
@@ -22062,7 +20956,6 @@ async._TakeWhileStream$ = dart.generic(T => {
     }
   }
   dart.setSignature(_TakeWhileStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._TakeWhileStream$(T), [StreamOfT(), _PredicateOfT()])}),
     fields: () => ({[_test]: _PredicateOfT()})
   });
   return _TakeWhileStream;
@@ -22072,7 +20965,6 @@ async._SkipStream$ = dart.generic(T => {
   let _StateStreamSubscriptionOfT = () => (_StateStreamSubscriptionOfT = dart.constFn(async._StateStreamSubscription$(T)))();
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
   let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
-  let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
   class _SkipStream extends async._ForwardingStream$(T, T) {
     new(source, count) {
       this[_count] = count;
@@ -22095,7 +20987,6 @@ async._SkipStream$ = dart.generic(T => {
     }
   }
   dart.setSignature(_SkipStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._SkipStream$(T), [StreamOfT(), core.int])}),
     fields: () => ({[_count]: core.int})
   });
   return _SkipStream;
@@ -22106,7 +20997,6 @@ async._SkipWhileStream$ = dart.generic(T => {
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
   let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
   let _PredicateOfT = () => (_PredicateOfT = dart.constFn(async._Predicate$(T)))();
-  let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
   class _SkipWhileStream extends async._ForwardingStream$(T, T) {
     new(source, test) {
       this[_test] = test;
@@ -22141,7 +21031,6 @@ async._SkipWhileStream$ = dart.generic(T => {
     }
   }
   dart.setSignature(_SkipWhileStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._SkipWhileStream$(T), [StreamOfT(), _PredicateOfT()])}),
     fields: () => ({[_test]: _PredicateOfT()})
   });
   return _SkipWhileStream;
@@ -22156,7 +21045,6 @@ const _equals = Symbol('_equals');
 async._DistinctStream$ = dart.generic(T => {
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
   let _EqualityOfT = () => (_EqualityOfT = dart.constFn(async._Equality$(T)))();
-  let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
   class _DistinctStream extends async._ForwardingStream$(T, T) {
     new(source, equals) {
       this[_previous$] = async._DistinctStream._SENTINEL;
@@ -22191,12 +21079,10 @@ async._DistinctStream$ = dart.generic(T => {
     }
   }
   dart.setSignature(_DistinctStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._DistinctStream$(T), [StreamOfT(), _EqualityOfT()])}),
     fields: () => ({
       [_equals]: _EqualityOfT(),
       [_previous$]: core.Object
-    }),
-    sfields: () => ({_SENTINEL: core.Object})
+    })
   });
   return _DistinctStream;
 });
@@ -22228,7 +21114,6 @@ async._EventSinkWrapper$ = dart.generic(T => {
   dart.addTypeTests(_EventSinkWrapper);
   _EventSinkWrapper[dart.implements] = () => [EventSinkOfT()];
   dart.setSignature(_EventSinkWrapper, {
-    constructors: () => ({new: dart.definiteFunctionType(async._EventSinkWrapper$(T), [async._EventSink])}),
     fields: () => ({[_sink]: async._EventSink}),
     methods: () => ({
       add: dart.definiteFunctionType(dart.void, [T]),
@@ -22244,10 +21129,7 @@ const _isSubscribed = Symbol('_isSubscribed');
 async._SinkTransformerStreamSubscription$ = dart.generic((S, T) => {
   let EventSinkOfS = () => (EventSinkOfS = dart.constFn(async.EventSink$(S)))();
   let StreamSubscriptionOfS = () => (StreamSubscriptionOfS = dart.constFn(async.StreamSubscription$(S)))();
-  let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
-  let _SinkMapperOfS$T = () => (_SinkMapperOfS$T = dart.constFn(async._SinkMapper$(S, T)))();
   let _EventSinkWrapperOfT = () => (_EventSinkWrapperOfT = dart.constFn(async._EventSinkWrapper$(T)))();
-  let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
   class _SinkTransformerStreamSubscription extends async._BufferingStreamSubscription$(T) {
     new(source, mapper, onData, onError, onDone, cancelOnError) {
       this[_transformerSink] = null;
@@ -22329,7 +21211,6 @@ async._SinkTransformerStreamSubscription$ = dart.generic((S, T) => {
     }
   }
   dart.setSignature(_SinkTransformerStreamSubscription, {
-    constructors: () => ({new: dart.definiteFunctionType(async._SinkTransformerStreamSubscription$(S, T), [StreamOfS(), _SinkMapperOfS$T(), TTovoid(), core.Function, VoidTovoid(), core.bool])}),
     fields: () => ({
       [_transformerSink]: EventSinkOfS(),
       [_subscription]: StreamSubscriptionOfS()
@@ -22367,7 +21248,6 @@ async._StreamSinkTransformer$ = dart.generic((S, T) => {
   dart.addTypeTests(_StreamSinkTransformer);
   _StreamSinkTransformer[dart.implements] = () => [StreamTransformerOfS$T()];
   dart.setSignature(_StreamSinkTransformer, {
-    constructors: () => ({new: dart.definiteFunctionType(async._StreamSinkTransformer$(S, T), [_SinkMapperOfS$T()])}),
     fields: () => ({[_sinkMapper]: _SinkMapperOfS$T()}),
     methods: () => ({bind: dart.definiteFunctionType(async.Stream$(T), [StreamOfS()])})
   });
@@ -22398,7 +21278,6 @@ async._BoundSinkStream$ = dart.generic((S, T) => {
     }
   }
   dart.setSignature(_BoundSinkStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._BoundSinkStream$(S, T), [StreamOfS(), _SinkMapperOfS$T()])}),
     fields: () => ({
       [_sinkMapper]: _SinkMapperOfS$T(),
       [_stream]: StreamOfS()
@@ -22451,7 +21330,6 @@ async._HandlerEventSink$ = dart.generic((S, T) => {
   dart.addTypeTests(_HandlerEventSink);
   _HandlerEventSink[dart.implements] = () => [EventSinkOfS()];
   dart.setSignature(_HandlerEventSink, {
-    constructors: () => ({new: dart.definiteFunctionType(async._HandlerEventSink$(S, T), [_TransformDataHandlerOfS$T(), _TransformErrorHandlerOfT(), _TransformDoneHandlerOfT(), EventSinkOfT()])}),
     fields: () => ({
       [_handleData]: _TransformDataHandlerOfS$T(),
       [_handleError]: _TransformErrorHandlerOfT(),
@@ -22470,10 +21348,7 @@ async._HandlerEventSink = _HandlerEventSink();
 async._StreamHandlerTransformer$ = dart.generic((S, T) => {
   let _HandlerEventSinkOfS$T = () => (_HandlerEventSinkOfS$T = dart.constFn(async._HandlerEventSink$(S, T)))();
   let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
-  let SAndEventSinkOfTTovoid = () => (SAndEventSinkOfTTovoid = dart.constFn(dart.functionType(dart.void, [S, EventSinkOfT()])))();
   let EventSinkOfT = () => (EventSinkOfT = dart.constFn(async.EventSink$(T)))();
-  let ObjectAndStackTraceAndEventSinkOfTTovoid = () => (ObjectAndStackTraceAndEventSinkOfTTovoid = dart.constFn(dart.functionType(dart.void, [core.Object, core.StackTrace, EventSinkOfT()])))();
-  let EventSinkOfTTovoid = () => (EventSinkOfTTovoid = dart.constFn(dart.functionType(dart.void, [EventSinkOfT()])))();
   let EventSinkOfTTo_HandlerEventSinkOfS$T = () => (EventSinkOfTTo_HandlerEventSinkOfS$T = dart.constFn(dart.definiteFunctionType(_HandlerEventSinkOfS$T(), [EventSinkOfT()])))();
   class _StreamHandlerTransformer extends async._StreamSinkTransformer$(S, T) {
     new(opts) {
@@ -22502,7 +21377,6 @@ async._StreamHandlerTransformer$ = dart.generic((S, T) => {
     }
   }
   dart.setSignature(_StreamHandlerTransformer, {
-    constructors: () => ({new: dart.definiteFunctionType(async._StreamHandlerTransformer$(S, T), [], {handleData: SAndEventSinkOfTTovoid(), handleError: ObjectAndStackTraceAndEventSinkOfTTovoid(), handleDone: EventSinkOfTTovoid()})}),
     statics: () => ({
       _defaultHandleData: dart.definiteFunctionType(dart.void, [dart.dynamic, async.EventSink]),
       _defaultHandleError: dart.definiteFunctionType(dart.void, [dart.dynamic, core.StackTrace, async.EventSink]),
@@ -22536,7 +21410,6 @@ async._StreamSubscriptionTransformer$ = dart.generic((S, T) => {
   dart.addTypeTests(_StreamSubscriptionTransformer);
   _StreamSubscriptionTransformer[dart.implements] = () => [StreamTransformerOfS$T()];
   dart.setSignature(_StreamSubscriptionTransformer, {
-    constructors: () => ({new: dart.definiteFunctionType(async._StreamSubscriptionTransformer$(S, T), [_SubscriptionTransformerOfS$T()])}),
     fields: () => ({[_transformer]: _SubscriptionTransformerOfS$T()}),
     methods: () => ({bind: dart.definiteFunctionType(async.Stream$(T), [StreamOfS()])})
   });
@@ -22566,7 +21439,6 @@ async._BoundSubscriptionStream$ = dart.generic((S, T) => {
     }
   }
   dart.setSignature(_BoundSubscriptionStream, {
-    constructors: () => ({new: dart.definiteFunctionType(async._BoundSubscriptionStream$(S, T), [StreamOfS(), _SubscriptionTransformerOfS$T()])}),
     fields: () => ({
       [_transformer]: _SubscriptionTransformerOfS$T(),
       [_stream]: StreamOfS()
@@ -22605,10 +21477,6 @@ async.Timer = class Timer extends core.Object {
   }
 };
 dart.setSignature(async.Timer, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(async.Timer, [core.Duration, VoidTovoid()]),
-    periodic: dart.definiteFunctionType(async.Timer, [core.Duration, TimerTovoid()])
-  }),
   statics: () => ({
     run: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
     _createTimer: dart.definiteFunctionType(async.Timer, [core.Duration, VoidTovoid()]),
@@ -22681,7 +21549,6 @@ async._ZoneFunction$ = dart.generic(T => {
   }
   dart.addTypeTests(_ZoneFunction);
   dart.setSignature(_ZoneFunction, {
-    constructors: () => ({new: dart.definiteFunctionType(async._ZoneFunction$(T), [async._Zone, T])}),
     fields: () => ({
       zone: async._Zone,
       function: T
@@ -22711,12 +21578,6 @@ async.ZoneSpecification = class ZoneSpecification extends core.Object {
     return async.ZoneSpecification.new({handleUncaughtError: (handleUncaughtError != null ? handleUncaughtError : other.handleUncaughtError), run: (run != null ? run : other.run), runUnary: (runUnary != null ? runUnary : other.runUnary), runBinary: (runBinary != null ? runBinary : other.runBinary), registerCallback: (registerCallback != null ? registerCallback : other.registerCallback), registerUnaryCallback: (registerUnaryCallback != null ? registerUnaryCallback : other.registerUnaryCallback), registerBinaryCallback: (registerBinaryCallback != null ? registerBinaryCallback : other.registerBinaryCallback), errorCallback: (errorCallback != null ? errorCallback : other.errorCallback), scheduleMicrotask: (scheduleMicrotask != null ? scheduleMicrotask : other.scheduleMicrotask), createTimer: (createTimer != null ? createTimer : other.createTimer), createPeriodicTimer: (createPeriodicTimer != null ? createPeriodicTimer : other.createPeriodicTimer), print: (print != null ? print : other.print), fork: (fork != null ? fork : other.fork)});
   }
 };
-dart.setSignature(async.ZoneSpecification, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(async.ZoneSpecification, [], {handleUncaughtError: async.HandleUncaughtErrorHandler, run: async.RunHandler, runUnary: async.RunUnaryHandler, runBinary: async.RunBinaryHandler, registerCallback: async.RegisterCallbackHandler, registerUnaryCallback: async.RegisterUnaryCallbackHandler, registerBinaryCallback: async.RegisterBinaryCallbackHandler, errorCallback: async.ErrorCallbackHandler, scheduleMicrotask: async.ScheduleMicrotaskHandler, createTimer: async.CreateTimerHandler, createPeriodicTimer: async.CreatePeriodicTimerHandler, print: async.PrintHandler, fork: async.ForkHandler}),
-    from: dart.definiteFunctionType(async.ZoneSpecification, [async.ZoneSpecification], {handleUncaughtError: async.HandleUncaughtErrorHandler, run: async.RunHandler, runUnary: async.RunUnaryHandler, runBinary: async.RunBinaryHandler, registerCallback: async.RegisterCallbackHandler, registerUnaryCallback: async.RegisterUnaryCallbackHandler, registerBinaryCallback: async.RegisterBinaryCallbackHandler, errorCallback: async.ErrorCallbackHandler, scheduleMicrotask: async.ScheduleMicrotaskHandler, createTimer: async.CreateTimerHandler, createPeriodicTimer: async.CreatePeriodicTimerHandler, print: async.PrintHandler, fork: async.ForkHandler})
-  })
-});
 async._ZoneSpecification = class _ZoneSpecification extends core.Object {
   new(opts) {
     let handleUncaughtError = opts && 'handleUncaughtError' in opts ? opts.handleUncaughtError : null;
@@ -22749,7 +21610,6 @@ async._ZoneSpecification = class _ZoneSpecification extends core.Object {
 };
 async._ZoneSpecification[dart.implements] = () => [async.ZoneSpecification];
 dart.setSignature(async._ZoneSpecification, {
-  constructors: () => ({new: dart.definiteFunctionType(async._ZoneSpecification, [], {handleUncaughtError: async.HandleUncaughtErrorHandler, run: async.RunHandler, runUnary: async.RunUnaryHandler, runBinary: async.RunBinaryHandler, registerCallback: async.RegisterCallbackHandler, registerUnaryCallback: async.RegisterUnaryCallbackHandler, registerBinaryCallback: async.RegisterBinaryCallbackHandler, errorCallback: async.ErrorCallbackHandler, scheduleMicrotask: async.ScheduleMicrotaskHandler, createTimer: async.CreateTimerHandler, createPeriodicTimer: async.CreatePeriodicTimerHandler, print: async.PrintHandler, fork: async.ForkHandler})}),
   fields: () => ({
     handleUncaughtError: async.HandleUncaughtErrorHandler,
     run: async.RunHandler,
@@ -22787,12 +21647,6 @@ async.Zone = class Zone extends core.Object {
 };
 dart.defineNamedConstructor(async.Zone, '_');
 dart.setSignature(async.Zone, {
-  constructors: () => ({_: dart.definiteFunctionType(async.Zone, [])}),
-  sfields: () => ({
-    ROOT: async.Zone,
-    _current: async.Zone
-  }),
-  sgetters: () => ({current: dart.definiteFunctionType(async.Zone, [])}),
   statics: () => ({
     _enter: dart.definiteFunctionType(async.Zone, [async.Zone]),
     _leave: dart.definiteFunctionType(dart.void, [async.Zone])
@@ -22927,7 +21781,6 @@ async._ZoneDelegate = class _ZoneDelegate extends core.Object {
 };
 async._ZoneDelegate[dart.implements] = () => [async.ZoneDelegate];
 dart.setSignature(async._ZoneDelegate, {
-  constructors: () => ({new: dart.definiteFunctionType(async._ZoneDelegate, [async._Zone])}),
   fields: () => ({[_delegationTarget]: async._Zone}),
   methods: () => ({
     handleUncaughtError: dart.definiteFunctionType(R => [R, [async.Zone, dart.dynamic, core.StackTrace]]),
@@ -22955,7 +21808,6 @@ async._Zone = class _Zone extends core.Object {
 };
 async._Zone[dart.implements] = () => [async.Zone];
 dart.setSignature(async._Zone, {
-  constructors: () => ({new: dart.definiteFunctionType(async._Zone, [])}),
   methods: () => ({inSameErrorZone: dart.definiteFunctionType(core.bool, [async.Zone])})
 });
 const _delegateCache = Symbol('_delegateCache');
@@ -23190,7 +22042,6 @@ async._CustomZone = class _CustomZone extends async._Zone {
   }
 };
 dart.setSignature(async._CustomZone, {
-  constructors: () => ({new: dart.definiteFunctionType(async._CustomZone, [async._Zone, async.ZoneSpecification, core.Map])}),
   fields: () => ({
     [_run]: _ZoneFunctionOfRunHandler(),
     [_runUnary]: _ZoneFunctionOfRunUnaryHandler(),
@@ -23565,7 +22416,6 @@ async._RootZone = class _RootZone extends async._Zone {
   }
 };
 dart.setSignature(async._RootZone, {
-  constructors: () => ({new: dart.definiteFunctionType(async._RootZone, [])}),
   getters: () => ({
     [_run]: dart.definiteFunctionType(async._ZoneFunction$(async.RunHandler), []),
     [_runUnary]: dart.definiteFunctionType(async._ZoneFunction$(async.RunUnaryHandler), []),
@@ -23606,10 +22456,6 @@ dart.setSignature(async._RootZone, {
     createTimer: dart.definiteFunctionType(async.Timer, [core.Duration, VoidTovoid()]),
     createPeriodicTimer: dart.definiteFunctionType(async.Timer, [core.Duration, TimerTovoid()]),
     print: dart.definiteFunctionType(dart.void, [core.String])
-  }),
-  sfields: () => ({
-    _rootMap: core.Map,
-    _rootDelegate: async.ZoneDelegate
   })
 });
 async._RootZone._rootDelegate = null;
@@ -23945,7 +22791,6 @@ collection._HashMap$ = dart.generic((K, V) => {
   dart.addTypeTests(_HashMap);
   _HashMap[dart.implements] = () => [HashMapOfK$V()];
   dart.setSignature(_HashMap, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._HashMap$(K, V), [])}),
     fields: () => ({
       [_length$1]: core.int,
       [_strings$]: dart.dynamic,
@@ -24078,7 +22923,6 @@ collection._CustomHashMap$ = dart.generic((K, V) => {
     }
   }
   dart.setSignature(_CustomHashMap, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._CustomHashMap$(K, V), [_EqualityOfK(), _HasherOfK(), _PredicateOfObject()])}),
     fields: () => ({
       [_equals$]: _EqualityOfK(),
       [_hashCode]: _HasherOfK(),
@@ -24123,7 +22967,6 @@ collection._HashMapKeyIterable$ = dart.generic(E => {
   }
   _HashMapKeyIterable[dart.implements] = () => [_internal.EfficientLength];
   dart.setSignature(_HashMapKeyIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._HashMapKeyIterable$(E), [_HashMapOfE$dynamic()])}),
     fields: () => ({[_map$0]: _HashMapOfE$dynamic()}),
     getters: () => ({iterator: dart.definiteFunctionType(core.Iterator$(E), [])})
   });
@@ -24171,7 +23014,6 @@ collection._HashMapKeyIterator$ = dart.generic(E => {
   dart.addTypeTests(_HashMapKeyIterator);
   _HashMapKeyIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(_HashMapKeyIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._HashMapKeyIterator$(E), [_HashMapOfE$dynamic(), ListOfE()])}),
     fields: () => ({
       [_map$0]: _HashMapOfE$dynamic(),
       [_keys]: ListOfE(),
@@ -24210,13 +23052,6 @@ collection._LinkedIdentityHashMap$ = dart.generic((K, V) => {
       return -1;
     }
   }
-  dart.setSignature(_LinkedIdentityHashMap, {
-    constructors: () => ({
-      es6: dart.definiteFunctionType(collection._LinkedIdentityHashMap$(K, V), []),
-      new: dart.definiteFunctionType(collection._LinkedIdentityHashMap$(K, V), [])
-    }),
-    sgetters: () => ({_supportsEs6Maps: dart.definiteFunctionType(core.bool, [])})
-  });
   return _LinkedIdentityHashMap;
 });
 collection._LinkedIdentityHashMap = _LinkedIdentityHashMap();
@@ -24317,7 +23152,6 @@ collection._Es6LinkedIdentityHashMap$ = dart.generic((K, V) => {
   }
   _Es6LinkedIdentityHashMap[dart.implements] = () => [InternalMapOfK$V()];
   dart.setSignature(_Es6LinkedIdentityHashMap, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._Es6LinkedIdentityHashMap$(K, V), [])}),
     fields: () => ({
       [_map$0]: dart.dynamic,
       [_modifications$]: core.int
@@ -24387,7 +23221,6 @@ collection._Es6MapIterable$ = dart.generic(E => {
   }
   _Es6MapIterable[dart.implements] = () => [_internal.EfficientLength];
   dart.setSignature(_Es6MapIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._Es6MapIterable$(E), [dart.dynamic, core.bool])}),
     fields: () => ({
       [_map$0]: dart.dynamic,
       [_isKeys]: core.bool
@@ -24448,7 +23281,6 @@ collection._Es6MapIterator$ = dart.generic(E => {
   dart.addTypeTests(_Es6MapIterator);
   _Es6MapIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(_Es6MapIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._Es6MapIterator$(E), [dart.dynamic, core.int, core.bool])}),
     fields: () => ({
       [_map$0]: dart.dynamic,
       [_modifications$]: core.int,
@@ -24506,7 +23338,6 @@ collection._LinkedCustomHashMap$ = dart.generic((K, V) => {
     }
   }
   dart.setSignature(_LinkedCustomHashMap, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._LinkedCustomHashMap$(K, V), [_EqualityOfK(), _HasherOfK(), _PredicateOfObject()])}),
     fields: () => ({
       [_equals$]: _EqualityOfK(),
       [_hashCode]: _HasherOfK(),
@@ -25112,7 +23943,6 @@ collection._HashSet$ = dart.generic(E => {
   }
   _HashSet[dart.implements] = () => [HashSetOfE()];
   dart.setSignature(_HashSet, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._HashSet$(E), [])}),
     fields: () => ({
       [_length$1]: core.int,
       [_strings$]: dart.dynamic,
@@ -25230,7 +24060,6 @@ collection._CustomHashSet$ = dart.generic(E => {
     }
   }
   dart.setSignature(_CustomHashSet, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._CustomHashSet$(E), [_EqualityOfE(), _HasherOfE(), _PredicateOfObject()])}),
     fields: () => ({
       [_equality]: _EqualityOfE(),
       [_hasher]: _HasherOfE(),
@@ -25272,7 +24101,6 @@ collection._HashSetIterator$ = dart.generic(E => {
   dart.addTypeTests(_HashSetIterator);
   _HashSetIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(_HashSetIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._HashSetIterator$(E), [dart.dynamic, ListOfE()])}),
     fields: () => ({
       [_set]: dart.dynamic,
       [_elements]: ListOfE(),
@@ -25554,7 +24382,6 @@ collection._LinkedHashSet$ = dart.generic(E => {
   }
   _LinkedHashSet[dart.implements] = () => [LinkedHashSetOfE()];
   dart.setSignature(_LinkedHashSet, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._LinkedHashSet$(E), [])}),
     fields: () => ({
       [_length$1]: core.int,
       [_strings$]: dart.dynamic,
@@ -25694,7 +24521,6 @@ collection._LinkedCustomHashSet$ = dart.generic(E => {
     }
   }
   dart.setSignature(_LinkedCustomHashSet, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._LinkedCustomHashSet$(E), [_EqualityOfE(), _HasherOfE(), _PredicateOfObject()])}),
     fields: () => ({
       [_equality]: _EqualityOfE(),
       [_hasher]: _HasherOfE(),
@@ -25716,7 +24542,6 @@ collection._LinkedHashSetCell$ = dart.generic(E => {
   }
   dart.addTypeTests(_LinkedHashSetCell);
   dart.setSignature(_LinkedHashSetCell, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._LinkedHashSetCell$(E), [E])}),
     fields: () => ({
       [_element]: E,
       [_next$0]: _LinkedHashSetCellOfE(),
@@ -25756,7 +24581,6 @@ collection._LinkedHashSetIterator$ = dart.generic(E => {
   dart.addTypeTests(_LinkedHashSetIterator);
   _LinkedHashSetIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(_LinkedHashSetIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._LinkedHashSetIterator$(E), [collection._LinkedHashSet, core.int])}),
     fields: () => ({
       [_set]: collection._LinkedHashSet,
       [_modifications$]: core.int,
@@ -25787,7 +24611,6 @@ collection.UnmodifiableListView$ = dart.generic(E => {
     }
   }
   dart.setSignature(UnmodifiableListView, {
-    constructors: () => ({new: dart.definiteFunctionType(collection.UnmodifiableListView$(E), [IterableOfE()])}),
     fields: () => ({[_source$0]: IterableOfE()}),
     getters: () => ({length: dart.definiteFunctionType(core.int, [])}),
     methods: () => ({_get: dart.definiteFunctionType(E, [core.int])})
@@ -25820,12 +24643,6 @@ collection.HashMap$ = dart.generic((K, V) => {
   let _CustomHashMapOfK$V = () => (_CustomHashMapOfK$V = dart.constFn(collection._CustomHashMap$(K, V)))();
   let HashMapOfK$V = () => (HashMapOfK$V = dart.constFn(collection.HashMap$(K, V)))();
   let MapOfK$V = () => (MapOfK$V = dart.constFn(core.Map$(K, V)))();
-  let KAndKTobool = () => (KAndKTobool = dart.constFn(dart.functionType(core.bool, [K, K])))();
-  let KToint = () => (KToint = dart.constFn(dart.functionType(core.int, [K])))();
-  let dynamicToK = () => (dynamicToK = dart.constFn(dart.functionType(K, [dart.dynamic])))();
-  let IterableOfK = () => (IterableOfK = dart.constFn(core.Iterable$(K)))();
-  let dynamicToV = () => (dynamicToV = dart.constFn(dart.functionType(V, [dart.dynamic])))();
-  let IterableOfV = () => (IterableOfV = dart.constFn(core.Iterable$(V)))();
   class HashMap extends core.Object {
     static new(opts) {
       let equals = opts && 'equals' in opts ? opts.equals : null;
@@ -25880,15 +24697,6 @@ collection.HashMap$ = dart.generic((K, V) => {
   }
   dart.addTypeTests(HashMap);
   HashMap[dart.implements] = () => [MapOfK$V()];
-  dart.setSignature(HashMap, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(collection.HashMap$(K, V), [], {equals: KAndKTobool(), hashCode: KToint(), isValidKey: _PredicateOfObject()}),
-      identity: dart.definiteFunctionType(collection.HashMap$(K, V), []),
-      from: dart.definiteFunctionType(collection.HashMap$(K, V), [core.Map]),
-      fromIterable: dart.definiteFunctionType(collection.HashMap$(K, V), [core.Iterable], {key: dynamicToK(), value: dynamicToV()}),
-      fromIterables: dart.definiteFunctionType(collection.HashMap$(K, V), [IterableOfK(), IterableOfV()])
-    })
-  });
   return HashMap;
 });
 collection.HashMap = HashMap();
@@ -25898,8 +24706,6 @@ collection.HashSet$ = dart.generic(E => {
   let _CustomHashSetOfE = () => (_CustomHashSetOfE = dart.constFn(collection._CustomHashSet$(E)))();
   let HashSetOfE = () => (HashSetOfE = dart.constFn(collection.HashSet$(E)))();
   let SetOfE = () => (SetOfE = dart.constFn(core.Set$(E)))();
-  let EAndETobool = () => (EAndETobool = dart.constFn(dart.functionType(core.bool, [E, E])))();
-  let EToint = () => (EToint = dart.constFn(dart.functionType(core.int, [E])))();
   class HashSet extends core.Object {
     static new(opts) {
       let equals = opts && 'equals' in opts ? opts.equals : null;
@@ -25946,13 +24752,6 @@ collection.HashSet$ = dart.generic(E => {
   }
   dart.addTypeTests(HashSet);
   HashSet[dart.implements] = () => [SetOfE()];
-  dart.setSignature(HashSet, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(collection.HashSet$(E), [], {equals: EAndETobool(), hashCode: EToint(), isValidKey: _PredicateOfObject()}),
-      identity: dart.definiteFunctionType(collection.HashSet$(E), []),
-      from: dart.definiteFunctionType(collection.HashSet$(E), [core.Iterable])
-    })
-  });
   return HashSet;
 });
 collection.HashSet = HashSet();
@@ -26344,7 +25143,6 @@ collection.HasNextIterator$ = dart.generic(E => {
   }
   dart.addTypeTests(HasNextIterator);
   dart.setSignature(HasNextIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection.HasNextIterator$(E), [IteratorOfE()])}),
     fields: () => ({
       [_iterator$0]: IteratorOfE(),
       [_state$]: core.int
@@ -26353,11 +25151,6 @@ collection.HasNextIterator$ = dart.generic(E => {
     methods: () => ({
       next: dart.definiteFunctionType(E, []),
       [_move]: dart.definiteFunctionType(dart.void, [])
-    }),
-    sfields: () => ({
-      _HAS_NEXT_AND_NEXT_IN_CURRENT: core.int,
-      _NO_NEXT: core.int,
-      _NOT_MOVED_YET: core.int
     })
   });
   return HasNextIterator;
@@ -26372,12 +25165,6 @@ collection.LinkedHashMap$ = dart.generic((K, V) => {
   let _LinkedCustomHashMapOfK$V = () => (_LinkedCustomHashMapOfK$V = dart.constFn(collection._LinkedCustomHashMap$(K, V)))();
   let LinkedHashMapOfK$V = () => (LinkedHashMapOfK$V = dart.constFn(collection.LinkedHashMap$(K, V)))();
   let HashMapOfK$V = () => (HashMapOfK$V = dart.constFn(collection.HashMap$(K, V)))();
-  let KAndKTobool = () => (KAndKTobool = dart.constFn(dart.functionType(core.bool, [K, K])))();
-  let KToint = () => (KToint = dart.constFn(dart.functionType(core.int, [K])))();
-  let dynamicToK = () => (dynamicToK = dart.constFn(dart.functionType(K, [dart.dynamic])))();
-  let IterableOfK = () => (IterableOfK = dart.constFn(core.Iterable$(K)))();
-  let dynamicToV = () => (dynamicToV = dart.constFn(dart.functionType(V, [dart.dynamic])))();
-  let IterableOfV = () => (IterableOfV = dart.constFn(core.Iterable$(V)))();
   class LinkedHashMap extends core.Object {
     static new(opts) {
       let equals = opts && 'equals' in opts ? opts.equals : null;
@@ -26432,15 +25219,6 @@ collection.LinkedHashMap$ = dart.generic((K, V) => {
   }
   dart.addTypeTests(LinkedHashMap);
   LinkedHashMap[dart.implements] = () => [HashMapOfK$V()];
-  dart.setSignature(LinkedHashMap, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(collection.LinkedHashMap$(K, V), [], {equals: KAndKTobool(), hashCode: KToint(), isValidKey: _PredicateOfObject()}),
-      identity: dart.definiteFunctionType(collection.LinkedHashMap$(K, V), []),
-      from: dart.definiteFunctionType(collection.LinkedHashMap$(K, V), [core.Map]),
-      fromIterable: dart.definiteFunctionType(collection.LinkedHashMap$(K, V), [core.Iterable], {key: dynamicToK(), value: dynamicToV()}),
-      fromIterables: dart.definiteFunctionType(collection.LinkedHashMap$(K, V), [IterableOfK(), IterableOfV()])
-    })
-  });
   return LinkedHashMap;
 });
 collection.LinkedHashMap = LinkedHashMap();
@@ -26450,8 +25228,6 @@ collection.LinkedHashSet$ = dart.generic(E => {
   let _LinkedCustomHashSetOfE = () => (_LinkedCustomHashSetOfE = dart.constFn(collection._LinkedCustomHashSet$(E)))();
   let LinkedHashSetOfE = () => (LinkedHashSetOfE = dart.constFn(collection.LinkedHashSet$(E)))();
   let HashSetOfE = () => (HashSetOfE = dart.constFn(collection.HashSet$(E)))();
-  let EAndETobool = () => (EAndETobool = dart.constFn(dart.functionType(core.bool, [E, E])))();
-  let EToint = () => (EToint = dart.constFn(dart.functionType(core.int, [E])))();
   class LinkedHashSet extends core.Object {
     static new(opts) {
       let equals = opts && 'equals' in opts ? opts.equals : null;
@@ -26498,13 +25274,6 @@ collection.LinkedHashSet$ = dart.generic(E => {
   }
   dart.addTypeTests(LinkedHashSet);
   LinkedHashSet[dart.implements] = () => [HashSetOfE()];
-  dart.setSignature(LinkedHashSet, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(collection.LinkedHashSet$(E), [], {equals: EAndETobool(), hashCode: EToint(), isValidKey: _PredicateOfObject()}),
-      identity: dart.definiteFunctionType(collection.LinkedHashSet$(E), []),
-      from: dart.definiteFunctionType(collection.LinkedHashSet$(E), [core.Iterable])
-    })
-  });
   return LinkedHashSet;
 });
 collection.LinkedHashSet = LinkedHashSet();
@@ -26638,7 +25407,6 @@ collection.LinkedList$ = dart.generic(E => {
     }
   }
   dart.setSignature(LinkedList, {
-    constructors: () => ({new: dart.definiteFunctionType(collection.LinkedList$(E), [])}),
     fields: () => ({
       [_modificationCount]: core.int,
       [_length$1]: core.int,
@@ -26700,7 +25468,6 @@ collection._LinkedListIterator$ = dart.generic(E => {
   dart.addTypeTests(_LinkedListIterator);
   _LinkedListIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(_LinkedListIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._LinkedListIterator$(E), [LinkedListOfE()])}),
     fields: () => ({
       [_list]: LinkedListOfE(),
       [_modificationCount]: core.int,
@@ -26940,7 +25707,6 @@ collection._MapBaseValueIterable$ = dart.generic((K, V) => {
   }
   _MapBaseValueIterable[dart.implements] = () => [_internal.EfficientLength];
   dart.setSignature(_MapBaseValueIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._MapBaseValueIterable$(K, V), [MapOfK$V()])}),
     fields: () => ({[_map$0]: MapOfK$V()}),
     getters: () => ({iterator: dart.definiteFunctionType(core.Iterator$(V), [])})
   });
@@ -26981,7 +25747,6 @@ collection._MapBaseValueIterator$ = dart.generic((K, V) => {
   dart.addTypeTests(_MapBaseValueIterator);
   _MapBaseValueIterator[dart.implements] = () => [IteratorOfV()];
   dart.setSignature(_MapBaseValueIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._MapBaseValueIterator$(K, V), [MapOfK$V()])}),
     fields: () => ({
       [_keys]: IteratorOfK(),
       [_map$0]: MapOfK$V(),
@@ -27056,7 +25821,6 @@ collection.MapView$ = dart.generic((K, V) => {
   dart.addTypeTests(MapView);
   MapView[dart.implements] = () => [MapOfK$V()];
   dart.setSignature(MapView, {
-    constructors: () => ({new: dart.definiteFunctionType(collection.MapView$(K, V), [MapOfK$V()])}),
     fields: () => ({[_map$0]: MapOfK$V()}),
     getters: () => ({
       isEmpty: dart.definiteFunctionType(core.bool, []),
@@ -27236,12 +26000,6 @@ collection.Queue$ = dart.generic(E => {
   }
   dart.addTypeTests(Queue);
   Queue[dart.implements] = () => [IterableOfE(), _internal.EfficientLength];
-  dart.setSignature(Queue, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(collection.Queue$(E), []),
-      from: dart.definiteFunctionType(collection.Queue$(E), [core.Iterable])
-    })
-  });
   return Queue;
 });
 collection.Queue = Queue();
@@ -27291,9 +26049,6 @@ collection.DoubleLinkedQueueEntry$ = dart.generic(E => {
     }
   }
   dart.addTypeTests(DoubleLinkedQueueEntry);
-  dart.setSignature(DoubleLinkedQueueEntry, {
-    constructors: () => ({new: dart.definiteFunctionType(collection.DoubleLinkedQueueEntry$(E), [E])})
-  });
   return DoubleLinkedQueueEntry;
 });
 collection.DoubleLinkedQueueEntry = DoubleLinkedQueueEntry();
@@ -27326,7 +26081,6 @@ collection._UserDoubleLinkedQueueEntry$ = dart.generic(E => {
   }
   _UserDoubleLinkedQueueEntry[dart.implements] = () => [DoubleLinkedQueueEntryOfE()];
   dart.setSignature(_UserDoubleLinkedQueueEntry, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._UserDoubleLinkedQueueEntry$(E), [E])}),
     fields: () => ({element: E}),
     methods: () => ({
       append: dart.definiteFunctionType(dart.void, [E]),
@@ -27369,7 +26123,6 @@ collection._DoubleLinkedQueueEntry$ = dart.generic(E => {
     }
   }
   dart.setSignature(_DoubleLinkedQueueEntry, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._DoubleLinkedQueueEntry$(E), [DoubleLinkedQueueOfE()])}),
     fields: () => ({[_queue]: DoubleLinkedQueueOfE()}),
     methods: () => ({
       [_append]: dart.definiteFunctionType(dart.void, [E]),
@@ -27386,7 +26139,6 @@ collection._DoubleLinkedQueueEntry = _DoubleLinkedQueueEntry();
 const _elementCount = Symbol('_elementCount');
 collection._DoubleLinkedQueueElement$ = dart.generic(E => {
   let DoubleLinkedQueueEntryOfE = () => (DoubleLinkedQueueEntryOfE = dart.constFn(collection.DoubleLinkedQueueEntry$(E)))();
-  let DoubleLinkedQueueOfE = () => (DoubleLinkedQueueOfE = dart.constFn(collection.DoubleLinkedQueue$(E)))();
   class _DoubleLinkedQueueElement extends collection._DoubleLinkedQueueEntry$(E) {
     new(element, queue) {
       this.element = element;
@@ -27426,7 +26178,6 @@ collection._DoubleLinkedQueueElement$ = dart.generic(E => {
   }
   _DoubleLinkedQueueElement[dart.implements] = () => [DoubleLinkedQueueEntryOfE()];
   dart.setSignature(_DoubleLinkedQueueElement, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._DoubleLinkedQueueElement$(E), [E, DoubleLinkedQueueOfE()])}),
     fields: () => ({element: E}),
     methods: () => ({
       append: dart.definiteFunctionType(dart.void, [E]),
@@ -27440,7 +26191,6 @@ collection._DoubleLinkedQueueElement$ = dart.generic(E => {
 });
 collection._DoubleLinkedQueueElement = _DoubleLinkedQueueElement();
 collection._DoubleLinkedQueueSentinel$ = dart.generic(E => {
-  let DoubleLinkedQueueOfE = () => (DoubleLinkedQueueOfE = dart.constFn(collection.DoubleLinkedQueue$(E)))();
   class _DoubleLinkedQueueSentinel extends collection._DoubleLinkedQueueEntry$(E) {
     new(queue) {
       super.new(queue);
@@ -27458,7 +26208,6 @@ collection._DoubleLinkedQueueSentinel$ = dart.generic(E => {
     }
   }
   dart.setSignature(_DoubleLinkedQueueSentinel, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._DoubleLinkedQueueSentinel$(E), [DoubleLinkedQueueOfE()])}),
     getters: () => ({element: dart.definiteFunctionType(E, [])}),
     methods: () => ({
       [_asNonSentinelEntry]: dart.definiteFunctionType(collection.DoubleLinkedQueueEntry$(E), []),
@@ -27607,10 +26356,6 @@ collection.DoubleLinkedQueue$ = dart.generic(E => {
   }
   DoubleLinkedQueue[dart.implements] = () => [QueueOfE()];
   dart.setSignature(DoubleLinkedQueue, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(collection.DoubleLinkedQueue$(E), []),
-      from: dart.definiteFunctionType(collection.DoubleLinkedQueue$(E), [core.Iterable])
-    }),
     fields: () => ({
       [_sentinel]: _DoubleLinkedQueueSentinelOfE(),
       [_elementCount]: core.int
@@ -27679,7 +26424,6 @@ collection._DoubleLinkedQueueIterator$ = dart.generic(E => {
   dart.addTypeTests(_DoubleLinkedQueueIterator);
   _DoubleLinkedQueueIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(_DoubleLinkedQueueIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._DoubleLinkedQueueIterator$(E), [_DoubleLinkedQueueSentinelOfE()])}),
     fields: () => ({
       [_sentinel]: _DoubleLinkedQueueSentinelOfE(),
       [_nextEntry]: _DoubleLinkedQueueEntryOfE(),
@@ -27977,10 +26721,6 @@ collection.ListQueue$ = dart.generic(E => {
   }
   ListQueue[dart.implements] = () => [QueueOfE()];
   dart.setSignature(ListQueue, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(collection.ListQueue$(E), [], [core.int]),
-      from: dart.definiteFunctionType(collection.ListQueue$(E), [core.Iterable])
-    }),
     fields: () => ({
       [_table]: ListOfE(),
       [_head]: core.int,
@@ -28007,7 +26747,6 @@ collection.ListQueue$ = dart.generic(E => {
       [_writeToList]: dart.definiteFunctionType(core.int, [ListOfE()]),
       [_preGrow]: dart.definiteFunctionType(dart.void, [core.int])
     }),
-    sfields: () => ({_INITIAL_CAPACITY: core.int}),
     statics: () => ({
       _isPowerOf2: dart.definiteFunctionType(core.bool, [core.int]),
       _nextPowerOf2: dart.definiteFunctionType(core.int, [core.int])
@@ -28060,7 +26799,6 @@ collection._ListQueueIterator$ = dart.generic(E => {
   dart.addTypeTests(_ListQueueIterator);
   _ListQueueIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(_ListQueueIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._ListQueueIterator$(E), [ListQueueOfE()])}),
     fields: () => ({
       [_queue]: ListQueueOfE(),
       [_end]: core.int,
@@ -28090,7 +26828,6 @@ collection._SplayTreeNode$ = dart.generic(K => {
   }
   dart.addTypeTests(_SplayTreeNode);
   dart.setSignature(_SplayTreeNode, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._SplayTreeNode$(K), [K])}),
     fields: () => ({
       key: K,
       left: _SplayTreeNodeOfK(),
@@ -28108,7 +26845,6 @@ collection._SplayTreeMapNode$ = dart.generic((K, V) => {
     }
   }
   dart.setSignature(_SplayTreeMapNode, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._SplayTreeMapNode$(K, V), [K, V])}),
     fields: () => ({value: V})
   });
   return _SplayTreeMapNode;
@@ -28300,11 +27036,7 @@ collection.SplayTreeMap$ = dart.generic((K, V) => {
   let _SplayTreeKeyIterableOfK = () => (_SplayTreeKeyIterableOfK = dart.constFn(collection._SplayTreeKeyIterable$(K)))();
   let _SplayTreeValueIterableOfK$V = () => (_SplayTreeValueIterableOfK$V = dart.constFn(collection._SplayTreeValueIterable$(K, V)))();
   let KAndVTovoid = () => (KAndVTovoid = dart.constFn(dart.functionType(dart.void, [K, V])))();
-  let dynamicToK = () => (dynamicToK = dart.constFn(dart.functionType(K, [dart.dynamic])))();
-  let IterableOfK = () => (IterableOfK = dart.constFn(core.Iterable$(K)))();
   let VoidToV = () => (VoidToV = dart.constFn(dart.functionType(V, [])))();
-  let dynamicToV = () => (dynamicToV = dart.constFn(dart.functionType(V, [dart.dynamic])))();
-  let IterableOfV = () => (IterableOfV = dart.constFn(core.Iterable$(V)))();
   let KAndVToNull = () => (KAndVToNull = dart.constFn(dart.definiteFunctionType(core.Null, [K, V])))();
   class SplayTreeMap extends collection._SplayTree$(K, collection._SplayTreeMapNode$(K, V)) {
     new(compare, isValidKey) {
@@ -28502,13 +27234,6 @@ collection.SplayTreeMap$ = dart.generic((K, V) => {
   dart.defineNamedConstructor(SplayTreeMap, '_internal');
   SplayTreeMap[dart.implements] = () => [MapOfK$V()];
   dart.setSignature(SplayTreeMap, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(collection.SplayTreeMap$(K, V), [], [ComparatorOfK(), dynamicTobool()]),
-      from: dart.definiteFunctionType(collection.SplayTreeMap$(K, V), [core.Map], [ComparatorOfK(), dynamicTobool()]),
-      fromIterable: dart.definiteFunctionType(collection.SplayTreeMap$(K, V), [core.Iterable], {key: dynamicToK(), value: dynamicToV(), compare: ComparatorOfK(), isValidKey: dynamicTobool()}),
-      fromIterables: dart.definiteFunctionType(collection.SplayTreeMap$(K, V), [IterableOfK(), IterableOfV()], [ComparatorOfK(), dynamicTobool()]),
-      _internal: dart.definiteFunctionType(collection.SplayTreeMap$(K, V), [])
-    }),
     fields: () => ({
       [_root]: _SplayTreeMapNodeOfK$V(),
       [_dummy]: _SplayTreeMapNodeOfK$V(),
@@ -28637,10 +27362,6 @@ collection._SplayTreeIterator$ = dart.generic((K, T) => {
   dart.defineNamedConstructor(_SplayTreeIterator, 'startAt');
   _SplayTreeIterator[dart.implements] = () => [IteratorOfT()];
   dart.setSignature(_SplayTreeIterator, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(collection._SplayTreeIterator$(K, T), [_SplayTreeOfK$_SplayTreeNodeOfK()]),
-      startAt: dart.definiteFunctionType(collection._SplayTreeIterator$(K, T), [_SplayTreeOfK$_SplayTreeNodeOfK(), K])
-    }),
     fields: () => ({
       [_tree]: _SplayTreeOfK$_SplayTreeNodeOfK(),
       [_workList]: ListOf_SplayTreeNodeOfK(),
@@ -28687,7 +27408,6 @@ collection._SplayTreeKeyIterable$ = dart.generic(K => {
   }
   _SplayTreeKeyIterable[dart.implements] = () => [_internal.EfficientLength];
   dart.setSignature(_SplayTreeKeyIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._SplayTreeKeyIterable$(K), [_SplayTreeOfK$_SplayTreeNodeOfK()])}),
     fields: () => ({[_tree]: _SplayTreeOfK$_SplayTreeNodeOfK()}),
     getters: () => ({iterator: dart.definiteFunctionType(core.Iterator$(K), [])})
   });
@@ -28715,7 +27435,6 @@ collection._SplayTreeValueIterable$ = dart.generic((K, V) => {
   }
   _SplayTreeValueIterable[dart.implements] = () => [_internal.EfficientLength];
   dart.setSignature(_SplayTreeValueIterable, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._SplayTreeValueIterable$(K, V), [SplayTreeMapOfK$V()])}),
     fields: () => ({[_map$0]: SplayTreeMapOfK$V()}),
     getters: () => ({iterator: dart.definiteFunctionType(core.Iterator$(V), [])})
   });
@@ -28725,7 +27444,6 @@ collection._SplayTreeValueIterable$ = dart.generic((K, V) => {
 collection._SplayTreeValueIterable = _SplayTreeValueIterable();
 collection._SplayTreeKeyIterator$ = dart.generic(K => {
   let _SplayTreeNodeOfK = () => (_SplayTreeNodeOfK = dart.constFn(collection._SplayTreeNode$(K)))();
-  let _SplayTreeOfK$_SplayTreeNodeOfK = () => (_SplayTreeOfK$_SplayTreeNodeOfK = dart.constFn(collection._SplayTree$(K, _SplayTreeNodeOfK())))();
   class _SplayTreeKeyIterator extends collection._SplayTreeIterator$(K, K) {
     new(map) {
       super.new(map);
@@ -28736,7 +27454,6 @@ collection._SplayTreeKeyIterator$ = dart.generic(K => {
     }
   }
   dart.setSignature(_SplayTreeKeyIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._SplayTreeKeyIterator$(K), [_SplayTreeOfK$_SplayTreeNodeOfK()])}),
     methods: () => ({[_getValue]: dart.definiteFunctionType(K, [_SplayTreeNodeOfK()])})
   });
   return _SplayTreeKeyIterator;
@@ -28745,7 +27462,6 @@ collection._SplayTreeKeyIterator = _SplayTreeKeyIterator();
 collection._SplayTreeValueIterator$ = dart.generic((K, V) => {
   let _SplayTreeNodeOfK = () => (_SplayTreeNodeOfK = dart.constFn(collection._SplayTreeNode$(K)))();
   let _SplayTreeMapNodeOfK$V = () => (_SplayTreeMapNodeOfK$V = dart.constFn(collection._SplayTreeMapNode$(K, V)))();
-  let SplayTreeMapOfK$V = () => (SplayTreeMapOfK$V = dart.constFn(collection.SplayTreeMap$(K, V)))();
   class _SplayTreeValueIterator extends collection._SplayTreeIterator$(K, V) {
     new(map) {
       super.new(map);
@@ -28757,7 +27473,6 @@ collection._SplayTreeValueIterator$ = dart.generic((K, V) => {
     }
   }
   dart.setSignature(_SplayTreeValueIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(collection._SplayTreeValueIterator$(K, V), [SplayTreeMapOfK$V()])}),
     methods: () => ({[_getValue]: dart.definiteFunctionType(V, [_SplayTreeNodeOfK()])})
   });
   return _SplayTreeValueIterator;
@@ -28765,7 +27480,6 @@ collection._SplayTreeValueIterator$ = dart.generic((K, V) => {
 collection._SplayTreeValueIterator = _SplayTreeValueIterator();
 collection._SplayTreeNodeIterator$ = dart.generic(K => {
   let _SplayTreeNodeOfK = () => (_SplayTreeNodeOfK = dart.constFn(collection._SplayTreeNode$(K)))();
-  let _SplayTreeOfK$_SplayTreeNodeOfK = () => (_SplayTreeOfK$_SplayTreeNodeOfK = dart.constFn(collection._SplayTree$(K, _SplayTreeNodeOfK())))();
   class _SplayTreeNodeIterator extends collection._SplayTreeIterator$(K, collection._SplayTreeNode$(K)) {
     new(tree) {
       super.new(tree);
@@ -28780,10 +27494,6 @@ collection._SplayTreeNodeIterator$ = dart.generic(K => {
   }
   dart.defineNamedConstructor(_SplayTreeNodeIterator, 'startAt');
   dart.setSignature(_SplayTreeNodeIterator, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(collection._SplayTreeNodeIterator$(K), [_SplayTreeOfK$_SplayTreeNodeOfK()]),
-      startAt: dart.definiteFunctionType(collection._SplayTreeNodeIterator$(K), [_SplayTreeOfK$_SplayTreeNodeOfK(), K])
-    }),
     methods: () => ({[_getValue]: dart.definiteFunctionType(collection._SplayTreeNode$(K), [_SplayTreeNodeOfK()])})
   });
   return _SplayTreeNodeIterator;
@@ -28949,10 +27659,6 @@ collection.SplayTreeSet$ = dart.generic(E => {
     }
   }
   dart.setSignature(SplayTreeSet, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(collection.SplayTreeSet$(E), [], [ComparatorOfE(), dynamicTobool()]),
-      from: dart.definiteFunctionType(collection.SplayTreeSet$(E), [core.Iterable], [ComparatorOfE(), dynamicTobool()])
-    }),
     fields: () => ({
       [_root]: _SplayTreeNodeOfE(),
       [_dummy]: _SplayTreeNodeOfE(),
@@ -29202,7 +27908,6 @@ convert._JsonMap = class _JsonMap extends core.Object {
 };
 convert._JsonMap[dart.implements] = () => [collection.LinkedHashMap];
 dart.setSignature(convert._JsonMap, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._JsonMap, [dart.dynamic])}),
   fields: () => ({
     [_original]: dart.dynamic,
     [_processed]: dart.dynamic,
@@ -29278,7 +27983,6 @@ convert._JsonMapKeyIterable = class _JsonMapKeyIterable extends _internal.ListIt
 };
 dart.addSimpleTypeTests(convert._JsonMapKeyIterable);
 dart.setSignature(convert._JsonMapKeyIterable, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._JsonMapKeyIterable, [convert._JsonMap])}),
   fields: () => ({[_parent]: convert._JsonMap}),
   methods: () => ({elementAt: dart.definiteFunctionType(core.String, [core.int])})
 });
@@ -29332,7 +28036,6 @@ convert._StringSinkConversionSink = class _StringSinkConversionSink extends conv
   }
 };
 dart.setSignature(convert._StringSinkConversionSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._StringSinkConversionSink, [core.StringSink])}),
   fields: () => ({[_stringSink]: core.StringSink}),
   methods: () => ({
     close: dart.definiteFunctionType(dart.void, []),
@@ -29356,7 +28059,6 @@ convert._JsonDecoderSink = class _JsonDecoderSink extends convert._StringSinkCon
   }
 };
 dart.setSignature(convert._JsonDecoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._JsonDecoderSink, [convert._Reviver, SinkOfObject()])}),
   fields: () => ({
     [_reviver]: convert._Reviver,
     [_sink$]: SinkOfObject()
@@ -29393,7 +28095,6 @@ convert.Codec$ = dart.generic((S, T) => {
   }
   dart.addTypeTests(Codec);
   dart.setSignature(Codec, {
-    constructors: () => ({new: dart.definiteFunctionType(convert.Codec$(S, T), [])}),
     getters: () => ({inverted: dart.definiteFunctionType(convert.Codec$(T, S), [])}),
     methods: () => ({
       encode: dart.definiteFunctionType(T, [S]),
@@ -29475,11 +28176,6 @@ core.String._check = function check_String(o) {
 };
 core.String[dart.implements] = () => [ComparableOfString(), core.Pattern];
 dart.setSignature(core.String, {
-  constructors: () => ({
-    fromCharCodes: dart.definiteFunctionType(core.String, [IterableOfint()], [core.int, core.int]),
-    fromCharCode: dart.definiteFunctionType(core.String, [core.int]),
-    fromEnvironment: dart.definiteFunctionType(core.String, [core.String], {defaultValue: core.String})
-  }),
   statics: () => ({
     _stringFromJSArray: dart.definiteFunctionType(core.String, [JSArrayOfint(), core.int, core.int]),
     _stringFromUint8List: dart.definiteFunctionType(core.String, [_native_typed_data.NativeUint8List, core.int, core.int]),
@@ -29491,7 +28187,6 @@ core.List$ = dart.generic(E => {
   let JSArrayOfE = () => (JSArrayOfE = dart.constFn(_interceptors.JSArray$(E)))();
   let ListOfE = () => (ListOfE = dart.constFn(core.List$(E)))();
   let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
-  let intToE = () => (intToE = dart.constFn(dart.functionType(E, [core.int])))();
   class List extends core.Object {
     static new(length) {
       if (length === void 0) length = null;
@@ -29548,15 +28243,6 @@ core.List$ = dart.generic(E => {
   }
   dart.addTypeTests(List);
   List[dart.implements] = () => [IterableOfE(), _internal.EfficientLength];
-  dart.setSignature(List, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(core.List$(E), [], [core.int]),
-      filled: dart.definiteFunctionType(core.List$(E), [core.int, E]),
-      from: dart.definiteFunctionType(core.List$(E), [core.Iterable], {growable: core.bool}),
-      generate: dart.definiteFunctionType(core.List$(E), [core.int, intToE()], {growable: core.bool}),
-      unmodifiable: dart.definiteFunctionType(core.List$(E), [core.Iterable])
-    })
-  });
   return List;
 });
 core.List = List();
@@ -29578,9 +28264,7 @@ convert.Encoding = class Encoding extends convert.Codec$(core.String, core.List$
 };
 dart.addSimpleTypeTests(convert.Encoding);
 dart.setSignature(convert.Encoding, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.Encoding, [])}),
   methods: () => ({decodeStream: dart.definiteFunctionType(async.Future$(core.String), [StreamOfListOfint()])}),
-  sfields: () => ({_nameToEncoding: MapOfString$Encoding()}),
   statics: () => ({getByName: dart.definiteFunctionType(convert.Encoding, [core.String])}),
   names: ['getByName']
 });
@@ -29616,7 +28300,6 @@ convert.AsciiCodec = class AsciiCodec extends convert.Encoding {
   }
 };
 dart.setSignature(convert.AsciiCodec, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.AsciiCodec, [], {allowInvalid: core.bool})}),
   fields: () => ({[_allowInvalid]: core.bool}),
   getters: () => ({
     name: dart.definiteFunctionType(core.String, []),
@@ -29656,7 +28339,6 @@ convert.Converter$ = dart.generic((S, T) => {
   dart.addTypeTests(Converter);
   Converter[dart.implements] = () => [StreamTransformerOfS$T()];
   dart.setSignature(Converter, {
-    constructors: () => ({new: dart.definiteFunctionType(convert.Converter$(S, T), [])}),
     methods: () => ({
       fuse: dart.definiteFunctionType(TT => [convert.Converter$(S, TT), [convert.Converter$(T, TT)]]),
       startChunkedConversion: dart.definiteFunctionType(core.Sink$(S), [SinkOfT()]),
@@ -29700,7 +28382,6 @@ convert._UnicodeSubsetEncoder = class _UnicodeSubsetEncoder extends convert.Conv
 };
 dart.addSimpleTypeTests(convert._UnicodeSubsetEncoder);
 dart.setSignature(convert._UnicodeSubsetEncoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._UnicodeSubsetEncoder, [core.int])}),
   fields: () => ({[_subsetMask]: core.int}),
   methods: () => ({
     convert: dart.definiteFunctionType(core.List$(core.int), [core.String], [core.int, core.int]),
@@ -29712,9 +28393,6 @@ convert.AsciiEncoder = class AsciiEncoder extends convert._UnicodeSubsetEncoder 
     super.new(convert._ASCII_MASK);
   }
 };
-dart.setSignature(convert.AsciiEncoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.AsciiEncoder, [])})
-});
 convert._UnicodeSubsetEncoderSink = class _UnicodeSubsetEncoderSink extends convert.StringConversionSinkBase {
   new(subsetMask, sink) {
     this[_subsetMask] = subsetMask;
@@ -29738,7 +28416,6 @@ convert._UnicodeSubsetEncoderSink = class _UnicodeSubsetEncoderSink extends conv
   }
 };
 dart.setSignature(convert._UnicodeSubsetEncoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._UnicodeSubsetEncoderSink, [core.int, convert.ByteConversionSink])}),
   fields: () => ({
     [_sink$]: convert.ByteConversionSink,
     [_subsetMask]: core.int
@@ -29787,7 +28464,6 @@ convert._UnicodeSubsetDecoder = class _UnicodeSubsetDecoder extends convert.Conv
 };
 dart.addSimpleTypeTests(convert._UnicodeSubsetDecoder);
 dart.setSignature(convert._UnicodeSubsetDecoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._UnicodeSubsetDecoder, [core.bool, core.int])}),
   fields: () => ({
     [_allowInvalid]: core.bool,
     [_subsetMask]: core.int
@@ -29816,16 +28492,11 @@ convert.AsciiDecoder = class AsciiDecoder extends convert._UnicodeSubsetDecoder 
     }
   }
 };
-dart.setSignature(convert.AsciiDecoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.AsciiDecoder, [], {allowInvalid: core.bool})})
-});
 const _utf8Sink = Symbol('_utf8Sink');
 let const$30;
 convert.ChunkedConversionSink$ = dart.generic(T => {
   let _SimpleCallbackSinkOfT = () => (_SimpleCallbackSinkOfT = dart.constFn(convert._SimpleCallbackSink$(T)))();
   let SinkOfT = () => (SinkOfT = dart.constFn(core.Sink$(T)))();
-  let ListOfT = () => (ListOfT = dart.constFn(core.List$(T)))();
-  let ListOfTTovoid = () => (ListOfTTovoid = dart.constFn(dart.functionType(dart.void, [ListOfT()])))();
   class ChunkedConversionSink extends core.Object {
     new() {
     }
@@ -29835,12 +28506,6 @@ convert.ChunkedConversionSink$ = dart.generic(T => {
   }
   dart.addTypeTests(ChunkedConversionSink);
   ChunkedConversionSink[dart.implements] = () => [SinkOfT()];
-  dart.setSignature(ChunkedConversionSink, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(convert.ChunkedConversionSink$(T), []),
-      withCallback: dart.definiteFunctionType(convert.ChunkedConversionSink$(T), [ListOfTTovoid()])
-    })
-  });
   return ChunkedConversionSink;
 });
 convert.ChunkedConversionSink = ChunkedConversionSink();
@@ -29856,13 +28521,6 @@ convert.ByteConversionSink = class ByteConversionSink extends convert.ChunkedCon
   }
 };
 dart.addSimpleTypeTests(convert.ByteConversionSink);
-dart.setSignature(convert.ByteConversionSink, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(convert.ByteConversionSink, []),
-    withCallback: dart.definiteFunctionType(convert.ByteConversionSink, [ListOfintTovoid()]),
-    from: dart.definiteFunctionType(convert.ByteConversionSink, [SinkOfListOfint()])
-  })
-});
 convert.ByteConversionSinkBase = class ByteConversionSinkBase extends convert.ByteConversionSink {
   new() {
     super.new();
@@ -29903,7 +28561,6 @@ convert._ErrorHandlingAsciiDecoderSink = class _ErrorHandlingAsciiDecoderSink ex
   }
 };
 dart.setSignature(convert._ErrorHandlingAsciiDecoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._ErrorHandlingAsciiDecoderSink, [convert.ByteConversionSink])}),
   fields: () => ({[_utf8Sink]: convert.ByteConversionSink}),
   methods: () => ({
     close: dart.definiteFunctionType(dart.void, []),
@@ -29939,7 +28596,6 @@ convert._SimpleAsciiDecoderSink = class _SimpleAsciiDecoderSink extends convert.
   }
 };
 dart.setSignature(convert._SimpleAsciiDecoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._SimpleAsciiDecoderSink, [core.Sink])}),
   fields: () => ({[_sink$]: core.Sink}),
   methods: () => ({
     close: dart.definiteFunctionType(dart.void, []),
@@ -29972,10 +28628,6 @@ convert.Base64Encoder = class Base64Encoder extends convert.Converter$(core.List
 dart.addSimpleTypeTests(convert.Base64Encoder);
 dart.defineNamedConstructor(convert.Base64Encoder, 'urlSafe');
 dart.setSignature(convert.Base64Encoder, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(convert.Base64Encoder, []),
-    urlSafe: dart.definiteFunctionType(convert.Base64Encoder, [])
-  }),
   fields: () => ({[_urlSafe]: core.bool}),
   methods: () => ({
     convert: dart.definiteFunctionType(core.String, [ListOfint()]),
@@ -30005,10 +28657,6 @@ convert.Base64Codec = class Base64Codec extends convert.Codec$(core.List$(core.i
 dart.addSimpleTypeTests(convert.Base64Codec);
 dart.defineNamedConstructor(convert.Base64Codec, 'urlSafe');
 dart.setSignature(convert.Base64Codec, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(convert.Base64Codec, []),
-    urlSafe: dart.definiteFunctionType(convert.Base64Codec, [])
-  }),
   fields: () => ({[_encoder]: convert.Base64Encoder}),
   getters: () => ({
     encoder: dart.definiteFunctionType(convert.Base64Encoder, []),
@@ -30154,7 +28802,6 @@ convert._Base64Encoder = class _Base64Encoder extends core.Object {
   }
 };
 dart.setSignature(convert._Base64Encoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._Base64Encoder, [core.bool])}),
   fields: () => ({
     [_state$0]: core.int,
     [_alphabet]: core.String
@@ -30162,13 +28809,6 @@ dart.setSignature(convert._Base64Encoder, {
   methods: () => ({
     createBuffer: dart.definiteFunctionType(typed_data.Uint8List, [core.int]),
     encode: dart.definiteFunctionType(typed_data.Uint8List, [ListOfint(), core.int, core.int, core.bool])
-  }),
-  sfields: () => ({
-    _base64Alphabet: core.String,
-    _base64urlAlphabet: core.String,
-    _valueShift: core.int,
-    _countMask: core.int,
-    _sixBitMask: core.int
   }),
   statics: () => ({
     _encodeState: dart.definiteFunctionType(core.int, [core.int, core.int]),
@@ -30197,7 +28837,6 @@ convert._BufferCachingBase64Encoder = class _BufferCachingBase64Encoder extends 
   }
 };
 dart.setSignature(convert._BufferCachingBase64Encoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._BufferCachingBase64Encoder, [core.bool])}),
   fields: () => ({bufferCache: typed_data.Uint8List})
 });
 const _add$1 = Symbol('_add');
@@ -30241,7 +28880,6 @@ convert._AsciiBase64EncoderSink = class _AsciiBase64EncoderSink extends convert.
   }
 };
 dart.setSignature(convert._AsciiBase64EncoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._AsciiBase64EncoderSink, [SinkOfString(), core.bool])}),
   fields: () => ({
     [_sink$]: SinkOfString(),
     [_encoder]: convert._Base64Encoder
@@ -30262,7 +28900,6 @@ convert._Utf8Base64EncoderSink = class _Utf8Base64EncoderSink extends convert._B
   }
 };
 dart.setSignature(convert._Utf8Base64EncoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._Utf8Base64EncoderSink, [convert.ByteConversionSink, core.bool])}),
   fields: () => ({
     [_sink$]: convert.ByteConversionSink,
     [_encoder]: convert._Base64Encoder
@@ -30289,7 +28926,6 @@ convert.Base64Decoder = class Base64Decoder extends convert.Converter$(core.Stri
 };
 dart.addSimpleTypeTests(convert.Base64Decoder);
 dart.setSignature(convert.Base64Decoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.Base64Decoder, [])}),
   methods: () => ({
     convert: dart.definiteFunctionType(core.List$(core.int), [core.String], [core.int, core.int]),
     startChunkedConversion: dart.definiteFunctionType(convert.StringConversionSink, [SinkOfListOfint()])
@@ -30520,18 +29156,6 @@ dart.setSignature(convert._Base64Decoder, {
     decode: dart.definiteFunctionType(typed_data.Uint8List, [core.String, core.int, core.int]),
     close: dart.definiteFunctionType(dart.void, [core.String, core.int])
   }),
-  sfields: () => ({
-    _valueShift: core.int,
-    _countMask: core.int,
-    _invalid: core.int,
-    _padding: core.int,
-    __: core.int,
-    _p: core.int,
-    _inverseAlphabet: ListOfint(),
-    _char_percent: core.int,
-    _char_3: core.int,
-    _char_d: core.int
-  }),
   statics: () => ({
     _encodeCharacterState: dart.definiteFunctionType(core.int, [core.int, core.int]),
     _stateCount: dart.definiteFunctionType(core.int, [core.int]),
@@ -30591,7 +29215,6 @@ convert._Base64DecoderSink = class _Base64DecoderSink extends convert.StringConv
   }
 };
 dart.setSignature(convert._Base64DecoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._Base64DecoderSink, [SinkOfListOfint()])}),
   fields: () => ({
     [_sink$]: SinkOfListOfint(),
     [_decoder]: convert._Base64Decoder
@@ -30614,7 +29237,6 @@ convert._ByteAdapterSink = class _ByteAdapterSink extends convert.ByteConversion
   }
 };
 dart.setSignature(convert._ByteAdapterSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._ByteAdapterSink, [SinkOfListOfint()])}),
   fields: () => ({[_sink$]: SinkOfListOfint()}),
   methods: () => ({
     add: dart.definiteFunctionType(dart.void, [ListOfint()]),
@@ -30659,9 +29281,8 @@ convert._ByteCallbackSink = class _ByteCallbackSink extends convert.ByteConversi
   }
 };
 dart.setSignature(convert._ByteCallbackSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._ByteCallbackSink, [ListOfintTovoid()])}),
   fields: () => ({
-    [_callback]: ListOfintTovoid(),
+    [_callback]: _ChunkedConversionCallbackOfListOfint(),
     [_buffer]: ListOfint(),
     [_bufferIndex]: core.int
   }),
@@ -30669,7 +29290,6 @@ dart.setSignature(convert._ByteCallbackSink, {
     add: dart.definiteFunctionType(dart.void, [IterableOfint()]),
     close: dart.definiteFunctionType(dart.void, [])
   }),
-  sfields: () => ({_INITIAL_BUFFER_SIZE: core.int}),
   statics: () => ({_roundToPowerOf2: dart.definiteFunctionType(core.int, [core.int])}),
   names: ['_roundToPowerOf2']
 });
@@ -30694,7 +29314,6 @@ convert.ChunkedConverter$ = dart.generic((S, T, S2, T2) => {
     }
   }
   dart.setSignature(ChunkedConverter, {
-    constructors: () => ({new: dart.definiteFunctionType(convert.ChunkedConverter$(S, T, S2, T2), [])}),
     methods: () => ({
       bind: dart.definiteFunctionType(dart.dynamic, [dart.dynamic]),
       startChunkedConversion: dart.definiteFunctionType(dart.dynamic, [dart.dynamic])
@@ -30723,7 +29342,6 @@ convert._SimpleCallbackSink$ = dart.generic(T => {
     }
   }
   dart.setSignature(_SimpleCallbackSink, {
-    constructors: () => ({new: dart.definiteFunctionType(convert._SimpleCallbackSink$(T), [_ChunkedConversionCallbackOfListOfT()])}),
     fields: () => ({
       [_callback]: _ChunkedConversionCallbackOfListOfT(),
       [_accumulated]: ListOfT()
@@ -30741,7 +29359,6 @@ const _chunkedSink = Symbol('_chunkedSink');
 convert._ConverterStreamEventSink$ = dart.generic((S, T) => {
   let EventSinkOfS = () => (EventSinkOfS = dart.constFn(async.EventSink$(S)))();
   let SinkOfS = () => (SinkOfS = dart.constFn(core.Sink$(S)))();
-  let ConverterOfS$T = () => (ConverterOfS$T = dart.constFn(convert.Converter$(S, T)))();
   let EventSinkOfT = () => (EventSinkOfT = dart.constFn(async.EventSink$(T)))();
   class _ConverterStreamEventSink extends core.Object {
     new(converter, sink) {
@@ -30763,7 +29380,6 @@ convert._ConverterStreamEventSink$ = dart.generic((S, T) => {
   dart.addTypeTests(_ConverterStreamEventSink);
   _ConverterStreamEventSink[dart.implements] = () => [EventSinkOfS()];
   dart.setSignature(_ConverterStreamEventSink, {
-    constructors: () => ({new: dart.definiteFunctionType(convert._ConverterStreamEventSink$(S, T), [ConverterOfS$T(), EventSinkOfT()])}),
     fields: () => ({
       [_eventSink]: EventSinkOfT(),
       [_chunkedSink]: SinkOfS()
@@ -30796,7 +29412,6 @@ convert._FusedCodec$ = dart.generic((S, M, T) => {
     }
   }
   dart.setSignature(_FusedCodec, {
-    constructors: () => ({new: dart.definiteFunctionType(convert._FusedCodec$(S, M, T), [CodecOfS$M(), CodecOfM$T()])}),
     fields: () => ({
       [_first$0]: CodecOfS$M(),
       [_second]: CodecOfM$T()
@@ -30828,7 +29443,6 @@ convert._InvertedCodec$ = dart.generic((T, S) => {
     }
   }
   dart.setSignature(_InvertedCodec, {
-    constructors: () => ({new: dart.definiteFunctionType(convert._InvertedCodec$(T, S), [CodecOfS$T()])}),
     fields: () => ({[_codec]: CodecOfS$T()}),
     getters: () => ({
       encoder: dart.definiteFunctionType(convert.Converter$(T, S), []),
@@ -30858,7 +29472,6 @@ convert._FusedConverter$ = dart.generic((S, M, T) => {
     }
   }
   dart.setSignature(_FusedConverter, {
-    constructors: () => ({new: dart.definiteFunctionType(convert._FusedConverter$(S, M, T), [ConverterOfS$M(), ConverterOfM$T()])}),
     fields: () => ({
       [_first$0]: ConverterOfS$M(),
       [_second]: ConverterOfM$T()
@@ -30903,22 +29516,12 @@ convert.HtmlEscapeMode = class HtmlEscapeMode extends core.Object {
 };
 dart.defineNamedConstructor(convert.HtmlEscapeMode, '_');
 dart.setSignature(convert.HtmlEscapeMode, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(convert.HtmlEscapeMode, [core.String, core.bool, core.bool, core.bool, core.bool]),
-    new: dart.definiteFunctionType(convert.HtmlEscapeMode, [], {name: core.String, escapeLtGt: core.bool, escapeQuot: core.bool, escapeApos: core.bool, escapeSlash: core.bool})
-  }),
   fields: () => ({
     [_name$1]: core.String,
     escapeLtGt: core.bool,
     escapeQuot: core.bool,
     escapeApos: core.bool,
     escapeSlash: core.bool
-  }),
-  sfields: () => ({
-    UNKNOWN: convert.HtmlEscapeMode,
-    ATTRIBUTE: convert.HtmlEscapeMode,
-    SQ_ATTRIBUTE: convert.HtmlEscapeMode,
-    ELEMENT: convert.HtmlEscapeMode
   })
 });
 dart.defineLazy(convert.HtmlEscapeMode, {
@@ -31003,7 +29606,6 @@ convert.HtmlEscape = class HtmlEscape extends convert.Converter$(core.String, co
 };
 dart.addSimpleTypeTests(convert.HtmlEscape);
 dart.setSignature(convert.HtmlEscape, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.HtmlEscape, [], [convert.HtmlEscapeMode])}),
   fields: () => ({mode: convert.HtmlEscapeMode}),
   methods: () => ({
     convert: dart.definiteFunctionType(core.String, [core.String]),
@@ -31032,7 +29634,6 @@ convert._HtmlEscapeSink = class _HtmlEscapeSink extends convert.StringConversion
   }
 };
 dart.setSignature(convert._HtmlEscapeSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._HtmlEscapeSink, [convert.HtmlEscape, convert.StringConversionSink])}),
   fields: () => ({
     [_escape]: convert.HtmlEscape,
     [_sink$]: convert.StringConversionSink
@@ -31058,7 +29659,6 @@ convert.JsonUnsupportedObjectError = class JsonUnsupportedObjectError extends co
   }
 };
 dart.setSignature(convert.JsonUnsupportedObjectError, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.JsonUnsupportedObjectError, [dart.dynamic], {cause: dart.dynamic})}),
   fields: () => ({
     unsupportedObject: dart.dynamic,
     cause: dart.dynamic
@@ -31072,9 +29672,6 @@ convert.JsonCyclicError = class JsonCyclicError extends convert.JsonUnsupportedO
     return "Cyclic error in JSON stringify";
   }
 };
-dart.setSignature(convert.JsonCyclicError, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.JsonCyclicError, [core.Object])})
-});
 const _toEncodable = Symbol('_toEncodable');
 let const$42;
 let const$43;
@@ -31113,10 +29710,6 @@ convert.JsonCodec = class JsonCodec extends convert.Codec$(core.Object, core.Str
 dart.addSimpleTypeTests(convert.JsonCodec);
 dart.defineNamedConstructor(convert.JsonCodec, 'withReviver');
 dart.setSignature(convert.JsonCodec, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(convert.JsonCodec, [], {reviver: dynamicAnddynamicTodynamic(), toEncodable: dynamicTodynamic()}),
-    withReviver: dart.definiteFunctionType(convert.JsonCodec, [dynamicAnddynamicTodynamic()])
-  }),
   fields: () => ({
     [_reviver]: convert._Reviver,
     [_toEncodable]: convert._ToEncodable
@@ -31172,10 +29765,6 @@ convert.JsonEncoder = class JsonEncoder extends convert.Converter$(core.Object, 
 dart.addSimpleTypeTests(convert.JsonEncoder);
 dart.defineNamedConstructor(convert.JsonEncoder, 'withIndent');
 dart.setSignature(convert.JsonEncoder, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(convert.JsonEncoder, [], [dynamicTodynamic()]),
-    withIndent: dart.definiteFunctionType(convert.JsonEncoder, [core.String], [dynamicTodynamic()])
-  }),
   fields: () => ({
     indent: core.String,
     [_toEncodable]: convert._ToEncodable
@@ -31248,7 +29837,6 @@ convert.JsonUtf8Encoder = class JsonUtf8Encoder extends convert.Converter$(core.
 };
 dart.addSimpleTypeTests(convert.JsonUtf8Encoder);
 dart.setSignature(convert.JsonUtf8Encoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.JsonUtf8Encoder, [], [core.String, dynamicTodynamic(), core.int])}),
   fields: () => ({
     [_indent]: ListOfint(),
     [_toEncodable]: convert._ToEncodable,
@@ -31258,7 +29846,6 @@ dart.setSignature(convert.JsonUtf8Encoder, {
     convert: dart.definiteFunctionType(core.List$(core.int), [core.Object]),
     startChunkedConversion: dart.definiteFunctionType(convert.ChunkedConversionSink$(core.Object), [SinkOfListOfint()])
   }),
-  sfields: () => ({DEFAULT_BUFFER_SIZE: core.int}),
   statics: () => ({_utf8Encode: dart.definiteFunctionType(core.List$(core.int), [core.String])}),
   names: ['_utf8Encode']
 });
@@ -31285,7 +29872,6 @@ convert._JsonEncoderSink = class _JsonEncoderSink extends convert.ChunkedConvers
 };
 dart.addSimpleTypeTests(convert._JsonEncoderSink);
 dart.setSignature(convert._JsonEncoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._JsonEncoderSink, [convert.StringConversionSink, convert._ToEncodable, core.String])}),
   fields: () => ({
     [_indent]: core.String,
     [_toEncodable]: convert._ToEncodable,
@@ -31327,7 +29913,6 @@ convert._JsonUtf8EncoderSink = class _JsonUtf8EncoderSink extends convert.Chunke
 };
 dart.addSimpleTypeTests(convert._JsonUtf8EncoderSink);
 dart.setSignature(convert._JsonUtf8EncoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._JsonUtf8EncoderSink, [convert.ByteConversionSink, convert._ToEncodable, ListOfint(), core.int])}),
   fields: () => ({
     [_sink$]: convert.ByteConversionSink,
     [_indent]: ListOfint(),
@@ -31359,7 +29944,6 @@ convert.JsonDecoder = class JsonDecoder extends convert.Converter$(core.String, 
 };
 dart.addSimpleTypeTests(convert.JsonDecoder);
 dart.setSignature(convert.JsonDecoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.JsonDecoder, [], [dynamicAnddynamicTodynamic()])}),
   fields: () => ({[_reviver]: convert._Reviver}),
   methods: () => ({
     convert: dart.definiteFunctionType(dart.dynamic, [core.String]),
@@ -31560,7 +30144,6 @@ convert._JsonStringifier = class _JsonStringifier extends core.Object {
   }
 };
 dart.setSignature(convert._JsonStringifier, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._JsonStringifier, [dynamicTodynamic()])}),
   fields: () => ({
     [_seen]: core.List,
     [_toEncodable]: convert._ToEncodable
@@ -31573,22 +30156,6 @@ dart.setSignature(convert._JsonStringifier, {
     writeJsonValue: dart.definiteFunctionType(core.bool, [dart.dynamic]),
     writeList: dart.definiteFunctionType(dart.void, [core.List]),
     writeMap: dart.definiteFunctionType(core.bool, [core.Map])
-  }),
-  sfields: () => ({
-    BACKSPACE: core.int,
-    TAB: core.int,
-    NEWLINE: core.int,
-    CARRIAGE_RETURN: core.int,
-    FORM_FEED: core.int,
-    QUOTE: core.int,
-    CHAR_0: core.int,
-    BACKSLASH: core.int,
-    CHAR_b: core.int,
-    CHAR_f: core.int,
-    CHAR_n: core.int,
-    CHAR_r: core.int,
-    CHAR_t: core.int,
-    CHAR_u: core.int
   }),
   statics: () => ({hexDigit: dart.definiteFunctionType(core.int, [core.int])}),
   names: ['hexDigit']
@@ -31707,7 +30274,6 @@ convert._JsonStringStringifier = class _JsonStringStringifier extends convert._J
   }
 };
 dart.setSignature(convert._JsonStringStringifier, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._JsonStringStringifier, [core.StringSink, dart.dynamic])}),
   fields: () => ({[_sink$]: core.StringSink}),
   methods: () => ({
     writeNumber: dart.definiteFunctionType(dart.void, [core.num]),
@@ -31732,7 +30298,6 @@ convert._JsonStringStringifierPretty = class _JsonStringStringifierPretty extend
   }
 };
 dart.setSignature(convert._JsonStringStringifierPretty, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._JsonStringStringifierPretty, [core.StringSink, dynamicTodynamic(), core.String])}),
   fields: () => ({[_indent]: core.String}),
   methods: () => ({writeIndentation: dart.definiteFunctionType(dart.void, [core.int])})
 });
@@ -31837,7 +30402,6 @@ convert._JsonUtf8Stringifier = class _JsonUtf8Stringifier extends convert._JsonS
   }
 };
 dart.setSignature(convert._JsonUtf8Stringifier, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._JsonUtf8Stringifier, [dynamicTodynamic(), core.int, convert._AddChunk])}),
   fields: () => ({
     bufferSize: core.int,
     addChunk: convert._AddChunk,
@@ -31889,7 +30453,6 @@ convert._JsonUtf8StringifierPretty = class _JsonUtf8StringifierPretty extends da
   }
 };
 dart.setSignature(convert._JsonUtf8StringifierPretty, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._JsonUtf8StringifierPretty, [dynamicTodynamic(), ListOfint(), dart.dynamic, Uint8ListAndintAndintTovoid()])}),
   fields: () => ({indent: ListOfint()}),
   methods: () => ({writeIndentation: dart.definiteFunctionType(dart.void, [core.int])})
 });
@@ -31924,7 +30487,6 @@ convert.Latin1Codec = class Latin1Codec extends convert.Encoding {
   }
 };
 dart.setSignature(convert.Latin1Codec, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.Latin1Codec, [], {allowInvalid: core.bool})}),
   fields: () => ({[_allowInvalid]: core.bool}),
   getters: () => ({
     name: dart.definiteFunctionType(core.String, []),
@@ -31940,9 +30502,6 @@ convert.Latin1Encoder = class Latin1Encoder extends convert._UnicodeSubsetEncode
     super.new(convert._LATIN1_MASK);
   }
 };
-dart.setSignature(convert.Latin1Encoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.Latin1Encoder, [])})
-});
 convert.Latin1Decoder = class Latin1Decoder extends convert._UnicodeSubsetDecoder {
   new(opts) {
     let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
@@ -31959,9 +30518,6 @@ convert.Latin1Decoder = class Latin1Decoder extends convert._UnicodeSubsetDecode
     return new convert._Latin1AllowInvalidDecoderSink(stringSink);
   }
 };
-dart.setSignature(convert.Latin1Decoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.Latin1Decoder, [], {allowInvalid: core.bool})})
-});
 const _addSliceToSink = Symbol('_addSliceToSink');
 convert._Latin1DecoderSink = class _Latin1DecoderSink extends convert.ByteConversionSinkBase {
   new(sink) {
@@ -32008,7 +30564,6 @@ convert._Latin1DecoderSink = class _Latin1DecoderSink extends convert.ByteConver
   }
 };
 dart.setSignature(convert._Latin1DecoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._Latin1DecoderSink, [convert.StringConversionSink])}),
   fields: () => ({[_sink$]: convert.StringConversionSink}),
   methods: () => ({
     close: dart.definiteFunctionType(dart.void, []),
@@ -32044,9 +30599,6 @@ convert._Latin1AllowInvalidDecoderSink = class _Latin1AllowInvalidDecoderSink ex
     }
   }
 };
-dart.setSignature(convert._Latin1AllowInvalidDecoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._Latin1AllowInvalidDecoderSink, [convert.StringConversionSink])})
-});
 convert._LF = 10;
 convert._CR = 13;
 convert.LineSplitter = class LineSplitter extends core.Object {
@@ -32112,7 +30664,6 @@ convert.LineSplitter = class LineSplitter extends core.Object {
 };
 convert.LineSplitter[dart.implements] = () => [StreamTransformerOfString$String()];
 dart.setSignature(convert.LineSplitter, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.LineSplitter, [])}),
   methods: () => ({
     convert: dart.definiteFunctionType(core.List$(core.String), [core.String]),
     startChunkedConversion: dart.definiteFunctionType(convert.StringConversionSink, [SinkOfString()]),
@@ -32182,7 +30733,6 @@ convert._LineSplitterSink = class _LineSplitterSink extends convert.StringConver
   }
 };
 dart.setSignature(convert._LineSplitterSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._LineSplitterSink, [convert.StringConversionSink])}),
   fields: () => ({
     [_sink$]: convert.StringConversionSink,
     [_carry]: core.String,
@@ -32206,7 +30756,6 @@ convert._LineSplitterEventSink = class _LineSplitterEventSink extends convert._L
 };
 convert._LineSplitterEventSink[dart.implements] = () => [EventSinkOfString()];
 dart.setSignature(convert._LineSplitterEventSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._LineSplitterEventSink, [EventSinkOfString()])}),
   fields: () => ({[_eventSink]: EventSinkOfString()}),
   methods: () => ({addError: dart.definiteFunctionType(dart.void, [core.Object], [core.StackTrace])})
 });
@@ -32225,23 +30774,12 @@ convert.StringConversionSink = class StringConversionSink extends convert.Chunke
   }
 };
 dart.addSimpleTypeTests(convert.StringConversionSink);
-dart.setSignature(convert.StringConversionSink, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(convert.StringConversionSink, []),
-    withCallback: dart.definiteFunctionType(convert.StringConversionSink, [StringTovoid()]),
-    from: dart.definiteFunctionType(convert.StringConversionSink, [SinkOfString()]),
-    fromStringSink: dart.definiteFunctionType(convert.StringConversionSink, [core.StringSink])
-  })
-});
 core.StringSink = class StringSink extends core.Object {};
 convert.ClosableStringSink = class ClosableStringSink extends core.StringSink {
   static fromStringSink(sink, onClose) {
     return new convert._ClosableStringSink(sink, onClose);
   }
 };
-dart.setSignature(convert.ClosableStringSink, {
-  constructors: () => ({fromStringSink: dart.definiteFunctionType(convert.ClosableStringSink, [core.StringSink, VoidTovoid()])})
-});
 convert._StringSinkCloseCallback = dart.typedef('_StringSinkCloseCallback', () => dart.functionType(dart.void, []));
 convert._ClosableStringSink = class _ClosableStringSink extends core.Object {
   new(sink, callback) {
@@ -32268,7 +30806,6 @@ convert._ClosableStringSink = class _ClosableStringSink extends core.Object {
 };
 convert._ClosableStringSink[dart.implements] = () => [convert.ClosableStringSink];
 dart.setSignature(convert._ClosableStringSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._ClosableStringSink, [core.StringSink, convert._StringSinkCloseCallback])}),
   fields: () => ({
     [_callback]: convert._StringSinkCloseCallback,
     [_sink$]: core.StringSink
@@ -32329,7 +30866,6 @@ convert._StringConversionSinkAsStringSinkAdapter = class _StringConversionSinkAs
 };
 convert._StringConversionSinkAsStringSinkAdapter[dart.implements] = () => [convert.ClosableStringSink];
 dart.setSignature(convert._StringConversionSinkAsStringSinkAdapter, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._StringConversionSinkAsStringSinkAdapter, [convert.StringConversionSink])}),
   fields: () => ({
     [_buffer]: core.StringBuffer,
     [_chunkedSink]: convert.StringConversionSink
@@ -32341,8 +30877,7 @@ dart.setSignature(convert._StringConversionSinkAsStringSinkAdapter, {
     writeln: dart.definiteFunctionType(dart.void, [], [core.Object]),
     writeAll: dart.definiteFunctionType(dart.void, [core.Iterable], [core.String]),
     [_flush]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({_MIN_STRING_SIZE: core.int})
+  })
 });
 convert._StringConversionSinkAsStringSinkAdapter._MIN_STRING_SIZE = 16;
 convert._StringCallbackSink = class _StringCallbackSink extends convert._StringSinkConversionSink {
@@ -32361,7 +30896,6 @@ convert._StringCallbackSink = class _StringCallbackSink extends convert._StringS
   }
 };
 dart.setSignature(convert._StringCallbackSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._StringCallbackSink, [StringTovoid()])}),
   fields: () => ({[_callback]: StringTovoid()})
 });
 convert._StringAdapterSink = class _StringAdapterSink extends convert.StringConversionSinkBase {
@@ -32384,7 +30918,6 @@ convert._StringAdapterSink = class _StringAdapterSink extends convert.StringConv
   }
 };
 dart.setSignature(convert._StringAdapterSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._StringAdapterSink, [SinkOfString()])}),
   fields: () => ({[_sink$]: SinkOfString()}),
   methods: () => ({
     addSlice: dart.definiteFunctionType(dart.void, [core.String, core.int, core.int, core.bool]),
@@ -32410,7 +30943,6 @@ convert._Utf8StringSinkAdapter = class _Utf8StringSinkAdapter extends convert.By
   }
 };
 dart.setSignature(convert._Utf8StringSinkAdapter, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._Utf8StringSinkAdapter, [core.Sink, core.StringSink, core.bool])}),
   fields: () => ({
     [_decoder]: convert._Utf8Decoder,
     [_sink$]: core.Sink
@@ -32457,10 +30989,6 @@ convert._Utf8ConversionSink = class _Utf8ConversionSink extends convert.ByteConv
 };
 dart.defineNamedConstructor(convert._Utf8ConversionSink, '_');
 dart.setSignature(convert._Utf8ConversionSink, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(convert._Utf8ConversionSink, [convert.StringConversionSink, core.bool]),
-    _: dart.definiteFunctionType(convert._Utf8ConversionSink, [convert.StringConversionSink, core.StringBuffer, core.bool])
-  }),
   fields: () => ({
     [_decoder]: convert._Utf8Decoder,
     [_chunkedSink]: convert.StringConversionSink,
@@ -32498,7 +31026,6 @@ convert.Utf8Codec = class Utf8Codec extends convert.Encoding {
   }
 };
 dart.setSignature(convert.Utf8Codec, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.Utf8Codec, [], {allowMalformed: core.bool})}),
   fields: () => ({[_allowMalformed]: core.bool}),
   getters: () => ({
     name: dart.definiteFunctionType(core.String, []),
@@ -32545,7 +31072,6 @@ convert.Utf8Encoder = class Utf8Encoder extends convert.Converter$(core.String, 
 };
 dart.addSimpleTypeTests(convert.Utf8Encoder);
 dart.setSignature(convert.Utf8Encoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.Utf8Encoder, [])}),
   methods: () => ({
     convert: dart.definiteFunctionType(core.List$(core.int), [core.String], [core.int, core.int]),
     startChunkedConversion: dart.definiteFunctionType(convert.StringConversionSink, [SinkOfListOfint()])
@@ -32669,10 +31195,6 @@ convert._Utf8Encoder = class _Utf8Encoder extends core.Object {
 };
 dart.defineNamedConstructor(convert._Utf8Encoder, 'withBufferSize');
 dart.setSignature(convert._Utf8Encoder, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(convert._Utf8Encoder, []),
-    withBufferSize: dart.definiteFunctionType(convert._Utf8Encoder, [core.int])
-  }),
   fields: () => ({
     [_carry]: core.int,
     [_bufferIndex]: core.int,
@@ -32682,7 +31204,6 @@ dart.setSignature(convert._Utf8Encoder, {
     [_writeSurrogate]: dart.definiteFunctionType(core.bool, [core.int, core.int]),
     [_fillBuffer]: dart.definiteFunctionType(core.int, [core.String, core.int, core.int])
   }),
-  sfields: () => ({_DEFAULT_BYTE_BUFFER_SIZE: core.int}),
   statics: () => ({_createBuffer: dart.definiteFunctionType(core.List$(core.int), [core.int])}),
   names: ['_createBuffer']
 });
@@ -32737,7 +31258,6 @@ convert._Utf8EncoderSink = class _Utf8EncoderSink extends dart.mixin(convert._Ut
   }
 };
 dart.setSignature(convert._Utf8EncoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._Utf8EncoderSink, [convert.ByteConversionSink])}),
   fields: () => ({[_sink$]: convert.ByteConversionSink}),
   methods: () => ({
     close: dart.definiteFunctionType(dart.void, []),
@@ -32789,7 +31309,6 @@ convert.Utf8Decoder = class Utf8Decoder extends convert.Converter$(core.List$(co
 };
 dart.addSimpleTypeTests(convert.Utf8Decoder);
 dart.setSignature(convert.Utf8Decoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert.Utf8Decoder, [], {allowMalformed: core.bool})}),
   fields: () => ({[_allowMalformed]: core.bool}),
   methods: () => ({
     convert: dart.definiteFunctionType(core.String, [ListOfint()], [core.int, core.int]),
@@ -32968,7 +31487,6 @@ convert._Utf8Decoder = class _Utf8Decoder extends core.Object {
   }
 };
 dart.setSignature(convert._Utf8Decoder, {
-  constructors: () => ({new: dart.definiteFunctionType(convert._Utf8Decoder, [core.StringSink, core.bool])}),
   fields: () => ({
     [_allowMalformed]: core.bool,
     [_stringSink]: core.StringSink,
@@ -32982,8 +31500,7 @@ dart.setSignature(convert._Utf8Decoder, {
     close: dart.definiteFunctionType(dart.void, []),
     flush: dart.definiteFunctionType(dart.void, []),
     convert: dart.definiteFunctionType(dart.void, [ListOfint(), core.int, core.int])
-  }),
-  sfields: () => ({_LIMITS: ListOfint()})
+  })
 });
 convert._Utf8Decoder._LIMITS = dart.constList([convert._ONE_BYTE_LIMIT, convert._TWO_BYTE_LIMIT, convert._THREE_BYTE_LIMIT, convert._FOUR_BYTE_LIMIT], core.int);
 core._symbolToString = function(symbol) {
@@ -33004,25 +31521,18 @@ core.Deprecated = class Deprecated extends core.Object {
   }
 };
 dart.setSignature(core.Deprecated, {
-  constructors: () => ({new: dart.definiteFunctionType(core.Deprecated, [core.String])}),
   fields: () => ({expires: core.String})
 });
 core._Override = class _Override extends core.Object {
   new() {
   }
 };
-dart.setSignature(core._Override, {
-  constructors: () => ({new: dart.definiteFunctionType(core._Override, [])})
-});
 core.deprecated = dart.const(new core.Deprecated("next release"));
 core.override = dart.const(new core._Override());
 core._Proxy = class _Proxy extends core.Object {
   new() {
   }
 };
-dart.setSignature(core._Proxy, {
-  constructors: () => ({new: dart.definiteFunctionType(core._Proxy, [])})
-});
 core.proxy = dart.const(new core._Proxy());
 dart.defineExtensionNames([
   'toString'
@@ -33047,9 +31557,6 @@ core.bool._check = function check_bool(o) {
   if (o === true || o === false || o == null) return o;
   return dart.check(o, core.bool);
 };
-dart.setSignature(core.bool, {
-  constructors: () => ({fromEnvironment: dart.definiteFunctionType(core.bool, [core.String], {defaultValue: core.bool})})
-});
 core.Comparator$ = dart.generic(T => {
   const Comparator = dart.typedef('Comparator', () => dart.functionType(core.int, [T, T]));
   return Comparator;
@@ -33322,16 +31829,6 @@ dart.defineNamedConstructor(core.DateTime, '_internal');
 dart.defineNamedConstructor(core.DateTime, '_now');
 core.DateTime[dart.implements] = () => [ComparableOfDateTime()];
 dart.setSignature(core.DateTime, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(core.DateTime, [core.int], [core.int, core.int, core.int, core.int, core.int, core.int, core.int]),
-    utc: dart.definiteFunctionType(core.DateTime, [core.int], [core.int, core.int, core.int, core.int, core.int, core.int, core.int]),
-    now: dart.definiteFunctionType(core.DateTime, []),
-    fromMillisecondsSinceEpoch: dart.definiteFunctionType(core.DateTime, [core.int], {isUtc: core.bool}),
-    fromMicrosecondsSinceEpoch: dart.definiteFunctionType(core.DateTime, [core.int], {isUtc: core.bool}),
-    _withValue: dart.definiteFunctionType(core.DateTime, [core.int], {isUtc: core.bool}),
-    _internal: dart.definiteFunctionType(core.DateTime, [core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.bool]),
-    _now: dart.definiteFunctionType(core.DateTime, [])
-  }),
   fields: () => ({
     [_value$]: core.int,
     isUtc: core.bool
@@ -33362,30 +31859,6 @@ dart.setSignature(core.DateTime, {
     add: dart.definiteFunctionType(core.DateTime, [core.Duration]),
     subtract: dart.definiteFunctionType(core.DateTime, [core.Duration]),
     difference: dart.definiteFunctionType(core.Duration, [core.DateTime])
-  }),
-  sfields: () => ({
-    MONDAY: core.int,
-    TUESDAY: core.int,
-    WEDNESDAY: core.int,
-    THURSDAY: core.int,
-    FRIDAY: core.int,
-    SATURDAY: core.int,
-    SUNDAY: core.int,
-    DAYS_PER_WEEK: core.int,
-    JANUARY: core.int,
-    FEBRUARY: core.int,
-    MARCH: core.int,
-    APRIL: core.int,
-    MAY: core.int,
-    JUNE: core.int,
-    JULY: core.int,
-    AUGUST: core.int,
-    SEPTEMBER: core.int,
-    OCTOBER: core.int,
-    NOVEMBER: core.int,
-    DECEMBER: core.int,
-    MONTHS_PER_YEAR: core.int,
-    _MAX_MILLISECONDS_SINCE_EPOCH: core.int
   }),
   statics: () => ({
     parse: dart.definiteFunctionType(core.DateTime, [core.String]),
@@ -33524,10 +31997,6 @@ core.Duration = class Duration extends core.Object {
 dart.defineNamedConstructor(core.Duration, '_microseconds');
 core.Duration[dart.implements] = () => [ComparableOfDuration()];
 dart.setSignature(core.Duration, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(core.Duration, [], {days: core.int, hours: core.int, minutes: core.int, seconds: core.int, milliseconds: core.int, microseconds: core.int}),
-    _microseconds: dart.definiteFunctionType(core.Duration, [core.int])
-  }),
   fields: () => ({[_duration]: core.int}),
   getters: () => ({
     inDays: dart.definiteFunctionType(core.int, []),
@@ -33550,24 +32019,6 @@ dart.setSignature(core.Duration, {
     compareTo: dart.definiteFunctionType(core.int, [core.Duration]),
     abs: dart.definiteFunctionType(core.Duration, []),
     _negate: dart.definiteFunctionType(core.Duration, [])
-  }),
-  sfields: () => ({
-    MICROSECONDS_PER_MILLISECOND: core.int,
-    MILLISECONDS_PER_SECOND: core.int,
-    SECONDS_PER_MINUTE: core.int,
-    MINUTES_PER_HOUR: core.int,
-    HOURS_PER_DAY: core.int,
-    MICROSECONDS_PER_SECOND: core.int,
-    MICROSECONDS_PER_MINUTE: core.int,
-    MICROSECONDS_PER_HOUR: core.int,
-    MICROSECONDS_PER_DAY: core.int,
-    MILLISECONDS_PER_MINUTE: core.int,
-    MILLISECONDS_PER_HOUR: core.int,
-    MILLISECONDS_PER_DAY: core.int,
-    SECONDS_PER_HOUR: core.int,
-    SECONDS_PER_DAY: core.int,
-    MINUTES_PER_DAY: core.int,
-    ZERO: core.Duration
   })
 });
 dart.defineExtensionMembers(core.Duration, ['compareTo']);
@@ -33680,11 +32131,6 @@ core.ArgumentError = class ArgumentError extends core.Error {
 dart.defineNamedConstructor(core.ArgumentError, 'value');
 dart.defineNamedConstructor(core.ArgumentError, 'notNull');
 dart.setSignature(core.ArgumentError, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(core.ArgumentError, [], [dart.dynamic]),
-    value: dart.definiteFunctionType(core.ArgumentError, [dart.dynamic], [core.String, core.String]),
-    notNull: dart.definiteFunctionType(core.ArgumentError, [], [core.String])
-  }),
   fields: () => ({
     [_hasValue]: core.bool,
     invalidValue: dart.dynamic,
@@ -33783,12 +32229,6 @@ core.RangeError = class RangeError extends core.ArgumentError {
 dart.defineNamedConstructor(core.RangeError, 'value');
 dart.defineNamedConstructor(core.RangeError, 'range');
 dart.setSignature(core.RangeError, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(core.RangeError, [dart.dynamic]),
-    value: dart.definiteFunctionType(core.RangeError, [core.num], [core.String, core.String]),
-    range: dart.definiteFunctionType(core.RangeError, [core.num, core.int, core.int], [core.String, core.String]),
-    index: dart.definiteFunctionType(core.RangeError, [core.int, dart.dynamic], [core.String, core.String, core.int])
-  }),
   fields: () => ({
     start: core.num,
     end: core.num
@@ -33832,7 +32272,6 @@ core.IndexError = class IndexError extends core.ArgumentError {
 };
 core.IndexError[dart.implements] = () => [core.RangeError];
 dart.setSignature(core.IndexError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.IndexError, [core.int, dart.dynamic], [core.String, core.String, core.int])}),
   fields: () => ({
     indexable: dart.dynamic,
     length: core.int
@@ -33853,7 +32292,6 @@ core.AbstractClassInstantiationError = class AbstractClassInstantiationError ext
   }
 };
 dart.setSignature(core.AbstractClassInstantiationError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.AbstractClassInstantiationError, [core.String])}),
   fields: () => ({[_className]: core.String})
 });
 const _receiver$ = Symbol('_receiver');
@@ -33910,7 +32348,6 @@ core.NoSuchMethodError = class NoSuchMethodError extends core.Error {
   }
 };
 dart.setSignature(core.NoSuchMethodError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.NoSuchMethodError, [core.Object, core.Symbol, core.List, MapOfSymbol$dynamic()], [core.List])}),
   fields: () => ({
     [_receiver$]: core.Object,
     [_memberName]: core.Symbol,
@@ -33929,7 +32366,6 @@ core.UnsupportedError = class UnsupportedError extends core.Error {
   }
 };
 dart.setSignature(core.UnsupportedError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.UnsupportedError, [core.String])}),
   fields: () => ({message: core.String})
 });
 core.UnimplementedError = class UnimplementedError extends core.Error {
@@ -33944,7 +32380,6 @@ core.UnimplementedError = class UnimplementedError extends core.Error {
 };
 core.UnimplementedError[dart.implements] = () => [core.UnsupportedError];
 dart.setSignature(core.UnimplementedError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.UnimplementedError, [], [core.String])}),
   fields: () => ({message: core.String})
 });
 core.StateError = class StateError extends core.Error {
@@ -33957,7 +32392,6 @@ core.StateError = class StateError extends core.Error {
   }
 };
 dart.setSignature(core.StateError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.StateError, [core.String])}),
   fields: () => ({message: core.String})
 });
 core.ConcurrentModificationError = class ConcurrentModificationError extends core.Error {
@@ -33974,7 +32408,6 @@ core.ConcurrentModificationError = class ConcurrentModificationError extends cor
   }
 };
 dart.setSignature(core.ConcurrentModificationError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.ConcurrentModificationError, [], [core.Object])}),
   fields: () => ({modifiedObject: core.Object})
 });
 core.OutOfMemoryError = class OutOfMemoryError extends core.Object {
@@ -33989,7 +32422,6 @@ core.OutOfMemoryError = class OutOfMemoryError extends core.Object {
 };
 core.OutOfMemoryError[dart.implements] = () => [core.Error];
 dart.setSignature(core.OutOfMemoryError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.OutOfMemoryError, [])}),
   getters: () => ({stackTrace: dart.definiteFunctionType(core.StackTrace, [])})
 });
 core.StackOverflowError = class StackOverflowError extends core.Object {
@@ -34004,7 +32436,6 @@ core.StackOverflowError = class StackOverflowError extends core.Object {
 };
 core.StackOverflowError[dart.implements] = () => [core.Error];
 dart.setSignature(core.StackOverflowError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.StackOverflowError, [])}),
   getters: () => ({stackTrace: dart.definiteFunctionType(core.StackTrace, [])})
 });
 core.CyclicInitializationError = class CyclicInitializationError extends core.Error {
@@ -34018,7 +32449,6 @@ core.CyclicInitializationError = class CyclicInitializationError extends core.Er
   }
 };
 dart.setSignature(core.CyclicInitializationError, {
-  constructors: () => ({new: dart.definiteFunctionType(core.CyclicInitializationError, [], [core.String])}),
   fields: () => ({variableName: core.String})
 });
 core.Exception = class Exception extends core.Object {
@@ -34027,9 +32457,6 @@ core.Exception = class Exception extends core.Object {
     return new core._Exception(message);
   }
 };
-dart.setSignature(core.Exception, {
-  constructors: () => ({new: dart.definiteFunctionType(core.Exception, [], [dart.dynamic])})
-});
 core._Exception = class _Exception extends core.Object {
   new(message) {
     if (message === void 0) message = null;
@@ -34042,7 +32469,6 @@ core._Exception = class _Exception extends core.Object {
 };
 core._Exception[dart.implements] = () => [core.Exception];
 dart.setSignature(core._Exception, {
-  constructors: () => ({new: dart.definiteFunctionType(core._Exception, [], [dart.dynamic])}),
   fields: () => ({message: dart.dynamic})
 });
 core.FormatException = class FormatException extends core.Object {
@@ -34132,7 +32558,6 @@ core.FormatException = class FormatException extends core.Object {
 };
 core.FormatException[dart.implements] = () => [core.Exception];
 dart.setSignature(core.FormatException, {
-  constructors: () => ({new: dart.definiteFunctionType(core.FormatException, [], [core.String, dart.dynamic, core.int])}),
   fields: () => ({
     message: core.String,
     source: dart.dynamic,
@@ -34147,9 +32572,6 @@ core.IntegerDivisionByZeroException = class IntegerDivisionByZeroException exten
   }
 };
 core.IntegerDivisionByZeroException[dart.implements] = () => [core.Exception];
-dart.setSignature(core.IntegerDivisionByZeroException, {
-  constructors: () => ({new: dart.definiteFunctionType(core.IntegerDivisionByZeroException, [])})
-});
 const _getKey = Symbol('_getKey');
 core.Expando$ = dart.generic(T => {
   class Expando extends core.Object {
@@ -34189,17 +32611,11 @@ core.Expando$ = dart.generic(T => {
   }
   dart.addTypeTests(Expando);
   dart.setSignature(Expando, {
-    constructors: () => ({new: dart.definiteFunctionType(core.Expando$(T), [], [core.String])}),
     fields: () => ({name: core.String}),
     methods: () => ({
       _get: dart.definiteFunctionType(T, [core.Object]),
       _set: dart.definiteFunctionType(dart.void, [core.Object, T]),
       [_getKey]: dart.definiteFunctionType(core.String, [])
-    }),
-    sfields: () => ({
-      _KEY_PROPERTY_NAME: core.String,
-      _EXPANDO_PROPERTY_NAME: core.String,
-      _keyCount: core.int
     })
   });
   return Expando;
@@ -34211,6 +32627,16 @@ core.Expando._keyCount = 0;
 core.Function = class Function extends core.Object {
   static apply(f, positionalArguments, namedArguments) {
     if (namedArguments === void 0) namedArguments = null;
+    let t = positionalArguments;
+    t == null ? positionalArguments = [] : t;
+    if (namedArguments != null && dart.test(namedArguments[dartx.isNotEmpty])) {
+      let map = {};
+      namedArguments[dartx.forEach](dart.fn((symbol, arg) => {
+        map[core._symbolToString(symbol)] = arg;
+      }, SymbolAnddynamicToNull()));
+      positionalArguments = core.List.from(positionalArguments);
+      positionalArguments[dartx.add](map);
+    }
     return dart.dcall.apply(null, [f].concat(positionalArguments));
   }
   static _toMangledNames(namedArguments) {
@@ -34300,10 +32726,6 @@ core._GeneratorIterable$ = dart.generic(E => {
   dart.defineNamedConstructor(_GeneratorIterable, 'slice');
   _GeneratorIterable[dart.implements] = () => [_internal.EfficientLength];
   dart.setSignature(_GeneratorIterable, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(core._GeneratorIterable$(E), [core.int, _GeneratorOfE()]),
-      slice: dart.definiteFunctionType(core._GeneratorIterable$(E), [core.int, core.int, _GeneratorOfE()])
-    }),
     fields: () => ({
       [_start$0]: core.int,
       [_end$]: core.int,
@@ -34346,7 +32768,6 @@ core._GeneratorIterator$ = dart.generic(E => {
   dart.addTypeTests(_GeneratorIterator);
   _GeneratorIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(_GeneratorIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(core._GeneratorIterator$(E), [core.int, core.int, _GeneratorOfE()])}),
     fields: () => ({
       [_end$]: core.int,
       [_generator$]: _GeneratorOfE(),
@@ -34372,10 +32793,6 @@ core.Map$ = dart.generic((K, V) => {
   let LinkedHashMapOfK$V = () => (LinkedHashMapOfK$V = dart.constFn(collection.LinkedHashMap$(K, V)))();
   let UnmodifiableMapViewOfK$V = () => (UnmodifiableMapViewOfK$V = dart.constFn(collection.UnmodifiableMapView$(K, V)))();
   let MapOfK$V = () => (MapOfK$V = dart.constFn(core.Map$(K, V)))();
-  let dynamicToK = () => (dynamicToK = dart.constFn(dart.functionType(K, [dart.dynamic])))();
-  let IterableOfK = () => (IterableOfK = dart.constFn(core.Iterable$(K)))();
-  let dynamicToV = () => (dynamicToV = dart.constFn(dart.functionType(V, [dart.dynamic])))();
-  let IterableOfV = () => (IterableOfV = dart.constFn(core.Iterable$(V)))();
   class Map extends core.Object {
     static new() {
       return JsLinkedHashMapOfK$V().es6();
@@ -34397,16 +32814,6 @@ core.Map$ = dart.generic((K, V) => {
     }
   }
   dart.addTypeTests(Map);
-  dart.setSignature(Map, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(core.Map$(K, V), []),
-      from: dart.definiteFunctionType(core.Map$(K, V), [core.Map]),
-      unmodifiable: dart.definiteFunctionType(core.Map$(K, V), [core.Map]),
-      identity: dart.definiteFunctionType(core.Map$(K, V), []),
-      fromIterable: dart.definiteFunctionType(core.Map$(K, V), [core.Iterable], {key: dynamicToK(), value: dynamicToV()}),
-      fromIterables: dart.definiteFunctionType(core.Map$(K, V), [IterableOfK(), IterableOfV()])
-    })
-  });
   return Map;
 });
 core.Map = Map$();
@@ -34429,9 +32836,6 @@ core.Null._check = function check_Null(o) {
   if (o == null) return o;
   return dart.check(o, core.Null);
 };
-dart.setSignature(core.Null, {
-  constructors: () => ({_uninstantiable: dart.definiteFunctionType(core.Null, [])})
-});
 core.Pattern = class Pattern extends core.Object {};
 core.print = function(object) {
   let line = dart.str`${object}`;
@@ -34450,12 +32854,8 @@ core.RegExp = class RegExp extends core.Object {
   }
 };
 core.RegExp[dart.implements] = () => [core.Pattern];
-dart.setSignature(core.RegExp, {
-  constructors: () => ({new: dart.definiteFunctionType(core.RegExp, [core.String], {multiLine: core.bool, caseSensitive: core.bool})})
-});
 core.Set$ = dart.generic(E => {
   let LinkedHashSetOfE = () => (LinkedHashSetOfE = dart.constFn(collection.LinkedHashSet$(E)))();
-  let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
   class Set extends core.Iterable$(E) {
     static new() {
       return LinkedHashSetOfE().new();
@@ -34468,13 +32868,6 @@ core.Set$ = dart.generic(E => {
     }
   }
   Set[dart.implements] = () => [_internal.EfficientLength];
-  dart.setSignature(Set, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(core.Set$(E), []),
-      identity: dart.definiteFunctionType(core.Set$(E), []),
-      from: dart.definiteFunctionType(core.Set$(E), [IterableOfE()])
-    })
-  });
   return Set;
 });
 core.Set = Set();
@@ -34494,13 +32887,6 @@ core.StackTrace = class StackTrace extends core.Object {
     return _js_helper.getTraceFromException(new Error());
   }
 };
-dart.setSignature(core.StackTrace, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(core.StackTrace, []),
-    fromString: dart.definiteFunctionType(core.StackTrace, [core.String])
-  }),
-  sgetters: () => ({current: dart.definiteFunctionType(core.StackTrace, [])})
-});
 const _stackTrace = Symbol('_stackTrace');
 core._StringStackTrace = class _StringStackTrace extends core.Object {
   new(stackTrace) {
@@ -34512,7 +32898,6 @@ core._StringStackTrace = class _StringStackTrace extends core.Object {
 };
 core._StringStackTrace[dart.implements] = () => [core.StackTrace];
 dart.setSignature(core._StringStackTrace, {
-  constructors: () => ({new: dart.definiteFunctionType(core._StringStackTrace, [core.String])}),
   fields: () => ({[_stackTrace]: core.String})
 });
 const _stop = Symbol('_stop');
@@ -34572,7 +32957,6 @@ core.Stopwatch = class Stopwatch extends core.Object {
   }
 };
 dart.setSignature(core.Stopwatch, {
-  constructors: () => ({new: dart.definiteFunctionType(core.Stopwatch, [])}),
   fields: () => ({
     [_start$0]: core.int,
     [_stop]: core.int
@@ -34590,7 +32974,6 @@ dart.setSignature(core.Stopwatch, {
     stop: dart.definiteFunctionType(dart.void, []),
     reset: dart.definiteFunctionType(dart.void, [])
   }),
-  sfields: () => ({_frequency: core.int}),
   statics: () => ({
     _initTicker: dart.definiteFunctionType(dart.void, []),
     _now: dart.definiteFunctionType(core.int, [])
@@ -34623,7 +33006,6 @@ core.Runes = class Runes extends core.Iterable$(core.int) {
 };
 dart.addSimpleTypeTests(core.Runes);
 dart.setSignature(core.Runes, {
-  constructors: () => ({new: dart.definiteFunctionType(core.Runes, [core.String])}),
   fields: () => ({string: core.String}),
   getters: () => ({iterator: dart.definiteFunctionType(core.RuneIterator, [])})
 });
@@ -34734,10 +33116,6 @@ core.RuneIterator = class RuneIterator extends core.Object {
 dart.defineNamedConstructor(core.RuneIterator, 'at');
 core.RuneIterator[dart.implements] = () => [BidirectionalIteratorOfint()];
 dart.setSignature(core.RuneIterator, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(core.RuneIterator, [core.String]),
-    at: dart.definiteFunctionType(core.RuneIterator, [core.String, core.int])
-  }),
   fields: () => ({
     string: core.String,
     [_position$]: core.int,
@@ -34819,7 +33197,6 @@ core.StringBuffer = class StringBuffer extends core.Object {
 };
 core.StringBuffer[dart.implements] = () => [core.StringSink];
 dart.setSignature(core.StringBuffer, {
-  constructors: () => ({new: dart.definiteFunctionType(core.StringBuffer, [], [core.Object])}),
   fields: () => ({[_contents]: core.String}),
   getters: () => ({
     length: dart.definiteFunctionType(core.int, []),
@@ -34845,9 +33222,6 @@ core.Symbol = class Symbol extends core.Object {
     return new _internal.Symbol(name);
   }
 };
-dart.setSignature(core.Symbol, {
-  constructors: () => ({new: dart.definiteFunctionType(core.Symbol, [core.String])})
-});
 const _userInfo = Symbol('_userInfo');
 const _host = Symbol('_host');
 const _port = Symbol('_port');
@@ -36242,16 +34616,6 @@ core.Uri = class Uri extends core.Object {
 };
 dart.defineNamedConstructor(core.Uri, '_internal');
 dart.setSignature(core.Uri, {
-  constructors: () => ({
-    _internal: dart.definiteFunctionType(core.Uri, [core.String, core.String, core.String, core.int, core.String, core.String, core.String]),
-    new: dart.definiteFunctionType(core.Uri, [], {scheme: core.String, userInfo: core.String, host: core.String, port: core.int, path: core.String, pathSegments: IterableOfString(), query: core.String, queryParameters: MapOfString$dynamic(), fragment: core.String}),
-    http: dart.definiteFunctionType(core.Uri, [core.String, core.String], [MapOfString$String()]),
-    https: dart.definiteFunctionType(core.Uri, [core.String, core.String], [MapOfString$String()]),
-    file: dart.definiteFunctionType(core.Uri, [core.String], {windows: core.bool}),
-    directory: dart.definiteFunctionType(core.Uri, [core.String], {windows: core.bool}),
-    dataFromString: dart.definiteFunctionType(core.Uri, [core.String], {mimeType: core.String, encoding: convert.Encoding, parameters: MapOfString$String(), base64: core.bool}),
-    dataFromBytes: dart.definiteFunctionType(core.Uri, [ListOfint()], {mimeType: dart.dynamic, parameters: MapOfString$String(), percentEncoded: dart.dynamic})
-  }),
   fields: () => ({
     scheme: core.String,
     [_userInfo]: core.String,
@@ -36298,51 +34662,6 @@ dart.setSignature(core.Uri, {
     [_toFilePath]: dart.definiteFunctionType(core.String, []),
     [_toWindowsFilePath]: dart.definiteFunctionType(core.String, []),
     [_writeAuthority]: dart.definiteFunctionType(dart.void, [core.StringSink])
-  }),
-  sfields: () => ({
-    _SPACE: core.int,
-    _DOUBLE_QUOTE: core.int,
-    _NUMBER_SIGN: core.int,
-    _PERCENT: core.int,
-    _ASTERISK: core.int,
-    _PLUS: core.int,
-    _DOT: core.int,
-    _SLASH: core.int,
-    _ZERO: core.int,
-    _NINE: core.int,
-    _COLON: core.int,
-    _LESS: core.int,
-    _GREATER: core.int,
-    _QUESTION: core.int,
-    _AT_SIGN: core.int,
-    _UPPER_CASE_A: core.int,
-    _UPPER_CASE_F: core.int,
-    _UPPER_CASE_Z: core.int,
-    _LEFT_BRACKET: core.int,
-    _BACKSLASH: core.int,
-    _RIGHT_BRACKET: core.int,
-    _LOWER_CASE_A: core.int,
-    _LOWER_CASE_F: core.int,
-    _LOWER_CASE_Z: core.int,
-    _BAR: core.int,
-    _hexDigits: core.String,
-    _unreservedTable: ListOfint(),
-    _unreserved2396Table: ListOfint(),
-    _encodeFullTable: ListOfint(),
-    _schemeTable: ListOfint(),
-    _schemeLowerTable: ListOfint(),
-    _subDelimitersTable: ListOfint(),
-    _genDelimitersTable: ListOfint(),
-    _userinfoTable: ListOfint(),
-    _regNameTable: ListOfint(),
-    _pathCharTable: ListOfint(),
-    _pathCharOrSlashTable: ListOfint(),
-    _queryCharTable: ListOfint(),
-    _needsNoEncoding: core.RegExp
-  }),
-  sgetters: () => ({
-    base: dart.definiteFunctionType(core.Uri, []),
-    _isWindows: dart.definiteFunctionType(core.bool, [])
   }),
   statics: () => ({
     _defaultPort: dart.definiteFunctionType(core.int, [core.String]),
@@ -36758,12 +35077,6 @@ core.UriData = class UriData extends core.Object {
 };
 dart.defineNamedConstructor(core.UriData, '_');
 dart.setSignature(core.UriData, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(core.UriData, [core.String, ListOfint(), core.Uri]),
-    fromString: dart.definiteFunctionType(core.UriData, [core.String], {mimeType: core.String, encoding: convert.Encoding, parameters: MapOfString$String(), base64: core.bool}),
-    fromBytes: dart.definiteFunctionType(core.UriData, [ListOfint()], {mimeType: dart.dynamic, parameters: MapOfString$String(), percentEncoded: dart.dynamic}),
-    fromUri: dart.definiteFunctionType(core.UriData, [core.Uri])
-  }),
   fields: () => ({
     [_text]: core.String,
     [_separatorIndices]: ListOfint(),
@@ -36780,11 +35093,6 @@ dart.setSignature(core.UriData, {
   methods: () => ({
     contentAsBytes: dart.definiteFunctionType(core.List$(core.int), []),
     contentAsString: dart.definiteFunctionType(core.String, [], {encoding: convert.Encoding})
-  }),
-  sfields: () => ({
-    _noScheme: core.int,
-    _tokenCharTable: ListOfint(),
-    _uricTable: ListOfint()
   }),
   statics: () => ({
     _writeUri: dart.definiteFunctionType(dart.void, [core.String, core.String, MapOfString$String(), core.StringBuffer, core.List]),
@@ -36885,10 +35193,6 @@ developer.ServiceExtensionResponse = class ServiceExtensionResponse extends core
 dart.defineNamedConstructor(developer.ServiceExtensionResponse, 'result');
 dart.defineNamedConstructor(developer.ServiceExtensionResponse, 'error');
 dart.setSignature(developer.ServiceExtensionResponse, {
-  constructors: () => ({
-    result: dart.definiteFunctionType(developer.ServiceExtensionResponse, [core.String]),
-    error: dart.definiteFunctionType(developer.ServiceExtensionResponse, [core.int, core.String])
-  }),
   fields: () => ({
     [_result]: core.String,
     [_errorCode]: core.int,
@@ -36897,16 +35201,6 @@ dart.setSignature(developer.ServiceExtensionResponse, {
   methods: () => ({
     [_isError]: dart.definiteFunctionType(core.bool, []),
     [_toString]: dart.definiteFunctionType(core.String, [])
-  }),
-  sfields: () => ({
-    kInvalidParams: core.int,
-    kExtensionError: core.int,
-    kExtensionErrorMax: core.int,
-    kExtensionErrorMin: core.int,
-    invalidParams: core.int,
-    extensionError: core.int,
-    extensionErrorMax: core.int,
-    extensionErrorMin: core.int
   }),
   statics: () => ({
     _errorCodeMessage: dart.definiteFunctionType(core.String, [core.int]),
@@ -36979,11 +35273,6 @@ developer.UserTag = class UserTag extends core.Object {
     return developer._FakeUserTag._defaultTag;
   }
 };
-dart.setSignature(developer.UserTag, {
-  constructors: () => ({new: dart.definiteFunctionType(developer.UserTag, [core.String])}),
-  sfields: () => ({MAX_USER_TAGS: core.int}),
-  sgetters: () => ({defaultTag: dart.definiteFunctionType(developer.UserTag, [])})
-});
 developer.UserTag.MAX_USER_TAGS = 64;
 developer._FakeUserTag = class _FakeUserTag extends core.Object {
   real(label) {
@@ -37010,16 +35299,8 @@ developer._FakeUserTag = class _FakeUserTag extends core.Object {
 dart.defineNamedConstructor(developer._FakeUserTag, 'real');
 developer._FakeUserTag[dart.implements] = () => [developer.UserTag];
 dart.setSignature(developer._FakeUserTag, {
-  constructors: () => ({
-    real: dart.definiteFunctionType(developer._FakeUserTag, [core.String]),
-    new: dart.definiteFunctionType(developer._FakeUserTag, [core.String])
-  }),
   fields: () => ({label: core.String}),
-  methods: () => ({makeCurrent: dart.definiteFunctionType(developer.UserTag, [])}),
-  sfields: () => ({
-    _instances: core.Map,
-    _defaultTag: developer.UserTag
-  })
+  methods: () => ({makeCurrent: dart.definiteFunctionType(developer.UserTag, [])})
 });
 dart.defineLazy(developer._FakeUserTag, {
   get _instances() {
@@ -37050,7 +35331,6 @@ developer.Metric = class Metric extends core.Object {
   }
 };
 dart.setSignature(developer.Metric, {
-  constructors: () => ({new: dart.definiteFunctionType(developer.Metric, [core.String, core.String])}),
   fields: () => ({
     name: core.String,
     description: core.String
@@ -37092,7 +35372,6 @@ developer.Gauge = class Gauge extends developer.Metric {
   }
 };
 dart.setSignature(developer.Gauge, {
-  constructors: () => ({new: dart.definiteFunctionType(developer.Gauge, [core.String, core.String, core.double, core.double])}),
   fields: () => ({
     min: core.double,
     max: core.double,
@@ -37119,7 +35398,6 @@ developer.Counter = class Counter extends developer.Metric {
   }
 };
 dart.setSignature(developer.Counter, {
-  constructors: () => ({new: dart.definiteFunctionType(developer.Counter, [core.String, core.String])}),
   fields: () => ({[_value$0]: core.double}),
   getters: () => ({value: dart.definiteFunctionType(core.double, [])}),
   setters: () => ({value: dart.definiteFunctionType(dart.void, [core.double])}),
@@ -37158,7 +35436,6 @@ developer.Metrics = class Metrics extends core.Object {
   }
 };
 dart.setSignature(developer.Metrics, {
-  sfields: () => ({_metrics: MapOfString$Metric()}),
   statics: () => ({
     register: dart.definiteFunctionType(dart.void, [developer.Metric]),
     deregister: dart.definiteFunctionType(dart.void, [developer.Metric]),
@@ -37239,12 +35516,6 @@ developer.Timeline = class Timeline extends core.Object {
   }
 };
 dart.setSignature(developer.Timeline, {
-  sfields: () => ({
-    _stack: ListOf_SyncBlock(),
-    _isolateId: core.int,
-    _isolateIdString: core.String
-  }),
-  sgetters: () => ({now: dart.definiteFunctionType(core.int, [])}),
   statics: () => ({
     startSync: dart.definiteFunctionType(dart.void, [core.String], {arguments: core.Map}),
     finishSync: dart.definiteFunctionType(dart.void, []),
@@ -37329,10 +35600,6 @@ developer.TimelineTask = class TimelineTask extends core.Object {
 };
 dart.defineNamedConstructor(developer.TimelineTask, 'withTaskId');
 dart.setSignature(developer.TimelineTask, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(developer.TimelineTask, []),
-    withTaskId: dart.definiteFunctionType(developer.TimelineTask, [core.int])
-  }),
   fields: () => ({
     [_taskId]: core.int,
     [_stack]: ListOf_AsyncBlock()
@@ -37367,7 +35634,6 @@ developer._AsyncBlock = class _AsyncBlock extends core.Object {
 };
 dart.defineNamedConstructor(developer._AsyncBlock, '_');
 dart.setSignature(developer._AsyncBlock, {
-  constructors: () => ({_: dart.definiteFunctionType(developer._AsyncBlock, [core.String, core.int])}),
   fields: () => ({
     category: core.String,
     name: core.String,
@@ -37404,7 +35670,6 @@ developer._SyncBlock = class _SyncBlock extends core.Object {
 };
 dart.defineNamedConstructor(developer._SyncBlock, '_');
 dart.setSignature(developer._SyncBlock, {
-  constructors: () => ({_: dart.definiteFunctionType(developer._SyncBlock, [core.String, core.int, core.int])}),
   fields: () => ({
     category: core.String,
     name: core.String,
@@ -37475,7 +35740,6 @@ developer.ServiceProtocolInfo = class ServiceProtocolInfo extends core.Object {
   }
 };
 dart.setSignature(developer.ServiceProtocolInfo, {
-  constructors: () => ({new: dart.definiteFunctionType(developer.ServiceProtocolInfo, [core.Uri])}),
   fields: () => ({
     majorVersion: core.int,
     minorVersion: core.int,
@@ -37543,9 +35807,6 @@ io.BytesBuilder = class BytesBuilder extends core.Object {
     }
   }
 };
-dart.setSignature(io.BytesBuilder, {
-  constructors: () => ({new: dart.definiteFunctionType(io.BytesBuilder, [], {copy: core.bool})})
-});
 const _length$2 = Symbol('_length');
 const _buffer$ = Symbol('_buffer');
 const _pow2roundup = Symbol('_pow2roundup');
@@ -37632,8 +35893,7 @@ dart.setSignature(io._CopyingBytesBuilder, {
     toBytes: dart.definiteFunctionType(core.List$(core.int), []),
     clear: dart.definiteFunctionType(dart.void, []),
     [_pow2roundup]: dart.definiteFunctionType(core.int, [core.int])
-  }),
-  sfields: () => ({_INIT_SIZE: core.int})
+  })
 });
 io._CopyingBytesBuilder._INIT_SIZE = 1024;
 const _chunks = Symbol('_chunks');
@@ -37776,12 +36036,10 @@ io.OSError = class OSError extends core.Object {
   }
 };
 dart.setSignature(io.OSError, {
-  constructors: () => ({new: dart.definiteFunctionType(io.OSError, [], [core.String, core.int])}),
   fields: () => ({
     message: core.String,
     errorCode: core.int
-  }),
-  sfields: () => ({noErrorCode: core.int})
+  })
 });
 io.OSError.noErrorCode = -1;
 io._BufferAndStart = class _BufferAndStart extends core.Object {
@@ -37791,7 +36049,6 @@ io._BufferAndStart = class _BufferAndStart extends core.Object {
   }
 };
 dart.setSignature(io._BufferAndStart, {
-  constructors: () => ({new: dart.definiteFunctionType(io._BufferAndStart, [core.List, core.int])}),
   fields: () => ({
     buffer: core.List,
     start: core.int
@@ -37922,15 +36179,6 @@ io._CryptoUtils = class _CryptoUtils extends core.Object {
   }
 };
 dart.setSignature(io._CryptoUtils, {
-  sfields: () => ({
-    PAD: core.int,
-    CR: core.int,
-    LF: core.int,
-    LINE_LENGTH: core.int,
-    _encodeTable: core.String,
-    _encodeTableUrlSafe: core.String,
-    _decodeTable: ListOfint()
-  }),
   statics: () => ({
     bytesToHex: dart.definiteFunctionType(core.String, [ListOfint()]),
     bytesToBase64: dart.definiteFunctionType(core.String, [ListOfint()], [core.bool, core.bool]),
@@ -38073,7 +36321,6 @@ io._HashBase = class _HashBase extends core.Object {
   }
 };
 dart.setSignature(io._HashBase, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HashBase, [core.int, core.int, core.bool])}),
   fields: () => ({
     [_chunkSizeInWords]: core.int,
     [_digestSizeInWords]: core.int,
@@ -38144,14 +36391,9 @@ io._MD5 = class _MD5 extends io._HashBase {
   }
 };
 dart.setSignature(io._MD5, {
-  constructors: () => ({new: dart.definiteFunctionType(io._MD5, [])}),
   methods: () => ({
     newInstance: dart.definiteFunctionType(io._MD5, []),
     [_updateHash]: dart.definiteFunctionType(dart.void, [ListOfint()])
-  }),
-  sfields: () => ({
-    _k: ListOfint(),
-    _r: ListOfint()
   })
 });
 io._MD5._k = dart.constList([3614090360, 3905402710, 606105819, 3250441966, 4118548399, 1200080426, 2821735955, 4249261313, 1770035416, 2336552879, 4294925233, 2304563134, 1804603682, 4254626195, 2792965006, 1236535329, 4129170786, 3225465664, 643717713, 3921069994, 3593408605, 38016083, 3634488961, 3889429448, 568446438, 3275163606, 4107603335, 1163531501, 2850285829, 4243563512, 1735328473, 2368359562, 4294588738, 2272392833, 1839030562, 4259657740, 2763975236, 1272893353, 4139469664, 3200236656, 681279174, 3936430074, 3572445317, 76029189, 3654602809, 3873151461, 530742520, 3299628645, 4096336452, 1126891415, 2878612391, 4237533241, 1700485571, 2399980690, 4293915773, 2240044497, 1873313359, 4264355552, 2734768916, 1309151649, 4149444226, 3174756917, 718787259, 3951481745], core.int);
@@ -38208,7 +36450,6 @@ io._SHA1 = class _SHA1 extends io._HashBase {
   }
 };
 dart.setSignature(io._SHA1, {
-  constructors: () => ({new: dart.definiteFunctionType(io._SHA1, [])}),
   fields: () => ({[_w]: ListOfint()}),
   methods: () => ({
     newInstance: dart.definiteFunctionType(io._SHA1, []),
@@ -38216,24 +36457,6 @@ dart.setSignature(io._SHA1, {
   })
 });
 io.ZLibOption = class ZLibOption extends core.Object {};
-dart.setSignature(io.ZLibOption, {
-  sfields: () => ({
-    MIN_WINDOW_BITS: core.int,
-    MAX_WINDOW_BITS: core.int,
-    DEFAULT_WINDOW_BITS: core.int,
-    MIN_LEVEL: core.int,
-    MAX_LEVEL: core.int,
-    DEFAULT_LEVEL: core.int,
-    MIN_MEM_LEVEL: core.int,
-    MAX_MEM_LEVEL: core.int,
-    DEFAULT_MEM_LEVEL: core.int,
-    STRATEGY_FILTERED: core.int,
-    STRATEGY_HUFFMAN_ONLY: core.int,
-    STRATEGY_RLE: core.int,
-    STRATEGY_FIXED: core.int,
-    STRATEGY_DEFAULT: core.int
-  })
-});
 io.ZLibOption.MIN_WINDOW_BITS = 8;
 io.ZLibOption.MAX_WINDOW_BITS = 15;
 io.ZLibOption.DEFAULT_WINDOW_BITS = 15;
@@ -38290,10 +36513,6 @@ io.ZLibCodec = class ZLibCodec extends convert.Codec$(core.List$(core.int), core
 dart.addSimpleTypeTests(io.ZLibCodec);
 dart.defineNamedConstructor(io.ZLibCodec, '_default');
 dart.setSignature(io.ZLibCodec, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io.ZLibCodec, [], {level: core.int, windowBits: core.int, memLevel: core.int, strategy: core.int, dictionary: ListOfint(), raw: core.bool, gzip: core.bool}),
-    _default: dart.definiteFunctionType(io.ZLibCodec, [])
-  }),
   fields: () => ({
     gzip: core.bool,
     level: core.int,
@@ -38351,10 +36570,6 @@ io.GZipCodec = class GZipCodec extends convert.Codec$(core.List$(core.int), core
 dart.addSimpleTypeTests(io.GZipCodec);
 dart.defineNamedConstructor(io.GZipCodec, '_default');
 dart.setSignature(io.GZipCodec, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io.GZipCodec, [], {level: core.int, windowBits: core.int, memLevel: core.int, strategy: core.int, dictionary: ListOfint(), raw: core.bool, gzip: core.bool}),
-    _default: dart.definiteFunctionType(io.GZipCodec, [])
-  }),
   fields: () => ({
     gzip: core.bool,
     level: core.int,
@@ -38408,7 +36623,6 @@ io.ZLibEncoder = class ZLibEncoder extends convert.Converter$(core.List$(core.in
 };
 dart.addSimpleTypeTests(io.ZLibEncoder);
 dart.setSignature(io.ZLibEncoder, {
-  constructors: () => ({new: dart.definiteFunctionType(io.ZLibEncoder, [], {gzip: core.bool, level: core.int, windowBits: core.int, memLevel: core.int, strategy: core.int, dictionary: ListOfint(), raw: core.bool})}),
   fields: () => ({
     gzip: core.bool,
     level: core.int,
@@ -38450,7 +36664,6 @@ io.ZLibDecoder = class ZLibDecoder extends convert.Converter$(core.List$(core.in
 };
 dart.addSimpleTypeTests(io.ZLibDecoder);
 dart.setSignature(io.ZLibDecoder, {
-  constructors: () => ({new: dart.definiteFunctionType(io.ZLibDecoder, [], {windowBits: core.int, dictionary: ListOfint(), raw: core.bool})}),
   fields: () => ({
     windowBits: core.int,
     dictionary: ListOfint(),
@@ -38540,7 +36753,6 @@ io._FilterSink = class _FilterSink extends convert.ByteConversionSink {
   }
 };
 dart.setSignature(io._FilterSink, {
-  constructors: () => ({new: dart.definiteFunctionType(io._FilterSink, [convert.ByteConversionSink, io._Filter])}),
   fields: () => ({
     [_filter$]: io._Filter,
     [_sink$0]: convert.ByteConversionSink,
@@ -38558,17 +36770,11 @@ io._ZLibEncoderSink = class _ZLibEncoderSink extends io._FilterSink {
     super.new(sink, io._Filter._newZLibDeflateFilter(gzip, level, windowBits, memLevel, strategy, dictionary, raw));
   }
 };
-dart.setSignature(io._ZLibEncoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(io._ZLibEncoderSink, [convert.ByteConversionSink, core.bool, core.int, core.int, core.int, core.int, ListOfint(), core.bool])})
-});
 io._ZLibDecoderSink = class _ZLibDecoderSink extends io._FilterSink {
   new(sink, windowBits, dictionary, raw) {
     super.new(sink, io._Filter._newZLibInflateFilter(windowBits, dictionary, raw));
   }
 };
-dart.setSignature(io._ZLibDecoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(io._ZLibDecoderSink, [convert.ByteConversionSink, core.int, ListOfint(), core.bool])})
-});
 io._Filter = class _Filter extends core.Object {
   static _newZLibDeflateFilter(gzip, level, windowBits, memLevel, strategy, dictionary, raw) {
     dart.throw(new core.UnsupportedError("_newZLibDeflateFilter"));
@@ -38629,16 +36835,7 @@ io.Directory = class Directory extends core.Object {
 };
 io.Directory[dart.implements] = () => [io.FileSystemEntity];
 dart.setSignature(io.Directory, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io.Directory, [core.String]),
-    fromUri: dart.definiteFunctionType(io.Directory, [core.Uri])
-  }),
-  fields: () => ({path: core.String}),
-  sgetters: () => ({
-    current: dart.definiteFunctionType(io.Directory, []),
-    systemTemp: dart.definiteFunctionType(io.Directory, [])
-  }),
-  ssetters: () => ({current: dart.definiteFunctionType(dart.void, [dart.dynamic])})
+  fields: () => ({path: core.String})
 });
 const _isErrorResponse = Symbol('_isErrorResponse');
 const _exceptionOrErrorFromResponse = Symbol('_exceptionOrErrorFromResponse');
@@ -38831,11 +37028,6 @@ dart.setSignature(io.FileSystemEntity, {
     deleteSync: dart.definiteFunctionType(dart.void, [], {recursive: core.bool}),
     watch: dart.definiteFunctionType(async.Stream$(io.FileSystemEvent), [], {events: core.int, recursive: core.bool})
   }),
-  sfields: () => ({
-    _absoluteWindowsPathPattern: core.RegExp,
-    _parentRegExp: core.RegExp
-  }),
-  sgetters: () => ({isWatchSupported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     identical: dart.definiteFunctionType(async.Future$(core.bool), [core.String, core.String]),
     identicalSync: dart.definiteFunctionType(core.bool, [core.String, core.String]),
@@ -39113,7 +37305,6 @@ io._Directory = class _Directory extends io.FileSystemEntity {
 };
 io._Directory[dart.implements] = () => [io.Directory];
 dart.setSignature(io._Directory, {
-  constructors: () => ({new: dart.definiteFunctionType(io._Directory, [core.String])}),
   fields: () => ({path: core.String}),
   getters: () => ({absolute: dart.definiteFunctionType(io.Directory, [])}),
   methods: () => ({
@@ -39135,11 +37326,6 @@ dart.setSignature(io._Directory, {
     [_isErrorResponse]: dart.definiteFunctionType(core.bool, [dart.dynamic]),
     [_exceptionOrErrorFromResponse]: dart.definiteFunctionType(dart.dynamic, [dart.dynamic, core.String])
   }),
-  sgetters: () => ({
-    current: dart.definiteFunctionType(io.Directory, []),
-    systemTemp: dart.definiteFunctionType(io.Directory, [])
-  }),
-  ssetters: () => ({current: dart.definiteFunctionType(dart.void, [dart.dynamic])}),
   statics: () => ({
     _current: dart.definiteFunctionType(dart.dynamic, []),
     _setCurrent: dart.definiteFunctionType(dart.dynamic, [dart.dynamic]),
@@ -39158,9 +37344,6 @@ io._AsyncDirectoryListerOps = class _AsyncDirectoryListerOps extends core.Object
     dart.throw(new core.UnsupportedError("Directory._list"));
   }
 };
-dart.setSignature(io._AsyncDirectoryListerOps, {
-  constructors: () => ({new: dart.definiteFunctionType(io._AsyncDirectoryListerOps, [core.int])})
-});
 const _ops = Symbol('_ops');
 const _pointer = Symbol('_pointer');
 const _cleanup = Symbol('_cleanup');
@@ -39298,7 +37481,6 @@ io._AsyncDirectoryLister = class _AsyncDirectoryLister extends core.Object {
   }
 };
 dart.setSignature(io._AsyncDirectoryLister, {
-  constructors: () => ({new: dart.definiteFunctionType(io._AsyncDirectoryLister, [core.String, core.bool, core.bool])}),
   fields: () => ({
     path: core.String,
     recursive: core.bool,
@@ -39320,17 +37502,6 @@ dart.setSignature(io._AsyncDirectoryLister, {
     [_cleanup]: dart.definiteFunctionType(dart.void, []),
     close: dart.definiteFunctionType(dart.void, []),
     error: dart.definiteFunctionType(dart.void, [dart.dynamic])
-  }),
-  sfields: () => ({
-    LIST_FILE: core.int,
-    LIST_DIRECTORY: core.int,
-    LIST_LINK: core.int,
-    LIST_ERROR: core.int,
-    LIST_DONE: core.int,
-    RESPONSE_TYPE: core.int,
-    RESPONSE_PATH: core.int,
-    RESPONSE_COMPLETE: core.int,
-    RESPONSE_ERROR: core.int
   })
 });
 io._AsyncDirectoryLister.LIST_FILE = 0;
@@ -39359,15 +37530,7 @@ io.FileMode = class FileMode extends core.Object {
 };
 dart.defineNamedConstructor(io.FileMode, '_internal');
 dart.setSignature(io.FileMode, {
-  constructors: () => ({_internal: dart.definiteFunctionType(io.FileMode, [core.int])}),
-  fields: () => ({[_mode]: core.int}),
-  sfields: () => ({
-    READ: io.FileMode,
-    WRITE: io.FileMode,
-    APPEND: io.FileMode,
-    WRITE_ONLY: io.FileMode,
-    WRITE_ONLY_APPEND: io.FileMode
-  })
+  fields: () => ({[_mode]: core.int})
 });
 dart.defineLazy(io.FileMode, {
   get READ() {
@@ -39418,12 +37581,6 @@ io.File = class File extends core.Object {
   }
 };
 io.File[dart.implements] = () => [io.FileSystemEntity];
-dart.setSignature(io.File, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io.File, [core.String]),
-    fromUri: dart.definiteFunctionType(io.File, [core.Uri])
-  })
-});
 io.RandomAccessFile = class RandomAccessFile extends core.Object {};
 io.FileSystemException = class FileSystemException extends core.Object {
   new(message, path, osError) {
@@ -39458,7 +37615,6 @@ io.FileSystemException = class FileSystemException extends core.Object {
 };
 io.FileSystemException[dart.implements] = () => [io.IOException];
 dart.setSignature(io.FileSystemException, {
-  constructors: () => ({new: dart.definiteFunctionType(io.FileSystemException, [], [core.String, core.String, io.OSError])}),
   fields: () => ({
     message: core.String,
     path: core.String,
@@ -39625,10 +37781,6 @@ io._FileStream = class _FileStream extends async.Stream$(core.List$(core.int)) {
 dart.addSimpleTypeTests(io._FileStream);
 dart.defineNamedConstructor(io._FileStream, 'forStdin');
 dart.setSignature(io._FileStream, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io._FileStream, [core.String, core.int, core.int]),
-    forStdin: dart.definiteFunctionType(io._FileStream, [])
-  }),
   fields: () => ({
     [_controller$0]: StreamControllerOfListOfint(),
     [_path$]: core.String,
@@ -39642,7 +37794,7 @@ dart.setSignature(io._FileStream, {
     [_atEnd]: core.bool
   }),
   methods: () => ({
-    listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [ListOfintTovoid()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool}),
+    listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [_ChunkedConversionCallbackOfListOfint()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool}),
     [_setupController]: dart.definiteFunctionType(dart.void, []),
     [_closeFile]: dart.definiteFunctionType(async.Future, []),
     [_readBlock]: dart.definiteFunctionType(dart.void, []),
@@ -39696,10 +37848,6 @@ io._FileStreamConsumer = class _FileStreamConsumer extends async.StreamConsumer$
 dart.addSimpleTypeTests(io._FileStreamConsumer);
 dart.defineNamedConstructor(io._FileStreamConsumer, 'fromStdio');
 dart.setSignature(io._FileStreamConsumer, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io._FileStreamConsumer, [io.File, io.FileMode]),
-    fromStdio: dart.definiteFunctionType(io._FileStreamConsumer, [core.int])
-  }),
   fields: () => ({
     [_file]: io.File,
     [_openFuture]: FutureOfRandomAccessFile()
@@ -40029,7 +38177,6 @@ io._File = class _File extends io.FileSystemEntity {
 };
 io._File[dart.implements] = () => [io.File];
 dart.setSignature(io._File, {
-  constructors: () => ({new: dart.definiteFunctionType(io._File, [core.String])}),
   fields: () => ({path: core.String}),
   getters: () => ({absolute: dart.definiteFunctionType(io.File, [])}),
   methods: () => ({
@@ -40089,9 +38236,6 @@ io._RandomAccessFileOps = class _RandomAccessFileOps extends core.Object {
     dart.throw(new core.UnsupportedError("RandomAccessFile"));
   }
 };
-dart.setSignature(io._RandomAccessFileOps, {
-  constructors: () => ({new: dart.definiteFunctionType(io._RandomAccessFileOps, [core.int])})
-});
 const _asyncDispatched = Symbol('_asyncDispatched');
 const _fileService = Symbol('_fileService');
 const _resourceInfo = Symbol('_resourceInfo');
@@ -40488,7 +38632,6 @@ io._RandomAccessFile = class _RandomAccessFile extends core.Object {
 };
 io._RandomAccessFile[dart.implements] = () => [io.RandomAccessFile];
 dart.setSignature(io._RandomAccessFile, {
-  constructors: () => ({new: dart.definiteFunctionType(io._RandomAccessFile, [core.int, core.String])}),
   fields: () => ({
     path: core.String,
     [_asyncDispatched]: core.bool,
@@ -40531,12 +38674,6 @@ dart.setSignature(io._RandomAccessFile, {
     [_pointer]: dart.definiteFunctionType(core.int, []),
     [_dispatch]: dart.definiteFunctionType(async.Future, [core.int, core.List], {markClosed: core.bool}),
     [_checkAvailable]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({
-    _connectedResourceHandler: core.bool,
-    LOCK_UNLOCK: core.int,
-    LOCK_SHARED: core.int,
-    LOCK_EXCLUSIVE: core.int
   })
 });
 io._RandomAccessFile._connectedResourceHandler = false;
@@ -40557,15 +38694,7 @@ io.FileSystemEntityType = class FileSystemEntityType extends core.Object {
 };
 dart.defineNamedConstructor(io.FileSystemEntityType, '_internal');
 dart.setSignature(io.FileSystemEntityType, {
-  constructors: () => ({_internal: dart.definiteFunctionType(io.FileSystemEntityType, [core.int])}),
   fields: () => ({[_type]: core.int}),
-  sfields: () => ({
-    FILE: io.FileSystemEntityType,
-    DIRECTORY: io.FileSystemEntityType,
-    LINK: io.FileSystemEntityType,
-    NOT_FOUND: io.FileSystemEntityType,
-    _typeList: ListOfFileSystemEntityType()
-  }),
   statics: () => ({_lookup: dart.definiteFunctionType(io.FileSystemEntityType, [core.int])}),
   names: ['_lookup']
 });
@@ -40646,10 +38775,6 @@ io.FileStat = class FileStat extends core.Object {
 dart.defineNamedConstructor(io.FileStat, '_internal');
 dart.defineNamedConstructor(io.FileStat, '_internalNotFound');
 dart.setSignature(io.FileStat, {
-  constructors: () => ({
-    _internal: dart.definiteFunctionType(io.FileStat, [core.DateTime, core.DateTime, core.DateTime, io.FileSystemEntityType, core.int, core.int]),
-    _internalNotFound: dart.definiteFunctionType(io.FileStat, [])
-  }),
   fields: () => ({
     changed: core.DateTime,
     modified: core.DateTime,
@@ -40659,15 +38784,6 @@ dart.setSignature(io.FileStat, {
     size: core.int
   }),
   methods: () => ({modeString: dart.definiteFunctionType(core.String, [])}),
-  sfields: () => ({
-    _TYPE: core.int,
-    _CHANGED_TIME: core.int,
-    _MODIFIED_TIME: core.int,
-    _ACCESSED_TIME: core.int,
-    _MODE: core.int,
-    _SIZE: core.int,
-    _notFound: io.FileStat
-  }),
   statics: () => ({
     _statSync: dart.definiteFunctionType(dart.dynamic, [core.String]),
     statSync: dart.definiteFunctionType(io.FileStat, [core.String]),
@@ -40695,21 +38811,10 @@ io.FileSystemEvent = class FileSystemEvent extends core.Object {
 };
 dart.defineNamedConstructor(io.FileSystemEvent, '_');
 dart.setSignature(io.FileSystemEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(io.FileSystemEvent, [core.int, core.String, core.bool])}),
   fields: () => ({
     type: core.int,
     path: core.String,
     isDirectory: core.bool
-  }),
-  sfields: () => ({
-    CREATE: core.int,
-    MODIFY: core.int,
-    DELETE: core.int,
-    MOVE: core.int,
-    ALL: core.int,
-    _MODIFY_ATTRIBUTES: core.int,
-    _DELETE_SELF: core.int,
-    _IS_DIR: core.int
   })
 });
 io.FileSystemEvent.CREATE = 1 << 0;
@@ -40733,9 +38838,6 @@ io.FileSystemCreateEvent = class FileSystemCreateEvent extends io.FileSystemEven
   }
 };
 dart.defineNamedConstructor(io.FileSystemCreateEvent, '_');
-dart.setSignature(io.FileSystemCreateEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(io.FileSystemCreateEvent, [dart.dynamic, dart.dynamic])})
-});
 io.FileSystemModifyEvent = class FileSystemModifyEvent extends io.FileSystemEvent {
   _(path, isDirectory, contentChanged) {
     this.contentChanged = contentChanged;
@@ -40747,7 +38849,6 @@ io.FileSystemModifyEvent = class FileSystemModifyEvent extends io.FileSystemEven
 };
 dart.defineNamedConstructor(io.FileSystemModifyEvent, '_');
 dart.setSignature(io.FileSystemModifyEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(io.FileSystemModifyEvent, [dart.dynamic, dart.dynamic, core.bool])}),
   fields: () => ({contentChanged: core.bool})
 });
 io.FileSystemDeleteEvent = class FileSystemDeleteEvent extends io.FileSystemEvent {
@@ -40759,9 +38860,6 @@ io.FileSystemDeleteEvent = class FileSystemDeleteEvent extends io.FileSystemEven
   }
 };
 dart.defineNamedConstructor(io.FileSystemDeleteEvent, '_');
-dart.setSignature(io.FileSystemDeleteEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(io.FileSystemDeleteEvent, [dart.dynamic, dart.dynamic])})
-});
 io.FileSystemMoveEvent = class FileSystemMoveEvent extends io.FileSystemEvent {
   _(path, isDirectory, destination) {
     this.destination = destination;
@@ -40777,7 +38875,6 @@ io.FileSystemMoveEvent = class FileSystemMoveEvent extends io.FileSystemEvent {
 };
 dart.defineNamedConstructor(io.FileSystemMoveEvent, '_');
 dart.setSignature(io.FileSystemMoveEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(io.FileSystemMoveEvent, [dart.dynamic, dart.dynamic, core.String])}),
   fields: () => ({destination: core.String})
 });
 io._FileSystemWatcher = class _FileSystemWatcher extends core.Object {
@@ -40789,57 +38886,10 @@ io._FileSystemWatcher = class _FileSystemWatcher extends core.Object {
   }
 };
 dart.setSignature(io._FileSystemWatcher, {
-  sgetters: () => ({isSupported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({_watch: dart.definiteFunctionType(async.Stream$(io.FileSystemEvent), [core.String, core.int, core.bool])}),
   names: ['_watch']
 });
 io.HttpStatus = class HttpStatus extends core.Object {};
-dart.setSignature(io.HttpStatus, {
-  sfields: () => ({
-    CONTINUE: core.int,
-    SWITCHING_PROTOCOLS: core.int,
-    OK: core.int,
-    CREATED: core.int,
-    ACCEPTED: core.int,
-    NON_AUTHORITATIVE_INFORMATION: core.int,
-    NO_CONTENT: core.int,
-    RESET_CONTENT: core.int,
-    PARTIAL_CONTENT: core.int,
-    MULTIPLE_CHOICES: core.int,
-    MOVED_PERMANENTLY: core.int,
-    FOUND: core.int,
-    MOVED_TEMPORARILY: core.int,
-    SEE_OTHER: core.int,
-    NOT_MODIFIED: core.int,
-    USE_PROXY: core.int,
-    TEMPORARY_REDIRECT: core.int,
-    BAD_REQUEST: core.int,
-    UNAUTHORIZED: core.int,
-    PAYMENT_REQUIRED: core.int,
-    FORBIDDEN: core.int,
-    NOT_FOUND: core.int,
-    METHOD_NOT_ALLOWED: core.int,
-    NOT_ACCEPTABLE: core.int,
-    PROXY_AUTHENTICATION_REQUIRED: core.int,
-    REQUEST_TIMEOUT: core.int,
-    CONFLICT: core.int,
-    GONE: core.int,
-    LENGTH_REQUIRED: core.int,
-    PRECONDITION_FAILED: core.int,
-    REQUEST_ENTITY_TOO_LARGE: core.int,
-    REQUEST_URI_TOO_LONG: core.int,
-    UNSUPPORTED_MEDIA_TYPE: core.int,
-    REQUESTED_RANGE_NOT_SATISFIABLE: core.int,
-    EXPECTATION_FAILED: core.int,
-    INTERNAL_SERVER_ERROR: core.int,
-    NOT_IMPLEMENTED: core.int,
-    BAD_GATEWAY: core.int,
-    SERVICE_UNAVAILABLE: core.int,
-    GATEWAY_TIMEOUT: core.int,
-    HTTP_VERSION_NOT_SUPPORTED: core.int,
-    NETWORK_CONNECT_TIMEOUT_ERROR: core.int
-  })
-});
 io.HttpStatus.CONTINUE = 100;
 io.HttpStatus.SWITCHING_PROTOCOLS = 101;
 io.HttpStatus.OK = 200;
@@ -40902,7 +38952,6 @@ io.HttpServer = class HttpServer extends core.Object {
 };
 io.HttpServer[dart.implements] = () => [StreamOfHttpRequest()];
 dart.setSignature(io.HttpServer, {
-  constructors: () => ({listenOn: dart.definiteFunctionType(io.HttpServer, [io.ServerSocket])}),
   fields: () => ({
     serverHeader: core.String,
     autoCompress: core.bool,
@@ -40954,61 +39003,6 @@ dart.setSignature(io.HttpHeaders, {
     contentLength: core.int,
     persistentConnection: core.bool,
     chunkedTransferEncoding: core.bool
-  }),
-  sfields: () => ({
-    ACCEPT: core.String,
-    ACCEPT_CHARSET: core.String,
-    ACCEPT_ENCODING: core.String,
-    ACCEPT_LANGUAGE: core.String,
-    ACCEPT_RANGES: core.String,
-    AGE: core.String,
-    ALLOW: core.String,
-    AUTHORIZATION: core.String,
-    CACHE_CONTROL: core.String,
-    CONNECTION: core.String,
-    CONTENT_ENCODING: core.String,
-    CONTENT_LANGUAGE: core.String,
-    CONTENT_LENGTH: core.String,
-    CONTENT_LOCATION: core.String,
-    CONTENT_MD5: core.String,
-    CONTENT_RANGE: core.String,
-    CONTENT_TYPE: core.String,
-    DATE: core.String,
-    ETAG: core.String,
-    EXPECT: core.String,
-    EXPIRES: core.String,
-    FROM: core.String,
-    HOST: core.String,
-    IF_MATCH: core.String,
-    IF_MODIFIED_SINCE: core.String,
-    IF_NONE_MATCH: core.String,
-    IF_RANGE: core.String,
-    IF_UNMODIFIED_SINCE: core.String,
-    LAST_MODIFIED: core.String,
-    LOCATION: core.String,
-    MAX_FORWARDS: core.String,
-    PRAGMA: core.String,
-    PROXY_AUTHENTICATE: core.String,
-    PROXY_AUTHORIZATION: core.String,
-    RANGE: core.String,
-    REFERER: core.String,
-    RETRY_AFTER: core.String,
-    SERVER: core.String,
-    TE: core.String,
-    TRAILER: core.String,
-    TRANSFER_ENCODING: core.String,
-    UPGRADE: core.String,
-    USER_AGENT: core.String,
-    VARY: core.String,
-    VIA: core.String,
-    WARNING: core.String,
-    WWW_AUTHENTICATE: core.String,
-    COOKIE: core.String,
-    SET_COOKIE: core.String,
-    GENERAL_HEADERS: ListOfString(),
-    ENTITY_HEADERS: ListOfString(),
-    RESPONSE_HEADERS: ListOfString(),
-    REQUEST_HEADERS: ListOfString()
   })
 });
 io.HttpHeaders.ACCEPT = "accept";
@@ -41088,7 +39082,6 @@ io.HeaderValue = class HeaderValue extends core.Object {
   }
 };
 dart.setSignature(io.HeaderValue, {
-  constructors: () => ({new: dart.definiteFunctionType(io.HeaderValue, [], [core.String, MapOfString$String()])}),
   statics: () => ({parse: dart.definiteFunctionType(io.HeaderValue, [core.String], {parameterSeparator: core.String, valueSeparator: core.String, preserveBackslash: core.bool})}),
   names: ['parse']
 });
@@ -41106,13 +39099,6 @@ io.ContentType = class ContentType extends core.Object {
 };
 io.ContentType[dart.implements] = () => [io.HeaderValue];
 dart.setSignature(io.ContentType, {
-  constructors: () => ({new: dart.definiteFunctionType(io.ContentType, [core.String, core.String], {charset: core.String, parameters: MapOfString$String()})}),
-  sfields: () => ({
-    TEXT: io.ContentType,
-    HTML: io.ContentType,
-    JSON: io.ContentType,
-    BINARY: io.ContentType
-  }),
   statics: () => ({parse: dart.definiteFunctionType(io.ContentType, [core.String])}),
   names: ['parse']
 });
@@ -41141,10 +39127,6 @@ io.Cookie = class Cookie extends core.Object {
   }
 };
 dart.setSignature(io.Cookie, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io.Cookie, [], [core.String, core.String]),
-    fromSetCookieValue: dart.definiteFunctionType(io.Cookie, [core.String])
-  }),
   fields: () => ({
     name: core.String,
     value: core.String,
@@ -41190,16 +39172,11 @@ io.HttpClient = class HttpClient extends core.Object {
   }
 };
 dart.setSignature(io.HttpClient, {
-  constructors: () => ({new: dart.definiteFunctionType(io.HttpClient, [], {context: io.SecurityContext})}),
   fields: () => ({
     idleTimeout: core.Duration,
     maxConnectionsPerHost: core.int,
     autoUncompress: core.bool,
     userAgent: core.String
-  }),
-  sfields: () => ({
-    DEFAULT_HTTP_PORT: core.int,
-    DEFAULT_HTTPS_PORT: core.int
   }),
   statics: () => ({findProxyFromEnvironment: dart.definiteFunctionType(core.String, [core.Uri], {environment: MapOfString$String()})}),
   names: ['findProxyFromEnvironment']
@@ -41233,17 +39210,11 @@ io.HttpClientBasicCredentials = class HttpClientBasicCredentials extends io.Http
     return new io._HttpClientBasicCredentials(username, password);
   }
 };
-dart.setSignature(io.HttpClientBasicCredentials, {
-  constructors: () => ({new: dart.definiteFunctionType(io.HttpClientBasicCredentials, [core.String, core.String])})
-});
 io.HttpClientDigestCredentials = class HttpClientDigestCredentials extends io.HttpClientCredentials {
   static new(username, password) {
     return new io._HttpClientDigestCredentials(username, password);
   }
 };
-dart.setSignature(io.HttpClientDigestCredentials, {
-  constructors: () => ({new: dart.definiteFunctionType(io.HttpClientDigestCredentials, [core.String, core.String])})
-});
 io.HttpConnectionInfo = class HttpConnectionInfo extends core.Object {};
 io.RedirectInfo = class RedirectInfo extends core.Object {};
 io.DetachedSocket = class DetachedSocket extends core.Object {};
@@ -41265,7 +39236,6 @@ io.HttpException = class HttpException extends core.Object {
 };
 io.HttpException[dart.implements] = () => [io.IOException];
 dart.setSignature(io.HttpException, {
-  constructors: () => ({new: dart.definiteFunctionType(io.HttpException, [core.String], {uri: core.Uri})}),
   fields: () => ({
     message: core.String,
     uri: core.Uri
@@ -41285,7 +39255,6 @@ io.RedirectException = class RedirectException extends core.Object {
 };
 io.RedirectException[dart.implements] = () => [io.HttpException];
 dart.setSignature(io.RedirectException, {
-  constructors: () => ({new: dart.definiteFunctionType(io.RedirectException, [core.String, ListOfRedirectInfo()])}),
   fields: () => ({
     message: core.String,
     redirects: ListOfRedirectInfo()
@@ -42025,7 +39994,7 @@ io._HttpHeaders = class _HttpHeaders extends core.Object {
       }
       offset = dart.notNull(offset) + dart.notNull(len);
     }
-    dart.fn(write, ListOfintTovoid$());
+    dart.fn(write, ListOfintTovoid());
     for (let name of this[_headers][dartx.keys]) {
       let values = this[_headers][dartx._get](name);
       let fold = core.bool._check(this[_foldHeader](name));
@@ -42206,7 +40175,6 @@ io._HttpHeaders = class _HttpHeaders extends core.Object {
 };
 io._HttpHeaders[dart.implements] = () => [io.HttpHeaders];
 dart.setSignature(io._HttpHeaders, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpHeaders, [core.String], {defaultPortForScheme: core.int, initialHeaders: io._HttpHeaders})}),
   fields: () => ({
     [_headers]: MapOfString$ListOfString(),
     protocolVersion: core.String,
@@ -42437,7 +40405,6 @@ io._HeaderValue = class _HeaderValue extends core.Object {
 };
 io._HeaderValue[dart.implements] = () => [io.HeaderValue];
 dart.setSignature(io._HeaderValue, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HeaderValue, [], [core.String, MapOfString$String()])}),
   fields: () => ({
     [_value$1]: core.String,
     [_parameters]: MapOfString$String(),
@@ -42513,10 +40480,6 @@ io._ContentType = class _ContentType extends io._HeaderValue {
 dart.defineNamedConstructor(io._ContentType, '_');
 io._ContentType[dart.implements] = () => [io.ContentType];
 dart.setSignature(io._ContentType, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io._ContentType, [core.String, core.String, core.String, MapOfString$String()]),
-    _: dart.definiteFunctionType(io._ContentType, [])
-  }),
   fields: () => ({
     [_primaryType]: core.String,
     [_subType]: core.String
@@ -42689,10 +40652,6 @@ io._Cookie = class _Cookie extends core.Object {
 dart.defineNamedConstructor(io._Cookie, 'fromSetCookieValue');
 io._Cookie[dart.implements] = () => [io.Cookie];
 dart.setSignature(io._Cookie, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io._Cookie, [], [core.String, core.String]),
-    fromSetCookieValue: dart.definiteFunctionType(io._Cookie, [core.String])
-  }),
   fields: () => ({
     name: core.String,
     value: core.String,
@@ -42750,7 +40709,6 @@ io._HttpIncoming = class _HttpIncoming extends async.Stream$(core.List$(core.int
 };
 dart.addSimpleTypeTests(io._HttpIncoming);
 dart.setSignature(io._HttpIncoming, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpIncoming, [io._HttpHeaders, core.int, StreamOfListOfint()])}),
   fields: () => ({
     [_transferLength]: core.int,
     [_dataCompleter]: async.Completer,
@@ -42769,7 +40727,7 @@ dart.setSignature(io._HttpIncoming, {
     dataDone: dart.definiteFunctionType(async.Future, [])
   }),
   methods: () => ({
-    listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [ListOfintTovoid()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool}),
+    listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [_ChunkedConversionCallbackOfListOfint()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool}),
     close: dart.definiteFunctionType(dart.void, [core.bool])
   })
 });
@@ -42800,7 +40758,6 @@ io._HttpInboundMessage = class _HttpInboundMessage extends async.Stream$(core.Li
 };
 dart.addSimpleTypeTests(io._HttpInboundMessage);
 dart.setSignature(io._HttpInboundMessage, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpInboundMessage, [io._HttpIncoming])}),
   fields: () => ({
     [_incoming]: io._HttpIncoming,
     [_cookies]: ListOfCookie()
@@ -42899,7 +40856,6 @@ io._HttpRequest = class _HttpRequest extends io._HttpInboundMessage {
 };
 io._HttpRequest[dart.implements] = () => [io.HttpRequest];
 dart.setSignature(io._HttpRequest, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpRequest, [io.HttpResponse, io._HttpIncoming, io._HttpServer, io._HttpConnection])}),
   fields: () => ({
     response: io.HttpResponse,
     [_httpServer]: io._HttpServer,
@@ -42915,7 +40871,7 @@ dart.setSignature(io._HttpRequest, {
     connectionInfo: dart.definiteFunctionType(io.HttpConnectionInfo, []),
     certificate: dart.definiteFunctionType(io.X509Certificate, [])
   }),
-  methods: () => ({listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [ListOfintTovoid()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool})})
+  methods: () => ({listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [_ChunkedConversionCallbackOfListOfint()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool})})
 });
 const _responseRedirects = Symbol('_responseRedirects');
 const _httpRequest = Symbol('_httpRequest');
@@ -43111,7 +41067,6 @@ io._HttpClientResponse = class _HttpClientResponse extends io._HttpInboundMessag
 };
 io._HttpClientResponse[dart.implements] = () => [io.HttpClientResponse];
 dart.setSignature(io._HttpClientResponse, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpClientResponse, [io._HttpIncoming, io._HttpClientRequest, io._HttpClient])}),
   fields: () => ({
     [_httpClient]: io._HttpClient,
     [_httpRequest]: io._HttpClientRequest
@@ -43128,7 +41083,7 @@ dart.setSignature(io._HttpClientResponse, {
   }),
   methods: () => ({
     redirect: dart.definiteFunctionType(async.Future$(io.HttpClientResponse), [], [core.String, core.Uri, core.bool]),
-    listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [ListOfintTovoid()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool}),
+    listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [_ChunkedConversionCallbackOfListOfint()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool}),
     detachSocket: dart.definiteFunctionType(async.Future$(io.Socket), []),
     [_authenticate]: dart.definiteFunctionType(async.Future$(io.HttpClientResponse), [core.bool])
   })
@@ -43269,7 +41224,6 @@ io._StreamSinkImpl$ = dart.generic(T => {
   dart.addTypeTests(_StreamSinkImpl);
   _StreamSinkImpl[dart.implements] = () => [StreamSinkOfT()];
   dart.setSignature(_StreamSinkImpl, {
-    constructors: () => ({new: dart.definiteFunctionType(io._StreamSinkImpl$(T), [StreamConsumerOfT()])}),
     fields: () => ({
       [_target$]: StreamConsumerOfT(),
       [_doneCompleter]: async.Completer,
@@ -43345,7 +41299,6 @@ io._IOSinkImpl = class _IOSinkImpl extends io._StreamSinkImpl$(core.List$(core.i
 dart.addSimpleTypeTests(io._IOSinkImpl);
 io._IOSinkImpl[dart.implements] = () => [io.IOSink];
 dart.setSignature(io._IOSinkImpl, {
-  constructors: () => ({new: dart.definiteFunctionType(io._IOSinkImpl, [StreamConsumerOfListOfint(), convert.Encoding])}),
   fields: () => ({
     [_encoding]: convert.Encoding,
     [_encodingMutable]: core.bool
@@ -43423,7 +41376,6 @@ io._HttpOutboundMessage$ = dart.generic(T => {
   }
   dart.addTypeTests(_HttpOutboundMessage);
   dart.setSignature(_HttpOutboundMessage, {
-    constructors: () => ({new: dart.definiteFunctionType(io._HttpOutboundMessage$(T), [core.Uri, core.String, io._HttpOutgoing], {initialHeaders: io._HttpHeaders})}),
     fields: () => ({
       [_encodingSet]: core.bool,
       [_bufferOutput]: core.bool,
@@ -43533,7 +41485,7 @@ io._HttpResponse = class _HttpResponse extends io._HttpOutboundMessage$(io.HttpR
       }
       offset = dart.notNull(offset) + dart.notNull(len);
     }
-    dart.fn(write, ListOfintTovoid$());
+    dart.fn(write, ListOfintTovoid());
     if (this.headers.protocolVersion == "1.1") {
       write(io._Const.HTTP11);
     } else {
@@ -43777,7 +41729,6 @@ io._HttpResponse = class _HttpResponse extends io._HttpOutboundMessage$(io.HttpR
 dart.addSimpleTypeTests(io._HttpResponse);
 io._HttpResponse[dart.implements] = () => [io.HttpResponse];
 dart.setSignature(io._HttpResponse, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpResponse, [core.Uri, core.String, io._HttpOutgoing, io.HttpHeaders, core.String])}),
   fields: () => ({
     [_statusCode]: core.int,
     [_reasonPhrase]: core.String,
@@ -43915,7 +41866,7 @@ io._HttpClientRequest = class _HttpClientRequest extends io._HttpOutboundMessage
       }
       offset = dart.notNull(offset) + dart.notNull(len);
     }
-    dart.fn(write, ListOfintTovoid$());
+    dart.fn(write, ListOfintTovoid());
     write(this.method[dartx.codeUnits]);
     buffer[dartx._set]((() => {
       let x = offset;
@@ -43967,7 +41918,6 @@ io._HttpClientRequest = class _HttpClientRequest extends io._HttpOutboundMessage
 dart.addSimpleTypeTests(io._HttpClientRequest);
 io._HttpClientRequest[dart.implements] = () => [io.HttpClientRequest];
 dart.setSignature(io._HttpClientRequest, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpClientRequest, [io._HttpOutgoing, core.Uri, core.String, io._Proxy, io._HttpClient, io._HttpClientConnection])}),
   fields: () => ({
     method: core.String,
     uri: core.Uri,
@@ -44018,7 +41968,6 @@ io._HttpGZipSink = class _HttpGZipSink extends convert.ByteConversionSink {
   close() {}
 };
 dart.setSignature(io._HttpGZipSink, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpGZipSink, [core.Function])}),
   fields: () => ({[_consume]: core.Function}),
   methods: () => ({
     add: dart.definiteFunctionType(dart.void, [ListOfint()]),
@@ -44243,9 +42192,9 @@ io._HttpOutgoing = class _HttpOutgoing extends core.Object {
       dart.assert(this[_gzipSink] == null);
       this[_gzipSink] = new io.ZLibEncoder({gzip: true}).startChunkedConversion(new io._HttpGZipSink(dart.fn(data => {
         if (this[_gzipAdd] == null) return;
-        this[_addChunk$](this[_chunkHeader](core.int._check(dart.dload(data, 'length'))), ListOfintTovoid()._check(this[_gzipAdd]));
+        this[_addChunk$](this[_chunkHeader](core.int._check(dart.dload(data, 'length'))), _ChunkedConversionCallbackOfListOfint()._check(this[_gzipAdd]));
         this[_pendingChunkedFooter] = 2;
-        this[_addChunk$](data, ListOfintTovoid()._check(this[_gzipAdd]));
+        this[_addChunk$](data, _ChunkedConversionCallbackOfListOfint()._check(this[_gzipAdd]));
       }, dynamicToNull$())));
     }
   }
@@ -44320,7 +42269,6 @@ io._HttpOutgoing = class _HttpOutgoing extends core.Object {
 };
 io._HttpOutgoing[dart.implements] = () => [StreamConsumerOfListOfint()];
 dart.setSignature(io._HttpOutgoing, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpOutgoing, [io.Socket])}),
   fields: () => ({
     [_doneCompleter]: async.Completer,
     socket: io.Socket,
@@ -44349,13 +42297,9 @@ dart.setSignature(io._HttpOutgoing, {
     close: dart.definiteFunctionType(async.Future, []),
     setHeader: dart.definiteFunctionType(dart.void, [ListOfint(), core.int]),
     [_ignoreError]: dart.definiteFunctionType(core.bool, [dart.dynamic]),
-    [_addGZipChunk]: dart.definiteFunctionType(dart.void, [dart.dynamic, ListOfintTovoid()]),
-    [_addChunk$]: dart.definiteFunctionType(dart.void, [dart.dynamic, ListOfintTovoid()]),
+    [_addGZipChunk]: dart.definiteFunctionType(dart.void, [dart.dynamic, _ChunkedConversionCallbackOfListOfint()]),
+    [_addChunk$]: dart.definiteFunctionType(dart.void, [dart.dynamic, _ChunkedConversionCallbackOfListOfint()]),
     [_chunkHeader]: dart.definiteFunctionType(core.List$(core.int), [core.int])
-  }),
-  sfields: () => ({
-    _footerAndChunk0Length: ListOfint(),
-    _chunk0Length: ListOfint()
   })
 });
 dart.defineLazy(io._HttpOutgoing, {
@@ -44561,7 +42505,6 @@ io._HttpClientConnection = class _HttpClientConnection extends core.Object {
   }
 };
 dart.setSignature(io._HttpClientConnection, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpClientConnection, [core.String, io.Socket, io._HttpClient], [core.bool, io.SecurityContext])}),
   fields: () => ({
     key: core.String,
     [_socket]: io.Socket,
@@ -44597,7 +42540,6 @@ io._ConnectionInfo = class _ConnectionInfo extends core.Object {
   }
 };
 dart.setSignature(io._ConnectionInfo, {
-  constructors: () => ({new: dart.definiteFunctionType(io._ConnectionInfo, [io._HttpClientConnection, io._Proxy])}),
   fields: () => ({
     connection: io._HttpClientConnection,
     proxy: io._Proxy
@@ -44714,7 +42656,6 @@ io._ConnectionTarget = class _ConnectionTarget extends core.Object {
   }
 };
 dart.setSignature(io._ConnectionTarget, {
-  constructors: () => ({new: dart.definiteFunctionType(io._ConnectionTarget, [core.String, core.String, core.int, core.bool, io.SecurityContext])}),
   fields: () => ({
     key: core.String,
     host: core.String,
@@ -45057,7 +42998,6 @@ io._HttpClient = class _HttpClient extends core.Object {
 };
 io._HttpClient[dart.implements] = () => [io.HttpClient];
 dart.setSignature(io._HttpClient, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpClient, [io.SecurityContext])}),
   fields: () => ({
     [_closing]: core.bool,
     [_closingForcefully]: core.bool,
@@ -45113,7 +43053,6 @@ dart.setSignature(io._HttpClient, {
     [_removeCredentials]: dart.definiteFunctionType(dart.void, [io._Credentials]),
     [_removeProxyCredentials]: dart.definiteFunctionType(dart.void, [io._Credentials])
   }),
-  sfields: () => ({_platformEnvironmentCache: MapOfString$String()}),
   statics: () => ({_findProxyFromEnvironment: dart.definiteFunctionType(core.String, [core.Uri, MapOfString$String()])}),
   names: ['_findProxyFromEnvironment']
 });
@@ -45307,7 +43246,6 @@ io._HttpConnection = class _HttpConnection extends dart.mixin(collection.LinkedL
 dart.setBaseClass(io._HttpConnection, dart.mixin(collection.LinkedListEntry$(io._HttpConnection), io._ServiceObject));
 dart.addSimpleTypeTests(io._HttpConnection);
 dart.setSignature(io._HttpConnection, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpConnection, [dart.dynamic, io._HttpServer])}),
   fields: () => ({
     [_socket]: dart.dynamic,
     [_httpServer]: io._HttpServer,
@@ -45332,13 +43270,6 @@ dart.setSignature(io._HttpConnection, {
     destroy: dart.definiteFunctionType(dart.void, []),
     detachSocket: dart.definiteFunctionType(async.Future$(io.Socket), []),
     [_toJSON$]: dart.definiteFunctionType(core.Map, [core.bool])
-  }),
-  sfields: () => ({
-    _ACTIVE: core.int,
-    _IDLE: core.int,
-    _CLOSING: core.int,
-    _DETACHED: core.int,
-    _connections: MapOfint$_HttpConnection()
   })
 });
 io._HttpConnection._ACTIVE = 0;
@@ -45562,10 +43493,6 @@ dart.defineNamedConstructor(io._HttpServer, '_');
 dart.defineNamedConstructor(io._HttpServer, 'listenOn');
 io._HttpServer[dart.implements] = () => [io.HttpServer];
 dart.setSignature(io._HttpServer, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(io._HttpServer, [dart.dynamic, core.bool]),
-    listenOn: dart.definiteFunctionType(io._HttpServer, [dart.dynamic])
-  }),
   fields: () => ({
     serverHeader: core.String,
     defaultResponseHeaders: io.HttpHeaders,
@@ -45603,7 +43530,6 @@ dart.setSignature(io._HttpServer, {
     connectionsInfo: dart.definiteFunctionType(io.HttpConnectionsInfo, []),
     [_toJSON$]: dart.definiteFunctionType(core.Map$(core.String, dart.dynamic), [core.bool])
   }),
-  sfields: () => ({_servers: MapOfint$_HttpServer()}),
   statics: () => ({
     bind: dart.definiteFunctionType(async.Future$(io.HttpServer), [dart.dynamic, core.int, core.int, core.bool, core.bool]),
     bindSecure: dart.definiteFunctionType(async.Future$(io.HttpServer), [dart.dynamic, core.int, io.SecurityContext, core.int, core.bool, core.bool, core.bool]),
@@ -45638,10 +43564,6 @@ io._Proxy = class _Proxy extends core.Object {
 };
 dart.defineNamedConstructor(io._Proxy, 'direct');
 dart.setSignature(io._Proxy, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io._Proxy, [core.String, core.int, core.String, core.String]),
-    direct: dart.definiteFunctionType(io._Proxy, [])
-  }),
   fields: () => ({
     host: core.String,
     port: core.int,
@@ -45712,15 +43634,7 @@ io._ProxyConfiguration = class _ProxyConfiguration extends core.Object {
 };
 dart.defineNamedConstructor(io._ProxyConfiguration, 'direct');
 dart.setSignature(io._ProxyConfiguration, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io._ProxyConfiguration, [core.String]),
-    direct: dart.definiteFunctionType(io._ProxyConfiguration, [])
-  }),
-  fields: () => ({proxies: ListOf_Proxy()}),
-  sfields: () => ({
-    PROXY_PREFIX: core.String,
-    DIRECT_PREFIX: core.String
-  })
+  fields: () => ({proxies: ListOf_Proxy()})
 });
 io._ProxyConfiguration.PROXY_PREFIX = "PROXY ";
 io._ProxyConfiguration.DIRECT_PREFIX = "DIRECT";
@@ -45833,7 +43747,6 @@ io._DetachedSocket = class _DetachedSocket extends async.Stream$(core.List$(core
 dart.addSimpleTypeTests(io._DetachedSocket);
 io._DetachedSocket[dart.implements] = () => [io.Socket];
 dart.setSignature(io._DetachedSocket, {
-  constructors: () => ({new: dart.definiteFunctionType(io._DetachedSocket, [dart.dynamic, StreamOfListOfint()])}),
   fields: () => ({
     [_incoming]: StreamOfListOfint(),
     [_socket]: dart.dynamic
@@ -45851,7 +43764,7 @@ dart.setSignature(io._DetachedSocket, {
     [_owner]: dart.definiteFunctionType(dart.void, [dart.dynamic])
   }),
   methods: () => ({
-    listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [ListOfintTovoid()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool}),
+    listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [_ChunkedConversionCallbackOfListOfint()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool}),
     write: dart.definiteFunctionType(dart.void, [core.Object]),
     writeln: dart.definiteFunctionType(dart.void, [], [core.Object]),
     writeCharCode: dart.definiteFunctionType(dart.void, [core.int]),
@@ -45883,16 +43796,7 @@ io._AuthenticationScheme = class _AuthenticationScheme extends core.Object {
   }
 };
 dart.setSignature(io._AuthenticationScheme, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io._AuthenticationScheme, [core.int]),
-    fromString: dart.definiteFunctionType(io._AuthenticationScheme, [core.String])
-  }),
-  fields: () => ({[_scheme]: core.int}),
-  sfields: () => ({
-    UNKNOWN: io._AuthenticationScheme,
-    BASIC: io._AuthenticationScheme,
-    DIGEST: io._AuthenticationScheme
-  })
+  fields: () => ({[_scheme]: core.int})
 });
 dart.defineLazy(io._AuthenticationScheme, {
   get UNKNOWN() {
@@ -45931,7 +43835,6 @@ io._Credentials = class _Credentials extends core.Object {
   }
 };
 dart.setSignature(io._Credentials, {
-  constructors: () => ({new: dart.definiteFunctionType(io._Credentials, [io._HttpClientCredentials, core.String])}),
   fields: () => ({
     credentials: io._HttpClientCredentials,
     realm: core.String,
@@ -45966,7 +43869,6 @@ io._SiteCredentials = class _SiteCredentials extends io._Credentials {
   }
 };
 dart.setSignature(io._SiteCredentials, {
-  constructors: () => ({new: dart.definiteFunctionType(io._SiteCredentials, [core.Uri, dart.dynamic, io._HttpClientCredentials])}),
   fields: () => ({uri: core.Uri}),
   methods: () => ({
     applies: dart.definiteFunctionType(core.bool, [core.Uri, io._AuthenticationScheme]),
@@ -45991,7 +43893,6 @@ io._ProxyCredentials = class _ProxyCredentials extends io._Credentials {
   }
 };
 dart.setSignature(io._ProxyCredentials, {
-  constructors: () => ({new: dart.definiteFunctionType(io._ProxyCredentials, [core.String, core.int, dart.dynamic, io._HttpClientCredentials])}),
   fields: () => ({
     host: core.String,
     port: core.int
@@ -46024,7 +43925,6 @@ io._HttpClientBasicCredentials = class _HttpClientBasicCredentials extends io._H
 };
 io._HttpClientBasicCredentials[dart.implements] = () => [io.HttpClientBasicCredentials];
 dart.setSignature(io._HttpClientBasicCredentials, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpClientBasicCredentials, [core.String, core.String])}),
   fields: () => ({
     username: core.String,
     password: core.String
@@ -46103,7 +44003,6 @@ io._HttpClientDigestCredentials = class _HttpClientDigestCredentials extends io.
 };
 io._HttpClientDigestCredentials[dart.implements] = () => [io.HttpClientDigestCredentials];
 dart.setSignature(io._HttpClientDigestCredentials, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpClientDigestCredentials, [core.String, core.String])}),
   fields: () => ({
     username: core.String,
     password: core.String
@@ -46124,7 +44023,6 @@ io._RedirectInfo = class _RedirectInfo extends core.Object {
 };
 io._RedirectInfo[dart.implements] = () => [io.RedirectInfo];
 dart.setSignature(io._RedirectInfo, {
-  constructors: () => ({new: dart.definiteFunctionType(io._RedirectInfo, [core.int, core.String, core.Uri])}),
   fields: () => ({
     statusCode: core.int,
     method: core.String,
@@ -46139,17 +44037,6 @@ io._getHttpVersion = function() {
 };
 dart.fn(io._getHttpVersion, VoidToString$());
 io._Const = class _Const extends core.Object {};
-dart.setSignature(io._Const, {
-  sfields: () => ({
-    HTTP: ListOfint(),
-    HTTP1DOT: ListOfint(),
-    HTTP10: ListOfint(),
-    HTTP11: ListOfint(),
-    T: core.bool,
-    F: core.bool,
-    SEPARATOR_MAP: ListOfbool()
-  })
-});
 io._Const.HTTP = dart.constList([72, 84, 84, 80], core.int);
 io._Const.HTTP1DOT = dart.constList([72, 84, 84, 80, 47, 49, 46], core.int);
 io._Const.HTTP10 = dart.constList([72, 84, 84, 80, 47, 49, 46, 48], core.int);
@@ -46162,23 +44049,6 @@ dart.defineLazy(io._Const, {
   }
 });
 io._CharCode = class _CharCode extends core.Object {};
-dart.setSignature(io._CharCode, {
-  sfields: () => ({
-    HT: core.int,
-    LF: core.int,
-    CR: core.int,
-    SP: core.int,
-    AMPERSAND: core.int,
-    COMMA: core.int,
-    DASH: core.int,
-    SLASH: core.int,
-    ZERO: core.int,
-    ONE: core.int,
-    COLON: core.int,
-    SEMI_COLON: core.int,
-    EQUAL: core.int
-  })
-});
 io._CharCode.HT = 9;
 io._CharCode.LF = 10;
 io._CharCode.CR = 13;
@@ -46193,39 +44063,6 @@ io._CharCode.COLON = 58;
 io._CharCode.SEMI_COLON = 59;
 io._CharCode.EQUAL = 61;
 io._State = class _State extends core.Object {};
-dart.setSignature(io._State, {
-  sfields: () => ({
-    START: core.int,
-    METHOD_OR_RESPONSE_HTTP_VERSION: core.int,
-    RESPONSE_HTTP_VERSION: core.int,
-    REQUEST_LINE_METHOD: core.int,
-    REQUEST_LINE_URI: core.int,
-    REQUEST_LINE_HTTP_VERSION: core.int,
-    REQUEST_LINE_ENDING: core.int,
-    RESPONSE_LINE_STATUS_CODE: core.int,
-    RESPONSE_LINE_REASON_PHRASE: core.int,
-    RESPONSE_LINE_ENDING: core.int,
-    HEADER_START: core.int,
-    HEADER_FIELD: core.int,
-    HEADER_VALUE_START: core.int,
-    HEADER_VALUE: core.int,
-    HEADER_VALUE_FOLDING_OR_ENDING: core.int,
-    HEADER_VALUE_FOLD_OR_END: core.int,
-    HEADER_ENDING: core.int,
-    CHUNK_SIZE_STARTING_CR: core.int,
-    CHUNK_SIZE_STARTING_LF: core.int,
-    CHUNK_SIZE: core.int,
-    CHUNK_SIZE_EXTENSION: core.int,
-    CHUNK_SIZE_ENDING: core.int,
-    CHUNKED_BODY_DONE_CR: core.int,
-    CHUNKED_BODY_DONE_LF: core.int,
-    BODY: core.int,
-    CLOSED: core.int,
-    UPGRADED: core.int,
-    FAILURE: core.int,
-    FIRST_BODY_STATE: core.int
-  })
-});
 io._State.START = 0;
 io._State.METHOD_OR_RESPONSE_HTTP_VERSION = 1;
 io._State.RESPONSE_HTTP_VERSION = 2;
@@ -46260,24 +44097,10 @@ dart.defineLazy(io._State, {
   }
 });
 io._HttpVersion = class _HttpVersion extends core.Object {};
-dart.setSignature(io._HttpVersion, {
-  sfields: () => ({
-    UNDETERMINED: core.int,
-    HTTP10: core.int,
-    HTTP11: core.int
-  })
-});
 io._HttpVersion.UNDETERMINED = 0;
 io._HttpVersion.HTTP10 = 1;
 io._HttpVersion.HTTP11 = 2;
 io._MessageType = class _MessageType extends core.Object {};
-dart.setSignature(io._MessageType, {
-  sfields: () => ({
-    UNDETERMINED: core.int,
-    REQUEST: core.int,
-    RESPONSE: core.int
-  })
-});
 io._MessageType.UNDETERMINED = 0;
 io._MessageType.REQUEST = 1;
 io._MessageType.RESPONSE = 0;
@@ -46357,7 +44180,6 @@ io._HttpDetachedStreamSubscription = class _HttpDetachedStreamSubscription exten
 };
 io._HttpDetachedStreamSubscription[dart.implements] = () => [StreamSubscriptionOfListOfint()];
 dart.setSignature(io._HttpDetachedStreamSubscription, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpDetachedStreamSubscription, [StreamSubscriptionOfListOfint(), ListOfint(), core.Function])}),
   fields: () => ({
     [_subscription$]: StreamSubscriptionOfListOfint(),
     [_injectData]: ListOfint(),
@@ -46370,7 +44192,7 @@ dart.setSignature(io._HttpDetachedStreamSubscription, {
   methods: () => ({
     asFuture: dart.definiteFunctionType(T => [async.Future$(T), [], [T]]),
     cancel: dart.definiteFunctionType(async.Future, []),
-    onData: dart.definiteFunctionType(dart.void, [ListOfintTovoid()]),
+    onData: dart.definiteFunctionType(dart.void, [_ChunkedConversionCallbackOfListOfint()]),
     onDone: dart.definiteFunctionType(dart.void, [VoidTovoid()]),
     onError: dart.definiteFunctionType(dart.void, [core.Function]),
     pause: dart.definiteFunctionType(dart.void, [], [async.Future]),
@@ -46408,12 +44230,11 @@ io._HttpDetachedIncoming = class _HttpDetachedIncoming extends async.Stream$(cor
 };
 dart.addSimpleTypeTests(io._HttpDetachedIncoming);
 dart.setSignature(io._HttpDetachedIncoming, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpDetachedIncoming, [async.StreamSubscription, ListOfint()])}),
   fields: () => ({
     subscription: async.StreamSubscription,
     bufferedData: ListOfint()
   }),
-  methods: () => ({listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [ListOfintTovoid()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool})})
+  methods: () => ({listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [_ChunkedConversionCallbackOfListOfint()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool})})
 });
 const _method$ = Symbol('_method');
 const _uri_or_reason_phrase = Symbol('_uri_or_reason_phrase');
@@ -47172,11 +44993,6 @@ io._HttpParser = class _HttpParser extends async.Stream$(io._HttpIncoming) {
 dart.addSimpleTypeTests(io._HttpParser);
 dart.defineNamedConstructor(io._HttpParser, '_');
 dart.setSignature(io._HttpParser, {
-  constructors: () => ({
-    requestParser: dart.definiteFunctionType(io._HttpParser, []),
-    responseParser: dart.definiteFunctionType(io._HttpParser, []),
-    _: dart.definiteFunctionType(io._HttpParser, [core.bool])
-  }),
   fields: () => ({
     [_parserCalled]: core.bool,
     [_buffer$]: typed_data.Uint8List,
@@ -47330,7 +45146,6 @@ io._HttpSession = class _HttpSession extends core.Object {
 };
 io._HttpSession[dart.implements] = () => [io.HttpSession];
 dart.setSignature(io._HttpSession, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpSession, [io._HttpSessionManager, core.String])}),
   fields: () => ({
     [_destroyed]: core.bool,
     [_isNew]: core.bool,
@@ -47481,7 +45296,6 @@ io._HttpSessionManager = class _HttpSessionManager extends core.Object {
   }
 };
 dart.setSignature(io._HttpSessionManager, {
-  constructors: () => ({new: dart.definiteFunctionType(io._HttpSessionManager, [])}),
   fields: () => ({
     [_sessions]: MapOfString$_HttpSession(),
     [_sessionTimeout]: core.int,
@@ -47523,18 +45337,11 @@ io._IOResourceInfo = class _IOResourceInfo extends core.Object {
   }
 };
 dart.setSignature(io._IOResourceInfo, {
-  constructors: () => ({new: dart.definiteFunctionType(io._IOResourceInfo, [core.String])}),
   fields: () => ({
     type: core.String,
     id: core.int
   }),
   getters: () => ({referenceValueMap: dart.definiteFunctionType(core.Map$(core.String, core.String), [])}),
-  sfields: () => ({
-    _count: core.int,
-    _sw: core.Stopwatch,
-    _startTime: core.int
-  }),
-  sgetters: () => ({timestamp: dart.definiteFunctionType(core.double, [])}),
   statics: () => ({getNextID: dart.definiteFunctionType(core.int, [])}),
   names: ['getNextID']
 });
@@ -47579,7 +45386,6 @@ io._ReadWriteResourceInfo = class _ReadWriteResourceInfo extends io._IOResourceI
   }
 };
 dart.setSignature(io._ReadWriteResourceInfo, {
-  constructors: () => ({new: dart.definiteFunctionType(io._ReadWriteResourceInfo, [core.String])}),
   fields: () => ({
     totalRead: core.int,
     totalWritten: core.int,
@@ -47634,14 +45440,9 @@ io._FileResourceInfo = class _FileResourceInfo extends io._ReadWriteResourceInfo
   }
 };
 dart.setSignature(io._FileResourceInfo, {
-  constructors: () => ({new: dart.definiteFunctionType(io._FileResourceInfo, [dart.dynamic])}),
   fields: () => ({file: dart.dynamic}),
   getters: () => ({name: dart.definiteFunctionType(core.String, [])}),
   methods: () => ({getFileInfoMap: dart.definiteFunctionType(core.Map$(core.String, core.String), [])}),
-  sfields: () => ({
-    TYPE: core.String,
-    openFiles: MapOfint$_FileResourceInfo()
-  }),
   statics: () => ({
     FileOpened: dart.definiteFunctionType(dart.dynamic, [io._FileResourceInfo]),
     FileClosed: dart.definiteFunctionType(dart.dynamic, [io._FileResourceInfo]),
@@ -47701,7 +45502,6 @@ io._ProcessResourceInfo = class _ProcessResourceInfo extends io._IOResourceInfo 
   }
 };
 dart.setSignature(io._ProcessResourceInfo, {
-  constructors: () => ({new: dart.definiteFunctionType(io._ProcessResourceInfo, [dart.dynamic])}),
   fields: () => ({
     process: dart.dynamic,
     startedAt: core.double
@@ -47711,10 +45511,6 @@ dart.setSignature(io._ProcessResourceInfo, {
     fullValueMap: dart.definiteFunctionType(core.Map$(core.String, core.String), [])
   }),
   methods: () => ({stopped: dart.definiteFunctionType(dart.void, [])}),
-  sfields: () => ({
-    TYPE: core.String,
-    startedProcesses: MapOfint$_ProcessResourceInfo()
-  }),
   statics: () => ({
     ProcessStarted: dart.definiteFunctionType(dart.dynamic, [io._ProcessResourceInfo]),
     ProcessStopped: dart.definiteFunctionType(dart.dynamic, [io._ProcessResourceInfo]),
@@ -47799,16 +45595,9 @@ io._SocketResourceInfo = class _SocketResourceInfo extends io._ReadWriteResource
   }
 };
 dart.setSignature(io._SocketResourceInfo, {
-  constructors: () => ({new: dart.definiteFunctionType(io._SocketResourceInfo, [dart.dynamic])}),
   fields: () => ({socket: dart.dynamic}),
   getters: () => ({name: dart.definiteFunctionType(core.String, [])}),
   methods: () => ({getSocketInfoMap: dart.definiteFunctionType(core.Map$(core.String, core.String), [])}),
-  sfields: () => ({
-    TCP_STRING: core.String,
-    UDP_STRING: core.String,
-    TYPE: core.String,
-    openSockets: MapOfint$_SocketResourceInfo()
-  }),
   statics: () => ({
     getOpenSocketsList: dart.definiteFunctionType(core.Iterable$(core.Map$(core.String, core.String)), []),
     getSocketInfoMapByID: dart.definiteFunctionType(async.Future$(developer.ServiceExtensionResponse), [core.String, MapOfString$String()]),
@@ -47835,7 +45624,6 @@ io.IOSink = class IOSink extends core.Object {
 };
 io.IOSink[dart.implements] = () => [StreamSinkOfListOfint(), core.StringSink];
 dart.setSignature(io.IOSink, {
-  constructors: () => ({new: dart.definiteFunctionType(io.IOSink, [StreamConsumerOfListOfint()], {encoding: convert.Encoding})}),
   fields: () => ({encoding: convert.Encoding})
 });
 io._FILE_EXISTS = 0;
@@ -47896,12 +45684,6 @@ io.Link = class Link extends core.Object {
   }
 };
 io.Link[dart.implements] = () => [io.FileSystemEntity];
-dart.setSignature(io.Link, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io.Link, [core.String]),
-    fromUri: dart.definiteFunctionType(io.Link, [core.Uri])
-  })
-});
 const _makeWindowsLinkTarget = Symbol('_makeWindowsLinkTarget');
 const _exceptionFromResponse = Symbol('_exceptionFromResponse');
 io._Link = class _Link extends io.FileSystemEntity {
@@ -48047,7 +45829,6 @@ io._Link = class _Link extends io.FileSystemEntity {
 };
 io._Link[dart.implements] = () => [io.Link];
 dart.setSignature(io._Link, {
-  constructors: () => ({new: dart.definiteFunctionType(io._Link, [core.String])}),
   fields: () => ({path: core.String}),
   getters: () => ({absolute: dart.definiteFunctionType(io.Link, [])}),
   methods: () => ({
@@ -48110,34 +45891,6 @@ io.Platform = class Platform extends core.Object {
     return io.Platform._version;
   }
 };
-dart.setSignature(io.Platform, {
-  sfields: () => ({
-    _numberOfProcessors: core.int,
-    _pathSeparator: core.String,
-    _operatingSystem: core.String,
-    _localHostname: core.String,
-    _version: core.String,
-    isLinux: core.bool,
-    isMacOS: core.bool,
-    isWindows: core.bool,
-    isAndroid: core.bool,
-    isIOS: core.bool
-  }),
-  sgetters: () => ({
-    numberOfProcessors: dart.definiteFunctionType(core.int, []),
-    pathSeparator: dart.definiteFunctionType(core.String, []),
-    operatingSystem: dart.definiteFunctionType(core.String, []),
-    localHostname: dart.definiteFunctionType(core.String, []),
-    environment: dart.definiteFunctionType(core.Map$(core.String, core.String), []),
-    executable: dart.definiteFunctionType(core.String, []),
-    resolvedExecutable: dart.definiteFunctionType(core.String, []),
-    script: dart.definiteFunctionType(core.Uri, []),
-    executableArguments: dart.definiteFunctionType(core.List$(core.String), []),
-    packageRoot: dart.definiteFunctionType(core.String, []),
-    packageConfig: dart.definiteFunctionType(core.String, []),
-    version: dart.definiteFunctionType(core.String, [])
-  })
-});
 dart.defineLazy(io.Platform, {
   get _numberOfProcessors() {
     return io._Platform.numberOfProcessors;
@@ -48252,23 +46005,6 @@ io._Platform = class _Platform extends core.Object {
   }
 };
 dart.setSignature(io._Platform, {
-  sfields: () => ({
-    executable: core.String,
-    resolvedExecutable: core.String,
-    packageRoot: core.String,
-    packageConfig: core.String,
-    _environmentCache: dart.dynamic,
-    script: core.Uri
-  }),
-  sgetters: () => ({
-    numberOfProcessors: dart.definiteFunctionType(core.int, []),
-    pathSeparator: dart.definiteFunctionType(core.String, []),
-    operatingSystem: dart.definiteFunctionType(core.String, []),
-    localHostname: dart.definiteFunctionType(core.String, []),
-    executableArguments: dart.definiteFunctionType(core.List$(core.String), []),
-    environment: dart.definiteFunctionType(core.Map$(core.String, core.String), []),
-    version: dart.definiteFunctionType(core.String, [])
-  }),
   statics: () => ({
     _numberOfProcessors: dart.definiteFunctionType(core.int, []),
     _pathSeparator: dart.definiteFunctionType(core.String, []),
@@ -48540,7 +46276,6 @@ io.ProcessResult = class ProcessResult extends core.Object {
   }
 };
 dart.setSignature(io.ProcessResult, {
-  constructors: () => ({new: dart.definiteFunctionType(io.ProcessResult, [core.int, core.int, dart.dynamic, dart.dynamic])}),
   fields: () => ({
     exitCode: core.int,
     stdout: dart.dynamic,
@@ -48564,43 +46299,11 @@ io.ProcessSignal = class ProcessSignal extends core.Object {
 };
 dart.defineNamedConstructor(io.ProcessSignal, '_');
 dart.setSignature(io.ProcessSignal, {
-  constructors: () => ({_: dart.definiteFunctionType(io.ProcessSignal, [core.int, core.String])}),
   fields: () => ({
     [_signalNumber]: core.int,
     [_name$2]: core.String
   }),
-  methods: () => ({watch: dart.definiteFunctionType(async.Stream$(io.ProcessSignal), [])}),
-  sfields: () => ({
-    SIGHUP: io.ProcessSignal,
-    SIGINT: io.ProcessSignal,
-    SIGQUIT: io.ProcessSignal,
-    SIGILL: io.ProcessSignal,
-    SIGTRAP: io.ProcessSignal,
-    SIGABRT: io.ProcessSignal,
-    SIGBUS: io.ProcessSignal,
-    SIGFPE: io.ProcessSignal,
-    SIGKILL: io.ProcessSignal,
-    SIGUSR1: io.ProcessSignal,
-    SIGSEGV: io.ProcessSignal,
-    SIGUSR2: io.ProcessSignal,
-    SIGPIPE: io.ProcessSignal,
-    SIGALRM: io.ProcessSignal,
-    SIGTERM: io.ProcessSignal,
-    SIGCHLD: io.ProcessSignal,
-    SIGCONT: io.ProcessSignal,
-    SIGSTOP: io.ProcessSignal,
-    SIGTSTP: io.ProcessSignal,
-    SIGTTIN: io.ProcessSignal,
-    SIGTTOU: io.ProcessSignal,
-    SIGURG: io.ProcessSignal,
-    SIGXCPU: io.ProcessSignal,
-    SIGXFSZ: io.ProcessSignal,
-    SIGVTALRM: io.ProcessSignal,
-    SIGPROF: io.ProcessSignal,
-    SIGWINCH: io.ProcessSignal,
-    SIGPOLL: io.ProcessSignal,
-    SIGSYS: io.ProcessSignal
-  })
+  methods: () => ({watch: dart.definiteFunctionType(async.Stream$(io.ProcessSignal), [])})
 });
 dart.defineLazy(io.ProcessSignal, {
   get SIGHUP() {
@@ -48707,7 +46410,6 @@ io.SignalException = class SignalException extends core.Object {
 };
 io.SignalException[dart.implements] = () => [io.IOException];
 dart.setSignature(io.SignalException, {
-  constructors: () => ({new: dart.definiteFunctionType(io.SignalException, [core.String], [dart.dynamic])}),
   fields: () => ({
     message: core.String,
     osError: dart.dynamic
@@ -48730,7 +46432,6 @@ io.ProcessException = class ProcessException extends core.Object {
 };
 io.ProcessException[dart.implements] = () => [io.IOException];
 dart.setSignature(io.ProcessException, {
-  constructors: () => ({new: dart.definiteFunctionType(io.ProcessException, [core.String, ListOfString()], [core.String, core.int])}),
   fields: () => ({
     executable: core.String,
     arguments: ListOfString(),
@@ -48773,7 +46474,6 @@ io.SecureSocket = class SecureSocket extends core.Object {
 };
 io.SecureSocket[dart.implements] = () => [io.Socket];
 dart.setSignature(io.SecureSocket, {
-  constructors: () => ({_: dart.definiteFunctionType(io.SecureSocket, [io.RawSecureSocket])}),
   statics: () => ({
     connect: dart.definiteFunctionType(async.Future$(io.SecureSocket), [dart.dynamic, core.int], {context: io.SecurityContext, onBadCertificate: X509CertificateTobool(), supportedProtocols: ListOfString()}),
     secure: dart.definiteFunctionType(async.Future$(io.SecureSocket), [io.Socket], {host: dart.dynamic, context: io.SecurityContext, onBadCertificate: X509CertificateTobool()}),
@@ -48817,7 +46517,6 @@ io.SecureServerSocket = class SecureServerSocket extends async.Stream$(io.Secure
 dart.addSimpleTypeTests(io.SecureServerSocket);
 dart.defineNamedConstructor(io.SecureServerSocket, '_');
 dart.setSignature(io.SecureServerSocket, {
-  constructors: () => ({_: dart.definiteFunctionType(io.SecureServerSocket, [io.RawSecureServerSocket])}),
   fields: () => ({[_socket]: io.RawSecureServerSocket}),
   getters: () => ({
     port: dart.definiteFunctionType(core.int, []),
@@ -48950,7 +46649,6 @@ io.RawSecureServerSocket = class RawSecureServerSocket extends async.Stream$(io.
 dart.addSimpleTypeTests(io.RawSecureServerSocket);
 dart.defineNamedConstructor(io.RawSecureServerSocket, '_');
 dart.setSignature(io.RawSecureServerSocket, {
-  constructors: () => ({_: dart.definiteFunctionType(io.RawSecureServerSocket, [io.RawServerSocket, io.SecurityContext, core.bool, core.bool, ListOfString()])}),
   fields: () => ({
     [_socket]: io.RawServerSocket,
     [_controller$0]: StreamControllerOfRawSecureSocket(),
@@ -48981,9 +46679,6 @@ io.X509Certificate = class X509Certificate extends core.Object {
     dart.throw(new core.UnsupportedError("X509Certificate constructor"));
   }
 };
-dart.setSignature(io.X509Certificate, {
-  constructors: () => ({_: dart.definiteFunctionType(io.X509Certificate, [])})
-});
 io._FilterStatus = class _FilterStatus extends core.Object {
   new() {
     this.progress = false;
@@ -48996,7 +46691,6 @@ io._FilterStatus = class _FilterStatus extends core.Object {
   }
 };
 dart.setSignature(io._FilterStatus, {
-  constructors: () => ({new: dart.definiteFunctionType(io._FilterStatus, [])}),
   fields: () => ({
     progress: core.bool,
     readEmpty: core.bool,
@@ -49054,14 +46748,7 @@ io.RawSocketEvent = class RawSocketEvent extends core.Object {
 };
 dart.defineNamedConstructor(io.RawSocketEvent, '_');
 dart.setSignature(io.RawSocketEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(io.RawSocketEvent, [core.int])}),
-  fields: () => ({[_value$1]: core.int}),
-  sfields: () => ({
-    READ: io.RawSocketEvent,
-    WRITE: io.RawSocketEvent,
-    READ_CLOSED: io.RawSocketEvent,
-    CLOSED: io.RawSocketEvent
-  })
+  fields: () => ({[_value$1]: core.int})
 });
 dart.defineLazy(io.RawSocketEvent, {
   get READ() {
@@ -49635,7 +47322,6 @@ io._RawSecureSocket = class _RawSecureSocket extends async.Stream$(io.RawSocketE
 dart.addSimpleTypeTests(io._RawSecureSocket);
 io._RawSecureSocket[dart.implements] = () => [io.RawSecureSocket];
 dart.setSignature(io._RawSecureSocket, {
-  constructors: () => ({new: dart.definiteFunctionType(io._RawSecureSocket, [io.InternetAddress, core.int, core.bool, io.SecurityContext, io.RawSocket, StreamSubscriptionOfRawSocketEvent(), ListOfint(), core.bool, core.bool, X509CertificateTodynamic(), ListOfString()])}),
   fields: () => ({
     [_socket]: io.RawSocket,
     [_handshakeComplete]: CompleterOf_RawSecureSocket(),
@@ -49712,16 +47398,6 @@ dart.setSignature(io._RawSecureSocket, {
     [_sendReadEvent]: dart.definiteFunctionType(dart.dynamic, []),
     [_sendWriteEvent]: dart.definiteFunctionType(dart.dynamic, []),
     [_pushAllFilterStages]: dart.definiteFunctionType(async.Future$(io._FilterStatus), [])
-  }),
-  sfields: () => ({
-    HANDSHAKE: core.int,
-    CONNECTED: core.int,
-    CLOSED: core.int,
-    READ_PLAINTEXT: core.int,
-    WRITE_PLAINTEXT: core.int,
-    READ_ENCRYPTED: core.int,
-    WRITE_ENCRYPTED: core.int,
-    NUM_BUFFERS: core.int
   }),
   statics: () => ({
     _isBufferEncrypted: dart.definiteFunctionType(core.bool, [core.int]),
@@ -49840,7 +47516,6 @@ io._ExternalBuffer = class _ExternalBuffer extends core.Object {
   }
 };
 dart.setSignature(io._ExternalBuffer, {
-  constructors: () => ({new: dart.definiteFunctionType(io._ExternalBuffer, [dart.dynamic])}),
   fields: () => ({
     data: core.List,
     start: core.int,
@@ -49868,9 +47543,6 @@ io._SecureFilter = class _SecureFilter extends core.Object {
     dart.throw(new core.UnsupportedError("_SecureFilter._SecureFilter"));
   }
 };
-dart.setSignature(io._SecureFilter, {
-  constructors: () => ({new: dart.definiteFunctionType(io._SecureFilter, [])})
-});
 io.TlsException = class TlsException extends core.Object {
   new(message, osError) {
     if (message === void 0) message = "";
@@ -49899,10 +47571,6 @@ io.TlsException = class TlsException extends core.Object {
 dart.defineNamedConstructor(io.TlsException, '_');
 io.TlsException[dart.implements] = () => [io.IOException];
 dart.setSignature(io.TlsException, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io.TlsException, [], [core.String, io.OSError]),
-    _: dart.definiteFunctionType(io.TlsException, [core.String, core.String, io.OSError])
-  }),
   fields: () => ({
     type: core.String,
     message: core.String,
@@ -49916,9 +47584,6 @@ io.HandshakeException = class HandshakeException extends io.TlsException {
     super._("HandshakeException", message, osError);
   }
 };
-dart.setSignature(io.HandshakeException, {
-  constructors: () => ({new: dart.definiteFunctionType(io.HandshakeException, [], [core.String, io.OSError])})
-});
 io.CertificateException = class CertificateException extends io.TlsException {
   new(message, osError) {
     if (message === void 0) message = "";
@@ -49926,9 +47591,6 @@ io.CertificateException = class CertificateException extends io.TlsException {
     super._("CertificateException", message, osError);
   }
 };
-dart.setSignature(io.CertificateException, {
-  constructors: () => ({new: dart.definiteFunctionType(io.CertificateException, [], [core.String, io.OSError])})
-});
 io.SecurityContext = class SecurityContext extends core.Object {
   static new() {
     dart.throw(new core.UnsupportedError("SecurityContext constructor"));
@@ -49995,11 +47657,6 @@ io.SecurityContext = class SecurityContext extends core.Object {
   }
 };
 dart.setSignature(io.SecurityContext, {
-  constructors: () => ({new: dart.definiteFunctionType(io.SecurityContext, [])}),
-  sgetters: () => ({
-    defaultContext: dart.definiteFunctionType(io.SecurityContext, []),
-    alpnSupported: dart.definiteFunctionType(core.bool, [])
-  }),
   statics: () => ({
     _protocolsToLengthEncoding: dart.definiteFunctionType(typed_data.Uint8List, [ListOfString()]),
     _protocolsToLengthEncodingNonAsciiBailout: dart.definiteFunctionType(typed_data.Uint8List, [ListOfString()])
@@ -50042,17 +47699,8 @@ io.InternetAddressType = class InternetAddressType extends core.Object {
 };
 dart.defineNamedConstructor(io.InternetAddressType, '_');
 dart.setSignature(io.InternetAddressType, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(io.InternetAddressType, [core.int]),
-    _from: dart.definiteFunctionType(io.InternetAddressType, [core.int])
-  }),
   fields: () => ({[_value$1]: core.int}),
-  getters: () => ({name: dart.definiteFunctionType(core.String, [])}),
-  sfields: () => ({
-    IP_V4: io.InternetAddressType,
-    IP_V6: io.InternetAddressType,
-    ANY: io.InternetAddressType
-  })
+  getters: () => ({name: dart.definiteFunctionType(core.String, [])})
 });
 dart.defineLazy(io.InternetAddressType, {
   get IP_V4() {
@@ -50090,14 +47738,7 @@ io.InternetAddress = class InternetAddress extends core.Object {
   }
 };
 dart.setSignature(io.InternetAddress, {
-  constructors: () => ({new: dart.definiteFunctionType(io.InternetAddress, [core.String])}),
   fields: () => ({type: io.InternetAddressType}),
-  sgetters: () => ({
-    LOOPBACK_IP_V4: dart.definiteFunctionType(io.InternetAddress, []),
-    LOOPBACK_IP_V6: dart.definiteFunctionType(io.InternetAddress, []),
-    ANY_IP_V4: dart.definiteFunctionType(io.InternetAddress, []),
-    ANY_IP_V6: dart.definiteFunctionType(io.InternetAddress, [])
-  }),
   statics: () => ({
     lookup: dart.definiteFunctionType(async.Future$(core.List$(io.InternetAddress)), [core.String], {type: io.InternetAddressType}),
     _cloneWithNewHost: dart.definiteFunctionType(io.InternetAddress, [io.InternetAddress, core.String])
@@ -50116,7 +47757,6 @@ io.NetworkInterface = class NetworkInterface extends core.Object {
   }
 };
 dart.setSignature(io.NetworkInterface, {
-  sgetters: () => ({listSupported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({list: dart.definiteFunctionType(async.Future$(core.List$(io.NetworkInterface)), [], {includeLoopback: core.bool, includeLinkLocal: core.bool, type: io.InternetAddressType})}),
   names: ['list']
 });
@@ -50153,13 +47793,7 @@ io.SocketDirection = class SocketDirection extends core.Object {
 };
 dart.defineNamedConstructor(io.SocketDirection, '_');
 dart.setSignature(io.SocketDirection, {
-  constructors: () => ({_: dart.definiteFunctionType(io.SocketDirection, [dart.dynamic])}),
-  fields: () => ({[_value$1]: dart.dynamic}),
-  sfields: () => ({
-    RECEIVE: io.SocketDirection,
-    SEND: io.SocketDirection,
-    BOTH: io.SocketDirection
-  })
+  fields: () => ({[_value$1]: dart.dynamic})
 });
 dart.defineLazy(io.SocketDirection, {
   get RECEIVE() {
@@ -50179,15 +47813,7 @@ io.SocketOption = class SocketOption extends core.Object {
 };
 dart.defineNamedConstructor(io.SocketOption, '_');
 dart.setSignature(io.SocketOption, {
-  constructors: () => ({_: dart.definiteFunctionType(io.SocketOption, [dart.dynamic])}),
-  fields: () => ({[_value$1]: dart.dynamic}),
-  sfields: () => ({
-    TCP_NODELAY: io.SocketOption,
-    _IP_MULTICAST_LOOP: io.SocketOption,
-    _IP_MULTICAST_HOPS: io.SocketOption,
-    _IP_MULTICAST_IF: io.SocketOption,
-    _IP_BROADCAST: io.SocketOption
-  })
+  fields: () => ({[_value$1]: dart.dynamic})
 });
 dart.defineLazy(io.SocketOption, {
   get TCP_NODELAY() {
@@ -50244,7 +47870,6 @@ io.Datagram = class Datagram extends core.Object {
   }
 };
 dart.setSignature(io.Datagram, {
-  constructors: () => ({new: dart.definiteFunctionType(io.Datagram, [ListOfint(), io.InternetAddress, core.int])}),
   fields: () => ({
     data: ListOfint(),
     address: io.InternetAddress,
@@ -50318,10 +47943,6 @@ io.SocketException = class SocketException extends core.Object {
 dart.defineNamedConstructor(io.SocketException, 'closed');
 io.SocketException[dart.implements] = () => [io.IOException];
 dart.setSignature(io.SocketException, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io.SocketException, [core.String], {osError: io.OSError, address: io.InternetAddress, port: core.int}),
-    closed: dart.definiteFunctionType(io.SocketException, [])
-  }),
   fields: () => ({
     message: core.String,
     osError: io.OSError,
@@ -50348,9 +47969,8 @@ io._StdStream = class _StdStream extends async.Stream$(core.List$(core.int)) {
 };
 dart.addSimpleTypeTests(io._StdStream);
 dart.setSignature(io._StdStream, {
-  constructors: () => ({new: dart.definiteFunctionType(io._StdStream, [StreamOfListOfint()])}),
   fields: () => ({[_stream$]: StreamOfListOfint()}),
-  methods: () => ({listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [ListOfintTovoid()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool})})
+  methods: () => ({listen: dart.definiteFunctionType(async.StreamSubscription$(core.List$(core.int)), [_ChunkedConversionCallbackOfListOfint()], {onError: core.Function, onDone: VoidTovoid(), cancelOnError: core.bool})})
 });
 io.Stdin = class Stdin extends io._StdStream {
   _(stream) {
@@ -50425,7 +48045,6 @@ io.Stdin = class Stdin extends io._StdStream {
 dart.defineNamedConstructor(io.Stdin, '_');
 io.Stdin[dart.implements] = () => [StreamOfListOfint()];
 dart.setSignature(io.Stdin, {
-  constructors: () => ({_: dart.definiteFunctionType(io.Stdin, [StreamOfListOfint()])}),
   setters: () => ({
     echoMode: dart.definiteFunctionType(dart.void, [core.bool]),
     echoMode: dart.definiteFunctionType(dart.void, [core.bool]),
@@ -50488,7 +48107,6 @@ io._StdSink = class _StdSink extends core.Object {
 };
 io._StdSink[dart.implements] = () => [io.IOSink];
 dart.setSignature(io._StdSink, {
-  constructors: () => ({new: dart.definiteFunctionType(io._StdSink, [io.IOSink])}),
   fields: () => ({[_sink$0]: io.IOSink}),
   getters: () => ({
     encoding: dart.definiteFunctionType(convert.Encoding, []),
@@ -50541,7 +48159,6 @@ io.Stdout = class Stdout extends io._StdSink {
 dart.defineNamedConstructor(io.Stdout, '_');
 io.Stdout[dart.implements] = () => [io.IOSink];
 dart.setSignature(io.Stdout, {
-  constructors: () => ({_: dart.definiteFunctionType(io.Stdout, [io.IOSink, core.int])}),
   fields: () => ({
     [_fd]: core.int,
     [_nonBlocking]: io.IOSink
@@ -50570,7 +48187,6 @@ io.StdoutException = class StdoutException extends core.Object {
 };
 io.StdoutException[dart.implements] = () => [io.IOException];
 dart.setSignature(io.StdoutException, {
-  constructors: () => ({new: dart.definiteFunctionType(io.StdoutException, [core.String], [io.OSError])}),
   fields: () => ({
     message: core.String,
     osError: io.OSError
@@ -50602,7 +48218,6 @@ io._StdConsumer = class _StdConsumer extends core.Object {
 };
 io._StdConsumer[dart.implements] = () => [StreamConsumerOfListOfint()];
 dart.setSignature(io._StdConsumer, {
-  constructors: () => ({new: dart.definiteFunctionType(io._StdConsumer, [core.int])}),
   fields: () => ({[_file]: dart.dynamic}),
   methods: () => ({
     addStream: dart.definiteFunctionType(async.Future, [StreamOfListOfint()]),
@@ -50619,14 +48234,7 @@ io.StdioType = class StdioType extends core.Object {
 };
 dart.defineNamedConstructor(io.StdioType, '_');
 dart.setSignature(io.StdioType, {
-  constructors: () => ({_: dart.definiteFunctionType(io.StdioType, [core.String])}),
-  fields: () => ({name: core.String}),
-  sfields: () => ({
-    TERMINAL: io.StdioType,
-    PIPE: io.StdioType,
-    FILE: io.StdioType,
-    OTHER: io.StdioType
-  })
+  fields: () => ({name: core.String})
 });
 dart.defineLazy(io.StdioType, {
   get TERMINAL() {
@@ -50777,7 +48385,6 @@ io.SystemEncoding = class SystemEncoding extends convert.Encoding {
   }
 };
 dart.setSignature(io.SystemEncoding, {
-  constructors: () => ({new: dart.definiteFunctionType(io.SystemEncoding, [])}),
   getters: () => ({
     name: dart.definiteFunctionType(core.String, []),
     encoder: dart.definiteFunctionType(convert.Converter$(core.String, core.List$(core.int)), []),
@@ -50805,7 +48412,6 @@ io._WindowsCodePageEncoder = class _WindowsCodePageEncoder extends convert.Conve
 };
 dart.addSimpleTypeTests(io._WindowsCodePageEncoder);
 dart.setSignature(io._WindowsCodePageEncoder, {
-  constructors: () => ({new: dart.definiteFunctionType(io._WindowsCodePageEncoder, [])}),
   methods: () => ({
     convert: dart.definiteFunctionType(core.List$(core.int), [core.String]),
     startChunkedConversion: dart.definiteFunctionType(convert.StringConversionSink, [SinkOfListOfint()])
@@ -50836,7 +48442,6 @@ io._WindowsCodePageEncoderSink = class _WindowsCodePageEncoderSink extends conve
   }
 };
 dart.setSignature(io._WindowsCodePageEncoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(io._WindowsCodePageEncoderSink, [SinkOfListOfint()])}),
   fields: () => ({[_sink$0]: SinkOfListOfint()}),
   methods: () => ({
     close: dart.definiteFunctionType(dart.void, []),
@@ -50859,7 +48464,6 @@ io._WindowsCodePageDecoder = class _WindowsCodePageDecoder extends convert.Conve
 };
 dart.addSimpleTypeTests(io._WindowsCodePageDecoder);
 dart.setSignature(io._WindowsCodePageDecoder, {
-  constructors: () => ({new: dart.definiteFunctionType(io._WindowsCodePageDecoder, [])}),
   methods: () => ({
     convert: dart.definiteFunctionType(core.String, [ListOfint()]),
     startChunkedConversion: dart.definiteFunctionType(convert.ByteConversionSink, [SinkOfString()])
@@ -50880,7 +48484,6 @@ io._WindowsCodePageDecoderSink = class _WindowsCodePageDecoderSink extends conve
   }
 };
 dart.setSignature(io._WindowsCodePageDecoderSink, {
-  constructors: () => ({new: dart.definiteFunctionType(io._WindowsCodePageDecoderSink, [SinkOfString()])}),
   fields: () => ({[_sink$0]: SinkOfString()}),
   methods: () => ({
     close: dart.definiteFunctionType(dart.void, []),
@@ -50888,23 +48491,6 @@ dart.setSignature(io._WindowsCodePageDecoderSink, {
   })
 });
 io.WebSocketStatus = class WebSocketStatus extends core.Object {};
-dart.setSignature(io.WebSocketStatus, {
-  sfields: () => ({
-    NORMAL_CLOSURE: core.int,
-    GOING_AWAY: core.int,
-    PROTOCOL_ERROR: core.int,
-    UNSUPPORTED_DATA: core.int,
-    RESERVED_1004: core.int,
-    NO_STATUS_RECEIVED: core.int,
-    ABNORMAL_CLOSURE: core.int,
-    INVALID_FRAME_PAYLOAD_DATA: core.int,
-    POLICY_VIOLATION: core.int,
-    MESSAGE_TOO_BIG: core.int,
-    MISSING_MANDATORY_EXTENSION: core.int,
-    INTERNAL_SERVER_ERROR: core.int,
-    RESERVED_1015: core.int
-  })
-});
 io.WebSocketStatus.NORMAL_CLOSURE = 1000;
 io.WebSocketStatus.GOING_AWAY = 1001;
 io.WebSocketStatus.PROTOCOL_ERROR = 1002;
@@ -50992,7 +48578,6 @@ io.CompressionOptions = class CompressionOptions extends core.Object {
   }
 };
 dart.setSignature(io.CompressionOptions, {
-  constructors: () => ({new: dart.definiteFunctionType(io.CompressionOptions, [], {clientNoContextTakeover: core.bool, serverNoContextTakeover: core.bool, clientMaxWindowBits: core.int, serverMaxWindowBits: core.int, enabled: core.bool})}),
   fields: () => ({
     clientNoContextTakeover: core.bool,
     serverNoContextTakeover: core.bool,
@@ -51004,10 +48589,6 @@ dart.setSignature(io.CompressionOptions, {
     [_createServerResponseHeader]: dart.definiteFunctionType(io._CompressionMaxWindowBits, [io.HeaderValue]),
     [_createClientRequestHeader]: dart.definiteFunctionType(core.String, [io.HeaderValue, core.int]),
     [_createHeader]: dart.definiteFunctionType(io._CompressionMaxWindowBits, [], [io.HeaderValue])
-  }),
-  sfields: () => ({
-    DEFAULT: io.CompressionOptions,
-    OFF: io.CompressionOptions
   })
 });
 dart.defineLazy(io.CompressionOptions, {
@@ -51035,7 +48616,6 @@ io.WebSocketTransformer = class WebSocketTransformer extends core.Object {
 };
 io.WebSocketTransformer[dart.implements] = () => [StreamTransformerOfHttpRequest$WebSocket()];
 dart.setSignature(io.WebSocketTransformer, {
-  constructors: () => ({new: dart.definiteFunctionType(io.WebSocketTransformer, [], {protocolSelector: ListOfStringTodynamic(), compression: io.CompressionOptions})}),
   statics: () => ({
     upgrade: dart.definiteFunctionType(async.Future$(io.WebSocket), [io.HttpRequest], {protocolSelector: ListOfStringTodynamic(), compression: io.CompressionOptions}),
     isUpgradeRequest: dart.definiteFunctionType(core.bool, [io.HttpRequest])
@@ -51064,17 +48644,7 @@ io.WebSocket = class WebSocket extends core.Object {
 };
 io.WebSocket[dart.implements] = () => [async.Stream, async.StreamSink];
 dart.setSignature(io.WebSocket, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(io.WebSocket, []),
-    fromUpgradedSocket: dart.definiteFunctionType(io.WebSocket, [io.Socket], {protocol: core.String, serverSide: core.bool, compression: io.CompressionOptions})
-  }),
   fields: () => ({pingInterval: core.Duration}),
-  sfields: () => ({
-    CONNECTING: core.int,
-    OPEN: core.int,
-    CLOSING: core.int,
-    CLOSED: core.int
-  }),
   statics: () => ({connect: dart.definiteFunctionType(async.Future$(io.WebSocket), [core.String], {protocols: IterableOfString(), headers: MapOfString$dynamic(), compression: io.CompressionOptions})}),
   names: ['connect']
 });
@@ -51093,7 +48663,6 @@ io.WebSocketException = class WebSocketException extends core.Object {
 };
 io.WebSocketException[dart.implements] = () => [io.IOException];
 dart.setSignature(io.WebSocketException, {
-  constructors: () => ({new: dart.definiteFunctionType(io.WebSocketException, [], [core.String])}),
   fields: () => ({message: core.String})
 });
 io._webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -51102,37 +48671,10 @@ io._serverNoContextTakeover = "server_no_context_takeover";
 io._clientMaxWindowBits = "client_max_window_bits";
 io._serverMaxWindowBits = "server_max_window_bits";
 io._WebSocketMessageType = class _WebSocketMessageType extends core.Object {};
-dart.setSignature(io._WebSocketMessageType, {
-  sfields: () => ({
-    NONE: core.int,
-    TEXT: core.int,
-    BINARY: core.int
-  })
-});
 io._WebSocketMessageType.NONE = 0;
 io._WebSocketMessageType.TEXT = 1;
 io._WebSocketMessageType.BINARY = 2;
 io._WebSocketOpcode = class _WebSocketOpcode extends core.Object {};
-dart.setSignature(io._WebSocketOpcode, {
-  sfields: () => ({
-    CONTINUATION: core.int,
-    TEXT: core.int,
-    BINARY: core.int,
-    RESERVED_3: core.int,
-    RESERVED_4: core.int,
-    RESERVED_5: core.int,
-    RESERVED_6: core.int,
-    RESERVED_7: core.int,
-    CLOSE: core.int,
-    PING: core.int,
-    PONG: core.int,
-    RESERVED_B: core.int,
-    RESERVED_C: core.int,
-    RESERVED_D: core.int,
-    RESERVED_E: core.int,
-    RESERVED_F: core.int
-  })
-});
 io._WebSocketOpcode.CONTINUATION = 0;
 io._WebSocketOpcode.TEXT = 1;
 io._WebSocketOpcode.BINARY = 2;
@@ -51161,7 +48703,6 @@ io._CompressionMaxWindowBits = class _CompressionMaxWindowBits extends core.Obje
   }
 };
 dart.setSignature(io._CompressionMaxWindowBits, {
-  constructors: () => ({new: dart.definiteFunctionType(io._CompressionMaxWindowBits, [], [core.String, core.int])}),
   fields: () => ({
     headerValue: core.String,
     maxWindowBits: core.int
@@ -51491,7 +49032,6 @@ io._WebSocketProtocolTransformer = class _WebSocketProtocolTransformer extends c
 };
 io._WebSocketProtocolTransformer[dart.implements] = () => [StreamTransformerOfListOfint$dynamic(), EventSinkOfUint8List()];
 dart.setSignature(io._WebSocketProtocolTransformer, {
-  constructors: () => ({new: dart.definiteFunctionType(io._WebSocketProtocolTransformer, [], [core.bool, io._WebSocketPerMessageDeflate])}),
   fields: () => ({
     [_state$1]: core.int,
     [_fin]: core.bool,
@@ -51525,20 +49065,6 @@ dart.setSignature(io._WebSocketProtocolTransformer, {
     [_controlFrameEnd]: dart.definiteFunctionType(dart.void, []),
     [_isControlFrame]: dart.definiteFunctionType(core.bool, []),
     [_prepareForNextFrame]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({
-    START: core.int,
-    LEN_FIRST: core.int,
-    LEN_REST: core.int,
-    MASK: core.int,
-    PAYLOAD: core.int,
-    CLOSED: core.int,
-    FAILURE: core.int,
-    FIN: core.int,
-    RSV1: core.int,
-    RSV2: core.int,
-    RSV3: core.int,
-    OPCODE: core.int
   })
 });
 io._WebSocketProtocolTransformer.START = 0;
@@ -51560,7 +49086,6 @@ io._WebSocketPing = class _WebSocketPing extends core.Object {
   }
 };
 dart.setSignature(io._WebSocketPing, {
-  constructors: () => ({new: dart.definiteFunctionType(io._WebSocketPing, [], [ListOfint()])}),
   fields: () => ({payload: ListOfint()})
 });
 io._WebSocketPong = class _WebSocketPong extends core.Object {
@@ -51570,7 +49095,6 @@ io._WebSocketPong = class _WebSocketPong extends core.Object {
   }
 };
 dart.setSignature(io._WebSocketPong, {
-  constructors: () => ({new: dart.definiteFunctionType(io._WebSocketPong, [], [ListOfint()])}),
   fields: () => ({payload: ListOfint()})
 });
 const _protocolSelector = Symbol('_protocolSelector');
@@ -51674,7 +49198,6 @@ io._WebSocketTransformerImpl = class _WebSocketTransformerImpl extends core.Obje
 };
 io._WebSocketTransformerImpl[dart.implements] = () => [io.WebSocketTransformer];
 dart.setSignature(io._WebSocketTransformerImpl, {
-  constructors: () => ({new: dart.definiteFunctionType(io._WebSocketTransformerImpl, [core.Function, io.CompressionOptions])}),
   fields: () => ({
     [_controller$0]: StreamControllerOfWebSocket(),
     [_protocolSelector]: core.Function,
@@ -51761,7 +49284,6 @@ io._WebSocketPerMessageDeflate = class _WebSocketPerMessageDeflate extends core.
   }
 };
 dart.setSignature(io._WebSocketPerMessageDeflate, {
-  constructors: () => ({new: dart.definiteFunctionType(io._WebSocketPerMessageDeflate, [], {clientMaxWindowBits: core.int, serverMaxWindowBits: core.int, serverNoContextTakeover: core.bool, clientNoContextTakeover: core.bool, serverSide: core.bool})}),
   fields: () => ({
     serverNoContextTakeover: core.bool,
     clientNoContextTakeover: core.bool,
@@ -51928,7 +49450,6 @@ io._WebSocketOutgoingTransformer = class _WebSocketOutgoingTransformer extends c
 };
 io._WebSocketOutgoingTransformer[dart.implements] = () => [StreamTransformerOfdynamic$ListOfint(), async.EventSink];
 dart.setSignature(io._WebSocketOutgoingTransformer, {
-  constructors: () => ({new: dart.definiteFunctionType(io._WebSocketOutgoingTransformer, [io._WebSocketImpl])}),
   fields: () => ({
     webSocket: io._WebSocketImpl,
     [_eventSink$]: EventSinkOfListOfint(),
@@ -52060,7 +49581,6 @@ io._WebSocketConsumer = class _WebSocketConsumer extends core.Object {
 };
 io._WebSocketConsumer[dart.implements] = () => [async.StreamConsumer];
 dart.setSignature(io._WebSocketConsumer, {
-  constructors: () => ({new: dart.definiteFunctionType(io._WebSocketConsumer, [io._WebSocketImpl, io.Socket])}),
   fields: () => ({
     webSocket: io._WebSocketImpl,
     socket: io.Socket,
@@ -52365,7 +49885,6 @@ dart.addSimpleTypeTests(io._WebSocketImpl);
 dart.defineNamedConstructor(io._WebSocketImpl, '_fromSocket');
 io._WebSocketImpl[dart.implements] = () => [io.WebSocket];
 dart.setSignature(io._WebSocketImpl, {
-  constructors: () => ({_fromSocket: dart.definiteFunctionType(io._WebSocketImpl, [dart.dynamic, core.String, io.CompressionOptions], [core.bool, io._WebSocketPerMessageDeflate])}),
   fields: () => ({
     protocol: core.String,
     [_controller$0]: async.StreamController,
@@ -52405,12 +49924,6 @@ dart.setSignature(io._WebSocketImpl, {
     [_close$0]: dart.definiteFunctionType(dart.void, [], [core.int, core.String]),
     [_toJSON$]: dart.definiteFunctionType(core.Map$(core.String, dart.dynamic), [core.bool])
   }),
-  sfields: () => ({
-    _webSockets: MapOfint$_WebSocketImpl(),
-    DEFAULT_WINDOW_BITS: core.int,
-    PER_MESSAGE_DEFLATE: core.String,
-    _httpClient: io.HttpClient
-  }),
   statics: () => ({
     connect: dart.definiteFunctionType(async.Future$(io.WebSocket), [core.String, IterableOfString(), MapOfString$dynamic()], {compression: io.CompressionOptions}),
     negotiateClientCompression: dart.definiteFunctionType(io._WebSocketPerMessageDeflate, [io.HttpClientResponse, io.CompressionOptions]),
@@ -52439,7 +49952,6 @@ isolate.IsolateSpawnException = class IsolateSpawnException extends core.Object 
 };
 isolate.IsolateSpawnException[dart.implements] = () => [core.Exception];
 dart.setSignature(isolate.IsolateSpawnException, {
-  constructors: () => ({new: dart.definiteFunctionType(isolate.IsolateSpawnException, [core.String])}),
   fields: () => ({message: core.String})
 });
 const _pause = Symbol('_pause');
@@ -52569,7 +50081,6 @@ isolate.Isolate = class Isolate extends core.Object {
   }
 };
 dart.setSignature(isolate.Isolate, {
-  constructors: () => ({new: dart.definiteFunctionType(isolate.Isolate, [isolate.SendPort], {pauseCapability: isolate.Capability, terminateCapability: isolate.Capability})}),
   fields: () => ({
     controlPort: isolate.SendPort,
     pauseCapability: isolate.Capability,
@@ -52588,13 +50099,6 @@ dart.setSignature(isolate.Isolate, {
     addErrorListener: dart.definiteFunctionType(dart.void, [isolate.SendPort]),
     removeErrorListener: dart.definiteFunctionType(dart.void, [isolate.SendPort])
   }),
-  sfields: () => ({
-    IMMEDIATE: core.int,
-    BEFORE_NEXT_EVENT: core.int,
-    AS_EVENT: core.int,
-    _currentIsolateCache: isolate.Isolate
-  }),
-  sgetters: () => ({current: dart.definiteFunctionType(isolate.Isolate, [])}),
   statics: () => ({
     spawn: dart.definiteFunctionType(async.Future$(isolate.Isolate), [dynamicTovoid(), dart.dynamic], {paused: core.bool}),
     spawnUri: dart.definiteFunctionType(async.Future$(isolate.Isolate), [core.Uri, ListOfString(), dart.dynamic], {paused: core.bool, packageRoot: core.Uri})
@@ -52620,21 +50124,12 @@ isolate.ReceivePort = class ReceivePort extends core.Object {
   }
 };
 isolate.ReceivePort[dart.implements] = () => [async.Stream];
-dart.setSignature(isolate.ReceivePort, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(isolate.ReceivePort, []),
-    fromRawReceivePort: dart.definiteFunctionType(isolate.ReceivePort, [isolate.RawReceivePort])
-  })
-});
 isolate.RawReceivePort = class RawReceivePort extends core.Object {
   static new(handler) {
     if (handler === void 0) handler = null;
     return new _isolate_helper.RawReceivePortImpl(handler);
   }
 };
-dart.setSignature(isolate.RawReceivePort, {
-  constructors: () => ({new: dart.definiteFunctionType(isolate.RawReceivePort, [], [dynamicTovoid()])})
-});
 isolate._IsolateUnhandledException = class _IsolateUnhandledException extends core.Object {
   new(message, source, stackTrace) {
     this.message = message;
@@ -52647,7 +50142,6 @@ isolate._IsolateUnhandledException = class _IsolateUnhandledException extends co
 };
 isolate._IsolateUnhandledException[dart.implements] = () => [core.Exception];
 dart.setSignature(isolate._IsolateUnhandledException, {
-  constructors: () => ({new: dart.definiteFunctionType(isolate._IsolateUnhandledException, [dart.dynamic, dart.dynamic, core.StackTrace])}),
   fields: () => ({
     message: dart.dynamic,
     source: dart.dynamic,
@@ -52666,7 +50160,6 @@ isolate.RemoteError = class RemoteError extends core.Object {
 };
 isolate.RemoteError[dart.implements] = () => [core.Error];
 dart.setSignature(isolate.RemoteError, {
-  constructors: () => ({new: dart.definiteFunctionType(isolate.RemoteError, [core.String, core.String])}),
   fields: () => ({
     [_description]: core.String,
     stackTrace: core.StackTrace
@@ -52683,7 +50176,6 @@ isolate._RemoteStackTrace = class _RemoteStackTrace extends core.Object {
 };
 isolate._RemoteStackTrace[dart.implements] = () => [core.StackTrace];
 dart.setSignature(isolate._RemoteStackTrace, {
-  constructors: () => ({new: dart.definiteFunctionType(isolate._RemoteStackTrace, [core.String])}),
   fields: () => ({[_trace$]: core.String})
 });
 isolate.Capability = class Capability extends core.Object {
@@ -52691,9 +50183,6 @@ isolate.Capability = class Capability extends core.Object {
     return new _isolate_helper.CapabilityImpl();
   }
 };
-dart.setSignature(isolate.Capability, {
-  constructors: () => ({new: dart.definiteFunctionType(isolate.Capability, [])})
-});
 dart.defineLazy(js, {
   get _global() {
     return dart.global;
@@ -52813,12 +50302,6 @@ js.JsObject = class JsObject extends core.Object {
 };
 dart.defineNamedConstructor(js.JsObject, '_fromJs');
 dart.setSignature(js.JsObject, {
-  constructors: () => ({
-    _fromJs: dart.definiteFunctionType(js.JsObject, [dart.dynamic]),
-    new: dart.definiteFunctionType(js.JsObject, [js.JsFunction], [core.List]),
-    fromBrowserObject: dart.definiteFunctionType(js.JsObject, [dart.dynamic]),
-    jsify: dart.definiteFunctionType(js.JsObject, [dart.dynamic])
-  }),
   fields: () => ({[_jsObject]: dart.dynamic}),
   methods: () => ({
     _get: dart.definiteFunctionType(dart.dynamic, [core.Object]),
@@ -52851,10 +50334,6 @@ js.JsFunction = class JsFunction extends js.JsObject {
 };
 dart.defineNamedConstructor(js.JsFunction, '_fromJs');
 dart.setSignature(js.JsFunction, {
-  constructors: () => ({
-    withThis: dart.definiteFunctionType(js.JsFunction, [core.Function]),
-    _fromJs: dart.definiteFunctionType(js.JsFunction, [dart.dynamic])
-  }),
   methods: () => ({apply: dart.definiteFunctionType(dart.dynamic, [core.List], {thisArg: dart.dynamic})})
 });
 const _checkIndex = Symbol('_checkIndex');
@@ -52966,11 +50445,6 @@ js.JsArray$ = dart.generic(E => {
   dart.defineNamedConstructor(JsArray, 'from');
   dart.defineNamedConstructor(JsArray, '_fromJs');
   dart.setSignature(JsArray, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(js.JsArray$(E), []),
-      from: dart.definiteFunctionType(js.JsArray$(E), [IterableOfE()]),
-      _fromJs: dart.definiteFunctionType(js.JsArray$(E), [dart.dynamic])
-    }),
     getters: () => ({length: dart.definiteFunctionType(core.int, [])}),
     setters: () => ({length: dart.definiteFunctionType(dart.void, [core.int])}),
     methods: () => ({
@@ -53010,7 +50484,6 @@ js._DartObject = class _DartObject extends core.Object {
   }
 };
 dart.setSignature(js._DartObject, {
-  constructors: () => ({new: dart.definiteFunctionType(js._DartObject, [dart.dynamic])}),
   fields: () => ({[_dartObj]: dart.dynamic})
 });
 js._convertToJS = function(o) {
@@ -53297,7 +50770,6 @@ math._JSRandom = class _JSRandom extends core.Object {
 };
 math._JSRandom[dart.implements] = () => [math.Random];
 dart.setSignature(math._JSRandom, {
-  constructors: () => ({new: dart.definiteFunctionType(math._JSRandom, [])}),
   methods: () => ({
     nextInt: dart.definiteFunctionType(core.int, [core.int]),
     nextDouble: dart.definiteFunctionType(core.double, []),
@@ -53407,7 +50879,6 @@ math._Random = class _Random extends core.Object {
 };
 math._Random[dart.implements] = () => [math.Random];
 dart.setSignature(math._Random, {
-  constructors: () => ({new: dart.definiteFunctionType(math._Random, [core.int])}),
   fields: () => ({
     [_lo]: core.int,
     [_hi]: core.int
@@ -53417,11 +50888,6 @@ dart.setSignature(math._Random, {
     nextInt: dart.definiteFunctionType(core.int, [core.int]),
     nextDouble: dart.definiteFunctionType(core.double, []),
     nextBool: dart.definiteFunctionType(core.bool, [])
-  }),
-  sfields: () => ({
-    _POW2_53_D: core.double,
-    _POW2_27_D: core.double,
-    _MASK32: core.int
   })
 });
 math._Random._POW2_53_D = 1.0 * 9007199254740992;
@@ -53491,7 +50957,6 @@ math._JSSecureRandom = class _JSSecureRandom extends core.Object {
 };
 math._JSSecureRandom[dart.implements] = () => [math.Random];
 dart.setSignature(math._JSSecureRandom, {
-  constructors: () => ({new: dart.definiteFunctionType(math._JSSecureRandom, [])}),
   fields: () => ({[_buffer$0]: typed_data.ByteData}),
   methods: () => ({
     [_getRandomBytes]: dart.definiteFunctionType(dart.void, [core.int, core.int]),
@@ -53573,7 +51038,6 @@ math.Point$ = dart.generic(T => {
   }
   dart.addTypeTests(Point);
   dart.setSignature(Point, {
-    constructors: () => ({new: dart.definiteFunctionType(math.Point$(T), [T, T])}),
     fields: () => ({
       x: T,
       y: T
@@ -53600,13 +51064,6 @@ math.Random = class Random extends core.Object {
     return math.Random._secureRandom;
   }
 };
-dart.setSignature(math.Random, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(math.Random, [], [core.int]),
-    secure: dart.definiteFunctionType(math.Random, [])
-  }),
-  sfields: () => ({_secureRandom: math._JSSecureRandom})
-});
 dart.defineLazy(math.Random, {
   get _secureRandom() {
     return new math._JSSecureRandom();
@@ -53696,7 +51153,6 @@ math._RectangleBase$ = dart.generic(T => {
   }
   dart.addTypeTests(_RectangleBase);
   dart.setSignature(_RectangleBase, {
-    constructors: () => ({new: dart.definiteFunctionType(math._RectangleBase$(T), [])}),
     getters: () => ({
       right: dart.definiteFunctionType(T, []),
       bottom: dart.definiteFunctionType(T, []),
@@ -53734,7 +51190,6 @@ math._RectangleBase$ = dart.generic(T => {
 math._RectangleBase = _RectangleBase();
 math.Rectangle$ = dart.generic(T => {
   let RectangleOfT = () => (RectangleOfT = dart.constFn(math.Rectangle$(T)))();
-  let PointOfT = () => (PointOfT = dart.constFn(math.Point$(T)))();
   dart.defineExtensionNames([
     'left',
     'top',
@@ -53781,15 +51236,11 @@ math.Rectangle$ = dart.generic(T => {
       return new (RectangleOfT())(left, top, width, height);
     }
   }
-  const left$ = Symbol(Rectangle.name + "." + 'left'.toString());
-  const top$ = Symbol(Rectangle.name + "." + 'top'.toString());
-  const width$ = Symbol(Rectangle.name + "." + 'width'.toString());
-  const height$ = Symbol(Rectangle.name + "." + 'height'.toString());
+  const left$ = Symbol("Rectangle.left");
+  const top$ = Symbol("Rectangle.top");
+  const width$ = Symbol("Rectangle.width");
+  const height$ = Symbol("Rectangle.height");
   dart.setSignature(Rectangle, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(math.Rectangle$(T), [T, T, T, T]),
-      fromPoints: dart.definiteFunctionType(math.Rectangle$(T), [PointOfT(), PointOfT()])
-    }),
     fields: () => ({
       left: T,
       top: T,
@@ -53806,7 +51257,6 @@ const _height = Symbol('_height');
 math.MutableRectangle$ = dart.generic(T => {
   let MutableRectangleOfT = () => (MutableRectangleOfT = dart.constFn(math.MutableRectangle$(T)))();
   let RectangleOfT = () => (RectangleOfT = dart.constFn(math.Rectangle$(T)))();
-  let PointOfT = () => (PointOfT = dart.constFn(math.Point$(T)))();
   class MutableRectangle extends math._RectangleBase$(T) {
     get left() {
       return this[left$];
@@ -53851,14 +51301,10 @@ math.MutableRectangle$ = dart.generic(T => {
       this[_height] = height;
     }
   }
-  const left$ = Symbol(MutableRectangle.name + "." + 'left'.toString());
-  const top$ = Symbol(MutableRectangle.name + "." + 'top'.toString());
+  const left$ = Symbol("MutableRectangle.left");
+  const top$ = Symbol("MutableRectangle.top");
   MutableRectangle[dart.implements] = () => [RectangleOfT()];
   dart.setSignature(MutableRectangle, {
-    constructors: () => ({
-      new: dart.definiteFunctionType(math.MutableRectangle$(T), [T, T, T, T]),
-      fromPoints: dart.definiteFunctionType(math.MutableRectangle$(T), [PointOfT(), PointOfT()])
-    }),
     fields: () => ({
       left: T,
       top: T,
@@ -53972,7 +51418,6 @@ mirrors.Comment = class Comment extends core.Object {
   }
 };
 dart.setSignature(mirrors.Comment, {
-  constructors: () => ({new: dart.definiteFunctionType(mirrors.Comment, [core.String, core.String, core.bool])}),
   fields: () => ({
     text: core.String,
     trimmedText: core.String,
@@ -53992,7 +51437,6 @@ mirrors.MirrorsUsed = class MirrorsUsed extends core.Object {
   }
 };
 dart.setSignature(mirrors.MirrorsUsed, {
-  constructors: () => ({new: dart.definiteFunctionType(mirrors.MirrorsUsed, [], {symbols: dart.dynamic, targets: dart.dynamic, metaTargets: dart.dynamic, override: dart.dynamic})}),
   fields: () => ({
     symbols: dart.dynamic,
     targets: dart.dynamic,
@@ -54010,13 +51454,7 @@ typed_data.Endianness = class Endianness extends core.Object {
 };
 dart.defineNamedConstructor(typed_data.Endianness, '_');
 dart.setSignature(typed_data.Endianness, {
-  constructors: () => ({_: dart.definiteFunctionType(typed_data.Endianness, [core.bool])}),
-  fields: () => ({[_littleEndian]: core.bool}),
-  sfields: () => ({
-    BIG_ENDIAN: typed_data.Endianness,
-    LITTLE_ENDIAN: typed_data.Endianness,
-    HOST_ENDIAN: typed_data.Endianness
-  })
+  fields: () => ({[_littleEndian]: core.bool})
 });
 dart.defineLazy(typed_data.Endianness, {
   get BIG_ENDIAN() {
@@ -54040,12 +51478,6 @@ typed_data.ByteData = class ByteData extends core.Object {
   }
 };
 typed_data.ByteData[dart.implements] = () => [typed_data.TypedData];
-dart.setSignature(typed_data.ByteData, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.ByteData, [core.int]),
-    view: dart.definiteFunctionType(typed_data.ByteData, [typed_data.ByteBuffer], [core.int, core.int])
-  })
-});
 typed_data.Int8List = class Int8List extends core.Object {
   static new(length) {
     return _native_typed_data.NativeInt8List.new(length);
@@ -54060,14 +51492,6 @@ typed_data.Int8List = class Int8List extends core.Object {
   }
 };
 typed_data.Int8List[dart.implements] = () => [ListOfint(), typed_data.TypedData];
-dart.setSignature(typed_data.Int8List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Int8List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Int8List, [ListOfint()]),
-    view: dart.definiteFunctionType(typed_data.Int8List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Int8List.BYTES_PER_ELEMENT = 1;
 typed_data.Uint8List = class Uint8List extends core.Object {
   static new(length) {
@@ -54083,14 +51507,6 @@ typed_data.Uint8List = class Uint8List extends core.Object {
   }
 };
 typed_data.Uint8List[dart.implements] = () => [ListOfint(), typed_data.TypedData];
-dart.setSignature(typed_data.Uint8List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Uint8List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Uint8List, [ListOfint()]),
-    view: dart.definiteFunctionType(typed_data.Uint8List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Uint8List.BYTES_PER_ELEMENT = 1;
 typed_data.Uint8ClampedList = class Uint8ClampedList extends core.Object {
   static new(length) {
@@ -54106,14 +51522,6 @@ typed_data.Uint8ClampedList = class Uint8ClampedList extends core.Object {
   }
 };
 typed_data.Uint8ClampedList[dart.implements] = () => [ListOfint(), typed_data.TypedData];
-dart.setSignature(typed_data.Uint8ClampedList, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Uint8ClampedList, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Uint8ClampedList, [ListOfint()]),
-    view: dart.definiteFunctionType(typed_data.Uint8ClampedList, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Uint8ClampedList.BYTES_PER_ELEMENT = 1;
 typed_data.Int16List = class Int16List extends core.Object {
   static new(length) {
@@ -54129,14 +51537,6 @@ typed_data.Int16List = class Int16List extends core.Object {
   }
 };
 typed_data.Int16List[dart.implements] = () => [ListOfint(), typed_data.TypedData];
-dart.setSignature(typed_data.Int16List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Int16List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Int16List, [ListOfint()]),
-    view: dart.definiteFunctionType(typed_data.Int16List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Int16List.BYTES_PER_ELEMENT = 2;
 typed_data.Uint16List = class Uint16List extends core.Object {
   static new(length) {
@@ -54152,14 +51552,6 @@ typed_data.Uint16List = class Uint16List extends core.Object {
   }
 };
 typed_data.Uint16List[dart.implements] = () => [ListOfint(), typed_data.TypedData];
-dart.setSignature(typed_data.Uint16List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Uint16List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Uint16List, [ListOfint()]),
-    view: dart.definiteFunctionType(typed_data.Uint16List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Uint16List.BYTES_PER_ELEMENT = 2;
 typed_data.Int32List = class Int32List extends core.Object {
   static new(length) {
@@ -54175,14 +51567,6 @@ typed_data.Int32List = class Int32List extends core.Object {
   }
 };
 typed_data.Int32List[dart.implements] = () => [ListOfint(), typed_data.TypedData];
-dart.setSignature(typed_data.Int32List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Int32List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Int32List, [ListOfint()]),
-    view: dart.definiteFunctionType(typed_data.Int32List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Int32List.BYTES_PER_ELEMENT = 4;
 typed_data.Uint32List = class Uint32List extends core.Object {
   static new(length) {
@@ -54198,14 +51582,6 @@ typed_data.Uint32List = class Uint32List extends core.Object {
   }
 };
 typed_data.Uint32List[dart.implements] = () => [ListOfint(), typed_data.TypedData];
-dart.setSignature(typed_data.Uint32List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Uint32List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Uint32List, [ListOfint()]),
-    view: dart.definiteFunctionType(typed_data.Uint32List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Uint32List.BYTES_PER_ELEMENT = 4;
 typed_data.Int64List = class Int64List extends core.Object {
   static new(length) {
@@ -54221,14 +51597,6 @@ typed_data.Int64List = class Int64List extends core.Object {
   }
 };
 typed_data.Int64List[dart.implements] = () => [ListOfint(), typed_data.TypedData];
-dart.setSignature(typed_data.Int64List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Int64List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Int64List, [ListOfint()]),
-    view: dart.definiteFunctionType(typed_data.Int64List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Int64List.BYTES_PER_ELEMENT = 8;
 typed_data.Uint64List = class Uint64List extends core.Object {
   static new(length) {
@@ -54244,14 +51612,6 @@ typed_data.Uint64List = class Uint64List extends core.Object {
   }
 };
 typed_data.Uint64List[dart.implements] = () => [ListOfint(), typed_data.TypedData];
-dart.setSignature(typed_data.Uint64List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Uint64List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Uint64List, [ListOfint()]),
-    view: dart.definiteFunctionType(typed_data.Uint64List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Uint64List.BYTES_PER_ELEMENT = 8;
 typed_data.Float32List = class Float32List extends core.Object {
   static new(length) {
@@ -54267,14 +51627,6 @@ typed_data.Float32List = class Float32List extends core.Object {
   }
 };
 typed_data.Float32List[dart.implements] = () => [ListOfdouble(), typed_data.TypedData];
-dart.setSignature(typed_data.Float32List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Float32List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Float32List, [ListOfdouble()]),
-    view: dart.definiteFunctionType(typed_data.Float32List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Float32List.BYTES_PER_ELEMENT = 4;
 typed_data.Float64List = class Float64List extends core.Object {
   static new(length) {
@@ -54290,14 +51642,6 @@ typed_data.Float64List = class Float64List extends core.Object {
   }
 };
 typed_data.Float64List[dart.implements] = () => [ListOfdouble(), typed_data.TypedData];
-dart.setSignature(typed_data.Float64List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Float64List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Float64List, [ListOfdouble()]),
-    view: dart.definiteFunctionType(typed_data.Float64List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Float64List.BYTES_PER_ELEMENT = 8;
 typed_data.Float32x4List = class Float32x4List extends core.Object {
   static new(length) {
@@ -54313,14 +51657,6 @@ typed_data.Float32x4List = class Float32x4List extends core.Object {
   }
 };
 typed_data.Float32x4List[dart.implements] = () => [ListOfFloat32x4(), typed_data.TypedData];
-dart.setSignature(typed_data.Float32x4List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Float32x4List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Float32x4List, [ListOfFloat32x4()]),
-    view: dart.definiteFunctionType(typed_data.Float32x4List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Float32x4List.BYTES_PER_ELEMENT = 16;
 typed_data.Int32x4List = class Int32x4List extends core.Object {
   static new(length) {
@@ -54336,14 +51672,6 @@ typed_data.Int32x4List = class Int32x4List extends core.Object {
   }
 };
 typed_data.Int32x4List[dart.implements] = () => [ListOfInt32x4(), typed_data.TypedData];
-dart.setSignature(typed_data.Int32x4List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Int32x4List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Int32x4List, [ListOfInt32x4()]),
-    view: dart.definiteFunctionType(typed_data.Int32x4List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Int32x4List.BYTES_PER_ELEMENT = 16;
 typed_data.Float64x2List = class Float64x2List extends core.Object {
   static new(length) {
@@ -54359,14 +51687,6 @@ typed_data.Float64x2List = class Float64x2List extends core.Object {
   }
 };
 typed_data.Float64x2List[dart.implements] = () => [ListOfFloat64x2(), typed_data.TypedData];
-dart.setSignature(typed_data.Float64x2List, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(typed_data.Float64x2List, [core.int]),
-    fromList: dart.definiteFunctionType(typed_data.Float64x2List, [ListOfFloat64x2()]),
-    view: dart.definiteFunctionType(typed_data.Float64x2List, [typed_data.ByteBuffer], [core.int, core.int])
-  }),
-  sfields: () => ({BYTES_PER_ELEMENT: core.int})
-});
 typed_data.Float64x2List.BYTES_PER_ELEMENT = 16;
 indexed_db._KeyRangeFactoryProvider = class _KeyRangeFactoryProvider extends core.Object {
   static createKeyRange_only(value) {
@@ -54409,7 +51729,6 @@ indexed_db._KeyRangeFactoryProvider = class _KeyRangeFactoryProvider extends cor
   }
 };
 dart.setSignature(indexed_db._KeyRangeFactoryProvider, {
-  sfields: () => ({_cachedClass: dart.dynamic}),
   statics: () => ({
     createKeyRange_only: dart.definiteFunctionType(indexed_db.KeyRange, [dart.dynamic]),
     createKeyRange_lowerBound: dart.definiteFunctionType(indexed_db.KeyRange, [dart.dynamic], [core.bool]),
@@ -54528,7 +51847,6 @@ indexed_db.Cursor = class Cursor extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(indexed_db.Cursor, {
-  constructors: () => ({_: dart.definiteFunctionType(indexed_db.Cursor, [])}),
   fields: () => ({
     [dartx.direction]: core.String,
     [dartx.key]: core.Object,
@@ -54563,7 +51881,6 @@ indexed_db.CursorWithValue = class CursorWithValue extends indexed_db.Cursor {
   }
 };
 dart.setSignature(indexed_db.CursorWithValue, {
-  constructors: () => ({_: dart.definiteFunctionType(indexed_db.CursorWithValue, [])}),
   fields: () => ({[_get_value]: dart.dynamic}),
   getters: () => ({[dartx.value]: dart.definiteFunctionType(dart.dynamic, [])})
 });
@@ -54614,10 +51931,6 @@ html$.EventTarget = class EventTarget extends _interceptors.Interceptor {
 };
 dart.defineNamedConstructor(html$.EventTarget, '_created');
 dart.setSignature(html$.EventTarget, {
-  constructors: () => ({
-    _created: dart.definiteFunctionType(html$.EventTarget, []),
-    _: dart.definiteFunctionType(html$.EventTarget, [])
-  }),
   getters: () => ({[dartx.on]: dart.definiteFunctionType(html$.Events, [])}),
   methods: () => ({
     [dartx.addEventListener]: dart.definiteFunctionType(dart.void, [core.String, html$.EventListener], [core.bool]),
@@ -54731,7 +52044,6 @@ indexed_db.Database = class Database extends html$.EventTarget {
   }
 };
 dart.setSignature(indexed_db.Database, {
-  constructors: () => ({_: dart.definiteFunctionType(indexed_db.Database, [])}),
   fields: () => ({
     [dartx.name]: core.String,
     [dartx.objectStoreNames]: ListOfString(),
@@ -54755,12 +52067,6 @@ dart.setSignature(indexed_db.Database, {
     [_createObjectStore_1]: dart.definiteFunctionType(indexed_db.ObjectStore, [dart.dynamic, dart.dynamic]),
     [_createObjectStore_2]: dart.definiteFunctionType(indexed_db.ObjectStore, [dart.dynamic]),
     [dartx.deleteObjectStore]: dart.definiteFunctionType(dart.void, [core.String])
-  }),
-  sfields: () => ({
-    abortEvent: EventStreamProviderOfEvent(),
-    closeEvent: EventStreamProviderOfEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    versionChangeEvent: EventStreamProviderOfVersionChangeEvent()
   })
 });
 dart.defineLazy(indexed_db.Database, {
@@ -54868,7 +52174,6 @@ indexed_db.IdbFactory = class IdbFactory extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(indexed_db.IdbFactory, {
-  constructors: () => ({_: dart.definiteFunctionType(indexed_db.IdbFactory, [])}),
   getters: () => ({[dartx.supportsDatabaseNames]: dart.definiteFunctionType(core.bool, [])}),
   methods: () => ({
     [dartx.open]: dart.definiteFunctionType(async.Future$(indexed_db.Database), [core.String], {version: core.int, onUpgradeNeeded: dynamicTovoid(), onBlocked: dynamicTovoid()}),
@@ -54878,8 +52183,7 @@ dart.setSignature(indexed_db.IdbFactory, {
     [_deleteDatabase]: dart.definiteFunctionType(indexed_db.OpenDBRequest, [core.String]),
     [_open]: dart.definiteFunctionType(indexed_db.OpenDBRequest, [core.String], [core.int]),
     [_webkitGetDatabaseNames]: dart.definiteFunctionType(indexed_db.Request, [])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.IDBFactory, indexed_db.IdbFactory);
 indexed_db._completeRequest = function(T) {
@@ -55030,7 +52334,6 @@ indexed_db.Index = class Index extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(indexed_db.Index, {
-  constructors: () => ({_: dart.definiteFunctionType(indexed_db.Index, [])}),
   fields: () => ({
     [dartx.keyPath]: core.Object,
     [dartx.multiEntry]: core.bool,
@@ -55094,13 +52397,6 @@ indexed_db.KeyRange = class KeyRange extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(indexed_db.KeyRange, {
-  constructors: () => ({
-    only: dart.definiteFunctionType(indexed_db.KeyRange, [dart.dynamic]),
-    lowerBound: dart.definiteFunctionType(indexed_db.KeyRange, [dart.dynamic], [core.bool]),
-    upperBound: dart.definiteFunctionType(indexed_db.KeyRange, [dart.dynamic], [core.bool]),
-    bound: dart.definiteFunctionType(indexed_db.KeyRange, [dart.dynamic, dart.dynamic], [core.bool, core.bool]),
-    _: dart.definiteFunctionType(indexed_db.KeyRange, [])
-  }),
   fields: () => ({
     [dartx.lower]: core.Object,
     [dartx.lowerOpen]: core.bool,
@@ -55366,7 +52662,6 @@ indexed_db.ObjectStore = class ObjectStore extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(indexed_db.ObjectStore, {
-  constructors: () => ({_: dart.definiteFunctionType(indexed_db.ObjectStore, [])}),
   fields: () => ({
     [dartx.autoIncrement]: core.bool,
     [dartx.indexNames]: ListOfString(),
@@ -55453,7 +52748,6 @@ indexed_db.Request = class Request extends html$.EventTarget {
   }
 };
 dart.setSignature(indexed_db.Request, {
-  constructors: () => ({_: dart.definiteFunctionType(indexed_db.Request, [])}),
   fields: () => ({
     [dartx.error]: html$.DomError,
     [dartx.readyState]: core.String,
@@ -55465,10 +52759,6 @@ dart.setSignature(indexed_db.Request, {
     [dartx.result]: dart.definiteFunctionType(dart.dynamic, []),
     [dartx.onError]: dart.definiteFunctionType(async.Stream$(html$.Event), []),
     [dartx.onSuccess]: dart.definiteFunctionType(async.Stream$(html$.Event), [])
-  }),
-  sfields: () => ({
-    errorEvent: EventStreamProviderOfEvent(),
-    successEvent: EventStreamProviderOfEvent()
   })
 });
 dart.defineLazy(indexed_db.Request, {
@@ -55496,14 +52786,9 @@ indexed_db.OpenDBRequest = class OpenDBRequest extends indexed_db.Request {
   }
 };
 dart.setSignature(indexed_db.OpenDBRequest, {
-  constructors: () => ({_: dart.definiteFunctionType(indexed_db.OpenDBRequest, [])}),
   getters: () => ({
     [dartx.onBlocked]: dart.definiteFunctionType(async.Stream$(html$.Event), []),
     [dartx.onUpgradeNeeded]: dart.definiteFunctionType(async.Stream$(indexed_db.VersionChangeEvent), [])
-  }),
-  sfields: () => ({
-    blockedEvent: EventStreamProviderOfEvent(),
-    upgradeNeededEvent: EventStreamProviderOfVersionChangeEvent()
   })
 });
 dart.defineLazy(indexed_db.OpenDBRequest, {
@@ -55576,7 +52861,6 @@ indexed_db.Transaction = class Transaction extends html$.EventTarget {
   }
 };
 dart.setSignature(indexed_db.Transaction, {
-  constructors: () => ({_: dart.definiteFunctionType(indexed_db.Transaction, [])}),
   fields: () => ({
     [dartx.db]: indexed_db.Database,
     [dartx.error]: html$.DomError,
@@ -55592,11 +52876,6 @@ dart.setSignature(indexed_db.Transaction, {
   methods: () => ({
     [dartx.abort]: dart.definiteFunctionType(dart.void, []),
     [dartx.objectStore]: dart.definiteFunctionType(indexed_db.ObjectStore, [core.String])
-  }),
-  sfields: () => ({
-    abortEvent: EventStreamProviderOfEvent(),
-    completeEvent: EventStreamProviderOfEvent(),
-    errorEvent: EventStreamProviderOfEvent()
   })
 });
 dart.defineLazy(indexed_db.Transaction, {
@@ -55724,11 +53003,6 @@ html$.Event = class Event extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Event, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.Event, [core.String], {canBubble: core.bool, cancelable: core.bool}),
-    eventType: dart.definiteFunctionType(html$.Event, [core.String, core.String], {canBubble: core.bool, cancelable: core.bool}),
-    _: dart.definiteFunctionType(html$.Event, [core.String], [core.Map])
-  }),
   fields: () => ({
     [_selector]: core.String,
     [dartx.bubbles]: core.bool,
@@ -55751,11 +53025,6 @@ dart.setSignature(html$.Event, {
     [dartx.preventDefault]: dart.definiteFunctionType(dart.void, []),
     [dartx.stopImmediatePropagation]: dart.definiteFunctionType(dart.void, []),
     [dartx.stopPropagation]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({
-    AT_TARGET: core.int,
-    BUBBLING_PHASE: core.int,
-    CAPTURING_PHASE: core.int
   }),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.Event, [dart.dynamic, dart.dynamic]),
@@ -55806,10 +53075,6 @@ indexed_db.VersionChangeEvent = class VersionChangeEvent extends html$.Event {
   }
 };
 dart.setSignature(indexed_db.VersionChangeEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(indexed_db.VersionChangeEvent, []),
-    new: dart.definiteFunctionType(indexed_db.VersionChangeEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.dataLoss]: core.String,
     [dartx.dataLossMessage]: core.String,
@@ -56045,10 +53310,6 @@ html$.Node = class Node extends html$.EventTarget {
 };
 dart.defineNamedConstructor(html$.Node, '_created');
 dart.setSignature(html$.Node, {
-  constructors: () => ({
-    _created: dart.definiteFunctionType(html$.Node, []),
-    _: dart.definiteFunctionType(html$.Node, [])
-  }),
   fields: () => ({
     [dartx.childNodes]: ListOfNode(),
     [dartx.baseUri]: core.String,
@@ -56080,20 +53341,6 @@ dart.setSignature(html$.Node, {
     [dartx.insertBefore]: dart.definiteFunctionType(html$.Node, [html$.Node, html$.Node]),
     [_removeChild]: dart.definiteFunctionType(html$.Node, [html$.Node]),
     [_replaceChild]: dart.definiteFunctionType(html$.Node, [html$.Node, html$.Node])
-  }),
-  sfields: () => ({
-    ATTRIBUTE_NODE: core.int,
-    CDATA_SECTION_NODE: core.int,
-    COMMENT_NODE: core.int,
-    DOCUMENT_FRAGMENT_NODE: core.int,
-    DOCUMENT_NODE: core.int,
-    DOCUMENT_TYPE_NODE: core.int,
-    ELEMENT_NODE: core.int,
-    ENTITY_NODE: core.int,
-    ENTITY_REFERENCE_NODE: core.int,
-    NOTATION_NODE: core.int,
-    PROCESSING_INSTRUCTION_NODE: core.int,
-    TEXT_NODE: core.int
   })
 });
 html$.Node.ATTRIBUTE_NODE = 2;
@@ -57370,41 +54617,6 @@ html$.Element = class Element extends html$.Node {
 dart.defineNamedConstructor(html$.Element, 'created');
 html$.Element[dart.implements] = () => [html$.NonDocumentTypeChildNode, html$.GlobalEventHandlers, html$.ParentNode, html$.ChildNode];
 dart.setSignature(html$.Element, {
-  constructors: () => ({
-    html: dart.definiteFunctionType(html$.Element, [core.String], {validator: html$.NodeValidator, treeSanitizer: html$.NodeTreeSanitizer}),
-    created: dart.definiteFunctionType(html$.Element, []),
-    tag: dart.definiteFunctionType(html$.Element, [core.String], [core.String]),
-    a: dart.definiteFunctionType(html$.Element, []),
-    article: dart.definiteFunctionType(html$.Element, []),
-    aside: dart.definiteFunctionType(html$.Element, []),
-    audio: dart.definiteFunctionType(html$.Element, []),
-    br: dart.definiteFunctionType(html$.Element, []),
-    canvas: dart.definiteFunctionType(html$.Element, []),
-    div: dart.definiteFunctionType(html$.Element, []),
-    footer: dart.definiteFunctionType(html$.Element, []),
-    header: dart.definiteFunctionType(html$.Element, []),
-    hr: dart.definiteFunctionType(html$.Element, []),
-    iframe: dart.definiteFunctionType(html$.Element, []),
-    img: dart.definiteFunctionType(html$.Element, []),
-    li: dart.definiteFunctionType(html$.Element, []),
-    nav: dart.definiteFunctionType(html$.Element, []),
-    ol: dart.definiteFunctionType(html$.Element, []),
-    option: dart.definiteFunctionType(html$.Element, []),
-    p: dart.definiteFunctionType(html$.Element, []),
-    pre: dart.definiteFunctionType(html$.Element, []),
-    section: dart.definiteFunctionType(html$.Element, []),
-    select: dart.definiteFunctionType(html$.Element, []),
-    span: dart.definiteFunctionType(html$.Element, []),
-    svg: dart.definiteFunctionType(html$.Element, []),
-    table: dart.definiteFunctionType(html$.Element, []),
-    td: dart.definiteFunctionType(html$.Element, []),
-    textarea: dart.definiteFunctionType(html$.Element, []),
-    th: dart.definiteFunctionType(html$.Element, []),
-    tr: dart.definiteFunctionType(html$.Element, []),
-    ul: dart.definiteFunctionType(html$.Element, []),
-    video: dart.definiteFunctionType(html$.Element, []),
-    _: dart.definiteFunctionType(html$.Element, [])
-  }),
   fields: () => ({
     [_xtag]: html$.Element,
     [dartx.offsetParent]: html$.Element,
@@ -57619,82 +54831,6 @@ dart.setSignature(html$.Element, {
     [dartx.before]: dart.definiteFunctionType(dart.void, [core.Object]),
     [dartx.querySelector]: dart.definiteFunctionType(html$.Element, [core.String]),
     [_querySelectorAll]: dart.definiteFunctionType(core.List$(html$.Node), [core.String])
-  }),
-  sfields: () => ({
-    mouseWheelEvent: EventStreamProviderOfWheelEvent(),
-    transitionEndEvent: EventStreamProviderOfTransitionEvent(),
-    _parseDocument: html$.HtmlDocument,
-    _parseRange: html$.Range,
-    _defaultValidator: html$.NodeValidatorBuilder,
-    _defaultSanitizer: html$._ValidatingTreeSanitizer,
-    _tagsForWhichCreateContextualFragmentIsNotSupported: ListOfString(),
-    abortEvent: EventStreamProviderOfEvent(),
-    beforeCopyEvent: EventStreamProviderOfEvent(),
-    beforeCutEvent: EventStreamProviderOfEvent(),
-    beforePasteEvent: EventStreamProviderOfEvent(),
-    blurEvent: EventStreamProviderOfEvent(),
-    canPlayEvent: EventStreamProviderOfEvent(),
-    canPlayThroughEvent: EventStreamProviderOfEvent(),
-    changeEvent: EventStreamProviderOfEvent(),
-    clickEvent: EventStreamProviderOfMouseEvent(),
-    contextMenuEvent: EventStreamProviderOfMouseEvent(),
-    copyEvent: EventStreamProviderOfClipboardEvent(),
-    cutEvent: EventStreamProviderOfClipboardEvent(),
-    doubleClickEvent: EventStreamProviderOfEvent(),
-    dragEvent: EventStreamProviderOfMouseEvent(),
-    dragEndEvent: EventStreamProviderOfMouseEvent(),
-    dragEnterEvent: EventStreamProviderOfMouseEvent(),
-    dragLeaveEvent: EventStreamProviderOfMouseEvent(),
-    dragOverEvent: EventStreamProviderOfMouseEvent(),
-    dragStartEvent: EventStreamProviderOfMouseEvent(),
-    dropEvent: EventStreamProviderOfMouseEvent(),
-    durationChangeEvent: EventStreamProviderOfEvent(),
-    emptiedEvent: EventStreamProviderOfEvent(),
-    endedEvent: EventStreamProviderOfEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    focusEvent: EventStreamProviderOfEvent(),
-    inputEvent: EventStreamProviderOfEvent(),
-    invalidEvent: EventStreamProviderOfEvent(),
-    keyDownEvent: EventStreamProviderOfKeyboardEvent(),
-    keyPressEvent: EventStreamProviderOfKeyboardEvent(),
-    keyUpEvent: EventStreamProviderOfKeyboardEvent(),
-    loadEvent: EventStreamProviderOfEvent(),
-    loadedDataEvent: EventStreamProviderOfEvent(),
-    loadedMetadataEvent: EventStreamProviderOfEvent(),
-    mouseDownEvent: EventStreamProviderOfMouseEvent(),
-    mouseEnterEvent: EventStreamProviderOfMouseEvent(),
-    mouseLeaveEvent: EventStreamProviderOfMouseEvent(),
-    mouseMoveEvent: EventStreamProviderOfMouseEvent(),
-    mouseOutEvent: EventStreamProviderOfMouseEvent(),
-    mouseOverEvent: EventStreamProviderOfMouseEvent(),
-    mouseUpEvent: EventStreamProviderOfMouseEvent(),
-    pasteEvent: EventStreamProviderOfClipboardEvent(),
-    pauseEvent: EventStreamProviderOfEvent(),
-    playEvent: EventStreamProviderOfEvent(),
-    playingEvent: EventStreamProviderOfEvent(),
-    rateChangeEvent: EventStreamProviderOfEvent(),
-    resetEvent: EventStreamProviderOfEvent(),
-    resizeEvent: EventStreamProviderOfEvent(),
-    scrollEvent: EventStreamProviderOfEvent(),
-    searchEvent: EventStreamProviderOfEvent(),
-    seekedEvent: EventStreamProviderOfEvent(),
-    seekingEvent: EventStreamProviderOfEvent(),
-    selectEvent: EventStreamProviderOfEvent(),
-    selectStartEvent: EventStreamProviderOfEvent(),
-    stalledEvent: EventStreamProviderOfEvent(),
-    submitEvent: EventStreamProviderOfEvent(),
-    suspendEvent: EventStreamProviderOfEvent(),
-    timeUpdateEvent: EventStreamProviderOfEvent(),
-    touchCancelEvent: EventStreamProviderOfTouchEvent(),
-    touchEndEvent: EventStreamProviderOfTouchEvent(),
-    touchEnterEvent: EventStreamProviderOfTouchEvent(),
-    touchLeaveEvent: EventStreamProviderOfTouchEvent(),
-    touchMoveEvent: EventStreamProviderOfTouchEvent(),
-    touchStartEvent: EventStreamProviderOfTouchEvent(),
-    volumeChangeEvent: EventStreamProviderOfEvent(),
-    waitingEvent: EventStreamProviderOfEvent(),
-    fullscreenChangeEvent: EventStreamProviderOfEvent(),
-    fullscreenErrorEvent: EventStreamProviderOfEvent()
   }),
   statics: () => ({
     isTagSupported: dart.definiteFunctionType(core.bool, [core.String]),
@@ -57931,12 +55067,6 @@ html$.HtmlElement = class HtmlElement extends html$.Element {
   }
 };
 dart.defineNamedConstructor(html$.HtmlElement, 'created');
-dart.setSignature(html$.HtmlElement, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.HtmlElement, []),
-    created: dart.definiteFunctionType(html$.HtmlElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLElement, html$.HtmlElement);
 html$._EntryArray = class _EntryArray extends core.Object {};
 html$._EntryArray[dart.implements] = () => [ListOfEntry()];
@@ -57962,9 +55092,7 @@ html$.AbstractWorker = class AbstractWorker extends _interceptors.Interceptor {
 };
 html$.AbstractWorker[dart.implements] = () => [html$.EventTarget];
 dart.setSignature(html$.AbstractWorker, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.AbstractWorker, [])}),
-  getters: () => ({onError: dart.definiteFunctionType(async.Stream$(html$.Event), [])}),
-  sfields: () => ({errorEvent: EventStreamProviderOfEvent()})
+  getters: () => ({onError: dart.definiteFunctionType(async.Stream$(html$.Event), [])})
 });
 dart.defineExtensionMembers(html$.AbstractWorker, ['onError']);
 dart.defineLazy(html$.AbstractWorker, {
@@ -58120,11 +55248,6 @@ html$.AnchorElement = class AnchorElement extends html$.HtmlElement {
 dart.defineNamedConstructor(html$.AnchorElement, 'created');
 html$.AnchorElement[dart.implements] = () => [html$.UrlUtils];
 dart.setSignature(html$.AnchorElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.AnchorElement, []),
-    new: dart.definiteFunctionType(html$.AnchorElement, [], {href: core.String}),
-    created: dart.definiteFunctionType(html$.AnchorElement, [])
-  }),
   fields: () => ({
     [dartx.download]: core.String,
     [dartx.hreflang]: core.String,
@@ -58230,7 +55353,6 @@ html$.Animation = class Animation extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.Animation, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Animation, [])}),
   fields: () => ({
     [dartx.currentTime]: core.num,
     [dartx.effect]: html$.AnimationEffectReadOnly,
@@ -58248,8 +55370,7 @@ dart.setSignature(html$.Animation, {
     [dartx.pause]: dart.definiteFunctionType(dart.void, []),
     [dartx.play]: dart.definiteFunctionType(dart.void, []),
     [dartx.reverse]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.Animation, html$.Animation);
 const _get_computedTiming = Symbol('_get_computedTiming');
@@ -58272,7 +55393,6 @@ html$.AnimationEffectReadOnly = class AnimationEffectReadOnly extends _intercept
   }
 };
 dart.setSignature(html$.AnimationEffectReadOnly, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.AnimationEffectReadOnly, [])}),
   fields: () => ({
     [_get_computedTiming]: dart.dynamic,
     [dartx.timing]: html$.AnimationEffectTiming
@@ -58351,7 +55471,6 @@ html$.AnimationEffectTiming = class AnimationEffectTiming extends _interceptors.
   }
 };
 dart.setSignature(html$.AnimationEffectTiming, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.AnimationEffectTiming, [])}),
   fields: () => ({
     [dartx.delay]: core.num,
     [dartx.direction]: core.String,
@@ -58395,10 +55514,6 @@ html$.AnimationEvent = class AnimationEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.AnimationEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.AnimationEvent, []),
-    new: dart.definiteFunctionType(html$.AnimationEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.animationName]: core.String,
     [dartx.elapsedTime]: core.double
@@ -58440,10 +55555,6 @@ html$.AnimationPlayerEvent = class AnimationPlayerEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.AnimationPlayerEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.AnimationPlayerEvent, []),
-    new: dart.definiteFunctionType(html$.AnimationPlayerEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.currentTime]: core.double,
     [dartx.timelineTime]: core.double
@@ -58485,7 +55596,6 @@ html$.AnimationTimeline = class AnimationTimeline extends _interceptors.Intercep
   }
 };
 dart.setSignature(html$.AnimationTimeline, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.AnimationTimeline, [])}),
   fields: () => ({
     [dartx.currentTime]: core.num,
     [dartx.playbackRate]: core.num
@@ -58512,7 +55622,6 @@ html$.AppBannerPromptResult = class AppBannerPromptResult extends _interceptors.
   }
 };
 dart.setSignature(html$.AppBannerPromptResult, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.AppBannerPromptResult, [])}),
   fields: () => ({
     [dartx.outcome]: core.String,
     [dartx.platform]: core.String
@@ -58578,7 +55687,6 @@ html$.ApplicationCache = class ApplicationCache extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.ApplicationCache, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ApplicationCache, [])}),
   fields: () => ({[dartx.status]: core.int}),
   getters: () => ({
     [dartx.onCached]: dart.definiteFunctionType(async.Stream$(html$.Event), []),
@@ -58594,24 +55702,7 @@ dart.setSignature(html$.ApplicationCache, {
     [dartx.abort]: dart.definiteFunctionType(dart.void, []),
     [dartx.swapCache]: dart.definiteFunctionType(dart.void, []),
     [dartx.update]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({
-    cachedEvent: EventStreamProviderOfEvent(),
-    checkingEvent: EventStreamProviderOfEvent(),
-    downloadingEvent: EventStreamProviderOfEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    noUpdateEvent: EventStreamProviderOfEvent(),
-    obsoleteEvent: EventStreamProviderOfEvent(),
-    progressEvent: EventStreamProviderOfProgressEvent(),
-    updateReadyEvent: EventStreamProviderOfEvent(),
-    CHECKING: core.int,
-    DOWNLOADING: core.int,
-    IDLE: core.int,
-    OBSOLETE: core.int,
-    UNCACHED: core.int,
-    UPDATEREADY: core.int
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 html$.ApplicationCache.CHECKING = 2;
 html$.ApplicationCache.DOWNLOADING = 3;
@@ -58686,10 +55777,6 @@ html$.ApplicationCacheErrorEvent = class ApplicationCacheErrorEvent extends html
   }
 };
 dart.setSignature(html$.ApplicationCacheErrorEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ApplicationCacheErrorEvent, []),
-    new: dart.definiteFunctionType(html$.ApplicationCacheErrorEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.message]: core.String,
     [dartx.reason]: core.String,
@@ -58840,11 +55927,6 @@ html$.AreaElement = class AreaElement extends html$.HtmlElement {
 dart.defineNamedConstructor(html$.AreaElement, 'created');
 html$.AreaElement[dart.implements] = () => [html$.UrlUtils];
 dart.setSignature(html$.AreaElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.AreaElement, []),
-    new: dart.definiteFunctionType(html$.AreaElement, []),
-    created: dart.definiteFunctionType(html$.AreaElement, [])
-  }),
   fields: () => ({
     [dartx.alt]: core.String,
     [dartx.coords]: core.String,
@@ -59142,10 +56224,6 @@ html$.MediaElement = class MediaElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.MediaElement, 'created');
 dart.setSignature(html$.MediaElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MediaElement, []),
-    created: dart.definiteFunctionType(html$.MediaElement, [])
-  }),
   fields: () => ({
     [dartx.audioTracks]: html$.AudioTrackList,
     [dartx.autoplay]: core.bool,
@@ -59198,21 +56276,6 @@ dart.setSignature(html$.MediaElement, {
     [dartx.addKey]: dart.definiteFunctionType(dart.void, [core.String, typed_data.Uint8List], [typed_data.Uint8List, core.String]),
     [dartx.cancelKeyRequest]: dart.definiteFunctionType(dart.void, [core.String, core.String]),
     [dartx.generateKeyRequest]: dart.definiteFunctionType(dart.void, [core.String], [typed_data.Uint8List])
-  }),
-  sfields: () => ({
-    keyAddedEvent: EventStreamProviderOfMediaKeyEvent(),
-    keyErrorEvent: EventStreamProviderOfMediaKeyEvent(),
-    keyMessageEvent: EventStreamProviderOfMediaKeyEvent(),
-    needKeyEvent: EventStreamProviderOfMediaKeyEvent(),
-    HAVE_CURRENT_DATA: core.int,
-    HAVE_ENOUGH_DATA: core.int,
-    HAVE_FUTURE_DATA: core.int,
-    HAVE_METADATA: core.int,
-    HAVE_NOTHING: core.int,
-    NETWORK_EMPTY: core.int,
-    NETWORK_IDLE: core.int,
-    NETWORK_LOADING: core.int,
-    NETWORK_NO_SOURCE: core.int
   })
 });
 html$.MediaElement.HAVE_CURRENT_DATA = 2;
@@ -59263,11 +56326,6 @@ html$.AudioElement = class AudioElement extends html$.MediaElement {
 };
 dart.defineNamedConstructor(html$.AudioElement, 'created');
 dart.setSignature(html$.AudioElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.AudioElement, [], [core.String]),
-    created: dart.definiteFunctionType(html$.AudioElement, []),
-    new: dart.definiteFunctionType(html$.AudioElement, [], [core.String])
-  }),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.AudioElement, [dart.dynamic]),
     _create_2: dart.definiteFunctionType(html$.AudioElement, [])
@@ -59306,7 +56364,6 @@ html$.AudioTrack = class AudioTrack extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.AudioTrack, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.AudioTrack, [])}),
   fields: () => ({
     [dartx.enabled]: core.bool,
     [dartx.id]: core.String,
@@ -59340,14 +56397,12 @@ html$.AudioTrackList = class AudioTrackList extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.AudioTrackList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.AudioTrackList, [])}),
   fields: () => ({[dartx.length]: core.int}),
   getters: () => ({[dartx.onChange]: dart.definiteFunctionType(async.Stream$(html$.Event), [])}),
   methods: () => ({
     [__getter__]: dart.definiteFunctionType(html$.AudioTrack, [core.int]),
     [dartx.getTrackById]: dart.definiteFunctionType(html$.AudioTrack, [core.String])
-  }),
-  sfields: () => ({changeEvent: EventStreamProviderOfEvent()})
+  })
 });
 dart.defineLazy(html$.AudioTrackList, {
   get changeEvent() {
@@ -59381,10 +56436,6 @@ html$.AutocompleteErrorEvent = class AutocompleteErrorEvent extends html$.Event 
   }
 };
 dart.setSignature(html$.AutocompleteErrorEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.AutocompleteErrorEvent, []),
-    new: dart.definiteFunctionType(html$.AutocompleteErrorEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.reason]: core.String}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.AutocompleteErrorEvent, [dart.dynamic, dart.dynamic]),
@@ -59405,13 +56456,6 @@ html$.BRElement = class BRElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.BRElement, 'created');
-dart.setSignature(html$.BRElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.BRElement, []),
-    new: dart.definiteFunctionType(html$.BRElement, []),
-    created: dart.definiteFunctionType(html$.BRElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLBRElement, html$.BRElement);
 dart.defineExtensionNames([
   'visible'
@@ -59425,7 +56469,6 @@ html$.BarProp = class BarProp extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.BarProp, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.BarProp, [])}),
   fields: () => ({[dartx.visible]: core.bool})
 });
 dart.registerExtension(dart.global.BarProp, html$.BarProp);
@@ -59460,11 +56503,6 @@ html$.BaseElement = class BaseElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.BaseElement, 'created');
 dart.setSignature(html$.BaseElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.BaseElement, []),
-    new: dart.definiteFunctionType(html$.BaseElement, []),
-    created: dart.definiteFunctionType(html$.BaseElement, [])
-  }),
   fields: () => ({
     [dartx.href]: core.String,
     [dartx.target]: core.String
@@ -59495,7 +56533,6 @@ html$.BatteryManager = class BatteryManager extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.BatteryManager, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.BatteryManager, [])}),
   fields: () => ({
     [dartx.charging]: core.bool,
     [dartx.chargingTime]: core.double,
@@ -59538,10 +56575,6 @@ html$.BeforeInstallPromptEvent = class BeforeInstallPromptEvent extends html$.Ev
   }
 };
 dart.setSignature(html$.BeforeInstallPromptEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.BeforeInstallPromptEvent, []),
-    new: dart.definiteFunctionType(html$.BeforeInstallPromptEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.userChoice]: async.Future}),
   getters: () => ({[dartx.platforms]: dart.definiteFunctionType(core.List$(core.String), [])}),
   methods: () => ({[dartx.prompt]: dart.definiteFunctionType(async.Future, [])}),
@@ -59568,7 +56601,6 @@ html$.BeforeUnloadEvent = class BeforeUnloadEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.BeforeUnloadEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.BeforeUnloadEvent, [])}),
   getters: () => ({[dartx.returnValue]: dart.definiteFunctionType(core.String, [])}),
   setters: () => ({[dartx.returnValue]: dart.definiteFunctionType(dart.void, [core.String])})
 });
@@ -59620,10 +56652,6 @@ html$.Blob = class Blob extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Blob, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.Blob, []),
-    new: dart.definiteFunctionType(html$.Blob, [core.List], [core.String, core.String])
-  }),
   fields: () => ({
     [dartx.size]: core.int,
     [dartx.type]: core.String
@@ -59658,7 +56686,6 @@ html$.Bluetooth = class Bluetooth extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Bluetooth, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Bluetooth, [])}),
   methods: () => ({
     [dartx.requestDevice]: dart.definiteFunctionType(async.Future, [core.Map]),
     [_requestDevice_1]: dart.definiteFunctionType(async.Future, [dart.dynamic])
@@ -59709,7 +56736,6 @@ html$.BluetoothDevice = class BluetoothDevice extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(html$.BluetoothDevice, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.BluetoothDevice, [])}),
   fields: () => ({
     [dartx.deviceClass]: core.int,
     [dartx.instanceID]: core.String,
@@ -59743,7 +56769,6 @@ html$.BluetoothGattCharacteristic = class BluetoothGattCharacteristic extends _i
   }
 };
 dart.setSignature(html$.BluetoothGattCharacteristic, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.BluetoothGattCharacteristic, [])}),
   fields: () => ({[dartx.uuid]: core.String}),
   methods: () => ({
     [dartx.readValue]: dart.definiteFunctionType(async.Future, []),
@@ -59767,7 +56792,6 @@ html$.BluetoothGattRemoteServer = class BluetoothGattRemoteServer extends _inter
   }
 };
 dart.setSignature(html$.BluetoothGattRemoteServer, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.BluetoothGattRemoteServer, [])}),
   fields: () => ({[dartx.connected]: core.bool}),
   methods: () => ({[dartx.getPrimaryService]: dart.definiteFunctionType(async.Future, [dart.dynamic])})
 });
@@ -59792,7 +56816,6 @@ html$.BluetoothGattService = class BluetoothGattService extends _interceptors.In
   }
 };
 dart.setSignature(html$.BluetoothGattService, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.BluetoothGattService, [])}),
   fields: () => ({
     [dartx.isPrimary]: core.bool,
     [dartx.uuid]: core.String
@@ -59806,7 +56829,6 @@ html$.BluetoothUuid = class BluetoothUuid extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.BluetoothUuid, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.BluetoothUuid, [])}),
   statics: () => ({
     canonicalUuid: dart.definiteFunctionType(core.String, [core.int]),
     getCharacteristic: dart.definiteFunctionType(core.String, [core.Object]),
@@ -59844,7 +56866,6 @@ html$.Body = class Body extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Body, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Body, [])}),
   fields: () => ({[dartx.bodyUsed]: core.bool}),
   methods: () => ({
     [dartx.arrayBuffer]: dart.definiteFunctionType(async.Future, []),
@@ -59922,11 +56943,6 @@ html$.BodyElement = class BodyElement extends html$.HtmlElement {
 dart.defineNamedConstructor(html$.BodyElement, 'created');
 html$.BodyElement[dart.implements] = () => [html$.WindowEventHandlers];
 dart.setSignature(html$.BodyElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.BodyElement, []),
-    new: dart.definiteFunctionType(html$.BodyElement, []),
-    created: dart.definiteFunctionType(html$.BodyElement, [])
-  }),
   getters: () => ({
     [dartx.onHashChange]: dart.definiteFunctionType(html$.ElementStream$(html$.Event), []),
     [dartx.onMessage]: dart.definiteFunctionType(html$.ElementStream$(html$.MessageEvent), []),
@@ -59935,21 +56951,6 @@ dart.setSignature(html$.BodyElement, {
     [dartx.onPopState]: dart.definiteFunctionType(html$.ElementStream$(html$.PopStateEvent), []),
     [dartx.onStorage]: dart.definiteFunctionType(html$.ElementStream$(html$.StorageEvent), []),
     [dartx.onUnload]: dart.definiteFunctionType(html$.ElementStream$(html$.Event), [])
-  }),
-  sfields: () => ({
-    blurEvent: EventStreamProviderOfEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    focusEvent: EventStreamProviderOfEvent(),
-    hashChangeEvent: EventStreamProviderOfEvent(),
-    loadEvent: EventStreamProviderOfEvent(),
-    messageEvent: EventStreamProviderOfMessageEvent(),
-    offlineEvent: EventStreamProviderOfEvent(),
-    onlineEvent: EventStreamProviderOfEvent(),
-    popStateEvent: EventStreamProviderOfPopStateEvent(),
-    resizeEvent: EventStreamProviderOfEvent(),
-    scrollEvent: EventStreamProviderOfEvent(),
-    storageEvent: EventStreamProviderOfStorageEvent(),
-    unloadEvent: EventStreamProviderOfEvent()
   })
 });
 dart.defineLazy(html$.BodyElement, {
@@ -60126,11 +57127,6 @@ html$.ButtonElement = class ButtonElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.ButtonElement, 'created');
 dart.setSignature(html$.ButtonElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ButtonElement, []),
-    new: dart.definiteFunctionType(html$.ButtonElement, []),
-    created: dart.definiteFunctionType(html$.ButtonElement, [])
-  }),
   fields: () => ({
     [dartx.autofocus]: core.bool,
     [dartx.disabled]: core.bool,
@@ -60212,7 +57208,6 @@ html$.CharacterData = class CharacterData extends html$.Node {
 };
 html$.CharacterData[dart.implements] = () => [html$.NonDocumentTypeChildNode, html$.ChildNode];
 dart.setSignature(html$.CharacterData, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CharacterData, [])}),
   fields: () => ({
     [dartx.data]: core.String,
     [dartx.length]: core.int,
@@ -60253,10 +57248,6 @@ html$.Text = class Text extends html$.CharacterData {
   }
 };
 dart.setSignature(html$.Text, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.Text, [core.String]),
-    _: dart.definiteFunctionType(html$.Text, [])
-  }),
   fields: () => ({[dartx.wholeText]: core.String}),
   methods: () => ({
     [dartx.getDestinationInsertionPoints]: dart.definiteFunctionType(core.List$(html$.Node), []),
@@ -60269,9 +57260,6 @@ html$.CDataSection = class CDataSection extends html$.Text {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.CDataSection, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CDataSection, [])})
-});
 dart.registerExtension(dart.global.CDATASection, html$.CDataSection);
 const _match_1 = Symbol('_match_1');
 const _match_2 = Symbol('_match_2');
@@ -60314,7 +57302,6 @@ html$.CacheStorage = class CacheStorage extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.CacheStorage, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CacheStorage, [])}),
   methods: () => ({
     [dartx.delete]: dart.definiteFunctionType(async.Future, [core.String]),
     [dartx.has]: dart.definiteFunctionType(async.Future, [core.String]),
@@ -60417,11 +57404,6 @@ html$.CanvasElement = class CanvasElement extends html$.HtmlElement {
 dart.defineNamedConstructor(html$.CanvasElement, 'created');
 html$.CanvasElement[dart.implements] = () => [html$.CanvasImageSource];
 dart.setSignature(html$.CanvasElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.CanvasElement, []),
-    new: dart.definiteFunctionType(html$.CanvasElement, [], {width: core.int, height: core.int}),
-    created: dart.definiteFunctionType(html$.CanvasElement, [])
-  }),
   fields: () => ({
     [dartx.height]: core.int,
     [dartx.width]: core.int
@@ -60438,10 +57420,6 @@ dart.setSignature(html$.CanvasElement, {
     [_toDataUrl]: dart.definiteFunctionType(core.String, [core.String], [dart.dynamic]),
     [dartx.getContext3d]: dart.definiteFunctionType(web_gl.RenderingContext, [], {alpha: dart.dynamic, depth: dart.dynamic, stencil: dart.dynamic, antialias: dart.dynamic, premultipliedAlpha: dart.dynamic, preserveDrawingBuffer: dart.dynamic}),
     [dartx.toDataUrl]: dart.definiteFunctionType(core.String, [], [core.String, core.num])
-  }),
-  sfields: () => ({
-    webGlContextLostEvent: EventStreamProviderOfContextEvent(),
-    webGlContextRestoredEvent: EventStreamProviderOfContextEvent()
   })
 });
 dart.defineLazy(html$.CanvasElement, {
@@ -60465,7 +57443,6 @@ html$.CanvasGradient = class CanvasGradient extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.CanvasGradient, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CanvasGradient, [])}),
   methods: () => ({[dartx.addColorStop]: dart.definiteFunctionType(dart.void, [core.num, core.String])})
 });
 dart.registerExtension(dart.global.CanvasGradient, html$.CanvasGradient);
@@ -60481,7 +57458,6 @@ html$.CanvasPattern = class CanvasPattern extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.CanvasPattern, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CanvasPattern, [])}),
   methods: () => ({[dartx.setTransform]: dart.definiteFunctionType(dart.void, [svg$.Matrix])})
 });
 dart.registerExtension(dart.global.CanvasPattern, html$.CanvasPattern);
@@ -60953,7 +57929,6 @@ html$.CanvasRenderingContext2D = class CanvasRenderingContext2D extends _interce
 };
 html$.CanvasRenderingContext2D[dart.implements] = () => [html$.CanvasRenderingContext];
 dart.setSignature(html$.CanvasRenderingContext2D, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CanvasRenderingContext2D, [])}),
   fields: () => ({
     [dartx.canvas]: html$.CanvasElement,
     [dartx.currentTransform]: svg$.Matrix,
@@ -61054,17 +58029,11 @@ html$.ChildNode = class ChildNode extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.ChildNode, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ChildNode, [])})
-});
 html$.ChromiumValuebuffer = class ChromiumValuebuffer extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.ChromiumValuebuffer, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ChromiumValuebuffer, [])})
-});
 dart.registerExtension(dart.global.CHROMIUMValuebuffer, html$.ChromiumValuebuffer);
 dart.defineExtensionNames([
   'id'
@@ -61078,7 +58047,6 @@ html$.GeofencingRegion = class GeofencingRegion extends _interceptors.Intercepto
   }
 };
 dart.setSignature(html$.GeofencingRegion, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.GeofencingRegion, [])}),
   fields: () => ({[dartx.id]: core.String})
 });
 dart.registerExtension(dart.global.GeofencingRegion, html$.GeofencingRegion);
@@ -61109,18 +58077,10 @@ html$.CircularGeofencingRegion = class CircularGeofencingRegion extends html$.Ge
   }
 };
 dart.setSignature(html$.CircularGeofencingRegion, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.CircularGeofencingRegion, []),
-    new: dart.definiteFunctionType(html$.CircularGeofencingRegion, [core.Map])
-  }),
   fields: () => ({
     [dartx.latitude]: core.double,
     [dartx.longitude]: core.double,
     [dartx.radius]: core.double
-  }),
-  sfields: () => ({
-    MAX_RADIUS: core.num,
-    MIN_RADIUS: core.num
   }),
   statics: () => ({_create_1: dart.definiteFunctionType(html$.CircularGeofencingRegion, [dart.dynamic])}),
   names: ['_create_1']
@@ -61168,7 +58128,6 @@ html$.Client = class Client extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Client, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Client, [])}),
   fields: () => ({
     [dartx.frameType]: core.String,
     [dartx.id]: core.String,
@@ -61214,7 +58173,6 @@ html$.Clients = class Clients extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Clients, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Clients, [])}),
   methods: () => ({
     [dartx.claim]: dart.definiteFunctionType(async.Future, []),
     [dartx.matchAll]: dart.definiteFunctionType(async.Future, [], [core.Map]),
@@ -61236,7 +58194,6 @@ html$.ClipboardEvent = class ClipboardEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.ClipboardEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ClipboardEvent, [])}),
   fields: () => ({[dartx.clipboardData]: html$.DataTransfer})
 });
 dart.registerExtension(dart.global.ClipboardEvent, html$.ClipboardEvent);
@@ -61274,10 +58231,6 @@ html$.CloseEvent = class CloseEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.CloseEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.CloseEvent, []),
-    new: dart.definiteFunctionType(html$.CloseEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.code]: core.int,
     [dartx.reason]: core.String,
@@ -61302,12 +58255,6 @@ html$.Comment = class Comment extends html$.CharacterData {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.Comment, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.Comment, [], [core.String]),
-    _: dart.definiteFunctionType(html$.Comment, [])
-  })
-});
 dart.registerExtension(dart.global.Comment, html$.Comment);
 const _initCompositionEvent = Symbol('_initCompositionEvent');
 const _initUIEvent = Symbol('_initUIEvent');
@@ -61373,10 +58320,6 @@ html$.UIEvent = class UIEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.UIEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.UIEvent, [core.String], {view: html$.Window, detail: core.int, canBubble: core.bool, cancelable: core.bool}),
-    _: dart.definiteFunctionType(html$.UIEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [_charCode]: core.int,
     [dartx.detail]: core.int,
@@ -61437,10 +58380,6 @@ html$.CompositionEvent = class CompositionEvent extends html$.UIEvent {
   }
 };
 dart.setSignature(html$.CompositionEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.CompositionEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, view: html$.Window, data: core.String, locale: core.String}),
-    _: dart.definiteFunctionType(html$.CompositionEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.data]: core.String}),
   methods: () => ({[_initCompositionEvent]: dart.definiteFunctionType(dart.void, [core.String, core.bool, core.bool, html$.Window, core.String])}),
   statics: () => ({
@@ -61500,10 +58439,6 @@ html$.CompositorProxy = class CompositorProxy extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(html$.CompositorProxy, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.CompositorProxy, []),
-    new: dart.definiteFunctionType(html$.CompositorProxy, [html$.Element, ListOfString()])
-  }),
   fields: () => ({
     [dartx.opacity]: core.num,
     [dartx.scrollLeft]: core.num,
@@ -61563,10 +58498,6 @@ html$.CompositorWorker = class CompositorWorker extends html$.EventTarget {
 };
 html$.CompositorWorker[dart.implements] = () => [html$.AbstractWorker];
 dart.setSignature(html$.CompositorWorker, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.CompositorWorker, []),
-    new: dart.definiteFunctionType(html$.CompositorWorker, [core.String])
-  }),
   getters: () => ({
     [dartx.onError]: dart.definiteFunctionType(async.Stream$(html$.Event), []),
     [dartx.onMessage]: dart.definiteFunctionType(async.Stream$(html$.MessageEvent), [])
@@ -61576,10 +58507,6 @@ dart.setSignature(html$.CompositorWorker, {
     [_postMessage_1]: dart.definiteFunctionType(dart.void, [dart.dynamic, ListOfMessagePort()]),
     [_postMessage_2]: dart.definiteFunctionType(dart.void, [dart.dynamic]),
     [dartx.terminate]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({
-    errorEvent: EventStreamProviderOfEvent(),
-    messageEvent: EventStreamProviderOfMessageEvent()
   }),
   statics: () => ({_create_1: dart.definiteFunctionType(html$.CompositorWorker, [dart.dynamic])}),
   names: ['_create_1']
@@ -61731,7 +58658,6 @@ html$.WorkerGlobalScope = class WorkerGlobalScope extends html$.EventTarget {
 };
 html$.WorkerGlobalScope[dart.implements] = () => [html$._WindowTimers, html$.WindowBase64];
 dart.setSignature(html$.WorkerGlobalScope, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.WorkerGlobalScope, [])}),
   fields: () => ({
     [dartx.caches]: html$.CacheStorage,
     [dartx.console]: html$.WorkerConsole,
@@ -61763,11 +58689,6 @@ dart.setSignature(html$.WorkerGlobalScope, {
     [_clearTimeout]: dart.definiteFunctionType(dart.void, [], [core.int]),
     [_setInterval]: dart.definiteFunctionType(core.int, [core.Object], [core.int]),
     [_setTimeout]: dart.definiteFunctionType(core.int, [core.Object], [core.int])
-  }),
-  sfields: () => ({
-    errorEvent: EventStreamProviderOfEvent(),
-    PERSISTENT: core.int,
-    TEMPORARY: core.int
   })
 });
 html$.WorkerGlobalScope.PERSISTENT = 1;
@@ -61816,7 +58737,6 @@ html$.CompositorWorkerGlobalScope = class CompositorWorkerGlobalScope extends ht
   }
 };
 dart.setSignature(html$.CompositorWorkerGlobalScope, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CompositorWorkerGlobalScope, [])}),
   getters: () => ({[dartx.onMessage]: dart.definiteFunctionType(async.Stream$(html$.MessageEvent), [])}),
   methods: () => ({
     [dartx.cancelAnimationFrame]: dart.definiteFunctionType(dart.void, [core.int]),
@@ -61824,8 +58744,7 @@ dart.setSignature(html$.CompositorWorkerGlobalScope, {
     [_postMessage_1]: dart.definiteFunctionType(dart.void, [dart.dynamic, ListOfMessagePort()]),
     [_postMessage_2]: dart.definiteFunctionType(dart.void, [dart.dynamic]),
     [dartx.requestAnimationFrame]: dart.definiteFunctionType(core.int, [html$.FrameRequestCallback])
-  }),
-  sfields: () => ({messageEvent: EventStreamProviderOfMessageEvent()})
+  })
 });
 dart.defineLazy(html$.CompositorWorkerGlobalScope, {
   get messageEvent() {
@@ -61912,10 +58831,6 @@ html$.Console = class Console extends core.Object {
 };
 dart.defineNamedConstructor(html$.Console, '_safe');
 dart.setSignature(html$.Console, {
-  constructors: () => ({
-    _safe: dart.definiteFunctionType(html$.Console, []),
-    _: dart.definiteFunctionType(html$.Console, [])
-  }),
   getters: () => ({
     [_isConsoleDefined]: dart.definiteFunctionType(core.bool, []),
     memory: dart.definiteFunctionType(html$.MemoryInfo, [])
@@ -61942,8 +58857,7 @@ dart.setSignature(html$.Console, {
     timeStamp: dart.definiteFunctionType(dart.void, [core.Object]),
     trace: dart.definiteFunctionType(dart.void, [core.Object]),
     warn: dart.definiteFunctionType(dart.void, [core.Object])
-  }),
-  sfields: () => ({_safeConsole: html$.Console})
+  })
 });
 dart.defineLazy(html$.Console, {
   get _safeConsole() {
@@ -61970,7 +58884,6 @@ html$.ConsoleBase = class ConsoleBase extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.ConsoleBase, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ConsoleBase, [])}),
   methods: () => ({
     [dartx.assertCondition]: dart.definiteFunctionType(dart.void, [core.bool, core.Object]),
     [dartx.timeline]: dart.definiteFunctionType(dart.void, [core.String]),
@@ -62008,14 +58921,8 @@ html$.ContentElement = class ContentElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.ContentElement, 'created');
 dart.setSignature(html$.ContentElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ContentElement, []),
-    new: dart.definiteFunctionType(html$.ContentElement, []),
-    created: dart.definiteFunctionType(html$.ContentElement, [])
-  }),
   fields: () => ({[dartx.select]: core.String}),
-  methods: () => ({[dartx.getDistributedNodes]: dart.definiteFunctionType(core.List$(html$.Node), [])}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  methods: () => ({[dartx.getDistributedNodes]: dart.definiteFunctionType(core.List$(html$.Node), [])})
 });
 dart.registerExtension(dart.global.HTMLContentElement, html$.ContentElement);
 dart.defineExtensionNames([
@@ -62054,7 +58961,6 @@ html$.Coordinates = class Coordinates extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Coordinates, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Coordinates, [])}),
   fields: () => ({
     [dartx.accuracy]: core.double,
     [dartx.altitude]: core.double,
@@ -62090,7 +58996,6 @@ html$.Credential = class Credential extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Credential, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Credential, [])}),
   fields: () => ({
     [dartx.iconUrl]: core.String,
     [dartx.id]: core.String,
@@ -62132,7 +59037,6 @@ html$.CredentialsContainer = class CredentialsContainer extends _interceptors.In
   }
 };
 dart.setSignature(html$.CredentialsContainer, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CredentialsContainer, [])}),
   methods: () => ({
     [dartx.notifySignedIn]: dart.definiteFunctionType(async.Future, [html$.Credential]),
     [dartx.request]: dart.definiteFunctionType(async.Future, [], [core.Map]),
@@ -62158,7 +59062,6 @@ html$.CrossOriginConnectEvent = class CrossOriginConnectEvent extends html$.Even
   }
 };
 dart.setSignature(html$.CrossOriginConnectEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CrossOriginConnectEvent, [])}),
   fields: () => ({[dartx.client]: html$.CrossOriginServiceWorkerClient}),
   methods: () => ({[dartx.acceptConnection]: dart.definiteFunctionType(dart.void, [async.Future])})
 });
@@ -62197,7 +59100,6 @@ html$.CrossOriginServiceWorkerClient = class CrossOriginServiceWorkerClient exte
   }
 };
 dart.setSignature(html$.CrossOriginServiceWorkerClient, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CrossOriginServiceWorkerClient, [])}),
   fields: () => ({
     [dartx.origin]: core.String,
     [dartx.targetUrl]: core.String
@@ -62232,13 +59134,11 @@ html$.Crypto = class Crypto extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Crypto, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Crypto, [])}),
   fields: () => ({[dartx.subtle]: html$._SubtleCrypto}),
   methods: () => ({
     [dartx.getRandomValues]: dart.definiteFunctionType(typed_data.TypedData, [typed_data.TypedData]),
     [_getRandomValues]: dart.definiteFunctionType(typed_data.TypedData, [typed_data.TypedData])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.Crypto, html$.Crypto);
 dart.defineExtensionNames([
@@ -62265,7 +59165,6 @@ html$.CryptoKey = class CryptoKey extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.CryptoKey, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CryptoKey, [])}),
   fields: () => ({
     [dartx.algorithm]: core.Object,
     [dartx.extractable]: core.bool,
@@ -62280,7 +59179,6 @@ html$.Css = class Css extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Css, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Css, [])}),
   statics: () => ({
     supports: dart.definiteFunctionType(core.bool, [core.String, core.String]),
     supportsCondition: dart.definiteFunctionType(core.bool, [core.String])
@@ -62315,26 +59213,11 @@ html$.CssRule = class CssRule extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.CssRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssRule, [])}),
   fields: () => ({
     [dartx.cssText]: core.String,
     [dartx.parentRule]: html$.CssRule,
     [dartx.parentStyleSheet]: html$.CssStyleSheet,
     [dartx.type]: core.int
-  }),
-  sfields: () => ({
-    CHARSET_RULE: core.int,
-    FONT_FACE_RULE: core.int,
-    IMPORT_RULE: core.int,
-    KEYFRAMES_RULE: core.int,
-    KEYFRAME_RULE: core.int,
-    MEDIA_RULE: core.int,
-    PAGE_RULE: core.int,
-    STYLE_RULE: core.int,
-    SUPPORTS_RULE: core.int,
-    VIEWPORT_RULE: core.int,
-    WEBKIT_KEYFRAMES_RULE: core.int,
-    WEBKIT_KEYFRAME_RULE: core.int
   })
 });
 html$.CssRule.CHARSET_RULE = 2;
@@ -62365,7 +59248,6 @@ html$.CssCharsetRule = class CssCharsetRule extends html$.CssRule {
   }
 };
 dart.setSignature(html$.CssCharsetRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssCharsetRule, [])}),
   fields: () => ({[dartx.encoding]: core.String})
 });
 dart.registerExtension(dart.global.CSSCharsetRule, html$.CssCharsetRule);
@@ -62381,7 +59263,6 @@ html$.CssFontFaceRule = class CssFontFaceRule extends html$.CssRule {
   }
 };
 dart.setSignature(html$.CssFontFaceRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssFontFaceRule, [])}),
   fields: () => ({[dartx.style]: html$.CssStyleDeclaration})
 });
 dart.registerExtension(dart.global.CSSFontFaceRule, html$.CssFontFaceRule);
@@ -62405,7 +59286,6 @@ html$.CssGroupingRule = class CssGroupingRule extends html$.CssRule {
   }
 };
 dart.setSignature(html$.CssGroupingRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssGroupingRule, [])}),
   fields: () => ({[dartx.cssRules]: ListOfCssRule()}),
   methods: () => ({
     [dartx.deleteRule]: dart.definiteFunctionType(dart.void, [core.int]),
@@ -62433,7 +59313,6 @@ html$.CssImportRule = class CssImportRule extends html$.CssRule {
   }
 };
 dart.setSignature(html$.CssImportRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssImportRule, [])}),
   fields: () => ({
     [dartx.href]: core.String,
     [dartx.media]: html$.MediaList,
@@ -62460,7 +59339,6 @@ html$.CssKeyframeRule = class CssKeyframeRule extends html$.CssRule {
   }
 };
 dart.setSignature(html$.CssKeyframeRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssKeyframeRule, [])}),
   fields: () => ({
     [dartx.keyText]: core.String,
     [dartx.style]: html$.CssStyleDeclaration
@@ -62503,7 +59381,6 @@ html$.CssKeyframesRule = class CssKeyframesRule extends html$.CssRule {
   }
 };
 dart.setSignature(html$.CssKeyframesRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssKeyframesRule, [])}),
   fields: () => ({
     [dartx.cssRules]: ListOfCssRule(),
     [dartx.name]: core.String
@@ -62530,7 +59407,6 @@ html$.CssMediaRule = class CssMediaRule extends html$.CssGroupingRule {
   }
 };
 dart.setSignature(html$.CssMediaRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssMediaRule, [])}),
   fields: () => ({[dartx.media]: html$.MediaList})
 });
 dart.registerExtension(dart.global.CSSMediaRule, html$.CssMediaRule);
@@ -62553,7 +59429,6 @@ html$.CssPageRule = class CssPageRule extends html$.CssRule {
   }
 };
 dart.setSignature(html$.CssPageRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssPageRule, [])}),
   fields: () => ({
     [dartx.selectorText]: core.String,
     [dartx.style]: html$.CssStyleDeclaration
@@ -68131,11 +65006,6 @@ html$.CssStyleDeclaration = class CssStyleDeclaration extends dart.mixin(_interc
   }
 };
 dart.setSignature(html$.CssStyleDeclaration, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.CssStyleDeclaration, []),
-    css: dart.definiteFunctionType(html$.CssStyleDeclaration, [core.String]),
-    _: dart.definiteFunctionType(html$.CssStyleDeclaration, [])
-  }),
   fields: () => ({
     [dartx.cssText]: core.String,
     [dartx.length]: core.int,
@@ -68244,8 +65114,6 @@ dart.setSignature(html$.CssStyleDeclaration, {
     [dartx.item]: dart.definiteFunctionType(core.String, [core.int]),
     [dartx.removeProperty]: dart.definiteFunctionType(core.String, [core.String])
   }),
-  sfields: () => ({_propertyCache: dart.dynamic}),
-  sgetters: () => ({supportsTransitions: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     _readCache: dart.definiteFunctionType(core.String, [core.String]),
     _writeCache: dart.definiteFunctionType(dart.void, [core.String, core.String]),
@@ -68825,7 +65693,6 @@ html$._CssStyleDeclarationSet = class _CssStyleDeclarationSet extends dart.mixin
   }
 };
 dart.setSignature(html$._CssStyleDeclarationSet, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._CssStyleDeclarationSet, [IterableOfElement()])}),
   fields: () => ({
     [_elementIterable]: IterableOfElement(),
     [_elementCssStyleDeclarationSetIterable]: IterableOfCssStyleDeclaration()
@@ -68949,7 +65816,6 @@ html$.CssStyleRule = class CssStyleRule extends html$.CssRule {
   }
 };
 dart.setSignature(html$.CssStyleRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssStyleRule, [])}),
   fields: () => ({
     [dartx.selectorText]: core.String,
     [dartx.style]: html$.CssStyleDeclaration
@@ -68995,7 +65861,6 @@ html$.StyleSheet = class StyleSheet extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.StyleSheet, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.StyleSheet, [])}),
   fields: () => ({
     [dartx.disabled]: core.bool,
     [dartx.href]: core.String,
@@ -69043,7 +65908,6 @@ html$.CssStyleSheet = class CssStyleSheet extends html$.StyleSheet {
   }
 };
 dart.setSignature(html$.CssStyleSheet, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssStyleSheet, [])}),
   fields: () => ({
     [dartx.cssRules]: ListOfCssRule(),
     [dartx.ownerRule]: html$.CssRule,
@@ -69081,7 +65945,6 @@ html$.CssSupportsRule = class CssSupportsRule extends html$.CssRule {
   }
 };
 dart.setSignature(html$.CssSupportsRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssSupportsRule, [])}),
   fields: () => ({
     [dartx.conditionText]: core.String,
     [dartx.cssRules]: ListOfCssRule()
@@ -69104,7 +65967,6 @@ html$.CssViewportRule = class CssViewportRule extends html$.CssRule {
   }
 };
 dart.setSignature(html$.CssViewportRule, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.CssViewportRule, [])}),
   fields: () => ({[dartx.style]: html$.CssStyleDeclaration})
 });
 dart.registerExtension(dart.global.CSSViewportRule, html$.CssViewportRule);
@@ -69172,10 +66034,6 @@ html$.CustomEvent = class CustomEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.CustomEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.CustomEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, detail: core.Object}),
-    _: dart.definiteFunctionType(html$.CustomEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [_dartDetail]: dart.dynamic,
     [_get__detail]: dart.dynamic
@@ -69204,13 +66062,6 @@ html$.DListElement = class DListElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.DListElement, 'created');
-dart.setSignature(html$.DListElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DListElement, []),
-    new: dart.definiteFunctionType(html$.DListElement, []),
-    created: dart.definiteFunctionType(html$.DListElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLDListElement, html$.DListElement);
 dart.defineExtensionNames([
   'options'
@@ -69235,13 +66086,7 @@ html$.DataListElement = class DataListElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.DataListElement, 'created');
 dart.setSignature(html$.DataListElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DataListElement, []),
-    new: dart.definiteFunctionType(html$.DataListElement, []),
-    created: dart.definiteFunctionType(html$.DataListElement, [])
-  }),
-  fields: () => ({[dartx.options]: ListOfNode()}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  fields: () => ({[dartx.options]: ListOfNode()})
 });
 dart.registerExtension(dart.global.HTMLDataListElement, html$.DataListElement);
 dart.defineExtensionNames([
@@ -69294,7 +66139,6 @@ html$.DataTransfer = class DataTransfer extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.DataTransfer, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DataTransfer, [])}),
   fields: () => ({
     [dartx.dropEffect]: core.String,
     [dartx.effectAllowed]: core.String,
@@ -69346,7 +66190,6 @@ html$.DataTransferItem = class DataTransferItem extends _interceptors.Intercepto
   }
 };
 dart.setSignature(html$.DataTransferItem, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DataTransferItem, [])}),
   fields: () => ({
     [dartx.kind]: core.String,
     [dartx.type]: core.String
@@ -69399,7 +66242,6 @@ html$.DataTransferItemList = class DataTransferItemList extends _interceptors.In
   }
 };
 dart.setSignature(html$.DataTransferItemList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DataTransferItemList, [])}),
   fields: () => ({[dartx.length]: core.int}),
   methods: () => ({
     [dartx.add]: dart.definiteFunctionType(html$.DataTransferItem, [dart.dynamic], [core.String]),
@@ -69443,14 +66285,12 @@ html$.DedicatedWorkerGlobalScope = class DedicatedWorkerGlobalScope extends html
   }
 };
 dart.setSignature(html$.DedicatedWorkerGlobalScope, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DedicatedWorkerGlobalScope, [])}),
   getters: () => ({[dartx.onMessage]: dart.definiteFunctionType(async.Stream$(html$.MessageEvent), [])}),
   methods: () => ({
     [dartx.postMessage]: dart.definiteFunctionType(dart.void, [dart.dynamic], [ListOfMessagePort()]),
     [_postMessage_1]: dart.definiteFunctionType(dart.void, [dart.dynamic, ListOfMessagePort()]),
     [_postMessage_2]: dart.definiteFunctionType(dart.void, [dart.dynamic])
-  }),
-  sfields: () => ({messageEvent: EventStreamProviderOfMessageEvent()})
+  })
 });
 dart.defineLazy(html$.DedicatedWorkerGlobalScope, {
   get messageEvent() {
@@ -69484,10 +66324,6 @@ html$.DefaultSessionStartEvent = class DefaultSessionStartEvent extends html$.Ev
   }
 };
 dart.setSignature(html$.DefaultSessionStartEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DefaultSessionStartEvent, []),
-    new: dart.definiteFunctionType(html$.DefaultSessionStartEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.session]: html$.PresentationSession}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.DefaultSessionStartEvent, [dart.dynamic, dart.dynamic]),
@@ -69512,14 +66348,9 @@ html$.DeprecatedStorageInfo = class DeprecatedStorageInfo extends _interceptors.
   }
 };
 dart.setSignature(html$.DeprecatedStorageInfo, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DeprecatedStorageInfo, [])}),
   methods: () => ({
     [dartx.queryUsageAndQuota]: dart.definiteFunctionType(dart.void, [core.int], [html$.StorageUsageCallback, html$.StorageErrorCallback]),
     [dartx.requestQuota]: dart.definiteFunctionType(dart.void, [core.int, core.int], [html$.StorageQuotaCallback, html$.StorageErrorCallback])
-  }),
-  sfields: () => ({
-    PERSISTENT: core.int,
-    TEMPORARY: core.int
   })
 });
 html$.DeprecatedStorageInfo.PERSISTENT = 1;
@@ -69541,7 +66372,6 @@ html$.DeprecatedStorageQuota = class DeprecatedStorageQuota extends _interceptor
   }
 };
 dart.setSignature(html$.DeprecatedStorageQuota, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DeprecatedStorageQuota, [])}),
   methods: () => ({
     [dartx.queryUsageAndQuota]: dart.definiteFunctionType(dart.void, [html$.StorageUsageCallback], [html$.StorageErrorCallback]),
     [dartx.requestQuota]: dart.definiteFunctionType(dart.void, [core.int], [html$.StorageQuotaCallback, html$.StorageErrorCallback])
@@ -69574,13 +66404,7 @@ html$.DetailsElement = class DetailsElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.DetailsElement, 'created');
 dart.setSignature(html$.DetailsElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DetailsElement, []),
-    new: dart.definiteFunctionType(html$.DetailsElement, []),
-    created: dart.definiteFunctionType(html$.DetailsElement, [])
-  }),
-  fields: () => ({[dartx.open]: core.bool}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  fields: () => ({[dartx.open]: core.bool})
 });
 dart.registerExtension(dart.global.HTMLDetailsElement, html$.DetailsElement);
 dart.defineExtensionNames([
@@ -69603,7 +66427,6 @@ html$.DeviceAcceleration = class DeviceAcceleration extends _interceptors.Interc
   }
 };
 dart.setSignature(html$.DeviceAcceleration, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DeviceAcceleration, [])}),
   fields: () => ({
     [dartx.x]: core.double,
     [dartx.y]: core.double,
@@ -69637,10 +66460,6 @@ html$.DeviceLightEvent = class DeviceLightEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.DeviceLightEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DeviceLightEvent, []),
-    new: dart.definiteFunctionType(html$.DeviceLightEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.value]: core.double}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.DeviceLightEvent, [dart.dynamic, dart.dynamic]),
@@ -69677,7 +66496,6 @@ html$.DeviceMotionEvent = class DeviceMotionEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.DeviceMotionEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DeviceMotionEvent, [])}),
   fields: () => ({
     [dartx.acceleration]: html$.DeviceAcceleration,
     [dartx.accelerationIncludingGravity]: html$.DeviceAcceleration,
@@ -69726,10 +66544,6 @@ html$.DeviceOrientationEvent = class DeviceOrientationEvent extends html$.Event 
   }
 };
 dart.setSignature(html$.DeviceOrientationEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.DeviceOrientationEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, alpha: core.num, beta: core.num, gamma: core.num, absolute: core.bool}),
-    _: dart.definiteFunctionType(html$.DeviceOrientationEvent, [])
-  }),
   fields: () => ({
     [dartx.absolute]: core.bool,
     [dartx.alpha]: core.double,
@@ -69759,7 +66573,6 @@ html$.DeviceRotationRate = class DeviceRotationRate extends _interceptors.Interc
   }
 };
 dart.setSignature(html$.DeviceRotationRate, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DeviceRotationRate, [])}),
   fields: () => ({
     [dartx.alpha]: core.double,
     [dartx.beta]: core.double,
@@ -69807,10 +66620,6 @@ html$.DialogElement = class DialogElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.DialogElement, 'created');
 dart.setSignature(html$.DialogElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DialogElement, []),
-    created: dart.definiteFunctionType(html$.DialogElement, [])
-  }),
   fields: () => ({
     [dartx.open]: core.bool,
     [dartx.returnValue]: core.String
@@ -69939,7 +66748,6 @@ html$.Entry = class Entry extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Entry, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Entry, [])}),
   fields: () => ({
     [dartx.filesystem]: html$.FileSystem,
     [dartx.fullPath]: core.String,
@@ -70093,7 +66901,6 @@ html$.DirectoryEntry = class DirectoryEntry extends html$.Entry {
   }
 };
 dart.setSignature(html$.DirectoryEntry, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DirectoryEntry, [])}),
   methods: () => ({
     [dartx.createDirectory]: dart.definiteFunctionType(async.Future$(html$.Entry), [core.String], {exclusive: core.bool}),
     [dartx.getDirectory]: dart.definiteFunctionType(async.Future$(html$.Entry), [core.String]),
@@ -70139,7 +66946,6 @@ html$.DirectoryReader = class DirectoryReader extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(html$.DirectoryReader, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DirectoryReader, [])}),
   methods: () => ({
     [_readEntries]: dart.definiteFunctionType(dart.void, [html$._EntriesCallback], [html$._ErrorCallback]),
     [dartx.readEntries]: dart.definiteFunctionType(async.Future$(core.List$(html$.Entry)), [])
@@ -70158,13 +66964,6 @@ html$.DivElement = class DivElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.DivElement, 'created');
-dart.setSignature(html$.DivElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DivElement, []),
-    new: dart.definiteFunctionType(html$.DivElement, []),
-    created: dart.definiteFunctionType(html$.DivElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLDivElement, html$.DivElement);
 const _body = Symbol('_body');
 const _get_window = Symbol('_get_window');
@@ -70790,7 +67589,6 @@ html$.Document = class Document extends html$.Node {
   }
 };
 dart.setSignature(html$.Document, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Document, [])}),
   fields: () => ({
     [dartx.activeElement]: html$.Element,
     [_body]: html$.HtmlElement,
@@ -70946,13 +67744,6 @@ dart.setSignature(html$.Document, {
     [dartx.createElementNS]: dart.definiteFunctionType(html$.Element, [core.String, core.String], [core.String]),
     [_createNodeIterator]: dart.definiteFunctionType(html$.NodeIterator, [html$.Node], [core.int, html$.NodeFilter]),
     [_createTreeWalker]: dart.definiteFunctionType(html$.TreeWalker, [html$.Node], [core.int, html$.NodeFilter])
-  }),
-  sfields: () => ({
-    pointerLockChangeEvent: EventStreamProviderOfEvent(),
-    pointerLockErrorEvent: EventStreamProviderOfEvent(),
-    readyStateChangeEvent: EventStreamProviderOfEvent(),
-    securityPolicyViolationEvent: EventStreamProviderOfSecurityPolicyViolationEvent(),
-    selectionChangeEvent: EventStreamProviderOfEvent()
   })
 });
 dart.defineLazy(html$.Document, {
@@ -71083,12 +67874,6 @@ html$.DocumentFragment = class DocumentFragment extends html$.Node {
 };
 html$.DocumentFragment[dart.implements] = () => [html$.NonElementParentNode, html$.ParentNode];
 dart.setSignature(html$.DocumentFragment, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.DocumentFragment, []),
-    html: dart.definiteFunctionType(html$.DocumentFragment, [core.String], {validator: html$.NodeValidator, treeSanitizer: html$.NodeTreeSanitizer}),
-    svg: dart.definiteFunctionType(html$.DocumentFragment, [core.String], {validator: html$.NodeValidator, treeSanitizer: html$.NodeTreeSanitizer}),
-    _: dart.definiteFunctionType(html$.DocumentFragment, [])
-  }),
   fields: () => ({
     [_docChildren]: ListOfElement(),
     [_childElementCount]: core.int,
@@ -71146,10 +67931,6 @@ html$.DomError = class DomError extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.DomError, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DomError, []),
-    new: dart.definiteFunctionType(html$.DomError, [core.String], [core.String])
-  }),
   fields: () => ({
     [dartx.message]: core.String,
     [dartx.name]: core.String
@@ -71184,32 +67965,8 @@ html$.DomException = class DomException extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.DomException, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DomException, [])}),
   fields: () => ({[dartx.message]: core.String}),
-  getters: () => ({[dartx.name]: dart.definiteFunctionType(core.String, [])}),
-  sfields: () => ({
-    INDEX_SIZE: core.String,
-    HIERARCHY_REQUEST: core.String,
-    WRONG_DOCUMENT: core.String,
-    INVALID_CHARACTER: core.String,
-    NO_MODIFICATION_ALLOWED: core.String,
-    NOT_FOUND: core.String,
-    NOT_SUPPORTED: core.String,
-    INVALID_STATE: core.String,
-    SYNTAX: core.String,
-    INVALID_MODIFICATION: core.String,
-    NAMESPACE: core.String,
-    INVALID_ACCESS: core.String,
-    TYPE_MISMATCH: core.String,
-    SECURITY: core.String,
-    NETWORK: core.String,
-    ABORT: core.String,
-    URL_MISMATCH: core.String,
-    QUOTA_EXCEEDED: core.String,
-    TIMEOUT: core.String,
-    INVALID_NODE_TYPE: core.String,
-    DATA_CLONE: core.String
-  })
+  getters: () => ({[dartx.name]: dart.definiteFunctionType(core.String, [])})
 });
 html$.DomException.INDEX_SIZE = 'IndexSizeError';
 html$.DomException.HIERARCHY_REQUEST = 'HierarchyRequestError';
@@ -71257,7 +68014,6 @@ html$.DomImplementation = class DomImplementation extends _interceptors.Intercep
   }
 };
 dart.setSignature(html$.DomImplementation, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DomImplementation, [])}),
   methods: () => ({
     [dartx.createDocument]: dart.definiteFunctionType(html$.XmlDocument, [core.String, core.String, html$._DocumentType]),
     [dartx.createDocumentType]: dart.definiteFunctionType(html$._DocumentType, [core.String, core.String, core.String]),
@@ -71278,7 +68034,6 @@ html$.DomIterator = class DomIterator extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.DomIterator, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DomIterator, [])}),
   methods: () => ({[dartx.next]: dart.definiteFunctionType(core.Object, [], [core.Object])})
 });
 dart.registerExtension(dart.global.Iterator, html$.DomIterator);
@@ -71414,7 +68169,6 @@ html$.DomMatrixReadOnly = class DomMatrixReadOnly extends _interceptors.Intercep
   }
 };
 dart.setSignature(html$.DomMatrixReadOnly, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DomMatrixReadOnly, [])}),
   getters: () => ({
     [dartx.a]: dart.definiteFunctionType(core.num, []),
     [dartx.b]: dart.definiteFunctionType(core.num, []),
@@ -71676,10 +68430,6 @@ html$.DomMatrix = class DomMatrix extends html$.DomMatrixReadOnly {
   }
 };
 dart.setSignature(html$.DomMatrix, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DomMatrix, []),
-    new: dart.definiteFunctionType(html$.DomMatrix, [], [html$.DomMatrixReadOnly])
-  }),
   setters: () => ({
     [dartx.a]: dart.definiteFunctionType(dart.void, [core.num]),
     [dartx.b]: dart.definiteFunctionType(dart.void, [core.num]),
@@ -71737,10 +68487,6 @@ html$.DomParser = class DomParser extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.DomParser, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DomParser, []),
-    new: dart.definiteFunctionType(html$.DomParser, [])
-  }),
   methods: () => ({[dartx.parseFromString]: dart.definiteFunctionType(html$.Document, [core.String, core.String])}),
   statics: () => ({_create_1: dart.definiteFunctionType(html$.DomParser, [])}),
   names: ['_create_1']
@@ -71776,10 +68522,6 @@ html$.DomPointReadOnly = class DomPointReadOnly extends _interceptors.Intercepto
   }
 };
 dart.setSignature(html$.DomPointReadOnly, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DomPointReadOnly, []),
-    new: dart.definiteFunctionType(html$.DomPointReadOnly, [core.num, core.num, core.num, core.num])
-  }),
   getters: () => ({
     [dartx.w]: dart.definiteFunctionType(core.num, []),
     [dartx.x]: dart.definiteFunctionType(core.num, []),
@@ -71877,17 +68619,12 @@ html$.DomPoint = class DomPoint extends html$.DomPointReadOnly {
   }
 };
 dart.setSignature(html$.DomPoint, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DomPoint, []),
-    new: dart.definiteFunctionType(html$.DomPoint, [], [dart.dynamic, core.num, core.num, core.num])
-  }),
   setters: () => ({
     [dartx.w]: dart.definiteFunctionType(dart.void, [core.num]),
     [dartx.x]: dart.definiteFunctionType(dart.void, [core.num]),
     [dartx.y]: dart.definiteFunctionType(dart.void, [core.num]),
     [dartx.z]: dart.definiteFunctionType(dart.void, [core.num])
   }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.DomPoint, [dart.dynamic]),
     _create_2: dart.definiteFunctionType(html$.DomPoint, []),
@@ -72008,10 +68745,6 @@ html$.DomRectReadOnly = class DomRectReadOnly extends _interceptors.Interceptor 
 };
 html$.DomRectReadOnly[dart.implements] = () => [RectangleOfnum()];
 dart.setSignature(html$.DomRectReadOnly, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.DomRectReadOnly, []),
-    new: dart.definiteFunctionType(html$.DomRectReadOnly, [core.num, core.num, core.num, core.num])
-  }),
   getters: () => ({
     [dartx.topLeft]: dart.definiteFunctionType(math.Point$(core.num), []),
     [dartx.topRight]: dart.definiteFunctionType(math.Point$(core.num), []),
@@ -72069,7 +68802,6 @@ html$.DomTokenList = class DomTokenList extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.DomTokenList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DomTokenList, [])}),
   fields: () => ({[dartx.length]: core.int}),
   methods: () => ({
     [dartx.add]: dart.definiteFunctionType(dart.void, [core.String]),
@@ -72095,7 +68827,6 @@ html$.DomSettableTokenList = class DomSettableTokenList extends html$.DomTokenLi
   }
 };
 dart.setSignature(html$.DomSettableTokenList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DomSettableTokenList, [])}),
   fields: () => ({[dartx.value]: core.String})
 });
 dart.registerExtension(dart.global.DOMSettableTokenList, html$.DomSettableTokenList);
@@ -72299,7 +69030,6 @@ html$.DomStringList = class DomStringList extends dart.mixin(_interceptors.Inter
 };
 html$.DomStringList[dart.implements] = () => [ListOfString()];
 dart.setSignature(html$.DomStringList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DomStringList, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -72315,17 +69045,11 @@ html$.DomStringMap = class DomStringMap extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.DomStringMap, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.DomStringMap, [])})
-});
 html$.EffectModel = class EffectModel extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.EffectModel, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.EffectModel, [])})
-});
 dart.registerExtension(dart.global.EffectModel, html$.EffectModel);
 const _childElements = Symbol('_childElements');
 const _element$ = Symbol('_element');
@@ -72466,7 +69190,6 @@ dart.addSimpleTypeTests(html$._ChildrenElementList);
 dart.defineNamedConstructor(html$._ChildrenElementList, '_wrap');
 html$._ChildrenElementList[dart.implements] = () => [html_common.NodeListWrapper];
 dart.setSignature(html$._ChildrenElementList, {
-  constructors: () => ({_wrap: dart.definiteFunctionType(html$._ChildrenElementList, [html$.Element])}),
   fields: () => ({
     [_element$]: html$.Element,
     [_childElements]: html$.HtmlCollection
@@ -72791,7 +69514,6 @@ html$._FrozenElementList$ = dart.generic(E => {
   dart.defineNamedConstructor(_FrozenElementList, '_wrap');
   _FrozenElementList[dart.implements] = () => [ElementListOfE(), html_common.NodeListWrapper];
   dart.setSignature(_FrozenElementList, {
-    constructors: () => ({_wrap: dart.definiteFunctionType(html$._FrozenElementList$(E), [ListOfNode()])}),
     fields: () => ({[_nodeList]: ListOfNode()}),
     getters: () => ({
       length: dart.definiteFunctionType(core.int, []),
@@ -72918,13 +69640,7 @@ html$.ScrollAlignment = class ScrollAlignment extends core.Object {
 };
 dart.defineNamedConstructor(html$.ScrollAlignment, '_internal');
 dart.setSignature(html$.ScrollAlignment, {
-  constructors: () => ({_internal: dart.definiteFunctionType(html$.ScrollAlignment, [dart.dynamic])}),
-  fields: () => ({[_value$2]: dart.dynamic}),
-  sfields: () => ({
-    TOP: html$.ScrollAlignment,
-    CENTER: html$.ScrollAlignment,
-    BOTTOM: html$.ScrollAlignment
-  })
+  fields: () => ({[_value$2]: dart.dynamic})
 });
 dart.defineLazy(html$.ScrollAlignment, {
   get TOP() {
@@ -73002,11 +69718,6 @@ html$.EmbedElement = class EmbedElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.EmbedElement, 'created');
 dart.setSignature(html$.EmbedElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.EmbedElement, []),
-    new: dart.definiteFunctionType(html$.EmbedElement, []),
-    created: dart.definiteFunctionType(html$.EmbedElement, [])
-  }),
   fields: () => ({
     [dartx.height]: core.String,
     [dartx.name]: core.String,
@@ -73017,8 +69728,7 @@ dart.setSignature(html$.EmbedElement, {
   methods: () => ({
     [__getter__]: dart.definiteFunctionType(core.bool, [dart.dynamic]),
     [__setter__]: dart.definiteFunctionType(dart.void, [dart.dynamic, html$.Node])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.HTMLEmbedElement, html$.EmbedElement);
 html$._EntriesCallback = dart.typedef('_EntriesCallback', () => dart.functionType(dart.void, [ListOfEntry()]));
@@ -73066,10 +69776,6 @@ html$.ErrorEvent = class ErrorEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.ErrorEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ErrorEvent, []),
-    new: dart.definiteFunctionType(html$.ErrorEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.colno]: core.int,
     [dartx.error]: core.Object,
@@ -73139,10 +69845,6 @@ html$.EventSource = class EventSource extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.EventSource, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.EventSource, [core.String], {withCredentials: dart.dynamic}),
-    _: dart.definiteFunctionType(html$.EventSource, [])
-  }),
   fields: () => ({
     [dartx.readyState]: core.int,
     [dartx.url]: core.String,
@@ -73154,14 +69856,6 @@ dart.setSignature(html$.EventSource, {
     [dartx.onOpen]: dart.definiteFunctionType(async.Stream$(html$.Event), [])
   }),
   methods: () => ({[dartx.close]: dart.definiteFunctionType(dart.void, [])}),
-  sfields: () => ({
-    errorEvent: EventStreamProviderOfEvent(),
-    messageEvent: EventStreamProviderOfMessageEvent(),
-    openEvent: EventStreamProviderOfEvent(),
-    CLOSED: core.int,
-    CONNECTING: core.int,
-    OPEN: core.int
-  }),
   statics: () => ({
     _factoryEventSource: dart.definiteFunctionType(html$.EventSource, [core.String], [core.Map]),
     _create_1: dart.definiteFunctionType(html$.EventSource, [dart.dynamic, dart.dynamic]),
@@ -73194,7 +69888,6 @@ html$.Events = class Events extends core.Object {
   }
 };
 dart.setSignature(html$.Events, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.Events, [html$.EventTarget])}),
   fields: () => ({[_ptr]: html$.EventTarget}),
   methods: () => ({_get: dart.definiteFunctionType(async.Stream, [core.String])})
 });
@@ -73211,10 +69904,6 @@ html$.ElementEvents = class ElementEvents extends html$.Events {
     return new (_ElementEventStreamImplOfEvent())(this[_ptr], type, false);
   }
 };
-dart.setSignature(html$.ElementEvents, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.ElementEvents, [html$.Element])}),
-  sfields: () => ({webkitEvents: MapOfString$String()})
-});
 dart.defineLazy(html$.ElementEvents, {
   get webkitEvents() {
     return dart.map({animationend: 'webkitAnimationEnd', animationiteration: 'webkitAnimationIteration', animationstart: 'webkitAnimationStart', fullscreenchange: 'webkitfullscreenchange', fullscreenerror: 'webkitfullscreenerror', keyadded: 'webkitkeyadded', keyerror: 'webkitkeyerror', keymessage: 'webkitkeymessage', needkey: 'webkitneedkey', pointerlockchange: 'webkitpointerlockchange', pointerlockerror: 'webkitpointerlockerror', resourcetimingbufferfull: 'webkitresourcetimingbufferfull', transitionend: 'webkitTransitionEnd', speechchange: 'webkitSpeechChange'}, core.String, core.String);
@@ -73246,10 +69935,6 @@ html$.ExtendableEvent = class ExtendableEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.ExtendableEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ExtendableEvent, []),
-    new: dart.definiteFunctionType(html$.ExtendableEvent, [core.String], [core.Map])
-  }),
   methods: () => ({[dartx.waitUntil]: dart.definiteFunctionType(dart.void, [core.Object])}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.ExtendableEvent, [dart.dynamic, dart.dynamic]),
@@ -73281,10 +69966,6 @@ html$.FederatedCredential = class FederatedCredential extends html$.Credential {
   }
 };
 dart.setSignature(html$.FederatedCredential, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.FederatedCredential, []),
-    new: dart.definiteFunctionType(html$.FederatedCredential, [core.Map])
-  }),
   fields: () => ({
     [dartx.protocol]: core.String,
     [dartx.provider]: core.String
@@ -73327,10 +70008,6 @@ html$.FetchEvent = class FetchEvent extends html$.ExtendableEvent {
   }
 };
 dart.setSignature(html$.FetchEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.FetchEvent, []),
-    new: dart.definiteFunctionType(html$.FetchEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.isReload]: core.bool,
     [dartx.request]: html$._Request
@@ -73416,11 +70093,6 @@ html$.FieldSetElement = class FieldSetElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.FieldSetElement, 'created');
 dart.setSignature(html$.FieldSetElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.FieldSetElement, []),
-    new: dart.definiteFunctionType(html$.FieldSetElement, []),
-    created: dart.definiteFunctionType(html$.FieldSetElement, [])
-  }),
   fields: () => ({
     [dartx.disabled]: core.bool,
     [dartx.elements]: html$.HtmlFormControlsCollection,
@@ -73480,10 +70152,6 @@ html$.File = class File extends html$.Blob {
   }
 };
 dart.setSignature(html$.File, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.File, []),
-    new: dart.definiteFunctionType(html$.File, [ListOfObject(), core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.lastModified]: core.int,
     [_get_lastModifiedDate]: dart.dynamic,
@@ -73535,7 +70203,6 @@ html$.FileEntry = class FileEntry extends html$.Entry {
   }
 };
 dart.setSignature(html$.FileEntry, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.FileEntry, [])}),
   methods: () => ({
     [_createWriter]: dart.definiteFunctionType(dart.void, [html$._FileWriterCallback], [html$._ErrorCallback]),
     [dartx.createWriter]: dart.definiteFunctionType(async.Future$(html$.FileWriter), []),
@@ -73556,22 +70223,7 @@ html$.FileError = class FileError extends html$.DomError {
   }
 };
 dart.setSignature(html$.FileError, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.FileError, [])}),
-  fields: () => ({[dartx.code]: core.int}),
-  sfields: () => ({
-    ABORT_ERR: core.int,
-    ENCODING_ERR: core.int,
-    INVALID_MODIFICATION_ERR: core.int,
-    INVALID_STATE_ERR: core.int,
-    NOT_FOUND_ERR: core.int,
-    NOT_READABLE_ERR: core.int,
-    NO_MODIFICATION_ALLOWED_ERR: core.int,
-    PATH_EXISTS_ERR: core.int,
-    QUOTA_EXCEEDED_ERR: core.int,
-    SECURITY_ERR: core.int,
-    SYNTAX_ERR: core.int,
-    TYPE_MISMATCH_ERR: core.int
-  })
+  fields: () => ({[dartx.code]: core.int})
 });
 html$.FileError.ABORT_ERR = 3;
 html$.FileError.ENCODING_ERR = 5;
@@ -73645,7 +70297,6 @@ html$.FileList = class FileList extends dart.mixin(_interceptors.Interceptor, co
 };
 html$.FileList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfFile()];
 dart.setSignature(html$.FileList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.FileList, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -73725,10 +70376,6 @@ html$.FileReader = class FileReader extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.FileReader, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.FileReader, []),
-    new: dart.definiteFunctionType(html$.FileReader, [])
-  }),
   fields: () => ({
     [dartx.error]: html$.FileError,
     [dartx.readyState]: core.int
@@ -73747,17 +70394,6 @@ dart.setSignature(html$.FileReader, {
     [dartx.readAsArrayBuffer]: dart.definiteFunctionType(dart.void, [html$.Blob]),
     [dartx.readAsDataUrl]: dart.definiteFunctionType(dart.void, [html$.Blob]),
     [dartx.readAsText]: dart.definiteFunctionType(dart.void, [html$.Blob], [core.String])
-  }),
-  sfields: () => ({
-    abortEvent: EventStreamProviderOfProgressEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    loadEvent: EventStreamProviderOfProgressEvent(),
-    loadEndEvent: EventStreamProviderOfProgressEvent(),
-    loadStartEvent: EventStreamProviderOfProgressEvent(),
-    progressEvent: EventStreamProviderOfProgressEvent(),
-    DONE: core.int,
-    EMPTY: core.int,
-    LOADING: core.int
   }),
   statics: () => ({_create_1: dart.definiteFunctionType(html$.FileReader, [])}),
   names: ['_create_1']
@@ -73798,7 +70434,6 @@ html$.FileStream = class FileStream extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.FileStream, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.FileStream, [])}),
   fields: () => ({[dartx.type]: core.String})
 });
 dart.registerExtension(dart.global.Stream, html$.FileStream);
@@ -73821,12 +70456,10 @@ html$.FileSystem = class FileSystem extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.FileSystem, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.FileSystem, [])}),
   fields: () => ({
     [dartx.name]: core.String,
     [dartx.root]: html$.DirectoryEntry
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.DOMFileSystem, html$.FileSystem);
 html$._FileSystemCallback = dart.typedef('_FileSystemCallback', () => dart.functionType(dart.void, [html$.FileSystem]));
@@ -73894,7 +70527,6 @@ html$.FileWriter = class FileWriter extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.FileWriter, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.FileWriter, [])}),
   fields: () => ({
     [dartx.error]: html$.FileError,
     [dartx.length]: core.int,
@@ -73914,17 +70546,6 @@ dart.setSignature(html$.FileWriter, {
     [dartx.seek]: dart.definiteFunctionType(dart.void, [core.int]),
     [dartx.truncate]: dart.definiteFunctionType(dart.void, [core.int]),
     [dartx.write]: dart.definiteFunctionType(dart.void, [html$.Blob])
-  }),
-  sfields: () => ({
-    abortEvent: EventStreamProviderOfProgressEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    progressEvent: EventStreamProviderOfProgressEvent(),
-    writeEvent: EventStreamProviderOfProgressEvent(),
-    writeEndEvent: EventStreamProviderOfProgressEvent(),
-    writeStartEvent: EventStreamProviderOfProgressEvent(),
-    DONE: core.int,
-    INIT: core.int,
-    WRITING: core.int
   })
 });
 html$.FileWriter.DONE = 2;
@@ -73982,10 +70603,6 @@ html$.FocusEvent = class FocusEvent extends html$.UIEvent {
   }
 };
 dart.setSignature(html$.FocusEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.FocusEvent, []),
-    new: dart.definiteFunctionType(html$.FocusEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[_get_relatedTarget]: dart.dynamic}),
   getters: () => ({[dartx.relatedTarget]: dart.definiteFunctionType(html$.EventTarget, [])}),
   statics: () => ({
@@ -74078,10 +70695,6 @@ html$.FontFace = class FontFace extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.FontFace, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.FontFace, []),
-    new: dart.definiteFunctionType(html$.FontFace, [core.String, core.Object], [core.Map])
-  }),
   fields: () => ({
     [dartx.family]: core.String,
     [dartx.featureSettings]: core.String,
@@ -74141,7 +70754,6 @@ html$.FontFaceSet = class FontFaceSet extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.FontFaceSet, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.FontFaceSet, [])}),
   fields: () => ({
     [dartx.size]: core.int,
     [dartx.status]: core.String
@@ -74169,7 +70781,6 @@ html$.FontFaceSetLoadEvent = class FontFaceSetLoadEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.FontFaceSetLoadEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.FontFaceSetLoadEvent, [])}),
   fields: () => ({[dartx.fontfaces]: ListOfFontFace()})
 });
 dart.registerExtension(dart.global.FontFaceSetLoadEvent, html$.FontFaceSetLoadEvent);
@@ -74225,10 +70836,6 @@ html$.FormData = class FormData extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.FormData, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.FormData, []),
-    new: dart.definiteFunctionType(html$.FormData, [], [html$.FormElement])
-  }),
   methods: () => ({
     [dartx.append]: dart.definiteFunctionType(dart.void, [core.String, core.String]),
     [dartx.appendBlob]: dart.definiteFunctionType(dart.void, [core.String, html$.Blob], [core.String]),
@@ -74238,7 +70845,6 @@ dart.setSignature(html$.FormData, {
     [dartx.has]: dart.definiteFunctionType(core.bool, [core.String]),
     [dartx.set]: dart.definiteFunctionType(dart.void, [core.String, dart.dynamic], [core.String])
   }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.FormData, [dart.dynamic]),
     _create_2: dart.definiteFunctionType(html$.FormData, [])
@@ -74371,11 +70977,6 @@ html$.FormElement = class FormElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.FormElement, 'created');
 dart.setSignature(html$.FormElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.FormElement, []),
-    new: dart.definiteFunctionType(html$.FormElement, []),
-    created: dart.definiteFunctionType(html$.FormElement, [])
-  }),
   fields: () => ({
     [dartx.acceptCharset]: core.String,
     [dartx.action]: core.String,
@@ -74437,7 +71038,6 @@ html$.Gamepad = class Gamepad extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Gamepad, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Gamepad, [])}),
   fields: () => ({
     [dartx.axes]: ListOfnum(),
     [dartx.buttons]: ListOfGamepadButton(),
@@ -74465,7 +71065,6 @@ html$.GamepadButton = class GamepadButton extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.GamepadButton, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.GamepadButton, [])}),
   fields: () => ({
     [dartx.pressed]: core.bool,
     [dartx.value]: core.double
@@ -74498,10 +71097,6 @@ html$.GamepadEvent = class GamepadEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.GamepadEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.GamepadEvent, []),
-    new: dart.definiteFunctionType(html$.GamepadEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.gamepad]: html$.Gamepad}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.GamepadEvent, [dart.dynamic, dart.dynamic]),
@@ -74530,7 +71125,6 @@ html$.Geofencing = class Geofencing extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Geofencing, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Geofencing, [])}),
   methods: () => ({
     [dartx.getRegisteredRegions]: dart.definiteFunctionType(async.Future, []),
     [dartx.registerRegion]: dart.definiteFunctionType(async.Future, [html$.GeofencingRegion]),
@@ -74554,7 +71148,6 @@ html$.GeofencingEvent = class GeofencingEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.GeofencingEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.GeofencingEvent, [])}),
   fields: () => ({
     [dartx.id]: core.String,
     [dartx.region]: html$.GeofencingRegion
@@ -74696,7 +71289,6 @@ html$.Geolocation = class Geolocation extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Geolocation, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Geolocation, [])}),
   methods: () => ({
     [dartx.getCurrentPosition]: dart.definiteFunctionType(async.Future$(html$.Geoposition), [], {enableHighAccuracy: core.bool, timeout: core.Duration, maximumAge: core.Duration}),
     [dartx.watchPosition]: dart.definiteFunctionType(async.Stream$(html$.Geoposition), [], {enableHighAccuracy: core.bool, timeout: core.Duration, maximumAge: core.Duration}),
@@ -74726,7 +71318,6 @@ html$._GeopositionWrapper = class _GeopositionWrapper extends core.Object {
 };
 html$._GeopositionWrapper[dart.implements] = () => [html$.Geoposition];
 dart.setSignature(html$._GeopositionWrapper, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._GeopositionWrapper, [dart.dynamic])}),
   fields: () => ({[_ptr]: dart.dynamic}),
   getters: () => ({
     coords: dart.definiteFunctionType(html$.Coordinates, []),
@@ -74749,7 +71340,6 @@ html$.Geoposition = class Geoposition extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Geoposition, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Geoposition, [])}),
   fields: () => ({
     [dartx.coords]: html$.Coordinates,
     [dartx.timestamp]: core.int
@@ -74973,7 +71563,6 @@ html$.GlobalEventHandlers = class GlobalEventHandlers extends core.Object {
 };
 html$.GlobalEventHandlers[dart.implements] = () => [html$.EventTarget];
 dart.setSignature(html$.GlobalEventHandlers, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.GlobalEventHandlers, [])}),
   getters: () => ({
     onAbort: dart.definiteFunctionType(async.Stream$(html$.Event), []),
     onBlur: dart.definiteFunctionType(async.Stream$(html$.Event), []),
@@ -75027,60 +71616,6 @@ dart.setSignature(html$.GlobalEventHandlers, {
     onTimeUpdate: dart.definiteFunctionType(async.Stream$(html$.Event), []),
     onVolumeChange: dart.definiteFunctionType(async.Stream$(html$.Event), []),
     onWaiting: dart.definiteFunctionType(async.Stream$(html$.Event), [])
-  }),
-  sfields: () => ({
-    abortEvent: EventStreamProviderOfEvent(),
-    blurEvent: EventStreamProviderOfEvent(),
-    canPlayEvent: EventStreamProviderOfEvent(),
-    canPlayThroughEvent: EventStreamProviderOfEvent(),
-    changeEvent: EventStreamProviderOfEvent(),
-    clickEvent: EventStreamProviderOfMouseEvent(),
-    contextMenuEvent: EventStreamProviderOfMouseEvent(),
-    doubleClickEvent: EventStreamProviderOfEvent(),
-    dragEvent: EventStreamProviderOfMouseEvent(),
-    dragEndEvent: EventStreamProviderOfMouseEvent(),
-    dragEnterEvent: EventStreamProviderOfMouseEvent(),
-    dragLeaveEvent: EventStreamProviderOfMouseEvent(),
-    dragOverEvent: EventStreamProviderOfMouseEvent(),
-    dragStartEvent: EventStreamProviderOfMouseEvent(),
-    dropEvent: EventStreamProviderOfMouseEvent(),
-    durationChangeEvent: EventStreamProviderOfEvent(),
-    emptiedEvent: EventStreamProviderOfEvent(),
-    endedEvent: EventStreamProviderOfEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    focusEvent: EventStreamProviderOfEvent(),
-    inputEvent: EventStreamProviderOfEvent(),
-    invalidEvent: EventStreamProviderOfEvent(),
-    keyDownEvent: EventStreamProviderOfKeyboardEvent(),
-    keyPressEvent: EventStreamProviderOfKeyboardEvent(),
-    keyUpEvent: EventStreamProviderOfKeyboardEvent(),
-    loadEvent: EventStreamProviderOfEvent(),
-    loadedDataEvent: EventStreamProviderOfEvent(),
-    loadedMetadataEvent: EventStreamProviderOfEvent(),
-    mouseDownEvent: EventStreamProviderOfMouseEvent(),
-    mouseEnterEvent: EventStreamProviderOfMouseEvent(),
-    mouseLeaveEvent: EventStreamProviderOfMouseEvent(),
-    mouseMoveEvent: EventStreamProviderOfMouseEvent(),
-    mouseOutEvent: EventStreamProviderOfMouseEvent(),
-    mouseOverEvent: EventStreamProviderOfMouseEvent(),
-    mouseUpEvent: EventStreamProviderOfMouseEvent(),
-    mouseWheelEvent: EventStreamProviderOfWheelEvent(),
-    pauseEvent: EventStreamProviderOfEvent(),
-    playEvent: EventStreamProviderOfEvent(),
-    playingEvent: EventStreamProviderOfEvent(),
-    rateChangeEvent: EventStreamProviderOfEvent(),
-    resetEvent: EventStreamProviderOfEvent(),
-    resizeEvent: EventStreamProviderOfEvent(),
-    scrollEvent: EventStreamProviderOfEvent(),
-    seekedEvent: EventStreamProviderOfEvent(),
-    seekingEvent: EventStreamProviderOfEvent(),
-    selectEvent: EventStreamProviderOfEvent(),
-    stalledEvent: EventStreamProviderOfEvent(),
-    submitEvent: EventStreamProviderOfEvent(),
-    suspendEvent: EventStreamProviderOfEvent(),
-    timeUpdateEvent: EventStreamProviderOfEvent(),
-    volumeChangeEvent: EventStreamProviderOfEvent(),
-    waitingEvent: EventStreamProviderOfEvent()
   })
 });
 dart.defineExtensionMembers(html$.GlobalEventHandlers, [
@@ -75318,11 +71853,6 @@ html$.HRElement = class HRElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.HRElement, 'created');
 dart.setSignature(html$.HRElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.HRElement, []),
-    new: dart.definiteFunctionType(html$.HRElement, []),
-    created: dart.definiteFunctionType(html$.HRElement, [])
-  }),
   fields: () => ({[dartx.color]: core.String})
 });
 dart.registerExtension(dart.global.HTMLHRElement, html$.HRElement);
@@ -75368,16 +71898,11 @@ html$.HashChangeEvent = class HashChangeEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.HashChangeEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.HashChangeEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, oldUrl: core.String, newUrl: core.String}),
-    _: dart.definiteFunctionType(html$.HashChangeEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.newUrl]: core.String,
     [dartx.oldUrl]: core.String
   }),
   methods: () => ({[_initHashChangeEvent]: dart.definiteFunctionType(dart.void, [core.String, core.bool, core.bool, core.String, core.String])}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.HashChangeEvent, [dart.dynamic, dart.dynamic]),
     _create_2: dart.definiteFunctionType(html$.HashChangeEvent, [dart.dynamic])
@@ -75397,13 +71922,6 @@ html$.HeadElement = class HeadElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.HeadElement, 'created');
-dart.setSignature(html$.HeadElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.HeadElement, []),
-    new: dart.definiteFunctionType(html$.HeadElement, []),
-    created: dart.definiteFunctionType(html$.HeadElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLHeadElement, html$.HeadElement);
 html$.Headers = class Headers extends _interceptors.Interceptor {
   static _() {
@@ -75440,10 +71958,6 @@ html$.Headers = class Headers extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Headers, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.Headers, []),
-    new: dart.definiteFunctionType(html$.Headers, [], [dart.dynamic])
-  }),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.Headers, []),
     _create_2: dart.definiteFunctionType(html$.Headers, [dart.dynamic]),
@@ -75480,18 +71994,6 @@ html$.HeadingElement = class HeadingElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.HeadingElement, 'created');
-dart.setSignature(html$.HeadingElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.HeadingElement, []),
-    h1: dart.definiteFunctionType(html$.HeadingElement, []),
-    h2: dart.definiteFunctionType(html$.HeadingElement, []),
-    h3: dart.definiteFunctionType(html$.HeadingElement, []),
-    h4: dart.definiteFunctionType(html$.HeadingElement, []),
-    h5: dart.definiteFunctionType(html$.HeadingElement, []),
-    h6: dart.definiteFunctionType(html$.HeadingElement, []),
-    created: dart.definiteFunctionType(html$.HeadingElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLHeadingElement, html$.HeadingElement);
 const _get_options = Symbol('_get_options');
 const _get_state = Symbol('_get_state');
@@ -75579,7 +72081,6 @@ html$.History = class History extends _interceptors.Interceptor {
 };
 html$.History[dart.implements] = () => [html$.HistoryBase];
 dart.setSignature(html$.History, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.History, [])}),
   fields: () => ({
     [dartx.length]: core.int,
     [_get_options]: dart.dynamic,
@@ -75599,8 +72100,7 @@ dart.setSignature(html$.History, {
     [dartx.replaceState]: dart.definiteFunctionType(dart.void, [dart.dynamic, core.String, core.String], [core.Map]),
     [_replaceState_1]: dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]),
     [_replaceState_2]: dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic, dart.dynamic])
-  }),
-  sgetters: () => ({supportsState: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.History, html$.History);
 dart.defineExtensionNames([
@@ -75623,7 +72123,6 @@ html$.VRDevice = class VRDevice extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.VRDevice, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.VRDevice, [])}),
   fields: () => ({
     [dartx.deviceId]: core.String,
     [dartx.deviceName]: core.String,
@@ -75647,7 +72146,6 @@ html$.HmdvrDevice = class HmdvrDevice extends html$.VRDevice {
   }
 };
 dart.setSignature(html$.HmdvrDevice, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.HmdvrDevice, [])}),
   methods: () => ({
     [dartx.getEyeParameters]: dart.definiteFunctionType(html$.VREyeParameters, [core.String]),
     [dartx.setFieldOfView]: dart.definiteFunctionType(dart.void, [], [html$.VRFieldOfView, html$.VRFieldOfView])
@@ -75717,7 +72215,6 @@ html$.HtmlCollection = class HtmlCollection extends dart.mixin(_interceptors.Int
 };
 html$.HtmlCollection[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfNode()];
 dart.setSignature(html$.HtmlCollection, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.HtmlCollection, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -75829,7 +72326,6 @@ html$.HtmlDocument = class HtmlDocument extends html$.Document {
   }
 };
 dart.setSignature(html$.HtmlDocument, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.HtmlDocument, [])}),
   fields: () => ({[dartx.body]: html$.BodyElement}),
   getters: () => ({
     [dartx.head]: dart.definiteFunctionType(html$.HeadElement, []),
@@ -75853,8 +72349,6 @@ dart.setSignature(html$.HtmlDocument, {
     [dartx.register]: dart.definiteFunctionType(dart.void, [core.String, core.Type], {extendsTag: core.String}),
     [dartx.createElementUpgrader]: dart.definiteFunctionType(html$.ElementUpgrader, [core.Type], {extendsTag: core.String})
   }),
-  sfields: () => ({visibilityChangeEvent: EventStreamProviderOfEvent()}),
-  sgetters: () => ({supportsCssCanvasContext: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({_determineVisibilityChangeEventType: dart.definiteFunctionType(core.String, [html$.EventTarget])}),
   names: ['_determineVisibilityChangeEventType']
 });
@@ -75879,9 +72373,6 @@ html$.HtmlFormControlsCollection = class HtmlFormControlsCollection extends html
     return this.namedItem.apply(this, args);
   }
 };
-dart.setSignature(html$.HtmlFormControlsCollection, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.HtmlFormControlsCollection, [])})
-});
 dart.registerExtension(dart.global.HTMLFormControlsCollection, html$.HtmlFormControlsCollection);
 html$.HtmlHtmlElement = class HtmlHtmlElement extends html$.HtmlElement {
   static _() {
@@ -75895,13 +72386,6 @@ html$.HtmlHtmlElement = class HtmlHtmlElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.HtmlHtmlElement, 'created');
-dart.setSignature(html$.HtmlHtmlElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.HtmlHtmlElement, []),
-    new: dart.definiteFunctionType(html$.HtmlHtmlElement, []),
-    created: dart.definiteFunctionType(html$.HtmlHtmlElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLHtmlElement, html$.HtmlHtmlElement);
 const _item = Symbol('_item');
 html$.HtmlOptionsCollection = class HtmlOptionsCollection extends html$.HtmlCollection {
@@ -75913,7 +72397,6 @@ html$.HtmlOptionsCollection = class HtmlOptionsCollection extends html$.HtmlColl
   }
 };
 dart.setSignature(html$.HtmlOptionsCollection, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.HtmlOptionsCollection, [])}),
   methods: () => ({[_item]: dart.definiteFunctionType(html$.Node, [core.int])})
 });
 dart.registerExtension(dart.global.HTMLOptionsCollection, html$.HtmlOptionsCollection);
@@ -75954,7 +72437,6 @@ html$.HttpRequestEventTarget = class HttpRequestEventTarget extends html$.EventT
   }
 };
 dart.setSignature(html$.HttpRequestEventTarget, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.HttpRequestEventTarget, [])}),
   getters: () => ({
     [dartx.onAbort]: dart.definiteFunctionType(async.Stream$(html$.ProgressEvent), []),
     [dartx.onError]: dart.definiteFunctionType(async.Stream$(html$.ProgressEvent), []),
@@ -75963,15 +72445,6 @@ dart.setSignature(html$.HttpRequestEventTarget, {
     [dartx.onLoadStart]: dart.definiteFunctionType(async.Stream$(html$.ProgressEvent), []),
     [dartx.onProgress]: dart.definiteFunctionType(async.Stream$(html$.ProgressEvent), []),
     [dartx.onTimeout]: dart.definiteFunctionType(async.Stream$(html$.ProgressEvent), [])
-  }),
-  sfields: () => ({
-    abortEvent: EventStreamProviderOfProgressEvent(),
-    errorEvent: EventStreamProviderOfProgressEvent(),
-    loadEvent: EventStreamProviderOfProgressEvent(),
-    loadEndEvent: EventStreamProviderOfProgressEvent(),
-    loadStartEvent: EventStreamProviderOfProgressEvent(),
-    progressEvent: EventStreamProviderOfProgressEvent(),
-    timeoutEvent: EventStreamProviderOfProgressEvent()
   })
 });
 dart.defineLazy(html$.HttpRequestEventTarget, {
@@ -76242,10 +72715,6 @@ html$.HttpRequest = class HttpRequest extends html$.HttpRequestEventTarget {
   }
 };
 dart.setSignature(html$.HttpRequest, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.HttpRequest, []),
-    new: dart.definiteFunctionType(html$.HttpRequest, [])
-  }),
   fields: () => ({
     [dartx.readyState]: core.int,
     [_get_response]: dart.dynamic,
@@ -76273,20 +72742,6 @@ dart.setSignature(html$.HttpRequest, {
     [dartx.send]: dart.definiteFunctionType(dart.void, [], [dart.dynamic]),
     [dartx.setRequestHeader]: dart.definiteFunctionType(dart.void, [core.String, core.String])
   }),
-  sfields: () => ({
-    readyStateChangeEvent: EventStreamProviderOfProgressEvent(),
-    DONE: core.int,
-    HEADERS_RECEIVED: core.int,
-    LOADING: core.int,
-    OPENED: core.int,
-    UNSENT: core.int
-  }),
-  sgetters: () => ({
-    supportsProgressEvent: dart.definiteFunctionType(core.bool, []),
-    supportsCrossOrigin: dart.definiteFunctionType(core.bool, []),
-    supportsLoadEndEvent: dart.definiteFunctionType(core.bool, []),
-    supportsOverrideMimeType: dart.definiteFunctionType(core.bool, [])
-  }),
   statics: () => ({
     getString: dart.definiteFunctionType(async.Future$(core.String), [core.String], {withCredentials: core.bool, onProgress: ProgressEventTovoid()}),
     postFormData: dart.definiteFunctionType(async.Future$(html$.HttpRequest), [core.String, MapOfString$String()], {withCredentials: core.bool, responseType: core.String, requestHeaders: MapOfString$String(), onProgress: ProgressEventTovoid()}),
@@ -76312,9 +72767,6 @@ html$.HttpRequestUpload = class HttpRequestUpload extends html$.HttpRequestEvent
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.HttpRequestUpload, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.HttpRequestUpload, [])})
-});
 dart.registerExtension(dart.global.XMLHttpRequestUpload, html$.HttpRequestUpload);
 const _get_contentWindow = Symbol('_get_contentWindow');
 dart.defineExtensionNames([
@@ -76393,11 +72845,6 @@ html$.IFrameElement = class IFrameElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.IFrameElement, 'created');
 dart.setSignature(html$.IFrameElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.IFrameElement, []),
-    new: dart.definiteFunctionType(html$.IFrameElement, []),
-    created: dart.definiteFunctionType(html$.IFrameElement, [])
-  }),
   fields: () => ({
     [dartx.allowFullscreen]: core.bool,
     [_get_contentWindow]: dart.dynamic,
@@ -76427,7 +72874,6 @@ html$.ImageBitmap = class ImageBitmap extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.ImageBitmap, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ImageBitmap, [])}),
   fields: () => ({
     [dartx.height]: core.int,
     [dartx.width]: core.int
@@ -76476,10 +72922,6 @@ html$.ImageData = class ImageData extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.ImageData, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ImageData, []),
-    new: dart.definiteFunctionType(html$.ImageData, [dart.dynamic, core.int], [core.int])
-  }),
   fields: () => ({
     [dartx.data]: typed_data.Uint8ClampedList,
     [dartx.height]: core.int,
@@ -76608,11 +73050,6 @@ html$.ImageElement = class ImageElement extends html$.HtmlElement {
 dart.defineNamedConstructor(html$.ImageElement, 'created');
 html$.ImageElement[dart.implements] = () => [html$.CanvasImageSource];
 dart.setSignature(html$.ImageElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ImageElement, []),
-    new: dart.definiteFunctionType(html$.ImageElement, [], {src: core.String, width: core.int, height: core.int}),
-    created: dart.definiteFunctionType(html$.ImageElement, [])
-  }),
   fields: () => ({
     [dartx.alt]: core.String,
     [dartx.complete]: core.bool,
@@ -76642,7 +73079,6 @@ html$.InjectedScriptHost = class InjectedScriptHost extends _interceptors.Interc
   }
 };
 dart.setSignature(html$.InjectedScriptHost, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.InjectedScriptHost, [])}),
   methods: () => ({[dartx.inspect]: dart.definiteFunctionType(dart.void, [core.Object, core.Object])})
 });
 dart.registerExtension(dart.global.InjectedScriptHost, html$.InjectedScriptHost);
@@ -76672,10 +73108,6 @@ html$.InputDevice = class InputDevice extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.InputDevice, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.InputDevice, []),
-    new: dart.definiteFunctionType(html$.InputDevice, [], [core.Map])
-  }),
   fields: () => ({[dartx.firesTouchEvents]: core.bool}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.InputDevice, [dart.dynamic]),
@@ -77129,11 +73561,6 @@ html$.InputElement = class InputElement extends html$.HtmlElement {
 dart.defineNamedConstructor(html$.InputElement, 'created');
 html$.InputElement[dart.implements] = () => [html$.HiddenInputElement, html$.SearchInputElement, html$.TextInputElement, html$.UrlInputElement, html$.TelephoneInputElement, html$.EmailInputElement, html$.PasswordInputElement, html$.DateInputElement, html$.MonthInputElement, html$.WeekInputElement, html$.TimeInputElement, html$.LocalDateTimeInputElement, html$.NumberInputElement, html$.RangeInputElement, html$.CheckboxInputElement, html$.RadioButtonInputElement, html$.FileUploadInputElement, html$.SubmitButtonInputElement, html$.ImageButtonInputElement, html$.ResetButtonInputElement, html$.ButtonInputElement];
 dart.setSignature(html$.InputElement, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.InputElement, [], {type: core.String}),
-    _: dart.definiteFunctionType(html$.InputElement, []),
-    created: dart.definiteFunctionType(html$.InputElement, [])
-  }),
   fields: () => ({
     [dartx.accept]: core.String,
     [dartx.alt]: core.String,
@@ -77257,12 +73684,12 @@ html$.InputElementBase = class InputElementBase extends core.Object {
     this[value$] = value;
   }
 };
-const autofocus = Symbol(html$.InputElementBase.name + "." + 'autofocus'.toString());
-const disabled = Symbol(html$.InputElementBase.name + "." + 'disabled'.toString());
-const incremental = Symbol(html$.InputElementBase.name + "." + 'incremental'.toString());
-const indeterminate = Symbol(html$.InputElementBase.name + "." + 'indeterminate'.toString());
-const name = Symbol(html$.InputElementBase.name + "." + 'name'.toString());
-const value$ = Symbol(html$.InputElementBase.name + "." + 'value'.toString());
+const autofocus = Symbol("InputElementBase.autofocus");
+const disabled = Symbol("InputElementBase.disabled");
+const incremental = Symbol("InputElementBase.incremental");
+const indeterminate = Symbol("InputElementBase.indeterminate");
+const name = Symbol("InputElementBase.name");
+const value$ = Symbol("InputElementBase.value");
 html$.InputElementBase[dart.implements] = () => [html$.Element];
 dart.setSignature(html$.InputElementBase, {
   fields: () => ({
@@ -77294,9 +73721,6 @@ html$.HiddenInputElement = class HiddenInputElement extends core.Object {
   }
 };
 html$.HiddenInputElement[dart.implements] = () => [html$.InputElementBase];
-dart.setSignature(html$.HiddenInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.HiddenInputElement, [])})
-});
 dart.defineExtensionNames([
   'autocomplete',
   'maxLength',
@@ -77383,16 +73807,16 @@ html$.TextInputElementBase = class TextInputElementBase extends core.Object {
     this[selectionStart] = value;
   }
 };
-const autocomplete = Symbol(html$.TextInputElementBase.name + "." + 'autocomplete'.toString());
-const maxLength = Symbol(html$.TextInputElementBase.name + "." + 'maxLength'.toString());
-const pattern = Symbol(html$.TextInputElementBase.name + "." + 'pattern'.toString());
-const placeholder = Symbol(html$.TextInputElementBase.name + "." + 'placeholder'.toString());
-const readOnly = Symbol(html$.TextInputElementBase.name + "." + 'readOnly'.toString());
-const required = Symbol(html$.TextInputElementBase.name + "." + 'required'.toString());
-const size = Symbol(html$.TextInputElementBase.name + "." + 'size'.toString());
-const selectionDirection = Symbol(html$.TextInputElementBase.name + "." + 'selectionDirection'.toString());
-const selectionEnd = Symbol(html$.TextInputElementBase.name + "." + 'selectionEnd'.toString());
-const selectionStart = Symbol(html$.TextInputElementBase.name + "." + 'selectionStart'.toString());
+const autocomplete = Symbol("TextInputElementBase.autocomplete");
+const maxLength = Symbol("TextInputElementBase.maxLength");
+const pattern = Symbol("TextInputElementBase.pattern");
+const placeholder = Symbol("TextInputElementBase.placeholder");
+const readOnly = Symbol("TextInputElementBase.readOnly");
+const required = Symbol("TextInputElementBase.required");
+const size = Symbol("TextInputElementBase.size");
+const selectionDirection = Symbol("TextInputElementBase.selectionDirection");
+const selectionEnd = Symbol("TextInputElementBase.selectionEnd");
+const selectionStart = Symbol("TextInputElementBase.selectionStart");
 html$.TextInputElementBase[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.TextInputElementBase, {
   fields: () => ({
@@ -77447,12 +73871,10 @@ html$.SearchInputElement = class SearchInputElement extends core.Object {
     return html$.InputElement.new({type: 'search'})[dartx.type] == 'search';
   }
 };
-const dirName = Symbol(html$.SearchInputElement.name + "." + 'dirName'.toString());
+const dirName = Symbol("SearchInputElement.dirName");
 html$.SearchInputElement[dart.implements] = () => [html$.TextInputElementBase];
 dart.setSignature(html$.SearchInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.SearchInputElement, [])}),
-  fields: () => ({dirName: core.String}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  fields: () => ({dirName: core.String})
 });
 dart.defineExtensionMembers(html$.SearchInputElement, ['dirName', 'dirName']);
 dart.defineExtensionNames([
@@ -77469,10 +73891,9 @@ html$.TextInputElement = class TextInputElement extends core.Object {
     this[dirName$] = value;
   }
 };
-const dirName$ = Symbol(html$.TextInputElement.name + "." + 'dirName'.toString());
+const dirName$ = Symbol("TextInputElement.dirName");
 html$.TextInputElement[dart.implements] = () => [html$.TextInputElementBase];
 dart.setSignature(html$.TextInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.TextInputElement, [])}),
   fields: () => ({dirName: core.String})
 });
 dart.defineExtensionMembers(html$.TextInputElement, ['dirName', 'dirName']);
@@ -77485,10 +73906,6 @@ html$.UrlInputElement = class UrlInputElement extends core.Object {
   }
 };
 html$.UrlInputElement[dart.implements] = () => [html$.TextInputElementBase];
-dart.setSignature(html$.UrlInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.UrlInputElement, [])}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 html$.TelephoneInputElement = class TelephoneInputElement extends core.Object {
   static new() {
     return html$.InputElement.new({type: 'tel'});
@@ -77498,10 +73915,6 @@ html$.TelephoneInputElement = class TelephoneInputElement extends core.Object {
   }
 };
 html$.TelephoneInputElement[dart.implements] = () => [html$.TextInputElementBase];
-dart.setSignature(html$.TelephoneInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.TelephoneInputElement, [])}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 dart.defineExtensionNames([
   'autocomplete',
   'autofocus',
@@ -77575,18 +73988,17 @@ html$.EmailInputElement = class EmailInputElement extends core.Object {
     return html$.InputElement.new({type: 'email'})[dartx.type] == 'email';
   }
 };
-const autocomplete$ = Symbol(html$.EmailInputElement.name + "." + 'autocomplete'.toString());
-const autofocus$ = Symbol(html$.EmailInputElement.name + "." + 'autofocus'.toString());
-const maxLength$ = Symbol(html$.EmailInputElement.name + "." + 'maxLength'.toString());
-const multiple = Symbol(html$.EmailInputElement.name + "." + 'multiple'.toString());
-const pattern$ = Symbol(html$.EmailInputElement.name + "." + 'pattern'.toString());
-const placeholder$ = Symbol(html$.EmailInputElement.name + "." + 'placeholder'.toString());
-const readOnly$ = Symbol(html$.EmailInputElement.name + "." + 'readOnly'.toString());
-const required$ = Symbol(html$.EmailInputElement.name + "." + 'required'.toString());
-const size$ = Symbol(html$.EmailInputElement.name + "." + 'size'.toString());
+const autocomplete$ = Symbol("EmailInputElement.autocomplete");
+const autofocus$ = Symbol("EmailInputElement.autofocus");
+const maxLength$ = Symbol("EmailInputElement.maxLength");
+const multiple = Symbol("EmailInputElement.multiple");
+const pattern$ = Symbol("EmailInputElement.pattern");
+const placeholder$ = Symbol("EmailInputElement.placeholder");
+const readOnly$ = Symbol("EmailInputElement.readOnly");
+const required$ = Symbol("EmailInputElement.required");
+const size$ = Symbol("EmailInputElement.size");
 html$.EmailInputElement[dart.implements] = () => [html$.TextInputElementBase];
 dart.setSignature(html$.EmailInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.EmailInputElement, [])}),
   fields: () => ({
     autocomplete: core.String,
     autofocus: core.bool,
@@ -77597,8 +74009,7 @@ dart.setSignature(html$.EmailInputElement, {
     readOnly: core.bool,
     required: core.bool,
     size: core.int
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.defineExtensionMembers(html$.EmailInputElement, [
   'autocomplete',
@@ -77626,9 +74037,6 @@ html$.PasswordInputElement = class PasswordInputElement extends core.Object {
   }
 };
 html$.PasswordInputElement[dart.implements] = () => [html$.TextInputElementBase];
-dart.setSignature(html$.PasswordInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.PasswordInputElement, [])})
-});
 dart.defineExtensionNames([
   'max',
   'min',
@@ -77667,10 +74075,10 @@ html$.RangeInputElementBase = class RangeInputElementBase extends core.Object {
     this[valueAsNumber] = value;
   }
 };
-const max = Symbol(html$.RangeInputElementBase.name + "." + 'max'.toString());
-const min = Symbol(html$.RangeInputElementBase.name + "." + 'min'.toString());
-const step = Symbol(html$.RangeInputElementBase.name + "." + 'step'.toString());
-const valueAsNumber = Symbol(html$.RangeInputElementBase.name + "." + 'valueAsNumber'.toString());
+const max = Symbol("RangeInputElementBase.max");
+const min = Symbol("RangeInputElementBase.min");
+const step = Symbol("RangeInputElementBase.step");
+const valueAsNumber = Symbol("RangeInputElementBase.valueAsNumber");
 html$.RangeInputElementBase[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.RangeInputElementBase, {
   fields: () => ({
@@ -77721,18 +74129,16 @@ html$.DateInputElement = class DateInputElement extends core.Object {
     return html$.InputElement.new({type: 'date'})[dartx.type] == 'date';
   }
 };
-const valueAsDate = Symbol(html$.DateInputElement.name + "." + 'valueAsDate'.toString());
-const readOnly$0 = Symbol(html$.DateInputElement.name + "." + 'readOnly'.toString());
-const required$0 = Symbol(html$.DateInputElement.name + "." + 'required'.toString());
+const valueAsDate = Symbol("DateInputElement.valueAsDate");
+const readOnly$0 = Symbol("DateInputElement.readOnly");
+const required$0 = Symbol("DateInputElement.required");
 html$.DateInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.DateInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.DateInputElement, [])}),
   fields: () => ({
     valueAsDate: core.DateTime,
     readOnly: core.bool,
     required: core.bool
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.defineExtensionMembers(html$.DateInputElement, [
   'valueAsDate',
@@ -77773,18 +74179,16 @@ html$.MonthInputElement = class MonthInputElement extends core.Object {
     return html$.InputElement.new({type: 'month'})[dartx.type] == 'month';
   }
 };
-const valueAsDate$ = Symbol(html$.MonthInputElement.name + "." + 'valueAsDate'.toString());
-const readOnly$1 = Symbol(html$.MonthInputElement.name + "." + 'readOnly'.toString());
-const required$1 = Symbol(html$.MonthInputElement.name + "." + 'required'.toString());
+const valueAsDate$ = Symbol("MonthInputElement.valueAsDate");
+const readOnly$1 = Symbol("MonthInputElement.readOnly");
+const required$1 = Symbol("MonthInputElement.required");
 html$.MonthInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.MonthInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.MonthInputElement, [])}),
   fields: () => ({
     valueAsDate: core.DateTime,
     readOnly: core.bool,
     required: core.bool
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.defineExtensionMembers(html$.MonthInputElement, [
   'valueAsDate',
@@ -77825,18 +74229,16 @@ html$.WeekInputElement = class WeekInputElement extends core.Object {
     return html$.InputElement.new({type: 'week'})[dartx.type] == 'week';
   }
 };
-const valueAsDate$0 = Symbol(html$.WeekInputElement.name + "." + 'valueAsDate'.toString());
-const readOnly$2 = Symbol(html$.WeekInputElement.name + "." + 'readOnly'.toString());
-const required$2 = Symbol(html$.WeekInputElement.name + "." + 'required'.toString());
+const valueAsDate$0 = Symbol("WeekInputElement.valueAsDate");
+const readOnly$2 = Symbol("WeekInputElement.readOnly");
+const required$2 = Symbol("WeekInputElement.required");
 html$.WeekInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.WeekInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.WeekInputElement, [])}),
   fields: () => ({
     valueAsDate: core.DateTime,
     readOnly: core.bool,
     required: core.bool
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.defineExtensionMembers(html$.WeekInputElement, [
   'valueAsDate',
@@ -77877,18 +74279,16 @@ html$.TimeInputElement = class TimeInputElement extends core.Object {
     return html$.InputElement.new({type: 'time'})[dartx.type] == 'time';
   }
 };
-const valueAsDate$1 = Symbol(html$.TimeInputElement.name + "." + 'valueAsDate'.toString());
-const readOnly$3 = Symbol(html$.TimeInputElement.name + "." + 'readOnly'.toString());
-const required$3 = Symbol(html$.TimeInputElement.name + "." + 'required'.toString());
+const valueAsDate$1 = Symbol("TimeInputElement.valueAsDate");
+const readOnly$3 = Symbol("TimeInputElement.readOnly");
+const required$3 = Symbol("TimeInputElement.required");
 html$.TimeInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.TimeInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.TimeInputElement, [])}),
   fields: () => ({
     valueAsDate: core.DateTime,
     readOnly: core.bool,
     required: core.bool
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.defineExtensionMembers(html$.TimeInputElement, [
   'valueAsDate',
@@ -77922,16 +74322,14 @@ html$.LocalDateTimeInputElement = class LocalDateTimeInputElement extends core.O
     return html$.InputElement.new({type: 'datetime-local'})[dartx.type] == 'datetime-local';
   }
 };
-const readOnly$4 = Symbol(html$.LocalDateTimeInputElement.name + "." + 'readOnly'.toString());
-const required$4 = Symbol(html$.LocalDateTimeInputElement.name + "." + 'required'.toString());
+const readOnly$4 = Symbol("LocalDateTimeInputElement.readOnly");
+const required$4 = Symbol("LocalDateTimeInputElement.required");
 html$.LocalDateTimeInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.LocalDateTimeInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.LocalDateTimeInputElement, [])}),
   fields: () => ({
     readOnly: core.bool,
     required: core.bool
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.defineExtensionMembers(html$.LocalDateTimeInputElement, ['readOnly', 'readOnly', 'required', 'required']);
 dart.defineExtensionNames([
@@ -77965,18 +74363,16 @@ html$.NumberInputElement = class NumberInputElement extends core.Object {
     return html$.InputElement.new({type: 'number'})[dartx.type] == 'number';
   }
 };
-const placeholder$0 = Symbol(html$.NumberInputElement.name + "." + 'placeholder'.toString());
-const readOnly$5 = Symbol(html$.NumberInputElement.name + "." + 'readOnly'.toString());
-const required$5 = Symbol(html$.NumberInputElement.name + "." + 'required'.toString());
+const placeholder$0 = Symbol("NumberInputElement.placeholder");
+const readOnly$5 = Symbol("NumberInputElement.readOnly");
+const required$5 = Symbol("NumberInputElement.required");
 html$.NumberInputElement[dart.implements] = () => [html$.RangeInputElementBase];
 dart.setSignature(html$.NumberInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.NumberInputElement, [])}),
   fields: () => ({
     placeholder: core.String,
     readOnly: core.bool,
     required: core.bool
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.defineExtensionMembers(html$.NumberInputElement, [
   'placeholder',
@@ -77995,10 +74391,6 @@ html$.RangeInputElement = class RangeInputElement extends core.Object {
   }
 };
 html$.RangeInputElement[dart.implements] = () => [html$.RangeInputElementBase];
-dart.setSignature(html$.RangeInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.RangeInputElement, [])}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 dart.defineExtensionNames([
   'checked',
   'required'
@@ -78020,11 +74412,10 @@ html$.CheckboxInputElement = class CheckboxInputElement extends core.Object {
     this[required$6] = value;
   }
 };
-const checked = Symbol(html$.CheckboxInputElement.name + "." + 'checked'.toString());
-const required$6 = Symbol(html$.CheckboxInputElement.name + "." + 'required'.toString());
+const checked = Symbol("CheckboxInputElement.checked");
+const required$6 = Symbol("CheckboxInputElement.required");
 html$.CheckboxInputElement[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.CheckboxInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.CheckboxInputElement, [])}),
   fields: () => ({
     checked: core.bool,
     required: core.bool
@@ -78052,11 +74443,10 @@ html$.RadioButtonInputElement = class RadioButtonInputElement extends core.Objec
     this[required$7] = value;
   }
 };
-const checked$ = Symbol(html$.RadioButtonInputElement.name + "." + 'checked'.toString());
-const required$7 = Symbol(html$.RadioButtonInputElement.name + "." + 'required'.toString());
+const checked$ = Symbol("RadioButtonInputElement.checked");
+const required$7 = Symbol("RadioButtonInputElement.required");
 html$.RadioButtonInputElement[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.RadioButtonInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.RadioButtonInputElement, [])}),
   fields: () => ({
     checked: core.bool,
     required: core.bool
@@ -78098,13 +74488,12 @@ html$.FileUploadInputElement = class FileUploadInputElement extends core.Object 
     this[files] = value;
   }
 };
-const accept = Symbol(html$.FileUploadInputElement.name + "." + 'accept'.toString());
-const multiple$ = Symbol(html$.FileUploadInputElement.name + "." + 'multiple'.toString());
-const required$8 = Symbol(html$.FileUploadInputElement.name + "." + 'required'.toString());
-const files = Symbol(html$.FileUploadInputElement.name + "." + 'files'.toString());
+const accept = Symbol("FileUploadInputElement.accept");
+const multiple$ = Symbol("FileUploadInputElement.multiple");
+const required$8 = Symbol("FileUploadInputElement.required");
+const files = Symbol("FileUploadInputElement.files");
 html$.FileUploadInputElement[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.FileUploadInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.FileUploadInputElement, [])}),
   fields: () => ({
     accept: core.String,
     multiple: core.bool,
@@ -78164,14 +74553,13 @@ html$.SubmitButtonInputElement = class SubmitButtonInputElement extends core.Obj
     this[formTarget] = value;
   }
 };
-const formAction = Symbol(html$.SubmitButtonInputElement.name + "." + 'formAction'.toString());
-const formEnctype = Symbol(html$.SubmitButtonInputElement.name + "." + 'formEnctype'.toString());
-const formMethod = Symbol(html$.SubmitButtonInputElement.name + "." + 'formMethod'.toString());
-const formNoValidate = Symbol(html$.SubmitButtonInputElement.name + "." + 'formNoValidate'.toString());
-const formTarget = Symbol(html$.SubmitButtonInputElement.name + "." + 'formTarget'.toString());
+const formAction = Symbol("SubmitButtonInputElement.formAction");
+const formEnctype = Symbol("SubmitButtonInputElement.formEnctype");
+const formMethod = Symbol("SubmitButtonInputElement.formMethod");
+const formNoValidate = Symbol("SubmitButtonInputElement.formNoValidate");
+const formTarget = Symbol("SubmitButtonInputElement.formTarget");
 html$.SubmitButtonInputElement[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.SubmitButtonInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.SubmitButtonInputElement, [])}),
   fields: () => ({
     formAction: core.String,
     formEnctype: core.String,
@@ -78262,18 +74650,17 @@ html$.ImageButtonInputElement = class ImageButtonInputElement extends core.Objec
     this[width] = value;
   }
 };
-const alt = Symbol(html$.ImageButtonInputElement.name + "." + 'alt'.toString());
-const formAction$ = Symbol(html$.ImageButtonInputElement.name + "." + 'formAction'.toString());
-const formEnctype$ = Symbol(html$.ImageButtonInputElement.name + "." + 'formEnctype'.toString());
-const formMethod$ = Symbol(html$.ImageButtonInputElement.name + "." + 'formMethod'.toString());
-const formNoValidate$ = Symbol(html$.ImageButtonInputElement.name + "." + 'formNoValidate'.toString());
-const formTarget$ = Symbol(html$.ImageButtonInputElement.name + "." + 'formTarget'.toString());
-const height = Symbol(html$.ImageButtonInputElement.name + "." + 'height'.toString());
-const src = Symbol(html$.ImageButtonInputElement.name + "." + 'src'.toString());
-const width = Symbol(html$.ImageButtonInputElement.name + "." + 'width'.toString());
+const alt = Symbol("ImageButtonInputElement.alt");
+const formAction$ = Symbol("ImageButtonInputElement.formAction");
+const formEnctype$ = Symbol("ImageButtonInputElement.formEnctype");
+const formMethod$ = Symbol("ImageButtonInputElement.formMethod");
+const formNoValidate$ = Symbol("ImageButtonInputElement.formNoValidate");
+const formTarget$ = Symbol("ImageButtonInputElement.formTarget");
+const height = Symbol("ImageButtonInputElement.height");
+const src = Symbol("ImageButtonInputElement.src");
+const width = Symbol("ImageButtonInputElement.width");
 html$.ImageButtonInputElement[dart.implements] = () => [html$.InputElementBase];
 dart.setSignature(html$.ImageButtonInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.ImageButtonInputElement, [])}),
   fields: () => ({
     alt: core.String,
     formAction: core.String,
@@ -78312,18 +74699,12 @@ html$.ResetButtonInputElement = class ResetButtonInputElement extends core.Objec
   }
 };
 html$.ResetButtonInputElement[dart.implements] = () => [html$.InputElementBase];
-dart.setSignature(html$.ResetButtonInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.ResetButtonInputElement, [])})
-});
 html$.ButtonInputElement = class ButtonInputElement extends core.Object {
   static new() {
     return html$.InputElement.new({type: 'button'});
   }
 };
 html$.ButtonInputElement[dart.implements] = () => [html$.InputElementBase];
-dart.setSignature(html$.ButtonInputElement, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.ButtonInputElement, [])})
-});
 const _initKeyboardEvent = Symbol('_initKeyboardEvent');
 const _keyIdentifier = Symbol('_keyIdentifier');
 dart.defineExtensionNames([
@@ -78423,10 +74804,6 @@ html$.KeyboardEvent = class KeyboardEvent extends html$.UIEvent {
   }
 };
 dart.setSignature(html$.KeyboardEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.KeyboardEvent, [core.String], {view: html$.Window, canBubble: core.bool, cancelable: core.bool, keyLocation: core.int, ctrlKey: core.bool, altKey: core.bool, shiftKey: core.bool, metaKey: core.bool}),
-    _: dart.definiteFunctionType(html$.KeyboardEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.altKey]: core.bool,
     [dartx.code]: core.String,
@@ -78447,12 +74824,6 @@ dart.setSignature(html$.KeyboardEvent, {
   methods: () => ({
     [_initKeyboardEvent]: dart.definiteFunctionType(dart.void, [core.String, core.bool, core.bool, html$.Window, core.String, core.int, core.bool, core.bool, core.bool, core.bool]),
     [dartx.getModifierState]: dart.definiteFunctionType(core.bool, [core.String])
-  }),
-  sfields: () => ({
-    DOM_KEY_LOCATION_LEFT: core.int,
-    DOM_KEY_LOCATION_NUMPAD: core.int,
-    DOM_KEY_LOCATION_RIGHT: core.int,
-    DOM_KEY_LOCATION_STANDARD: core.int
   }),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.KeyboardEvent, [dart.dynamic, dart.dynamic]),
@@ -78494,10 +74865,6 @@ html$.KeyframeEffect = class KeyframeEffect extends html$.AnimationEffectReadOnl
   }
 };
 dart.setSignature(html$.KeyframeEffect, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.KeyframeEffect, []),
-    new: dart.definiteFunctionType(html$.KeyframeEffect, [html$.Element, ListOfMap()], [dart.dynamic])
-  }),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.KeyframeEffect, [dart.dynamic, dart.dynamic]),
     _create_2: dart.definiteFunctionType(html$.KeyframeEffect, [dart.dynamic, dart.dynamic, dart.dynamic]),
@@ -78606,11 +74973,6 @@ html$.KeygenElement = class KeygenElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.KeygenElement, 'created');
 dart.setSignature(html$.KeygenElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.KeygenElement, []),
-    new: dart.definiteFunctionType(html$.KeygenElement, []),
-    created: dart.definiteFunctionType(html$.KeygenElement, [])
-  }),
   fields: () => ({
     [dartx.autofocus]: core.bool,
     [dartx.challenge]: core.String,
@@ -78628,8 +74990,7 @@ dart.setSignature(html$.KeygenElement, {
     [dartx.checkValidity]: dart.definiteFunctionType(core.bool, []),
     [dartx.reportValidity]: dart.definiteFunctionType(core.bool, []),
     [dartx.setCustomValidity]: dart.definiteFunctionType(dart.void, [core.String])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.HTMLKeygenElement, html$.KeygenElement);
 dart.defineExtensionNames([
@@ -78655,11 +75016,6 @@ html$.LIElement = class LIElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.LIElement, 'created');
 dart.setSignature(html$.LIElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.LIElement, []),
-    new: dart.definiteFunctionType(html$.LIElement, []),
-    created: dart.definiteFunctionType(html$.LIElement, [])
-  }),
   fields: () => ({[dartx.value]: core.int})
 });
 dart.registerExtension(dart.global.HTMLLIElement, html$.LIElement);
@@ -78696,11 +75052,6 @@ html$.LabelElement = class LabelElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.LabelElement, 'created');
 dart.setSignature(html$.LabelElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.LabelElement, []),
-    new: dart.definiteFunctionType(html$.LabelElement, []),
-    created: dart.definiteFunctionType(html$.LabelElement, [])
-  }),
   fields: () => ({
     [dartx.control]: html$.HtmlElement,
     [dartx.form]: html$.FormElement,
@@ -78728,11 +75079,6 @@ html$.LegendElement = class LegendElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.LegendElement, 'created');
 dart.setSignature(html$.LegendElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.LegendElement, []),
-    new: dart.definiteFunctionType(html$.LegendElement, []),
-    created: dart.definiteFunctionType(html$.LegendElement, [])
-  }),
   fields: () => ({[dartx.form]: html$.FormElement})
 });
 dart.registerExtension(dart.global.HTMLLegendElement, html$.LegendElement);
@@ -78834,11 +75180,6 @@ html$.LinkElement = class LinkElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.LinkElement, 'created');
 dart.setSignature(html$.LinkElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.LinkElement, []),
-    new: dart.definiteFunctionType(html$.LinkElement, []),
-    created: dart.definiteFunctionType(html$.LinkElement, [])
-  }),
   fields: () => ({
     [dartx.crossOrigin]: core.String,
     [dartx.disabled]: core.bool,
@@ -78947,7 +75288,6 @@ html$.Location = class Location extends _interceptors.Interceptor {
 };
 html$.Location[dart.implements] = () => [html$.LocationBase];
 dart.setSignature(html$.Location, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Location, [])}),
   fields: () => ({
     [dartx.ancestorOrigins]: ListOfString(),
     [dartx.hash]: core.String,
@@ -78995,11 +75335,6 @@ html$.MapElement = class MapElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.MapElement, 'created');
 dart.setSignature(html$.MapElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MapElement, []),
-    new: dart.definiteFunctionType(html$.MapElement, []),
-    created: dart.definiteFunctionType(html$.MapElement, [])
-  }),
   fields: () => ({
     [dartx.areas]: ListOfNode(),
     [dartx.name]: core.String
@@ -79091,10 +75426,6 @@ html$.MediaController = class MediaController extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.MediaController, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MediaController, []),
-    new: dart.definiteFunctionType(html$.MediaController, [])
-  }),
   fields: () => ({
     [dartx.buffered]: html$.TimeRanges,
     [dartx.currentTime]: core.num,
@@ -79141,7 +75472,6 @@ html$.MediaDeviceInfo = class MediaDeviceInfo extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(html$.MediaDeviceInfo, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaDeviceInfo, [])}),
   fields: () => ({
     [dartx.deviceId]: core.String,
     [dartx.groupId]: core.String,
@@ -79171,7 +75501,6 @@ html$.MediaDevices = class MediaDevices extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MediaDevices, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaDevices, [])}),
   methods: () => ({
     [dartx.enumerateDevices]: dart.definiteFunctionType(async.Future, []),
     [dartx.getUserMedia]: dart.definiteFunctionType(async.Future, [core.Map]),
@@ -79209,10 +75538,6 @@ html$.MediaEncryptedEvent = class MediaEncryptedEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.MediaEncryptedEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MediaEncryptedEvent, []),
-    new: dart.definiteFunctionType(html$.MediaEncryptedEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.initData]: typed_data.ByteBuffer,
     [dartx.initDataType]: core.String
@@ -79236,14 +75561,7 @@ html$.MediaError = class MediaError extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MediaError, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaError, [])}),
-  fields: () => ({[dartx.code]: core.int}),
-  sfields: () => ({
-    MEDIA_ERR_ABORTED: core.int,
-    MEDIA_ERR_DECODE: core.int,
-    MEDIA_ERR_NETWORK: core.int,
-    MEDIA_ERR_SRC_NOT_SUPPORTED: core.int
-  })
+  fields: () => ({[dartx.code]: core.int})
 });
 html$.MediaError.MEDIA_ERR_ABORTED = 1;
 html$.MediaError.MEDIA_ERR_DECODE = 3;
@@ -79266,18 +75584,9 @@ html$.MediaKeyError = class MediaKeyError extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MediaKeyError, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaKeyError, [])}),
   fields: () => ({
     [dartx.code]: core.int,
     [dartx.systemCode]: core.int
-  }),
-  sfields: () => ({
-    MEDIA_KEYERR_CLIENT: core.int,
-    MEDIA_KEYERR_DOMAIN: core.int,
-    MEDIA_KEYERR_HARDWARECHANGE: core.int,
-    MEDIA_KEYERR_OUTPUT: core.int,
-    MEDIA_KEYERR_SERVICE: core.int,
-    MEDIA_KEYERR_UNKNOWN: core.int
   })
 });
 html$.MediaKeyError.MEDIA_KEYERR_CLIENT = 2;
@@ -79337,10 +75646,6 @@ html$.MediaKeyEvent = class MediaKeyEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.MediaKeyEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MediaKeyEvent, []),
-    new: dart.definiteFunctionType(html$.MediaKeyEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.defaultUrl]: core.String,
     [dartx.errorCode]: html$.MediaKeyError,
@@ -79387,10 +75692,6 @@ html$.MediaKeyMessageEvent = class MediaKeyMessageEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.MediaKeyMessageEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MediaKeyMessageEvent, []),
-    new: dart.definiteFunctionType(html$.MediaKeyMessageEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.message]: typed_data.ByteBuffer,
     [dartx.messageType]: core.String
@@ -79446,7 +75747,6 @@ html$.MediaKeySession = class MediaKeySession extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.MediaKeySession, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaKeySession, [])}),
   fields: () => ({
     [dartx.closed]: async.Future,
     [dartx.expiration]: core.double,
@@ -79474,7 +75774,6 @@ html$.MediaKeyStatusMap = class MediaKeyStatusMap extends _interceptors.Intercep
   }
 };
 dart.setSignature(html$.MediaKeyStatusMap, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaKeyStatusMap, [])}),
   fields: () => ({[dartx.size]: core.int})
 });
 dart.registerExtension(dart.global.MediaKeyStatusMap, html$.MediaKeyStatusMap);
@@ -79502,7 +75801,6 @@ html$.MediaKeySystemAccess = class MediaKeySystemAccess extends _interceptors.In
   }
 };
 dart.setSignature(html$.MediaKeySystemAccess, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaKeySystemAccess, [])}),
   fields: () => ({[dartx.keySystem]: core.String}),
   methods: () => ({
     [dartx.createMediaKeys]: dart.definiteFunctionType(async.Future, []),
@@ -79527,7 +75825,6 @@ html$.MediaKeys = class MediaKeys extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MediaKeys, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaKeys, [])}),
   methods: () => ({
     [_createSession]: dart.definiteFunctionType(html$.MediaKeySession, [], [core.String]),
     [dartx.setServerCertificate]: dart.definiteFunctionType(async.Future, [dart.dynamic])
@@ -79565,7 +75862,6 @@ html$.MediaList = class MediaList extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MediaList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaList, [])}),
   fields: () => ({
     [dartx.length]: core.int,
     [dartx.mediaText]: core.String
@@ -79605,7 +75901,6 @@ html$.MediaQueryList = class MediaQueryList extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.MediaQueryList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaQueryList, [])}),
   fields: () => ({
     [dartx.matches]: core.bool,
     [dartx.media]: core.String
@@ -79614,8 +75909,7 @@ dart.setSignature(html$.MediaQueryList, {
   methods: () => ({
     [dartx.addListener]: dart.definiteFunctionType(dart.void, [html$.EventListener]),
     [dartx.removeListener]: dart.definiteFunctionType(dart.void, [html$.EventListener])
-  }),
-  sfields: () => ({changeEvent: EventStreamProviderOfEvent()})
+  })
 });
 dart.defineLazy(html$.MediaQueryList, {
   get changeEvent() {
@@ -79653,10 +75947,6 @@ html$.MediaQueryListEvent = class MediaQueryListEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.MediaQueryListEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MediaQueryListEvent, []),
-    new: dart.definiteFunctionType(html$.MediaQueryListEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.matches]: core.bool,
     [dartx.media]: core.String
@@ -79690,10 +75980,6 @@ html$.MediaSession = class MediaSession extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MediaSession, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MediaSession, []),
-    new: dart.definiteFunctionType(html$.MediaSession, [])
-  }),
   methods: () => ({
     [dartx.activate]: dart.definiteFunctionType(dart.void, []),
     [dartx.deactivate]: dart.definiteFunctionType(dart.void, [])
@@ -79750,10 +76036,6 @@ html$.MediaSource = class MediaSource extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.MediaSource, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MediaSource, []),
-    new: dart.definiteFunctionType(html$.MediaSource, [])
-  }),
   fields: () => ({
     [dartx.activeSourceBuffers]: html$.SourceBufferList,
     [dartx.duration]: core.num,
@@ -79765,7 +76047,6 @@ dart.setSignature(html$.MediaSource, {
     [dartx.endOfStream]: dart.definiteFunctionType(dart.void, [], [core.String]),
     [dartx.removeSourceBuffer]: dart.definiteFunctionType(dart.void, [html$.SourceBuffer])
   }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.MediaSource, []),
     isTypeSupported: dart.definiteFunctionType(core.bool, [core.String])
@@ -79866,10 +76147,6 @@ html$.MediaStream = class MediaStream extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.MediaStream, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MediaStream, []),
-    new: dart.definiteFunctionType(html$.MediaStream, [], [dart.dynamic])
-  }),
   fields: () => ({
     [dartx.active]: core.bool,
     [dartx.ended]: core.bool,
@@ -79891,12 +76168,6 @@ dart.setSignature(html$.MediaStream, {
     [dartx.removeTrack]: dart.definiteFunctionType(dart.void, [html$.MediaStreamTrack]),
     [dartx.stop]: dart.definiteFunctionType(dart.void, [])
   }),
-  sfields: () => ({
-    addTrackEvent: EventStreamProviderOfEvent(),
-    endedEvent: EventStreamProviderOfEvent(),
-    removeTrackEvent: EventStreamProviderOfEvent()
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.MediaStream, []),
     _create_2: dart.definiteFunctionType(html$.MediaStream, [dart.dynamic]),
@@ -79945,12 +76216,7 @@ html$.MediaStreamEvent = class MediaStreamEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.MediaStreamEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MediaStreamEvent, []),
-    new: dart.definiteFunctionType(html$.MediaStreamEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.stream]: html$.MediaStream}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.MediaStreamEvent, [dart.dynamic, dart.dynamic]),
     _create_2: dart.definiteFunctionType(html$.MediaStreamEvent, [dart.dynamic])
@@ -80020,7 +76286,6 @@ html$.MediaStreamTrack = class MediaStreamTrack extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.MediaStreamTrack, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaStreamTrack, [])}),
   fields: () => ({
     [dartx.enabled]: core.bool,
     [dartx.id]: core.String,
@@ -80037,11 +76302,6 @@ dart.setSignature(html$.MediaStreamTrack, {
   methods: () => ({
     [dartx.clone]: dart.definiteFunctionType(html$.MediaStreamTrack, []),
     [dartx.stop]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({
-    endedEvent: EventStreamProviderOfEvent(),
-    muteEvent: EventStreamProviderOfEvent(),
-    unmuteEvent: EventStreamProviderOfEvent()
   }),
   statics: () => ({
     _getSources: dart.definiteFunctionType(dart.void, [html$.MediaStreamTrackSourcesCallback]),
@@ -80076,9 +76336,7 @@ html$.MediaStreamTrackEvent = class MediaStreamTrackEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.MediaStreamTrackEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MediaStreamTrackEvent, [])}),
-  fields: () => ({[dartx.track]: html$.MediaStreamTrack}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  fields: () => ({[dartx.track]: html$.MediaStreamTrack})
 });
 dart.registerExtension(dart.global.MediaStreamTrackEvent, html$.MediaStreamTrackEvent);
 html$.MediaStreamTrackSourcesCallback = dart.typedef('MediaStreamTrackSourcesCallback', () => dart.functionType(dart.void, [ListOfSourceInfo()]));
@@ -80102,7 +76360,6 @@ html$.MemoryInfo = class MemoryInfo extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MemoryInfo, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MemoryInfo, [])}),
   fields: () => ({
     [dartx.jsHeapSizeLimit]: core.int,
     [dartx.totalJSHeapSize]: core.int,
@@ -80141,11 +76398,6 @@ html$.MenuElement = class MenuElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.MenuElement, 'created');
 dart.setSignature(html$.MenuElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MenuElement, []),
-    new: dart.definiteFunctionType(html$.MenuElement, []),
-    created: dart.definiteFunctionType(html$.MenuElement, [])
-  }),
   fields: () => ({
     [dartx.label]: core.String,
     [dartx.type]: core.String
@@ -80220,10 +76472,6 @@ html$.MenuItemElement = class MenuItemElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.MenuItemElement, 'created');
 dart.setSignature(html$.MenuItemElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MenuItemElement, []),
-    created: dart.definiteFunctionType(html$.MenuItemElement, [])
-  }),
   fields: () => ({
     [dartx.checked]: core.bool,
     [dartx.defaultValue]: core.bool,
@@ -80251,7 +76499,6 @@ html$.MessageChannel = class MessageChannel extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MessageChannel, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MessageChannel, [])}),
   fields: () => ({
     [dartx.port1]: html$.MessagePort,
     [dartx.port2]: html$.MessagePort
@@ -80323,10 +76570,6 @@ html$.MessageEvent = class MessageEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.MessageEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.MessageEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, data: core.Object, origin: core.String, lastEventId: core.String, source: html$.Window, messagePorts: ListOfMessagePort()}),
-    _: dart.definiteFunctionType(html$.MessageEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [_get_data]: dart.dynamic,
     [dartx.lastEventId]: core.String,
@@ -80383,7 +76626,6 @@ html$.MessagePort = class MessagePort extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.MessagePort, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MessagePort, [])}),
   getters: () => ({[dartx.onMessage]: dart.definiteFunctionType(async.Stream$(html$.MessageEvent), [])}),
   methods: () => ({
     [dartx.close]: dart.definiteFunctionType(dart.void, []),
@@ -80391,8 +76633,7 @@ dart.setSignature(html$.MessagePort, {
     [_postMessage_1]: dart.definiteFunctionType(dart.void, [dart.dynamic, ListOfMessagePort()]),
     [_postMessage_2]: dart.definiteFunctionType(dart.void, [dart.dynamic]),
     [dartx.start]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({messageEvent: EventStreamProviderOfMessageEvent()})
+  })
 });
 dart.defineLazy(html$.MessagePort, {
   get messageEvent() {
@@ -80439,11 +76680,6 @@ html$.MetaElement = class MetaElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.MetaElement, 'created');
 dart.setSignature(html$.MetaElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MetaElement, []),
-    new: dart.definiteFunctionType(html$.MetaElement, []),
-    created: dart.definiteFunctionType(html$.MetaElement, [])
-  }),
   fields: () => ({
     [dartx.content]: core.String,
     [dartx.httpEquiv]: core.String,
@@ -80471,7 +76707,6 @@ html$.Metadata = class Metadata extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Metadata, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Metadata, [])}),
   fields: () => ({
     [_get_modificationTime]: dart.dynamic,
     [dartx.size]: core.int
@@ -80551,11 +76786,6 @@ html$.MeterElement = class MeterElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.MeterElement, 'created');
 dart.setSignature(html$.MeterElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MeterElement, []),
-    new: dart.definiteFunctionType(html$.MeterElement, []),
-    created: dart.definiteFunctionType(html$.MeterElement, [])
-  }),
   fields: () => ({
     [dartx.high]: core.num,
     [dartx.labels]: ListOfNode(),
@@ -80564,8 +76794,7 @@ dart.setSignature(html$.MeterElement, {
     [dartx.min]: core.num,
     [dartx.optimum]: core.num,
     [dartx.value]: core.num
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.HTMLMeterElement, html$.MeterElement);
 dart.defineExtensionNames([
@@ -80588,7 +76817,6 @@ html$.MidiAccess = class MidiAccess extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.MidiAccess, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MidiAccess, [])}),
   fields: () => ({
     [dartx.inputs]: html$.MidiInputMap,
     [dartx.outputs]: html$.MidiOutputMap,
@@ -80622,10 +76850,6 @@ html$.MidiConnectionEvent = class MidiConnectionEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.MidiConnectionEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MidiConnectionEvent, []),
-    new: dart.definiteFunctionType(html$.MidiConnectionEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.port]: html$.MidiPort}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.MidiConnectionEvent, [dart.dynamic, dart.dynamic]),
@@ -80678,7 +76902,6 @@ html$.MidiPort = class MidiPort extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.MidiPort, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MidiPort, [])}),
   fields: () => ({
     [dartx.connection]: core.String,
     [dartx.id]: core.String,
@@ -80706,9 +76929,7 @@ html$.MidiInput = class MidiInput extends html$.MidiPort {
   }
 };
 dart.setSignature(html$.MidiInput, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MidiInput, [])}),
-  getters: () => ({[dartx.onMidiMessage]: dart.definiteFunctionType(async.Stream$(html$.MidiMessageEvent), [])}),
-  sfields: () => ({midiMessageEvent: EventStreamProviderOfMidiMessageEvent()})
+  getters: () => ({[dartx.onMidiMessage]: dart.definiteFunctionType(async.Stream$(html$.MidiMessageEvent), [])})
 });
 dart.defineLazy(html$.MidiInput, {
   get midiMessageEvent() {
@@ -80728,7 +76949,6 @@ html$.MidiInputMap = class MidiInputMap extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MidiInputMap, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MidiInputMap, [])}),
   fields: () => ({[dartx.size]: core.int})
 });
 dart.registerExtension(dart.global.MIDIInputMap, html$.MidiInputMap);
@@ -80762,10 +76982,6 @@ html$.MidiMessageEvent = class MidiMessageEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.MidiMessageEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.MidiMessageEvent, []),
-    new: dart.definiteFunctionType(html$.MidiMessageEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.data]: typed_data.Uint8List,
     [dartx.receivedTime]: core.double
@@ -80789,7 +77005,6 @@ html$.MidiOutput = class MidiOutput extends html$.MidiPort {
   }
 };
 dart.setSignature(html$.MidiOutput, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MidiOutput, [])}),
   methods: () => ({[dartx.send]: dart.definiteFunctionType(dart.void, [typed_data.Uint8List], [core.num])})
 });
 dart.registerExtension(dart.global.MIDIOutput, html$.MidiOutput);
@@ -80805,7 +77020,6 @@ html$.MidiOutputMap = class MidiOutputMap extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MidiOutputMap, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MidiOutputMap, [])}),
   fields: () => ({[dartx.size]: core.int})
 });
 dart.registerExtension(dart.global.MIDIOutputMap, html$.MidiOutputMap);
@@ -80833,7 +77047,6 @@ html$.MimeType = class MimeType extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MimeType, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MimeType, [])}),
   fields: () => ({
     [dartx.description]: core.String,
     [dartx.enabledPlugin]: html$.Plugin,
@@ -80905,7 +77118,6 @@ html$.MimeTypeArray = class MimeTypeArray extends dart.mixin(_interceptors.Inter
 };
 html$.MimeTypeArray[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfMimeType()];
 dart.setSignature(html$.MimeTypeArray, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MimeTypeArray, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -80944,10 +77156,6 @@ html$.ModElement = class ModElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.ModElement, 'created');
 dart.setSignature(html$.ModElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ModElement, []),
-    created: dart.definiteFunctionType(html$.ModElement, [])
-  }),
   fields: () => ({
     [dartx.cite]: core.String,
     [dartx.dateTime]: core.String
@@ -81135,10 +77343,6 @@ html$.MouseEvent = class MouseEvent extends html$.UIEvent {
   }
 };
 dart.setSignature(html$.MouseEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.MouseEvent, [core.String], {view: html$.Window, detail: core.int, screenX: core.int, screenY: core.int, clientX: core.int, clientY: core.int, button: core.int, canBubble: core.bool, cancelable: core.bool, ctrlKey: core.bool, altKey: core.bool, shiftKey: core.bool, metaKey: core.bool, relatedTarget: html$.EventTarget}),
-    _: dart.definiteFunctionType(html$.MouseEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.altKey]: core.bool,
     [dartx.button]: core.int,
@@ -81254,7 +77458,6 @@ html$.MutationObserver = class MutationObserver extends _interceptors.Intercepto
   }
 };
 dart.setSignature(html$.MutationObserver, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.MutationObserver, [html$.MutationCallback])}),
   methods: () => ({
     [dartx.disconnect]: dart.definiteFunctionType(dart.void, []),
     [_observe]: dart.definiteFunctionType(dart.void, [html$.Node, core.Map]),
@@ -81263,8 +77466,6 @@ dart.setSignature(html$.MutationObserver, {
     [dartx.observe]: dart.definiteFunctionType(dart.void, [html$.Node], {childList: core.bool, attributes: core.bool, characterData: core.bool, subtree: core.bool, attributeOldValue: core.bool, characterDataOldValue: core.bool, attributeFilter: ListOfString()}),
     [_call]: dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic])
   }),
-  sfields: () => ({_boolKeys: MapOfString$bool()}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     _createDict: dart.definiteFunctionType(dart.dynamic, []),
     _add: dart.definiteFunctionType(dart.dynamic, [dart.dynamic, core.String, dart.dynamic]),
@@ -81319,7 +77520,6 @@ html$.MutationRecord = class MutationRecord extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.MutationRecord, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.MutationRecord, [])}),
   fields: () => ({
     [dartx.addedNodes]: ListOfNode(),
     [dartx.attributeName]: core.String,
@@ -81531,7 +77731,6 @@ html$.Navigator = class Navigator extends _interceptors.Interceptor {
 };
 html$.Navigator[dart.implements] = () => [html$.NavigatorStorageUtils, html$.NavigatorCpu, html$.NavigatorLanguage, html$.NavigatorOnLine, html$.NavigatorID];
 dart.setSignature(html$.Navigator, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Navigator, [])}),
   fields: () => ({
     [dartx.bluetooth]: html$.Bluetooth,
     [dartx.connection]: html$.NetworkInformation,
@@ -81595,9 +77794,8 @@ html$.NavigatorCpu = class NavigatorCpu extends _interceptors.Interceptor {
     super.hardwareConcurrency = value;
   }
 };
-const hardwareConcurrency = Symbol(html$.NavigatorCpu.name + "." + 'hardwareConcurrency'.toString());
+const hardwareConcurrency = Symbol("NavigatorCpu.hardwareConcurrency");
 dart.setSignature(html$.NavigatorCpu, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.NavigatorCpu, [])}),
   fields: () => ({hardwareConcurrency: core.int})
 });
 dart.defineExtensionMembers(html$.NavigatorCpu, ['hardwareConcurrency']);
@@ -81657,15 +77855,14 @@ html$.NavigatorID = class NavigatorID extends _interceptors.Interceptor {
     super.userAgent = value;
   }
 };
-const appCodeName = Symbol(html$.NavigatorID.name + "." + 'appCodeName'.toString());
-const appName = Symbol(html$.NavigatorID.name + "." + 'appName'.toString());
-const appVersion = Symbol(html$.NavigatorID.name + "." + 'appVersion'.toString());
-const dartEnabled = Symbol(html$.NavigatorID.name + "." + 'dartEnabled'.toString());
-const platform = Symbol(html$.NavigatorID.name + "." + 'platform'.toString());
-const product = Symbol(html$.NavigatorID.name + "." + 'product'.toString());
-const userAgent = Symbol(html$.NavigatorID.name + "." + 'userAgent'.toString());
+const appCodeName = Symbol("NavigatorID.appCodeName");
+const appName = Symbol("NavigatorID.appName");
+const appVersion = Symbol("NavigatorID.appVersion");
+const dartEnabled = Symbol("NavigatorID.dartEnabled");
+const platform = Symbol("NavigatorID.platform");
+const product = Symbol("NavigatorID.product");
+const userAgent = Symbol("NavigatorID.userAgent");
 dart.setSignature(html$.NavigatorID, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.NavigatorID, [])}),
   fields: () => ({
     appCodeName: core.String,
     appName: core.String,
@@ -81706,10 +77903,9 @@ html$.NavigatorLanguage = class NavigatorLanguage extends _interceptors.Intercep
     super.languages = value;
   }
 };
-const language = Symbol(html$.NavigatorLanguage.name + "." + 'language'.toString());
-const languages = Symbol(html$.NavigatorLanguage.name + "." + 'languages'.toString());
+const language = Symbol("NavigatorLanguage.language");
+const languages = Symbol("NavigatorLanguage.languages");
 dart.setSignature(html$.NavigatorLanguage, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.NavigatorLanguage, [])}),
   fields: () => ({
     language: core.String,
     languages: ListOfString()
@@ -81730,9 +77926,8 @@ html$.NavigatorOnLine = class NavigatorOnLine extends _interceptors.Interceptor 
     super.onLine = value;
   }
 };
-const onLine = Symbol(html$.NavigatorOnLine.name + "." + 'onLine'.toString());
+const onLine = Symbol("NavigatorOnLine.onLine");
 dart.setSignature(html$.NavigatorOnLine, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.NavigatorOnLine, [])}),
   fields: () => ({onLine: core.bool})
 });
 dart.defineExtensionMembers(html$.NavigatorOnLine, ['onLine']);
@@ -81752,7 +77947,6 @@ html$.NavigatorStorageUtils = class NavigatorStorageUtils extends _interceptors.
   }
 };
 dart.setSignature(html$.NavigatorStorageUtils, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.NavigatorStorageUtils, [])}),
   fields: () => ({[dartx.cookieEnabled]: core.bool}),
   methods: () => ({[dartx.getStorageUpdates]: dart.definiteFunctionType(dart.void, [])})
 });
@@ -81777,7 +77971,6 @@ html$.NavigatorUserMediaError = class NavigatorUserMediaError extends _intercept
   }
 };
 dart.setSignature(html$.NavigatorUserMediaError, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.NavigatorUserMediaError, [])}),
   fields: () => ({
     [dartx.constraintName]: core.String,
     [dartx.message]: core.String,
@@ -81799,7 +77992,6 @@ html$.NetworkInformation = class NetworkInformation extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.NetworkInformation, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.NetworkInformation, [])}),
   fields: () => ({[dartx.type]: core.String})
 });
 dart.registerExtension(dart.global.NetworkInformation, html$.NetworkInformation);
@@ -81940,7 +78132,6 @@ html$._ChildNodeListLazy = class _ChildNodeListLazy extends collection.ListBase$
 dart.addSimpleTypeTests(html$._ChildNodeListLazy);
 html$._ChildNodeListLazy[dart.implements] = () => [html_common.NodeListWrapper];
 dart.setSignature(html$._ChildNodeListLazy, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._ChildNodeListLazy, [html$.Node])}),
   fields: () => ({[_this]: html$.Node}),
   getters: () => ({
     length: dart.definiteFunctionType(core.int, []),
@@ -81983,22 +78174,6 @@ html$.NodeFilter = class NodeFilter extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.NodeFilter, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.NodeFilter, [])}),
-  sfields: () => ({
-    FILTER_ACCEPT: core.int,
-    FILTER_REJECT: core.int,
-    FILTER_SKIP: core.int,
-    SHOW_ALL: core.int,
-    SHOW_COMMENT: core.int,
-    SHOW_DOCUMENT: core.int,
-    SHOW_DOCUMENT_FRAGMENT: core.int,
-    SHOW_DOCUMENT_TYPE: core.int,
-    SHOW_ELEMENT: core.int,
-    SHOW_PROCESSING_INSTRUCTION: core.int,
-    SHOW_TEXT: core.int
-  })
-});
 html$.NodeFilter.FILTER_ACCEPT = 1;
 html$.NodeFilter.FILTER_REJECT = 2;
 html$.NodeFilter.FILTER_SKIP = 3;
@@ -82050,10 +78225,6 @@ html$.NodeIterator = class NodeIterator extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.NodeIterator, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.NodeIterator, [html$.Node, core.int]),
-    _: dart.definiteFunctionType(html$.NodeIterator, [])
-  }),
   fields: () => ({
     [dartx.pointerBeforeReferenceNode]: core.bool,
     [dartx.referenceNode]: html$.Node,
@@ -82125,7 +78296,6 @@ html$.NodeList = class NodeList extends dart.mixin(_interceptors.Interceptor, co
 };
 html$.NodeList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfNode()];
 dart.setSignature(html$.NodeList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.NodeList, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -82152,7 +78322,6 @@ html$.NonDocumentTypeChildNode = class NonDocumentTypeChildNode extends _interce
   }
 };
 dart.setSignature(html$.NonDocumentTypeChildNode, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.NonDocumentTypeChildNode, [])}),
   fields: () => ({
     [dartx.nextElementSibling]: html$.Element,
     [dartx.previousElementSibling]: html$.Element
@@ -82171,7 +78340,6 @@ html$.NonElementParentNode = class NonElementParentNode extends _interceptors.In
   }
 };
 dart.setSignature(html$.NonElementParentNode, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.NonElementParentNode, [])}),
   methods: () => ({[dartx.getElementById]: dart.definiteFunctionType(html$.Element, [core.String])})
 });
 dart.registerExtension(dart.global.NonElementParentNode, html$.NonElementParentNode);
@@ -82281,10 +78449,6 @@ html$.Notification = class Notification extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.Notification, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.Notification, [core.String], {dir: core.String, body: core.String, lang: core.String, tag: core.String, icon: core.String}),
-    _: dart.definiteFunctionType(html$.Notification, [])
-  }),
   fields: () => ({
     [dartx.body]: core.String,
     [dartx.data]: core.Object,
@@ -82304,13 +78468,6 @@ dart.setSignature(html$.Notification, {
     [dartx.onShow]: dart.definiteFunctionType(async.Stream$(html$.Event), [])
   }),
   methods: () => ({[dartx.close]: dart.definiteFunctionType(dart.void, [])}),
-  sfields: () => ({
-    clickEvent: EventStreamProviderOfEvent(),
-    closeEvent: EventStreamProviderOfEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    showEvent: EventStreamProviderOfEvent()
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     _factoryNotification: dart.definiteFunctionType(html$.Notification, [core.String], [core.Map]),
     _create_1: dart.definiteFunctionType(html$.Notification, [dart.dynamic, dart.dynamic]),
@@ -82361,10 +78518,6 @@ html$.NotificationEvent = class NotificationEvent extends html$.ExtendableEvent 
   }
 };
 dart.setSignature(html$.NotificationEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.NotificationEvent, []),
-    new: dart.definiteFunctionType(html$.NotificationEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.notification]: html$.Notification}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.NotificationEvent, [dart.dynamic, dart.dynamic]),
@@ -82413,11 +78566,6 @@ html$.OListElement = class OListElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.OListElement, 'created');
 dart.setSignature(html$.OListElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.OListElement, []),
-    new: dart.definiteFunctionType(html$.OListElement, []),
-    created: dart.definiteFunctionType(html$.OListElement, [])
-  }),
   fields: () => ({
     [dartx.reversed]: core.bool,
     [dartx.start]: core.int,
@@ -82529,11 +78677,6 @@ html$.ObjectElement = class ObjectElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.ObjectElement, 'created');
 dart.setSignature(html$.ObjectElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ObjectElement, []),
-    new: dart.definiteFunctionType(html$.ObjectElement, []),
-    created: dart.definiteFunctionType(html$.ObjectElement, [])
-  }),
   fields: () => ({
     [dartx.data]: core.String,
     [dartx.form]: html$.FormElement,
@@ -82552,8 +78695,7 @@ dart.setSignature(html$.ObjectElement, {
     [dartx.checkValidity]: dart.definiteFunctionType(core.bool, []),
     [dartx.reportValidity]: dart.definiteFunctionType(core.bool, []),
     [dartx.setCustomValidity]: dart.definiteFunctionType(dart.void, [core.String])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.HTMLObjectElement, html$.ObjectElement);
 dart.defineExtensionNames([
@@ -82587,11 +78729,6 @@ html$.OptGroupElement = class OptGroupElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.OptGroupElement, 'created');
 dart.setSignature(html$.OptGroupElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.OptGroupElement, []),
-    new: dart.definiteFunctionType(html$.OptGroupElement, []),
-    created: dart.definiteFunctionType(html$.OptGroupElement, [])
-  }),
   fields: () => ({
     [dartx.disabled]: core.bool,
     [dartx.label]: core.String
@@ -82697,11 +78834,6 @@ html$.OptionElement = class OptionElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.OptionElement, 'created');
 dart.setSignature(html$.OptionElement, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.OptionElement, [], {data: core.String, value: core.String, selected: core.bool}),
-    _: dart.definiteFunctionType(html$.OptionElement, [], [core.String, core.String, core.bool, core.bool]),
-    created: dart.definiteFunctionType(html$.OptionElement, [])
-  }),
   fields: () => ({
     [dartx.defaultSelected]: core.bool,
     [dartx.disabled]: core.bool,
@@ -82810,11 +78942,6 @@ html$.OutputElement = class OutputElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.OutputElement, 'created');
 dart.setSignature(html$.OutputElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.OutputElement, []),
-    new: dart.definiteFunctionType(html$.OutputElement, []),
-    created: dart.definiteFunctionType(html$.OutputElement, [])
-  }),
   fields: () => ({
     [dartx.defaultValue]: core.String,
     [dartx.form]: html$.FormElement,
@@ -82831,8 +78958,7 @@ dart.setSignature(html$.OutputElement, {
     [dartx.checkValidity]: dart.definiteFunctionType(core.bool, []),
     [dartx.reportValidity]: dart.definiteFunctionType(core.bool, []),
     [dartx.setCustomValidity]: dart.definiteFunctionType(dart.void, [core.String])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.HTMLOutputElement, html$.OutputElement);
 dart.defineExtensionNames([
@@ -82861,10 +78987,6 @@ html$.PageTransitionEvent = class PageTransitionEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.PageTransitionEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.PageTransitionEvent, []),
-    new: dart.definiteFunctionType(html$.PageTransitionEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.persisted]: core.bool}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.PageTransitionEvent, [dart.dynamic, dart.dynamic]),
@@ -82885,13 +79007,6 @@ html$.ParagraphElement = class ParagraphElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.ParagraphElement, 'created');
-dart.setSignature(html$.ParagraphElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ParagraphElement, []),
-    new: dart.definiteFunctionType(html$.ParagraphElement, []),
-    created: dart.definiteFunctionType(html$.ParagraphElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLParagraphElement, html$.ParagraphElement);
 dart.defineExtensionNames([
   'name',
@@ -82924,11 +79039,6 @@ html$.ParamElement = class ParamElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.ParamElement, 'created');
 dart.setSignature(html$.ParamElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ParamElement, []),
-    new: dart.definiteFunctionType(html$.ParamElement, []),
-    created: dart.definiteFunctionType(html$.ParamElement, [])
-  }),
   fields: () => ({
     [dartx.name]: core.String,
     [dartx.value]: core.String
@@ -82941,7 +79051,6 @@ html$.ParentNode = class ParentNode extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.ParentNode, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ParentNode, [])}),
   fields: () => ({
     [_childElementCount]: core.int,
     [_children]: ListOfNode(),
@@ -82985,10 +79094,6 @@ html$.PasswordCredential = class PasswordCredential extends html$.Credential {
   }
 };
 dart.setSignature(html$.PasswordCredential, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.PasswordCredential, []),
-    new: dart.definiteFunctionType(html$.PasswordCredential, [core.String, core.String], [core.String, core.String])
-  }),
   fields: () => ({
     [dartx.formData]: html$.FormData,
     [dartx.password]: core.String
@@ -83072,10 +79177,6 @@ html$.Path2D = class Path2D extends _interceptors.Interceptor {
 };
 html$.Path2D[dart.implements] = () => [html$._CanvasPathMethods];
 dart.setSignature(html$.Path2D, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.Path2D, []),
-    new: dart.definiteFunctionType(html$.Path2D, [], [dart.dynamic])
-  }),
   methods: () => ({
     [dartx.addPath]: dart.definiteFunctionType(dart.void, [html$.Path2D], [svg$.Matrix]),
     [dartx.arc]: dart.definiteFunctionType(dart.void, [core.num, core.num, core.num, core.num, core.num, core.bool]),
@@ -83171,7 +79272,6 @@ html$.Performance = class Performance extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.Performance, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Performance, [])}),
   fields: () => ({
     [dartx.memory]: html$.MemoryInfo,
     [dartx.navigation]: html$.PerformanceNavigation,
@@ -83191,9 +79291,7 @@ dart.setSignature(html$.Performance, {
     [dartx.setFrameTimingBufferSize]: dart.definiteFunctionType(dart.void, [core.int]),
     [dartx.clearResourceTimings]: dart.definiteFunctionType(dart.void, []),
     [dartx.setResourceTimingBufferSize]: dart.definiteFunctionType(dart.void, [core.int])
-  }),
-  sfields: () => ({resourceTimingBufferFullEvent: EventStreamProviderOfEvent()}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.defineLazy(html$.Performance, {
   get resourceTimingBufferFullEvent() {
@@ -83225,7 +79323,6 @@ html$.PerformanceEntry = class PerformanceEntry extends _interceptors.Intercepto
   }
 };
 dart.setSignature(html$.PerformanceEntry, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PerformanceEntry, [])}),
   fields: () => ({
     [dartx.duration]: core.double,
     [dartx.entryType]: core.String,
@@ -83246,7 +79343,6 @@ html$.PerformanceCompositeTiming = class PerformanceCompositeTiming extends html
   }
 };
 dart.setSignature(html$.PerformanceCompositeTiming, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PerformanceCompositeTiming, [])}),
   fields: () => ({[dartx.sourceFrame]: core.int})
 });
 dart.registerExtension(dart.global.PerformanceCompositeTiming, html$.PerformanceCompositeTiming);
@@ -83255,18 +79351,12 @@ html$.PerformanceMark = class PerformanceMark extends html$.PerformanceEntry {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.PerformanceMark, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PerformanceMark, [])})
-});
 dart.registerExtension(dart.global.PerformanceMark, html$.PerformanceMark);
 html$.PerformanceMeasure = class PerformanceMeasure extends html$.PerformanceEntry {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.PerformanceMeasure, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PerformanceMeasure, [])})
-});
 dart.registerExtension(dart.global.PerformanceMeasure, html$.PerformanceMeasure);
 dart.defineExtensionNames([
   'redirectCount',
@@ -83284,16 +79374,9 @@ html$.PerformanceNavigation = class PerformanceNavigation extends _interceptors.
   }
 };
 dart.setSignature(html$.PerformanceNavigation, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PerformanceNavigation, [])}),
   fields: () => ({
     [dartx.redirectCount]: core.int,
     [dartx.type]: core.int
-  }),
-  sfields: () => ({
-    TYPE_BACK_FORWARD: core.int,
-    TYPE_NAVIGATE: core.int,
-    TYPE_RELOAD: core.int,
-    TYPE_RESERVED: core.int
   })
 });
 html$.PerformanceNavigation.TYPE_BACK_FORWARD = 2;
@@ -83313,7 +79396,6 @@ html$.PerformanceRenderTiming = class PerformanceRenderTiming extends html$.Perf
   }
 };
 dart.setSignature(html$.PerformanceRenderTiming, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PerformanceRenderTiming, [])}),
   fields: () => ({[dartx.sourceFrame]: core.int})
 });
 dart.registerExtension(dart.global.PerformanceRenderTiming, html$.PerformanceRenderTiming);
@@ -83377,7 +79459,6 @@ html$.PerformanceResourceTiming = class PerformanceResourceTiming extends html$.
   }
 };
 dart.setSignature(html$.PerformanceResourceTiming, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PerformanceResourceTiming, [])}),
   fields: () => ({
     [dartx.connectEnd]: core.double,
     [dartx.connectStart]: core.double,
@@ -83487,7 +79568,6 @@ html$.PerformanceTiming = class PerformanceTiming extends _interceptors.Intercep
   }
 };
 dart.setSignature(html$.PerformanceTiming, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PerformanceTiming, [])}),
   fields: () => ({
     [dartx.connectEnd]: core.int,
     [dartx.connectStart]: core.int,
@@ -83532,10 +79612,6 @@ html$.PeriodicSyncEvent = class PeriodicSyncEvent extends html$.ExtendableEvent 
   }
 };
 dart.setSignature(html$.PeriodicSyncEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.PeriodicSyncEvent, []),
-    new: dart.definiteFunctionType(html$.PeriodicSyncEvent, [core.String, core.Map])
-  }),
   fields: () => ({[dartx.registration]: html$.PeriodicSyncRegistration}),
   statics: () => ({_create_1: dart.definiteFunctionType(html$.PeriodicSyncEvent, [dart.dynamic, dart.dynamic])}),
   names: ['_create_1']
@@ -83582,7 +79658,6 @@ html$.PeriodicSyncManager = class PeriodicSyncManager extends _interceptors.Inte
   }
 };
 dart.setSignature(html$.PeriodicSyncManager, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PeriodicSyncManager, [])}),
   fields: () => ({[dartx.minPossiblePeriod]: core.int}),
   methods: () => ({
     [dartx.getRegistration]: dart.definiteFunctionType(async.Future, [core.String]),
@@ -83622,7 +79697,6 @@ html$.PeriodicSyncRegistration = class PeriodicSyncRegistration extends _interce
   }
 };
 dart.setSignature(html$.PeriodicSyncRegistration, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PeriodicSyncRegistration, [])}),
   fields: () => ({
     [dartx.minPeriod]: core.int,
     [dartx.networkState]: core.String,
@@ -83652,13 +79726,11 @@ html$.PermissionStatus = class PermissionStatus extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.PermissionStatus, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PermissionStatus, [])}),
   fields: () => ({
     [dartx.state]: core.String,
     [dartx.status]: core.String
   }),
-  getters: () => ({[dartx.onChange]: dart.definiteFunctionType(async.Stream$(html$.Event), [])}),
-  sfields: () => ({changeEvent: EventStreamProviderOfEvent()})
+  getters: () => ({[dartx.onChange]: dart.definiteFunctionType(async.Stream$(html$.Event), [])})
 });
 dart.defineLazy(html$.PermissionStatus, {
   get changeEvent() {
@@ -83678,7 +79750,6 @@ html$.Permissions = class Permissions extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Permissions, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Permissions, [])}),
   methods: () => ({[dartx.query]: dart.definiteFunctionType(async.Future, [core.Object])})
 });
 dart.registerExtension(dart.global.Permissions, html$.Permissions);
@@ -83691,12 +79762,6 @@ html$.PictureElement = class PictureElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.PictureElement, 'created');
-dart.setSignature(html$.PictureElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.PictureElement, []),
-    created: dart.definiteFunctionType(html$.PictureElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLPictureElement, html$.PictureElement);
 dart.defineExtensionNames([
   'item',
@@ -83730,7 +79795,6 @@ html$.Plugin = class Plugin extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Plugin, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Plugin, [])}),
   fields: () => ({
     [dartx.description]: core.String,
     [dartx.filename]: core.String,
@@ -83810,7 +79874,6 @@ html$.PluginArray = class PluginArray extends dart.mixin(_interceptors.Intercept
 };
 html$.PluginArray[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfPlugin()];
 dart.setSignature(html$.PluginArray, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PluginArray, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -83854,10 +79917,6 @@ html$.PluginPlaceholderElement = class PluginPlaceholderElement extends html$.Di
 };
 dart.defineNamedConstructor(html$.PluginPlaceholderElement, 'created');
 dart.setSignature(html$.PluginPlaceholderElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.PluginPlaceholderElement, []),
-    created: dart.definiteFunctionType(html$.PluginPlaceholderElement, [])
-  }),
   fields: () => ({
     [dartx.closeable]: core.bool,
     [dartx.message]: core.String
@@ -83919,10 +79978,6 @@ html$.PointerEvent = class PointerEvent extends html$.MouseEvent {
   }
 };
 dart.setSignature(html$.PointerEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.PointerEvent, []),
-    new: dart.definiteFunctionType(html$.PointerEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.height]: core.double,
     [dartx.isPrimary]: core.bool,
@@ -83969,10 +80024,6 @@ html$.PopStateEvent = class PopStateEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.PopStateEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.PopStateEvent, []),
-    new: dart.definiteFunctionType(html$.PopStateEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[_get_state]: dart.dynamic}),
   getters: () => ({[dartx.state]: dart.definiteFunctionType(dart.dynamic, [])}),
   statics: () => ({
@@ -83999,15 +80050,9 @@ html$.PositionError = class PositionError extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.PositionError, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PositionError, [])}),
   fields: () => ({
     [dartx.code]: core.int,
     [dartx.message]: core.String
-  }),
-  sfields: () => ({
-    PERMISSION_DENIED: core.int,
-    POSITION_UNAVAILABLE: core.int,
-    TIMEOUT: core.int
   })
 });
 html$.PositionError.PERMISSION_DENIED = 1;
@@ -84035,7 +80080,6 @@ html$.PositionSensorVRDevice = class PositionSensorVRDevice extends html$.VRDevi
   }
 };
 dart.setSignature(html$.PositionSensorVRDevice, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PositionSensorVRDevice, [])}),
   methods: () => ({
     [dartx.getImmediateState]: dart.definiteFunctionType(html$.VRPositionState, []),
     [dartx.getState]: dart.definiteFunctionType(html$.VRPositionState, []),
@@ -84055,13 +80099,6 @@ html$.PreElement = class PreElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.PreElement, 'created');
-dart.setSignature(html$.PreElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.PreElement, []),
-    new: dart.definiteFunctionType(html$.PreElement, []),
-    created: dart.definiteFunctionType(html$.PreElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLPreElement, html$.PreElement);
 dart.defineExtensionNames([
   'getAvailability',
@@ -84087,7 +80124,6 @@ html$.Presentation = class Presentation extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.Presentation, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Presentation, [])}),
   fields: () => ({[dartx.session]: html$.PresentationSession}),
   methods: () => ({
     [dartx.getAvailability]: dart.definiteFunctionType(async.Future, [core.String]),
@@ -84112,10 +80148,8 @@ html$.PresentationAvailability = class PresentationAvailability extends html$.Ev
   }
 };
 dart.setSignature(html$.PresentationAvailability, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PresentationAvailability, [])}),
   fields: () => ({[dartx.value]: core.bool}),
-  getters: () => ({[dartx.onChange]: dart.definiteFunctionType(async.Stream$(html$.Event), [])}),
-  sfields: () => ({changeEvent: EventStreamProviderOfEvent()})
+  getters: () => ({[dartx.onChange]: dart.definiteFunctionType(async.Stream$(html$.Event), [])})
 });
 dart.defineLazy(html$.PresentationAvailability, {
   get changeEvent() {
@@ -84158,7 +80192,6 @@ html$.PresentationSession = class PresentationSession extends html$.EventTarget 
   }
 };
 dart.setSignature(html$.PresentationSession, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PresentationSession, [])}),
   fields: () => ({
     [dartx.binaryType]: core.String,
     [dartx.id]: core.String,
@@ -84168,8 +80201,7 @@ dart.setSignature(html$.PresentationSession, {
   methods: () => ({
     [dartx.close]: dart.definiteFunctionType(dart.void, []),
     [dartx.send]: dart.definiteFunctionType(dart.void, [dart.dynamic])
-  }),
-  sfields: () => ({messageEvent: EventStreamProviderOfMessageEvent()})
+  })
 });
 dart.defineLazy(html$.PresentationSession, {
   get messageEvent() {
@@ -84193,7 +80225,6 @@ html$.ProcessingInstruction = class ProcessingInstruction extends html$.Characte
   }
 };
 dart.setSignature(html$.ProcessingInstruction, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ProcessingInstruction, [])}),
   fields: () => ({
     [dartx.sheet]: html$.StyleSheet,
     [dartx.target]: core.String
@@ -84244,18 +80275,12 @@ html$.ProgressElement = class ProgressElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.ProgressElement, 'created');
 dart.setSignature(html$.ProgressElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ProgressElement, []),
-    new: dart.definiteFunctionType(html$.ProgressElement, []),
-    created: dart.definiteFunctionType(html$.ProgressElement, [])
-  }),
   fields: () => ({
     [dartx.labels]: ListOfNode(),
     [dartx.max]: core.num,
     [dartx.position]: core.double,
     [dartx.value]: core.num
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.HTMLProgressElement, html$.ProgressElement);
 dart.defineExtensionNames([
@@ -84292,10 +80317,6 @@ html$.ProgressEvent = class ProgressEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.ProgressEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ProgressEvent, []),
-    new: dart.definiteFunctionType(html$.ProgressEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.lengthComputable]: core.bool,
     [dartx.loaded]: core.int,
@@ -84338,10 +80359,6 @@ html$.PromiseRejectionEvent = class PromiseRejectionEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.PromiseRejectionEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.PromiseRejectionEvent, []),
-    new: dart.definiteFunctionType(html$.PromiseRejectionEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.promise]: async.Future,
     [dartx.reason]: core.Object
@@ -84379,10 +80396,6 @@ html$.PushEvent = class PushEvent extends html$.ExtendableEvent {
   }
 };
 dart.setSignature(html$.PushEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.PushEvent, []),
-    new: dart.definiteFunctionType(html$.PushEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.data]: html$.PushMessageData}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.PushEvent, [dart.dynamic, dart.dynamic]),
@@ -84437,7 +80450,6 @@ html$.PushManager = class PushManager extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.PushManager, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PushManager, [])}),
   methods: () => ({
     [dartx.getSubscription]: dart.definiteFunctionType(async.Future, []),
     [dartx.permissionState]: dart.definiteFunctionType(async.Future, [], [core.Map]),
@@ -84479,10 +80491,6 @@ html$.PushMessageData = class PushMessageData extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(html$.PushMessageData, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.PushMessageData, []),
-    new: dart.definiteFunctionType(html$.PushMessageData, [core.String])
-  }),
   methods: () => ({
     [dartx.arrayBuffer]: dart.definiteFunctionType(typed_data.ByteBuffer, []),
     [dartx.blob]: dart.definiteFunctionType(html$.Blob, []),
@@ -84509,7 +80517,6 @@ html$.PushSubscription = class PushSubscription extends _interceptors.Intercepto
   }
 };
 dart.setSignature(html$.PushSubscription, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.PushSubscription, [])}),
   fields: () => ({[dartx.endpoint]: core.String}),
   methods: () => ({[dartx.unsubscribe]: dart.definiteFunctionType(async.Future, [])})
 });
@@ -84537,11 +80544,6 @@ html$.QuoteElement = class QuoteElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.QuoteElement, 'created');
 dart.setSignature(html$.QuoteElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.QuoteElement, []),
-    new: dart.definiteFunctionType(html$.QuoteElement, []),
-    created: dart.definiteFunctionType(html$.QuoteElement, [])
-  }),
   fields: () => ({[dartx.cite]: core.String})
 });
 dart.registerExtension(dart.global.HTMLQuoteElement, html$.QuoteElement);
@@ -84681,11 +80683,6 @@ html$.Range = class Range extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Range, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.Range, []),
-    fromPoint: dart.definiteFunctionType(html$.Range, [PointOfnum()]),
-    _: dart.definiteFunctionType(html$.Range, [])
-  }),
   fields: () => ({
     [dartx.collapsed]: core.bool,
     [dartx.commonAncestorContainer]: html$.Node,
@@ -84718,14 +80715,7 @@ dart.setSignature(html$.Range, {
     [dartx.setStartAfter]: dart.definiteFunctionType(dart.void, [html$.Node]),
     [dartx.setStartBefore]: dart.definiteFunctionType(dart.void, [html$.Node]),
     [dartx.surroundContents]: dart.definiteFunctionType(dart.void, [html$.Node])
-  }),
-  sfields: () => ({
-    END_TO_END: core.int,
-    END_TO_START: core.int,
-    START_TO_END: core.int,
-    START_TO_START: core.int
-  }),
-  sgetters: () => ({supportsCreateContextualFragment: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 html$.Range.END_TO_END = 2;
 html$.Range.END_TO_START = 3;
@@ -84748,7 +80738,6 @@ html$.ReadableByteStream = class ReadableByteStream extends _interceptors.Interc
   }
 };
 dart.setSignature(html$.ReadableByteStream, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ReadableByteStream, [])}),
   methods: () => ({
     [dartx.cancel]: dart.definiteFunctionType(async.Future, [], [core.Object]),
     [dartx.getReader]: dart.definiteFunctionType(html$.ReadableByteStreamReader, [])
@@ -84779,7 +80768,6 @@ html$.ReadableByteStreamReader = class ReadableByteStreamReader extends _interce
   }
 };
 dart.setSignature(html$.ReadableByteStreamReader, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ReadableByteStreamReader, [])}),
   fields: () => ({[dartx.closed]: async.Future}),
   methods: () => ({
     [dartx.cancel]: dart.definiteFunctionType(async.Future, [], [core.Object]),
@@ -84804,7 +80792,6 @@ html$.ReadableStream = class ReadableStream extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.ReadableStream, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ReadableStream, [])}),
   methods: () => ({
     [dartx.cancel]: dart.definiteFunctionType(async.Future, [], [core.Object]),
     [dartx.getReader]: dart.definiteFunctionType(html$.ReadableStreamReader, [])
@@ -84835,7 +80822,6 @@ html$.ReadableStreamReader = class ReadableStreamReader extends _interceptors.In
   }
 };
 dart.setSignature(html$.ReadableStreamReader, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ReadableStreamReader, [])}),
   fields: () => ({[dartx.closed]: async.Future}),
   methods: () => ({
     [dartx.cancel]: dart.definiteFunctionType(async.Future, [], [core.Object]),
@@ -84873,10 +80859,6 @@ html$.RelatedEvent = class RelatedEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.RelatedEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.RelatedEvent, []),
-    new: dart.definiteFunctionType(html$.RelatedEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[_get_relatedTarget]: dart.dynamic}),
   getters: () => ({[dartx.relatedTarget]: dart.definiteFunctionType(html$.EventTarget, [])}),
   statics: () => ({
@@ -84899,7 +80881,6 @@ html$.ResourceProgressEvent = class ResourceProgressEvent extends html$.Progress
   }
 };
 dart.setSignature(html$.ResourceProgressEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ResourceProgressEvent, [])}),
   fields: () => ({[dartx.url]: core.String})
 });
 dart.registerExtension(dart.global.ResourceProgressEvent, html$.ResourceProgressEvent);
@@ -84998,7 +80979,6 @@ html$.RtcDataChannel = class RtcDataChannel extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.RtcDataChannel, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.RtcDataChannel, [])}),
   fields: () => ({
     [dartx.binaryType]: core.String,
     [dartx.bufferedAmount]: core.int,
@@ -85025,12 +81005,6 @@ dart.setSignature(html$.RtcDataChannel, {
     [dartx.sendByteBuffer]: dart.definiteFunctionType(dart.void, [typed_data.ByteBuffer]),
     [dartx.sendString]: dart.definiteFunctionType(dart.void, [core.String]),
     [dartx.sendTypedData]: dart.definiteFunctionType(dart.void, [typed_data.TypedData])
-  }),
-  sfields: () => ({
-    closeEvent: EventStreamProviderOfEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    messageEvent: EventStreamProviderOfMessageEvent(),
-    openEvent: EventStreamProviderOfEvent()
   })
 });
 dart.defineLazy(html$.RtcDataChannel, {
@@ -85061,7 +81035,6 @@ html$.RtcDataChannelEvent = class RtcDataChannelEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.RtcDataChannelEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.RtcDataChannelEvent, [])}),
   fields: () => ({[dartx.channel]: html$.RtcDataChannel})
 });
 dart.registerExtension(dart.global.RTCDataChannelEvent, html$.RtcDataChannelEvent);
@@ -85101,7 +81074,6 @@ html$.RtcDtmfSender = class RtcDtmfSender extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.RtcDtmfSender, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.RtcDtmfSender, [])}),
   fields: () => ({
     [dartx.canInsertDtmf]: core.bool,
     [dartx.duration]: core.int,
@@ -85110,8 +81082,7 @@ dart.setSignature(html$.RtcDtmfSender, {
     [dartx.track]: html$.MediaStreamTrack
   }),
   getters: () => ({[dartx.onToneChange]: dart.definiteFunctionType(async.Stream$(html$.RtcDtmfToneChangeEvent), [])}),
-  methods: () => ({[dartx.insertDtmf]: dart.definiteFunctionType(dart.void, [core.String], [core.int, core.int])}),
-  sfields: () => ({toneChangeEvent: EventStreamProviderOfRtcDtmfToneChangeEvent()})
+  methods: () => ({[dartx.insertDtmf]: dart.definiteFunctionType(dart.void, [core.String], [core.int, core.int])})
 });
 dart.defineLazy(html$.RtcDtmfSender, {
   get toneChangeEvent() {
@@ -85138,10 +81109,6 @@ html$.RtcDtmfToneChangeEvent = class RtcDtmfToneChangeEvent extends html$.Event 
   }
 };
 dart.setSignature(html$.RtcDtmfToneChangeEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.RtcDtmfToneChangeEvent, []),
-    new: dart.definiteFunctionType(html$.RtcDtmfToneChangeEvent, [core.String, core.Map])
-  }),
   fields: () => ({[dartx.tone]: core.String}),
   statics: () => ({_create_1: dart.definiteFunctionType(html$.RtcDtmfToneChangeEvent, [dart.dynamic, dart.dynamic])}),
   names: ['_create_1']
@@ -85180,10 +81147,6 @@ html$.RtcIceCandidate = class RtcIceCandidate extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(html$.RtcIceCandidate, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.RtcIceCandidate, [core.Map]),
-    _: dart.definiteFunctionType(html$.RtcIceCandidate, [])
-  }),
   fields: () => ({
     [dartx.candidate]: core.String,
     [dartx.sdpMLineIndex]: core.int,
@@ -85204,7 +81167,6 @@ html$.RtcIceCandidateEvent = class RtcIceCandidateEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.RtcIceCandidateEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.RtcIceCandidateEvent, [])}),
   fields: () => ({[dartx.candidate]: html$.RtcIceCandidate})
 });
 dart.registerExtension(dart.global.RTCIceCandidateEvent, html$.RtcIceCandidateEvent);
@@ -85480,10 +81442,6 @@ html$.RtcPeerConnection = class RtcPeerConnection extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.RtcPeerConnection, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.RtcPeerConnection, [core.Map], [core.Map]),
-    _: dart.definiteFunctionType(html$.RtcPeerConnection, [])
-  }),
   fields: () => ({
     [dartx.iceConnectionState]: core.String,
     [dartx.iceGatheringState]: core.String,
@@ -85532,17 +81490,7 @@ dart.setSignature(html$.RtcPeerConnection, {
     [_updateIce_1]: dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic]),
     [_updateIce_2]: dart.definiteFunctionType(dart.void, [dart.dynamic]),
     [_updateIce_3]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({
-    addStreamEvent: EventStreamProviderOfMediaStreamEvent(),
-    dataChannelEvent: EventStreamProviderOfRtcDataChannelEvent(),
-    iceCandidateEvent: EventStreamProviderOfRtcIceCandidateEvent(),
-    iceConnectionStateChangeEvent: EventStreamProviderOfEvent(),
-    negotiationNeededEvent: EventStreamProviderOfEvent(),
-    removeStreamEvent: EventStreamProviderOfMediaStreamEvent(),
-    signalingStateChangeEvent: EventStreamProviderOfEvent()
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.defineLazy(html$.RtcPeerConnection, {
   get addStreamEvent() {
@@ -85595,10 +81543,6 @@ html$.RtcSessionDescription = class RtcSessionDescription extends _interceptors.
   }
 };
 dart.setSignature(html$.RtcSessionDescription, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.RtcSessionDescription, [core.Map]),
-    _: dart.definiteFunctionType(html$.RtcSessionDescription, [])
-  }),
   fields: () => ({
     [dartx.sdp]: core.String,
     [dartx.type]: core.String
@@ -85638,7 +81582,6 @@ html$.RtcStatsReport = class RtcStatsReport extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.RtcStatsReport, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.RtcStatsReport, [])}),
   fields: () => ({
     [dartx.id]: core.String,
     [_get_timestamp]: dart.dynamic,
@@ -85667,7 +81610,6 @@ html$.RtcStatsResponse = class RtcStatsResponse extends _interceptors.Intercepto
   }
 };
 dart.setSignature(html$.RtcStatsResponse, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.RtcStatsResponse, [])}),
   methods: () => ({
     [dartx.namedItem]: dart.definiteFunctionType(html$.RtcStatsReport, [core.String]),
     [dartx.result]: dart.definiteFunctionType(core.List$(html$.RtcStatsReport), [])
@@ -85722,7 +81664,6 @@ html$.Screen = class Screen extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Screen, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Screen, [])}),
   fields: () => ({
     [_availHeight]: core.int,
     [_availLeft]: core.int,
@@ -85765,7 +81706,6 @@ html$.ScreenOrientation = class ScreenOrientation extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.ScreenOrientation, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ScreenOrientation, [])}),
   fields: () => ({
     [dartx.angle]: core.int,
     [dartx.type]: core.String
@@ -85774,8 +81714,7 @@ dart.setSignature(html$.ScreenOrientation, {
   methods: () => ({
     [dartx.lock]: dart.definiteFunctionType(async.Future, [core.String]),
     [dartx.unlock]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({changeEvent: EventStreamProviderOfEvent()})
+  })
 });
 dart.defineLazy(html$.ScreenOrientation, {
   get changeEvent() {
@@ -85862,11 +81801,6 @@ html$.ScriptElement = class ScriptElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.ScriptElement, 'created');
 dart.setSignature(html$.ScriptElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ScriptElement, []),
-    new: dart.definiteFunctionType(html$.ScriptElement, []),
-    created: dart.definiteFunctionType(html$.ScriptElement, [])
-  }),
   fields: () => ({
     [dartx.async]: core.bool,
     [dartx.charset]: core.String,
@@ -85993,10 +81927,6 @@ html$.ScrollState = class ScrollState extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.ScrollState, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ScrollState, []),
-    new: dart.definiteFunctionType(html$.ScrollState, [], [core.num, core.num, core.num, core.num, core.num, core.bool, core.bool, core.bool])
-  }),
   fields: () => ({
     [dartx.deltaGranularity]: core.double,
     [dartx.deltaX]: core.double,
@@ -86086,10 +82016,6 @@ html$.SecurityPolicyViolationEvent = class SecurityPolicyViolationEvent extends 
   }
 };
 dart.setSignature(html$.SecurityPolicyViolationEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SecurityPolicyViolationEvent, []),
-    new: dart.definiteFunctionType(html$.SecurityPolicyViolationEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.blockedUri]: core.String,
     [dartx.columnNumber]: core.int,
@@ -86267,11 +82193,6 @@ html$.SelectElement = class SelectElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.SelectElement, 'created');
 dart.setSignature(html$.SelectElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SelectElement, []),
-    new: dart.definiteFunctionType(html$.SelectElement, []),
-    created: dart.definiteFunctionType(html$.SelectElement, [])
-  }),
   fields: () => ({
     [dartx.autofocus]: core.bool,
     [dartx.disabled]: core.bool,
@@ -86412,7 +82333,6 @@ html$.Selection = class Selection extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Selection, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Selection, [])}),
   fields: () => ({
     [dartx.anchorNode]: html$.Node,
     [dartx.anchorOffset]: core.int,
@@ -86486,7 +82406,6 @@ html$.ServicePort = class ServicePort extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.ServicePort, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ServicePort, [])}),
   fields: () => ({
     [dartx.data]: core.Object,
     [dartx.name]: core.String,
@@ -86552,7 +82471,6 @@ html$.ServicePortCollection = class ServicePortCollection extends html$.EventTar
   }
 };
 dart.setSignature(html$.ServicePortCollection, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ServicePortCollection, [])}),
   getters: () => ({[dartx.onMessage]: dart.definiteFunctionType(async.Stream$(html$.MessageEvent), [])}),
   methods: () => ({
     [dartx.connect]: dart.definiteFunctionType(async.Future, [core.String], [core.Map]),
@@ -86563,8 +82481,7 @@ dart.setSignature(html$.ServicePortCollection, {
     [dartx.matchAll]: dart.definiteFunctionType(async.Future, [], [core.Map]),
     [_matchAll_1]: dart.definiteFunctionType(async.Future, [dart.dynamic]),
     [_matchAll_2]: dart.definiteFunctionType(async.Future, [])
-  }),
-  sfields: () => ({messageEvent: EventStreamProviderOfMessageEvent()})
+  })
 });
 dart.defineLazy(html$.ServicePortCollection, {
   get messageEvent() {
@@ -86606,10 +82523,6 @@ html$.ServicePortConnectEvent = class ServicePortConnectEvent extends html$.Exte
   }
 };
 dart.setSignature(html$.ServicePortConnectEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ServicePortConnectEvent, []),
-    new: dart.definiteFunctionType(html$.ServicePortConnectEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.origin]: core.String,
     [dartx.targetUrl]: core.String
@@ -86665,7 +82578,6 @@ html$.ServiceWorkerContainer = class ServiceWorkerContainer extends html$.EventT
   }
 };
 dart.setSignature(html$.ServiceWorkerContainer, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ServiceWorkerContainer, [])}),
   fields: () => ({
     [dartx.controller]: html$._ServiceWorker,
     [dartx.ready]: async.Future
@@ -86677,8 +82589,7 @@ dart.setSignature(html$.ServiceWorkerContainer, {
     [dartx.register]: dart.definiteFunctionType(async.Future, [core.String], [core.Map]),
     [_register_1]: dart.definiteFunctionType(async.Future, [dart.dynamic, dart.dynamic]),
     [_register_2]: dart.definiteFunctionType(async.Future, [dart.dynamic])
-  }),
-  sfields: () => ({messageEvent: EventStreamProviderOfMessageEvent()})
+  })
 });
 dart.defineLazy(html$.ServiceWorkerContainer, {
   get messageEvent() {
@@ -86714,15 +82625,13 @@ html$.ServiceWorkerGlobalScope = class ServiceWorkerGlobalScope extends html$.Wo
   }
 };
 dart.setSignature(html$.ServiceWorkerGlobalScope, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ServiceWorkerGlobalScope, [])}),
   fields: () => ({
     [dartx.clients]: html$.Clients,
     [dartx.ports]: html$.StashedPortCollection,
     [dartx.registration]: html$.ServiceWorkerRegistration
   }),
   getters: () => ({[dartx.onMessage]: dart.definiteFunctionType(async.Stream$(html$.MessageEvent), [])}),
-  methods: () => ({[dartx.skipWaiting]: dart.definiteFunctionType(async.Future, [])}),
-  sfields: () => ({messageEvent: EventStreamProviderOfMessageEvent()})
+  methods: () => ({[dartx.skipWaiting]: dart.definiteFunctionType(async.Future, [])})
 });
 dart.defineLazy(html$.ServiceWorkerGlobalScope, {
   get messageEvent() {
@@ -86775,10 +82684,6 @@ html$.ServiceWorkerMessageEvent = class ServiceWorkerMessageEvent extends html$.
   }
 };
 dart.setSignature(html$.ServiceWorkerMessageEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ServiceWorkerMessageEvent, []),
-    new: dart.definiteFunctionType(html$.ServiceWorkerMessageEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [_get_data]: dart.dynamic,
     [dartx.lastEventId]: core.String,
@@ -86876,7 +82781,6 @@ html$.ServiceWorkerRegistration = class ServiceWorkerRegistration extends html$.
   }
 };
 dart.setSignature(html$.ServiceWorkerRegistration, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ServiceWorkerRegistration, [])}),
   fields: () => ({
     [dartx.active]: html$._ServiceWorker,
     [dartx.geofencing]: html$.Geofencing,
@@ -86921,13 +82825,7 @@ html$.ShadowElement = class ShadowElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.ShadowElement, 'created');
 dart.setSignature(html$.ShadowElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.ShadowElement, []),
-    new: dart.definiteFunctionType(html$.ShadowElement, []),
-    created: dart.definiteFunctionType(html$.ShadowElement, [])
-  }),
-  methods: () => ({[dartx.getDistributedNodes]: dart.definiteFunctionType(core.List$(html$.Node), [])}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  methods: () => ({[dartx.getDistributedNodes]: dart.definiteFunctionType(core.List$(html$.Node), [])})
 });
 dart.registerExtension(dart.global.HTMLShadowElement, html$.ShadowElement);
 dart.defineExtensionNames([
@@ -87007,9 +82905,8 @@ html$.ShadowRoot = class ShadowRoot extends html$.DocumentFragment {
     html$.ShadowRoot._shadowRootDeprecationReport();
   }
 };
-const innerHtml = Symbol(html$.ShadowRoot.name + "." + dartx.innerHtml.toString());
+const innerHtml = Symbol("ShadowRoot.innerHtml");
 dart.setSignature(html$.ShadowRoot, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ShadowRoot, [])}),
   fields: () => ({
     [dartx.activeElement]: html$.Element,
     [dartx.delegatesFocus]: core.bool,
@@ -87031,8 +82928,6 @@ dart.setSignature(html$.ShadowRoot, {
     [dartx.elementsFromPoint]: dart.definiteFunctionType(core.List$(html$.Element), [core.int, core.int]),
     [dartx.getSelection]: dart.definiteFunctionType(html$.Selection, [])
   }),
-  sfields: () => ({_shadowRootDeprecationReported: core.bool}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({_shadowRootDeprecationReport: dart.definiteFunctionType(dart.void, [])}),
   names: ['_shadowRootDeprecationReport']
 });
@@ -87050,7 +82945,6 @@ html$.SharedArrayBuffer = class SharedArrayBuffer extends _interceptors.Intercep
   }
 };
 dart.setSignature(html$.SharedArrayBuffer, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SharedArrayBuffer, [])}),
   fields: () => ({[dartx.byteLength]: core.int})
 });
 dart.registerExtension(dart.global.SharedArrayBuffer, html$.SharedArrayBuffer);
@@ -87088,16 +82982,11 @@ html$.SharedWorker = class SharedWorker extends html$.EventTarget {
 };
 html$.SharedWorker[dart.implements] = () => [html$.AbstractWorker];
 dart.setSignature(html$.SharedWorker, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SharedWorker, []),
-    new: dart.definiteFunctionType(html$.SharedWorker, [core.String], [core.String])
-  }),
   fields: () => ({
     [dartx.port]: html$.MessagePort,
     [dartx.workerStart]: core.double
   }),
   getters: () => ({[dartx.onError]: dart.definiteFunctionType(async.Stream$(html$.Event), [])}),
-  sfields: () => ({errorEvent: EventStreamProviderOfEvent()}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.SharedWorker, [dart.dynamic, dart.dynamic]),
     _create_2: dart.definiteFunctionType(html$.SharedWorker, [dart.dynamic])
@@ -87126,10 +83015,8 @@ html$.SharedWorkerGlobalScope = class SharedWorkerGlobalScope extends html$.Work
   }
 };
 dart.setSignature(html$.SharedWorkerGlobalScope, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SharedWorkerGlobalScope, [])}),
   fields: () => ({[dartx.name]: core.String}),
-  getters: () => ({[dartx.onConnect]: dart.definiteFunctionType(async.Stream$(html$.Event), [])}),
-  sfields: () => ({connectEvent: EventStreamProviderOfEvent()})
+  getters: () => ({[dartx.onConnect]: dart.definiteFunctionType(async.Stream$(html$.Event), [])})
 });
 dart.defineLazy(html$.SharedWorkerGlobalScope, {
   get connectEvent() {
@@ -87208,7 +83095,6 @@ html$.SourceBuffer = class SourceBuffer extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.SourceBuffer, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SourceBuffer, [])}),
   fields: () => ({
     [dartx.appendWindowEnd]: core.num,
     [dartx.appendWindowStart]: core.num,
@@ -87286,7 +83172,6 @@ html$.SourceBufferList = class SourceBufferList extends dart.mixin(html$.EventTa
 };
 html$.SourceBufferList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfSourceBuffer()];
 dart.setSignature(html$.SourceBufferList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SourceBufferList, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -87351,11 +83236,6 @@ html$.SourceElement = class SourceElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.SourceElement, 'created');
 dart.setSignature(html$.SourceElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SourceElement, []),
-    new: dart.definiteFunctionType(html$.SourceElement, []),
-    created: dart.definiteFunctionType(html$.SourceElement, [])
-  }),
   fields: () => ({
     [dartx.media]: core.String,
     [dartx.sizes]: core.String,
@@ -87389,7 +83269,6 @@ html$.SourceInfo = class SourceInfo extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.SourceInfo, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SourceInfo, [])}),
   fields: () => ({
     [dartx.facing]: core.String,
     [dartx.id]: core.String,
@@ -87410,13 +83289,6 @@ html$.SpanElement = class SpanElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.SpanElement, 'created');
-dart.setSignature(html$.SpanElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SpanElement, []),
-    new: dart.definiteFunctionType(html$.SpanElement, []),
-    created: dart.definiteFunctionType(html$.SpanElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLSpanElement, html$.SpanElement);
 dart.defineExtensionNames([
   'src',
@@ -87446,10 +83318,6 @@ html$.SpeechGrammar = class SpeechGrammar extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.SpeechGrammar, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SpeechGrammar, []),
-    new: dart.definiteFunctionType(html$.SpeechGrammar, [])
-  }),
   fields: () => ({
     [dartx.src]: core.String,
     [dartx.weight]: core.num
@@ -87531,10 +83399,6 @@ html$.SpeechGrammarList = class SpeechGrammarList extends dart.mixin(_intercepto
 };
 html$.SpeechGrammarList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfSpeechGrammar()];
 dart.setSignature(html$.SpeechGrammarList, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SpeechGrammarList, []),
-    new: dart.definiteFunctionType(html$.SpeechGrammarList, [])
-  }),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -87667,10 +83531,6 @@ html$.SpeechRecognition = class SpeechRecognition extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.SpeechRecognition, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SpeechRecognition, []),
-    new: dart.definiteFunctionType(html$.SpeechRecognition, [])
-  }),
   fields: () => ({
     [dartx.audioTrack]: html$.MediaStreamTrack,
     [dartx.continuous]: core.bool,
@@ -87697,21 +83557,7 @@ dart.setSignature(html$.SpeechRecognition, {
     [dartx.abort]: dart.definiteFunctionType(dart.void, []),
     [dartx.start]: dart.definiteFunctionType(dart.void, []),
     [dartx.stop]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({
-    audioEndEvent: EventStreamProviderOfEvent(),
-    audioStartEvent: EventStreamProviderOfEvent(),
-    endEvent: EventStreamProviderOfEvent(),
-    errorEvent: EventStreamProviderOfSpeechRecognitionError(),
-    noMatchEvent: EventStreamProviderOfSpeechRecognitionEvent(),
-    resultEvent: EventStreamProviderOfSpeechRecognitionEvent(),
-    soundEndEvent: EventStreamProviderOfEvent(),
-    soundStartEvent: EventStreamProviderOfEvent(),
-    speechEndEvent: EventStreamProviderOfEvent(),
-    speechStartEvent: EventStreamProviderOfEvent(),
-    startEvent: EventStreamProviderOfEvent()
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.defineLazy(html$.SpeechRecognition, {
   get audioEndEvent() {
@@ -87765,7 +83611,6 @@ html$.SpeechRecognitionAlternative = class SpeechRecognitionAlternative extends 
   }
 };
 dart.setSignature(html$.SpeechRecognitionAlternative, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SpeechRecognitionAlternative, [])}),
   fields: () => ({
     [dartx.confidence]: core.double,
     [dartx.transcript]: core.String
@@ -87802,10 +83647,6 @@ html$.SpeechRecognitionError = class SpeechRecognitionError extends html$.Event 
   }
 };
 dart.setSignature(html$.SpeechRecognitionError, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SpeechRecognitionError, []),
-    new: dart.definiteFunctionType(html$.SpeechRecognitionError, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.error]: core.String,
     [dartx.message]: core.String
@@ -87855,10 +83696,6 @@ html$.SpeechRecognitionEvent = class SpeechRecognitionEvent extends html$.Event 
   }
 };
 dart.setSignature(html$.SpeechRecognitionEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SpeechRecognitionEvent, []),
-    new: dart.definiteFunctionType(html$.SpeechRecognitionEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.emma]: html$.Document,
     [dartx.interpretation]: html$.Document,
@@ -87892,7 +83729,6 @@ html$.SpeechRecognitionResult = class SpeechRecognitionResult extends _intercept
   }
 };
 dart.setSignature(html$.SpeechRecognitionResult, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SpeechRecognitionResult, [])}),
   fields: () => ({
     [dartx.isFinal]: core.bool,
     [dartx.length]: core.int
@@ -87940,7 +83776,6 @@ html$.SpeechSynthesis = class SpeechSynthesis extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.SpeechSynthesis, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SpeechSynthesis, [])}),
   fields: () => ({
     [dartx.paused]: core.bool,
     [dartx.pending]: core.bool,
@@ -87979,7 +83814,6 @@ html$.SpeechSynthesisEvent = class SpeechSynthesisEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.SpeechSynthesisEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SpeechSynthesisEvent, [])}),
   fields: () => ({
     [dartx.charIndex]: core.int,
     [dartx.elapsedTime]: core.double,
@@ -88079,10 +83913,6 @@ html$.SpeechSynthesisUtterance = class SpeechSynthesisUtterance extends html$.Ev
   }
 };
 dart.setSignature(html$.SpeechSynthesisUtterance, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SpeechSynthesisUtterance, []),
-    new: dart.definiteFunctionType(html$.SpeechSynthesisUtterance, [], [core.String])
-  }),
   fields: () => ({
     [dartx.lang]: core.String,
     [dartx.pitch]: core.num,
@@ -88099,15 +83929,6 @@ dart.setSignature(html$.SpeechSynthesisUtterance, {
     [dartx.onPause]: dart.definiteFunctionType(async.Stream$(html$.Event), []),
     [dartx.onResume]: dart.definiteFunctionType(async.Stream$(html$.SpeechSynthesisEvent), []),
     [dartx.onStart]: dart.definiteFunctionType(async.Stream$(html$.SpeechSynthesisEvent), [])
-  }),
-  sfields: () => ({
-    boundaryEvent: EventStreamProviderOfSpeechSynthesisEvent(),
-    endEvent: EventStreamProviderOfSpeechSynthesisEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    markEvent: EventStreamProviderOfSpeechSynthesisEvent(),
-    pauseEvent: EventStreamProviderOfEvent(),
-    resumeEvent: EventStreamProviderOfSpeechSynthesisEvent(),
-    startEvent: EventStreamProviderOfSpeechSynthesisEvent()
   }),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.SpeechSynthesisUtterance, [dart.dynamic]),
@@ -88167,7 +83988,6 @@ html$.SpeechSynthesisVoice = class SpeechSynthesisVoice extends _interceptors.In
   }
 };
 dart.setSignature(html$.SpeechSynthesisVoice, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SpeechSynthesisVoice, [])}),
   fields: () => ({
     [dartx.defaultValue]: core.bool,
     [dartx.lang]: core.String,
@@ -88189,7 +84009,6 @@ html$.StashedMessagePort = class StashedMessagePort extends html$.MessagePort {
   }
 };
 dart.setSignature(html$.StashedMessagePort, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.StashedMessagePort, [])}),
   fields: () => ({[dartx.name]: core.String})
 });
 dart.registerExtension(dart.global.StashedMessagePort, html$.StashedMessagePort);
@@ -88209,10 +84028,8 @@ html$.StashedPortCollection = class StashedPortCollection extends html$.EventTar
   }
 };
 dart.setSignature(html$.StashedPortCollection, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.StashedPortCollection, [])}),
   getters: () => ({[dartx.onMessage]: dart.definiteFunctionType(async.Stream$(html$.MessageEvent), [])}),
-  methods: () => ({[dartx.add]: dart.definiteFunctionType(html$.StashedMessagePort, [core.String, html$.MessagePort])}),
-  sfields: () => ({messageEvent: EventStreamProviderOfMessageEvent()})
+  methods: () => ({[dartx.add]: dart.definiteFunctionType(html$.StashedMessagePort, [core.String, html$.MessagePort])})
 });
 dart.defineLazy(html$.StashedPortCollection, {
   get messageEvent() {
@@ -88332,7 +84149,6 @@ html$.Storage = class Storage extends _interceptors.Interceptor {
 };
 html$.Storage[dart.implements] = () => [MapOfString$String()];
 dart.setSignature(html$.Storage, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Storage, [])}),
   fields: () => ({[_length$3]: core.int}),
   getters: () => ({
     [dartx.keys]: dart.definiteFunctionType(core.Iterable$(core.String), []),
@@ -88418,10 +84234,6 @@ html$.StorageEvent = class StorageEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.StorageEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.StorageEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, key: core.String, oldValue: core.String, newValue: core.String, url: core.String, storageArea: html$.Storage}),
-    _: dart.definiteFunctionType(html$.StorageEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.key]: core.String,
     [dartx.newValue]: core.String,
@@ -88453,7 +84265,6 @@ html$.StorageInfo = class StorageInfo extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.StorageInfo, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.StorageInfo, [])}),
   fields: () => ({
     [dartx.quota]: core.int,
     [dartx.usage]: core.int
@@ -88480,7 +84291,6 @@ html$.StorageQuota = class StorageQuota extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.StorageQuota, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.StorageQuota, [])}),
   fields: () => ({[dartx.supportedTypes]: ListOfString()}),
   methods: () => ({
     [dartx.queryInfo]: dart.definiteFunctionType(async.Future, [core.String]),
@@ -88535,11 +84345,6 @@ html$.StyleElement = class StyleElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.StyleElement, 'created');
 dart.setSignature(html$.StyleElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.StyleElement, []),
-    new: dart.definiteFunctionType(html$.StyleElement, []),
-    created: dart.definiteFunctionType(html$.StyleElement, [])
-  }),
   fields: () => ({
     [dartx.disabled]: core.bool,
     [dartx.media]: core.String,
@@ -88564,7 +84369,6 @@ html$.StyleMedia = class StyleMedia extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.StyleMedia, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.StyleMedia, [])}),
   fields: () => ({[dartx.type]: core.String}),
   methods: () => ({[dartx.matchMedium]: dart.definiteFunctionType(core.bool, [core.String])})
 });
@@ -88588,10 +84392,6 @@ html$.SyncEvent = class SyncEvent extends html$.ExtendableEvent {
   }
 };
 dart.setSignature(html$.SyncEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.SyncEvent, []),
-    new: dart.definiteFunctionType(html$.SyncEvent, [core.String, core.Map])
-  }),
   fields: () => ({[dartx.registration]: html$.SyncRegistration}),
   statics: () => ({_create_1: dart.definiteFunctionType(html$.SyncEvent, [dart.dynamic, dart.dynamic])}),
   names: ['_create_1']
@@ -88632,7 +84432,6 @@ html$.SyncManager = class SyncManager extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.SyncManager, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SyncManager, [])}),
   methods: () => ({
     [dartx.getRegistration]: dart.definiteFunctionType(async.Future, [core.String]),
     [dartx.getRegistrations]: dart.definiteFunctionType(async.Future, []),
@@ -88659,7 +84458,6 @@ html$.SyncRegistration = class SyncRegistration extends _interceptors.Intercepto
   }
 };
 dart.setSignature(html$.SyncRegistration, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.SyncRegistration, [])}),
   fields: () => ({[dartx.tag]: core.String}),
   methods: () => ({[dartx.unregister]: dart.definiteFunctionType(async.Future, [])})
 });
@@ -88676,13 +84474,6 @@ html$.TableCaptionElement = class TableCaptionElement extends html$.HtmlElement 
   }
 };
 dart.defineNamedConstructor(html$.TableCaptionElement, 'created');
-dart.setSignature(html$.TableCaptionElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TableCaptionElement, []),
-    new: dart.definiteFunctionType(html$.TableCaptionElement, []),
-    created: dart.definiteFunctionType(html$.TableCaptionElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLTableCaptionElement, html$.TableCaptionElement);
 dart.defineExtensionNames([
   'cellIndex',
@@ -88728,11 +84519,6 @@ html$.TableCellElement = class TableCellElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.TableCellElement, 'created');
 dart.setSignature(html$.TableCellElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TableCellElement, []),
-    new: dart.definiteFunctionType(html$.TableCellElement, []),
-    created: dart.definiteFunctionType(html$.TableCellElement, [])
-  }),
   fields: () => ({
     [dartx.cellIndex]: core.int,
     [dartx.colSpan]: core.int,
@@ -88766,11 +84552,6 @@ html$.TableColElement = class TableColElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.TableColElement, 'created');
 dart.setSignature(html$.TableColElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TableColElement, []),
-    new: dart.definiteFunctionType(html$.TableColElement, []),
-    created: dart.definiteFunctionType(html$.TableColElement, [])
-  }),
   fields: () => ({[dartx.span]: core.int})
 });
 dart.registerExtension(dart.global.HTMLTableColElement, html$.TableColElement);
@@ -88913,11 +84694,6 @@ html$.TableElement = class TableElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.TableElement, 'created');
 dart.setSignature(html$.TableElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TableElement, []),
-    new: dart.definiteFunctionType(html$.TableElement, []),
-    created: dart.definiteFunctionType(html$.TableElement, [])
-  }),
   fields: () => ({
     [dartx.caption]: html$.TableCaptionElement,
     [_rows]: ListOfNode(),
@@ -89012,11 +84788,6 @@ html$.TableRowElement = class TableRowElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.TableRowElement, 'created');
 dart.setSignature(html$.TableRowElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TableRowElement, []),
-    new: dart.definiteFunctionType(html$.TableRowElement, []),
-    created: dart.definiteFunctionType(html$.TableRowElement, [])
-  }),
   fields: () => ({
     [_cells]: ListOfNode(),
     [dartx.rowIndex]: core.int,
@@ -89078,10 +84849,6 @@ html$.TableSectionElement = class TableSectionElement extends html$.HtmlElement 
 };
 dart.defineNamedConstructor(html$.TableSectionElement, 'created');
 dart.setSignature(html$.TableSectionElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TableSectionElement, []),
-    created: dart.definiteFunctionType(html$.TableSectionElement, [])
-  }),
   fields: () => ({[_rows]: ListOfNode()}),
   getters: () => ({[dartx.rows]: dart.definiteFunctionType(core.List$(html$.TableRowElement), [])}),
   methods: () => ({
@@ -89123,13 +84890,7 @@ html$.TemplateElement = class TemplateElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.TemplateElement, 'created');
 dart.setSignature(html$.TemplateElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TemplateElement, []),
-    new: dart.definiteFunctionType(html$.TemplateElement, []),
-    created: dart.definiteFunctionType(html$.TemplateElement, [])
-  }),
-  fields: () => ({[dartx.content]: html$.DocumentFragment}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  fields: () => ({[dartx.content]: html$.DocumentFragment})
 });
 dart.registerExtension(dart.global.HTMLTemplateElement, html$.TemplateElement);
 dart.defineExtensionNames([
@@ -89358,11 +85119,6 @@ html$.TextAreaElement = class TextAreaElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.TextAreaElement, 'created');
 dart.setSignature(html$.TextAreaElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TextAreaElement, []),
-    new: dart.definiteFunctionType(html$.TextAreaElement, []),
-    created: dart.definiteFunctionType(html$.TextAreaElement, [])
-  }),
   fields: () => ({
     [dartx.autocapitalize]: core.String,
     [dartx.autofocus]: core.bool,
@@ -89429,10 +85185,6 @@ html$.TextEvent = class TextEvent extends html$.UIEvent {
   }
 };
 dart.setSignature(html$.TextEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.TextEvent, [core.String], {canBubble: core.bool, cancelable: core.bool, view: html$.Window, data: core.String}),
-    _: dart.definiteFunctionType(html$.TextEvent, [])
-  }),
   fields: () => ({[dartx.data]: core.String}),
   methods: () => ({[_initTextEvent]: dart.definiteFunctionType(dart.void, [core.String, core.bool, core.bool, html$.Window, core.String])})
 });
@@ -89493,7 +85245,6 @@ html$.TextMetrics = class TextMetrics extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.TextMetrics, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.TextMetrics, [])}),
   fields: () => ({
     [dartx.actualBoundingBoxAscent]: core.double,
     [dartx.actualBoundingBoxDescent]: core.double,
@@ -89573,7 +85324,6 @@ html$.TextTrack = class TextTrack extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.TextTrack, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.TextTrack, [])}),
   fields: () => ({
     [dartx.activeCues]: html$.TextTrackCueList,
     [dartx.cues]: html$.TextTrackCueList,
@@ -89590,8 +85340,7 @@ dart.setSignature(html$.TextTrack, {
     [dartx.addRegion]: dart.definiteFunctionType(dart.void, [html$.VttRegion]),
     [dartx.removeCue]: dart.definiteFunctionType(dart.void, [html$.TextTrackCue]),
     [dartx.removeRegion]: dart.definiteFunctionType(dart.void, [html$.VttRegion])
-  }),
-  sfields: () => ({cueChangeEvent: EventStreamProviderOfEvent()})
+  })
 });
 dart.defineLazy(html$.TextTrack, {
   get cueChangeEvent() {
@@ -89647,7 +85396,6 @@ html$.TextTrackCue = class TextTrackCue extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.TextTrackCue, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.TextTrackCue, [])}),
   fields: () => ({
     [dartx.endTime]: core.num,
     [dartx.id]: core.String,
@@ -89658,10 +85406,6 @@ dart.setSignature(html$.TextTrackCue, {
   getters: () => ({
     [dartx.onEnter]: dart.definiteFunctionType(async.Stream$(html$.Event), []),
     [dartx.onExit]: dart.definiteFunctionType(async.Stream$(html$.Event), [])
-  }),
-  sfields: () => ({
-    enterEvent: EventStreamProviderOfEvent(),
-    exitEvent: EventStreamProviderOfEvent()
   })
 });
 dart.defineLazy(html$.TextTrackCue, {
@@ -89736,7 +85480,6 @@ html$.TextTrackCueList = class TextTrackCueList extends dart.mixin(_interceptors
 };
 html$.TextTrackCueList[dart.implements] = () => [ListOfTextTrackCue(), _js_helper.JavaScriptIndexingBehavior];
 dart.setSignature(html$.TextTrackCueList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.TextTrackCueList, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -89818,7 +85561,6 @@ html$.TextTrackList = class TextTrackList extends dart.mixin(html$.EventTarget, 
 };
 html$.TextTrackList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfTextTrack()];
 dart.setSignature(html$.TextTrackList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.TextTrackList, [])}),
   getters: () => ({
     [dartx.length]: dart.definiteFunctionType(core.int, []),
     [dartx.onAddTrack]: dart.definiteFunctionType(async.Stream$(html$.TrackEvent), []),
@@ -89830,10 +85572,6 @@ dart.setSignature(html$.TextTrackList, {
     [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html$.TextTrack]),
     [dartx.getTrackById]: dart.definiteFunctionType(html$.TextTrack, [core.String]),
     [dartx.item]: dart.definiteFunctionType(html$.TextTrack, [core.int])
-  }),
-  sfields: () => ({
-    addTrackEvent: EventStreamProviderOfTrackEvent(),
-    changeEvent: EventStreamProviderOfEvent()
   })
 });
 dart.defineLazy(html$.TextTrackList, {
@@ -89865,7 +85603,6 @@ html$.TimeRanges = class TimeRanges extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.TimeRanges, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.TimeRanges, [])}),
   fields: () => ({[dartx.length]: core.int}),
   methods: () => ({
     [dartx.end]: dart.definiteFunctionType(core.double, [core.int]),
@@ -89886,13 +85623,6 @@ html$.TitleElement = class TitleElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.TitleElement, 'created');
-dart.setSignature(html$.TitleElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TitleElement, []),
-    new: dart.definiteFunctionType(html$.TitleElement, []),
-    created: dart.definiteFunctionType(html$.TitleElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLTitleElement, html$.TitleElement);
 const _radiusX = Symbol('_radiusX');
 const _radiusY = Symbol('_radiusY');
@@ -89999,7 +85729,6 @@ html$.Touch = class Touch extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.Touch, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Touch, [])}),
   fields: () => ({
     [_clientX]: core.double,
     [_clientY]: core.double,
@@ -90092,10 +85821,6 @@ html$.TouchEvent = class TouchEvent extends html$.UIEvent {
   }
 };
 dart.setSignature(html$.TouchEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.TouchEvent, [html$.TouchList, html$.TouchList, html$.TouchList, core.String], {view: html$.Window, screenX: core.int, screenY: core.int, clientX: core.int, clientY: core.int, ctrlKey: core.bool, altKey: core.bool, shiftKey: core.bool, metaKey: core.bool}),
-    _: dart.definiteFunctionType(html$.TouchEvent, [])
-  }),
   fields: () => ({
     [dartx.altKey]: core.bool,
     [dartx.changedTouches]: html$.TouchList,
@@ -90105,8 +85830,7 @@ dart.setSignature(html$.TouchEvent, {
     [dartx.targetTouches]: html$.TouchList,
     [dartx.touches]: html$.TouchList
   }),
-  methods: () => ({[_initTouchEvent]: dart.definiteFunctionType(dart.void, [html$.TouchList, html$.TouchList, html$.TouchList, core.String, html$.Window, core.int, core.int, core.int, core.int, core.bool, core.bool, core.bool, core.bool])}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  methods: () => ({[_initTouchEvent]: dart.definiteFunctionType(dart.void, [html$.TouchList, html$.TouchList, html$.TouchList, core.String, html$.Window, core.int, core.int, core.int, core.int, core.bool, core.bool, core.bool, core.bool])})
 });
 dart.registerExtension(dart.global.TouchEvent, html$.TouchEvent);
 dart.defineExtensionNames([
@@ -90174,18 +85898,13 @@ html$.TouchList = class TouchList extends dart.mixin(_interceptors.Interceptor, 
 };
 html$.TouchList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfTouch()];
 dart.setSignature(html$.TouchList, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.TouchList, []),
-    _: dart.definiteFunctionType(html$.TouchList, [])
-  }),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
     [dartx._get]: dart.definiteFunctionType(html$.Touch, [core.int]),
     [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html$.Touch]),
     [dartx.item]: dart.definiteFunctionType(html$.Touch, [core.int])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.TouchList, html$.TouchList);
 dart.defineExtensionNames([
@@ -90231,10 +85950,6 @@ html$.TrackDefault = class TrackDefault extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.TrackDefault, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TrackDefault, []),
-    new: dart.definiteFunctionType(html$.TrackDefault, [core.String, core.String, core.String, ListOfString()], [core.String])
-  }),
   fields: () => ({
     [dartx.byteStreamTrackID]: core.String,
     [dartx.kinds]: ListOfString(),
@@ -90278,10 +85993,6 @@ html$.TrackDefaultList = class TrackDefaultList extends _interceptors.Intercepto
   }
 };
 dart.setSignature(html$.TrackDefaultList, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TrackDefaultList, []),
-    new: dart.definiteFunctionType(html$.TrackDefaultList, [], [ListOfTrackDefault()])
-  }),
   fields: () => ({[dartx.length]: core.int}),
   methods: () => ({[dartx.item]: dart.definiteFunctionType(html$.TrackDefault, [core.int])}),
   statics: () => ({
@@ -90359,11 +86070,6 @@ html$.TrackElement = class TrackElement extends html$.HtmlElement {
 };
 dart.defineNamedConstructor(html$.TrackElement, 'created');
 dart.setSignature(html$.TrackElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TrackElement, []),
-    new: dart.definiteFunctionType(html$.TrackElement, []),
-    created: dart.definiteFunctionType(html$.TrackElement, [])
-  }),
   fields: () => ({
     [dartx.defaultValue]: core.bool,
     [dartx.kind]: core.String,
@@ -90372,14 +86078,7 @@ dart.setSignature(html$.TrackElement, {
     [dartx.src]: core.String,
     [dartx.srclang]: core.String,
     [dartx.track]: html$.TextTrack
-  }),
-  sfields: () => ({
-    ERROR: core.int,
-    LOADED: core.int,
-    LOADING: core.int,
-    NONE: core.int
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 html$.TrackElement.ERROR = 3;
 html$.TrackElement.LOADED = 2;
@@ -90412,10 +86111,6 @@ html$.TrackEvent = class TrackEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.TrackEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TrackEvent, []),
-    new: dart.definiteFunctionType(html$.TrackEvent, [core.String], [core.Map])
-  }),
   fields: () => ({[dartx.track]: core.Object}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.TrackEvent, [dart.dynamic, dart.dynamic]),
@@ -90458,10 +86153,6 @@ html$.TransitionEvent = class TransitionEvent extends html$.Event {
   }
 };
 dart.setSignature(html$.TransitionEvent, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.TransitionEvent, []),
-    new: dart.definiteFunctionType(html$.TransitionEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [dartx.elapsedTime]: core.double,
     [dartx.propertyName]: core.String,
@@ -90533,10 +86224,6 @@ html$.TreeWalker = class TreeWalker extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.TreeWalker, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.TreeWalker, [html$.Node, core.int]),
-    _: dart.definiteFunctionType(html$.TreeWalker, [])
-  }),
   fields: () => ({
     [dartx.currentNode]: html$.Node,
     [dartx.filter]: html$.NodeFilter,
@@ -90566,13 +86253,6 @@ html$.UListElement = class UListElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.UListElement, 'created');
-dart.setSignature(html$.UListElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.UListElement, []),
-    new: dart.definiteFunctionType(html$.UListElement, []),
-    created: dart.definiteFunctionType(html$.UListElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLUListElement, html$.UListElement);
 html$.UnknownElement = class UnknownElement extends html$.HtmlElement {
   static _() {
@@ -90583,12 +86263,6 @@ html$.UnknownElement = class UnknownElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$.UnknownElement, 'created');
-dart.setSignature(html$.UnknownElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.UnknownElement, []),
-    created: dart.definiteFunctionType(html$.UnknownElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLUnknownElement, html$.UnknownElement);
 dart.defineExtensionNames([
   'toString',
@@ -90692,7 +86366,6 @@ html$.Url = class Url extends _interceptors.Interceptor {
 };
 html$.Url[dart.implements] = () => [html$.UrlUtils];
 dart.setSignature(html$.Url, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Url, [])}),
   fields: () => ({
     [dartx.hash]: core.String,
     [dartx.host]: core.String,
@@ -90800,19 +86473,18 @@ html$.UrlUtils = class UrlUtils extends _interceptors.Interceptor {
     this[username] = value;
   }
 };
-const hash = Symbol(html$.UrlUtils.name + "." + 'hash'.toString());
-const host = Symbol(html$.UrlUtils.name + "." + 'host'.toString());
-const hostname = Symbol(html$.UrlUtils.name + "." + 'hostname'.toString());
-const href = Symbol(html$.UrlUtils.name + "." + 'href'.toString());
-const origin = Symbol(html$.UrlUtils.name + "." + 'origin'.toString());
-const password = Symbol(html$.UrlUtils.name + "." + 'password'.toString());
-const pathname = Symbol(html$.UrlUtils.name + "." + 'pathname'.toString());
-const port = Symbol(html$.UrlUtils.name + "." + 'port'.toString());
-const protocol = Symbol(html$.UrlUtils.name + "." + 'protocol'.toString());
-const search = Symbol(html$.UrlUtils.name + "." + 'search'.toString());
-const username = Symbol(html$.UrlUtils.name + "." + 'username'.toString());
+const hash = Symbol("UrlUtils.hash");
+const host = Symbol("UrlUtils.host");
+const hostname = Symbol("UrlUtils.hostname");
+const href = Symbol("UrlUtils.href");
+const origin = Symbol("UrlUtils.origin");
+const password = Symbol("UrlUtils.password");
+const pathname = Symbol("UrlUtils.pathname");
+const port = Symbol("UrlUtils.port");
+const protocol = Symbol("UrlUtils.protocol");
+const search = Symbol("UrlUtils.search");
+const username = Symbol("UrlUtils.username");
 dart.setSignature(html$.UrlUtils, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.UrlUtils, [])}),
   fields: () => ({
     hash: core.String,
     host: core.String,
@@ -90920,17 +86592,16 @@ html$.UrlUtilsReadOnly = class UrlUtilsReadOnly extends _interceptors.Intercepto
     super.search = value;
   }
 };
-const hash$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'hash'.toString());
-const host$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'host'.toString());
-const hostname$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'hostname'.toString());
-const href$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'href'.toString());
-const origin$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'origin'.toString());
-const pathname$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'pathname'.toString());
-const port$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'port'.toString());
-const protocol$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'protocol'.toString());
-const search$ = Symbol(html$.UrlUtilsReadOnly.name + "." + 'search'.toString());
+const hash$ = Symbol("UrlUtilsReadOnly.hash");
+const host$ = Symbol("UrlUtilsReadOnly.host");
+const hostname$ = Symbol("UrlUtilsReadOnly.hostname");
+const href$ = Symbol("UrlUtilsReadOnly.href");
+const origin$ = Symbol("UrlUtilsReadOnly.origin");
+const pathname$ = Symbol("UrlUtilsReadOnly.pathname");
+const port$ = Symbol("UrlUtilsReadOnly.port");
+const protocol$ = Symbol("UrlUtilsReadOnly.protocol");
+const search$ = Symbol("UrlUtilsReadOnly.search");
 dart.setSignature(html$.UrlUtilsReadOnly, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.UrlUtilsReadOnly, [])}),
   fields: () => ({
     hash: core.String,
     host: core.String,
@@ -90986,7 +86657,6 @@ html$.VREyeParameters = class VREyeParameters extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(html$.VREyeParameters, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.VREyeParameters, [])}),
   fields: () => ({
     [dartx.currentFieldOfView]: html$.VRFieldOfView,
     [dartx.eyeTranslation]: html$.DomPoint,
@@ -91047,10 +86717,6 @@ html$.VRFieldOfView = class VRFieldOfView extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.VRFieldOfView, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.VRFieldOfView, []),
-    new: dart.definiteFunctionType(html$.VRFieldOfView, [], [core.Map])
-  }),
   fields: () => ({
     [dartx.downDegrees]: core.num,
     [dartx.leftDegrees]: core.num,
@@ -91100,7 +86766,6 @@ html$.VRPositionState = class VRPositionState extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(html$.VRPositionState, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.VRPositionState, [])}),
   fields: () => ({
     [dartx.angularAcceleration]: html$.DomPoint,
     [dartx.angularVelocity]: html$.DomPoint,
@@ -91164,7 +86829,6 @@ html$.ValidityState = class ValidityState extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.ValidityState, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.ValidityState, [])}),
   fields: () => ({
     [dartx.badInput]: core.bool,
     [dartx.customError]: core.bool,
@@ -91252,11 +86916,6 @@ html$.VideoElement = class VideoElement extends html$.MediaElement {
 dart.defineNamedConstructor(html$.VideoElement, 'created');
 html$.VideoElement[dart.implements] = () => [html$.CanvasImageSource];
 dart.setSignature(html$.VideoElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.VideoElement, []),
-    new: dart.definiteFunctionType(html$.VideoElement, []),
-    created: dart.definiteFunctionType(html$.VideoElement, [])
-  }),
   fields: () => ({
     [dartx.height]: core.int,
     [dartx.poster]: core.String,
@@ -91297,7 +86956,6 @@ html$.VideoPlaybackQuality = class VideoPlaybackQuality extends _interceptors.In
   }
 };
 dart.setSignature(html$.VideoPlaybackQuality, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.VideoPlaybackQuality, [])}),
   fields: () => ({
     [dartx.corruptedVideoFrames]: core.int,
     [dartx.creationTime]: core.double,
@@ -91337,7 +86995,6 @@ html$.VideoTrack = class VideoTrack extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.VideoTrack, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.VideoTrack, [])}),
   fields: () => ({
     [dartx.id]: core.String,
     [dartx.kind]: core.String,
@@ -91374,7 +87031,6 @@ html$.VideoTrackList = class VideoTrackList extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.VideoTrackList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.VideoTrackList, [])}),
   fields: () => ({
     [dartx.length]: core.int,
     [dartx.selectedIndex]: core.int
@@ -91383,8 +87039,7 @@ dart.setSignature(html$.VideoTrackList, {
   methods: () => ({
     [__getter__]: dart.definiteFunctionType(html$.VideoTrack, [core.int]),
     [dartx.getTrackById]: dart.definiteFunctionType(html$.VideoTrack, [core.String])
-  }),
-  sfields: () => ({changeEvent: EventStreamProviderOfEvent()})
+  })
 });
 dart.defineLazy(html$.VideoTrackList, {
   get changeEvent() {
@@ -91467,10 +87122,6 @@ html$.VttCue = class VttCue extends html$.TextTrackCue {
   }
 };
 dart.setSignature(html$.VttCue, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.VttCue, []),
-    new: dart.definiteFunctionType(html$.VttCue, [core.num, core.num, core.String])
-  }),
   fields: () => ({
     [dartx.align]: core.String,
     [dartx.line]: core.Object,
@@ -91560,10 +87211,6 @@ html$.VttRegion = class VttRegion extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.VttRegion, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.VttRegion, []),
-    new: dart.definiteFunctionType(html$.VttRegion, [])
-  }),
   fields: () => ({
     [dartx.height]: core.int,
     [dartx.id]: core.String,
@@ -91599,7 +87246,6 @@ html$.VttRegionList = class VttRegionList extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.VttRegionList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.VttRegionList, [])}),
   fields: () => ({[dartx.length]: core.int}),
   methods: () => ({
     [dartx.getRegionById]: dart.definiteFunctionType(html$.VttRegion, [core.String]),
@@ -91698,10 +87344,6 @@ html$.WebSocket = class WebSocket extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.WebSocket, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.WebSocket, []),
-    new: dart.definiteFunctionType(html$.WebSocket, [core.String], [core.Object])
-  }),
   fields: () => ({
     [dartx.binaryType]: core.String,
     [dartx.bufferedAmount]: core.int,
@@ -91724,17 +87366,6 @@ dart.setSignature(html$.WebSocket, {
     [dartx.sendString]: dart.definiteFunctionType(dart.void, [core.String]),
     [dartx.sendTypedData]: dart.definiteFunctionType(dart.void, [typed_data.TypedData])
   }),
-  sfields: () => ({
-    closeEvent: EventStreamProviderOfCloseEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    messageEvent: EventStreamProviderOfMessageEvent(),
-    openEvent: EventStreamProviderOfEvent(),
-    CLOSED: core.int,
-    CLOSING: core.int,
-    CONNECTING: core.int,
-    OPEN: core.int
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.WebSocket, [dart.dynamic, dart.dynamic]),
     _create_2: dart.definiteFunctionType(html$.WebSocket, [dart.dynamic])
@@ -91864,10 +87495,6 @@ html$.WheelEvent = class WheelEvent extends html$.MouseEvent {
   }
 };
 dart.setSignature(html$.WheelEvent, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.WheelEvent, [core.String], {view: html$.Window, deltaX: core.num, deltaY: core.num, deltaZ: core.num, deltaMode: core.int, detail: core.int, screenX: core.int, screenY: core.int, clientX: core.int, clientY: core.int, button: core.int, canBubble: core.bool, cancelable: core.bool, ctrlKey: core.bool, altKey: core.bool, shiftKey: core.bool, metaKey: core.bool, relatedTarget: html$.EventTarget}),
-    _: dart.definiteFunctionType(html$.WheelEvent, [core.String], [core.Map])
-  }),
   fields: () => ({
     [_deltaX]: core.double,
     [_deltaY]: core.double,
@@ -91886,11 +87513,6 @@ dart.setSignature(html$.WheelEvent, {
   methods: () => ({
     [_initMouseScrollEvent]: dart.definiteFunctionType(dart.void, [core.String, core.bool, core.bool, html$.Window, core.int, core.int, core.int, core.int, core.int, core.bool, core.bool, core.bool, core.bool, core.int, html$.EventTarget, core.int]),
     [_initWheelEvent]: dart.definiteFunctionType(dart.void, [core.String, core.bool, core.bool, html$.Window, core.int, core.int, core.int, core.int, core.int, core.int, html$.EventTarget, core.String, core.int, core.int, core.int, core.int])
-  }),
-  sfields: () => ({
-    DOM_DELTA_LINE: core.int,
-    DOM_DELTA_PAGE: core.int,
-    DOM_DELTA_PIXEL: core.int
   }),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$.WheelEvent, [dart.dynamic, dart.dynamic]),
@@ -92824,7 +88446,6 @@ html$.Window = class Window extends html$.EventTarget {
 };
 html$.Window[dart.implements] = () => [html$.WindowEventHandlers, html$.WindowBase, html$.GlobalEventHandlers, html$._WindowTimers, html$.WindowBase64];
 dart.setSignature(html$.Window, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.Window, [])}),
   fields: () => ({
     [dartx.applicationCache]: html$.ApplicationCache,
     [dartx.caches]: html$.CacheStorage,
@@ -93029,30 +88650,7 @@ dart.setSignature(html$.Window, {
     [_setInterval]: dart.definiteFunctionType(core.int, [core.Object], [core.int]),
     [_setTimeout]: dart.definiteFunctionType(core.int, [core.Object], [core.int]),
     [dartx.moveTo]: dart.definiteFunctionType(dart.void, [PointOfnum()])
-  }),
-  sfields: () => ({
-    contentLoadedEvent: EventStreamProviderOfEvent(),
-    deviceMotionEvent: EventStreamProviderOfDeviceMotionEvent(),
-    deviceOrientationEvent: EventStreamProviderOfDeviceOrientationEvent(),
-    hashChangeEvent: EventStreamProviderOfEvent(),
-    loadStartEvent: EventStreamProviderOfEvent(),
-    messageEvent: EventStreamProviderOfMessageEvent(),
-    offlineEvent: EventStreamProviderOfEvent(),
-    onlineEvent: EventStreamProviderOfEvent(),
-    pageHideEvent: EventStreamProviderOfEvent(),
-    pageShowEvent: EventStreamProviderOfEvent(),
-    popStateEvent: EventStreamProviderOfPopStateEvent(),
-    progressEvent: EventStreamProviderOfEvent(),
-    storageEvent: EventStreamProviderOfStorageEvent(),
-    unloadEvent: EventStreamProviderOfEvent(),
-    animationEndEvent: EventStreamProviderOfAnimationEvent(),
-    animationIterationEvent: EventStreamProviderOfAnimationEvent(),
-    animationStartEvent: EventStreamProviderOfAnimationEvent(),
-    PERSISTENT: core.int,
-    TEMPORARY: core.int,
-    beforeUnloadEvent: EventStreamProviderOfBeforeUnloadEvent()
-  }),
-  sgetters: () => ({supportsPointConversions: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 html$.Window.PERSISTENT = 1;
 html$.Window.TEMPORARY = 0;
@@ -93181,7 +88779,6 @@ html$._WrappedEvent = class _WrappedEvent extends core.Object {
 };
 html$._WrappedEvent[dart.implements] = () => [html$.Event];
 dart.setSignature(html$._WrappedEvent, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._WrappedEvent, [html$.Event])}),
   fields: () => ({
     wrapped: html$.Event,
     [_selector]: core.String
@@ -93224,7 +88821,6 @@ html$._BeforeUnloadEvent = class _BeforeUnloadEvent extends html$._WrappedEvent 
 };
 html$._BeforeUnloadEvent[dart.implements] = () => [html$.BeforeUnloadEvent];
 dart.setSignature(html$._BeforeUnloadEvent, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._BeforeUnloadEvent, [html$.Event])}),
   fields: () => ({[_returnValue]: core.String}),
   getters: () => ({returnValue: dart.definiteFunctionType(core.String, [])}),
   setters: () => ({returnValue: dart.definiteFunctionType(dart.void, [core.String])})
@@ -93258,7 +88854,6 @@ html$._BeforeUnloadEventStreamProvider = class _BeforeUnloadEventStreamProvider 
 };
 html$._BeforeUnloadEventStreamProvider[dart.implements] = () => [EventStreamProviderOfBeforeUnloadEvent()];
 dart.setSignature(html$._BeforeUnloadEventStreamProvider, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._BeforeUnloadEventStreamProvider, [core.String])}),
   fields: () => ({[_eventType]: core.String}),
   methods: () => ({
     forTarget: dart.definiteFunctionType(async.Stream$(html$.BeforeUnloadEvent), [html$.EventTarget], {useCapture: core.bool}),
@@ -93272,9 +88867,6 @@ html$.WindowBase64 = class WindowBase64 extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.WindowBase64, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.WindowBase64, [])})
-});
 dart.defineExtensionNames([
   'focus',
   'focused',
@@ -93295,7 +88887,6 @@ html$.WindowClient = class WindowClient extends html$.Client {
   }
 };
 dart.setSignature(html$.WindowClient, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.WindowClient, [])}),
   fields: () => ({
     [dartx.focused]: core.bool,
     [dartx.visibilityState]: core.String
@@ -93339,7 +88930,6 @@ html$.WindowEventHandlers = class WindowEventHandlers extends html$.EventTarget 
   }
 };
 dart.setSignature(html$.WindowEventHandlers, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.WindowEventHandlers, [])}),
   getters: () => ({
     onHashChange: dart.definiteFunctionType(async.Stream$(html$.Event), []),
     onMessage: dart.definiteFunctionType(async.Stream$(html$.MessageEvent), []),
@@ -93348,15 +88938,6 @@ dart.setSignature(html$.WindowEventHandlers, {
     onPopState: dart.definiteFunctionType(async.Stream$(html$.PopStateEvent), []),
     onStorage: dart.definiteFunctionType(async.Stream$(html$.StorageEvent), []),
     onUnload: dart.definiteFunctionType(async.Stream$(html$.Event), [])
-  }),
-  sfields: () => ({
-    hashChangeEvent: EventStreamProviderOfEvent(),
-    messageEvent: EventStreamProviderOfMessageEvent(),
-    offlineEvent: EventStreamProviderOfEvent(),
-    onlineEvent: EventStreamProviderOfEvent(),
-    popStateEvent: EventStreamProviderOfPopStateEvent(),
-    storageEvent: EventStreamProviderOfStorageEvent(),
-    unloadEvent: EventStreamProviderOfEvent()
   })
 });
 dart.defineExtensionMembers(html$.WindowEventHandlers, [
@@ -93439,10 +89020,6 @@ html$.Worker = class Worker extends html$.EventTarget {
 };
 html$.Worker[dart.implements] = () => [html$.AbstractWorker];
 dart.setSignature(html$.Worker, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.Worker, []),
-    new: dart.definiteFunctionType(html$.Worker, [core.String])
-  }),
   getters: () => ({
     [dartx.onError]: dart.definiteFunctionType(async.Stream$(html$.Event), []),
     [dartx.onMessage]: dart.definiteFunctionType(async.Stream$(html$.MessageEvent), [])
@@ -93453,11 +89030,6 @@ dart.setSignature(html$.Worker, {
     [_postMessage_2]: dart.definiteFunctionType(dart.void, [dart.dynamic]),
     [dartx.terminate]: dart.definiteFunctionType(dart.void, [])
   }),
-  sfields: () => ({
-    errorEvent: EventStreamProviderOfEvent(),
-    messageEvent: EventStreamProviderOfMessageEvent()
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({_create_1: dart.definiteFunctionType(html$.Worker, [dart.dynamic])}),
   names: ['_create_1']
 });
@@ -93475,9 +89047,6 @@ html$.WorkerConsole = class WorkerConsole extends html$.ConsoleBase {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.WorkerConsole, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.WorkerConsole, [])})
-});
 dart.registerExtension(dart.global.WorkerConsole, html$.WorkerConsole);
 dart.defineExtensionNames([
   'clearMarks',
@@ -93531,7 +89100,6 @@ html$.WorkerPerformance = class WorkerPerformance extends html$.EventTarget {
   }
 };
 dart.setSignature(html$.WorkerPerformance, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.WorkerPerformance, [])}),
   fields: () => ({[dartx.memory]: html$.MemoryInfo}),
   methods: () => ({
     [dartx.clearMarks]: dart.definiteFunctionType(dart.void, [core.String]),
@@ -93573,10 +89141,6 @@ html$.XPathEvaluator = class XPathEvaluator extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.XPathEvaluator, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.XPathEvaluator, []),
-    new: dart.definiteFunctionType(html$.XPathEvaluator, [])
-  }),
   methods: () => ({
     [dartx.createExpression]: dart.definiteFunctionType(html$.XPathExpression, [core.String, html$.XPathNSResolver]),
     [dartx.createNSResolver]: dart.definiteFunctionType(html$.XPathNSResolver, [html$.Node]),
@@ -93598,7 +89162,6 @@ html$.XPathExpression = class XPathExpression extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(html$.XPathExpression, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.XPathExpression, [])}),
   methods: () => ({[dartx.evaluate]: dart.definiteFunctionType(html$.XPathResult, [html$.Node], [core.int, core.Object])})
 });
 dart.registerExtension(dart.global.XPathExpression, html$.XPathExpression);
@@ -93614,7 +89177,6 @@ html$.XPathNSResolver = class XPathNSResolver extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(html$.XPathNSResolver, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.XPathNSResolver, [])}),
   methods: () => ({[dartx.lookupNamespaceUri]: dart.definiteFunctionType(core.String, [core.String])})
 });
 dart.registerExtension(dart.global.XPathNSResolver, html$.XPathNSResolver);
@@ -93662,7 +89224,6 @@ html$.XPathResult = class XPathResult extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.XPathResult, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.XPathResult, [])}),
   fields: () => ({
     [dartx.booleanValue]: core.bool,
     [dartx.invalidIteratorState]: core.bool,
@@ -93675,18 +89236,6 @@ dart.setSignature(html$.XPathResult, {
   methods: () => ({
     [dartx.iterateNext]: dart.definiteFunctionType(html$.Node, []),
     [dartx.snapshotItem]: dart.definiteFunctionType(html$.Node, [core.int])
-  }),
-  sfields: () => ({
-    ANY_TYPE: core.int,
-    ANY_UNORDERED_NODE_TYPE: core.int,
-    BOOLEAN_TYPE: core.int,
-    FIRST_ORDERED_NODE_TYPE: core.int,
-    NUMBER_TYPE: core.int,
-    ORDERED_NODE_ITERATOR_TYPE: core.int,
-    ORDERED_NODE_SNAPSHOT_TYPE: core.int,
-    STRING_TYPE: core.int,
-    UNORDERED_NODE_ITERATOR_TYPE: core.int,
-    UNORDERED_NODE_SNAPSHOT_TYPE: core.int
   })
 });
 html$.XPathResult.ANY_TYPE = 0;
@@ -93705,9 +89254,6 @@ html$.XmlDocument = class XmlDocument extends html$.Document {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$.XmlDocument, {
-  constructors: () => ({_: dart.definiteFunctionType(html$.XmlDocument, [])})
-});
 dart.registerExtension(dart.global.XMLDocument, html$.XmlDocument);
 dart.defineExtensionNames([
   'serializeToString'
@@ -93727,10 +89273,6 @@ html$.XmlSerializer = class XmlSerializer extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.XmlSerializer, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.XmlSerializer, []),
-    new: dart.definiteFunctionType(html$.XmlSerializer, [])
-  }),
   methods: () => ({[dartx.serializeToString]: dart.definiteFunctionType(core.String, [html$.Node])}),
   statics: () => ({_create_1: dart.definiteFunctionType(html$.XmlSerializer, [])}),
   names: ['_create_1']
@@ -93785,10 +89327,6 @@ html$.XsltProcessor = class XsltProcessor extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(html$.XsltProcessor, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$.XsltProcessor, []),
-    new: dart.definiteFunctionType(html$.XsltProcessor, [])
-  }),
   methods: () => ({
     [dartx.clearParameters]: dart.definiteFunctionType(dart.void, []),
     [dartx.getParameter]: dart.definiteFunctionType(core.String, [core.String, core.String]),
@@ -93799,7 +89337,6 @@ dart.setSignature(html$.XsltProcessor, {
     [dartx.transformToDocument]: dart.definiteFunctionType(html$.Document, [html$.Node]),
     [dartx.transformToFragment]: dart.definiteFunctionType(html$.DocumentFragment, [html$.Node, html$.Document])
   }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({_create_1: dart.definiteFunctionType(html$.XsltProcessor, [])}),
   names: ['_create_1']
 });
@@ -93823,7 +89360,6 @@ html$._Attr = class _Attr extends html$.Node {
   }
 };
 dart.setSignature(html$._Attr, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._Attr, [])}),
   fields: () => ({
     [dartx.name]: core.String,
     [dartx.value]: core.String
@@ -93835,18 +89371,12 @@ html$._Cache = class _Cache extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._Cache, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._Cache, [])})
-});
 dart.registerExtension(dart.global.Cache, html$._Cache);
 html$._CanvasPathMethods = class _CanvasPathMethods extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._CanvasPathMethods, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._CanvasPathMethods, [])})
-});
 dart.defineExtensionNames([
   'toString',
   '==',
@@ -93942,7 +89472,6 @@ html$._ClientRect = class _ClientRect extends _interceptors.Interceptor {
 };
 html$._ClientRect[dart.implements] = () => [RectangleOfnum()];
 dart.setSignature(html$._ClientRect, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._ClientRect, [])}),
   fields: () => ({
     [dartx.bottom]: core.double,
     [dartx.height]: core.double,
@@ -94055,7 +89584,6 @@ html$._ClientRectList = class _ClientRectList extends dart.mixin(_interceptors.I
 };
 html$._ClientRectList[dart.implements] = () => [ListOfRectangleOfnum()];
 dart.setSignature(html$._ClientRectList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._ClientRectList, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -94126,7 +89654,6 @@ html$._CssRuleList = class _CssRuleList extends dart.mixin(_interceptors.Interce
 };
 html$._CssRuleList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfCssRule()];
 dart.setSignature(html$._CssRuleList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._CssRuleList, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -94141,36 +89668,24 @@ html$._DOMFileSystemSync = class _DOMFileSystemSync extends _interceptors.Interc
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._DOMFileSystemSync, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._DOMFileSystemSync, [])})
-});
 dart.registerExtension(dart.global.DOMFileSystemSync, html$._DOMFileSystemSync);
 html$._EntrySync = class _EntrySync extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._EntrySync, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._EntrySync, [])})
-});
 dart.registerExtension(dart.global.EntrySync, html$._EntrySync);
 html$._DirectoryEntrySync = class _DirectoryEntrySync extends html$._EntrySync {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._DirectoryEntrySync, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._DirectoryEntrySync, [])})
-});
 dart.registerExtension(dart.global.DirectoryEntrySync, html$._DirectoryEntrySync);
 html$._DirectoryReaderSync = class _DirectoryReaderSync extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._DirectoryReaderSync, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._DirectoryReaderSync, [])})
-});
 dart.registerExtension(dart.global.DirectoryReaderSync, html$._DirectoryReaderSync);
 html$._DocumentType = class _DocumentType extends html$.Node {
   static _() {
@@ -94178,9 +89693,6 @@ html$._DocumentType = class _DocumentType extends html$.Node {
   }
 };
 html$._DocumentType[dart.implements] = () => [html$.ChildNode];
-dart.setSignature(html$._DocumentType, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._DocumentType, [])})
-});
 dart.registerExtension(dart.global.DocumentType, html$._DocumentType);
 dart.defineExtensionNames([
   'height',
@@ -94256,10 +89768,6 @@ html$._DomRect = class _DomRect extends html$.DomRectReadOnly {
   }
 };
 dart.setSignature(html$._DomRect, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$._DomRect, []),
-    new: dart.definiteFunctionType(html$._DomRect, [], [core.num, core.num, core.num, core.num])
-  }),
   setters: () => ({
     [dartx.height]: dart.definiteFunctionType(dart.void, [core.num]),
     [dartx.width]: dart.definiteFunctionType(dart.void, [core.num]),
@@ -94281,9 +89789,6 @@ html$._FileEntrySync = class _FileEntrySync extends html$._EntrySync {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._FileEntrySync, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._FileEntrySync, [])})
-});
 dart.registerExtension(dart.global.FileEntrySync, html$._FileEntrySync);
 html$._FileReaderSync = class _FileReaderSync extends _interceptors.Interceptor {
   static _() {
@@ -94297,10 +89802,6 @@ html$._FileReaderSync = class _FileReaderSync extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(html$._FileReaderSync, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$._FileReaderSync, []),
-    new: dart.definiteFunctionType(html$._FileReaderSync, [])
-  }),
   statics: () => ({_create_1: dart.definiteFunctionType(html$._FileReaderSync, [])}),
   names: ['_create_1']
 });
@@ -94310,9 +89811,6 @@ html$._FileWriterSync = class _FileWriterSync extends _interceptors.Interceptor 
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._FileWriterSync, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._FileWriterSync, [])})
-});
 dart.registerExtension(dart.global.FileWriterSync, html$._FileWriterSync);
 dart.defineExtensionNames([
   'length',
@@ -94373,7 +89871,6 @@ html$._GamepadList = class _GamepadList extends dart.mixin(_interceptors.Interce
 };
 html$._GamepadList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfGamepad()];
 dart.setSignature(html$._GamepadList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._GamepadList, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -94392,7 +89889,6 @@ html$._HTMLAllCollection = class _HTMLAllCollection extends _interceptors.Interc
   }
 };
 dart.setSignature(html$._HTMLAllCollection, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._HTMLAllCollection, [])}),
   methods: () => ({[_item]: dart.definiteFunctionType(html$.Element, [core.int])})
 });
 dart.registerExtension(dart.global.HTMLAllCollection, html$._HTMLAllCollection);
@@ -94405,12 +89901,6 @@ html$._HTMLAppletElement = class _HTMLAppletElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$._HTMLAppletElement, 'created');
-dart.setSignature(html$._HTMLAppletElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$._HTMLAppletElement, []),
-    created: dart.definiteFunctionType(html$._HTMLAppletElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLAppletElement, html$._HTMLAppletElement);
 html$._HTMLDirectoryElement = class _HTMLDirectoryElement extends html$.HtmlElement {
   static _() {
@@ -94421,12 +89911,6 @@ html$._HTMLDirectoryElement = class _HTMLDirectoryElement extends html$.HtmlElem
   }
 };
 dart.defineNamedConstructor(html$._HTMLDirectoryElement, 'created');
-dart.setSignature(html$._HTMLDirectoryElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$._HTMLDirectoryElement, []),
-    created: dart.definiteFunctionType(html$._HTMLDirectoryElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLDirectoryElement, html$._HTMLDirectoryElement);
 html$._HTMLFontElement = class _HTMLFontElement extends html$.HtmlElement {
   static _() {
@@ -94437,12 +89921,6 @@ html$._HTMLFontElement = class _HTMLFontElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$._HTMLFontElement, 'created');
-dart.setSignature(html$._HTMLFontElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$._HTMLFontElement, []),
-    created: dart.definiteFunctionType(html$._HTMLFontElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLFontElement, html$._HTMLFontElement);
 html$._HTMLFrameElement = class _HTMLFrameElement extends html$.HtmlElement {
   static _() {
@@ -94453,12 +89931,6 @@ html$._HTMLFrameElement = class _HTMLFrameElement extends html$.HtmlElement {
   }
 };
 dart.defineNamedConstructor(html$._HTMLFrameElement, 'created');
-dart.setSignature(html$._HTMLFrameElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$._HTMLFrameElement, []),
-    created: dart.definiteFunctionType(html$._HTMLFrameElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLFrameElement, html$._HTMLFrameElement);
 html$._HTMLFrameSetElement = class _HTMLFrameSetElement extends html$.HtmlElement {
   static _() {
@@ -94470,12 +89942,6 @@ html$._HTMLFrameSetElement = class _HTMLFrameSetElement extends html$.HtmlElemen
 };
 dart.defineNamedConstructor(html$._HTMLFrameSetElement, 'created');
 html$._HTMLFrameSetElement[dart.implements] = () => [html$.WindowEventHandlers];
-dart.setSignature(html$._HTMLFrameSetElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$._HTMLFrameSetElement, []),
-    created: dart.definiteFunctionType(html$._HTMLFrameSetElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLFrameSetElement, html$._HTMLFrameSetElement);
 html$._HTMLMarqueeElement = class _HTMLMarqueeElement extends html$.HtmlElement {
   static _() {
@@ -94486,12 +89952,6 @@ html$._HTMLMarqueeElement = class _HTMLMarqueeElement extends html$.HtmlElement 
   }
 };
 dart.defineNamedConstructor(html$._HTMLMarqueeElement, 'created');
-dart.setSignature(html$._HTMLMarqueeElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$._HTMLMarqueeElement, []),
-    created: dart.definiteFunctionType(html$._HTMLMarqueeElement, [])
-  })
-});
 dart.registerExtension(dart.global.HTMLMarqueeElement, html$._HTMLMarqueeElement);
 dart.defineExtensionNames([
   'length',
@@ -94576,7 +90036,6 @@ html$._NamedNodeMap = class _NamedNodeMap extends dart.mixin(_interceptors.Inter
 };
 html$._NamedNodeMap[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfNode()];
 dart.setSignature(html$._NamedNodeMap, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._NamedNodeMap, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -94598,9 +90057,6 @@ html$._PagePopupController = class _PagePopupController extends _interceptors.In
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._PagePopupController, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._PagePopupController, [])})
-});
 dart.registerExtension(dart.global.PagePopupController, html$._PagePopupController);
 dart.defineExtensionNames([
   'clone',
@@ -94652,10 +90108,6 @@ html$._Request = class _Request extends html$.Body {
   }
 };
 dart.setSignature(html$._Request, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$._Request, []),
-    new: dart.definiteFunctionType(html$._Request, [core.Object], [core.Map])
-  }),
   fields: () => ({
     [dartx.context]: core.String,
     [dartx.credentials]: core.String,
@@ -94699,10 +90151,6 @@ html$._Response = class _Response extends html$.Body {
   }
 };
 dart.setSignature(html$._Response, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$._Response, []),
-    new: dart.definiteFunctionType(html$._Response, [], [core.Object, core.Map])
-  }),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$._Response, [dart.dynamic, dart.dynamic]),
     _create_2: dart.definiteFunctionType(html$._Response, [dart.dynamic]),
@@ -94717,9 +90165,6 @@ html$._ServiceWorker = class _ServiceWorker extends html$.EventTarget {
   }
 };
 html$._ServiceWorker[dart.implements] = () => [html$.AbstractWorker];
-dart.setSignature(html$._ServiceWorker, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._ServiceWorker, [])})
-});
 dart.registerExtension(dart.global.ServiceWorker, html$._ServiceWorker);
 dart.defineExtensionNames([
   'length',
@@ -94780,7 +90225,6 @@ html$._SpeechRecognitionResultList = class _SpeechRecognitionResultList extends 
 };
 html$._SpeechRecognitionResultList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfSpeechRecognitionResult()];
 dart.setSignature(html$._SpeechRecognitionResultList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._SpeechRecognitionResultList, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -94852,7 +90296,6 @@ html$._StyleSheetList = class _StyleSheetList extends dart.mixin(_interceptors.I
 };
 html$._StyleSheetList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfStyleSheet()];
 dart.setSignature(html$._StyleSheetList, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._StyleSheetList, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -94868,9 +90311,6 @@ html$._SubtleCrypto = class _SubtleCrypto extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._SubtleCrypto, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._SubtleCrypto, [])})
-});
 dart.registerExtension(dart.global.SubtleCrypto, html$._SubtleCrypto);
 html$._WebKitCSSMatrix = class _WebKitCSSMatrix extends _interceptors.Interceptor {
   static _() {
@@ -94891,10 +90331,6 @@ html$._WebKitCSSMatrix = class _WebKitCSSMatrix extends _interceptors.Intercepto
   }
 };
 dart.setSignature(html$._WebKitCSSMatrix, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(html$._WebKitCSSMatrix, []),
-    new: dart.definiteFunctionType(html$._WebKitCSSMatrix, [], [core.String])
-  }),
   statics: () => ({
     _create_1: dart.definiteFunctionType(html$._WebKitCSSMatrix, [dart.dynamic]),
     _create_2: dart.definiteFunctionType(html$._WebKitCSSMatrix, [])
@@ -94907,18 +90343,12 @@ html$._WindowTimers = class _WindowTimers extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._WindowTimers, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._WindowTimers, [])})
-});
 html$._WorkerLocation = class _WorkerLocation extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
 html$._WorkerLocation[dart.implements] = () => [html$.UrlUtilsReadOnly];
-dart.setSignature(html$._WorkerLocation, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._WorkerLocation, [])})
-});
 dart.registerExtension(dart.global.WorkerLocation, html$._WorkerLocation);
 html$._WorkerNavigator = class _WorkerNavigator extends _interceptors.Interceptor {
   static _() {
@@ -94926,18 +90356,12 @@ html$._WorkerNavigator = class _WorkerNavigator extends _interceptors.Intercepto
   }
 };
 html$._WorkerNavigator[dart.implements] = () => [html$.NavigatorCpu, html$.NavigatorOnLine, html$.NavigatorID];
-dart.setSignature(html$._WorkerNavigator, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._WorkerNavigator, [])})
-});
 dart.registerExtension(dart.global.WorkerNavigator, html$._WorkerNavigator);
 html$._XMLHttpRequestProgressEvent = class _XMLHttpRequestProgressEvent extends html$.ProgressEvent {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(html$._XMLHttpRequestProgressEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(html$._XMLHttpRequestProgressEvent, [])})
-});
 dart.registerExtension(dart.global.XMLHttpRequestProgressEvent, html$._XMLHttpRequestProgressEvent);
 const _matches = Symbol('_matches');
 html$._AttributeMap = class _AttributeMap extends core.Object {
@@ -95005,7 +90429,6 @@ html$._AttributeMap = class _AttributeMap extends core.Object {
 };
 html$._AttributeMap[dart.implements] = () => [MapOfString$String()];
 dart.setSignature(html$._AttributeMap, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._AttributeMap, [html$.Element])}),
   fields: () => ({[_element$]: html$.Element}),
   getters: () => ({
     keys: dart.definiteFunctionType(core.Iterable$(core.String), []),
@@ -95059,7 +90482,6 @@ html$._ElementAttributeMap = class _ElementAttributeMap extends html$._Attribute
   }
 };
 dart.setSignature(html$._ElementAttributeMap, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._ElementAttributeMap, [html$.Element])}),
   getters: () => ({length: dart.definiteFunctionType(core.int, [])}),
   methods: () => ({
     containsKey: dart.definiteFunctionType(core.bool, [core.Object]),
@@ -95105,7 +90527,6 @@ html$._NamespacedAttributeMap = class _NamespacedAttributeMap extends html$._Att
   }
 };
 dart.setSignature(html$._NamespacedAttributeMap, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._NamespacedAttributeMap, [html$.Element, core.String])}),
   fields: () => ({[_namespace]: core.String}),
   getters: () => ({length: dart.definiteFunctionType(core.int, [])}),
   methods: () => ({
@@ -95227,7 +90648,6 @@ html$._DataAttributeMap = class _DataAttributeMap extends core.Object {
 };
 html$._DataAttributeMap[dart.implements] = () => [MapOfString$String()];
 dart.setSignature(html$._DataAttributeMap, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._DataAttributeMap, [MapOfString$String()])}),
   fields: () => ({[_attributes$]: MapOfString$String()}),
   getters: () => ({
     keys: dart.definiteFunctionType(core.Iterable$(core.String), []),
@@ -95362,7 +90782,6 @@ html$.CssRect = class CssRect extends core.Object {
 };
 html$.CssRect[dart.implements] = () => [RectangleOfnum()];
 dart.setSignature(html$.CssRect, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.CssRect, [html$.Element])}),
   fields: () => ({[_element$]: html$.Element}),
   getters: () => ({
     right: dart.definiteFunctionType(core.num, []),
@@ -95441,7 +90860,6 @@ html$._ContentCssRect = class _ContentCssRect extends html$.CssRect {
   }
 };
 dart.setSignature(html$._ContentCssRect, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._ContentCssRect, [html$.Element])}),
   getters: () => ({
     height: dart.definiteFunctionType(core.num, []),
     width: dart.definiteFunctionType(core.num, []),
@@ -95471,7 +90889,6 @@ html$._ContentCssListRect = class _ContentCssListRect extends html$._ContentCssR
   }
 };
 dart.setSignature(html$._ContentCssListRect, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._ContentCssListRect, [ListOfElement()])}),
   fields: () => ({[_elementList]: ListOfElement()})
 });
 html$._PaddingCssRect = class _PaddingCssRect extends html$.CssRect {
@@ -95498,7 +90915,6 @@ html$._PaddingCssRect = class _PaddingCssRect extends html$.CssRect {
   }
 };
 dart.setSignature(html$._PaddingCssRect, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._PaddingCssRect, [dart.dynamic])}),
   getters: () => ({
     height: dart.definiteFunctionType(core.num, []),
     width: dart.definiteFunctionType(core.num, []),
@@ -95531,7 +90947,6 @@ html$._BorderCssRect = class _BorderCssRect extends html$.CssRect {
   }
 };
 dart.setSignature(html$._BorderCssRect, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._BorderCssRect, [dart.dynamic])}),
   getters: () => ({
     height: dart.definiteFunctionType(core.num, []),
     width: dart.definiteFunctionType(core.num, []),
@@ -95564,7 +90979,6 @@ html$._MarginCssRect = class _MarginCssRect extends html$.CssRect {
   }
 };
 dart.setSignature(html$._MarginCssRect, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._MarginCssRect, [dart.dynamic])}),
   getters: () => ({
     height: dart.definiteFunctionType(core.num, []),
     width: dart.definiteFunctionType(core.num, []),
@@ -95816,8 +91230,7 @@ dart.setSignature(html_common.CssClassSetImpl, {
     elementAt: dart.definiteFunctionType(core.String, [core.int]),
     clear: dart.definiteFunctionType(dart.void, []),
     modify: dart.definiteFunctionType(dart.dynamic, [SetOfStringTodynamic()])
-  }),
-  sfields: () => ({_validTokenRE: core.RegExp})
+  })
 });
 dart.defineExtensionMembers(html_common.CssClassSetImpl, [
   'toString',
@@ -95886,10 +91299,6 @@ html$._MultiElementCssClassSet = class _MultiElementCssClassSet extends html_com
 };
 dart.defineNamedConstructor(html$._MultiElementCssClassSet, '_');
 dart.setSignature(html$._MultiElementCssClassSet, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$._MultiElementCssClassSet, [IterableOfElement()]),
-    _: dart.definiteFunctionType(html$._MultiElementCssClassSet, [IterableOfElement(), ListOfCssClassSetImpl()])
-  }),
   fields: () => ({
     [_elementIterable]: IterableOfElement(),
     [_sets]: ListOfCssClassSetImpl()
@@ -96039,7 +91448,6 @@ html$._ElementCssClassSet = class _ElementCssClassSet extends html_common.CssCla
   }
 };
 dart.setSignature(html$._ElementCssClassSet, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._ElementCssClassSet, [html$.Element])}),
   fields: () => ({[_element$]: html$.Element}),
   methods: () => ({
     readClasses: dart.definiteFunctionType(core.Set$(core.String), []),
@@ -96138,18 +91546,6 @@ dart.defineNamedConstructor(html$.Dimension, 'em');
 dart.defineNamedConstructor(html$.Dimension, 'ex');
 dart.defineNamedConstructor(html$.Dimension, 'css');
 dart.setSignature(html$.Dimension, {
-  constructors: () => ({
-    percent: dart.definiteFunctionType(html$.Dimension, [core.num]),
-    px: dart.definiteFunctionType(html$.Dimension, [core.num]),
-    pc: dart.definiteFunctionType(html$.Dimension, [core.num]),
-    pt: dart.definiteFunctionType(html$.Dimension, [core.num]),
-    inch: dart.definiteFunctionType(html$.Dimension, [core.num]),
-    cm: dart.definiteFunctionType(html$.Dimension, [core.num]),
-    mm: dart.definiteFunctionType(html$.Dimension, [core.num]),
-    em: dart.definiteFunctionType(html$.Dimension, [core.num]),
-    ex: dart.definiteFunctionType(html$.Dimension, [core.num]),
-    css: dart.definiteFunctionType(html$.Dimension, [core.String])
-  }),
   fields: () => ({
     [_value$2]: core.num,
     [_unit]: core.String
@@ -96183,7 +91579,6 @@ html$.EventStreamProvider$ = dart.generic(T => {
   }
   dart.addTypeTests(EventStreamProvider);
   dart.setSignature(EventStreamProvider, {
-    constructors: () => ({new: dart.definiteFunctionType(html$.EventStreamProvider$(T), [core.String])}),
     fields: () => ({[_eventType]: core.String}),
     methods: () => ({
       forTarget: dart.definiteFunctionType(async.Stream$(T), [html$.EventTarget], {useCapture: core.bool}),
@@ -96233,7 +91628,6 @@ html$._EventStream$ = dart.generic(T => {
     }
   }
   dart.setSignature(_EventStream, {
-    constructors: () => ({new: dart.definiteFunctionType(html$._EventStream$(T), [html$.EventTarget, core.String, core.bool])}),
     fields: () => ({
       [_target$0]: html$.EventTarget,
       [_eventType]: core.String,
@@ -96271,7 +91665,6 @@ html$._ElementEventStreamImpl$ = dart.generic(T => {
   }
   _ElementEventStreamImpl[dart.implements] = () => [ElementStreamOfT()];
   dart.setSignature(_ElementEventStreamImpl, {
-    constructors: () => ({new: dart.definiteFunctionType(html$._ElementEventStreamImpl$(T), [dart.dynamic, dart.dynamic, dart.dynamic])}),
     methods: () => ({
       matches: dart.definiteFunctionType(async.Stream$(T), [core.String]),
       capture: dart.definiteFunctionType(async.StreamSubscription$(T), [TTovoid()])
@@ -96331,7 +91724,6 @@ html$._ElementListEventStreamImpl$ = dart.generic(T => {
   }
   _ElementListEventStreamImpl[dart.implements] = () => [ElementStreamOfT()];
   dart.setSignature(_ElementListEventStreamImpl, {
-    constructors: () => ({new: dart.definiteFunctionType(html$._ElementListEventStreamImpl$(T), [IterableOfElement(), core.String, core.bool])}),
     fields: () => ({
       [_targetList]: IterableOfElement(),
       [_useCapture]: core.bool,
@@ -96423,7 +91815,6 @@ html$._EventStreamSubscription$ = dart.generic(T => {
     }
   }
   dart.setSignature(_EventStreamSubscription, {
-    constructors: () => ({new: dart.definiteFunctionType(html$._EventStreamSubscription$(T), [html$.EventTarget, core.String, TTovoid(), core.bool])}),
     fields: () => ({
       [_pauseCount$0]: core.int,
       [_target$0]: html$.EventTarget,
@@ -96495,7 +91886,6 @@ html$._CustomEventStreamImpl$ = dart.generic(T => {
   }
   _CustomEventStreamImpl[dart.implements] = () => [CustomStreamOfT()];
   dart.setSignature(_CustomEventStreamImpl, {
-    constructors: () => ({new: dart.definiteFunctionType(html$._CustomEventStreamImpl$(T), [core.String])}),
     fields: () => ({
       [_streamController]: StreamControllerOfT(),
       [_type$]: core.String
@@ -96693,10 +92083,6 @@ html$.KeyEvent = class KeyEvent extends html$._WrappedEvent {
 dart.defineNamedConstructor(html$.KeyEvent, 'wrap');
 html$.KeyEvent[dart.implements] = () => [html$.KeyboardEvent];
 dart.setSignature(html$.KeyEvent, {
-  constructors: () => ({
-    wrap: dart.definiteFunctionType(html$.KeyEvent, [html$.KeyboardEvent]),
-    new: dart.definiteFunctionType(html$.KeyEvent, [core.String], {view: html$.Window, canBubble: core.bool, cancelable: core.bool, keyCode: core.int, charCode: core.int, keyLocation: core.int, ctrlKey: core.bool, altKey: core.bool, shiftKey: core.bool, metaKey: core.bool, currentTarget: html$.EventTarget})
-  }),
   fields: () => ({
     [_parent$]: html$.KeyboardEvent,
     [_shadowAltKey]: core.bool,
@@ -96735,13 +92121,6 @@ dart.setSignature(html$.KeyEvent, {
     [_initKeyboardEvent]: dart.definiteFunctionType(dart.void, [core.String, core.bool, core.bool, html$.Window, core.String, core.int, core.bool, core.bool, core.bool, core.bool]),
     getModifierState: dart.definiteFunctionType(core.bool, [core.String])
   }),
-  sfields: () => ({
-    _keyboardEventDispatchRecord: dart.dynamic,
-    keyDownEvent: EventStreamProviderOfKeyEvent(),
-    keyUpEvent: EventStreamProviderOfKeyEvent(),
-    keyPressEvent: EventStreamProviderOfKeyEvent()
-  }),
-  sgetters: () => ({canUseDispatchEvent: dart.definiteFunctionType(core.bool, [])}),
   statics: () => ({
     _makeRecord: dart.definiteFunctionType(dart.dynamic, []),
     _convertToHexString: dart.definiteFunctionType(core.String, [core.int, core.int])
@@ -96778,9 +92157,6 @@ html$._CustomKeyEventStreamImpl = class _CustomKeyEventStreamImpl extends html$.
 };
 dart.addSimpleTypeTests(html$._CustomKeyEventStreamImpl);
 html$._CustomKeyEventStreamImpl[dart.implements] = () => [CustomStreamOfKeyEvent()];
-dart.setSignature(html$._CustomKeyEventStreamImpl, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._CustomKeyEventStreamImpl, [core.String])})
-});
 const _subscriptions = Symbol('_subscriptions');
 const _controller$1 = Symbol('_controller');
 html$._StreamPool$ = dart.generic(T => {
@@ -96818,7 +92194,6 @@ html$._StreamPool$ = dart.generic(T => {
   dart.addTypeTests(_StreamPool);
   dart.defineNamedConstructor(_StreamPool, 'broadcast');
   dart.setSignature(_StreamPool, {
-    constructors: () => ({broadcast: dart.definiteFunctionType(html$._StreamPool$(T), [])}),
     fields: () => ({
       [_controller$1]: StreamControllerOfT(),
       [_subscriptions]: MapOfStreamOfT$StreamSubscriptionOfT()
@@ -96865,7 +92240,6 @@ html$._CustomEventStreamProvider$ = dart.generic(T => {
   dart.addTypeTests(_CustomEventStreamProvider);
   _CustomEventStreamProvider[dart.implements] = () => [EventStreamProviderOfT()];
   dart.setSignature(_CustomEventStreamProvider, {
-    constructors: () => ({new: dart.definiteFunctionType(html$._CustomEventStreamProvider$(T), [dart.dynamic])}),
     fields: () => ({[_eventTypeGetter]: dart.dynamic}),
     getters: () => ({[_eventType]: dart.definiteFunctionType(core.String, [])}),
     methods: () => ({
@@ -96914,17 +92288,10 @@ html$._Html5NodeValidator = class _Html5NodeValidator extends core.Object {
 };
 html$._Html5NodeValidator[dart.implements] = () => [html$.NodeValidator];
 dart.setSignature(html$._Html5NodeValidator, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._Html5NodeValidator, [], {uriPolicy: html$.UriPolicy})}),
   fields: () => ({uriPolicy: html$.UriPolicy}),
   methods: () => ({
     allowsElement: dart.definiteFunctionType(core.bool, [html$.Element]),
     allowsAttribute: dart.definiteFunctionType(core.bool, [html$.Element, core.String, core.String])
-  }),
-  sfields: () => ({
-    _allowedElements: SetOfString(),
-    _standardAttributes: ListOfString(),
-    _uriAttributes: ListOfString(),
-    _attributeValidators: MapOfString$Function()
   }),
   statics: () => ({
     _standardAttributeValidator: dart.definiteFunctionType(core.bool, [html$.Element, core.String, core.String, html$._Html5NodeValidator]),
@@ -97114,132 +92481,6 @@ html$.KeyCode = class KeyCode extends core.Object {
   }
 };
 dart.setSignature(html$.KeyCode, {
-  sfields: () => ({
-    WIN_KEY_FF_LINUX: core.int,
-    MAC_ENTER: core.int,
-    BACKSPACE: core.int,
-    TAB: core.int,
-    NUM_CENTER: core.int,
-    ENTER: core.int,
-    SHIFT: core.int,
-    CTRL: core.int,
-    ALT: core.int,
-    PAUSE: core.int,
-    CAPS_LOCK: core.int,
-    ESC: core.int,
-    SPACE: core.int,
-    PAGE_UP: core.int,
-    PAGE_DOWN: core.int,
-    END: core.int,
-    HOME: core.int,
-    LEFT: core.int,
-    UP: core.int,
-    RIGHT: core.int,
-    DOWN: core.int,
-    NUM_NORTH_EAST: core.int,
-    NUM_SOUTH_EAST: core.int,
-    NUM_SOUTH_WEST: core.int,
-    NUM_NORTH_WEST: core.int,
-    NUM_WEST: core.int,
-    NUM_NORTH: core.int,
-    NUM_EAST: core.int,
-    NUM_SOUTH: core.int,
-    PRINT_SCREEN: core.int,
-    INSERT: core.int,
-    NUM_INSERT: core.int,
-    DELETE: core.int,
-    NUM_DELETE: core.int,
-    ZERO: core.int,
-    ONE: core.int,
-    TWO: core.int,
-    THREE: core.int,
-    FOUR: core.int,
-    FIVE: core.int,
-    SIX: core.int,
-    SEVEN: core.int,
-    EIGHT: core.int,
-    NINE: core.int,
-    FF_SEMICOLON: core.int,
-    FF_EQUALS: core.int,
-    QUESTION_MARK: core.int,
-    A: core.int,
-    B: core.int,
-    C: core.int,
-    D: core.int,
-    E: core.int,
-    F: core.int,
-    G: core.int,
-    H: core.int,
-    I: core.int,
-    J: core.int,
-    K: core.int,
-    L: core.int,
-    M: core.int,
-    N: core.int,
-    O: core.int,
-    P: core.int,
-    Q: core.int,
-    R: core.int,
-    S: core.int,
-    T: core.int,
-    U: core.int,
-    V: core.int,
-    W: core.int,
-    X: core.int,
-    Y: core.int,
-    Z: core.int,
-    META: core.int,
-    WIN_KEY_LEFT: core.int,
-    WIN_KEY_RIGHT: core.int,
-    CONTEXT_MENU: core.int,
-    NUM_ZERO: core.int,
-    NUM_ONE: core.int,
-    NUM_TWO: core.int,
-    NUM_THREE: core.int,
-    NUM_FOUR: core.int,
-    NUM_FIVE: core.int,
-    NUM_SIX: core.int,
-    NUM_SEVEN: core.int,
-    NUM_EIGHT: core.int,
-    NUM_NINE: core.int,
-    NUM_MULTIPLY: core.int,
-    NUM_PLUS: core.int,
-    NUM_MINUS: core.int,
-    NUM_PERIOD: core.int,
-    NUM_DIVISION: core.int,
-    F1: core.int,
-    F2: core.int,
-    F3: core.int,
-    F4: core.int,
-    F5: core.int,
-    F6: core.int,
-    F7: core.int,
-    F8: core.int,
-    F9: core.int,
-    F10: core.int,
-    F11: core.int,
-    F12: core.int,
-    NUMLOCK: core.int,
-    SCROLL_LOCK: core.int,
-    FIRST_MEDIA_KEY: core.int,
-    LAST_MEDIA_KEY: core.int,
-    SEMICOLON: core.int,
-    DASH: core.int,
-    EQUALS: core.int,
-    COMMA: core.int,
-    PERIOD: core.int,
-    SLASH: core.int,
-    APOSTROPHE: core.int,
-    TILDE: core.int,
-    SINGLE_QUOTE: core.int,
-    OPEN_SQUARE_BRACKET: core.int,
-    BACKSLASH: core.int,
-    CLOSE_SQUARE_BRACKET: core.int,
-    WIN_KEY: core.int,
-    MAC_FF_META: core.int,
-    WIN_IME: core.int,
-    UNKNOWN: core.int
-  }),
   statics: () => ({
     isCharacterKey: dart.definiteFunctionType(core.bool, [core.int]),
     _convertKeyCodeToKeyName: dart.definiteFunctionType(core.String, [core.int])
@@ -97371,16 +92612,6 @@ html$.KeyCode.MAC_FF_META = 224;
 html$.KeyCode.WIN_IME = 229;
 html$.KeyCode.UNKNOWN = -1;
 html$.KeyLocation = class KeyLocation extends core.Object {};
-dart.setSignature(html$.KeyLocation, {
-  sfields: () => ({
-    STANDARD: core.int,
-    LEFT: core.int,
-    RIGHT: core.int,
-    NUMPAD: core.int,
-    MOBILE: core.int,
-    JOYSTICK: core.int
-  })
-});
 html$.KeyLocation.STANDARD = 0;
 html$.KeyLocation.LEFT = 1;
 html$.KeyLocation.RIGHT = 2;
@@ -97388,159 +92619,6 @@ html$.KeyLocation.NUMPAD = 3;
 html$.KeyLocation.MOBILE = 4;
 html$.KeyLocation.JOYSTICK = 5;
 html$._KeyName = class _KeyName extends core.Object {};
-dart.setSignature(html$._KeyName, {
-  sfields: () => ({
-    ACCEPT: core.String,
-    ADD: core.String,
-    AGAIN: core.String,
-    ALL_CANDIDATES: core.String,
-    ALPHANUMERIC: core.String,
-    ALT: core.String,
-    ALT_GRAPH: core.String,
-    APPS: core.String,
-    ATTN: core.String,
-    BROWSER_BACK: core.String,
-    BROWSER_FAVORTIES: core.String,
-    BROWSER_FORWARD: core.String,
-    BROWSER_NAME: core.String,
-    BROWSER_REFRESH: core.String,
-    BROWSER_SEARCH: core.String,
-    BROWSER_STOP: core.String,
-    CAMERA: core.String,
-    CAPS_LOCK: core.String,
-    CLEAR: core.String,
-    CODE_INPUT: core.String,
-    COMPOSE: core.String,
-    CONTROL: core.String,
-    CRSEL: core.String,
-    CONVERT: core.String,
-    COPY: core.String,
-    CUT: core.String,
-    DECIMAL: core.String,
-    DIVIDE: core.String,
-    DOWN: core.String,
-    DOWN_LEFT: core.String,
-    DOWN_RIGHT: core.String,
-    EJECT: core.String,
-    END: core.String,
-    ENTER: core.String,
-    ERASE_EOF: core.String,
-    EXECUTE: core.String,
-    EXSEL: core.String,
-    FN: core.String,
-    F1: core.String,
-    F2: core.String,
-    F3: core.String,
-    F4: core.String,
-    F5: core.String,
-    F6: core.String,
-    F7: core.String,
-    F8: core.String,
-    F9: core.String,
-    F10: core.String,
-    F11: core.String,
-    F12: core.String,
-    F13: core.String,
-    F14: core.String,
-    F15: core.String,
-    F16: core.String,
-    F17: core.String,
-    F18: core.String,
-    F19: core.String,
-    F20: core.String,
-    F21: core.String,
-    F22: core.String,
-    F23: core.String,
-    F24: core.String,
-    FINAL_MODE: core.String,
-    FIND: core.String,
-    FULL_WIDTH: core.String,
-    HALF_WIDTH: core.String,
-    HANGUL_MODE: core.String,
-    HANJA_MODE: core.String,
-    HELP: core.String,
-    HIRAGANA: core.String,
-    HOME: core.String,
-    INSERT: core.String,
-    JAPANESE_HIRAGANA: core.String,
-    JAPANESE_KATAKANA: core.String,
-    JAPANESE_ROMAJI: core.String,
-    JUNJA_MODE: core.String,
-    KANA_MODE: core.String,
-    KANJI_MODE: core.String,
-    KATAKANA: core.String,
-    LAUNCH_APPLICATION_1: core.String,
-    LAUNCH_APPLICATION_2: core.String,
-    LAUNCH_MAIL: core.String,
-    LEFT: core.String,
-    MENU: core.String,
-    META: core.String,
-    MEDIA_NEXT_TRACK: core.String,
-    MEDIA_PAUSE_PLAY: core.String,
-    MEDIA_PREVIOUS_TRACK: core.String,
-    MEDIA_STOP: core.String,
-    MODE_CHANGE: core.String,
-    NEXT_CANDIDATE: core.String,
-    NON_CONVERT: core.String,
-    NUM_LOCK: core.String,
-    PAGE_DOWN: core.String,
-    PAGE_UP: core.String,
-    PASTE: core.String,
-    PAUSE: core.String,
-    PLAY: core.String,
-    POWER: core.String,
-    PREVIOUS_CANDIDATE: core.String,
-    PRINT_SCREEN: core.String,
-    PROCESS: core.String,
-    PROPS: core.String,
-    RIGHT: core.String,
-    ROMAN_CHARACTERS: core.String,
-    SCROLL: core.String,
-    SELECT: core.String,
-    SELECT_MEDIA: core.String,
-    SEPARATOR: core.String,
-    SHIFT: core.String,
-    SOFT_1: core.String,
-    SOFT_2: core.String,
-    SOFT_3: core.String,
-    SOFT_4: core.String,
-    STOP: core.String,
-    SUBTRACT: core.String,
-    SYMBOL_LOCK: core.String,
-    UP: core.String,
-    UP_LEFT: core.String,
-    UP_RIGHT: core.String,
-    UNDO: core.String,
-    VOLUME_DOWN: core.String,
-    VOLUMN_MUTE: core.String,
-    VOLUMN_UP: core.String,
-    WIN: core.String,
-    ZOOM: core.String,
-    BACKSPACE: core.String,
-    TAB: core.String,
-    CANCEL: core.String,
-    ESC: core.String,
-    SPACEBAR: core.String,
-    DEL: core.String,
-    DEAD_GRAVE: core.String,
-    DEAD_EACUTE: core.String,
-    DEAD_CIRCUMFLEX: core.String,
-    DEAD_TILDE: core.String,
-    DEAD_MACRON: core.String,
-    DEAD_BREVE: core.String,
-    DEAD_ABOVE_DOT: core.String,
-    DEAD_UMLAUT: core.String,
-    DEAD_ABOVE_RING: core.String,
-    DEAD_DOUBLEACUTE: core.String,
-    DEAD_CARON: core.String,
-    DEAD_CEDILLA: core.String,
-    DEAD_OGONEK: core.String,
-    DEAD_IOTA: core.String,
-    DEAD_VOICED_SOUND: core.String,
-    DEC_SEMIVOICED_SOUND: core.String,
-    UNIDENTIFIED: core.String
-  })
-});
 html$._KeyName.ACCEPT = "Accept";
 html$._KeyName.ADD = "Add";
 html$._KeyName.AGAIN = "Again";
@@ -97951,10 +93029,6 @@ html$._KeyboardEventHandler = class _KeyboardEventHandler extends html$.EventStr
 dart.addSimpleTypeTests(html$._KeyboardEventHandler);
 dart.defineNamedConstructor(html$._KeyboardEventHandler, 'initializeAllEventListeners');
 dart.setSignature(html$._KeyboardEventHandler, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$._KeyboardEventHandler, [core.String]),
-    initializeAllEventListeners: dart.definiteFunctionType(html$._KeyboardEventHandler, [core.String, html$.EventTarget])
-  }),
   fields: () => ({
     [_keyDownList]: ListOfKeyEvent(),
     [_type$]: core.String,
@@ -97971,11 +93045,6 @@ dart.setSignature(html$._KeyboardEventHandler, {
     processKeyDown: dart.definiteFunctionType(dart.void, [html$.KeyboardEvent]),
     processKeyPress: dart.definiteFunctionType(dart.void, [html$.KeyboardEvent]),
     processKeyUp: dart.definiteFunctionType(dart.void, [html$.KeyboardEvent])
-  }),
-  sfields: () => ({
-    _ROMAN_ALPHABET_OFFSET: core.int,
-    _EVENT_TYPE: core.String,
-    _keyIdentifier: MapOfString$int()
   })
 });
 html$._KeyboardEventHandler._EVENT_TYPE = 'KeyEvent';
@@ -98094,10 +93163,6 @@ html$.NodeValidatorBuilder = class NodeValidatorBuilder extends core.Object {
 dart.defineNamedConstructor(html$.NodeValidatorBuilder, 'common');
 html$.NodeValidatorBuilder[dart.implements] = () => [html$.NodeValidator];
 dart.setSignature(html$.NodeValidatorBuilder, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.NodeValidatorBuilder, []),
-    common: dart.definiteFunctionType(html$.NodeValidatorBuilder, [])
-  }),
   fields: () => ({[_validators]: ListOfNodeValidator()}),
   methods: () => ({
     allowNavigation: dart.definiteFunctionType(dart.void, [], [html$.UriPolicy]),
@@ -98175,12 +93240,6 @@ html$._SimpleNodeValidator = class _SimpleNodeValidator extends core.Object {
 };
 html$._SimpleNodeValidator[dart.implements] = () => [html$.NodeValidator];
 dart.setSignature(html$._SimpleNodeValidator, {
-  constructors: () => ({
-    allowNavigation: dart.definiteFunctionType(html$._SimpleNodeValidator, [html$.UriPolicy]),
-    allowImages: dart.definiteFunctionType(html$._SimpleNodeValidator, [html$.UriPolicy]),
-    allowTextElements: dart.definiteFunctionType(html$._SimpleNodeValidator, []),
-    new: dart.definiteFunctionType(html$._SimpleNodeValidator, [html$.UriPolicy], {allowedElements: IterableOfString(), allowedAttributes: IterableOfString(), allowedUriAttributes: IterableOfString()})
-  }),
   fields: () => ({
     allowedElements: SetOfString(),
     allowedAttributes: SetOfString(),
@@ -98218,7 +93277,6 @@ html$._CustomElementNodeValidator = class _CustomElementNodeValidator extends ht
   }
 };
 dart.setSignature(html$._CustomElementNodeValidator, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._CustomElementNodeValidator, [html$.UriPolicy, IterableOfString(), IterableOfString(), IterableOfString(), core.bool, core.bool])}),
   fields: () => ({
     allowTypeExtension: core.bool,
     allowCustomTag: core.bool
@@ -98244,9 +93302,7 @@ html$._TemplatingNodeValidator = class _TemplatingNodeValidator extends html$._S
   }
 };
 dart.setSignature(html$._TemplatingNodeValidator, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._TemplatingNodeValidator, [])}),
-  fields: () => ({[_templateAttrs]: SetOfString()}),
-  sfields: () => ({_TEMPLATE_ATTRS: ListOfString()})
+  fields: () => ({[_templateAttrs]: SetOfString()})
 });
 html$._TemplatingNodeValidator._TEMPLATE_ATTRS = dart.constList(['bind', 'if', 'ref', 'repeat', 'syntax'], core.String);
 html$._SvgNodeValidator = class _SvgNodeValidator extends core.Object {
@@ -98277,13 +93333,6 @@ dart.setSignature(html$._SvgNodeValidator, {
   })
 });
 html$.ReadyState = class ReadyState extends core.Object {};
-dart.setSignature(html$.ReadyState, {
-  sfields: () => ({
-    LOADING: core.String,
-    INTERACTIVE: core.String,
-    COMPLETE: core.String
-  })
-});
 html$.ReadyState.LOADING = "loading";
 html$.ReadyState.INTERACTIVE = "interactive";
 html$.ReadyState.COMPLETE = "complete";
@@ -98365,7 +93414,6 @@ html$._WrappedList$ = dart.generic(E => {
   }
   _WrappedList[dart.implements] = () => [html_common.NodeListWrapper];
   dart.setSignature(_WrappedList, {
-    constructors: () => ({new: dart.definiteFunctionType(html$._WrappedList$(E), [ListOfNode()])}),
     fields: () => ({[_list$]: ListOfNode()}),
     getters: () => ({
       length: dart.definiteFunctionType(core.int, []),
@@ -98416,7 +93464,6 @@ html$._WrappedIterator$ = dart.generic(E => {
   dart.addTypeTests(_WrappedIterator);
   _WrappedIterator[dart.implements] = () => [IteratorOfE()];
   dart.setSignature(_WrappedIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(html$._WrappedIterator$(E), [IteratorOfNode()])}),
     fields: () => ({[_iterator$1]: IteratorOfNode()}),
     getters: () => ({current: dart.definiteFunctionType(E, [])}),
     methods: () => ({moveNext: dart.definiteFunctionType(core.bool, [])})
@@ -98478,7 +93525,6 @@ html$.FixedSizeListIterator$ = dart.generic(T => {
   dart.addTypeTests(FixedSizeListIterator);
   FixedSizeListIterator[dart.implements] = () => [IteratorOfT()];
   dart.setSignature(FixedSizeListIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(html$.FixedSizeListIterator$(T), [ListOfT()])}),
     fields: () => ({
       [_array]: ListOfT(),
       [_length$3]: core.int,
@@ -98518,7 +93564,6 @@ html$._VariableSizeListIterator$ = dart.generic(T => {
   dart.addTypeTests(_VariableSizeListIterator);
   _VariableSizeListIterator[dart.implements] = () => [IteratorOfT()];
   dart.setSignature(_VariableSizeListIterator, {
-    constructors: () => ({new: dart.definiteFunctionType(html$._VariableSizeListIterator$(T), [ListOfT()])}),
     fields: () => ({
       [_array]: ListOfT(),
       [_position$1]: core.int,
@@ -98690,7 +93735,6 @@ html$._JSElementUpgrader = class _JSElementUpgrader extends core.Object {
 };
 html$._JSElementUpgrader[dart.implements] = () => [html$.ElementUpgrader];
 dart.setSignature(html$._JSElementUpgrader, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._JSElementUpgrader, [html$.Document, core.Type, core.String])}),
   fields: () => ({
     [_interceptor]: dart.dynamic,
     [_constructor]: dart.dynamic,
@@ -98763,7 +93807,6 @@ html$._DOMWindowCrossFrame = class _DOMWindowCrossFrame extends core.Object {
 };
 html$._DOMWindowCrossFrame[dart.implements] = () => [html$.WindowBase];
 dart.setSignature(html$._DOMWindowCrossFrame, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._DOMWindowCrossFrame, [dart.dynamic])}),
   fields: () => ({[_window]: dart.dynamic}),
   getters: () => ({
     history: dart.definiteFunctionType(html$.HistoryBase, []),
@@ -98816,7 +93859,6 @@ html$._LocationCrossFrame = class _LocationCrossFrame extends core.Object {
 };
 html$._LocationCrossFrame[dart.implements] = () => [html$.LocationBase];
 dart.setSignature(html$._LocationCrossFrame, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._LocationCrossFrame, [dart.dynamic])}),
   fields: () => ({[_location]: dart.dynamic}),
   setters: () => ({href: dart.definiteFunctionType(dart.void, [core.String])}),
   statics: () => ({
@@ -98850,7 +93892,6 @@ html$._HistoryCrossFrame = class _HistoryCrossFrame extends core.Object {
 };
 html$._HistoryCrossFrame[dart.implements] = () => [html$.HistoryBase];
 dart.setSignature(html$._HistoryCrossFrame, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._HistoryCrossFrame, [dart.dynamic])}),
   fields: () => ({[_history]: dart.dynamic}),
   methods: () => ({
     back: dart.definiteFunctionType(dart.void, []),
@@ -98862,12 +93903,6 @@ dart.setSignature(html$._HistoryCrossFrame, {
 });
 dart.defineExtensionMembers(html$._HistoryCrossFrame, ['back', 'forward', 'go']);
 html$.Platform = class Platform extends core.Object {};
-dart.setSignature(html$.Platform, {
-  sfields: () => ({
-    supportsTypedData: core.bool,
-    supportsSimd: core.bool
-  })
-});
 html$.Platform.supportsSimd = false;
 dart.defineLazy(html$.Platform, {
   get supportsTypedData() {
@@ -98926,21 +93961,11 @@ html$.NodeValidator = class NodeValidator extends core.Object {
     return new html$._ThrowsNodeValidator(base);
   }
 };
-dart.setSignature(html$.NodeValidator, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(html$.NodeValidator, [], {uriPolicy: html$.UriPolicy}),
-    throws: dart.definiteFunctionType(html$.NodeValidator, [html$.NodeValidator])
-  })
-});
 html$.NodeTreeSanitizer = class NodeTreeSanitizer extends core.Object {
   static new(validator) {
     return new html$._ValidatingTreeSanitizer(validator);
   }
 };
-dart.setSignature(html$.NodeTreeSanitizer, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.NodeTreeSanitizer, [html$.NodeValidator])}),
-  sfields: () => ({trusted: html$._TrustedHtmlTreeSanitizer})
-});
 dart.defineLazy(html$.NodeTreeSanitizer, {
   get trusted() {
     return dart.const(new html$._TrustedHtmlTreeSanitizer());
@@ -98953,7 +93978,6 @@ html$._TrustedHtmlTreeSanitizer = class _TrustedHtmlTreeSanitizer extends core.O
 };
 html$._TrustedHtmlTreeSanitizer[dart.implements] = () => [html$.NodeTreeSanitizer];
 dart.setSignature(html$._TrustedHtmlTreeSanitizer, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._TrustedHtmlTreeSanitizer, [])}),
   methods: () => ({sanitizeTree: dart.definiteFunctionType(dart.void, [html$.Node])})
 });
 html$.UriPolicy = class UriPolicy extends core.Object {
@@ -98961,9 +93985,6 @@ html$.UriPolicy = class UriPolicy extends core.Object {
     return new html$._SameOriginUriPolicy();
   }
 };
-dart.setSignature(html$.UriPolicy, {
-  constructors: () => ({new: dart.definiteFunctionType(html$.UriPolicy, [])})
-});
 const _hiddenAnchor = Symbol('_hiddenAnchor');
 const _loc = Symbol('_loc');
 html$._SameOriginUriPolicy = class _SameOriginUriPolicy extends core.Object {
@@ -99002,7 +94023,6 @@ html$._ThrowsNodeValidator = class _ThrowsNodeValidator extends core.Object {
 };
 html$._ThrowsNodeValidator[dart.implements] = () => [html$.NodeValidator];
 dart.setSignature(html$._ThrowsNodeValidator, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._ThrowsNodeValidator, [html$.NodeValidator])}),
   fields: () => ({validator: html$.NodeValidator}),
   methods: () => ({
     allowsElement: dart.definiteFunctionType(core.bool, [html$.Element]),
@@ -99122,7 +94142,6 @@ html$._ValidatingTreeSanitizer = class _ValidatingTreeSanitizer extends core.Obj
 };
 html$._ValidatingTreeSanitizer[dart.implements] = () => [html$.NodeTreeSanitizer];
 dart.setSignature(html$._ValidatingTreeSanitizer, {
-  constructors: () => ({new: dart.definiteFunctionType(html$._ValidatingTreeSanitizer, [html$.NodeValidator])}),
   fields: () => ({validator: html$.NodeValidator}),
   methods: () => ({
     sanitizeTree: dart.definiteFunctionType(dart.void, [html$.Node]),
@@ -99320,7 +94339,6 @@ html_common.ContextAttributes = class ContextAttributes extends core.Object {
   }
 };
 dart.setSignature(html_common.ContextAttributes, {
-  constructors: () => ({new: dart.definiteFunctionType(html_common.ContextAttributes, [core.bool, core.bool, core.bool, core.bool, core.bool, core.bool, core.bool])}),
   fields: () => ({
     alpha: core.bool,
     antialias: core.bool,
@@ -99344,7 +94362,6 @@ html_common._TypedImageData = class _TypedImageData extends core.Object {
 };
 html_common._TypedImageData[dart.implements] = () => [html$.ImageData];
 dart.setSignature(html_common._TypedImageData, {
-  constructors: () => ({new: dart.definiteFunctionType(html_common._TypedImageData, [typed_data.Uint8ClampedList, core.int, core.int])}),
   fields: () => ({
     data: typed_data.Uint8ClampedList,
     height: core.int,
@@ -99573,23 +94590,6 @@ html_common.Device = class Device extends core.Object {
   }
 };
 dart.setSignature(html_common.Device, {
-  sfields: () => ({
-    _isOpera: core.bool,
-    _isIE: core.bool,
-    _isFirefox: core.bool,
-    _isWebKit: core.bool,
-    _cachedCssPrefix: core.String,
-    _cachedPropertyPrefix: core.String
-  }),
-  sgetters: () => ({
-    userAgent: dart.definiteFunctionType(core.String, []),
-    isOpera: dart.definiteFunctionType(core.bool, []),
-    isIE: dart.definiteFunctionType(core.bool, []),
-    isFirefox: dart.definiteFunctionType(core.bool, []),
-    isWebKit: dart.definiteFunctionType(core.bool, []),
-    cssPrefix: dart.definiteFunctionType(core.String, []),
-    propertyPrefix: dart.definiteFunctionType(core.String, [])
-  }),
   statics: () => ({isEventTypeSupported: dart.definiteFunctionType(core.bool, [core.String])}),
   names: ['isEventTypeSupported']
 });
@@ -99720,7 +94720,6 @@ html_common.FilteredElementList = class FilteredElementList extends collection.L
 dart.addSimpleTypeTests(html_common.FilteredElementList);
 html_common.FilteredElementList[dart.implements] = () => [html_common.NodeListWrapper];
 dart.setSignature(html_common.FilteredElementList, {
-  constructors: () => ({new: dart.definiteFunctionType(html_common.FilteredElementList, [html$.Node])}),
   fields: () => ({
     [_node]: html$.Node,
     [_childNodes]: ListOfNode()
@@ -100166,12 +95165,6 @@ svg$.SvgElement = class SvgElement extends html$.Element {
 dart.defineNamedConstructor(svg$.SvgElement, 'created');
 svg$.SvgElement[dart.implements] = () => [html$.GlobalEventHandlers];
 dart.setSignature(svg$.SvgElement, {
-  constructors: () => ({
-    tag: dart.definiteFunctionType(svg$.SvgElement, [core.String]),
-    svg: dart.definiteFunctionType(svg$.SvgElement, [core.String], {validator: html$.NodeValidator, treeSanitizer: html$.NodeTreeSanitizer}),
-    _: dart.definiteFunctionType(svg$.SvgElement, []),
-    created: dart.definiteFunctionType(svg$.SvgElement, [])
-  }),
   fields: () => ({
     [dartx.ownerSvgElement]: svg$.SvgSvgElement,
     [dartx.viewportElement]: svg$.SvgElement
@@ -100179,61 +95172,6 @@ dart.setSignature(svg$.SvgElement, {
   getters: () => ({
     [_children$]: dart.definiteFunctionType(html$.HtmlCollection, []),
     [_svgClassName]: dart.definiteFunctionType(svg$.AnimatedString, [])
-  }),
-  sfields: () => ({
-    _START_TAG_REGEXP: core.RegExp,
-    abortEvent: EventStreamProviderOfEvent(),
-    blurEvent: EventStreamProviderOfEvent(),
-    canPlayEvent: EventStreamProviderOfEvent(),
-    canPlayThroughEvent: EventStreamProviderOfEvent(),
-    changeEvent: EventStreamProviderOfEvent(),
-    clickEvent: EventStreamProviderOfMouseEvent(),
-    contextMenuEvent: EventStreamProviderOfMouseEvent(),
-    doubleClickEvent: EventStreamProviderOfEvent(),
-    dragEvent: EventStreamProviderOfMouseEvent(),
-    dragEndEvent: EventStreamProviderOfMouseEvent(),
-    dragEnterEvent: EventStreamProviderOfMouseEvent(),
-    dragLeaveEvent: EventStreamProviderOfMouseEvent(),
-    dragOverEvent: EventStreamProviderOfMouseEvent(),
-    dragStartEvent: EventStreamProviderOfMouseEvent(),
-    dropEvent: EventStreamProviderOfMouseEvent(),
-    durationChangeEvent: EventStreamProviderOfEvent(),
-    emptiedEvent: EventStreamProviderOfEvent(),
-    endedEvent: EventStreamProviderOfEvent(),
-    errorEvent: EventStreamProviderOfEvent(),
-    focusEvent: EventStreamProviderOfEvent(),
-    inputEvent: EventStreamProviderOfEvent(),
-    invalidEvent: EventStreamProviderOfEvent(),
-    keyDownEvent: EventStreamProviderOfKeyboardEvent(),
-    keyPressEvent: EventStreamProviderOfKeyboardEvent(),
-    keyUpEvent: EventStreamProviderOfKeyboardEvent(),
-    loadEvent: EventStreamProviderOfEvent(),
-    loadedDataEvent: EventStreamProviderOfEvent(),
-    loadedMetadataEvent: EventStreamProviderOfEvent(),
-    mouseDownEvent: EventStreamProviderOfMouseEvent(),
-    mouseEnterEvent: EventStreamProviderOfMouseEvent(),
-    mouseLeaveEvent: EventStreamProviderOfMouseEvent(),
-    mouseMoveEvent: EventStreamProviderOfMouseEvent(),
-    mouseOutEvent: EventStreamProviderOfMouseEvent(),
-    mouseOverEvent: EventStreamProviderOfMouseEvent(),
-    mouseUpEvent: EventStreamProviderOfMouseEvent(),
-    mouseWheelEvent: EventStreamProviderOfWheelEvent(),
-    pauseEvent: EventStreamProviderOfEvent(),
-    playEvent: EventStreamProviderOfEvent(),
-    playingEvent: EventStreamProviderOfEvent(),
-    rateChangeEvent: EventStreamProviderOfEvent(),
-    resetEvent: EventStreamProviderOfEvent(),
-    resizeEvent: EventStreamProviderOfEvent(),
-    scrollEvent: EventStreamProviderOfEvent(),
-    seekedEvent: EventStreamProviderOfEvent(),
-    seekingEvent: EventStreamProviderOfEvent(),
-    selectEvent: EventStreamProviderOfEvent(),
-    stalledEvent: EventStreamProviderOfEvent(),
-    submitEvent: EventStreamProviderOfEvent(),
-    suspendEvent: EventStreamProviderOfEvent(),
-    timeUpdateEvent: EventStreamProviderOfEvent(),
-    volumeChangeEvent: EventStreamProviderOfEvent(),
-    waitingEvent: EventStreamProviderOfEvent()
   })
 });
 dart.defineLazy(svg$.SvgElement, {
@@ -100461,10 +95399,6 @@ svg$.GraphicsElement = class GraphicsElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.GraphicsElement, 'created');
 svg$.GraphicsElement[dart.implements] = () => [svg$.Tests];
 dart.setSignature(svg$.GraphicsElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.GraphicsElement, []),
-    created: dart.definiteFunctionType(svg$.GraphicsElement, [])
-  }),
   fields: () => ({
     [dartx.farthestViewportElement]: svg$.SvgElement,
     [dartx.nearestViewportElement]: svg$.SvgElement,
@@ -100508,11 +95442,6 @@ svg$.AElement = class AElement extends svg$.GraphicsElement {
 dart.defineNamedConstructor(svg$.AElement, 'created');
 svg$.AElement[dart.implements] = () => [svg$.UriReference];
 dart.setSignature(svg$.AElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.AElement, []),
-    new: dart.definiteFunctionType(svg$.AElement, []),
-    created: dart.definiteFunctionType(svg$.AElement, [])
-  }),
   fields: () => ({
     [dartx.target]: svg$.AnimatedString,
     [dartx.href]: svg$.AnimatedString
@@ -100560,7 +95489,6 @@ svg$.Angle = class Angle extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.Angle, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.Angle, [])}),
   fields: () => ({
     [dartx.unitType]: core.int,
     [dartx.value]: core.num,
@@ -100570,13 +95498,6 @@ dart.setSignature(svg$.Angle, {
   methods: () => ({
     [dartx.convertToSpecifiedUnits]: dart.definiteFunctionType(dart.void, [core.int]),
     [dartx.newValueSpecifiedUnits]: dart.definiteFunctionType(dart.void, [core.int, core.num])
-  }),
-  sfields: () => ({
-    SVG_ANGLETYPE_DEG: core.int,
-    SVG_ANGLETYPE_GRAD: core.int,
-    SVG_ANGLETYPE_RAD: core.int,
-    SVG_ANGLETYPE_UNKNOWN: core.int,
-    SVG_ANGLETYPE_UNSPECIFIED: core.int
   })
 });
 svg$.Angle.SVG_ANGLETYPE_DEG = 2;
@@ -100653,11 +95574,6 @@ svg$.AnimationElement = class AnimationElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.AnimationElement, 'created');
 svg$.AnimationElement[dart.implements] = () => [svg$.Tests];
 dart.setSignature(svg$.AnimationElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.AnimationElement, []),
-    new: dart.definiteFunctionType(svg$.AnimationElement, []),
-    created: dart.definiteFunctionType(svg$.AnimationElement, [])
-  }),
   fields: () => ({
     [dartx.targetElement]: svg$.SvgElement,
     [dartx.requiredExtensions]: svg$.StringList,
@@ -100691,14 +95607,6 @@ svg$.AnimateElement = class AnimateElement extends svg$.AnimationElement {
   }
 };
 dart.defineNamedConstructor(svg$.AnimateElement, 'created');
-dart.setSignature(svg$.AnimateElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.AnimateElement, []),
-    new: dart.definiteFunctionType(svg$.AnimateElement, []),
-    created: dart.definiteFunctionType(svg$.AnimateElement, [])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 dart.registerExtension(dart.global.SVGAnimateElement, svg$.AnimateElement);
 svg$.AnimateMotionElement = class AnimateMotionElement extends svg$.AnimationElement {
   static _() {
@@ -100715,14 +95623,6 @@ svg$.AnimateMotionElement = class AnimateMotionElement extends svg$.AnimationEle
   }
 };
 dart.defineNamedConstructor(svg$.AnimateMotionElement, 'created');
-dart.setSignature(svg$.AnimateMotionElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.AnimateMotionElement, []),
-    new: dart.definiteFunctionType(svg$.AnimateMotionElement, []),
-    created: dart.definiteFunctionType(svg$.AnimateMotionElement, [])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 dart.registerExtension(dart.global.SVGAnimateMotionElement, svg$.AnimateMotionElement);
 svg$.AnimateTransformElement = class AnimateTransformElement extends svg$.AnimationElement {
   static _() {
@@ -100739,14 +95639,6 @@ svg$.AnimateTransformElement = class AnimateTransformElement extends svg$.Animat
   }
 };
 dart.defineNamedConstructor(svg$.AnimateTransformElement, 'created');
-dart.setSignature(svg$.AnimateTransformElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.AnimateTransformElement, []),
-    new: dart.definiteFunctionType(svg$.AnimateTransformElement, []),
-    created: dart.definiteFunctionType(svg$.AnimateTransformElement, [])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 dart.registerExtension(dart.global.SVGAnimateTransformElement, svg$.AnimateTransformElement);
 dart.defineExtensionNames([
   'animVal',
@@ -100764,7 +95656,6 @@ svg$.AnimatedAngle = class AnimatedAngle extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.AnimatedAngle, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedAngle, [])}),
   fields: () => ({
     [dartx.animVal]: svg$.Angle,
     [dartx.baseVal]: svg$.Angle
@@ -100790,7 +95681,6 @@ svg$.AnimatedBoolean = class AnimatedBoolean extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.AnimatedBoolean, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedBoolean, [])}),
   fields: () => ({
     [dartx.animVal]: core.bool,
     [dartx.baseVal]: core.bool
@@ -100816,7 +95706,6 @@ svg$.AnimatedEnumeration = class AnimatedEnumeration extends _interceptors.Inter
   }
 };
 dart.setSignature(svg$.AnimatedEnumeration, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedEnumeration, [])}),
   fields: () => ({
     [dartx.animVal]: core.int,
     [dartx.baseVal]: core.int
@@ -100842,7 +95731,6 @@ svg$.AnimatedInteger = class AnimatedInteger extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.AnimatedInteger, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedInteger, [])}),
   fields: () => ({
     [dartx.animVal]: core.int,
     [dartx.baseVal]: core.int
@@ -100865,7 +95753,6 @@ svg$.AnimatedLength = class AnimatedLength extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.AnimatedLength, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedLength, [])}),
   fields: () => ({
     [dartx.animVal]: svg$.Length,
     [dartx.baseVal]: svg$.Length
@@ -100888,7 +95775,6 @@ svg$.AnimatedLengthList = class AnimatedLengthList extends _interceptors.Interce
   }
 };
 dart.setSignature(svg$.AnimatedLengthList, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedLengthList, [])}),
   fields: () => ({
     [dartx.animVal]: svg$.LengthList,
     [dartx.baseVal]: svg$.LengthList
@@ -100914,7 +95800,6 @@ svg$.AnimatedNumber = class AnimatedNumber extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.AnimatedNumber, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedNumber, [])}),
   fields: () => ({
     [dartx.animVal]: core.double,
     [dartx.baseVal]: core.num
@@ -100937,7 +95822,6 @@ svg$.AnimatedNumberList = class AnimatedNumberList extends _interceptors.Interce
   }
 };
 dart.setSignature(svg$.AnimatedNumberList, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedNumberList, [])}),
   fields: () => ({
     [dartx.animVal]: svg$.NumberList,
     [dartx.baseVal]: svg$.NumberList
@@ -100960,7 +95844,6 @@ svg$.AnimatedPreserveAspectRatio = class AnimatedPreserveAspectRatio extends _in
   }
 };
 dart.setSignature(svg$.AnimatedPreserveAspectRatio, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedPreserveAspectRatio, [])}),
   fields: () => ({
     [dartx.animVal]: svg$.PreserveAspectRatio,
     [dartx.baseVal]: svg$.PreserveAspectRatio
@@ -100983,7 +95866,6 @@ svg$.AnimatedRect = class AnimatedRect extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.AnimatedRect, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedRect, [])}),
   fields: () => ({
     [dartx.animVal]: svg$.Rect,
     [dartx.baseVal]: svg$.Rect
@@ -101009,7 +95891,6 @@ svg$.AnimatedString = class AnimatedString extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.AnimatedString, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedString, [])}),
   fields: () => ({
     [dartx.animVal]: core.String,
     [dartx.baseVal]: core.String
@@ -101032,7 +95913,6 @@ svg$.AnimatedTransformList = class AnimatedTransformList extends _interceptors.I
   }
 };
 dart.setSignature(svg$.AnimatedTransformList, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.AnimatedTransformList, [])}),
   fields: () => ({
     [dartx.animVal]: svg$.TransformList,
     [dartx.baseVal]: svg$.TransformList
@@ -101059,10 +95939,6 @@ svg$.GeometryElement = class GeometryElement extends svg$.GraphicsElement {
 };
 dart.defineNamedConstructor(svg$.GeometryElement, 'created');
 dart.setSignature(svg$.GeometryElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.GeometryElement, []),
-    created: dart.definiteFunctionType(svg$.GeometryElement, [])
-  }),
   methods: () => ({
     [dartx.isPointInFill]: dart.definiteFunctionType(core.bool, [svg$.Point]),
     [dartx.isPointInStroke]: dart.definiteFunctionType(core.bool, [svg$.Point])
@@ -101099,11 +95975,6 @@ svg$.CircleElement = class CircleElement extends svg$.GeometryElement {
 };
 dart.defineNamedConstructor(svg$.CircleElement, 'created');
 dart.setSignature(svg$.CircleElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.CircleElement, []),
-    new: dart.definiteFunctionType(svg$.CircleElement, []),
-    created: dart.definiteFunctionType(svg$.CircleElement, [])
-  }),
   fields: () => ({
     [dartx.cx]: svg$.AnimatedLength,
     [dartx.cy]: svg$.AnimatedLength,
@@ -101131,11 +96002,6 @@ svg$.ClipPathElement = class ClipPathElement extends svg$.GraphicsElement {
 };
 dart.defineNamedConstructor(svg$.ClipPathElement, 'created');
 dart.setSignature(svg$.ClipPathElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.ClipPathElement, []),
-    new: dart.definiteFunctionType(svg$.ClipPathElement, []),
-    created: dart.definiteFunctionType(svg$.ClipPathElement, [])
-  }),
   fields: () => ({[dartx.clipPathUnits]: svg$.AnimatedEnumeration})
 });
 dart.registerExtension(dart.global.SVGClipPathElement, svg$.ClipPathElement);
@@ -101151,13 +96017,6 @@ svg$.DefsElement = class DefsElement extends svg$.GraphicsElement {
   }
 };
 dart.defineNamedConstructor(svg$.DefsElement, 'created');
-dart.setSignature(svg$.DefsElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.DefsElement, []),
-    new: dart.definiteFunctionType(svg$.DefsElement, []),
-    created: dart.definiteFunctionType(svg$.DefsElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGDefsElement, svg$.DefsElement);
 svg$.DescElement = class DescElement extends svg$.SvgElement {
   static _() {
@@ -101171,13 +96030,6 @@ svg$.DescElement = class DescElement extends svg$.SvgElement {
   }
 };
 dart.defineNamedConstructor(svg$.DescElement, 'created');
-dart.setSignature(svg$.DescElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.DescElement, []),
-    new: dart.definiteFunctionType(svg$.DescElement, []),
-    created: dart.definiteFunctionType(svg$.DescElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGDescElement, svg$.DescElement);
 svg$.DiscardElement = class DiscardElement extends svg$.SvgElement {
   static _() {
@@ -101188,12 +96040,6 @@ svg$.DiscardElement = class DiscardElement extends svg$.SvgElement {
   }
 };
 dart.defineNamedConstructor(svg$.DiscardElement, 'created');
-dart.setSignature(svg$.DiscardElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.DiscardElement, []),
-    created: dart.definiteFunctionType(svg$.DiscardElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGDiscardElement, svg$.DiscardElement);
 dart.defineExtensionNames([
   'cx',
@@ -101230,11 +96076,6 @@ svg$.EllipseElement = class EllipseElement extends svg$.GeometryElement {
 };
 dart.defineNamedConstructor(svg$.EllipseElement, 'created');
 dart.setSignature(svg$.EllipseElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.EllipseElement, []),
-    new: dart.definiteFunctionType(svg$.EllipseElement, []),
-    created: dart.definiteFunctionType(svg$.EllipseElement, [])
-  }),
   fields: () => ({
     [dartx.cx]: svg$.AnimatedLength,
     [dartx.cy]: svg$.AnimatedLength,
@@ -101302,11 +96143,6 @@ svg$.FEBlendElement = class FEBlendElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.FEBlendElement, 'created');
 svg$.FEBlendElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FEBlendElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEBlendElement, []),
-    new: dart.definiteFunctionType(svg$.FEBlendElement, []),
-    created: dart.definiteFunctionType(svg$.FEBlendElement, [])
-  }),
   fields: () => ({
     [dartx.in1]: svg$.AnimatedString,
     [dartx.in2]: svg$.AnimatedString,
@@ -101316,16 +96152,7 @@ dart.setSignature(svg$.FEBlendElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sfields: () => ({
-    SVG_FEBLEND_MODE_DARKEN: core.int,
-    SVG_FEBLEND_MODE_LIGHTEN: core.int,
-    SVG_FEBLEND_MODE_MULTIPLY: core.int,
-    SVG_FEBLEND_MODE_NORMAL: core.int,
-    SVG_FEBLEND_MODE_SCREEN: core.int,
-    SVG_FEBLEND_MODE_UNKNOWN: core.int
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 svg$.FEBlendElement.SVG_FEBLEND_MODE_DARKEN = 4;
 svg$.FEBlendElement.SVG_FEBLEND_MODE_LIGHTEN = 5;
@@ -101393,11 +96220,6 @@ svg$.FEColorMatrixElement = class FEColorMatrixElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.FEColorMatrixElement, 'created');
 svg$.FEColorMatrixElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FEColorMatrixElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEColorMatrixElement, []),
-    new: dart.definiteFunctionType(svg$.FEColorMatrixElement, []),
-    created: dart.definiteFunctionType(svg$.FEColorMatrixElement, [])
-  }),
   fields: () => ({
     [dartx.in1]: svg$.AnimatedString,
     [dartx.type]: svg$.AnimatedEnumeration,
@@ -101407,15 +96229,7 @@ dart.setSignature(svg$.FEColorMatrixElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sfields: () => ({
-    SVG_FECOLORMATRIX_TYPE_HUEROTATE: core.int,
-    SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA: core.int,
-    SVG_FECOLORMATRIX_TYPE_MATRIX: core.int,
-    SVG_FECOLORMATRIX_TYPE_SATURATE: core.int,
-    SVG_FECOLORMATRIX_TYPE_UNKNOWN: core.int
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 svg$.FEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 svg$.FEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
@@ -101472,11 +96286,6 @@ svg$.FEComponentTransferElement = class FEComponentTransferElement extends svg$.
 dart.defineNamedConstructor(svg$.FEComponentTransferElement, 'created');
 svg$.FEComponentTransferElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FEComponentTransferElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEComponentTransferElement, []),
-    new: dart.definiteFunctionType(svg$.FEComponentTransferElement, []),
-    created: dart.definiteFunctionType(svg$.FEComponentTransferElement, [])
-  }),
   fields: () => ({
     [dartx.in1]: svg$.AnimatedString,
     [dartx.height]: svg$.AnimatedLength,
@@ -101484,8 +96293,7 @@ dart.setSignature(svg$.FEComponentTransferElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFEComponentTransferElement, svg$.FEComponentTransferElement);
 dart.defineExtensionNames([
@@ -101561,10 +96369,6 @@ svg$.FECompositeElement = class FECompositeElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.FECompositeElement, 'created');
 svg$.FECompositeElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FECompositeElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FECompositeElement, []),
-    created: dart.definiteFunctionType(svg$.FECompositeElement, [])
-  }),
   fields: () => ({
     [dartx.in1]: svg$.AnimatedString,
     [dartx.in2]: svg$.AnimatedString,
@@ -101578,15 +96382,6 @@ dart.setSignature(svg$.FECompositeElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sfields: () => ({
-    SVG_FECOMPOSITE_OPERATOR_ARITHMETIC: core.int,
-    SVG_FECOMPOSITE_OPERATOR_ATOP: core.int,
-    SVG_FECOMPOSITE_OPERATOR_IN: core.int,
-    SVG_FECOMPOSITE_OPERATOR_OUT: core.int,
-    SVG_FECOMPOSITE_OPERATOR_OVER: core.int,
-    SVG_FECOMPOSITE_OPERATOR_UNKNOWN: core.int,
-    SVG_FECOMPOSITE_OPERATOR_XOR: core.int
   })
 });
 svg$.FECompositeElement.SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
@@ -101701,11 +96496,6 @@ svg$.FEConvolveMatrixElement = class FEConvolveMatrixElement extends svg$.SvgEle
 dart.defineNamedConstructor(svg$.FEConvolveMatrixElement, 'created');
 svg$.FEConvolveMatrixElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FEConvolveMatrixElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEConvolveMatrixElement, []),
-    new: dart.definiteFunctionType(svg$.FEConvolveMatrixElement, []),
-    created: dart.definiteFunctionType(svg$.FEConvolveMatrixElement, [])
-  }),
   fields: () => ({
     [dartx.bias]: svg$.AnimatedNumber,
     [dartx.divisor]: svg$.AnimatedNumber,
@@ -101724,14 +96514,7 @@ dart.setSignature(svg$.FEConvolveMatrixElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sfields: () => ({
-    SVG_EDGEMODE_DUPLICATE: core.int,
-    SVG_EDGEMODE_NONE: core.int,
-    SVG_EDGEMODE_UNKNOWN: core.int,
-    SVG_EDGEMODE_WRAP: core.int
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 svg$.FEConvolveMatrixElement.SVG_EDGEMODE_DUPLICATE = 1;
 svg$.FEConvolveMatrixElement.SVG_EDGEMODE_NONE = 3;
@@ -101807,11 +96590,6 @@ svg$.FEDiffuseLightingElement = class FEDiffuseLightingElement extends svg$.SvgE
 dart.defineNamedConstructor(svg$.FEDiffuseLightingElement, 'created');
 svg$.FEDiffuseLightingElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FEDiffuseLightingElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEDiffuseLightingElement, []),
-    new: dart.definiteFunctionType(svg$.FEDiffuseLightingElement, []),
-    created: dart.definiteFunctionType(svg$.FEDiffuseLightingElement, [])
-  }),
   fields: () => ({
     [dartx.diffuseConstant]: svg$.AnimatedNumber,
     [dartx.in1]: svg$.AnimatedString,
@@ -101823,8 +96601,7 @@ dart.setSignature(svg$.FEDiffuseLightingElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFEDiffuseLightingElement, svg$.FEDiffuseLightingElement);
 dart.defineExtensionNames([
@@ -101896,11 +96673,6 @@ svg$.FEDisplacementMapElement = class FEDisplacementMapElement extends svg$.SvgE
 dart.defineNamedConstructor(svg$.FEDisplacementMapElement, 'created');
 svg$.FEDisplacementMapElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FEDisplacementMapElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEDisplacementMapElement, []),
-    new: dart.definiteFunctionType(svg$.FEDisplacementMapElement, []),
-    created: dart.definiteFunctionType(svg$.FEDisplacementMapElement, [])
-  }),
   fields: () => ({
     [dartx.in1]: svg$.AnimatedString,
     [dartx.in2]: svg$.AnimatedString,
@@ -101912,15 +96684,7 @@ dart.setSignature(svg$.FEDisplacementMapElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sfields: () => ({
-    SVG_CHANNEL_A: core.int,
-    SVG_CHANNEL_B: core.int,
-    SVG_CHANNEL_G: core.int,
-    SVG_CHANNEL_R: core.int,
-    SVG_CHANNEL_UNKNOWN: core.int
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 svg$.FEDisplacementMapElement.SVG_CHANNEL_A = 4;
 svg$.FEDisplacementMapElement.SVG_CHANNEL_B = 3;
@@ -101956,16 +96720,10 @@ svg$.FEDistantLightElement = class FEDistantLightElement extends svg$.SvgElement
 };
 dart.defineNamedConstructor(svg$.FEDistantLightElement, 'created');
 dart.setSignature(svg$.FEDistantLightElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEDistantLightElement, []),
-    new: dart.definiteFunctionType(svg$.FEDistantLightElement, []),
-    created: dart.definiteFunctionType(svg$.FEDistantLightElement, [])
-  }),
   fields: () => ({
     [dartx.azimuth]: svg$.AnimatedNumber,
     [dartx.elevation]: svg$.AnimatedNumber
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFEDistantLightElement, svg$.FEDistantLightElement);
 dart.defineExtensionNames([
@@ -102012,19 +96770,13 @@ svg$.FEFloodElement = class FEFloodElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.FEFloodElement, 'created');
 svg$.FEFloodElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FEFloodElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEFloodElement, []),
-    new: dart.definiteFunctionType(svg$.FEFloodElement, []),
-    created: dart.definiteFunctionType(svg$.FEFloodElement, [])
-  }),
   fields: () => ({
     [dartx.height]: svg$.AnimatedLength,
     [dartx.result]: svg$.AnimatedString,
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFEFloodElement, svg$.FEFloodElement);
 svg$._SVGComponentTransferFunctionElement = class _SVGComponentTransferFunctionElement extends svg$.SvgElement {
@@ -102036,12 +96788,6 @@ svg$._SVGComponentTransferFunctionElement = class _SVGComponentTransferFunctionE
   }
 };
 dart.defineNamedConstructor(svg$._SVGComponentTransferFunctionElement, 'created');
-dart.setSignature(svg$._SVGComponentTransferFunctionElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$._SVGComponentTransferFunctionElement, []),
-    created: dart.definiteFunctionType(svg$._SVGComponentTransferFunctionElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGComponentTransferFunctionElement, svg$._SVGComponentTransferFunctionElement);
 svg$.FEFuncAElement = class FEFuncAElement extends svg$._SVGComponentTransferFunctionElement {
   static _() {
@@ -102058,14 +96804,6 @@ svg$.FEFuncAElement = class FEFuncAElement extends svg$._SVGComponentTransferFun
   }
 };
 dart.defineNamedConstructor(svg$.FEFuncAElement, 'created');
-dart.setSignature(svg$.FEFuncAElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEFuncAElement, []),
-    new: dart.definiteFunctionType(svg$.FEFuncAElement, []),
-    created: dart.definiteFunctionType(svg$.FEFuncAElement, [])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 dart.registerExtension(dart.global.SVGFEFuncAElement, svg$.FEFuncAElement);
 svg$.FEFuncBElement = class FEFuncBElement extends svg$._SVGComponentTransferFunctionElement {
   static _() {
@@ -102082,14 +96820,6 @@ svg$.FEFuncBElement = class FEFuncBElement extends svg$._SVGComponentTransferFun
   }
 };
 dart.defineNamedConstructor(svg$.FEFuncBElement, 'created');
-dart.setSignature(svg$.FEFuncBElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEFuncBElement, []),
-    new: dart.definiteFunctionType(svg$.FEFuncBElement, []),
-    created: dart.definiteFunctionType(svg$.FEFuncBElement, [])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 dart.registerExtension(dart.global.SVGFEFuncBElement, svg$.FEFuncBElement);
 svg$.FEFuncGElement = class FEFuncGElement extends svg$._SVGComponentTransferFunctionElement {
   static _() {
@@ -102106,14 +96836,6 @@ svg$.FEFuncGElement = class FEFuncGElement extends svg$._SVGComponentTransferFun
   }
 };
 dart.defineNamedConstructor(svg$.FEFuncGElement, 'created');
-dart.setSignature(svg$.FEFuncGElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEFuncGElement, []),
-    new: dart.definiteFunctionType(svg$.FEFuncGElement, []),
-    created: dart.definiteFunctionType(svg$.FEFuncGElement, [])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 dart.registerExtension(dart.global.SVGFEFuncGElement, svg$.FEFuncGElement);
 svg$.FEFuncRElement = class FEFuncRElement extends svg$._SVGComponentTransferFunctionElement {
   static _() {
@@ -102130,14 +96852,6 @@ svg$.FEFuncRElement = class FEFuncRElement extends svg$._SVGComponentTransferFun
   }
 };
 dart.defineNamedConstructor(svg$.FEFuncRElement, 'created');
-dart.setSignature(svg$.FEFuncRElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEFuncRElement, []),
-    new: dart.definiteFunctionType(svg$.FEFuncRElement, []),
-    created: dart.definiteFunctionType(svg$.FEFuncRElement, [])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 dart.registerExtension(dart.global.SVGFEFuncRElement, svg$.FEFuncRElement);
 dart.defineExtensionNames([
   'setStdDeviation',
@@ -102202,11 +96916,6 @@ svg$.FEGaussianBlurElement = class FEGaussianBlurElement extends svg$.SvgElement
 dart.defineNamedConstructor(svg$.FEGaussianBlurElement, 'created');
 svg$.FEGaussianBlurElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FEGaussianBlurElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEGaussianBlurElement, []),
-    new: dart.definiteFunctionType(svg$.FEGaussianBlurElement, []),
-    created: dart.definiteFunctionType(svg$.FEGaussianBlurElement, [])
-  }),
   fields: () => ({
     [dartx.in1]: svg$.AnimatedString,
     [dartx.stdDeviationX]: svg$.AnimatedNumber,
@@ -102217,8 +96926,7 @@ dart.setSignature(svg$.FEGaussianBlurElement, {
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
   }),
-  methods: () => ({[dartx.setStdDeviation]: dart.definiteFunctionType(dart.void, [core.num, core.num])}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  methods: () => ({[dartx.setStdDeviation]: dart.definiteFunctionType(dart.void, [core.num, core.num])})
 });
 dart.registerExtension(dart.global.SVGFEGaussianBlurElement, svg$.FEGaussianBlurElement);
 dart.defineExtensionNames([
@@ -102275,11 +96983,6 @@ svg$.FEImageElement = class FEImageElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.FEImageElement, 'created');
 svg$.FEImageElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes, svg$.UriReference];
 dart.setSignature(svg$.FEImageElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEImageElement, []),
-    new: dart.definiteFunctionType(svg$.FEImageElement, []),
-    created: dart.definiteFunctionType(svg$.FEImageElement, [])
-  }),
   fields: () => ({
     [dartx.preserveAspectRatio]: svg$.AnimatedPreserveAspectRatio,
     [dartx.height]: svg$.AnimatedLength,
@@ -102288,8 +96991,7 @@ dart.setSignature(svg$.FEImageElement, {
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength,
     [dartx.href]: svg$.AnimatedString
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFEImageElement, svg$.FEImageElement);
 dart.defineExtensionNames([
@@ -102336,19 +97038,13 @@ svg$.FEMergeElement = class FEMergeElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.FEMergeElement, 'created');
 svg$.FEMergeElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FEMergeElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEMergeElement, []),
-    new: dart.definiteFunctionType(svg$.FEMergeElement, []),
-    created: dart.definiteFunctionType(svg$.FEMergeElement, [])
-  }),
   fields: () => ({
     [dartx.height]: svg$.AnimatedLength,
     [dartx.result]: svg$.AnimatedString,
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFEMergeElement, svg$.FEMergeElement);
 dart.defineExtensionNames([
@@ -102374,13 +97070,7 @@ svg$.FEMergeNodeElement = class FEMergeNodeElement extends svg$.SvgElement {
 };
 dart.defineNamedConstructor(svg$.FEMergeNodeElement, 'created');
 dart.setSignature(svg$.FEMergeNodeElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEMergeNodeElement, []),
-    new: dart.definiteFunctionType(svg$.FEMergeNodeElement, []),
-    created: dart.definiteFunctionType(svg$.FEMergeNodeElement, [])
-  }),
-  fields: () => ({[dartx.in1]: svg$.AnimatedString}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  fields: () => ({[dartx.in1]: svg$.AnimatedString})
 });
 dart.registerExtension(dart.global.SVGFEMergeNodeElement, svg$.FEMergeNodeElement);
 dart.defineExtensionNames([
@@ -102441,10 +97131,6 @@ svg$.FEMorphologyElement = class FEMorphologyElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.FEMorphologyElement, 'created');
 svg$.FEMorphologyElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FEMorphologyElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEMorphologyElement, []),
-    created: dart.definiteFunctionType(svg$.FEMorphologyElement, [])
-  }),
   fields: () => ({
     [dartx.in1]: svg$.AnimatedString,
     [dartx.operator]: svg$.AnimatedEnumeration,
@@ -102455,11 +97141,6 @@ dart.setSignature(svg$.FEMorphologyElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sfields: () => ({
-    SVG_MORPHOLOGY_OPERATOR_DILATE: core.int,
-    SVG_MORPHOLOGY_OPERATOR_ERODE: core.int,
-    SVG_MORPHOLOGY_OPERATOR_UNKNOWN: core.int
   })
 });
 svg$.FEMorphologyElement.SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
@@ -102525,11 +97206,6 @@ svg$.FEOffsetElement = class FEOffsetElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.FEOffsetElement, 'created');
 svg$.FEOffsetElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FEOffsetElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEOffsetElement, []),
-    new: dart.definiteFunctionType(svg$.FEOffsetElement, []),
-    created: dart.definiteFunctionType(svg$.FEOffsetElement, [])
-  }),
   fields: () => ({
     [dartx.dx]: svg$.AnimatedNumber,
     [dartx.dy]: svg$.AnimatedNumber,
@@ -102539,8 +97215,7 @@ dart.setSignature(svg$.FEOffsetElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFEOffsetElement, svg$.FEOffsetElement);
 dart.defineExtensionNames([
@@ -102576,17 +97251,11 @@ svg$.FEPointLightElement = class FEPointLightElement extends svg$.SvgElement {
 };
 dart.defineNamedConstructor(svg$.FEPointLightElement, 'created');
 dart.setSignature(svg$.FEPointLightElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FEPointLightElement, []),
-    new: dart.definiteFunctionType(svg$.FEPointLightElement, []),
-    created: dart.definiteFunctionType(svg$.FEPointLightElement, [])
-  }),
   fields: () => ({
     [dartx.x]: svg$.AnimatedNumber,
     [dartx.y]: svg$.AnimatedNumber,
     [dartx.z]: svg$.AnimatedNumber
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFEPointLightElement, svg$.FEPointLightElement);
 dart.defineExtensionNames([
@@ -102663,11 +97332,6 @@ svg$.FESpecularLightingElement = class FESpecularLightingElement extends svg$.Sv
 dart.defineNamedConstructor(svg$.FESpecularLightingElement, 'created');
 svg$.FESpecularLightingElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FESpecularLightingElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FESpecularLightingElement, []),
-    new: dart.definiteFunctionType(svg$.FESpecularLightingElement, []),
-    created: dart.definiteFunctionType(svg$.FESpecularLightingElement, [])
-  }),
   fields: () => ({
     [dartx.in1]: svg$.AnimatedString,
     [dartx.kernelUnitLengthX]: svg$.AnimatedNumber,
@@ -102680,8 +97344,7 @@ dart.setSignature(svg$.FESpecularLightingElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFESpecularLightingElement, svg$.FESpecularLightingElement);
 dart.defineExtensionNames([
@@ -102742,11 +97405,6 @@ svg$.FESpotLightElement = class FESpotLightElement extends svg$.SvgElement {
 };
 dart.defineNamedConstructor(svg$.FESpotLightElement, 'created');
 dart.setSignature(svg$.FESpotLightElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FESpotLightElement, []),
-    new: dart.definiteFunctionType(svg$.FESpotLightElement, []),
-    created: dart.definiteFunctionType(svg$.FESpotLightElement, [])
-  }),
   fields: () => ({
     [dartx.limitingConeAngle]: svg$.AnimatedNumber,
     [dartx.pointsAtX]: svg$.AnimatedNumber,
@@ -102756,8 +97414,7 @@ dart.setSignature(svg$.FESpotLightElement, {
     [dartx.x]: svg$.AnimatedNumber,
     [dartx.y]: svg$.AnimatedNumber,
     [dartx.z]: svg$.AnimatedNumber
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFESpotLightElement, svg$.FESpotLightElement);
 dart.defineExtensionNames([
@@ -102809,11 +97466,6 @@ svg$.FETileElement = class FETileElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.FETileElement, 'created');
 svg$.FETileElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FETileElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FETileElement, []),
-    new: dart.definiteFunctionType(svg$.FETileElement, []),
-    created: dart.definiteFunctionType(svg$.FETileElement, [])
-  }),
   fields: () => ({
     [dartx.in1]: svg$.AnimatedString,
     [dartx.height]: svg$.AnimatedLength,
@@ -102821,8 +97473,7 @@ dart.setSignature(svg$.FETileElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFETileElement, svg$.FETileElement);
 dart.defineExtensionNames([
@@ -102899,11 +97550,6 @@ svg$.FETurbulenceElement = class FETurbulenceElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.FETurbulenceElement, 'created');
 svg$.FETurbulenceElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
 dart.setSignature(svg$.FETurbulenceElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FETurbulenceElement, []),
-    new: dart.definiteFunctionType(svg$.FETurbulenceElement, []),
-    created: dart.definiteFunctionType(svg$.FETurbulenceElement, [])
-  }),
   fields: () => ({
     [dartx.baseFrequencyX]: svg$.AnimatedNumber,
     [dartx.baseFrequencyY]: svg$.AnimatedNumber,
@@ -102916,16 +97562,7 @@ dart.setSignature(svg$.FETurbulenceElement, {
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sfields: () => ({
-    SVG_STITCHTYPE_NOSTITCH: core.int,
-    SVG_STITCHTYPE_STITCH: core.int,
-    SVG_STITCHTYPE_UNKNOWN: core.int,
-    SVG_TURBULENCE_TYPE_FRACTALNOISE: core.int,
-    SVG_TURBULENCE_TYPE_TURBULENCE: core.int,
-    SVG_TURBULENCE_TYPE_UNKNOWN: core.int
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 svg$.FETurbulenceElement.SVG_STITCHTYPE_NOSTITCH = 2;
 svg$.FETurbulenceElement.SVG_STITCHTYPE_STITCH = 1;
@@ -102988,11 +97625,6 @@ svg$.FilterElement = class FilterElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.FilterElement, 'created');
 svg$.FilterElement[dart.implements] = () => [svg$.UriReference];
 dart.setSignature(svg$.FilterElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.FilterElement, []),
-    new: dart.definiteFunctionType(svg$.FilterElement, []),
-    created: dart.definiteFunctionType(svg$.FilterElement, [])
-  }),
   fields: () => ({
     [dartx.filterUnits]: svg$.AnimatedEnumeration,
     [dartx.height]: svg$.AnimatedLength,
@@ -103001,8 +97633,7 @@ dart.setSignature(svg$.FilterElement, {
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength,
     [dartx.href]: svg$.AnimatedString
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGFilterElement, svg$.FilterElement);
 dart.defineExtensionNames([
@@ -103047,13 +97678,12 @@ svg$.FilterPrimitiveStandardAttributes = class FilterPrimitiveStandardAttributes
     super.y = value;
   }
 };
-const height$ = Symbol(svg$.FilterPrimitiveStandardAttributes.name + "." + 'height'.toString());
-const result = Symbol(svg$.FilterPrimitiveStandardAttributes.name + "." + 'result'.toString());
-const width$ = Symbol(svg$.FilterPrimitiveStandardAttributes.name + "." + 'width'.toString());
-const x = Symbol(svg$.FilterPrimitiveStandardAttributes.name + "." + 'x'.toString());
-const y = Symbol(svg$.FilterPrimitiveStandardAttributes.name + "." + 'y'.toString());
+const height$ = Symbol("FilterPrimitiveStandardAttributes.height");
+const result = Symbol("FilterPrimitiveStandardAttributes.result");
+const width$ = Symbol("FilterPrimitiveStandardAttributes.width");
+const x = Symbol("FilterPrimitiveStandardAttributes.x");
+const y = Symbol("FilterPrimitiveStandardAttributes.y");
 dart.setSignature(svg$.FilterPrimitiveStandardAttributes, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.FilterPrimitiveStandardAttributes, [])}),
   fields: () => ({
     height: svg$.AnimatedLength,
     result: svg$.AnimatedString,
@@ -103090,10 +97720,9 @@ svg$.FitToViewBox = class FitToViewBox extends _interceptors.Interceptor {
     super.viewBox = value;
   }
 };
-const preserveAspectRatio = Symbol(svg$.FitToViewBox.name + "." + 'preserveAspectRatio'.toString());
-const viewBox = Symbol(svg$.FitToViewBox.name + "." + 'viewBox'.toString());
+const preserveAspectRatio = Symbol("FitToViewBox.preserveAspectRatio");
+const viewBox = Symbol("FitToViewBox.viewBox");
 dart.setSignature(svg$.FitToViewBox, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.FitToViewBox, [])}),
   fields: () => ({
     preserveAspectRatio: svg$.AnimatedPreserveAspectRatio,
     viewBox: svg$.AnimatedRect
@@ -103138,18 +97767,12 @@ svg$.ForeignObjectElement = class ForeignObjectElement extends svg$.GraphicsElem
 };
 dart.defineNamedConstructor(svg$.ForeignObjectElement, 'created');
 dart.setSignature(svg$.ForeignObjectElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.ForeignObjectElement, []),
-    new: dart.definiteFunctionType(svg$.ForeignObjectElement, []),
-    created: dart.definiteFunctionType(svg$.ForeignObjectElement, [])
-  }),
   fields: () => ({
     [dartx.height]: svg$.AnimatedLength,
     [dartx.width]: svg$.AnimatedLength,
     [dartx.x]: svg$.AnimatedLength,
     [dartx.y]: svg$.AnimatedLength
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.SVGForeignObjectElement, svg$.ForeignObjectElement);
 svg$.GElement = class GElement extends svg$.GraphicsElement {
@@ -103164,13 +97787,6 @@ svg$.GElement = class GElement extends svg$.GraphicsElement {
   }
 };
 dart.defineNamedConstructor(svg$.GElement, 'created');
-dart.setSignature(svg$.GElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.GElement, []),
-    new: dart.definiteFunctionType(svg$.GElement, []),
-    created: dart.definiteFunctionType(svg$.GElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGGElement, svg$.GElement);
 dart.defineExtensionNames([
   'height',
@@ -103218,11 +97834,6 @@ svg$.ImageElement = class ImageElement extends svg$.GraphicsElement {
 dart.defineNamedConstructor(svg$.ImageElement, 'created');
 svg$.ImageElement[dart.implements] = () => [svg$.UriReference];
 dart.setSignature(svg$.ImageElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.ImageElement, []),
-    new: dart.definiteFunctionType(svg$.ImageElement, []),
-    created: dart.definiteFunctionType(svg$.ImageElement, [])
-  }),
   fields: () => ({
     [dartx.height]: svg$.AnimatedLength,
     [dartx.preserveAspectRatio]: svg$.AnimatedPreserveAspectRatio,
@@ -103274,7 +97885,6 @@ svg$.Length = class Length extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.Length, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.Length, [])}),
   fields: () => ({
     [dartx.unitType]: core.int,
     [dartx.value]: core.num,
@@ -103284,19 +97894,6 @@ dart.setSignature(svg$.Length, {
   methods: () => ({
     [dartx.convertToSpecifiedUnits]: dart.definiteFunctionType(dart.void, [core.int]),
     [dartx.newValueSpecifiedUnits]: dart.definiteFunctionType(dart.void, [core.int, core.num])
-  }),
-  sfields: () => ({
-    SVG_LENGTHTYPE_CM: core.int,
-    SVG_LENGTHTYPE_EMS: core.int,
-    SVG_LENGTHTYPE_EXS: core.int,
-    SVG_LENGTHTYPE_IN: core.int,
-    SVG_LENGTHTYPE_MM: core.int,
-    SVG_LENGTHTYPE_NUMBER: core.int,
-    SVG_LENGTHTYPE_PC: core.int,
-    SVG_LENGTHTYPE_PERCENTAGE: core.int,
-    SVG_LENGTHTYPE_PT: core.int,
-    SVG_LENGTHTYPE_PX: core.int,
-    SVG_LENGTHTYPE_UNKNOWN: core.int
   })
 });
 svg$.Length.SVG_LENGTHTYPE_CM = 6;
@@ -103402,7 +97999,6 @@ svg$.LengthList = class LengthList extends dart.mixin(_interceptors.Interceptor,
 };
 svg$.LengthList[dart.implements] = () => [ListOfLength()];
 dart.setSignature(svg$.LengthList, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.LengthList, [])}),
   fields: () => ({[dartx.numberOfItems]: core.int}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
@@ -103454,11 +98050,6 @@ svg$.LineElement = class LineElement extends svg$.GeometryElement {
 };
 dart.defineNamedConstructor(svg$.LineElement, 'created');
 dart.setSignature(svg$.LineElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.LineElement, []),
-    new: dart.definiteFunctionType(svg$.LineElement, []),
-    created: dart.definiteFunctionType(svg$.LineElement, [])
-  }),
   fields: () => ({
     [dartx.x1]: svg$.AnimatedLength,
     [dartx.x2]: svg$.AnimatedLength,
@@ -103500,21 +98091,11 @@ svg$._GradientElement = class _GradientElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$._GradientElement, 'created');
 svg$._GradientElement[dart.implements] = () => [svg$.UriReference];
 dart.setSignature(svg$._GradientElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$._GradientElement, []),
-    created: dart.definiteFunctionType(svg$._GradientElement, [])
-  }),
   fields: () => ({
     [dartx.gradientTransform]: svg$.AnimatedTransformList,
     [dartx.gradientUnits]: svg$.AnimatedEnumeration,
     [dartx.spreadMethod]: svg$.AnimatedEnumeration,
     [dartx.href]: svg$.AnimatedString
-  }),
-  sfields: () => ({
-    SVG_SPREADMETHOD_PAD: core.int,
-    SVG_SPREADMETHOD_REFLECT: core.int,
-    SVG_SPREADMETHOD_REPEAT: core.int,
-    SVG_SPREADMETHOD_UNKNOWN: core.int
   })
 });
 svg$._GradientElement.SVG_SPREADMETHOD_PAD = 1;
@@ -103557,11 +98138,6 @@ svg$.LinearGradientElement = class LinearGradientElement extends svg$._GradientE
 };
 dart.defineNamedConstructor(svg$.LinearGradientElement, 'created');
 dart.setSignature(svg$.LinearGradientElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.LinearGradientElement, []),
-    new: dart.definiteFunctionType(svg$.LinearGradientElement, []),
-    created: dart.definiteFunctionType(svg$.LinearGradientElement, [])
-  }),
   fields: () => ({
     [dartx.x1]: svg$.AnimatedLength,
     [dartx.x2]: svg$.AnimatedLength,
@@ -103639,11 +98215,6 @@ svg$.MarkerElement = class MarkerElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.MarkerElement, 'created');
 svg$.MarkerElement[dart.implements] = () => [svg$.FitToViewBox];
 dart.setSignature(svg$.MarkerElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.MarkerElement, []),
-    new: dart.definiteFunctionType(svg$.MarkerElement, []),
-    created: dart.definiteFunctionType(svg$.MarkerElement, [])
-  }),
   fields: () => ({
     [dartx.markerHeight]: svg$.AnimatedLength,
     [dartx.markerUnits]: svg$.AnimatedEnumeration,
@@ -103658,14 +98229,6 @@ dart.setSignature(svg$.MarkerElement, {
   methods: () => ({
     [dartx.setOrientToAngle]: dart.definiteFunctionType(dart.void, [svg$.Angle]),
     [dartx.setOrientToAuto]: dart.definiteFunctionType(dart.void, [])
-  }),
-  sfields: () => ({
-    SVG_MARKERUNITS_STROKEWIDTH: core.int,
-    SVG_MARKERUNITS_UNKNOWN: core.int,
-    SVG_MARKERUNITS_USERSPACEONUSE: core.int,
-    SVG_MARKER_ORIENT_ANGLE: core.int,
-    SVG_MARKER_ORIENT_AUTO: core.int,
-    SVG_MARKER_ORIENT_UNKNOWN: core.int
   })
 });
 svg$.MarkerElement.SVG_MARKERUNITS_STROKEWIDTH = 2;
@@ -103740,11 +98303,6 @@ svg$.MaskElement = class MaskElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.MaskElement, 'created');
 svg$.MaskElement[dart.implements] = () => [svg$.Tests];
 dart.setSignature(svg$.MaskElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.MaskElement, []),
-    new: dart.definiteFunctionType(svg$.MaskElement, []),
-    created: dart.definiteFunctionType(svg$.MaskElement, [])
-  }),
   fields: () => ({
     [dartx.height]: svg$.AnimatedLength,
     [dartx.maskContentUnits]: svg$.AnimatedEnumeration,
@@ -103853,7 +98411,6 @@ svg$.Matrix = class Matrix extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.Matrix, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.Matrix, [])}),
   fields: () => ({
     [dartx.a]: core.num,
     [dartx.b]: core.num,
@@ -103886,12 +98443,6 @@ svg$.MetadataElement = class MetadataElement extends svg$.SvgElement {
   }
 };
 dart.defineNamedConstructor(svg$.MetadataElement, 'created');
-dart.setSignature(svg$.MetadataElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.MetadataElement, []),
-    created: dart.definiteFunctionType(svg$.MetadataElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGMetadataElement, svg$.MetadataElement);
 dart.defineExtensionNames([
   'value'
@@ -103908,7 +98459,6 @@ svg$.Number = class Number extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.Number, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.Number, [])}),
   fields: () => ({[dartx.value]: core.num})
 });
 dart.registerExtension(dart.global.SVGNumber, svg$.Number);
@@ -104002,7 +98552,6 @@ svg$.NumberList = class NumberList extends dart.mixin(_interceptors.Interceptor,
 };
 svg$.NumberList[dart.implements] = () => [ListOfNumber()];
 dart.setSignature(svg$.NumberList, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.NumberList, [])}),
   fields: () => ({[dartx.numberOfItems]: core.int}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
@@ -104147,11 +98696,6 @@ svg$.PathElement = class PathElement extends svg$.GeometryElement {
 };
 dart.defineNamedConstructor(svg$.PathElement, 'created');
 dart.setSignature(svg$.PathElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.PathElement, []),
-    new: dart.definiteFunctionType(svg$.PathElement, []),
-    created: dart.definiteFunctionType(svg$.PathElement, [])
-  }),
   fields: () => ({
     [dartx.animatedNormalizedPathSegList]: svg$.PathSegList,
     [dartx.animatedPathSegList]: svg$.PathSegList,
@@ -104201,32 +98745,9 @@ svg$.PathSeg = class PathSeg extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.PathSeg, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSeg, [])}),
   fields: () => ({
     [dartx.pathSegType]: core.int,
     [dartx.pathSegTypeAsLetter]: core.String
-  }),
-  sfields: () => ({
-    PATHSEG_ARC_ABS: core.int,
-    PATHSEG_ARC_REL: core.int,
-    PATHSEG_CLOSEPATH: core.int,
-    PATHSEG_CURVETO_CUBIC_ABS: core.int,
-    PATHSEG_CURVETO_CUBIC_REL: core.int,
-    PATHSEG_CURVETO_CUBIC_SMOOTH_ABS: core.int,
-    PATHSEG_CURVETO_CUBIC_SMOOTH_REL: core.int,
-    PATHSEG_CURVETO_QUADRATIC_ABS: core.int,
-    PATHSEG_CURVETO_QUADRATIC_REL: core.int,
-    PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS: core.int,
-    PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL: core.int,
-    PATHSEG_LINETO_ABS: core.int,
-    PATHSEG_LINETO_HORIZONTAL_ABS: core.int,
-    PATHSEG_LINETO_HORIZONTAL_REL: core.int,
-    PATHSEG_LINETO_REL: core.int,
-    PATHSEG_LINETO_VERTICAL_ABS: core.int,
-    PATHSEG_LINETO_VERTICAL_REL: core.int,
-    PATHSEG_MOVETO_ABS: core.int,
-    PATHSEG_MOVETO_REL: core.int,
-    PATHSEG_UNKNOWN: core.int
   })
 });
 svg$.PathSeg.PATHSEG_ARC_ABS = 10;
@@ -104307,7 +98828,6 @@ svg$.PathSegArcAbs = class PathSegArcAbs extends svg$.PathSeg {
   }
 };
 dart.setSignature(svg$.PathSegArcAbs, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegArcAbs, [])}),
   fields: () => ({
     [dartx.angle]: core.num,
     [dartx.largeArcFlag]: core.bool,
@@ -104376,7 +98896,6 @@ svg$.PathSegArcRel = class PathSegArcRel extends svg$.PathSeg {
   }
 };
 dart.setSignature(svg$.PathSegArcRel, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegArcRel, [])}),
   fields: () => ({
     [dartx.angle]: core.num,
     [dartx.largeArcFlag]: core.bool,
@@ -104393,9 +98912,6 @@ svg$.PathSegClosePath = class PathSegClosePath extends svg$.PathSeg {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(svg$.PathSegClosePath, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegClosePath, [])})
-});
 dart.registerExtension(dart.global.SVGPathSegClosePath, svg$.PathSegClosePath);
 dart.defineExtensionNames([
   'x',
@@ -104447,7 +98963,6 @@ svg$.PathSegCurvetoCubicAbs = class PathSegCurvetoCubicAbs extends svg$.PathSeg 
   }
 };
 dart.setSignature(svg$.PathSegCurvetoCubicAbs, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegCurvetoCubicAbs, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.x1]: core.num,
@@ -104508,7 +99023,6 @@ svg$.PathSegCurvetoCubicRel = class PathSegCurvetoCubicRel extends svg$.PathSeg 
   }
 };
 dart.setSignature(svg$.PathSegCurvetoCubicRel, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegCurvetoCubicRel, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.x1]: core.num,
@@ -104555,7 +99069,6 @@ svg$.PathSegCurvetoCubicSmoothAbs = class PathSegCurvetoCubicSmoothAbs extends s
   }
 };
 dart.setSignature(svg$.PathSegCurvetoCubicSmoothAbs, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegCurvetoCubicSmoothAbs, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.x2]: core.num,
@@ -104600,7 +99113,6 @@ svg$.PathSegCurvetoCubicSmoothRel = class PathSegCurvetoCubicSmoothRel extends s
   }
 };
 dart.setSignature(svg$.PathSegCurvetoCubicSmoothRel, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegCurvetoCubicSmoothRel, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.x2]: core.num,
@@ -104645,7 +99157,6 @@ svg$.PathSegCurvetoQuadraticAbs = class PathSegCurvetoQuadraticAbs extends svg$.
   }
 };
 dart.setSignature(svg$.PathSegCurvetoQuadraticAbs, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegCurvetoQuadraticAbs, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.x1]: core.num,
@@ -104690,7 +99201,6 @@ svg$.PathSegCurvetoQuadraticRel = class PathSegCurvetoQuadraticRel extends svg$.
   }
 };
 dart.setSignature(svg$.PathSegCurvetoQuadraticRel, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegCurvetoQuadraticRel, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.x1]: core.num,
@@ -104721,7 +99231,6 @@ svg$.PathSegCurvetoQuadraticSmoothAbs = class PathSegCurvetoQuadraticSmoothAbs e
   }
 };
 dart.setSignature(svg$.PathSegCurvetoQuadraticSmoothAbs, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegCurvetoQuadraticSmoothAbs, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.y]: core.num
@@ -104750,7 +99259,6 @@ svg$.PathSegCurvetoQuadraticSmoothRel = class PathSegCurvetoQuadraticSmoothRel e
   }
 };
 dart.setSignature(svg$.PathSegCurvetoQuadraticSmoothRel, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegCurvetoQuadraticSmoothRel, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.y]: core.num
@@ -104779,7 +99287,6 @@ svg$.PathSegLinetoAbs = class PathSegLinetoAbs extends svg$.PathSeg {
   }
 };
 dart.setSignature(svg$.PathSegLinetoAbs, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegLinetoAbs, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.y]: core.num
@@ -104801,7 +99308,6 @@ svg$.PathSegLinetoHorizontalAbs = class PathSegLinetoHorizontalAbs extends svg$.
   }
 };
 dart.setSignature(svg$.PathSegLinetoHorizontalAbs, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegLinetoHorizontalAbs, [])}),
   fields: () => ({[dartx.x]: core.num})
 });
 dart.registerExtension(dart.global.SVGPathSegLinetoHorizontalAbs, svg$.PathSegLinetoHorizontalAbs);
@@ -104820,7 +99326,6 @@ svg$.PathSegLinetoHorizontalRel = class PathSegLinetoHorizontalRel extends svg$.
   }
 };
 dart.setSignature(svg$.PathSegLinetoHorizontalRel, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegLinetoHorizontalRel, [])}),
   fields: () => ({[dartx.x]: core.num})
 });
 dart.registerExtension(dart.global.SVGPathSegLinetoHorizontalRel, svg$.PathSegLinetoHorizontalRel);
@@ -104846,7 +99351,6 @@ svg$.PathSegLinetoRel = class PathSegLinetoRel extends svg$.PathSeg {
   }
 };
 dart.setSignature(svg$.PathSegLinetoRel, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegLinetoRel, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.y]: core.num
@@ -104868,7 +99372,6 @@ svg$.PathSegLinetoVerticalAbs = class PathSegLinetoVerticalAbs extends svg$.Path
   }
 };
 dart.setSignature(svg$.PathSegLinetoVerticalAbs, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegLinetoVerticalAbs, [])}),
   fields: () => ({[dartx.y]: core.num})
 });
 dart.registerExtension(dart.global.SVGPathSegLinetoVerticalAbs, svg$.PathSegLinetoVerticalAbs);
@@ -104887,7 +99390,6 @@ svg$.PathSegLinetoVerticalRel = class PathSegLinetoVerticalRel extends svg$.Path
   }
 };
 dart.setSignature(svg$.PathSegLinetoVerticalRel, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegLinetoVerticalRel, [])}),
   fields: () => ({[dartx.y]: core.num})
 });
 dart.registerExtension(dart.global.SVGPathSegLinetoVerticalRel, svg$.PathSegLinetoVerticalRel);
@@ -104981,7 +99483,6 @@ svg$.PathSegList = class PathSegList extends dart.mixin(_interceptors.Intercepto
 };
 svg$.PathSegList[dart.implements] = () => [ListOfPathSeg()];
 dart.setSignature(svg$.PathSegList, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegList, [])}),
   fields: () => ({[dartx.numberOfItems]: core.int}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
@@ -105020,7 +99521,6 @@ svg$.PathSegMovetoAbs = class PathSegMovetoAbs extends svg$.PathSeg {
   }
 };
 dart.setSignature(svg$.PathSegMovetoAbs, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegMovetoAbs, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.y]: core.num
@@ -105049,7 +99549,6 @@ svg$.PathSegMovetoRel = class PathSegMovetoRel extends svg$.PathSeg {
   }
 };
 dart.setSignature(svg$.PathSegMovetoRel, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PathSegMovetoRel, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.y]: core.num
@@ -105141,11 +99640,6 @@ svg$.PatternElement = class PatternElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.PatternElement, 'created');
 svg$.PatternElement[dart.implements] = () => [svg$.FitToViewBox, svg$.UriReference, svg$.Tests];
 dart.setSignature(svg$.PatternElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.PatternElement, []),
-    new: dart.definiteFunctionType(svg$.PatternElement, []),
-    created: dart.definiteFunctionType(svg$.PatternElement, [])
-  }),
   fields: () => ({
     [dartx.height]: svg$.AnimatedLength,
     [dartx.patternContentUnits]: svg$.AnimatedEnumeration,
@@ -105190,7 +99684,6 @@ svg$.Point = class Point extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.Point, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.Point, [])}),
   fields: () => ({
     [dartx.x]: core.num,
     [dartx.y]: core.num
@@ -105245,7 +99738,6 @@ svg$.PointList = class PointList extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.PointList, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PointList, [])}),
   fields: () => ({
     [dartx.length]: core.int,
     [dartx.numberOfItems]: core.int
@@ -105287,11 +99779,6 @@ svg$.PolygonElement = class PolygonElement extends svg$.GeometryElement {
 };
 dart.defineNamedConstructor(svg$.PolygonElement, 'created');
 dart.setSignature(svg$.PolygonElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.PolygonElement, []),
-    new: dart.definiteFunctionType(svg$.PolygonElement, []),
-    created: dart.definiteFunctionType(svg$.PolygonElement, [])
-  }),
   fields: () => ({
     [dartx.animatedPoints]: svg$.PointList,
     [dartx.points]: svg$.PointList
@@ -105323,11 +99810,6 @@ svg$.PolylineElement = class PolylineElement extends svg$.GeometryElement {
 };
 dart.defineNamedConstructor(svg$.PolylineElement, 'created');
 dart.setSignature(svg$.PolylineElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.PolylineElement, []),
-    new: dart.definiteFunctionType(svg$.PolylineElement, []),
-    created: dart.definiteFunctionType(svg$.PolylineElement, [])
-  }),
   fields: () => ({
     [dartx.animatedPoints]: svg$.PointList,
     [dartx.points]: svg$.PointList
@@ -105356,26 +99838,9 @@ svg$.PreserveAspectRatio = class PreserveAspectRatio extends _interceptors.Inter
   }
 };
 dart.setSignature(svg$.PreserveAspectRatio, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.PreserveAspectRatio, [])}),
   fields: () => ({
     [dartx.align]: core.int,
     [dartx.meetOrSlice]: core.int
-  }),
-  sfields: () => ({
-    SVG_MEETORSLICE_MEET: core.int,
-    SVG_MEETORSLICE_SLICE: core.int,
-    SVG_MEETORSLICE_UNKNOWN: core.int,
-    SVG_PRESERVEASPECTRATIO_NONE: core.int,
-    SVG_PRESERVEASPECTRATIO_UNKNOWN: core.int,
-    SVG_PRESERVEASPECTRATIO_XMAXYMAX: core.int,
-    SVG_PRESERVEASPECTRATIO_XMAXYMID: core.int,
-    SVG_PRESERVEASPECTRATIO_XMAXYMIN: core.int,
-    SVG_PRESERVEASPECTRATIO_XMIDYMAX: core.int,
-    SVG_PRESERVEASPECTRATIO_XMIDYMID: core.int,
-    SVG_PRESERVEASPECTRATIO_XMIDYMIN: core.int,
-    SVG_PRESERVEASPECTRATIO_XMINYMAX: core.int,
-    SVG_PRESERVEASPECTRATIO_XMINYMID: core.int,
-    SVG_PRESERVEASPECTRATIO_XMINYMIN: core.int
   })
 });
 svg$.PreserveAspectRatio.SVG_MEETORSLICE_MEET = 1;
@@ -105438,11 +99903,6 @@ svg$.RadialGradientElement = class RadialGradientElement extends svg$._GradientE
 };
 dart.defineNamedConstructor(svg$.RadialGradientElement, 'created');
 dart.setSignature(svg$.RadialGradientElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.RadialGradientElement, []),
-    new: dart.definiteFunctionType(svg$.RadialGradientElement, []),
-    created: dart.definiteFunctionType(svg$.RadialGradientElement, [])
-  }),
   fields: () => ({
     [dartx.cx]: svg$.AnimatedLength,
     [dartx.cy]: svg$.AnimatedLength,
@@ -105489,7 +99949,6 @@ svg$.Rect = class Rect extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.Rect, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.Rect, [])}),
   fields: () => ({
     [dartx.height]: core.num,
     [dartx.width]: core.num,
@@ -105543,11 +100002,6 @@ svg$.RectElement = class RectElement extends svg$.GeometryElement {
 };
 dart.defineNamedConstructor(svg$.RectElement, 'created');
 dart.setSignature(svg$.RectElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.RectElement, []),
-    new: dart.definiteFunctionType(svg$.RectElement, []),
-    created: dart.definiteFunctionType(svg$.RectElement, [])
-  }),
   fields: () => ({
     [dartx.height]: svg$.AnimatedLength,
     [dartx.rx]: svg$.AnimatedLength,
@@ -105587,11 +100041,6 @@ svg$.ScriptElement = class ScriptElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.ScriptElement, 'created');
 svg$.ScriptElement[dart.implements] = () => [svg$.UriReference];
 dart.setSignature(svg$.ScriptElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.ScriptElement, []),
-    new: dart.definiteFunctionType(svg$.ScriptElement, []),
-    created: dart.definiteFunctionType(svg$.ScriptElement, [])
-  }),
   fields: () => ({
     [dartx.type]: core.String,
     [dartx.href]: svg$.AnimatedString
@@ -105613,14 +100062,6 @@ svg$.SetElement = class SetElement extends svg$.AnimationElement {
   }
 };
 dart.defineNamedConstructor(svg$.SetElement, 'created');
-dart.setSignature(svg$.SetElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.SetElement, []),
-    new: dart.definiteFunctionType(svg$.SetElement, []),
-    created: dart.definiteFunctionType(svg$.SetElement, [])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 dart.registerExtension(dart.global.SVGSetElement, svg$.SetElement);
 dart.defineExtensionNames([
   'gradientOffset'
@@ -105642,11 +100083,6 @@ svg$.StopElement = class StopElement extends svg$.SvgElement {
 };
 dart.defineNamedConstructor(svg$.StopElement, 'created');
 dart.setSignature(svg$.StopElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.StopElement, []),
-    new: dart.definiteFunctionType(svg$.StopElement, []),
-    created: dart.definiteFunctionType(svg$.StopElement, [])
-  }),
   fields: () => ({[dartx.gradientOffset]: svg$.AnimatedNumber})
 });
 dart.registerExtension(dart.global.SVGStopElement, svg$.StopElement);
@@ -105740,7 +100176,6 @@ svg$.StringList = class StringList extends dart.mixin(_interceptors.Interceptor,
 };
 svg$.StringList[dart.implements] = () => [ListOfString()];
 dart.setSignature(svg$.StringList, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.StringList, [])}),
   fields: () => ({[dartx.numberOfItems]: core.int}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
@@ -105801,11 +100236,6 @@ svg$.StyleElement = class StyleElement extends svg$.SvgElement {
 };
 dart.defineNamedConstructor(svg$.StyleElement, 'created');
 dart.setSignature(svg$.StyleElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.StyleElement, []),
-    new: dart.definiteFunctionType(svg$.StyleElement, []),
-    created: dart.definiteFunctionType(svg$.StyleElement, [])
-  }),
   fields: () => ({
     [dartx.disabled]: core.bool,
     [dartx.media]: core.String,
@@ -105838,7 +100268,6 @@ svg$._AttributeClassSet = class _AttributeClassSet extends html_common.CssClassS
   }
 };
 dart.setSignature(svg$._AttributeClassSet, {
-  constructors: () => ({new: dart.definiteFunctionType(svg$._AttributeClassSet, [html$.Element])}),
   fields: () => ({[_element$0]: html$.Element}),
   methods: () => ({
     readClasses: dart.definiteFunctionType(core.Set$(core.String), []),
@@ -106041,11 +100470,6 @@ svg$.SvgSvgElement = class SvgSvgElement extends svg$.GraphicsElement {
 dart.defineNamedConstructor(svg$.SvgSvgElement, 'created');
 svg$.SvgSvgElement[dart.implements] = () => [svg$.FitToViewBox, svg$.ZoomAndPan];
 dart.setSignature(svg$.SvgSvgElement, {
-  constructors: () => ({
-    new: dart.definiteFunctionType(svg$.SvgSvgElement, []),
-    _: dart.definiteFunctionType(svg$.SvgSvgElement, []),
-    created: dart.definiteFunctionType(svg$.SvgSvgElement, [])
-  }),
   fields: () => ({
     [dartx.currentScale]: core.num,
     [dartx.currentTranslate]: svg$.Point,
@@ -106103,13 +100527,6 @@ svg$.SwitchElement = class SwitchElement extends svg$.GraphicsElement {
   }
 };
 dart.defineNamedConstructor(svg$.SwitchElement, 'created');
-dart.setSignature(svg$.SwitchElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.SwitchElement, []),
-    new: dart.definiteFunctionType(svg$.SwitchElement, []),
-    created: dart.definiteFunctionType(svg$.SwitchElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGSwitchElement, svg$.SwitchElement);
 dart.defineExtensionNames([
   'preserveAspectRatio',
@@ -106137,11 +100554,6 @@ svg$.SymbolElement = class SymbolElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.SymbolElement, 'created');
 svg$.SymbolElement[dart.implements] = () => [svg$.FitToViewBox];
 dart.setSignature(svg$.SymbolElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.SymbolElement, []),
-    new: dart.definiteFunctionType(svg$.SymbolElement, []),
-    created: dart.definiteFunctionType(svg$.SymbolElement, [])
-  }),
   fields: () => ({
     [dartx.preserveAspectRatio]: svg$.AnimatedPreserveAspectRatio,
     [dartx.viewBox]: svg$.AnimatedRect
@@ -106206,10 +100618,6 @@ svg$.TextContentElement = class TextContentElement extends svg$.GraphicsElement 
 };
 dart.defineNamedConstructor(svg$.TextContentElement, 'created');
 dart.setSignature(svg$.TextContentElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.TextContentElement, []),
-    created: dart.definiteFunctionType(svg$.TextContentElement, [])
-  }),
   fields: () => ({
     [dartx.lengthAdjust]: svg$.AnimatedEnumeration,
     [dartx.textLength]: svg$.AnimatedLength
@@ -106224,11 +100632,6 @@ dart.setSignature(svg$.TextContentElement, {
     [dartx.getStartPositionOfChar]: dart.definiteFunctionType(svg$.Point, [core.int]),
     [dartx.getSubStringLength]: dart.definiteFunctionType(core.double, [core.int, core.int]),
     [dartx.selectSubString]: dart.definiteFunctionType(dart.void, [core.int, core.int])
-  }),
-  sfields: () => ({
-    LENGTHADJUST_SPACING: core.int,
-    LENGTHADJUST_SPACINGANDGLYPHS: core.int,
-    LENGTHADJUST_UNKNOWN: core.int
   })
 });
 svg$.TextContentElement.LENGTHADJUST_SPACING = 1;
@@ -106272,10 +100675,6 @@ svg$.TextPositioningElement = class TextPositioningElement extends svg$.TextCont
 };
 dart.defineNamedConstructor(svg$.TextPositioningElement, 'created');
 dart.setSignature(svg$.TextPositioningElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.TextPositioningElement, []),
-    created: dart.definiteFunctionType(svg$.TextPositioningElement, [])
-  }),
   fields: () => ({
     [dartx.dx]: svg$.AnimatedLengthList,
     [dartx.dy]: svg$.AnimatedLengthList,
@@ -106297,13 +100696,6 @@ svg$.TSpanElement = class TSpanElement extends svg$.TextPositioningElement {
   }
 };
 dart.defineNamedConstructor(svg$.TSpanElement, 'created');
-dart.setSignature(svg$.TSpanElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.TSpanElement, []),
-    new: dart.definiteFunctionType(svg$.TSpanElement, []),
-    created: dart.definiteFunctionType(svg$.TSpanElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGTSpanElement, svg$.TSpanElement);
 dart.defineExtensionNames([
   'requiredExtensions',
@@ -106333,11 +100725,10 @@ svg$.Tests = class Tests extends _interceptors.Interceptor {
     super.systemLanguage = value;
   }
 };
-const requiredExtensions = Symbol(svg$.Tests.name + "." + 'requiredExtensions'.toString());
-const requiredFeatures = Symbol(svg$.Tests.name + "." + 'requiredFeatures'.toString());
-const systemLanguage = Symbol(svg$.Tests.name + "." + 'systemLanguage'.toString());
+const requiredExtensions = Symbol("Tests.requiredExtensions");
+const requiredFeatures = Symbol("Tests.requiredFeatures");
+const systemLanguage = Symbol("Tests.systemLanguage");
 dart.setSignature(svg$.Tests, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.Tests, [])}),
   fields: () => ({
     requiredExtensions: svg$.StringList,
     requiredFeatures: svg$.StringList,
@@ -106357,13 +100748,6 @@ svg$.TextElement = class TextElement extends svg$.TextPositioningElement {
   }
 };
 dart.defineNamedConstructor(svg$.TextElement, 'created');
-dart.setSignature(svg$.TextElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.TextElement, []),
-    new: dart.definiteFunctionType(svg$.TextElement, []),
-    created: dart.definiteFunctionType(svg$.TextElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGTextElement, svg$.TextElement);
 dart.defineExtensionNames([
   'method',
@@ -106398,23 +100782,11 @@ svg$.TextPathElement = class TextPathElement extends svg$.TextContentElement {
 dart.defineNamedConstructor(svg$.TextPathElement, 'created');
 svg$.TextPathElement[dart.implements] = () => [svg$.UriReference];
 dart.setSignature(svg$.TextPathElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.TextPathElement, []),
-    created: dart.definiteFunctionType(svg$.TextPathElement, [])
-  }),
   fields: () => ({
     [dartx.method]: svg$.AnimatedEnumeration,
     [dartx.spacing]: svg$.AnimatedEnumeration,
     [dartx.startOffset]: svg$.AnimatedLength,
     [dartx.href]: svg$.AnimatedString
-  }),
-  sfields: () => ({
-    TEXTPATH_METHODTYPE_ALIGN: core.int,
-    TEXTPATH_METHODTYPE_STRETCH: core.int,
-    TEXTPATH_METHODTYPE_UNKNOWN: core.int,
-    TEXTPATH_SPACINGTYPE_AUTO: core.int,
-    TEXTPATH_SPACINGTYPE_EXACT: core.int,
-    TEXTPATH_SPACINGTYPE_UNKNOWN: core.int
   })
 });
 svg$.TextPathElement.TEXTPATH_METHODTYPE_ALIGN = 1;
@@ -106436,13 +100808,6 @@ svg$.TitleElement = class TitleElement extends svg$.SvgElement {
   }
 };
 dart.defineNamedConstructor(svg$.TitleElement, 'created');
-dart.setSignature(svg$.TitleElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.TitleElement, []),
-    new: dart.definiteFunctionType(svg$.TitleElement, []),
-    created: dart.definiteFunctionType(svg$.TitleElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGTitleElement, svg$.TitleElement);
 dart.defineExtensionNames([
   'setMatrix',
@@ -106488,7 +100853,6 @@ svg$.Transform = class Transform extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(svg$.Transform, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.Transform, [])}),
   fields: () => ({
     [dartx.angle]: core.double,
     [dartx.matrix]: svg$.Matrix,
@@ -106501,15 +100865,6 @@ dart.setSignature(svg$.Transform, {
     [dartx.setSkewX]: dart.definiteFunctionType(dart.void, [core.num]),
     [dartx.setSkewY]: dart.definiteFunctionType(dart.void, [core.num]),
     [dartx.setTranslate]: dart.definiteFunctionType(dart.void, [core.num, core.num])
-  }),
-  sfields: () => ({
-    SVG_TRANSFORM_MATRIX: core.int,
-    SVG_TRANSFORM_ROTATE: core.int,
-    SVG_TRANSFORM_SCALE: core.int,
-    SVG_TRANSFORM_SKEWX: core.int,
-    SVG_TRANSFORM_SKEWY: core.int,
-    SVG_TRANSFORM_TRANSLATE: core.int,
-    SVG_TRANSFORM_UNKNOWN: core.int
   })
 });
 svg$.Transform.SVG_TRANSFORM_MATRIX = 1;
@@ -106618,7 +100973,6 @@ svg$.TransformList = class TransformList extends dart.mixin(_interceptors.Interc
 };
 svg$.TransformList[dart.implements] = () => [ListOfTransform()];
 dart.setSignature(svg$.TransformList, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.TransformList, [])}),
   fields: () => ({[dartx.numberOfItems]: core.int}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
@@ -106642,14 +100996,6 @@ svg$.UnitTypes = class UnitTypes extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(svg$.UnitTypes, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.UnitTypes, [])}),
-  sfields: () => ({
-    SVG_UNIT_TYPE_OBJECTBOUNDINGBOX: core.int,
-    SVG_UNIT_TYPE_UNKNOWN: core.int,
-    SVG_UNIT_TYPE_USERSPACEONUSE: core.int
-  })
-});
 svg$.UnitTypes.SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
 svg$.UnitTypes.SVG_UNIT_TYPE_UNKNOWN = 0;
 svg$.UnitTypes.SVG_UNIT_TYPE_USERSPACEONUSE = 1;
@@ -106668,9 +101014,8 @@ svg$.UriReference = class UriReference extends _interceptors.Interceptor {
     super.href = value;
   }
 };
-const href$0 = Symbol(svg$.UriReference.name + "." + 'href'.toString());
+const href$0 = Symbol("UriReference.href");
 dart.setSignature(svg$.UriReference, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.UriReference, [])}),
   fields: () => ({href: svg$.AnimatedString})
 });
 dart.defineExtensionMembers(svg$.UriReference, ['href']);
@@ -106715,11 +101060,6 @@ svg$.UseElement = class UseElement extends svg$.GraphicsElement {
 dart.defineNamedConstructor(svg$.UseElement, 'created');
 svg$.UseElement[dart.implements] = () => [svg$.UriReference];
 dart.setSignature(svg$.UseElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.UseElement, []),
-    new: dart.definiteFunctionType(svg$.UseElement, []),
-    created: dart.definiteFunctionType(svg$.UseElement, [])
-  }),
   fields: () => ({
     [dartx.height]: svg$.AnimatedLength,
     [dartx.width]: svg$.AnimatedLength,
@@ -106768,11 +101108,6 @@ svg$.ViewElement = class ViewElement extends svg$.SvgElement {
 dart.defineNamedConstructor(svg$.ViewElement, 'created');
 svg$.ViewElement[dart.implements] = () => [svg$.FitToViewBox, svg$.ZoomAndPan];
 dart.setSignature(svg$.ViewElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$.ViewElement, []),
-    new: dart.definiteFunctionType(svg$.ViewElement, []),
-    created: dart.definiteFunctionType(svg$.ViewElement, [])
-  }),
   fields: () => ({
     [dartx.viewTarget]: svg$.StringList,
     [dartx.preserveAspectRatio]: svg$.AnimatedPreserveAspectRatio,
@@ -106829,7 +101164,6 @@ svg$.ViewSpec = class ViewSpec extends _interceptors.Interceptor {
 };
 svg$.ViewSpec[dart.implements] = () => [svg$.FitToViewBox, svg$.ZoomAndPan];
 dart.setSignature(svg$.ViewSpec, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.ViewSpec, [])}),
   fields: () => ({
     [dartx.preserveAspectRatioString]: core.String,
     [dartx.transform]: svg$.TransformList,
@@ -106857,15 +101191,9 @@ svg$.ZoomAndPan = class ZoomAndPan extends _interceptors.Interceptor {
     this[zoomAndPan] = value;
   }
 };
-const zoomAndPan = Symbol(svg$.ZoomAndPan.name + "." + 'zoomAndPan'.toString());
+const zoomAndPan = Symbol("ZoomAndPan.zoomAndPan");
 dart.setSignature(svg$.ZoomAndPan, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.ZoomAndPan, [])}),
-  fields: () => ({zoomAndPan: core.int}),
-  sfields: () => ({
-    SVG_ZOOMANDPAN_DISABLE: core.int,
-    SVG_ZOOMANDPAN_MAGNIFY: core.int,
-    SVG_ZOOMANDPAN_UNKNOWN: core.int
-  })
+  fields: () => ({zoomAndPan: core.int})
 });
 dart.defineExtensionMembers(svg$.ZoomAndPan, ['zoomAndPan', 'zoomAndPan']);
 svg$.ZoomAndPan.SVG_ZOOMANDPAN_DISABLE = 1;
@@ -106899,7 +101227,6 @@ svg$.ZoomEvent = class ZoomEvent extends html$.UIEvent {
   }
 };
 dart.setSignature(svg$.ZoomEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(svg$.ZoomEvent, [])}),
   fields: () => ({
     [dartx.newScale]: core.double,
     [dartx.newTranslate]: svg$.Point,
@@ -106925,14 +101252,6 @@ svg$._SVGCursorElement = class _SVGCursorElement extends svg$.SvgElement {
 };
 dart.defineNamedConstructor(svg$._SVGCursorElement, 'created');
 svg$._SVGCursorElement[dart.implements] = () => [svg$.UriReference, svg$.Tests];
-dart.setSignature(svg$._SVGCursorElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$._SVGCursorElement, []),
-    new: dart.definiteFunctionType(svg$._SVGCursorElement, []),
-    created: dart.definiteFunctionType(svg$._SVGCursorElement, [])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
-});
 dart.registerExtension(dart.global.SVGCursorElement, svg$._SVGCursorElement);
 svg$._SVGFEDropShadowElement = class _SVGFEDropShadowElement extends svg$.SvgElement {
   static _() {
@@ -106944,12 +101263,6 @@ svg$._SVGFEDropShadowElement = class _SVGFEDropShadowElement extends svg$.SvgEle
 };
 dart.defineNamedConstructor(svg$._SVGFEDropShadowElement, 'created');
 svg$._SVGFEDropShadowElement[dart.implements] = () => [svg$.FilterPrimitiveStandardAttributes];
-dart.setSignature(svg$._SVGFEDropShadowElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$._SVGFEDropShadowElement, []),
-    created: dart.definiteFunctionType(svg$._SVGFEDropShadowElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGFEDropShadowElement, svg$._SVGFEDropShadowElement);
 svg$._SVGMPathElement = class _SVGMPathElement extends svg$.SvgElement {
   static _() {
@@ -106964,13 +101277,6 @@ svg$._SVGMPathElement = class _SVGMPathElement extends svg$.SvgElement {
 };
 dart.defineNamedConstructor(svg$._SVGMPathElement, 'created');
 svg$._SVGMPathElement[dart.implements] = () => [svg$.UriReference];
-dart.setSignature(svg$._SVGMPathElement, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(svg$._SVGMPathElement, []),
-    new: dart.definiteFunctionType(svg$._SVGMPathElement, []),
-    created: dart.definiteFunctionType(svg$._SVGMPathElement, [])
-  })
-});
 dart.registerExtension(dart.global.SVGMPathElement, svg$._SVGMPathElement);
 const _connect = Symbol('_connect');
 dart.defineExtensionNames([
@@ -107032,7 +101338,6 @@ web_audio.AudioNode = class AudioNode extends html$.EventTarget {
   }
 };
 dart.setSignature(web_audio.AudioNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.AudioNode, [])}),
   fields: () => ({
     [dartx.channelCount]: core.int,
     [dartx.channelCountMode]: core.String,
@@ -107105,7 +101410,6 @@ web_audio.AnalyserNode = class AnalyserNode extends web_audio.AudioNode {
   }
 };
 dart.setSignature(web_audio.AnalyserNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.AnalyserNode, [])}),
   fields: () => ({
     [dartx.fftSize]: core.int,
     [dartx.frequencyBinCount]: core.int,
@@ -107150,7 +101454,6 @@ web_audio.AudioBuffer = class AudioBuffer extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(web_audio.AudioBuffer, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.AudioBuffer, [])}),
   fields: () => ({
     [dartx.duration]: core.double,
     [dartx.length]: core.int,
@@ -107166,9 +101469,6 @@ web_audio.AudioSourceNode = class AudioSourceNode extends web_audio.AudioNode {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_audio.AudioSourceNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.AudioSourceNode, [])})
-});
 dart.registerExtension(dart.global.AudioSourceNode, web_audio.AudioSourceNode);
 dart.defineExtensionNames([
   'start',
@@ -107244,7 +101544,6 @@ web_audio.AudioBufferSourceNode = class AudioBufferSourceNode extends web_audio.
   }
 };
 dart.setSignature(web_audio.AudioBufferSourceNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.AudioBufferSourceNode, [])}),
   fields: () => ({
     [dartx.buffer]: web_audio.AudioBuffer,
     [dartx.loop]: core.bool,
@@ -107256,8 +101555,7 @@ dart.setSignature(web_audio.AudioBufferSourceNode, {
   methods: () => ({
     [dartx.start]: dart.definiteFunctionType(dart.void, [core.num], [core.num, core.num]),
     [dartx.stop]: dart.definiteFunctionType(dart.void, [core.num])
-  }),
-  sfields: () => ({endedEvent: EventStreamProviderOfEvent()})
+  })
 });
 web_audio.AudioBufferSourceNode.endedEvent = dart.const(new (EventStreamProviderOfEvent())('ended'));
 dart.registerExtension(dart.global.AudioBufferSourceNode, web_audio.AudioBufferSourceNode);
@@ -107402,10 +101700,6 @@ web_audio.AudioContext = class AudioContext extends html$.EventTarget {
   }
 };
 dart.setSignature(web_audio.AudioContext, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(web_audio.AudioContext, []),
-    new: dart.definiteFunctionType(web_audio.AudioContext, [])
-  }),
   fields: () => ({
     [dartx.currentTime]: core.double,
     [dartx.destination]: web_audio.AudioDestinationNode,
@@ -107435,9 +101729,7 @@ dart.setSignature(web_audio.AudioContext, {
     [dartx.createGain]: dart.definiteFunctionType(web_audio.GainNode, []),
     [dartx.createScriptProcessor]: dart.definiteFunctionType(web_audio.ScriptProcessorNode, [core.int], [core.int, core.int]),
     [dartx.decodeAudioData]: dart.definiteFunctionType(async.Future$(web_audio.AudioBuffer), [typed_data.ByteBuffer])
-  }),
-  sfields: () => ({completeEvent: EventStreamProviderOfEvent()}),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 web_audio.AudioContext.completeEvent = dart.const(new (EventStreamProviderOfEvent())('complete'));
 dart.registerExtension(dart.global.AudioContext, web_audio.AudioContext);
@@ -107454,7 +101746,6 @@ web_audio.AudioDestinationNode = class AudioDestinationNode extends web_audio.Au
   }
 };
 dart.setSignature(web_audio.AudioDestinationNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.AudioDestinationNode, [])}),
   fields: () => ({[dartx.maxChannelCount]: core.int})
 });
 dart.registerExtension(dart.global.AudioDestinationNode, web_audio.AudioDestinationNode);
@@ -107492,7 +101783,6 @@ web_audio.AudioListener = class AudioListener extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(web_audio.AudioListener, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.AudioListener, [])}),
   fields: () => ({
     [dartx.dopplerFactor]: core.num,
     [dartx.speedOfSound]: core.num
@@ -107547,7 +101837,6 @@ web_audio.AudioParam = class AudioParam extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(web_audio.AudioParam, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.AudioParam, [])}),
   fields: () => ({
     [dartx.defaultValue]: core.double,
     [dartx.value]: core.num
@@ -107582,7 +101871,6 @@ web_audio.AudioProcessingEvent = class AudioProcessingEvent extends html$.Event 
   }
 };
 dart.setSignature(web_audio.AudioProcessingEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.AudioProcessingEvent, [])}),
   fields: () => ({
     [dartx.inputBuffer]: web_audio.AudioBuffer,
     [dartx.outputBuffer]: web_audio.AudioBuffer,
@@ -107625,7 +101913,6 @@ web_audio.BiquadFilterNode = class BiquadFilterNode extends web_audio.AudioNode 
   }
 };
 dart.setSignature(web_audio.BiquadFilterNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.BiquadFilterNode, [])}),
   fields: () => ({
     [dartx.Q]: web_audio.AudioParam,
     [dartx.detune]: web_audio.AudioParam,
@@ -107641,9 +101928,6 @@ web_audio.ChannelMergerNode = class ChannelMergerNode extends web_audio.AudioNod
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_audio.ChannelMergerNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.ChannelMergerNode, [])})
-});
 dart.registerExtension(dart.global.ChannelMergerNode, web_audio.ChannelMergerNode);
 dart.registerExtension(dart.global.AudioChannelMerger, web_audio.ChannelMergerNode);
 web_audio.ChannelSplitterNode = class ChannelSplitterNode extends web_audio.AudioNode {
@@ -107651,9 +101935,6 @@ web_audio.ChannelSplitterNode = class ChannelSplitterNode extends web_audio.Audi
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_audio.ChannelSplitterNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.ChannelSplitterNode, [])})
-});
 dart.registerExtension(dart.global.ChannelSplitterNode, web_audio.ChannelSplitterNode);
 dart.registerExtension(dart.global.AudioChannelSplitter, web_audio.ChannelSplitterNode);
 dart.defineExtensionNames([
@@ -107678,7 +101959,6 @@ web_audio.ConvolverNode = class ConvolverNode extends web_audio.AudioNode {
   }
 };
 dart.setSignature(web_audio.ConvolverNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.ConvolverNode, [])}),
   fields: () => ({
     [dartx.buffer]: web_audio.AudioBuffer,
     [dartx.normalize]: core.bool
@@ -107697,7 +101977,6 @@ web_audio.DelayNode = class DelayNode extends web_audio.AudioNode {
   }
 };
 dart.setSignature(web_audio.DelayNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.DelayNode, [])}),
   fields: () => ({[dartx.delayTime]: web_audio.AudioParam})
 });
 dart.registerExtension(dart.global.DelayNode, web_audio.DelayNode);
@@ -107733,7 +102012,6 @@ web_audio.DynamicsCompressorNode = class DynamicsCompressorNode extends web_audi
   }
 };
 dart.setSignature(web_audio.DynamicsCompressorNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.DynamicsCompressorNode, [])}),
   fields: () => ({
     [dartx.attack]: web_audio.AudioParam,
     [dartx.knee]: web_audio.AudioParam,
@@ -107756,7 +102034,6 @@ web_audio.GainNode = class GainNode extends web_audio.AudioNode {
   }
 };
 dart.setSignature(web_audio.GainNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.GainNode, [])}),
   fields: () => ({[dartx.gain]: web_audio.AudioParam})
 });
 dart.registerExtension(dart.global.GainNode, web_audio.GainNode);
@@ -107773,7 +102050,6 @@ web_audio.MediaElementAudioSourceNode = class MediaElementAudioSourceNode extend
   }
 };
 dart.setSignature(web_audio.MediaElementAudioSourceNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.MediaElementAudioSourceNode, [])}),
   fields: () => ({[dartx.mediaElement]: html$.MediaElement})
 });
 dart.registerExtension(dart.global.MediaElementAudioSourceNode, web_audio.MediaElementAudioSourceNode);
@@ -107789,7 +102065,6 @@ web_audio.MediaStreamAudioDestinationNode = class MediaStreamAudioDestinationNod
   }
 };
 dart.setSignature(web_audio.MediaStreamAudioDestinationNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.MediaStreamAudioDestinationNode, [])}),
   fields: () => ({[dartx.stream]: html$.MediaStream})
 });
 dart.registerExtension(dart.global.MediaStreamAudioDestinationNode, web_audio.MediaStreamAudioDestinationNode);
@@ -107805,7 +102080,6 @@ web_audio.MediaStreamAudioSourceNode = class MediaStreamAudioSourceNode extends 
   }
 };
 dart.setSignature(web_audio.MediaStreamAudioSourceNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.MediaStreamAudioSourceNode, [])}),
   fields: () => ({[dartx.mediaStream]: html$.MediaStream})
 });
 dart.registerExtension(dart.global.MediaStreamAudioSourceNode, web_audio.MediaStreamAudioSourceNode);
@@ -107821,7 +102095,6 @@ web_audio.OfflineAudioCompletionEvent = class OfflineAudioCompletionEvent extend
   }
 };
 dart.setSignature(web_audio.OfflineAudioCompletionEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.OfflineAudioCompletionEvent, [])}),
   fields: () => ({[dartx.renderedBuffer]: web_audio.AudioBuffer})
 });
 dart.registerExtension(dart.global.OfflineAudioCompletionEvent, web_audio.OfflineAudioCompletionEvent);
@@ -107837,10 +102110,6 @@ web_audio.OfflineAudioContext = class OfflineAudioContext extends web_audio.Audi
   }
 };
 dart.setSignature(web_audio.OfflineAudioContext, {
-  constructors: () => ({
-    _: dart.definiteFunctionType(web_audio.OfflineAudioContext, []),
-    new: dart.definiteFunctionType(web_audio.OfflineAudioContext, [core.int, core.int, core.num])
-  }),
   statics: () => ({_create_1: dart.definiteFunctionType(web_audio.OfflineAudioContext, [dart.dynamic, dart.dynamic, dart.dynamic])}),
   names: ['_create_1']
 });
@@ -107892,7 +102161,6 @@ web_audio.OscillatorNode = class OscillatorNode extends web_audio.AudioSourceNod
   }
 };
 dart.setSignature(web_audio.OscillatorNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.OscillatorNode, [])}),
   fields: () => ({
     [dartx.detune]: web_audio.AudioParam,
     [dartx.frequency]: web_audio.AudioParam,
@@ -107905,8 +102173,7 @@ dart.setSignature(web_audio.OscillatorNode, {
     [dartx.setPeriodicWave]: dart.definiteFunctionType(dart.void, [web_audio.PeriodicWave]),
     [dartx.start]: dart.definiteFunctionType(dart.void, [], [core.num]),
     [dartx.stop]: dart.definiteFunctionType(dart.void, [], [core.num])
-  }),
-  sfields: () => ({endedEvent: EventStreamProviderOfEvent()})
+  })
 });
 web_audio.OscillatorNode.endedEvent = dart.const(new (EventStreamProviderOfEvent())('ended'));
 dart.registerExtension(dart.global.OscillatorNode, web_audio.OscillatorNode);
@@ -107987,7 +102254,6 @@ web_audio.PannerNode = class PannerNode extends web_audio.AudioNode {
   }
 };
 dart.setSignature(web_audio.PannerNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.PannerNode, [])}),
   fields: () => ({
     [dartx.coneInnerAngle]: core.num,
     [dartx.coneOuterAngle]: core.num,
@@ -108012,9 +102278,6 @@ web_audio.PeriodicWave = class PeriodicWave extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_audio.PeriodicWave, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.PeriodicWave, [])})
-});
 dart.registerExtension(dart.global.PeriodicWave, web_audio.PeriodicWave);
 dart.defineExtensionNames([
   'setEventListener',
@@ -108036,11 +102299,9 @@ web_audio.ScriptProcessorNode = class ScriptProcessorNode extends web_audio.Audi
   }
 };
 dart.setSignature(web_audio.ScriptProcessorNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.ScriptProcessorNode, [])}),
   fields: () => ({[dartx.bufferSize]: core.int}),
   getters: () => ({[dartx.onAudioProcess]: dart.definiteFunctionType(async.Stream$(web_audio.AudioProcessingEvent), [])}),
-  methods: () => ({[dartx.setEventListener]: dart.definiteFunctionType(dart.void, [html$.EventListener])}),
-  sfields: () => ({audioProcessEvent: EventStreamProviderOfAudioProcessingEvent()})
+  methods: () => ({[dartx.setEventListener]: dart.definiteFunctionType(dart.void, [html$.EventListener])})
 });
 web_audio.ScriptProcessorNode.audioProcessEvent = dart.const(new (EventStreamProviderOfAudioProcessingEvent())('audioprocess'));
 dart.registerExtension(dart.global.ScriptProcessorNode, web_audio.ScriptProcessorNode);
@@ -108067,7 +102328,6 @@ web_audio.WaveShaperNode = class WaveShaperNode extends web_audio.AudioNode {
   }
 };
 dart.setSignature(web_audio.WaveShaperNode, {
-  constructors: () => ({_: dart.definiteFunctionType(web_audio.WaveShaperNode, [])}),
   fields: () => ({
     [dartx.curve]: typed_data.Float32List,
     [dartx.oversample]: core.String
@@ -108809,7 +103069,6 @@ web_gl.RenderingContext = class RenderingContext extends _interceptors.Intercept
 };
 web_gl.RenderingContext[dart.implements] = () => [html$.CanvasRenderingContext];
 dart.setSignature(web_gl.RenderingContext, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.RenderingContext, [])}),
   fields: () => ({
     [dartx.canvas]: html$.CanvasElement,
     [dartx.drawingBufferHeight]: core.int,
@@ -108981,307 +103240,7 @@ dart.setSignature(web_gl.RenderingContext, {
     [dartx.texImage2DTyped]: dart.definiteFunctionType(dart.void, [core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.int, typed_data.TypedData]),
     [dartx.texSubImage2DUntyped]: dart.definiteFunctionType(dart.void, [core.int, core.int, core.int, core.int, core.int, core.int, dart.dynamic]),
     [dartx.texSubImage2DTyped]: dart.definiteFunctionType(dart.void, [core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.int, core.int, typed_data.TypedData])
-  }),
-  sfields: () => ({
-    ACTIVE_ATTRIBUTES: core.int,
-    ACTIVE_TEXTURE: core.int,
-    ACTIVE_UNIFORMS: core.int,
-    ALIASED_LINE_WIDTH_RANGE: core.int,
-    ALIASED_POINT_SIZE_RANGE: core.int,
-    ALPHA: core.int,
-    ALPHA_BITS: core.int,
-    ALWAYS: core.int,
-    ARRAY_BUFFER: core.int,
-    ARRAY_BUFFER_BINDING: core.int,
-    ATTACHED_SHADERS: core.int,
-    BACK: core.int,
-    BLEND: core.int,
-    BLEND_COLOR: core.int,
-    BLEND_DST_ALPHA: core.int,
-    BLEND_DST_RGB: core.int,
-    BLEND_EQUATION: core.int,
-    BLEND_EQUATION_ALPHA: core.int,
-    BLEND_EQUATION_RGB: core.int,
-    BLEND_SRC_ALPHA: core.int,
-    BLEND_SRC_RGB: core.int,
-    BLUE_BITS: core.int,
-    BOOL: core.int,
-    BOOL_VEC2: core.int,
-    BOOL_VEC3: core.int,
-    BOOL_VEC4: core.int,
-    BROWSER_DEFAULT_WEBGL: core.int,
-    BUFFER_SIZE: core.int,
-    BUFFER_USAGE: core.int,
-    BYTE: core.int,
-    CCW: core.int,
-    CLAMP_TO_EDGE: core.int,
-    COLOR_ATTACHMENT0: core.int,
-    COLOR_BUFFER_BIT: core.int,
-    COLOR_CLEAR_VALUE: core.int,
-    COLOR_WRITEMASK: core.int,
-    COMPILE_STATUS: core.int,
-    COMPRESSED_TEXTURE_FORMATS: core.int,
-    CONSTANT_ALPHA: core.int,
-    CONSTANT_COLOR: core.int,
-    CONTEXT_LOST_WEBGL: core.int,
-    CULL_FACE: core.int,
-    CULL_FACE_MODE: core.int,
-    CURRENT_PROGRAM: core.int,
-    CURRENT_VERTEX_ATTRIB: core.int,
-    CW: core.int,
-    DECR: core.int,
-    DECR_WRAP: core.int,
-    DELETE_STATUS: core.int,
-    DEPTH_ATTACHMENT: core.int,
-    DEPTH_BITS: core.int,
-    DEPTH_BUFFER_BIT: core.int,
-    DEPTH_CLEAR_VALUE: core.int,
-    DEPTH_COMPONENT: core.int,
-    DEPTH_COMPONENT16: core.int,
-    DEPTH_FUNC: core.int,
-    DEPTH_RANGE: core.int,
-    DEPTH_STENCIL: core.int,
-    DEPTH_STENCIL_ATTACHMENT: core.int,
-    DEPTH_TEST: core.int,
-    DEPTH_WRITEMASK: core.int,
-    DITHER: core.int,
-    DONT_CARE: core.int,
-    DST_ALPHA: core.int,
-    DST_COLOR: core.int,
-    DYNAMIC_DRAW: core.int,
-    ELEMENT_ARRAY_BUFFER: core.int,
-    ELEMENT_ARRAY_BUFFER_BINDING: core.int,
-    EQUAL: core.int,
-    FASTEST: core.int,
-    FLOAT: core.int,
-    FLOAT_MAT2: core.int,
-    FLOAT_MAT3: core.int,
-    FLOAT_MAT4: core.int,
-    FLOAT_VEC2: core.int,
-    FLOAT_VEC3: core.int,
-    FLOAT_VEC4: core.int,
-    FRAGMENT_SHADER: core.int,
-    FRAMEBUFFER: core.int,
-    FRAMEBUFFER_ATTACHMENT_OBJECT_NAME: core.int,
-    FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE: core.int,
-    FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE: core.int,
-    FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL: core.int,
-    FRAMEBUFFER_BINDING: core.int,
-    FRAMEBUFFER_COMPLETE: core.int,
-    FRAMEBUFFER_INCOMPLETE_ATTACHMENT: core.int,
-    FRAMEBUFFER_INCOMPLETE_DIMENSIONS: core.int,
-    FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: core.int,
-    FRAMEBUFFER_UNSUPPORTED: core.int,
-    FRONT: core.int,
-    FRONT_AND_BACK: core.int,
-    FRONT_FACE: core.int,
-    FUNC_ADD: core.int,
-    FUNC_REVERSE_SUBTRACT: core.int,
-    FUNC_SUBTRACT: core.int,
-    GENERATE_MIPMAP_HINT: core.int,
-    GEQUAL: core.int,
-    GREATER: core.int,
-    GREEN_BITS: core.int,
-    HIGH_FLOAT: core.int,
-    HIGH_INT: core.int,
-    IMPLEMENTATION_COLOR_READ_FORMAT: core.int,
-    IMPLEMENTATION_COLOR_READ_TYPE: core.int,
-    INCR: core.int,
-    INCR_WRAP: core.int,
-    INT: core.int,
-    INT_VEC2: core.int,
-    INT_VEC3: core.int,
-    INT_VEC4: core.int,
-    INVALID_ENUM: core.int,
-    INVALID_FRAMEBUFFER_OPERATION: core.int,
-    INVALID_OPERATION: core.int,
-    INVALID_VALUE: core.int,
-    INVERT: core.int,
-    KEEP: core.int,
-    LEQUAL: core.int,
-    LESS: core.int,
-    LINEAR: core.int,
-    LINEAR_MIPMAP_LINEAR: core.int,
-    LINEAR_MIPMAP_NEAREST: core.int,
-    LINES: core.int,
-    LINE_LOOP: core.int,
-    LINE_STRIP: core.int,
-    LINE_WIDTH: core.int,
-    LINK_STATUS: core.int,
-    LOW_FLOAT: core.int,
-    LOW_INT: core.int,
-    LUMINANCE: core.int,
-    LUMINANCE_ALPHA: core.int,
-    MAX_COMBINED_TEXTURE_IMAGE_UNITS: core.int,
-    MAX_CUBE_MAP_TEXTURE_SIZE: core.int,
-    MAX_FRAGMENT_UNIFORM_VECTORS: core.int,
-    MAX_RENDERBUFFER_SIZE: core.int,
-    MAX_TEXTURE_IMAGE_UNITS: core.int,
-    MAX_TEXTURE_SIZE: core.int,
-    MAX_VARYING_VECTORS: core.int,
-    MAX_VERTEX_ATTRIBS: core.int,
-    MAX_VERTEX_TEXTURE_IMAGE_UNITS: core.int,
-    MAX_VERTEX_UNIFORM_VECTORS: core.int,
-    MAX_VIEWPORT_DIMS: core.int,
-    MEDIUM_FLOAT: core.int,
-    MEDIUM_INT: core.int,
-    MIRRORED_REPEAT: core.int,
-    NEAREST: core.int,
-    NEAREST_MIPMAP_LINEAR: core.int,
-    NEAREST_MIPMAP_NEAREST: core.int,
-    NEVER: core.int,
-    NICEST: core.int,
-    NONE: core.int,
-    NOTEQUAL: core.int,
-    NO_ERROR: core.int,
-    ONE: core.int,
-    ONE_MINUS_CONSTANT_ALPHA: core.int,
-    ONE_MINUS_CONSTANT_COLOR: core.int,
-    ONE_MINUS_DST_ALPHA: core.int,
-    ONE_MINUS_DST_COLOR: core.int,
-    ONE_MINUS_SRC_ALPHA: core.int,
-    ONE_MINUS_SRC_COLOR: core.int,
-    OUT_OF_MEMORY: core.int,
-    PACK_ALIGNMENT: core.int,
-    POINTS: core.int,
-    POLYGON_OFFSET_FACTOR: core.int,
-    POLYGON_OFFSET_FILL: core.int,
-    POLYGON_OFFSET_UNITS: core.int,
-    RED_BITS: core.int,
-    RENDERBUFFER: core.int,
-    RENDERBUFFER_ALPHA_SIZE: core.int,
-    RENDERBUFFER_BINDING: core.int,
-    RENDERBUFFER_BLUE_SIZE: core.int,
-    RENDERBUFFER_DEPTH_SIZE: core.int,
-    RENDERBUFFER_GREEN_SIZE: core.int,
-    RENDERBUFFER_HEIGHT: core.int,
-    RENDERBUFFER_INTERNAL_FORMAT: core.int,
-    RENDERBUFFER_RED_SIZE: core.int,
-    RENDERBUFFER_STENCIL_SIZE: core.int,
-    RENDERBUFFER_WIDTH: core.int,
-    RENDERER: core.int,
-    REPEAT: core.int,
-    REPLACE: core.int,
-    RGB: core.int,
-    RGB565: core.int,
-    RGB5_A1: core.int,
-    RGBA: core.int,
-    RGBA4: core.int,
-    SAMPLER_2D: core.int,
-    SAMPLER_CUBE: core.int,
-    SAMPLES: core.int,
-    SAMPLE_ALPHA_TO_COVERAGE: core.int,
-    SAMPLE_BUFFERS: core.int,
-    SAMPLE_COVERAGE: core.int,
-    SAMPLE_COVERAGE_INVERT: core.int,
-    SAMPLE_COVERAGE_VALUE: core.int,
-    SCISSOR_BOX: core.int,
-    SCISSOR_TEST: core.int,
-    SHADER_TYPE: core.int,
-    SHADING_LANGUAGE_VERSION: core.int,
-    SHORT: core.int,
-    SRC_ALPHA: core.int,
-    SRC_ALPHA_SATURATE: core.int,
-    SRC_COLOR: core.int,
-    STATIC_DRAW: core.int,
-    STENCIL_ATTACHMENT: core.int,
-    STENCIL_BACK_FAIL: core.int,
-    STENCIL_BACK_FUNC: core.int,
-    STENCIL_BACK_PASS_DEPTH_FAIL: core.int,
-    STENCIL_BACK_PASS_DEPTH_PASS: core.int,
-    STENCIL_BACK_REF: core.int,
-    STENCIL_BACK_VALUE_MASK: core.int,
-    STENCIL_BACK_WRITEMASK: core.int,
-    STENCIL_BITS: core.int,
-    STENCIL_BUFFER_BIT: core.int,
-    STENCIL_CLEAR_VALUE: core.int,
-    STENCIL_FAIL: core.int,
-    STENCIL_FUNC: core.int,
-    STENCIL_INDEX: core.int,
-    STENCIL_INDEX8: core.int,
-    STENCIL_PASS_DEPTH_FAIL: core.int,
-    STENCIL_PASS_DEPTH_PASS: core.int,
-    STENCIL_REF: core.int,
-    STENCIL_TEST: core.int,
-    STENCIL_VALUE_MASK: core.int,
-    STENCIL_WRITEMASK: core.int,
-    STREAM_DRAW: core.int,
-    SUBPIXEL_BITS: core.int,
-    TEXTURE: core.int,
-    TEXTURE0: core.int,
-    TEXTURE1: core.int,
-    TEXTURE10: core.int,
-    TEXTURE11: core.int,
-    TEXTURE12: core.int,
-    TEXTURE13: core.int,
-    TEXTURE14: core.int,
-    TEXTURE15: core.int,
-    TEXTURE16: core.int,
-    TEXTURE17: core.int,
-    TEXTURE18: core.int,
-    TEXTURE19: core.int,
-    TEXTURE2: core.int,
-    TEXTURE20: core.int,
-    TEXTURE21: core.int,
-    TEXTURE22: core.int,
-    TEXTURE23: core.int,
-    TEXTURE24: core.int,
-    TEXTURE25: core.int,
-    TEXTURE26: core.int,
-    TEXTURE27: core.int,
-    TEXTURE28: core.int,
-    TEXTURE29: core.int,
-    TEXTURE3: core.int,
-    TEXTURE30: core.int,
-    TEXTURE31: core.int,
-    TEXTURE4: core.int,
-    TEXTURE5: core.int,
-    TEXTURE6: core.int,
-    TEXTURE7: core.int,
-    TEXTURE8: core.int,
-    TEXTURE9: core.int,
-    TEXTURE_2D: core.int,
-    TEXTURE_BINDING_2D: core.int,
-    TEXTURE_BINDING_CUBE_MAP: core.int,
-    TEXTURE_CUBE_MAP: core.int,
-    TEXTURE_CUBE_MAP_NEGATIVE_X: core.int,
-    TEXTURE_CUBE_MAP_NEGATIVE_Y: core.int,
-    TEXTURE_CUBE_MAP_NEGATIVE_Z: core.int,
-    TEXTURE_CUBE_MAP_POSITIVE_X: core.int,
-    TEXTURE_CUBE_MAP_POSITIVE_Y: core.int,
-    TEXTURE_CUBE_MAP_POSITIVE_Z: core.int,
-    TEXTURE_MAG_FILTER: core.int,
-    TEXTURE_MIN_FILTER: core.int,
-    TEXTURE_WRAP_S: core.int,
-    TEXTURE_WRAP_T: core.int,
-    TRIANGLES: core.int,
-    TRIANGLE_FAN: core.int,
-    TRIANGLE_STRIP: core.int,
-    UNPACK_ALIGNMENT: core.int,
-    UNPACK_COLORSPACE_CONVERSION_WEBGL: core.int,
-    UNPACK_FLIP_Y_WEBGL: core.int,
-    UNPACK_PREMULTIPLY_ALPHA_WEBGL: core.int,
-    UNSIGNED_BYTE: core.int,
-    UNSIGNED_INT: core.int,
-    UNSIGNED_SHORT: core.int,
-    UNSIGNED_SHORT_4_4_4_4: core.int,
-    UNSIGNED_SHORT_5_5_5_1: core.int,
-    UNSIGNED_SHORT_5_6_5: core.int,
-    VALIDATE_STATUS: core.int,
-    VENDOR: core.int,
-    VERSION: core.int,
-    VERTEX_ATTRIB_ARRAY_BUFFER_BINDING: core.int,
-    VERTEX_ATTRIB_ARRAY_ENABLED: core.int,
-    VERTEX_ATTRIB_ARRAY_NORMALIZED: core.int,
-    VERTEX_ATTRIB_ARRAY_POINTER: core.int,
-    VERTEX_ATTRIB_ARRAY_SIZE: core.int,
-    VERTEX_ATTRIB_ARRAY_STRIDE: core.int,
-    VERTEX_ATTRIB_ARRAY_TYPE: core.int,
-    VERTEX_SHADER: core.int,
-    VIEWPORT: core.int,
-    ZERO: core.int
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 web_gl.RenderingContext.ACTIVE_ATTRIBUTES = 35721;
 web_gl.RenderingContext.ACTIVE_TEXTURE = 34016;
@@ -109685,10 +103644,6 @@ web_gl.OesTextureHalfFloat = class OesTextureHalfFloat extends _interceptors.Int
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.OesTextureHalfFloat, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.OesTextureHalfFloat, [])}),
-  sfields: () => ({HALF_FLOAT_OES: core.int})
-});
 web_gl.OesTextureHalfFloat.HALF_FLOAT_OES = 36193;
 dart.registerExtension(dart.global.OESTextureHalfFloat, web_gl.OesTextureHalfFloat);
 web_gl.HALF_FLOAT_OES = web_gl.OesTextureHalfFloat.HALF_FLOAT_OES;
@@ -109908,7 +103863,6 @@ web_gl.ActiveInfo = class ActiveInfo extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(web_gl.ActiveInfo, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.ActiveInfo, [])}),
   fields: () => ({
     [dartx.name]: core.String,
     [dartx.size]: core.int,
@@ -109936,13 +103890,11 @@ web_gl.AngleInstancedArrays = class AngleInstancedArrays extends _interceptors.I
   }
 };
 dart.setSignature(web_gl.AngleInstancedArrays, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.AngleInstancedArrays, [])}),
   methods: () => ({
     [dartx.drawArraysInstancedAngle]: dart.definiteFunctionType(dart.void, [core.int, core.int, core.int, core.int]),
     [dartx.drawElementsInstancedAngle]: dart.definiteFunctionType(dart.void, [core.int, core.int, core.int, core.int, core.int]),
     [dartx.vertexAttribDivisorAngle]: dart.definiteFunctionType(dart.void, [core.int, core.int])
-  }),
-  sfields: () => ({VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE: core.int})
+  })
 });
 web_gl.AngleInstancedArrays.VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE = 35070;
 dart.registerExtension(dart.global.ANGLEInstancedArrays, web_gl.AngleInstancedArrays);
@@ -109951,23 +103903,12 @@ web_gl.Buffer = class Buffer extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.Buffer, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.Buffer, [])})
-});
 dart.registerExtension(dart.global.WebGLBuffer, web_gl.Buffer);
 web_gl.CompressedTextureAtc = class CompressedTextureAtc extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.CompressedTextureAtc, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.CompressedTextureAtc, [])}),
-  sfields: () => ({
-    COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL: core.int,
-    COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL: core.int,
-    COMPRESSED_RGB_ATC_WEBGL: core.int
-  })
-});
 web_gl.CompressedTextureAtc.COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL = 35987;
 web_gl.CompressedTextureAtc.COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL = 34798;
 web_gl.CompressedTextureAtc.COMPRESSED_RGB_ATC_WEBGL = 35986;
@@ -109977,10 +103918,6 @@ web_gl.CompressedTextureETC1 = class CompressedTextureETC1 extends _interceptors
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.CompressedTextureETC1, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.CompressedTextureETC1, [])}),
-  sfields: () => ({COMPRESSED_RGB_ETC1_WEBGL: core.int})
-});
 web_gl.CompressedTextureETC1.COMPRESSED_RGB_ETC1_WEBGL = 36196;
 dart.registerExtension(dart.global.WebGLCompressedTextureETC1, web_gl.CompressedTextureETC1);
 web_gl.CompressedTexturePvrtc = class CompressedTexturePvrtc extends _interceptors.Interceptor {
@@ -109988,15 +103925,6 @@ web_gl.CompressedTexturePvrtc = class CompressedTexturePvrtc extends _intercepto
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.CompressedTexturePvrtc, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.CompressedTexturePvrtc, [])}),
-  sfields: () => ({
-    COMPRESSED_RGBA_PVRTC_2BPPV1_IMG: core.int,
-    COMPRESSED_RGBA_PVRTC_4BPPV1_IMG: core.int,
-    COMPRESSED_RGB_PVRTC_2BPPV1_IMG: core.int,
-    COMPRESSED_RGB_PVRTC_4BPPV1_IMG: core.int
-  })
-});
 web_gl.CompressedTexturePvrtc.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 35843;
 web_gl.CompressedTexturePvrtc.COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 35842;
 web_gl.CompressedTexturePvrtc.COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 35841;
@@ -110007,15 +103935,6 @@ web_gl.CompressedTextureS3TC = class CompressedTextureS3TC extends _interceptors
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.CompressedTextureS3TC, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.CompressedTextureS3TC, [])}),
-  sfields: () => ({
-    COMPRESSED_RGBA_S3TC_DXT1_EXT: core.int,
-    COMPRESSED_RGBA_S3TC_DXT3_EXT: core.int,
-    COMPRESSED_RGBA_S3TC_DXT5_EXT: core.int,
-    COMPRESSED_RGB_S3TC_DXT1_EXT: core.int
-  })
-});
 web_gl.CompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT = 33777;
 web_gl.CompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT = 33778;
 web_gl.CompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT = 33779;
@@ -110078,7 +103997,6 @@ web_gl.ContextAttributes = class ContextAttributes extends _interceptors.Interce
   }
 };
 dart.setSignature(web_gl.ContextAttributes, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.ContextAttributes, [])}),
   fields: () => ({
     [dartx.alpha]: core.bool,
     [dartx.antialias]: core.bool,
@@ -110102,7 +104020,6 @@ web_gl.ContextEvent = class ContextEvent extends html$.Event {
   }
 };
 dart.setSignature(web_gl.ContextEvent, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.ContextEvent, [])}),
   fields: () => ({[dartx.statusMessage]: core.String})
 });
 dart.registerExtension(dart.global.WebGLContextEvent, web_gl.ContextEvent);
@@ -110111,13 +104028,6 @@ web_gl.DebugRendererInfo = class DebugRendererInfo extends _interceptors.Interce
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.DebugRendererInfo, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.DebugRendererInfo, [])}),
-  sfields: () => ({
-    UNMASKED_RENDERER_WEBGL: core.int,
-    UNMASKED_VENDOR_WEBGL: core.int
-  })
-});
 web_gl.DebugRendererInfo.UNMASKED_RENDERER_WEBGL = 37446;
 web_gl.DebugRendererInfo.UNMASKED_VENDOR_WEBGL = 37445;
 dart.registerExtension(dart.global.WebGLDebugRendererInfo, web_gl.DebugRendererInfo);
@@ -110133,7 +104043,6 @@ web_gl.DebugShaders = class DebugShaders extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(web_gl.DebugShaders, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.DebugShaders, [])}),
   methods: () => ({[dartx.getTranslatedShaderSource]: dart.definiteFunctionType(core.String, [web_gl.Shader])})
 });
 dart.registerExtension(dart.global.WebGLDebugShaders, web_gl.DebugShaders);
@@ -110142,10 +104051,6 @@ web_gl.DepthTexture = class DepthTexture extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.DepthTexture, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.DepthTexture, [])}),
-  sfields: () => ({UNSIGNED_INT_24_8_WEBGL: core.int})
-});
 web_gl.DepthTexture.UNSIGNED_INT_24_8_WEBGL = 34042;
 dart.registerExtension(dart.global.WebGLDepthTexture, web_gl.DepthTexture);
 dart.defineExtensionNames([
@@ -110160,44 +104065,7 @@ web_gl.DrawBuffers = class DrawBuffers extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(web_gl.DrawBuffers, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.DrawBuffers, [])}),
-  methods: () => ({[dartx.drawBuffersWebgl]: dart.definiteFunctionType(dart.void, [ListOfint()])}),
-  sfields: () => ({
-    COLOR_ATTACHMENT0_WEBGL: core.int,
-    COLOR_ATTACHMENT10_WEBGL: core.int,
-    COLOR_ATTACHMENT11_WEBGL: core.int,
-    COLOR_ATTACHMENT12_WEBGL: core.int,
-    COLOR_ATTACHMENT13_WEBGL: core.int,
-    COLOR_ATTACHMENT14_WEBGL: core.int,
-    COLOR_ATTACHMENT15_WEBGL: core.int,
-    COLOR_ATTACHMENT1_WEBGL: core.int,
-    COLOR_ATTACHMENT2_WEBGL: core.int,
-    COLOR_ATTACHMENT3_WEBGL: core.int,
-    COLOR_ATTACHMENT4_WEBGL: core.int,
-    COLOR_ATTACHMENT5_WEBGL: core.int,
-    COLOR_ATTACHMENT6_WEBGL: core.int,
-    COLOR_ATTACHMENT7_WEBGL: core.int,
-    COLOR_ATTACHMENT8_WEBGL: core.int,
-    COLOR_ATTACHMENT9_WEBGL: core.int,
-    DRAW_BUFFER0_WEBGL: core.int,
-    DRAW_BUFFER10_WEBGL: core.int,
-    DRAW_BUFFER11_WEBGL: core.int,
-    DRAW_BUFFER12_WEBGL: core.int,
-    DRAW_BUFFER13_WEBGL: core.int,
-    DRAW_BUFFER14_WEBGL: core.int,
-    DRAW_BUFFER15_WEBGL: core.int,
-    DRAW_BUFFER1_WEBGL: core.int,
-    DRAW_BUFFER2_WEBGL: core.int,
-    DRAW_BUFFER3_WEBGL: core.int,
-    DRAW_BUFFER4_WEBGL: core.int,
-    DRAW_BUFFER5_WEBGL: core.int,
-    DRAW_BUFFER6_WEBGL: core.int,
-    DRAW_BUFFER7_WEBGL: core.int,
-    DRAW_BUFFER8_WEBGL: core.int,
-    DRAW_BUFFER9_WEBGL: core.int,
-    MAX_COLOR_ATTACHMENTS_WEBGL: core.int,
-    MAX_DRAW_BUFFERS_WEBGL: core.int
-  })
+  methods: () => ({[dartx.drawBuffersWebgl]: dart.definiteFunctionType(dart.void, [ListOfint()])})
 });
 web_gl.DrawBuffers.COLOR_ATTACHMENT0_WEBGL = 36064;
 web_gl.DrawBuffers.COLOR_ATTACHMENT10_WEBGL = 36074;
@@ -110239,13 +104107,6 @@ web_gl.ExtBlendMinMax = class ExtBlendMinMax extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.ExtBlendMinMax, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.ExtBlendMinMax, [])}),
-  sfields: () => ({
-    MAX_EXT: core.int,
-    MIN_EXT: core.int
-  })
-});
 web_gl.ExtBlendMinMax.MAX_EXT = 32776;
 web_gl.ExtBlendMinMax.MIN_EXT = 32775;
 dart.registerExtension(dart.global.EXTBlendMinMax, web_gl.ExtBlendMinMax);
@@ -110254,31 +104115,18 @@ web_gl.ExtFragDepth = class ExtFragDepth extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.ExtFragDepth, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.ExtFragDepth, [])})
-});
 dart.registerExtension(dart.global.EXTFragDepth, web_gl.ExtFragDepth);
 web_gl.ExtShaderTextureLod = class ExtShaderTextureLod extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.ExtShaderTextureLod, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.ExtShaderTextureLod, [])})
-});
 dart.registerExtension(dart.global.EXTShaderTextureLOD, web_gl.ExtShaderTextureLod);
 web_gl.ExtTextureFilterAnisotropic = class ExtTextureFilterAnisotropic extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.ExtTextureFilterAnisotropic, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.ExtTextureFilterAnisotropic, [])}),
-  sfields: () => ({
-    MAX_TEXTURE_MAX_ANISOTROPY_EXT: core.int,
-    TEXTURE_MAX_ANISOTROPY_EXT: core.int
-  })
-});
 web_gl.ExtTextureFilterAnisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT = 34047;
 web_gl.ExtTextureFilterAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT = 34046;
 dart.registerExtension(dart.global.EXTTextureFilterAnisotropic, web_gl.ExtTextureFilterAnisotropic);
@@ -110287,9 +104135,6 @@ web_gl.Framebuffer = class Framebuffer extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.Framebuffer, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.Framebuffer, [])})
-});
 dart.registerExtension(dart.global.WebGLFramebuffer, web_gl.Framebuffer);
 dart.defineExtensionNames([
   'loseContext',
@@ -110307,7 +104152,6 @@ web_gl.LoseContext = class LoseContext extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(web_gl.LoseContext, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.LoseContext, [])}),
   methods: () => ({
     [dartx.loseContext]: dart.definiteFunctionType(dart.void, []),
     [dartx.restoreContext]: dart.definiteFunctionType(dart.void, [])
@@ -110320,19 +104164,12 @@ web_gl.OesElementIndexUint = class OesElementIndexUint extends _interceptors.Int
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.OesElementIndexUint, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.OesElementIndexUint, [])})
-});
 dart.registerExtension(dart.global.OESElementIndexUint, web_gl.OesElementIndexUint);
 web_gl.OesStandardDerivatives = class OesStandardDerivatives extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.OesStandardDerivatives, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.OesStandardDerivatives, [])}),
-  sfields: () => ({FRAGMENT_SHADER_DERIVATIVE_HINT_OES: core.int})
-});
 web_gl.OesStandardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 35723;
 dart.registerExtension(dart.global.OESStandardDerivatives, web_gl.OesStandardDerivatives);
 web_gl.OesTextureFloat = class OesTextureFloat extends _interceptors.Interceptor {
@@ -110340,27 +104177,18 @@ web_gl.OesTextureFloat = class OesTextureFloat extends _interceptors.Interceptor
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.OesTextureFloat, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.OesTextureFloat, [])})
-});
 dart.registerExtension(dart.global.OESTextureFloat, web_gl.OesTextureFloat);
 web_gl.OesTextureFloatLinear = class OesTextureFloatLinear extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.OesTextureFloatLinear, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.OesTextureFloatLinear, [])})
-});
 dart.registerExtension(dart.global.OESTextureFloatLinear, web_gl.OesTextureFloatLinear);
 web_gl.OesTextureHalfFloatLinear = class OesTextureHalfFloatLinear extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.OesTextureHalfFloatLinear, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.OesTextureHalfFloatLinear, [])})
-});
 dart.registerExtension(dart.global.OESTextureHalfFloatLinear, web_gl.OesTextureHalfFloatLinear);
 dart.defineExtensionNames([
   'bindVertexArray',
@@ -110386,14 +104214,12 @@ web_gl.OesVertexArrayObject = class OesVertexArrayObject extends _interceptors.I
   }
 };
 dart.setSignature(web_gl.OesVertexArrayObject, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.OesVertexArrayObject, [])}),
   methods: () => ({
     [dartx.bindVertexArray]: dart.definiteFunctionType(dart.void, [web_gl.VertexArrayObject]),
     [dartx.createVertexArray]: dart.definiteFunctionType(web_gl.VertexArrayObject, []),
     [dartx.deleteVertexArray]: dart.definiteFunctionType(dart.void, [web_gl.VertexArrayObject]),
     [dartx.isVertexArray]: dart.definiteFunctionType(core.bool, [web_gl.VertexArrayObject])
-  }),
-  sfields: () => ({VERTEX_ARRAY_BINDING_OES: core.int})
+  })
 });
 web_gl.OesVertexArrayObject.VERTEX_ARRAY_BINDING_OES = 34229;
 dart.registerExtension(dart.global.OESVertexArrayObject, web_gl.OesVertexArrayObject);
@@ -110402,27 +104228,18 @@ web_gl.Program = class Program extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.Program, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.Program, [])})
-});
 dart.registerExtension(dart.global.WebGLProgram, web_gl.Program);
 web_gl.Renderbuffer = class Renderbuffer extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.Renderbuffer, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.Renderbuffer, [])})
-});
 dart.registerExtension(dart.global.WebGLRenderbuffer, web_gl.Renderbuffer);
 web_gl.Shader = class Shader extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.Shader, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.Shader, [])})
-});
 dart.registerExtension(dart.global.WebGLShader, web_gl.Shader);
 dart.defineExtensionNames([
   'precision',
@@ -110444,7 +104261,6 @@ web_gl.ShaderPrecisionFormat = class ShaderPrecisionFormat extends _interceptors
   }
 };
 dart.setSignature(web_gl.ShaderPrecisionFormat, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.ShaderPrecisionFormat, [])}),
   fields: () => ({
     [dartx.precision]: core.int,
     [dartx.rangeMax]: core.int,
@@ -110457,36 +104273,24 @@ web_gl.Texture = class Texture extends _interceptors.Interceptor {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.Texture, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.Texture, [])})
-});
 dart.registerExtension(dart.global.WebGLTexture, web_gl.Texture);
 web_gl.UniformLocation = class UniformLocation extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.UniformLocation, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.UniformLocation, [])})
-});
 dart.registerExtension(dart.global.WebGLUniformLocation, web_gl.UniformLocation);
 web_gl.VertexArrayObject = class VertexArrayObject extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl.VertexArrayObject, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl.VertexArrayObject, [])})
-});
 dart.registerExtension(dart.global.WebGLVertexArrayObjectOES, web_gl.VertexArrayObject);
 web_gl._WebGLRenderingContextBase = class _WebGLRenderingContextBase extends _interceptors.Interceptor {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
   }
 };
-dart.setSignature(web_gl._WebGLRenderingContextBase, {
-  constructors: () => ({_: dart.definiteFunctionType(web_gl._WebGLRenderingContextBase, [])})
-});
 web_sql.SqlStatementCallback = dart.typedef('SqlStatementCallback', () => dart.functionType(dart.void, [web_sql.SqlTransaction, web_sql.SqlResultSet]));
 web_sql.SqlStatementErrorCallback = dart.typedef('SqlStatementErrorCallback', () => dart.functionType(dart.void, [web_sql.SqlTransaction, web_sql.SqlError]));
 web_sql.SqlTransactionCallback = dart.typedef('SqlTransactionCallback', () => dart.functionType(dart.void, [web_sql.SqlTransaction]));
@@ -110518,14 +104322,12 @@ web_sql.SqlDatabase = class SqlDatabase extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(web_sql.SqlDatabase, {
-  constructors: () => ({_: dart.definiteFunctionType(web_sql.SqlDatabase, [])}),
   fields: () => ({[dartx.version]: core.String}),
   methods: () => ({
     [dartx.changeVersion]: dart.definiteFunctionType(dart.void, [core.String, core.String], [web_sql.SqlTransactionCallback, web_sql.SqlTransactionErrorCallback, html$.VoidCallback]),
     [dartx.readTransaction]: dart.definiteFunctionType(dart.void, [web_sql.SqlTransactionCallback], [web_sql.SqlTransactionErrorCallback, html$.VoidCallback]),
     [dartx.transaction]: dart.definiteFunctionType(dart.void, [web_sql.SqlTransactionCallback], [web_sql.SqlTransactionErrorCallback, html$.VoidCallback])
-  }),
-  sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
+  })
 });
 dart.registerExtension(dart.global.Database, web_sql.SqlDatabase);
 dart.defineExtensionNames([
@@ -110544,20 +104346,9 @@ web_sql.SqlError = class SqlError extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(web_sql.SqlError, {
-  constructors: () => ({_: dart.definiteFunctionType(web_sql.SqlError, [])}),
   fields: () => ({
     [dartx.code]: core.int,
     [dartx.message]: core.String
-  }),
-  sfields: () => ({
-    CONSTRAINT_ERR: core.int,
-    DATABASE_ERR: core.int,
-    QUOTA_ERR: core.int,
-    SYNTAX_ERR: core.int,
-    TIMEOUT_ERR: core.int,
-    TOO_LARGE_ERR: core.int,
-    UNKNOWN_ERR: core.int,
-    VERSION_ERR: core.int
   })
 });
 web_sql.SqlError.CONSTRAINT_ERR = 6;
@@ -110589,7 +104380,6 @@ web_sql.SqlResultSet = class SqlResultSet extends _interceptors.Interceptor {
   }
 };
 dart.setSignature(web_sql.SqlResultSet, {
-  constructors: () => ({_: dart.definiteFunctionType(web_sql.SqlResultSet, [])}),
   fields: () => ({
     [dartx.insertId]: core.int,
     [dartx.rows]: web_sql.SqlResultSetRowList,
@@ -110660,7 +104450,6 @@ web_sql.SqlResultSetRowList = class SqlResultSetRowList extends dart.mixin(_inte
 };
 web_sql.SqlResultSetRowList[dart.implements] = () => [ListOfMap()];
 dart.setSignature(web_sql.SqlResultSetRowList, {
-  constructors: () => ({_: dart.definiteFunctionType(web_sql.SqlResultSetRowList, [])}),
   getters: () => ({[dartx.length]: dart.definiteFunctionType(core.int, [])}),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
@@ -110683,7 +104472,6 @@ web_sql.SqlTransaction = class SqlTransaction extends _interceptors.Interceptor 
   }
 };
 dart.setSignature(web_sql.SqlTransaction, {
-  constructors: () => ({_: dart.definiteFunctionType(web_sql.SqlTransaction, [])}),
   methods: () => ({[dartx.executeSql]: dart.definiteFunctionType(dart.void, [core.String, ListOfObject()], [web_sql.SqlStatementCallback, web_sql.SqlStatementErrorCallback])})
 });
 dart.registerExtension(dart.global.SQLTransaction, web_sql.SqlTransaction);

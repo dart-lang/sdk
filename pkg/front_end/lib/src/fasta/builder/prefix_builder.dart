@@ -4,19 +4,15 @@
 
 library fasta.prefix_builder;
 
-import 'builder.dart' show
-    Builder,
-    LibraryBuilder,
-    MemberBuilder;
+import 'builder.dart' show Builder, LibraryBuilder, MemberBuilder;
 
-import 'package:kernel/ast.dart' show
-    Member;
+import '../messages.dart' show warning;
 
-import '../dill/dill_member_builder.dart' show
-    DillMemberBuilder;
+import 'package:kernel/ast.dart' show Member;
 
-import '../errors.dart' show
-    internalError;
+import '../dill/dill_member_builder.dart' show DillMemberBuilder;
+
+import '../errors.dart' show internalError;
 
 class PrefixBuilder extends Builder {
   final String name;
@@ -26,14 +22,15 @@ class PrefixBuilder extends Builder {
   final LibraryBuilder parent;
 
   PrefixBuilder(this.name, this.exports, LibraryBuilder parent, int charOffset)
-      : parent = parent, super(parent, charOffset, parent.fileUri);
+      : parent = parent,
+        super(parent, charOffset, parent.fileUri);
 
   Member findTopLevelMember(String name) {
     // TODO(ahe): Move this to KernelPrefixBuilder.
     Builder builder = exports[name];
     if (builder == null) {
-      // TODO(ahe): Report error?
-      print("${this.name} has no member named $name");
+      warning(
+          parent.fileUri, -1, "'${this.name}' has no member named '$name'.");
     }
     if (builder is DillMemberBuilder) {
       return builder.member.isInstanceMember
@@ -46,8 +43,8 @@ class PrefixBuilder extends Builder {
     }
   }
 
-  Builder combineAmbiguousImport(String name, Builder other,
-      LibraryBuilder library) {
+  Builder combineAmbiguousImport(
+      String name, Builder other, LibraryBuilder library) {
     if (other is PrefixBuilder) {
       /// Handles the case where the same prefix is used for different imports.
       other.exports.forEach((String name, Builder member) {

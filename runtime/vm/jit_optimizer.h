@@ -47,7 +47,6 @@ class JitOptimizer : public FlowGraphVisitor {
  private:
   // Attempt to build ICData for call using propagated class-ids.
   bool TryCreateICData(InstanceCallInstr* call);
-  const ICData& TrySpecializeICData(const ICData& ic_data, intptr_t cid);
 
   void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);
 

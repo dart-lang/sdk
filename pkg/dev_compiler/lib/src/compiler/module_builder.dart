@@ -212,7 +212,9 @@ class LegacyModuleBuilder extends _ModuleBuilder {
 /// Generates CommonJS modules (used by Node.js).
 class CommonJSModuleBuilder extends _ModuleBuilder {
   Program build(Program module) {
-    var importStatements = [js.statement("'use strict';"),];
+    var importStatements = [
+      js.statement("'use strict';"),
+    ];
 
     // Collect imports/exports/statements.
     visitProgram(module);

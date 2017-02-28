@@ -215,7 +215,6 @@ void ClassTable::Unregister(intptr_t index) {
 #endif
 
 
-#if defined(DART_PRECOMPILER)
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
   intptr_t num_cids = NumCids();
@@ -228,7 +227,6 @@ void ClassTable::Remap(intptr_t* old_to_new_cid) {
   }
   delete[] cls_by_old_cid;
 }
-#endif
 
 
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {

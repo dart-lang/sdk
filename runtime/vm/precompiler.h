@@ -445,7 +445,6 @@ class Precompiler : public ValueObject {
   ParsedJSONObject* LookupFeedback(const Function& function);
 
   void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
-  void ClearAllCode();
   void AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]);
   void AddEntryPoints(Dart_QualifiedFunctionName entry_points[]);
   void Iterate();
@@ -493,9 +492,6 @@ class Precompiler : public ValueObject {
   void PrecompileConstructors();
 
   void FinalizeAllClasses();
-  void SortClasses();
-  void RemapClassIds(intptr_t* old_to_new_cid);
-  void RehashTypes();
   void VerifyJITFeedback();
   RawScript* LookupScript(const char* uri);
   intptr_t MapCid(intptr_t feedback_cid);

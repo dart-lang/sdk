@@ -39,7 +39,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   bool queueIsClosed = false;
   final CompilerTask task;
   final native.NativeEnqueuer nativeEnqueuer;
-  final JavaScriptBackend _backend;
+  final EnqueuerListener _listener;
   final CompilerOptions _options;
 
   WorldImpactVisitor _impactVisitor;
@@ -58,7 +58,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
             new CodegenWorldBuilderImpl(backend, const TypeMaskStrategy()),
         _workItemBuilder = new CodegenWorkItemBuilder(backend, options),
         nativeEnqueuer = backend.nativeCodegenEnqueuer(),
-        this._backend = backend,
+        this._listener = backend.codegenEnqueuerListener,
         this._options = options,
         this.name = 'codegen enqueuer' {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
@@ -84,7 +84,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
           entity, "Codegen work list is closed. Trying to add $entity");
     }
 
-    applyImpact(_backend.registerUsedElement(entity, forResolution: false));
+    applyImpact(_listener.registerUsedElement(entity));
     _queue.add(workItem);
   }
 
@@ -102,7 +102,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
       if (nativeUsage) {
         nativeEnqueuer.onInstantiatedType(type);
       }
-      _backend.registerInstantiatedType(type);
+      _listener.registerInstantiatedType(type);
     });
   }
 
@@ -113,7 +113,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   void checkClass(ClassEntity cls) {
     _universe.processClassMembers(cls, (MemberEntity member, useSet) {
       if (useSet.isNotEmpty) {
-        _backend.compiler.reporter.internalError(member,
+        throw new SpannableAssertionFailure(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
       }
     });
@@ -127,11 +127,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
       // We only tell the backend once that [cls] was instantiated, so
       // any additional dependencies must be treated as global
       // dependencies.
-      applyImpact(
-          _backend.registerInstantiatedClass(cls, forResolution: false));
+      applyImpact(_listener.registerInstantiatedClass(cls));
     }
     if (useSet.contains(ClassUse.IMPLEMENTED)) {
-      applyImpact(_backend.registerImplementedClass(cls, forResolution: false));
+      applyImpact(_listener.registerImplementedClass(cls));
     }
   }
 
@@ -144,7 +143,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
       _registerClosurizedMember(member);
     }
     if (useSet.contains(MemberUse.CLOSURIZE_STATIC)) {
-      applyImpact(_backend.registerGetOfStaticFunction());
+      applyImpact(_listener.registerGetOfStaticFunction());
     }
   }
 
@@ -205,10 +204,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
   void _registerClosurizedMember(TypedElement element) {
     assert(element.isInstanceMember);
     if (element.type.containsTypeVariables) {
-      applyImpact(_backend.registerClosureWithFreeTypeVariables(element,
-          forResolution: false));
+      MemberElement member = element;
+      applyImpact(_listener.registerClosureWithFreeTypeVariables(member));
     }
-    applyImpact(_backend.registerBoundClosure());
+    applyImpact(_listener.registerBoundClosure());
   }
 
   void forEach(void f(WorkItem work)) {
@@ -236,7 +235,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   /// returned, [_onQueueEmpty] will be called once the queue is empty again (or
   /// still empty) and [recentClasses] will be a superset of the current value.
   bool _onQueueEmpty(Iterable<ClassEntity> recentClasses) {
-    return _backend.onQueueEmpty(this, recentClasses);
+    return _listener.onQueueEmpty(this, recentClasses);
   }
 
   void logSummary(log(message)) {

@@ -152,7 +152,6 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::InitOnce();
   OSThread::InitOnce();
-  MallocHooks::InitOnce();
   if (FLAG_support_timeline) {
     Timeline::InitOnce();
   }
@@ -233,6 +232,13 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         return strdup("Precompiled runtime requires a precompiled snapshot");
 #else
         StubCode::InitOnce();
+        // MallocHooks can't be initialized until StubCode has been since stack
+        // trace generation relies on stub methods that are generated in
+        // StubCode::InitOnce().
+        // TODO(bkonyi) Split initialization for stack trace collection from the
+        // initialization for the actual malloc hooks to increase accuracy of
+        // memory consumption statistics.
+        MallocHooks::InitOnce();
 #endif
       } else {
         return strdup("Invalid vm isolate snapshot seen");
@@ -271,6 +277,13 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 #else
       vm_snapshot_kind_ = Snapshot::kNone;
       StubCode::InitOnce();
+      // MallocHooks can't be initialized until StubCode has been since stack
+      // trace generation relies on stub methods that are generated in
+      // StubCode::InitOnce().
+      // TODO(bkonyi) Split initialization for stack trace collection from the
+      // initialization for the actual malloc hooks to increase accuracy of
+      // memory consumption statistics.
+      MallocHooks::InitOnce();
       Symbols::InitOnce(vm_isolate_);
 #endif
     }

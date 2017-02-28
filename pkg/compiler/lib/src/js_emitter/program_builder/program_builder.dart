@@ -190,7 +190,7 @@ class ProgramBuilder {
         _buildTypeToInterceptorMap(), _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: collector.outputContainsConstantList,
-        hasIsolateSupport: backend.hasIsolateSupport);
+        hasIsolateSupport: backend.backendUsage.isIsolateInUse);
   }
 
   void _markEagerClasses() {
@@ -543,7 +543,7 @@ class ProgramBuilder {
         // If the program contains `const Symbol` names we have to retain them.
         String selectorName = selector.name;
         if (selector.isSetter) selectorName = "$selectorName=";
-        if (backend.symbolsUsed.contains(selectorName)) {
+        if (backend.mirrorsData.symbolsUsed.contains(selectorName)) {
           _symbolsMap[name] = selectorName;
         }
         noSuchMethodStubs.add(
@@ -655,11 +655,11 @@ class ProgramBuilder {
   }
 
   bool _methodCanBeReflected(FunctionElement method) {
-    return backend.isAccessibleByReflection(method);
+    return backend.mirrorsData.isAccessibleByReflection(method);
   }
 
   bool _methodCanBeApplied(FunctionElement method) {
-    return backend.hasFunctionApplySupport &&
+    return backend.backendUsage.isFunctionApplyUsed &&
         closedWorld.getMightBePassedToApply(method);
   }
 
@@ -805,10 +805,11 @@ class ProgramBuilder {
   // We must evaluate these classes eagerly so that the prototype is
   // accessible.
   void _markEagerInterceptorClasses() {
-    Map<js.Name, Set<ClassElement>> specializedGetInterceptors =
-        backend.interceptorData.specializedGetInterceptors;
-    for (Set<ClassElement> classes in specializedGetInterceptors.values) {
-      for (ClassElement element in classes) {
+    Iterable<js.Name> names =
+        backend.oneShotInterceptorData.specializedGetInterceptorNames;
+    for (js.Name name in names) {
+      for (ClassElement element in backend.oneShotInterceptorData
+          .getSpecializedGetInterceptorsFor(name)) {
         Class cls = _classes[element];
         if (cls != null) cls.isEager = true;
       }
@@ -825,11 +826,11 @@ class ProgramBuilder {
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
 
-    Map<js.Name, Set<ClassElement>> specializedGetInterceptors =
-        backend.interceptorData.specializedGetInterceptors;
-    List<js.Name> names = specializedGetInterceptors.keys.toList()..sort();
+    Iterable<js.Name> names =
+        backend.oneShotInterceptorData.specializedGetInterceptorNames;
     return names.map((js.Name name) {
-      Set<ClassElement> classes = specializedGetInterceptors[name];
+      Set<ClassElement> classes =
+          backend.oneShotInterceptorData.getSpecializedGetInterceptorsFor(name);
       js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
       return new StaticStubMethod(name, holder, code);
     });
@@ -893,7 +894,7 @@ class ProgramBuilder {
     Holder holder = _registry.registerHolder(holderName);
 
     List<js.Name> names =
-        backend.interceptorData.oneShotInterceptors.keys.toList()..sort();
+        backend.oneShotInterceptorData.oneShotInterceptorNames;
     return names.map((js.Name name) {
       js.Expression code = stubGenerator.generateOneShotInterceptor(name);
       return new StaticStubMethod(name, holder, code);

@@ -2,17 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show
-    JSON,
-    UTF8;
+import 'dart:convert' show JSON, UTF8;
 
-import 'dart:isolate' show
-    RawReceivePort;
+import 'dart:isolate' show RawReceivePort;
 
 import 'dart:io';
 
-import 'package:front_end/src/fasta/errors.dart' show
-    defaultServerAddress;
+import 'package:front_end/src/fasta/errors.dart' show defaultServerAddress;
 
 badRequest(HttpRequest request, int status, String message) {
   request.response.statusCode = status;
@@ -41,12 +37,12 @@ collectLog(DateTime time, HttpRequest request) async {
     data = JSON.decode(json);
   } on FormatException catch (e) {
     print(e);
-    return badRequest(request, HttpStatus.BAD_REQUEST,
-        "Malformed JSON data: ${e.message}.");
+    return badRequest(
+        request, HttpStatus.BAD_REQUEST, "Malformed JSON data: ${e.message}.");
   }
   if (data is! Map) {
-    return badRequest(request, HttpStatus.BAD_REQUEST,
-        "Malformed JSON data: not a map.");
+    return badRequest(
+        request, HttpStatus.BAD_REQUEST, "Malformed JSON data: not a map.");
   }
   if (data["type"] != "crash") {
     return badRequest(request, HttpStatus.BAD_REQUEST,
@@ -57,8 +53,8 @@ collectLog(DateTime time, HttpRequest request) async {
   String month = "${time.month}".padLeft(2, "0");
   String day = "${time.day}".padLeft(2, "0");
   String us = "${time.microsecondsSinceEpoch}".padLeft(19, '0');
-  Uri uri = Uri.base.resolve(
-      "crash_logs/${data['client']}/$year-$month-$day/$us.log");
+  Uri uri = Uri.base
+      .resolve("crash_logs/${data['client']}/$year-$month-$day/$us.log");
   File file = new File.fromUri(uri);
   await file.parent.create(recursive: true);
   await file.writeAsString(json);

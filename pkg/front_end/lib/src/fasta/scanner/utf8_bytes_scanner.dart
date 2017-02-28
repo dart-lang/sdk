@@ -4,22 +4,15 @@
 
 library fasta.scanner.utf8_bytes_scanner;
 
-import 'dart:convert' show
-    UNICODE_BOM_CHARACTER_RUNE,
-    UTF8;
+import 'dart:convert' show UNICODE_BOM_CHARACTER_RUNE, UTF8;
 
-import '../scanner.dart' show
-    unicodeReplacementCharacter;
+import '../scanner.dart' show unicodeReplacementCharacter;
 
-import 'precedence.dart' show
-    PrecedenceInfo;
+import 'precedence.dart' show PrecedenceInfo;
 
-import 'token.dart' show
-    StringToken,
-    Token;
+import 'token.dart' show StringToken, Token;
 
-import 'array_based_scanner.dart' show
-    ArrayBasedScanner;
+import 'array_based_scanner.dart' show ArrayBasedScanner;
 
 /**
  * Scanner that reads from a UTF-8 encoded list of bytes and creates tokens
@@ -87,7 +80,7 @@ class Utf8BytesScanner extends ArrayBasedScanner {
    * is not the case, the entire array is copied before scanning.
    */
   Utf8BytesScanner(this.bytes, {bool includeComments: false})
-      : super(includeComments) {
+      : super(includeComments, numberOfBytesHint: bytes.length) {
     assert(bytes.last == 0);
     // Skip a leading BOM.
     if (containsBomAt(0)) byteOffset += 3;

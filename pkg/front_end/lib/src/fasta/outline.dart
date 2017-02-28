@@ -4,51 +4,38 @@
 
 library fasta.outline;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    exitCode;
+import 'dart:io' show exitCode;
 
-import 'package:kernel/verifier.dart' show
-    verifyProgram;
+import 'kernel/verifier.dart' show verifyProgram;
 
-import 'compiler_command_line.dart' show
-    CompilerCommandLine;
+import 'compiler_command_line.dart' show CompilerCommandLine;
 
-import 'errors.dart' show
-    InputError,
-    inputError;
+import 'compiler_context.dart' show CompilerContext;
 
-import 'kernel/kernel_target.dart' show
-    KernelTarget;
+import 'errors.dart' show InputError, inputError;
 
-import 'dill/dill_target.dart' show
-    DillTarget;
+import 'kernel/kernel_target.dart' show KernelTarget;
 
-import 'ticker.dart' show
-    Ticker;
+import 'dill/dill_target.dart' show DillTarget;
 
-import 'translate_uri.dart' show
-    TranslateUri;
+import 'ticker.dart' show Ticker;
 
-import 'ast_kind.dart' show
-    AstKind;
+import 'translate_uri.dart' show TranslateUri;
 
-// TODO(ahe): Remove this import. Instead make the SDK available as resource in
-// the executable, or something similar.
-import 'testing/kernel_chain.dart' show
-    computePatchedSdk;
-
-CompilerCommandLine parseArguments(String programName, List<String> arguments) {
-  return new CompilerCommandLine(programName, arguments);
-}
+import 'ast_kind.dart' show AstKind;
 
 Future<KernelTarget> outline(List<String> arguments) async {
   try {
-    CompilerCommandLine cl = parseArguments("outline", arguments);
-    if (cl.verbose) print("Building outlines for ${arguments.join(' ')}");
-    return await doOutline(cl, new Ticker(isVerbose: cl.verbose), cl.output);
+    return await CompilerCommandLine.withGlobalOptions("outline", arguments,
+        (CompilerContext c) async {
+      if (c.options.verbose) {
+        print("Building outlines for ${arguments.join(' ')}");
+      }
+      return await doOutline(
+          c, new Ticker(isVerbose: c.options.verbose), c.options.output);
+    });
   } on InputError catch (e) {
     exitCode = 1;
     print(e.format());
@@ -58,12 +45,14 @@ Future<KernelTarget> outline(List<String> arguments) async {
 
 Future<Uri> compile(List<String> arguments) async {
   try {
-    CompilerCommandLine cl = parseArguments("compile", arguments);
-    if (cl.verbose) {
-      print("Compiling directly to Kernel: ${arguments.join(' ')}");
-    }
-    return
-        await doCompile(cl, new Ticker(isVerbose: cl.verbose), AstKind.Kernel);
+    return await CompilerCommandLine.withGlobalOptions("compile", arguments,
+        (CompilerContext c) async {
+      if (c.options.verbose) {
+        print("Compiling directly to Kernel: ${arguments.join(' ')}");
+      }
+      return await doCompile(
+          c, new Ticker(isVerbose: c.options.verbose), AstKind.Kernel);
+    });
   } on InputError catch (e) {
     exitCode = 1;
     print(e.format());
@@ -73,10 +62,14 @@ Future<Uri> compile(List<String> arguments) async {
 
 Future<Uri> kompile(List<String> arguments) async {
   try {
-    CompilerCommandLine cl = parseArguments("kompile", arguments);
-    if (cl.verbose) print("Compiling via analyzer: ${arguments.join(' ')}");
-    return await doCompile(
-        cl, new Ticker(isVerbose: cl.verbose), AstKind.Analyzer);
+    return await CompilerCommandLine.withGlobalOptions("kompile", arguments,
+        (CompilerContext c) async {
+      if (c.options.verbose) {
+        print("Compiling via analyzer: ${arguments.join(' ')}");
+      }
+      return await doCompile(
+          c, new Ticker(isVerbose: c.options.verbose), AstKind.Analyzer);
+    });
   } on InputError catch (e) {
     exitCode = 1;
     print(e.format());
@@ -84,19 +77,18 @@ Future<Uri> kompile(List<String> arguments) async {
   }
 }
 
-Future<KernelTarget> doOutline(CompilerCommandLine cl, Ticker ticker,
+Future<KernelTarget> doOutline(CompilerContext c, Ticker ticker,
     [Uri output]) async {
-  Uri sdk = await computePatchedSdk();
-  ticker.logMs("Found patched SDK");
-  TranslateUri uriTranslator = await TranslateUri.parse(sdk);
+  TranslateUri uriTranslator = await TranslateUri.parse(c.options.sdk);
   ticker.logMs("Read packages file");
   DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
-  KernelTarget kernelTarget = new KernelTarget(dillTarget, uriTranslator);
-  Uri platform = cl.platform;
+  KernelTarget kernelTarget =
+      new KernelTarget(dillTarget, uriTranslator, c.uriToSource);
+  Uri platform = c.options.platform;
   if (platform != null) {
     dillTarget.read(platform);
   }
-  String argument = cl.arguments.first;
+  String argument = c.options.arguments.first;
   Uri uri = Uri.base.resolve(argument);
   String path = uriTranslator.translate(uri)?.path ?? argument;
   if (path.endsWith(".dart")) {
@@ -106,29 +98,28 @@ Future<KernelTarget> doOutline(CompilerCommandLine cl, Ticker ticker,
   }
   await dillTarget.writeOutline(null);
   await kernelTarget.writeOutline(output);
-  if (cl.dumpIr && output != null) {
+  if (c.options.dumpIr && output != null) {
     kernelTarget.dumpIr();
   }
   return kernelTarget;
 }
 
-Future<Uri> doCompile(CompilerCommandLine cl, Ticker ticker,
-    AstKind kind) async {
-  KernelTarget kernelTarget = await doOutline(cl, ticker);
+Future<Uri> doCompile(CompilerContext c, Ticker ticker, AstKind kind) async {
+  KernelTarget kernelTarget = await doOutline(c, ticker);
   if (exitCode != 0) return null;
-  Uri uri = cl.output;
+  Uri uri = c.options.output;
   await kernelTarget.writeProgram(uri, kind);
-  if (cl.dumpIr) {
+  if (c.options.dumpIr) {
     kernelTarget.dumpIr();
   }
-  if (cl.verify) {
+  if (c.options.verify) {
     try {
       verifyProgram(kernelTarget.program);
       ticker.logMs("Verified program");
     } catch (e, s) {
       exitCode = 1;
       print("Verification of program failed: $e");
-      if (s != null && cl.verbose) {
+      if (s != null && c.options.verbose) {
         print(s);
       }
     }

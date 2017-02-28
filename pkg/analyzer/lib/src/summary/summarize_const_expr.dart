@@ -275,12 +275,12 @@ abstract class AbstractConstExprSerializer {
 
   void _pushInt(int value) {
     assert(value >= 0);
-    if (value >= (1 << 32)) {
+    if (value >= 0x100000000) {
       int numOfComponents = 0;
       ints.add(numOfComponents);
       void pushComponents(int value) {
-        if (value >= (1 << 32)) {
-          pushComponents(value >> 32);
+        if (value >= 0x100000000) {
+          pushComponents(value ~/ 0x100000000);
         }
         numOfComponents++;
         ints.add(value & 0xFFFFFFFF);
@@ -632,7 +632,9 @@ abstract class AbstractConstExprSerializer {
       references.add(ref);
       operations.add(UnlinkedExprOperation.pushReference);
     } else {
-      _serialize(expr.target);
+      if (!expr.isCascaded) {
+        _serialize(expr.target);
+      }
       strings.add(expr.propertyName.name);
       operations.add(UnlinkedExprOperation.extractProperty);
     }

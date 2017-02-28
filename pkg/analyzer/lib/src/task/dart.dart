@@ -1627,17 +1627,8 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       }
     }
     if (hasPartDirective && libraryNameNode == null) {
-      AnalysisError error;
-      if (partsLibraryName != _UNKNOWN_LIBRARY_NAME &&
-          partsLibraryName != null) {
-        error = new AnalysisErrorWithProperties(librarySource, 0, 0,
-            ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART)
-          ..setProperty(ErrorProperty.PARTS_LIBRARY_NAME, partsLibraryName);
-      } else {
-        error = new AnalysisError(librarySource, 0, 0,
-            ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART);
-      }
-      errors.add(error);
+      errors.add(new AnalysisError(librarySource, 0, 0,
+          ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART));
     }
     //
     // Create and populate the library element.

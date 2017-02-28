@@ -140,7 +140,7 @@ class FieldVisitor {
   bool fieldNeedsGetter(VariableElement field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    if (backend.shouldRetainGetter(field)) return true;
+    if (backend.mirrorsData.shouldRetainGetter(field)) return true;
     return field.isClassMember &&
         compiler.codegenWorldBuilder.hasInvokedGetter(field, closedWorld);
   }
@@ -149,7 +149,7 @@ class FieldVisitor {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (field.isFinal || field.isConst) return false;
-    if (backend.shouldRetainSetter(field)) return true;
+    if (backend.mirrorsData.shouldRetainSetter(field)) return true;
     return field.isClassMember &&
         compiler.codegenWorldBuilder.hasInvokedSetter(field, closedWorld);
   }

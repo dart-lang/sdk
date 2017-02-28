@@ -239,7 +239,7 @@ class InstanceMemberInferrer {
 
   void _inferConstructorFieldFormals(ConstructorElement element) {
     for (ParameterElement p in element.parameters) {
-      if (p is FieldFormalParameterElement) {
+      if (p is FieldFormalParameterElementImpl) {
         _inferFieldFormalParameter(p);
       }
     }
@@ -375,10 +375,10 @@ class InstanceMemberInferrer {
     }
   }
 
-  void _inferFieldFormalParameter(FieldFormalParameterElement element) {
+  void _inferFieldFormalParameter(FieldFormalParameterElementImpl element) {
     FieldElement field = element.field;
     if (field != null && element.hasImplicitType) {
-      (element as FieldFormalParameterElementImpl).type = field.type;
+      element.type = field.type;
     }
   }
 

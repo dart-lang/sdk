@@ -4,45 +4,37 @@
 
 library fasta.scanner;
 
-import 'dart:convert' show
-    UNICODE_REPLACEMENT_CHARACTER_RUNE;
+import 'dart:convert' show UNICODE_REPLACEMENT_CHARACTER_RUNE;
 
-import 'scanner/token.dart' show
-    Token;
+import 'scanner/token.dart' show Token;
 
-import 'scanner/utf8_bytes_scanner.dart' show
-    Utf8BytesScanner;
+import 'scanner/utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
-import 'scanner/recover.dart' show
-    defaultRecoveryStrategy;
+import 'scanner/recover.dart' show defaultRecoveryStrategy;
 
-export 'scanner/token.dart' show
-    BeginGroupToken,
-    KeywordToken,
-    StringToken,
-    SymbolToken,
-    Token,
-    isBinaryOperator,
-    isMinusOperator,
-    isTernaryOperator,
-    isUnaryOperator,
-    isUserDefinableOperator;
+export 'scanner/token.dart'
+    show
+        BeginGroupToken,
+        KeywordToken,
+        StringToken,
+        SymbolToken,
+        Token,
+        isBinaryOperator,
+        isMinusOperator,
+        isTernaryOperator,
+        isUnaryOperator,
+        isUserDefinableOperator;
 
-export 'scanner/error_token.dart' show
-    ErrorToken,
-    buildUnexpectedCharacterToken;
+export 'scanner/error_token.dart'
+    show ErrorToken, buildUnexpectedCharacterToken;
 
-export 'scanner/token_constants.dart' show
-    EOF_TOKEN;
+export 'scanner/token_constants.dart' show EOF_TOKEN;
 
-export 'scanner/utf8_bytes_scanner.dart' show
-    Utf8BytesScanner;
+export 'scanner/utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
-export 'scanner/string_scanner.dart' show
-    StringScanner;
+export 'scanner/string_scanner.dart' show StringScanner;
 
-export 'scanner/keyword.dart' show
-    Keyword;
+export 'scanner/keyword.dart' show Keyword;
 
 const int unicodeReplacementCharacter = UNICODE_REPLACEMENT_CHARACTER_RUNE;
 

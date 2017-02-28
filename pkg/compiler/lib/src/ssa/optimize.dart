@@ -903,16 +903,23 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (type.isContainer && type.length != null) {
         HInstruction constant = graph.addConstantInt(type.length, closedWorld);
         if (type.isNullable) {
-          // If the container can be null, we update all uses of the
-          // length access to use the constant instead, but keep the
-          // length access in the graph, to ensure we still have a
-          // null check.
+          // If the container can be null, we update all uses of the length
+          // access to use the constant instead, but keep the length access in
+          // the graph, to ensure we still have a null check.
           node.block.rewrite(node, constant);
           return node;
         } else {
           return constant;
         }
       }
+    }
+
+    if (node.isAssignable &&
+        isFixedLength(receiver.instructionType, closedWorld)) {
+      // The input type has changed to fixed-length so change to an unassignable
+      // HGetLength to allow more GVN optimizations.
+      return new HGetLength(receiver, node.instructionType,
+          isAssignable: false);
     }
     return node;
   }

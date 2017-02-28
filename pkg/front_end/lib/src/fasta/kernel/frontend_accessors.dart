@@ -147,8 +147,7 @@ class PropertyAccessor extends Accessor {
     }
   }
 
-  PropertyAccessor.internal(
-      this.receiver, this.name, this.getter, this.setter);
+  PropertyAccessor.internal(this.receiver, this.name, this.getter, this.setter);
 
   _makeSimpleRead() => new PropertyGet(receiver, name, getter);
   _makeSimpleWrite(Expression value, bool voidContext) {

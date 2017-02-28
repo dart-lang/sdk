@@ -12,5 +12,14 @@ class _Closure implements Function {
 
   _Closure _clone() native "Closure_clone";
 
-  // The type_arguments_, function_, and context_ fields are not declared here.
+  // No instance fields should be declared before the following 3 fields whose
+  // offsets must be identical in Dart and C++.
+
+  // The following 3 fields are declared both in raw_object.h (for direct access
+  // from C++ code) and also here so that the offset-to-field map used by
+  // deferred objects is properly initialized.
+  // Caution: These fields are not Dart instances, but VM objects.
+  var instantiator_;
+  var function_;
+  var context_;
 }

@@ -10,8 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystem;
 
-import '../errors.dart' show
-    internalError;
+import '../errors.dart' show internalError;
 
 abstract class MockType extends DartType {
   String get displayName => internalError("not supported.");
@@ -99,7 +98,6 @@ abstract class MockInterfaceType extends MockType implements InterfaceType {
     return internalError("not supported.");
   }
 
-
   ConstructorElement lookUpConstructor(String name, LibraryElement library) {
     return internalError("not supported.");
   }
@@ -109,7 +107,8 @@ abstract class MockInterfaceType extends MockType implements InterfaceType {
   }
 
   PropertyAccessorElement lookUpGetterInSuperclass(
-      String name, LibraryElement library) => internalError("not supported.");
+          String name, LibraryElement library) =>
+      internalError("not supported.");
 
   PropertyAccessorElement lookUpInheritedGetter(String name,
       {LibraryElement library, bool thisType: true}) {
@@ -117,7 +116,8 @@ abstract class MockInterfaceType extends MockType implements InterfaceType {
   }
 
   ExecutableElement lookUpInheritedGetterOrMethod(String name,
-      {LibraryElement library}) => internalError("not supported.");
+          {LibraryElement library}) =>
+      internalError("not supported.");
 
   MethodElement lookUpInheritedMethod(String name,
       {LibraryElement library, bool thisType: true}) {
@@ -142,7 +142,8 @@ abstract class MockInterfaceType extends MockType implements InterfaceType {
   }
 
   PropertyAccessorElement lookUpSetterInSuperclass(
-      String name, LibraryElement library) => internalError("not supported.");
+          String name, LibraryElement library) =>
+      internalError("not supported.");
 
   InterfaceType instantiate(List<DartType> argumentTypes) {
     return internalError("not supported.");

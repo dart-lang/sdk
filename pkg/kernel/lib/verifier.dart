@@ -31,8 +31,7 @@ class VerificationError {
       return "$file:${location.line}:${location.column}: Verification error:"
           " $details";
     } else {
-      return
-          "Verification error: $details\nContext: '$context'.\nNode: '$node'.";
+      return "Verification error: $details\nContext: '$context'.\nNode: '$node'.";
     }
   }
 }
@@ -70,7 +69,8 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   TreeNode enterParent(TreeNode node) {
     if (!identical(node.parent, currentParent)) {
-      problem(node,
+      problem(
+          node,
           "Incorrect parent pointer: expected '${node.parent.runtimeType}',"
           " but found: '${currentParent.runtimeType}'.");
     }
@@ -324,9 +324,12 @@ class VerifyingVisitor extends RecursiveVisitor {
           "StaticInvocation of '${node.target}' that's an instance member.");
     }
     if (node.isConst &&
-        (!node.target.isConst || !node.target.isExternal ||
+        (!node.target.isConst ||
+            !node.target.isExternal ||
             node.target.kind != ProcedureKind.Factory)) {
-      problem(node, "Constant StaticInvocation of '${node.target}' that isn't"
+      problem(
+          node,
+          "Constant StaticInvocation of '${node.target}' that isn't"
           " a const external factory.");
     }
   }
@@ -347,7 +350,9 @@ class VerifyingVisitor extends RecursiveVisitor {
         ? target.enclosingClass.typeParameters.length
         : target.function.typeParameters.length;
     if (node.arguments.types.length != expectedTypeParameters) {
-      problem(node, "${node.runtimeType} with wrong number of type arguments"
+      problem(
+          node,
+          "${node.runtimeType} with wrong number of type arguments"
           " for '${target}'.");
     }
   }
@@ -362,7 +367,9 @@ class VerifyingVisitor extends RecursiveVisitor {
       problem(node, "DirectPropertyGet of '${node.target}' without getter.");
     }
     if (!node.target.isInstanceMember) {
-      problem(node, "DirectPropertyGet of '${node.target}' that isn't an"
+      problem(
+          node,
+          "DirectPropertyGet of '${node.target}' that isn't an"
           " instance member.");
     }
   }
@@ -396,7 +403,9 @@ class VerifyingVisitor extends RecursiveVisitor {
       problem(node, "ConstructorInvocation of abstract class.");
     }
     if (node.isConst && !node.target.isConst) {
-      problem(node, "Constant ConstructorInvocation fo '${node.target}' that"
+      problem(
+          node,
+          "Constant ConstructorInvocation fo '${node.target}' that"
           " isn't const.");
     }
   }
@@ -423,16 +432,16 @@ class VerifyingVisitor extends RecursiveVisitor {
   @override
   defaultMemberReference(Member node) {
     if (node.transformerFlags & TransformerFlag.seenByVerifier == 0) {
-      problem(node,
-          "Dangling reference to '$node', parent is: '${node.parent}'.");
+      problem(
+          node, "Dangling reference to '$node', parent is: '${node.parent}'.");
     }
   }
 
   @override
   visitClassReference(Class node) {
     if (!classes.contains(node)) {
-      problem(node,
-          "Dangling reference to '$node', parent is: '${node.parent}'.");
+      problem(
+          node, "Dangling reference to '$node', parent is: '${node.parent}'.");
     }
   }
 
@@ -440,11 +449,15 @@ class VerifyingVisitor extends RecursiveVisitor {
   visitTypeParameterType(TypeParameterType node) {
     var parameter = node.parameter;
     if (!typeParameters.contains(parameter)) {
-      problem(currentParent, "Type parameter '$parameter' referenced out of"
+      problem(
+          currentParent,
+          "Type parameter '$parameter' referenced out of"
           " scope, parent is: '${parameter.parent}'.");
     }
     if (parameter.parent is Class && !classTypeParametersAreInScope) {
-      problem(currentParent, "Type parameter '$parameter' referenced from"
+      problem(
+          currentParent,
+          "Type parameter '$parameter' referenced from"
           " static context, parent is '${parameter.parent}'.");
     }
   }
@@ -453,7 +466,9 @@ class VerifyingVisitor extends RecursiveVisitor {
   visitInterfaceType(InterfaceType node) {
     node.visitChildren(this);
     if (node.typeArguments.length != node.classNode.typeParameters.length) {
-      problem(currentParent, "Type $node provides ${node.typeArguments.length}"
+      problem(
+          currentParent,
+          "Type $node provides ${node.typeArguments.length}"
           " type arguments but the class declares"
           " ${node.classNode.typeParameters.length} parameters.");
     }
@@ -471,7 +486,9 @@ class CheckParentPointers extends Visitor {
 
   defaultTreeNode(TreeNode node) {
     if (node.parent != parent) {
-      throw new VerificationError(parent, node,
+      throw new VerificationError(
+          parent,
+          node,
           "Parent pointer on '${node.runtimeType}' "
           "is '${node.parent.runtimeType}' "
           "but should be '${parent.runtimeType}'.");

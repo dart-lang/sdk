@@ -98,7 +98,8 @@ typedef void JsonTaking(Map<String, dynamic> json);
 
 jsonTest(String program, JsonTaking testFn) async {
   var result = await runCompiler(
-      memorySourceFiles: {'main.dart': program}, options: ['--dump-info']);
+      memorySourceFiles: {'main.dart': program},
+      options: ['--out=out.js', '--dump-info']);
   var compiler = result.compiler;
   Expect.isFalse(compiler.compilationFailed);
   var dumpTask = compiler.dumpInfoTask;

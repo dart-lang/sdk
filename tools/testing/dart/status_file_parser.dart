@@ -27,6 +27,7 @@ class Expectation {
   static Expectation STATIC_WARNING = byName('StaticWarning');
   static Expectation MISSING_STATIC_WARNING = byName('MissingStaticWarning');
   static Expectation PUB_GET_ERROR = byName('PubGetError');
+  static Expectation NON_UTF8_ERROR = byName('NonUtf8Output');
 
   // Special 'CRASH' cases
   static Expectation DARTK_CRASH = byName('DartkCrash');
@@ -80,6 +81,7 @@ class Expectation {
       build("MissingCompileTimeError", group: fail);
       build("MissingRuntimeError", group: fail);
       build("RuntimeError", group: fail);
+      build("NonUtf8Output", group: fail);
 
       // Dartk sub expectations
       build("DartkCrash", group: crash);

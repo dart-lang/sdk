@@ -2009,7 +2009,8 @@ class ICData : public Object {
   intptr_t GetClassIdAt(intptr_t index, intptr_t arg_nr) const;
 
   RawFunction* GetTargetAt(intptr_t index) const;
-  RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
+  RawFunction* GetTargetForReceiverClassId(intptr_t class_id,
+                                           intptr_t* count_return) const;
 
   RawObject* GetTargetOrCodeAt(intptr_t index) const;
   void SetCodeAt(intptr_t index, const Code& value) const;
@@ -8295,23 +8296,16 @@ class LinkedHashMap : public Instance {
 
 class Closure : public Instance {
  public:
-  RawFunction* function() const { return raw_ptr()->function_; }
-  void set_function(const Function& function) const {
-    // TODO(regis): Only used from deferred_objects.cc. Remove once fixed.
-    StorePointer(&raw_ptr()->function_, function.raw());
+  RawTypeArguments* instantiator() const { return raw_ptr()->instantiator_; }
+  static intptr_t instantiator_offset() {
+    return OFFSET_OF(RawClosure, instantiator_);
   }
+
+  RawFunction* function() const { return raw_ptr()->function_; }
   static intptr_t function_offset() { return OFFSET_OF(RawClosure, function_); }
 
   RawContext* context() const { return raw_ptr()->context_; }
-  void set_context(const Context& context) const {
-    // TODO(regis): Only used from deferred_objects.cc. Remove once fixed.
-    StorePointer(&raw_ptr()->context_, context.raw());
-  }
   static intptr_t context_offset() { return OFFSET_OF(RawClosure, context_); }
-
-  static intptr_t type_arguments_offset() {
-    return OFFSET_OF(RawClosure, type_arguments_);
-  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClosure));
@@ -8324,7 +8318,8 @@ class Closure : public Instance {
     return true;
   }
 
-  static RawClosure* New(const Function& function,
+  static RawClosure* New(const TypeArguments& instantiator,
+                         const Function& function,
                          const Context& context,
                          Heap::Space space = Heap::kNew);
 

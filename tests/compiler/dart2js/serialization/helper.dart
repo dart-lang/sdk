@@ -7,6 +7,7 @@ library dart2js.serialization_helper;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
@@ -168,8 +169,8 @@ Future<SerializationResult> serialize(Uri entryPoint,
   compiler.serialization.deserializeCompilationDataForTesting =
       deserializeCompilationDataForTesting;
   await compiler.run(entryPoint);
-  SerializedData serializedData =
-      new SerializedData(dataUri, outputCollector.getOutput('', 'data'));
+  SerializedData serializedData = new SerializedData(
+      dataUri, outputCollector.getOutput('', OutputType.serializationData));
   return new SerializationResult(compiler, serializedData);
 }
 
@@ -250,8 +251,8 @@ Future<List<SerializedData>> preserializeData(
     for (Uri uri in uriList) {
       libraries.add(compiler.libraryLoader.lookupLibrary(uri));
     }
-    additionalSerializedData = new SerializedData(
-        additionalDataUri, outputCollector.getOutput('', 'data'));
+    additionalSerializedData = new SerializedData(additionalDataUri,
+        outputCollector.getOutput('', OutputType.serializationData));
   }
   return <SerializedData>[serializedData, additionalSerializedData];
 }

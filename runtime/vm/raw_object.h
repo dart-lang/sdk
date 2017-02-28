@@ -1152,7 +1152,7 @@ class RawCode : public RawObject {
   NOT_IN_PRECOMPILED(RawArray* comments_);
   RawObject** to() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
+    return reinterpret_cast<RawObject**>(&ptr()->code_source_map_);
 #else
     return reinterpret_cast<RawObject**>(&ptr()->comments_);
 #endif
@@ -1782,10 +1782,14 @@ class RawClosure : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
+    return reinterpret_cast<RawObject**>(&ptr()->instantiator_);
   }
 
-  RawTypeArguments* type_arguments_;
+  // No instance fields should be declared before the following 3 fields whose
+  // offsets must be identical in Dart and C++.
+
+  // These 3 fields are also declared in the Dart source of class _Closure.
+  RawTypeArguments* instantiator_;
   RawFunction* function_;
   RawContext* context_;
 

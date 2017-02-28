@@ -11,6 +11,7 @@
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/log.h"
+#include "vm/object.h"
 
 DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, trace_reload_verbose);

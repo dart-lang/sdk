@@ -4,9 +4,10 @@
 
 library fasta.stack_listener;
 
-import 'dart:collection' show Queue;
-
 import 'package:front_end/src/fasta/parser.dart' show ErrorKind, Listener;
+
+import 'package:front_end/src/fasta/parser/identifier_context.dart'
+    show IdentifierContext;
 
 import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
 
@@ -15,6 +16,8 @@ import 'package:kernel/ast.dart' show AsyncMarker;
 import '../errors.dart' show inputError, internalError;
 
 import '../quote.dart' show unescapeString;
+
+import '../messages.dart' as messages;
 
 enum NullValue {
   Arguments,
@@ -32,6 +35,7 @@ enum NullValue {
   Initializers,
   Metadata,
   Modifiers,
+  ParameterDefaultValue,
   SwitchScope,
   Type,
   TypeArguments,
@@ -41,7 +45,7 @@ enum NullValue {
 }
 
 abstract class StackListener extends Listener {
-  final Queue<Object> stack = new Queue<Object>();
+  final Stack stack = new Stack();
 
   Uri get uri;
 
@@ -62,18 +66,12 @@ abstract class StackListener extends Listener {
 
   void push(Object node) {
     if (node == null) internalError("null not allowed.");
-    stack.addLast(node);
+    stack.push(node);
   }
 
-  Object peek() {
-    Object node = stack.last;
-    return node is NullValue ? null : node;
-  }
+  Object peek() => stack.last;
 
-  Object pop() {
-    Object node = stack.removeLast();
-    return node is NullValue ? null : node;
-  }
+  Object pop() => stack.pop();
 
   Object popIfNotNull(Object value) {
     return value == null ? null : pop();
@@ -81,11 +79,7 @@ abstract class StackListener extends Listener {
 
   List popList(int n) {
     if (n == 0) return null;
-    List list = new List.filled(n, null, growable: true);
-    for (int i = n - 1; i >= 0; i--) {
-      list[i] = pop();
-    }
-    return list;
+    return stack.popList(n);
   }
 
   void debugEvent(String name) {
@@ -93,7 +87,7 @@ abstract class StackListener extends Listener {
   }
 
   void printEvent(String name) {
-    for (Object o in stack) {
+    for (Object o in stack.values) {
       String s = "  $o";
       int index = s.indexOf("\n");
       if (index != -1) {
@@ -107,11 +101,11 @@ abstract class StackListener extends Listener {
   @override
   void logEvent(String name) {
     internalError("Unhandled event: $name in $runtimeType $uri:\n"
-        "  ${stack.join('\n  ')}");
+        "  ${stack.values.join('\n  ')}");
   }
 
   @override
-  void handleIdentifier(Token token) {
+  void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
     push(token.value);
   }
@@ -121,10 +115,13 @@ abstract class StackListener extends Listener {
     debugEvent("Initializer");
   }
 
-  void checkEmpty() {
+  void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
-      internalError("${runtimeType}: Stack not empty $uri:\n"
-          "  ${stack.join('\n  ')}");
+      internalError(
+          "${runtimeType}: Stack not empty:\n"
+          "  ${stack.values.join('\n  ')}",
+          uri,
+          charOffset);
     }
     if (recoverableErrors.isNotEmpty) {
       // TODO(ahe): Handle recoverable errors better.
@@ -135,13 +132,13 @@ abstract class StackListener extends Listener {
   @override
   void endTopLevelDeclaration(Token token) {
     debugEvent("TopLevelDeclaration");
-    checkEmpty();
+    checkEmpty(token.charOffset);
   }
 
   @override
   void endCompilationUnit(int count, Token token) {
     debugEvent("CompilationUnit");
-    checkEmpty();
+    checkEmpty(token.charOffset);
   }
 
   @override
@@ -228,5 +225,70 @@ abstract class StackListener extends Listener {
   @override
   Token handleUnrecoverableError(Token token, ErrorKind kind, Map arguments) {
     throw inputError(uri, token.charOffset, "$kind $arguments");
+  }
+
+  void nit(String message, [int charOffset = -1]) {
+    messages.nit(uri, charOffset, message);
+  }
+
+  void warning(String message, [int charOffset = -1]) {
+    messages.warning(uri, charOffset, message);
+  }
+}
+
+class Stack {
+  List array = new List(8);
+  int arrayLength = 0;
+
+  bool get isNotEmpty => arrayLength > 0;
+
+  int get length => arrayLength;
+
+  Object get last {
+    final value = array[arrayLength - 1];
+    return value is NullValue ? null : value;
+  }
+
+  void push(Object value) {
+    array[arrayLength++] = value;
+    if (array.length == arrayLength) {
+      _grow();
+    }
+  }
+
+  Object pop() {
+    assert(arrayLength > 0);
+    final Object value = array[--arrayLength];
+    array[arrayLength] = null;
+    return value is NullValue ? null : value;
+  }
+
+  List popList(int count) {
+    assert(arrayLength >= count);
+
+    final table = array;
+    final length = arrayLength;
+
+    final tailList = new List.filled(count, null, growable: true);
+    final startIndex = length - count;
+    for (int i = 0; i < count; i++) {
+      final value = table[startIndex + i];
+      tailList[i] = value is NullValue ? null : value;
+    }
+    arrayLength -= count;
+
+    return tailList;
+  }
+
+  List get values {
+    final List list = new List(arrayLength);
+    list.setRange(0, arrayLength, array);
+    return list;
+  }
+
+  void _grow() {
+    final List newTable = new List(array.length * 2);
+    newTable.setRange(0, array.length, array, 0);
+    array = newTable;
   }
 }

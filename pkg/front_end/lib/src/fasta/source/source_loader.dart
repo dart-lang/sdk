@@ -4,69 +4,51 @@
 
 library fasta.source_loader;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    FileSystemException;
+import 'dart:io' show FileSystemException;
 
-import 'package:front_end/src/fasta/scanner/io.dart' show
-    readBytesFromFile;
+import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFile;
 
-import 'package:front_end/src/fasta/scanner.dart' show
-    ErrorToken,
-    Token,
-    scan;
+import 'package:front_end/src/fasta/scanner.dart'
+    show ErrorToken, ScannerResult, Token, scan;
 
-import 'package:front_end/src/fasta/parser/class_member_parser.dart' show
-    ClassMemberParser;
+import 'package:front_end/src/fasta/parser/class_member_parser.dart'
+    show ClassMemberParser;
 
-import 'package:kernel/ast.dart' show
-    Program;
+import 'package:kernel/ast.dart' show Program;
 
-import 'package:kernel/class_hierarchy.dart' show
-    ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import 'package:kernel/core_types.dart' show
-    CoreTypes;
+import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../errors.dart' show
-    InputError,
-    inputError;
+import '../errors.dart' show inputError, printUnexpected;
 
-import '../export.dart' show
-    Export;
+import '../messages.dart' show warning;
 
-import '../analyzer/element_store.dart' show
-    ElementStore;
+import '../export.dart' show Export;
 
-import '../builder/builder.dart' show
-    Builder,
-    ClassBuilder,
-    LibraryBuilder;
+import '../analyzer/element_store.dart' show ElementStore;
 
-import 'outline_builder.dart' show
-    OutlineBuilder;
+import '../builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
-import '../loader.dart' show
-    Loader;
+import 'outline_builder.dart' show OutlineBuilder;
 
-import '../target_implementation.dart' show
-    TargetImplementation;
+import '../loader.dart' show Loader;
 
-import 'diet_listener.dart' show
-    DietListener;
+import '../target_implementation.dart' show TargetImplementation;
 
-import 'diet_parser.dart' show
-    DietParser;
+import 'diet_listener.dart' show DietListener;
 
-import 'source_library_builder.dart' show
-    SourceLibraryBuilder;
+import 'diet_parser.dart' show DietParser;
 
-import '../ast_kind.dart' show
-    AstKind;
+import 'source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../ast_kind.dart' show AstKind;
 
 class SourceLoader<L> extends Loader<L> {
+  final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
+
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
@@ -74,8 +56,7 @@ class SourceLoader<L> extends Loader<L> {
   // Used when building analyzer ASTs.
   ElementStore elementStore;
 
-  SourceLoader(TargetImplementation target)
-      : super(target);
+  SourceLoader(TargetImplementation target) : super(target);
 
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
@@ -84,15 +65,20 @@ class SourceLoader<L> extends Loader<L> {
       return inputError(library.uri, -1, "Not found: ${library.uri}.");
     }
     try {
-      List<int> bytes = await readBytesFromFile(uri);
+      List<int> bytes = sourceBytes[uri];
+      if (bytes == null) {
+        bytes = sourceBytes[uri] = await readBytesFromFile(uri);
+      }
       byteCount += bytes.length - 1;
-      Token token = scan(bytes).tokens;
+      ScannerResult result = scan(bytes);
+      Token token = result.tokens;
+      if (!suppressLexicalErrors) {
+        target.addLineStarts(library.fileUri, result.lineStarts);
+      }
       while (token is ErrorToken) {
         if (!suppressLexicalErrors) {
           ErrorToken error = token;
-          String message = new InputError(
-              uri, token.charOffset, error.assertionMessage).format();
-          print(message);
+          printUnexpected(uri, token.charOffset, error.assertionMessage);
         }
         token = token.next;
       }
@@ -128,6 +114,7 @@ class SourceLoader<L> extends Loader<L> {
       for (SourceLibraryBuilder part in library.parts) {
         Token tokens = await tokenize(part);
         if (tokens != null) {
+          listener.uri = part.fileUri;
           parser.parseUnit(tokens);
         }
       }
@@ -137,14 +124,14 @@ class SourceLoader<L> extends Loader<L> {
   void resolveParts() {
     List<Uri> parts = <Uri>[];
     builders.forEach((Uri uri, LibraryBuilder library) {
-        if (library is SourceLibraryBuilder) {
-          if (library.isPart) {
-            library.validatePart();
-            parts.add(uri);
-          } else {
-            library.includeParts();
-          }
+      if (library is SourceLibraryBuilder) {
+        if (library.isPart) {
+          library.validatePart();
+          parts.add(uri);
+        } else {
+          library.includeParts();
         }
+      }
     });
     parts.forEach(builders.remove);
     ticker.logMs("Resolved parts");
@@ -335,8 +322,11 @@ class SourceLoader<L> extends Loader<L> {
             reported.add(cls);
           }
         }
-        print("${cls.name} is a supertype of itself via "
-            "${involved.map((c) => c.name).join(' ')}");
+        warning(
+            cls.fileUri,
+            cls.charOffset,
+            "'${cls.name}' is a supertype of "
+            "itself via '${involved.map((c) => c.name).join(' ')}'.");
       }
     });
     ticker.logMs("Found cycles");

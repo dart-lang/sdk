@@ -4,24 +4,20 @@
 
 library fasta.mixin_application_builder;
 
-import '../errors.dart' show
-    internalError;
+import '../errors.dart' show internalError;
 
-import 'builder.dart' show
-    TypeBuilder,
-    TypeDeclarationBuilder,
-    TypeVariableBuilder;
+import 'builder.dart'
+    show TypeBuilder, TypeDeclarationBuilder, TypeVariableBuilder;
 
-import 'scope.dart' show
-    Scope;
+import 'scope.dart' show Scope;
 
 abstract class MixinApplicationBuilder<T extends TypeBuilder>
     extends TypeBuilder {
   final T supertype;
   final List<T> mixins;
 
-  MixinApplicationBuilder(this.supertype, this.mixins, int charOffset,
-      Uri fileUri)
+  MixinApplicationBuilder(
+      this.supertype, this.mixins, int charOffset, Uri fileUri)
       : super(charOffset, fileUri);
 
   void set typeVariables(List<TypeVariableBuilder> variables);

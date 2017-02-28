@@ -7,7 +7,7 @@ library mock_compiler;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/compiler_new.dart' as api;
 import 'package:compiler/src/common/names.dart' show Uris;
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/elements/resolution_types.dart'
@@ -34,7 +34,7 @@ import 'package:compiler/src/old_to_new_api.dart';
 import 'parser_helper.dart';
 
 import 'package:compiler/src/elements/modelx.dart'
-    show ElementX, LibraryElementX, ErroneousElementX, FunctionElementX;
+    show ErroneousElementX, FunctionElementX;
 
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common/tasks.dart' show Measurer;
@@ -52,7 +52,7 @@ final Uri PATCH_CORE = new Uri(scheme: 'patch', path: 'core');
 typedef String LibrarySourceProvider(Uri uri);
 
 class MockCompiler extends Compiler {
-  api.DiagnosticHandler diagnosticHandler;
+  api.CompilerDiagnostics diagnosticHandler;
 
   /// Expected number of warnings. If `null`, the number of warnings is
   /// not checked.
@@ -86,7 +86,7 @@ class MockCompiler extends Compiler {
       bool enableAsyncAwait: false,
       int this.expectedWarnings,
       int this.expectedErrors,
-      api.CompilerOutputProvider outputProvider,
+      api.CompilerOutput outputProvider,
       String patchVersion,
       LibrarySourceProvider this.librariesOverride})
       : sourceFiles = new Map<String, SourceFile>(),
@@ -107,7 +107,7 @@ class MockCompiler extends Compiler {
                 trustTypeAnnotations: trustTypeAnnotations,
                 trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
                 shownPackageWarnings: const []),
-            outputProvider: new LegacyCompilerOutput(outputProvider)) {
+            outputProvider: outputProvider) {
     deferredLoadTask = new MockDeferredLoadTask(this);
 
     registerSource(
@@ -202,7 +202,7 @@ class MockCompiler extends Compiler {
       }
       diagnosticCollector.report(message.message, uri, begin, end, text, kind);
       if (diagnosticHandler != null) {
-        diagnosticHandler(uri, begin, end, text, kind);
+        diagnosticHandler.report(message.message, uri, begin, end, text, kind);
       }
     }
 
@@ -337,9 +337,10 @@ class MockDeferredLoadTask extends DeferredLoadTask {
   }
 }
 
-api.DiagnosticHandler createHandler(MockCompiler compiler, String text,
+api.CompilerDiagnostics createHandler(MockCompiler compiler, String text,
     {bool verbose: false}) {
-  return (uri, int begin, int end, String message, kind) {
+  return new LegacyCompilerDiagnostics(
+      (uri, int begin, int end, String message, kind) {
     if (kind == api.Diagnostic.VERBOSE_INFO && !verbose) return;
     SourceFile sourceFile;
     if (uri == null) {
@@ -352,7 +353,7 @@ api.DiagnosticHandler createHandler(MockCompiler compiler, String text,
     } else {
       print('${kind}: $message');
     }
-  };
+  });
 }
 
 class MockElement extends FunctionElementX {
@@ -382,7 +383,7 @@ MockCompiler compilerFor(String code, Uri uri,
     bool enableUserAssertions: false,
     int expectedErrors,
     int expectedWarnings,
-    api.CompilerOutputProvider outputProvider}) {
+    api.CompilerOutput outputProvider}) {
   MockCompiler compiler = new MockCompiler.internal(
       analyzeAll: analyzeAll,
       analyzeOnly: analyzeOnly,

@@ -43,11 +43,11 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
     parts.add(js.comment('getInterceptor methods'));
 
-    Map<jsAst.Name, Set<ClassEntity>> specializedGetInterceptors =
-        backend.interceptorData.specializedGetInterceptors;
-    List<jsAst.Name> names = specializedGetInterceptors.keys.toList()..sort();
+    Iterable<jsAst.Name> names =
+        backend.oneShotInterceptorData.specializedGetInterceptorNames;
     for (jsAst.Name name in names) {
-      Set<ClassEntity> classes = specializedGetInterceptors[name];
+      Set<ClassEntity> classes =
+          backend.oneShotInterceptorData.getSpecializedGetInterceptorsFor(name);
       parts.add(js.statement('#.# = #', [
         namer.globalObjectForLibrary(backend.helpers.interceptorsLibrary),
         name,
@@ -61,7 +61,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
   jsAst.Statement buildOneShotInterceptors() {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
     Iterable<jsAst.Name> names =
-        backend.interceptorData.oneShotInterceptors.keys.toList()..sort();
+        backend.oneShotInterceptorData.oneShotInterceptorNames;
 
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(compiler, namer, backend, closedWorld);
@@ -87,7 +87,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
     // We could also generate the list of intercepted names at
     // runtime, by running through the subclasses of Interceptor
     // (which can easily be identified).
-    if (!backend.hasInvokeOnSupport) return null;
+    if (!backend.backendUsage.isInvokeOnUsed) return null;
 
     Iterable<jsAst.Name> invocationNames = interceptorInvocationNames.toList()
       ..sort();

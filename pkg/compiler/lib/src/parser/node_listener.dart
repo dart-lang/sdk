@@ -6,6 +6,8 @@ library dart2js.parser.node_listener;
 
 import '../common.dart';
 import '../elements/elements.dart' show CompilationUnitElement;
+import 'package:front_end/src/fasta/parser/parser.dart'
+    show FormalParameterType;
 import 'package:front_end/src/fasta/scanner/precedence.dart' as Precedence
     show INDEX_INFO;
 import 'package:front_end/src/fasta/scanner.dart' show StringToken, Token;
@@ -96,8 +98,13 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endClassDeclaration(int interfacesCount, Token beginToken,
-      Token extendsKeyword, Token implementsKeyword, Token endToken) {
+  void endClassDeclaration(
+      int interfacesCount,
+      Token beginToken,
+      Token classKeyword,
+      Token extendsKeyword,
+      Token implementsKeyword,
+      Token endToken) {
     NodeList body = popNode();
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
@@ -125,25 +132,72 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
-    NodeList formals = popNode();
-    NodeList typeParameters = popNode();
-    Identifier name = popNode();
-    TypeAnnotation returnType = popNode();
+  void endFunctionTypeAlias(
+      Token typedefKeyword, Token equals, Token endToken) {
+    bool isGeneralizedTypeAlias;
+    NodeList templateParameters;
+    TypeAnnotation returnType;
+    Identifier name;
+    NodeList typeParameters;
+    NodeList formals;
+    if (equals == null) {
+      isGeneralizedTypeAlias = false;
+      formals = popNode();
+      templateParameters = popNode();
+      name = popNode();
+      returnType = popNode();
+    } else {
+      // TODO(floitsch): keep using the `FunctionTypeAnnotation' node.
+      isGeneralizedTypeAlias = true;
+      Node type = popNode();
+      if (type.asFunctionTypeAnnotation() == null) {
+        // TODO(floitsch): The parser should diagnose this problem, not
+        // this listener.
+        // However, this problem goes away, when we allow aliases for
+        // non-function types too.
+        reportFatalError(type, 'Expected a function type.');
+      }
+      FunctionTypeAnnotation functionType = type;
+      templateParameters = popNode();
+      name = popNode();
+      returnType = functionType.returnType;
+      typeParameters = functionType.typeParameters;
+      formals = functionType.formals;
+    }
     pushNode(new Typedef(
-        returnType, name, typeParameters, formals, typedefKeyword, endToken));
+        isGeneralizedTypeAlias,
+        templateParameters,
+        returnType,
+        name,
+        typeParameters,
+        formals,
+        typedefKeyword,
+        endToken));
+  }
+
+  void handleNoName(Token token) {
+    pushNode(null);
   }
 
   @override
-  void endNamedMixinApplication(
-      Token classKeyword, Token implementsKeyword, Token endToken) {
+  void handleFunctionType(Token functionToken, Token endToken) {
+    NodeList formals = popNode();
+    NodeList typeParameters = popNode();
+    TypeAnnotation returnType = popNode();
+    pushNode(new FunctionTypeAnnotation(
+        returnType, functionToken, typeParameters, formals));
+  }
+
+  @override
+  void endNamedMixinApplication(Token beginToken, Token classKeyword,
+      Token equals, Token implementsKeyword, Token endToken) {
     NodeList interfaces = (implementsKeyword != null) ? popNode() : null;
     Node mixinApplication = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     Modifiers modifiers = popNode();
     pushNode(new NamedMixinApplication(name, typeParameters, modifiers,
-        mixinApplication, interfaces, classKeyword, endToken));
+        mixinApplication, interfaces, beginToken, endToken));
   }
 
   @override
@@ -180,7 +234,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword) {
+  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
+      FormalParameterType kind) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -227,7 +282,7 @@ class NodeListener extends ElementListener {
     NodeList typeArguments = popNode();
     Node classReference = popNode();
     if (typeArguments != null) {
-      classReference = new TypeAnnotation(classReference, typeArguments);
+      classReference = new NominalTypeAnnotation(classReference, typeArguments);
     } else {
       Identifier identifier = classReference.asIdentifier();
       Send send = classReference.asSend();
@@ -702,7 +757,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token endToken) {
+  void endFunctionTypedFormalParameter(Token covariantKeyword,
+      Token thisKeyword, FormalParameterType kind) {
     NodeList formals = popNode();
     NodeList typeVariables = popNode();
     Identifier name = popNode();
@@ -718,6 +774,10 @@ class NodeListener extends ElementListener {
     Expression parameterName = popNode();
     pushNode(new SendSet(null, parameterName, new Operator(equals),
         new NodeList.singleton(defaultValue)));
+  }
+
+  @override
+  void handleFormalParameterWithoutValue(Token token) {
   }
 
   @override
@@ -865,7 +925,7 @@ class NodeListener extends ElementListener {
       NodeList typeArguments = popNode();
       Node receiver = popNode();
       if (typeArguments != null) {
-        receiver = new TypeAnnotation(receiver, typeArguments);
+        receiver = new NominalTypeAnnotation(receiver, typeArguments);
         recoverableError(typeArguments, 'Type arguments are not allowed here.');
       } else {
         Identifier identifier = receiver.asIdentifier();

@@ -19,7 +19,11 @@ class TargetFlags {
   List<ProgramRoot> programRoots;
   Uri kernelRuntime;
 
-  TargetFlags({this.strongMode: false, this.treeShake: false, this.programRoots: const <ProgramRoot>[], this.kernelRuntime});
+  TargetFlags(
+      {this.strongMode: false,
+      this.treeShake: false,
+      this.programRoots: const <ProgramRoot>[],
+      this.kernelRuntime});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);

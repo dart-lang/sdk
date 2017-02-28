@@ -6,6 +6,7 @@
 // Files when using deferred loading.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
 import 'package:expect/expect.dart';
@@ -18,8 +19,8 @@ void main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
-    String mainOutput = collector.getOutput('', 'js');
-    String deferredOutput = collector.getOutput('out_1', 'part.js');
+    String mainOutput = collector.getOutput('', OutputType.js);
+    String deferredOutput = collector.getOutput('out_1', OutputType.jsPart);
     JavaScriptBackend backend = compiler.backend;
     String isPrefix = backend.namer.operatorIsPrefix;
     Expect.isTrue(

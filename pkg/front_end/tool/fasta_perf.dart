@@ -133,7 +133,7 @@ Future<Map<Uri, List<int>>> scanReachableFiles(Uri entryUri) async {
   inputSize = 0;
   // adjust size because there is a null-terminator on the contents.
   for (var source in files.values) inputSize += (source.length - 1);
-  print('input size: ${inputSize} chars');
+  print('input size: $inputSize chars');
   var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
   report('load', loadTime);
   report('scan', scanTimer.elapsedMicroseconds);
@@ -234,8 +234,7 @@ class _EmptyScope extends Scope {
 // Note: AstBuilder doesn't build compilation-units or classes, only method
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
-  final Uri uri;
-  _PartialAstBuilder(this.uri) : super(null, null, null, new _EmptyScope());
+  _PartialAstBuilder(Uri uri) : super(null, null, null, new _EmptyScope(), uri);
 
   // Note: this method converts the body to kernel, so we skip that here.
   @override

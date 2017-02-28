@@ -73,7 +73,7 @@ class NsmEmitter extends CodeEmitterHelper {
         if (reflectionName != null) {
           bool accessible = closedWorld.allFunctions
               .filter(selector, null)
-              .any(backend.isMemberAccessibleByReflection);
+              .any(backend.mirrorsData.isMemberAccessibleByReflection);
           addProperty(
               namer.asName('+$reflectionName'), js(accessible ? '2' : '0'));
         }

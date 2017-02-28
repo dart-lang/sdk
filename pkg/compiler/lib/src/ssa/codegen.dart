@@ -1704,7 +1704,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     var isolate = new js.VariableUse(
         backend.namer.globalObjectForLibrary(helpers.interceptorsLibrary));
     Selector selector = node.selector;
-    js.Name methodName = backend.interceptorData
+    js.Name methodName = backend.oneShotInterceptorData
         .registerOneShotInterceptor(selector, backend.namer);
     push(js
         .propertyCall(isolate, methodName, arguments)
@@ -2889,8 +2889,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.isBooleanConversionCheck) {
       helper = const CheckedModeHelper('boolConversionCheck');
     } else {
-      helper =
-          backend.getCheckedModeHelper(type, typeCast: node.isCastTypeCheck);
+      helper = backend.checkedModeHelpers
+          .getCheckedModeHelper(type, typeCast: node.isCastTypeCheck);
     }
 
     if (helper == null) {
@@ -2969,7 +2969,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitTypeInfoReadRaw(HTypeInfoReadRaw node) {
     use(node.inputs[0]);
     js.Expression receiver = pop();
-    push(js.js(r'#.#', [receiver, backend.namer.rtiFieldName]));
+    push(js.js(r'#.#', [receiver, backend.namer.rtiFieldJsName]));
   }
 
   void visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
@@ -3061,7 +3061,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         js.Expression receiver = pop();
         js.Expression helper =
             backend.emitter.staticFunctionAccess(helperElement);
-        js.Expression rtiFieldName = backend.namer.rtiFieldName;
+        js.Expression rtiFieldName = backend.namer.rtiFieldJsName;
         push(js.js(r'#(#.# && #.#[#])', [
           helper,
           receiver,

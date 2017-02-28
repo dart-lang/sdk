@@ -4,7 +4,8 @@
 
 #include "platform/globals.h"
 
-#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT)
+#if defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&                         \
+    !defined(TARGET_ARCH_DBC) && !defined(TARGET_OS_FUCHSIA)
 
 #include "vm/malloc_hooks.h"
 
@@ -13,120 +14,34 @@
 #include "platform/assert.h"
 #include "vm/hash_map.h"
 #include "vm/json_stream.h"
-#include "vm/lockers.h"
+#include "vm/os_thread.h"
+#include "vm/profiler.h"
 
 namespace dart {
 
-// A locker-type class to automatically grab and release the
-// in_malloc_hook_flag_.
-class MallocHookScope {
- public:
-  static void InitMallocHookFlag() {
-    MutexLocker ml(malloc_hook_scope_mutex_);
-    ASSERT(in_malloc_hook_flag_ == kUnsetThreadLocalKey);
-    in_malloc_hook_flag_ = OSThread::CreateThreadLocal();
-    OSThread::SetThreadLocal(in_malloc_hook_flag_, 0);
-  }
+class AddressMap;
 
-  static void DestroyMallocHookFlag() {
-    MutexLocker ml(malloc_hook_scope_mutex_);
-    ASSERT(in_malloc_hook_flag_ != kUnsetThreadLocalKey);
-    OSThread::DeleteThreadLocal(in_malloc_hook_flag_);
-    in_malloc_hook_flag_ = kUnsetThreadLocalKey;
-  }
-
-  MallocHookScope() {
-    MutexLocker ml(malloc_hook_scope_mutex_);
-    ASSERT(in_malloc_hook_flag_ != kUnsetThreadLocalKey);
-    OSThread::SetThreadLocal(in_malloc_hook_flag_, 1);
-  }
-
-  ~MallocHookScope() {
-    MutexLocker ml(malloc_hook_scope_mutex_);
-    ASSERT(in_malloc_hook_flag_ != kUnsetThreadLocalKey);
-    OSThread::SetThreadLocal(in_malloc_hook_flag_, 0);
-  }
-
-  static bool IsInHook() {
-    MutexLocker ml(malloc_hook_scope_mutex_);
-    if (in_malloc_hook_flag_ == kUnsetThreadLocalKey) {
-      // Bail out if the malloc hook flag is invalid. This means that
-      // MallocHookState::TearDown() has been called and MallocHookScope is no
-      // longer intitialized. Don't worry if MallocHookState::TearDown() is
-      // called before the hooks grab the mutex, since
-      // MallocHooksState::Active() is checked after the lock is taken before
-      // proceeding to act on the allocation/free.
-      return false;
-    }
-    return OSThread::GetThreadLocal(in_malloc_hook_flag_);
-  }
-
- private:
-  static Mutex* malloc_hook_scope_mutex_;
-  static ThreadLocalKey in_malloc_hook_flag_;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(MallocHookScope);
-};
-
-
-// Custom key/value trait specifically for address/size pairs. Unlike
-// RawPointerKeyValueTrait, the default value is -1 as 0 can be a valid entry.
-class AddressKeyValueTrait {
- public:
-  typedef const void* Key;
-  typedef intptr_t Value;
-
-  struct Pair {
-    Key key;
-    Value value;
-    Pair() : key(NULL), value(-1) {}
-    Pair(const Key key, const Value& value) : key(key), value(value) {}
-    Pair(const Pair& other) : key(other.key), value(other.value) {}
-  };
-
-  static Key KeyOf(Pair kv) { return kv.key; }
-  static Value ValueOf(Pair kv) { return kv.value; }
-  static intptr_t Hashcode(Key key) { return reinterpret_cast<intptr_t>(key); }
-  static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
-};
-
-
-// Map class that will be used to store mappings between ptr -> allocation size.
-class AddressMap : public MallocDirectChainedHashMap<AddressKeyValueTrait> {
- public:
-  typedef AddressKeyValueTrait::Key Key;
-  typedef AddressKeyValueTrait::Value Value;
-  typedef AddressKeyValueTrait::Pair Pair;
-
-  inline void Insert(const Key& key, const Value& value) {
-    Pair pair(key, value);
-    MallocDirectChainedHashMap<AddressKeyValueTrait>::Insert(pair);
-  }
-
-  inline bool Lookup(const Key& key, Value* value) {
-    ASSERT(value != NULL);
-    Pair* pair = MallocDirectChainedHashMap<AddressKeyValueTrait>::Lookup(key);
-    if (pair == NULL) {
-      return false;
-    } else {
-      *value = pair->value;
-      return true;
-    }
-  }
-};
-
-
+// MallocHooksState contains all of the state related to the configuration of
+// the malloc hooks, allocation information, and locks.
 class MallocHooksState : public AllStatic {
  public:
   static void RecordAllocHook(const void* ptr, size_t size);
   static void RecordFreeHook(const void* ptr);
 
-  static bool Active() { return active_; }
-  static void Init() {
-    address_map_ = new AddressMap();
-    active_ = true;
-    original_pid_ = OS::ProcessId();
+  static bool Active() {
+    ASSERT(malloc_hook_mutex()->IsOwnedByCurrentThread());
+    return active_;
+  }
+  static void Init();
+
+  static bool ProfilingEnabled() { return (OSThread::TryCurrent() != NULL); }
+
+  static bool stack_trace_collection_enabled() {
+    return stack_trace_collection_enabled_;
+  }
+
+  static void set_stack_trace_collection_enabled(bool enabled) {
+    stack_trace_collection_enabled_ = enabled;
   }
 
   static bool IsOriginalProcess() {
@@ -135,6 +50,12 @@ class MallocHooksState : public AllStatic {
   }
 
   static Mutex* malloc_hook_mutex() { return malloc_hook_mutex_; }
+  static ThreadId* malloc_hook_mutex_owner() {
+    return &malloc_hook_mutex_owner_;
+  }
+  static bool IsLockHeldByCurrentThread() {
+    return (malloc_hook_mutex_owner_ == OSThread::GetCurrentThreadId());
+  }
 
   static intptr_t allocation_count() { return allocation_count_; }
 
@@ -160,41 +81,150 @@ class MallocHooksState : public AllStatic {
 
   static AddressMap* address_map() { return address_map_; }
 
-  static void ResetStats() {
-    ASSERT(malloc_hook_mutex()->IsOwnedByCurrentThread());
-    allocation_count_ = 0;
-    heap_allocated_memory_in_bytes_ = 0;
-    address_map_->Clear();
-  }
-
-  static void TearDown() {
-    ASSERT(malloc_hook_mutex()->IsOwnedByCurrentThread());
-    active_ = false;
-    original_pid_ = kInvalidPid;
-    ResetStats();
-    delete address_map_;
-  }
+  static void ResetStats();
+  static void TearDown();
 
  private:
-  static bool active_;
-  static intptr_t original_pid_;
   static Mutex* malloc_hook_mutex_;
+  static ThreadId malloc_hook_mutex_owner_;
+
+  // Variables protected by malloc_hook_mutex_.
+  static bool active_;
+  static bool stack_trace_collection_enabled_;
   static intptr_t allocation_count_;
   static intptr_t heap_allocated_memory_in_bytes_;
   static AddressMap* address_map_;
+  // End protected variables.
 
+  static intptr_t original_pid_;
   static const intptr_t kInvalidPid = -1;
 };
 
+// A locker-type class similar to MutexLocker which tracks which thread
+// currently holds the lock. We use this instead of MutexLocker and
+// mutex->IsOwnedByCurrentThread() since IsOwnedByCurrentThread() is only
+// enabled for debug mode.
+class MallocLocker : public ValueObject {
+ public:
+  explicit MallocLocker(Mutex* mutex, ThreadId* owner)
+      : mutex_(mutex), owner_(owner) {
+    ASSERT(owner != NULL);
+    mutex_->Lock();
+    ASSERT(*owner_ == OSThread::kInvalidThreadId);
+    *owner_ = OSThread::GetCurrentThreadId();
+  }
 
-// MallocHookScope state.
-Mutex* MallocHookScope::malloc_hook_scope_mutex_ = new Mutex();
-ThreadLocalKey MallocHookScope::in_malloc_hook_flag_ = kUnsetThreadLocalKey;
+  virtual ~MallocLocker() {
+    ASSERT(*owner_ == OSThread::GetCurrentThreadId());
+    *owner_ = OSThread::kInvalidThreadId;
+    mutex_->Unlock();
+  }
+
+ private:
+  Mutex* mutex_;
+  ThreadId* owner_;
+};
+
+// AllocationInfo contains all information related to a given allocation
+// including:
+//   -Allocation size in bytes
+//   -Stack trace corresponding to the location of allocation, if applicable
+class AllocationInfo {
+ public:
+  explicit AllocationInfo(intptr_t allocation_size)
+      : sample_(NULL), allocation_size_(allocation_size) {
+    // Stack trace collection is disabled when we are in the process of creating
+    // the first OSThread in order to prevent deadlocks.
+    if (MallocHooksState::ProfilingEnabled() &&
+        MallocHooksState::stack_trace_collection_enabled()) {
+      sample_ = Profiler::SampleNativeAllocation(kSkipCount);
+    }
+  }
+
+  Sample* sample() const { return sample_; }
+  intptr_t allocation_size() const { return allocation_size_; }
+
+ private:
+  Sample* sample_;
+  intptr_t allocation_size_;
+
+  // The number of frames that are generated by the malloc hooks and collection
+  // of the stack trace. These frames are ignored when collecting the stack
+  // trace for a memory allocation. If this number is incorrect, some tests in
+  // malloc_hook_tests.cc might fail, particularily
+  // StackTraceMallocHookLengthTest. If this value is updated, please make sure
+  // that the MallocHooks test cases pass on all platforms.
+  static const intptr_t kSkipCount = 5;
+};
+
+
+// Custom key/value trait specifically for address/size pairs. Unlike
+// RawPointerKeyValueTrait, the default value is -1 as 0 can be a valid entry.
+class AddressKeyValueTrait : public AllStatic {
+ public:
+  typedef const void* Key;
+  typedef AllocationInfo* Value;
+
+  struct Pair {
+    Key key;
+    Value value;
+    Pair() : key(NULL), value(NULL) {}
+    Pair(const Key key, const Value& value) : key(key), value(value) {}
+    Pair(const Pair& other) : key(other.key), value(other.value) {}
+  };
+
+  static Key KeyOf(Pair kv) { return kv.key; }
+  static Value ValueOf(Pair kv) { return kv.value; }
+  static intptr_t Hashcode(Key key) { return reinterpret_cast<intptr_t>(key); }
+  static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
+};
+
+
+// Map class that will be used to store mappings between ptr -> allocation size.
+class AddressMap : public MallocDirectChainedHashMap<AddressKeyValueTrait> {
+ public:
+  typedef AddressKeyValueTrait::Key Key;
+  typedef AddressKeyValueTrait::Value Value;
+  typedef AddressKeyValueTrait::Pair Pair;
+
+  virtual ~AddressMap() { Clear(); }
+
+  void Insert(const Key& key, const Value& value) {
+    Pair pair(key, value);
+    MallocDirectChainedHashMap<AddressKeyValueTrait>::Insert(pair);
+  }
+
+  bool Lookup(const Key& key, Value* value) {
+    ASSERT(value != NULL);
+    Pair* pair = MallocDirectChainedHashMap<AddressKeyValueTrait>::Lookup(key);
+    if (pair == NULL) {
+      return false;
+    } else {
+      *value = pair->value;
+      return true;
+    }
+  }
+
+  void Clear() {
+    Iterator iter = GetIterator();
+    Pair* result = iter.Next();
+    while (result != NULL) {
+      delete result->value;
+      result->value = NULL;
+      result = iter.Next();
+    }
+    MallocDirectChainedHashMap<AddressKeyValueTrait>::Clear();
+  }
+};
+
 
 // MallocHooks state / locks.
 bool MallocHooksState::active_ = false;
+bool MallocHooksState::stack_trace_collection_enabled_ = false;
 intptr_t MallocHooksState::original_pid_ = MallocHooksState::kInvalidPid;
 Mutex* MallocHooksState::malloc_hook_mutex_ = new Mutex();
+ThreadId MallocHooksState::malloc_hook_mutex_owner_ =
+    OSThread::kInvalidThreadId;
 
 // Memory allocation state information.
 intptr_t MallocHooksState::allocation_count_ = 0;
@@ -202,14 +232,44 @@ intptr_t MallocHooksState::heap_allocated_memory_in_bytes_ = 0;
 AddressMap* MallocHooksState::address_map_ = NULL;
 
 
+void MallocHooksState::Init() {
+  address_map_ = new AddressMap();
+  active_ = true;
+#if defined(DEBUG)
+  stack_trace_collection_enabled_ = true;
+#else
+  stack_trace_collection_enabled_ = false;
+#endif  // defined(DEBUG)
+  original_pid_ = OS::ProcessId();
+}
+
+
+void MallocHooksState::ResetStats() {
+  ASSERT(malloc_hook_mutex()->IsOwnedByCurrentThread());
+  allocation_count_ = 0;
+  heap_allocated_memory_in_bytes_ = 0;
+  address_map_->Clear();
+}
+
+
+void MallocHooksState::TearDown() {
+  ASSERT(malloc_hook_mutex()->IsOwnedByCurrentThread());
+  active_ = false;
+  original_pid_ = kInvalidPid;
+  ResetStats();
+  delete address_map_;
+  address_map_ = NULL;
+}
+
+
 void MallocHooks::InitOnce() {
-  if (!FLAG_enable_malloc_hooks) {
+  if (!FLAG_enable_malloc_hooks || MallocHooks::Active()) {
     return;
   }
-  MutexLocker ml(MallocHooksState::malloc_hook_mutex());
+  MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                  MallocHooksState::malloc_hook_mutex_owner());
   ASSERT(!MallocHooksState::Active());
 
-  MallocHookScope::InitMallocHookFlag();
   MallocHooksState::Init();
 
   // Register malloc hooks.
@@ -222,10 +282,11 @@ void MallocHooks::InitOnce() {
 
 
 void MallocHooks::TearDown() {
-  if (!FLAG_enable_malloc_hooks) {
+  if (!FLAG_enable_malloc_hooks || !MallocHooks::Active()) {
     return;
   }
-  MutexLocker ml(MallocHooksState::malloc_hook_mutex());
+  MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                  MallocHooksState::malloc_hook_mutex_owner());
   ASSERT(MallocHooksState::Active());
 
   // Remove malloc hooks.
@@ -236,7 +297,25 @@ void MallocHooks::TearDown() {
   ASSERT(success);
 
   MallocHooksState::TearDown();
-  MallocHookScope::DestroyMallocHookFlag();
+}
+
+
+bool MallocHooks::ProfilingEnabled() {
+  return MallocHooksState::ProfilingEnabled();
+}
+
+
+bool MallocHooks::stack_trace_collection_enabled() {
+  MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                  MallocHooksState::malloc_hook_mutex_owner());
+  return MallocHooksState::stack_trace_collection_enabled();
+}
+
+
+void MallocHooks::set_stack_trace_collection_enabled(bool enabled) {
+  MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                  MallocHooksState::malloc_hook_mutex_owner());
+  MallocHooksState::set_stack_trace_collection_enabled(enabled);
 }
 
 
@@ -244,7 +323,8 @@ void MallocHooks::ResetStats() {
   if (!FLAG_enable_malloc_hooks) {
     return;
   }
-  MutexLocker ml(MallocHooksState::malloc_hook_mutex());
+  MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                  MallocHooksState::malloc_hook_mutex_owner());
   if (MallocHooksState::Active()) {
     MallocHooksState::ResetStats();
   }
@@ -255,7 +335,9 @@ bool MallocHooks::Active() {
   if (!FLAG_enable_malloc_hooks) {
     return false;
   }
-  ASSERT(MallocHooksState::malloc_hook_mutex()->IsOwnedByCurrentThread());
+  MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                  MallocHooksState::malloc_hook_mutex_owner());
+
   return MallocHooksState::Active();
 }
 
@@ -271,8 +353,9 @@ void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
   // to acquire the lock recursively so we extract the values first
   // and then add the JSON properties.
   {
-    MutexLocker ml(MallocHooksState::malloc_hook_mutex());
-    if (Active()) {
+    MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                    MallocHooksState::malloc_hook_mutex_owner());
+    if (MallocHooksState::Active()) {
       allocated_memory = MallocHooksState::heap_allocated_memory_in_bytes();
       allocation_count = MallocHooksState::allocation_count();
       add_usage = true;
@@ -289,7 +372,8 @@ intptr_t MallocHooks::allocation_count() {
   if (!FLAG_enable_malloc_hooks) {
     return 0;
   }
-  MutexLocker ml(MallocHooksState::malloc_hook_mutex());
+  MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                  MallocHooksState::malloc_hook_mutex_owner());
   return MallocHooksState::allocation_count();
 }
 
@@ -298,47 +382,66 @@ intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
   if (!FLAG_enable_malloc_hooks) {
     return 0;
   }
-  MutexLocker ml(MallocHooksState::malloc_hook_mutex());
+  MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                  MallocHooksState::malloc_hook_mutex_owner());
   return MallocHooksState::heap_allocated_memory_in_bytes();
 }
 
 
+Sample* MallocHooks::GetSample(const void* ptr) {
+  MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                  MallocHooksState::malloc_hook_mutex_owner());
+
+  ASSERT(MallocHooksState::Active());
+
+  if (ptr != NULL) {
+    AllocationInfo* allocation_info = NULL;
+    if (MallocHooksState::address_map()->Lookup(ptr, &allocation_info)) {
+      ASSERT(allocation_info != NULL);
+      return allocation_info->sample();
+    }
+  }
+  return NULL;
+}
+
+
 void MallocHooksState::RecordAllocHook(const void* ptr, size_t size) {
-  if (MallocHookScope::IsInHook() || !MallocHooksState::IsOriginalProcess()) {
+  if (MallocHooksState::IsLockHeldByCurrentThread() ||
+      !MallocHooksState::IsOriginalProcess()) {
     return;
   }
 
-  MutexLocker ml(MallocHooksState::malloc_hook_mutex());
+  MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                  MallocHooksState::malloc_hook_mutex_owner());
   // Now that we hold the lock, check to make sure everything is still active.
   if ((ptr != NULL) && MallocHooksState::Active()) {
-    // Set the malloc hook flag to avoid calling hooks again if memory is
-    // allocated/freed below.
-    MallocHookScope mhs;
     MallocHooksState::IncrementHeapAllocatedMemoryInBytes(size);
-    MallocHooksState::address_map()->Insert(ptr, size);
+    MallocHooksState::address_map()->Insert(ptr, new AllocationInfo(size));
   }
 }
 
 
 void MallocHooksState::RecordFreeHook(const void* ptr) {
-  if (MallocHookScope::IsInHook() || !MallocHooksState::IsOriginalProcess()) {
+  if (MallocHooksState::IsLockHeldByCurrentThread() ||
+      !MallocHooksState::IsOriginalProcess()) {
     return;
   }
 
-  MutexLocker ml(MallocHooksState::malloc_hook_mutex());
+  MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
+                  MallocHooksState::malloc_hook_mutex_owner());
   // Now that we hold the lock, check to make sure everything is still active.
   if ((ptr != NULL) && MallocHooksState::Active()) {
-    // Set the malloc hook flag to avoid calling hooks again if memory is
-    // allocated/freed below.
-    MallocHookScope mhs;
-    intptr_t size = 0;
-    if (MallocHooksState::address_map()->Lookup(ptr, &size)) {
-      MallocHooksState::DecrementHeapAllocatedMemoryInBytes(size);
+    AllocationInfo* allocation_info = NULL;
+    if (MallocHooksState::address_map()->Lookup(ptr, &allocation_info)) {
+      MallocHooksState::DecrementHeapAllocatedMemoryInBytes(
+          allocation_info->allocation_size());
       MallocHooksState::address_map()->Remove(ptr);
+      delete allocation_info;
     }
   }
 }
 
 }  // namespace dart
 
-#endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT)
+#endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&
+        // !defined(TARGET_ARCH_DBC) && !defined(TARGET_OS_FUCHSIA)

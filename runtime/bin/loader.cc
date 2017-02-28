@@ -20,6 +20,7 @@ namespace bin {
 static bool trace_loader = false;
 // Keep in sync with loader.dart.
 static const intptr_t _Dart_kImportExtension = 9;
+static const intptr_t _Dart_kResolveAsFilePath = 10;
 
 Loader::Loader(IsolateData* isolate_data)
     : port_(ILLEGAL_PORT),
@@ -183,7 +184,7 @@ void Loader::SendImportExtensionRequest(Dart_Handle url,
 
 
 // Forward a request from the tag handler to the service isolate.
-void Loader::SendRequest(Dart_LibraryTag tag,
+void Loader::SendRequest(intptr_t tag,
                          Dart_Handle url,
                          Dart_Handle library_url) {
   // This port delivers loading messages to the service isolate.
@@ -424,7 +425,7 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
 }
 
 
-bool Loader::ProcessUrlLoadResultLocked(Loader* loader,
+bool Loader::ProcessPayloadResultLocked(Loader* loader,
                                         Loader::IOResult* result) {
   // A negative result tag indicates a loading error occurred in the service
   // isolate. The payload is a C string of the error message.
@@ -517,9 +518,10 @@ Dart_Handle Loader::ReloadNativeExtensions() {
 }
 
 
-Dart_Handle Loader::LoadUrlContents(Dart_Handle url,
-                                    uint8_t** payload,
-                                    intptr_t* payload_length) {
+Dart_Handle Loader::SendAndProcessReply(intptr_t tag,
+                                        Dart_Handle url,
+                                        uint8_t** payload,
+                                        intptr_t* payload_length) {
   IsolateData* isolate_data =
       reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
   ASSERT(isolate_data != NULL);
@@ -534,10 +536,10 @@ Dart_Handle Loader::LoadUrlContents(Dart_Handle url,
   ASSERT(isolate_data->HasLoader());
 
   // Now send a load request to the service isolate.
-  loader->SendRequest(Dart_kScriptTag, url, Dart_Null());
+  loader->SendRequest(tag, url, Dart_Null());
 
   // Wait for a reply to the load request.
-  loader->BlockUntilComplete(ProcessUrlLoadResultLocked);
+  loader->BlockUntilComplete(ProcessPayloadResultLocked);
 
   // Copy fields from the loader before deleting it.
   // The payload array itself which was malloced above is freed by
@@ -554,6 +556,21 @@ Dart_Handle Loader::LoadUrlContents(Dart_Handle url,
     return error;
   }
   return Dart_Null();
+}
+
+
+Dart_Handle Loader::LoadUrlContents(Dart_Handle url,
+                                    uint8_t** payload,
+                                    intptr_t* payload_length) {
+  return SendAndProcessReply(Dart_kScriptTag, url, payload, payload_length);
+}
+
+
+Dart_Handle Loader::ResolveAsFilePath(Dart_Handle url,
+                                      uint8_t** payload,
+                                      intptr_t* payload_length) {
+  return SendAndProcessReply(_Dart_kResolveAsFilePath, url, payload,
+                             payload_length);
 }
 
 

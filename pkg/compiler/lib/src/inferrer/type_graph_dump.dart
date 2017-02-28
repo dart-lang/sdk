@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 library dart2js.inferrer.type_graph_dump;
 
-import 'dart:async';
-
+import '../../compiler_new.dart';
 import '../elements/elements.dart';
 import '../types/types.dart';
 import 'inferrer_engine.dart';
@@ -73,10 +72,11 @@ class TypeGraphDump {
     }
     // Print every group separately.
     for (Element element in nodes.keys) {
-      EventSink<String> output;
+      OutputSink output;
       try {
         String name = filenameFromElement(element);
-        output = inferrer.compiler.outputProvider('$outputDir/$name', 'dot');
+        output = inferrer.compiler
+            .outputProvider('$outputDir/$name', 'dot', OutputType.debug);
         _GraphGenerator visitor = new _GraphGenerator(this, element, output);
         for (TypeInformation node in nodes[element]) {
           node.accept(visitor);
@@ -147,7 +147,7 @@ class _GraphGenerator extends TypeInformationVisitor {
   final List<TypeInformation> worklist = new List<TypeInformation>();
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
   int usedIds = 0;
-  final EventSink<String> output;
+  final OutputSink output;
   final Element element;
   TypeInformation returnValue;
 

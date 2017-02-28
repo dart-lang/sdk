@@ -9,9 +9,11 @@ class C<T extends core::Object, S extends core::Object> extends core::Object {
     ;
   method foo(self::C::S s) → dynamic {
     final mock::Context #context = new mock::Context::•(1);
-    #context.parent = null;
     #context.[]=(0, this);
     return new self::Closure#C#foo#function::•<self::C::T, self::C::S>(#context);
+  }
+  method bar() → dynamic {
+    self::C<self::C::T, self::C::S> self = this;
   }
   method baz() → dynamic {
     return new self::Closure#C#baz#function::•<self::C::T, self::C::S>(null);

@@ -21,7 +21,6 @@ static method foo() → dynamic {
 }
 static method main(dynamic arguments) → dynamic {
   final mock::Context #context = new mock::Context::•(1);
-  #context.parent = null;
   #context.[]=(0, arguments);
   self::f = new self::Closure#main#function::•(#context);
   self::foo();

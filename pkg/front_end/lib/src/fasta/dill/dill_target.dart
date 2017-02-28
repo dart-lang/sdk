@@ -4,37 +4,25 @@
 
 library fasta.dill_target;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'package:kernel/ast.dart' show
-    Class;
+import 'package:kernel/ast.dart' show Class;
 
-import 'dill_loader.dart' show
-    DillLoader;
+import 'dill_loader.dart' show DillLoader;
 
-import '../errors.dart' show
-    inputError,
-    internalError;
+import '../errors.dart' show inputError, internalError;
 
-import '../target_implementation.dart' show
-    TargetImplementation;
+import '../target_implementation.dart' show TargetImplementation;
 
-import '../ticker.dart' show
-    Ticker;
+import '../ticker.dart' show Ticker;
 
-import '../translate_uri.dart' show
-    TranslateUri;
+import '../translate_uri.dart' show TranslateUri;
 
-import '../ast_kind.dart' show
-    AstKind;
+import '../ast_kind.dart' show AstKind;
 
-import '../kernel/kernel_builder.dart' show
-    ClassBuilder,
-    KernelClassBuilder;
+import '../kernel/kernel_builder.dart' show ClassBuilder, KernelClassBuilder;
 
-import 'dill_library_builder.dart' show
-    DillLibraryBuilder;
+import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillTarget extends TargetImplementation {
   bool isLoaded = false;
@@ -43,6 +31,10 @@ class DillTarget extends TargetImplementation {
   DillTarget(Ticker ticker, TranslateUri uriTranslator)
       : super(ticker, uriTranslator) {
     loader = new DillLoader(this);
+  }
+
+  void addLineStarts(Uri uri, List<int> lineStarts) {
+    internalError("Unsupported operation.");
   }
 
   void read(Uri uri) {
@@ -68,15 +60,13 @@ class DillTarget extends TargetImplementation {
     return new DillLibraryBuilder(uri, loader);
   }
 
-  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {
-  }
+  void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {}
 
   List<ClassBuilder> collectAllClasses() {
     return null;
   }
 
-  void breakCycle(ClassBuilder cls) {
-  }
+  void breakCycle(ClassBuilder cls) {}
 
   Class get objectClass {
     KernelClassBuilder builder = loader.coreLibrary.exports["Object"];

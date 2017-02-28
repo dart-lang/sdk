@@ -6606,6 +6606,11 @@ Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
 #endif
 }
 
+DART_EXPORT void Dart_SortClasses() {
+  DARTSCOPE(Thread::Current());
+  ClassFinalizer::SortClasses();
+  ClassFinalizer::ClearAllCode();
+}
 
 DART_EXPORT Dart_Handle
 Dart_Precompile(Dart_QualifiedFunctionName entry_points[],

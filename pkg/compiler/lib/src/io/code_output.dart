@@ -4,8 +4,7 @@
 
 library dart2js.code_output;
 
-import 'dart:async';
-
+import '../../compiler_new.dart';
 import 'source_information.dart';
 
 /// Listener interface for [CodeOutput] activity.
@@ -19,6 +18,9 @@ abstract class CodeOutputListener {
 
 /// Interface for a mapping of target offsets to source locations.
 abstract class SourceLocations {
+  /// The name identifying this source mapping.
+  String get name;
+
   /// Adds a [sourceLocation] at the specified [targetOffset].
   void addSourceLocation(int targetOffset, SourceLocation sourcePosition);
 
@@ -27,7 +29,54 @@ abstract class SourceLocations {
       void f(int targetOffset, SourceLocation sourceLocation));
 }
 
-abstract class CodeOutput implements SourceLocations {
+class _SourceLocationsImpl implements SourceLocations {
+  final String name;
+  final AbstractCodeOutput codeOutput;
+  Map<int, List<SourceLocation>> markers = <int, List<SourceLocation>>{};
+
+  _SourceLocationsImpl(this.name, this.codeOutput);
+
+  @override
+  void addSourceLocation(int targetOffset, SourceLocation sourceLocation) {
+    assert(targetOffset <= codeOutput.length);
+    List<SourceLocation> sourceLocations =
+        markers.putIfAbsent(targetOffset, () => <SourceLocation>[]);
+    sourceLocations.add(sourceLocation);
+  }
+
+  @override
+  void forEachSourceLocation(void f(int targetOffset, var sourceLocation)) {
+    markers.forEach((int targetOffset, List<SourceLocation> sourceLocations) {
+      for (SourceLocation sourceLocation in sourceLocations) {
+        f(targetOffset, sourceLocation);
+      }
+    });
+  }
+
+  void _addSourceLocations(_SourceLocationsImpl other) {
+    assert(name == other.name);
+    if (other.markers.length > 0) {
+      other.markers
+          .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
+        markers
+            .putIfAbsent(
+                codeOutput.length + targetOffset, () => <SourceLocation>[])
+            .addAll(sourceLocations);
+      });
+    }
+  }
+}
+
+abstract class SourceLocationsProvider {
+  /// Creates a [SourceLocations] mapping identified by [name] and associates
+  /// it with this code output.
+  SourceLocations createSourceLocations(String name);
+
+  /// Returns the source location mappings associated with this code output.
+  Iterable<SourceLocations> get sourceLocations;
+}
+
+abstract class CodeOutput implements SourceLocationsProvider {
   /// Write [text] to this output.
   ///
   /// If the output is closed, a [StateError] is thrown.
@@ -50,7 +99,8 @@ abstract class CodeOutput implements SourceLocations {
 }
 
 abstract class AbstractCodeOutput extends CodeOutput {
-  Map<int, List<SourceLocation>> markers = <int, List<SourceLocation>>{};
+  Map<String, _SourceLocationsImpl> sourceLocationsMap =
+      <String, _SourceLocationsImpl>{};
   bool isClosed = false;
 
   void _addInternal(String text);
@@ -65,40 +115,30 @@ abstract class AbstractCodeOutput extends CodeOutput {
 
   @override
   void addBuffer(CodeBuffer other) {
-    if (other.markers.length > 0) {
-      other.markers
-          .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
-        markers
-            .putIfAbsent(length + targetOffset, () => <SourceLocation>[])
-            .addAll(sourceLocations);
-      });
-    }
+    other.sourceLocationsMap.forEach((String name, _SourceLocationsImpl other) {
+      createSourceLocations(name)._addSourceLocations(other);
+    });
     if (!other.isClosed) {
       other.close();
     }
     _addInternal(other.getText());
   }
 
-  void addSourceLocation(int targetOffset, SourceLocation sourceLocation) {
-    assert(targetOffset <= length);
-    List<SourceLocation> sourceLocations =
-        markers.putIfAbsent(targetOffset, () => <SourceLocation>[]);
-    sourceLocations.add(sourceLocation);
-  }
-
-  void forEachSourceLocation(void f(int targetOffset, var sourceLocation)) {
-    markers.forEach((int targetOffset, List<SourceLocation> sourceLocations) {
-      for (SourceLocation sourceLocation in sourceLocations) {
-        f(targetOffset, sourceLocation);
-      }
-    });
-  }
-
+  @override
   void close() {
     if (isClosed) {
       throw new StateError("Code output is already closed.");
     }
     isClosed = true;
+  }
+
+  @override
+  Iterable<SourceLocations> get sourceLocations => sourceLocationsMap.values;
+
+  @override
+  _SourceLocationsImpl createSourceLocations(String name) {
+    return sourceLocationsMap.putIfAbsent(
+        name, () => new _SourceLocationsImpl(name, this));
   }
 }
 
@@ -130,7 +170,7 @@ class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
 /// [CodeOutput] using a [CompilationOutput] as backend.
 class StreamCodeOutput extends AbstractCodeOutput {
   int length = 0;
-  final EventSink<String> output;
+  final OutputSink output;
   final List<CodeOutputListener> _listeners;
 
   StreamCodeOutput(this.output, [this._listeners]);

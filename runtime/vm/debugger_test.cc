@@ -53,6 +53,7 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
   Library& vmlib = Library::Handle();
   vmlib ^= Api::UnwrapHandle(lib);
   EXPECT(!vmlib.IsNull());
+  const String& private_key = String::Handle(vmlib.private_key());
 
   Isolate* isolate = Isolate::Current();
   Debugger* debugger = isolate->debugger();
@@ -83,7 +84,7 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
         "\"breakpointNumber\":2,\"resolved\":false,"
         "\"location\":{\"type\":\"UnresolvedSourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-        "\"id\":\"libraries\\/%" Pd
+        "\"id\":\"libraries\\/%s"
         "\\/scripts\\/test-lib\\/0\","
         "\"uri\":\"test-lib\","
         "\"_kind\":\"script\"},\"line\":3}},"
@@ -91,11 +92,11 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
         "\"breakpointNumber\":1,\"resolved\":false,"
         "\"location\":{\"type\":\"UnresolvedSourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-        "\"id\":\"libraries\\/%" Pd
+        "\"id\":\"libraries\\/%s"
         "\\/scripts\\/test-lib\\/0\","
         "\"uri\":\"test-lib\","
         "\"_kind\":\"script\"},\"line\":2}}]",
-        vmlib.index(), vmlib.index());
+        private_key.ToCString(), private_key.ToCString());
   }
 }
 

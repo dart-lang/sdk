@@ -7,11 +7,15 @@
 
 #include "bin/platform.h"
 
+#include <crtdbg.h>
+
 #include "bin/file.h"
+#include "bin/lockers.h"
 #include "bin/log.h"
 #if !defined(DART_IO_DISABLED) && !defined(PLATFORM_DISABLE_SOCKET)
 #include "bin/socket.h"
 #endif
+#include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 
@@ -27,8 +31,62 @@ char* Platform::resolved_executable_name_ = NULL;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
+class PlatformWin {
+ public:
+  static void InitOnce() {
+    platform_win_mutex_ = new Mutex();
+    saved_output_cp_ = -1;
+    // Set up a no-op handler so that CRT functions return an error instead of
+    // hitting an assertion failure.
+    // See: https://msdn.microsoft.com/en-us/library/a9yf33zb.aspx
+    _set_invalid_parameter_handler(InvalidParameterHandler);
+    // Disable the message box for assertions in the CRT in Debug builds.
+    // See: https://msdn.microsoft.com/en-us/library/1y71x448.aspx
+    _CrtSetReportMode(_CRT_ASSERT, 0);
+    // Disable dialog boxes for "critical" errors or when OpenFile cannot find
+    // the requested file. See:
+    // See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms680621(v=vs.85).aspx
+    SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
+  }
+
+  static void SaveAndSetOutputCP() {
+    MutexLocker ml(platform_win_mutex_);
+    ASSERT(saved_output_cp_ == -1);
+    saved_output_cp_ = GetConsoleOutputCP();
+    SetConsoleOutputCP(CP_UTF8);
+  }
+
+  static void RestoreOutputCP() {
+    MutexLocker ml(platform_win_mutex_);
+    if (saved_output_cp_ != -1) {
+      SetConsoleOutputCP(saved_output_cp_);
+      saved_output_cp_ = -1;
+    }
+  }
+
+ private:
+  static Mutex* platform_win_mutex_;
+  static int saved_output_cp_;
+
+  static void InvalidParameterHandler(const wchar_t* expression,
+                                      const wchar_t* function,
+                                      const wchar_t* file,
+                                      unsigned int line,
+                                      uintptr_t reserved) {
+    // Doing nothing here means that the CRT call that invoked it will
+    // return an error code and/or set errno.
+  }
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(PlatformWin);
+};
+
+int PlatformWin::saved_output_cp_ = -1;
+Mutex* PlatformWin::platform_win_mutex_ = NULL;
+
 bool Platform::Initialize() {
-  SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
+  PlatformWin::InitOnce();
+  PlatformWin::SaveAndSetOutputCP();
   return true;
 }
 
@@ -124,6 +182,8 @@ const char* Platform::ResolveExecutablePath() {
 void Platform::Exit(int exit_code) {
   // TODO(zra): Remove once VM shuts down cleanly.
   ::dart::private_flag_windows_run_tls_destructors = false;
+  // Restore the console's output code page
+  PlatformWin::RestoreOutputCP();
   // On Windows we use ExitProcess so that threads can't clobber the exit_code.
   // See: https://code.google.com/p/nativeclient/issues/detail?id=2870
   ::ExitProcess(exit_code);

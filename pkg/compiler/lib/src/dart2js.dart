@@ -395,6 +395,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     }),
     new OptionHandler(Flags.allowNativeExtensions, setAllowNativeExtensions),
     new OptionHandler(Flags.generateCodeWithCompileTimeErrors, passThrough),
+    new OptionHandler(Flags.useMultiSourceInfo, passThrough),
     new OptionHandler(Flags.useNewSourceInfo, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
 
@@ -1003,16 +1004,17 @@ class _SerializedData {
 
 class _CompilerOutput extends NullCompilerOutput {
   final Uri uri;
-  _BufferedEventSink sink;
+  _BufferedOutputSink sink;
 
   _CompilerOutput(this.uri);
 
   @override
-  EventSink<String> createEventSink(String name, String extension) {
+  api.OutputSink createOutputSink(
+      String name, String extension, api.OutputType type) {
     if (name == '' && extension == 'data') {
-      return sink = new _BufferedEventSink();
+      return sink = new _BufferedOutputSink();
     }
-    return super.createEventSink(name, extension);
+    return super.createOutputSink(name, extension, type);
   }
 
   _SerializedData get serializedData {
@@ -1020,7 +1022,7 @@ class _CompilerOutput extends NullCompilerOutput {
   }
 }
 
-class _BufferedEventSink implements EventSink<String> {
+class _BufferedOutputSink implements api.OutputSink {
   StringBuffer sb = new StringBuffer();
 
   @override
@@ -1031,10 +1033,5 @@ class _BufferedEventSink implements EventSink<String> {
   @override
   void close() {
     // Do nothing.
-  }
-
-  @override
-  void addError(errorEvent, [StackTrace stackTrace]) {
-    // Ignore
   }
 }

@@ -44,15 +44,15 @@ void runBaselineTests(String folderName, TestTarget target) {
         String filenameOfBaseline = '$outputDirectory/$shortName.baseline.txt';
         String filenameOfCurrent = '$outputDirectory/$shortName.current.txt';
 
-        var repository = new Repository();
+        var program = new Program();
         var loader = await batch.getLoader(
-            repository,
+            program,
             new DartOptions(
                 strongMode: target.strongMode,
                 sdk: sdkDirectory,
                 declaredVariables: target.extraDeclaredVariables,
                 applicationRoot: applicationRoot));
-        var program = loader.loadProgram(dartPath, target: target);
+        loader.loadProgram(dartPath, target: target);
         verifyProgram(program);
         var errors = <String>[];
         errors.addAll(target.performModularTransformations(program));

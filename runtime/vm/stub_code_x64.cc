@@ -1747,11 +1747,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ addq(RDX, Immediate(Array::data_offset() - kHeapObjectTag));
   // RDX: Entry start.
   // R10: instance class id.
-  // R13: instance type arguments.
+  // R13: instance type arguments (still null if closure).
   Label loop, found, not_found, next_iteration;
   __ SmiTag(R10);
   __ cmpq(R10, Immediate(Smi::RawValue(kClosureCid)));
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  __ movq(R13, FieldAddress(RAX, Closure::instantiator_offset()));
   __ movq(R10, FieldAddress(RAX, Closure::function_offset()));
   // R10: instance class id as Smi or function.
   __ Bind(&loop);

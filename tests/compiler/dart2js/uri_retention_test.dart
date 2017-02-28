@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
+import 'package:compiler/compiler_new.dart';
 
 import 'memory_compiler.dart' show runCompiler, OutputCollector;
 
@@ -20,7 +21,7 @@ Future<String> compileSources(sources, {bool minify, bool preserveUri}) async {
       memorySourceFiles: sources,
       options: options,
       outputProvider: outputCollector);
-  return outputCollector.getOutput('', 'js');
+  return outputCollector.getOutput('', OutputType.js);
 }
 
 Future test(sources, {bool libName, bool fileName}) {

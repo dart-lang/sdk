@@ -33,8 +33,7 @@ enum Tag {
   kNothing = 0,
   kSomething = 1,
 
-  kNormalClass = 2,
-  kMixinClass = 3,
+  kClass = 2,
 
   kField = 4,
   kConstructor = 5,
@@ -123,16 +122,6 @@ enum Tag {
   kSimpleInterfaceType = 96,
   kSimpleFunctionType = 97,
 
-  kNullReference = 99,
-  kNormalClassReference = 100,
-  kMixinClassReference = 101,
-
-  kLibraryFieldReference = 102,
-  kClassFieldReference = 103,
-  kClassConstructorReference = 104,
-  kLibraryProcedureReference = 105,
-  kClassProcedureReference = 106,
-
   kSpecializedTagHighBit = 0x80,  // 10000000
   kSpecializedTagMask = 0xF8,     // 11111000
   kSpecializedPayloadMask = 0x7,  // 00000111
@@ -173,7 +162,7 @@ class BlockStack {
   }
 
   void Push(List<T>* decl) {
-    for (int i = 0; i < decl->length(); i++) {
+    for (intptr_t i = 0; i < decl->length(); i++) {
       variables_.Add(decl[i]);
       current_count_++;
     }
@@ -233,7 +222,7 @@ class BlockMap {
   }
 
   void Push(List<T>* decl) {
-    for (int i = 0; i < decl->length(); i++) {
+    for (intptr_t i = 0; i < decl->length(); i++) {
       Push(decl[i]);
     }
   }
@@ -321,8 +310,15 @@ class ReaderHelper {
   BlockStack<LabeledStatement>* labels() { return labels_; }
   void set_labels(BlockStack<LabeledStatement>* labels) { labels_ = labels; }
 
+  CanonicalName* GetCanonicalName(int index) { return canonical_names_[index]; }
+  void SetCanonicalName(int index, CanonicalName* name) {
+    canonical_names_[index] = name;
+  }
+  void SetCanonicalNameCount(int count) { canonical_names_.SetLength(count); }
+
  private:
   Program* program_;
+  MallocGrowableArray<Ref<CanonicalName> > canonical_names_;
   BlockStack<VariableDeclaration> scope_;
   BlockStack<TypeParameter> type_parameters_;
   BlockStack<SwitchCase> switch_cases_;
@@ -490,6 +486,21 @@ class Reader {
 
   ReaderHelper* helper() { return &builder_; }
 
+  CanonicalName* ReadCanonicalNameReference() {
+    int index = ReadUInt();
+    if (index == 0) return NULL;
+    CanonicalName* name = builder_.GetCanonicalName(index - 1);
+    ASSERT(name != NULL);
+    return name;
+  }
+
+  CanonicalName* ReadDefiningCanonicalNameReference(LinkedNode* node_to_link) {
+    CanonicalName* name = ReadCanonicalNameReference();
+    ASSERT(name != NULL);
+    name->BindTo(node_to_link);
+    return name;
+  }
+
  private:
   const uint8_t* buffer_;
   int64_t size_;
@@ -540,7 +551,7 @@ void List<T>::ReadFrom(Reader* reader, TreeNode* parent) {
   int length = reader->ReadListLength();
   EnsureInitialized(length);
 
-  for (int i = 0; i < length_; i++) {
+  for (intptr_t i = 0; i < length_; i++) {
     IT* object = GetOrCreate<IT>(i, parent);
     object->ReadFrom(reader);
   }
@@ -554,7 +565,7 @@ void List<T>::ReadFrom(Reader* reader) {
   int length = reader->ReadListLength();
   EnsureInitialized(length);
 
-  for (int i = 0; i < length_; i++) {
+  for (intptr_t i = 0; i < length_; i++) {
     GetOrCreate<IT>(i)->ReadFrom(reader);
   }
 }
@@ -567,7 +578,7 @@ void List<T>::ReadFromStatic(Reader* reader) {
   int length = reader->ReadListLength();
   EnsureInitialized(length);
 
-  for (int i = 0; i < length_; i++) {
+  for (intptr_t i = 0; i < length_; i++) {
     ASSERT(array_[i] == NULL);
     array_[i] = IT::ReadFrom(reader);
   }
@@ -581,13 +592,13 @@ void TypeParameterList::ReadFrom(Reader* reader) {
   EnsureInitialized(length);
 
   // Make all [TypeParameter]s available in scope.
-  for (int i = 0; i < length; i++) {
+  for (intptr_t i = 0; i < length; i++) {
     TypeParameter* parameter = (*this)[i] = new TypeParameter();
     reader->helper()->type_parameters().Push(parameter);
   }
 
   // Read all [TypeParameter]s and their bounds.
-  for (int i = 0; i < length; i++) {
+  for (intptr_t i = 0; i < length; i++) {
     (*this)[i]->ReadFrom(reader);
   }
 }
@@ -673,8 +684,12 @@ Library* Library::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   int flags = reader->ReadFlags();
   ASSERT(flags == 0);  // external libraries not supported
+
+  CanonicalName* canonical_name =
+      reader->ReadDefiningCanonicalNameReference(this);
+
   name_ = Reference::ReadStringFrom(reader);
-  import_uri_ = Reference::ReadStringFrom(reader);
+  import_uri_ = canonical_name->name();
   source_uri_index_ = reader->ReadUInt();
   reader->set_current_script_id(source_uri_index_);
 
@@ -684,16 +699,11 @@ Library* Library::ReadFrom(Reader* reader) {
   }
   int num_classes = reader->ReadUInt();
   classes().EnsureInitialized(num_classes);
-  for (int i = 0; i < num_classes; i++) {
+  for (intptr_t i = 0; i < num_classes; i++) {
     Tag tag = reader->ReadTag();
-    if (tag == kNormalClass) {
-      NormalClass* klass = classes().GetOrCreate<NormalClass>(i, this);
-      klass->ReadFrom(reader);
-    } else {
-      ASSERT(tag == kMixinClass);
-      MixinClass* klass = classes().GetOrCreate<MixinClass>(i, this);
-      klass->ReadFrom(reader);
-    }
+    ASSERT(tag == kClass);
+    NormalClass* klass = classes().GetOrCreate<NormalClass>(i, this);
+    klass->ReadFrom(reader);
   }
 
   fields().ReadFrom<Field>(reader, this);
@@ -705,6 +715,7 @@ Library* Library::ReadFrom(Reader* reader) {
 Class* Class::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
 
+  reader->ReadDefiningCanonicalNameReference(this);
   position_ = reader->ReadPosition(false);
   is_abstract_ = reader->ReadBool();
   name_ = Reference::ReadStringFrom(reader);
@@ -726,6 +737,7 @@ NormalClass* NormalClass::ReadFrom(Reader* reader) {
   DartType* type = reader->ReadOptional<DartType>();
 
   super_class_ = InterfaceType::Cast(type);
+  reader->ReadOptional<DartType>();  // Mixed-in type is unused.
   implemented_classes_.ReadFromStatic<DowncastReader<DartType, InterfaceType> >(
       reader);
   fields_.ReadFrom<Field>(reader, this);
@@ -751,82 +763,35 @@ MixinClass* MixinClass::ReadFrom(Reader* reader) {
 }
 
 
-Member* Reference::ReadMemberFrom(Reader* reader, bool allow_null) {
+CanonicalName* Reference::ReadMemberFrom(Reader* reader, bool allow_null) {
   TRACE_READ_OFFSET();
 
-  Program* program = reader->helper()->program();
-  Tag tag = reader->ReadTag();
-  switch (tag) {
-    case kLibraryFieldReference: {
-      int library_idx = reader->ReadUInt();
-      int field_idx = reader->ReadUInt();
-      Library* library = program->libraries().GetOrCreate<Library>(library_idx);
-      return library->fields().GetOrCreate<Field>(field_idx, library);
-    }
-    case kLibraryProcedureReference: {
-      int library_idx = reader->ReadUInt();
-      int procedure_idx = reader->ReadUInt();
-      Library* library = program->libraries().GetOrCreate<Library>(library_idx);
-      return library->procedures().GetOrCreate<Procedure>(procedure_idx,
-                                                          library);
-    }
-    case kClassFieldReference:
-    case kClassConstructorReference:
-    case kClassProcedureReference: {
-      Class* klass = Reference::ReadClassFrom(reader);
-      if (tag == kClassFieldReference) {
-        int field_idx = reader->ReadUInt();
-        return klass->fields().GetOrCreate<Field>(field_idx, klass);
-      } else if (tag == kClassConstructorReference) {
-        int constructor_idx = reader->ReadUInt();
-        return klass->constructors().GetOrCreate<Constructor>(constructor_idx,
-                                                              klass);
-      } else {
-        ASSERT(tag == kClassProcedureReference);
-        int procedure_idx = reader->ReadUInt();
-        return klass->procedures().GetOrCreate<Procedure>(procedure_idx, klass);
-      }
-    }
-    case kNullReference:
-      if (allow_null) {
-        return NULL;
-      } else {
-        FATAL("Expected a valid member reference, but got `null`");
-      }
-    default:
-      UNREACHABLE();
-      break;
+  CanonicalName* canonical_name = reader->ReadCanonicalNameReference();
+  if (canonical_name == NULL && !allow_null) {
+    FATAL("Expected a valid member reference, but got `null`");
   }
 
-  UNREACHABLE();
-  return NULL;
+  if (canonical_name != NULL) {
+    canonical_name->set_referenced(true);
+  }
+
+  return canonical_name;
 }
 
 
-Class* Reference::ReadClassFrom(Reader* reader, bool allow_null) {
+CanonicalName* Reference::ReadClassFrom(Reader* reader, bool allow_null) {
   TRACE_READ_OFFSET();
-  Program* program = reader->helper()->program();
 
-  Tag klass_member_tag = reader->ReadTag();
-  if (klass_member_tag == kNullReference) {
-    if (allow_null) {
-      return NULL;
-    } else {
-      FATAL("Expected a valid class reference but got `null`.");
-    }
+  CanonicalName* canonical_name = reader->ReadCanonicalNameReference();
+  if (canonical_name == NULL && !allow_null) {
+    FATAL("Expected a valid class reference, but got `null`");
   }
-  int library_idx = reader->ReadUInt();
-  int class_idx = reader->ReadUInt();
 
-  Library* library = program->libraries().GetOrCreate<Library>(library_idx);
-  Class* klass;
-  if (klass_member_tag == kNormalClassReference) {
-    klass = library->classes().GetOrCreate<NormalClass>(class_idx, library);
-  } else {
-    ASSERT(klass_member_tag == kMixinClassReference);
-    klass = library->classes().GetOrCreate<MixinClass>(class_idx, library);
+  if (canonical_name != NULL) {
+    canonical_name->set_referenced(true);
   }
-  return klass;
+
+  return canonical_name;
 }
 
 
@@ -841,6 +806,7 @@ Field* Field::ReadFrom(Reader* reader) {
   Tag tag = reader->ReadTag();
   ASSERT(tag == kField);
 
+  reader->ReadDefiningCanonicalNameReference(this);
   position_ = reader->ReadPosition(false);
   end_position_ = reader->ReadPosition(false);
   flags_ = reader->ReadFlags();
@@ -862,6 +828,7 @@ Constructor* Constructor::ReadFrom(Reader* reader) {
   Tag tag = reader->ReadTag();
   ASSERT(tag == kConstructor);
 
+  reader->ReadDefiningCanonicalNameReference(this);
   VariableScope<ReaderHelper> parameters(reader->helper());
   position_ = reader->ReadPosition();
   end_position_ = reader->ReadPosition();
@@ -879,6 +846,7 @@ Procedure* Procedure::ReadFrom(Reader* reader) {
   Tag tag = reader->ReadTag();
   ASSERT(tag == kProcedure);
 
+  reader->ReadDefiningCanonicalNameReference(this);
   VariableScope<ReaderHelper> parameters(reader->helper());
   position_ = reader->ReadPosition(false);
   end_position_ = reader->ReadPosition(false);
@@ -925,7 +893,7 @@ InvalidInitializer* InvalidInitializer::ReadFromImpl(Reader* reader) {
 FieldInitializer* FieldInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   FieldInitializer* initializer = new FieldInitializer();
-  initializer->field_ = Field::Cast(Reference::ReadMemberFrom(reader));
+  initializer->field_reference_ = Reference::ReadMemberFrom(reader);
   initializer->value_ = Expression::ReadFrom(reader);
   return initializer;
 }
@@ -934,7 +902,7 @@ FieldInitializer* FieldInitializer::ReadFromImpl(Reader* reader) {
 SuperInitializer* SuperInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   SuperInitializer* init = new SuperInitializer();
-  init->target_ = Constructor::Cast(Reference::ReadMemberFrom(reader));
+  init->target_reference_ = Reference::ReadMemberFrom(reader);
   init->arguments_ = Arguments::ReadFrom(reader);
   return init;
 }
@@ -943,7 +911,7 @@ SuperInitializer* SuperInitializer::ReadFromImpl(Reader* reader) {
 RedirectingInitializer* RedirectingInitializer::ReadFromImpl(Reader* reader) {
   TRACE_READ_OFFSET();
   RedirectingInitializer* init = new RedirectingInitializer();
-  init->target_ = Constructor::Cast(Reference::ReadMemberFrom(reader));
+  init->target_reference_ = Reference::ReadMemberFrom(reader);
   init->arguments_ = Arguments::ReadFrom(reader);
   return init;
 }
@@ -1108,7 +1076,7 @@ PropertyGet* PropertyGet::ReadFrom(Reader* reader) {
   get->position_ = reader->ReadPosition();
   get->receiver_ = Expression::ReadFrom(reader);
   get->name_ = Name::ReadFrom(reader);
-  get->interfaceTarget_ = Reference::ReadMemberFrom(reader, true);
+  get->interface_target_reference_ = Reference::ReadMemberFrom(reader, true);
   return get;
 }
 
@@ -1120,7 +1088,7 @@ PropertySet* PropertySet::ReadFrom(Reader* reader) {
   set->receiver_ = Expression::ReadFrom(reader);
   set->name_ = Name::ReadFrom(reader);
   set->value_ = Expression::ReadFrom(reader);
-  set->interfaceTarget_ = Reference::ReadMemberFrom(reader, true);
+  set->interface_target_reference_ = Reference::ReadMemberFrom(reader, true);
   return set;
 }
 
@@ -1129,7 +1097,7 @@ DirectPropertyGet* DirectPropertyGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DirectPropertyGet* get = new DirectPropertyGet();
   get->receiver_ = Expression::ReadFrom(reader);
-  get->target_ = Reference::ReadMemberFrom(reader);
+  get->target_reference_ = Reference::ReadMemberFrom(reader);
   return get;
 }
 
@@ -1138,7 +1106,7 @@ DirectPropertySet* DirectPropertySet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DirectPropertySet* set = new DirectPropertySet();
   set->receiver_ = Expression::ReadFrom(reader);
-  set->target_ = Reference::ReadMemberFrom(reader);
+  set->target_reference_ = Reference::ReadMemberFrom(reader);
   set->value_ = Expression::ReadFrom(reader);
   return set;
 }
@@ -1148,7 +1116,7 @@ StaticGet* StaticGet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StaticGet* get = new StaticGet();
   get->position_ = reader->ReadPosition();
-  get->target_ = Reference::ReadMemberFrom(reader);
+  get->target_reference_ = Reference::ReadMemberFrom(reader);
   return get;
 }
 
@@ -1156,7 +1124,7 @@ StaticGet* StaticGet::ReadFrom(Reader* reader) {
 StaticSet* StaticSet::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   StaticSet* set = new StaticSet();
-  set->target_ = Reference::ReadMemberFrom(reader);
+  set->target_reference_ = Reference::ReadMemberFrom(reader);
   set->expression_ = Expression::ReadFrom(reader);
   return set;
 }
@@ -1187,7 +1155,8 @@ MethodInvocation* MethodInvocation::ReadFrom(Reader* reader) {
   invocation->receiver_ = Expression::ReadFrom(reader);
   invocation->name_ = Name::ReadFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
-  invocation->interfaceTarget_ = Reference::ReadMemberFrom(reader, true);
+  invocation->interface_target_reference_ =
+      Reference::ReadMemberFrom(reader, true);
   return invocation;
 }
 
@@ -1196,7 +1165,7 @@ DirectMethodInvocation* DirectMethodInvocation::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
   DirectMethodInvocation* invocation = new DirectMethodInvocation();
   invocation->receiver_ = Expression::ReadFrom(reader);
-  invocation->target_ = Procedure::Cast(Reference::ReadMemberFrom(reader));
+  invocation->target_reference_ = Reference::ReadMemberFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
   return invocation;
 }
@@ -1207,7 +1176,7 @@ StaticInvocation* StaticInvocation::ReadFrom(Reader* reader, bool is_const) {
   StaticInvocation* invocation = new StaticInvocation();
   invocation->is_const_ = is_const;
   invocation->position_ = reader->ReadPosition();
-  invocation->procedure_ = Procedure::Cast(Reference::ReadMemberFrom(reader));
+  invocation->procedure_reference_ = Reference::ReadMemberFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
   return invocation;
 }
@@ -1219,7 +1188,7 @@ ConstructorInvocation* ConstructorInvocation::ReadFrom(Reader* reader,
   ConstructorInvocation* invocation = new ConstructorInvocation();
   invocation->is_const_ = is_const;
   invocation->position_ = reader->ReadPosition();
-  invocation->target_ = Constructor::Cast(Reference::ReadMemberFrom(reader));
+  invocation->target_reference_ = Reference::ReadMemberFrom(reader);
   invocation->arguments_ = Arguments::ReadFrom(reader);
   return invocation;
 }
@@ -1605,11 +1574,11 @@ SwitchStatement* SwitchStatement::ReadFrom(Reader* reader) {
   // to the [SwitchCaseScope]. This is necessary since a [Statement] in a switch
   // case can refer to one defined later on.
   int count = reader->ReadUInt();
-  for (int i = 0; i < count; i++) {
+  for (intptr_t i = 0; i < count; i++) {
     SwitchCase* sc = stmt->cases_.GetOrCreate<SwitchCase>(i);
     reader->helper()->switch_cases().Push(sc);
   }
-  for (int i = 0; i < count; i++) {
+  for (intptr_t i = 0; i < count; i++) {
     SwitchCase* sc = stmt->cases_[i];
     sc->ReadFrom(reader);
   }
@@ -1750,11 +1719,8 @@ FunctionDeclaration* FunctionDeclaration::ReadFrom(Reader* reader) {
 Name* Name::ReadFrom(Reader* reader) {
   String* string = Reference::ReadStringFrom(reader);
   if (string->size() >= 1 && string->buffer()[0] == '_') {
-    int lib_index = reader->ReadUInt();
-    Library* library =
-        reader->helper()->program()->libraries().GetOrCreate<Library>(
-            lib_index);
-    return new Name(string, library);
+    CanonicalName* library_reference = reader->ReadCanonicalNameReference();
+    return new Name(string, library_reference);
   } else {
     return new Name(string, NULL);
   }
@@ -1763,7 +1729,7 @@ Name* Name::ReadFrom(Reader* reader) {
 
 InferredValue* InferredValue::ReadFrom(Reader* reader) {
   InferredValue* type = new InferredValue();
-  type->klass_ = Reference::ReadClassFrom(reader, true);
+  type->klass_reference_ = Reference::ReadClassFrom(reader, true);
   type->kind_ = static_cast<BaseClassKind>(reader->ReadByte());
   type->value_bits_ = reader->ReadByte();
   return type;
@@ -1818,8 +1784,8 @@ VoidType* VoidType::ReadFrom(Reader* reader) {
 
 InterfaceType* InterfaceType::ReadFrom(Reader* reader) {
   TRACE_READ_OFFSET();
-  Class* klass = Reference::ReadClassFrom(reader);
-  InterfaceType* type = new InterfaceType(klass);
+  CanonicalName* klass_name = Reference::ReadClassFrom(reader);
+  InterfaceType* type = new InterfaceType(klass_name);
   type->type_arguments().ReadFromStatic<DartType>(reader);
   return type;
 }
@@ -1828,8 +1794,8 @@ InterfaceType* InterfaceType::ReadFrom(Reader* reader) {
 InterfaceType* InterfaceType::ReadFrom(Reader* reader,
                                        bool _without_type_arguments_) {
   TRACE_READ_OFFSET();
-  Class* klass = Reference::ReadClassFrom(reader);
-  InterfaceType* type = new InterfaceType(klass);
+  CanonicalName* klass_name = Reference::ReadClassFrom(reader);
+  InterfaceType* type = new InterfaceType(klass_name);
   ASSERT(_without_type_arguments_);
   return type;
 }
@@ -1874,19 +1840,46 @@ Program* Program::ReadFrom(Reader* reader) {
   if (magic != kMagicProgramFile) FATAL("Invalid magic identifier");
 
   Program* program = new Program();
+  program->canonical_name_root_ = CanonicalName::NewRoot();
   reader->helper()->set_program(program);
 
   program->string_table_.ReadFrom(reader);
   program->source_uri_table_.ReadFrom(reader);
   program->source_table_.ReadFrom(reader);
 
+  int canonical_names = reader->ReadUInt();
+  reader->helper()->SetCanonicalNameCount(canonical_names);
+  for (int i = 0; i < canonical_names; ++i) {
+    int biased_parent_index = reader->ReadUInt();
+    CanonicalName* parent;
+    if (biased_parent_index != 0) {
+      parent = reader->helper()->GetCanonicalName(biased_parent_index - 1);
+    } else {
+      parent = program->canonical_name_root();
+    }
+    ASSERT(parent != NULL);
+    int name_index = reader->ReadUInt();
+    String* name = program->string_table().strings()[name_index];
+    CanonicalName* canonical_name = parent->AddChild(name);
+    reader->helper()->SetCanonicalName(i, canonical_name);
+  }
+
   int libraries = reader->ReadUInt();
   program->libraries().EnsureInitialized(libraries);
-  for (int i = 0; i < libraries; i++) {
+  for (intptr_t i = 0; i < libraries; i++) {
     program->libraries().GetOrCreate<Library>(i)->ReadFrom(reader);
   }
 
-  program->main_method_ = Procedure::Cast(Reference::ReadMemberFrom(reader));
+  program->main_method_reference_ = Reference::ReadMemberFrom(reader);
+
+#ifdef DEBUG
+  for (intptr_t i = 0; i < canonical_names; ++i) {
+    CanonicalName* name = reader->helper()->GetCanonicalName(i);
+    if (name->is_referenced() && name->definition() == NULL) {
+      FATAL("Missing definition for canonical name");
+    }
+  }
+#endif
 
   return program;
 }
@@ -1901,7 +1894,8 @@ FunctionNode* FunctionNode::ReadFrom(Reader* reader) {
   function->end_position_ = reader->ReadPosition();
   function->async_marker_ =
       static_cast<FunctionNode::AsyncMarker>(reader->ReadByte());
-  function->debuggable_ = reader->ReadByte() == 1 ? true : false;
+  function->dart_async_marker_ =
+      static_cast<FunctionNode::AsyncMarker>(reader->ReadByte());
   function->type_parameters().ReadFrom(reader);
   function->required_parameter_count_ = reader->ReadUInt();
   function->positional_parameters().ReadFromStatic<VariableDeclarationImpl>(

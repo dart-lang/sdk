@@ -36,7 +36,7 @@ class MainCallStubGenerator {
 
   jsAst.Statement generateInvokeMain(FunctionEntity main) {
     jsAst.Expression mainCallClosure = null;
-    if (backend.hasIsolateSupport) {
+    if (backend.backendUsage.isIsolateInUse) {
       FunctionEntity isolateMain = helpers.startRootIsolate;
       mainCallClosure = _buildIsolateSetupClosure(main, isolateMain);
     } else {

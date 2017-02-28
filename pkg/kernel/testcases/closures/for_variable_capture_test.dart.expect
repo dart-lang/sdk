@@ -19,7 +19,6 @@ static method main() → dynamic {
   dynamic closure;
   {
     mock::Context #context = new mock::Context::•(1);
-    #context.parent = null;
     #context.[]=(0, 0);
     dynamic fn = new self::Closure#main#function::•(#context);
     for (; #context.[](0).<(3); #context = #context.copy(), #context.[]=(0, #context.[](0).+(1))) {

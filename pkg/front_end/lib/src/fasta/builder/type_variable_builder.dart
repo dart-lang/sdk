@@ -4,17 +4,14 @@
 
 library fasta.type_variable_builder;
 
-import 'builder.dart' show
-    LibraryBuilder,
-    TypeBuilder,
-    TypeDeclarationBuilder;
+import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeDeclarationBuilder;
 
 abstract class TypeVariableBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
   T bound;
 
-  TypeVariableBuilder(String name, this.bound, LibraryBuilder compilationUnit,
-      int charOffset)
+  TypeVariableBuilder(
+      String name, this.bound, LibraryBuilder compilationUnit, int charOffset)
       : super(null, null, name, compilationUnit, charOffset);
 
   String get debugName => "TypeVariableBuilder";

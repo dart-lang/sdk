@@ -6227,7 +6227,7 @@ class EditGetRefactoringParams implements HasToJson {
    * Data used to provide values provided by the user. The structure of the
    * data is dependent on the kind of refactoring being performed. The data
    * that is expected is documented in the section titled Refactorings, labeled
-   * as “Options”. This field can be omitted if the refactoring does not
+   * as "Options". This field can be omitted if the refactoring does not
    * require any options or if the values of those options are not known.
    */
   RefactoringOptions get options => _options;
@@ -6236,7 +6236,7 @@ class EditGetRefactoringParams implements HasToJson {
    * Data used to provide values provided by the user. The structure of the
    * data is dependent on the kind of refactoring being performed. The data
    * that is expected is documented in the section titled Refactorings, labeled
-   * as “Options”. This field can be omitted if the refactoring does not
+   * as "Options". This field can be omitted if the refactoring does not
    * require any options or if the values of those options are not known.
    */
   void set options(RefactoringOptions value) {
@@ -6432,7 +6432,7 @@ class EditGetRefactoringResult implements HasToJson {
    * Data used to provide feedback to the user. The structure of the data is
    * dependent on the kind of refactoring being created. The data that is
    * returned is documented in the section titled Refactorings, labeled as
-   * “Feedback”.
+   * "Feedback".
    */
   RefactoringFeedback get feedback => _feedback;
 
@@ -6440,7 +6440,7 @@ class EditGetRefactoringResult implements HasToJson {
    * Data used to provide feedback to the user. The structure of the data is
    * dependent on the kind of refactoring being created. The data that is
    * returned is documented in the section titled Refactorings, labeled as
-   * “Feedback”.
+   * "Feedback".
    */
   void set feedback(RefactoringFeedback value) {
     this._feedback = value;
@@ -8970,6 +8970,7 @@ class ChangeContentOverlay implements HasToJson {
  *   "docSummary": optional String
  *   "docComplete": optional String
  *   "declaringType": optional String
+ *   "defaultArgumentListString": optional String
  *   "element": optional Element
  *   "returnType": optional String
  *   "parameterNames": optional List<String>
@@ -9003,6 +9004,8 @@ class CompletionSuggestion implements HasToJson {
   String _docComplete;
 
   String _declaringType;
+
+  String _defaultArgumentListString;
 
   Element _element;
 
@@ -9170,6 +9173,20 @@ class CompletionSuggestion implements HasToJson {
   }
 
   /**
+   * A default String for use in generating argument list source contents on
+   * the client side.
+   */
+  String get defaultArgumentListString => _defaultArgumentListString;
+
+  /**
+   * A default String for use in generating argument list source contents on
+   * the client side.
+   */
+  void set defaultArgumentListString(String value) {
+    this._defaultArgumentListString = value;
+  }
+
+  /**
    * Information about the element reference being suggested.
    */
   Element get element => _element;
@@ -9299,7 +9316,7 @@ class CompletionSuggestion implements HasToJson {
     this._importUri = value;
   }
 
-  CompletionSuggestion(CompletionSuggestionKind kind, int relevance, String completion, int selectionOffset, int selectionLength, bool isDeprecated, bool isPotential, {String docSummary, String docComplete, String declaringType, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, int requiredParameterCount, bool hasNamedParameters, String parameterName, String parameterType, String importUri}) {
+  CompletionSuggestion(CompletionSuggestionKind kind, int relevance, String completion, int selectionOffset, int selectionLength, bool isDeprecated, bool isPotential, {String docSummary, String docComplete, String declaringType, String defaultArgumentListString, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, int requiredParameterCount, bool hasNamedParameters, String parameterName, String parameterType, String importUri}) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -9310,6 +9327,7 @@ class CompletionSuggestion implements HasToJson {
     this.docSummary = docSummary;
     this.docComplete = docComplete;
     this.declaringType = declaringType;
+    this.defaultArgumentListString = defaultArgumentListString;
     this.element = element;
     this.returnType = returnType;
     this.parameterNames = parameterNames;
@@ -9380,6 +9398,10 @@ class CompletionSuggestion implements HasToJson {
       if (json.containsKey("declaringType")) {
         declaringType = jsonDecoder.decodeString(jsonPath + ".declaringType", json["declaringType"]);
       }
+      String defaultArgumentListString;
+      if (json.containsKey("defaultArgumentListString")) {
+        defaultArgumentListString = jsonDecoder.decodeString(jsonPath + ".defaultArgumentListString", json["defaultArgumentListString"]);
+      }
       Element element;
       if (json.containsKey("element")) {
         element = new Element.fromJson(jsonDecoder, jsonPath + ".element", json["element"]);
@@ -9416,7 +9438,7 @@ class CompletionSuggestion implements HasToJson {
       if (json.containsKey("importUri")) {
         importUri = jsonDecoder.decodeString(jsonPath + ".importUri", json["importUri"]);
       }
-      return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, hasNamedParameters: hasNamedParameters, parameterName: parameterName, parameterType: parameterType, importUri: importUri);
+      return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, defaultArgumentListString: defaultArgumentListString, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, hasNamedParameters: hasNamedParameters, parameterName: parameterName, parameterType: parameterType, importUri: importUri);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestion", json);
     }
@@ -9439,6 +9461,9 @@ class CompletionSuggestion implements HasToJson {
     }
     if (declaringType != null) {
       result["declaringType"] = declaringType;
+    }
+    if (defaultArgumentListString != null) {
+      result["defaultArgumentListString"] = defaultArgumentListString;
     }
     if (element != null) {
       result["element"] = element.toJson();
@@ -9486,6 +9511,7 @@ class CompletionSuggestion implements HasToJson {
           docSummary == other.docSummary &&
           docComplete == other.docComplete &&
           declaringType == other.declaringType &&
+          defaultArgumentListString == other.defaultArgumentListString &&
           element == other.element &&
           returnType == other.returnType &&
           listEqual(parameterNames, other.parameterNames, (String a, String b) => a == b) &&
@@ -9512,6 +9538,7 @@ class CompletionSuggestion implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, docSummary.hashCode);
     hash = JenkinsSmiHash.combine(hash, docComplete.hashCode);
     hash = JenkinsSmiHash.combine(hash, declaringType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, defaultArgumentListString.hashCode);
     hash = JenkinsSmiHash.combine(hash, element.hashCode);
     hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterNames.hashCode);
@@ -11571,14 +11598,14 @@ class HoverInformation implements HasToJson {
 
   /**
    * A human-readable description of the kind of element being referenced (such
-   * as “class” or “function type alias”). This data is omitted if there is no
+   * as "class" or "function type alias"). This data is omitted if there is no
    * referenced element.
    */
   String get elementKind => _elementKind;
 
   /**
    * A human-readable description of the kind of element being referenced (such
-   * as “class” or “function type alias”). This data is omitted if there is no
+   * as "class" or "function type alias"). This data is omitted if there is no
    * referenced element.
    */
   void set elementKind(String value) {
@@ -16976,13 +17003,13 @@ class RenameFeedback extends RefactoringFeedback {
 
   /**
    * The human-readable description of the kind of element being renamed (such
-   * as “class” or “function type alias”).
+   * as "class" or "function type alias").
    */
   String get elementKindName => _elementKindName;
 
   /**
    * The human-readable description of the kind of element being renamed (such
-   * as “class” or “function type alias”).
+   * as "class" or "function type alias").
    */
   void set elementKindName(String value) {
     assert(value != null);

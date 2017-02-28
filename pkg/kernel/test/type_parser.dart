@@ -274,8 +274,14 @@ class DartTypeParser {
 class LazyTypeEnvironment {
   final Map<String, Class> classes = <String, Class>{};
   final Map<String, TypeParameter> typeParameters = <String, TypeParameter>{};
-  final Library dummyLibrary =
-      new Library(new Uri(path: 'dummy.dart'), name: 'lib');
+  Library dummyLibrary;
+  final Program program = new Program();
+
+  LazyTypeEnvironment() {
+    dummyLibrary = new Library(Uri.parse('file://dummy.dart'));
+    program.libraries.add(dummyLibrary..parent = program);
+    dummyLibrary.name = 'lib';
+  }
 
   TreeNode lookup(String name) {
     return name.length == 1

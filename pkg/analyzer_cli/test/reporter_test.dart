@@ -24,6 +24,7 @@ main() {
     when(options.enableTypeChecks).thenReturn(false);
     when(options.hintsAreFatal).thenReturn(false);
     when(options.machineFormat).thenReturn(false);
+    when(options.verbose).thenReturn(false);
 
     var reporter = new ErrorFormatter(out, options, stats);
 
@@ -32,7 +33,7 @@ main() {
       reporter.formatErrors([error]);
 
       expect(out.toString().trim(),
-          '[error] MSG (/foo/bar/baz.dart, line 3, col 3)');
+          '[error] MSG at /foo/bar/baz.dart:3:3 (mock_code).');
     });
 
     test('hint', () {
@@ -40,7 +41,7 @@ main() {
       reporter.formatErrors([error]);
 
       expect(out.toString().trim(),
-          '[hint] MSG (/foo/bar/baz.dart, line 3, col 3)');
+          '[hint] MSG at /foo/bar/baz.dart:3:3 (mock_code).');
     });
 
     test('stats', () {
@@ -49,8 +50,8 @@ main() {
       stats.print(out);
       expect(
           out.toString().trim(),
-          '''[hint] MSG (/foo/bar/baz.dart, line 3, col 3)
-1 hint found.''');
+          '[hint] MSG at /foo/bar/baz.dart:3:3 (mock_code).\n'
+          '1 hint found.');
     });
   });
 }

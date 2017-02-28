@@ -572,6 +572,9 @@ class FlowGraphCompiler : public ValueObject {
                                          const Array& arguments_descriptor,
                                          intptr_t num_args_tested);
 
+  static const ICData& TrySpecializeICDataByReceiverCid(const ICData& ic_data,
+                                                        intptr_t cid);
+
   const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data() const {
     return *deopt_id_to_ic_data_;
   }

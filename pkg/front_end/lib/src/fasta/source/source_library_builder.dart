@@ -4,39 +4,35 @@
 
 library fasta.source_library_builder;
 
-import 'package:kernel/ast.dart' show
-    AsyncMarker,
-    ProcedureKind;
+import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
 
-import '../combinator.dart' show
-    Combinator;
+import '../combinator.dart' show Combinator;
 
-import '../errors.dart' show
-    internalError;
+import '../errors.dart' show internalError;
 
-import '../import.dart' show
-    Import;
+import '../messages.dart' show warning;
 
-import 'source_loader.dart' show
-    SourceLoader;
+import '../import.dart' show Import;
 
-import '../builder/scope.dart' show
-    Scope;
+import 'source_loader.dart' show SourceLoader;
 
-import '../builder/builder.dart' show
-    Builder,
-    ClassBuilder,
-    ConstructorReferenceBuilder,
-    FormalParameterBuilder,
-    LibraryBuilder,
-    MemberBuilder,
-    MetadataBuilder,
-    PrefixBuilder,
-    ProcedureBuilder,
-    TypeBuilder,
-    TypeDeclarationBuilder,
-    TypeVariableBuilder,
-    Unhandled;
+import '../builder/scope.dart' show Scope;
+
+import '../builder/builder.dart'
+    show
+        Builder,
+        ClassBuilder,
+        ConstructorReferenceBuilder,
+        FormalParameterBuilder,
+        LibraryBuilder,
+        MemberBuilder,
+        MetadataBuilder,
+        PrefixBuilder,
+        ProcedureBuilder,
+        TypeBuilder,
+        TypeDeclarationBuilder,
+        TypeVariableBuilder,
+        Unhandled;
 
 abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     extends LibraryBuilder<T, R> {
@@ -73,7 +69,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   DeclarationBuilder<T> currentDeclaration;
 
   SourceLibraryBuilder(this.loader, Uri fileUri)
-      : fileUri = fileUri, super(fileUri) {
+      : fileUri = fileUri,
+        super(fileUri) {
     currentDeclaration = libraryDeclaration;
   }
 
@@ -105,15 +102,15 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   ConstructorReferenceBuilder addConstructorReference(
       String name, List<T> typeArguments, String suffix, int charOffset) {
-    ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(name,
-        typeArguments, suffix, this, charOffset);
+    ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(
+        name, typeArguments, suffix, this, charOffset);
     constructorReferences.add(ref);
     return ref;
   }
 
   void beginNestedDeclaration(String name, {bool hasMembers}) {
-    currentDeclaration =
-        new DeclarationBuilder(<String, MemberBuilder>{}, name, currentDeclaration);
+    currentDeclaration = new DeclarationBuilder(
+        <String, MemberBuilder>{}, name, currentDeclaration);
   }
 
   DeclarationBuilder<T> endNestedDeclaration() {
@@ -129,11 +126,17 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     loader.read(resolve(uri)).addExporter(this, combinators, charOffset);
   }
 
-  void addImport(List<MetadataBuilder> metadata, String uri,
-      Unhandled conditionalUris, String prefix, List<Combinator> combinators,
-      bool deferred, int charOffset, int prefixCharOffset) {
+  void addImport(
+      List<MetadataBuilder> metadata,
+      String uri,
+      Unhandled conditionalUris,
+      String prefix,
+      List<Combinator> combinators,
+      bool deferred,
+      int charOffset,
+      int prefixCharOffset) {
     imports.add(new Import(this, loader.read(resolve(uri)), prefix, combinators,
-            charOffset, prefixCharOffset));
+        charOffset, prefixCharOffset));
   }
 
   void addPart(List<MetadataBuilder> metadata, String path) {
@@ -153,56 +156,78 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     partOf = name;
   }
 
-  void addClass(List<MetadataBuilder> metadata,
-      int modifiers, String name,
-      List<TypeVariableBuilder> typeVariables, T supertype,
-      List<T> interfaces, int charOffset);
+  void addClass(
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      String name,
+      List<TypeVariableBuilder> typeVariables,
+      T supertype,
+      List<T> interfaces,
+      int charOffset);
 
   void addNamedMixinApplication(
-      List<MetadataBuilder> metadata, String name,
-      List<TypeVariableBuilder> typeVariables, int modifiers,
-      T mixinApplication, List<T> interfaces, int charOffset);
+      List<MetadataBuilder> metadata,
+      String name,
+      List<TypeVariableBuilder> typeVariables,
+      int modifiers,
+      T mixinApplication,
+      List<T> interfaces,
+      int charOffset);
 
-  void addField(List<MetadataBuilder> metadata,
-      int modifiers, T type, String name, int charOffset);
+  void addField(List<MetadataBuilder> metadata, int modifiers, T type,
+      String name, int charOffset);
 
-  void addFields(List<MetadataBuilder> metadata, int modifiers,
-      T type, List<String> names) {
+  void addFields(List<MetadataBuilder> metadata, int modifiers, T type,
+      List<String> names) {
     for (String name in names) {
       // TODO(ahe): Get charOffset of name.
       addField(metadata, modifiers, type, name, -1);
     }
   }
 
-  void addProcedure(List<MetadataBuilder> metadata,
-      int modifiers, T returnType, String name,
+  void addProcedure(
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      T returnType,
+      String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals, AsyncMarker asyncModifier,
-      ProcedureKind kind, int charOffset, String nativeMethodName,
+      List<FormalParameterBuilder> formals,
+      AsyncMarker asyncModifier,
+      ProcedureKind kind,
+      int charOffset,
+      String nativeMethodName,
       {bool isTopLevel});
 
   void addEnum(List<MetadataBuilder> metadata, String name,
       List<String> constants, int charOffset);
 
-  void addFunctionTypeAlias(List<MetadataBuilder> metadata,
-      T returnType, String name,
+  void addFunctionTypeAlias(
+      List<MetadataBuilder> metadata,
+      T returnType,
+      String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals, int charOffset);
+      List<FormalParameterBuilder> formals,
+      int charOffset);
 
-  void addFactoryMethod(List<MetadataBuilder> metadata,
-      ConstructorReferenceBuilder name, List<FormalParameterBuilder> formals,
-      AsyncMarker asyncModifier, ConstructorReferenceBuilder redirectionTarget,
-      int charOffset, String nativeMethodName);
+  void addFactoryMethod(
+      List<MetadataBuilder> metadata,
+      ConstructorReferenceBuilder name,
+      List<FormalParameterBuilder> formals,
+      AsyncMarker asyncModifier,
+      ConstructorReferenceBuilder redirectionTarget,
+      int charOffset,
+      String nativeMethodName);
 
-  FormalParameterBuilder addFormalParameter(
-      List<MetadataBuilder> metadata, int modifiers,
-      T type, String name, bool hasThis, int charOffset);
+  FormalParameterBuilder addFormalParameter(List<MetadataBuilder> metadata,
+      int modifiers, T type, String name, bool hasThis, int charOffset);
 
   TypeVariableBuilder addTypeVariable(String name, T bound, int charOffset);
 
   Builder addBuilder(String name, Builder builder, int charOffset) {
     if (name.indexOf(".") != -1 && name.indexOf("&") == -1) {
-      addCompileTimeError(charOffset, "Only constructors and factories can have"
+      addCompileTimeError(
+          charOffset,
+          "Only constructors and factories can have"
           " names containing a period ('.'): $name");
     }
     // TODO(ahe): Set the parent correctly here. Could then change the
@@ -302,14 +327,20 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   void includePart(SourceLibraryBuilder<T, R> part) {
     if (name != null) {
       if (part.partOf == null) {
-        print("${part.uri} has no 'part of' declaration but is used as a part "
-            "by ${name} ($uri)");
+        warning(
+            part.fileUri,
+            -1,
+            "Has no 'part of' declaration but is used as "
+            "a part by ${name} ($uri).");
         parts.remove(part);
         return;
       }
       if (part.partOf != name) {
-        print("${part.uri} is part of '${part.partOf}' but is used as a part "
-            "by '${name}' ($uri)");
+        warning(
+            part.fileUri,
+            -1,
+            "Is part of '${part.partOf}' but is used as "
+            "a part by '${name}' ($uri).");
         parts.remove(part);
         return;
       }
@@ -426,8 +457,8 @@ class DeclarationBuilder<T extends TypeBuilder> {
   }
 
   /// Resolves type variables in [types] and propagate other types to [parent].
-  void resolveTypes(List<TypeVariableBuilder> typeVariables,
-      SourceLibraryBuilder library) {
+  void resolveTypes(
+      List<TypeVariableBuilder> typeVariables, SourceLibraryBuilder library) {
     // TODO(ahe): The input to this method, [typeVariables], shouldn't be just
     // type variables. It should be everything that's in scope, for example,
     // members (of a class) or formal parameters (of a method).
@@ -442,8 +473,8 @@ class DeclarationBuilder<T extends TypeBuilder> {
       factoryDeclarations.forEach(
           (ProcedureBuilder procedure, DeclarationBuilder<T> declaration) {
         assert(procedure.typeVariables.isEmpty);
-        procedure.typeVariables.addAll(
-            library.copyTypeVariables(typeVariables));
+        procedure.typeVariables
+            .addAll(library.copyTypeVariables(typeVariables));
         declaration.resolveTypes(procedure.typeVariables, library);
       });
       Map<String, TypeVariableBuilder> map = <String, TypeVariableBuilder>{};

@@ -4,60 +4,40 @@
 
 library fasta.diet_listener;
 
-import 'package:kernel/ast.dart' show
-    AsyncMarker;
+import 'package:kernel/ast.dart' show AsyncMarker;
 
-import 'package:kernel/class_hierarchy.dart' show
-    ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import 'package:kernel/core_types.dart' show
-    CoreTypes;
+import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../parser/parser.dart' show
-    Parser,
-    optional;
+import '../parser/parser.dart' show Parser, optional;
 
-import '../scanner/token.dart' show
-    BeginGroupToken,
-    Token;
+import '../scanner/token.dart' show BeginGroupToken, Token;
 
-import '../parser/dart_vm_native.dart' show
-    removeNativeClause,
-    skipNativeClause;
+import '../parser/dart_vm_native.dart'
+    show removeNativeClause, skipNativeClause;
 
-import '../parser/error_kind.dart' show
-    ErrorKind;
+import '../parser/error_kind.dart' show ErrorKind;
 
-import '../util/link.dart' show
-    Link;
+import '../util/link.dart' show Link;
 
-import '../errors.dart' show
-    Crash,
-    InputError,
-    inputError,
-    internalError;
+import '../errors.dart' show Crash, InputError, inputError, internalError;
 
-import 'stack_listener.dart' show
-    StackListener;
+import 'stack_listener.dart' show StackListener;
 
-import '../kernel/body_builder.dart' show
-    BodyBuilder;
+import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../builder/builder.dart';
 
 import '../analyzer/analyzer.dart';
 
-import '../builder/scope.dart' show
-    Scope;
+import '../builder/scope.dart' show Scope;
 
-import '../ast_kind.dart' show
-    AstKind;
+import '../ast_kind.dart' show AstKind;
 
-import 'source_library_builder.dart' show
-    SourceLibraryBuilder;
+import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-import '../kernel/kernel_library_builder.dart' show
-    isConstructorName;
+import '../kernel/kernel_library_builder.dart' show isConstructorName;
 
 class DietListener extends StackListener {
   final SourceLibraryBuilder library;
@@ -78,17 +58,18 @@ class DietListener extends StackListener {
   /// this is the instance scope of [currentClass].
   Scope memberScope;
 
+  @override
+  Uri uri;
+
   DietListener(SourceLibraryBuilder library, this.elementStore, this.hierarchy,
       this.coreTypes, this.astKind)
       : library = library,
+        uri = library.fileUri,
         memberScope = library.scope,
         isDartLibrary = library.uri.scheme == "dart";
 
-  @override
-  Uri get uri => library.uri;
-
   void discard(int n) {
-    for (int i =0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
       pop();
     }
   }
@@ -132,7 +113,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endType(Token beginToken, Token endToken) {
+  void handleType(Token beginToken, Token endToken) {
     debugEvent("Type");
     discard(1);
   }
@@ -189,10 +170,11 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
+  void endFunctionTypeAlias(
+      Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("FunctionTypeAlias");
     discard(2); // Name + endToken.
-    checkEmpty();
+    checkEmpty(typedefKeyword.charOffset);
   }
 
   @override
@@ -213,7 +195,7 @@ class DietListener extends StackListener {
     debugEvent("TopLevelMethod");
     Token bodyToken = pop();
     String name = pop();
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
     buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name));
   }
 
@@ -363,7 +345,7 @@ class DietListener extends StackListener {
     debugEvent("FactoryMethod");
     BeginGroupToken bodyToken = pop();
     String name = pop();
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
       return;
     }
@@ -381,23 +363,31 @@ class DietListener extends StackListener {
     debugEvent("Method");
     Token bodyToken = pop();
     String name = pop();
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
     if (bodyToken == null) {
       return;
     }
     buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name));
   }
 
-  StackListener createListener(MemberBuilder builder, Scope memberScope,
-      bool isInstanceMember, [Scope formalParameterScope]) {
+  StackListener createListener(
+      MemberBuilder builder, Scope memberScope, bool isInstanceMember,
+      [Scope formalParameterScope]) {
     switch (astKind) {
       case AstKind.Kernel:
-        return new BodyBuilder(library, builder, memberScope,
-            formalParameterScope, hierarchy, coreTypes, currentClass,
-            isInstanceMember);
+        return new BodyBuilder(
+            library,
+            builder,
+            memberScope,
+            formalParameterScope,
+            hierarchy,
+            coreTypes,
+            currentClass,
+            isInstanceMember,
+            uri);
 
       case AstKind.Analyzer:
-        return new AstBuilder(library, builder, elementStore, memberScope);
+        return new AstBuilder(library, builder, elementStore, memberScope, uri);
     }
 
     return internalError("Unknown $astKind");
@@ -416,14 +406,14 @@ class DietListener extends StackListener {
   }
 
   void buildFields(Token token, bool isTopLevel, bool isInstanceMember) {
-    parseFields(createListener(null, memberScope, isInstanceMember),
-        token, isTopLevel);
+    parseFields(
+        createListener(null, memberScope, isInstanceMember), token, isTopLevel);
   }
 
   @override
   void endMember() {
     debugEvent("Member");
-    checkEmpty();
+    checkEmpty(-1);
   }
 
   @override
@@ -440,15 +430,20 @@ class DietListener extends StackListener {
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassBody");
     currentClass = null;
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
     memberScope = library.scope;
   }
 
   @override
-  void endClassDeclaration(int interfacesCount, Token beginToken,
-      Token extendsKeyword, Token implementsKeyword, Token endToken) {
+  void endClassDeclaration(
+      int interfacesCount,
+      Token beginToken,
+      Token classKeyword,
+      Token extendsKeyword,
+      Token implementsKeyword,
+      Token endToken) {
     debugEvent("ClassDeclaration");
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
   }
 
   @override
@@ -456,15 +451,15 @@ class DietListener extends StackListener {
     debugEvent("Enum");
     discard(count);
     pop(); // Name.
-    checkEmpty();
+    checkEmpty(enumKeyword.charOffset);
   }
 
   @override
-  void endNamedMixinApplication(
-      Token classKeyword, Token implementsKeyword, Token endToken) {
+  void endNamedMixinApplication(Token beginToken, Token classKeyword,
+      Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication");
     pop(); // Name.
-    checkEmpty();
+    checkEmpty(beginToken.charOffset);
   }
 
   @override
@@ -490,7 +485,7 @@ class DietListener extends StackListener {
       Parser parser = new Parser(listener);
       token = parser.parseFormalParametersOpt(token);
       var formals = listener.pop();
-      listener.checkEmpty();
+      listener.checkEmpty(token.charOffset);
       listener.prepareInitializers();
       token = parser.parseInitializersOpt(token);
       token = parser.parseAsyncModifier(token);
@@ -499,7 +494,7 @@ class DietListener extends StackListener {
       bool allowAbstract = true;
       parser.parseFunctionBody(token, isExpression, allowAbstract);
       var body = listener.pop();
-      listener.checkEmpty();
+      listener.checkEmpty(token.charOffset);
       listener.finishFunction(formals, asyncModifier, body);
     } on InputError {
       rethrow;
@@ -515,7 +510,7 @@ class DietListener extends StackListener {
     } else {
       token = parser.parseMember(token);
     }
-    listener.checkEmpty();
+    listener.checkEmpty(token.charOffset);
   }
 
   Builder lookupBuilder(Token token, Token getOrSet, String name) {
@@ -531,7 +526,7 @@ class DietListener extends StackListener {
       builder = library.members[name];
     }
     if (builder == null) {
-      return internalError("@${token.charOffset}: builder not found: $name");
+      return internalError("Builder not found: $name", uri, token.charOffset);
     }
     if (builder.next != null) {
       Builder getterBuilder;
@@ -554,14 +549,13 @@ class DietListener extends StackListener {
     return builder;
   }
 
-  @override
-  void debugEvent(String name) {
-    // print("  ${stack.join('\n  ')}");
-    // print(name);
-  }
-
   bool get isTargetingDartVm {
     // TODO(ahe): Find a more reliable way to check if this is the Dart VM.
-    return coreTypes.getCoreLibrary("dart:_js_helper") == null;
+    return !coreTypes.containsLibrary("dart:_js_helper");
+  }
+
+  @override
+  void debugEvent(String name) {
+    // printEvent(name);
   }
 }

@@ -4,38 +4,31 @@
 
 library fasta.dill_library_builder;
 
-import 'package:kernel/ast.dart' show
-    Class,
-    ExpressionStatement,
-    Field,
-    FunctionNode,
-    Let,
-    Library,
-    ListLiteral,
-    Member,
-    Procedure,
-    StaticGet;
+import 'package:kernel/ast.dart'
+    show
+        Class,
+        ExpressionStatement,
+        Field,
+        FunctionNode,
+        Let,
+        Library,
+        ListLiteral,
+        Member,
+        Procedure,
+        StaticGet;
 
-import '../errors.dart' show
-    internalError;
+import '../errors.dart' show internalError;
 
-import '../kernel/kernel_builder.dart' show
-    Builder,
-    KernelInvalidTypeBuilder,
-    KernelTypeBuilder,
-    LibraryBuilder;
+import '../kernel/kernel_builder.dart'
+    show Builder, KernelInvalidTypeBuilder, KernelTypeBuilder, LibraryBuilder;
 
-import '../kernel/redirecting_factory_body.dart' show
-    RedirectingFactoryBody;
+import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
-import 'dill_class_builder.dart' show
-    DillClassBuilder;
+import 'dill_class_builder.dart' show DillClassBuilder;
 
-import 'dill_member_builder.dart' show
-    DillMemberBuilder;
+import 'dill_member_builder.dart' show DillMemberBuilder;
 
-import 'dill_loader.dart' show
-    DillLoader;
+import 'dill_loader.dart' show DillLoader;
 
 class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   final Uri uri;
@@ -50,7 +43,8 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   Library library;
 
   DillLibraryBuilder(Uri uri, this.loader)
-      : uri = uri, super(uri);
+      : uri = uri,
+        super(uri);
 
   get scope => internalError("Scope not supported");
 
@@ -75,7 +69,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
           Let let = statement.expression;
           StaticGet getTarget = let.variable.initializer;
           function.body = new RedirectingFactoryBody(getTarget.target)
-              ..parent = function;
+            ..parent = function;
         }
         initializer.expressions.clear();
       } else {

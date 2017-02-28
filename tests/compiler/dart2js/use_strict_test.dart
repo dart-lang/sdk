@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/compiler_new.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
@@ -50,7 +51,7 @@ main() {
   asyncTest(() async {
     await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
-    String jsOutput = collector.getOutput('', 'js');
+    String jsOutput = collector.getOutput('', OutputType.js);
 
     // Skip comments.
     List<String> lines = jsOutput.split("\n");

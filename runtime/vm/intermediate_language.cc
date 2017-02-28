@@ -3192,6 +3192,28 @@ RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
 }
 
 
+Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
+  const intptr_t receiver_cid = PushArgumentAt(0)->value()->Type()->ToCid();
+
+  if (!HasICData()) return this;
+
+  const ICData& new_ic_data =
+      FlowGraphCompiler::TrySpecializeICDataByReceiverCid(*ic_data(),
+                                                          receiver_cid);
+  if (new_ic_data.raw() == ic_data()->raw()) {
+    // No specialization.
+    return this;
+  }
+
+  const bool with_checks = false;
+  const bool complete = false;
+  PolymorphicInstanceCallInstr* specialized = new PolymorphicInstanceCallInstr(
+      this, new_ic_data, with_checks, complete);
+  flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
+  return specialized;
+}
+
+
 Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasSingleRecognizedTarget() || with_checks()) {
     return this;

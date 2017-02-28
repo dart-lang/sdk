@@ -24,9 +24,9 @@ import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/task/dart.dart';
-import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
+import 'package:analyzer_cli/src/error_severity.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 
@@ -149,7 +149,7 @@ class BuildMode {
   ErrorSeverity analyze() {
     // Write initial progress message.
     if (!options.machineFormat) {
-      outSink.writeln("Analyzing sources ${options.sourceFiles}...");
+      outSink.writeln("Analyzing ${options.sourceFiles.join(', ')}...");
     }
 
     // Create the URI to file map.
@@ -158,6 +158,15 @@ class BuildMode {
       io.exitCode = ErrorSeverity.ERROR.ordinal;
       return ErrorSeverity.ERROR;
     }
+
+    // BuildMode expects sourceFiles in the format "<uri>|<filepath>",
+    // but the rest of the code base does not understand this format.
+    // Rewrite sourceFiles, stripping the "<uri>|" prefix, so that it
+    // does not cause problems with code that does not expect this format.
+    options.rewriteSourceFiles(options.sourceFiles
+        .map((String uriPipePath) =>
+            uriPipePath.substring(uriPipePath.indexOf('|') + 1))
+        .toList());
 
     // Prepare the analysis context.
     _createContext();
@@ -188,17 +197,12 @@ class BuildMode {
     }
 
     // Write summary.
-    assembler = new PackageBundleAssembler(
-        excludeHashes: options.buildSummaryExcludeInformative &&
-            options.buildSummaryOutputSemantic == null);
+    assembler = new PackageBundleAssembler();
     if (_shouldOutputSummary) {
       _serializeAstBasedSummary(explicitSources);
       // Write the whole package bundle.
       assembler.recordDependencies(summaryDataStore);
       PackageBundleBuilder bundle = assembler.assemble();
-      if (options.buildSummaryExcludeInformative) {
-        bundle.flushInformative();
-      }
       if (options.buildSummaryOutput != null) {
         io.File file = new io.File(options.buildSummaryOutput);
         file.writeAsBytesSync(bundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
@@ -225,8 +229,8 @@ class BuildMode {
       for (Source source in explicitSources) {
         AnalysisErrorInfo errorInfo = context.getErrors(source);
         for (AnalysisError error in errorInfo.errors) {
-          ProcessedSeverity processedSeverity = AnalyzerImpl.processError(
-              error, options, context.analysisOptions);
+          ProcessedSeverity processedSeverity =
+              processError(error, options, context.analysisOptions);
           if (processedSeverity != null) {
             maxSeverity = maxSeverity.max(processedSeverity.severity);
           }
@@ -252,7 +256,8 @@ class BuildMode {
       FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
           resourceProvider.getFolder(options.dartSdkPath), options.strongMode);
       dartSdk.analysisOptions =
-          Driver.createAnalysisOptionsForCommandLineOptions(options);
+          Driver.createAnalysisOptionsForCommandLineOptions(
+              resourceProvider, options);
       dartSdk.useSummary = !options.buildSummaryOnly;
       sdk = dartSdk;
       sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
@@ -270,8 +275,7 @@ class BuildMode {
     ]);
 
     // Set context options.
-    Driver.setAnalysisContextOptions(
-        resourceProvider, context.sourceFactory, context, options,
+    Driver.setAnalysisContextOptions(resourceProvider, context, options,
         (AnalysisOptionsImpl contextOptions) {
       if (options.buildSummaryOnlyDiet) {
         contextOptions.analyzeFunctionBodies = false;
@@ -319,7 +323,7 @@ class BuildMode {
         options,
         stats,
         (AnalysisError error) =>
-            AnalyzerImpl.processError(error, options, context.analysisOptions));
+            processError(error, options, context.analysisOptions));
     for (Source source in explicitSources) {
       AnalysisErrorInfo errorInfo = context.getErrors(source);
       formatter.formatErrors([errorInfo]);

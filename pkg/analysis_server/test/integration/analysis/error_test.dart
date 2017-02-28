@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -13,8 +11,6 @@ import '../integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisErrorIntegrationTest);
-    defineReflectiveTests(NoAnalysisErrorsIntegrationTest);
-    defineReflectiveTests(NoAnalysisErrorsIntegrationTest_Driver);
   });
 }
 
@@ -101,44 +97,3 @@ abstract class C extends B {
 @reflectiveTest
 class AnalysisErrorIntegrationTest
     extends AbstractAnalysisErrorIntegrationTest {}
-
-@reflectiveTest
-class NoAnalysisErrorsIntegrationTest
-    extends AbstractAnalysisServerIntegrationTest {
-  @override
-  Future startServer(
-          {bool checked: true, int diagnosticPort, int servicesPort}) =>
-      server.start(
-          checked: checked,
-          diagnosticPort: diagnosticPort,
-          enableNewAnalysisDriver: enableNewAnalysisDriver,
-          noErrorNotification: true,
-          servicesPort: servicesPort);
-
-  test_detect_simple_error() {
-    String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
-main() {
-  print(null) // parse error: missing ';'
-}''');
-    standardAnalysisSetup();
-    return analysisFinished.then((_) {
-      expect(currentAnalysisErrors[pathname], isNull);
-    });
-  }
-}
-
-@reflectiveTest
-class NoAnalysisErrorsIntegrationTest_Driver
-    extends NoAnalysisErrorsIntegrationTest {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  @failingTest
-  @override
-  test_detect_simple_error() {
-    return super.test_detect_simple_error();
-  }
-}

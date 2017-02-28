@@ -87,8 +87,8 @@ Class mockUpContext(CoreTypes coreTypes, Program program) {
       type: coreTypes.intClass.rawType, isFinal: true);
 
   // TODO(karlklose): use the default factory when it is exposed again.
-  Procedure listConstructor = coreTypes.listClass.procedures.firstWhere(
-      (Procedure p) => p.name.name == 'filled');
+  Procedure listConstructor = coreTypes.listClass.procedures
+      .firstWhere((Procedure p) => p.name.name == 'filled');
 
   Constructor constructor = new Constructor(
       new FunctionNode(new EmptyStatement(),

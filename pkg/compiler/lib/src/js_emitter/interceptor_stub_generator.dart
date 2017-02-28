@@ -337,7 +337,8 @@ class InterceptorStubGenerator {
   }
 
   jsAst.Expression generateOneShotInterceptor(jsAst.Name name) {
-    Selector selector = backend.interceptorData.oneShotInterceptors[name];
+    Selector selector =
+        backend.oneShotInterceptorData.getOneShotInterceptorSelector(name);
     Set<ClassEntity> classes =
         backend.interceptorData.getInterceptedClassesOn(selector.name);
     jsAst.Name getInterceptorName = namer.nameForGetInterceptor(classes);

@@ -696,12 +696,31 @@ class ChangedWorkingDirectory(object):
 class UnexpectedCrash(object):
   def __init__(self, test, pid, binary):
     self.test = test
-    self.pid = pid 
+    self.pid = pid
     self.binary = binary
 
   def __str__(self):
-    return "%s: %s %s" % (self.test, self.binary, self.pid)
+    return "Crash(%s: %s %s)" % (self.test, self.binary, self.pid)
 
+class SiteConfigBotoFileDisabler(object):
+  def __init__(self):
+    self._old_aws = None
+    self._old_boto = None
+
+  def __enter__(self):
+    self._old_aws = os.environ.get('AWS_CREDENTIAL_FILE', None)
+    self._old_boto = os.environ.get('BOTO_CONFIG', None)
+
+    if self._old_aws:
+      del os.environ['AWS_CREDENTIAL_FILE']
+    if self._old_boto:
+      del os.environ['BOTO_CONFIG']
+
+  def __exit__(self, *_):
+    if self._old_aws:
+      os.environ['AWS_CREDENTIAL_FILE'] = self._old_aws
+    if self._old_boto:
+      os.environ['BOTO_CONFIG'] = self._old_boto
 
 class PosixCoredumpEnabler(object):
   def __init__(self):
@@ -812,9 +831,10 @@ class BaseCoreDumpArchiver(object):
   # test.dart will write a line for each unexpected crash into this file.
   _UNEXPECTED_CRASHES_FILE = "unexpected-crashes"
 
-  def __init__(self):
+  def __init__(self, search_dir):
     self._bucket = 'dart-temp-crash-archive'
     self._binaries_dir = os.getcwd()
+    self._search_dir = search_dir
 
   def __enter__(self):
     # Cleanup any stale files
@@ -832,8 +852,12 @@ class BaseCoreDumpArchiver(object):
           print '----> %s' % crash
 
         sys.stdout.flush()
-        self._archive(archive_crashes)
 
+        # We disable usage of the boto file installed on the bots due to an
+        # issue introduced by
+        # https://chrome-internal-review.googlesource.com/c/331136
+        with SiteConfigBotoFileDisabler():
+          self._archive(archive_crashes)
     finally:
       self._cleanup()
 
@@ -848,8 +872,20 @@ class BaseCoreDumpArchiver(object):
       else:
         missing.append(crash)
     self._upload(files)
+
     if missing:
-      raise Exception('Missing crash dumps for: %s' % ', '.join(missing))
+      self._report_missing_crashes(missing, throw=True)
+
+  def _report_missing_crashes(self, missing, throw=True):
+    missing_as_string = ', '.join([str(c) for c in missing])
+    other_files = list(glob.glob(os.path.join(self._search_dir, '*')))
+    print >> sys.stderr, (
+        "Could not find crash dumps for '%s' in search directory '%s'.\n"
+        "Existing files which *did not* match the pattern inside the search "
+        "directory are are:\n  %s"
+        % (missing_as_string, self._search_dir, '\n  '.join(other_files)))
+    if throw:
+      raise Exception('Missing crash dumps for: %s' % missing_as_string)
 
   def _upload(self, files):
     bot_utils = GetBotUtils()
@@ -910,8 +946,7 @@ class BaseCoreDumpArchiver(object):
 
 class LinuxCoreDumpArchiver(BaseCoreDumpArchiver):
   def __init__(self):
-    super(self.__class__, self).__init__()
-    self._search_dir = os.getcwd()
+    super(self.__class__, self).__init__(os.getcwd())
 
   def _cleanup(self):
     found = super(self.__class__, self)._cleanup()
@@ -927,9 +962,8 @@ class LinuxCoreDumpArchiver(BaseCoreDumpArchiver):
 
 class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
   def __init__(self):
-    super(self.__class__, self).__init__()
-    self._search_dir = os.path.join(
-        os.getcwd(), WindowsCoredumpEnabler.WINDOWS_COREDUMP_FOLDER)
+    super(self.__class__, self).__init__(os.path.join(
+        os.getcwd(), WindowsCoredumpEnabler.WINDOWS_COREDUMP_FOLDER))
 
   def _cleanup(self):
     found = super(self.__class__, self)._cleanup()
@@ -942,6 +976,34 @@ class WindowsCoreDumpArchiver(BaseCoreDumpArchiver):
     pattern = os.path.join(self._search_dir, '*.%s.*' % crash.pid)
     for core_filename in glob.glob(pattern):
       return core_filename
+
+  def _report_missing_crashes(self, missing, throw=True):
+    # Let's only print the debugging information and not throw. We'll do more
+    # validation for werfault.exe and throw afterwards.
+    super(self.__class__, self)._report_missing_crashes(missing, throw=False)
+
+    # Let's check again for the image execution options for werfault. Maybe
+    # puppet came a long during testing and reverted our change.
+    try:
+      import winreg
+    except ImportError:
+      import _winreg as winreg
+    for wowbit in [winreg.KEY_WOW64_64KEY, winreg.KEY_WOW64_32KEY]:
+      try:
+         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                             WindowsCoredumpEnabler.IMGEXEC_NAME,
+                             0,
+                             winreg.KEY_READ | wowbit) as handle:
+          raise Exception(
+              "Found werfault.exe was disabled. Probably by puppet. Too bad")
+      except OSError:
+        # If the open did not work the werfault.exe execution setting is as it
+        # should be.
+        pass
+
+    if throw:
+      missing_as_string = ', '.join([str(c) for c in missing])
+      raise Exception('Missing crash dumps for: %s' % missing_as_string)
 
 @contextlib.contextmanager
 def NooptCoreDumpArchiver():

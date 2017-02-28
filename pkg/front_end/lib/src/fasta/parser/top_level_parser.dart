@@ -4,14 +4,11 @@
 
 library fasta.parser.top_level_parser;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show
-    Token;
+import 'package:front_end/src/fasta/scanner/token.dart' show Token;
 
-import 'listener.dart' show
-    Listener;
+import 'listener.dart' show Listener;
 
-import 'class_member_parser.dart' show
-    ClassMemberParser;
+import 'class_member_parser.dart' show ClassMemberParser;
 
 /// Parser which only parses top-level elements, but ignores their bodies.
 /// Use [Parser] to parse everything.

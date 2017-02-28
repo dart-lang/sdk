@@ -11,6 +11,12 @@
   `File.setLastModified`, `File.setLastModifiedSync`, `File.setLastAccessed`,
   and `File.setLastAccessedSync`.
 
+
+### Dart VM
+* Calls to `print()` and `Stdout.write*()` now correctly print unicode
+  characters to the console on Windows. Calls to `Stdout.add*()` behave as
+  before.
+
 ## 1.22.0 - 2017-02-14
 
 ### Language

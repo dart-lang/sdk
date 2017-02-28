@@ -6,6 +6,7 @@
 // allow inlining of empty functions and from main.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
@@ -34,9 +35,11 @@ void main() {
     // Test that we actually got differnt output units.
     Expect.notEquals(ou_lib1.name, ou_lib3.name);
 
-    String mainOutput = collector.getOutput("", "js");
-    String lib1Output = collector.getOutput("out_${ou_lib1.name}", "part.js");
-    String lib3Output = collector.getOutput("out_${ou_lib3.name}", "part.js");
+    String mainOutput = collector.getOutput("", OutputType.js);
+    String lib1Output =
+        collector.getOutput("out_${ou_lib1.name}", OutputType.jsPart);
+    String lib3Output =
+        collector.getOutput("out_${ou_lib3.name}", OutputType.jsPart);
 
     RegExp re1 = new RegExp(r"inlined as empty");
     RegExp re2 = new RegExp(r"inlined from main");

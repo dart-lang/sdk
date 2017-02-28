@@ -217,12 +217,6 @@ abstract class _StringBase {
     return s;
   }
 
-  static String _createTwoByteString(List<int> charCodes, int start, int len) {
-    // TODO(lrn): Create string without scanning charCodes again - all values
-    // in the [start..end] range are uint16 values.
-    return _createFromCodePoints(charCodes, start, end);
-  }
-
   static String _createFromCodePoints(List<int> codePoints, int start, int end)
       native "StringBase_createFromCodePoints";
 

@@ -73,6 +73,10 @@ class ContextBuilderTest extends EngineTestCase {
    */
   String defaultSdkPath = null;
 
+  _MockLintRule _mockLintRule;
+  _MockLintRule _mockLintRule2;
+  _MockLintRule _mockLintRule3;
+
   Uri convertedDirectoryUri(String directoryPath) {
     return new Uri.directory(resourceProvider.convertPath(directoryPath),
         windows: pathContext.style == path.windows.style);
@@ -114,6 +118,138 @@ const Map<String, LibraryInfo> libraries = const {
   @failingTest
   void test_buildContext() {
     fail('Incomplete test');
+  }
+
+  void test_cmdline_lint_default() {
+    _defineMockLintRules();
+    ArgParser argParser = new ArgParser();
+    defineAnalysisArguments(argParser);
+    ArgResults argResults = argParser.parse(['--$lintsFlag']);
+    var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+        options: createContextBuilderOptions(argResults));
+
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.lint = true;
+    expected.lintRules = Registry.ruleRegistry.defaultRules;
+
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+    resourceProvider.newFile(
+        filePath,
+        '''
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
+  }
+
+  void test_cmdline_lint_defined() {
+    _defineMockLintRules();
+    ArgParser argParser = new ArgParser();
+    defineAnalysisArguments(argParser);
+    ArgResults argResults = argParser.parse(['--$lintsFlag']);
+    var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+        options: createContextBuilderOptions(argResults));
+
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.lint = true;
+    expected.lintRules = <LintRule>[
+      Registry.ruleRegistry['mock_lint_rule'],
+    ];
+
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+    resourceProvider.newFile(
+        filePath,
+        '''
+linter:
+  rules:
+    - mock_lint_rule
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
+  }
+
+  void test_cmdline_lint_off() {
+    ArgParser argParser = new ArgParser();
+    defineAnalysisArguments(argParser);
+    ArgResults argResults = argParser.parse(['--no-$lintsFlag']);
+    var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+        options: createContextBuilderOptions(argResults));
+
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.lint = false;
+    expected.lintRules = <LintRule>[
+      Registry.ruleRegistry['mock_lint_rule'],
+    ];
+
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+    resourceProvider.newFile(
+        filePath,
+        '''
+linter:
+  rules:
+    - mock_lint_rule
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
+  }
+
+  void test_cmdline_lint_unspecified_1() {
+    ArgParser argParser = new ArgParser();
+    defineAnalysisArguments(argParser);
+    ArgResults argResults = argParser.parse([]);
+    var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+        options: createContextBuilderOptions(argResults));
+
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.lint = true;
+    expected.lintRules = <LintRule>[
+      Registry.ruleRegistry['mock_lint_rule'],
+    ];
+
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+    resourceProvider.newFile(
+        filePath,
+        '''
+linter:
+  rules:
+    - mock_lint_rule
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
+  }
+
+  void test_cmdline_lint_unspecified_2() {
+    ArgParser argParser = new ArgParser();
+    defineAnalysisArguments(argParser);
+    ArgResults argResults = argParser.parse([]);
+    var builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+        options: createContextBuilderOptions(argResults));
+
+    AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
+    expected.lint = false;
+    expected.lintRules = <LintRule>[];
+
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+    resourceProvider.newFile(
+        filePath,
+        '''
+''');
+
+    AnalysisOptions options = builder.getAnalysisOptions(path);
+    _expectEqualOptions(options, expected);
   }
 
   void test_cmdline_options_override_options_file() {
@@ -551,15 +687,12 @@ b:${pathContext.toUri(packageB)}
   }
 
   void test_getAnalysisOptions_default_bazel() {
-    MockLintRule mockLintRule = new MockLintRule('mock_lint_rule');
-    Registry.ruleRegistry.register(mockLintRule);
-    MockLintRule mockLintRule2 = new MockLintRule('mock_lint_rule2');
-    Registry.ruleRegistry.register(mockLintRule2);
+    _defineMockLintRules();
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.lint = true;
-    expected.lintRules = <Linter>[mockLintRule];
+    expected.lintRules = <Linter>[_mockLintRule];
     createFile(resourceProvider.convertPath('/root/WORKSPACE'), '');
     createFile(
         resourceProvider
@@ -583,32 +716,27 @@ linter:
   }
 
   void test_getAnalysisOptions_default_flutter() {
-    MockLintRule mockLintRule = new MockLintRule('mock_lint_rule');
-    Registry.ruleRegistry.register(mockLintRule);
+    _defineMockLintRules();
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.lint = true;
-    expected.lintRules = <Linter>[mockLintRule];
+    expected.lintRules = <Linter>[_mockLintRule];
+    String packagesFilePath =
+        resourceProvider.convertPath('/some/directory/path/.packages');
+    createFile(packagesFilePath, 'flutter:/pkg/flutter/lib/');
+    String optionsFilePath = resourceProvider
+        .convertPath('/pkg/flutter/lib/analysis_options_user.yaml');
     createFile(
-        resourceProvider.convertPath('/some/directory/path/.packages'),
-        '''
-flutter:/pkg/flutter/lib/
-''');
-    createFile(
-        resourceProvider
-            .convertPath('/pkg/flutter/lib/analysis_options_user.yaml'),
+        optionsFilePath,
         '''
 linter:
   rules:
     - mock_lint_rule
 ''');
-    AnalysisOptions options = builder.getAnalysisOptions(
-        resourceProvider.convertPath('/some/directory/path'));
-    // TODO(danrubel) fix on Windows
-    if (resourceProvider.absolutePathContext.separator != r'\') {
-      _expectEqualOptions(options, expected);
-    }
+    String projPath = resourceProvider.convertPath('/some/directory/path');
+    AnalysisOptions options = builder.getAnalysisOptions(projPath);
+    _expectEqualOptions(options, expected);
   }
 
   void test_getAnalysisOptions_default_noOverrides() {
@@ -656,20 +784,18 @@ analyzer:
   }
 
   void test_getAnalysisOptions_includes() {
-    MockLintRule mockLintRule = new MockLintRule('mock_lint_rule');
-    Registry.ruleRegistry.register(mockLintRule);
-    MockLintRule mockLintRule2 = new MockLintRule('mock_lint_rule2');
-    Registry.ruleRegistry.register(mockLintRule2);
-    MockLintRule mockLintRule3 = new MockLintRule('mock_lint_rule3');
-    Registry.ruleRegistry.register(mockLintRule3);
-
+    _defineMockLintRules();
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     defaultOptions.enableSuperMixins = false;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.enableSuperMixins = true;
     expected.lint = true;
-    expected.lintRules = <Linter>[mockLintRule, mockLintRule2, mockLintRule3];
+    expected.lintRules = <Linter>[
+      _mockLintRule,
+      _mockLintRule2,
+      _mockLintRule3
+    ];
     resourceProvider.newFile(
         resourceProvider.convertPath('/mypkgs/somepkg/lib/here.yaml'),
         '''
@@ -810,6 +936,15 @@ analyzer:
     expect(result.path, filePath);
   }
 
+  _defineMockLintRules() {
+    _mockLintRule = new _MockLintRule('mock_lint_rule');
+    Registry.ruleRegistry.registerDefault(_mockLintRule);
+    _mockLintRule2 = new _MockLintRule('mock_lint_rule2');
+    Registry.ruleRegistry.registerDefault(_mockLintRule2);
+    _mockLintRule3 = new _MockLintRule('mock_lint_rule3');
+    Registry.ruleRegistry.register(_mockLintRule3);
+  }
+
   void _expectEqualOptions(
       AnalysisOptionsImpl actual, AnalysisOptionsImpl expected) {
     // TODO(brianwilkerson) Consider moving this to AnalysisOptionsImpl.==.
@@ -871,10 +1006,10 @@ class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
   }
 }
 
-class MockLintRule implements LintRule {
+class _MockLintRule implements LintRule {
   final String _name;
 
-  MockLintRule(this._name);
+  _MockLintRule(this._name);
 
   @override
   String get name => _name;

@@ -14,81 +14,83 @@ import 'package:test/test.dart';
 /// We mostly test negative cases here, as we get plenty of positive cases by
 /// compiling the Dart test suite with the verifier enabled.
 main() {
-  positiveTest('Test harness has no errors', () {
+  positiveTest('Test harness has no errors', (TestHarness test) {
     return new NullLiteral();
   });
-  negativeTest('VariableGet out of scope', () {
-    return new VariableGet(makeVariable());
+  negativeTest('VariableGet out of scope', (TestHarness test) {
+    return new VariableGet(test.makeVariable());
   });
-  negativeTest('VariableSet out of scope', () {
-    return new VariableSet(makeVariable(), new NullLiteral());
+  negativeTest('VariableSet out of scope', (TestHarness test) {
+    return new VariableSet(test.makeVariable(), new NullLiteral());
   });
-  negativeTest('Variable block scope', () {
-    VariableDeclaration variable = makeVariable();
+  negativeTest('Variable block scope', (TestHarness test) {
+    VariableDeclaration variable = test.makeVariable();
     return new Block([
       new Block([variable]),
       new ReturnStatement(new VariableGet(variable))
     ]);
   });
-  negativeTest('Variable let scope', () {
-    VariableDeclaration variable = makeVariable();
+  negativeTest('Variable let scope', (TestHarness test) {
+    VariableDeclaration variable = test.makeVariable();
     return new LogicalExpression(new Let(variable, new VariableGet(variable)),
         '&&', new VariableGet(variable));
   });
-  negativeTest('Variable redeclared', () {
-    VariableDeclaration variable = makeVariable();
+  negativeTest('Variable redeclared', (TestHarness test) {
+    VariableDeclaration variable = test.makeVariable();
     return new Block([variable, variable]);
   });
-  negativeTest('Member redeclared', () {
+  negativeTest('Member redeclared', (TestHarness test) {
     Field field = new Field(new Name('field'), initializer: new NullLiteral());
     return new Class(
         name: 'Test',
-        supertype: objectClass.asRawSupertype,
+        supertype: test.objectClass.asRawSupertype,
         fields: [field, field]);
   });
-  negativeTest('Class redeclared', () {
-    return otherClass; // Test harness also adds otherClass to program.
+  negativeTest('Class redeclared', (TestHarness test) {
+    return test.otherClass; // Test harness also adds otherClass to program.
   });
-  negativeTest('Class type parameter redeclared', () {
-    var parameter = makeTypeParameter();
+  negativeTest('Class type parameter redeclared', (TestHarness test) {
+    var parameter = test.makeTypeParameter();
     return new Class(
         name: 'Test',
-        supertype: objectClass.asRawSupertype,
+        supertype: test.objectClass.asRawSupertype,
         typeParameters: [parameter, parameter]);
   });
-  negativeTest('Member type parameter redeclared', () {
-    var parameter = makeTypeParameter();
+  negativeTest('Member type parameter redeclared', (TestHarness test) {
+    var parameter = test.makeTypeParameter();
     return new Procedure(
-        new Name('test'),
+        new Name('bar'),
         ProcedureKind.Method,
         new FunctionNode(new ReturnStatement(new NullLiteral()),
             typeParameters: [parameter, parameter]));
   });
-  negativeTest('Type parameter out of scope', () {
-    var parameter = makeTypeParameter();
+  negativeTest('Type parameter out of scope', (TestHarness test) {
+    var parameter = test.makeTypeParameter();
     return new ListLiteral([], typeArgument: new TypeParameterType(parameter));
   });
-  negativeTest('Class type parameter from another class', () {
-    return new TypeLiteral(new TypeParameterType(otherClass.typeParameters[0]));
+  negativeTest('Class type parameter from another class', (TestHarness test) {
+    return new TypeLiteral(
+        new TypeParameterType(test.otherClass.typeParameters[0]));
   });
-  negativeTest('Class type parameter in static method', () {
+  negativeTest('Class type parameter in static method', (TestHarness test) {
     return new Procedure(
-        new Name('test'),
+        new Name('bar'),
         ProcedureKind.Method,
         new FunctionNode(new ReturnStatement(
-            new TypeLiteral(new TypeParameterType(classTypeParameter)))),
+            new TypeLiteral(new TypeParameterType(test.classTypeParameter)))),
         isStatic: true);
   });
-  negativeTest('Class type parameter in static field', () {
+  negativeTest('Class type parameter in static field', (TestHarness test) {
     return new Field(new Name('field'),
-        initializer: new TypeLiteral(new TypeParameterType(classTypeParameter)),
+        initializer:
+            new TypeLiteral(new TypeParameterType(test.classTypeParameter)),
         isStatic: true);
   });
-  negativeTest('Method type parameter out of scope', () {
-    var parameter = makeTypeParameter();
+  negativeTest('Method type parameter out of scope', (TestHarness test) {
+    var parameter = test.makeTypeParameter();
     return new Class(
         name: 'Test',
-        supertype: objectClass.asRawSupertype,
+        supertype: test.objectClass.asRawSupertype,
         procedures: [
           new Procedure(
               new Name('generic'),
@@ -102,108 +104,100 @@ main() {
                   new TypeLiteral(new TypeParameterType(parameter)))))
         ]);
   });
-  negativeTest('Interface type arity too low', () {
-    return new TypeLiteral(new InterfaceType(otherClass, []));
+  negativeTest('Interface type arity too low', (TestHarness test) {
+    return new TypeLiteral(new InterfaceType(test.otherClass, []));
   });
-  negativeTest('Interface type arity too high', () {
-    return new TypeLiteral(
-        new InterfaceType(otherClass, [new DynamicType(), new DynamicType()]));
+  negativeTest('Interface type arity too high', (TestHarness test) {
+    return new TypeLiteral(new InterfaceType(
+        test.otherClass, [new DynamicType(), new DynamicType()]));
   });
-  negativeTest('Dangling interface type', () {
-    return new TypeLiteral(new InterfaceType(new Class()));
+  negativeTest('Dangling interface type', (TestHarness test) {
+    var orphan = new Class();
+    return new TypeLiteral(new InterfaceType(orphan));
   });
-  negativeTest('Dangling field get', () {
-    return new DirectPropertyGet(new NullLiteral(), new Field(new Name('foo')));
+  negativeTest('Dangling field get', (TestHarness test) {
+    var orphan = new Field(new Name('foo'));
+    return new DirectPropertyGet(new NullLiteral(), orphan);
   });
-  negativeTest('Missing block parent pointer', () {
+  negativeTest('Missing block parent pointer', (TestHarness test) {
     var block = new Block([]);
     block.statements.add(new ReturnStatement());
     return block;
   });
-  negativeTest('Missing function parent pointer', () {
-    var procedure = new Procedure(new Name('test'), ProcedureKind.Method, null);
+  negativeTest('Missing function parent pointer', (TestHarness test) {
+    var procedure = new Procedure(new Name('bar'), ProcedureKind.Method, null);
     procedure.function = new FunctionNode(new EmptyStatement());
     return procedure;
   });
-  negativeTest('StaticGet without target', () {
+  negativeTest('StaticGet without target', (TestHarness test) {
     return new StaticGet(null);
   });
-  negativeTest('StaticSet without target', () {
+  negativeTest('StaticSet without target', (TestHarness test) {
     return new StaticSet(null, new NullLiteral());
   });
-  negativeTest('StaticInvocation without target', () {
+  negativeTest('StaticInvocation without target', (TestHarness test) {
     return new StaticInvocation(null, new Arguments.empty());
   });
-  positiveTest('Correct StaticInvocation', () {
-    var method = new Procedure(new Name('test'), ProcedureKind.Method, null,
+  positiveTest('Correct StaticInvocation', (TestHarness test) {
+    var method = new Procedure(
+        new Name('foo'),
+        ProcedureKind.Method,
+        new FunctionNode(new EmptyStatement(),
+            positionalParameters: [new VariableDeclaration('p')]),
         isStatic: true);
-    method.function = new FunctionNode(
-        new ReturnStatement(
-            new StaticInvocation(method, new Arguments([new NullLiteral()]))),
-        positionalParameters: [new VariableDeclaration('p')])..parent = method;
-    return new Class(
-        name: 'Test',
-        supertype: objectClass.asRawSupertype,
-        procedures: [method]);
+    test.enclosingClass.addMember(method);
+    return new StaticInvocation(method, new Arguments([new NullLiteral()]));
   });
-  negativeTest('StaticInvocation with too many parameters', () {
-    var method = new Procedure(new Name('test'), ProcedureKind.Method, null,
+  negativeTest('StaticInvocation with too many parameters', (TestHarness test) {
+    var method = new Procedure(new Name('bar'), ProcedureKind.Method,
+        new FunctionNode(new EmptyStatement()),
         isStatic: true);
-    method.function = new FunctionNode(new ReturnStatement(
-        new StaticInvocation(method, new Arguments([new NullLiteral()]))))
-      ..parent = method;
-    return new Class(
-        name: 'Test',
-        supertype: objectClass.asRawSupertype,
-        procedures: [method]);
+    test.enclosingClass.addMember(method);
+    return new StaticInvocation(method, new Arguments([new NullLiteral()]));
   });
-  negativeTest('StaticInvocation with too few parameters', () {
-    var method = new Procedure(new Name('test'), ProcedureKind.Method, null,
+  negativeTest('StaticInvocation with too few parameters', (TestHarness test) {
+    var method = new Procedure(
+        new Name('bar'),
+        ProcedureKind.Method,
+        new FunctionNode(new EmptyStatement(),
+            positionalParameters: [new VariableDeclaration('p')]),
         isStatic: true);
-    method.function = new FunctionNode(
-        new ReturnStatement(
-            new StaticInvocation(method, new Arguments.empty())),
-        positionalParameters: [new VariableDeclaration('p')])..parent = method;
-    return new Class(
-        name: 'Test',
-        supertype: objectClass.asRawSupertype,
-        procedures: [method]);
+    test.enclosingClass.addMember(method);
+    return new StaticInvocation(method, new Arguments.empty());
   });
-  negativeTest('StaticInvocation with unmatched named parameter', () {
-    var method = new Procedure(new Name('test'), ProcedureKind.Method, null,
+  negativeTest('StaticInvocation with unmatched named parameter',
+      (TestHarness test) {
+    var method = new Procedure(new Name('bar'), ProcedureKind.Method,
+        new FunctionNode(new EmptyStatement()),
         isStatic: true);
-    method.function = new FunctionNode(new ReturnStatement(new StaticInvocation(
+    test.enclosingClass.addMember(method);
+    return new StaticInvocation(
         method,
         new Arguments([],
-            named: [new NamedExpression('p', new NullLiteral())]))))
-      ..parent = method;
-    return new Class(
-        name: 'Test',
-        supertype: objectClass.asRawSupertype,
-        procedures: [method]);
+            named: [new NamedExpression('p', new NullLiteral())]));
   });
-  negativeTest('StaticInvocation with missing type argument', () {
-    var method = new Procedure(new Name('test'), ProcedureKind.Method, null,
+  negativeTest('StaticInvocation with missing type argument',
+      (TestHarness test) {
+    var method = new Procedure(
+        new Name('bar'),
+        ProcedureKind.Method,
+        new FunctionNode(new EmptyStatement(),
+            typeParameters: [test.makeTypeParameter()]),
         isStatic: true);
-    method.function = new FunctionNode(
-        new ReturnStatement(
-            new StaticInvocation(method, new Arguments.empty())),
-        typeParameters: [makeTypeParameter()])..parent = method;
-    return new Class(
-        name: 'Test',
-        supertype: objectClass.asRawSupertype,
-        procedures: [method]);
+    test.enclosingClass.addMember(method);
+    return new StaticInvocation(method, new Arguments.empty());
   });
-  negativeTest('ConstructorInvocation with missing type argument', () {
-    var constructor = new Constructor(null);
-    constructor.function = new FunctionNode(new ReturnStatement(
-        new ConstructorInvocation(constructor, new Arguments.empty())))
-      ..parent = constructor;
-    return new Class(
+  negativeTest('ConstructorInvocation with missing type argument',
+      (TestHarness test) {
+    var class_ = new Class(
         name: 'Test',
-        typeParameters: [makeTypeParameter()],
-        supertype: objectClass.asRawSupertype,
-        constructors: [constructor]);
+        typeParameters: [test.makeTypeParameter()],
+        supertype: test.objectClass.asRawSupertype);
+    test.enclosingLibrary.addClass(class_);
+    var constructor = new Constructor(new FunctionNode(new EmptyStatement()),
+        name: new Name('foo'));
+    test.enclosingClass.addMember(constructor);
+    return new ConstructorInvocation(constructor, new Arguments.empty());
   });
 }
 
@@ -218,60 +212,101 @@ checkHasError(Program program) {
   }
 }
 
-Class objectClass = new Class(name: 'Object');
+class TestHarness {
+  Program program;
+  Class objectClass;
+  Library stubLibrary;
 
-Library stubLibrary = new Library(Uri.parse('dart:core'))
-  ..addClass(objectClass);
+  TypeParameter classTypeParameter;
 
-TypeParameter classTypeParameter = makeTypeParameter('T');
+  Library enclosingLibrary;
+  Class enclosingClass;
+  Procedure enclosingMember;
 
-Class otherClass = new Class(
-    name: 'OtherClass',
-    typeParameters: [makeTypeParameter('OtherT')],
-    supertype: objectClass.asRawSupertype);
+  Class otherClass;
 
-Program makeProgram(TreeNode makeBody()) {
-  var node = makeBody();
-  if (node is Expression) {
-    node = new ReturnStatement(node);
+  void addNode(TreeNode node) {
+    if (node is Expression) {
+      addExpression(node);
+    } else if (node is Statement) {
+      addStatement(node);
+    } else if (node is Member) {
+      addClassMember(node);
+    } else if (node is Class) {
+      addClass(node);
+    }
   }
-  if (node is Statement) {
-    node = new FunctionNode(node);
+
+  void addExpression(Expression node) {
+    addStatement(new ReturnStatement(node));
   }
-  if (node is FunctionNode) {
-    node = new Procedure(new Name('test'), ProcedureKind.Method, node);
+
+  void addStatement(Statement node) {
+    var function = enclosingMember.function;
+    function.body = node..parent = function;
   }
-  if (node is Member) {
-    node = new Class(
-        name: 'Test',
+
+  void addClassMember(Member node) {
+    enclosingClass.addMember(node);
+  }
+
+  void addTopLevelMember(Member node) {
+    enclosingLibrary.addMember(node);
+  }
+
+  void addClass(Class node) {
+    enclosingLibrary.addClass(node);
+  }
+
+  VariableDeclaration makeVariable() => new VariableDeclaration(null);
+
+  TypeParameter makeTypeParameter([String name]) {
+    return new TypeParameter(name, new InterfaceType(objectClass));
+  }
+
+  TestHarness() {
+    setupProgram();
+  }
+
+  void setupProgram() {
+    program = new Program();
+    stubLibrary = new Library(Uri.parse('dart:core'));
+    program.libraries.add(stubLibrary..parent = program);
+    stubLibrary.name = 'dart.core';
+    objectClass = new Class(name: 'Object');
+    stubLibrary.addClass(objectClass);
+    enclosingLibrary = new Library(Uri.parse('file://test.dart'));
+    program.libraries.add(enclosingLibrary..parent = program);
+    enclosingLibrary.name = 'test_lib';
+    classTypeParameter = makeTypeParameter('T');
+    enclosingClass = new Class(
+        name: 'TestClass',
         typeParameters: [classTypeParameter],
-        supertype: objectClass.asRawSupertype)..addMember(node);
+        supertype: objectClass.asRawSupertype);
+    enclosingLibrary.addClass(enclosingClass);
+    enclosingMember = new Procedure(new Name('test'), ProcedureKind.Method,
+        new FunctionNode(new EmptyStatement()));
+    enclosingClass.addMember(enclosingMember);
+    otherClass = new Class(
+        name: 'OtherClass',
+        typeParameters: [makeTypeParameter('OtherT')],
+        supertype: objectClass.asRawSupertype);
+    enclosingLibrary.addClass(otherClass);
   }
-  if (node is Class) {
-    node =
-        new Library(Uri.parse('test.dart'), classes: <Class>[node, otherClass]);
-  }
-  if (node is Library) {
-    node = new Program(<Library>[node, stubLibrary]);
-  }
-  assert(node is Program);
-  return node;
 }
 
-negativeTest(String name, TreeNode makeBody()) {
+negativeTest(String name, TreeNode makeTestCase(TestHarness test)) {
   test(name, () {
-    checkHasError(makeProgram(makeBody));
+    var test = new TestHarness();
+    test.addNode(makeTestCase(test));
+    checkHasError(test.program);
   });
 }
 
-positiveTest(String name, TreeNode makeBody()) {
+positiveTest(String name, TreeNode makeTestCase(TestHarness test)) {
   test(name, () {
-    verifyProgram(makeProgram(makeBody));
+    var test = new TestHarness();
+    test.addNode(makeTestCase(test));
+    verifyProgram(test.program);
   });
-}
-
-VariableDeclaration makeVariable() => new VariableDeclaration(null);
-
-TypeParameter makeTypeParameter([String name]) {
-  return new TypeParameter(name, new InterfaceType(objectClass));
 }

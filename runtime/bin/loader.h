@@ -29,6 +29,9 @@ class Loader {
                                      uint8_t** payload,
                                      intptr_t* payload_length);
 
+  static Dart_Handle ResolveAsFilePath(Dart_Handle url,
+                                       uint8_t** payload,
+                                       intptr_t* payload_length);
 
   // A static tag handler that hides all usage of a loader for an isolate.
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
@@ -89,9 +92,12 @@ class Loader {
   void SendImportExtensionRequest(Dart_Handle url, Dart_Handle library_url);
 
   // Send a request from the tag handler to the service isolate.
-  void SendRequest(Dart_LibraryTag tag,
-                   Dart_Handle url,
-                   Dart_Handle library_url);
+  void SendRequest(intptr_t tag, Dart_Handle url, Dart_Handle library_url);
+
+  static Dart_Handle SendAndProcessReply(intptr_t tag,
+                                         Dart_Handle url,
+                                         uint8_t** payload,
+                                         intptr_t* payload_length);
 
   // Send a request from the tag handler to the kernel isolate.
   void SendKernelRequest(Dart_LibraryTag tag, Dart_Handle url);
@@ -106,7 +112,7 @@ class Loader {
   static bool ProcessResultLocked(Loader* loader, IOResult* result);
 
   /// Returns false if |result| is an error and the loader should quit.
-  static bool ProcessUrlLoadResultLocked(Loader* loader, IOResult* result);
+  static bool ProcessPayloadResultLocked(Loader* loader, IOResult* result);
 
   /// Returns false if an error occurred and the loader should quit.
   bool ProcessQueueLocked(ProcessResult process_result);

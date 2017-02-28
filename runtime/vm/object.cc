@@ -1432,12 +1432,10 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
 
     // Class that represents the Dart class _Closure and C++ class Closure.
     cls = Class::New<Closure>();
-    cls.set_type_arguments_field_offset(Closure::type_arguments_offset());
-    cls.set_num_type_arguments(0);  // Although a closure has type_arguments_.
-    cls.set_num_own_type_arguments(0);
+    object_store->set_closure_class(cls);
+    cls.ResetFinalization();  // To calculate field offsets from Dart source.
     RegisterPrivateClass(cls, Symbols::_Closure(), core_lib);
     pending_classes.Add(cls);
-    object_store->set_closure_class(cls);
 
     cls = Class::New<WeakProperty>();
     object_store->set_weak_property_class(cls);
@@ -2530,7 +2528,6 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
 
 
 void Class::CalculateFieldOffsets() const {
-  ASSERT(id() != kClosureCid);  // Class _Closure is prefinalized.
   Array& flds = Array::Handle(fields());
   const Class& super = Class::Handle(SuperClass());
   intptr_t offset = 0;
@@ -3634,7 +3631,7 @@ void Class::SetRefinalizeAfterPatch() const {
 
 
 void Class::ResetFinalization() const {
-  ASSERT(IsTopLevel());
+  ASSERT(IsTopLevel() || IsClosureClass());
   set_state_bits(
       ClassFinalizedBits::update(RawClass::kAllocated, raw_ptr()->state_bits_));
   set_state_bits(TypeFinalizedBit::update(false, raw_ptr()->state_bits_));
@@ -6910,8 +6907,9 @@ RawInstance* Function::ImplicitStaticClosure() const {
     ObjectStore* object_store = isolate->object_store();
     const Context& context =
         Context::Handle(zone, object_store->empty_context());
-    Instance& closure =
-        Instance::Handle(zone, Closure::New(*this, context, Heap::kOld));
+    const TypeArguments& instantiator = TypeArguments::Handle(zone);
+    Instance& closure = Instance::Handle(
+        zone, Closure::New(instantiator, *this, context, Heap::kOld));
     set_implicit_static_closure(closure);
   }
   return implicit_static_closure();
@@ -6920,17 +6918,16 @@ RawInstance* Function::ImplicitStaticClosure() const {
 
 RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
   ASSERT(IsImplicitClosureFunction());
-  const Type& signature_type = Type::Handle(SignatureType());
-  const Class& cls = Class::Handle(signature_type.type_class());
-  const Context& context = Context::Handle(Context::New(1));
+  Zone* zone = Thread::Current()->zone();
+  const Type& signature_type = Type::Handle(zone, SignatureType());
+  const Class& cls = Class::Handle(zone, signature_type.type_class());
+  const Context& context = Context::Handle(zone, Context::New(1));
   context.SetAt(0, receiver);
-  const Instance& result = Instance::Handle(Closure::New(*this, context));
+  TypeArguments& instantiator = TypeArguments::Handle(zone);
   if (cls.IsGeneric()) {
-    const TypeArguments& type_arguments =
-        TypeArguments::Handle(receiver.GetTypeArguments());
-    result.SetTypeArguments(type_arguments);
+    instantiator = receiver.GetTypeArguments();
   }
-  return result.raw();
+  return Closure::New(instantiator, *this, context);
 }
 
 
@@ -13526,10 +13523,12 @@ void ICData::SetEntryPointAt(intptr_t index, const Smi& value) const {
 }
 
 
-RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
+RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id,
+                                                 intptr_t* count_return) const {
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     if (GetReceiverClassIdAt(i) == class_id) {
+      *count_return = GetCountAt(i);
       return GetTargetAt(i);
     }
   }
@@ -15570,7 +15569,8 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
     }
     const Class& scope_cls = Class::Handle(type.type_class());
     ASSERT(scope_cls.NumTypeArguments() > 0);
-    TypeArguments& type_arguments = TypeArguments::Handle(GetTypeArguments());
+    TypeArguments& type_arguments =
+        TypeArguments::Handle(Closure::Cast(*this).instantiator());
     type =
         Type::New(scope_cls, type_arguments, TokenPosition::kNoSource, space);
     type.set_signature(signature);
@@ -15666,7 +15666,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     const Function& signature =
         Function::Handle(zone, Closure::Cast(*this).function());
     const TypeArguments& type_arguments =
-        TypeArguments::Handle(zone, GetTypeArguments());
+        TypeArguments::Handle(zone, Closure::Cast(*this).instantiator());
     // TODO(regis): If signature function is generic, pass its type parameters
     // as function instantiator, otherwise pass null.
     // Pass the closure context as well to the the IsSubtypeOf call.
@@ -19168,6 +19168,8 @@ RawBigint* Bigint::New(bool neg,
 
 
 RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
+  // Currently only used to convert Smi or Mint to hex String, therefore do
+  // not throw RangeError if --limit-ints-to-64-bits.
   const TypedData& digits = TypedData::Handle(NewDigits(2, space));
   bool neg;
   uint64_t abs_value;
@@ -19185,6 +19187,10 @@ RawBigint* Bigint::NewFromInt64(int64_t value, Heap::Space space) {
 
 
 RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
+  if (FLAG_limit_ints_to_64_bits) {
+    Exceptions::ThrowRangeErrorMsg(
+        "Integer operand requires conversion to Bigint");
+  }
   const TypedData& digits = TypedData::Handle(NewDigits(2, space));
   SetDigitAt(digits, 0, static_cast<uint32_t>(value));
   SetDigitAt(digits, 1, static_cast<uint32_t>(value >> 32));
@@ -19195,6 +19201,12 @@ RawBigint* Bigint::NewFromUint64(uint64_t value, Heap::Space space) {
 RawBigint* Bigint::NewFromShiftedInt64(int64_t value,
                                        intptr_t shift,
                                        Heap::Space space) {
+  if (FLAG_limit_ints_to_64_bits) {
+    // The allocated Bigint value is not necessarily out of range, but it may
+    // be used as an operand in an operation resulting in a Bigint.
+    Exceptions::ThrowRangeErrorMsg(
+        "Integer operand requires conversion to Bigint");
+  }
   ASSERT(kBitsPerDigit == 32);
   ASSERT(shift >= 0);
   const intptr_t digit_shift = shift / kBitsPerDigit;
@@ -19225,6 +19237,7 @@ RawBigint* Bigint::NewFromShiftedInt64(int64_t value,
 
 
 RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
+  // Allow parser to scan Bigint literal, even with --limit-ints-to-64-bits.
   ASSERT(str != NULL);
   bool neg = false;
   TypedData& digits = TypedData::Handle();
@@ -19246,6 +19259,7 @@ RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
 
 
 RawBigint* Bigint::NewCanonical(const String& str) {
+  // Allow parser to scan Bigint literal, even with --limit-ints-to-64-bits.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -22352,7 +22366,8 @@ const char* Closure::ToCString() const {
 }
 
 
-RawClosure* Closure::New(const Function& function,
+RawClosure* Closure::New(const TypeArguments& instantiator,
+                         const Function& function,
                          const Context& context,
                          Heap::Space space) {
   Closure& result = Closure::Handle();
@@ -22361,6 +22376,7 @@ RawClosure* Closure::New(const Function& function,
         Object::Allocate(Closure::kClassId, Closure::InstanceSize(), space);
     NoSafepointScope no_safepoint;
     result ^= raw;
+    result.StorePointer(&result.raw_ptr()->instantiator_, instantiator.raw());
     result.StorePointer(&result.raw_ptr()->function_, function.raw());
     result.StorePointer(&result.raw_ptr()->context_, context.raw());
   }

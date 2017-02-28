@@ -20,6 +20,7 @@ const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
 const String enableStrictCallChecksFlag = 'enable-strict-call-checks';
 const String enableSuperMixinFlag = 'supermixin';
 const String ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
+const String lintsFlag = 'lints';
 const String noImplicitCastsFlag = 'no-implicit-casts';
 const String noImplicitDynamicFlag = 'no-implicit-dynamic';
 const String packageRootOption = 'package-root';
@@ -46,6 +47,13 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args) {
   }
   if (args.wasParsed(strongModeFlag)) {
     options.strongMode = args[strongModeFlag];
+  }
+  try {
+    if (args.wasParsed(lintsFlag)) {
+      options.lint = args[lintsFlag];
+    }
+  } on ArgumentError {
+    // lints were not defined - ignore and fall through
   }
 }
 
@@ -160,7 +168,7 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       hide: hide);
   parser.addOption(packagesOption,
       help: 'The path to the package resolution configuration file, which '
-          'supplies a mapping of package names to paths. This option cannot be '
+          'supplies a mapping of package names\nto paths. This option cannot be '
           'used with --package-root.',
       hide: ddc);
   parser.addOption(sdkSummaryPathOption,
@@ -173,7 +181,7 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
   parser.addFlag(enableInitializingFormalAccessFlag,
       help:
           'Enable support for allowing access to field formal parameters in a '
-          'constructor\'s initializer list',
+          'constructor\'s initializer list.',
       defaultsTo: false,
       negatable: false,
       hide: hide || ddc);
@@ -182,6 +190,10 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       defaultsTo: false,
       negatable: false,
       hide: hide);
+  if (!ddc) {
+    parser.addFlag(lintsFlag,
+        help: 'Show lint results.', defaultsTo: false, negatable: true);
+  }
 }
 
 /**

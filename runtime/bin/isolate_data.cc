@@ -18,7 +18,8 @@ IsolateData::IsolateData(const char* url,
       udp_receive_buffer(NULL),
       builtin_lib_(NULL),
       loader_(NULL),
-      app_snapshot_(app_snapshot) {
+      app_snapshot_(app_snapshot),
+      dependencies_(NULL) {
   if (package_root != NULL) {
     ASSERT(packages_file == NULL);
     this->package_root = strdup(package_root);

@@ -69,6 +69,12 @@ class ClassFinalizer : public AllStatic {
   // Return false if we still have classes pending to be finalized.
   static bool AllClassesFinalized();
 
+  // Useful for sorting classes to make dispatch faster.
+  static void SortClasses();
+  static void RemapClassIds(intptr_t* old_to_new_cid);
+  static void RehashTypes();
+  static void ClearAllCode();
+
   // Return whether processing pending classes (ObjectStore::pending_classes_)
   // failed. The function returns true if the processing was successful.
   // If processing fails, an error message is set in the sticky error field

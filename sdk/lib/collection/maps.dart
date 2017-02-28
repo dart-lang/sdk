@@ -156,18 +156,23 @@ class _MapBaseValueIterator<K, V> implements Iterator<V> {
  * Mixin that overrides mutating map operations with implementations that throw.
  */
 abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
+  /** This operation is not supported by an unmodifiable map. */
   void operator[]=(K key, V value) {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
+  /** This operation is not supported by an unmodifiable map. */
   void addAll(Map<K, V> other) {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
+  /** This operation is not supported by an unmodifiable map. */
   void clear() {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
+  /** This operation is not supported by an unmodifiable map. */
   V remove(Object key) {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
+  /** This operation is not supported by an unmodifiable map. */
   V putIfAbsent(K key, V ifAbsent()) {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }

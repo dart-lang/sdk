@@ -4,11 +4,9 @@
 
 library fasta.scanner.main;
 
-import 'io.dart' show
-    readBytesFromFileSync;
+import 'io.dart' show readBytesFromFileSync;
 
-import '../scanner.dart' show
-    scan;
+import '../scanner.dart' show scan;
 
 scanAll(Map<Uri, List<int>> files) {
   Stopwatch sw = new Stopwatch()..start();

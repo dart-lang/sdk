@@ -4,27 +4,26 @@
 
 library fasta.kernel_type_variable_builder;
 
-import 'package:kernel/ast.dart' show
-    DartType,
-    TypeParameter,
-    TypeParameterType;
+import 'package:kernel/ast.dart'
+    show DartType, TypeParameter, TypeParameterType;
 
-import '../errors.dart' show
-    inputError;
+import '../errors.dart' show inputError;
 
-import 'kernel_builder.dart' show
-    KernelClassBuilder,
-    KernelLibraryBuilder,
-    KernelNamedTypeBuilder,
-    KernelTypeBuilder,
-    TypeVariableBuilder;
+import 'kernel_builder.dart'
+    show
+        KernelClassBuilder,
+        KernelLibraryBuilder,
+        KernelNamedTypeBuilder,
+        KernelTypeBuilder,
+        TypeVariableBuilder;
 
 class KernelTypeVariableBuilder
     extends TypeVariableBuilder<KernelTypeBuilder, DartType> {
   final TypeParameter parameter;
 
-  KernelTypeVariableBuilder(String name, KernelLibraryBuilder compilationUnit,
-      int charOffset, [KernelTypeBuilder bound])
+  KernelTypeVariableBuilder(
+      String name, KernelLibraryBuilder compilationUnit, int charOffset,
+      [KernelTypeBuilder bound])
       : parameter = new TypeParameter(name, null),
         super(name, bound, compilationUnit, charOffset);
 
@@ -47,8 +46,7 @@ class KernelTypeVariableBuilder
   }
 
   KernelTypeBuilder asTypeBuilder() {
-    return new KernelNamedTypeBuilder(name, null, -1, null)
-        ..builder = this;
+    return new KernelNamedTypeBuilder(name, null, -1, null)..builder = this;
   }
 
   void finish(KernelClassBuilder object) {

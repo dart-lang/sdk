@@ -15,6 +15,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/world_impact.dart';
 import '../util/util.dart';
 import 'backend.dart';
+import 'backend_usage.dart' show BackendUsageBuilder;
 
 /**
  * Handles construction of TypeVariable constants needed at runtime.
@@ -56,6 +57,7 @@ class TypeVariableHandler {
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;
   JavaScriptBackend get _backend => _compiler.backend;
+  BackendUsageBuilder get _backendUsageBuilder => _backend.backendUsageBuilder;
   DiagnosticReporter get reporter => _compiler.reporter;
 
   /// Compute the [WorldImpact] for the type variables registered since last
@@ -80,16 +82,16 @@ class TypeVariableHandler {
               "Class '$_typeVariableClass' should only have one constructor");
         }
         _typeVariableConstructor = _typeVariableClass.constructors.head;
-        _backend.impactTransformer.registerBackendStaticUse(
+        _backendUsageBuilder.registerBackendStaticUse(
             impactBuilderForResolution, _typeVariableConstructor);
-        _backend.impactTransformer.registerBackendInstantiation(
+        _backendUsageBuilder.registerBackendInstantiation(
             impactBuilderForResolution, _typeVariableClass);
-        _backend.impactTransformer.registerBackendStaticUse(
+        _backendUsageBuilder.registerBackendStaticUse(
             impactBuilderForResolution, _backend.helpers.createRuntimeType);
         _seenClassesWithTypeVariables = true;
       }
     } else {
-      if (_backend.isAccessibleByReflection(cls)) {
+      if (_backend.mirrorsData.isAccessibleByReflection(cls)) {
         processTypeVariablesOf(cls);
       }
     }

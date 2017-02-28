@@ -37,11 +37,15 @@ class Disambiguator<T> {
 NameSystem globalDebuggingNames = new NameSystem();
 
 String debugLibraryName(Library node) {
-  return node.name ?? globalDebuggingNames.nameLibrary(node);
+  return node == null
+      ? 'null'
+      : node.name ?? globalDebuggingNames.nameLibrary(node);
 }
 
 String debugClassName(Class node) {
-  return node.name ?? globalDebuggingNames.nameClass(node);
+  return node == null
+      ? 'null'
+      : node.name ?? globalDebuggingNames.nameClass(node);
 }
 
 String debugQualifiedClassName(Class node) {
@@ -499,7 +503,12 @@ class Printer extends Visitor<Null> {
     if (function.asyncMarker != AsyncMarker.Sync) {
       writeSpaced(getAsyncMarkerKeyword(function.asyncMarker));
     }
-    if (!function.debuggable) writeSpaced("/* not debuggable */");
+    if (function.dartAsyncMarker != AsyncMarker.Sync &&
+        function.dartAsyncMarker != function.asyncMarker) {
+      writeSpaced("/* originally");
+      writeSpaced(getAsyncMarkerKeyword(function.dartAsyncMarker));
+      writeSpaced("*/");
+    }
     if (function.body != null) {
       writeFunctionBody(function.body, terminateLine: terminateLine);
     } else if (terminateLine) {

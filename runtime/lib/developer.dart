@@ -19,13 +19,13 @@ import 'dart:_internal' hide Symbol;
                  Object error,
                  StackTrace stackTrace}) {
   if (message is! String) {
-    throw new ArgumentError(message, "message", "Must be a String");
+    throw new ArgumentError.value(message, "message", "Must be a String");
   }
   if (time == null) {
     time = new DateTime.now();
   }
   if (time is! DateTime) {
-    throw new ArgumentError(time, "time", "Must be a DateTime");
+    throw new ArgumentError.value(time, "time", "Must be a DateTime");
   }
   if (sequenceNumber == null) {
     sequenceNumber = _nextSequenceNumber++;

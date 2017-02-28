@@ -76,7 +76,6 @@ define(['dart_sdk'], function(dart_sdk) {
     }
   };
   dart.setSignature(BenchmarkBase$.BenchmarkBase, {
-    constructors: () => ({new: dart.definiteFunctionType(BenchmarkBase$.BenchmarkBase, [core.String])}),
     fields: () => ({name: core.String}),
     methods: () => ({
       run: dart.definiteFunctionType(dart.void, []),

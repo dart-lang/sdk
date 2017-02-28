@@ -10,6 +10,7 @@ import '../universe/use.dart' show StaticUse;
 import '../universe/world_impact.dart'
     show WorldImpact, StagedWorldImpactBuilder;
 import 'backend.dart';
+import 'backend_usage.dart' show BackendUsageBuilder;
 
 /**
  * Support for Custom Elements.
@@ -153,6 +154,8 @@ class CustomElementsAnalysisJoin {
 
   CustomElementsAnalysisJoin(this.backend);
 
+  BackendUsageBuilder get backendUsageBuilder => backend.backendUsageBuilder;
+
   WorldImpact flush() {
     if (!demanded) return const WorldImpact();
     var newActiveClasses = new Set<ClassElement>();
@@ -173,7 +176,7 @@ class CustomElementsAnalysisJoin {
               .registerStaticUse(new StaticUse.foreignUse(constructor));
         }
         escapingConstructors
-            .forEach(compiler.globalDependencies.registerDependency);
+            .forEach(backendUsageBuilder.registerGlobalDependency);
         // Force the generaton of the type constant that is the key to an entry
         // in the generated table.
         ConstantValue constant = makeTypeConstant(classElement);

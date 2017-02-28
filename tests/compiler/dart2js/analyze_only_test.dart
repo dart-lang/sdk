@@ -10,10 +10,12 @@ import 'dart:async';
 import "package:async_helper/async_helper.dart";
 
 import '../../utils/dummy_compiler_test.dart' as dummy;
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/options.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart'
     show MessageKind, MessageTemplate;
+import 'package:compiler/src/old_to_new_api.dart';
 
 import 'output_collector.dart';
 
@@ -43,16 +45,17 @@ runCompiler(String main, List<String> options,
   asyncStart();
   OutputCollector outputCollector = new OutputCollector();
   Future<CompilationResult> result = compile(
-      new Uri(scheme: 'main'),
-      new Uri(scheme: 'lib', path: '/'),
-      new Uri(scheme: 'package', path: '/'),
-      localProvider,
-      localHandler,
-      options,
+      new CompilerOptions.parse(
+          entryPoint: new Uri(scheme: 'main'),
+          libraryRoot: new Uri(scheme: 'lib', path: '/'),
+          packageRoot: new Uri(scheme: 'package', path: '/'),
+          options: options),
+      new LegacyCompilerInput(localProvider),
+      new LegacyCompilerDiagnostics(localHandler),
       outputCollector);
   result
       .then((_) {
-        onValue(outputCollector.getOutput('', 'js'), errors, warnings);
+        onValue(outputCollector.getOutput('', OutputType.js), errors, warnings);
       }, onError: (e, st) {
         throw 'Compilation failed: ${e} ${st}';
       })

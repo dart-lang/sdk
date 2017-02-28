@@ -4,10 +4,7 @@
 
 library fasta.dynamic_type_builder;
 
-import 'builder.dart' show
-    LibraryBuilder,
-    TypeBuilder,
-    TypeDeclarationBuilder;
+import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeDeclarationBuilder;
 
 class DynamicTypeBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {

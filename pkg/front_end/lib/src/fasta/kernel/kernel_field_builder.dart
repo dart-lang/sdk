@@ -4,20 +4,10 @@
 
 library fasta.kernel_field_builder;
 
-import 'package:kernel/ast.dart' show
-    Expression,
-    Field,
-    Library,
-    Name;
+import 'package:kernel/ast.dart' show Expression, Field, Library, Name;
 
-import 'kernel_builder.dart' show
-    Builder,
-    FieldBuilder,
-    KernelTypeBuilder,
-    MetadataBuilder;
-
-import '../util/relativize.dart' show
-    relativizeUri;
+import 'kernel_builder.dart'
+    show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
   final Field field;
@@ -26,14 +16,12 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
 
   KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
       Builder compilationUnit, int charOffset)
-      : field =
-            new Field(null, fileUri: relativizeUri(compilationUnit?.fileUri))
-                ..fileOffset = charOffset,
+      : field = new Field(null, fileUri: compilationUnit?.relativeFileUri)
+          ..fileOffset = charOffset,
         super(name, modifiers, compilationUnit, charOffset);
 
   void set initializer(Expression value) {
-    field.initializer = value
-        ..parent = field;
+    field.initializer = value..parent = field;
   }
 
   Field build(Library library) {
@@ -43,11 +31,11 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     }
     bool isInstanceMember = !isStatic && !isTopLevel;
     return field
-        ..isFinal = isFinal
-        ..isConst = isConst
-        ..hasImplicitGetter = isInstanceMember
-        ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
-        ..isStatic = !isInstanceMember;
+      ..isFinal = isFinal
+      ..isConst = isConst
+      ..hasImplicitGetter = isInstanceMember
+      ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
+      ..isStatic = !isInstanceMember;
   }
 
   Field get target => field;

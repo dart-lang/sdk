@@ -66,7 +66,6 @@ vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
-generalized_function_type_test: SkipSlow # Times out in checked mode. Generated test is too large.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == drt || $runtime == dartium) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478

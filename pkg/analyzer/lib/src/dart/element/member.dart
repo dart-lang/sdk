@@ -231,9 +231,6 @@ class FieldFormalParameterMember extends ParameterMember
       : super(baseElement, definingType, type);
 
   @override
-  bool get isCovariant => baseElement.isCovariant;
-
-  @override
   FieldElement get field {
     FieldElement field = (baseElement as FieldFormalParameterElement).field;
     if (field is FieldElement) {
@@ -242,6 +239,9 @@ class FieldFormalParameterMember extends ParameterMember
     }
     return field;
   }
+
+  @override
+  bool get isCovariant => baseElement.isCovariant;
 
   @override
   /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
@@ -386,7 +386,7 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   String toString() {
     StringBuffer buffer = new StringBuffer();
     buffer.write(baseElement.displayName);
-    (type as FunctionTypeImpl).appendTo(buffer);
+    (type as FunctionTypeImpl).appendTo(buffer, new Set.identity());
     return buffer.toString();
   }
 

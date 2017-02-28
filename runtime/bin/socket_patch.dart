@@ -335,8 +335,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // a HttpServer, a WebSocket connection, a process pipe, etc.
   Object owner;
 
-  static double get timestamp => sw.elapsedMicroseconds / 1000000.0;
-
   static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY}) {
     return _IOService._dispatch(_SOCKET_LOOKUP, [host, type._value])
@@ -403,7 +401,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           return lookup(host)
               .then((addresses) {
                 if (addresses.isEmpty) {
-                  throw createError(response, "Failed host lookup: '$host'");
+                  throw createError(null, "Failed host lookup: '$host'");
                 }
                 return addresses;
               });
@@ -505,7 +503,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           return lookup(host)
               .then((list) {
                 if (list.length == 0) {
-                  throw createError(response, "Failed host lookup: '$host'");
+                  throw createError(null, "Failed host lookup: '$host'");
                 }
                 return list[0];
               });
@@ -544,7 +542,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           return lookup(host)
               .then((list) {
                 if (list.length == 0) {
-                  throw createError(response, "Failed host lookup: '$host'");
+                  throw createError(null, "Failed host lookup: '$host'");
                 }
                 return list[0];
               });

@@ -4,17 +4,15 @@
 
 library fasta.field_builder;
 
-import 'builder.dart' show
-    LibraryBuilder,
-    MemberBuilder;
+import 'builder.dart' show LibraryBuilder, MemberBuilder;
 
 abstract class FieldBuilder<T> extends MemberBuilder {
   final String name;
 
   final int modifiers;
 
-  FieldBuilder(this.name, this.modifiers, LibraryBuilder compilationUnit,
-      int charOffset)
+  FieldBuilder(
+      this.name, this.modifiers, LibraryBuilder compilationUnit, int charOffset)
       : super(compilationUnit, charOffset);
 
   void set initializer(T value);

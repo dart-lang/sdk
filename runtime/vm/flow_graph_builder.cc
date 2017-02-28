@@ -2394,7 +2394,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   Value* closure_val = Bind(alloc);
   {
     LocalVariable* closure_tmp_var = EnterTempLocalScope(closure_val);
-    // Store type arguments if scope class is generic.
+    // Store instantiator type arguments if scope class is generic.
     const Type& function_type = Type::ZoneHandle(Z, function.SignatureType());
     const Class& scope_cls = Class::ZoneHandle(Z, function_type.type_class());
     if (scope_cls.IsGeneric()) {
@@ -2405,7 +2405,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
           Class::Handle(Z, owner()->function().Owner());
       Value* type_arguments = BuildInstantiatorTypeArguments(
           node->token_pos(), instantiator_class, NULL);
-      Do(new (Z) StoreInstanceFieldInstr(Closure::type_arguments_offset(),
+      Do(new (Z) StoreInstanceFieldInstr(Closure::instantiator_offset(),
                                          closure_tmp_val, type_arguments,
                                          kEmitStoreBarrier, node->token_pos()));
     }

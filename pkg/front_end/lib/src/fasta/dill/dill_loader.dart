@@ -4,35 +4,26 @@
 
 library fasta.dill_loader;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    File;
+import 'dart:io' show File;
 
-import 'package:kernel/kernel.dart' show
-    loadProgramFromBinary;
+import 'package:kernel/kernel.dart' show loadProgramFromBinary;
 
-import 'package:kernel/ast.dart' show
-    Library,
-    Program;
+import 'package:kernel/ast.dart' show Library, Program;
 
-import '../loader.dart' show
-    Loader;
+import '../loader.dart' show Loader;
 
-import '../target_implementation.dart' show
-    TargetImplementation;
+import '../target_implementation.dart' show TargetImplementation;
 
-import 'dill_library_builder.dart' show
-    DillLibraryBuilder;
+import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillLoader extends Loader<Library> {
   Uri input;
 
   Program program;
 
-  DillLoader(TargetImplementation target)
-      : super(target);
+  DillLoader(TargetImplementation target) : super(target);
 
   DillLibraryBuilder read(Uri uri, [Uri fileUri]) => super.read(uri, fileUri);
 
@@ -53,6 +44,7 @@ class DillLoader extends Loader<Library> {
   void setProgram(Program program) {
     assert(input != null);
     this.program = program;
+    program.unbindCanonicalNames();
     for (Library library in program.libraries) {
       read(library.importUri).library = library;
     }

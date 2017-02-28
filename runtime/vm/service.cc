@@ -1515,16 +1515,23 @@ static RawObject* LookupHeapObjectLibraries(Isolate* isolate,
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate->object_store()->libraries());
   ASSERT(!libs.IsNull());
-  intptr_t id = 0;
-  if (!GetIntegerId(parts[1], &id)) {
-    return Object::sentinel().raw();
-  }
-  if ((id < 0) || (id >= libs.Length())) {
-    return Object::sentinel().raw();
-  }
+  const String& id = String::Handle(String::New(parts[1]));
+  // Scan for private key.
+  String& private_key = String::Handle();
   Library& lib = Library::Handle();
-  lib ^= libs.At(id);
-  ASSERT(!lib.IsNull());
+  bool lib_found = false;
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    ASSERT(!lib.IsNull());
+    private_key ^= lib.private_key();
+    if (private_key.Equals(id)) {
+      lib_found = true;
+      break;
+    }
+  }
+  if (!lib_found) {
+    return Object::sentinel().raw();
+  }
   if (num_parts == 2) {
     return lib.raw();
   }
@@ -3228,6 +3235,28 @@ static bool GetAllocationSamples(Thread* thread, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_native_allocation_samples_params[] = {
+    NO_ISOLATE_PARAMETER,
+    new EnumParameter("tags", true, tags_enum_names),
+    new Int64Parameter("timeOriginMicros", false),
+    new Int64Parameter("timeExtentMicros", false),
+    NULL,
+};
+
+
+static bool GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
+  Profile::TagOrder tag_order =
+      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
+  int64_t time_origin_micros =
+      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
+  int64_t time_extent_micros =
+      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+  ProfilerService::PrintNativeAllocationJSON(js, tag_order, time_origin_micros,
+                                             time_extent_micros);
+  return true;
+}
+
+
 static const MethodParameter* clear_cpu_profile_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,
 };
@@ -4050,6 +4079,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_allocation_profile_params },
   { "_getAllocationSamples", GetAllocationSamples,
       get_allocation_samples_params },
+  { "_getNativeAllocationSamples", GetNativeAllocationSamples,
+      get_native_allocation_samples_params },
   { "getClassList", GetClassList,
     get_class_list_params },
   { "_getCpuProfile", GetCpuProfile,

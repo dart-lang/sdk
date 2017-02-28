@@ -10,6 +10,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/isolate.h"
+#include "vm/malloc_hooks.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/simulator.h"
@@ -2618,7 +2619,8 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
   function = Function::NewClosureFunction(function_name, parent,
                                           TokenPosition::kMinSource);
-  const Closure& closure = Closure::Handle(Closure::New(function, context));
+  const Closure& closure =
+      Closure::Handle(Closure::New(TypeArguments::Handle(), function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT_EQ(closure_class.id(), kClosureCid);
   const Function& closure_function = Function::Handle(closure.function());
@@ -2709,6 +2711,9 @@ ISOLATE_UNIT_TEST_CASE(Code) {
 // Test for immutability of generated instructions. The test crashes with a
 // segmentation fault when writing into it.
 ISOLATE_UNIT_TEST_CASE(CodeImmutability) {
+  bool stack_trace_collection_enabled =
+      MallocHooks::stack_trace_collection_enabled();
+  MallocHooks::set_stack_trace_collection_enabled(false);
   extern void GenerateIncrement(Assembler * assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
@@ -2726,6 +2731,8 @@ ISOLATE_UNIT_TEST_CASE(CodeImmutability) {
     // TODO(regis, fschneider): Should this be FATAL() instead?
     OS::DebugBreak();
   }
+  MallocHooks::set_stack_trace_collection_enabled(
+      stack_trace_collection_enabled);
 }
 
 

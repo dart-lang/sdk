@@ -4,10 +4,7 @@
 
 library fasta.invalid_type_builder;
 
-import 'builder.dart' show
-    Builder,
-    TypeBuilder,
-    TypeDeclarationBuilder;
+import 'builder.dart' show Builder, TypeBuilder, TypeDeclarationBuilder;
 
 abstract class InvalidTypeBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {

@@ -4,28 +4,26 @@
 
 library fasta.diet_parser;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show
-    BeginGroupToken,
-    Token;
+import 'package:front_end/src/fasta/scanner/token.dart'
+    show BeginGroupToken, Token;
 
-import 'package:front_end/src/fasta/parser/class_member_parser.dart' show
-    ClassMemberParser;
+import 'package:front_end/src/fasta/parser/class_member_parser.dart'
+    show ClassMemberParser;
 
-import 'package:front_end/src/fasta/parser/error_kind.dart' show
-    ErrorKind;
+import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;
 
-import 'package:front_end/src/fasta/parser/listener.dart' show
-    Listener;
+import 'package:front_end/src/fasta/parser/listener.dart' show Listener;
 
-import 'package:front_end/src/fasta/parser/parser.dart' show
-    optional;
+import 'package:front_end/src/fasta/parser/parser.dart' show optional;
 
 // TODO(ahe): Move this to parser package.
 class DietParser extends ClassMemberParser {
   DietParser(Listener listener, {bool asyncAwaitKeywordsEnabled: false})
       : super(listener, asyncAwaitKeywordsEnabled: asyncAwaitKeywordsEnabled);
 
-  Token parseFormalParameters(Token token) => skipFormals(token);
+  Token parseFormalParameters(Token token, {bool inFunctionType: false}) {
+    return skipFormals(token);
+  }
 
   Token skipFormals(Token token) {
     listener.beginOptionalFormalParameters(token);

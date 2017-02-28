@@ -7,6 +7,8 @@ library compiler_helper;
 import 'dart:async';
 import "package:expect/expect.dart";
 
+import 'package:compiler/compiler_new.dart';
+
 import 'package:compiler/src/elements/elements.dart' as lego;
 export 'package:compiler/src/elements/elements.dart';
 
@@ -87,7 +89,7 @@ Future<String> compile(String code,
     if (check != null) {
       check(generated);
     }
-    return returnAll ? outputCollector.getOutput('', 'js') : generated;
+    return returnAll ? outputCollector.getOutput('', OutputType.js) : generated;
   } else {
     List<String> options = <String>[Flags.disableTypeInference];
     if (enableTypeAssertions) {
@@ -126,7 +128,7 @@ Future<String> compile(String code,
     if (check != null) {
       check(generated);
     }
-    return returnAll ? outputCollector.getOutput('', 'js') : generated;
+    return returnAll ? outputCollector.getOutput('', OutputType.js) : generated;
   }
 }
 
@@ -153,7 +155,7 @@ Future<String> compileAll(String code,
         compilationSucceded,
         'Unexpected compilation error(s): '
         '${compiler.diagnosticCollector.errors}');
-    return outputCollector.getOutput('', 'js');
+    return outputCollector.getOutput('', OutputType.js);
   });
 }
 

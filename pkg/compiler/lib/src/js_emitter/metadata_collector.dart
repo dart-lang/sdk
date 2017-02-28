@@ -164,8 +164,8 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   DiagnosticReporter get reporter => _compiler.reporter;
 
   bool _mustEmitMetadataFor(Element element) {
-    return _backend.mustRetainMetadata &&
-        _backend.referencedFromMirrorSystem(element);
+    return _backend.mirrorsData.mustRetainMetadata &&
+        _backend.mirrorsData.referencedFromMirrorSystem(element);
   }
 
   /// The metadata function returns the metadata associated with
@@ -324,7 +324,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       if (ignoreTypeVariables) return new jsAst.LiteralNull();
       return _typeVariableHandler.reifyTypeVariable(variable.element);
     }, (ResolutionTypedefType typedef) {
-      return _backend.isAccessibleByReflection(typedef.element);
+      return _backend.mirrorsData.isAccessibleByReflection(typedef.element);
     });
 
     if (representation is jsAst.LiteralString) {

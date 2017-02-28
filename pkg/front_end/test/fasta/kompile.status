@@ -15,13 +15,17 @@ default_values: Crash
 expressions: Crash
 fibonacci: Crash
 for_in_scope: Crash
+function_in_field: Crash
+function_type_recovery: Crash
 functions: Crash
 implicit_this: Crash
 invocations: Fail
 map: Crash
 mixin: Crash
 operators: Crash
+redirecting_constructor: Crash
 statements: Crash
+super_rasta_copy: Crash
 top_level_accessors: Crash
 typedef: Crash
 
@@ -37,7 +41,7 @@ rasta/bad_setter_initializer: Crash
 rasta/bad_unicode: Fail
 rasta/breaking_bad: Crash
 rasta/cascades: Crash
-rasta/class_hierarchy: Fail
+rasta/class_hierarchy: Crash
 rasta/class_member: Crash
 rasta/constant_get_and_invoke: Crash
 rasta/deferred_lib: Fail

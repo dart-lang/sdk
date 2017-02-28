@@ -443,7 +443,9 @@ class RuntimeTypeSupportBuilder {
           parameter,
           id,
           cls.supertype?.asInterfaceType,
-          cls.implementedTypes.map((Supertype type) => type?.asInterfaceType),
+          cls.implementedTypes
+              .map((Supertype type) => type?.asInterfaceType)
+              .toList(),
           callableType)));
     });
 

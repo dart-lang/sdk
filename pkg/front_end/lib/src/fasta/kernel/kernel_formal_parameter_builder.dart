@@ -4,29 +4,34 @@
 
 library fasta.kernel_formal_parameter_builder;
 
-import 'package:kernel/ast.dart' show
-    DynamicType,
-    VariableDeclaration;
+import 'package:kernel/ast.dart' show DynamicType, VariableDeclaration;
 
-import 'kernel_builder.dart' show
-    FormalParameterBuilder,
-    KernelLibraryBuilder,
-    KernelTypeBuilder,
-    MetadataBuilder;
+import 'kernel_builder.dart'
+    show
+        FormalParameterBuilder,
+        KernelLibraryBuilder,
+        KernelTypeBuilder,
+        MetadataBuilder;
 
 class KernelFormalParameterBuilder
     extends FormalParameterBuilder<KernelTypeBuilder> {
   VariableDeclaration declaration;
 
-  KernelFormalParameterBuilder(List<MetadataBuilder> metadata,
-      int modifiers, KernelTypeBuilder type, String name,
-      bool hasThis, KernelLibraryBuilder compilationUnit, int charOffset)
-      : super (metadata, modifiers, type, name, hasThis, compilationUnit,
-          charOffset);
+  KernelFormalParameterBuilder(
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      KernelTypeBuilder type,
+      String name,
+      bool hasThis,
+      KernelLibraryBuilder compilationUnit,
+      int charOffset)
+      : super(metadata, modifiers, type, name, hasThis, compilationUnit,
+            charOffset);
 
   VariableDeclaration build() {
-    return declaration ??= new VariableDeclaration(
-        name, type: type?.build() ?? const DynamicType(), isFinal: isFinal,
+    return declaration ??= new VariableDeclaration(name,
+        type: type?.build() ?? const DynamicType(),
+        isFinal: isFinal,
         isConst: isConst);
   }
 

@@ -6,12 +6,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/fasta/analyzer/ast_builder.dart';
 import 'package:front_end/src/fasta/analyzer/element_store.dart';
 import 'package:front_end/src/fasta/builder/scope.dart';
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:front_end/src/fasta/scanner/precedence.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:test/test.dart';
@@ -21,7 +23,9 @@ import 'parser_test.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ClassMemberParserTest_Fasta);
     defineReflectiveTests(ComplexParserTest_Fasta);
+    defineReflectiveTests(FormalParameterParserTest_Fasta);
     defineReflectiveTests(TopLevelParserTest_Fasta);
   });
 }
@@ -39,6 +43,360 @@ typedef fasta.Token ParseFunction(fasta.Token token);
  */
 class BuilderProxy implements Builder {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+@reflectiveTest
+class ClassMemberParserTest_Fasta extends FastaParserTestCase
+    with ClassMemberParserTestMixin {
+  @override
+  @failingTest
+  void test_constFactory() {
+    // TODO(paulberry): Unhandled event: ConstructorReference
+    super.test_constFactory();
+  }
+
+  @override
+  @failingTest
+  void test_parseAwaitExpression_asStatement_inAsync() {
+    // TODO(paulberry): Add support for async
+    super.test_parseAwaitExpression_asStatement_inAsync();
+  }
+
+  @override
+  @failingTest
+  void test_parseAwaitExpression_asStatement_inSync() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseAwaitExpression_asStatement_inSync();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_constructor_withInitializers() {
+    // TODO(paulberry): 'this' can't be used here.
+    super.test_parseClassMember_constructor_withInitializers();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_field_covariant() {
+    // TODO(paulberry): Unhandled event: Fields
+    super.test_parseClassMember_field_covariant();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_field_instance_prefixedType() {
+    // TODO(paulberry): Unhandled event: Fields
+    super.test_parseClassMember_field_instance_prefixedType();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_field_namedGet() {
+    // TODO(paulberry): Unhandled event: Fields
+    super.test_parseClassMember_field_namedGet();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_field_namedOperator() {
+    // TODO(paulberry): Unhandled event: Fields
+    super.test_parseClassMember_field_namedOperator();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_field_namedOperator_withAssignment() {
+    // TODO(paulberry): Unhandled event: Fields
+    super.test_parseClassMember_field_namedOperator_withAssignment();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_field_namedSet() {
+    // TODO(paulberry): Unhandled event: Fields
+    super.test_parseClassMember_field_namedSet();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_field_static() {
+    // TODO(paulberry): Unhandled event: Fields
+    super.test_parseClassMember_field_static();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_getter_functionType() {
+    // TODO(paulberry): InputError: ErrorKind.ExpectedFunctionBody {actual: get}
+    super.test_parseClassMember_getter_functionType();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_getter_void() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_getter_void();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_external() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_external();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_external_withTypeAndArgs() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_external_withTypeAndArgs();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_generic_comment_noReturnType() {
+    // TODO(paulberry): Fasta doesn't support generic comment syntax
+    super.test_parseClassMember_method_generic_comment_noReturnType();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_generic_comment_returnType() {
+    // TODO(paulberry): Fasta doesn't support generic comment syntax
+    super.test_parseClassMember_method_generic_comment_returnType();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_generic_comment_returnType_bound() {
+    // TODO(paulberry): Fasta doesn't support generic comment syntax
+    super.test_parseClassMember_method_generic_comment_returnType_bound();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_generic_comment_void() {
+    // TODO(paulberry): Fasta doesn't support generic comment syntax
+    super.test_parseClassMember_method_generic_comment_void();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_generic_noReturnType() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_generic_noReturnType();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_generic_returnType() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_generic_returnType();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_generic_void() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_generic_void();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_get_noType() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_get_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_get_type() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_get_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_get_void() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_get_void();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_operator_noType() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_operator_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_operator_type() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_operator_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_operator_void() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_operator_void();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_returnType_functionType() {
+    // TODO(paulberry): InputError: ErrorKind.ExpectedFunctionBody {actual: m}
+    super.test_parseClassMember_method_returnType_functionType();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_returnType_parameterized() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_returnType_parameterized();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_set_noType() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_set_noType();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_set_type() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_set_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_set_void() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_set_void();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_method_trailing_commas() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseClassMember_method_trailing_commas();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_operator_functionType() {
+    // TODO(paulberry): InputError: ErrorKind.ExpectedFunctionBody {actual: operator}
+    super.test_parseClassMember_operator_functionType();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_operator_index() {
+    // TODO(paulberry): Unhandled event: OperatorName
+    super.test_parseClassMember_operator_index();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_operator_indexAssign() {
+    // TODO(paulberry): Unhandled event: OperatorName
+    super.test_parseClassMember_operator_indexAssign();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_redirectingFactory_const() {
+    // TODO(paulberry): Unhandled event: ConstructorReference
+    super.test_parseClassMember_redirectingFactory_const();
+  }
+
+  @override
+  @failingTest
+  void test_parseClassMember_redirectingFactory_nonConst() {
+    // TODO(paulberry): Unhandled event: ConstructorReference
+    super.test_parseClassMember_redirectingFactory_nonConst();
+  }
+
+  @override
+  @failingTest
+  void test_parseConstructor_assert() {
+    // TODO(paulberry): Fasta doesn't support asserts in initializers
+    super.test_parseConstructor_assert();
+  }
+
+  @override
+  @failingTest
+  void test_parseConstructor_with_pseudo_function_literal() {
+    // TODO(paulberry): Expected: an object with length of <1>
+    super.test_parseConstructor_with_pseudo_function_literal();
+  }
+
+  @override
+  @failingTest
+  void test_parseConstructorFieldInitializer_qualified() {
+    // TODO(paulberry): Unhandled event: ThisExpression
+    super.test_parseConstructorFieldInitializer_qualified();
+  }
+
+  @override
+  @failingTest
+  void test_parseConstructorFieldInitializer_unqualified() {
+    // TODO(paulberry): Expected: an object with length of <1>
+    super.test_parseConstructorFieldInitializer_unqualified();
+  }
+
+  @override
+  @failingTest
+  void test_parseGetter_nonStatic() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseGetter_nonStatic();
+  }
+
+  @override
+  @failingTest
+  void test_parseGetter_static() {
+    // TODO(paulberry): Invalid modifier (static). Report an error.
+    super.test_parseGetter_static();
+  }
+
+  @override
+  @failingTest
+  void test_parseInitializedIdentifierList_type() {
+    // TODO(paulberry): Unhandled event: Fields
+    super.test_parseInitializedIdentifierList_type();
+  }
+
+  @override
+  @failingTest
+  void test_parseInitializedIdentifierList_var() {
+    // TODO(paulberry): Unhandled event: Fields
+    super.test_parseInitializedIdentifierList_var();
+  }
+
+  @override
+  @failingTest
+  void test_parseOperator() {
+    // TODO(paulberry): Unhandled event: OperatorName
+    super.test_parseOperator();
+  }
+
+  @override
+  @failingTest
+  void test_parseSetter_nonStatic() {
+    // TODO(paulberry): Add support for method declarations
+    super.test_parseSetter_nonStatic();
+  }
+
+  @override
+  @failingTest
+  void test_parseSetter_static() {
+    // TODO(paulberry): Invalid modifier (static). Report an error.
+    super.test_parseSetter_static();
+  }
 }
 
 /**
@@ -255,10 +613,27 @@ class FastaParserTestCase extends Object
   ParserProxy _parserProxy;
 
   @override
+  set enableAssertInitializer(bool value) {
+    if (value == true) {
+      // TODO(paulberry,ahe): it looks like asserts in initializer lists are not
+      // supported by Fasta.
+      throw new UnimplementedError();
+    }
+  }
+
+  @override
   set enableGenericMethodComments(bool value) {
     if (value == true) {
       // TODO(paulberry,ahe): generic method comment syntax is not supported by
       // Fasta.
+      throw new UnimplementedError();
+    }
+  }
+
+  @override
+  set enableLazyAssignmentOperators(bool value) {
+    // TODO: implement enableLazyAssignmentOperators
+    if (value == true) {
       throw new UnimplementedError();
     }
   }
@@ -283,6 +658,12 @@ class FastaParserTestCase extends Object
 
   @override
   analyzer.Parser get parser => _parserProxy;
+
+  @override
+  void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
+    // TODO(scheglov): implement assertErrorsWithCodes
+    fail('Not implemented');
+  }
 
   @override
   void assertNoErrors() {
@@ -323,6 +704,33 @@ class FastaParserTestCase extends Object
   }
 
   @override
+  FormalParameter parseFormalParameter(String code, ParameterKind kind,
+      {List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+    String parametersCode;
+    if (kind == ParameterKind.REQUIRED) {
+      parametersCode = '($code)';
+    } else if (kind == ParameterKind.POSITIONAL) {
+      parametersCode = '([$code])';
+    } else if (kind == ParameterKind.NAMED) {
+      parametersCode = '({$code})';
+    } else {
+      fail('$kind');
+    }
+    FormalParameterList list = parseFormalParameterList(parametersCode,
+        inFunctionType: false, errorCodes: errorCodes);
+    return list.parameters.single;
+  }
+
+  @override
+  FormalParameterList parseFormalParameterList(String code,
+      {bool inFunctionType: false,
+      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+    return _runParser(
+            code, (parser) => parser.parseFormalParameters, errorCodes)
+        as FormalParameterList;
+  }
+
+  @override
   CompilationUnitMember parseFullCompilationUnitMember() {
     return _parserProxy._run((parser) => parser.parseTopLevelDeclaration)
         as CompilationUnitMember;
@@ -332,6 +740,15 @@ class FastaParserTestCase extends Object
   Directive parseFullDirective() {
     return _parserProxy._run((parser) => parser.parseTopLevelDeclaration)
         as Directive;
+  }
+
+  @override
+  NormalFormalParameter parseNormalFormalParameter(String code,
+      {bool inFunctionType: false,
+      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+    FormalParameterList list = parseFormalParameterList('($code)',
+        inFunctionType: inFunctionType, errorCodes: errorCodes);
+    return list.parameters.single;
   }
 
   @override
@@ -351,6 +768,123 @@ class FastaParserTestCase extends Object
     }
     createParser(source);
     return _parserProxy._run(getParseFunction);
+  }
+}
+
+/**
+ * Tests of the fasta parser based on [FormalParameterParserTestMixin].
+ */
+@reflectiveTest
+class FormalParameterParserTest_Fasta extends FastaParserTestCase
+    with FormalParameterParserTestMixin {
+  @override
+  @failingTest
+  void test_parseFormalParameter_covariant_type_function() {
+    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
+    super.test_parseFormalParameter_covariant_type_function();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameter_type_function() {
+    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
+    super.test_parseFormalParameter_type_function();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_normal_named_inFunctionType() {
+    // TODO(scheglov): Unhandled event: OptionalFormalParameters
+    super.test_parseFormalParameterList_normal_named_inFunctionType();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_prefixedType_partial() {
+    // TODO(scheglov): Unimplemented: errors
+    super.test_parseFormalParameterList_prefixedType_partial();
+  }
+
+  @override
+  @failingTest
+  void test_parseFormalParameterList_prefixedType_partial2() {
+    // TODO(scheglov): Unimplemented: errors
+    super.test_parseFormalParameterList_prefixedType_partial2();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_noType_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super.test_parseNormalFormalParameter_function_noType_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
+    // TODO(scheglov): Not implemented: enableGenericMethodComments=
+    super
+        .test_parseNormalFormalParameter_function_noType_typeParameterComments();
+  }
+
+  @override
+  @failingTest
+  void
+      test_parseNormalFormalParameter_function_noType_typeParameters_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super
+        .test_parseNormalFormalParameter_function_noType_typeParameters_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_type_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super.test_parseNormalFormalParameter_function_type_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_type_typeParameterComments() {
+    // TODO(scheglov): Not implemented: enableGenericMethodComments=
+    super.test_parseNormalFormalParameter_function_type_typeParameterComments();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_type_typeParameters_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super
+        .test_parseNormalFormalParameter_function_type_typeParameters_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_void_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super.test_parseNormalFormalParameter_function_void_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_void_typeParameterComments() {
+    // TODO(scheglov): Not implemented: enableGenericMethodComments=
+    super.test_parseNormalFormalParameter_function_void_typeParameterComments();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_function_void_typeParameters_nullable() {
+    // TODO(scheglov): Not implemented: Nnbd
+    super
+        .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
+  }
+
+  @override
+  @failingTest
+  void test_parseNormalFormalParameter_simple_noName() {
+    // TODO(scheglov): in function type, type instead of parameter name
+    super.test_parseNormalFormalParameter_simple_noName();
   }
 }
 
@@ -421,8 +955,26 @@ class ParserProxy implements analyzer.Parser {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
+  ClassMember parseClassMember(String className) {
+    _astBuilder.className = className;
+    var result = _run((parser) => parser.parseMember) as ClassMember;
+    _astBuilder.className = null;
+    return result;
+  }
+
+  @override
   CompilationUnit parseCompilationUnit2() {
     return _run((parser) => parser.parseUnit) as CompilationUnit;
+  }
+
+  @override
+  ConstructorFieldInitializer parseConstructorFieldInitializer(bool hasThis) {
+    // Fasta's parser doesn't need the [hasThis] hint, so we ignore it.
+    var colon = new fasta.SymbolToken(fasta.COLON_INFO, 0);
+    colon.next = _currentFastaToken;
+    _currentFastaToken = colon;
+    var initializers = _run((parser) => parser.parseInitializers) as List;
+    return initializers[0] as ConstructorFieldInitializer;
   }
 
   /**
@@ -471,74 +1023,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
   @override
   @failingTest
-  void test_function_literal_allowed_at_toplevel() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
-    super.test_function_literal_allowed_at_toplevel();
-  }
-
-  @override
-  @failingTest
-  void
-      test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
-    super
-        .test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
-  void
-      test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
-    super
-        .test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
-  void
-      test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
-    super
-        .test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
-  void
-      test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
-    super
-        .test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
-  void
-      test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
-    super
-        .test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
-  void
-      test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
-    // TODO(paulberry): Unhandled event: UnnamedFunction
-    super
-        .test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassDeclaration_abstract() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseClassDeclaration_abstract();
-  }
-
-  @override
-  @failingTest
   void test_parseClassDeclaration_native() {
     // TODO(paulberry): TODO(paulberry,ahe): Fasta parser doesn't appear to support "native" syntax yet.
     super.test_parseClassDeclaration_native();
@@ -560,15 +1044,8 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseClassDeclaration_typeParameters() {
-    // TODO(paulberry): Unhandled event: TypeVariable
-    super.test_parseClassDeclaration_typeParameters();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
-    // TODO(paulberry): Unhandled event: Qualified
+    // TODO(paulberry): Unhandled event: ConstructorReference
     super.test_parseCompilationUnit_abstractAsPrefix_parameterized();
   }
 
@@ -591,21 +1068,21 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnit_exportAsPrefix() {
-    // TODO(paulberry): TODO(paulberry,ahe): Fasta parser doesn't appear to handle this case correctly.
+    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_exportAsPrefix();
   }
 
   @override
   @failingTest
   void test_parseCompilationUnit_exportAsPrefix_parameterized() {
-    // TODO(paulberry): Unhandled event: TypeArguments
+    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_exportAsPrefix_parameterized();
   }
 
   @override
   @failingTest
   void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
-    // TODO(paulberry): Unhandled event: Qualified
+    // TODO(paulberry): Unhandled event: ConstructorReference
     super.test_parseCompilationUnit_operatorAsPrefix_parameterized();
   }
 
@@ -619,57 +1096,15 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseCompilationUnit_typedefAsPrefix() {
-    // TODO(paulberry): TODO(paulberry,ahe): Fasta parser doesn't appear to handle this case correctly.
+    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_typedefAsPrefix();
   }
 
   @override
   @failingTest
   void test_parseCompilationUnitMember_abstractAsPrefix() {
-    // TODO(paulberry): Unhandled event: Qualified
+    // TODO(paulberry): Unhandled event: ConstructorReference
     super.test_parseCompilationUnitMember_abstractAsPrefix();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_classTypeAlias() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_classTypeAlias();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_constVariable() {
-    // TODO(paulberry): Unhandled event: FieldInitializer
-    super.test_parseCompilationUnitMember_constVariable();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_finalVariable() {
-    // TODO(paulberry): Unhandled event: FieldInitializer
-    super.test_parseCompilationUnitMember_finalVariable();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_function_external_noType() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_function_external_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_function_external_type() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_function_external_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_function_generic_noReturnType() {
-    // TODO(paulberry): Unhandled event: TypeVariable
-    super.test_parseCompilationUnitMember_function_generic_noReturnType();
   }
 
   @override
@@ -682,116 +1117,9 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
         .test_parseCompilationUnitMember_function_generic_noReturnType_annotated();
   }
 
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_function_generic_returnType() {
-    // TODO(paulberry): Unhandled event: TypeVariable
-    super.test_parseCompilationUnitMember_function_generic_returnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_function_generic_void() {
-    // TODO(paulberry): Unhandled event: VoidKeyword
-    super.test_parseCompilationUnitMember_function_generic_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_function_void() {
-    // TODO(paulberry): Unhandled event: VoidKeyword
-    super.test_parseCompilationUnitMember_function_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_getter_external_noType() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_getter_external_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_getter_external_type() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_getter_external_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_setter_external_noType() {
-    // TODO(paulberry): Implement AstBuilder.handleModifier
-    super.test_parseCompilationUnitMember_setter_external_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_setter_external_type() {
-    // TODO(paulberry): Unhandled event: VoidKeyword
-    super.test_parseCompilationUnitMember_setter_external_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_setter_type() {
-    // TODO(paulberry): Unhandled event: VoidKeyword
-    super.test_parseCompilationUnitMember_setter_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_typeAlias_abstract() {
-    // TODO(paulberry,ahe): Capture `=` token
-    super.test_parseCompilationUnitMember_typeAlias_abstract();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_typeAlias_generic() {
-    // TODO(paulberry): Unhandled event: TypeVariable
-    super.test_parseCompilationUnitMember_typeAlias_generic();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_typeAlias_implements() {
-    // TODO(paulberry,ahe): Capture `=` token
-    super.test_parseCompilationUnitMember_typeAlias_implements();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_typeAlias_noImplements() {
-    // TODO(paulberry,ahe): Capture `=` token
-    super.test_parseCompilationUnitMember_typeAlias_noImplements();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnitMember_typedef() {
     // TODO(paulberry): Unhandled event: FunctionTypeAlias
     super.test_parseCompilationUnitMember_typedef();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_variable() {
-    // TODO(paulberry): Unhandled event: FieldInitializer
-    super.test_parseCompilationUnitMember_variable();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_variableGet() {
-    // TODO(paulberry): Unhandled event: FieldInitializer
-    super.test_parseCompilationUnitMember_variableGet();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_variableSet() {
-    // TODO(paulberry): Unhandled event: FieldInitializer
-    super.test_parseCompilationUnitMember_variableSet();
   }
 
   @override
@@ -827,41 +1155,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseEnumDeclaration_one() {
-    // TODO(paulberry): Unhandled event: Enum
-    super.test_parseEnumDeclaration_one();
-  }
-
-  @override
-  @failingTest
-  void test_parseEnumDeclaration_trailingComma() {
-    // TODO(paulberry): Unhandled event: Enum
-    super.test_parseEnumDeclaration_trailingComma();
-  }
-
-  @override
-  @failingTest
-  void test_parseEnumDeclaration_two() {
-    // TODO(paulberry): Unhandled event: Enum
-    super.test_parseEnumDeclaration_two();
-  }
-
-  @override
-  @failingTest
-  void test_parseExportDirective_configuration_multiple() {
-    // TODO(paulberry): Implement endConditionalUri
-    super.test_parseExportDirective_configuration_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseExportDirective_configuration_single() {
-    // TODO(paulberry): Implement endConditionalUri
-    super.test_parseExportDirective_configuration_single();
-  }
-
-  @override
-  @failingTest
   void test_parseFunctionDeclaration_function() {
     // TODO(paulberry): handle doc comments
     super.test_parseFunctionDeclaration_function();
@@ -870,7 +1163,7 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseFunctionDeclaration_functionWithTypeParameters() {
-    // TODO(paulberry): Unhandled event: TypeVariable
+    // TODO(paulberry): handle doc comments
     super.test_parseFunctionDeclaration_functionWithTypeParameters();
   }
 
@@ -898,20 +1191,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseImportDirective_configuration_multiple() {
-    // TODO(paulberry): Implement endConditionalUri
-    super.test_parseImportDirective_configuration_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseImportDirective_configuration_single() {
-    // TODO(paulberry): Implement endConditionalUri
-    super.test_parseImportDirective_configuration_single();
-  }
-
-  @override
-  @failingTest
   void test_parsePartOfDirective_name() {
     // TODO(paulberry,ahe): Thes test verifies that even if URIs in "part of"
     // declarations are enabled, a construct of the form "part of identifier;"
@@ -926,48 +1205,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(paulberry,ahe): URIs in "part of" declarations are not supported by
     // Fasta.
     super.test_parsePartOfDirective_uri();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_function_noParameters() {
-    // TODO(paulberry): Unhandled event: FunctionTypeAlias
-    super.test_parseTypeAlias_function_noParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_function_noReturnType() {
-    // TODO(paulberry): Unhandled event: FunctionTypeAlias
-    super.test_parseTypeAlias_function_noReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_function_parameterizedReturnType() {
-    // TODO(paulberry): Unhandled event: TypeArguments
-    super.test_parseTypeAlias_function_parameterizedReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_function_parameters() {
-    // TODO(paulberry): Unhandled event: FunctionTypeAlias
-    super.test_parseTypeAlias_function_parameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_function_typeParameters() {
-    // TODO(paulberry): Unhandled event: TypeVariable
-    super.test_parseTypeAlias_function_typeParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_function_voidReturnType() {
-    // TODO(paulberry): Unhandled event: VoidKeyword
-    super.test_parseTypeAlias_function_voidReturnType();
   }
 
   @override

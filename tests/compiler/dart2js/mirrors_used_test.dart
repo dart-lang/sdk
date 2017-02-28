@@ -109,15 +109,18 @@ void main() {
       library.forEachLocalMember((member) {
         if (library == compiler.mainApp && member.name == 'Foo') {
           Expect.isTrue(
-              compiler.backend.isAccessibleByReflection(member), '$member');
+              compiler.backend.mirrorsData.isAccessibleByReflection(member),
+              '$member');
           member.forEachLocalMember((classMember) {
             Expect.isTrue(
-                compiler.backend.isAccessibleByReflection(classMember),
+                compiler.backend.mirrorsData
+                    .isAccessibleByReflection(classMember),
                 '$classMember');
           });
         } else {
           Expect.isFalse(
-              compiler.backend.isAccessibleByReflection(member), '$member');
+              compiler.backend.mirrorsData.isAccessibleByReflection(member),
+              '$member');
         }
       });
     }

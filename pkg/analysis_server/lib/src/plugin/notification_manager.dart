@@ -48,8 +48,8 @@ class NotificationManager {
   /**
    * The current set of subscriptions to which the client has subscribed.
    */
-  Map<server.AnalysisService, List<String>> currentSubscriptions =
-      <server.AnalysisService, List<String>>{};
+  Map<server.AnalysisService, Set<String>> currentSubscriptions =
+      <server.AnalysisService, Set<String>>{};
 
   /**
    * The collector being used to collect the analysis errors from the plugins.
@@ -294,7 +294,7 @@ class NotificationManager {
    * Set the current subscriptions to the given set of [newSubscriptions].
    */
   void setSubscriptions(
-      Map<server.AnalysisService, List<String>> newSubscriptions) {
+      Map<server.AnalysisService, Set<String>> newSubscriptions) {
     /**
      * Return the collector associated with the given service, or `null` if the
      * service is not handled by this manager.
@@ -322,8 +322,8 @@ class NotificationManager {
     services.forEach((server.AnalysisService service) {
       ResultCollector collector = collectorFor(service);
       if (collector != null) {
-        List<String> currentPaths = currentSubscriptions[service];
-        List<String> newPaths = newSubscriptions[service];
+        Set<String> currentPaths = currentSubscriptions[service];
+        Set<String> newPaths = newSubscriptions[service];
         if (currentPaths == null) {
           if (newPaths == null) {
             // This should not happen.

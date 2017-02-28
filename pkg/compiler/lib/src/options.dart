@@ -206,6 +206,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// as an heuristic to pick shorter names.
   final bool useFrequencyNamer;
 
+  /// Whether to generate source-information from both the old and the new
+  /// source-information engines. (experimental)
+  final bool useMultiSourceInfo;
+
   /// Whether to use the new source-information implementation for source-maps.
   /// (experimental)
   final bool useNewSourceInfo;
@@ -295,6 +299,7 @@ class CompilerOptions implements DiagnosticOptions {
         useKernel: _hasOption(options, Flags.useKernel),
         useFrequencyNamer:
             !_hasOption(options, Flags.noFrequencyBasedMinification),
+        useMultiSourceInfo: _hasOption(options, Flags.useMultiSourceInfo),
         useNewSourceInfo: _hasOption(options, Flags.useNewSourceInfo),
         useStartupEmitter: _hasOption(options, Flags.fastStartup),
         verbose: _hasOption(options, Flags.verbose));
@@ -352,6 +357,7 @@ class CompilerOptions implements DiagnosticOptions {
       bool useContentSecurityPolicy: false,
       bool useKernel: false,
       bool useFrequencyNamer: true,
+      bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false,
       bool useStartupEmitter: false,
       bool verbose: false}) {
@@ -422,6 +428,7 @@ class CompilerOptions implements DiagnosticOptions {
         useContentSecurityPolicy: useContentSecurityPolicy,
         useKernel: useKernel,
         useFrequencyNamer: useFrequencyNamer,
+        useMultiSourceInfo: useMultiSourceInfo,
         useNewSourceInfo: useNewSourceInfo,
         useStartupEmitter: useStartupEmitter,
         verbose: verbose);
@@ -470,6 +477,7 @@ class CompilerOptions implements DiagnosticOptions {
       this.useContentSecurityPolicy: false,
       this.useKernel: false,
       this.useFrequencyNamer: false,
+      this.useMultiSourceInfo: false,
       this.useNewSourceInfo: false,
       this.useStartupEmitter: false,
       this.verbose: false})
@@ -525,6 +533,7 @@ class CompilerOptions implements DiagnosticOptions {
       useContentSecurityPolicy,
       useKernel,
       useFrequencyNamer,
+      useMultiSourceInfo,
       useNewSourceInfo,
       useStartupEmitter,
       verbose}) {
@@ -589,6 +598,7 @@ class CompilerOptions implements DiagnosticOptions {
             useContentSecurityPolicy ?? options.useContentSecurityPolicy,
         useKernel: useKernel ?? options.useKernel,
         useFrequencyNamer: useFrequencyNamer ?? options.useFrequencyNamer,
+        useMultiSourceInfo: useMultiSourceInfo ?? options.useMultiSourceInfo,
         useNewSourceInfo: useNewSourceInfo ?? options.useNewSourceInfo,
         useStartupEmitter: useStartupEmitter ?? options.useStartupEmitter,
         verbose: verbose ?? options.verbose);

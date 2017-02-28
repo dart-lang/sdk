@@ -4,14 +4,11 @@
 
 library fasta.target;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'ticker.dart' show
-    Ticker;
+import 'ticker.dart' show Ticker;
 
-import 'ast_kind.dart' show
-    AstKind;
+import 'ast_kind.dart' show AstKind;
 
 /// A compilation target.
 ///

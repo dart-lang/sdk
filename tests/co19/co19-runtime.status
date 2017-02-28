@@ -2,11 +2,18 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $runtime == vm ]
+# These tests are timing dependent and should be non-flaky once the fix for
+# https://github.com/dart-lang/co19/issues/86 is merged into master.
+# (They are skipped on $runtime == pre_compiled below.)
+LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 28269
+LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail  # Issue 28269
+LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269
+
 [$runtime == vm && $compiler == none && $system == fuchsia]
 *: Skip  # Tests not included in the image.
 
 [ $runtime == vm || $runtime == dart_precompiled ]
-
 # Failures ok in tests below. VM moves super initializer to end of list.
 Language/Classes/Constructors/Generative_Constructors/execution_t03: Fail, OK
 Language/Expressions/Instance_Creation/New/execution_t04: Fail, OK
@@ -40,9 +47,6 @@ LibTest/isolate/Isolate/spawn_A04_t03: Skip # Flaky, Issue 15974
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
-[ $compiler == precompiler && $runtime == dart_precompiled && $mode == debug ]
-Language/Expressions/Function_Invocation/async_invokation_t06: Crash # Issue 28759
-
 [ $runtime == vm || $runtime == dart_precompiled ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
@@ -53,8 +57,6 @@ Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 
 [ ($runtime == vm || $runtime == dart_precompiled ) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
-LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269
-LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail  # Issue 28269
 
 [ ($runtime == vm || $runtime == dart_precompiled) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc64 && $arch != simdbc) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
@@ -217,8 +219,6 @@ LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
-LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Timing dependent
-LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail # Timing dependent
 LibTest/isolate/ReceivePort/take_A01_t02: Skip # Issue 27773
 
 [ $runtime == vm && $mode == release && $system == linux && ($arch == x64 || $arch == ia32)]
@@ -226,6 +226,3 @@ LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow
 
 [ $runtime == vm && $mode == release && $system == linux && $arch == ia32]
 service/dev_fs_spawn_test: Pass, Fail # Issue 28411
-
-[ $runtime == vm && $system == linux && ($arch == x64 || $arch == ia32) ]
-co19/LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 28269

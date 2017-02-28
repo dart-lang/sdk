@@ -4,28 +4,19 @@
 
 library fasta.loader;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:collection' show
-    Queue;
+import 'dart:collection' show Queue;
 
-import 'ast_kind.dart' show
-    AstKind;
+import 'ast_kind.dart' show AstKind;
 
-import 'builder/builder.dart' show
-    Builder,
-    LibraryBuilder;
+import 'builder/builder.dart' show Builder, LibraryBuilder;
 
-import 'errors.dart' show
-    InputError,
-    firstSourceUri;
+import 'errors.dart' show InputError, firstSourceUri;
 
-import 'target_implementation.dart' show
-    TargetImplementation;
+import 'target_implementation.dart' show TargetImplementation;
 
-import 'ticker.dart' show
-    Ticker;
+import 'ticker.dart' show Ticker;
 
 abstract class Loader<L> {
   final Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};

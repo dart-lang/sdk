@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_ALLOCATION_H_
 #define RUNTIME_VM_ALLOCATION_H_
 
+#include "platform/allocation.h"
 #include "platform/assert.h"
 #include "vm/base_isolate.h"
 #include "vm/globals.h"
@@ -14,21 +15,6 @@ namespace dart {
 // Forward declarations.
 class Isolate;
 class Thread;
-
-// Stack allocated objects subclass from this base class. Objects of this type
-// cannot be allocated on either the C or object heaps. Destructors for objects
-// of this type will not be run unless the stack is unwound through normal
-// program control flow.
-class ValueObject {
- public:
-  ValueObject() {}
-  ~ValueObject() {}
-
- private:
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(ValueObject);
-};
-
 
 // Stack resources subclass from this base class. The VM will ensure that the
 // destructors of these objects are called before the stack is unwound past the
@@ -62,15 +48,6 @@ class StackResource {
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(StackResource);
-};
-
-
-// Static allocated classes only contain static members and can never
-// be instantiated in the heap or on the stack.
-class AllStatic {
- private:
-  DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(AllStatic);
 };
 
 

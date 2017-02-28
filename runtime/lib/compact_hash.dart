@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:typed_data' show Uint32List;
+import 'dart:_internal' as internal;
 
 // Hash table with open addressing that separates the index from keys/values.
 

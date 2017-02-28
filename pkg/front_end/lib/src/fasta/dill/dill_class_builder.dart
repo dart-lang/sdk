@@ -4,29 +4,19 @@
 
 library fasta.dill_class_builder;
 
-import 'package:kernel/ast.dart' show
-    Class,
-    Constructor,
-    Member,
-    Procedure,
-    ProcedureKind;
+import 'package:kernel/ast.dart'
+    show Class, Constructor, Member, Procedure, ProcedureKind;
 
-import '../errors.dart' show
-    internalError;
+import '../errors.dart' show internalError;
 
-import '../kernel/kernel_builder.dart' show
-    Builder,
-    KernelClassBuilder,
-    KernelTypeBuilder;
+import '../kernel/kernel_builder.dart'
+    show Builder, KernelClassBuilder, KernelTypeBuilder;
 
-import '../modifier.dart' show
-    abstractMask;
+import '../modifier.dart' show abstractMask;
 
-import 'dill_member_builder.dart' show
-    DillMemberBuilder;
+import 'dill_member_builder.dart' show DillMemberBuilder;
 
-import 'dill_library_builder.dart' show
-    DillLibraryBuilder;
+import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillClassBuilder extends KernelClassBuilder {
   final Class cls;

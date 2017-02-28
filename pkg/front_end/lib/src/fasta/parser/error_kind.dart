@@ -19,7 +19,6 @@ enum ErrorKind {
   /// Dart Language Specification) Dart VM native clauses. See
   /// [dart_vm_native.dart].
   ExpectedClassBodyToSkip,
-
   ExpectedDeclaration,
   ExpectedExpression,
   ExpectedFunctionBody,
@@ -30,6 +29,7 @@ enum ErrorKind {
   ExpectedType,
   ExtraneousModifier,
   ExtraneousModifierReplace,
+  InvalidInlineFunctionType,
   InvalidAwaitFor,
   InvalidSyncModifier,
   InvalidVoid,
@@ -46,6 +46,5 @@ enum ErrorKind {
   UnterminatedComment,
   UnterminatedString,
   UnterminatedToken,
-
   Unspecified,
 }

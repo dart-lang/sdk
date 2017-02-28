@@ -4,6 +4,8 @@
 
 library analyzer.test.src.summary.resynthesize_ast_test;
 
+import 'dart:async';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -50,7 +52,7 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
-  CompilationUnitElement checkFile(String content) {
+  Future<CompilationUnitElement> checkFileElement(String content) async {
     Source source = addSource('/main.dart', content);
     SummaryResynthesizer resynthesizer = _encodeLibrary(source);
     LibraryElementImpl resynthesized = _checkSource(resynthesizer, source);
@@ -77,135 +79,90 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel() {
-    super.test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel();
+  test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel() async {
+    await super.test_blockBodiedLambdas_async_allReturnsAreFutures_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_allReturnsAreValues_topLevel() {
-    super.test_blockBodiedLambdas_async_allReturnsAreValues_topLevel();
+  test_blockBodiedLambdas_async_allReturnsAreValues_topLevel() async {
+    await super.test_blockBodiedLambdas_async_allReturnsAreValues_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel() {
-    super.test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel();
+  test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel() async {
+    await super.test_blockBodiedLambdas_async_mixOfValuesAndFutures_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_asyncStar_topLevel() {
-    super.test_blockBodiedLambdas_asyncStar_topLevel();
+  test_blockBodiedLambdas_asyncStar_topLevel() async {
+    await super.test_blockBodiedLambdas_asyncStar_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_basic_topLevel() {
-    super.test_blockBodiedLambdas_basic_topLevel();
+  test_blockBodiedLambdas_basic_topLevel() async {
+    await super.test_blockBodiedLambdas_basic_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_inferBottom_async_topLevel() {
-    super.test_blockBodiedLambdas_inferBottom_async_topLevel();
+  test_blockBodiedLambdas_inferBottom_async_topLevel() async {
+    await super.test_blockBodiedLambdas_inferBottom_async_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_inferBottom_asyncStar_topLevel() {
-    super.test_blockBodiedLambdas_inferBottom_asyncStar_topLevel();
+  test_blockBodiedLambdas_inferBottom_asyncStar_topLevel() async {
+    await super.test_blockBodiedLambdas_inferBottom_asyncStar_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_inferBottom_sync_topLevel() {
-    super.test_blockBodiedLambdas_inferBottom_sync_topLevel();
+  test_blockBodiedLambdas_inferBottom_sync_topLevel() async {
+    await super.test_blockBodiedLambdas_inferBottom_sync_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_inferBottom_syncStar_topLevel() {
-    super.test_blockBodiedLambdas_inferBottom_syncStar_topLevel();
+  test_blockBodiedLambdas_inferBottom_syncStar_topLevel() async {
+    await super.test_blockBodiedLambdas_inferBottom_syncStar_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_LUB_topLevel() {
-    super.test_blockBodiedLambdas_LUB_topLevel();
+  test_blockBodiedLambdas_LUB_topLevel() async {
+    await super.test_blockBodiedLambdas_LUB_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_nestedLambdas_topLevel() {
-    super.test_blockBodiedLambdas_nestedLambdas_topLevel();
+  test_blockBodiedLambdas_nestedLambdas_topLevel() async {
+    await super.test_blockBodiedLambdas_nestedLambdas_topLevel();
   }
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_syncStar_topLevel() {
-    super.test_blockBodiedLambdas_syncStar_topLevel();
+  test_blockBodiedLambdas_syncStar_topLevel() async {
+    await super.test_blockBodiedLambdas_syncStar_topLevel();
   }
 
   @override
-  void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
+  test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() async {
     variablesWithNotConstInitializers.add('a2');
-    super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
+    await super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
   }
 
   @override
   @failingTest
-  void test_circularReference_viaClosures_initializerTypes() {
-    super.test_circularReference_viaClosures_initializerTypes();
+  test_circularReference_viaClosures_initializerTypes() async {
+    await super.test_circularReference_viaClosures_initializerTypes();
   }
 
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments() {
-    // TODO(jmesserly): does this need to be implemented in AST summaries?
-    // The test might need a change as well to not be based on local variable
-    // types, which don't seem to be available.
-    super.test_constructors_inferFromArguments();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_const() {
-    super.test_constructors_inferFromArguments_const();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_factory() {
-    super.test_constructors_inferFromArguments_factory();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_named() {
-    super.test_constructors_inferFromArguments_named();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_namedFactory() {
-    super.test_constructors_inferFromArguments_namedFactory();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_redirecting() {
-    super.test_constructors_inferFromArguments_redirecting();
-  }
-
-  @override
-  @failingTest
-  void test_constructors_inferFromArguments_redirectingFactory() {
-    super.test_constructors_inferFromArguments_redirectingFactory();
-  }
-
-  void test_infer_extractIndex_custom() {
-    var unit = checkFile('''
+  test_infer_extractIndex_custom() async {
+    var unit = await checkFileElement('''
 class A {
   String operator [](_) => null;
 }
@@ -215,24 +172,24 @@ var b = a[0];
     expect(unit.topLevelVariables[1].type.toString(), 'String');
   }
 
-  void test_infer_extractIndex_fromList() {
-    var unit = checkFile('''
+  test_infer_extractIndex_fromList() async {
+    var unit = await checkFileElement('''
 var a = <int>[1, 2, 3];
 var b = a[0];
   ''');
     expect(unit.topLevelVariables[1].type.toString(), 'int');
   }
 
-  void test_infer_extractIndex_fromMap() {
-    var unit = checkFile('''
+  test_infer_extractIndex_fromMap() async {
+    var unit = await checkFileElement('''
 var a = <int, double>{};
 var b = a[0];
   ''');
     expect(unit.topLevelVariables[1].type.toString(), 'double');
   }
 
-  void test_infer_extractProperty_getter() {
-    checkFile(r'''
+  test_infer_extractProperty_getter() async {
+    await checkFileElement(r'''
 var a = 1.isEven;
 var b = 2.isNaN;
 var c = 3.foo;
@@ -240,8 +197,8 @@ var d = foo.bar;
   ''');
   }
 
-  void test_infer_extractProperty_getter_sequence() {
-    var unit = checkFile(r'''
+  test_infer_extractProperty_getter_sequence() async {
+    var unit = await checkFileElement(r'''
 class A {
   B b = new B();
 }
@@ -257,8 +214,8 @@ var v = a.b.c.d;
     expect(unit.topLevelVariables[1].type.toString(), 'int');
   }
 
-  void test_infer_extractProperty_getter_sequence_generic() {
-    var unit = checkFile(r'''
+  test_infer_extractProperty_getter_sequence_generic() async {
+    var unit = await checkFileElement(r'''
 class A<T> {
   B<T> b = new B<T>();
 }
@@ -274,8 +231,8 @@ var v = a.b.c.d;
     expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
   }
 
-  void test_infer_extractProperty_getter_sequence_withUnresolved() {
-    var unit = checkFile(r'''
+  test_infer_extractProperty_getter_sequence_withUnresolved() async {
+    var unit = await checkFileElement(r'''
 class A {
   B b = new B();
 }
@@ -288,8 +245,8 @@ var v = a.b.foo.c;
     expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
   }
 
-  void test_infer_extractProperty_method() {
-    var unit = checkFile(r'''
+  test_infer_extractProperty_method() async {
+    var unit = await checkFileElement(r'''
 class A {
   int m(double p1, String p2) => 42;
 }
@@ -299,15 +256,15 @@ var v = a.m;
     expect(unit.topLevelVariables[1].type.toString(), '(double, String) → int');
   }
 
-  void test_infer_extractProperty_method2() {
-    var unit = checkFile(r'''
+  test_infer_extractProperty_method2() async {
+    var unit = await checkFileElement(r'''
 var a = 1.round;
   ''');
     expect(unit.topLevelVariables[0].type.toString(), '() → int');
   }
 
-  void test_infer_extractProperty_method_sequence() {
-    var unit = checkFile(r'''
+  test_infer_extractProperty_method_sequence() async {
+    var unit = await checkFileElement(r'''
 class A {
   B b = new B();
 }
@@ -323,8 +280,8 @@ var v = a.b.c.m;
     expect(unit.topLevelVariables[1].type.toString(), '(double, String) → int');
   }
 
-  void test_infer_invokeConstructor_factoryRedirected() {
-    checkFile(r'''
+  test_infer_invokeConstructor_factoryRedirected() async {
+    await checkFileElement(r'''
 class A {
   factory A() = B;
 }
@@ -333,8 +290,8 @@ var a = new A();
   ''');
   }
 
-  void test_infer_invokeConstructor_named() {
-    checkFile(r'''
+  test_infer_invokeConstructor_named() async {
+    await checkFileElement(r'''
 class A {
   A.aaa();
 }
@@ -348,7 +305,7 @@ var b3 = new B<List<int>, Map<List<int>, Set<String>>>.bbb();
   ''');
   }
 
-  void test_infer_invokeConstructor_named_importedWithPrefix() {
+  test_infer_invokeConstructor_named_importedWithPrefix() async {
     addFile(
         r'''
 class A {
@@ -359,7 +316,7 @@ class B<K, V> {
 }
 ''',
         name: '/a.dart');
-    checkFile(r'''
+    await checkFileElement(r'''
 import 'a.dart' as p;
 var a = new p.A.aaa();
 var b1 = new p.B.bbb();
@@ -367,8 +324,8 @@ var b2 = new p.B<int, String>.bbb();
   ''');
   }
 
-  void test_infer_invokeConstructor_unnamed() {
-    checkFile(r'''
+  test_infer_invokeConstructor_unnamed() async {
+    await checkFileElement(r'''
 class A {
   A();
 }
@@ -381,8 +338,8 @@ var b2 = new B<int>();
   ''');
   }
 
-  void test_infer_invokeConstructor_unnamed_synthetic() {
-    checkFile(r'''
+  test_infer_invokeConstructor_unnamed_synthetic() async {
+    await checkFileElement(r'''
 class A {}
 class B<T> {}
 var a = new A();
@@ -391,37 +348,37 @@ var b2 = new B<int>();
   ''');
   }
 
-  void test_infer_invokeMethodRef_function() {
-    var unit = checkFile(r'''
+  test_infer_invokeMethodRef_function() async {
+    var unit = await checkFileElement(r'''
 int m() => 0;
 var a = m();
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
   }
 
-  void test_infer_invokeMethodRef_function_generic() {
-    var unit = checkFile(r'''
+  test_infer_invokeMethodRef_function_generic() async {
+    var unit = await checkFileElement(r'''
 /*=Map<int, V>*/ m/*<V>*/(/*=V*/ a) => null;
 var a = m(2.3);
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'Map<int, double>');
   }
 
-  void test_infer_invokeMethodRef_function_importedWithPrefix() {
+  test_infer_invokeMethodRef_function_importedWithPrefix() async {
     addFile(
         r'''
 int m() => 0;
 ''',
         name: '/a.dart');
-    var unit = checkFile(r'''
+    var unit = await checkFileElement(r'''
 import 'a.dart' as p;
 var a = p.m();
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
   }
 
-  void test_infer_invokeMethodRef_method() {
-    var unit = checkFile(r'''
+  test_infer_invokeMethodRef_method() async {
+    var unit = await checkFileElement(r'''
 class A {
   int m() => 0;
 }
@@ -431,8 +388,8 @@ var b = a.m();
     expect(unit.topLevelVariables[1].type.toString(), 'int');
   }
 
-  void test_infer_invokeMethodRef_method_g() {
-    var unit = checkFile(r'''
+  test_infer_invokeMethodRef_method_g() async {
+    var unit = await checkFileElement(r'''
 class A {
   /*=T*/ m/*<T>*/(/*=T*/ a) => null;
 }
@@ -442,8 +399,8 @@ var b = a.m(1.0);
     expect(unit.topLevelVariables[1].type.toString(), 'double');
   }
 
-  void test_infer_invokeMethodRef_method_genericSequence() {
-    var unit = checkFile(r'''
+  test_infer_invokeMethodRef_method_genericSequence() async {
+    var unit = await checkFileElement(r'''
 class A<T> {
   B<T> b = new B<T>();
 }
@@ -459,8 +416,8 @@ var v = a.b.c.m();
     expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
   }
 
-  void test_infer_invokeMethodRef_method_gg() {
-    var unit = checkFile(r'''
+  test_infer_invokeMethodRef_method_gg() async {
+    var unit = await checkFileElement(r'''
 class A<K> {
   /*=Map<K, V>*/ m/*<V>*/(/*=V*/ a) => null;
 }
@@ -470,7 +427,7 @@ var b = a.m(1.0);
     expect(unit.topLevelVariables[1].type.toString(), 'Map<int, double>');
   }
 
-  void test_infer_invokeMethodRef_method_importedWithPrefix() {
+  test_infer_invokeMethodRef_method_importedWithPrefix() async {
     addFile(
         r'''
 class A {
@@ -479,14 +436,14 @@ class A {
 var a = new A();
 ''',
         name: '/a.dart');
-    var unit = checkFile(r'''
+    var unit = await checkFileElement(r'''
 import 'a.dart' as p;
 var b = p.a.m();
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
   }
 
-  void test_infer_invokeMethodRef_method_importedWithPrefix2() {
+  test_infer_invokeMethodRef_method_importedWithPrefix2() async {
     addFile(
         r'''
 class A {
@@ -498,15 +455,15 @@ class B {
 var a = new A();
 ''',
         name: '/a.dart');
-    var unit = checkFile(r'''
+    var unit = await checkFileElement(r'''
 import 'a.dart' as p;
 var b = p.a.b.m();
   ''');
     expect(unit.topLevelVariables[0].type.toString(), 'int');
   }
 
-  void test_infer_invokeMethodRef_method_withInferredTypeInLibraryCycle() {
-    var unit = checkFile('''
+  test_infer_invokeMethodRef_method_withInferredTypeInLibraryCycle() async {
+    var unit = await checkFileElement('''
 class Base {
   int m() => 0;
 }
@@ -522,7 +479,7 @@ var b = a.m();
     expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
   }
 
-  void test_infer_invokeMethodRef_method_withInferredTypeOutsideLibraryCycle() {
+  test_infer_invokeMethodRef_method_withInferredTypeOutsideLibraryCycle() async {
     addFile(
         '''
 class Base {
@@ -533,7 +490,7 @@ class A extends Base {
 }
 ''',
         name: '/a.dart');
-    var unit = checkFile('''
+    var unit = await checkFileElement('''
 import 'a.dart';
 var a = new A();
 var b = a.m();
@@ -547,49 +504,49 @@ var b = a.m();
 
   @override
   @failingTest
-  void test_inferCorrectlyOnMultipleVariablesDeclaredTogether() {
-    super.test_inferCorrectlyOnMultipleVariablesDeclaredTogether();
+  test_inferCorrectlyOnMultipleVariablesDeclaredTogether() async {
+    await super.test_inferCorrectlyOnMultipleVariablesDeclaredTogether();
   }
 
   @override
   @failingTest
-  void test_inferenceInCyclesIsDeterministic() {
-    super.test_inferenceInCyclesIsDeterministic();
+  test_inferenceInCyclesIsDeterministic() async {
+    await super.test_inferenceInCyclesIsDeterministic();
   }
 
   @override
   @failingTest
-  void test_inferLocalFunctionReturnType() {
-    super.test_inferLocalFunctionReturnType();
+  test_inferLocalFunctionReturnType() async {
+    await super.test_inferLocalFunctionReturnType();
   }
 
   @override
   @failingTest
-  void test_inferredType_blockBodiedClosure_noArguments() {
-    super.test_inferredType_blockBodiedClosure_noArguments();
+  test_inferredType_blockBodiedClosure_noArguments() async {
+    await super.test_inferredType_blockBodiedClosure_noArguments();
   }
 
   @override
   @failingTest
-  void test_inferredType_blockClosure_noArgs_noReturn() {
-    super.test_inferredType_blockClosure_noArgs_noReturn();
+  test_inferredType_blockClosure_noArgs_noReturn() async {
+    await super.test_inferredType_blockClosure_noArgs_noReturn();
   }
 
   @override
   @failingTest
-  void test_inferredType_opAssignToProperty_prefixedIdentifier() {
-    super.test_inferredType_opAssignToProperty_prefixedIdentifier();
+  test_inferredType_opAssignToProperty_prefixedIdentifier() async {
+    await super.test_inferredType_opAssignToProperty_prefixedIdentifier();
   }
 
   @override
   @failingTest
-  void test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface() {
-    super
+  test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface() async {
+    return super
         .test_inferredType_opAssignToProperty_prefixedIdentifier_viaInterface();
   }
 
-  void test_invokeMethod_notGeneric_genericClass() {
-    var unit = checkFile(r'''
+  test_invokeMethod_notGeneric_genericClass() async {
+    var unit = await checkFileElement(r'''
 class C<T> {
   T m(int a, {String b, T c}) => null;
 }
@@ -598,8 +555,8 @@ var v = new C<double>().m(1, b: 'bbb', c: 2.0);
     expect(unit.topLevelVariables[0].type.toString(), 'double');
   }
 
-  void test_invokeMethod_notGeneric_notGenericClass() {
-    var unit = checkFile(r'''
+  test_invokeMethod_notGeneric_notGenericClass() async {
+    var unit = await checkFileElement(r'''
 class C {
   int m(int a, {String b, int c}) => null;
 }
@@ -610,112 +567,109 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
 
   @override
   @failingTest
-  void test_nullCoalescingOperator() {
-    super.test_nullCoalescingOperator();
+  test_nullCoalescingOperator() async {
+    await super.test_nullCoalescingOperator();
   }
 
   @override
   @failingTest
-  void test_unsafeBlockClosureInference_closureCall() {
-    super.test_unsafeBlockClosureInference_closureCall();
+  test_unsafeBlockClosureInference_closureCall() async {
+    await super.test_unsafeBlockClosureInference_closureCall();
   }
 
   @override
   @failingTest
-  void test_unsafeBlockClosureInference_constructorCall_implicitTypeParam() {
-    super.test_unsafeBlockClosureInference_constructorCall_implicitTypeParam();
+  test_unsafeBlockClosureInference_constructorCall_implicitTypeParam() async {
+    return super
+        .test_unsafeBlockClosureInference_constructorCall_implicitTypeParam();
   }
 
   @override
   @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() {
-    super
+  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() async {
+    return super
         .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2();
   }
 
   @override
   @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment() {
-    super
+  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment() async {
+    return super
         .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2_comment();
   }
 
   @override
   @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() {
-    super
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
+    return super
         .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2();
   }
 
   @override
   @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment() {
-    super
+  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment() async {
+    return super
         .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2_comment();
   }
 
   @override
   @failingTest
-  void test_unsafeBlockClosureInference_functionCall_implicitTypeParam() {
-    super.test_unsafeBlockClosureInference_functionCall_implicitTypeParam();
+  test_unsafeBlockClosureInference_functionCall_implicitTypeParam() async {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_implicitTypeParam();
   }
 
   @override
   @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment() {
-    super
+  test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment() async {
+    return super
         .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_comment();
   }
 
   @override
   @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() {
-    super
+  test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() async {
+    return super
         .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr();
   }
 
   @override
   @failingTest
-  void
-      test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment() {
-    super
+  test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment() async {
+    return super
         .test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr_comment();
   }
 
   @override
   @failingTest
-  void test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() {
-    super.test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr();
+  test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() async {
+    return super
+        .test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr();
   }
 
   @override
   @failingTest
-  void test_unsafeBlockClosureInference_inList_untyped() {
-    super.test_unsafeBlockClosureInference_inList_untyped();
+  test_unsafeBlockClosureInference_inList_untyped() async {
+    await super.test_unsafeBlockClosureInference_inList_untyped();
   }
 
   @override
   @failingTest
-  void test_unsafeBlockClosureInference_inMap_untyped() {
-    super.test_unsafeBlockClosureInference_inMap_untyped();
+  test_unsafeBlockClosureInference_inMap_untyped() async {
+    await super.test_unsafeBlockClosureInference_inMap_untyped();
   }
 
   @override
   @failingTest
-  void test_unsafeBlockClosureInference_methodCall_implicitTypeParam() {
-    super.test_unsafeBlockClosureInference_methodCall_implicitTypeParam();
+  test_unsafeBlockClosureInference_methodCall_implicitTypeParam() async {
+    return super
+        .test_unsafeBlockClosureInference_methodCall_implicitTypeParam();
   }
 
   @override
   @failingTest
-  void test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment() {
-    super
+  test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment() async {
+    return super
         .test_unsafeBlockClosureInference_methodCall_implicitTypeParam_comment();
   }
 
@@ -743,32 +697,32 @@ class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
       super.createOptions()..strongMode = true;
 
   @override
-  test_instantiateToBounds_boundRefersToItself() {
-    super.test_instantiateToBounds_boundRefersToItself();
+  test_instantiateToBounds_boundRefersToItself() async {
+    await super.test_instantiateToBounds_boundRefersToItself();
   }
 
   @override
   @failingTest
-  test_syntheticFunctionType_genericClosure() {
-    super.test_syntheticFunctionType_genericClosure();
+  test_syntheticFunctionType_genericClosure() async {
+    await super.test_syntheticFunctionType_genericClosure();
   }
 
   @override
   @failingTest
-  test_syntheticFunctionType_inGenericClass() {
-    super.test_syntheticFunctionType_inGenericClass();
+  test_syntheticFunctionType_inGenericClass() async {
+    await super.test_syntheticFunctionType_inGenericClass();
   }
 
   @override
   @failingTest
-  test_syntheticFunctionType_noArguments() {
-    super.test_syntheticFunctionType_noArguments();
+  test_syntheticFunctionType_noArguments() async {
+    await super.test_syntheticFunctionType_noArguments();
   }
 
   @override
   @failingTest
-  test_syntheticFunctionType_withArguments() {
-    super.test_syntheticFunctionType_withArguments();
+  test_syntheticFunctionType_withArguments() async {
+    await super.test_syntheticFunctionType_withArguments();
   }
 }
 

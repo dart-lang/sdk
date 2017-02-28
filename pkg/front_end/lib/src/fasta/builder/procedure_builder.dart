@@ -7,21 +7,19 @@ library fasta.procedure_builder;
 // Note: we're deliberately using AsyncMarker and ProcedureKind from kernel
 // outside the kernel-specific builders. This is simpler than creating
 // additional enums.
-import 'package:kernel/ast.dart' show
-    AsyncMarker,
-    ProcedureKind;
+import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
 
-import 'builder.dart' show
-    Builder,
-    FormalParameterBuilder,
-    LibraryBuilder,
-    MemberBuilder,
-    MetadataBuilder,
-    TypeBuilder,
-    TypeVariableBuilder;
+import 'builder.dart'
+    show
+        Builder,
+        FormalParameterBuilder,
+        LibraryBuilder,
+        MemberBuilder,
+        MetadataBuilder,
+        TypeBuilder,
+        TypeVariableBuilder;
 
-import 'scope.dart' show
-    Scope;
+import 'scope.dart' show Scope;
 
 abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
   final List<MetadataBuilder> metadata;
@@ -36,8 +34,14 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
 
   final List<FormalParameterBuilder> formals;
 
-  ProcedureBuilder(this.metadata, this.modifiers, this.returnType, this.name,
-      this.typeVariables, this.formals, LibraryBuilder compilationUnit,
+  ProcedureBuilder(
+      this.metadata,
+      this.modifiers,
+      this.returnType,
+      this.name,
+      this.typeVariables,
+      this.formals,
+      LibraryBuilder compilationUnit,
       int charOffset)
       : super(compilationUnit, charOffset);
 

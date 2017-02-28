@@ -4,46 +4,42 @@
 
 library fasta.kernel_interface_type_builder;
 
-import 'package:kernel/ast.dart' show
-    DartType,
-    DynamicType,
-    Supertype,
-    VoidType;
+import 'package:kernel/ast.dart'
+    show DartType, DynamicType, Supertype, VoidType;
 
-import '../errors.dart' show
-    inputError;
+import '../messages.dart' show warning;
 
-import 'kernel_builder.dart' show
-    KernelClassBuilder,
-    KernelInvalidTypeBuilder,
-    KernelTypeBuilder,
-    NamedTypeBuilder,
-    TypeBuilder,
-    TypeDeclarationBuilder,
-    TypeVariableBuilder;
+import 'kernel_builder.dart'
+    show
+        KernelClassBuilder,
+        KernelInvalidTypeBuilder,
+        KernelTypeBuilder,
+        NamedTypeBuilder,
+        TypeBuilder,
+        TypeVariableBuilder;
 
-class KernelNamedTypeBuilder extends NamedTypeBuilder<KernelTypeBuilder>
+class KernelNamedTypeBuilder
+    extends NamedTypeBuilder<KernelTypeBuilder, DartType>
     implements KernelTypeBuilder {
-  TypeDeclarationBuilder<KernelTypeBuilder, DartType> builder;
-
   KernelNamedTypeBuilder(String name, List<KernelTypeBuilder> arguments,
       int charOffset, Uri fileUri)
       : super(name, arguments, charOffset, fileUri);
 
   KernelInvalidTypeBuilder buildInvalidType(String name) {
     // TODO(ahe): Record error instead of printing.
-    print("$fileUri:$charOffset: Type not found: $name");
+    warning(fileUri, charOffset, "Type not found: '$name'.");
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
   }
 
   DartType handleMissingType() {
     // TODO(ahe): Record error instead of printing.
-    print("$fileUri:$charOffset: No type for: $name");
+    warning(fileUri, charOffset, "No type for: '$name'.");
     return const DynamicType();
   }
 
   Supertype handleMissingSuperType() {
-    throw inputError(fileUri, charOffset, "No type for: $name");
+    warning(fileUri, charOffset, "No type for: '$name'.");
+    return null;
   }
 
   DartType build() {
@@ -83,7 +79,7 @@ class KernelNamedTypeBuilder extends NamedTypeBuilder<KernelTypeBuilder>
       }
       if (arguments != null) {
         return new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri)
-            ..builder = builder;
+          ..builder = builder;
       }
     }
     return this;

@@ -20,6 +20,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
+import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/tree/nodes.dart';
 import 'package:compiler/src/universe/class_set.dart';
@@ -96,7 +97,10 @@ Future checkModels(Uri entryPoint,
 
   return measure(title, 'check models', () async {
     checkAllImpacts(compilerNormal, compilerDeserialized, verbose: verbose);
-    checkResolutionEnqueuers(compilerNormal.enqueuer.resolution,
+    checkResolutionEnqueuers(
+        compilerNormal.backend.backendUsage,
+        compilerDeserialized.backend.backendUsage,
+        compilerNormal.enqueuer.resolution,
         compilerDeserialized.enqueuer.resolution,
         verbose: verbose);
     checkClosedWorlds(
@@ -108,7 +112,10 @@ Future checkModels(Uri entryPoint,
 }
 
 void checkResolutionEnqueuers(
-    ResolutionEnqueuer enqueuer1, ResolutionEnqueuer enqueuer2,
+    BackendUsage backendUsage1,
+    BackendUsage backendUsage2,
+    ResolutionEnqueuer enqueuer1,
+    ResolutionEnqueuer enqueuer2,
     {bool typeEquivalence(ResolutionDartType a, ResolutionDartType b):
         areTypesEquivalent,
     bool elementFilter(Element element),
@@ -146,17 +153,17 @@ void checkResolutionEnqueuers(
       "Is-check mismatch", typeEquivalence,
       verbose: verbose);
 
-  JavaScriptBackend backend1 = enqueuer1.backend;
-  JavaScriptBackend backend2 = enqueuer2.backend;
-  Expect.equals(backend1.hasInvokeOnSupport, backend2.hasInvokeOnSupport,
+  Expect.equals(backendUsage1.isInvokeOnUsed, backendUsage2.isInvokeOnUsed,
       "JavaScriptBackend.hasInvokeOnSupport mismatch");
   Expect.equals(
-      backend1.hasFunctionApplySupport,
-      backend2.hasFunctionApplySupport,
+      backendUsage1.isFunctionApplyUsed,
+      backendUsage1.isFunctionApplyUsed,
       "JavaScriptBackend.hasFunctionApplySupport mismatch");
-  Expect.equals(backend1.hasRuntimeTypeSupport, backend2.hasRuntimeTypeSupport,
+  Expect.equals(
+      backendUsage1.isRuntimeTypeUsed,
+      backendUsage2.isRuntimeTypeUsed,
       "JavaScriptBackend.hasRuntimeTypeSupport mismatch");
-  Expect.equals(backend1.hasIsolateSupport, backend2.hasIsolateSupport,
+  Expect.equals(backendUsage1.isIsolateInUse, backendUsage2.isIsolateInUse,
       "JavaScriptBackend.hasIsolateSupport mismatch");
 }
 

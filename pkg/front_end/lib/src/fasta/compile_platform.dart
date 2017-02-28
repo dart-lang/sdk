@@ -4,135 +4,76 @@
 
 library fasta.compile_platform;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    File,
-    IOSink;
+import 'kernel/verifier.dart' show verifyProgram;
 
-import 'package:analyzer/src/generated/source.dart' show
-    Source;
+import 'ticker.dart' show Ticker;
 
-import 'package:analyzer/dart/element/element.dart' show
-    ExportElement,
-    LibraryElement;
+import 'dart:io' show exitCode;
 
-import 'package:kernel/kernel.dart' show
-    Repository;
+import 'compiler_command_line.dart' show CompilerCommandLine;
 
-import 'package:kernel/ast.dart' show
-    Field,
-    Library,
-    Name,
-    Program,
-    StringLiteral;
+import 'compiler_context.dart' show CompilerContext;
 
-import 'package:kernel/binary/ast_to_binary.dart' show
-    BinaryPrinter;
+import 'errors.dart' show InputError;
 
-import 'package:kernel/analyzer/loader.dart' show
-    DartLoader,
-    DartOptions,
-    createDartSdk;
+import 'kernel/kernel_target.dart' show KernelTarget;
 
-import 'package:kernel/target/targets.dart' show
-    Target,
-    TargetFlags,
-    getTarget;
+import 'dill/dill_target.dart' show DillTarget;
 
-import 'package:kernel/repository.dart' show
-    Repository;
+import 'translate_uri.dart' show TranslateUri;
 
-import 'package:kernel/ast.dart' show
-    Program;
+import 'ast_kind.dart' show AstKind;
 
-import 'environment_variable.dart' show
-    EnvironmentVariableDirectory,
-    fileExists;
-
-import 'errors.dart' show
-    inputError;
-
-const EnvironmentVariableSdk dartAotSdk = const EnvironmentVariableSdk(
-    "DART_AOT_SDK",
-    "The environment variable 'DART_AOT_SDK' should point to a patched SDK.");
-
-class EnvironmentVariableSdk extends EnvironmentVariableDirectory {
-  const EnvironmentVariableSdk(String name, String what)
-      : super(name, what);
-
-  Future<Null> validate(String value) async {
-    Uri sdk = Uri.base.resolveUri(new Uri.directory(value));
-    const String asyncDart = "lib/async/async.dart";
-    if (!await fileExists(sdk, asyncDart)) {
-      inputError(null, null,
-          "The environment variable '$name' has the value '$value', "
-          "that's a directory that doesn't contain '$asyncDart'. $what");
-    }
-    const String asyncSources = "lib/async/async_sources.gypi";
-    if (await fileExists(sdk, asyncSources)) {
-      inputError(null, null,
-          "The environment variable '$name' has the value '$value', "
-          "that's a directory that contains '$asyncSources', so it isn't a "
-          "patched SDK. $what");
-    }
+Future main(List<String> arguments) async {
+  Ticker ticker = new Ticker();
+  try {
+    await CompilerCommandLine.withGlobalOptions("compile_platform", arguments,
+        (CompilerContext c) => compilePlatform(c, ticker));
+  } on InputError catch (e) {
+    exitCode = 1;
+    print(e.format());
     return null;
   }
 }
 
-main(List<String> arguments) async {
-  Uri output = Uri.base.resolveUri(new Uri.file(arguments.single));
-  DartOptions options = new DartOptions(
-      strongMode: false, sdk: await dartAotSdk.value, packagePath: null);
-  Repository repository = new Repository();
-  DartLoader loader = new DartLoader(repository, options, null,
-      ignoreRedirectingFactories: false,
-      dartSdk: createDartSdk(options.sdk, strongMode: options.strongMode));
-  Target target = getTarget(
-      "vm", new TargetFlags(strongMode: options.strongMode));
-  Program program = loader.loadProgram(
-      Uri.base.resolve("pkg/fasta/test/platform.dart"), target: target);
-  if (loader.errors.isNotEmpty) {
-    inputError(null, null, loader.errors.join("\n"));
-  }
-  Library mainLibrary = program.mainMethod.enclosingLibrary;
-  program.uriToSource.remove(mainLibrary.fileUri);
-  program = new Program(
-      program.libraries.where(
-          (Library l) => l.importUri.scheme == "dart").toList(),
-      program.uriToSource);
-  target.performModularTransformations(program);
-  target.performGlobalTransformations(program);
-  for (LibraryElement analyzerLibrary in loader.libraryElements) {
-    Library library = loader.getLibraryReference(analyzerLibrary);
-    StringBuffer sb = new StringBuffer();
-    if (analyzerLibrary.exports.isNotEmpty) {
-      Source source;
-      int offset;
-      for (ExportElement export in analyzerLibrary.exports) {
-        source ??= export.source;
-        offset ??= export.nameOffset;
-        Uri uri = export.exportedLibrary.source.uri;
-        sb.write("export '");
-        sb.write(uri);
-        sb.write("'");
-        if (export.combinators.isNotEmpty) {
-          sb.write(" ");
-          sb.writeAll(export.combinators, " ");
-        }
-        sb.write(";");
-      }
-      Name exports = new Name("_exports#", library);
-      StringLiteral literal = new StringLiteral("$sb")
-          ..fileOffset = offset;
-      library.addMember(new Field(exports, isStatic: true, isConst: true,
-              initializer: literal, fileUri: "${new Uri.file(source.fullName)}")
-          ..fileOffset = offset);
-    }
+Future compilePlatform(CompilerContext c, Ticker ticker) async {
+  ticker.isVerbose = c.options.verbose;
+  Uri output = Uri.base.resolveUri(new Uri.file(c.options.arguments[1]));
+  Uri patchedSdk = Uri.base.resolveUri(new Uri.file(c.options.arguments[0]));
+  ticker.logMs("Parsed arguments");
+  if (ticker.isVerbose) {
+    print("Compiling $patchedSdk to $output");
   }
 
-  IOSink sink = new File.fromUri(output).openWrite();
-  new BinaryPrinter(sink).writeProgramFile(program);
-  await sink.close();
+  TranslateUri uriTranslator =
+      await TranslateUri.parse(patchedSdk, c.options.packages);
+  ticker.logMs("Read packages file");
+
+  DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
+  KernelTarget kernelTarget =
+      new KernelTarget(dillTarget, uriTranslator, c.uriToSource);
+
+  kernelTarget.read(Uri.parse("dart:core"));
+  await dillTarget.writeOutline(null);
+  await kernelTarget.writeOutline(output);
+
+  if (exitCode != 0) return null;
+  await kernelTarget.writeProgram(output, AstKind.Kernel);
+  if (c.options.dumpIr) {
+    kernelTarget.dumpIr();
+  }
+  if (c.options.verify) {
+    try {
+      verifyProgram(kernelTarget.program);
+      ticker.logMs("Verified program");
+    } catch (e, s) {
+      exitCode = 1;
+      print("Verification of program failed: $e");
+      if (s != null && c.options.verbose) {
+        print(s);
+      }
+    }
+  }
 }

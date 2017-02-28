@@ -69,8 +69,6 @@ abstract class CompilerConfiguration {
     bool useFastStartup = configuration['fast_startup'];
     bool useKernelInDart2js = configuration['dart2js_with_kernel'];
     bool verifyKernel = configuration['verify-ir'];
-    bool useDFE = !configuration['noDFE'];
-    bool useFasta = configuration['useFasta'];
     bool treeShake = !configuration['no-tree-shake'];
 
     switch (compiler) {
@@ -104,16 +102,6 @@ abstract class CompilerConfiguration {
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android');
       case 'dartk':
-        if (!useDFE) {
-          return ComposedCompilerConfiguration.createDartKConfiguration(
-              isChecked: isChecked,
-              isHostChecked: isHostChecked,
-              useSdk: useSdk,
-              verify: verifyKernel,
-              strong: isStrong,
-              treeShake: treeShake);
-        }
-
         return new NoneCompilerConfiguration(
               isDebug: isDebug,
               isChecked: isChecked,
@@ -121,19 +109,15 @@ abstract class CompilerConfiguration {
               useSdk: useSdk,
               hotReload: hotReload,
               hotReloadRollback: hotReloadRollback,
-              dfeMode: useFasta ? DFEMode.Fasta : DFEMode.DartK);
-
+              useDFE: true);
       case 'dartkp':
-        return ComposedCompilerConfiguration.createDartKPConfiguration(
+        return new PrecompilerCompilerConfiguration(
+            isDebug: isDebug,
             isChecked: isChecked,
-            isHostChecked: isHostChecked,
             arch: configuration['arch'],
             useBlobs: useBlobs,
             isAndroid: configuration['system'] == 'android',
-            useSdk: useSdk,
-            verify: verifyKernel,
-            strong: isStrong,
-            treeShake: treeShake);
+            useDFE: true);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug,
@@ -200,23 +184,17 @@ abstract class CompilerConfiguration {
   }
 }
 
-enum DFEMode {
-  None,
-  DartK,
-  Fasta
-}
-
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
   final bool hotReload;
   final bool hotReloadRollback;
-  final DFEMode dfeMode;
+  final bool useDFE;
 
   NoneCompilerConfiguration(
       {bool isDebug, bool isChecked, bool isHostChecked, bool useSdk,
        bool this.hotReload,
        bool this.hotReloadRollback,
-       DFEMode this.dfeMode: DFEMode.None})
+       this.useDFE: false})
       : super._subclass(
             isDebug: isDebug,
             isChecked: isChecked,
@@ -234,11 +212,8 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     List<String> args = [];
-    if (dfeMode != DFEMode.None) {
+    if (useDFE) {
       args.add('--dfe=utils/kernel-service/kernel-service.dart');
-    }
-    if (dfeMode == DFEMode.Fasta) {
-      args.add('-DDFE_USE_FASTA=true');
     }
     if (isChecked) {
       args.add('--enable_asserts');
@@ -603,9 +578,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   final String arch;
   final bool useBlobs;
   final bool isAndroid;
+  final bool useDFE;
 
   PrecompilerCompilerConfiguration({bool isDebug, bool isChecked,
-    this.arch, this.useBlobs, this.isAndroid})
+    this.arch, this.useBlobs, this.isAndroid, this.useDFE: false})
       : super._subclass(isDebug: isDebug, isChecked: isChecked);
 
   int computeTimeoutMultiplier() {
@@ -646,6 +622,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       exec = "$buildDir/dart_bootstrap";
     }
     var args = new List();
+    if (useDFE) {
+      args.add('--dfe=utils/kernel-service/kernel-service.dart');
+    }
     args.add("--snapshot-kind=app-aot");
     if (useBlobs) {
       args.add("--snapshot=$tempDir/out.aotsnapshot");

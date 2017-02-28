@@ -756,6 +756,17 @@ class FileTest {
     Expect.equals(10, openedFile.lengthSync());
     openedFile.truncateSync(5);
     Expect.equals(5, openedFile.lengthSync());
+    bool exceptionCaught = false;
+    bool wrongExceptionCaught = false;
+    try {
+      openedFile.truncateSync(-5);
+    } on FileSystemException catch (ex) {
+      exceptionCaught = true;
+    } on Exception catch (ex) {
+      wrongExceptionCaught = true;
+    }
+    Expect.equals(true, exceptionCaught);
+    Expect.equals(true, !wrongExceptionCaught);
     openedFile.closeSync();
     file.deleteSync();
     Expect.isFalse(file.existsSync());

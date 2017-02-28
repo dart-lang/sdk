@@ -22,17 +22,23 @@ main() {
 @reflectiveTest
 class SourceFactoryImplTest extends AbstractContextTest {
   void test_restoreUri() {
-    Map<String, Uri> packageUriMap = <String, Uri>{
-      'foo': Uri.parse('file:///pkgs/somepkg/lib/')
-    };
+    String libPath = resourceProvider.convertPath('/pkgs/somepkg/lib/');
+    Uri libUri = resourceProvider.getFolder(libPath).toUri();
+    Map<String, Uri> packageUriMap = <String, Uri>{'foo': libUri};
     SourceFactoryImpl sourceFactory = new SourceFactoryImpl(
       <UriResolver>[new ResourceUriResolver(resourceProvider)],
       new _MockPackages(packageUriMap),
     );
-    Uri uri = sourceFactory.restoreUri(newSource('/pkgs/somepkg/lib'));
-    // TODO(danrubel) fix on Windows
-    if (resourceProvider.absolutePathContext.separator != r'\') {
+    Source libSource = newSource('/pkgs/somepkg/lib');
+    Uri uri = sourceFactory.restoreUri(libSource);
+    try {
       expect(uri, Uri.parse('package:foo/'));
+    } catch (e) {
+      print('=== debug info ===');
+      print('libPath: $libPath');
+      print('libUri: $libUri');
+      print('libSource: ${libSource?.fullName}');
+      rethrow;
     }
   }
 }

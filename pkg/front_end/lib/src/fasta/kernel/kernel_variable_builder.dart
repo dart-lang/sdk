@@ -4,18 +4,17 @@
 
 library fasta.kernel_variable_builder;
 
-import 'package:kernel/ast.dart' show
-    VariableDeclaration;
+import 'package:kernel/ast.dart' show VariableDeclaration;
 
-import 'kernel_builder.dart' show
-    Builder;
+import 'kernel_builder.dart' show Builder;
 
 class KernelVariableBuilder extends Builder {
   final VariableDeclaration variable;
 
-  KernelVariableBuilder(VariableDeclaration variable, Builder parent)
+  KernelVariableBuilder(
+      VariableDeclaration variable, Builder parent, Uri fileUri)
       : variable = variable,
-        super(parent, variable.fileOffset, parent.fileUri);
+        super(parent, variable.fileOffset, fileUri);
 
   bool get isLocal => true;
 

@@ -166,7 +166,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
  * This class can also be used to check whether `stdout` or `stderr` is
  * connected to a terminal and query some terminal properties.
  */
-class Stdout extends _StdSink implements IOSink {
+class Stdout extends _StdFileSink implements IOSink {
   final int _fd;
   IOSink _nonBlocking;
 
@@ -262,27 +262,64 @@ class _StdConsumer implements StreamConsumer<List<int>> {
   }
 }
 
-class _StdSink implements IOSink {
+class _StdSinkHelper implements IOSink {
   final IOSink _sink;
+  final bool _isTranslatable;
 
-  _StdSink(this._sink);
+  _StdSinkHelper(this._sink, this._isTranslatable);
 
   Encoding get encoding => _sink.encoding;
   void set encoding(Encoding encoding) {
     _sink.encoding = encoding;
   }
-  void write(object) { _sink.write(object); }
-  void writeln([object = "" ]) { _sink.writeln(object); }
-  void writeAll(objects, [sep = ""]) { _sink.writeAll(objects, sep); }
-  void add(List<int> data) { _sink.add(data); }
+
+  void set _translation(_FileTranslation t) {
+    if (_isTranslatable) {
+      _IOSinkImpl sink = _sink;
+      _StdConsumer target = sink._target;
+      target._file.translation = t;
+    }
+  }
+
+  void write(object) {
+    _translation = _FileTranslation.text;
+    _sink.write(object);
+  }
+  void writeln([object = "" ]) {
+    _translation = _FileTranslation.text;
+    _sink.writeln(object);
+  }
+  void writeAll(objects, [sep = ""]) {
+    _translation = _FileTranslation.text;
+    _sink.writeAll(objects, sep);
+  }
+  void add(List<int> data) {
+    _translation = _FileTranslation.binary;
+    _sink.add(data);
+  }
   void addError(error, [StackTrace stackTrace]) {
     _sink.addError(error, stackTrace);
   }
-  void writeCharCode(int charCode) { _sink.writeCharCode(charCode); }
-  Future addStream(Stream<List<int>> stream) => _sink.addStream(stream);
+  void writeCharCode(int charCode) {
+    _translation = _FileTranslation.text;
+    _sink.writeCharCode(charCode);
+  }
+  Future addStream(Stream<List<int>> stream) {
+    _translation = _FileTranslation.binary;
+    return _sink.addStream(stream);
+  }
   Future flush() => _sink.flush();
   Future close() => _sink.close();
   Future get done => _sink.done;
+}
+
+class _StdFileSink extends _StdSinkHelper {
+  // The target of `sink` is expected to be a _StdConsumer.
+  _StdFileSink(IOSink sink) : super(sink, true);
+}
+
+class _StdSocketSink extends _StdSinkHelper {
+  _StdSocketSink(IOSink sink) : super(sink, false);
 }
 
 /// The type of object a standard IO stream is attached to.

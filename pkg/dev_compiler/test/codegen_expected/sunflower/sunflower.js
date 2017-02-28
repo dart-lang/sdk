@@ -72,7 +72,6 @@ define(['dart_sdk'], function(dart_sdk) {
     }
   };
   dart.setSignature(circle.Circle, {
-    constructors: () => ({new: dart.definiteFunctionType(circle.Circle, [core.num, core.num, core.num])}),
     fields: () => ({
       x: core.num,
       y: core.num,
@@ -106,9 +105,6 @@ define(['dart_sdk'], function(dart_sdk) {
       if (color != null) this.color = color;
     }
   };
-  dart.setSignature(sunflower.SunflowerSeed, {
-    constructors: () => ({new: dart.definiteFunctionType(sunflower.SunflowerSeed, [core.num, core.num, core.num], [core.String])})
-  });
   painter.ORANGE = "orange";
   painter.RED = "red";
   painter.BLUE = "blue";

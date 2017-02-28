@@ -455,6 +455,12 @@ class ParserErrorCode extends ErrorCode {
       "The keyword '{0}' cannot be used to name a constructor.",
       "Try giving the constructor a different name.");
 
+  static const ParserErrorCode INVALID_GENERIC_FUNCTION_TYPE =
+      const ParserErrorCode(
+          'INVALID_GENERIC_FUNCTION_TYPE',
+          "Invalid generic function type.",
+          "Try using a generic function type (returnType 'Function(' parameters ')').");
+
   static const ParserErrorCode INVALID_HEX_ESCAPE = const ParserErrorCode(
       'INVALID_HEX_ESCAPE',
       "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits.");

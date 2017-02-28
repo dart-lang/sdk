@@ -1156,78 +1156,6 @@ static void ShutdownIsolate(void* callback_data) {
 }
 
 
-static const char* InternalJsonRpcError(Dart_Handle error) {
-  TextBuffer buffer(128);
-  buffer.Printf(
-      "{\"code\":-32603,"
-      "\"message\":\"Internal error\","
-      "\"details\": \"%s\"}",
-      Dart_GetError(error));
-  return buffer.Steal();
-}
-
-
-class DartScope {
- public:
-  DartScope() { Dart_EnterScope(); }
-  ~DartScope() { Dart_ExitScope(); }
-};
-
-
-static bool ServiceGetIOHandler(const char* method,
-                                const char** param_keys,
-                                const char** param_values,
-                                intptr_t num_params,
-                                void* user_data,
-                                const char** response) {
-  DartScope scope;
-  // TODO(ajohnsen): Store the library/function in isolate data or user_data.
-  Dart_Handle dart_io_str = Dart_NewStringFromCString("dart:io");
-  if (Dart_IsError(dart_io_str)) {
-    *response = InternalJsonRpcError(dart_io_str);
-    return false;
-  }
-
-  Dart_Handle io_lib = Dart_LookupLibrary(dart_io_str);
-  if (Dart_IsError(io_lib)) {
-    *response = InternalJsonRpcError(io_lib);
-    return false;
-  }
-
-  Dart_Handle handler_function_name =
-      Dart_NewStringFromCString("_serviceObjectHandler");
-  if (Dart_IsError(handler_function_name)) {
-    *response = InternalJsonRpcError(handler_function_name);
-    return false;
-  }
-
-  // TODO(johnmccutchan): paths is no longer used.  Update the io
-  // _serviceObjectHandler function to use json rpc.
-  Dart_Handle paths = Dart_NewList(0);
-  Dart_Handle keys = Dart_NewList(num_params);
-  Dart_Handle values = Dart_NewList(num_params);
-  for (int i = 0; i < num_params; i++) {
-    Dart_ListSetAt(keys, i, Dart_NewStringFromCString(param_keys[i]));
-    Dart_ListSetAt(values, i, Dart_NewStringFromCString(param_values[i]));
-  }
-  Dart_Handle args[] = {paths, keys, values};
-  Dart_Handle result = Dart_Invoke(io_lib, handler_function_name, 3, args);
-  if (Dart_IsError(result)) {
-    *response = InternalJsonRpcError(result);
-    return false;
-  }
-
-  const char* json;
-  result = Dart_StringToCString(result, &json);
-  if (Dart_IsError(result)) {
-    *response = InternalJsonRpcError(result);
-    return false;
-  }
-  *response = strdup(json);
-  return true;
-}
-
-
 static const char* kStdoutStreamId = "Stdout";
 static const char* kStderrStreamId = "Stderr";
 
@@ -1447,6 +1375,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
         ErrorExit(kErrorExitCode, "Unable to find root library for '%s'\n",
                   script_name);
       }
+
+      if (gen_snapshot_kind == kAppJIT) Dart_SortClasses();
 
       // The helper function _getMainClosure creates a closure for the main
       // entry point which is either explicitly or implictly exported from the
@@ -1699,8 +1629,6 @@ void main(int argc, char** argv) {
     Platform::Exit(kErrorExitCode);
   }
 
-  Dart_RegisterIsolateServiceRequestCallback("getIO", &ServiceGetIOHandler,
-                                             NULL);
   Dart_SetServiceStreamCallbacks(&ServiceStreamListenCallback,
                                  &ServiceStreamCancelCallback);
   Dart_SetFileModifiedCallback(&FileModifiedCallback);

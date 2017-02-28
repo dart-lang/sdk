@@ -4,34 +4,23 @@
 
 library fasta.parser;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show
-    Token;
+import 'package:front_end/src/fasta/scanner/token.dart' show Token;
 
-import 'parser/listener.dart' show
-    Listener;
+import 'parser/listener.dart' show Listener;
 
-import 'parser/parser.dart' show
-    Parser;
+import 'parser/parser.dart' show Parser;
 
-import 'parser/listener.dart' show
-    ParserError;
+import 'parser/listener.dart' show ParserError;
 
-export 'parser/parser.dart' show
-    Parser,
-    optional;
+export 'parser/parser.dart' show Parser, optional;
 
-export 'parser/listener.dart' show
-    Listener,
-    ParserError;
+export 'parser/listener.dart' show Listener, ParserError;
 
-export 'parser/error_kind.dart' show
-    ErrorKind;
+export 'parser/error_kind.dart' show ErrorKind;
 
-export 'parser/top_level_parser.dart' show
-    TopLevelParser;
+export 'parser/top_level_parser.dart' show TopLevelParser;
 
-export 'parser/class_member_parser.dart' show
-    ClassMemberParser;
+export 'parser/class_member_parser.dart' show ClassMemberParser;
 
 List<ParserError> parse(Token tokens) {
   Listener listener = new Listener();

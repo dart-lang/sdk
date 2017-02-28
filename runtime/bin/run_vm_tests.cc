@@ -87,6 +87,11 @@ static int Main(int argc, const char** argv) {
   int dart_argc = 0;
   const char** dart_argv = NULL;
 
+  // Perform platform specific initialization.
+  if (!dart::bin::Platform::Initialize()) {
+    OS::PrintErr("Initialization failed\n");
+  }
+
   if (argc < 2) {
     // Bad parameter count.
     PrintUsage();

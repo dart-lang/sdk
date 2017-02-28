@@ -4404,6 +4404,14 @@ class ServiceMetric extends ServiceObject implements M.Metric {
   String toString() => "ServiceMetric($_id)";
 }
 
+Future<Null> printFrames(List<Frame> frames) async {
+  for (int i = 0; i < frames.length; i++) {
+    final Frame frame = frames[i];
+    String frameText = await frame.toUserString();
+    print('#${i.toString().padLeft(3)}: $frameText');
+  }
+}
+
 class Frame extends ServiceObject implements M.Frame {
   M.FrameKind kind = M.FrameKind.regular;
   int index;
@@ -4446,6 +4454,17 @@ class Frame extends ServiceObject implements M.Frame {
       return "Frame([$kind] ${function.qualifiedName} $location)";
     } else if (location != null) {
       return "Frame([$kind] $location)";
+    } else {
+      return "Frame([$kind])";
+    }
+  }
+
+  Future<String> toUserString() async {
+    if (function != null) {
+      return "Frame([$kind] ${function.qualifiedName} "
+             "${await location.toUserString()})";
+    } else if (location != null) {
+      return "Frame([$kind] ${await location.toUserString()}";
     } else {
       return "Frame([$kind])";
     }

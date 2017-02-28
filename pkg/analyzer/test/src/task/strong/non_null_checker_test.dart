@@ -16,6 +16,7 @@ import '../strong/strong_test_helper.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonNullCheckerTest);
+    defineReflectiveTests(NonNullCheckerTest_Driver);
   });
 }
 
@@ -24,7 +25,7 @@ String _withError(String file, String error) {
 }
 
 @reflectiveTest
-class NonNullCheckerTest {
+class NonNullCheckerTest extends AbstractStrongTest {
   // Tests simple usage of ints as iterators for a loop. Not directly related to
   // non-nullability, but if it is implemented this should be more efficient,
   // since languages.length will not be null-checked on every iteration.
@@ -74,15 +75,7 @@ void main() {
 }
 ''';
 
-  void setUp() {
-    doSetUp();
-  }
-
-  void tearDown() {
-    doTearDown();
-  }
-
-  void test_assign_null_to_nonnullable() {
+  test_assign_null_to_nonnullable() async {
     addFile('''
 int x = 0;
 
@@ -91,10 +84,10 @@ main() {
   x = /*error:INVALID_ASSIGNMENT*/null;
 }
 ''');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_compoundAssignment() {
+  test_compoundAssignment() async {
     addFile('''
 void main() {
   int i = 1;
@@ -103,10 +96,10 @@ void main() {
   print(i);
 }
 ''');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_forEach() {
+  test_forEach() async {
     addFile('''
 void main() {
   var ints = <num>[1, 2, 3, null];
@@ -115,11 +108,11 @@ void main() {
   }
 }
 ''');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_forLoop() {
-    checkFile('''
+  test_forLoop() async {
+    await checkFile('''
 class MyList {
   int length;
   MyList() {
@@ -139,7 +132,7 @@ main() {
 ''');
   }
 
-  void test_generics() {
+  test_generics() async {
     addFile('''
 class Foo<T> {
   T x;
@@ -171,20 +164,20 @@ void main() {
   var g = new Foo<int>(); // Should fail at runtime.
 }
 ''');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_initialize_nonnullable_with_null() {
+  test_initialize_nonnullable_with_null() async {
     addFile('int x = /*error:INVALID_ASSIGNMENT*/null;');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_initialize_nonnullable_with_valid_value() {
+  test_initialize_nonnullable_with_valid_value() async {
     addFile('int x = 0;');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_map() {
+  test_map() async {
     addFile('''
 class Pair<K, V> {
   K first;
@@ -235,11 +228,11 @@ void main() {
   int y = legs.get("sheep"); // TODO(stanm): Runtime error here.
 }
 ''');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
   // Default example from NNBD document.
-  void test_method_call() {
+  test_method_call() async {
     addFile('''
 int s(int x) {
   return x + 1;
@@ -250,35 +243,35 @@ void main() {
   s(/*error:INVALID_ASSIGNMENT*/null);
 }
 ''');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_nonnullable_fields() {
+  test_nonnullable_fields() async {
     addFile(defaultNnbdExample);
     // `null` can be passed as an argument to `Point` in default mode.
     addFile(_withError(defaultNnbdExampleMod1, "error:INVALID_ASSIGNMENT"));
     // A nullable expression can be passed as an argument to `Point` in default
     // mode.
     addFile(_withError(defaultNnbdExampleMod2, "error:INVALID_ASSIGNMENT"));
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_nullable_fields() {
+  test_nullable_fields() async {
     addFile(defaultNnbdExample);
     // `null` can be passed as an argument to `Point` in default mode.
     addFile(defaultNnbdExampleMod1);
     // A nullable expression can be passed as an argument to `Point` in default
     // mode.
     addFile(defaultNnbdExampleMod2);
-    check();
+    await check();
   }
 
-  void test_nullableTypes() {
+  test_nullableTypes() async {
     // By default x can be set to null.
-    checkFile('int x = null;');
+    await checkFile('int x = null;');
   }
 
-  void test_prefer_final_to_non_nullable_error() {
+  test_prefer_final_to_non_nullable_error() async {
     addFile('main() { final int /*error:FINAL_NOT_INITIALIZED*/x; }');
     addFile('final int /*error:FINAL_NOT_INITIALIZED*/x;');
     addFile('''
@@ -290,10 +283,10 @@ class A {
   /*warning:FINAL_NOT_INITIALIZED_CONSTRUCTOR_1*/A();
 }
 ''');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_uninitialized_nonnullable_field_declaration() {
+  test_uninitialized_nonnullable_field_declaration() async {
     addFile('''
 void foo() {}
 
@@ -306,19 +299,25 @@ class A {
   A();
 }
 ''');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_uninitialized_nonnullable_local_variable() {
+  test_uninitialized_nonnullable_local_variable() async {
     // Ideally, we will do flow analysis and throw an error only if a variable
     // is used before it has been initialized.
     addFile('main() { int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x; }');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
 
-  void test_uninitialized_nonnullable_top_level_variable_declaration() {
+  test_uninitialized_nonnullable_top_level_variable_declaration() async {
     // If `int`s are non-nullable, then this code should throw an error.
     addFile('int /*error:NON_NULLABLE_FIELD_NOT_INITIALIZED*/x;');
-    check(nonnullableTypes: <String>['dart:core,int']);
+    await check(nonnullableTypes: <String>['dart:core,int']);
   }
+}
+
+@reflectiveTest
+class NonNullCheckerTest_Driver extends NonNullCheckerTest {
+  @override
+  bool get enableNewAnalysisDriver => true;
 }

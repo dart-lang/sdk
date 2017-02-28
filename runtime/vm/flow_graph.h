@@ -199,6 +199,7 @@ class FlowGraph : public ZoneAllocated {
 
   // Verification methods for debugging.
   bool VerifyUseLists();
+  bool VerifyRedefinitions();
 
   void DiscoverBlocks();
 
@@ -290,6 +291,10 @@ class FlowGraph : public ZoneAllocated {
   static void RenameDominatedUses(Definition* def,
                                   Instruction* dom,
                                   Definition* other);
+
+  // Renames uses of redefined values to make sure that uses of redefined
+  // values that are dominated by a redefinition are renamed.
+  void RenameUsesDominatedByRedefinitions();
 
  private:
   friend class IfConverter;

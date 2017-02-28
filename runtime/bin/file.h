@@ -60,6 +60,13 @@ class File : public ReferenceCounted<File> {
     kDartWriteOnlyAppend = 4
   };
 
+  // These values have to be kept in sync with the values of
+  // _FileTranslation.text and _FileTranslation.binary in file_impl.dart
+  enum DartFileTranslation {
+    kText = 0,
+    kBinary = 1,
+  };
+
   enum Type { kIsFile = 0, kIsDirectory = 1, kIsLink = 2, kDoesNotExist = 3 };
 
   enum Identical { kIdentical = 0, kDifferent = 1, kError = 2 };
@@ -115,6 +122,15 @@ class File : public ReferenceCounted<File> {
   bool WriteFully(const void* buffer, int64_t num_bytes);
   bool WriteByte(uint8_t byte) { return WriteFully(&byte, 1); }
 
+  bool Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) {
+    va_list args;
+    va_start(args, format);
+    bool result = VPrint(format, args);
+    va_end(args);
+    return result;
+  }
+  bool VPrint(const char* format, va_list args);
+
   // Get the length of the file. Returns a negative value if the length cannot
   // be determined (e.g. not seekable device).
   int64_t Length();
@@ -125,6 +141,10 @@ class File : public ReferenceCounted<File> {
 
   // Set the byte position in the file.
   bool SetPosition(int64_t position);
+
+  // Set the translation mode of the file. This is currently a no-op unless the
+  // file is for a terminal on Windows.
+  void SetTranslation(DartFileTranslation translation);
 
   // Truncate (or extend) the file to the given length in bytes.
   bool Truncate(int64_t length);

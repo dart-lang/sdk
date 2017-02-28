@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <launchpad/launchpad.h>
 #include <launchpad/vmo.h>
+#include <magenta/process.h>
 #include <magenta/status.h>
 #include <magenta/syscalls.h>
 #include <magenta/syscalls/object.h>
@@ -740,12 +741,12 @@ class ProcessStarter {
     // Set up the launchpad.
     launchpad_t* lp = NULL;
     launchpad_create(job, program_arguments_[0], &lp);
-    launchpad_arguments(lp, program_arguments_count_, program_arguments_);
-    launchpad_environ(lp, program_environment_);
-    launchpad_clone_mxio_root(lp);
+    launchpad_set_args(lp, program_arguments_count_, program_arguments_);
+    launchpad_set_environ(lp, program_environment_);
+    launchpad_clone(lp, LP_CLONE_MXIO_ROOT);
     // TODO(zra): Use the supplied working directory when launchpad adds an
     // API to set it.
-    launchpad_clone_mxio_cwd(lp);
+    launchpad_clone(lp, LP_CLONE_MXIO_CWD);
     launchpad_add_pipe(lp, &write_out_, 0);
     launchpad_add_pipe(lp, &read_in_, 1);
     launchpad_add_pipe(lp, &read_err_, 2);

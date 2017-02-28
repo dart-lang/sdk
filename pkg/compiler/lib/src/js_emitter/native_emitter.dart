@@ -346,8 +346,7 @@ class NativeEmitter {
   }
 
   bool isSupertypeOfNativeClass(ClassEntity element) {
-    if (backend.interceptorData.classesMixedIntoInterceptedClasses
-        .contains(element)) {
+    if (backend.interceptorData.isMixedIntoInterceptedClass(element)) {
       return true;
     }
 

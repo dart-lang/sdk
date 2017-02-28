@@ -5,6 +5,7 @@
 #include "vm/log.h"
 
 #include "vm/flags.h"
+#include "vm/isolate.h"
 #include "vm/thread.h"
 
 namespace dart {

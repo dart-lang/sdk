@@ -4,16 +4,12 @@
 
 library fasta.kernel_type_builder;
 
-import 'package:kernel/ast.dart' show
-    DartType,
-    Supertype;
+import 'package:kernel/ast.dart' show DartType, Supertype;
 
-import 'kernel_builder.dart' show
-    TypeBuilder;
+import 'kernel_builder.dart' show TypeBuilder;
 
 abstract class KernelTypeBuilder extends TypeBuilder {
-  KernelTypeBuilder(int charOffset, Uri fileUri)
-      : super(charOffset, fileUri);
+  KernelTypeBuilder(int charOffset, Uri fileUri) : super(charOffset, fileUri);
 
   DartType build();
 

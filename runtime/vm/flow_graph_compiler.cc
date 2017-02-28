@@ -1749,6 +1749,36 @@ void FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
 }
 
 
+const ICData& FlowGraphCompiler::TrySpecializeICDataByReceiverCid(
+    const ICData& ic_data,
+    intptr_t cid) {
+  Zone* zone = Thread::Current()->zone();
+  if (ic_data.NumArgsTested() != 1) return ic_data;
+
+  if ((ic_data.NumberOfUsedChecks() == 1) && ic_data.HasReceiverClassId(cid)) {
+    return ic_data;  // Nothing to do
+  }
+
+  intptr_t count = 1;
+  const Function& function =
+      Function::Handle(zone, ic_data.GetTargetForReceiverClassId(cid, &count));
+  // TODO(fschneider): Try looking up the function on the class if it is
+  // not found in the ICData.
+  if (!function.IsNull()) {
+    const ICData& new_ic_data = ICData::ZoneHandle(
+        zone, ICData::New(Function::Handle(zone, ic_data.Owner()),
+                          String::Handle(zone, ic_data.target_name()),
+                          Object::empty_array(),  // Dummy argument descriptor.
+                          ic_data.deopt_id(), ic_data.NumArgsTested(), false));
+    new_ic_data.SetDeoptReasons(ic_data.DeoptReasons());
+    new_ic_data.AddReceiverCheck(cid, function, count);
+    return new_ic_data;
+  }
+
+  return ic_data;
+}
+
+
 #if !defined(TARGET_ARCH_DBC)
 // DBC emits calls very differently from other architectures due to its
 // interpreted nature.

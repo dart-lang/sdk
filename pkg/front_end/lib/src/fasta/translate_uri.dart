@@ -4,14 +4,11 @@
 
 library fasta.translate_uri;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    File;
+import 'dart:io' show File;
 
-import 'package:package_config/packages_file.dart' as packages_file show
-    parse;
+import 'package:package_config/packages_file.dart' as packages_file show parse;
 
 class TranslateUri {
   final Map<String, Uri> packages;
@@ -42,36 +39,40 @@ class TranslateUri {
     //
     // TODO(ahe): This is only used with the option --compile-sdk, and
     // currently doesn't work outside the SDK source tree.
-    Map<String, Uri> dartLibraries = {
-      "async": sdk.resolve("lib/async/async.dart"),
-      "_blink": sdk.resolve("lib/_blink/dartium/_blink_dartium.dart"),
-      "_chrome": sdk.resolve("lib/_chrome/dart2js/chrome_dart2js.dart"),
-      "collection": sdk.resolve("lib/collection/collection.dart"),
-      "convert": sdk.resolve("lib/convert/convert.dart"),
-      "core": sdk.resolve("lib/core/core.dart"),
-      "developer": sdk.resolve("lib/developer/developer.dart"),
-      "html": sdk.resolve("lib/html/dartium/html_dartium.dart"),
-      "html_common": sdk.resolve("lib/html/html_common/html_common.dart"),
-      "indexed_db":
-          sdk.resolve("lib/indexed_db/dartium/indexed_db_dartium.dart"),
-      "io": sdk.resolve("lib/io/io.dart"),
-      "isolate": sdk.resolve("lib/isolate/isolate.dart"),
-      "js": sdk.resolve("lib/js/dartium/js_dartium.dart"),
-      "js_util": sdk.resolve("lib/js_util/dartium/js_util_dartium.dart"),
-      "math": sdk.resolve("lib/math/math.dart"),
-      "mirrors": sdk.resolve("lib/mirrors/mirrors.dart"),
-      "nativewrappers": sdk.resolve("lib/html/dartium/nativewrappers.dart"),
-      "typed_data": sdk.resolve("lib/typed_data/typed_data.dart"),
-      "svg": sdk.resolve("lib/svg/dartium/svg_dartium.dart"),
-      "web_audio": sdk.resolve("lib/web_audio/dartium/web_audio_dartium.dart"),
-      "web_gl": sdk.resolve("lib/web_gl/dartium/web_gl_dartium.dart"),
-      "web_sql": sdk.resolve("lib/web_sql/dartium/web_sql_dartium.dart"),
-      "_internal": sdk.resolve("lib/internal/internal.dart"),
-      "profiler": sdk.resolve("lib/profiler/profiler.dart"),
-      "vmservice_io": sdk.resolve("lib/vmservice_io/vmservice_io.dart"),
-      "_vmservice": sdk.resolve("lib/vmservice/vmservice.dart"),
-      "_builtin": sdk.resolve("lib/_builtin/_builtin.dart"),
-    };
+    Map<String, Uri> dartLibraries = <String, Uri>{};
+    if (sdk != null) {
+      dartLibraries = <String, Uri>{
+        "async": sdk.resolve("lib/async/async.dart"),
+        "_blink": sdk.resolve("lib/_blink/dartium/_blink_dartium.dart"),
+        "_chrome": sdk.resolve("lib/_chrome/dart2js/chrome_dart2js.dart"),
+        "collection": sdk.resolve("lib/collection/collection.dart"),
+        "convert": sdk.resolve("lib/convert/convert.dart"),
+        "core": sdk.resolve("lib/core/core.dart"),
+        "developer": sdk.resolve("lib/developer/developer.dart"),
+        "html": sdk.resolve("lib/html/dartium/html_dartium.dart"),
+        "html_common": sdk.resolve("lib/html/html_common/html_common.dart"),
+        "indexed_db":
+            sdk.resolve("lib/indexed_db/dartium/indexed_db_dartium.dart"),
+        "io": sdk.resolve("lib/io/io.dart"),
+        "isolate": sdk.resolve("lib/isolate/isolate.dart"),
+        "js": sdk.resolve("lib/js/dartium/js_dartium.dart"),
+        "js_util": sdk.resolve("lib/js_util/dartium/js_util_dartium.dart"),
+        "math": sdk.resolve("lib/math/math.dart"),
+        "mirrors": sdk.resolve("lib/mirrors/mirrors.dart"),
+        "nativewrappers": sdk.resolve("lib/html/dartium/nativewrappers.dart"),
+        "typed_data": sdk.resolve("lib/typed_data/typed_data.dart"),
+        "svg": sdk.resolve("lib/svg/dartium/svg_dartium.dart"),
+        "web_audio":
+            sdk.resolve("lib/web_audio/dartium/web_audio_dartium.dart"),
+        "web_gl": sdk.resolve("lib/web_gl/dartium/web_gl_dartium.dart"),
+        "web_sql": sdk.resolve("lib/web_sql/dartium/web_sql_dartium.dart"),
+        "_internal": sdk.resolve("lib/internal/internal.dart"),
+        "profiler": sdk.resolve("lib/profiler/profiler.dart"),
+        "vmservice_io": sdk.resolve("lib/vmservice_io/vmservice_io.dart"),
+        "_vmservice": sdk.resolve("lib/vmservice/vmservice.dart"),
+        "_builtin": sdk.resolve("lib/_builtin/_builtin.dart"),
+      };
+    }
     uri ??= Uri.base.resolve(".packages");
     File file = new File.fromUri(uri);
     List<int> bytes = await file.readAsBytes();

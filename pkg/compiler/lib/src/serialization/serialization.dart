@@ -4,8 +4,8 @@
 
 library dart2js.serialization;
 
-import 'package:front_end/src/fasta/scanner/precedence.dart' show
-    PrecedenceInfo;
+import 'package:front_end/src/fasta/scanner/precedence.dart'
+    show PrecedenceInfo;
 
 import '../common.dart';
 import '../common/resolution.dart';

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'package:compiler/src/io/source_file.dart';
+import 'package:compiler/src/old_to_new_api.dart';
 
 import 'mock_compiler.dart';
 
@@ -48,7 +49,7 @@ analyze(String text, [expectedWarnings]) {
 
     MockCompiler compiler = new MockCompiler.internal(analyzeOnly: true);
     compiler.registerSource(Uri.parse(PRIVATE_SOURCE_URI), PRIVATE_SOURCE);
-    compiler.diagnosticHandler =
+    compiler.diagnosticHandler = new LegacyCompilerDiagnostics(
         (uri, int begin, int end, String message, kind) {
       SourceFile sourceFile = compiler.sourceFiles[uri.toString()];
       if (sourceFile != null) {
@@ -56,7 +57,7 @@ analyze(String text, [expectedWarnings]) {
       } else {
         print(message);
       }
-    };
+    });
 
     String source = '''
                     library public;

@@ -16,40 +16,47 @@ import 'web_command.dart';
 @JS(r'$setUpDartDevCompilerInBrowser')
 external set setUpCompilerInBrowser(Function function);
 
-Future main() async {
+Future<Function> _setUpCompilerInBrowser;
+main() {
   var args = ['compile', '--repl-compile'];
+
+  // Avoid race condition when users try to call $setUpDartDevCompilerInBrowser
+  // before it is ready by installing the method immediately and making the body
+  // of the method async.
+  setUpCompilerInBrowser = allowInterop((String summaryRoot, String sdkUrl,
+      List<String> summaryUrls,
+      Function onCompileReady,
+      Function onError) async {
+    (await _setUpCompilerInBrowser)(
+        summaryRoot, sdkUrl, summaryUrls, onCompileReady, onError);
+  });
   _runCommand(args);
 }
 
 /// Runs a single compile command, and returns an exit code.
-Future<int> _runCommand(List<String> args,
-    {MessageHandler messageHandler}) async {
+_runCommand(List<String> args, {MessageHandler messageHandler}) {
   try {
     // TODO: Remove CommandRunner and args if possible. May run into issues
     // with ArgResults or ArgParsers.
     var runner = new CommandRunner('dartdevc', 'Dart Development Compiler');
     runner.addCommand(new WebCompileCommand(messageHandler: messageHandler));
-    setUpCompilerInBrowser = allowInterop((await runner.run(args)) as Function);
+    _setUpCompilerInBrowser = runner.run(args) as Future<Function>;
   } catch (e, s) {
-    return _handleError(e, s, args, messageHandler: messageHandler);
+    _handleError(e, s, args, messageHandler: messageHandler);
   }
-  return 1;
 }
 
-/// Handles [error] in a uniform fashion. Returns the proper exit code and calls
-/// [messageHandler] with messages.
-int _handleError(dynamic error, dynamic stackTrace, List<String> args,
+/// Handles [error] in a uniform fashion. Calls [messageHandler] with messages.
+_handleError(dynamic error, dynamic stackTrace, List<String> args,
     {MessageHandler messageHandler}) {
   messageHandler ??= print;
 
   if (error is UsageException) {
     // Incorrect usage, input file not found, etc.
     messageHandler(error);
-    return 64;
   } else if (error is CompileErrorException) {
     // Code has error(s) and failed to compile.
     messageHandler(error);
-    return 1;
   } else {
     // Anything else is likely a compiler bug.
     //
@@ -74,6 +81,5 @@ int _handleError(dynamic error, dynamic stackTrace, List<String> args,
     messageHandler(error);
     messageHandler(stackTrace);
     messageHandler("```");
-    return 70;
   }
 }

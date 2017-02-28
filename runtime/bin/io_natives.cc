@@ -45,6 +45,7 @@ namespace bin {
   V(File_WriteFrom, 4)                                                         \
   V(File_Position, 1)                                                          \
   V(File_SetPosition, 2)                                                       \
+  V(File_SetTranslation, 2)                                                    \
   V(File_Truncate, 2)                                                          \
   V(File_Length, 1)                                                            \
   V(File_LengthFromPath, 1)                                                    \

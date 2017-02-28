@@ -14,7 +14,7 @@ import 'model.dart';
 
 class NativeGenerator {
   static bool needsIsolateAffinityTagInitialization(JavaScriptBackend backend) {
-    return backend.needToInitializeIsolateAffinityTag;
+    return backend.backendUsage.needToInitializeIsolateAffinityTag;
   }
 
   /// Generates the code for isolate affinity tags.
@@ -25,7 +25,7 @@ class NativeGenerator {
       JavaScriptBackend backend,
       jsAst.Expression generateEmbeddedGlobalAccess(String global),
       jsAst.Expression internStringFunction) {
-    assert(backend.needToInitializeIsolateAffinityTag);
+    assert(backend.backendUsage.needToInitializeIsolateAffinityTag);
 
     jsAst.Expression getIsolateTagAccess =
         generateEmbeddedGlobalAccess(embeddedNames.GET_ISOLATE_TAG);
@@ -66,7 +66,7 @@ class NativeGenerator {
     ''',
         {
           'initializeDispatchProperty':
-              backend.needToInitializeDispatchProperty,
+              backend.backendUsage.needToInitializeDispatchProperty,
           'internStringFunction': internStringFunction,
           'getIsolateTag': getIsolateTagAccess,
           'isolateTag': isolateTagAccess,

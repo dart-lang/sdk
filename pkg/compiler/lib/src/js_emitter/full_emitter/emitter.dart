@@ -11,6 +11,7 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import 'package:js_runtime/shared/embedded_names.dart'
     show JsBuiltin, JsGetName;
 
+import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
@@ -447,12 +448,13 @@ class Emitter implements js_emitter.Emitter {
   /// This is used by js_mirrors.dart.
   String getReflectionName(elementOrSelector, jsAst.Name mangledName) {
     String name = elementOrSelector.name;
-    if (backend.shouldRetainName(name) ||
+    if (backend.mirrorsData.shouldRetainName(name) ||
         elementOrSelector is Element &&
             // Make sure to retain names of unnamed constructors, and
             // for common native types.
             ((name == '' &&
-                    backend.isAccessibleByReflection(elementOrSelector)) ||
+                    backend.mirrorsData
+                        .isAccessibleByReflection(elementOrSelector)) ||
                 _isNativeTypeNeedingReflectionName(elementOrSelector))) {
       // TODO(ahe): Enable the next line when I can tell the difference between
       // an instance method and a global.  They may have the same mangled name.
@@ -1031,7 +1033,8 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Expression generateLibraryDescriptor(
       LibraryElement library, Fragment fragment) {
     var uri = "";
-    if (!compiler.options.enableMinification || backend.mustPreserveUris) {
+    if (!compiler.options.enableMinification ||
+        backend.mirrorsData.mustPreserveUris) {
       uri = library.canonicalUri;
       if (uri.scheme == 'file' && compiler.options.outputUri != null) {
         uri =
@@ -1039,10 +1042,10 @@ class Emitter implements js_emitter.Emitter {
       }
     }
 
-    String libraryName =
-        (!compiler.options.enableMinification || backend.mustRetainLibraryNames)
-            ? library.libraryName
-            : "";
+    String libraryName = (!compiler.options.enableMinification ||
+            backend.mirrorsData.mustRetainLibraryNames)
+        ? library.libraryName
+        : "";
 
     jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
 
@@ -1085,7 +1088,7 @@ class Emitter implements js_emitter.Emitter {
         .add(new jsAst.FunctionDeclaration(constructorName, constructorAst));
 
     String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
-    bool hasIsolateSupport = backend.hasIsolateSupport;
+    bool hasIsolateSupport = backend.backendUsage.isIsolateInUse;
     jsAst.Node fieldNamesArray;
     if (hasIsolateSupport) {
       fieldNamesArray =
@@ -1528,7 +1531,7 @@ class Emitter implements js_emitter.Emitter {
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
-        compiler.outputProvider('', 'js'), codeOutputListeners);
+        compiler.outputProvider('', 'js', OutputType.js), codeOutputListeners);
     outputBuffers[mainOutputUnit] = mainOutput;
 
     mainOutput.addBuffer(jsAst.createCodeBuffer(program, compiler,
@@ -1539,15 +1542,20 @@ class Emitter implements js_emitter.Emitter {
     }
 
     if (generateSourceMap) {
-      mainOutput.add(generateSourceMapTag(
+      mainOutput.add(SourceMapBuilder.generateSourceMapTag(
           compiler.options.sourceMapUri, compiler.options.outputUri));
     }
 
     mainOutput.close();
 
     if (generateSourceMap) {
-      outputSourceMap(mainOutput, lineColumnCollector, '',
-          compiler.options.sourceMapUri, compiler.options.outputUri);
+      SourceMapBuilder.outputSourceMap(
+          mainOutput,
+          lineColumnCollector,
+          '',
+          compiler.options.sourceMapUri,
+          compiler.options.outputUri,
+          compiler.outputProvider);
     }
   }
 
@@ -1631,22 +1639,11 @@ class Emitter implements js_emitter.Emitter {
     });
     emitMainOutputUnit(program.mainFragment.outputUnit, mainOutput);
 
-    if (backend.requiresPreamble && !backend.htmlLibraryIsLoaded) {
+    if (backend.backendUsage.requiresPreamble && !backend.htmlLibraryIsLoaded) {
       reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
     // Return the total program size.
     return outputBuffers.values.fold(0, (a, b) => a + b.length);
-  }
-
-  String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
-    if (sourceMapUri != null && fileUri != null) {
-      String sourceMapFileName = relativize(fileUri, sourceMapUri, false);
-      return '''
-
-//# sourceMappingURL=$sourceMapFileName
-''';
-    }
-    return '';
   }
 
   ClassBuilder getElementDescriptor(Element element, Fragment fragment) {
@@ -1858,7 +1855,8 @@ class Emitter implements js_emitter.Emitter {
       String partPrefix =
           backend.deferredPartFileName(outputUnit.name, addExtension: false);
       CodeOutput output = new StreamCodeOutput(
-          compiler.outputProvider(partPrefix, 'part.js'), outputListeners);
+          compiler.outputProvider(partPrefix, 'part.js', OutputType.jsPart),
+          outputListeners);
 
       outputBuffers[outputUnit] = output;
 
@@ -1896,9 +1894,10 @@ class Emitter implements js_emitter.Emitter {
               compiler.options.outputUri.replace(pathSegments: partSegments);
         }
 
-        output.add(generateSourceMapTag(mapUri, partUri));
+        output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
         output.close();
-        outputSourceMap(output, lineColumnCollector, partName, mapUri, partUri);
+        SourceMapBuilder.outputSourceMap(output, lineColumnCollector, partName,
+            mapUri, partUri, compiler.outputProvider);
       } else {
         output.close();
       }
@@ -1915,21 +1914,6 @@ class Emitter implements js_emitter.Emitter {
     return new jsAst.Comment(generatedBy(compiler, flavor: options.join(", ")));
   }
 
-  void outputSourceMap(
-      CodeOutput output, LineColumnProvider lineColumnProvider, String name,
-      [Uri sourceMapUri, Uri fileUri]) {
-    if (!generateSourceMap) return;
-    // Create a source file for the compilation output. This allows using
-    // [:getLine:] to transform offsets to line numbers in [SourceMapBuilder].
-    SourceMapBuilder sourceMapBuilder =
-        new SourceMapBuilder(sourceMapUri, fileUri, lineColumnProvider);
-    output.forEachSourceLocation(sourceMapBuilder.addMapping);
-    String sourceMap = sourceMapBuilder.build();
-    compiler.outputProvider(name, 'js.map')
-      ..add(sourceMap)
-      ..close();
-  }
-
   void outputDeferredMap() {
     Map<String, dynamic> mapping = new Map<String, dynamic>();
     // Json does not support comments, so we embed the explanation in the
@@ -1938,7 +1922,7 @@ class Emitter implements js_emitter.Emitter {
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
     compiler.outputProvider(
-        compiler.options.deferredMapUri.path, 'deferred_map')
+        compiler.options.deferredMapUri.path, '', OutputType.info)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
   }

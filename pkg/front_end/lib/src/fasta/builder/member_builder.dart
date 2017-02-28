@@ -4,10 +4,7 @@
 
 library fasta.member_builder;
 
-import 'builder.dart' show
-    Builder,
-    ClassBuilder,
-    ModifierBuilder;
+import 'builder.dart' show Builder, ClassBuilder, ModifierBuilder;
 
 abstract class MemberBuilder extends ModifierBuilder {
   /// For top-level members, the parent is set correctly during
@@ -18,7 +15,8 @@ abstract class MemberBuilder extends ModifierBuilder {
   String get name;
 
   MemberBuilder(Builder parent, int charOffset)
-      : parent = parent, super(parent, charOffset);
+      : parent = parent,
+        super(parent, charOffset);
 
   bool get isInstanceMember => isClassMember && !isStatic;
 

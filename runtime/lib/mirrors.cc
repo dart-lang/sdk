@@ -1467,7 +1467,7 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 1) {
     Type& instantiator = Type::Handle();
     if (closure.IsClosure()) {
       const TypeArguments& arguments =
-          TypeArguments::Handle(closure.GetTypeArguments());
+          TypeArguments::Handle(Closure::Cast(closure).instantiator());
       const Class& cls =
           Class::Handle(Isolate::Current()->object_store()->object_class());
       instantiator = Type::New(cls, arguments, TokenPosition::kNoSource);

@@ -655,7 +655,7 @@ class FragmentEmitter {
     List<js.Name> fieldNames =
         cls.fields.map((Field field) => field.name).toList();
     if (cls.hasRtiField) {
-      fieldNames.add(namer.rtiFieldName);
+      fieldNames.add(namer.rtiFieldJsName);
     }
 
     Iterable<js.Name> assignments = fieldNames.map((js.Name field) {

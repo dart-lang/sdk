@@ -806,12 +806,6 @@ class AnalysisError {
     return false;
   }
 
-  /**
-   * Return the value of the given [property], or `null` if the given property
-   * is not defined for this error.
-   */
-  Object/*=V*/ getProperty/*<V>*/(ErrorProperty/*<V>*/ property) => null;
-
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
@@ -837,76 +831,4 @@ class AnalysisError {
     }
     return errors.toList();
   }
-}
-
-/**
- * An [AnalysisError] that can have arbitrary properties associated with it.
- */
-class AnalysisErrorWithProperties extends AnalysisError {
-  /**
-   * The properties associated with this error.
-   */
-  HashMap<ErrorProperty, Object> _propertyMap =
-      new HashMap<ErrorProperty, Object>();
-
-  /**
-   * Initialize a newly created analysis error. The error is associated with the
-   * given [source] and is located at the given [offset] with the given
-   * [length]. The error will have the given [errorCode] and the list of
-   * [arguments] will be used to complete the message.
-   */
-  AnalysisErrorWithProperties(
-      Source source, int offset, int length, ErrorCode errorCode,
-      [List<Object> arguments])
-      : super(source, offset, length, errorCode, arguments);
-
-  @override
-  Object/*=V*/ getProperty/*<V>*/(ErrorProperty/*<V>*/ property) =>
-      _propertyMap[property] as Object/*=V*/;
-
-  /**
-   * Set the value of the given [property] to the given [value]. Using a value
-   * of `null` will effectively remove the property from this error.
-   */
-  void setProperty/*<V>*/(ErrorProperty/*<V>*/ property, Object/*=V*/ value) {
-    _propertyMap[property] = value;
-  }
-}
-
-/**
- * The properties that can be associated with an [AnalysisError].
- */
-class ErrorProperty<V> implements Comparable<ErrorProperty> {
-  /**
-   * A property whose value is the name of the library that is used by all
-   * of the "part of" directives, so should be used in the "library" directive.
-   * Is `null` if there is no a single name used by all of the parts.
-   */
-  static const ErrorProperty<String> PARTS_LIBRARY_NAME =
-      const ErrorProperty<String>('PARTS_LIBRARY_NAME', 1);
-
-  static const List<ErrorProperty> values = const [
-    PARTS_LIBRARY_NAME,
-  ];
-
-  /**
-   * The name of this property.
-   */
-  final String name;
-
-  /**
-   * The ordinal value of the property.
-   */
-  final int ordinal;
-
-  const ErrorProperty(this.name, this.ordinal);
-
-  @override
-  int get hashCode => ordinal;
-
-  @override
-  int compareTo(ErrorProperty other) => ordinal - other.ordinal;
-
-  @override
-  String toString() => name;
 }

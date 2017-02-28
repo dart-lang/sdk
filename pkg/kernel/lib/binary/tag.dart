@@ -7,8 +7,7 @@ class Tag {
   static const int Nothing = 0;
   static const int Something = 1;
 
-  static const int NormalClass = 2;
-  static const int MixinClass = 3;
+  static const int Class = 2;
 
   static const int Field = 4;
   static const int Constructor = 5;
@@ -100,14 +99,8 @@ class Tag {
   static const int SimpleFunctionType = 97;
 
   static const int NullReference = 99;
-  static const int NormalClassReference = 100;
-  static const int MixinClassReference = 101;
-
-  static const int LibraryFieldReference = 102;
-  static const int ClassFieldReference = 103;
-  static const int ClassConstructorReference = 104;
-  static const int LibraryProcedureReference = 105;
-  static const int ClassProcedureReference = 106;
+  static const int ClassReference = 100;
+  static const int MemberReference = 101;
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000

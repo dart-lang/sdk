@@ -4,14 +4,11 @@
 
 library fasta.formal_parameter_builder;
 
-import 'package:front_end/src/fasta/parser/parser.dart' show
-    FormalParameterType;
+import 'package:front_end/src/fasta/parser/parser.dart'
+    show FormalParameterType;
 
-import 'builder.dart' show
-    LibraryBuilder,
-    MetadataBuilder,
-    ModifierBuilder,
-    TypeBuilder;
+import 'builder.dart'
+    show LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;
 
 abstract class FormalParameterBuilder<T extends TypeBuilder>
     extends ModifierBuilder {

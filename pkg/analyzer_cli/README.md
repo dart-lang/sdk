@@ -63,8 +63,8 @@ The following are advanced options to use with dartanalyzer:
   Produce output in a format suitable for parsing.
 
 * `--url-mapping=libraryUri,/path/to/library.dart`<br>
-  Tells the analyzer to use the specified library as the source
-  for that particular import.
+  Tells the analyzer to use the specified library as the source for that
+  particular import.
 
 The following options are deprecated:
 
@@ -72,9 +72,3 @@ The following options are deprecated:
   **Deprecated.** Specify the directory to search for any libraries that are
   imported using `package:`. _This option is replaced as of Dart 1.12 with
   `--packages`._
-
-* `--show-package-warnings`<br>
-  **Deprecated.** Replaced by `--package-warnings`.
-
-* `--show-sdk-warnings`<br>
-  **Deprecated.** Replaced by `--warnings`.

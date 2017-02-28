@@ -1317,14 +1317,6 @@ var V;
     await driver.getResult(testFile);
   }
 
-  test_getResult_noErrors_ifNotAdded() async {
-    var a = _p('/test/lib/a.dart');
-    provider.newFile(a, 'A a = null;');
-
-    AnalysisResult result = await driver.getResult(a);
-    expect(result.errors, isEmpty);
-  }
-
   test_getResult_notDartFile() async {
     var path = _p('/test/lib/test.txt');
     provider.newFile(path, 'class A {}');

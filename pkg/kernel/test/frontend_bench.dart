@@ -48,7 +48,7 @@ main(List<String> args) {
   var uri = new Uri(scheme: 'file', path: new File(path).absolute.path);
   var packages =
       getPackagesDirectory(new Uri(scheme: 'file', path: packagePath));
-  Repository repository = new Repository();
+  Program repository = new Program();
 
   new DartLoader(
           repository,

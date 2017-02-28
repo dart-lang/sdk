@@ -4,26 +4,19 @@
 
 library fasta.library_builder;
 
-import '../combinator.dart' show
-    Combinator;
+import '../combinator.dart' show Combinator;
 
-import '../errors.dart' show
-    InputError,
-    internalError;
+import '../errors.dart' show InputError, internalError, printUnexpected;
 
-import '../export.dart' show
-    Export;
+import '../export.dart' show Export;
 
-import '../loader.dart' show
-    Loader;
+import '../loader.dart' show Loader;
 
-import 'builder.dart' show
-    Builder,
-    ClassBuilder,
-    TypeBuilder;
+import '../util/relativize.dart' show relativizeUri;
 
-import 'scope.dart' show
-   Scope;
+import 'builder.dart' show Builder, ClassBuilder, TypeBuilder;
+
+import 'scope.dart' show Scope;
 
 abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   final List<Export> exporters = <Export>[];
@@ -36,7 +29,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   Uri get uri;
 
-  Uri get fileUri;
+  final Uri fileUri;
+  final String relativeFileUri;
 
   Map<String, Builder> get members;
 
@@ -46,20 +40,21 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   Map<String, Builder> get exports;
 
   LibraryBuilder(Uri fileUri)
-      : super(null, -1, fileUri);
+      : fileUri = fileUri,
+        relativeFileUri = relativizeUri(fileUri),
+        super(null, -1, fileUri);
 
   Builder addBuilder(String name, Builder builder, int charOffset);
 
-  void addExporter(LibraryBuilder exporter, List<Combinator> combinators,
-      int charOffset) {
+  void addExporter(
+      LibraryBuilder exporter, List<Combinator> combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
   void addCompileTimeError(int charOffset, Object message, [Uri fileUri]) {
     fileUri ??= this.fileUri;
-    InputError error = new InputError(fileUri, charOffset, message);
-    compileTimeErrors.add(error);
-    print(error.format());
+    printUnexpected(fileUri, charOffset, message);
+    compileTimeErrors.add(new InputError(fileUri, charOffset, message));
   }
 
   bool addToExportScope(String name, Builder member);

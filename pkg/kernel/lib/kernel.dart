@@ -15,18 +15,17 @@ library kernel;
 
 import 'ast.dart';
 import 'binary/ast_to_binary.dart';
-import 'binary/loader.dart';
+import 'binary/ast_from_binary.dart';
 import 'dart:async';
 import 'dart:io';
-import 'repository.dart';
 import 'text/ast_to_text.dart';
 
 export 'ast.dart';
-export 'repository.dart';
 
-Program loadProgramFromBinary(String path, [Repository repository]) {
-  repository ??= new Repository();
-  return new BinaryLoader(repository).loadProgram(path);
+Program loadProgramFromBinary(String path, [Program program]) {
+  program ??= new Program();
+  new BinaryBuilder(new File(path).readAsBytesSync()).readProgram(program);
+  return program;
 }
 
 Future writeProgramToBinary(Program program, String path) {

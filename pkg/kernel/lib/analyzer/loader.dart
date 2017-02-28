@@ -22,7 +22,6 @@ import 'package:package_config/discovery.dart';
 import 'package:package_config/packages.dart';
 
 import '../ast.dart' as ast;
-import '../repository.dart';
 import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 import 'analyzer.dart';
@@ -88,7 +87,7 @@ abstract class ReferenceLevelLoader {
 }
 
 class DartLoader implements ReferenceLevelLoader {
-  final Repository repository;
+  final ast.Program program;
   final ApplicationRoot applicationRoot;
   final Bimap<ClassElement, ast.Class> _classes =
       new Bimap<ClassElement, ast.Class>();
@@ -97,6 +96,8 @@ class DartLoader implements ReferenceLevelLoader {
       <TypeParameterElement, ast.TypeParameter>{};
   final Map<ast.Library, Map<String, ast.Class>> _mixinApplications =
       <ast.Library, Map<String, ast.Class>>{};
+  final Map<LibraryElement, ast.Library> _libraries =
+      <LibraryElement, ast.Library>{};
   final AnalysisContext context;
   LibraryElement _dartCoreLibrary;
   final List errors = [];
@@ -111,10 +112,11 @@ class DartLoader implements ReferenceLevelLoader {
   final bool ignoreRedirectingFactories;
 
   LibraryElement _libraryBeingLoaded = null;
+  ClassElement _classBeingPromotedToMixin = null;
 
   bool get strongMode => context.analysisOptions.strongMode;
 
-  DartLoader(this.repository, DartOptions options, Packages packages,
+  DartLoader(this.program, DartOptions options, Packages packages,
       {DartSdk dartSdk,
       AnalysisContext context,
       this.ignoreRedirectingFactories: true})
@@ -126,11 +128,28 @@ class DartLoader implements ReferenceLevelLoader {
     return element.name.isEmpty ? null : element.name;
   }
 
+  LibraryElement getLibraryElementFromUri(Uri uri) {
+    var source = context.sourceFactory.forUri2(uri);
+    if (source == null) return null;
+    return context.computeLibraryElement(source);
+  }
+
   ast.Library getLibraryReference(LibraryElement element) {
     var uri = applicationRoot.relativeUri(element.source.uri);
-    return repository.getLibraryReference(uri)
-      ..name ??= getLibraryName(element)
-      ..fileUri = '${element.source.uri}';
+    var library = _libraries[element];
+    if (library == null) {
+      library = new ast.Library(uri)
+        ..isExternal = true
+        ..name = getLibraryName(element)
+        ..fileUri = '${element.source.uri}';
+      program.libraries.add(library..parent = program);
+      _libraries[element] = library;
+    }
+    return library;
+  }
+
+  ast.Library getLibraryReferenceFromUri(Uri uri) {
+    return getLibraryReference(getLibraryElementFromUri(uri));
   }
 
   void _buildTopLevelMember(
@@ -146,6 +165,10 @@ class DartLoader implements ReferenceLevelLoader {
   /// in the library, since the AST builder will rebuild the member lists.
   bool isLibraryBeingLoaded(LibraryElement element) {
     return _libraryBeingLoaded == element;
+  }
+
+  bool isClassBeingPromotedToMixin(ClassElement element) {
+    return _classBeingPromotedToMixin == element;
   }
 
   void _buildLibraryBody(LibraryElement element, ast.Library library,
@@ -348,9 +371,9 @@ class DartLoader implements ReferenceLevelLoader {
               mixedInType: freshParameters.substituteSuper(mixinType),
               fileUri: classNode.fileUri)..fileOffset = element.nameOffset;
           mixinClass.level = ast.ClassLevel.Type;
+          addMixinClassToLibrary(mixinClass, classNode.enclosingLibrary);
           supertype = new ast.Supertype(mixinClass,
               classNode.typeParameters.map(makeTypeParameterType).toList());
-          addMixinClassToLibrary(mixinClass, classNode.enclosingLibrary);
           // This class cannot be used from anywhere else, so don't try to
           // generate shared mixin applications using it.
           useSharedMixin = false;
@@ -394,12 +417,14 @@ class DartLoader implements ReferenceLevelLoader {
   void promoteToMixinLevel(ast.Class classNode, ClassElement element,
       NamedCompilationUnitMember astNode) {
     if (classNode.level.index >= ast.ClassLevel.Mixin.index) return;
+    _classBeingPromotedToMixin = element;
     promoteToHierarchyLevel(classNode);
     classNode.level = ast.ClassLevel.Mixin;
     // Clear out the member references that were put in the class.
     // The AST builder will load them all put back in the right order.
     classNode..fields.clear()..procedures.clear()..constructors.clear();
     new ClassBodyBuilder(this, classNode, element).build(astNode);
+    _classBeingPromotedToMixin = null;
 
     // Ensure mixed-in classes are available.
     for (var mixin in element.mixins) {
@@ -409,7 +434,7 @@ class DartLoader implements ReferenceLevelLoader {
 
   /// Ensures that [element] eventually becomes loaded at least at mixin level.
   void _ensureMixinBecomesLoaded(ClassElement element) {
-    if (isLibraryBeingLoaded(element.library)) {
+    if (isClassBeingPromotedToMixin(element)) {
       return;
     }
     var class_ = getClassReference(element);
@@ -446,25 +471,25 @@ class DartLoader implements ReferenceLevelLoader {
 
   ast.Member _buildMemberReference(Element element) {
     assert(element != null);
-    var node = _buildOrphanedMemberReference(element);
+    var member = _buildOrphanedMemberReference(element);
     // Set the parent pointer and store it in the enclosing class or library.
     // If the enclosing library is being built from the AST, do not add the
     // member, since the AST builder will put it in there.
     var parent = element.enclosingElement;
     if (parent is ClassElement) {
       var class_ = getClassReference(parent);
-      node.parent = class_;
+      member.parent = class_;
       if (!isLibraryBeingLoaded(element.library)) {
-        class_.addMember(node);
+        class_.addMember(member);
       }
     } else {
       var library = getLibraryReference(element.library);
-      node.parent = library;
+      member.parent = library;
       if (!isLibraryBeingLoaded(element.library)) {
-        library.addMember(node);
+        library.addMember(member);
       }
     }
-    return node;
+    return member;
   }
 
   ast.Member _buildOrphanedMemberReference(Element element) {
@@ -717,8 +742,8 @@ class DartLoader implements ReferenceLevelLoader {
         }
       }
     }
-    for (int i = 0; i < repository.libraries.length; ++i) {
-      var library = repository.libraries[i];
+    for (int i = 0; i < program.libraries.length; ++i) {
+      var library = program.libraries[i];
       if (compileSdk || library.importUri.scheme != 'dart') {
         ensureLibraryIsLoaded(library);
       }
@@ -730,7 +755,7 @@ class DartLoader implements ReferenceLevelLoader {
   /// This operation may be expensive and should only be used for diagnostics.
   List<String> getLoadedFileNames() {
     var list = <String>[];
-    for (var library in repository.libraries) {
+    for (var library in program.libraries) {
       LibraryElement element = context.computeLibraryElement(context
           .sourceFactory
           .forUri2(applicationRoot.absoluteUri(library.importUri)));
@@ -788,13 +813,11 @@ class DartLoader implements ReferenceLevelLoader {
     return main;
   }
 
-  ast.Program loadProgram(Uri mainLibrary, {Target target, bool compileSdk}) {
-    Uri uri = applicationRoot.relativeUri(mainLibrary);
-    ast.Library library = repository.getLibraryReference(uri);
+  void loadProgram(Uri mainLibrary, {Target target, bool compileSdk}) {
+    ast.Library library = getLibraryReferenceFromUri(mainLibrary);
     ensureLibraryIsLoaded(library);
     var mainMethod = _getMainMethod(mainLibrary);
     loadEverything(target: target, compileSdk: compileSdk);
-    var program = new ast.Program(repository.libraries);
     if (mainMethod == null) {
       mainMethod = _makeMissingMainMethod(library);
     }
@@ -815,12 +838,10 @@ class DartLoader implements ReferenceLevelLoader {
             new ast.Source(lineInfo.lineStarts, sourceCode);
       }
     }
-    return program;
   }
 
   ast.Library loadLibrary(Uri uri) {
-    ast.Library library =
-        repository.getLibraryReference(applicationRoot.relativeUri(uri));
+    ast.Library library = getLibraryReferenceFromUri(uri);
     ensureLibraryIsLoaded(library);
     return library;
   }
@@ -851,7 +872,7 @@ class DartLoaderBatch {
   String lastPackagePath;
   bool lastStrongMode;
 
-  Future<DartLoader> getLoader(Repository repository, DartOptions options,
+  Future<DartLoader> getLoader(ast.Program program, DartOptions options,
       {String packageDiscoveryPath}) async {
     if (dartSdk == null ||
         lastSdk != options.sdk ||
@@ -867,7 +888,7 @@ class DartLoaderBatch {
       packages = await createPackages(options.packagePath,
           discoveryPath: packageDiscoveryPath);
     }
-    return new DartLoader(repository, options, packages, dartSdk: dartSdk);
+    return new DartLoader(program, options, packages, dartSdk: dartSdk);
   }
 }
 

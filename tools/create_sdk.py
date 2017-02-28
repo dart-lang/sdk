@@ -96,6 +96,9 @@ def GetOptions():
   options.add_option("--copy_libs",
       action="store_true", default=False,
       help='Copy dynamically linked libraries to the SDK bin directory.')
+  options.add_option("--disable_stripping",
+      action="store_true", default=False,
+      help='Do not try to strip binaries. Use when they are already stripped')
   return options.parse_args()
 
 
@@ -237,9 +240,9 @@ def Main():
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
   # Strip the binaries on platforms where that is supported.
-  if HOST_OS == 'linux':
+  if HOST_OS == 'linux' and not options.disable_stripping:
     subprocess.call(['strip', dart_dest_binary])
-  elif HOST_OS == 'macos':
+  elif HOST_OS == 'macos' and not options.disable_stripping:
     subprocess.call(['strip', '-x', dart_dest_binary])
 
   #

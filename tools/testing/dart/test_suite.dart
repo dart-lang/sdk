@@ -1878,8 +1878,7 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
 
   List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) {
     var options = super.additionalOptions(filePath);
-    // NOTE: This flag has been deprecated.
-    options.add('--show-sdk-warnings');
+    options.add('--sdk-warnings');
     return options;
   }
 

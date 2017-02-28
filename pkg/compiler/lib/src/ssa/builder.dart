@@ -407,11 +407,11 @@ class SsaBuilder extends ast.Visitor
    * Try to inline [element] within the correct context of the builder. The
    * insertion point is the state of the builder.
    */
-  bool tryInlineMethod(Element element, Selector selector, TypeMask mask,
+  bool tryInlineMethod(MethodElement element, Selector selector, TypeMask mask,
       List<HInstruction> providedArguments, ast.Node currentNode,
       {ResolutionInterfaceType instanceType}) {
-    registry
-        .addImpact(backend.registerUsedElement(element, forResolution: false));
+    registry.addImpact(
+        backend.codegenEnqueuerListener.registerUsedElement(element));
 
     if (backend.isJsInterop(element) && !element.isFactoryConstructor) {
       // We only inline factory JavaScript interop constructors.
@@ -2685,7 +2685,7 @@ class SsaBuilder extends ast.Visitor
           node, 'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT.');
     }
 
-    if (!backend.hasIsolateSupport) {
+    if (!backend.backendUsage.isIsolateInUse) {
       // If the isolate library is not used, we just generate code
       // to fetch the static state.
       String name = backend.namer.staticStateHolder;
@@ -2731,7 +2731,7 @@ class SsaBuilder extends ast.Visitor
     bool value = false;
     switch (name) {
       case 'MUST_RETAIN_METADATA':
-        value = backend.mustRetainMetadata;
+        value = backend.mirrorsData.mustRetainMetadata;
         break;
       case 'USE_CONTENT_SECURITY_POLICY':
         value = compiler.options.useContentSecurityPolicy;
@@ -2882,7 +2882,7 @@ class SsaBuilder extends ast.Visitor
 
   void handleForeignJsCallInIsolate(ast.Send node) {
     Link<ast.Node> link = node.arguments;
-    if (!backend.hasIsolateSupport) {
+    if (!backend.backendUsage.isIsolateInUse) {
       // If the isolate library is not used, we just invoke the
       // closure.
       visit(link.tail.head);
@@ -3024,7 +3024,8 @@ class SsaBuilder extends ast.Visitor
       ClassElement objectClass = commonElements.objectClass;
       element = objectClass.lookupMember(Identifiers.noSuchMethod_);
     }
-    if (backend.hasInvokeOnSupport && !element.enclosingClass.isObject) {
+    if (backend.backendUsage.isInvokeOnUsed &&
+        !element.enclosingClass.isObject) {
       // Register the call as dynamic if [noSuchMethod] on the super
       // class is _not_ the default implementation from [Object], in
       // case the [noSuchMethod] implementation calls

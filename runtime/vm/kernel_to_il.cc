@@ -683,6 +683,15 @@ void ScopeBuilder::VisitFunctionNode(FunctionNode* node) {
     VisitTypeParameter(type_parameters[i]);
   }
 
+  if (FLAG_causal_async_stacks &&
+      (node->dart_async_marker() == FunctionNode::kAsync ||
+       node->dart_async_marker() == FunctionNode::kAsyncStar)) {
+    LocalVariable* asyncStackTraceVar = MakeVariable(
+        TokenPosition::kNoSource, TokenPosition::kNoSource,
+        Symbols::AsyncStackTraceVar(), AbstractType::dynamic_type());
+    scope_->AddVariable(asyncStackTraceVar);
+  }
+
   if (node->async_marker() == FunctionNode::kSyncYielding) {
     LocalScope* scope = parsed_function_->node_sequence()->scope();
     intptr_t offset = parsed_function_->function().num_fixed_parameters();
@@ -699,7 +708,8 @@ void ScopeBuilder::VisitFunctionNode(FunctionNode* node) {
     node->body()->AcceptStatementVisitor(this);
   }
 
-  // Ensure that :await_jump_var, :await_ctx_var and :async_op are captured.
+  // Ensure that :await_jump_var, :await_ctx_var, :async_op and
+  // :async_stack_trace are captured.
   if (node->async_marker() == FunctionNode::kSyncYielding) {
     {
       LocalVariable* temp = NULL;
@@ -716,6 +726,13 @@ void ScopeBuilder::VisitFunctionNode(FunctionNode* node) {
     {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::AsyncOperation(), true);
+      if (temp != NULL) {
+        scope_->CaptureVariable(temp);
+      }
+    }
+    if (FLAG_causal_async_stacks) {
+      LocalVariable* temp =
+          scope_->LookupVariable(Symbols::AsyncStackTraceVar(), true);
       if (temp != NULL) {
         scope_->CaptureVariable(temp);
       }
@@ -2556,6 +2573,17 @@ Fragment FlowGraphBuilder::Return(TokenPosition position) {
         new (Z) DebugStepCheckInstr(position, RawPcDescriptors::kRuntimeCall);
   }
 
+  if (FLAG_causal_async_stacks &&
+      (function.IsAsyncClosure() || function.IsAsyncGenClosure())) {
+    // We are returning from an asynchronous closure. Before we do that, be
+    // sure to clear the thread's asynchronous stack trace.
+    const Function& target = Function::ZoneHandle(
+        Z, I->object_store()->async_clear_thread_stack_trace());
+    ASSERT(!target.IsNull());
+    instructions += StaticCall(TokenPosition::kNoSource, target, 0);
+    instructions += Drop();
+  }
+
   ReturnInstr* return_instr = new (Z) ReturnInstr(position, value);
   if (exit_collector_ != NULL) exit_collector_->AddExit(return_instr);
 
@@ -3156,6 +3184,25 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
     }
   }
 
+  if (FLAG_causal_async_stacks &&
+      (dart_function.IsAsyncFunction() || dart_function.IsAsyncGenerator())) {
+    LocalScope* scope = parsed_function_->node_sequence()->scope();
+    // :async_stack_trace = _asyncStackTraceHelper();
+    const dart::Library& async_lib =
+        dart::Library::Handle(dart::Library::AsyncLibrary());
+    const Function& target = Function::ZoneHandle(
+        Z,
+        async_lib.LookupFunctionAllowPrivate(Symbols::AsyncStackTraceHelper()));
+    ASSERT(!target.IsNull());
+
+    body += StaticCall(TokenPosition::kNoSource, target, 0);
+    LocalVariable* async_stack_trace_var =
+        scope->LookupVariable(Symbols::AsyncStackTraceVar(), false);
+    ASSERT(async_stack_trace_var != NULL);
+    body += StoreLocal(TokenPosition::kNoSource, async_stack_trace_var);
+    body += Drop();
+  }
+
   if (dart_function.is_native()) {
     body += NativeFunctionBody(function, dart_function);
   } else if (function->body() != NULL) {
@@ -3172,7 +3219,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
     // The code we are building will be executed right after we enter
     // the function and before any nested contexts are allocated.
     // Reset current context_depth_ to match this.
-    intptr_t current_context_depth = context_depth_;
+    const intptr_t current_context_depth = context_depth_;
     context_depth_ = scopes_->yield_jump_variable->owner()->context_level();
 
     // Prepend an entry corresponding to normal entry to the function.
@@ -3235,6 +3282,37 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
     }
     body = dispatch;
 
+    context_depth_ = current_context_depth;
+  }
+
+  if (FLAG_causal_async_stacks &&
+      (dart_function.IsAsyncClosure() || dart_function.IsAsyncGenClosure())) {
+    // The code we are building will be executed right after we enter
+    // the function and before any nested contexts are allocated.
+    // Reset current context_depth_ to match this.
+    const intptr_t current_context_depth = context_depth_;
+    context_depth_ = scopes_->yield_jump_variable->owner()->context_level();
+
+    Fragment instructions;
+    LocalScope* scope = parsed_function_->node_sequence()->scope();
+
+    const Function& target = Function::ZoneHandle(
+        Z, I->object_store()->async_set_thread_stack_trace());
+    ASSERT(!target.IsNull());
+
+    // Fetch and load :async_stack_trace
+    LocalVariable* async_stack_trace_var =
+        scope->LookupVariable(Symbols::AsyncStackTraceVar(), false);
+    ASSERT((async_stack_trace_var != NULL) &&
+           async_stack_trace_var->is_captured());
+    instructions += LoadLocal(async_stack_trace_var);
+    instructions += PushArgument();
+
+    // Call _asyncSetThreadStackTrace
+    instructions += StaticCall(TokenPosition::kNoSource, target, 1);
+    instructions += Drop();
+
+    body = instructions + body;
     context_depth_ = current_context_depth;
   }
 
@@ -6056,12 +6134,11 @@ void FlowGraphBuilder::VisitYieldStatement(YieldStatement* node) {
 
   Fragment continuation(instructions.entry, anchor);
 
-  // TODO(27590): we need a better way to detect if we need to check for an
-  // exception after yield or not.
-  if (parsed_function_->function().NumOptionalPositionalParameters() == 3) {
-    // If function takes three parameters then the second and the third
-    // are exception and stack_trace. Check if exception is non-null
-    // and rethrow it.
+  if (parsed_function_->function().IsAsyncClosure() ||
+      parsed_function_->function().IsAsyncGenClosure()) {
+    // If function is async closure or async gen closure it takes three
+    // parameters where the second and the third are exception and stack_trace.
+    // Check if exception is non-null and rethrow it.
     //
     //   :async_op([:result, :exception, :stack_trace]) {
     //     ...
@@ -6132,7 +6209,31 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
       // NOTE: This is not TokenPosition in the general sense!
       function = Function::NewClosureFunction(
           *name, parsed_function_->function(), position);
-      function.set_is_debuggable(node->debuggable());
+
+      function.set_is_debuggable(node->dart_async_marker() ==
+                                 FunctionNode::kSync);
+      switch (node->dart_async_marker()) {
+        case FunctionNode::kSyncStar:
+          function.set_modifier(RawFunction::kSyncGen);
+          break;
+        case FunctionNode::kAsync:
+          function.set_modifier(RawFunction::kAsync);
+          function.set_is_inlinable(!FLAG_causal_async_stacks);
+          break;
+        case FunctionNode::kAsyncStar:
+          function.set_modifier(RawFunction::kAsyncGen);
+          function.set_is_inlinable(!FLAG_causal_async_stacks);
+          break;
+        default:
+          // no special modifier
+          break;
+      }
+      function.set_is_generated_body(node->async_marker() ==
+                                     FunctionNode::kSyncYielding);
+      if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+        function.set_is_inlinable(!FLAG_causal_async_stacks);
+      }
+
       function.set_end_token_pos(node->end_position());
       LocalScope* scope = scopes_->function_scopes[i].scope;
       const ContextScope& context_scope =

@@ -11,17 +11,13 @@
 /// term and replace it with annotations as in `dart2js`.
 library fasta.parser.dart_vm_native;
 
-import '../scanner/token.dart' show
-    Token;
+import '../scanner/token.dart' show Token;
 
-import '../scanner/token_constants.dart' show
-    STRING_TOKEN;
+import '../scanner/token_constants.dart' show STRING_TOKEN;
 
-import '../util/link.dart' show
-    Link;
+import '../util/link.dart' show Link;
 
-import 'parser.dart' show
-    optional;
+import 'parser.dart' show optional;
 
 /// When parsing a Dart VM library file, we may encounter a native clause
 /// instead of a function body. This method skips such a clause.

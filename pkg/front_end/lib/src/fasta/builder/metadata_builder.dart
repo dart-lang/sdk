@@ -4,26 +4,25 @@
 
 library fasta.metadata_builder;
 
-import 'builder.dart' show
-    Builder,
-    TypeBuilder;
+import 'builder.dart' show Builder, TypeBuilder;
 
-import 'constructor_reference_builder.dart' show
-    ConstructorReferenceBuilder;
+import 'constructor_reference_builder.dart' show ConstructorReferenceBuilder;
 
 abstract class MetadataBuilder<T extends TypeBuilder> extends Builder {
   MetadataBuilder(Builder parent, int charOffset)
       : super(parent, -1, parent.fileUri);
 
   factory MetadataBuilder.fromConstructor(
-      ConstructorReferenceBuilder constructorReference, List arguments,
-      Builder parent, int charOffset) {
-    return new ConstructorMetadataBuilder(constructorReference, arguments,
-        parent, charOffset);
+      ConstructorReferenceBuilder constructorReference,
+      List arguments,
+      Builder parent,
+      int charOffset) {
+    return new ConstructorMetadataBuilder(
+        constructorReference, arguments, parent, charOffset);
   }
 
-  factory MetadataBuilder.fromExpression(String expression, String postfix,
-      Builder parent, int charOffset) {
+  factory MetadataBuilder.fromExpression(
+      String expression, String postfix, Builder parent, int charOffset) {
     return new ExpressionMetadataBuilder(
         expression, postfix, parent, charOffset);
   }
@@ -35,8 +34,8 @@ class ConstructorMetadataBuilder<T extends TypeBuilder>
 
   final List arguments;
 
-  ConstructorMetadataBuilder(this.constructorReference, this.arguments,
-      Builder parent, int charOffset)
+  ConstructorMetadataBuilder(
+      this.constructorReference, this.arguments, Builder parent, int charOffset)
       : super(parent, charOffset);
 }
 
@@ -51,7 +50,7 @@ class ExpressionMetadataBuilder<T extends TypeBuilder>
 
   final String identifier;
 
-  ExpressionMetadataBuilder(this.qualified, this.identifier, Builder parent,
-      int charOffset)
+  ExpressionMetadataBuilder(
+      this.qualified, this.identifier, Builder parent, int charOffset)
       : super(parent, charOffset);
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:core' hide Symbol;
+
 @patch class Symbol {
   @patch const Symbol(String name)
       : this._name = name;

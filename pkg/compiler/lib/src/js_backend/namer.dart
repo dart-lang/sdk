@@ -13,10 +13,11 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../constants/values.dart';
 import '../core_types.dart' show CommonElements;
-import '../elements/resolution_types.dart';
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
+import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../tree/tree.dart';
@@ -475,8 +476,11 @@ class Namer {
   jsAst.Name get staticsPropertyName =>
       _staticsPropertyName ??= new StringBackedName('static');
 
-  jsAst.Name _rtiFieldName;
-  jsAst.Name get rtiFieldName => _rtiFieldName ??= new StringBackedName(r'$ti');
+  final String rtiName = r'$ti';
+
+  jsAst.Name _rtiFieldJsName;
+  jsAst.Name get rtiFieldJsName =>
+      _rtiFieldJsName ??= new StringBackedName(rtiName);
 
   // Name of property in a class description for the native dispatch metadata.
   final String nativeSpecProperty = '%';
@@ -620,8 +624,12 @@ class Namer {
         return asName(operatorAsPrefix);
       case JsGetName.SIGNATURE_NAME:
         return asName(operatorSignature);
+      case JsGetName.RTI_NAME:
+        return asName(rtiName);
       case JsGetName.TYPEDEF_TAG:
         return asName(typedefTag);
+      case JsGetName.FUNCTION_TYPE_TAG:
+        return asName(functionTypeTag);
       case JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG:
         return asName(functionTypeVoidReturnTag);
       case JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG:
@@ -1587,7 +1595,7 @@ class Namer {
     });
   }
 
-  jsAst.Name operatorIsType(ResolutionDartType type) {
+  jsAst.Name operatorIsType(DartType type) {
     if (type.isFunctionType) {
       // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
       return new CompoundName([
@@ -1596,7 +1604,8 @@ class Namer {
         getFunctionTypeName(type)
       ]);
     }
-    return operatorIs(type.element);
+    InterfaceType interfaceType = type;
+    return operatorIs(interfaceType.element);
   }
 
   jsAst.Name operatorIs(ClassElement element) {
@@ -1614,7 +1623,7 @@ class Namer {
     return name;
   }
 
-  jsAst.Name substitutionName(Element element) {
+  jsAst.Name substitutionName(ClassElement element) {
     return new CompoundName(
         [new StringBackedName(operatorAsPrefix), runtimeTypeName(element)]);
   }
@@ -1872,6 +1881,29 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   @override
   void visitConstructed(ConstructedConstantValue constant, [_]) {
     addRoot(constant.type.element.name);
+
+    // Recognize enum constants and only include the index.
+    final Map<FieldEntity, ConstantValue> fieldMap = constant.fields;
+    int size = fieldMap.length;
+    if (size == 1 || size == 2) {
+      FieldEntity indexField;
+      for (FieldEntity field in fieldMap.keys) {
+        String name = field.name;
+        if (name == 'index') {
+          indexField = field;
+        } else if (name == '_name') {
+          // Ingore _name field.
+        } else {
+          indexField = null;
+          break;
+        }
+      }
+      if (indexField != null) {
+        _visit(constant.fields[indexField]);
+        return;
+      }
+    }
+
     // TODO(johnniwinther): This should be accessed from a codegen closed world.
     codegenWorldBuilder.forEachInstanceField(constant.type.element,
         (_, FieldElement field) {

@@ -13,6 +13,7 @@ import '../elements/entities.dart';
 import '../elements/modelx.dart' show FunctionElementX;
 import '../elements/resolution_types.dart';
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
+import '../js_backend/backend_usage.dart' show BackendUsageBuilder;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
@@ -81,6 +82,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   JavaScriptBackend get backend => compiler.backend;
   BackendHelpers get helpers => backend.helpers;
+  BackendUsageBuilder get _backendUsageBuilder => backend.backendUsageBuilder;
   Resolution get resolution => compiler.resolution;
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -444,8 +446,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   Iterable<ClassElement> _onFirstNativeClass(WorldImpactBuilder impactBuilder) {
     void staticUse(element) {
       impactBuilder.registerStaticUse(new StaticUse.foreignUse(element));
-      backend.registerBackendUse(element);
-      compiler.globalDependencies.registerDependency(element);
+      _backendUsageBuilder.registerBackendUse(element);
+      _backendUsageBuilder.registerGlobalDependency(element);
     }
 
     staticUse(helpers.defineProperty);

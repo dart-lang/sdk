@@ -50,28 +50,28 @@ mixin(base, @rest mixins) => JS(
     methods: () => {
       let s = {};
       for (let m of $mixins) {
-        $copyProperties(s, m[$_methodSig]);
+        if (m[$_methodSig]) $copyProperties(s, m[$_methodSig]);
       }
       return s;
     },
     fields: () => {
       let s = {};
       for (let m of $mixins) {
-        $copyProperties(s, m[$_fieldSig]);
+        if (m[$_fieldSig]) $copyProperties(s, m[$_fieldSig]);
       }
       return s;
     },
     getters: () => {
       let s = {};
       for (let m of $mixins) {
-        $copyProperties(s, m[$_getterSig]);
+        if (m[$_getterSig]) $copyProperties(s, m[$_getterSig]);
       }
       return s;
     },
     setters: () => {
       let s = {};
       for (let m of $mixins) {
-        $copyProperties(s, m[$_setterSig]);
+        if (m[$_setterSig]) $copyProperties(s, m[$_setterSig]);
       }
       return s;
     }
@@ -500,7 +500,9 @@ registerExtension(jsType, dartExtType) => JS(
   jsProto[$_extensionType] = $dartExtType;
   $_installProperties(jsProto, extProto);
   function updateSig(sigF) {
-    let originalSigFn = $getOwnPropertyDescriptor($dartExtType, sigF).get;
+    let originalDesc = $getOwnPropertyDescriptor($dartExtType, sigF);
+    if (originalDesc === void 0) return;
+    let originalSigFn = originalDesc.get;
     $assert_(originalSigFn);
     $defineMemoizedGetter($jsType, sigF, originalSigFn);
   }
@@ -545,7 +547,9 @@ defineExtensionMembers(type, methodNames) => JS(
   // on the function.
 
   function upgradeSig(sigF) {
-    let originalSigFn = $getOwnPropertyDescriptor($type, sigF).get;
+    let originalSigDesc = $getOwnPropertyDescriptor($type, sigF);
+    if (originalSigDesc === void 0) return;
+    let originalSigFn = originalSigDesc.get;
     $defineMemoizedGetter(type, sigF, function() {
       let sig = originalSigFn();
       let propertyNames = Object.getOwnPropertyNames(sig);

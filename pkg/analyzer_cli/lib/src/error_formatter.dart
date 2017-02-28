@@ -8,6 +8,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_cli/src/options.dart';
+import 'package:path/path.dart' as path;
 
 /// Returns the given error's severity.
 ProcessedSeverity _identity(AnalysisError error) =>
@@ -96,7 +97,7 @@ class AnalysisStats {
     if (hasContent) {
       out.writeln(" found.");
     } else {
-      out.writeln("No issues found");
+      out.writeln("No issues found!");
     }
   }
 }
@@ -152,6 +153,7 @@ class ErrorFormatter {
       out.write(length);
       out.write('|');
       out.write(escapePipe(error.message));
+      out.writeln();
     } else {
       // Get display name.
       String errorType = severity.displayName;
@@ -164,12 +166,37 @@ class ErrorFormatter {
         }
       }
 
-      // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
-      out.write('[$errorType] ${error.message} ');
-      out.write('(${source.fullName}');
-      out.write(', line ${location.lineNumber}, col ${location.columnNumber})');
+      int indent = errorType.length + 3;
+
+      // [warning] 'foo' is not a bar at lib/foo.dart:1:2 (foo_warning).
+      String message = error.message;
+      // Remove any terminating '.' from the end of the message.
+      if (message.endsWith('.')) {
+        message = message.substring(0, message.length - 1);
+      }
+      out.write('[$errorType] $message ');
+      String sourceName;
+      if (source.uriKind == UriKind.DART_URI) {
+        sourceName = source.uri.toString();
+      } else if (source.uriKind == UriKind.PACKAGE_URI) {
+        sourceName = _relative(source.fullName);
+        if (sourceName == source.fullName) {
+          // If we weren't able to shorten the path name, use the package: version.
+          sourceName = source.uri.toString();
+        }
+      } else {
+        sourceName = _relative(source.fullName);
+      }
+      out.write('at $sourceName');
+      out.write(':${location.lineNumber}:${location.columnNumber} ');
+      out.write('(${error.errorCode.name.toLowerCase()}).');
+      out.writeln();
+
+      // If verbose, also print any associated correction.
+      if (options.verbose && error.correction != null) {
+        out.writeln('${' '.padLeft(indent)}${error.correction}');
+      }
     }
-    out.writeln();
   }
 
   void formatErrors(List<AnalysisErrorInfo> errorInfos) {
@@ -210,8 +237,7 @@ class ErrorFormatter {
       if (severity == ErrorSeverity.ERROR) {
         stats.errorCount++;
       } else if (severity == ErrorSeverity.WARNING) {
-        /// Only treat a warning as an error if it's not been set by a
-        /// proccesser.
+        // Only treat a warning as an error if it's not been set by a processor.
         if (!processedSeverity.overridden && options.warningsAreFatal) {
           stats.errorCount++;
         } else {
@@ -243,4 +269,10 @@ class ProcessedSeverity {
   ErrorSeverity severity;
   bool overridden;
   ProcessedSeverity(this.severity, [this.overridden = false]);
+}
+
+/// Given an absolute path, return a relative path if the file is contained in
+/// the current directory; return the original path otherwise.
+String _relative(String file) {
+  return file.startsWith(path.current) ? path.relative(file) : file;
 }

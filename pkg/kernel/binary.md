@@ -91,70 +91,52 @@ type Something<T> extends Option<T> {
   T value;
 }
 
+type CanonicalNameReference {
+  UInt biasedIndex; // 0 if null, otherwise N+1 where N is index of parent
+}
+
+type CanonicalName {
+  CanonicalNameReference parent;
+  StringReference name;
+}
+
 type ProgramFile {
   MagicWord magic = 0x90ABCDEF;
   StringTable strings;
   UriSource sourceMap;
+  List<CanonicalName> canonicalNames;
   List<Library> libraries;
-  LibraryProcedureReference mainMethod;
+  ProcedureReference mainMethod;
 }
 
 type LibraryReference {
-  // Index into the ProgramFile libraries.
-  UInt index;
+  // Must be populated by a library (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
-abstract type ClassReference {}
-
-type NormalClassReference extends ClassReference {
-  Byte tag = 100;
-  LibraryReference library;
-  UInt classIndex;
+type ClassReference {
+  // Must be populated by a class (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
-type MixinClassReference extends ClassReference {
-  Byte tag = 101;
-  LibraryReference library;
-  UInt classIndex;
+type MemberReference {
+  // Must be populated by a member (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
-abstract type MemberReference {
+type FieldReference {
+  // Must be populated by a field (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
-type LibraryFieldReference extends MemberReference {
-  Byte tag = 102;
-  LibraryReference library;
-  UInt fieldIndex; // Index in list of fields.
+type ConstructorReference {
+  // Must be populated by a constructor (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
-type ClassFieldReference extends MemberReference {
-  Byte tag = 103;
-  ClassReference class;
-  UInt fieldIndex;
-}
-
-type ClassConstructorReference extends MemberReference {
-  Byte tag = 104;
-  ClassReference class;
-  UInt constructorIndex; // Index in list of constructors.
-}
-
-type LibraryProcedureReference extends MemberReference {
-  Byte tag = 105;
-  LibraryReference library;
-  UInt procedureIndex; // Index in list of procedures.
-}
-
-type ClassProcedureReference extends MemberReference {
-  Byte tag = 106;
-  ClassReference class;
-  UInt procedureIndex;
-}
-
-// Can be used as MemberReference or ClassReference *only* if indicated that
-// the given reference may be a NullReference.
-type NullReference extends MemberReference, ClassReference {
-  Byte tag = 99;
+type ProcedureReference {
+  // Must be populated by a procedure (possibly later in the file).
+  CanonicalNameReference canonicalName;
 }
 
 type Name {
@@ -166,13 +148,8 @@ type Name {
 
 type Library {
   Byte flags (isExternal);
+  CanonicalNameReference canonicalName;
   StringReference name;
-  // A URI from which the library was created.  The URI has the dart, package,
-  // file, or app scheme.  For file URIs, the path is an absolute path to the
-  // .dart file from which the library was created.  For app URIs, the path is
-  // relative to an application root that was specified when the binary was
-  // generated.
-  StringReference importUri;
   // An absolute path URI to the .dart file from which the library was created.
   UriReference fileUri;
   List<DeferredImport> deferredImports;
@@ -205,10 +182,9 @@ enum ClassLevel { Type = 0, Hierarchy = 1, Mixin = 2, Body = 3, }
 //
 // See ClassLevel in ast.dart for the details of each loading level.
 
-abstract type Class extends Node {}
-
-type NormalClass extends Class {
+abstract type Class extends Node {
   Byte tag = 2;
+  CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   Byte flags (isAbstract, xx); // Where xx is index into ClassLevel
   StringReference name;
@@ -217,31 +193,18 @@ type NormalClass extends Class {
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
   Option<InterfaceType> superClass;
+  Option<InterfaceType> mixedInType;
   List<InterfaceType> implementedClasses;
   List<Field> fields;
   List<Constructor> constructors;
   List<Procedure> procedures;
 }
 
-type MixinClass extends Class {
-  Byte tag = 3;
-  FileOffset fileOffset;
-  Byte flags (isAbstract, isTypeLevel);
-  StringReference name;
-  // An absolute path URI to the .dart file from which the class was created.
-  UriReference fileUri;
-  List<Expression> annotations;
-  List<TypeParameter> typeParameters;
-  InterfaceType firstSuperClass;
-  InterfaceType secondSuperClass;
-  List<InterfaceType> implementedClasses;
-  List<Constructor> constructors;
-}
-
 abstract type Member extends Node {}
 
 type Field extends Member {
   Byte tag = 4;
+  CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isFinal, isConst, isStatic);
@@ -256,6 +219,7 @@ type Field extends Member {
 
 type Constructor extends Member {
   Byte tag = 5;
+  CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
@@ -277,6 +241,7 @@ enum ProcedureKind {
 
 type Procedure extends Member {
   Byte tag = 6;
+  CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
@@ -323,7 +288,8 @@ enum AsyncMarker {
   Sync,
   SyncStar,
   Async,
-  AsyncStar
+  AsyncStar,
+  SyncYielding
 }
 */
 
@@ -332,7 +298,7 @@ type FunctionNode {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   Byte asyncMarker; // Index into AsyncMarker above.
-  Byte debuggable; // 1 for yes, 0 for no
+  Byte dartAsyncMarker; // Index into AsyncMarker above.
   List<TypeParameter> typeParameters;
   UInt requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
