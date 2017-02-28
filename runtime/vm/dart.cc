@@ -653,7 +653,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
 }
 
 
-const char* Dart::FeaturesString(Snapshot::Kind kind) {
+const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
   TextBuffer buffer(64);
 
 // Different fields are included for DEBUG/RELEASE/PRODUCT.
@@ -667,9 +667,12 @@ const char* Dart::FeaturesString(Snapshot::Kind kind) {
 
   if (Snapshot::IncludesCode(kind)) {
     // Checked mode affects deopt ids.
-    buffer.AddString(FLAG_enable_asserts ? " asserts" : " no-asserts");
-    buffer.AddString(FLAG_enable_type_checks ? " type-checks"
-                                             : " no-type-checks");
+    const bool asserts =
+        (isolate != NULL) ? isolate->asserts() : FLAG_enable_asserts;
+    const bool type_checks =
+        (isolate != NULL) ? isolate->type_checks() : FLAG_enable_type_checks;
+    buffer.AddString(asserts ? " asserts" : " no-asserts");
+    buffer.AddString(type_checks ? " type-checks" : " no-type-checks");
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)

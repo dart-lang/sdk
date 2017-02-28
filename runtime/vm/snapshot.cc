@@ -580,7 +580,7 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
   ASSERT(kind_ == Snapshot::kScript);
 
   // First read the version string, and check that it matches.
-  RawApiError* error = VerifyVersionAndFeatures();
+  RawApiError* error = VerifyVersionAndFeatures(Isolate::Current());
   if (error != ApiError::null()) {
     return error;
   }
@@ -602,7 +602,7 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
 }
 
 
-RawApiError* SnapshotReader::VerifyVersionAndFeatures() {
+RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
 
@@ -639,7 +639,7 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures() {
   }
   Advance(version_len);
 
-  const char* expected_features = Dart::FeaturesString(kind_);
+  const char* expected_features = Dart::FeaturesString(isolate, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
@@ -1842,7 +1842,8 @@ void SnapshotWriter::WriteVersionAndFeatures() {
   const intptr_t version_len = strlen(expected_version);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
-  const char* expected_features = Dart::FeaturesString(kind_);
+  const char* expected_features =
+      Dart::FeaturesString(Isolate::Current(), kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
