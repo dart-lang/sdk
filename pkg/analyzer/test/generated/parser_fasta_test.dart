@@ -409,22 +409,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     with ComplexParserTestMixin {
   @override
   @failingTest
-  void test_additiveExpression_precedence_multiplicative_left_withSuper() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // handleSuperExpression().
-    super.test_additiveExpression_precedence_multiplicative_left_withSuper();
-  }
-
-  @override
-  @failingTest
-  void test_additiveExpression_super() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // handleSuperExpression().
-    super.test_additiveExpression_super();
-  }
-
-  @override
-  @failingTest
   void test_assignableExpression_arguments_normal_chain() {
     // TODO(paulberry,ahe): AstBuilder.doInvocation doesn't handle receiver
     // other than SimpleIdentifier.
@@ -453,38 +437,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     // TODO(paulberry,ahe): Analyzer expects "x.y" to be parsed as a
     // PrefixedIdentifier, even if x is not a prefix.
     super.test_assignmentExpression_prefixedIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_assignmentExpression_propertyAccess() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // handleSuperExpression().
-    super.test_assignmentExpression_propertyAccess();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseAndExpression_super() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // handleSuperExpression().
-    super.test_bitwiseAndExpression_super();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseOrExpression_super() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // handleSuperExpression().
-    super.test_bitwiseOrExpression_super();
-  }
-
-  @override
-  @failingTest
-  void test_bitwiseXorExpression_super() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // handleSuperExpression().
-    super.test_bitwiseXorExpression_super();
   }
 
   @override
@@ -554,22 +506,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_multiplicativeExpression_super() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // handleSuperExpression().
-    super.test_multiplicativeExpression_super();
-  }
-
-  @override
-  @failingTest
-  void test_shiftExpression_super() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // handleSuperExpression().
-    super.test_shiftExpression_super();
-  }
-
-  @override
-  @failingTest
   void test_topLevelFunction_nestedGenericFunction() {
     // TODO(paulberry): Implement parseCompilationUnitWithOptions
     super.test_topLevelFunction_nestedGenericFunction();
@@ -613,12 +549,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
   @override
   @failingTest
-  void test_parseAdditiveExpression_super() {
-    super.test_parseAdditiveExpression_super();
-  }
-
-  @override
-  @failingTest
   void test_parseAssignableExpression_expression_args_dot() {
     super.test_parseAssignableExpression_expression_args_dot();
   }
@@ -659,18 +589,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseAssignableExpression_super_dot() {
-    super.test_parseAssignableExpression_super_dot();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssignableExpression_super_index() {
-    super.test_parseAssignableExpression_super_index();
-  }
-
-  @override
-  @failingTest
   void test_parseAssignableSelector_dot() {
     super.test_parseAssignableSelector_dot();
   }
@@ -697,24 +615,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseAwaitExpression() {
     super.test_parseAwaitExpression();
-  }
-
-  @override
-  @failingTest
-  void test_parseBitwiseAndExpression_super() {
-    super.test_parseBitwiseAndExpression_super();
-  }
-
-  @override
-  @failingTest
-  void test_parseBitwiseOrExpression_super() {
-    super.test_parseBitwiseOrExpression_super();
-  }
-
-  @override
-  @failingTest
-  void test_parseBitwiseXorExpression_super() {
-    super.test_parseBitwiseXorExpression_super();
   }
 
   @override
@@ -887,12 +787,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseEqualityExpression_super() {
-    super.test_parseEqualityExpression_super();
-  }
-
-  @override
-  @failingTest
   void test_parseExpression_assign_compound() {
     super.test_parseExpression_assign_compound();
   }
@@ -923,26 +817,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseExpression_superMethodInvocation() {
-    super.test_parseExpression_superMethodInvocation();
-  }
-
-  @override
-  @failingTest
   void test_parseExpression_superMethodInvocation_typeArgumentComments() {
     super.test_parseExpression_superMethodInvocation_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseExpression_superMethodInvocation_typeArguments() {
-    super.test_parseExpression_superMethodInvocation_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseExpressionWithoutCascade_superMethodInvocation() {
-    super.test_parseExpressionWithoutCascade_superMethodInvocation();
   }
 
   @override
@@ -951,14 +827,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
       test_parseExpressionWithoutCascade_superMethodInvocation_typeArgumentComments() {
     super
         .test_parseExpressionWithoutCascade_superMethodInvocation_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void
-      test_parseExpressionWithoutCascade_superMethodInvocation_typeArguments() {
-    super
-        .test_parseExpressionWithoutCascade_superMethodInvocation_typeArguments();
   }
 
   @override
@@ -1132,12 +1000,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseMultiplicativeExpression_super() {
-    super.test_parseMultiplicativeExpression_super();
-  }
-
-  @override
-  @failingTest
   void test_parseNewExpression() {
     super.test_parseNewExpression();
   }
@@ -1222,12 +1084,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parsePrimaryExpression_super() {
-    super.test_parsePrimaryExpression_super();
-  }
-
-  @override
-  @failingTest
   void test_parsePrimaryExpression_this() {
     super.test_parsePrimaryExpression_this();
   }
@@ -1258,20 +1114,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseRelationalExpression_super() {
-    super.test_parseRelationalExpression_super();
-  }
-
-  @override
-  @failingTest
   void test_parseRethrowExpression() {
     super.test_parseRethrowExpression();
-  }
-
-  @override
-  @failingTest
-  void test_parseShiftExpression_super() {
-    super.test_parseShiftExpression_super();
   }
 
   @override
@@ -1312,44 +1156,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseUnaryExpression_decrement_super_propertyAccess() {
-    super.test_parseUnaryExpression_decrement_super_propertyAccess();
-  }
-
-  @override
-  @failingTest
   void test_parseUnaryExpression_decrement_super_withComment() {
     super.test_parseUnaryExpression_decrement_super_withComment();
-  }
-
-  @override
-  @failingTest
-  void test_parseUnaryExpression_increment_super_index() {
-    super.test_parseUnaryExpression_increment_super_index();
-  }
-
-  @override
-  @failingTest
-  void test_parseUnaryExpression_increment_super_propertyAccess() {
-    super.test_parseUnaryExpression_increment_super_propertyAccess();
-  }
-
-  @override
-  @failingTest
-  void test_parseUnaryExpression_minus_super() {
-    super.test_parseUnaryExpression_minus_super();
-  }
-
-  @override
-  @failingTest
-  void test_parseUnaryExpression_not_super() {
-    super.test_parseUnaryExpression_not_super();
-  }
-
-  @override
-  @failingTest
-  void test_parseUnaryExpression_tilda_super() {
-    super.test_parseUnaryExpression_tilda_super();
   }
 }
 
