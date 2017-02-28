@@ -945,12 +945,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parsePrimaryExpression_parenthesized() {
-    super.test_parsePrimaryExpression_parenthesized();
-  }
-
-  @override
-  @failingTest
   void test_parseRelationalExpression_as_functionType_noReturnType() {
     super.test_parseRelationalExpression_as_functionType_noReturnType();
   }

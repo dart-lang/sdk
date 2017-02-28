@@ -68,6 +68,14 @@ class AstBuilder extends ScopeListener {
     push(token);
   }
 
+  @override
+  void handleParenthesizedExpression(BeginGroupToken token) {
+    debugEvent("ParenthesizedExpression");
+    Expression expression = pop();
+    push(ast.parenthesizedExpression(
+        toAnalyzerToken(token), expression, toAnalyzerToken(token.endGroup)));
+  }
+
   void handleStringPart(Token token) {
     debugEvent("StringPart");
     push(token);
