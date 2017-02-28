@@ -491,6 +491,8 @@ class FlowGraphCompiler : public ValueObject {
   void AddExceptionHandler(intptr_t try_index,
                            intptr_t outer_try_index,
                            intptr_t pc_offset,
+                           TokenPosition token_pos,
+                           bool is_generated,
                            const Array& handler_types,
                            bool needs_stacktrace);
   void SetNeedsStackTrace(intptr_t try_index);

@@ -1801,6 +1801,7 @@ class NativeBodyNode : public AstNode {
 class CatchClauseNode : public AstNode {
  public:
   static const intptr_t kInvalidTryIndex = -1;
+  static const intptr_t kImplicitAsyncTryIndex = 0;
 
   CatchClauseNode(TokenPosition token_pos,
                   SequenceNode* catch_block,

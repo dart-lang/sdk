@@ -323,7 +323,8 @@ FlowGraphBuilder::FlowGraphBuilder(
       nesting_stack_(NULL),
       osr_id_(osr_id),
       jump_count_(0),
-      await_joins_(new (Z) ZoneGrowableArray<JoinEntryInstr*>()) {}
+      await_joins_(new (Z) ZoneGrowableArray<JoinEntryInstr*>()),
+      await_token_positions_(new (Z) ZoneGrowableArray<TokenPosition>()) {}
 
 
 void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
@@ -2186,6 +2187,8 @@ void EffectGraphVisitor::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
   Value* jump_val = Bind(new (Z) ConstantInstr(
       Smi::ZoneHandle(Z, Smi::New(jump_count)), node->token_pos()));
   Do(BuildStoreLocal(*jump_var, jump_val, node->token_pos()));
+  // Add a mapping from jump_count -> token_position.
+  owner()->AppendAwaitTokenPosition(node->token_pos());
   // Save the current context for resuming.
   BuildSaveContext(*ctx_var, node->token_pos());
 }
@@ -4078,6 +4081,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   ASSERT(!catch_block->stacktrace_var().is_captured());
 
   CatchBlockEntryInstr* catch_entry = new (Z) CatchBlockEntryInstr(
+      catch_block->token_pos(), (node->token_pos() == TokenPosition::kNoSource),
       owner()->AllocateBlockId(), catch_handler_index, owner()->graph_entry(),
       catch_block->handler_types(), try_handler_index,
       catch_block->exception_var(), catch_block->stacktrace_var(),
@@ -4120,6 +4124,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     const Array& types = Array::ZoneHandle(Z, Array::New(1, Heap::kOld));
     types.SetAt(0, Object::dynamic_type());
     CatchBlockEntryInstr* finally_entry = new (Z) CatchBlockEntryInstr(
+        finally_block->token_pos(),
+        true,  // this is not a catch block from user code.
         owner()->AllocateBlockId(), original_handler_index,
         owner()->graph_entry(), types, catch_handler_index,
         catch_block->exception_var(), catch_block->stacktrace_var(),
@@ -4367,7 +4373,13 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
   FlowGraph* graph =
       new (Z) FlowGraph(parsed_function(), graph_entry_, last_used_block_id_);
+  graph->set_await_token_positions(await_token_positions_);
   return graph;
+}
+
+
+void FlowGraphBuilder::AppendAwaitTokenPosition(TokenPosition token_pos) {
+  await_token_positions_->Add(token_pos);
 }
 
 

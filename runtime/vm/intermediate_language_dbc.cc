@@ -1149,6 +1149,7 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(catch_try_index(), try_index(),
                                 compiler->assembler()->CodeSize(),
+                                handler_token_pos(), is_generated(),
                                 catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.

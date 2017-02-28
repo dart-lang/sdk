@@ -4513,12 +4513,15 @@ class ExceptionHandlers : public Object {
   uword HandlerPCOffset(intptr_t try_index) const;
   intptr_t OuterTryIndex(intptr_t try_index) const;
   bool NeedsStackTrace(intptr_t try_index) const;
+  bool IsGenerated(intptr_t try_index) const;
 
   void SetHandlerInfo(intptr_t try_index,
                       intptr_t outer_try_index,
                       uword handler_pc_offset,
                       bool needs_stacktrace,
-                      bool has_catch_all) const;
+                      bool has_catch_all,
+                      TokenPosition token_pos,
+                      bool is_generated) const;
 
   RawArray* GetHandledTypes(intptr_t try_index) const;
   void SetHandledTypes(intptr_t try_index, const Array& handled_types) const;
@@ -4681,6 +4684,9 @@ class Code : public Object {
     ASSERT(code_source_map.IsOld());
     StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
   }
+
+  RawArray* await_token_positions() const;
+  void SetAwaitTokenPositions(const Array& await_token_positions) const;
 
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
   // that are embedded inside the Code object.

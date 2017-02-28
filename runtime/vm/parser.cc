@@ -6817,6 +6817,8 @@ void Parser::OpenAsyncTryBlock() {
   // This is the outermost try-catch in the function.
   ASSERT(try_stack_ == NULL);
   PushTry(current_block_);
+  // Validate that we always get try index of 0.
+  ASSERT(try_stack_->try_index() == CatchClauseNode::kImplicitAsyncTryIndex);
 
   SetupSavedTryContext(context_var);
 }
@@ -7086,6 +7088,7 @@ void Parser::AddAsyncGeneratorVariables() {
   //   var :async_then_callback;
   //   var :async_catch_error_callback;
   //   var :async_stack_trace;
+  //   var :controller_stream;
   // These variables are used to store the async generator closure containing
   // the body of the async* function. They are used by the await operator.
   LocalVariable* controller_var =
@@ -7108,6 +7111,10 @@ void Parser::AddAsyncGeneratorVariables() {
       LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                     Symbols::AsyncStackTraceVar(), Object::dynamic_type());
   current_block_->scope->AddVariable(async_stack_trace);
+  LocalVariable* controller_stream = new (Z)
+      LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                    Symbols::ControllerStream(), Object::dynamic_type());
+  current_block_->scope->AddVariable(controller_stream);
 }
 
 
@@ -7177,7 +7184,8 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(TokenPosition async_func_pos) {
 //   var :async_then_callback = _asyncThenWrapperHelper(:async_op);
 //   var :async_catch_error_callback = _asyncCatchErrorWrapperHelper(:async_op);
 //   :controller = new _AsyncStarStreamController(:async_op);
-//   return :controller.stream;
+//   var :controller_stream = :controller.stream;
+//   return :controller_stream;
 // }
 SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
                                                   SequenceNode* closure_body) {
@@ -7207,6 +7215,9 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
   ASSERT((existing_var != NULL) && existing_var->is_captured());
   existing_var = closure_body->scope()->LookupVariable(
       Symbols::AsyncStackTraceVar(), false);
+  ASSERT((existing_var != NULL) && existing_var->is_captured());
+  existing_var =
+      closure_body->scope()->LookupVariable(Symbols::ControllerStream(), false);
   ASSERT((existing_var != NULL) && existing_var->is_captured());
 
   const Library& async_lib = Library::Handle(Library::AsyncLibrary());
@@ -7316,13 +7327,28 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
       TokenPosition::kNoSource, controller_var, controller_constructor_call);
   current_block_->statements->Add(store_controller);
 
+  // Grab :controller.stream
+  InstanceGetterNode* controller_stream = new (Z) InstanceGetterNode(
+      TokenPosition::kNoSource,
+      new (Z) LoadLocalNode(TokenPosition::kNoSource, controller_var),
+      Symbols::Stream());
+
+  // Store :controller.stream into :controller_stream inside the closure.
+  // We have to remember the stream because a new instance is generated for
+  // each getter invocation and in order to recreate the linkage, we need the
+  // awaited on instance.
+  LocalVariable* controller_stream_var =
+      current_block_->scope->LookupVariable(Symbols::ControllerStream(), false);
+  ASSERT(controller_stream_var != NULL);
+
+  StoreLocalNode* store_controller_stream = new (Z) StoreLocalNode(
+      TokenPosition::kNoSource, controller_stream_var, controller_stream);
+  current_block_->statements->Add(store_controller_stream);
+
   // return :controller.stream;
   ReturnNode* return_node = new (Z) ReturnNode(
       TokenPosition::kNoSource,
-      new (Z) InstanceGetterNode(
-          TokenPosition::kNoSource,
-          new (Z) LoadLocalNode(TokenPosition::kNoSource, controller_var),
-          Symbols::Stream()));
+      new (Z) LoadLocalNode(TokenPosition::kNoSource, controller_stream_var));
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -9066,6 +9092,37 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
 
+  // Create :stream to store the stream into temporarily.
+  LocalVariable* stream_var =
+      new (Z) LocalVariable(stream_expr_pos, stream_expr_pos,
+                            Symbols::ColonStream(), Object::dynamic_type());
+  current_block_->scope->AddVariable(stream_var);
+
+  // Store the stream expression into a variable.
+  StoreLocalNode* store_stream_var =
+      new (Z) StoreLocalNode(stream_expr_pos, stream_var, stream_expr);
+  current_block_->statements->Add(store_stream_var);
+
+  // Register the awaiter on the stream by invoking `_asyncStarListenHelper`.
+  const Library& async_lib = Library::Handle(Library::AsyncLibrary());
+  const Function& async_star_listen_helper = Function::ZoneHandle(
+      Z,
+      async_lib.LookupFunctionAllowPrivate(Symbols::_AsyncStarListenHelper()));
+  ASSERT(!async_star_listen_helper.IsNull());
+  LocalVariable* async_op_var =
+      current_block_->scope->LookupVariable(Symbols::AsyncOperation(), false);
+  ASSERT(async_op_var != NULL);
+  ArgumentListNode* async_star_listen_helper_args =
+      new (Z) ArgumentListNode(stream_expr_pos);
+  async_star_listen_helper_args->Add(
+      new (Z) LoadLocalNode(stream_expr_pos, stream_var));
+  async_star_listen_helper_args->Add(
+      new (Z) LoadLocalNode(stream_expr_pos, async_op_var));
+  StaticCallNode* async_star_listen_helper_call = new (Z) StaticCallNode(
+      stream_expr_pos, async_star_listen_helper, async_star_listen_helper_args);
+
+  current_block_->statements->Add(async_star_listen_helper_call);
+
   // Build creation of implicit StreamIterator.
   // var :for-in-iter = new StreamIterator(stream_expr).
   const Class& stream_iterator_cls =
@@ -9076,7 +9133,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       stream_iterator_cls.LookupFunction(Symbols::StreamIteratorConstructor()));
   ASSERT(!iterator_ctor.IsNull());
   ArgumentListNode* ctor_args = new (Z) ArgumentListNode(stream_expr_pos);
-  ctor_args->Add(stream_expr);
+  ctor_args->Add(new (Z) LoadLocalNode(stream_expr_pos, stream_var));
   ConstructorCallNode* ctor_call = new (Z) ConstructorCallNode(
       stream_expr_pos, TypeArguments::ZoneHandle(Z), iterator_ctor, ctor_args);
   const AbstractType& iterator_type = Object::dynamic_type();
