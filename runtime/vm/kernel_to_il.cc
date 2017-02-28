@@ -2688,7 +2688,7 @@ Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(
     bool is_initialization_store) {
   Fragment instructions;
   const dart::Field& field_clone = MayCloneField(Z, field);
-  if (FLAG_use_field_guards) {
+  if (I->use_field_guards()) {
     LocalVariable* store_expression = MakeTemporary();
     instructions += LoadLocal(store_expression);
     instructions += GuardFieldClass(field_clone, H.thread()->GetNextDeoptId());

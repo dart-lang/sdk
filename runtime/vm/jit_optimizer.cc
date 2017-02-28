@@ -1805,7 +1805,7 @@ bool JitOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
     AddReceiverCheck(instr);
   }
   if (field.guarded_cid() != kDynamicCid) {
-    ASSERT(FLAG_use_field_guards);
+    ASSERT(I->use_field_guards());
     InsertBefore(
         instr, new (Z) GuardFieldClassInstr(new (Z) Value(instr->ArgumentAt(1)),
                                             field, instr->deopt_id()),
@@ -1813,7 +1813,7 @@ bool JitOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
 
   if (field.needs_length_check()) {
-    ASSERT(FLAG_use_field_guards);
+    ASSERT(I->use_field_guards());
     InsertBefore(instr, new (Z) GuardFieldLengthInstr(
                             new (Z) Value(instr->ArgumentAt(1)), field,
                             instr->deopt_id()),

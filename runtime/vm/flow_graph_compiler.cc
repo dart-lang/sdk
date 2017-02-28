@@ -1084,7 +1084,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
       if (field.is_instance() &&
           (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
         GenerateInlinedGetter(field.Offset());
-        return !FLAG_use_field_guards;
+        return !isolate()->use_field_guards();
       }
       return false;
     }
@@ -1097,7 +1097,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
       if (field.is_instance() &&
           (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
         GenerateInlinedSetter(field.Offset());
-        return !FLAG_use_field_guards;
+        return !isolate()->use_field_guards();
       }
       return false;
     }

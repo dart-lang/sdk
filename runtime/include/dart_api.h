@@ -611,7 +611,7 @@ DART_EXPORT const char* Dart_VersionString();
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x00000001)
+#define DART_FLAGS_CURRENT_VERSION (0x00000002)
 
 typedef struct {
   int32_t version;
@@ -619,6 +619,7 @@ typedef struct {
   bool enable_asserts;
   bool enable_error_on_bad_type;
   bool enable_error_on_bad_override;
+  bool use_field_guards;
 } Dart_IsolateFlags;
 
 /**

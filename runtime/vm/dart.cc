@@ -673,8 +673,11 @@ const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
         (isolate != NULL) ? isolate->asserts() : FLAG_enable_asserts;
     const bool type_checks =
         (isolate != NULL) ? isolate->type_checks() : FLAG_enable_type_checks;
+    const bool field_guards =
+        (isolate != NULL) ? isolate->use_field_guards() : FLAG_use_field_guards;
     buffer.AddString(asserts ? " asserts" : " no-asserts");
     buffer.AddString(type_checks ? " type-checks" : " no-type-checks");
+    buffer.AddString(field_guards ? "field-guards" : "no-field-guards");
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)

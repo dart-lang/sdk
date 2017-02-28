@@ -3435,7 +3435,7 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* store_value = for_value.value();
-  if (Isolate::Current()->type_checks()) {
+  if (isolate()->type_checks()) {
     const AbstractType& type =
         AbstractType::ZoneHandle(Z, node->field().type());
     const String& dst_name = String::ZoneHandle(Z, node->field().name());
@@ -3443,7 +3443,7 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        type, dst_name);
   }
 
-  if (FLAG_use_field_guards) {
+  if (isolate()->use_field_guards()) {
     store_value = Bind(BuildStoreExprTemp(store_value, token_pos));
     GuardFieldClassInstr* guard_field_class = new (Z) GuardFieldClassInstr(
         store_value, node->field(), thread()->GetNextDeoptId());

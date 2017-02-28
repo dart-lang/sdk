@@ -7655,7 +7655,7 @@ void Field::InitializeNew(const Field& result,
   // dynamic and possibly null). Attempt to relax this later.
   const bool use_guarded_cid =
       FLAG_precompiled_mode ||
-      (FLAG_use_field_guards && !isolate->HasAttemptedReload());
+      (isolate->use_field_guards() && !isolate->HasAttemptedReload());
   result.set_guarded_cid(use_guarded_cid ? kIllegalCid : kDynamicCid);
   result.set_is_nullable(use_guarded_cid ? false : true);
   result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
@@ -8166,7 +8166,7 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
 
 void Field::RecordStore(const Object& value) const {
   ASSERT(IsOriginal());
-  if (!FLAG_use_field_guards) {
+  if (!Isolate::Current()->use_field_guards()) {
     return;
   }
 

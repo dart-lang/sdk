@@ -1093,7 +1093,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         Thread::Current(), Timeline::GetIsolateStream(), "PostLoadField"));
 
     Field& field = Field::Handle(zone);
-    if (!FLAG_use_field_guards) {
+    if (!Isolate::Current()->use_field_guards()) {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
         field.set_guarded_cid(kDynamicCid);
