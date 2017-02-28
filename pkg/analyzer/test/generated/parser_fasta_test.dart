@@ -58,17 +58,10 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @failingTest
+  @assertFailingTest
   void test_parseAwaitExpression_asStatement_inAsync() {
     // TODO(paulberry): Add support for async
     super.test_parseAwaitExpression_asStatement_inAsync();
-  }
-
-  @override
-  @failingTest
-  void test_parseAwaitExpression_asStatement_inSync() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseAwaitExpression_asStatement_inSync();
   }
 
   @override
@@ -136,27 +129,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseClassMember_getter_void() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_getter_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_external() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_external();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_external_withTypeAndArgs() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_external_withTypeAndArgs();
-  }
-
-  @override
-  @failingTest
   void test_parseClassMember_method_generic_comment_noReturnType() {
     // TODO(paulberry): Fasta doesn't support generic comment syntax
     super.test_parseClassMember_method_generic_comment_noReturnType();
@@ -185,107 +157,9 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseClassMember_method_generic_noReturnType() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_generic_noReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_generic_returnType() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_generic_returnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_generic_void() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_generic_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_get_noType() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_get_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_get_type() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_get_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_get_void() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_get_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_operator_noType() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_operator_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_operator_type() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_operator_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_operator_void() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_operator_void();
-  }
-
-  @override
-  @failingTest
   void test_parseClassMember_method_returnType_functionType() {
     // TODO(paulberry): InputError: ErrorKind.ExpectedFunctionBody {actual: m}
     super.test_parseClassMember_method_returnType_functionType();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_returnType_parameterized() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_returnType_parameterized();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_set_noType() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_set_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_set_type() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_set_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_set_void() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_set_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_trailing_commas() {
-    // TODO(paulberry): Add support for method declarations
-    super.test_parseClassMember_method_trailing_commas();
   }
 
   @override
@@ -354,7 +228,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseGetter_nonStatic() {
-    // TODO(paulberry): Add support for method declarations
+    // TODO(paulberry): handle doc comments
     super.test_parseGetter_nonStatic();
   }
 
@@ -389,7 +263,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseSetter_nonStatic() {
-    // TODO(paulberry): Add support for method declarations
+    // TODO(paulberry): handle doc comments
     super.test_parseSetter_nonStatic();
   }
 

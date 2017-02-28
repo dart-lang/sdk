@@ -1137,12 +1137,11 @@ class AstBuilder extends ScopeListener {
     List<ConstructorInitializer> initializers = null; // TODO(paulberry)
     Token separator = null; // TODO(paulberry)
     FormalParameterList parameters = pop();
-    /* TypeParameterList typeParameters = */ pop(); // TODO(paulberry)
+    TypeParameterList typeParameters = pop(); // TODO(paulberry)
     var name = pop();
-    // TODO(paulberry)
-    // analyzer.Token propertyKeyword = toAnalyzerToken(getOrSet);
-    /* TypeAnnotation returnType = */ pop(); // TODO(paulberry)
-
+    Token operatorKeyword = null; // TODO(paulberry)
+    TypeAnnotation returnType = pop(); // TODO(paulberry)
+    Token modifierKeyword = null; // TODO(paulberry)
     Token externalKeyword = null;
     Token constKeyword = null;
     Token factoryKeyword = null;
@@ -1170,23 +1169,48 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier returnType2;
     Token period;
     SimpleIdentifier name2;
+    void unnamedConstructor() {
+      push(ast.constructorDeclaration(
+          comment,
+          metadata,
+          toAnalyzerToken(externalKeyword),
+          toAnalyzerToken(constKeyword),
+          toAnalyzerToken(factoryKeyword),
+          returnType2,
+          toAnalyzerToken(period),
+          name2,
+          parameters,
+          toAnalyzerToken(separator),
+          initializers,
+          redirectedConstructor,
+          body));
+    }
+
+    void method() {
+      push(ast.methodDeclaration(
+          comment,
+          metadata,
+          toAnalyzerToken(externalKeyword),
+          toAnalyzerToken(modifierKeyword),
+          returnType,
+          toAnalyzerToken(getOrSet),
+          toAnalyzerToken(operatorKeyword),
+          name,
+          typeParameters,
+          parameters,
+          body));
+    }
+
     if (name is SimpleIdentifier) {
       returnType2 = name;
+      if (name.name == className) {
+        unnamedConstructor();
+      } else {
+        method();
+      }
+    } else {
+      throw new UnimplementedError();
     }
-    push(ast.constructorDeclaration(
-        comment,
-        metadata,
-        toAnalyzerToken(externalKeyword),
-        toAnalyzerToken(constKeyword),
-        toAnalyzerToken(factoryKeyword),
-        returnType2,
-        toAnalyzerToken(period),
-        name2,
-        parameters,
-        toAnalyzerToken(separator),
-        initializers,
-        redirectedConstructor,
-        body));
   }
 
   @override
