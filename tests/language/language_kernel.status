@@ -270,7 +270,6 @@ dynamic2_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 enum_private_test/02: RuntimeError
 enum_syntax_test/06: MissingCompileTimeError
-enum_syntax_test/11: DartkCrash
 enum_syntax_test/20: Crash
 enum_syntax_test/21: MissingCompileTimeError
 enum_syntax_test/22: Crash
@@ -567,9 +566,6 @@ syntax_test/51: MissingCompileTimeError
 syntax_test/64: MissingCompileTimeError
 syntax_test/65: MissingCompileTimeError
 this_conditional_operator_test/01: MissingCompileTimeError
-toplevel_collision1_test/00: DartkCrash
-toplevel_collision1_test/01: DartkCrash
-toplevel_collision1_test/02: DartkCrash
 try_catch_syntax_test/01: MissingCompileTimeError
 try_catch_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/09: MissingCompileTimeError
@@ -1047,7 +1043,6 @@ dynamic2_test/00: MissingCompileTimeError
 dynamic2_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 enum_private_test/02: RuntimeError
-enum_syntax_test/11: DartkCrash
 enum_syntax_test/20: Crash
 enum_syntax_test/21: MissingCompileTimeError
 enum_syntax_test/22: Crash
@@ -1366,9 +1361,6 @@ syntax_test/51: MissingCompileTimeError
 syntax_test/64: MissingCompileTimeError
 syntax_test/65: MissingCompileTimeError
 this_conditional_operator_test/01: MissingCompileTimeError
-toplevel_collision1_test/00: DartkCrash
-toplevel_collision1_test/01: DartkCrash
-toplevel_collision1_test/02: DartkCrash
 try_catch_on_syntax_test/10: MissingRuntimeError  # Dartk Issue 28410
 try_catch_on_syntax_test/11: MissingRuntimeError  # Dartk Issue 28410
 try_catch_syntax_test/01: MissingCompileTimeError
@@ -1781,7 +1773,6 @@ dynamic2_test/00: MissingCompileTimeError
 dynamic2_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 enum_private_test/02: RuntimeError
-enum_syntax_test/11: DartkCrash
 enum_syntax_test/20: Crash
 enum_syntax_test/21: MissingCompileTimeError
 enum_syntax_test/22: Crash
@@ -2058,9 +2049,6 @@ syntax_test/51: MissingCompileTimeError
 syntax_test/64: MissingCompileTimeError
 syntax_test/65: MissingCompileTimeError
 this_conditional_operator_test/01: MissingCompileTimeError
-toplevel_collision1_test/00: DartkCrash
-toplevel_collision1_test/01: DartkCrash
-toplevel_collision1_test/02: DartkCrash
 try_catch_syntax_test/01: MissingCompileTimeError
 try_catch_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/09: MissingCompileTimeError
@@ -2385,7 +2373,6 @@ dynamic2_test/00: MissingCompileTimeError
 dynamic2_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError
 enum_private_test/02: RuntimeError
-enum_syntax_test/11: DartkCrash
 enum_syntax_test/20: Crash
 enum_syntax_test/21: MissingCompileTimeError
 enum_syntax_test/22: Crash
@@ -2663,9 +2650,6 @@ syntax_test/51: MissingCompileTimeError
 syntax_test/64: MissingCompileTimeError
 syntax_test/65: MissingCompileTimeError
 this_conditional_operator_test/01: MissingCompileTimeError
-toplevel_collision1_test/00: DartkCrash
-toplevel_collision1_test/01: DartkCrash
-toplevel_collision1_test/02: DartkCrash
 try_catch_syntax_test/01: MissingCompileTimeError
 try_catch_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/09: MissingCompileTimeError

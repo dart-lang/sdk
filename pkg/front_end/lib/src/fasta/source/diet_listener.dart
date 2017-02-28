@@ -182,7 +182,7 @@ class DietListener extends StackListener {
     debugEvent("Fields");
     List<String> names = popList(count);
     Builder builder = lookupBuilder(beginToken, null, names.first);
-    buildFields(beginToken, false, builder.isInstanceMember);
+    buildFields(beginToken, false, builder);
   }
 
   @override
@@ -207,8 +207,9 @@ class DietListener extends StackListener {
   @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
-    discard(count);
-    buildFields(beginToken, true, false);
+    List<String> names = popList(count);
+    Builder builder = lookupBuilder(beginToken, null, names.first);
+    buildFields(beginToken, true, builder);
   }
 
   @override
@@ -405,9 +406,9 @@ class DietListener extends StackListener {
         token);
   }
 
-  void buildFields(Token token, bool isTopLevel, bool isInstanceMember) {
-    parseFields(
-        createListener(null, memberScope, isInstanceMember), token, isTopLevel);
+  void buildFields(Token token, bool isTopLevel, MemberBuilder builder) {
+    parseFields(createListener(builder, memberScope, builder.isInstanceMember),
+        token, isTopLevel);
   }
 
   @override

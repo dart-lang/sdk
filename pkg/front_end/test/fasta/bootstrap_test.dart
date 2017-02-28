@@ -46,10 +46,7 @@ Future runCompiler(Uri compiler, Uri input, Uri output) async {
     input.toFilePath(),
   ]);
   print(result.output);
-  if (result.exitCode != 1) {
-    // TODO(ahe): Due to known errors in the VM's patch files, this compiler
-    // should report an error. Also, it may not be able to compile everything
-    // yet.
+  if (result.exitCode != 0) {
     throw "Compilation failed.";
   }
 }

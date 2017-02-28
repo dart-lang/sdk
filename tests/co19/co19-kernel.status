@@ -398,7 +398,6 @@ Language/Libraries_and_Scripts/Imports/syntax_t20: DartkCrash
 Language/Libraries_and_Scripts/Imports/syntax_t21: DartkCrash
 Language/Libraries_and_Scripts/Imports/syntax_t32: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/syntax_t41: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/compilation_t01: DartkCrash
 Language/Libraries_and_Scripts/Parts/compilation_t02: Timeout
 Language/Libraries_and_Scripts/Parts/compilation_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/compilation_t08: DartkCrash
@@ -449,8 +448,6 @@ Language/Overview/Privacy/private_and_public_t09: RuntimeError
 Language/Overview/Privacy/private_and_public_t10: RuntimeError
 Language/Overview/Privacy/private_and_public_t19: RuntimeError
 Language/Overview/Privacy/private_and_public_t20: RuntimeError
-Language/Overview/Scoping/conflicting_names_t04: DartkCrash
-Language/Overview/Scoping/conflicting_names_t11: DartkCrash
 Language/Overview/Scoping/conflicting_names_t16: Crash
 Language/Overview/Scoping/conflicting_names_t17: Crash
 Language/Overview/Scoping/conflicting_names_t18: Crash
@@ -1039,7 +1036,6 @@ Language/Libraries_and_Scripts/Imports/syntax_t20: DartkCrash
 Language/Libraries_and_Scripts/Imports/syntax_t21: DartkCrash
 Language/Libraries_and_Scripts/Imports/syntax_t32: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/syntax_t41: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/compilation_t01: DartkCrash
 Language/Libraries_and_Scripts/Parts/compilation_t02: Timeout
 Language/Libraries_and_Scripts/Parts/compilation_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/compilation_t08: DartkCrash
@@ -1090,8 +1086,6 @@ Language/Overview/Privacy/private_and_public_t09: RuntimeError
 Language/Overview/Privacy/private_and_public_t10: RuntimeError
 Language/Overview/Privacy/private_and_public_t19: RuntimeError
 Language/Overview/Privacy/private_and_public_t20: RuntimeError
-Language/Overview/Scoping/conflicting_names_t04: DartkCrash
-Language/Overview/Scoping/conflicting_names_t11: DartkCrash
 Language/Overview/Scoping/conflicting_names_t16: Crash
 Language/Overview/Scoping/conflicting_names_t17: Crash
 Language/Overview/Scoping/conflicting_names_t18: Crash
@@ -1666,7 +1660,6 @@ Language/Libraries_and_Scripts/Imports/syntax_t20: DartkCrash
 Language/Libraries_and_Scripts/Imports/syntax_t21: DartkCrash
 Language/Libraries_and_Scripts/Imports/syntax_t32: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/syntax_t41: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/compilation_t01: DartkCrash
 Language/Libraries_and_Scripts/Parts/compilation_t02: Timeout
 Language/Libraries_and_Scripts/Parts/compilation_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/compilation_t08: DartkCrash
@@ -1726,8 +1719,6 @@ Language/Overview/Privacy/private_and_public_t09: RuntimeError
 Language/Overview/Privacy/private_and_public_t10: RuntimeError
 Language/Overview/Privacy/private_and_public_t19: RuntimeError
 Language/Overview/Privacy/private_and_public_t20: RuntimeError
-Language/Overview/Scoping/conflicting_names_t04: DartkCrash
-Language/Overview/Scoping/conflicting_names_t11: DartkCrash
 Language/Overview/Scoping/conflicting_names_t16: Crash
 Language/Overview/Scoping/conflicting_names_t17: Crash
 Language/Overview/Scoping/conflicting_names_t18: Crash
@@ -2450,7 +2441,6 @@ Language/Libraries_and_Scripts/Imports/syntax_t20: DartkCrash
 Language/Libraries_and_Scripts/Imports/syntax_t21: DartkCrash
 Language/Libraries_and_Scripts/Imports/syntax_t32: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/syntax_t41: MissingCompileTimeError
-Language/Libraries_and_Scripts/Parts/compilation_t01: DartkCrash
 Language/Libraries_and_Scripts/Parts/compilation_t02: Timeout
 Language/Libraries_and_Scripts/Parts/compilation_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Parts/compilation_t08: DartkCrash
@@ -2501,8 +2491,6 @@ Language/Overview/Privacy/private_and_public_t09: RuntimeError
 Language/Overview/Privacy/private_and_public_t10: RuntimeError
 Language/Overview/Privacy/private_and_public_t19: RuntimeError
 Language/Overview/Privacy/private_and_public_t20: RuntimeError
-Language/Overview/Scoping/conflicting_names_t04: DartkCrash
-Language/Overview/Scoping/conflicting_names_t11: DartkCrash
 Language/Overview/Scoping/conflicting_names_t16: Crash
 Language/Overview/Scoping/conflicting_names_t17: Crash
 Language/Overview/Scoping/conflicting_names_t18: Crash
