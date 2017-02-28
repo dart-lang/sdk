@@ -2277,8 +2277,6 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
   const bool should_restore_closure_context =
       CurrentException()->is_captured() || CurrentCatchContext()->is_captured();
   CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
-      TokenPosition::kNoSource,  // Token position of catch block.
-      false,                     // Not an artifact of compilation.
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, *CurrentException(), *CurrentStackTrace(),
       /* needs_stacktrace = */ true, H.thread()->GetNextDeoptId(),

@@ -172,12 +172,6 @@ class FlowGraphBuilder : public ValueObject {
   Isolate* isolate() const { return parsed_function().isolate(); }
   Zone* zone() const { return parsed_function().zone(); }
 
-  void AppendAwaitTokenPosition(TokenPosition token_pos);
-
-  ZoneGrowableArray<TokenPosition>* await_token_positions() const {
-    return await_token_positions_;
-  }
-
  private:
   friend class NestedStatement;  // Explicit access to nesting_stack_.
   friend class Intrinsifier;
@@ -218,7 +212,6 @@ class FlowGraphBuilder : public ValueObject {
 
   intptr_t jump_count_;
   ZoneGrowableArray<JoinEntryInstr*>* await_joins_;
-  ZoneGrowableArray<TokenPosition>* await_token_positions_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };

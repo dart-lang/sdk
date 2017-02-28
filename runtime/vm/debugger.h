@@ -260,7 +260,6 @@ class ActivationFrame : public ZoneAllocated {
     kRegular,
     kAsyncSuspensionMarker,
     kAsyncCausal,
-    kAsyncActivation,
   };
 
   ActivationFrame(uword pc,
@@ -274,8 +273,6 @@ class ActivationFrame : public ZoneAllocated {
   ActivationFrame(uword pc, const Code& code);
 
   explicit ActivationFrame(Kind kind);
-
-  explicit ActivationFrame(const Closure& async_activation);
 
   uword pc() const { return pc_; }
   uword fp() const { return fp_; }
@@ -335,10 +332,6 @@ class ActivationFrame : public ZoneAllocated {
   // the complete script, function, and, local variable objects are included.
   void PrintToJSONObject(JSONObject* jsobj, bool full = false);
 
-  RawObject* GetAsyncAwaiter();
-
-  bool HandlesException(const Instance& exc_obj);
-
  private:
   void PrintToJSONObjectRegular(JSONObject* jsobj, bool full);
   void PrintToJSONObjectAsyncCausal(JSONObject* jsobj, bool full);
@@ -352,12 +345,6 @@ class ActivationFrame : public ZoneAllocated {
   void GetPcDescriptors();
   void GetVarDescriptors();
   void GetDescIndices();
-
-  RawObject* GetAsyncStreamControllerStreamAwaiter(const Object& stream);
-  RawObject* GetAsyncStreamControllerStream();
-  RawObject* GetAsyncCompleterAwaiter(const Object& completer);
-  RawObject* GetAsyncCompleter();
-  void ExtractTokenPositionFromAsyncClosure();
 
   static const char* KindToCString(Kind kind) {
     switch (kind) {
@@ -640,14 +627,12 @@ class Debugger {
   void SyncBreakpointLocation(BreakpointLocation* loc);
 
   ActivationFrame* TopDartFrame() const;
-  static ActivationFrame* CollectDartFrame(
-      Isolate* isolate,
-      uword pc,
-      StackFrame* frame,
-      const Code& code,
-      const Array& deopt_frame,
-      intptr_t deopt_frame_offset,
-      ActivationFrame::Kind kind = ActivationFrame::kRegular);
+  static ActivationFrame* CollectDartFrame(Isolate* isolate,
+                                           uword pc,
+                                           StackFrame* frame,
+                                           const Code& code,
+                                           const Array& deopt_frame,
+                                           intptr_t deopt_frame_offset);
   static RawArray* DeoptimizeToArray(Thread* thread,
                                      StackFrame* frame,
                                      const Code& code);
@@ -663,13 +648,9 @@ class Debugger {
                                Array* deopt_frame);
   static DebuggerStackTrace* CollectStackTrace();
   static DebuggerStackTrace* CollectAsyncCausalStackTrace();
-  static DebuggerStackTrace* CollectAwaiterReturnStackTrace();
   void SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt);
 
   intptr_t nextId() { return next_id_++; }
-
-  bool ShouldPauseOnAsyncException(DebuggerStackTrace* stack_trace,
-                                   const Instance& exc);
 
   bool ShouldPauseOnException(DebuggerStackTrace* stack_trace,
                               const Instance& exc);

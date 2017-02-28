@@ -286,15 +286,6 @@ class FlowGraph : public ZoneAllocated {
   // Merge instructions (only per basic-block).
   void TryOptimizePatterns();
 
-  ZoneGrowableArray<TokenPosition>* await_token_positions() const {
-    return await_token_positions_;
-  }
-
-  void set_await_token_positions(
-      ZoneGrowableArray<TokenPosition>* await_token_positions) {
-    await_token_positions_ = await_token_positions;
-  }
-
   // Replaces uses that are dominated by dom of 'def' with 'other'.
   // Note: uses that occur at instruction dom itself are not dominated by it.
   static void RenameDominatedUses(Definition* def,
@@ -400,7 +391,6 @@ class FlowGraph : public ZoneAllocated {
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers_;
   ZoneGrowableArray<BitVector*>* loop_invariant_loads_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
-  ZoneGrowableArray<TokenPosition>* await_token_positions_;
   DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
   BitVector* captured_parameters_;
 

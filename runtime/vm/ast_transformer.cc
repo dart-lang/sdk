@@ -136,10 +136,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   //   :await_temp_var_X = <expr>;
   //   AwaitMarker(kNewContinuationState);
   //   :result_param = _awaitHelper(
-  //      :await_temp_var_X,
-  //      :async_then_callback,
-  //      :async_catch_error_callback,
-  //      :async_op);
+  //      :await_temp_var_X, :async_then_callback, :async_catch_error_callback);
   //   return;  // (return_type() == kContinuationTarget)
   //
   //   :saved_try_ctx_var = :await_saved_try_ctx_var_y;
@@ -168,10 +165,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   preamble_->Add(await_marker);
 
   // :result_param = _awaitHelper(
-  //      :await_temp,
-  //      :async_then_callback,
-  //      :async_catch_error_callback,
-  //      :async_op)
+  //      :await_temp, :async_then_callback, :async_catch_error_callback)
   const Library& async_lib = Library::Handle(Library::AsyncLibrary());
   const Function& async_await_helper = Function::ZoneHandle(
       Z, async_lib.LookupFunctionAllowPrivate(Symbols::AsyncAwaitHelper()));
@@ -183,7 +177,6 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
       new (Z) LoadLocalNode(token_pos, async_then_callback));
   async_await_helper_args->Add(
       new (Z) LoadLocalNode(token_pos, async_catch_error_callback));
-  async_await_helper_args->Add(new (Z) LoadLocalNode(token_pos, async_op));
   StaticCallNode* await_helper_call = new (Z) StaticCallNode(
       node->token_pos(), async_await_helper, async_await_helper_args);
 

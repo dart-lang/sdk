@@ -2800,14 +2800,10 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   exception_handlers ^= ExceptionHandlers::New(kNumEntries);
   const bool kNeedsStackTrace = true;
   const bool kNoStackTrace = false;
-  exception_handlers.SetHandlerInfo(0, -1, 20u, kNeedsStackTrace, false,
-                                    TokenPosition::kNoSource, true);
-  exception_handlers.SetHandlerInfo(1, 0, 30u, kNeedsStackTrace, false,
-                                    TokenPosition::kNoSource, true);
-  exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStackTrace, true,
-                                    TokenPosition::kNoSource, true);
-  exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStackTrace, true,
-                                    TokenPosition::kNoSource, true);
+  exception_handlers.SetHandlerInfo(0, -1, 20u, kNeedsStackTrace, false);
+  exception_handlers.SetHandlerInfo(1, 0, 30u, kNeedsStackTrace, false);
+  exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStackTrace, true);
+  exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStackTrace, true);
 
   extern void GenerateIncrement(Assembler * assembler);
   Assembler _assembler_;

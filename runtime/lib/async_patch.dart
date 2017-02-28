@@ -45,10 +45,7 @@ Function _asyncErrorWrapperHelper(continuation) {
 ///
 /// Returns the result of registering with `.then`.
 Future _awaitHelper(
-    var object,
-    Function thenCallback,
-    Function errorCallback,
-    var awaiter) {
+    var object, Function thenCallback, Function errorCallback) {
   if (object is! Future) {
     object = new _Future().._setValue(object);
   } else if (object is! _Future) {
@@ -62,18 +59,7 @@ Future _awaitHelper(
   //
   // We can only do this for our internal futures (the default implementation of
   // all futures that are constructed by the `dart:async` library).
-  object._awaiter = awaiter;
   return object._thenNoZoneRegistration(thenCallback, errorCallback);
-}
-
-// Called as part of the 'await for (...)' construct. Registers the
-// awaiter on the stream.
-void _asyncStarListenHelper(var object, var awaiter) {
-  if (object is! _StreamImpl) {
-    return;
-  }
-  // `object` is a `_StreamImpl`.
-  object._awaiter = awaiter;
 }
 
 // _AsyncStarStreamController is used by the compiler to implement
@@ -87,14 +73,7 @@ class _AsyncStarStreamController {
   bool isSuspendedAtYield = false;
   Completer cancellationCompleter = null;
 
-  Stream get stream {
-    Stream local = controller.stream;
-    if (local is! _StreamImpl) {
-      return local;
-    }
-    local._generator = asyncStarBody;
-    return local;
-  }
+  Stream get stream => controller.stream;
 
   void runBody() {
     isScheduled = false;
@@ -215,23 +194,10 @@ class _AsyncStarStreamController {
 
 @patch void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
 
-@patch class _Future<T> {
-  /// The closure implementing the async[*]-body that is `await`ing this future.
-  Function _awaiter;
-}
-
-@patch class _StreamImpl<T> {
-  /// The closure implementing the async[*]-body that is `await`ing this future.
-  Function _awaiter;
-  /// The closure implementing the async-generator body that is creating events
-  /// for this stream.
-  Function _generator;
-}
 
 /// Returns a [StackTrace] object containing the synchronous prefix for this
 /// asynchronous method.
-Object _asyncStackTraceHelper()
-    native "StackTrace_asyncStackTraceHelper";
+Object _asyncStackTraceHelper() native "StackTrace_asyncStackTraceHelper";
 
 void _clearAsyncThreadStackTrace()
     native "StackTrace_clearAsyncThreadStackTrace";

@@ -264,18 +264,6 @@ static bool IsFilteredIdentifier(const String& str) {
     // Keep :async_op for asynchronous debugging.
     return false;
   }
-  if (str.raw() == Symbols::AsyncCompleter().raw()) {
-    // Keep :async_completer for asynchronous debugging.
-    return false;
-  }
-  if (str.raw() == Symbols::ControllerStream().raw()) {
-    // Keep :controller_stream for asynchronous debugging.
-    return false;
-  }
-  if (str.raw() == Symbols::AwaitJumpVar().raw()) {
-    // Keep :await_jump_var for asynchronous debugging.
-    return false;
-  }
   return str.CharAt(0) == ':';
 }
 
