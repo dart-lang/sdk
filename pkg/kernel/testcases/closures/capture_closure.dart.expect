@@ -29,7 +29,6 @@ class Closure#main#g extends core::Object implements core::Function {
 }
 static method main(dynamic arguments) → dynamic {
   final mock::Context #context = new mock::Context::•(1);
-  #context.parent = null;
   #context.[]=(0, new self::Closure#main#f::•(#context));
   final () → dynamic g = new self::Closure#main#g::•(#context);
   g.call();

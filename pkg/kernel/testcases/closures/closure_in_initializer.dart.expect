@@ -8,7 +8,6 @@ class C extends core::Object {
   constructor foo(dynamic f) → void
     : self::C::t = let final mock::Context #context = new mock::Context::•(1) in let dynamic #t1 = #context.[]=(0, f) in new self::Closure#C#foo#function::•(#context), super core::Object::•() {
     final mock::Context #context = new mock::Context::•(1);
-    #context.parent = null;
     #context.[]=(0, f);
     core::print(1);
   }

@@ -24,7 +24,6 @@ static method main() → dynamic {
   }
   on core::String catch(dynamic #t1, dynamic #t2) {
     final mock::Context #context = new mock::Context::•(2);
-    #context.parent = null;
     #context.[]=(0, #t1);
     #context.[]=(1, #t2);
     c = new self::Closure#main#function::•(#context);

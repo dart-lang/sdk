@@ -75,10 +75,12 @@ class BlockRewriter extends AstRewriter {
   void insertContextDeclaration(Class contextClass, Expression accessParent) {
     _createDeclaration(contextClass);
     _insertStatement(contextDeclaration);
-    _insertStatement(new ExpressionStatement(new PropertySet(
-        new VariableGet(contextDeclaration),
-        new Name('parent'),
-        accessParent)));
+    if (accessParent is! NullLiteral) {
+      _insertStatement(new ExpressionStatement(new PropertySet(
+          new VariableGet(contextDeclaration),
+          new Name('parent'),
+          accessParent)));
+    }
   }
 
   void insertExtendContext(Expression accessContext, Arguments arguments) {

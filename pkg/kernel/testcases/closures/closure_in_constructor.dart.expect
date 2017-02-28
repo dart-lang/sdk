@@ -14,7 +14,6 @@ class C2 extends core::Object {
   constructor •(dynamic y) → void
     : super core::Object::•() {
     final mock::Context #context = new mock::Context::•(1);
-    #context.parent = null;
     #context.[]=(0, y);
     this.x = new self::Closure#C2#function#function::•(#context);
   }

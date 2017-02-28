@@ -10,13 +10,11 @@ class C extends core::Object {
     ;
   method m() → dynamic {
     final mock::Context #context = new mock::Context::•(1);
-    #context.parent = null;
     #context.[]=(0, this);
     return new self::Closure#C#m#function::•(#context);
   }
   method f() → dynamic {
     final mock::Context #context = new mock::Context::•(1);
-    #context.parent = null;
     #context.[]=(0, this);
     return new self::Closure#C#f#function::•(#context);
   }
