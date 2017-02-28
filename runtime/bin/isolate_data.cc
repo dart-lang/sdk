@@ -29,6 +29,14 @@ IsolateData::IsolateData(const char* url,
 }
 
 
+void IsolateData::OnIsolateShutdown() {
+  if (builtin_lib_ != NULL) {
+    Dart_DeletePersistentHandle(builtin_lib_);
+    builtin_lib_ = NULL;
+  }
+}
+
+
 IsolateData::~IsolateData() {
   free(script_url);
   script_url = NULL;
@@ -38,9 +46,6 @@ IsolateData::~IsolateData() {
   packages_file = NULL;
   free(udp_receive_buffer);
   udp_receive_buffer = NULL;
-  if (builtin_lib_ != NULL) {
-    Dart_DeletePersistentHandle(builtin_lib_);
-  }
   delete app_snapshot_;
   app_snapshot_ = NULL;
 }

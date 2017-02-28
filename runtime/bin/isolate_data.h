@@ -68,6 +68,8 @@ class IsolateData {
     dependencies_ = deps;
   }
 
+  void OnIsolateShutdown();
+
  private:
   Dart_Handle builtin_lib_;
   Loader* loader_;

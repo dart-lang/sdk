@@ -125,6 +125,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                      const uint8_t* instructions_snapshot,
                      Dart_IsolateCreateCallback create,
                      Dart_IsolateShutdownCallback shutdown,
+                     Dart_IsolateCleanupCallback cleanup,
                      Dart_ThreadExitCallback thread_exit,
                      Dart_FileOpenCallback file_open,
                      Dart_FileReadCallback file_read,
@@ -313,6 +314,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Thread::ExitIsolate();  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
   Isolate::SetShutdownCallback(shutdown);
+  Isolate::SetCleanupCallback(cleanup);
 
   if (FLAG_support_service) {
     Service::SetGetServiceAssetsCallback(get_service_assets);

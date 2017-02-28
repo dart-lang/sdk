@@ -1780,11 +1780,17 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
+
+  Dart_IsolateCleanupCallback cleanup = Isolate::CleanupCallback();
+  if (cleanup != NULL) {
+    cleanup(init_callback_data());
+  }
 }
 
 
 Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = NULL;
+Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = NULL;
 
 Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;

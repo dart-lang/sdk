@@ -1150,7 +1150,14 @@ char* BuildIsolateName(const char* script_name, const char* func_name) {
   return buffer;
 }
 
-static void ShutdownIsolate(void* callback_data) {
+
+static void OnIsolateShutdown(void* callback_data) {
+  IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
+  isolate_data->OnIsolateShutdown();
+}
+
+
+static void DeleteIsolateData(void* callback_data) {
   IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
   delete isolate_data;
 }
@@ -1613,7 +1620,8 @@ void main(int argc, char** argv) {
   init_params.vm_snapshot_data = vm_snapshot_data;
   init_params.vm_snapshot_instructions = vm_snapshot_instructions;
   init_params.create = CreateIsolateAndSetup;
-  init_params.shutdown = ShutdownIsolate;
+  init_params.shutdown = OnIsolateShutdown;
+  init_params.cleanup = DeleteIsolateData;
   init_params.file_open = DartUtils::OpenFile;
   init_params.file_read = DartUtils::ReadFile;
   init_params.file_write = DartUtils::WriteFile;

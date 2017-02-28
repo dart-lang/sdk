@@ -123,7 +123,7 @@ static int Main(int argc, const char** argv) {
   ASSERT(set_vm_flags_success);
   const char* err_msg = Dart::InitOnce(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions, NULL,
-      NULL, NULL, dart::bin::DartUtils::OpenFile,
+      NULL, NULL, NULL, dart::bin::DartUtils::OpenFile,
       dart::bin::DartUtils::ReadFile, dart::bin::DartUtils::WriteFile,
       dart::bin::DartUtils::CloseFile, NULL, NULL);
   ASSERT(err_msg == NULL);

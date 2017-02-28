@@ -399,6 +399,14 @@ class Isolate : public BaseIsolate {
     return shutdown_callback_;
   }
 
+  static void SetCleanupCallback(Dart_IsolateCleanupCallback cb) {
+    cleanup_callback_ = cb;
+  }
+  static Dart_IsolateCleanupCallback CleanupCallback() {
+    return cleanup_callback_;
+  }
+
+
   void set_object_id_ring(ObjectIdRing* ring) { object_id_ring_ = ring; }
   ObjectIdRing* object_id_ring() { return object_id_ring_; }
 
@@ -851,6 +859,7 @@ class Isolate : public BaseIsolate {
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
+  static Dart_IsolateCleanupCallback cleanup_callback_;
 
   static void WakePauseEventHandler(Dart_Isolate isolate);
 
