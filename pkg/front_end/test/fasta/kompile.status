@@ -69,7 +69,7 @@ rasta/issue_000035: Crash
 rasta/issue_000035a: Fail
 rasta/issue_000036: Fail
 rasta/issue_000039: Crash
-rasta/issue_000041: Crash
+rasta/issue_000041: Fail
 rasta/issue_000042: Crash
 rasta/issue_000043: Fail
 rasta/issue_000044: Fail
@@ -110,5 +110,5 @@ rasta/typedef: Crash
 rasta/unresolved: Crash
 rasta/unresolved_constructor: Crash
 rasta/unresolved_for_in: Crash
-rasta/unresolved_recovery: Crash
+rasta/unresolved_recovery: Fail
 rasta/unsupported_platform_library: Fail
