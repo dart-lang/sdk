@@ -4,9 +4,7 @@
 
 library fasta.command_line;
 
-import 'errors.dart' show
-    inputError,
-    internalError;
+import 'errors.dart' show inputError, internalError;
 
 argumentError(String usage, String message) {
   if (usage != null) print(usage);
@@ -45,8 +43,7 @@ class CommandLine {
   }
 
   /// Override to validate arguments and options.
-  void validate() {
-  }
+  void validate() {}
 
   /// Parses a list of command-line [arguments] into options and arguments.
   ///
@@ -104,18 +101,21 @@ class CommandLine {
         }
         if (valueSpecification == null) {
           if (value != null) {
-            return argumentError(usage,
-                "Argument '$argument' doesn't take a value: '$value'.");
+            return argumentError(
+                usage, "Argument '$argument' doesn't take a value: '$value'.");
           }
           result.options[argument] = true;
         } else {
           if (valueSpecification is! String && valueSpecification is! Type) {
-            return argumentError(usage, "Unrecognized type of value "
+            return argumentError(
+                usage,
+                "Unrecognized type of value "
                 "specification: ${valueSpecification.runtimeType}.");
           }
           switch ("$valueSpecification") {
             case ",":
-              result.options.putIfAbsent(argument, () => <String>[])
+              result.options
+                  .putIfAbsent(argument, () => <String>[])
                   .addAll(value.split(","));
               break;
 
@@ -124,14 +124,16 @@ class CommandLine {
             case "String":
             case "Uri":
               if (result.options.containsKey(argument)) {
-                return argumentError(usage, "Multiple values for '$argument': "
+                return argumentError(
+                    usage,
+                    "Multiple values for '$argument': "
                     "'${result.options[argument]}' and '$value'.");
               }
               var parsedValue;
               if (valueSpecification == int) {
                 parsedValue = int.parse(value, onError: (_) {
-                  return argumentError(usage,
-                      "Value for '$argument', '$value', isn't an int.");
+                  return argumentError(
+                      usage, "Value for '$argument', '$value', isn't an int.");
                 });
               } else if (valueSpecification == bool) {
                 if (value == "true" || value == "yes") {
@@ -139,7 +141,8 @@ class CommandLine {
                 } else if (value == "false" || value == "no") {
                   parsedValue = false;
                 } else {
-                  return argumentError(usage,
+                  return argumentError(
+                      usage,
                       "Value for '$argument' is '$value', "
                       "but expected one of: 'true', 'false', 'yes', or 'no'.");
                 }
@@ -148,7 +151,9 @@ class CommandLine {
               } else if (valueSpecification == String) {
                 parsedValue = value;
               } else if (valueSpecification is String) {
-                return argumentError(usage, "Unrecognized value specification: "
+                return argumentError(
+                    usage,
+                    "Unrecognized value specification: "
                     "'$valueSpecification', try using a type literal instead.");
               } else {
                 // All possible cases should have been handled above.

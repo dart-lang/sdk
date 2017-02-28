@@ -4,13 +4,9 @@
 
 library fasta.import;
 
-import 'builder/builder.dart' show
-    Builder,
-    LibraryBuilder,
-    PrefixBuilder;
+import 'builder/builder.dart' show Builder, LibraryBuilder, PrefixBuilder;
 
-import 'combinator.dart' show
-    Combinator;
+import 'combinator.dart' show Combinator;
 
 typedef void AddToScope(String name, Builder member);
 

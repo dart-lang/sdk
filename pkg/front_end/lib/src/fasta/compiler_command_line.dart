@@ -4,15 +4,11 @@
 
 library fasta.compiler_command_line;
 
-import 'dart:io' show
-    exit;
+import 'dart:io' show exit;
 
-import 'command_line.dart' show
-    CommandLine,
-    argumentError;
+import 'command_line.dart' show CommandLine, argumentError;
 
-import 'compiler_context.dart' show
-    CompilerContext;
+import 'compiler_context.dart' show CompilerContext;
 
 const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--compile-sdk": Uri,
@@ -28,7 +24,8 @@ class CompilerCommandLine extends CommandLine {
 
   CompilerCommandLine(String programName, List<String> arguments)
       : programName = programName,
-        super(arguments, specification: optionSpecification,
+        super(arguments,
+            specification: optionSpecification,
             usage: computeUsage(programName, false));
 
   bool get verify => options.containsKey("--verify");
@@ -119,8 +116,7 @@ String computeUsage(String programName, bool verbose) {
       break;
 
     case "compile_platform":
-      summary =
-          "Compiles Dart SDK platform to the Dill/Kernel IR format.";
+      summary = "Compiles Dart SDK platform to the Dill/Kernel IR format.";
       basicUsage = "Usage: $programName [options] patched_sdk output\n";
   }
   StringBuffer sb = new StringBuffer(basicUsage);

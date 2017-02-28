@@ -7,75 +7,51 @@
 
 library kernel.testing.kernel_chain;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    Directory,
-    File,
-    IOSink,
-    Platform;
+import 'dart:io' show Directory, File, IOSink, Platform;
 
-import 'dart:typed_data' show
-    Uint8List;
+import 'dart:typed_data' show Uint8List;
 
-import 'package:kernel/kernel.dart' show
-    loadProgramFromBinary;
+import 'package:kernel/kernel.dart' show loadProgramFromBinary;
 
-import 'package:kernel/text/ast_to_text.dart' show
-    Printer;
+import 'package:kernel/text/ast_to_text.dart' show Printer;
 
-import 'package:testing/testing.dart' show
-    Result,
-    StdioProcess,
-    Step;
+import 'package:testing/testing.dart' show Result, StdioProcess, Step;
 
-import 'package:kernel/ast.dart' show
-    Library,
-    Program;
+import 'package:kernel/ast.dart' show Library, Program;
 
-import '../kernel/verifier.dart' show
-    verifyProgram;
+import '../kernel/verifier.dart' show verifyProgram;
 
-import 'package:kernel/binary/ast_to_binary.dart' show
-    BinaryPrinter;
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
-import 'package:kernel/binary/ast_from_binary.dart' show
-    BinaryBuilder;
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:analyzer/src/generated/sdk.dart' show
-    DartSdk;
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 
-import 'package:kernel/analyzer/loader.dart' show
-    DartLoader,
-    DartOptions,
-    createDartSdk;
+import 'package:kernel/analyzer/loader.dart'
+    show DartLoader, DartOptions, createDartSdk;
 
-import 'package:kernel/target/targets.dart' show
-    Target,
-    TargetFlags,
-    getTarget;
+import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
-import 'package:testing/testing.dart' show
-    Chain,
-    ChainContext,
-    Result,
-    StdioProcess,
-    Step,
-    TestDescription;
+import 'package:testing/testing.dart'
+    show Chain, ChainContext, Result, StdioProcess, Step, TestDescription;
 
-import 'package:kernel/ast.dart' show
-    Program;
+import 'package:kernel/ast.dart' show Program;
 
-import 'package:package_config/discovery.dart' show
-    loadPackagesFile;
+import 'package:package_config/discovery.dart' show loadPackagesFile;
 
-import '../environment_variable.dart' show
-    EnvironmentVariable;
+import '../environment_variable.dart' show EnvironmentVariable;
 
 typedef Future<TestContext> TestContextConstructor(
-    Chain suite, Map<String, String> environment, Uri sdk, Uri vm,
-    Uri packages, bool strongMode, DartSdk dartSdk, bool updateExpectations);
+    Chain suite,
+    Map<String, String> environment,
+    Uri sdk,
+    Uri vm,
+    Uri packages,
+    bool strongMode,
+    DartSdk dartSdk,
+    bool updateExpectations);
 
 Future<bool> fileExists(Uri base, String path) async {
   return await new File.fromUri(base.resolve(path)).exists();
@@ -132,7 +108,9 @@ abstract class TestContext extends ChainContext {
 
   TestContext(Uri sdk, this.vm, Uri packages, bool strongMode, this.dartSdk)
       : packages = packages,
-        options = new DartOptions(strongMode: strongMode, sdk: sdk.toFilePath(),
+        options = new DartOptions(
+            strongMode: strongMode,
+            sdk: sdk.toFilePath(),
             packagePath: packages.toFilePath());
 
   Future<DartLoader> createLoader() async {
@@ -141,7 +119,8 @@ abstract class TestContext extends ChainContext {
         ignoreRedirectingFactories: false, dartSdk: dartSdk);
   }
 
-  static Future<TestContext> create(Chain suite,
+  static Future<TestContext> create(
+      Chain suite,
       Map<String, String> environment,
       TestContextConstructor constructor) async {
     Uri sdk = await computePatchedSdk();
@@ -149,7 +128,13 @@ abstract class TestContext extends ChainContext {
     Uri packages = Uri.base.resolve(".packages");
     bool strongMode = false;
     bool updateExpectations = environment["updateExpectations"] == "true";
-    return constructor(suite, environment, sdk, vm, packages, strongMode,
+    return constructor(
+        suite,
+        environment,
+        sdk,
+        vm,
+        packages,
+        strongMode,
         createDartSdk(sdk.toFilePath(), strongMode: strongMode),
         updateExpectations);
   }
@@ -179,7 +164,6 @@ class Kernel extends Step<TestDescription, Program, TestContext> {
     }
   }
 }
-
 
 class Print extends Step<Program, Program, TestContext> {
   const Print();
@@ -230,8 +214,8 @@ class MatchExpectation extends Step<Program, Program, TestContext> {
   String get name => "match expectations";
 
   Future<Result<Program>> run(Program program, _) async {
-    Library library = program.libraries.firstWhere(
-        (Library library) => library.importUri.scheme != "dart");
+    Library library = program.libraries
+        .firstWhere((Library library) => library.importUri.scheme != "dart");
     Uri uri = library.importUri;
     StringBuffer buffer = new StringBuffer();
     new Printer(buffer).writeLibraryFile(library);
@@ -254,7 +238,9 @@ class MatchExpectation extends Step<Program, Program, TestContext> {
       });
       return pass(program);
     } else {
-      return fail(program, """
+      return fail(
+          program,
+          """
 Please create file ${expectedFile.path} with this content:
 $buffer""");
     }
@@ -327,8 +313,8 @@ class Run extends Step<Uri, int, TestContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      process = await StdioProcess.run(
-          context.vm.toFilePath(), [generated.path, "Hello, World!"]);
+      process = await StdioProcess
+          .run(context.vm.toFilePath(), [generated.path, "Hello, World!"]);
       print(process.output);
     } finally {
       generated.parent.delete(recursive: true);
@@ -363,8 +349,8 @@ class BytesCollector implements Sink<List<int>> {
 
 Future<String> runDiff(Uri expected, String actual) async {
   // TODO(ahe): Implement this for Windows.
-  StdioProcess process = await StdioProcess.run(
-      "diff", <String>["-u", expected.toFilePath(), "-"], input: actual);
+  StdioProcess process = await StdioProcess
+      .run("diff", <String>["-u", expected.toFilePath(), "-"], input: actual);
   return process.output;
 }
 

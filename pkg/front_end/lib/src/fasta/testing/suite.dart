@@ -4,69 +4,41 @@
 
 library fasta.testing.suite;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:convert' show
-    JSON;
+import 'dart:convert' show JSON;
 
-import 'package:analyzer/src/generated/sdk.dart' show
-    DartSdk;
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 
-import 'package:kernel/ast.dart' show
-    Library,
-    Program;
+import 'package:kernel/ast.dart' show Library, Program;
 
-import 'package:kernel/analyzer/loader.dart' show
-    DartLoader;
+import 'package:kernel/analyzer/loader.dart' show DartLoader;
 
-import 'package:kernel/target/targets.dart' show
-    Target,
-    TargetFlags,
-    getTarget;
+import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
-import 'package:testing/testing.dart' show
-    Chain,
-    ExpectationSet,
-    Result,
-    Step,
-    TestDescription;
+import 'package:testing/testing.dart'
+    show Chain, ExpectationSet, Result, Step, TestDescription;
 
-import '../errors.dart' show
-    InputError;
+import '../errors.dart' show InputError;
 
-import 'kernel_chain.dart' show
-    MatchExpectation,
-    Print,
-    Run,
-    Verify,
-    TestContext,
-    WriteDill;
+import 'kernel_chain.dart'
+    show MatchExpectation, Print, Run, Verify, TestContext, WriteDill;
 
-import '../ticker.dart' show
-    Ticker;
+import '../ticker.dart' show Ticker;
 
-import '../translate_uri.dart' show
-    TranslateUri;
+import '../translate_uri.dart' show TranslateUri;
 
-import '../kernel/kernel_target.dart' show
-    KernelTarget;
+import '../kernel/kernel_target.dart' show KernelTarget;
 
-import '../dill/dill_target.dart' show
-    DillTarget;
+import '../dill/dill_target.dart' show DillTarget;
 
-import '../ast_kind.dart' show
-    AstKind;
+import '../ast_kind.dart' show AstKind;
 
-export 'kernel_chain.dart' show
-    TestContext;
+export 'kernel_chain.dart' show TestContext;
 
-export 'package:testing/testing.dart' show
-    Chain,
-    runMe;
+export 'package:testing/testing.dart' show Chain, runMe;
 
-export '../ast_kind.dart' show
-    AstKind;
+export '../ast_kind.dart' show AstKind;
 
 const String ENABLE_FULL_COMPILE = " full compile ";
 
@@ -83,8 +55,10 @@ const String EXPECTATIONS = '''
 
 String shortenAstKindName(AstKind astKind) {
   switch (astKind) {
-    case AstKind.Analyzer: return "dartk";
-    case AstKind.Kernel: return "direct";
+    case AstKind.Analyzer:
+      return "dartk";
+    case AstKind.Kernel:
+      return "direct";
   }
   throw "Unknown AST kind: $astKind";
 }
@@ -99,9 +73,16 @@ class FeContext extends TestContext {
 
   Future<Program> platform;
 
-  FeContext(Uri sdk, Uri vm, Uri packages, bool strongMode,
-      DartSdk dartSdk, bool updateExpectations, this.uriTranslator,
-      bool fullCompile, AstKind astKind)
+  FeContext(
+      Uri sdk,
+      Uri vm,
+      Uri packages,
+      bool strongMode,
+      DartSdk dartSdk,
+      bool updateExpectations,
+      this.uriTranslator,
+      bool fullCompile,
+      AstKind astKind)
       : steps = <Step>[
           new Outline(fullCompile, astKind),
           const Print(),
@@ -122,10 +103,10 @@ class FeContext extends TestContext {
   Future<Program> createPlatform() {
     return platform ??= new Future<Program>(() async {
       DartLoader loader = await createLoader();
-      Target target = getTarget(
-          "vm", new TargetFlags(strongMode: options.strongMode));
-      loader.loadProgram(
-          Uri.base.resolve("pkg/fasta/test/platform.dart"), target: target);
+      Target target =
+          getTarget("vm", new TargetFlags(strongMode: options.strongMode));
+      loader.loadProgram(Uri.base.resolve("pkg/fasta/test/platform.dart"),
+          target: target);
       var program = loader.program;
       if (loader.errors.isNotEmpty) {
         throw loader.errors.join("\n");
@@ -141,16 +122,29 @@ class FeContext extends TestContext {
     });
   }
 
-  static Future<FeContext> create(Chain suite, Map<String, String> environment,
-      Uri sdk, Uri vm, Uri packages, bool strongMode, DartSdk dartSdk,
+  static Future<FeContext> create(
+      Chain suite,
+      Map<String, String> environment,
+      Uri sdk,
+      Uri vm,
+      Uri packages,
+      bool strongMode,
+      DartSdk dartSdk,
       bool updateExpectations) async {
     TranslateUri uriTranslator = await TranslateUri.parse(packages);
     String astKindString = environment[AST_KIND_INDEX];
-    AstKind astKind = astKindString == null
-        ? null : AstKind.values[int.parse(astKindString)];
+    AstKind astKind =
+        astKindString == null ? null : AstKind.values[int.parse(astKindString)];
     return new FeContext(
-        sdk, vm, packages, strongMode, dartSdk, updateExpectations,
-        uriTranslator, environment.containsKey(ENABLE_FULL_COMPILE), astKind);
+        sdk,
+        vm,
+        packages,
+        strongMode,
+        dartSdk,
+        updateExpectations,
+        uriTranslator,
+        environment.containsKey(ENABLE_FULL_COMPILE),
+        astKind);
   }
 }
 
@@ -173,8 +167,8 @@ class Outline extends Step<TestDescription, Program, FeContext> {
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
     dillTarget.loader
-        ..input = Uri.parse("org.dartlang:platform") // Make up a name.
-        ..setProgram(platform);
+      ..input = Uri.parse("org.dartlang:platform") // Make up a name.
+      ..setProgram(platform);
     KernelTarget sourceTarget =
         new KernelTarget(dillTarget, context.uriTranslator);
     Program p;

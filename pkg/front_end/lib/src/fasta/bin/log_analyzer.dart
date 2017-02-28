@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show
-    JSON;
+import 'dart:convert' show JSON;
 
 import 'dart:io';
 
-import 'package:testing/src/run_tests.dart' show
-    CommandLine;
+import 'package:testing/src/run_tests.dart' show CommandLine;
 
 main(List<String> arguments) async {
   CommandLine cl = CommandLine.parse(arguments);

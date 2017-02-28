@@ -6,20 +6,14 @@ library dart_scanner.error_token;
 
 // TODO(ahe): ErrorKind doesn't belong in dart_parser. Move to compiler_util or
 // this package?
-import '../parser/error_kind.dart' show
-    ErrorKind;
+import '../parser/error_kind.dart' show ErrorKind;
 
-import '../scanner.dart' show
-    BeginGroupToken,
-    Token,
-    unicodeReplacementCharacter;
+import '../scanner.dart'
+    show BeginGroupToken, Token, unicodeReplacementCharacter;
 
-import 'precedence.dart' show
-    BAD_INPUT_INFO,
-    PrecedenceInfo;
+import 'precedence.dart' show BAD_INPUT_INFO, PrecedenceInfo;
 
-export '../parser/error_kind.dart' show
-    ErrorKind;
+export '../parser/error_kind.dart' show ErrorKind;
 
 ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
   if (character < 0x1f) {
@@ -29,8 +23,8 @@ ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
     case unicodeReplacementCharacter:
       return new EncodingErrorToken(charOffset);
 
-      /// See [General Punctuation]
-      /// (http://www.unicode.org/charts/PDF/U2000.pdf).
+    /// See [General Punctuation]
+    /// (http://www.unicode.org/charts/PDF/U2000.pdf).
     case 0x00A0: // No-break space.
     case 0x1680: // Ogham space mark.
     case 0x180E: // Mongolian vowel separator.
@@ -111,8 +105,7 @@ class NonAsciiIdentifierToken extends ErrorToken {
     String hex = character.toRadixString(16);
     String padding = "0000".substring(hex.length);
     hex = "$padding$hex";
-    return
-        "The non-ASCII character '$c' (U+$hex) can't be used in identifiers,"
+    return "The non-ASCII character '$c' (U+$hex) can't be used in identifiers,"
         " only in strings and comments.\n"
         "Try using an US-ASCII letter, a digit, '_' (an underscore),"
         " or '\$' (a dollar sign).";

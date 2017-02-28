@@ -4,22 +4,19 @@
 
 library fasta.kernel_interface_type_builder;
 
-import 'package:kernel/ast.dart' show
-    DartType,
-    DynamicType,
-    Supertype,
-    VoidType;
+import 'package:kernel/ast.dart'
+    show DartType, DynamicType, Supertype, VoidType;
 
-import '../messages.dart' show
-    warning;
+import '../messages.dart' show warning;
 
-import 'kernel_builder.dart' show
-    KernelClassBuilder,
-    KernelInvalidTypeBuilder,
-    KernelTypeBuilder,
-    NamedTypeBuilder,
-    TypeBuilder,
-    TypeVariableBuilder;
+import 'kernel_builder.dart'
+    show
+        KernelClassBuilder,
+        KernelInvalidTypeBuilder,
+        KernelTypeBuilder,
+        NamedTypeBuilder,
+        TypeBuilder,
+        TypeVariableBuilder;
 
 class KernelNamedTypeBuilder
     extends NamedTypeBuilder<KernelTypeBuilder, DartType>
@@ -41,7 +38,7 @@ class KernelNamedTypeBuilder
   }
 
   Supertype handleMissingSuperType() {
-    warning(fileUri, charOffset,  "No type for: '$name'.");
+    warning(fileUri, charOffset, "No type for: '$name'.");
     return null;
   }
 
@@ -82,7 +79,7 @@ class KernelNamedTypeBuilder
       }
       if (arguments != null) {
         return new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri)
-            ..builder = builder;
+          ..builder = builder;
       }
     }
     return this;

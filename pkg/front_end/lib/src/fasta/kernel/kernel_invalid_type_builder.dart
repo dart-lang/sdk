@@ -4,16 +4,11 @@
 
 library fasta.kernel_invalid_type_builder;
 
-import 'package:kernel/ast.dart' show
-    DartType,
-    DynamicType;
+import 'package:kernel/ast.dart' show DartType, DynamicType;
 
-import '../messages.dart' show
-    warning;
+import '../messages.dart' show warning;
 
-import 'kernel_builder.dart' show
-    InvalidTypeBuilder,
-    KernelTypeBuilder;
+import 'kernel_builder.dart' show InvalidTypeBuilder, KernelTypeBuilder;
 
 class KernelInvalidTypeBuilder
     extends InvalidTypeBuilder<KernelTypeBuilder, DartType> {

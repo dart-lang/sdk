@@ -8,19 +8,15 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-import '../builder/builder.dart' show
-    Builder;
+import '../builder/builder.dart' show Builder;
 
-import '../errors.dart' show
-    internalError;
+import '../errors.dart' show internalError;
 import 'package:analyzer/src/generated/source.dart';
 
-abstract class MockElement extends Builder
-    implements Element, LocalElement {
+abstract class MockElement extends Builder implements Element, LocalElement {
   final ElementKind kind;
 
-  MockElement(this.kind)
-      : super(null, -1, null);
+  MockElement(this.kind) : super(null, -1, null);
 
   get librarySource => internalError("not supported.");
 
@@ -135,8 +131,7 @@ abstract class MockElement extends Builder
 
 abstract class MockLibraryElement extends MockElement
     implements LibraryElement {
-  MockLibraryElement()
-      : super(ElementKind.LIBRARY);
+  MockLibraryElement() : super(ElementKind.LIBRARY);
 
   CompilationUnitElement get definingCompilationUnit {
     return internalError("not supported.");
@@ -193,8 +188,7 @@ abstract class MockLibraryElement extends MockElement
 
 abstract class MockCompilationUnitElement extends MockElement
     implements CompilationUnitElement {
-  MockCompilationUnitElement()
-      : super(ElementKind.COMPILATION_UNIT);
+  MockCompilationUnitElement() : super(ElementKind.COMPILATION_UNIT);
 
   List<PropertyAccessorElement> get accessors {
     return internalError("not supported.");
@@ -231,8 +225,7 @@ abstract class MockCompilationUnitElement extends MockElement
 }
 
 abstract class MockClassElement extends MockElement implements ClassElement {
-  MockClassElement()
-      : super(ElementKind.CLASS);
+  MockClassElement() : super(ElementKind.CLASS);
 
   List<PropertyAccessorElement> get accessors {
     return internalError("not supported.");
@@ -340,8 +333,7 @@ abstract class MockClassElement extends MockElement implements ClassElement {
 
 abstract class MockFunctionElement extends MockElement
     implements FunctionElement {
-  MockFunctionElement()
-      : super(ElementKind.FUNCTION);
+  MockFunctionElement() : super(ElementKind.FUNCTION);
 
   bool get isEntryPoint => internalError("not supported.");
 
@@ -355,8 +347,7 @@ abstract class MockFunctionElement extends MockElement
 
 abstract class MockParameterElement extends MockElement
     implements ParameterElement {
-  MockParameterElement()
-      : super(ElementKind.PARAMETER);
+  MockParameterElement() : super(ElementKind.PARAMETER);
 
   String get defaultValueCode => internalError("not supported.");
 

@@ -4,22 +4,28 @@
 
 library fasta.named_mixin_application_builder;
 
-import 'builder.dart' show
-    Builder,
-    ClassBuilder,
-    LibraryBuilder,
-    MetadataBuilder,
-    TypeBuilder,
-    TypeVariableBuilder;
+import 'builder.dart'
+    show
+        Builder,
+        ClassBuilder,
+        LibraryBuilder,
+        MetadataBuilder,
+        TypeBuilder,
+        TypeVariableBuilder;
 
 abstract class NamedMixinApplicationBuilder<T extends TypeBuilder, R>
     extends ClassBuilder<T, R> {
   NamedMixinApplicationBuilder(
-      List<MetadataBuilder> metadata, String name,
-      List<TypeVariableBuilder> typeVariables, int modifiers, T supertype,
-      List<T> interfaces, LibraryBuilder parent, int charOffset)
+      List<MetadataBuilder> metadata,
+      String name,
+      List<TypeVariableBuilder> typeVariables,
+      int modifiers,
+      T supertype,
+      List<T> interfaces,
+      LibraryBuilder parent,
+      int charOffset)
       : super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-          <String, Builder>{}, parent, charOffset);
+            <String, Builder>{}, parent, charOffset);
 
   T get mixinApplication => supertype;
 }

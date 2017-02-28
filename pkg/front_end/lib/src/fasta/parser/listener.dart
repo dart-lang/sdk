@@ -164,8 +164,8 @@ class Listener {
 
   void beginFormalParameter(Token token) {}
 
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      FormalParameterType kind) {
+  void endFormalParameter(
+      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     logEvent("FormalParameter");
   }
 
@@ -746,8 +746,8 @@ class Listener {
   /// - parameter name (simple identifier)
   /// - type parameters
   /// - formal parameters
-  void endFunctionTypedFormalParameter(Token covariantKeyword, Token thisKeyword,
-      FormalParameterType kind) {
+  void endFunctionTypedFormalParameter(
+      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     logEvent("FunctionTypedFormalParameter");
   }
 

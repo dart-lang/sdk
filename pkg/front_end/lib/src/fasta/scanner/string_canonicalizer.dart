@@ -7,7 +7,7 @@ library fasta.scanner.string_canonicalizer;
 import 'dart:convert';
 
 class Node {
-  var /* String | List<int> */ data; 
+  var /* String | List<int> */ data;
   int start;
   int end;
   String payload;
@@ -29,8 +29,10 @@ class StringCanonicalizer {
 
   /// Linear size of a hash table.
   int _size = INITIAL_SIZE;
+
   /// Items in a hash table.
   int _count = 0;
+
   /// The table itself.
   List<Node> _nodes = new List<Node>(INITIAL_SIZE);
 
@@ -67,9 +69,9 @@ class StringCanonicalizer {
       Node t = _nodes[i];
       while (t != null) {
         Node n = t.next;
-        int newIndex = t.data is String ?
-                      hashString(t.data, t.start, t.end) & (newSize - 1)
-                      : hashBytes(t.data, t.start, t.end) & (newSize - 1);
+        int newIndex = t.data is String
+            ? hashString(t.data, t.start, t.end) & (newSize - 1)
+            : hashBytes(t.data, t.start, t.end) & (newSize - 1);
         Node s = newNodes[newIndex];
         t.next = s;
         newNodes[newIndex] = t;

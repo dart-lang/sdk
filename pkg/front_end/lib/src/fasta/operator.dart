@@ -56,26 +56,46 @@ Operator operatorFromString(String string) {
 
 String operatorToString(Operator operator) {
   switch (operator) {
-    case Operator.add: return "+";
-    case Operator.bitwiseAnd: return "&";
-    case Operator.bitwiseNot: return "~";
-    case Operator.bitwiseOr: return "|";
-    case Operator.bitwiseXor: return "^";
-    case Operator.divide: return "/";
-    case Operator.equals: return "==";
-    case Operator.greaterThan: return ">";
-    case Operator.greaterThanEquals: return ">=";
-    case Operator.indexGet: return "[]";
-    case Operator.indexSet: return "[]=";
-    case Operator.leftShift: return "<<";
-    case Operator.lessThan: return "<";
-    case Operator.lessThanEquals: return "<=";
-    case Operator.modulo: return "%";
-    case Operator.multiply: return "*";
-    case Operator.rightShift: return ">>";
-    case Operator.subtract: return "-";
-    case Operator.truncatingDivide: return "~/";
-    case Operator.unaryMinus: return "unary-";
+    case Operator.add:
+      return "+";
+    case Operator.bitwiseAnd:
+      return "&";
+    case Operator.bitwiseNot:
+      return "~";
+    case Operator.bitwiseOr:
+      return "|";
+    case Operator.bitwiseXor:
+      return "^";
+    case Operator.divide:
+      return "/";
+    case Operator.equals:
+      return "==";
+    case Operator.greaterThan:
+      return ">";
+    case Operator.greaterThanEquals:
+      return ">=";
+    case Operator.indexGet:
+      return "[]";
+    case Operator.indexSet:
+      return "[]=";
+    case Operator.leftShift:
+      return "<<";
+    case Operator.lessThan:
+      return "<";
+    case Operator.lessThanEquals:
+      return "<=";
+    case Operator.modulo:
+      return "%";
+    case Operator.multiply:
+      return "*";
+    case Operator.rightShift:
+      return ">>";
+    case Operator.subtract:
+      return "-";
+    case Operator.truncatingDivide:
+      return "~/";
+    case Operator.unaryMinus:
+      return "unary-";
   }
   return null;
 }

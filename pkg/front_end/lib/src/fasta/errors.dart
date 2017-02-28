@@ -4,26 +4,16 @@
 
 library fasta.errors;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:convert' show
-    JSON;
+import 'dart:convert' show JSON;
 
-import 'dart:io' show
-    ContentType,
-    HttpClient,
-    HttpClientRequest,
-    SocketException,
-    stderr;
+import 'dart:io'
+    show ContentType, HttpClient, HttpClientRequest, SocketException, stderr;
 
-import 'colors.dart' show
-    red;
+import 'colors.dart' show red;
 
-import 'messages.dart' show
-    errorsAreFatal,
-    format,
-    isVerbose;
+import 'messages.dart' show errorsAreFatal, format, isVerbose;
 
 const String defaultServerAddress = "http://127.0.0.1:59410/";
 
@@ -130,6 +120,7 @@ Future reportCrash(error, StackTrace trace, [Uri uri, int charOffset]) async {
     stderr.write(note);
     await stderr.flush();
   }
+
   if (hasCrashed) return new Future.error(error, trace);
   if (error is Crash) {
     trace = error.trace ?? trace;
@@ -166,8 +157,8 @@ Future reportCrash(error, StackTrace trace, [Uri uri, int charOffset]) async {
       int port = request?.connectionInfo?.remotePort;
       await note(" to $host:$port");
       await request
-          ..headers.contentType = ContentType.JSON
-          ..write(json);
+        ..headers.contentType = ContentType.JSON
+        ..write(json);
       await request.close();
       await note(".");
     }

@@ -4,11 +4,8 @@
 
 library fasta.util.link;
 
-import 'link_implementation.dart' show
-    LinkBuilderImplementation,
-    LinkEntry,
-    LinkIterator,
-    MappedLinkIterable;
+import 'link_implementation.dart'
+    show LinkBuilderImplementation, LinkEntry, LinkIterator, MappedLinkIterable;
 
 class Link<T> implements Iterable<T> {
   T get head => throw new StateError("no elements");
@@ -136,6 +133,7 @@ class Link<T> implements Iterable<T> {
   K fold<K>(K initialValue, K combine(K value, T element)) {
     return _unsupported('fold');
   }
+
   T get last => _unsupported('get:last');
   T lastWhere(bool f(T e), {T orElse()}) => _unsupported('lastWhere');
   String join([separator = '']) => _unsupported('join');

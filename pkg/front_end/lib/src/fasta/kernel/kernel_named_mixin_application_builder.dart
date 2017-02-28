@@ -4,29 +4,32 @@
 
 library fasta.kernel_named_mixin_application_builder;
 
-import 'package:kernel/ast.dart' show
-    InterfaceType;
+import 'package:kernel/ast.dart' show InterfaceType;
 
-import '../source/source_class_builder.dart' show
-    SourceClassBuilder;
+import '../source/source_class_builder.dart' show SourceClassBuilder;
 
-import 'kernel_builder.dart' show
-    Builder,
-    KernelTypeBuilder,
-    LibraryBuilder,
-    MetadataBuilder,
-    NamedMixinApplicationBuilder,
-    TypeVariableBuilder;
+import 'kernel_builder.dart'
+    show
+        Builder,
+        KernelTypeBuilder,
+        LibraryBuilder,
+        MetadataBuilder,
+        NamedMixinApplicationBuilder,
+        TypeVariableBuilder;
 
 class KernelNamedMixinApplicationBuilder extends SourceClassBuilder
     implements NamedMixinApplicationBuilder<KernelTypeBuilder, InterfaceType> {
-
-  KernelNamedMixinApplicationBuilder(List<MetadataBuilder> metadata,
-      String name, List<TypeVariableBuilder> typeVariables,
-      int modifiers, KernelTypeBuilder mixinApplication,
-      List<KernelTypeBuilder> interfaces, LibraryBuilder parent, int charOffset)
+  KernelNamedMixinApplicationBuilder(
+      List<MetadataBuilder> metadata,
+      String name,
+      List<TypeVariableBuilder> typeVariables,
+      int modifiers,
+      KernelTypeBuilder mixinApplication,
+      List<KernelTypeBuilder> interfaces,
+      LibraryBuilder parent,
+      int charOffset)
       : super(metadata, modifiers, name, typeVariables, mixinApplication,
-          interfaces, <String, Builder>{}, parent, null, charOffset);
+            interfaces, <String, Builder>{}, parent, null, charOffset);
 
   KernelTypeBuilder get mixinApplication => supertype;
 

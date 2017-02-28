@@ -4,25 +4,17 @@
 
 library fasta.target_implementation;
 
-import 'package:kernel/target/vm.dart' show
-    VmTarget;
+import 'package:kernel/target/vm.dart' show VmTarget;
 
-import 'builder/builder.dart' show
-    Builder,
-    ClassBuilder,
-    LibraryBuilder;
+import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
-import 'loader.dart' show
-    Loader;
+import 'loader.dart' show Loader;
 
-import 'target.dart' show
-    Target;
+import 'target.dart' show Target;
 
-import 'ticker.dart' show
-    Ticker;
+import 'ticker.dart' show Ticker;
 
-import 'translate_uri.dart' show
-    TranslateUri;
+import 'translate_uri.dart' show TranslateUri;
 
 /// Provides the implementation details used by a loader for a target.
 abstract class TargetImplementation extends Target {
@@ -30,8 +22,7 @@ abstract class TargetImplementation extends Target {
   Builder cachedCompileTimeError;
   Builder cachedNativeAnnotation;
 
-  TargetImplementation(Ticker ticker, this.uriTranslator)
-      : super(ticker);
+  TargetImplementation(Ticker ticker, this.uriTranslator) : super(ticker);
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist
   /// already.

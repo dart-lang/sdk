@@ -4,13 +4,11 @@
 
 library fasta.analyzer.element_store;
 
-import 'package:kernel/analyzer/loader.dart' show
-    ReferenceLevelLoader;
+import 'package:kernel/analyzer/loader.dart' show ReferenceLevelLoader;
 
 import 'package:kernel/ast.dart';
 
-import 'package:analyzer/analyzer.dart' show
-    ParameterKind;
+import 'package:analyzer/analyzer.dart' show ParameterKind;
 
 import 'package:analyzer/analyzer.dart' as analyzer;
 
@@ -18,8 +16,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import 'package:analyzer/dart/element/type.dart' as analyzer;
 
-import '../errors.dart' show
-    internalError;
+import '../errors.dart' show internalError;
 
 import '../kernel/kernel_builder.dart';
 
@@ -30,10 +27,10 @@ import 'mock_element.dart';
 import 'mock_type.dart';
 
 abstract class ElementStore implements ReferenceLevelLoader {
-  Element operator[] (Builder builder);
+  Element operator [](Builder builder);
 
   factory ElementStore(
-      LibraryBuilder coreLibrary, Map<Uri, LibraryBuilder> builders) =
+          LibraryBuilder coreLibrary, Map<Uri, LibraryBuilder> builders) =
       ElementStoreImplementation;
 }
 
@@ -63,7 +60,7 @@ class ElementStoreImplementation implements ElementStore {
 
   ElementStoreImplementation.internal(this.coreLibrary, this.elements);
 
-  Element operator[] (Builder builder) {
+  Element operator [](Builder builder) {
     // Avoid storing local elements in the element store to reduce memory
     // usage. So they both implement [Element] and [Builder].
     return builder is Element ? builder : elements[builder];
@@ -84,8 +81,7 @@ class ElementStoreImplementation implements ElementStore {
             elements[builder] = new KernelClassElement(builder);
           } else if (builder is DillMemberBuilder) {
             Member member = builder.member;
-            if (member is Field) {
-            } else if (member is Procedure) {
+            if (member is Field) {} else if (member is Procedure) {
               buildDillFunctionElement(builder, unit, elements);
             } else {
               internalError("Unhandled $name ${member.runtimeType} in $uri");
@@ -110,8 +106,8 @@ class ElementStoreImplementation implements ElementStore {
     KernelClassBuilder cls = coreLibrary.members[className];
     Constructor constructor = constructorName == null
         ? cls.cls.constructors.first
-        : cls.cls.constructors.firstWhere(
-            (Constructor c) => c.name.name == constructorName);
+        : cls.cls.constructors
+            .firstWhere((Constructor c) => c.name.name == constructorName);
     return constructor;
   }
 
@@ -162,8 +158,8 @@ class ElementStoreImplementation implements ElementStore {
         positionalParameters.length + namedParameters.length);
     int i = 0;
     for (VariableDeclaration parameter in positionalParameters) {
-      parameters[i] = buildFormalParameter(
-          parameter, isOptional: i >= requiredParameterCount);
+      parameters[i] = buildFormalParameter(parameter,
+          isOptional: i >= requiredParameterCount);
       i++;
     }
     for (VariableDeclaration parameter in namedParameters) {
@@ -182,19 +178,21 @@ class ElementStoreImplementation implements ElementStore {
       for (KernelFormalParameterBuilder parameter in builder.formals) {
         assert(parameter.declaration != null);
         elements[parameter] = parameters[i++] = buildFormalParameter(
-            parameter.declaration, isOptional: parameter.isOptional,
+            parameter.declaration,
+            isOptional: parameter.isOptional,
             isNamed: parameter.isNamed);
       }
     } else {
       parameters = new List<KernelParameterElement>(0);
     }
-    elements[builder] = new KernelFunctionElement(
-        builder.procedure, unit, parameters);
+    elements[builder] =
+        new KernelFunctionElement(builder.procedure, unit, parameters);
   }
 
   static KernelParameterElement buildFormalParameter(
       VariableDeclaration parameter,
-      {bool isOptional: true, bool isNamed: false}) {
+      {bool isOptional: true,
+      bool isNamed: false}) {
     ParameterKind kind = isOptional
         ? (isNamed ? ParameterKind.NAMED : ParameterKind.POSITIONAL)
         : ParameterKind.REQUIRED;

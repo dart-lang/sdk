@@ -4,33 +4,20 @@
 
 library fasta.scanner.abstract_scanner;
 
-import 'dart:collection' show
-    ListMixin;
+import 'dart:collection' show ListMixin;
 
-import 'dart:typed_data' show
-    Uint16List,
-    Uint32List;
+import 'dart:typed_data' show Uint16List, Uint32List;
 
-import '../scanner.dart' show
-    ErrorToken,
-    Scanner,
-    buildUnexpectedCharacterToken;
+import '../scanner.dart'
+    show ErrorToken, Scanner, buildUnexpectedCharacterToken;
 
-import 'error_token.dart' show
-    UnmatchedToken,
-    UnterminatedToken;
+import 'error_token.dart' show UnmatchedToken, UnterminatedToken;
 
-import 'keyword.dart' show
-    KeywordState,
-    Keyword;
+import 'keyword.dart' show KeywordState, Keyword;
 
 import 'precedence.dart';
 
-import 'token.dart' show
-    BeginGroupToken,
-    KeywordToken,
-    SymbolToken,
-    Token;
+import 'token.dart' show BeginGroupToken, KeywordToken, SymbolToken, Token;
 
 import 'token_constants.dart';
 
@@ -820,7 +807,7 @@ abstract class AbstractScanner implements Scanner {
     if ($A <= next && next <= $Z) {
       state = state.nextCapital(next);
       next = advance();
-    } else if ($a <= next && next <= $z){
+    } else if ($a <= next && next <= $z) {
       // Do the first next call outside the loop to avoid an additional test
       // and to make the loop monomorphic.
       state = state.next(next);
@@ -1208,7 +1195,7 @@ class LineStarts extends Object with ListMixin<int> {
 
   int get length => arrayLength;
 
-  int operator[](int index) {
+  int operator [](int index) {
     assert(index < arrayLength);
     return array[index];
   }
@@ -1220,7 +1207,7 @@ class LineStarts extends Object with ListMixin<int> {
     arrayLength = newLength;
   }
 
-  void operator[]=(int index, int value) {
+  void operator []=(int index, int value) {
     if (value > 65535 && array is! Uint32List) {
       switchToUint32(array.length);
     }

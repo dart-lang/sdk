@@ -4,30 +4,19 @@
 
 library fasta.library_builder;
 
-import '../combinator.dart' show
-    Combinator;
+import '../combinator.dart' show Combinator;
 
-import '../errors.dart' show
-    InputError,
-    internalError,
-    printUnexpected;
+import '../errors.dart' show InputError, internalError, printUnexpected;
 
-import '../export.dart' show
-    Export;
+import '../export.dart' show Export;
 
-import '../loader.dart' show
-    Loader;
+import '../loader.dart' show Loader;
 
-import '../util/relativize.dart' show
-    relativizeUri;
+import '../util/relativize.dart' show relativizeUri;
 
-import 'builder.dart' show
-    Builder,
-    ClassBuilder,
-    TypeBuilder;
+import 'builder.dart' show Builder, ClassBuilder, TypeBuilder;
 
-import 'scope.dart' show
-   Scope;
+import 'scope.dart' show Scope;
 
 abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   final List<Export> exporters = <Export>[];
@@ -57,8 +46,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   Builder addBuilder(String name, Builder builder, int charOffset);
 
-  void addExporter(LibraryBuilder exporter, List<Combinator> combinators,
-      int charOffset) {
+  void addExporter(
+      LibraryBuilder exporter, List<Combinator> combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 

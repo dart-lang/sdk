@@ -4,16 +4,11 @@
 
 library fasta.environment_variable;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    Directory,
-    File,
-    Platform;
+import 'dart:io' show Directory, File, Platform;
 
-import 'errors.dart' show
-    inputError;
+import 'errors.dart' show inputError;
 
 class EnvironmentVariable {
   final String name;
@@ -32,14 +27,13 @@ class EnvironmentVariable {
   Future<Null> validate(String value) => new Future<Null>.value();
 
   variableNotDefined() {
-    inputError(null, null,
-        "The environment variable '$name' isn't defined. $what");
+    inputError(
+        null, null, "The environment variable '$name' isn't defined. $what");
   }
 }
 
 class EnvironmentVariableFile extends EnvironmentVariable {
-  const EnvironmentVariableFile(String name, String what)
-      : super(name, what);
+  const EnvironmentVariableFile(String name, String what) : super(name, what);
 
   Future<Null> validate(String value) async {
     if (!await new File(value).exists()) notFound(value);
@@ -47,7 +41,10 @@ class EnvironmentVariableFile extends EnvironmentVariable {
   }
 
   notFound(String value) {
-    inputError(null, null,"The environment variable '$name' has the value "
+    inputError(
+        null,
+        null,
+        "The environment variable '$name' has the value "
         "'$value', that isn't a file. $what");
   }
 }
@@ -62,7 +59,10 @@ class EnvironmentVariableDirectory extends EnvironmentVariable {
   }
 
   notFound(String value) {
-    inputError(null, null, "The environment variable '$name' has the value "
+    inputError(
+        null,
+        null,
+        "The environment variable '$name' has the value "
         "'$value', that isn't a directory. $what");
   }
 }

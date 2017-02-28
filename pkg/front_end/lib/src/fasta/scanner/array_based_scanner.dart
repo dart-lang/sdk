@@ -4,37 +4,22 @@
 
 library fasta.scanner.array_based_scanner;
 
-import 'error_token.dart' show
-    ErrorToken;
+import 'error_token.dart' show ErrorToken;
 
-import 'keyword.dart' show
-    Keyword;
+import 'keyword.dart' show Keyword;
 
-import 'precedence.dart' show
-    COMMENT_INFO,
-    EOF_INFO,
-    PrecedenceInfo;
+import 'precedence.dart' show COMMENT_INFO, EOF_INFO, PrecedenceInfo;
 
-import 'token.dart' show
-    BeginGroupToken,
-    KeywordToken,
-    SymbolToken,
-    Token;
+import 'token.dart' show BeginGroupToken, KeywordToken, SymbolToken, Token;
 
-import 'token_constants.dart' show
-    LT_TOKEN,
-    OPEN_CURLY_BRACKET_TOKEN,
-    STRING_INTERPOLATION_TOKEN;
+import 'token_constants.dart'
+    show LT_TOKEN, OPEN_CURLY_BRACKET_TOKEN, STRING_INTERPOLATION_TOKEN;
 
-import 'characters.dart' show
-    $LF,
-    $STX;
+import 'characters.dart' show $LF, $STX;
 
-import 'abstract_scanner.dart' show
-    AbstractScanner;
+import 'abstract_scanner.dart' show AbstractScanner;
 
-import 'package:front_end/src/fasta/util/link.dart' show
-    Link;
+import 'package:front_end/src/fasta/util/link.dart' show Link;
 
 abstract class ArrayBasedScanner extends AbstractScanner {
   bool hasErrors = false;

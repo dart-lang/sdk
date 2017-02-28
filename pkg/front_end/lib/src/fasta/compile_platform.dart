@@ -4,44 +4,32 @@
 
 library fasta.compile_platform;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'kernel/verifier.dart' show
-    verifyProgram;
+import 'kernel/verifier.dart' show verifyProgram;
 
-import 'ticker.dart' show
-    Ticker;
+import 'ticker.dart' show Ticker;
 
-import 'dart:io' show
-    exitCode;
+import 'dart:io' show exitCode;
 
-import 'compiler_command_line.dart' show
-    CompilerCommandLine;
+import 'compiler_command_line.dart' show CompilerCommandLine;
 
-import 'compiler_context.dart' show
-    CompilerContext;
+import 'compiler_context.dart' show CompilerContext;
 
-import 'errors.dart' show
-    InputError;
+import 'errors.dart' show InputError;
 
-import 'kernel/kernel_target.dart' show
-    KernelTarget;
+import 'kernel/kernel_target.dart' show KernelTarget;
 
-import 'dill/dill_target.dart' show
-    DillTarget;
+import 'dill/dill_target.dart' show DillTarget;
 
-import 'translate_uri.dart' show
-    TranslateUri;
+import 'translate_uri.dart' show TranslateUri;
 
-import 'ast_kind.dart' show
-    AstKind;
+import 'ast_kind.dart' show AstKind;
 
 Future main(List<String> arguments) async {
   Ticker ticker = new Ticker();
   try {
-    await CompilerCommandLine.withGlobalOptions(
-        "compile_platform", arguments,
+    await CompilerCommandLine.withGlobalOptions("compile_platform", arguments,
         (CompilerContext c) => compilePlatform(c, ticker));
   } on InputError catch (e) {
     exitCode = 1;
@@ -53,20 +41,19 @@ Future main(List<String> arguments) async {
 Future compilePlatform(CompilerContext c, Ticker ticker) async {
   ticker.isVerbose = c.options.verbose;
   Uri output = Uri.base.resolveUri(new Uri.file(c.options.arguments[1]));
-  Uri patchedSdk =
-      Uri.base.resolveUri(new Uri.file(c.options.arguments[0]));
+  Uri patchedSdk = Uri.base.resolveUri(new Uri.file(c.options.arguments[0]));
   ticker.logMs("Parsed arguments");
   if (ticker.isVerbose) {
     print("Compiling $patchedSdk to $output");
   }
 
-  TranslateUri uriTranslator = await TranslateUri.parse(
-      patchedSdk, c.options.packages);
+  TranslateUri uriTranslator =
+      await TranslateUri.parse(patchedSdk, c.options.packages);
   ticker.logMs("Read packages file");
 
   DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
-  KernelTarget kernelTarget = new KernelTarget(
-      dillTarget, uriTranslator, c.uriToSource);
+  KernelTarget kernelTarget =
+      new KernelTarget(dillTarget, uriTranslator, c.uriToSource);
 
   kernelTarget.read(Uri.parse("dart:core"));
   await dillTarget.writeOutline(null);

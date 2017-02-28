@@ -4,12 +4,9 @@
 
 library fasta.scope;
 
-import 'builder.dart' show
-    Builder,
-    MixedAccessor;
+import 'builder.dart' show Builder, MixedAccessor;
 
-import '../errors.dart' show
-    internalError;
+import '../errors.dart' show internalError;
 
 class Scope {
   /// Names declared in this scope.
@@ -65,8 +62,8 @@ class Scope {
     }
   }
 
-  Builder lookupAmbiguous(String name, Builder builder, bool setter,
-      int charOffset, Uri fileUri) {
+  Builder lookupAmbiguous(
+      String name, Builder builder, bool setter, int charOffset, Uri fileUri) {
     assert(builder.next != null);
     if (builder is MixedAccessor) {
       return setter ? builder.setter : builder.getter;
@@ -90,7 +87,7 @@ class Scope {
   }
 
   // TODO(ahe): Rename to extend or something.
-  void operator[]= (String name, Builder member) {
+  void operator []=(String name, Builder member) {
     if (isModifiable) {
       local[name] = member;
     } else {

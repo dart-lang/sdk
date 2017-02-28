@@ -4,11 +4,9 @@
 
 library fasta.kernel_variable_builder;
 
-import 'package:kernel/ast.dart' show
-    VariableDeclaration;
+import 'package:kernel/ast.dart' show VariableDeclaration;
 
-import 'kernel_builder.dart' show
-    Builder;
+import 'kernel_builder.dart' show Builder;
 
 class KernelVariableBuilder extends Builder {
   final VariableDeclaration variable;

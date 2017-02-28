@@ -4,12 +4,9 @@
 
 library fasta.util.link_implementation;
 
-import 'dart:collection' show
-    IterableBase;
+import 'dart:collection' show IterableBase;
 
-import 'link.dart' show
-    Link,
-    LinkBuilder;
+import 'link.dart' show Link, LinkBuilder;
 
 class LinkIterator<T> implements Iterator<T> {
   T _current;

@@ -4,22 +4,15 @@
 
 library fasta.messages;
 
-import 'package:kernel/ast.dart' show
-    Location,
-    Program;
+import 'package:kernel/ast.dart' show Location, Program;
 
-import 'util/relativize.dart' show
-    relativizeUri;
+import 'util/relativize.dart' show relativizeUri;
 
-import 'compiler_context.dart' show
-    CompilerContext;
+import 'compiler_context.dart' show CompilerContext;
 
-import 'errors.dart' show
-    InputError;
+import 'errors.dart' show InputError;
 
-import 'colors.dart' show
-    cyan,
-    magenta;
+import 'colors.dart' show cyan, magenta;
 
 const bool hideNits = false;
 
@@ -68,8 +61,8 @@ String colorNit(String message) {
 String format(Uri uri, int charOffset, String message) {
   if (uri != null) {
     String path = relativizeUri(uri);
-    String position = charOffset == -1
-        ? path : "${getLocation(path, charOffset)}";
+    String position =
+        charOffset == -1 ? path : "${getLocation(path, charOffset)}";
     return "$position: $message";
   } else {
     return message;

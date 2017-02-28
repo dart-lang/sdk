@@ -4,15 +4,15 @@
 
 library fasta.interface_type_builder;
 
-import 'scope.dart' show
-    Scope;
+import 'scope.dart' show Scope;
 
-import 'builder.dart' show
-    Builder,
-    InvalidTypeBuilder,
-    PrefixBuilder,
-    TypeBuilder,
-    TypeDeclarationBuilder;
+import 'builder.dart'
+    show
+        Builder,
+        InvalidTypeBuilder,
+        PrefixBuilder,
+        TypeBuilder,
+        TypeDeclarationBuilder;
 
 abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
   final String name;

@@ -4,18 +4,17 @@
 
 library fasta.class_builder;
 
-import 'builder.dart' show
-    Builder,
-    ConstructorReferenceBuilder,
-    LibraryBuilder,
-    MetadataBuilder,
-    TypeBuilder,
-    TypeDeclarationBuilder,
-    TypeVariableBuilder;
+import 'builder.dart'
+    show
+        Builder,
+        ConstructorReferenceBuilder,
+        LibraryBuilder,
+        MetadataBuilder,
+        TypeBuilder,
+        TypeDeclarationBuilder,
+        TypeVariableBuilder;
 
-import 'scope.dart' show
-    AmbiguousBuilder,
-    Scope;
+import 'scope.dart' show AmbiguousBuilder, Scope;
 
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
@@ -28,9 +27,15 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   final Map<String, Builder> members;
 
   ClassBuilder(
-      List<MetadataBuilder> metadata, int modifiers,
-      String name, this.typeVariables, this.supertype, this.interfaces,
-      this.members, LibraryBuilder parent, int charOffset)
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      String name,
+      this.typeVariables,
+      this.supertype,
+      this.interfaces,
+      this.members,
+      LibraryBuilder parent,
+      int charOffset)
       : super(metadata, modifiers, name, parent, charOffset);
 
   /// Returns true if this class is the result of applying a mixin to its

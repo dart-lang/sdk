@@ -4,12 +4,9 @@
 
 library fasta.export;
 
-import 'builder/builder.dart' show
-    Builder,
-    LibraryBuilder;
+import 'builder/builder.dart' show Builder, LibraryBuilder;
 
-import 'combinator.dart' show
-    Combinator;
+import 'combinator.dart' show Combinator;
 
 class Export {
   /// The library that is exporting [exported];

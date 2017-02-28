@@ -4,97 +4,83 @@
 
 library fasta.kernel_target;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    File,
-    IOSink;
+import 'dart:io' show File, IOSink;
 
-import 'package:kernel/ast.dart' show
-    Arguments,
-    AsyncMarker,
-    Class,
-    Constructor,
-    EmptyStatement,
-    Expression,
-    ExpressionStatement,
-    Field,
-    FieldInitializer,
-    FunctionNode,
-    Initializer,
-    InvalidInitializer,
-    Library,
-    Name,
-    NamedExpression,
-    NullLiteral,
-    ProcedureKind,
-    Program,
-    RedirectingInitializer,
-    Source,
-    StringLiteral,
-    SuperInitializer,
-    Throw,
-    VariableDeclaration,
-    VariableGet,
-    VoidType;
+import 'package:kernel/ast.dart'
+    show
+        Arguments,
+        AsyncMarker,
+        Class,
+        Constructor,
+        EmptyStatement,
+        Expression,
+        ExpressionStatement,
+        Field,
+        FieldInitializer,
+        FunctionNode,
+        Initializer,
+        InvalidInitializer,
+        Library,
+        Name,
+        NamedExpression,
+        NullLiteral,
+        ProcedureKind,
+        Program,
+        RedirectingInitializer,
+        Source,
+        StringLiteral,
+        SuperInitializer,
+        Throw,
+        VariableDeclaration,
+        VariableGet,
+        VoidType;
 
-import 'package:kernel/binary/ast_to_binary.dart' show
-    BinaryPrinter;
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
-import 'package:kernel/text/ast_to_text.dart' show
-    Printer;
+import 'package:kernel/text/ast_to_text.dart' show Printer;
 
-import 'package:kernel/transformations/mixin_full_resolution.dart' show
-    MixinFullResolution;
+import 'package:kernel/transformations/mixin_full_resolution.dart'
+    show MixinFullResolution;
 
-import 'package:kernel/transformations/setup_builtin_library.dart' as
-    setup_builtin_library;
+import 'package:kernel/transformations/setup_builtin_library.dart'
+    as setup_builtin_library;
 
-import '../source/source_loader.dart' show
-    SourceLoader;
+import '../source/source_loader.dart' show SourceLoader;
 
-import '../source/source_class_builder.dart' show
-    SourceClassBuilder;
+import '../source/source_class_builder.dart' show SourceClassBuilder;
 
-import '../target_implementation.dart' show
-    TargetImplementation;
+import '../target_implementation.dart' show TargetImplementation;
 
-import '../translate_uri.dart' show
-    TranslateUri;
+import '../translate_uri.dart' show TranslateUri;
 
-import '../dill/dill_target.dart' show
-    DillTarget;
+import '../dill/dill_target.dart' show DillTarget;
 
-import '../ast_kind.dart' show
-    AstKind;
+import '../ast_kind.dart' show AstKind;
 
-import '../errors.dart' show
-    InputError,
-    internalError,
-    reportCrash,
-    resetCrashReporting;
+import '../errors.dart'
+    show InputError, internalError, reportCrash, resetCrashReporting;
 
-import '../util/relativize.dart' show
-    relativizeUri;
+import '../util/relativize.dart' show relativizeUri;
 
-import '../compiler_context.dart' show
-    CompilerContext;
+import '../compiler_context.dart' show CompilerContext;
 
-import 'kernel_builder.dart' show
-    Builder,
-    ClassBuilder,
-    DynamicTypeBuilder,
-    InvalidTypeBuilder,
-    KernelClassBuilder,
-    KernelLibraryBuilder,
-    KernelNamedTypeBuilder,
-    KernelProcedureBuilder,
-    LibraryBuilder,
-    MixinApplicationBuilder,
-    NamedMixinApplicationBuilder,
-    NamedTypeBuilder,
-    TypeBuilder;
+import 'kernel_builder.dart'
+    show
+        Builder,
+        ClassBuilder,
+        DynamicTypeBuilder,
+        InvalidTypeBuilder,
+        KernelClassBuilder,
+        KernelLibraryBuilder,
+        KernelNamedTypeBuilder,
+        KernelProcedureBuilder,
+        LibraryBuilder,
+        MixinApplicationBuilder,
+        NamedMixinApplicationBuilder,
+        NamedTypeBuilder,
+        TypeBuilder;
 
 class KernelTarget extends TargetImplementation {
   final DillTarget dillTarget;
@@ -147,6 +133,7 @@ class KernelTarget extends TargetImplementation {
         internalError("Unhandled: ${builder.runtimeType}");
       }
     }
+
     if (supertype == null) {
       // OK.
     } else if (supertype is MixinApplicationBuilder) {
@@ -199,11 +186,9 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype =
-        new KernelNamedTypeBuilder(
-            "Object", null, builder.charOffset,
-            builder.fileUri ?? Uri.parse(cls.fileUri))
-        ..builder = objectClassBuilder;
+    builder.supertype = new KernelNamedTypeBuilder("Object", null,
+        builder.charOffset, builder.fileUri ?? Uri.parse(cls.fileUri))
+      ..builder = objectClassBuilder;
     builder.interfaces = null;
   }
 
@@ -286,9 +271,17 @@ class KernelTarget extends TargetImplementation {
       // method. Similarly considerations apply to separate compilation. It
       // could also make sense to add a way to mark .dill files as having
       // compile-time errors.
-      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(null, 0,
-          null, "main", null, null, AsyncMarker.Sync, ProcedureKind.Method,
-          library, -1);
+      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(
+          null,
+          0,
+          null,
+          "main",
+          null,
+          null,
+          AsyncMarker.Sync,
+          ProcedureKind.Method,
+          library,
+          -1);
       library.addBuilder(mainBuilder.name, mainBuilder, -1);
       mainBuilder.body = new ExpressionStatement(
           new Throw(new StringLiteral("${errors.join('\n')}")));
@@ -382,6 +375,7 @@ class KernelTarget extends TargetImplementation {
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
     if (builder.isMixinApplication || builder.constructors.isNotEmpty) return;
+
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
     if (builder is NamedMixinApplicationBuilder) {
@@ -431,20 +425,20 @@ class KernelTarget extends TargetImplementation {
       return new VariableDeclaration(formal.name,
           type: formal.type, isFinal: formal.isFinal, isConst: formal.isConst);
     }
+
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
     List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
     List<Expression> positional = <Expression>[];
     List<NamedExpression> named = <NamedExpression>[];
-    for (VariableDeclaration formal in
-             constructor.function.positionalParameters) {
+    for (VariableDeclaration formal
+        in constructor.function.positionalParameters) {
       positionalParameters.add(copyFormal(formal));
       positional.add(new VariableGet(positionalParameters.last));
     }
-    for (VariableDeclaration formal in
-             constructor.function.namedParameters) {
+    for (VariableDeclaration formal in constructor.function.namedParameters) {
       namedParameters.add(copyFormal(formal));
       named.add(new NamedExpression(
-              formal.name, new VariableGet(namedParameters.last)));
+          formal.name, new VariableGet(namedParameters.last)));
     }
     FunctionNode function = new FunctionNode(new EmptyStatement(),
         positionalParameters: positionalParameters,
@@ -454,8 +448,7 @@ class KernelTarget extends TargetImplementation {
     SuperInitializer initializer = new SuperInitializer(
         constructor, new Arguments(positional, named: named));
     return new Constructor(function,
-        name: constructor.name,
-        initializers: <Initializer>[initializer]);
+        name: constructor.name, initializers: <Initializer>[initializer]);
   }
 
   Constructor makeDefaultConstructor() {
@@ -536,8 +529,7 @@ class KernelTarget extends TargetImplementation {
     // set their initializer to `null`.
     for (Field field in uninitializedFields) {
       if (initializedFields == null || !initializedFields.contains(field)) {
-        field.initializer = new NullLiteral()
-            ..parent = field;
+        field.initializer = new NullLiteral()..parent = field;
       }
     }
     // Run through all fields that are initialized by some constructor, and
@@ -572,14 +564,13 @@ class KernelTarget extends TargetImplementation {
 }
 
 bool isSuperinitializerOrInvalid(Initializer initializer) {
-  return initializer is SuperInitializer
-      || initializer is InvalidInitializer;
+  return initializer is SuperInitializer || initializer is InvalidInitializer;
 }
 
 bool isRedirectingGenerativeConstructor(Constructor constructor) {
   List<Initializer> initializers = constructor.initializers;
-  return initializers.length == 1
-      && initializers.single is RedirectingInitializer;
+  return initializers.length == 1 &&
+      initializers.single is RedirectingInitializer;
 }
 
 /// Looks for a constructor call that matches `super()` from a constructor in
@@ -592,8 +583,9 @@ Constructor defaultSuperConstructor(Class cls) {
   }
   for (Constructor constructor in superclass.constructors) {
     if (constructor.name.name.isEmpty) {
-      return constructor.function.requiredParameterCount == 0 ?
-          constructor : null;
+      return constructor.function.requiredParameterCount == 0
+          ? constructor
+          : null;
     }
   }
   return null;

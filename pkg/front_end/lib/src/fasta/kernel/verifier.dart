@@ -4,15 +4,11 @@
 
 library fasta.verifier;
 
-import 'package:kernel/ast.dart' show
-    ExpressionStatement,
-    Program;
+import 'package:kernel/ast.dart' show ExpressionStatement, Program;
 
-import 'package:kernel/verifier.dart' show
-    VerifyingVisitor;
+import 'package:kernel/verifier.dart' show VerifyingVisitor;
 
-import 'redirecting_factory_body.dart' show
-    RedirectingFactoryBody;
+import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 void verifyProgram(Program program, {bool isOutline: false}) {
   program.accept(new FastaVerifyingVisitor(isOutline));

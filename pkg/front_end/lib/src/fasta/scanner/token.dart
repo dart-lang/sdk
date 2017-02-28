@@ -4,16 +4,11 @@
 
 library fasta.scanner.token;
 
-import 'keyword.dart' show
-    Keyword;
+import 'keyword.dart' show Keyword;
 
-import 'precedence.dart' show
-    BAD_INPUT_INFO,
-    EOF_INFO,
-    PrecedenceInfo;
+import 'precedence.dart' show BAD_INPUT_INFO, EOF_INFO, PrecedenceInfo;
 
-import 'token_constants.dart' show
-    IDENTIFIER_TOKEN;
+import 'token_constants.dart' show IDENTIFIER_TOKEN;
 
 import 'string_canonicalizer.dart';
 
@@ -191,8 +186,8 @@ class StringToken extends Token {
    */
   StringToken.fromString(this.info, String value, int charOffset,
       {bool canonicalize: false})
-      : valueOrLazySubstring = canonicalizedString(value, 
-          0, value.length, canonicalize),
+      : valueOrLazySubstring =
+            canonicalizedString(value, 0, value.length, canonicalize),
         super(charOffset);
 
   /**
@@ -256,8 +251,8 @@ class StringToken extends Token {
 
   static final StringCanonicalizer canonicalizer = new StringCanonicalizer();
 
-  static String canonicalizedString(String s, int start, int end,
-      bool canonicalize) {
+  static String canonicalizedString(
+      String s, int start, int end, bool canonicalize) {
     if (!canonicalize) return s;
     return canonicalizer.canonicalize(s, start, end, false);
   }

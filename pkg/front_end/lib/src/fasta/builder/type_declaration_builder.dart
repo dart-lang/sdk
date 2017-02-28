@@ -4,14 +4,10 @@
 
 library fasta.type_declaration_builder;
 
-import 'builder.dart' show
-    Builder,
-    MetadataBuilder,
-    ModifierBuilder,
-    TypeBuilder;
+import 'builder.dart'
+    show Builder, MetadataBuilder, ModifierBuilder, TypeBuilder;
 
-import '../util/relativize.dart' show
-    relativizeUri;
+import '../util/relativize.dart' show relativizeUri;
 
 abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
     extends ModifierBuilder {
@@ -26,13 +22,13 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
   final Uri fileUri;
   final String relativeFileUri;
 
-  TypeDeclarationBuilder(this.metadata, this.modifiers, this.name,
-      Builder parent, int charOffset, [Uri fileUri])
-    : fileUri = fileUri ?? parent?.fileUri,
-      relativeFileUri = fileUri != null
-                        ? relativizeUri(fileUri)
-                        : parent?.relativeFileUri,
-      super(parent, charOffset, fileUri ?? parent?.fileUri);
+  TypeDeclarationBuilder(
+      this.metadata, this.modifiers, this.name, Builder parent, int charOffset,
+      [Uri fileUri])
+      : fileUri = fileUri ?? parent?.fileUri,
+        relativeFileUri =
+            fileUri != null ? relativizeUri(fileUri) : parent?.relativeFileUri,
+        super(parent, charOffset, fileUri ?? parent?.fileUri);
 
   bool get isTypeDeclaration => true;
 

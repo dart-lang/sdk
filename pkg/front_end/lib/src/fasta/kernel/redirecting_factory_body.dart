@@ -4,20 +4,20 @@
 
 library fasta.redirecting_factory_body;
 
-import 'package:kernel/ast.dart' show
-    ExpressionStatement,
-    InvalidExpression,
-    Let,
-    Member,
-    Procedure,
-    StaticGet,
-    VariableDeclaration;
+import 'package:kernel/ast.dart'
+    show
+        ExpressionStatement,
+        InvalidExpression,
+        Let,
+        Member,
+        Procedure,
+        StaticGet,
+        VariableDeclaration;
 
 class RedirectingFactoryBody extends ExpressionStatement {
   RedirectingFactoryBody(Member target)
-      : super(new Let(
-              new VariableDeclaration.forValue(new StaticGet(target)),
-              new InvalidExpression()));
+      : super(new Let(new VariableDeclaration.forValue(new StaticGet(target)),
+            new InvalidExpression()));
 
   Member get target {
     Let let = expression;
@@ -27,8 +27,7 @@ class RedirectingFactoryBody extends ExpressionStatement {
 }
 
 bool isRedirectingFactory(Member member) {
-  return member is Procedure &&
-      member.function.body is RedirectingFactoryBody;
+  return member is Procedure && member.function.body is RedirectingFactoryBody;
 }
 
 Member getImmediateRedirectionTarget(Member member) {

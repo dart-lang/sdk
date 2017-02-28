@@ -4,15 +4,11 @@
 
 library fasta.scanner.io;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    File,
-    RandomAccessFile;
+import 'dart:io' show File, RandomAccessFile;
 
-import 'dart:typed_data' show
-    Uint8List;
+import 'dart:typed_data' show Uint8List;
 
 List<int> readBytesFromFileSync(Uri uri) {
   RandomAccessFile file = new File.fromUri(uri).openSync();

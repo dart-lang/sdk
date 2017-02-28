@@ -4,16 +4,11 @@
 
 library fasta.scanner.keywords;
 
-import 'characters.dart' show
-    $a, $z, $A, $Z;
+import 'characters.dart' show $a, $z, $A, $Z;
 
-import 'precedence.dart' show
-    PrecedenceInfo;
+import 'precedence.dart' show PrecedenceInfo;
 
-import 'precedence.dart' show
-    AS_INFO,
-    IS_INFO,
-    KEYWORD_INFO;
+import 'precedence.dart' show AS_INFO, IS_INFO, KEYWORD_INFO;
 
 /**
  * A keyword in the Dart programming language.
@@ -103,9 +98,7 @@ class Keyword {
   }
 
   const Keyword(this.syntax,
-      {this.isPseudo: false,
-      this.isBuiltIn: false,
-      this.info: KEYWORD_INFO});
+      {this.isPseudo: false, this.isBuiltIn: false, this.info: KEYWORD_INFO});
 
   static Map<String, Keyword> computeKeywordMap() {
     Map<String, Keyword> result = new Map<String, Keyword>();
@@ -222,7 +215,6 @@ abstract class ArrayKeywordState implements KeywordState {
 }
 
 class LowerCaseArrayKeywordState extends ArrayKeywordState {
-
   LowerCaseArrayKeywordState(List<KeywordState> table, String syntax)
       : super(table, syntax) {
     assert(table.length == $z - $a + 1);
@@ -231,11 +223,9 @@ class LowerCaseArrayKeywordState extends ArrayKeywordState {
   KeywordState next(int c) => table[c - $a];
 
   KeywordState nextCapital(int c) => null;
-
 }
 
 class UpperCaseArrayKeywordState extends ArrayKeywordState {
-
   UpperCaseArrayKeywordState(List<KeywordState> table, String syntax)
       : super(table, syntax) {
     assert(table.length == $z - $A + 1);
@@ -244,7 +234,6 @@ class UpperCaseArrayKeywordState extends ArrayKeywordState {
   KeywordState next(int c) => table[c - $A];
 
   KeywordState nextCapital(int c) => table[c - $A];
-
 }
 
 /**

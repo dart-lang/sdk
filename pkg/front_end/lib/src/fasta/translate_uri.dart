@@ -4,14 +4,11 @@
 
 library fasta.translate_uri;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
-import 'dart:io' show
-    File;
+import 'dart:io' show File;
 
-import 'package:package_config/packages_file.dart' as packages_file show
-    parse;
+import 'package:package_config/packages_file.dart' as packages_file show parse;
 
 class TranslateUri {
   final Map<String, Uri> packages;
@@ -55,7 +52,7 @@ class TranslateUri {
         "html": sdk.resolve("lib/html/dartium/html_dartium.dart"),
         "html_common": sdk.resolve("lib/html/html_common/html_common.dart"),
         "indexed_db":
-        sdk.resolve("lib/indexed_db/dartium/indexed_db_dartium.dart"),
+            sdk.resolve("lib/indexed_db/dartium/indexed_db_dartium.dart"),
         "io": sdk.resolve("lib/io/io.dart"),
         "isolate": sdk.resolve("lib/isolate/isolate.dart"),
         "js": sdk.resolve("lib/js/dartium/js_dartium.dart"),
@@ -65,7 +62,8 @@ class TranslateUri {
         "nativewrappers": sdk.resolve("lib/html/dartium/nativewrappers.dart"),
         "typed_data": sdk.resolve("lib/typed_data/typed_data.dart"),
         "svg": sdk.resolve("lib/svg/dartium/svg_dartium.dart"),
-        "web_audio": sdk.resolve("lib/web_audio/dartium/web_audio_dartium.dart"),
+        "web_audio":
+            sdk.resolve("lib/web_audio/dartium/web_audio_dartium.dart"),
         "web_gl": sdk.resolve("lib/web_gl/dartium/web_gl_dartium.dart"),
         "web_sql": sdk.resolve("lib/web_sql/dartium/web_sql_dartium.dart"),
         "_internal": sdk.resolve("lib/internal/internal.dart"),

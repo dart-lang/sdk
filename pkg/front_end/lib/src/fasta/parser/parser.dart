@@ -4,75 +4,71 @@
 
 library fasta.parser.parser;
 
-import '../scanner.dart' show
-    ErrorToken;
+import '../scanner.dart' show ErrorToken;
 
-import '../scanner/recover.dart' show
-    closeBraceFor,
-    skipToEof;
+import '../scanner/recover.dart' show closeBraceFor, skipToEof;
 
-import 'package:front_end/src/fasta/scanner/keyword.dart' show
-    Keyword;
+import 'package:front_end/src/fasta/scanner/keyword.dart' show Keyword;
 
-import 'package:front_end/src/fasta/scanner/precedence.dart' show
-    ASSIGNMENT_PRECEDENCE,
-    AS_INFO,
-    CASCADE_PRECEDENCE,
-    EQUALITY_PRECEDENCE,
-    GT_INFO,
-    IS_INFO,
-    MINUS_MINUS_INFO,
-    OPEN_PAREN_INFO,
-    OPEN_SQUARE_BRACKET_INFO,
-    PERIOD_INFO,
-    PLUS_PLUS_INFO,
-    POSTFIX_PRECEDENCE,
-    PrecedenceInfo,
-    QUESTION_INFO,
-    QUESTION_PERIOD_INFO,
-    RELATIONAL_PRECEDENCE;
+import 'package:front_end/src/fasta/scanner/precedence.dart'
+    show
+        ASSIGNMENT_PRECEDENCE,
+        AS_INFO,
+        CASCADE_PRECEDENCE,
+        EQUALITY_PRECEDENCE,
+        GT_INFO,
+        IS_INFO,
+        MINUS_MINUS_INFO,
+        OPEN_PAREN_INFO,
+        OPEN_SQUARE_BRACKET_INFO,
+        PERIOD_INFO,
+        PLUS_PLUS_INFO,
+        POSTFIX_PRECEDENCE,
+        PrecedenceInfo,
+        QUESTION_INFO,
+        QUESTION_PERIOD_INFO,
+        RELATIONAL_PRECEDENCE;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show
-    BeginGroupToken,
-    KeywordToken,
-    SymbolToken,
-    Token,
-    isUserDefinableOperator;
+import 'package:front_end/src/fasta/scanner/token.dart'
+    show
+        BeginGroupToken,
+        KeywordToken,
+        SymbolToken,
+        Token,
+        isUserDefinableOperator;
 
-import 'package:front_end/src/fasta/scanner/token_constants.dart' show
-    COMMA_TOKEN,
-    DOUBLE_TOKEN,
-    EOF_TOKEN,
-    EQ_TOKEN,
-    FUNCTION_TOKEN,
-    GT_TOKEN,
-    GT_GT_TOKEN,
-    HASH_TOKEN,
-    HEXADECIMAL_TOKEN,
-    IDENTIFIER_TOKEN,
-    INT_TOKEN,
-    KEYWORD_TOKEN,
-    LT_TOKEN,
-    OPEN_CURLY_BRACKET_TOKEN,
-    OPEN_PAREN_TOKEN,
-    OPEN_SQUARE_BRACKET_TOKEN,
-    PERIOD_TOKEN,
-    SEMICOLON_TOKEN,
-    STRING_INTERPOLATION_IDENTIFIER_TOKEN,
-    STRING_INTERPOLATION_TOKEN,
-    STRING_TOKEN;
+import 'package:front_end/src/fasta/scanner/token_constants.dart'
+    show
+        COMMA_TOKEN,
+        DOUBLE_TOKEN,
+        EOF_TOKEN,
+        EQ_TOKEN,
+        FUNCTION_TOKEN,
+        GT_TOKEN,
+        GT_GT_TOKEN,
+        HASH_TOKEN,
+        HEXADECIMAL_TOKEN,
+        IDENTIFIER_TOKEN,
+        INT_TOKEN,
+        KEYWORD_TOKEN,
+        LT_TOKEN,
+        OPEN_CURLY_BRACKET_TOKEN,
+        OPEN_PAREN_TOKEN,
+        OPEN_SQUARE_BRACKET_TOKEN,
+        PERIOD_TOKEN,
+        SEMICOLON_TOKEN,
+        STRING_INTERPOLATION_IDENTIFIER_TOKEN,
+        STRING_INTERPOLATION_TOKEN,
+        STRING_TOKEN;
 
-import 'package:front_end/src/fasta/scanner/characters.dart' show
-    $CLOSE_CURLY_BRACKET;
+import 'package:front_end/src/fasta/scanner/characters.dart'
+    show $CLOSE_CURLY_BRACKET;
 
-import 'package:front_end/src/fasta/util/link.dart' show
-    Link;
+import 'package:front_end/src/fasta/util/link.dart' show Link;
 
-import 'listener.dart' show
-    Listener;
+import 'listener.dart' show Listener;
 
-import 'error_kind.dart' show
-    ErrorKind;
+import 'error_kind.dart' show ErrorKind;
 
 import 'identifier_context.dart' show IdentifierContext;
 
@@ -475,12 +471,12 @@ class Parser {
       ++parameterCount;
       String value = token.stringValue;
       if (identical(value, '[')) {
-        token = parseOptionalFormalParameters(
-            token, false, inFunctionType: inFunctionType);
+        token = parseOptionalFormalParameters(token, false,
+            inFunctionType: inFunctionType);
         break;
       } else if (identical(value, '{')) {
-        token = parseOptionalFormalParameters(
-            token, true, inFunctionType: inFunctionType);
+        token = parseOptionalFormalParameters(token, true,
+            inFunctionType: inFunctionType);
         break;
       }
       token = parseFormalParameter(token, FormalParameterType.REQUIRED,
@@ -569,11 +565,9 @@ class Parser {
       token = parseExpression(token.next);
       listener.handleValuedFormalParameter(equal, token);
       if (kind.isRequired) {
-        reportRecoverableError(
-            equal, ErrorKind.RequiredParameterWithDefault);
+        reportRecoverableError(equal, ErrorKind.RequiredParameterWithDefault);
       } else if (kind.isPositional && identical(':', value)) {
-        reportRecoverableError(
-            equal, ErrorKind.PositionalParameterWithEquals);
+        reportRecoverableError(equal, ErrorKind.PositionalParameterWithEquals);
       }
     } else {
       listener.handleFormalParameterWithoutValue(token);
@@ -597,8 +591,7 @@ class Parser {
       }
       var type =
           isNamed ? FormalParameterType.NAMED : FormalParameterType.POSITIONAL;
-      token =
-          parseFormalParameter(token, type, inFunctionType: inFunctionType);
+      token = parseFormalParameter(token, type, inFunctionType: inFunctionType);
       ++parameterCount;
     } while (optional(',', token));
     if (parameterCount == 0) {
@@ -813,23 +806,23 @@ class Parser {
     if (optional('=', token)) {
       Token equals = token;
       token = token.next;
-      return parseNamedMixinApplication(token, begin, classKeyword, name,
-          equals);
+      return parseNamedMixinApplication(
+          token, begin, classKeyword, name, equals);
     } else {
       return parseClass(token, begin, classKeyword, name);
     }
   }
 
-  Token parseNamedMixinApplication(Token token, Token begin, Token classKeyword,
-      Token name, Token equals) {
+  Token parseNamedMixinApplication(
+      Token token, Token begin, Token classKeyword, Token name, Token equals) {
     token = parseMixinApplication(token);
     Token implementsKeyword = null;
     if (optional('implements', token)) {
       implementsKeyword = token;
       token = parseTypeList(token.next);
     }
-    listener.endNamedMixinApplication(begin, classKeyword, equals,
-        implementsKeyword, token);
+    listener.endNamedMixinApplication(
+        begin, classKeyword, equals, implementsKeyword, token);
     return expect(';', token);
   }
 
@@ -856,9 +849,8 @@ class Parser {
       } while (optional(',', token));
     }
     token = parseClassBody(token);
-    listener.endClassDeclaration(
-        interfacesCount, begin, classKeyword, extendsKeyword,
-        implementsKeyword, token);
+    listener.endClassDeclaration(interfacesCount, begin, classKeyword,
+        extendsKeyword, implementsKeyword, token);
     return token.next;
   }
 
@@ -1314,7 +1306,7 @@ class Parser {
       if (optional('get', token)) {
         isGetter = true;
       } else if (hasName &&
-                 (optional("sync", token) || optional("async", token))) {
+          (optional("sync", token) || optional("async", token))) {
         // Skip.
         token = token.next;
         if (optional("*", token)) {
@@ -1322,13 +1314,15 @@ class Parser {
           token = token.next;
         }
         continue;
-      } else if (optional("(", token) || optional("{", token) ||
-                 optional("=>", token)) {
+      } else if (optional("(", token) ||
+          optional("{", token) ||
+          optional("=>", token)) {
         // A method.
         identifiers = identifiers.prepend(token);
         return listener.handleMemberName(identifiers);
-      } else if (optional("=", token) || optional(";", token) ||
-                 optional(",", token)) {
+      } else if (optional("=", token) ||
+          optional(";", token) ||
+          optional(",", token)) {
         // A field or abstract getter.
         identifiers = identifiers.prepend(token);
         return listener.handleMemberName(identifiers);
@@ -1752,23 +1746,23 @@ class Parser {
         modifierCount++;
         externalModifier = modifier;
         if (modifierCount != allowedModifierCount) {
-          reportRecoverableError(modifier, ErrorKind.ExtraneousModifier,
-              {'modifier': modifier});
+          reportRecoverableError(
+              modifier, ErrorKind.ExtraneousModifier, {'modifier': modifier});
         }
         allowedModifierCount++;
       } else if (staticModifier == null && optional('static', modifier)) {
         modifierCount++;
         staticModifier = modifier;
         if (modifierCount != allowedModifierCount) {
-          reportRecoverableError(modifier, ErrorKind.ExtraneousModifier,
-              {'modifier': modifier});
+          reportRecoverableError(
+              modifier, ErrorKind.ExtraneousModifier, {'modifier': modifier});
         }
       } else if (constModifier == null && optional('const', modifier)) {
         modifierCount++;
         constModifier = modifier;
         if (modifierCount != allowedModifierCount) {
-          reportRecoverableError(modifier, ErrorKind.ExtraneousModifier,
-              {'modifier': modifier});
+          reportRecoverableError(
+              modifier, ErrorKind.ExtraneousModifier, {'modifier': modifier});
         }
       } else {
         reportRecoverableError(

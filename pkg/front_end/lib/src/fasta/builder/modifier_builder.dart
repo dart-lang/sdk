@@ -4,15 +4,10 @@
 
 library fasta.modifier_builder;
 
-import '../modifier.dart' show
-    abstractMask,
-    constMask,
-    externalMask,
-    finalMask,
-    staticMask;
+import '../modifier.dart'
+    show abstractMask, constMask, externalMask, finalMask, staticMask;
 
-import 'builder.dart' show
-    Builder;
+import 'builder.dart' show Builder;
 
 abstract class ModifierBuilder extends Builder {
   ModifierBuilder(Builder parent, int charOffset, [Uri fileUri])

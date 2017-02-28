@@ -117,8 +117,11 @@ abstract class StackListener extends Listener {
 
   void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
-      internalError("${runtimeType}: Stack not empty:\n"
-          "  ${stack.values.join('\n  ')}", uri, charOffset);
+      internalError(
+          "${runtimeType}: Stack not empty:\n"
+          "  ${stack.values.join('\n  ')}",
+          uri,
+          charOffset);
     }
     if (recoverableErrors.isNotEmpty) {
       // TODO(ahe): Handle recoverable errors better.

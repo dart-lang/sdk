@@ -4,15 +4,11 @@
 
 library fasta.compiler_context;
 
-import 'dart:async' show
-    Zone,
-    runZoned;
+import 'dart:async' show Zone, runZoned;
 
-import 'package:kernel/ast.dart' show
-    Source;
+import 'package:kernel/ast.dart' show Source;
 
-import 'compiler_command_line.dart' show
-    CompilerCommandLine;
+import 'compiler_command_line.dart' show CompilerCommandLine;
 
 final Object compilerContextKey = new Object();
 
@@ -32,8 +28,8 @@ class CompilerContext {
 
   /// Perform [action] in a [Zone] where [cl] will be available as
   /// `CompilerContext.current.options`.
-  static dynamic withGlobalOptions(CompilerCommandLine cl,
-      dynamic action(CompilerContext c)) {
+  static dynamic withGlobalOptions(
+      CompilerCommandLine cl, dynamic action(CompilerContext c)) {
     CompilerContext c = new CompilerContext(cl);
     return runZoned(() => action(c), zoneValues: {compilerContextKey: c});
   }

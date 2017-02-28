@@ -4,22 +4,15 @@
 
 library fasta.scope_listener;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show
-    Token;
+import 'package:front_end/src/fasta/scanner/token.dart' show Token;
 
-import 'unhandled_listener.dart' show
-    NullValue,
-    UnhandledListener;
+import 'unhandled_listener.dart' show NullValue, UnhandledListener;
 
-import '../builder/scope.dart' show
-    Scope;
+import '../builder/scope.dart' show Scope;
 
-export '../builder/scope.dart' show
-    Scope;
+export '../builder/scope.dart' show Scope;
 
-export 'unhandled_listener.dart' show
-    NullValue,
-    Unhandled;
+export 'unhandled_listener.dart' show NullValue, Unhandled;
 
 enum JumpTargetKind {
   Break,

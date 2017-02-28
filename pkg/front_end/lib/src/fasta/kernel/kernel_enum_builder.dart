@@ -4,55 +4,52 @@
 
 library fasta.kernel_enum_builder;
 
-import 'package:kernel/ast.dart' show
-    Arguments,
-    AsyncMarker,
-    Class,
-    Constructor,
-    ConstructorInvocation,
-    DirectPropertyGet,
-    Expression,
-    Field,
-    FieldInitializer,
-    IntLiteral,
-    InterfaceType,
-    ListLiteral,
-    MapEntry,
-    MapLiteral,
-    MethodInvocation,
-    Name,
-    ProcedureKind,
-    ReturnStatement,
-    StaticGet,
-    StringLiteral,
-    ThisExpression,
-    VariableGet;
+import 'package:kernel/ast.dart'
+    show
+        Arguments,
+        AsyncMarker,
+        Class,
+        Constructor,
+        ConstructorInvocation,
+        DirectPropertyGet,
+        Expression,
+        Field,
+        FieldInitializer,
+        IntLiteral,
+        InterfaceType,
+        ListLiteral,
+        MapEntry,
+        MapLiteral,
+        MethodInvocation,
+        Name,
+        ProcedureKind,
+        ReturnStatement,
+        StaticGet,
+        StringLiteral,
+        ThisExpression,
+        VariableGet;
 
-import '../errors.dart' show
-    inputError;
+import '../errors.dart' show inputError;
 
-import '../modifier.dart' show
-    constMask,
-    finalMask,
-    staticMask;
+import '../modifier.dart' show constMask, finalMask, staticMask;
 
-import "../source/source_class_builder.dart" show
-    SourceClassBuilder;
+import "../source/source_class_builder.dart" show SourceClassBuilder;
 
-import 'kernel_builder.dart' show
-    Builder,
-    EnumBuilder,
-    FormalParameterBuilder,
-    KernelConstructorBuilder,
-    KernelFieldBuilder,
-    KernelFormalParameterBuilder,
-    KernelLibraryBuilder,
-    KernelNamedTypeBuilder,
-    KernelProcedureBuilder,
-    KernelTypeBuilder,
-    LibraryBuilder,
-    MemberBuilder,
-    MetadataBuilder;
+import 'kernel_builder.dart'
+    show
+        Builder,
+        EnumBuilder,
+        FormalParameterBuilder,
+        KernelConstructorBuilder,
+        KernelFieldBuilder,
+        KernelFormalParameterBuilder,
+        KernelLibraryBuilder,
+        KernelNamedTypeBuilder,
+        KernelProcedureBuilder,
+        KernelTypeBuilder,
+        LibraryBuilder,
+        MemberBuilder,
+        MetadataBuilder;
 
 class KernelEnumBuilder extends SourceClassBuilder
     implements EnumBuilder<KernelTypeBuilder, InterfaceType> {
@@ -64,11 +61,19 @@ class KernelEnumBuilder extends SourceClassBuilder
 
   final KernelTypeBuilder stringType;
 
-  KernelEnumBuilder.internal(List<MetadataBuilder> metadata, String name,
-      Map<String, Builder> members, Class cls, this.constants, this.toStringMap,
-      this.intType, this.stringType, LibraryBuilder parent, int charOffset)
+  KernelEnumBuilder.internal(
+      List<MetadataBuilder> metadata,
+      String name,
+      Map<String, Builder> members,
+      Class cls,
+      this.constants,
+      this.toStringMap,
+      this.intType,
+      this.stringType,
+      LibraryBuilder parent,
+      int charOffset)
       : super(metadata, 0, name, null, null, null, members, parent, null,
-          charOffset, cls);
+            charOffset, cls);
 
   factory KernelEnumBuilder(List<MetadataBuilder> metadata, String name,
       List<String> constants, KernelLibraryBuilder parent, int charOffset) {
@@ -81,11 +86,10 @@ class KernelEnumBuilder extends SourceClassBuilder
         new KernelNamedTypeBuilder("String", null, charOffset, parent.fileUri));
     Class cls = new Class(name: name);
     Map<String, Builder> members = <String, Builder>{};
-    KernelNamedTypeBuilder selfType = new KernelNamedTypeBuilder(
-        name, null, charOffset, parent.fileUri);
-    KernelTypeBuilder listType = parent.addType(
-        new KernelNamedTypeBuilder(
-            "List", <KernelTypeBuilder>[selfType], charOffset, parent.fileUri));
+    KernelNamedTypeBuilder selfType =
+        new KernelNamedTypeBuilder(name, null, charOffset, parent.fileUri);
+    KernelTypeBuilder listType = parent.addType(new KernelNamedTypeBuilder(
+        "List", <KernelTypeBuilder>[selfType], charOffset, parent.fileUri));
 
     /// From Dart Programming Language Specification 4th Edition/December 2015:
     ///     metadata class E {
@@ -97,21 +101,37 @@ class KernelEnumBuilder extends SourceClassBuilder
     ///       static const List<E> values = const <E>[id0, ..., idn-1];
     ///       String toString() => { 0: ‘E.id0’, . . ., n-1: ‘E.idn-1’}[index]
     ///     }
-    members["index"] = new KernelFieldBuilder(null, intType, "index", finalMask,
-        parent, charOffset);
+    members["index"] = new KernelFieldBuilder(
+        null, intType, "index", finalMask, parent, charOffset);
     KernelConstructorBuilder constructorBuilder = new KernelConstructorBuilder(
-        null, constMask, null, "", null, <FormalParameterBuilder>[
-            new KernelFormalParameterBuilder(null, 0, intType, "index", true,
-                parent, charOffset)], parent, charOffset);
+        null,
+        constMask,
+        null,
+        "",
+        null,
+        <FormalParameterBuilder>[
+          new KernelFormalParameterBuilder(
+              null, 0, intType, "index", true, parent, charOffset)
+        ],
+        parent,
+        charOffset);
     members[""] = constructorBuilder;
     int index = 0;
     List<MapEntry> toStringEntries = <MapEntry>[];
-    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(null, listType,
-        "values", constMask | staticMask, parent, charOffset);
+    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(
+        null, listType, "values", constMask | staticMask, parent, charOffset);
     members["values"] = valuesBuilder;
-    KernelProcedureBuilder toStringBuilder = new KernelProcedureBuilder(null, 0,
-        stringType, "toString", null, null, AsyncMarker.Sync,
-        ProcedureKind.Method, parent, charOffset);
+    KernelProcedureBuilder toStringBuilder = new KernelProcedureBuilder(
+        null,
+        0,
+        stringType,
+        "toString",
+        null,
+        null,
+        AsyncMarker.Sync,
+        ProcedureKind.Method,
+        parent,
+        charOffset);
     members["toString"] = toStringBuilder;
     String className = name;
     for (String name in constants) {
@@ -119,18 +139,30 @@ class KernelEnumBuilder extends SourceClassBuilder
         inputError(null, null, "Duplicated name: $name");
         continue;
       }
-      KernelFieldBuilder fieldBuilder =
-          new KernelFieldBuilder(null, selfType, name, constMask | staticMask,
-              parent, charOffset); // TODO(ahe): Get charOffset from [name].
+      KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
+          null,
+          selfType,
+          name,
+          constMask | staticMask,
+          parent,
+          charOffset); // TODO(ahe): Get charOffset from [name].
       members[name] = fieldBuilder;
       toStringEntries.add(new MapEntry(
-              new IntLiteral(index), new StringLiteral("$className.$name")));
+          new IntLiteral(index), new StringLiteral("$className.$name")));
       index++;
     }
     MapLiteral toStringMap = new MapLiteral(toStringEntries, isConst: true);
-    KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(metadata,
-        name, members, cls, constants, toStringMap, intType, stringType,
-        parent, charOffset);
+    KernelEnumBuilder enumBuilder = new KernelEnumBuilder.internal(
+        metadata,
+        name,
+        members,
+        cls,
+        constants,
+        toStringMap,
+        intType,
+        stringType,
+        parent,
+        charOffset);
     // TODO(sigmund): dynamic should be `covariant MemberBuilder`.
     members.forEach((String name, dynamic b) {
       MemberBuilder builder = b;
@@ -156,10 +188,12 @@ class KernelEnumBuilder extends SourceClassBuilder
     KernelFieldBuilder indexFieldBuilder = members["index"];
     Field indexField = indexFieldBuilder.build(libraryBuilder.library);
     KernelProcedureBuilder toStringBuilder = members["toString"];
-    toStringBuilder.body = new ReturnStatement(
-        new MethodInvocation(toStringMap, new Name("[]"),
-            new Arguments(<Expression>[
-                    new DirectPropertyGet(new ThisExpression(), indexField)])));
+    toStringBuilder.body = new ReturnStatement(new MethodInvocation(
+        toStringMap,
+        new Name("[]"),
+        new Arguments(<Expression>[
+          new DirectPropertyGet(new ThisExpression(), indexField)
+        ])));
     List<Expression> values = <Expression>[];
     for (String name in constants) {
       KernelFieldBuilder builder = members[name];
@@ -171,9 +205,11 @@ class KernelEnumBuilder extends SourceClassBuilder
         new ListLiteral(values, typeArgument: cls.rawType, isConst: true);
     KernelConstructorBuilder constructorBuilder = members[""];
     Constructor constructor = constructorBuilder.build(libraryBuilder.library);
-    constructor.initializers.insert(0, new FieldInitializer(indexField,
+    constructor.initializers.insert(
+        0,
+        new FieldInitializer(indexField,
             new VariableGet(constructor.function.positionalParameters.single))
-        ..parent = constructor);
+          ..parent = constructor);
     int index = 0;
     for (String constant in constants) {
       KernelFieldBuilder field = members[constant];

@@ -4,30 +4,30 @@
 
 library fasta.kernel_function_type_alias_builder;
 
-import 'package:kernel/ast.dart' show
-    DartType,
-    DynamicType,
-    FunctionType,
-    InvalidType,
-    NamedType,
-    TypeParameter;
+import 'package:kernel/ast.dart'
+    show
+        DartType,
+        DynamicType,
+        FunctionType,
+        InvalidType,
+        NamedType,
+        TypeParameter;
 
-import 'package:kernel/type_algebra.dart' show
-    substitute;
+import 'package:kernel/type_algebra.dart' show substitute;
 
-import '../messages.dart' show
-    warning;
+import '../messages.dart' show warning;
 
-import 'kernel_builder.dart' show
-    FormalParameterBuilder,
-    FunctionTypeAliasBuilder,
-    KernelFormalParameterBuilder,
-    KernelTypeBuilder,
-    KernelTypeVariableBuilder,
-    LibraryBuilder,
-    MetadataBuilder,
-    TypeVariableBuilder,
-    computeDefaultTypeArguments;
+import 'kernel_builder.dart'
+    show
+        FormalParameterBuilder,
+        FunctionTypeAliasBuilder,
+        KernelFormalParameterBuilder,
+        KernelTypeBuilder,
+        KernelTypeVariableBuilder,
+        LibraryBuilder,
+        MetadataBuilder,
+        TypeVariableBuilder,
+        computeDefaultTypeArguments;
 
 class KernelFunctionTypeAliasBuilder
     extends FunctionTypeAliasBuilder<KernelTypeBuilder, DartType> {
@@ -35,21 +35,24 @@ class KernelFunctionTypeAliasBuilder
 
   DartType type;
 
-  KernelFunctionTypeAliasBuilder(List<MetadataBuilder> metadata,
-      KernelTypeBuilder returnType, String name,
+  KernelFunctionTypeAliasBuilder(
+      List<MetadataBuilder> metadata,
+      KernelTypeBuilder returnType,
+      String name,
       List<TypeVariableBuilder> typeVariables,
-      List<FormalParameterBuilder> formals, LibraryBuilder parent,
+      List<FormalParameterBuilder> formals,
+      LibraryBuilder parent,
       int charOffset)
       : super(metadata, returnType, name, typeVariables, formals, parent,
-          charOffset);
+            charOffset);
 
   DartType buildThisType() {
     if (thisType != null) {
       if (thisType == const InvalidType()) {
         thisType = const DynamicType();
         // TODO(ahe): Build an error somehow.
-        warning(parent.uri, -1,
-            "The typedef '$name' has a reference to itself.");
+        warning(
+            parent.uri, -1, "The typedef '$name' has a reference to itself.");
       }
       return thisType;
     }
