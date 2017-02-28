@@ -70,17 +70,17 @@ var b = a.x;
 
 
 To ensure stability with respect to cycles and different orderings, current
-strong mode does inference in two passes: first on the static variables, and
-secondly on fields (method override based inference is mostly irrelevant for
-this discussion). This ensures that inference is stable, but it has several
-unfortunate consequences, most notably the following.  Inference may result in
-the same variable being implicitly seen at two different types. In the example
-above, if all declarations are in the same library, then b will be inferred
-before x has been inferred, and so b will be inferred to have type dynamic.  The
-same declaration in a separate library will see the type of a.x after inference,
-and hence will be inferred to have type `int`.  This violates one of the
-principles above, and also means that changes to the library structure that
-introduce a cycle may change inference results.
+strong mode does inference in two passes: firstly on the static and top-level
+variables, and secondly on fields (method override based inference is mostly
+irrelevant for this discussion). This ensures that inference is stable, but it
+has several unfortunate consequences, most notably the following.  Inference may
+result in the same variable being implicitly seen at two different types. In the
+example above, if all declarations are in the same library, then b will be
+inferred before x has been inferred, and so b will be inferred to have type
+dynamic.  The same declaration in a separate library will see the type of a.x
+after inference, and hence will be inferred to have type `int`.  This violates
+one of the principles above, and also means that changes to the library
+structure that introduce a cycle may change inference results.
 
 
 ## Method inference
@@ -116,11 +116,11 @@ If the return type is left off a setter, the return type is inferred to be
 ## Static variable and field inference
 
 
-A “candidate” for inference is any of the following:
+A “candidate” for inference is one of any of the following kinds of definitions,
+for which the type annotation has been omitted:
 * A top level variable definition
 * A static class level variable definition
-* An instance variable, getter or setter definition with the type annotation
-  omitted.
+* An instance variable, getter or setter definition.
 
 
 The *inference dependencies of a candidate* which is inferred via override
@@ -168,10 +168,10 @@ initializer.
 #### Instance field, getter, and setter inference
 
 
-The inferred type of a getter, setter, or field is as follows.  Note that I say
+The inferred type of a getter, setter, or field is as follows.  Note that we say
 that a setter overrides a getter if there is a getter of the same name in some
-superclass or interface, and similarly for setters overriding getters, fields,
-etc.
+superclass or interface (explicitly declared or induced by an instance variable
+declaration), and similarly for setters overriding getters, fields, etc.
 
 
 A getter, setter or field which overrides/implements only a getter is inferred
@@ -227,7 +227,7 @@ result.  Implementations are free to treat this as a result of dynamic after
 emitting the error for the purposes of emitting subsequent error messages, but
 the behavior of programs for which initializer inference fails is unspecified.
 
-#### Immediately evident expressions
+#### Expressions with immediately-evident type
 
 We define a set of expressions with immediately-evident types (called
 immediately-evident expressions, abbreviated IE) as follows.  Immediately
@@ -237,9 +237,24 @@ expression, we also define the set of variable dependencies upon which its
 inference relies.
 
 
-* null, boolean, numeric, string, and symbol literals have their corresponding
-   type.
+* null, boolean, numeric, string, type, and symbol literals have their
+   corresponding type.
    * No inference dependencies
+* An `await` of an expression has type `T` if the expression is an immediately
+evident expression with type `T` or `Future<T>`.
+   * Inference dependencies are the inference dependencies of the awaited
+     expression
+* A `throw` expression has type `bottom`.
+   * No inference dependencies
+* A parenthesized expression has the inferred type of the sub-expression
+   * Inference dependencies are the dependencies of the sub-expression
+* A conditional expression where both values are immediately evident expressions
+  has type `T` where `T` is the least upper bound of the inferred type of the
+  two returned sub-expressions.
+  * Inference dependencies are the union of the inference dependencies of the
+  two returned sub-expressions.
+* Logical boolean expressions have inferred type `boolean`.
+  * No inference dependencies
 * A list literal or a map literal with explicit type arguments has the type
    `List<T>` or `Map<K, V>` respectively, where `<T>` or `<K, V>` are the
    provided type arguments.
@@ -254,7 +269,7 @@ inference relies.
   `List<dynamic>`.
    * No inference dependencies.
 * A const empty list literal with no type arguments has the type
-  `List<bottom>`.
+  `List<Null>`.
    * No inference dependencies.
 * A map literal with no type arguments, and for which all of the keys and
    values are IEs, has the type `Map<K, V>` where `K` is the least upper bound of
@@ -266,29 +281,39 @@ inference relies.
 * An non-const empty map literal with no type arguments has the type
   `Map<dynamic, dynamic>`.
    * No inference dependencies.
-* A const empty map literal with no type arguments has the type `Map<bottom,
-  bottom>`.
+* A const empty map literal with no type arguments has the type `Map<Null,
+  Null>`.
    * No inference dependencies.
-* A type literal has type `Type`
-   * No inference dependencies
 * A function literal with an expression body for which all parameter types are
    type annotated and for which the return expression is an IE and has an
    inferred type, has the corresponding function type.
    * If the return expression has no inferred type it is an error.
    * The inference dependencies are the inference dependencies of the return
-      expression.
+   expression.
+   * If the function is marked `async`, then the return type of the function is
+     inferred as `Future<flatten<T>>` where `T` is the inferred type of the
+     return expression and flatten is as described in the spec.
+* An instance creation expression with no omitted type arguments has the
+   obvious type.
+   * No inference dependencies
 * An instance creation expression with no omitted type arguments has the
    obvious type.
    * No inference dependencies
 * An `as` expression has the cast to type
    * No inference dependencies
+* An `is` expression has type boolean
+   * No inference dependencies
 * A simple or qualified identifier referring to a top level function, static
    variable, field, getter; or a static class variable, static getter or method;
-   has the inferred type of the identifier.
-   * If the identifier has no inferred type it is an error.
+   or an instance method; has the inferred type of the identifier.
+   * Otherwise, if the identifier has no inferred or annotated type then it is
+   an error.
+   * Note: specifically, references to instance fields and instance getters are
+     disallowed here.
    * The inference dependency of the identifier is itself if the identifier is
       a candidate for inference.  Otherwise there are no inference dependencies.
-* A simple identifier denoting a formal parameter has the type with which it was
+* A simple identifier denoting a formal parameter which has an annotated type is
+  an immediately evident expression and has the type with which it was
   annotated.
    * No inference dependencies.
 * A function (or function expression) invocation with no omitted generic
@@ -309,3 +334,5 @@ inference relies.
    * The inference dependencies are the inference dependencies of the cascade
       target.
 
+Note: Assignment expressions are not immediately evident expressions, and
+if-null expressions are not immediately evident expressions.
