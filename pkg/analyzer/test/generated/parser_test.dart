@@ -3866,8 +3866,7 @@ void main() {
     Expression expression = parser.parseUnaryExpression();
     expectNotNullIfNoErrors(expression);
     listener.assertErrorsWithCodes([ParserErrorCode.MISSING_IDENTIFIER]);
-    expect(expression, new isInstanceOf<SimpleIdentifier>());
-    SimpleIdentifier identifier = expression;
+    var identifier = expression as SimpleIdentifier;
     expect(identifier.isSynthetic, isTrue);
   }
 
@@ -4023,8 +4022,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAdditiveExpression('x + y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, isNotNull);
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.PLUS);
@@ -4035,8 +4033,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAdditiveExpression('super + y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, new isInstanceOf<SuperExpression>());
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.PLUS);
@@ -4047,8 +4044,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('(x)(y).z', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     FunctionExpressionInvocation invocation =
         propertyAccess.target as FunctionExpressionInvocation;
     expect(invocation.function, isNotNull);
@@ -4066,8 +4062,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('(x)/*<F>*/(y).z', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     FunctionExpressionInvocation invocation =
         propertyAccess.target as FunctionExpressionInvocation;
     expect(invocation.function, isNotNull);
@@ -4083,8 +4078,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('(x)<F>(y).z', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     FunctionExpressionInvocation invocation =
         propertyAccess.target as FunctionExpressionInvocation;
     expect(invocation.function, isNotNull);
@@ -4100,8 +4094,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('(x).y', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     expect(propertyAccess.target, isNotNull);
     expect(propertyAccess.operator.type, TokenType.PERIOD);
     expect(propertyAccess.propertyName, isNotNull);
@@ -4111,8 +4104,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('(x)[y]', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<IndexExpression>());
-    IndexExpression indexExpression = expression;
+    var indexExpression = expression as IndexExpression;
     expect(indexExpression.target, isNotNull);
     expect(indexExpression.leftBracket, isNotNull);
     expect(indexExpression.index, isNotNull);
@@ -4123,8 +4115,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('(x)?.y', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     expect(propertyAccess.target, isNotNull);
     expect(propertyAccess.operator.type, TokenType.QUESTION_PERIOD);
     expect(propertyAccess.propertyName, isNotNull);
@@ -4134,8 +4125,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('x', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleIdentifier>());
-    SimpleIdentifier identifier = expression;
+    var identifier = expression as SimpleIdentifier;
     expect(identifier, isNotNull);
   }
 
@@ -4143,8 +4133,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('x(y).z', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     MethodInvocation invocation = propertyAccess.target as MethodInvocation;
     expect(invocation.methodName.name, "x");
     expect(invocation.typeArguments, isNull);
@@ -4161,8 +4150,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('x/*<E>*/(y).z', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     MethodInvocation invocation = propertyAccess.target as MethodInvocation;
     expect(invocation.methodName.name, "x");
     expect(invocation.typeArguments, isNotNull);
@@ -4177,8 +4165,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('x<E>(y).z', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     MethodInvocation invocation = propertyAccess.target as MethodInvocation;
     expect(invocation.methodName.name, "x");
     expect(invocation.typeArguments, isNotNull);
@@ -4193,8 +4180,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('x.y', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     expect(propertyAccess.target, isNotNull);
     expect(propertyAccess.operator, isNotNull);
     expect(propertyAccess.operator.type, TokenType.PERIOD);
@@ -4205,8 +4191,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('x[y]', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<IndexExpression>());
-    IndexExpression indexExpression = expression;
+    var indexExpression = expression as IndexExpression;
     expect(indexExpression.target, isNotNull);
     expect(indexExpression.leftBracket, isNotNull);
     expect(indexExpression.index, isNotNull);
@@ -4217,8 +4202,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('x?.y', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     expect(propertyAccess.target, isNotNull);
     expect(propertyAccess.operator.type, TokenType.QUESTION_PERIOD);
     expect(propertyAccess.propertyName, isNotNull);
@@ -4228,8 +4212,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('super.y', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     EngineTestCase.assertInstanceOf((obj) => obj is SuperExpression,
         SuperExpression, propertyAccess.target);
     expect(propertyAccess.operator, isNotNull);
@@ -4240,8 +4223,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('super[y]', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<IndexExpression>());
-    IndexExpression indexExpression = expression;
+    var indexExpression = expression as IndexExpression;
     expect(indexExpression.target, new isInstanceOf<SuperExpression>());
     expect(indexExpression.leftBracket, isNotNull);
     expect(indexExpression.index, isNotNull);
@@ -4252,8 +4234,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableSelector('.x', null, true);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     expect(propertyAccess.operator.type, TokenType.PERIOD);
     expect(propertyAccess.propertyName, isNotNull);
   }
@@ -4262,8 +4243,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableSelector('[x]', null, true);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<IndexExpression>());
-    IndexExpression indexExpression = expression;
+    var indexExpression = expression as IndexExpression;
     expect(indexExpression.leftBracket, isNotNull);
     expect(indexExpression.index, isNotNull);
     expect(indexExpression.rightBracket, isNotNull);
@@ -4274,8 +4254,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseAssignableSelector(';', astFactory.simpleIdentifier(null), true);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleIdentifier>());
-    SimpleIdentifier identifier = expression;
+    var identifier = expression as SimpleIdentifier;
     expect(identifier, isNotNull);
   }
 
@@ -4283,8 +4262,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableSelector('?.x', null, true);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     expect(propertyAccess.operator.type, TokenType.QUESTION_PERIOD);
     expect(propertyAccess.propertyName, isNotNull);
   }
@@ -4301,8 +4279,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseBitwiseAndExpression('x & y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, isNotNull);
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.AMPERSAND);
@@ -4313,8 +4290,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseBitwiseAndExpression('super & y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, new isInstanceOf<SuperExpression>());
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.AMPERSAND);
@@ -4325,8 +4301,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseBitwiseOrExpression('x | y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, isNotNull);
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.BAR);
@@ -4337,8 +4312,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseBitwiseOrExpression('super | y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, new isInstanceOf<SuperExpression>());
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.BAR);
@@ -4349,8 +4323,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseBitwiseXorExpression('x ^ y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, isNotNull);
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.CARET);
@@ -4361,8 +4334,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseBitwiseXorExpression('super ^ y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, new isInstanceOf<SuperExpression>());
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.CARET);
@@ -4373,8 +4345,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..[i]');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<IndexExpression>());
-    IndexExpression section = expression;
+    var section = expression as IndexExpression;
     expect(section.target, isNull);
     expect(section.leftBracket, isNotNull);
     expect(section.index, isNotNull);
@@ -4385,8 +4356,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..[i](b)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpressionInvocation>());
-    FunctionExpressionInvocation section = expression;
+    var section = expression as FunctionExpressionInvocation;
     expect(section.function, new isInstanceOf<IndexExpression>());
     expect(section.typeArguments, isNull);
     expect(section.argumentList, isNotNull);
@@ -4397,8 +4367,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..[i]/*<E>*/(b)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpressionInvocation>());
-    FunctionExpressionInvocation section = expression;
+    var section = expression as FunctionExpressionInvocation;
     expect(section.function, new isInstanceOf<IndexExpression>());
     expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
@@ -4408,8 +4377,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..[i]<E>(b)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpressionInvocation>());
-    FunctionExpressionInvocation section = expression;
+    var section = expression as FunctionExpressionInvocation;
     expect(section.function, new isInstanceOf<IndexExpression>());
     expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
@@ -4419,8 +4387,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a(b).c(d)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation section = expression;
+    var section = expression as MethodInvocation;
     expect(section.target, new isInstanceOf<MethodInvocation>());
     expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
@@ -4434,8 +4401,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a/*<E>*/(b).c/*<F>*/(d)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation section = expression;
+    var section = expression as MethodInvocation;
     expect(section.target, new isInstanceOf<MethodInvocation>());
     expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
@@ -4448,8 +4414,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a<E>(b).c<F>(d)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation section = expression;
+    var section = expression as MethodInvocation;
     expect(section.target, new isInstanceOf<MethodInvocation>());
     expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
@@ -4462,8 +4427,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess section = expression;
+    var section = expression as PropertyAccess;
     expect(section.target, isNull);
     expect(section.operator, isNotNull);
     expect(section.propertyName, isNotNull);
@@ -4473,8 +4437,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a = 3');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AssignmentExpression>());
-    AssignmentExpression section = expression;
+    var section = expression as AssignmentExpression;
     expect(section.leftHandSide, isNotNull);
     expect(section.operator, isNotNull);
     Expression rhs = section.rightHandSide;
@@ -4485,8 +4448,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a = 3..m()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AssignmentExpression>());
-    AssignmentExpression section = expression;
+    var section = expression as AssignmentExpression;
     expect(section.leftHandSide, isNotNull);
     expect(section.operator, isNotNull);
     Expression rhs = section.rightHandSide;
@@ -4499,8 +4461,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a = 3..m/*<E>*/()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AssignmentExpression>());
-    AssignmentExpression section = expression;
+    var section = expression as AssignmentExpression;
     expect(section.leftHandSide, isNotNull);
     expect(section.operator, isNotNull);
     Expression rhs = section.rightHandSide;
@@ -4512,8 +4473,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a = 3..m<E>()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AssignmentExpression>());
-    AssignmentExpression section = expression;
+    var section = expression as AssignmentExpression;
     expect(section.leftHandSide, isNotNull);
     expect(section.operator, isNotNull);
     Expression rhs = section.rightHandSide;
@@ -4525,8 +4485,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..as');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess section = expression;
+    var section = expression as PropertyAccess;
     expect(section.target, isNull);
     expect(section.operator, isNotNull);
     expect(section.propertyName, isNotNull);
@@ -4536,8 +4495,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a(b)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation section = expression;
+    var section = expression as MethodInvocation;
     expect(section.target, isNull);
     expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
@@ -4551,8 +4509,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a/*<E>*/(b)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation section = expression;
+    var section = expression as MethodInvocation;
     expect(section.target, isNull);
     expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
@@ -4565,8 +4522,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a<E>(b)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation section = expression;
+    var section = expression as MethodInvocation;
     expect(section.target, isNull);
     expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
@@ -4579,8 +4535,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a(b)(c)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpressionInvocation>());
-    FunctionExpressionInvocation section = expression;
+    var section = expression as FunctionExpressionInvocation;
     expect(section.function, new isInstanceOf<MethodInvocation>());
     expect(section.typeArguments, isNull);
     expect(section.argumentList, isNotNull);
@@ -4592,8 +4547,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a/*<E>*/(b)/*<F>*/(c)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpressionInvocation>());
-    FunctionExpressionInvocation section = expression;
+    var section = expression as FunctionExpressionInvocation;
     expect(section.function, new isInstanceOf<MethodInvocation>());
     expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
@@ -4604,8 +4558,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a<E>(b)<F>(c)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpressionInvocation>());
-    FunctionExpressionInvocation section = expression;
+    var section = expression as FunctionExpressionInvocation;
     expect(section.function, new isInstanceOf<MethodInvocation>());
     expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
@@ -4616,8 +4569,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a(b)(c).d(e)(f)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpressionInvocation>());
-    FunctionExpressionInvocation section = expression;
+    var section = expression as FunctionExpressionInvocation;
     expect(section.function, new isInstanceOf<MethodInvocation>());
     expect(section.typeArguments, isNull);
     expect(section.argumentList, isNotNull);
@@ -4630,8 +4582,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseCascadeSection('..a/*<E>*/(b)/*<F>*/(c).d/*<G>*/(e)/*<H>*/(f)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpressionInvocation>());
-    FunctionExpressionInvocation section = expression;
+    var section = expression as FunctionExpressionInvocation;
     expect(section.function, new isInstanceOf<MethodInvocation>());
     expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
@@ -4643,8 +4594,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseCascadeSection('..a<E>(b)<F>(c).d<G>(e)<H>(f)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpressionInvocation>());
-    FunctionExpressionInvocation section = expression;
+    var section = expression as FunctionExpressionInvocation;
     expect(section.function, new isInstanceOf<MethodInvocation>());
     expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
@@ -4655,8 +4605,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a(b).c');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess section = expression;
+    var section = expression as PropertyAccess;
     expect(section.target, isNotNull);
     expect(section.operator, isNotNull);
     expect(section.propertyName, isNotNull);
@@ -4667,8 +4616,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a/*<E>*/(b).c');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess section = expression;
+    var section = expression as PropertyAccess;
     expect(section.target, isNotNull);
     expect(section.operator, isNotNull);
     expect(section.propertyName, isNotNull);
@@ -4678,8 +4626,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a<E>(b).c');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess section = expression;
+    var section = expression as PropertyAccess;
     expect(section.target, isNotNull);
     expect(section.operator, isNotNull);
     expect(section.propertyName, isNotNull);
@@ -4715,8 +4662,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseConstExpression('const <A> []');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<ListLiteral>());
-    ListLiteral literal = expression;
+    var literal = expression as ListLiteral;
     expect(literal.constKeyword, isNotNull);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
@@ -4729,8 +4675,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseConstExpression('const /*<A>*/ []');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<ListLiteral>());
-    ListLiteral literal = expression;
+    var literal = expression as ListLiteral;
     expect(literal.constKeyword, isNotNull);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
@@ -4742,8 +4687,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseConstExpression('const []');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<ListLiteral>());
-    ListLiteral literal = expression;
+    var literal = expression as ListLiteral;
     expect(literal.constKeyword, isNotNull);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
@@ -4755,8 +4699,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseConstExpression('const <A, B> {}');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MapLiteral>());
-    MapLiteral literal = expression;
+    var literal = expression as MapLiteral;
     expect(literal.leftBracket, isNotNull);
     expect(literal.entries, hasLength(0));
     expect(literal.rightBracket, isNotNull);
@@ -4768,8 +4711,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseConstExpression('const /*<A, B>*/ {}');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MapLiteral>());
-    MapLiteral literal = expression;
+    var literal = expression as MapLiteral;
     expect(literal.leftBracket, isNotNull);
     expect(literal.entries, hasLength(0));
     expect(literal.rightBracket, isNotNull);
@@ -4780,8 +4722,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseConstExpression('const {}');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MapLiteral>());
-    MapLiteral literal = expression;
+    var literal = expression as MapLiteral;
     expect(literal.leftBracket, isNotNull);
     expect(literal.entries, hasLength(0));
     expect(literal.rightBracket, isNotNull);
@@ -4811,8 +4752,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   void test_parseExpression_assign() {
     // TODO(brianwilkerson) Implement more tests for this method.
     Expression expression = parseExpression('x = y');
-    expect(expression, new isInstanceOf<AssignmentExpression>());
-    AssignmentExpression assignmentExpression = expression;
+    var assignmentExpression = expression as AssignmentExpression;
     expect(assignmentExpression.leftHandSide, isNotNull);
     expect(assignmentExpression.operator, isNotNull);
     expect(assignmentExpression.operator.type, TokenType.EQ);
@@ -4822,8 +4762,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   void test_parseExpression_assign_compound() {
     enableLazyAssignmentOperators = true;
     Expression expression = parseExpression('x ||= y');
-    expect(expression, new isInstanceOf<AssignmentExpression>());
-    AssignmentExpression assignmentExpression = expression;
+    var assignmentExpression = expression as AssignmentExpression;
     expect(assignmentExpression.leftHandSide, isNotNull);
     expect(assignmentExpression.operator, isNotNull);
     expect(assignmentExpression.operator.type, TokenType.BAR_BAR_EQ);
@@ -4832,8 +4771,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseExpression_comparison() {
     Expression expression = parseExpression('--a.b == c');
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, isNotNull);
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.EQ_EQ);
@@ -4842,8 +4780,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseExpression_function_async() {
     Expression expression = parseExpression('() async {}');
-    expect(expression, new isInstanceOf<FunctionExpression>());
-    FunctionExpression functionExpression = expression;
+    var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
     expect(functionExpression.body.isAsynchronous, isTrue);
     expect(functionExpression.body.isGenerator, isFalse);
@@ -4852,8 +4789,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseExpression_function_asyncStar() {
     Expression expression = parseExpression('() async* {}');
-    expect(expression, new isInstanceOf<FunctionExpression>());
-    FunctionExpression functionExpression = expression;
+    var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
     expect(functionExpression.body.isAsynchronous, isTrue);
     expect(functionExpression.body.isGenerator, isTrue);
@@ -4862,8 +4798,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseExpression_function_sync() {
     Expression expression = parseExpression('() {}');
-    expect(expression, new isInstanceOf<FunctionExpression>());
-    FunctionExpression functionExpression = expression;
+    var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
     expect(functionExpression.body.isAsynchronous, isFalse);
     expect(functionExpression.body.isGenerator, isFalse);
@@ -4872,8 +4807,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseExpression_function_syncStar() {
     Expression expression = parseExpression('() sync* {}');
-    expect(expression, new isInstanceOf<FunctionExpression>());
-    FunctionExpression functionExpression = expression;
+    var functionExpression = expression as FunctionExpression;
     expect(functionExpression.body, isNotNull);
     expect(functionExpression.body.isAsynchronous, isFalse);
     expect(functionExpression.body.isGenerator, isTrue);
@@ -4882,8 +4816,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseExpression_invokeFunctionExpression() {
     Expression expression = parseExpression('(a) {return a + a;} (3)');
-    expect(expression, new isInstanceOf<FunctionExpressionInvocation>());
-    FunctionExpressionInvocation invocation = expression;
+    var invocation = expression as FunctionExpressionInvocation;
     expect(invocation.function, new isInstanceOf<FunctionExpression>());
     FunctionExpression functionExpression =
         invocation.function as FunctionExpression;
@@ -4897,8 +4830,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseExpression_nonAwait() {
     Expression expression = parseExpression('await()');
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation invocation = expression;
+    var invocation = expression as MethodInvocation;
     expect(invocation.methodName.name, 'await');
     expect(invocation.typeArguments, isNull);
     expect(invocation.argumentList, isNotNull);
@@ -4906,8 +4838,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseExpression_superMethodInvocation() {
     Expression expression = parseExpression('super.m()');
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation invocation = expression;
+    var invocation = expression as MethodInvocation;
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
     expect(invocation.typeArguments, isNull);
@@ -4917,8 +4848,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   void test_parseExpression_superMethodInvocation_typeArgumentComments() {
     enableGenericMethodComments = true;
     Expression expression = parseExpression('super.m/*<E>*/()');
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation invocation = expression;
+    var invocation = expression as MethodInvocation;
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
     expect(invocation.typeArguments, isNotNull);
@@ -4927,8 +4857,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseExpression_superMethodInvocation_typeArguments() {
     Expression expression = parseExpression('super.m<E>()');
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation invocation = expression;
+    var invocation = expression as MethodInvocation;
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
     expect(invocation.typeArguments, isNotNull);
@@ -4954,8 +4883,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseExpressionWithoutCascade('x = y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AssignmentExpression>());
-    AssignmentExpression assignmentExpression = expression;
+    var assignmentExpression = expression as AssignmentExpression;
     expect(assignmentExpression.leftHandSide, isNotNull);
     expect(assignmentExpression.operator, isNotNull);
     expect(assignmentExpression.operator.type, TokenType.EQ);
@@ -4966,8 +4894,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseExpressionWithoutCascade('--a.b == c');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, isNotNull);
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.EQ_EQ);
@@ -4978,8 +4905,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseExpressionWithoutCascade('super.m()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation invocation = expression;
+    var invocation = expression as MethodInvocation;
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
     expect(invocation.typeArguments, isNull);
@@ -4992,8 +4918,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseExpressionWithoutCascade('super.m/*<E>*/()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation invocation = expression;
+    var invocation = expression as MethodInvocation;
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
     expect(invocation.typeArguments, isNotNull);
@@ -5005,8 +4930,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseExpressionWithoutCascade('super.m<E>()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation invocation = expression;
+    var invocation = expression as MethodInvocation;
     expect(invocation.target, isNotNull);
     expect(invocation.methodName, isNotNull);
     expect(invocation.typeArguments, isNotNull);
@@ -5353,8 +5277,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     TypedLiteral literal = parseListOrMapLiteral(null, '[1]');
     expect(literal, isNotNull);
     assertNoErrors();
-    expect(literal, new isInstanceOf<ListLiteral>());
-    ListLiteral listLiteral = literal;
+    var listLiteral = literal as ListLiteral;
     expect(listLiteral.constKeyword, isNull);
     expect(listLiteral.typeArguments, isNull);
     expect(listLiteral.leftBracket, isNotNull);
@@ -5366,8 +5289,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     TypedLiteral literal = parseListOrMapLiteral(null, '<int> [1]');
     expect(literal, isNotNull);
     assertNoErrors();
-    expect(literal, new isInstanceOf<ListLiteral>());
-    ListLiteral listLiteral = literal;
+    var listLiteral = literal as ListLiteral;
     expect(listLiteral.constKeyword, isNull);
     expect(listLiteral.typeArguments, isNotNull);
     expect(listLiteral.leftBracket, isNotNull);
@@ -5379,8 +5301,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     TypedLiteral literal = parseListOrMapLiteral(null, "{'1' : 1}");
     expect(literal, isNotNull);
     assertNoErrors();
-    expect(literal, new isInstanceOf<MapLiteral>());
-    MapLiteral mapLiteral = literal;
+    var mapLiteral = literal as MapLiteral;
     expect(mapLiteral.constKeyword, isNull);
     expect(mapLiteral.typeArguments, isNull);
     expect(mapLiteral.leftBracket, isNotNull);
@@ -5393,8 +5314,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseListOrMapLiteral(null, "<String, int> {'1' : 1}");
     expect(literal, isNotNull);
     assertNoErrors();
-    expect(literal, new isInstanceOf<MapLiteral>());
-    MapLiteral mapLiteral = literal;
+    var mapLiteral = literal as MapLiteral;
     expect(mapLiteral.constKeyword, isNull);
     expect(mapLiteral.typeArguments, isNotNull);
     expect(mapLiteral.leftBracket, isNotNull);
@@ -5406,8 +5326,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseLogicalAndExpression('x && y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, isNotNull);
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.AMPERSAND_AMPERSAND);
@@ -5418,8 +5337,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseLogicalOrExpression('x || y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, isNotNull);
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.BAR_BAR);
@@ -5487,8 +5405,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseMultiplicativeExpression('x * y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, isNotNull);
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.STAR);
@@ -5499,8 +5416,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseMultiplicativeExpression('super * y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, new isInstanceOf<SuperExpression>());
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.STAR);
@@ -5524,8 +5440,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePostfixExpression('i--');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PostfixExpression>());
-    PostfixExpression postfixExpression = expression;
+    var postfixExpression = expression as PostfixExpression;
     expect(postfixExpression.operand, isNotNull);
     expect(postfixExpression.operator, isNotNull);
     expect(postfixExpression.operator.type, TokenType.MINUS_MINUS);
@@ -5535,8 +5450,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePostfixExpression('i++');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PostfixExpression>());
-    PostfixExpression postfixExpression = expression;
+    var postfixExpression = expression as PostfixExpression;
     expect(postfixExpression.operand, isNotNull);
     expect(postfixExpression.operator, isNotNull);
     expect(postfixExpression.operator.type, TokenType.PLUS_PLUS);
@@ -5546,8 +5460,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePostfixExpression('a[0]');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<IndexExpression>());
-    IndexExpression indexExpression = expression;
+    var indexExpression = expression as IndexExpression;
     expect(indexExpression.target, isNotNull);
     expect(indexExpression.index, isNotNull);
   }
@@ -5556,8 +5469,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePostfixExpression('a.m()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation methodInvocation = expression;
+    var methodInvocation = expression as MethodInvocation;
     expect(methodInvocation.target, isNotNull);
     expect(methodInvocation.operator.type, TokenType.PERIOD);
     expect(methodInvocation.methodName, isNotNull);
@@ -5569,8 +5481,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePostfixExpression('a?.m()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation methodInvocation = expression;
+    var methodInvocation = expression as MethodInvocation;
     expect(methodInvocation.target, isNotNull);
     expect(methodInvocation.operator.type, TokenType.QUESTION_PERIOD);
     expect(methodInvocation.methodName, isNotNull);
@@ -5584,8 +5495,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePostfixExpression('a?.m/*<E>*/()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation methodInvocation = expression;
+    var methodInvocation = expression as MethodInvocation;
     expect(methodInvocation.target, isNotNull);
     expect(methodInvocation.operator.type, TokenType.QUESTION_PERIOD);
     expect(methodInvocation.methodName, isNotNull);
@@ -5598,8 +5508,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePostfixExpression('a?.m<E>()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation methodInvocation = expression;
+    var methodInvocation = expression as MethodInvocation;
     expect(methodInvocation.target, isNotNull);
     expect(methodInvocation.operator.type, TokenType.QUESTION_PERIOD);
     expect(methodInvocation.methodName, isNotNull);
@@ -5613,8 +5522,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePostfixExpression('a.m/*<E>*/()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation methodInvocation = expression;
+    var methodInvocation = expression as MethodInvocation;
     expect(methodInvocation.target, isNotNull);
     expect(methodInvocation.operator.type, TokenType.PERIOD);
     expect(methodInvocation.methodName, isNotNull);
@@ -5626,8 +5534,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePostfixExpression('a.m<E>()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MethodInvocation>());
-    MethodInvocation methodInvocation = expression;
+    var methodInvocation = expression as MethodInvocation;
     expect(methodInvocation.target, isNotNull);
     expect(methodInvocation.operator.type, TokenType.PERIOD);
     expect(methodInvocation.methodName, isNotNull);
@@ -5639,8 +5546,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePostfixExpression('a.b');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PrefixedIdentifier>());
-    PrefixedIdentifier identifier = expression;
+    var identifier = expression as PrefixedIdentifier;
     expect(identifier.prefix, isNotNull);
     expect(identifier.identifier, isNotNull);
   }
@@ -5650,8 +5556,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Identifier identifier = parsePrefixedIdentifier(lexeme);
     expect(identifier, isNotNull);
     assertNoErrors();
-    expect(identifier, new isInstanceOf<SimpleIdentifier>());
-    SimpleIdentifier simpleIdentifier = identifier;
+    var simpleIdentifier = identifier as SimpleIdentifier;
     expect(simpleIdentifier.token, isNotNull);
     expect(simpleIdentifier.name, lexeme);
   }
@@ -5661,8 +5566,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Identifier identifier = parsePrefixedIdentifier(lexeme);
     expect(identifier, isNotNull);
     assertNoErrors();
-    expect(identifier, new isInstanceOf<PrefixedIdentifier>());
-    PrefixedIdentifier prefixedIdentifier = identifier;
+    var prefixedIdentifier = identifier as PrefixedIdentifier;
     expect(prefixedIdentifier.prefix.name, "foo");
     expect(prefixedIdentifier.period, isNotNull);
     expect(prefixedIdentifier.identifier.name, "bar");
@@ -5680,8 +5584,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression(doubleLiteral);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<DoubleLiteral>());
-    DoubleLiteral literal = expression;
+    var literal = expression as DoubleLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, double.parse(doubleLiteral));
   }
@@ -5690,8 +5593,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('false');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BooleanLiteral>());
-    BooleanLiteral literal = expression;
+    var literal = expression as BooleanLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, isFalse);
   }
@@ -5700,8 +5602,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('(int i) => i + 1');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpression>());
-    FunctionExpression functionExpression = expression;
+    var functionExpression = expression as FunctionExpression;
     expect(functionExpression.parameters, isNotNull);
     expect(functionExpression.body, isNotNull);
   }
@@ -5710,8 +5611,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('() => 42');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpression>());
-    FunctionExpression functionExpression = expression;
+    var functionExpression = expression as FunctionExpression;
     expect(functionExpression.parameters, isNotNull);
     expect(functionExpression.body, isNotNull);
   }
@@ -5721,9 +5621,8 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parsePrimaryExpression('<X, Y>(Map<X, Y> m, X x) => m[x]');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<FunctionExpression>());
-    FunctionExpression function = expression;
-    expect(function.typeParameters, isNotNull);
+    var functionExpression = expression as FunctionExpression;
+    expect(functionExpression.typeParameters, isNotNull);
   }
 
   void test_parsePrimaryExpression_hex() {
@@ -5731,8 +5630,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('0x$hexLiteral');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<IntegerLiteral>());
-    IntegerLiteral literal = expression;
+    var literal = expression as IntegerLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, int.parse(hexLiteral, radix: 16));
   }
@@ -5741,8 +5639,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('a');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleIdentifier>());
-    SimpleIdentifier identifier = expression;
+    var identifier = expression as SimpleIdentifier;
     expect(identifier, isNotNull);
   }
 
@@ -5751,8 +5648,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression(intLiteral);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<IntegerLiteral>());
-    IntegerLiteral literal = expression;
+    var literal = expression as IntegerLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, int.parse(intLiteral));
   }
@@ -5761,8 +5657,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('[ ]');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<ListLiteral>());
-    ListLiteral literal = expression;
+    var literal = expression as ListLiteral;
     expect(literal, isNotNull);
   }
 
@@ -5770,8 +5665,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('[]');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<ListLiteral>());
-    ListLiteral literal = expression;
+    var literal = expression as ListLiteral;
     expect(literal, isNotNull);
   }
 
@@ -5779,8 +5673,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('<A>[ ]');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<ListLiteral>());
-    ListLiteral literal = expression;
+    var literal = expression as ListLiteral;
     expect(literal.typeArguments, isNotNull);
     expect(literal.typeArguments.arguments, hasLength(1));
   }
@@ -5790,8 +5683,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('/*<A>*/[ ]');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<ListLiteral>());
-    ListLiteral literal = expression;
+    var literal = expression as ListLiteral;
     expect(literal.typeArguments, isNotNull);
     expect(literal.typeArguments.arguments, hasLength(1));
   }
@@ -5800,8 +5692,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('{}');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MapLiteral>());
-    MapLiteral literal = expression;
+    var literal = expression as MapLiteral;
     expect(literal.typeArguments, isNull);
     expect(literal, isNotNull);
   }
@@ -5810,8 +5701,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('<A, B>{}');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MapLiteral>());
-    MapLiteral literal = expression;
+    var literal = expression as MapLiteral;
     expect(literal.typeArguments, isNotNull);
     expect(literal.typeArguments.arguments, hasLength(2));
   }
@@ -5821,8 +5711,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('/*<A, B>*/{}');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<MapLiteral>());
-    MapLiteral literal = expression;
+    var literal = expression as MapLiteral;
     expect(literal.typeArguments, isNotNull);
     expect(literal.typeArguments.arguments, hasLength(2));
   }
@@ -5831,8 +5720,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('new A()');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<InstanceCreationExpression>());
-    InstanceCreationExpression creation = expression;
+    var creation = expression as InstanceCreationExpression;
     expect(creation, isNotNull);
   }
 
@@ -5849,8 +5737,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('(x)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<ParenthesizedExpression>());
-    ParenthesizedExpression parens = expression;
+    var parens = expression as ParenthesizedExpression;
     expect(parens, isNotNull);
   }
 
@@ -5858,8 +5745,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('"string"');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.isMultiline, isFalse);
     expect(literal.isRaw, isFalse);
     expect(literal.value, "string");
@@ -5869,8 +5755,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression("'''string'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.isMultiline, isTrue);
     expect(literal.isRaw, isFalse);
     expect(literal.value, "string");
@@ -5880,8 +5765,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression("r'string'");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.isMultiline, isFalse);
     expect(literal.isRaw, isTrue);
     expect(literal.value, "string");
@@ -5891,8 +5775,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('super.x');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<PropertyAccess>());
-    PropertyAccess propertyAccess = expression;
+    var propertyAccess = expression as PropertyAccess;
     expect(propertyAccess.target is SuperExpression, isTrue);
     expect(propertyAccess.operator, isNotNull);
     expect(propertyAccess.operator.type, TokenType.PERIOD);
@@ -5903,8 +5786,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('this');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<ThisExpression>());
-    ThisExpression thisExpression = expression;
+    var thisExpression = expression as ThisExpression;
     expect(thisExpression.thisKeyword, isNotNull);
   }
 
@@ -5912,8 +5794,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('true');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BooleanLiteral>());
-    BooleanLiteral literal = expression;
+    var literal = expression as BooleanLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, isTrue);
   }
@@ -5922,8 +5803,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseRelationalExpression('x as Function(int)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AsExpression>());
-    AsExpression asExpression = expression;
+    var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
     expect(asExpression.type, new isInstanceOf<GenericFunctionType>());
@@ -5934,8 +5814,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseRelationalExpression('x as String Function(int)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AsExpression>());
-    AsExpression asExpression = expression;
+    var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
     expect(asExpression.type, new isInstanceOf<GenericFunctionType>());
@@ -5945,8 +5824,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseRelationalExpression('x as C<D>');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AsExpression>());
-    AsExpression asExpression = expression;
+    var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
     expect(asExpression.type, new isInstanceOf<TypeName>());
@@ -5957,8 +5835,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseRelationalExpression('x as Y?)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AsExpression>());
-    AsExpression asExpression = expression;
+    var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
     expect(asExpression.type, new isInstanceOf<TypeName>());
@@ -5968,8 +5845,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseRelationalExpression('x as Y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AsExpression>());
-    AsExpression asExpression = expression;
+    var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
     expect(asExpression.type, new isInstanceOf<TypeName>());
@@ -5979,8 +5855,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseRelationalExpression('x as Function');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AsExpression>());
-    AsExpression asExpression = expression;
+    var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
     expect(asExpression.type, new isInstanceOf<TypeName>());
@@ -5990,8 +5865,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseRelationalExpression('x is y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<IsExpression>());
-    IsExpression isExpression = expression;
+    var isExpression = expression as IsExpression;
     expect(isExpression.expression, isNotNull);
     expect(isExpression.isOperator, isNotNull);
     expect(isExpression.notOperator, isNull);
@@ -6003,8 +5877,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseRelationalExpression('x is y?)');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<IsExpression>());
-    IsExpression isExpression = expression;
+    var isExpression = expression as IsExpression;
     expect(isExpression.expression, isNotNull);
     expect(isExpression.isOperator, isNotNull);
     expect(isExpression.notOperator, isNull);
@@ -6015,8 +5888,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseRelationalExpression('x is! y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<IsExpression>());
-    IsExpression isExpression = expression;
+    var isExpression = expression as IsExpression;
     expect(isExpression.expression, isNotNull);
     expect(isExpression.isOperator, isNotNull);
     expect(isExpression.notOperator, isNotNull);
@@ -6027,8 +5899,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseRelationalExpression('x < y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, isNotNull);
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.LT);
@@ -6039,8 +5910,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseRelationalExpression('super < y');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<BinaryExpression>());
-    BinaryExpression binaryExpression = expression;
+    var binaryExpression = expression as BinaryExpression;
     expect(binaryExpression.leftOperand, isNotNull);
     expect(binaryExpression.operator, isNotNull);
     expect(binaryExpression.operator.type, TokenType.LT);
@@ -6100,8 +5970,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("'a' 'b'");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<AdjacentStrings>());
-    AdjacentStrings literal = expression;
+    var literal = expression as AdjacentStrings;
     NodeList<StringLiteral> strings = literal.strings;
     expect(strings, hasLength(2));
     StringLiteral firstString = strings[0];
@@ -6114,8 +5983,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral(r"'x$y'");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<StringInterpolation>());
-    StringInterpolation interpolation = expression;
+    var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
     InterpolationString element0 = interpolation.elements[0];
@@ -6148,8 +6016,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("'''\\x20\na'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, " \na");
   }
@@ -6158,8 +6025,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral(r"'''x$y'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<StringInterpolation>());
-    StringInterpolation interpolation = expression;
+    var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
     InterpolationString element0 = interpolation.elements[0];
@@ -6177,8 +6043,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("'''\\\\\na'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, "\\\na");
   }
@@ -6187,8 +6052,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("r'''\\\\\na'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, "\\\\\na");
   }
@@ -6197,8 +6061,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("'''\\\na'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, "a");
   }
@@ -6207,8 +6070,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("r'''\\\na'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, "a");
   }
@@ -6217,8 +6079,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("'''\\ \\\na'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, "a");
   }
@@ -6227,8 +6088,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("r'''\\ \\\na'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, "a");
   }
@@ -6237,8 +6097,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("'''\\t\na'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, "\t\na");
   }
@@ -6247,8 +6106,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("r'''\\t\na'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, "\\t\na");
   }
@@ -6257,8 +6115,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral(r"""'''$x'y'''""");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<StringInterpolation>());
-    StringInterpolation interpolation = expression;
+    var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
     InterpolationString element0 = interpolation.elements[0];
@@ -6276,8 +6133,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral(r"'''${x}y'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<StringInterpolation>());
-    StringInterpolation interpolation = expression;
+    var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
     InterpolationString element0 = interpolation.elements[0];
@@ -6295,8 +6151,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("'''  \na'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, "a");
   }
@@ -6305,8 +6160,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("r'''  \na'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, "a");
   }
@@ -6315,8 +6169,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("''' a\nb'''");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, " a\nb");
   }
@@ -6325,8 +6178,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral(r"""'$x"'""");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<StringInterpolation>());
-    StringInterpolation interpolation = expression;
+    var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
     InterpolationString element0 = interpolation.elements[0];
@@ -6344,8 +6196,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral("'a'");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleStringLiteral>());
-    SimpleStringLiteral literal = expression;
+    var literal = expression as SimpleStringLiteral;
     expect(literal.literal, isNotNull);
     expect(literal.value, "a");
   }
@@ -6354,8 +6205,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseStringLiteral(r"'${x}y'");
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<StringInterpolation>());
-    StringInterpolation interpolation = expression;
+    var interpolation = expression as StringInterpolation;
     expect(interpolation.elements, hasLength(3));
     expect(interpolation.elements[0], new isInstanceOf<InterpolationString>());
     InterpolationString element0 = interpolation.elements[0];
@@ -6449,8 +6299,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseThrowExpression('throw x');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<ThrowExpression>());
-    ThrowExpression throwExpression = expression;
+    var throwExpression = expression as ThrowExpression;
     expect(throwExpression.throwKeyword, isNotNull);
     expect(throwExpression.expression, isNotNull);
   }
@@ -6459,8 +6308,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseThrowExpressionWithoutCascade('throw x');
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression, new isInstanceOf<ThrowExpression>());
-    ThrowExpression throwExpression = expression;
+    var throwExpression = expression as ThrowExpression;
     expect(throwExpression.throwKeyword, isNotNull);
     expect(throwExpression.expression, isNotNull);
   }
@@ -9891,8 +9739,7 @@ class SimpleParserTest extends ParserTestCase {
     Expression expression = parser.parseArgument();
     expectNotNullIfNoErrors(expression);
     listener.assertNoErrors();
-    expect(expression, new isInstanceOf<SimpleIdentifier>());
-    SimpleIdentifier identifier = expression;
+    var identifier = expression as SimpleIdentifier;
     expect(identifier.name, lexeme);
   }
 
