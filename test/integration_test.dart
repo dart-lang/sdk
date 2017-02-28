@@ -418,6 +418,44 @@ defineTests() {
       });
     });
 
+    group('use_collection_literals_when_possible', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = new CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('use_collection_literals_when_possible', () {
+        var packagesFilePath = new File('.packages').absolute.path;
+        dartlint.main([
+          '--packages',
+          packagesFilePath,
+          'test/_data/use_collection_literals_when_possible',
+          '--rules=use_collection_literals_when_possible'
+        ]);
+        expect(exitCode, 1);
+        expect(
+            collectingOut.trim(),
+            stringContainsInOrder([
+              "Use collection literals when possible.",
+              "var listToLint = new List(); //LINT",
+              "Use collection literals when possible.",
+              "var mapToLint = new Map(); // LINT",
+              "Use collection literals when possible.",
+              "var LinkedHashMapToLint = new LinkedHashMap(); // LINT",
+              "Use collection literals when possible.",
+              "var constructedListInsideLiteralList = [[], new List()]; // LINT",
+              '1 file analyzed, 4 issues found, in'
+            ]));
+      });
+    });
+
     group('examples', () {
       test('lintconfig.yaml', () {
         var src = readFile('example/lintconfig.yaml');

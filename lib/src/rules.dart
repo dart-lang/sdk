@@ -66,8 +66,9 @@ import 'package:linter/src/rules/unnecessary_getters_setters.dart';
 import 'package:linter/src/rules/unnecessary_null_aware_assignments.dart';
 import 'package:linter/src/rules/unnecessary_null_in_if_null_operators.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
-import 'package:linter/src/rules/valid_regexps.dart';
 import 'package:linter/src/rules/use_adjacent_strings_to_concatenate_literals.dart';
+import 'package:linter/src/rules/use_collection_literals_when_possible.dart';
+import 'package:linter/src/rules/valid_regexps.dart';
 
 void registerLintRules() {
   Analyzer.facade
@@ -134,6 +135,7 @@ void registerLintRules() {
     //..register(new UnnecessaryGetters())
     ..register(new UnnecessaryGettersSetters())
     ..register(new UnrelatedTypeEqualityChecks())
-    ..register(new ValidRegExps())
-    ..register(new UseAdjacentStringsToConcatenateLiterals());
+    ..register(new UseAdjacentStringsToConcatenateLiterals())
+    ..register(new UseCollectionLiteralsWhenPossible())
+    ..register(new ValidRegExps());
 }
