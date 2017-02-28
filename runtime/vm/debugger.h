@@ -353,6 +353,7 @@ class ActivationFrame : public ZoneAllocated {
   void GetVarDescriptors();
   void GetDescIndices();
 
+  RawObject* GetAsyncContextVariable(const String& name);
   RawObject* GetAsyncStreamControllerStreamAwaiter(const Object& stream);
   RawObject* GetAsyncStreamControllerStream();
   RawObject* GetAsyncCompleterAwaiter(const Object& completer);

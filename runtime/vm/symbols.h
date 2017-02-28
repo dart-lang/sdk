@@ -46,9 +46,8 @@ class ObjectPointerVisitor;
   V(IteratorParameter, ":iterator")                                            \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
   V(_AsyncStarStreamControllerConstructor, "_AsyncStarStreamController.")      \
-  V(Controller, ":controller")                                                 \
+  V(ColonController, ":controller")                                            \
   V(ControllerStream, ":controller_stream")                                    \
-  V(Controller2, "controller")                                                 \
   V(Stream, "stream")                                                          \
   V(_StreamImpl, "_StreamImpl")                                                \
   V(isPaused, "isPaused")                                                      \

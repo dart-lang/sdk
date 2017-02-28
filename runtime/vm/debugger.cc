@@ -710,43 +710,39 @@ intptr_t ActivationFrame::ContextLevel() {
   return context_level_;
 }
 
-RawObject* ActivationFrame::GetAsyncCompleter() {
+
+RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
   if (!function_.IsAsyncClosure()) {
     return Object::null();
   }
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
-  if (!live_frame_) {
-    // Not actually on the stack. Pull it out of the closure's context.
-    intptr_t var_desc_len = var_descriptors_.Length();
-    for (intptr_t i = 0; i < var_desc_len; i++) {
-      RawLocalVarDescriptors::VarInfo var_info;
-      var_descriptors_.GetInfo(i, &var_info);
+  for (intptr_t i = 0; i < var_desc_len; i++) {
+    RawLocalVarDescriptors::VarInfo var_info;
+    var_descriptors_.GetInfo(i, &var_info);
+    if (var_descriptors_.GetName(i) == name.raw()) {
       const int8_t kind = var_info.kind();
-      if (var_descriptors_.GetName(i) == Symbols::AsyncCompleter().raw()) {
+      if (!live_frame_) {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-        ASSERT(!ctx_.IsNull());
-        return ctx_.At(var_info.index());
       }
-    }
-  } else {
-    ASSERT(fp() != 0);
-    // On the stack.
-    for (intptr_t i = 0; i < var_desc_len; i++) {
-      RawLocalVarDescriptors::VarInfo var_info;
-      var_descriptors_.GetInfo(i, &var_info);
-      if (var_descriptors_.GetName(i) == Symbols::AsyncCompleter().raw()) {
-        const int8_t kind = var_info.kind();
-        if (kind == RawLocalVarDescriptors::kStackVar) {
-          return GetStackVar(var_info.index());
-        } else {
-          ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-          return GetContextVar(var_info.scope_id, var_info.index());
+      if (kind == RawLocalVarDescriptors::kStackVar) {
+        return GetStackVar(var_info.index());
+      } else {
+        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+        if (!live_frame_) {
+          ASSERT(!ctx_.IsNull());
+          return ctx_.At(var_info.index());
         }
+        return GetContextVar(var_info.scope_id, var_info.index());
       }
     }
   }
   return Object::null();
+}
+
+
+RawObject* ActivationFrame::GetAsyncCompleter() {
+  return GetAsyncContextVariable(Symbols::AsyncCompleter());
 }
 
 
@@ -771,42 +767,7 @@ RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
 
 
 RawObject* ActivationFrame::GetAsyncStreamControllerStream() {
-  if (!function_.IsAsyncGenClosure()) {
-    return Object::null();
-  }
-  GetVarDescriptors();
-  intptr_t var_desc_len = var_descriptors_.Length();
-  if (!live_frame_) {
-    // Not actually on the stack. Pull it out of the closure's context.
-    intptr_t var_desc_len = var_descriptors_.Length();
-    for (intptr_t i = 0; i < var_desc_len; i++) {
-      RawLocalVarDescriptors::VarInfo var_info;
-      var_descriptors_.GetInfo(i, &var_info);
-      const int8_t kind = var_info.kind();
-      if (var_descriptors_.GetName(i) == Symbols::ControllerStream().raw()) {
-        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-        ASSERT(!ctx_.IsNull());
-        return ctx_.At(var_info.index());
-      }
-    }
-  } else {
-    ASSERT(fp() != 0);
-    // On the stack.
-    for (intptr_t i = 0; i < var_desc_len; i++) {
-      RawLocalVarDescriptors::VarInfo var_info;
-      var_descriptors_.GetInfo(i, &var_info);
-      if (var_descriptors_.GetName(i) == Symbols::ControllerStream().raw()) {
-        const int8_t kind = var_info.kind();
-        if (kind == RawLocalVarDescriptors::kStackVar) {
-          return GetStackVar(var_info.index());
-        } else {
-          ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-          return GetContextVar(var_info.scope_id, var_info.index());
-        }
-      }
-    }
-  }
-  return Object::null();
+  return GetAsyncContextVariable(Symbols::ControllerStream());
 }
 
 
@@ -846,13 +807,12 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   Array& handled_types = Array::Handle();
   AbstractType& type = Type::Handle();
   const TypeArguments& no_instantiator = TypeArguments::Handle();
-  const intptr_t try_index_threshold = CatchClauseNode::kImplicitAsyncTryIndex;
   const bool is_async =
       function().IsAsyncClosure() || function().IsAsyncGenClosure();
   handlers = code().exception_handlers();
   ASSERT(!handlers.IsNull());
   intptr_t num_handlers_checked = 0;
-  while (try_index >= try_index_threshold) {
+  while (try_index != CatchClauseNode::kInvalidTryIndex) {
     // Detect circles in the exception handler data.
     num_handlers_checked++;
     ASSERT(num_handlers_checked <= handlers.num_entries());

@@ -6609,7 +6609,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode* body) {
   // :controller.AddError(:exception, :stack_trace);
   // return;  // The finally block will close the stream.
   LocalVariable* controller =
-      current_block_->scope->LookupVariable(Symbols::Controller(), false);
+      current_block_->scope->LookupVariable(Symbols::ColonController(), false);
   ASSERT(controller != NULL);
   ArgumentListNode* args = new (Z) ArgumentListNode(TokenPosition::kNoSource);
   args->Add(new (Z)
@@ -7093,7 +7093,7 @@ void Parser::AddAsyncGeneratorVariables() {
   // the body of the async* function. They are used by the await operator.
   LocalVariable* controller_var =
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                            Symbols::Controller(), Object::dynamic_type());
+                            Symbols::ColonController(), Object::dynamic_type());
   current_block_->scope->AddVariable(controller_var);
   LocalVariable* async_op_var =
       new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -7202,7 +7202,7 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
       closure_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
   ASSERT((existing_var != NULL) && existing_var->is_captured());
   existing_var =
-      closure_body->scope()->LookupVariable(Symbols::Controller(), false);
+      closure_body->scope()->LookupVariable(Symbols::ColonController(), false);
   ASSERT((existing_var != NULL) && existing_var->is_captured());
   existing_var =
       closure_body->scope()->LookupVariable(Symbols::AsyncOperation(), false);
@@ -7322,7 +7322,7 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
                                   TypeArguments::ZoneHandle(Z),
                                   controller_constructor, arguments);
   LocalVariable* controller_var =
-      current_block_->scope->LookupVariable(Symbols::Controller(), false);
+      current_block_->scope->LookupVariable(Symbols::ColonController(), false);
   StoreLocalNode* store_controller = new (Z) StoreLocalNode(
       TokenPosition::kNoSource, controller_var, controller_constructor_call);
   current_block_->statements->Add(store_controller);
@@ -10405,7 +10405,8 @@ AstNode* Parser::ParseYieldStatement() {
     ASSERT(innermost_function().IsAsyncGenerator() ||
            innermost_function().IsAsyncGenClosure());
 
-    LocalVariable* controller_var = LookupLocalScope(Symbols::Controller());
+    LocalVariable* controller_var =
+        LookupLocalScope(Symbols::ColonController());
     ASSERT(controller_var != NULL);
     // :controller.add[Stream](expr);
     ArgumentListNode* add_args = new (Z) ArgumentListNode(yield_pos);
