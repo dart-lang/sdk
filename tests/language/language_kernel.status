@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# These tests currently take too long. Remove when they are fixed.
 [ $compiler == dartk || $compiler == dartkp ]
 abstract_beats_arguments_test: RuntimeError
 abstract_runtime_error_test/01: RuntimeError
@@ -464,8 +463,6 @@ named_parameters_default_eq_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 new_expression1_negative_test: DartkCrash
 no_main_test/01: Crash
-null_bottom_test/03: DartkCrash
-null_bottom_test/none: DartkCrash
 number_identifier_test/02: MissingCompileTimeError
 number_identifier_test/04: MissingCompileTimeError
 on_catch_malformed_type_test: RuntimeError
@@ -1269,8 +1266,6 @@ new_expression1_negative_test: DartkCrash
 no_main_test/01: Crash
 not_enough_positional_arguments_test/02: MissingRuntimeError  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: MissingRuntimeError  # Dartk Issue 28301
-null_bottom_test/03: DartkCrash
-null_bottom_test/none: DartkCrash
 number_identifier_test/02: MissingCompileTimeError
 number_identifier_test/04: MissingCompileTimeError
 on_catch_malformed_type_test: RuntimeError
@@ -1976,8 +1971,6 @@ named_parameters_default_eq_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 new_expression1_negative_test: DartkCrash
 no_main_test/01: Crash
-null_bottom_test/03: DartkCrash
-null_bottom_test/none: DartkCrash
 number_identifier_test/02: MissingCompileTimeError
 number_identifier_test/04: MissingCompileTimeError
 on_catch_malformed_type_test: RuntimeError
@@ -2589,8 +2582,6 @@ named_parameters_default_eq_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 new_expression1_negative_test: DartkCrash
 no_main_test/01: Crash
-null_bottom_test/03: DartkCrash
-null_bottom_test/none: DartkCrash
 number_identifier_test/02: MissingCompileTimeError
 number_identifier_test/04: MissingCompileTimeError
 on_catch_malformed_type_test: RuntimeError
