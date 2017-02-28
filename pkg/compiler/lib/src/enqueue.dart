@@ -369,7 +369,9 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       if (!_onQueueEmpty(recents)) {
         _recentClasses.addAll(recents);
       }
-    } while (_queue.isNotEmpty || _recentClasses.isNotEmpty);
+    } while (_queue.isNotEmpty ||
+        _recentClasses.isNotEmpty ||
+        _deferredQueue.isNotEmpty);
   }
 
   void logSummary(log(message)) {
