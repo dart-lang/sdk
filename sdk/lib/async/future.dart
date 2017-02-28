@@ -304,7 +304,9 @@ abstract class Future<T> {
     StackTrace stackTrace;  // The stackTrace that came with the error.
 
     // Handle an error from any of the futures.
-    void handleError(theError, theStackTrace) {
+    // TODO(jmesserly): use `void` return type once it can be inferred for the
+    // `then` call below.
+    handleError(theError, theStackTrace) {
       remaining--;
       if (values != null) {
         if (cleanUp != null) {

@@ -237,7 +237,7 @@ class _Future<T> implements Future<T> {
     if (!identical(currentZone, _ROOT_ZONE)) {
       f = currentZone.registerUnaryCallback<FutureOr<E>, T>(f);
       if (onError != null) {
-        onError = _registerErrorHandler<T>(onError, currentZone);
+        onError = _registerErrorHandler<E>(onError, currentZone);
       }
     }
     return _thenNoZoneRegistration<E>(f, onError);
