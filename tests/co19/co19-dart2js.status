@@ -10442,16 +10442,5 @@ LibTest/typed_data/ByteData/offsetInBytes_A01_t01: RuntimeError # Please triage 
 LayoutTests/fast/dom/XMLSerializer-attribute-entities_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/serialize-attribute_t01: RuntimeError # Please triage this failure
 
-[ $compiler == dart2js && $cps_ir ]
-Language/Types/Interface_Types/subtype_t09: Crash # Pending static: JSArray
-LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
-LibTest/core/Invocation/memberName_A01_t01: RuntimeError # Expect.equals(expected: <Symbol("bar=")>, actual: <Symbol("bar")>) fails.
-
-[ $compiler == dart2js && $cps_ir && $host_checked ]
-LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: Crash # CPS integrity violation After 'GVN' on function(main) Referenced out of scope: Instance of 'ReceiverCheck'
-
-[ $compiler == dart2js && $cps_ir && $checked ]
-*: Skip # `assert` not implemented, about 75% tests crash
-
 [ $compiler == dart2js && $host_checked ]
 Language/Types/Function_Types/call_t01: Crash # Issue 28894

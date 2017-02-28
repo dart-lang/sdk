@@ -277,7 +277,7 @@ override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 stack_trace_test: Fail, OK # Stack trace not preserved in minified code.
 regress_21795_test: RuntimeError # Issue 12605
 
-[ $compiler == dart2js && $cps_ir == false ]
+[ $compiler == dart2js ]
 accessor_conflict_export2_test: Crash # Issue 25626
 accessor_conflict_export_test: Crash # Issue 25626
 generic_field_mixin4_test: Crash # Issue 18651
@@ -287,80 +287,6 @@ method_override5_test: RuntimeError # Issue 12809
 
 [ $compiler == dart2js && $runtime != drt && $runtime != dartium ]
 issue23244_test: RuntimeError # 23244
-
-[ $compiler == dart2js && $cps_ir ]
-accessor_conflict_export_test: CompileTimeError # Issue 25747
-accessor_conflict_export2_test: CompileTimeError # Issue 25747
-async_await_syntax_test/a03a: Crash # (a03a()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/a03b: Crash # (a03b()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/a09a: Crash # (a09a()async*{yield 0;}): cannot handle sync*/async* functions
-async_await_syntax_test/a10a: Crash # (a10a()async*{yield* [] ;}): cannot handle sync*/async* functions
-async_await_syntax_test/a11d: Crash # (get async async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/b03a: Crash # (b03a()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/b09a: Crash # (b09a()async*{yield 0;}): cannot handle sync*/async* functions
-async_await_syntax_test/b10a: Crash # (b10a()async*{yield* [] ;}): cannot handle sync*/async* functions
-async_await_syntax_test/b11d: Crash # (get async async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/c03a: Crash # (c03a()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/c09a: Crash # (c09a()async*{yield 0;}): cannot handle sync*/async* functions
-async_await_syntax_test/c10a: Crash # (c10a()async*{yield* [] ;}): cannot handle sync*/async* functions
-async_await_syntax_test/d03a: Crash # (()async*{}): cannot handle sync*/async* functions
-async_await_syntax_test/d09a: Crash # (()async*{yield 0;}): cannot handle sync*/async* functions
-async_await_syntax_test/d10a: Crash # (()async*{yield* [] ;}): cannot handle sync*/async* functions
-async_or_generator_return_type_stacktrace_test/02: Crash # (void badReturnTypeAsyncStar()async*{}): cannot handle sync*/async* functions
-async_return_types_test/nestedFuture: Crash #  cannot handle sync*/async* functions
-async_return_types_test/none: Crash # cannot handle sync*/async* functions
-async_return_types_test/tooManyTypeParameters: Crash # cannot handle sync*/async* functions
-async_return_types_test/wrongReturnType: Crash # cannot handle sync*/async* functions
-async_return_types_test/wrongTypeParameter: Crash # cannot handle sync*/async* functions
-async_star_cancel_and_throw_in_finally_test: Crash # (foo()async*{try {in...  cannot handle sync*/async* functions
-async_star_cancel_while_paused_test: Crash # (f()async*{list.add(...  cannot handle sync*/async* functions
-async_star_no_cancel_test: Crash # (foo()async*{try {in...  cannot handle sync*/async* functions
-async_star_no_cancel2_test: Crash # (foo()async*{try {in...  cannot handle sync*/async* functions
-async_star_regression_2238_test: Crash # (f()async*{label1:label2:yield 0;}): cannot handle sync*/async* functions
-async_star_regression_23116_test: Crash # (Stream<int> foo(Com...  cannot handle sync*/async* functions
-async_star_regression_fisk_test: Crash # (fisk()async*{res.ad...  cannot handle sync*/async* functions
-async_star_stream_take_test: Crash # (Stream makeStream(i...  cannot handle sync*/async* functions
-async_star_take_reyield_test: Crash # (fivePartialSums(Str...  cannot handle sync*/async* functions
-async_star_test: Crash # (f()async*{}): cannot handle sync*/async* functions
-asyncstar_concat_test: Crash # (concat(a,b)async*{yield* a;yield* b;}): cannot handle sync*/async* functions
-asyncstar_throw_in_catch_test: Crash # (foo4(Tracer tracer)...  cannot handle sync*/async* functions
-asyncstar_yield_test: Crash # (Stream<int> foo4()a...  cannot handle sync*/async* functions
-asyncstar_yieldstar_test: Crash # (foo2(Stream subStream)async*{yield* subStream;}): cannot handle sync*/async* functions
-call_closurization_test: RuntimeError # Bad type inference for ".call" tear-off.
-field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
-gc_test: Crash # Internal Error: Pending statics (see above).
-if_null_assignment_static_test/29: Crash # Pending statics: JSArray
-if_null_assignment_static_test/31: Crash # Pending statics: JSArray
-if_null_assignment_static_test/32: Crash # Pending statics: JSArray
-if_null_assignment_static_test/33: Crash # Pending statics: JSArray
-if_null_assignment_static_test/35: Crash # Pending statics: JSArray
-invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
-many_calls_test: Crash # Internal Error: Pending statics (see above).
-mixin_bound_test: RuntimeError # TypeError: Cannot read property 'toString$0' of undefined
-super_call4_test: RuntimeError # Please triage this failure.
-super_getter_setter_test: RuntimeError # Expect.equals(expected: <42>, actual: <null>) fails.
-super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
-super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
-super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
-super_operator_index_test/03: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-switch8_test: Crash # Pending statics: JSArray
-
-[ $compiler == dart2js && $cps_ir && $host_checked == false ]
-regress_21795_test: Pass, RuntimeError # Due to inlining?
-
-[ $compiler == dart2js && $cps_ir && $host_checked ]
-accessor_conflict_export2_test: Crash # Duplicate export of 'x'
-accessor_conflict_export_test: Crash # Duplicate export of 'x'
-async_throw_in_catch_test/forceAwait: Crash # Issue 24485
-async_throw_in_catch_test/none: Crash # Issue 24485
-execute_finally9_test: Crash # Issue 24485
-regress_21795_test: Crash # Issue 24485
-regress_23537_test: Crash # Issue 24485
-try_finally_regress_25333_test: Crash # Issue 24485
-
-[ $compiler == dart2js && $cps_ir && $checked ]
-*: Skip # `assert` not implemented
 
 [ $compiler == dart2js && $host_checked ]
 regress_26855_test/1: Crash # Issue 26867

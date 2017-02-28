@@ -138,9 +138,6 @@ deferred_transitive_import_error_test: Skip # Contains intentional errors.
 dart_developer_env_test: SkipByDesign # Unsupported by dart2js
 dart_developer_disabled_env_test: SkipByDesign # Unsupported by dart2js
 
-[ $compiler == dart2js && $cps_ir && $checked ]
-*: Skip # `assert` not implemented
-
 [ $runtime == vm && ($arch == arm || $arch == arm64) ]
 io/file_stream_test: Skip # Issue 26109
 io/file_typed_data_test: Skip # Issue 26109
