@@ -463,13 +463,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_constructor_initializer_withParenthesizedExpression() {
-    // TODO(paulberry): Implement parseCompilationUnitWithOptions
-    super.test_constructor_initializer_withParenthesizedExpression();
-  }
-
-  @override
-  @failingTest
   void test_equalityExpression_normal() {
     // TODO(paulberry,ahe): bad error recovery
     super.test_equalityExpression_normal();
@@ -1084,12 +1077,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parsePrimaryExpression_this() {
-    super.test_parsePrimaryExpression_this();
-  }
-
-  @override
-  @failingTest
   void test_parseRelationalExpression_as_functionType_noReturnType() {
     super.test_parseRelationalExpression_as_functionType_noReturnType();
   }
@@ -1116,12 +1103,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseRethrowExpression() {
     super.test_parseRethrowExpression();
-  }
-
-  @override
-  @failingTest
-  void test_parseStringLiteral_interpolated() {
-    super.test_parseStringLiteral_interpolated();
   }
 
   @override

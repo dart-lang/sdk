@@ -450,6 +450,12 @@ class AstBuilder extends ScopeListener {
     push(ast.superExpression(toAnalyzerToken(token)));
   }
 
+  @override
+  void handleThisExpression(Token token) {
+    debugEvent("ThisExpression");
+    push(ast.thisExpression(toAnalyzerToken(token)));
+  }
+
   void handleType(Token beginToken, Token endToken) {
     debugEvent("Type");
     TypeArgumentList arguments = pop();
