@@ -28,8 +28,12 @@
       found in `package:flutter`.
     * If in a Bazel workspace, then use the analysis options in `package:dart.analysis_options/default.yaml` if it exists.
     * Use the default analysis options rules.
-  * In addition, any analysis option specified on the command line (e.g. --strong or --no-strong) 
-    takes precedence over any corresponding value specified in the analysis options file.
+  * In addition, specific to `dartanalyzer`:
+    * an analysis options file can be specified on the command line via `--options` 
+      and that file will be used instead of searching for an analysis options file.
+    * any analysis option specified on the command line (e.g. `--strong` or `--no-strong`) 
+      takes precedence over any corresponding value specified in the analysis options file.
+
 
 ## 1.22.0
 
