@@ -372,10 +372,7 @@ Language/Interfaces/Superinterfaces/definition_t04: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t01: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t02: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t03: MissingCompileTimeError
-Language/Libraries_and_Scripts/Exports/implicit_hide_t01: DartkCrash
 Language/Libraries_and_Scripts/Exports/invalid_uri_t03: DartkCrash
-Language/Libraries_and_Scripts/Imports/implicit_hide_t01: DartkCrash
-Language/Libraries_and_Scripts/Imports/implicit_hide_t02: DartkCrash
 Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t07: DartkCrash
 Language/Libraries_and_Scripts/Imports/namespace_changes_t08: DartkCrash
@@ -596,10 +593,6 @@ Language/Variables/syntax_t14: MissingCompileTimeError
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for deferred libraries.
 LibTest/async/Future/catchError_A03_t05: Crash
 LibTest/async/Future/then_A05_t01: Crash
-LibTest/async/Stream/Stream.fromFutures_A01_t01: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A01_t02: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A02_t01: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A02_t02: DartkCrash
 LibTest/async/Stream/asBroadcastStream_A03_t02: Crash
 LibTest/async/Stream/asBroadcastStream_A03_t03: Crash
 LibTest/async/Zone/bindBinaryCallback_A01_t01: Crash
@@ -1019,12 +1012,9 @@ Language/Interfaces/Superinterfaces/definition_t04: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t01: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t02: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t03: MissingCompileTimeError
-Language/Libraries_and_Scripts/Exports/implicit_hide_t01: DartkCrash
 Language/Libraries_and_Scripts/Exports/invalid_uri_t03: DartkCrash
 Language/Libraries_and_Scripts/Exports/reexport_t01: Pass
 Language/Functions/Formal_Parameters/Optional_Formals/syntax_t14: Pass
-Language/Libraries_and_Scripts/Imports/implicit_hide_t01: DartkCrash
-Language/Libraries_and_Scripts/Imports/implicit_hide_t02: DartkCrash
 Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t07: DartkCrash
 Language/Libraries_and_Scripts/Imports/namespace_changes_t08: DartkCrash
@@ -1243,10 +1233,6 @@ Language/Variables/syntax_t13: MissingCompileTimeError
 Language/Variables/syntax_t14: MissingCompileTimeError
 LibTest/async/Future/catchError_A03_t05: Crash
 LibTest/async/Future/then_A05_t01: Crash
-LibTest/async/Stream/Stream.fromFutures_A01_t01: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A01_t02: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A02_t01: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A02_t02: DartkCrash
 LibTest/async/Stream/asBroadcastStream_A03_t02: Crash
 LibTest/async/Stream/asBroadcastStream_A03_t03: Crash
 LibTest/async/Zone/bindBinaryCallback_A01_t01: Crash
@@ -1654,10 +1640,7 @@ Language/Interfaces/Superinterfaces/definition_t04: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t01: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t02: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t03: MissingCompileTimeError
-Language/Libraries_and_Scripts/Exports/implicit_hide_t01: DartkCrash
 Language/Libraries_and_Scripts/Exports/invalid_uri_t03: DartkCrash
-Language/Libraries_and_Scripts/Imports/implicit_hide_t01: DartkCrash
-Language/Libraries_and_Scripts/Imports/implicit_hide_t02: DartkCrash
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t07: DartkCrash
@@ -1895,10 +1878,6 @@ Language/Variables/syntax_t13: MissingCompileTimeError
 Language/Variables/syntax_t14: MissingCompileTimeError
 LibTest/async/Future/catchError_A03_t05: Crash
 LibTest/async/Future/then_A05_t01: Crash
-LibTest/async/Stream/Stream.fromFutures_A01_t01: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A01_t02: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A02_t01: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A02_t02: DartkCrash
 LibTest/async/Stream/asBroadcastStream_A03_t02: Crash
 LibTest/async/Stream/asBroadcastStream_A03_t03: Crash
 LibTest/async/Zone/bindBinaryCallback_A01_t01: Crash
@@ -2444,12 +2423,9 @@ Language/Interfaces/Superinterfaces/definition_t04: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t01: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t02: MissingCompileTimeError
 Language/Interfaces/Superinterfaces/superinterface_of_itself_t03: MissingCompileTimeError
-Language/Libraries_and_Scripts/Exports/implicit_hide_t01: DartkCrash
 Language/Libraries_and_Scripts/Exports/invalid_uri_t03: DartkCrash
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError # Kernel Issue 28335 (deferred libraries)
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: RuntimeError # Kernel Issue 28335 (deferred libraries)
-Language/Libraries_and_Scripts/Imports/implicit_hide_t01: DartkCrash
-Language/Libraries_and_Scripts/Imports/implicit_hide_t02: DartkCrash
 Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t07: DartkCrash
 Language/Libraries_and_Scripts/Imports/namespace_changes_t08: DartkCrash
@@ -2681,10 +2657,6 @@ Language/Variables/syntax_t13: MissingCompileTimeError
 Language/Variables/syntax_t14: MissingCompileTimeError
 LibTest/async/Future/catchError_A03_t05: Crash
 LibTest/async/Future/then_A05_t01: Crash
-LibTest/async/Stream/Stream.fromFutures_A01_t01: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A01_t02: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A02_t01: DartkCrash
-LibTest/async/Stream/Stream.fromFutures_A02_t02: DartkCrash
 LibTest/async/Stream/asBroadcastStream_A03_t02: Crash
 LibTest/async/Stream/asBroadcastStream_A03_t03: Crash
 LibTest/async/Zone/bindBinaryCallback_A01_t01: Crash

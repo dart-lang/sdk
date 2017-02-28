@@ -339,15 +339,12 @@ generic_methods_generic_function_parameter_test: DartkCrash
 getter_parameters_test/01: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
-hidden_import_test/01: DartkCrash
-hidden_import_test/02: DartkCrash
-hidden_import_test/none: DartkCrash
 if_null_assignment_behavior_test/09: RuntimeError
 if_null_assignment_behavior_test/10: RuntimeError
 if_null_assignment_behavior_test/15: RuntimeError
 implicit_scope_test: Crash
 import_combinators_test: RuntimeError
-import_private_test/01: DartkCrash
+import_private_test/01: MissingCompileTimeError
 initializing_formal_capture_test: RuntimeError
 inst_field_initializer1_negative_test: Fail
 instanceof3_test: RuntimeError
@@ -573,8 +570,6 @@ this_conditional_operator_test/01: MissingCompileTimeError
 toplevel_collision1_test/00: DartkCrash
 toplevel_collision1_test/01: DartkCrash
 toplevel_collision1_test/02: DartkCrash
-try_catch2_test: DartkCrash
-try_catch3_test: DartkCrash
 try_catch_syntax_test/01: MissingCompileTimeError
 try_catch_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/09: MissingCompileTimeError
@@ -632,7 +627,6 @@ setter_declaration_negative_test: Fail
 super_call4_test: RuntimeError
 super_getter_setter_test: RuntimeError
 try_catch_syntax_test/05: MissingCompileTimeError
-vm/lazy_deopt_vm_test: Timeout
 vm/optimized_stacktrace_test: Skip # Issue 28788
 ct_const2_test: Pass, Crash # Flaky
 
@@ -1133,15 +1127,11 @@ getter_parameters_test/01: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
 getter_setter_in_lib_test: RuntimeError
-hidden_import_test/01: DartkCrash
-hidden_import_test/02: DartkCrash
-hidden_import_test/none: DartkCrash
 if_null_assignment_behavior_test/09: RuntimeError
 if_null_assignment_behavior_test/10: RuntimeError
 if_null_assignment_behavior_test/15: RuntimeError
 implicit_scope_test: Crash
 import_combinators_test: RuntimeError
-import_private_test/01: DartkCrash
 initializing_formal_capture_test: RuntimeError
 initializing_formal_final_test: RuntimeError
 inst_field_initializer1_negative_test: Fail
@@ -1379,8 +1369,6 @@ this_conditional_operator_test/01: MissingCompileTimeError
 toplevel_collision1_test/00: DartkCrash
 toplevel_collision1_test/01: DartkCrash
 toplevel_collision1_test/02: DartkCrash
-try_catch2_test: DartkCrash
-try_catch3_test: DartkCrash
 try_catch_on_syntax_test/10: MissingRuntimeError  # Dartk Issue 28410
 try_catch_on_syntax_test/11: MissingRuntimeError  # Dartk Issue 28410
 try_catch_syntax_test/01: MissingCompileTimeError
@@ -1442,7 +1430,6 @@ setter_declaration_negative_test: Fail
 super_call4_test: RuntimeError
 super_getter_setter_test: RuntimeError
 try_catch_syntax_test/05: MissingCompileTimeError
-vm/lazy_deopt_vm_test: Timeout
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
@@ -1853,15 +1840,11 @@ generic_methods_generic_function_parameter_test: DartkCrash
 getter_parameters_test/01: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
-hidden_import_test/01: DartkCrash
-hidden_import_test/02: DartkCrash
-hidden_import_test/none: DartkCrash
 if_null_assignment_behavior_test/09: RuntimeError
 if_null_assignment_behavior_test/10: RuntimeError
 if_null_assignment_behavior_test/15: RuntimeError
 implicit_scope_test: Crash
 import_combinators_test: RuntimeError
-import_private_test/01: DartkCrash
 initializing_formal_capture_test: RuntimeError
 inst_field_initializer1_negative_test: Fail
 instanceof3_test: RuntimeError
@@ -2078,8 +2061,6 @@ this_conditional_operator_test/01: MissingCompileTimeError
 toplevel_collision1_test/00: DartkCrash
 toplevel_collision1_test/01: DartkCrash
 toplevel_collision1_test/02: DartkCrash
-try_catch2_test: DartkCrash
-try_catch3_test: DartkCrash
 try_catch_syntax_test/01: MissingCompileTimeError
 try_catch_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/09: MissingCompileTimeError
@@ -2137,7 +2118,6 @@ setter_declaration_negative_test: Fail
 super_call4_test: RuntimeError
 super_getter_setter_test: RuntimeError
 try_catch_syntax_test/05: MissingCompileTimeError
-vm/lazy_deopt_vm_test: Timeout
 
 # Failures during Gardening shift: To be triaged!
 [ $compiler == dartk || $compiler == dartkp ]
@@ -2464,15 +2444,11 @@ generic_methods_generic_function_parameter_test: DartkCrash
 getter_parameters_test/01: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
-hidden_import_test/01: DartkCrash
-hidden_import_test/02: DartkCrash
-hidden_import_test/none: DartkCrash
 if_null_assignment_behavior_test/09: RuntimeError
 if_null_assignment_behavior_test/10: RuntimeError
 if_null_assignment_behavior_test/15: RuntimeError
 implicit_scope_test: Crash
 import_combinators_test: RuntimeError
-import_private_test/01: DartkCrash
 initializing_formal_capture_test: RuntimeError
 inst_field_initializer1_negative_test: Fail
 instanceof3_test: RuntimeError
@@ -2690,8 +2666,6 @@ this_conditional_operator_test/01: MissingCompileTimeError
 toplevel_collision1_test/00: DartkCrash
 toplevel_collision1_test/01: DartkCrash
 toplevel_collision1_test/02: DartkCrash
-try_catch2_test: DartkCrash
-try_catch3_test: DartkCrash
 try_catch_syntax_test/01: MissingCompileTimeError
 try_catch_syntax_test/07: MissingCompileTimeError
 try_catch_syntax_test/09: MissingCompileTimeError
