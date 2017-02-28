@@ -16,7 +16,7 @@ native_no_such_method_exception3_frog_test: Fail # mirrors not supported
 native_no_such_method_exception4_frog_test: Fail # mirrors not supported
 native_no_such_method_exception5_frog_test: Fail # mirrors not supported
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js && $cps_ir == false ]
 bound_closure_super_test: Fail
 fake_thing_test: Fail # Issue 13010
 

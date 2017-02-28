@@ -100,8 +100,14 @@ invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
 lookup_map/dead_entry_through_mirrors_test: SkipByDesign # Test for tree-shaking, vm never tree-shakes
 unconditional_dartio_import_test: SkipByDesign # dart2js only test
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js && $cps_ir == false ]
 big_allocation_expression_test: Crash # Issue 24635
+
+[ $compiler == dart2js && $cps_ir ]
+async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle sync*/async* functions
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented, 75% of the tests fail.
 
 [ $compiler == dart2js && $runtime == chrome && $system == windows ]
 class_test: Pass, Slow # Issue 25940

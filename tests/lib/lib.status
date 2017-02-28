@@ -429,6 +429,14 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet 
 mirrors/immutable_collections_test: SkipSlow  # Timeout.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 
+[ $compiler == dart2js && $cps_ir ]
+async/async_await_zones_test: Crash # (await for(var x in bar().take(100)){sum+= x;}): await for
+async/stream_iterator_test: Crash # (Stream createCancel...  cannot handle sync*/async* functions
+mirrors/parameter_annotation_mirror_test: Pass, Fail # Issue 25501.  Depends on inlining.
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # Issue 25761
+
 [ $compiler == dart2js && $host_checked ]
 mirrors/metadata_allowed_values_test/28: Crash # Issue 25911
 mirrors/metadata_allowed_values_test/29: Crash # Issue 25911
