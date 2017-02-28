@@ -28,6 +28,7 @@ front_end/test/fasta/rasta/*: SkipByDesign
 front_end/test/fasta/sdk_test: SkipByDesign
 
 front_end/test/fasta/compile_test: Pass, Slow
+front_end/test/fasta/bootstrap_test: Fail, Slow
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip

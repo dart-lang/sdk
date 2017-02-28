@@ -139,7 +139,7 @@ Frequently used options:
 const String allOptions = """
 Supported options:
 
-  -o <file>, --out=<file>
+  -o <file>, --output=<file>
     Generate the output into <file>.
 
   -h, /h, /?, --help
