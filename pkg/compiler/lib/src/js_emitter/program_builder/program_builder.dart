@@ -531,9 +531,6 @@ class ProgramBuilder {
       }
     }
 
-    List<StubMethod> typeVariableReaderStubs =
-        runtimeTypeGenerator.generateTypeVariableReaderStubs(element);
-
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
 
     if (backend.enabledNoSuchMethod && element.isObject) {
@@ -620,7 +617,6 @@ class ProgramBuilder {
           instanceFields,
           staticFieldsForReflection,
           callStubs,
-          typeVariableReaderStubs,
           checkedSetters,
           isChecks,
           typeTests.functionTypeIndex,
@@ -636,7 +632,6 @@ class ProgramBuilder {
           instanceFields,
           staticFieldsForReflection,
           callStubs,
-          typeVariableReaderStubs,
           noSuchMethodStubs,
           checkedSetters,
           isChecks,

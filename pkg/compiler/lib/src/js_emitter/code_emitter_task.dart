@@ -40,10 +40,6 @@ class CodeEmitterTask extends CompilerTask {
   Emitter _emitter;
   final Compiler compiler;
 
-  /// Records if a type variable is read dynamically for type tests.
-  final Set<TypeVariableEntity> readTypeVariables =
-      new Set<TypeVariableEntity>();
-
   JavaScriptBackend get backend => compiler.backend;
 
   @deprecated
@@ -149,10 +145,6 @@ class CodeEmitterTask extends CompilerTask {
   /// Returns the JS template for the given [builtin].
   jsAst.Template builtinTemplateFor(JsBuiltin builtin) {
     return emitter.templateForBuiltin(builtin);
-  }
-
-  void registerReadTypeVariable(TypeVariableEntity element) {
-    readTypeVariables.add(element);
   }
 
   Set<ClassEntity> _finalizeRti() {

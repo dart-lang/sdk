@@ -423,6 +423,9 @@ class KernelAstAdapter extends KernelElementAdapterMixin {
   ir.Procedure get checkSubtypeOfRuntimeType =>
       kernel.functions[_backend.helpers.checkSubtypeOfRuntimeType];
 
+  ir.Procedure get functionTypeTest =>
+      kernel.functions[_backend.helpers.functionTypeTest];
+
   ir.Procedure get throwTypeError =>
       kernel.functions[_backend.helpers.throwTypeError];
 

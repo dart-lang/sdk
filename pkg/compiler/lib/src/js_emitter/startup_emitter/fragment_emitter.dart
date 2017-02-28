@@ -702,7 +702,6 @@ class FragmentEmitter {
     Iterable<Method> checkedSetters = cls.checkedSetters;
     Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> callStubs = cls.callStubs;
-    Iterable<Method> typeVariableReaderStubs = cls.typeVariableReaderStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = generateGettersSetters(cls);
     Iterable<Method> allMethods = [
@@ -710,7 +709,6 @@ class FragmentEmitter {
       checkedSetters,
       isChecks,
       callStubs,
-      typeVariableReaderStubs,
       noSuchMethodStubs,
       gettersSetters
     ].expand((x) => x);

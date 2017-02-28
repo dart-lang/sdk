@@ -476,13 +476,6 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     _buildInitializers(constructor, constructorChain, fieldValues);
   }
 
-  HTypeConversion buildFunctionTypeConversion(
-      HInstruction original, ResolutionDartType type, int kind) {
-    HInstruction reifiedType = buildFunctionType(type);
-    return new HTypeConversion.viaMethodOnType(
-        type, kind, original.instructionType, reifiedType, original);
-  }
-
   /// Builds generative constructor body.
   void buildConstructorBody(ir.Constructor constructor) {
     openFunction();
@@ -2856,14 +2849,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
     ResolutionDartType typeValue =
         localsHandler.substInContext(astAdapter.getDartType(type));
+
     if (type is ir.FunctionType) {
-      List arguments = [buildFunctionType(typeValue), expression];
-      _pushDynamicInvocation(node, null, arguments,
-          selector: new Selector.call(
-              new PrivateName('_isTest', backend.helpers.jsHelperLibrary),
-              CallStructure.ONE_ARG));
-      push(
-          new HIs.compound(typeValue, expression, pop(), commonMasks.boolType));
+      HInstruction representation =
+          typeBuilder.analyzeTypeArgument(typeValue, sourceElement);
+      List<HInstruction> inputs = <HInstruction>[
+        expression,
+        representation,
+      ];
+      _pushStaticInvocation(
+          astAdapter.functionTypeTest, inputs, commonMasks.boolType);
+      HInstruction call = pop();
+      push(new HIs.compound(typeValue, expression, call, commonMasks.boolType));
       return;
     }
 

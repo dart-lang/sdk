@@ -503,7 +503,7 @@ class BackendImpacts {
 
   BackendImpact get functionTypeCheck {
     return _functionTypeCheck ??=
-        new BackendImpact(staticUses: [helpers.functionTypeTestMetaHelper]);
+        new BackendImpact(staticUses: [/*helpers.functionTypeTestMetaHelper*/]);
   }
 
   BackendImpact _nativeTypeCheck;

@@ -97,11 +97,6 @@ abstract class HVisitor<R> {
   R visitTypeConversion(HTypeConversion node);
   R visitTypeKnown(HTypeKnown node);
   R visitYield(HYield node);
-  R visitReadTypeVariable(HReadTypeVariable node);
-  R visitFunctionType(HFunctionType node);
-  R visitVoidType(HVoidType node);
-  R visitInterfaceType(HInterfaceType node);
-  R visitDynamicType(HDynamicType node);
 
   R visitTypeInfoReadRaw(HTypeInfoReadRaw node);
   R visitTypeInfoReadVariable(HTypeInfoReadVariable node);
@@ -416,11 +411,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
-  visitReadTypeVariable(HReadTypeVariable node) => visitInstruction(node);
-  visitFunctionType(HFunctionType node) => visitInstruction(node);
-  visitVoidType(HVoidType node) => visitInstruction(node);
-  visitInterfaceType(HInterfaceType node) => visitInstruction(node);
-  visitDynamicType(HDynamicType node) => visitInstruction(node);
   visitAwait(HAwait node) => visitInstruction(node);
   visitYield(HYield node) => visitInstruction(node);
 
@@ -880,11 +870,7 @@ abstract class HInstruction implements Spannable {
   static const int IS_TYPECODE = 28;
   static const int INVOKE_DYNAMIC_TYPECODE = 29;
   static const int SHIFT_RIGHT_TYPECODE = 30;
-  static const int READ_TYPE_VARIABLE_TYPECODE = 31;
-  static const int FUNCTION_TYPE_TYPECODE = 32;
-  static const int VOID_TYPE_TYPECODE = 33;
-  static const int INTERFACE_TYPE_TYPECODE = 34;
-  static const int DYNAMIC_TYPE_TYPECODE = 35;
+
   static const int TRUNCATING_DIVIDE_TYPECODE = 36;
   static const int IS_VIA_INTERCEPTOR_TYPECODE = 37;
 
@@ -2877,11 +2863,7 @@ class HTypeConversion extends HCheck {
 
   HInstruction get typeRepresentation => inputs[1];
 
-  bool get usesMethodOnType =>
-      typeExpression != null && typeExpression.isFunctionType;
-
-  HInstruction get checkedInput =>
-      usesMethodOnType ? inputs[1] : super.checkedInput;
+  HInstruction get checkedInput => super.checkedInput;
 
   HInstruction convertType(ClosedWorld closedWorld, DartType type, int kind) {
     if (typeExpression == type) {
@@ -3404,106 +3386,4 @@ class HTypeInfoExpression extends HInstruction {
         return 'INSTANCE';
     }
   }
-}
-
-class HReadTypeVariable extends HInstruction {
-  /// The type variable being read.
-  final TypeVariableType dartType;
-
-  final bool hasReceiver;
-
-  HReadTypeVariable(
-      this.dartType, HInstruction receiver, TypeMask instructionType)
-      : hasReceiver = true,
-        super(<HInstruction>[receiver], instructionType) {
-    setUseGvn();
-  }
-
-  HReadTypeVariable.noReceiver(
-      this.dartType, HInstruction typeArgument, TypeMask instructionType)
-      : hasReceiver = false,
-        super(<HInstruction>[typeArgument], instructionType) {
-    setUseGvn();
-  }
-
-  accept(HVisitor visitor) => visitor.visitReadTypeVariable(this);
-
-  bool canThrow() => false;
-
-  int typeCode() => HInstruction.READ_TYPE_VARIABLE_TYPECODE;
-  bool typeEquals(HInstruction other) => other is HReadTypeVariable;
-
-  bool dataEquals(HReadTypeVariable other) {
-    return dartType == other.dartType && hasReceiver == other.hasReceiver;
-  }
-}
-
-abstract class HRuntimeType extends HInstruction {
-  final DartType dartType;
-
-  HRuntimeType(
-      List<HInstruction> inputs, this.dartType, TypeMask instructionType)
-      : super(inputs, instructionType) {
-    setUseGvn();
-  }
-
-  bool canThrow() => false;
-
-  int typeCode() {
-    throw 'abstract method';
-  }
-
-  bool typeEquals(HInstruction other) {
-    throw 'abstract method';
-  }
-
-  bool dataEquals(HRuntimeType other) {
-    return dartType == other.dartType;
-  }
-}
-
-class HFunctionType extends HRuntimeType {
-  HFunctionType(List<HInstruction> inputs, FunctionType dartType,
-      TypeMask instructionType)
-      : super(inputs, dartType, instructionType);
-
-  accept(HVisitor visitor) => visitor.visitFunctionType(this);
-
-  int typeCode() => HInstruction.FUNCTION_TYPE_TYPECODE;
-
-  bool typeEquals(HInstruction other) => other is HFunctionType;
-}
-
-class HVoidType extends HRuntimeType {
-  HVoidType(VoidType dartType, TypeMask instructionType)
-      : super(const <HInstruction>[], dartType, instructionType);
-
-  accept(HVisitor visitor) => visitor.visitVoidType(this);
-
-  int typeCode() => HInstruction.VOID_TYPE_TYPECODE;
-
-  bool typeEquals(HInstruction other) => other is HVoidType;
-}
-
-class HInterfaceType extends HRuntimeType {
-  HInterfaceType(List<HInstruction> inputs, InterfaceType dartType,
-      TypeMask instructionType)
-      : super(inputs, dartType, instructionType);
-
-  accept(HVisitor visitor) => visitor.visitInterfaceType(this);
-
-  int typeCode() => HInstruction.INTERFACE_TYPE_TYPECODE;
-
-  bool typeEquals(HInstruction other) => other is HInterfaceType;
-}
-
-class HDynamicType extends HRuntimeType {
-  HDynamicType(DynamicType dartType, TypeMask instructionType)
-      : super(const <HInstruction>[], dartType, instructionType);
-
-  accept(HVisitor visitor) => visitor.visitDynamicType(this);
-
-  int typeCode() => HInstruction.DYNAMIC_TYPE_TYPECODE;
-
-  bool typeEquals(HInstruction other) => other is HDynamicType;
 }

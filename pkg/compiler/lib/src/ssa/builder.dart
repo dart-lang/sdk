@@ -301,13 +301,6 @@ class SsaBuilder extends ast.Visitor
     add(attachPosition(instruction, node));
   }
 
-  HTypeConversion buildFunctionTypeConversion(
-      HInstruction original, ResolutionDartType type, int kind) {
-    HInstruction reifiedType = buildFunctionType(type);
-    return new HTypeConversion.viaMethodOnType(
-        type, kind, original.instructionType, reifiedType, original);
-  }
-
   /**
    * Returns a complete argument list for a call of [function].
    */
@@ -2414,14 +2407,16 @@ class SsaBuilder extends ast.Visitor
       HInstruction call = pop();
       return new HIs.compound(type, expression, call, commonMasks.boolType);
     } else if (type.isFunctionType) {
-      List arguments = [buildFunctionType(type), expression];
-      pushInvokeDynamic(
-          node,
-          new Selector.call(new PrivateName('_isTest', helpers.jsHelperLibrary),
-              CallStructure.ONE_ARG),
-          null,
-          arguments);
-      return new HIs.compound(type, expression, pop(), commonMasks.boolType);
+      HInstruction representation =
+          typeBuilder.analyzeTypeArgument(type, sourceElement);
+      List<HInstruction> inputs = <HInstruction>[
+        expression,
+        representation,
+      ];
+      pushInvokeStatic(node, helpers.functionTypeTest, inputs,
+          typeMask: commonMasks.boolType);
+      HInstruction call = pop();
+      return new HIs.compound(type, expression, call, commonMasks.boolType);
     } else if (type.isTypeVariable) {
       HInstruction runtimeType =
           typeBuilder.addTypeVariableReference(type, sourceElement);

@@ -612,6 +612,9 @@ class BackendHelpers {
 
   FunctionEntity get subtypeCast => _findHelperFunction('subtypeCast');
 
+  FunctionEntity get functionTypeTest =>
+      _findHelperFunction('functionTypeTest');
+
   FunctionEntity get checkSubtypeOfRuntimeType =>
       _findHelperFunction('checkSubtypeOfRuntimeType');
 
@@ -709,45 +712,6 @@ class BackendHelpers {
       _env.lookupConstructor(_findAsyncHelperClass("StreamIterator"), "");
 
   ClassEntity get VoidRuntimeType => _findHelperClass('VoidRuntimeType');
-
-  ClassEntity get RuntimeType => _findHelperClass('RuntimeType');
-
-  ClassEntity get RuntimeFunctionType =>
-      _findHelperClass('RuntimeFunctionType');
-
-  ClassEntity get RuntimeTypePlain => _findHelperClass('RuntimeTypePlain');
-
-  ClassEntity get RuntimeTypeGeneric => _findHelperClass('RuntimeTypeGeneric');
-
-  ClassEntity get DynamicRuntimeType => _findHelperClass('DynamicRuntimeType');
-
-  FunctionEntity get getDynamicRuntimeType {
-    // TODO(johnniwinther): Support this in mocks.
-    return _env.lookupLibraryMember(jsHelperLibrary, 'getDynamicRuntimeType');
-  }
-
-  FunctionEntity get getVoidRuntimeType {
-    // TODO(johnniwinther): Support this in mocks.
-    return _env.lookupLibraryMember(jsHelperLibrary, 'getVoidRuntimeType');
-  }
-
-  FunctionEntity get buildInterfaceType {
-    // TODO(johnniwinther): Support this in mocks.
-    return _env.lookupLibraryMember(jsHelperLibrary, 'buildInterfaceType');
-  }
-
-  FunctionEntity get buildFunctionType {
-    // TODO(johnniwinther): Support this in mocks.
-    return _env.lookupLibraryMember(jsHelperLibrary, 'buildFunctionType');
-  }
-
-  FunctionEntity get buildNamedFunctionType {
-    // TODO(johnniwinther): Support this in mocks.
-    return _env.lookupLibraryMember(jsHelperLibrary, 'buildNamedFunctionType');
-  }
-
-  FunctionEntity get functionTypeTestMetaHelper =>
-      _findHelperFunction('functionTypeTestMetaHelper');
 
   FunctionEntity get defineProperty => _findHelperFunction('defineProperty');
 

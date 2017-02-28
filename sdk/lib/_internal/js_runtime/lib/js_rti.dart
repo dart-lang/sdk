@@ -371,23 +371,21 @@ String computeTypeName(String isField, List arguments) {
 }
 
 Object subtypeCast(Object object, String isField, List checks, String asField) {
-  if (object != null && !checkSubtype(object, isField, checks, asField)) {
-    String actualType = Primitives.objectTypeName(object);
-    String typeName = computeTypeName(isField, checks);
-    // TODO(johnniwinther): Move type lookup to [CastErrorImplementation] to
-    // align with [TypeErrorImplementation].
-    throw new CastErrorImplementation(actualType, typeName);
-  }
-  return object;
+  if (object == null) return object;
+  if (checkSubtype(object, isField, checks, asField)) return object;
+  String actualType = Primitives.objectTypeName(object);
+  String typeName = computeTypeName(isField, checks);
+  // TODO(johnniwinther): Move type lookup to [CastErrorImplementation] to
+  // align with [TypeErrorImplementation].
+  throw new CastErrorImplementation(actualType, typeName);
 }
 
-Object assertSubtype(Object object, String isField, List checks,
-                     String asField) {
-  if (object != null && !checkSubtype(object, isField, checks, asField)) {
-    String typeName = computeTypeName(isField, checks);
-    throw new TypeErrorImplementation(object, typeName);
-  }
-  return object;
+Object assertSubtype(
+    Object object, String isField, List checks, String asField) {
+  if (object == null) return object;
+  if (checkSubtype(object, isField, checks, asField)) return object;
+  String typeName = computeTypeName(isField, checks);
+  throw new TypeErrorImplementation(object, typeName);
 }
 
 /// Checks that the type represented by [subtype] is a subtype of [supertype].
