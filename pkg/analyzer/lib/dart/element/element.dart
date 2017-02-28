@@ -860,6 +860,13 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * value of this annotation could not be computed because of errors.
    */
   DartObject computeConstantValue();
+
+  /**
+   * Return a textual description of this annotation in a form approximating
+   * valid source. The returned string will not be valid source primarily in the
+   * case where the annotation itself is not well-formed.
+   */
+  String toSource();
 }
 
 /**
