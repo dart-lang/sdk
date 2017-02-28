@@ -1792,7 +1792,7 @@ class OutputLog {
       hasNonUtf8 = true;
       String malformed = UTF8.decode(data, allowMalformed: true);
       data..clear()
-          ..addAll(malformed.codeUnits)
+          ..addAll(UTF8.encode(malformed))
           ..addAll("""
 
   *****************************************************************************
