@@ -267,30 +267,28 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void removeWhere(bool test(E element)) {
-    _filter(this, test, false);
+    _filter(test, false);
   }
 
   void retainWhere(bool test(E element)) {
-    _filter(this, test, true);
+    _filter(test, true);
   }
 
-  static void _filter(List source,
-                      bool test(var element),
-                      bool retainMatching) {
-    List retained = [];
-    int length = source.length;
+  void _filter(bool test(var element), bool retainMatching) {
+    List<E> retained = <E>[];
+    int length = this.length;
     for (int i = 0; i < length; i++) {
-      var element = source[i];
+      var element = this[i];
       if (test(element) == retainMatching) {
         retained.add(element);
       }
-      if (length != source.length) {
-        throw new ConcurrentModificationError(source);
+      if (length != this.length) {
+        throw new ConcurrentModificationError(this);
       }
     }
-    if (retained.length != source.length) {
-      source.setRange(0, retained.length, retained);
-      source.length = retained.length;
+    if (retained.length != this.length) {
+      this.setRange(0, retained.length, retained);
+      this.length = retained.length;
     }
   }
 
@@ -308,11 +306,13 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void sort([int compare(E a, E b)]) {
-    if (compare == null) {
-      Sort.sort(this, Comparable.compare);
-    } else {
-      Sort.sort(this, compare);
-    }
+    Sort.sort(this, compare ?? _compareAny);
+  }
+
+  static int _compareAny(a, b) {
+    // In strong mode Comparable.compare requires an implicit cast to ensure
+    // `a` and `b` are Comparable.
+    return Comparable.compare(a, b);
   }
 
   void shuffle([Random random]) {
