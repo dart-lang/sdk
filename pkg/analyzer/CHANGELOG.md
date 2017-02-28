@@ -1,3 +1,7 @@
+## 0.29.8
+
+* Add toSource() to ElementAnnotation.
+
 ## 0.29.7
 
 * Enabled support for generic method syntax by default in the parser.
