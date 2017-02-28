@@ -8,16 +8,12 @@ import '../../ast.dart'
     show
         Arguments,
         Class,
-        ConstructorInvocation,
         Expression,
-        ExpressionStatement,
         IntLiteral,
-        InterfaceType,
         MethodInvocation,
         Name,
         NullLiteral,
         PropertyGet,
-        PropertySet,
         StringLiteral,
         Throw,
         VariableDeclaration,
@@ -122,17 +118,12 @@ class LocalContext extends Context {
   factory LocalContext(ClosureConverter converter, Context parent) {
     Class contextClass = converter.contextClass;
     assert(contextClass.constructors.length == 1);
-    IntLiteral zero = new IntLiteral(0);
-    VariableDeclaration declaration = new VariableDeclaration.forValue(
-        new ConstructorInvocation(
-            contextClass.constructors.first, new Arguments(<Expression>[zero])),
-        type: new InterfaceType(contextClass));
-    declaration.name = "#context";
-    converter.insert(declaration);
-    converter.insert(new ExpressionStatement(new PropertySet(
-        new VariableGet(declaration), new Name('parent'), parent.expression)));
+    converter.rewriter.insertContextDeclaration(
+        contextClass, parent.expression);
 
-    return new LocalContext._internal(converter, parent, declaration, zero);
+    return new LocalContext._internal(converter, parent,
+        converter.rewriter.contextDeclaration,
+        converter.rewriter.contextSize);
   }
 
   Expression get expression => accessor.buildSimpleRead();
@@ -142,8 +133,7 @@ class LocalContext extends Context {
   void extend(VariableDeclaration variable, Expression value) {
     Arguments arguments =
         new Arguments(<Expression>[new IntLiteral(variables.length), value]);
-    converter.insert(new ExpressionStatement(
-        new MethodInvocation(expression, new Name('[]='), arguments)));
+    converter.rewriter.insertExtendContext(expression, arguments);
     ++size.value;
     variables.add(variable);
     initializers[variable] = arguments;
@@ -215,7 +205,7 @@ class NestedContext extends Context {
   }
 
   Expression lookup(VariableDeclaration variable) {
-    var context = expression;
+    Expression context = expression;
     for (var variables in variabless) {
       var index = variables.indexOf(variable);
       if (index != -1) {
@@ -229,8 +219,8 @@ class NestedContext extends Context {
 
   Expression assign(VariableDeclaration variable, Expression value,
       {bool voidContext: false}) {
-    var context = expression;
-    for (var variables in variabless) {
+    Expression context = expression;
+    for (List<VariableDeclaration> variables in variabless) {
       var index = variables.indexOf(variable);
       if (index != -1) {
         return IndexAccessor
