@@ -255,6 +255,10 @@ analyzer/test/src/task/strong/inferred_type_test: Crash # Issue 24485
 analyzer/test/src/task/strong_mode_test: Crash # Issue 24485
 analyzer/test/src/task/yaml_test: Crash # Issue 24485
 
+[ $arch == x64 && $runtime == vm && $system == windows && $checked ]
+# See: https://build.chromium.org/p/client.dart/builders/analyzer-win7-release-be/builds/3113/steps/analyzer%20unit%20tests/logs/stdio
+analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
+
 [ $runtime == dart_precompiled ]
 *: SkipByDesign # The pkg test framework imports dart:mirrors.
 
