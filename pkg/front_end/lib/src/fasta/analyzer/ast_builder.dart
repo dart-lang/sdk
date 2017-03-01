@@ -280,8 +280,13 @@ class AstBuilder extends ScopeListener {
     Expression identifierOrInvoke = pop();
     Expression receiver = pop();
     if (identifierOrInvoke is SimpleIdentifier) {
-      push(ast.propertyAccess(
-          receiver, toAnalyzerToken(token), identifierOrInvoke));
+      if (receiver is SimpleIdentifier && identical('.', token.stringValue)) {
+        push(ast.prefixedIdentifier(
+            receiver, toAnalyzerToken(token), identifierOrInvoke));
+      } else {
+        push(ast.propertyAccess(
+            receiver, toAnalyzerToken(token), identifierOrInvoke));
+      }
     } else if (identifierOrInvoke is MethodInvocation) {
       assert(identifierOrInvoke.target == null);
       identifierOrInvoke

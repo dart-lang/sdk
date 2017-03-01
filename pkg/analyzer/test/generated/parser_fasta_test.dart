@@ -285,14 +285,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_assignmentExpression_prefixedIdentifier() {
-    // TODO(paulberry,ahe): Analyzer expects "x.y" to be parsed as a
-    // PrefixedIdentifier, even if x is not a prefix.
-    super.test_assignmentExpression_prefixedIdentifier();
-  }
-
-  @override
-  @failingTest
   void test_cascade_withAssignment() {
     // TODO(paulberry,ahe): AstBuilder doesn't implement
     // endConstructorReference().
@@ -412,12 +404,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
       test_parseAssignableExpression_identifier_args_dot_typeParameterComments() {
     super
         .test_parseAssignableExpression_identifier_args_dot_typeParameterComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssignableExpression_identifier_dot() {
-    super.test_parseAssignableExpression_identifier_dot();
   }
 
   @override
@@ -691,18 +677,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parsePostfixExpression_none_propertyAccess() {
-    super.test_parsePostfixExpression_none_propertyAccess();
-  }
-
-  @override
-  @failingTest
-  void test_parsePrefixedIdentifier_prefix() {
-    super.test_parsePrefixedIdentifier_prefix();
-  }
-
-  @override
-  @failingTest
   void test_parsePrimaryExpression_const() {
     super.test_parsePrimaryExpression_const();
   }
@@ -878,6 +852,12 @@ class FastaParserTestCase extends Object
   @override
   Expression parseAssignableSelector(String code, bool optional,
       {bool allowConditional: true}) {
+    if (optional) {
+      if (code.isEmpty) {
+        return _parseExpression('foo');
+      }
+      return _parseExpression('(foo)$code');
+    }
     return _parseExpression('foo$code');
   }
 
