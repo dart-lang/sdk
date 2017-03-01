@@ -74,6 +74,8 @@ lazyFn(closure, computeType) {
 final _runtimeType = JS('', 'Symbol("_runtimeType")');
 final isNamedConstructor = JS('', 'Symbol("isNamedConstructor")');
 
+final _moduleName = JS('', 'Symbol("_moduleName")');
+
 _checkPrimitiveType(obj) {
   // TODO(jmesserly): JS is used to prevent type literal wrapping.  Is there a
   // better way we can handle this?  (sra: It is super dodgy that the values
@@ -187,9 +189,9 @@ unwrapType(WrappedType obj) => obj._wrappedType;
 
 _getRuntimeType(value) => JS('', '#[#]', value, _runtimeType);
 getIsNamedConstructor(value) => JS('', '#[#]', value, isNamedConstructor);
-// TODO(bmilligan): Define the symbol in rtti.dart instead of dart_library.js
-// and get rid of the call to dart_library in the JS here.
-getDartLibraryName(value) => JS('', '#[dart_library.dartLibraryName]', value);
+
+/// Return the module name for a raw library object.
+getModuleName(value) => JS('', '#[#]', value, _moduleName);
 
 /// Tag the runtime type of [value] to be type [t].
 void tag(value, t) {
@@ -203,4 +205,23 @@ void tagComputed(value, compute) {
 void tagLazy(value, compute) {
   JS('', '#(#, #, { get: # })', defineLazyProperty, value, _runtimeType,
       compute);
+}
+
+var _loadedModules = JS('', 'new Map()');
+
+List getModuleNames() {
+  return JS('', 'Array.from(#.keys())', _loadedModules);
+}
+
+/// Return all library objects in the specified module.
+getModuleLibraries(String name) {
+  var module = JS('', '#.get(#)', _loadedModules, name);
+  if (module == null) return null;
+  JS('', '#[#] = #', module, _moduleName, name);
+  return module;
+}
+
+/// Track all libraries
+void trackLibraries(String moduleName, libraries) {
+  JS('', '#.set(#, #)', _loadedModules, moduleName, libraries);
 }

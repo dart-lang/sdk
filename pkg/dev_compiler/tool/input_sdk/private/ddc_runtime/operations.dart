@@ -882,6 +882,12 @@ String _toString(obj) {
     return JS('String', '#[dartx.toString]()', obj);
   }
   if (JS('bool', 'typeof # == "function"', obj)) {
+    // If the function is a Type object, we should just display the type name.
+    // Regular Dart code should typically get wrapped type objects instead of
+    // raw type (aka JS constructor) objects however raw type objects can be
+    // exposed to Dart code via JS interop or debugging tools.
+    if (isType(obj)) return typeName(obj);
+
     return JS(
         'String', r'"Closure: " + # + " from: " + #', getReifiedType(obj), obj);
   }

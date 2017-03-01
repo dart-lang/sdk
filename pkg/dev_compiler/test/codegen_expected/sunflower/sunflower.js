@@ -123,6 +123,7 @@ define(['dart_sdk'], function(dart_sdk) {
       return html.CanvasRenderingContext2D.as(painter.canvas[dartx.getContext]('2d'));
     }
   });
+  dart.trackLibraries("sunflower", {"sunflower.dart": sunflower, "circle.dart": circle, "painter.dart": painter});
   // Exports:
   return {
     sunflower: sunflower,

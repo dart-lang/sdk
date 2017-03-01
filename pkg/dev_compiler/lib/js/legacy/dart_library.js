@@ -17,9 +17,6 @@ dart_library =
     throw Error(message);
   }
 
-  const dartLibraryName = Symbol('dartLibraryName');
-  dart_library.dartLibraryName = dartLibraryName;
-
   const libraryImports = Symbol('libraryImports');
   dart_library.libraryImports = libraryImports;
 
@@ -95,7 +92,7 @@ dart_library =
       // Load the library
       let loader = this;
       let library = this._library;
-      library[dartLibraryName] = this._name;
+
       library[libraryImports] = this._imports;
       library[loadedModule] = library;
       args.unshift(library);
@@ -186,9 +183,6 @@ dart_library =
   function bootstrap() {
     if (_bootstrapped) return;
     _bootstrapped = true;
-
-    // Force import of core.
-    var dart_sdk = import_('dart_sdk');
 
     // This import is only needed for chrome debugging. We should provide an
     // option to compile without it.
