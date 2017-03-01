@@ -114,7 +114,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       String elemFile,
       int elemOffset,
       String paramName,
-      String paramType}) {
+      String paramType,
+      String defaultArgListString}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
@@ -150,6 +151,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     }
     if (paramType != null) {
       expect(cs.parameterType, paramType);
+    }
+    if (defaultArgListString != null) {
+      expect(cs.defaultArgumentListString, defaultArgListString);
     }
     return cs;
   }
@@ -255,12 +259,14 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false,
       int relevance: DART_RELEVANCE_DEFAULT,
-      String importUri}) {
+      String importUri,
+      String defaultArgListString}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
-        isDeprecated: isDeprecated);
+        isDeprecated: isDeprecated,
+        defaultArgListString: defaultArgListString);
     if (returnType != null) {
       expect(cs.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
@@ -347,12 +353,14 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool isDeprecated: false}) {
+      bool isDeprecated: false,
+      String defaultArgListString}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
-        isDeprecated: isDeprecated);
+        isDeprecated: isDeprecated,
+        defaultArgListString: defaultArgListString);
     expect(cs.declaringType, equals(declaringType));
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     protocol.Element element = cs.element;

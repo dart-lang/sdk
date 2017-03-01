@@ -470,11 +470,30 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       // TODO(brianwilkerson) Support function types.
       return 'dynamic';
     }).toList();
-    suggestion.requiredParameterCount = paramList
-        .where((FormalParameter param) => param is! DefaultFormalParameter)
-        .length;
-    suggestion.hasNamedParameters = paramList
-        .any((FormalParameter param) => param.kind == ParameterKind.NAMED);
+
+    Iterable<ParameterElement> requiredParameters = paramList
+        .where((FormalParameter param) => param.kind == ParameterKind.REQUIRED)
+        .map((p) => p.element);
+    suggestion.requiredParameterCount = requiredParameters.length;
+
+    Iterable<ParameterElement> namedParameters = paramList
+        .where((FormalParameter param) => param.kind == ParameterKind.NAMED)
+        .map((p) => p.element);
+    suggestion.hasNamedParameters = namedParameters.isNotEmpty;
+
+    suggestion.defaultArgumentListString =
+        _buildDefaultArgList(requiredParameters, namedParameters);
+  }
+
+  String _buildDefaultArgList(Iterable<ParameterElement> requiredParams,
+      Iterable<ParameterElement> namedParams) {
+    List<String> args = requiredParams.map((p) => p.name).toList();
+    List<String> requiredArgs = namedParams
+        .where((p) => p.isRequired)
+        .map((p) => '${p.name}: null')
+        .toList();
+    args.addAll(requiredArgs);
+    return args.join(', ');
   }
 
   bool _isVoid(TypeAnnotation returnType) {

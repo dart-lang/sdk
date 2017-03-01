@@ -4597,4 +4597,68 @@ class LocalReferenceContributorTest_Driver
     extends LocalReferenceContributorTest {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  test_ArgDefaults_function() async {
+    addTestSource('''
+bool hasLength(int expected, bool b) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('hasLength', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'expected, b');
+  }
+
+  test_ArgDefaults_function_none() async {
+    addTestSource('''
+bool hasLength() => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('hasLength', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION, defaultArgListString: null);
+  }
+
+  test_ArgDefaults_function_with_optional_positional() async {
+    _addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+bool foo(int bar, [bool boo, int baz]) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('foo', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION, defaultArgListString: 'bar');
+  }
+
+  test_ArgDefaults_function_with_required_named() async {
+    _addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+bool foo(int bar, {bool boo, @required int baz}) => false;
+void main() {h^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('foo', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'bar, baz: null');
+  }
+
+  void _addMetaPackageSource() {
+    addPackageSource(
+        'meta',
+        'meta.dart',
+        r'''
+library meta;
+
+const Required required = const Required();
+
+class Required {
+  final String reason;
+  const Required([this.reason]);
+}
+''');
+  }
 }
