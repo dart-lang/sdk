@@ -32,25 +32,38 @@ const String strongModeFlag = 'strong';
 /**
  * Update [options] with the value of each analysis option command line flag.
  */
-void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args) {
+void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
+    {void verbosePrint(String text)}) {
+  void verbose(String text) {
+    if (verbosePrint != null) {
+      verbosePrint('Analysis options: $text');
+    }
+  }
+
   if (args.wasParsed(enableStrictCallChecksFlag)) {
     options.enableStrictCallChecks = args[enableStrictCallChecksFlag];
+    verbose('$enableStrictCallChecksFlag = ${options.enableStrictCallChecks}');
   }
   if (args.wasParsed(enableSuperMixinFlag)) {
     options.enableSuperMixins = args[enableSuperMixinFlag];
+    verbose('$enableSuperMixinFlag = ${options.enableSuperMixins}');
   }
   if (args.wasParsed(noImplicitCastsFlag)) {
     options.implicitCasts = !args[noImplicitCastsFlag];
+    verbose('$noImplicitCastsFlag = ${options.implicitCasts}');
   }
   if (args.wasParsed(noImplicitDynamicFlag)) {
     options.implicitDynamic = !args[noImplicitDynamicFlag];
+    verbose('$noImplicitDynamicFlag = ${options.implicitDynamic}');
   }
   if (args.wasParsed(strongModeFlag)) {
     options.strongMode = args[strongModeFlag];
+    verbose('$strongModeFlag = ${options.strongMode}');
   }
   try {
     if (args.wasParsed(lintsFlag)) {
       options.lint = args[lintsFlag];
+      verbose('$lintsFlag = ${options.lint}');
     }
   } on ArgumentError {
     // lints were not defined - ignore and fall through
