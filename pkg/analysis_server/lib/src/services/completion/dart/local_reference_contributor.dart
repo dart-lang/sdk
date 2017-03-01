@@ -482,18 +482,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
     suggestion.defaultArgumentListString =
-        _buildDefaultArgList(requiredParameters, namedParameters);
-  }
-
-  String _buildDefaultArgList(Iterable<ParameterElement> requiredParams,
-      Iterable<ParameterElement> namedParams) {
-    List<String> args = requiredParams.map((p) => p.name).toList();
-    List<String> requiredArgs = namedParams
-        .where((p) => p.isRequired)
-        .map((p) => '${p.name}: null')
-        .toList();
-    args.addAll(requiredArgs);
-    return args.join(', ');
+        buildDefaultArgList(requiredParameters, namedParameters);
   }
 
   bool _isVoid(TypeAnnotation returnType) {

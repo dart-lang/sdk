@@ -4620,7 +4620,7 @@ void main() {h^}''');
   }
 
   test_ArgDefaults_function_with_optional_positional() async {
-    _addMetaPackageSource();
+    addMetaPackageSource();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -4633,7 +4633,7 @@ void main() {h^}''');
   }
 
   test_ArgDefaults_function_with_required_named() async {
-    _addMetaPackageSource();
+    addMetaPackageSource();
     addTestSource('''
 import 'package:meta/meta.dart';
 
@@ -4646,19 +4646,21 @@ void main() {h^}''');
         defaultArgListString: 'bar, baz: null');
   }
 
-  void _addMetaPackageSource() {
-    addPackageSource(
-        'meta',
-        'meta.dart',
-        r'''
-library meta;
+  test_ArgDefaults_method_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
 
-const Required required = const Required();
+class A {
+  bool foo(int bar, {bool boo, @required int baz}) => false;
+  baz() {
+    f^
+  }
+}''');
+    await computeSuggestions();
 
-class Required {
-  final String reason;
-  const Required([this.reason]);
-}
-''');
+    assertSuggestMethod('foo', 'A', 'bool',
+        relevance: DART_RELEVANCE_LOCAL_METHOD,
+        defaultArgListString: 'bar, baz: null');
   }
 }

@@ -76,6 +76,20 @@ class AbstractContextTest {
    */
   bool get enableNewAnalysisDriver => false;
 
+  Source addMetaPackageSource() => addPackageSource(
+      'meta',
+      'meta.dart',
+      r'''
+library meta;
+
+const Required required = const Required();
+
+class Required {
+  final String reason;
+  const Required([this.reason]);
+}
+''');
+
   Source addPackageSource(String packageName, String filePath, String content) {
     packageMap[packageName] = [(newFolder('/pubcache/$packageName'))];
     File file = newFile('/pubcache/$packageName/$filePath', content);

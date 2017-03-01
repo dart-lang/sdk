@@ -13,6 +13,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -27,6 +28,21 @@ const DYNAMIC = 'dynamic';
 final TypeName NO_RETURN_TYPE = astFactory.typeName(
     astFactory.simpleIdentifier(new StringToken(TokenType.IDENTIFIER, '', 0)),
     null);
+
+/**
+ * Build a default argument list based on the given [requiredParams] and
+ * [namedParams].
+ */
+String buildDefaultArgList(Iterable<ParameterElement> requiredParams,
+    Iterable<ParameterElement> namedParams) {
+  List<String> args = requiredParams.map((p) => p.name).toList();
+  List<String> requiredArgs = namedParams
+      .where((p) => p.isRequired)
+      .map((p) => '${p.name}: null')
+      .toList();
+  args.addAll(requiredArgs);
+  return args.isEmpty ? null : args.join(', ');
+}
 
 /**
  * Create a new protocol Element for inclusion in a completion suggestion.

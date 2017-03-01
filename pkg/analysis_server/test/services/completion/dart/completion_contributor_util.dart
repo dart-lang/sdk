@@ -201,9 +201,11 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   CompletionSuggestion assertSuggestConstructor(String name,
       {int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
-      int elemOffset}) {
+      int elemOffset,
+      String defaultArgListString}) {
     CompletionSuggestion cs = assertSuggest(name,
-        relevance: relevance, importUri: importUri, elemOffset: elemOffset);
+        relevance: relevance, importUri: importUri, elemOffset: elemOffset,
+        defaultArgListString: defaultArgListString);
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));

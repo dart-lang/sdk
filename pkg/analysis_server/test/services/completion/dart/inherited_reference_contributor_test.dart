@@ -623,4 +623,28 @@ class B extends A1 with A2 {
 class InheritedContributorTest_Driver extends InheritedContributorTest {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  /// Sanity check.  Permutations tested in local_ref_contributor.
+  test_ArgDefaults_inherited_method_with_required_named() async {
+    addMetaPackageSource();
+    resolveSource(
+        '/testB.dart',
+        '''
+import 'package:meta/meta.dart';
+
+lib libB;
+class A {
+   bool foo(int bar, {bool boo, @required int baz}) => false;
+}''');
+    addTestSource('''
+import "/testB.dart";
+class B extends A {
+  b() => f^
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestMethod('foo', 'A', 'bool',
+        defaultArgListString: 'bar, baz: null');
+  }
 }

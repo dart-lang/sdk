@@ -4521,4 +4521,27 @@ class ImportedReferenceContributorTest_Driver
   test_enum_deprecated() {
     // TODO(scheglov) remove it?
   }
+
+  /// Sanity check.  Permutations tested in local_ref_contributor.
+  test_ArgDefaults_function_with_required_named() async {
+    addMetaPackageSource();
+
+    resolveSource(
+        '/testB.dart',
+        '''
+lib B;
+import 'package:meta/meta.dart';
+
+bool foo(int bar, {bool boo, @required int baz}) => false;
+''');
+
+    addTestSource('''
+import "/testB.dart";
+
+void main() {f^}''');
+    await computeSuggestions();
+
+    assertSuggestFunction('foo', 'bool',
+        defaultArgListString: 'bar, baz: null');
+  }
 }
