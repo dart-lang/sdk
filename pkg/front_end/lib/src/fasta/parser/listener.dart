@@ -854,6 +854,7 @@ class Listener {
     logEvent("Operator");
   }
 
+  /// Handle the end of a construct of the form "operator <token>".
   void handleOperatorName(Token operatorKeyword, Token token) {
     logEvent("OperatorName");
   }

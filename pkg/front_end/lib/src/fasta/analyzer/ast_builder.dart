@@ -1147,7 +1147,6 @@ class AstBuilder extends ScopeListener {
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop(); // TODO(paulberry)
     var name = pop();
-    Token operatorKeyword = null; // TODO(paulberry)
     TypeAnnotation returnType = pop(); // TODO(paulberry)
     Token modifierKeyword = null; // TODO(paulberry)
     Token externalKeyword = null;
@@ -1174,19 +1173,17 @@ class AstBuilder extends ScopeListener {
     List<Annotation> metadata = pop();
     // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
-    SimpleIdentifier returnType2;
     Token period;
-    SimpleIdentifier name2;
-    void unnamedConstructor() {
+    void unnamedConstructor(SimpleIdentifier returnType, SimpleIdentifier name) {
       push(ast.constructorDeclaration(
           comment,
           metadata,
           toAnalyzerToken(externalKeyword),
           toAnalyzerToken(constKeyword),
           toAnalyzerToken(factoryKeyword),
-          returnType2,
+          returnType,
           toAnalyzerToken(period),
-          name2,
+          name,
           parameters,
           toAnalyzerToken(separator),
           initializers,
@@ -1194,7 +1191,7 @@ class AstBuilder extends ScopeListener {
           body));
     }
 
-    void method() {
+    void method(Token operatorKeyword, SimpleIdentifier name) {
       push(ast.methodDeclaration(
           comment,
           metadata,
@@ -1210,12 +1207,13 @@ class AstBuilder extends ScopeListener {
     }
 
     if (name is SimpleIdentifier) {
-      returnType2 = name;
       if (name.name == className) {
-        unnamedConstructor();
+        unnamedConstructor(name, null);
       } else {
-        method();
+        method(null, name);
       }
+    } else if (name is _OperatorName) {
+      method(name.operatorKeyword, name.name);
     } else {
       throw new UnimplementedError();
     }
@@ -1312,6 +1310,13 @@ class AstBuilder extends ScopeListener {
         toAnalyzerToken(beginToken), arguments, toAnalyzerToken(endToken)));
   }
 
+  @override
+  void handleOperatorName(Token operatorKeyword, Token token) {
+    debugEvent("OperatorName");
+    push(new _OperatorName(operatorKeyword,
+        ast.simpleIdentifier(toAnalyzerToken(token), isDeclaration: true)));
+  }
+
   /**
    * Pop the modifiers list, if the list is empty return `null`, if the list
    * has one item return it; otherwise return `null`.
@@ -1389,4 +1394,13 @@ class _OptionalFormalParameters {
 
   _OptionalFormalParameters(
       this.parameters, this.leftDelimiter, this.rightDelimiter);
+}
+
+/// Data structure placed on the stack to represent the keyword "operator"
+/// followed by a token.
+class _OperatorName {
+  final Token operatorKeyword;
+  final SimpleIdentifier name;
+
+  _OperatorName(this.operatorKeyword, this.name);
 }

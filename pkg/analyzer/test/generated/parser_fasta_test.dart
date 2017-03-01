@@ -171,20 +171,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseClassMember_operator_index() {
-    // TODO(paulberry): Unhandled event: OperatorName
-    super.test_parseClassMember_operator_index();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_operator_indexAssign() {
-    // TODO(paulberry): Unhandled event: OperatorName
-    super.test_parseClassMember_operator_indexAssign();
-  }
-
-  @override
-  @failingTest
   void test_parseClassMember_redirectingFactory_const() {
     // TODO(paulberry): Unhandled event: ConstructorReference
     super.test_parseClassMember_redirectingFactory_const();
@@ -256,7 +242,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseOperator() {
-    // TODO(paulberry): Unhandled event: OperatorName
+    // TODO(paulberry): handle doc comments
     super.test_parseOperator();
   }
 
