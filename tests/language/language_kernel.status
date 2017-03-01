@@ -1422,11 +1422,41 @@ setter_declaration_negative_test: Fail
 super_call4_test: RuntimeError
 super_getter_setter_test: RuntimeError
 try_catch_syntax_test/05: MissingCompileTimeError
+vm/lazy_deopt_vm_test: Pass, Timeout
+
+# dartk: JIT & AOT failures (debug)
+[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+async_await_syntax_test/a05g: Crash
+async_await_syntax_test/a05h: Crash
+async_await_syntax_test/b10b: Crash
+async_await_syntax_test/c11a: Crash
+async_await_syntax_test/c11b: Crash
+const_instance_field_test/01: Crash
+list_literal2_negative_test: Crash
+switch1_negative_test: Crash
+type_parameter_test/04: Crash
+type_parameter_test/05: Crash
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
 not_enough_positional_arguments_test/02: Crash  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
+constructor_duplicate_initializers_test/03: Crash
+deopt_inlined_function_lazy_test: Timeout
+ref_before_declaration_test/00: Crash
+ref_before_declaration_test/01: Crash
+ref_before_declaration_test/02: Crash
+ref_before_declaration_test/03: Crash
+ref_before_declaration_test/04: Crash
+ref_before_declaration_test/05: Crash
+ref_before_declaration_test/06: Crash
+ref_before_declaration_test/07: Crash
+ref_before_declaration_test/none: Crash
+try_catch_syntax_test/05: Crash
+
+[ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]
+external_test/13: Crash
+final_syntax_test/09: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]

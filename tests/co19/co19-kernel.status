@@ -2725,8 +2725,25 @@ Language/Statements/Local_Variable_Declaration/syntax_t18: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t19: CompileTimeError
 LibTest/isolate/Isolate/spawnUri_A02_t04: RuntimeError
 
+[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+Language/Classes/Constructors/Constant_Constructors/syntax_t03: Crash
+Language/Classes/Instance_Variables/constant_t01: Crash
+Language/Expressions/Lists/constant_list_t01: Crash
+Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
+Language/Statements/Switch/syntax_t16: Crash
+Language/Statements/Switch/syntax_t17: Crash
+Language/Statements/Yield_and_Yield_Each/Yield/location_t02: Crash
+Language/Statements/Yield_and_Yield_Each/Yield/location_t04: Crash
+Language/Statements/Yield_and_Yield_Each/Yield/location_t06: Crash
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t02: Crash
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t04: Crash
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t06: Crash
+
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
+Language/Overview/Scoping/conflicting_names_t43: Crash
+Language/Overview/Scoping/hiding_declaration_t11: Crash
+Language/Overview/Scoping/hiding_declaration_t12: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
@@ -2822,3 +2839,4 @@ Language/Variables/final_t03: MissingCompileTimeError
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $runtime == dart_precompiled && $mode == debug ]
+Language/Functions/External_Functions/not_connected_to_a_body_t01: Crash
