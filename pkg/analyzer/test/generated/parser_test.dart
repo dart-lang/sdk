@@ -83,7 +83,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   Expression parseAssignableExpression(String code, bool primaryAllowed);
 
   Expression parseAssignableSelector(
-      String code, Expression prefix, bool optional,
+      String code, bool optional,
       {bool allowConditional: true});
 
   AwaitExpression parseAwaitExpression(String code);
@@ -4231,7 +4231,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseAssignableSelector_dot() {
-    Expression expression = parseAssignableSelector('.x', null, true);
+    Expression expression = parseAssignableSelector('.x', true);
     expect(expression, isNotNull);
     assertNoErrors();
     var propertyAccess = expression as PropertyAccess;
@@ -4240,7 +4240,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseAssignableSelector_index() {
-    Expression expression = parseAssignableSelector('[x]', null, true);
+    Expression expression = parseAssignableSelector('[x]', true);
     expect(expression, isNotNull);
     assertNoErrors();
     var indexExpression = expression as IndexExpression;
@@ -4250,8 +4250,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseAssignableSelector_none() {
-    Expression expression =
-        parseAssignableSelector(';', astFactory.simpleIdentifier(null), true);
+    Expression expression = parseAssignableSelector('', true);
     expect(expression, isNotNull);
     assertNoErrors();
     var identifier = expression as SimpleIdentifier;
@@ -4259,7 +4258,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseAssignableSelector_question_dot() {
-    Expression expression = parseAssignableSelector('?.x', null, true);
+    Expression expression = parseAssignableSelector('?.x', true);
     expect(expression, isNotNull);
     assertNoErrors();
     var propertyAccess = expression as PropertyAccess;
@@ -7720,8 +7719,10 @@ class ParserTestCase extends EngineTestCase
 
   @override
   Expression parseAssignableSelector(
-      String code, Expression prefix, bool optional,
+      String code, bool optional,
       {bool allowConditional: true}) {
+    Expression prefix =
+        astFactory.simpleIdentifier(new StringToken(TokenType.STRING, 'foo', 0));
     createParser(code);
     return parser.parseAssignableSelector(prefix, optional,
         allowConditional: allowConditional);

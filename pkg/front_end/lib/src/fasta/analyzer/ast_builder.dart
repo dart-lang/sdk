@@ -240,6 +240,7 @@ class AstBuilder extends ScopeListener {
   void handleBinaryExpression(Token token) {
     debugEvent("BinaryExpression");
     if (identical(".", token.stringValue) ||
+        identical("?.", token.stringValue) ||
         identical("..", token.stringValue)) {
       doDotExpression(token);
     } else {

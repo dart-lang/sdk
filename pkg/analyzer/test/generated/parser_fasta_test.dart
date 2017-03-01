@@ -408,12 +408,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseAssignableExpression_expression_question_dot() {
-    super.test_parseAssignableExpression_expression_question_dot();
-  }
-
-  @override
-  @failingTest
   void
       test_parseAssignableExpression_identifier_args_dot_typeParameterComments() {
     super
@@ -424,36 +418,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseAssignableExpression_identifier_dot() {
     super.test_parseAssignableExpression_identifier_dot();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssignableExpression_identifier_question_dot() {
-    super.test_parseAssignableExpression_identifier_question_dot();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssignableSelector_dot() {
-    super.test_parseAssignableSelector_dot();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssignableSelector_index() {
-    super.test_parseAssignableSelector_index();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssignableSelector_none() {
-    super.test_parseAssignableSelector_none();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssignableSelector_question_dot() {
-    super.test_parseAssignableSelector_question_dot();
   }
 
   @override
@@ -845,24 +809,10 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parsePostfixExpression_none_methodInvocation_question_dot() {
-    super.test_parsePostfixExpression_none_methodInvocation_question_dot();
-  }
-
-  @override
-  @failingTest
   void
       test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments() {
     super
         .test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void
-      test_parsePostfixExpression_none_methodInvocation_question_dot_typeArguments() {
-    super
-        .test_parsePostfixExpression_none_methodInvocation_question_dot_typeArguments();
   }
 
   @override
@@ -1066,10 +1016,9 @@ class FastaParserTestCase extends Object
   }
 
   @override
-  Expression parseAssignableSelector(
-      String code, Expression prefix, bool optional,
+  Expression parseAssignableSelector(String code, bool optional,
       {bool allowConditional: true}) {
-    return _parseExpression(code);
+    return _parseExpression('foo$code');
   }
 
   @override
