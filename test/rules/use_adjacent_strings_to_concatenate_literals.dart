@@ -22,5 +22,4 @@ main() {
   String string4 = prefix + 'really' + string3; // OK
 
   String string5 = 'but this' + ' not'; // LINT
-
 }

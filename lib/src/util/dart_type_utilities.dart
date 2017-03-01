@@ -14,9 +14,7 @@ typedef bool AstNodePredicate(AstNode node);
 
 class DartTypeUtilities {
   static bool extendsClass(DartType type, String className, String library) =>
-      type != null &&
-          type.name == className &&
-          type.element.library.name == library ||
+      isClass(type, className, library) ||
       (type is InterfaceType &&
           extendsClass(type.superclass, className, library));
 
@@ -47,6 +45,11 @@ class DartTypeUtilities {
             type is InterfaceType &&
             element.allSupertypes.any(predicate);
   }
+
+  static bool isClass(DartType type, String className, String library) =>
+      type != null &&
+      type.name == className &&
+      type.element.library.name == library;
 
   /// Builds the list resulting from traversing the node in DFS and does not
   /// include the node itself, it excludes the nodes for which the exclusion
