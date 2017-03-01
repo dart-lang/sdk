@@ -208,7 +208,7 @@ class Parser {
    * A flag indicating whether the parser is to allow URI's in part-of
    * directives.
    */
-  bool _enableUriInPartOf = false;
+  bool _enableUriInPartOf = true;
 
   /**
    * A flag indicating whether parser is to parse function bodies.

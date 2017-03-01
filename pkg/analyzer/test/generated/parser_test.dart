@@ -3419,7 +3419,8 @@ class Foo {
 
   void test_nonIdentifierLibraryName_partOf() {
     CompilationUnit unit = parseCompilationUnit(
-        "part of 'lib';", [ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME]);
+        "part of 3;", [ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE,
+                       ParserErrorCode.UNEXPECTED_TOKEN]);
     expect(unit, isNotNull);
   }
 
