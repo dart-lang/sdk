@@ -474,8 +474,7 @@ class LibraryAnalyzer {
       }
     }
 
-    if (hasPartDirective && libraryNameNode == null &&
-        !_context.analysisOptions.enableUriInPartOf) {
+    if (hasPartDirective && libraryNameNode == null) {
       libraryErrorReporter.reportErrorForOffset(
           ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART, 0, 0);
     }

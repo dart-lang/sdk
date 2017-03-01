@@ -14,7 +14,7 @@ typedef _FutureAction();
 abstract class _Completer<T> implements Completer<T> {
   final _Future<T> future = new _Future<T>();
 
-  void complete([FutureOr<T> value]);
+  void complete([value]);
 
   void completeError(Object error, [StackTrace stackTrace]) {
     error = _nonNullError(error);
@@ -36,7 +36,7 @@ abstract class _Completer<T> implements Completer<T> {
 
 class _AsyncCompleter<T> extends _Completer<T> {
 
-  void complete([FutureOr<T> value]) {
+  void complete([value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
     future._asyncComplete(value);
   }
@@ -47,7 +47,7 @@ class _AsyncCompleter<T> extends _Completer<T> {
 }
 
 class _SyncCompleter<T> extends _Completer<T> {
-  void complete([FutureOr<T> value]) {
+  void complete([value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
     future._complete(value);
   }

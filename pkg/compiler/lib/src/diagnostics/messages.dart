@@ -292,7 +292,6 @@ enum MessageKind {
   LIBRARY_NOT_FOUND,
   LIBRARY_NOT_SUPPORTED,
   LIBRARY_TAG_MUST_BE_FIRST,
-  LIBRARY_URI_MISMATCH,
   MAIN_HAS_PART_OF,
   MAIN_NOT_A_FUNCTION,
   MAIN_WITH_EXTRA_PARAMETER,
@@ -2074,26 +2073,6 @@ main() {}
 """,
               'part.dart': """
 part of lib.bar;
-"""
-            }
-          ]),
-
-      MessageKind.LIBRARY_URI_MISMATCH: const MessageTemplate(
-          MessageKind.LIBRARY_URI_MISMATCH,
-          "Expected URI of library '#{libraryUri}'.",
-          howToFix: "Try changing the directive to 'part of "
-                    "\"#{libraryUri}\";'.",
-          examples: const [
-            const {
-              'main.dart': """
-library lib.foo;
-
-part 'part.dart';
-
-main() {}
-""",
-              'part.dart': """
-part of 'not-main.dart';
 """
             }
           ]),

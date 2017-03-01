@@ -766,13 +766,8 @@ library lib;
     Source partSource = addSource("/part.dart", "part of 'lib';");
     context.parseCompilationUnit(librarySource);
     List<AnalysisError> errors = context.computeErrors(partSource);
-    if (context.analysisOptions.enableUriInPartOf) {
-      // TODO(28522)
-      // Should report that 'lib' isn't the correct URI.
-    } else {
-      expect(errors, isNotNull);
-      expect(errors.length > 0, isTrue);
-    }
+    expect(errors, isNotNull);
+    expect(errors.length > 0, isTrue);
   }
 
   void test_computeErrors_dart_some() {

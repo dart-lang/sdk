@@ -344,13 +344,8 @@ class Parser {
     assert(optional('part', token));
     assert(optional('of', token.next));
     Token partKeyword = token;
-    token = token.next.next;
-    if (token.isIdentifier()) {
-      token = parseQualified(token, IdentifierContext.partName,
-            IdentifierContext.partNameContinuation);
-    } else {
-      token = parseLiteralStringOrRecoverExpression(token);
-    }
+    token = parseQualified(token.next.next, IdentifierContext.partName,
+        IdentifierContext.partNameContinuation);
     Token semicolon = token;
     token = expect(';', token);
     listener.endPartOf(partKeyword, semicolon);

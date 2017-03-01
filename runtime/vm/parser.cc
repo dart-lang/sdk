@@ -6386,16 +6386,12 @@ void Parser::ParsePartHeader() {
     ReportError("'part of' expected");
   }
   ConsumeToken();
-  // The VM is not required to check that the library name or URI matches the
-  // name or URI of the current library, so we ignore them.
-  if (CurrentToken() == Token::kSTRING) {
-    ParseStringLiteral(false);
-  } else {
-    ExpectIdentifier("library name expected");
-    while (CurrentToken() == Token::kPERIOD) {
-      ConsumeToken();
-      ExpectIdentifier("malformed library name");
-    }
+  // The VM is not required to check that the library name matches the
+  // name of the current library, so we ignore it.
+  ExpectIdentifier("library name expected");
+  while (CurrentToken() == Token::kPERIOD) {
+    ConsumeToken();
+    ExpectIdentifier("malformed library name");
   }
   ExpectSemicolon();
 }
