@@ -44,11 +44,6 @@ class AstBuilder extends ScopeListener {
   @override
   final Uri uri;
 
-  /// If `true`, the first call to [handleIdentifier] should push a
-  /// List<SimpleIdentifier> on the stack, and [handleQualified] should append
-  /// to the list.
-  var accumulateIdentifierComponents = false;
-
   /// The name of the class currently being parsed, or `null` if no class is
   /// being parsed.
   String className;
