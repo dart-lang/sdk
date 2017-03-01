@@ -379,7 +379,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("VariablesDeclaration");
     List<VariableDeclaration> variables = popList(count);
     TypeName type = pop();
-    pop(); // Modifiers.
+    pop(); // TODO(paulberry): Modifiers.
     push(ast.variableDeclarationStatement(
         ast.variableDeclarationList(null, null, null, type, variables),
         toAnalyzerToken(endToken)));
@@ -570,7 +570,8 @@ class AstBuilder extends ScopeListener {
     } else {
       name = nameOrFunctionTypedParameter;
       TypeName type = pop();
-      Token keyword = _popOptionalSingleModifier();
+      _Modifiers modifiers = pop();
+      Token keyword = modifiers?.finalConstOrVarKeyword;
       pop(); // TODO(paulberry): Metadata.
       if (thisKeyword == null) {
         node = ast.simpleFormalParameter2(
@@ -613,8 +614,8 @@ class AstBuilder extends ScopeListener {
     TypeName returnType = pop();
 
     {
-      List<Token> modifiers = pop();
-      if (modifiers.isNotEmpty) {
+      _Modifiers modifiers = pop();
+      if (modifiers != null) {
         // TODO(scheglov): Report error.
         internalError('Unexpected modifier. Report an error.');
       }
@@ -763,7 +764,11 @@ class AstBuilder extends ScopeListener {
 
   void handleModifiers(int count) {
     debugEvent("Modifiers");
-    push(popList(count) ?? const <Token>[]);
+    if (count == 0) {
+      push(NullValue.Modifiers);
+    } else {
+      push(new _Modifiers(popList(count)));
+    }
   }
 
   FunctionBody _endFunctionBody() {
@@ -796,7 +801,8 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier name = pop();
     analyzer.Token propertyKeyword = toAnalyzerToken(getOrSet);
     TypeAnnotation returnType = pop();
-    Token externalKeyword = _popOptionalSingleModifier();
+    _Modifiers modifiers = pop();
+    Token externalKeyword = modifiers?.externalKeyword;
     List<Annotation> metadata = pop();
     // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
@@ -983,7 +989,8 @@ class AstBuilder extends ScopeListener {
     SimpleIdentifier name = pop();
     assert(className == name.name);
     className = null;
-    Token abstractKeyword = _popOptionalSingleModifier();
+    _Modifiers modifiers = pop();
+    Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
     // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
@@ -1031,7 +1038,8 @@ class AstBuilder extends ScopeListener {
     analyzer.Token equals = toAnalyzerToken(equalsToken);
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
-    Token abstractKeyword = _popOptionalSingleModifier();
+    _Modifiers modifiers = pop();
+    Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
     // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
@@ -1137,7 +1145,8 @@ class AstBuilder extends ScopeListener {
     debugEvent("TopLevelFields");
     List<VariableDeclaration> variables = popList(count);
     TypeAnnotation type = pop();
-    Token keyword = _popOptionalSingleModifier();
+    _Modifiers modifiers = pop();
+    Token keyword = modifiers?.finalConstOrVarKeyword;
     var variableList = ast.variableDeclarationList(
         null, null, toAnalyzerToken(keyword), type, variables);
     List<Annotation> metadata = pop();
@@ -1182,28 +1191,7 @@ class AstBuilder extends ScopeListener {
     TypeParameterList typeParameters = pop(); // TODO(paulberry)
     var name = pop();
     TypeAnnotation returnType = pop(); // TODO(paulberry)
-    Token modifierKeyword = null; // TODO(paulberry)
-    Token externalKeyword = null;
-    Token constKeyword = null;
-    Token factoryKeyword = null;
-    List<Token> modifiers = pop();
-    for (Token modifier in modifiers) {
-      String value = modifier.stringValue;
-      if (identical('external', value)) {
-        // TODO(scheglov): Check the order and uniqueness.
-        externalKeyword = modifier;
-      } else if (identical('const', value)) {
-        // TODO(scheglov): Check the order and uniqueness.
-        constKeyword = modifier;
-      } else if (identical('factory', value)) {
-        // TODO(scheglov): Check the order and uniqueness.
-        factoryKeyword = modifier;
-      } else {
-        // TODO(scheglov): Report error.
-        internalError("Invalid modifier ($value). Report an error.");
-      }
-    }
-
+    _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
@@ -1213,9 +1201,9 @@ class AstBuilder extends ScopeListener {
       push(ast.constructorDeclaration(
           comment,
           metadata,
-          toAnalyzerToken(externalKeyword),
-          toAnalyzerToken(constKeyword),
-          toAnalyzerToken(factoryKeyword),
+          toAnalyzerToken(modifiers?.externalKeyword),
+          toAnalyzerToken(modifiers?.finalConstOrVarKeyword),
+          null, // TODO(paulberry): factoryKeyword
           returnType,
           toAnalyzerToken(period),
           name,
@@ -1230,8 +1218,9 @@ class AstBuilder extends ScopeListener {
       push(ast.methodDeclaration(
           comment,
           metadata,
-          toAnalyzerToken(externalKeyword),
-          toAnalyzerToken(modifierKeyword),
+          toAnalyzerToken(modifiers?.externalKeyword),
+          toAnalyzerToken(
+              modifiers?.abstractKeyword ?? modifiers?.staticKeyword),
           returnType,
           toAnalyzerToken(getOrSet),
           toAnalyzerToken(operatorKeyword),
@@ -1351,24 +1340,9 @@ class AstBuilder extends ScopeListener {
     debugEvent("Fields");
     List<VariableDeclaration> variables = popList(count);
     TypeAnnotation type = pop();
-    List<Token> modifiers = pop();
-    Token staticKeyword;
-    Token keyword;
-    for (Token modifier in modifiers) {
-      String value = modifier.stringValue;
-      if (identical('static', value)) {
-        // TODO(paulberry): Check the order and uniqueness.
-        staticKeyword = modifier;
-      } else if (identical('var', value)) {
-        // TODO(paulberry): Check the order and uniqueness.
-        keyword = modifier;
-      } else {
-        // TODO(paulberry): Report error.
-        internalError("Invalid modifier ($value). Report an error.");
-      }
-    }
-    var variableList = ast.variableDeclarationList(
-        null, null, toAnalyzerToken(keyword), type, variables);
+    _Modifiers modifiers = pop();
+    var variableList = ast.variableDeclarationList(null, null,
+        toAnalyzerToken(modifiers?.finalConstOrVarKeyword), type, variables);
     List<Annotation> metadata = pop();
     // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
@@ -1376,7 +1350,7 @@ class AstBuilder extends ScopeListener {
         comment: comment,
         metadata: metadata,
         covariantKeyword: toAnalyzerToken(covariantKeyword),
-        staticKeyword: toAnalyzerToken(staticKeyword),
+        staticKeyword: toAnalyzerToken(modifiers?.staticKeyword),
         fieldList: variableList,
         semicolon: toAnalyzerToken(endToken)));
   }
@@ -1386,24 +1360,6 @@ class AstBuilder extends ScopeListener {
     debugEvent("OperatorName");
     push(new _OperatorName(operatorKeyword,
         ast.simpleIdentifier(toAnalyzerToken(token), isDeclaration: true)));
-  }
-
-  /**
-   * Pop the modifiers list, if the list is empty return `null`, if the list
-   * has one item return it; otherwise return `null`.
-   */
-  Token _popOptionalSingleModifier() {
-    List<Token> modifiers = pop();
-    if (modifiers.length == 0) {
-      return null;
-    } else if (modifiers.length == 1) {
-      // TODO(scheglov): Verify that the modifier is valid.
-      return modifiers[0];
-    } else {
-      // TODO(scheglov): Report error.
-      internalError("Invalid modifier. Report an error.");
-      return null;
-    }
   }
 
   ParameterKind _toAnalyzerParameterKind(FormalParameterType type) {
@@ -1474,4 +1430,37 @@ class _OperatorName {
   final SimpleIdentifier name;
 
   _OperatorName(this.operatorKeyword, this.name);
+}
+
+/// Data structure placed on the stack to represent a non-empty sequence
+/// of modifiers.
+class _Modifiers {
+  Token abstractKeyword;
+  Token externalKeyword;
+  Token finalConstOrVarKeyword;
+  Token staticKeyword;
+
+  _Modifiers(List<Token> modifierTokens) {
+    // No need to check the order and uniqueness of the modifiers, or that
+    // disallowed modifiers are not used; the parser should do that.
+    // TODO(paulberry,ahe): implement the necessary logic in the parser.
+    for (var token in modifierTokens) {
+      var s = token.value;
+      if (identical('abstract', s)) {
+        abstractKeyword = token;
+      } else if (identical('const', s)) {
+        finalConstOrVarKeyword = token;
+      } else if (identical('external', s)) {
+        externalKeyword = token;
+      } else if (identical('final', s)) {
+        finalConstOrVarKeyword = token;
+      } else if (identical('static', s)) {
+        staticKeyword = token;
+      } else if (identical('var', s)) {
+        finalConstOrVarKeyword = token;
+      } else {
+        internalError('Unhandled modifier: $s');
+      }
+    }
+  }
 }
