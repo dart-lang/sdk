@@ -12,7 +12,7 @@ import 'dart:_foreign_helper' show
 
 import 'dart:_interceptors';
 import 'dart:_internal' show
-    EfficientLength,
+    EfficientLengthIterable,
     MappedIterable,
     IterableElementError;
 

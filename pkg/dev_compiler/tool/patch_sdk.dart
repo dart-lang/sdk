@@ -15,39 +15,42 @@ import 'package:path/path.dart' as path;
 
 void main(List<String> argv) {
   var self = path.relative(path.fromUri(Platform.script));
-  if (argv.length < 2) {
+  if (argv.length < 3) {
     var toolDir = path.relative(path.dirname(path.fromUri(Platform.script)));
 
-    var inputExample = path.join(toolDir, 'input_sdk');
+    var inputExample = path.join(toolDir, '..', '..', '..');
+    var patchExample = path.join(toolDir, 'input_sdk');
     var outExample =
         path.relative(path.normalize(path.join('gen', 'patched_sdk')));
 
-    print('Usage: $self INPUT_DIR OUTPUT_DIR');
+    print('Usage: $self INPUT_SDK_DIR PATCH_DIR OUTPUT_DIR');
     print('For example:');
-    print('\$ $self $inputExample $outExample');
+    print('\$ $self $inputExample $patchExample $outExample');
     exit(1);
   }
 
   var selfModifyTime = new File(self).lastModifiedSync().millisecondsSinceEpoch;
 
-  var input = argv[0];
-  var sdkLibIn = path.join(input, 'lib');
-  var patchIn = path.join(input, 'patch');
-  var privateIn = path.join(input, 'private');
-  var sdkOut = path.join(argv[1], 'lib');
+  var inputDir = argv[0];
+  var patchDir = argv[1];
+  var sdkLibIn = path.join(inputDir, 'sdk', 'lib');
+  var patchIn = path.join(patchDir, 'patch');
+  var privateIn = path.join(patchDir, 'private');
+  var sdkOut = path.join(argv[2], 'lib');
 
-  var INTERNAL_PATH = '_internal/compiler/js_lib/';
+  var INTERNAL_PATH = '_internal/js_runtime/lib/';
 
   // Copy libraries.dart and version
-  var libContents = new File(path.join(sdkLibIn, '_internal', 'libraries.dart'))
-      .readAsStringSync();
+  var librariesDart = path.join(patchDir, 'libraries.dart');
+  var libContents = new File(librariesDart).readAsStringSync();
+  // TODO(jmesserly): can we remove this?
   _writeSync(path.join(sdkOut, '_internal', 'libraries.dart'), libContents);
   _writeSync(
       path.join(
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
       libContents);
   _writeSync(path.join(sdkOut, '..', 'version'),
-      new File(path.join(sdkLibIn, '..', 'version')).readAsStringSync());
+      new File(path.join(inputDir, 'tools', 'VERSION')).readAsStringSync());
 
   // Parse libraries.dart
   var sdkLibraries = _getSdkLibraries(libContents);
@@ -60,10 +63,13 @@ void main(List<String> argv) {
     if (library.isVmLibrary) continue;
 
     var libraryOut = path.join(sdkLibIn, library.path);
+    var libraryOverride = path.join(patchDir, 'lib', library.path);
     var libraryIn;
     if (library.path.contains(INTERNAL_PATH)) {
       libraryIn =
           path.join(privateIn, library.path.replaceAll(INTERNAL_PATH, ''));
+    } else if (new File(libraryOverride).existsSync()) {
+      libraryIn = libraryOverride;
     } else {
       libraryIn = libraryOut;
     }
@@ -124,8 +130,12 @@ void main(List<String> argv) {
           contents = _patchLibrary(contents, patchContents);
         }
 
-        for (var i = 0; i < outPaths.length; i++) {
-          _writeSync(outPaths[i], contents[i]);
+        if (contents != null) {
+          for (var i = 0; i < outPaths.length; i++) {
+            _writeSync(outPaths[i], contents[i]);
+          }
+        } else {
+          exitCode = 2;
         }
       }
     }
@@ -167,12 +177,16 @@ List<String> _patchLibrary(List<String> partsContents, String patchContents) {
   var patchFinder = new PatchFinder.parseAndVisit(patchContents);
 
   // Merge `external` declarations with the corresponding `@patch` code.
+  bool failed = false;
   for (var partContent in partsContents) {
     var partEdits = new StringEditBuffer(partContent);
     var partUnit = parseCompilationUnit(partContent);
-    partUnit.accept(new PatchApplier(partEdits, patchFinder));
+    var patcher = new PatchApplier(partEdits, patchFinder);
+    partUnit.accept(patcher);
+    if (!failed) failed = patcher.patchWasMissing;
     results.add(partEdits);
   }
+  if (failed) return null;
   return new List<String>.from(results.map((e) => e.toString()));
 }
 
@@ -182,6 +196,7 @@ class PatchApplier extends GeneralizingAstVisitor {
   final PatchFinder patch;
 
   bool _isLibrary = true; // until proven otherwise.
+  bool patchWasMissing = false;
 
   PatchApplier(this.edits, this.patch);
 
@@ -258,6 +273,7 @@ class PatchApplier extends GeneralizingAstVisitor {
     var patchNode = patch.patches[name];
     if (patchNode == null) {
       print('warning: patch not found for $name: $node');
+      patchWasMissing = true;
       return;
     }
 

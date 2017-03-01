@@ -127,7 +127,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   final ClassElement objectClass;
   final ClassElement stringClass;
   final ClassElement functionClass;
-  final ClassElement symbolClass;
+  final ClassElement privateSymbolClass;
 
   ConstFieldVisitor _constants;
 
@@ -174,7 +174,8 @@ class CodeGenerator extends GeneralizingAstVisitor
         objectClass = _getLibrary(c, 'dart:core').getType('Object'),
         stringClass = _getLibrary(c, 'dart:core').getType('String'),
         functionClass = _getLibrary(c, 'dart:core').getType('Function'),
-        symbolClass = _getLibrary(c, 'dart:_internal').getType('Symbol'),
+        privateSymbolClass =
+            _getLibrary(c, 'dart:_internal').getType('PrivateSymbol'),
         dartJSLibrary = _getLibrary(c, 'dart:js');
 
   LibraryElement get currentLibrary => _loader.currentElement.library;
@@ -2272,8 +2273,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       // Run constructor field initializers such as `: foo = bar.baz`
       for (var init in ctor.initializers) {
         if (init is ConstructorFieldInitializer) {
-          fields[init.fieldName.staticElement as FieldElement] =
-              _visit(init.expression);
+          var element = init.fieldName.staticElement as FieldElement;
+          fields[element] = _visit(init.expression);
         }
       }
     }
@@ -5367,8 +5368,11 @@ class CodeGenerator extends GeneralizingAstVisitor
       var name = js.string(node.components.join('.'), "'");
       if (last.startsWith('_')) {
         var nativeSymbol = _emitPrivateNameSymbol(currentLibrary, last);
-        return js.call('new #.es6(#, #)',
-            [_emitConstructorAccess(symbolClass.type), name, nativeSymbol]);
+        return js.call('new #(#, #)', [
+          _emitConstructorAccess(privateSymbolClass.type),
+          name,
+          nativeSymbol
+        ]);
       } else {
         return js
             .call('#.new(#)', [_emitConstructorAccess(types.symbolType), name]);

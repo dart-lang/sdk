@@ -11,11 +11,7 @@ import 'dart:_foreign_helper' show JS;
 class Symbol implements core.Symbol {
   @patch
   const Symbol(String name)
-      : this._name = name, this._nativeSymbol = null;
-
-  @patch
-  const Symbol.es6(String name, dynamic nativeSymbol)
-      : this._name = name, this._nativeSymbol = nativeSymbol;
+      : this._name = name;
 
   @patch
   int get hashCode {
@@ -26,6 +22,33 @@ class Symbol implements core.Symbol {
     JS('', '#._hashCode = #', this, hash);
     return hash;
   }
+  
+  @patch
+  toString() => 'Symbol("$_name")';
+}
+
+/// Used internally by DDC to map ES6 symbols to Dart.
+class PrivateSymbol implements core.Symbol {
+  // TODO(jmesserly): could also get this off the native symbol instead of
+  // storing it. Mirrors already does this conversion.
+  final String _name;
+  final Object _nativeSymbol;
+
+  const PrivateSymbol(this._name, this._nativeSymbol);
+
+  static String getName(core.Symbol symbol) =>
+      (symbol as PrivateSymbol)._name;
+
+  static Object getNativeSymbol(core.Symbol symbol) {
+    if (symbol is PrivateSymbol) return symbol._nativeSymbol;
+    return null;
+  }
+
+  bool operator ==(other) => other is PrivateSymbol &&
+      identical(_nativeSymbol, other._nativeSymbol);
+
+  // TODO(jmesserly): is this equivalent to _nativeSymbol toString?
+  toString() => 'Symbol("$_name")';
 }
 
 @patch

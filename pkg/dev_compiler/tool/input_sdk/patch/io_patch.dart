@@ -135,6 +135,18 @@ class _File {
     throw new UnsupportedError("File._lastModified");
   }
   @patch
+  static _lastAccessed(String path) {
+    throw new UnsupportedError("File._lastAccessed");
+  }
+  @patch
+  static _setLastModified(String path, int millis) {
+    throw new UnsupportedError("File._setLastModified");
+  }
+  @patch
+  static _setLastAccessed(String path, int millis) {
+    throw new UnsupportedError("File._setLastAccessed");
+  }
+  @patch
   static _open(String path, int mode) {
     throw new UnsupportedError("File._open");
   }

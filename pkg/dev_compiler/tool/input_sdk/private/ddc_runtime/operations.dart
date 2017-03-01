@@ -208,7 +208,7 @@ _toDisplayName(name) => JS(
 
 Symbol _dartSymbol(name) {
   return (JS('bool', 'typeof # === "symbol"', name))
-      ? JS('', '#(new #.es6(#, #))', const_, _internal.Symbol,
+      ? JS('', '#(new #(#, #))', const_, _internal.PrivateSymbol,
           _toSymbolName(name), name)
       : JS('', '#(#.new(#))', const_, Symbol, _toDisplayName(name));
 }

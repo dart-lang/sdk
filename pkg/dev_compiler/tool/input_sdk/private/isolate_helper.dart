@@ -382,10 +382,6 @@ class _IsolateContext implements IsolateContext {
       return;
     }
     void respond() { responsePort.send(null); }
-    if (pingType == Isolate.AS_EVENT) {
-      _globalState.topEventLoop.enqueue(this, respond, "ping");
-      return;
-    }
     assert(pingType == Isolate.BEFORE_NEXT_EVENT);
     if (_scheduledControlEvents == null) {
       _scheduledControlEvents = new Queue();
@@ -399,10 +395,6 @@ class _IsolateContext implements IsolateContext {
         (priority == Isolate.BEFORE_NEXT_EVENT &&
          !_isExecutingEvent)) {
       kill();
-      return;
-    }
-    if (priority == Isolate.AS_EVENT) {
-      _globalState.topEventLoop.enqueue(this, kill, "kill");
       return;
     }
     assert(priority == Isolate.BEFORE_NEXT_EVENT);
