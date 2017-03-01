@@ -69,6 +69,7 @@ import 'package:linter/src/rules/unnecessary_null_in_if_null_operators.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
 import 'package:linter/src/rules/use_adjacent_strings_to_concatenate_literals.dart';
 import 'package:linter/src/rules/use_collection_literals_when_possible.dart';
+import 'package:linter/src/rules/use_function_declaration_instead_of_variable.dart';
 import 'package:linter/src/rules/valid_regexps.dart';
 
 void registerLintRules() {
@@ -139,5 +140,6 @@ void registerLintRules() {
     ..register(new UnrelatedTypeEqualityChecks())
     ..register(new UseAdjacentStringsToConcatenateLiterals())
     ..register(new UseCollectionLiteralsWhenPossible())
+    ..register(new UseFunctionDeclarationInsteadOfVariable())
     ..register(new ValidRegExps());
 }
