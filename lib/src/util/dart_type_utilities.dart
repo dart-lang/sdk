@@ -49,7 +49,7 @@ class DartTypeUtilities {
   static bool isClass(DartType type, String className, String library) =>
       type != null &&
       type.name == className &&
-      type.element.library.name == library;
+      type.element?.library?.name == library;
 
   /// Builds the list resulting from traversing the node in DFS and does not
   /// include the node itself, it excludes the nodes for which the exclusion
