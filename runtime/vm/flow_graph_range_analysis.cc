@@ -2348,7 +2348,7 @@ void Range::BitwiseOp(const Range* left_range,
     *result_min = RangeBoundary::FromConstant(0);
   } else {
     *result_min =
-        RangeBoundary::FromConstant(static_cast<int64_t>(-1) << bitsize);
+        RangeBoundary::FromConstant(-(static_cast<int64_t>(1) << bitsize));
   }
 
   *result_max =
