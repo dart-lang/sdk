@@ -491,7 +491,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(
+      int count, Token covariantToken, Token beginToken, Token endToken) {
     debugEvent("Fields");
     List<String> names = popList(count);
     TypeBuilder type = pop();

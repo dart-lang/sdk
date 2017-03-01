@@ -183,7 +183,8 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(
+      int count, Token covariantToken, Token beginToken, Token endToken) {
     debugEvent("Fields");
     List<String> names = popList(count);
     Builder builder = lookupBuilder(beginToken, null, names.first);

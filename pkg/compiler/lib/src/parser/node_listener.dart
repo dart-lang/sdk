@@ -657,7 +657,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(
+      int count, Token covariantKeyword, Token beginToken, Token endToken) {
     NodeList variables = makeNodeList(count, null, endToken, ",");
     TypeAnnotation type = popNode();
     Modifiers modifiers = popNode();

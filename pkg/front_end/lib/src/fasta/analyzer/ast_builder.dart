@@ -1346,6 +1346,42 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void endFields(
+      int count, Token covariantKeyword, Token beginToken, Token endToken) {
+    debugEvent("Fields");
+    List<VariableDeclaration> variables = popList(count);
+    TypeAnnotation type = pop();
+    List<Token> modifiers = pop();
+    Token staticKeyword;
+    Token keyword;
+    for (Token modifier in modifiers) {
+      String value = modifier.stringValue;
+      if (identical('static', value)) {
+        // TODO(paulberry): Check the order and uniqueness.
+        staticKeyword = modifier;
+      } else if (identical('var', value)) {
+        // TODO(paulberry): Check the order and uniqueness.
+        keyword = modifier;
+      } else {
+        // TODO(paulberry): Report error.
+        internalError("Invalid modifier ($value). Report an error.");
+      }
+    }
+    var variableList = ast.variableDeclarationList(
+        null, null, toAnalyzerToken(keyword), type, variables);
+    List<Annotation> metadata = pop();
+    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
+    Comment comment = null;
+    push(ast.fieldDeclaration2(
+        comment: comment,
+        metadata: metadata,
+        covariantKeyword: toAnalyzerToken(covariantKeyword),
+        staticKeyword: toAnalyzerToken(staticKeyword),
+        fieldList: variableList,
+        semicolon: toAnalyzerToken(endToken)));
+  }
+
+  @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     debugEvent("OperatorName");
     push(new _OperatorName(operatorKeyword,

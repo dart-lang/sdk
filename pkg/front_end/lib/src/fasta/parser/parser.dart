@@ -1165,8 +1165,15 @@ class Parser {
       Token getOrSet, Token name, bool isTopLevel) {
     bool hasType = type != null;
 
+    Token covariantKeyword;
     if (getOrSet == null && !isTopLevel) {
-      modifiers = removeOptCovariantTokenIfNotStatic(modifiers);
+      // TODO(ahe): replace the method removeOptCovariantTokenIfNotStatic with
+      // a better mechanism.
+      Link<Token> newModifiers = removeOptCovariantTokenIfNotStatic(modifiers);
+      if (!identical(newModifiers, modifiers)) {
+        covariantKeyword = modifiers.first;
+        modifiers = newModifiers;
+      }
     }
 
     Token varFinalOrConst =
@@ -1219,7 +1226,7 @@ class Parser {
     if (isTopLevel) {
       listener.endTopLevelFields(fieldCount, start, semicolon);
     } else {
-      listener.endFields(fieldCount, start, semicolon);
+      listener.endFields(fieldCount, covariantKeyword, start, semicolon);
     }
     return token;
   }
@@ -1716,7 +1723,7 @@ class Parser {
         token = reportUnrecoverableError(token, ErrorKind.UnexpectedToken);
         if (identical(token.kind, EOF_TOKEN)) {
           // TODO(ahe): This is a hack, see parseTopLevelMember.
-          listener.endFields(1, start, token);
+          listener.endFields(1, null, start, token);
           listener.endMember();
           return token;
         }

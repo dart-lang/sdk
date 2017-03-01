@@ -179,8 +179,15 @@ class Listener {
     logEvent("FormalParameters");
   }
 
+  /// Handle the end of a field declaration.  Substructures:
+  /// - Metadata
+  /// - Modifiers
+  /// - Type
+  /// - Variable declarations (count times)
+  ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(
+      int count, Token covariantKeyword, Token beginToken, Token endToken) {
     logEvent("Fields");
   }
 

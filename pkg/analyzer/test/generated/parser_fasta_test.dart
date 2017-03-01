@@ -73,55 +73,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseClassMember_field_covariant() {
-    // TODO(paulberry): Unhandled event: Fields
-    super.test_parseClassMember_field_covariant();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_field_instance_prefixedType() {
-    // TODO(paulberry): Unhandled event: Fields
-    super.test_parseClassMember_field_instance_prefixedType();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_field_namedGet() {
-    // TODO(paulberry): Unhandled event: Fields
-    super.test_parseClassMember_field_namedGet();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_field_namedOperator() {
-    // TODO(paulberry): Unhandled event: Fields
-    super.test_parseClassMember_field_namedOperator();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_field_namedOperator_withAssignment() {
-    // TODO(paulberry): Unhandled event: Fields
-    super.test_parseClassMember_field_namedOperator_withAssignment();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_field_namedSet() {
-    // TODO(paulberry): Unhandled event: Fields
-    super.test_parseClassMember_field_namedSet();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_field_static() {
-    // TODO(paulberry): Unhandled event: Fields
-    super.test_parseClassMember_field_static();
-  }
-
-  @override
-  @failingTest
   void test_parseClassMember_getter_functionType() {
     // TODO(paulberry): InputError: ErrorKind.ExpectedFunctionBody {actual: get}
     super.test_parseClassMember_getter_functionType();
@@ -228,14 +179,14 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void test_parseInitializedIdentifierList_type() {
-    // TODO(paulberry): Unhandled event: Fields
+    // TODO(paulberry): handle doc comments
     super.test_parseInitializedIdentifierList_type();
   }
 
   @override
   @failingTest
   void test_parseInitializedIdentifierList_var() {
-    // TODO(paulberry): Unhandled event: Fields
+    // TODO(paulberry): handle doc comments
     super.test_parseInitializedIdentifierList_var();
   }
 
@@ -1402,13 +1353,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseClassDeclaration_native() {
     // TODO(paulberry): TODO(paulberry,ahe): Fasta parser doesn't appear to support "native" syntax yet.
     super.test_parseClassDeclaration_native();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassDeclaration_nonEmpty() {
-    // TODO(paulberry): Unhandled event: NoFieldInitializer
-    super.test_parseClassDeclaration_nonEmpty();
   }
 
   @override

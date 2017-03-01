@@ -295,7 +295,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(
+      int count, Token covariantKeyword, Token beginToken, Token endToken) {
     debugEvent("Fields");
     doFields(count);
     pop(); // Metadata.
