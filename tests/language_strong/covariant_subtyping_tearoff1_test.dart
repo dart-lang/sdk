@@ -7,8 +7,13 @@ class Foo<T> {
   dynamic method(T x) {}
 }
 
+typedef dynamic TakeNum(num x);
+
 main() {
   Foo<int> intFoo = new Foo<int>();
   Foo<num> numFoo = intFoo;
-  Expect.throws(() => numFoo.method(2.5));
+  TakeNum f = numFoo.method;
+  Expect.throws(() => f(2.5));
+  dynamic f2 = numFoo.method;
+  Expect.throws(() => f2(2.5));
 }

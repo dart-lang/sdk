@@ -3,12 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:expect/expect.dart';
 
-class Foo<T> {
-  dynamic method(T x) {}
+class Foo {
+  dynamic method(int x) {}
 }
 
 main() {
-  Foo<int> intFoo = new Foo<int>();
-  Foo<num> numFoo = intFoo;
-  Expect.throws(() => numFoo.method(2.5));
+  Foo foo = new Foo();
+
+  dynamic dynamicMethod1 = foo.method;
+  Expect.throws(() => dynamicMethod1(2.5));
+
+  dynamic dynamicMethod2 = (foo as dynamic).method;
+  Expect.throws(() => dynamicMethod2(2.5));
 }

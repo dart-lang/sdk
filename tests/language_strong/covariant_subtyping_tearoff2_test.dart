@@ -13,9 +13,14 @@ abstract class Interface<T> {
 
 class Subclass extends Implementation implements Interface<int> {}
 
+typedef dynamic TakeNum(num x);
+
 main() {
   Subclass subclass = new Subclass();
   Interface<int> intInterface = subclass;
   Interface<num> numInterface = intInterface;
-  Expect.throws(() => numInterface.method(2.5));
+  TakeNum f = numInterface.method;
+  Expect.throws(() => f(2.5));
+  dynamic f2 = f;
+  Expect.throws(() => f2(2.5));
 }
