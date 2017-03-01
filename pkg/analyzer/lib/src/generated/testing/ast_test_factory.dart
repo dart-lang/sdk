@@ -471,12 +471,11 @@ class AstTestFactory {
 
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword,
           TypeAnnotation type, List<VariableDeclaration> variables) =>
-      astFactory.fieldDeclaration(
-          null,
-          null,
-          isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null,
-          variableDeclarationList(keyword, type, variables),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      astFactory.fieldDeclaration2(
+          staticKeyword:
+              isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null,
+          fieldList: variableDeclarationList(keyword, type, variables),
+          semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static FieldDeclaration fieldDeclaration2(bool isStatic, Keyword keyword,
           List<VariableDeclaration> variables) =>

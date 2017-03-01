@@ -412,6 +412,20 @@ abstract class AstFactory {
       Token staticKeyword, VariableDeclarationList fieldList, Token semicolon);
 
   /**
+   * Returns a newly created field declaration. Either or both of the
+   * [comment] and [metadata] can be `null` if the declaration does not have the
+   * corresponding attribute. The [staticKeyword] can be `null` if the field is
+   * not a static field.
+   */
+  FieldDeclaration fieldDeclaration2(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token covariantKeyword,
+      Token staticKeyword,
+      @required VariableDeclarationList fieldList,
+      @required Token semicolon});
+
+  /**
    * Returns a newly created formal parameter. Either or both of the
    * [comment] and [metadata] can be `null` if the parameter does not have the
    * corresponding attribute. The [keyword] can be `null` if there is a type.

@@ -4325,6 +4325,7 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   /**
    * The 'covariant' keyword, or `null` if the keyword was not used.
    */
+  @override
   Token covariantKeyword;
 
   /**
@@ -4351,8 +4352,13 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
    * corresponding attribute. The [staticKeyword] can be `null` if the field is
    * not a static field.
    */
-  FieldDeclarationImpl(CommentImpl comment, List<Annotation> metadata,
-      this.staticKeyword, VariableDeclarationListImpl fieldList, this.semicolon)
+  FieldDeclarationImpl(
+      CommentImpl comment,
+      List<Annotation> metadata,
+      this.covariantKeyword,
+      this.staticKeyword,
+      VariableDeclarationListImpl fieldList,
+      this.semicolon)
       : super(comment, metadata) {
     _fieldList = _becomeParentOf(fieldList);
   }
