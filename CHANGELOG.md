@@ -1,5 +1,9 @@
 ## 1.23.0
 
+### Language
+* Allow using URI strings in `part of` declarations to refer to the 
+  importing library.
+
 ### Core library changes
 * `dart:core`: Added `Uri.isScheme` function to check the scheme of a URI.
    Example: `uri.isScheme("http")`. Ignores case when comparing.
