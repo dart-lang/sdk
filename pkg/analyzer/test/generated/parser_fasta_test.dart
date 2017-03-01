@@ -428,18 +428,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCascadeSection_i() {
-    super.test_parseCascadeSection_i();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_ia() {
-    super.test_parseCascadeSection_ia();
-  }
-
-  @override
-  @failingTest
   void test_parseCascadeSection_ia_typeArgumentComments() {
     super.test_parseCascadeSection_ia_typeArgumentComments();
   }
@@ -452,32 +440,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCascadeSection_ii() {
-    super.test_parseCascadeSection_ii();
-  }
-
-  @override
-  @failingTest
   void test_parseCascadeSection_ii_typeArgumentComments() {
     super.test_parseCascadeSection_ii_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_ii_typeArguments() {
-    super.test_parseCascadeSection_ii_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_p() {
-    super.test_parseCascadeSection_p();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_p_assign() {
-    super.test_parseCascadeSection_p_assign();
   }
 
   @override
@@ -500,32 +464,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCascadeSection_p_builtIn() {
-    super.test_parseCascadeSection_p_builtIn();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_pa() {
-    super.test_parseCascadeSection_pa();
-  }
-
-  @override
-  @failingTest
   void test_parseCascadeSection_pa_typeArgumentComments() {
     super.test_parseCascadeSection_pa_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_pa_typeArguments() {
-    super.test_parseCascadeSection_pa_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_paa() {
-    super.test_parseCascadeSection_paa();
   }
 
   @override
@@ -542,12 +482,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCascadeSection_paapaa() {
-    super.test_parseCascadeSection_paapaa();
-  }
-
-  @override
-  @failingTest
   void test_parseCascadeSection_paapaa_typeArgumentComments() {
     super.test_parseCascadeSection_paapaa_typeArgumentComments();
   }
@@ -560,20 +494,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCascadeSection_pap() {
-    super.test_parseCascadeSection_pap();
-  }
-
-  @override
-  @failingTest
   void test_parseCascadeSection_pap_typeArgumentComments() {
     super.test_parseCascadeSection_pap_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_pap_typeArguments() {
-    super.test_parseCascadeSection_pap_typeArguments();
   }
 
   @override
@@ -1043,7 +965,8 @@ class FastaParserTestCase extends Object
 
   @override
   Expression parseCascadeSection(String code) {
-    return _parseExpression('null$code');
+    var cascadeExpression = _parseExpression('null$code') as CascadeExpression;
+    return cascadeExpression.cascadeSections.single;
   }
 
   @override
