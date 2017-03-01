@@ -2093,7 +2093,7 @@ part 'part.dart';
 main() {}
 """,
               'part.dart': """
-part of "main.dart";
+part of 'not-main.dart';
 """
             }
           ]),
