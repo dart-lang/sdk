@@ -20,29 +20,27 @@ Future main() async {
   Uri sourceCompiler = await Isolate.resolvePackageUri(
       Uri.parse("package:front_end/src/fasta/bin/compile.dart"));
   Uri packages = await Isolate.packageConfig;
+  Directory tmp = await Directory.systemTemp.createTemp("fasta_bootstrap");
+  Uri compiledOnceOutput = tmp.uri.resolve("fasta1.dill");
+  Uri compiledTwiceOutput = tmp.uri.resolve("fasta2.dill");
   try {
-    Directory tmp = await Directory.systemTemp.createTemp("fasta_bootstrap");
-    Uri compiledOnceOutput = tmp.uri.resolve("fasta1.dill");
-    Uri compiledTwiceOutput = tmp.uri.resolve("fasta2.dill");
-    try {
-      await runCompiler(sourceCompiler, sourceCompiler, compiledOnceOutput);
-      await runCompiler(
-          compiledOnceOutput, sourceCompiler, compiledTwiceOutput);
-    } finally {
-      await tmp.delete(recursive: true);
-    }
+    await runCompiler(sourceCompiler, sourceCompiler, compiledOnceOutput);
+    await runCompiler(compiledOnceOutput, sourceCompiler, compiledTwiceOutput);
   } finally {
-    asyncEnd();
+    await tmp.delete(recursive: true);
   }
+  asyncEnd();
 }
 
 Future runCompiler(Uri compiler, Uri input, Uri output) async {
   Uri patchedSdk = await computePatchedSdk();
   Uri dartVm = Uri.base.resolve(Platform.resolvedExecutable);
   StdioProcess result = await StdioProcess.run(dartVm.toFilePath(), <String>[
+    "-c",
     compiler.toFilePath(),
     "--compile-sdk=${patchedSdk.toFilePath()}",
     "--output=${output.toFilePath()}",
+    "--verify",
     input.toFilePath(),
   ]);
   print(result.output);

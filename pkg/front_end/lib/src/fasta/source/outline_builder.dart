@@ -543,8 +543,9 @@ class OutlineBuilder extends UnhandledListener {
     AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     var name = pop();
+    int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFactoryMethod(metadata, name, formals, asyncModifier,
+    library.addFactoryMethod(metadata, modifiers, name, formals, asyncModifier,
         redirectionTarget, beginToken.charOffset, nativeMethodName);
     nativeMethodName = null;
   }

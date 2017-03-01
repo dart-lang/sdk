@@ -1816,24 +1816,26 @@ class Parser {
   Token parseFactoryMethod(Token token) {
     assert(isFactoryDeclaration(token));
     Token start = token;
-    Token externalModifier;
-    if (identical(token.stringValue, 'external')) {
-      externalModifier = token;
-      token = token.next;
+    bool isExternal = false;
+    int modifierCount = 0;
+    while (isModifier(token)) {
+      if (optional('external', token)) {
+        isExternal = true;
+      }
+      token = parseModifier(token);
+      modifierCount++;
     }
-    if (optional('const', token)) {
-      token = token.next; // Skip const.
-    }
+    listener.handleModifiers(modifierCount);
     Token factoryKeyword = token;
     listener.beginFactoryMethod(factoryKeyword);
-    token = token.next; // Skip 'factory'.
+    token = expect('factory', token);
     token = parseConstructorReference(token);
     token = parseFormalParameters(token);
     token = parseAsyncModifier(token);
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
-      token = parseFunctionBody(token, false, externalModifier != null);
+      token = parseFunctionBody(token, false, isExternal);
     }
     listener.endFactoryMethod(start, token);
     return token.next;

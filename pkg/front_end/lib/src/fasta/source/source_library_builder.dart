@@ -211,6 +211,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void addFactoryMethod(
       List<MetadataBuilder> metadata,
+      int modifiers,
       ConstructorReferenceBuilder name,
       List<FormalParameterBuilder> formals,
       AsyncMarker asyncModifier,

@@ -164,15 +164,8 @@ class NodeListener extends ElementListener {
       typeParameters = functionType.typeParameters;
       formals = functionType.formals;
     }
-    pushNode(new Typedef(
-        isGeneralizedTypeAlias,
-        templateParameters,
-        returnType,
-        name,
-        typeParameters,
-        formals,
-        typedefKeyword,
-        endToken));
+    pushNode(new Typedef(isGeneralizedTypeAlias, templateParameters, returnType,
+        name, typeParameters, formals, typedefKeyword, endToken));
   }
 
   void handleNoName(Token token) {
@@ -234,8 +227,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFormalParameter(Token covariantKeyword, Token thisKeyword,
-      FormalParameterType kind) {
+  void endFormalParameter(
+      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -757,8 +750,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token covariantKeyword,
-      Token thisKeyword, FormalParameterType kind) {
+  void endFunctionTypedFormalParameter(
+      Token covariantKeyword, Token thisKeyword, FormalParameterType kind) {
     NodeList formals = popNode();
     NodeList typeVariables = popNode();
     Identifier name = popNode();
@@ -777,8 +770,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleFormalParameterWithoutValue(Token token) {
-  }
+  void handleFormalParameterWithoutValue(Token token) {}
 
   @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
@@ -865,6 +857,7 @@ class NodeListener extends ElementListener {
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();
     Node name = popNode();
+    popNode(); // Discard modifiers. They're recomputed below.
 
     // TODO(ahe): Move this parsing to the parser.
     int modifierCount = 0;
