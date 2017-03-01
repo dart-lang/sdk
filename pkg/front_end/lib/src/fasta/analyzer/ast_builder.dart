@@ -69,6 +69,32 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
+    debugEvent("NoConstructorReferenceContinuationAfterTypeArguments");
+    push(NullValue.ConstructorReferenceContinuationAfterTypeArguments);
+  }
+
+  @override
+  void endConstructorReference(
+      Token start, Token periodBeforeName, Token endToken) {
+    debugEvent("ConstructorReference");
+    SimpleIdentifier constructorName = pop();
+    TypeArgumentList typeArguments = pop();
+    Identifier typeNameIdentifier = pop();
+    push(ast.constructorName(ast.typeName(typeNameIdentifier, typeArguments),
+        toAnalyzerToken(periodBeforeName), constructorName));
+  }
+
+  @override
+  void handleNewExpression(Token token) {
+    debugEvent("NewExpression");
+    MethodInvocation arguments = pop();
+    ConstructorName constructorName = pop();
+    push(ast.instanceCreationExpression(
+        toAnalyzerToken(token), constructorName, arguments.argumentList));
+  }
+
+  @override
   void handleParenthesizedExpression(BeginGroupToken token) {
     debugEvent("ParenthesizedExpression");
     Expression expression = pop();

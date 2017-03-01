@@ -10,7 +10,7 @@
 accessors: Crash
 await: Fail
 classes: Crash
-cycles: Crash
+cycles: Fail
 default_values: Crash
 expressions: Crash
 fibonacci: Crash
@@ -20,16 +20,16 @@ function_type_recovery: Crash
 functions: Crash
 implicit_this: Crash
 invocations: Fail
-map: Crash
+map: Fail
 mixin: Crash
 operators: Crash
-redirecting_constructor: Crash
+redirecting_constructor: Fail
 statements: Crash
 super_rasta_copy: Crash
 top_level_accessors: Crash
 typedef: Crash
 
-rasta/abstract_constructor: Crash
+rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Crash
 rasta/bad_continue: Crash
 rasta/bad_default_constructor: Crash
@@ -41,7 +41,7 @@ rasta/bad_setter_initializer: Crash
 rasta/bad_unicode: Fail
 rasta/breaking_bad: Crash
 rasta/cascades: Crash
-rasta/class_hierarchy: Crash
+rasta/class_hierarchy: Fail
 rasta/class_member: Crash
 rasta/constant_get_and_invoke: Crash
 rasta/deferred_lib: Fail
@@ -51,12 +51,12 @@ rasta/export: Fail
 rasta/external_factory_redirection: Crash
 rasta/foo: Fail
 rasta/for_loop: Crash
-rasta/generic_factory: Crash
+rasta/generic_factory: Fail
 rasta/issue_000001: Crash
 rasta/issue_000002: Crash
 rasta/issue_000004: Crash
 rasta/issue_000006: Crash
-rasta/issue_000007: Crash
+rasta/issue_000007: Fail
 rasta/issue_000008: Crash
 rasta/issue_000011: Crash
 rasta/issue_000012: Crash
@@ -107,7 +107,7 @@ rasta/try_label: Crash
 rasta/type_literals: Crash
 rasta/type_with_parse_error: Fail
 rasta/typedef: Crash
-rasta/unresolved: Crash
+rasta/unresolved: Fail
 rasta/unresolved_constructor: Crash
 rasta/unresolved_for_in: Crash
 rasta/unresolved_recovery: Fail

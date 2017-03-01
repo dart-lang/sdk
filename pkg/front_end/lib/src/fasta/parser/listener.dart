@@ -842,6 +842,10 @@ class Listener {
     logEvent("NoExpression");
   }
 
+  void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
+    logEvent("NoConstructorReferenceContinuationAfterTypeArguments");
+  }
+
   void handleNoType(Token token) {
     logEvent("NoType");
   }

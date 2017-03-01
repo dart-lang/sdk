@@ -562,30 +562,10 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseInstanceCreationExpression_qualifiedType() {
-    super.test_parseInstanceCreationExpression_qualifiedType();
-  }
-
-  @override
-  @failingTest
-  void test_parseInstanceCreationExpression_qualifiedType_named() {
-    super.test_parseInstanceCreationExpression_qualifiedType_named();
-  }
-
-  @override
-  @failingTest
   void
       test_parseInstanceCreationExpression_qualifiedType_named_typeParameterComment() {
     super
         .test_parseInstanceCreationExpression_qualifiedType_named_typeParameterComment();
-  }
-
-  @override
-  @failingTest
-  void
-      test_parseInstanceCreationExpression_qualifiedType_named_typeParameters() {
-    super
-        .test_parseInstanceCreationExpression_qualifiedType_named_typeParameters();
   }
 
   @override
@@ -598,24 +578,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseInstanceCreationExpression_qualifiedType_typeParameters() {
-    super.test_parseInstanceCreationExpression_qualifiedType_typeParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseInstanceCreationExpression_type() {
-    super.test_parseInstanceCreationExpression_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseInstanceCreationExpression_type_named() {
-    super.test_parseInstanceCreationExpression_type_named();
-  }
-
-  @override
-  @failingTest
   void test_parseInstanceCreationExpression_type_named_typeParameterComment() {
     super
         .test_parseInstanceCreationExpression_type_named_typeParameterComment();
@@ -623,20 +585,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseInstanceCreationExpression_type_named_typeParameters() {
-    super.test_parseInstanceCreationExpression_type_named_typeParameters();
-  }
-
-  @override
-  @failingTest
   void test_parseInstanceCreationExpression_type_typeParameterComment() {
     super.test_parseInstanceCreationExpression_type_typeParameterComment();
-  }
-
-  @override
-  @failingTest
-  void test_parseInstanceCreationExpression_type_typeParameters() {
-    super.test_parseInstanceCreationExpression_type_typeParameters();
   }
 
   @override
@@ -725,12 +675,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseNewExpression() {
-    super.test_parseNewExpression();
-  }
-
-  @override
-  @failingTest
   void
       test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments() {
     super
@@ -779,12 +723,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parsePrimaryExpression_mapLiteral_typed_genericComment() {
     super.test_parsePrimaryExpression_mapLiteral_typed_genericComment();
-  }
-
-  @override
-  @failingTest
-  void test_parsePrimaryExpression_new() {
-    super.test_parsePrimaryExpression_new();
   }
 
   @override
@@ -1502,13 +1440,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
-    // TODO(paulberry): Unhandled event: ConstructorReference
-    super.test_parseCompilationUnit_abstractAsPrefix_parameterized();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnit_builtIn_asFunctionName() {
     // TODO(paulberry,ahe): Fasta's parser is confused when one of the built-in
     // identifiers `export`, `import`, `library`, `part`, or `typedef` appears
@@ -1539,13 +1470,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnit_operatorAsPrefix_parameterized() {
-    // TODO(paulberry): Unhandled event: ConstructorReference
-    super.test_parseCompilationUnit_operatorAsPrefix_parameterized();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnit_script() {
     // TODO(paulberry): No objects placed on stack
     super.test_parseCompilationUnit_script();
@@ -1556,13 +1480,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseCompilationUnit_typedefAsPrefix() {
     // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_typedefAsPrefix();
-  }
-
-  @override
-  @failingTest
-  void test_parseCompilationUnitMember_abstractAsPrefix() {
-    // TODO(paulberry): Unhandled event: ConstructorReference
-    super.test_parseCompilationUnitMember_abstractAsPrefix();
   }
 
   @override

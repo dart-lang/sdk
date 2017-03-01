@@ -4976,11 +4976,11 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A.B()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
-    expect(type, isNotNull);
+    expect(type.name.name, 'A.B');
     expect(type.typeArguments, isNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
@@ -4993,7 +4993,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A.B.c()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -5012,7 +5012,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A.B/*<E>*/.c()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -5030,7 +5030,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A.B<E>.c()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -5049,7 +5049,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A.B/*<E>*/()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -5066,7 +5066,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A.B<E>()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -5083,7 +5083,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -5095,13 +5095,12 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseInstanceCreationExpression_type_named() {
-    enableGenericMethodComments = true;
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
         parseInstanceCreationExpression('A.c()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -5119,7 +5118,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A/*<B>*/.c()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -5136,7 +5135,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A<B>.c()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -5154,7 +5153,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A/*<B>*/()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -5171,7 +5170,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A<B>()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;
@@ -5189,7 +5188,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         parseInstanceCreationExpression('A<B?>()', token);
     expect(expression, isNotNull);
     assertNoErrors();
-    expect(expression.keyword, token);
+    expect(expression.keyword.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
     TypeName type = name.type;

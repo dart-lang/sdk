@@ -108,6 +108,11 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
+    debugEvent("NoConstructorReferenceContinuationAfterTypeArguments");
+  }
+
+  @override
   void handleNoType(Token token) {
     debugEvent("NoType");
   }

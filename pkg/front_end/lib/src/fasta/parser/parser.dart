@@ -1954,6 +1954,8 @@ class Parser {
       period = token;
       token = parseIdentifier(token.next,
           IdentifierContext.constructorReferenceContinuationAfterTypeArguments);
+    } else {
+      listener.handleNoConstructorReferenceContinuationAfterTypeArguments(token);
     }
     listener.endConstructorReference(start, period, token);
     return token;

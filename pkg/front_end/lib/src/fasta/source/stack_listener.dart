@@ -26,6 +26,7 @@ enum NullValue {
   CascadeReceiver,
   Combinators,
   ConditionalUris,
+  ConstructorReferenceContinuationAfterTypeArguments,
   ContinueTarget,
   Expression,
   FieldInitializer,
@@ -151,6 +152,11 @@ abstract class StackListener extends Listener {
   void handleNoTypeVariables(Token token) {
     debugEvent("NoTypeVariables");
     push(NullValue.TypeVariables);
+  }
+
+  @override
+  void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
+    debugEvent("NoConstructorReferenceContinuationAfterTypeArguments");
   }
 
   @override
