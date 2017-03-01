@@ -269,14 +269,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     with ComplexParserTestMixin {
   @override
   @failingTest
-  void test_assignableExpression_arguments_normal_chain() {
-    // TODO(paulberry,ahe): AstBuilder.doInvocation doesn't handle receiver
-    // other than SimpleIdentifier.
-    super.test_assignableExpression_arguments_normal_chain();
-  }
-
-  @override
-  @failingTest
   void test_assignableExpression_arguments_normal_chain_typeArgumentComments() {
     // TODO(paulberry,ahe): Fasta doesn't support generic method comment syntax.
     super
@@ -400,12 +392,6 @@ class ElementStoreProxy implements ElementStore {
 @reflectiveTest
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
-  @override
-  @failingTest
-  void test_parseAssignableExpression_expression_args_dot() {
-    super.test_parseAssignableExpression_expression_args_dot();
-  }
-
   @override
   @failingTest
   void
@@ -666,12 +652,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseExpression_function_syncStar() {
     super.test_parseExpression_function_syncStar();
-  }
-
-  @override
-  @failingTest
-  void test_parseExpression_invokeFunctionExpression() {
-    super.test_parseExpression_invokeFunctionExpression();
   }
 
   @override

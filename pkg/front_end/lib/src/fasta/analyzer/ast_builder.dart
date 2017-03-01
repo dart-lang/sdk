@@ -167,22 +167,24 @@ class AstBuilder extends ScopeListener {
     MethodInvocation arguments = pop();
     TypeArgumentList typeArguments = pop();
     if (arguments != null) {
-      if (typeArguments != null) {
-        arguments.typeArguments = typeArguments;
-      }
-      doInvocation(token, arguments);
+      doInvocation(token, typeArguments, arguments);
     } else {
       doPropertyGet(token);
     }
   }
 
-  void doInvocation(Token token, MethodInvocation arguments) {
+  void doInvocation(
+      Token token, TypeArgumentList typeArguments, MethodInvocation arguments) {
     Expression receiver = pop();
     if (receiver is SimpleIdentifier) {
       arguments.methodName = receiver;
+      if (typeArguments != null) {
+        arguments.typeArguments = typeArguments;
+      }
       push(arguments);
     } else {
-      internalError("Unhandled receiver in send: ${receiver.runtimeType}");
+      push(ast.functionExpressionInvocation(
+          receiver, typeArguments, arguments.argumentList));
     }
   }
 
@@ -1174,7 +1176,8 @@ class AstBuilder extends ScopeListener {
     // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
     Comment comment = null;
     Token period;
-    void unnamedConstructor(SimpleIdentifier returnType, SimpleIdentifier name) {
+    void unnamedConstructor(
+        SimpleIdentifier returnType, SimpleIdentifier name) {
       push(ast.constructorDeclaration(
           comment,
           metadata,
