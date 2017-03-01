@@ -83,6 +83,7 @@ abstract class AstFactory {
    */
   BinaryExpression binaryExpression(
       Expression leftOperand, Token operator, Expression rightOperand);
+
   /**
    * Returns a newly created block of code.
    */
@@ -407,7 +408,10 @@ abstract class AstFactory {
    * [comment] and [metadata] can be `null` if the declaration does not have the
    * corresponding attribute. The [staticKeyword] can be `null` if the field is
    * not a static field.
+   *
+   * Use [fieldDeclaration2] instead.
    */
+  @deprecated
   FieldDeclaration fieldDeclaration(Comment comment, List<Annotation> metadata,
       Token staticKeyword, VariableDeclarationList fieldList, Token semicolon);
 
@@ -433,7 +437,10 @@ abstract class AstFactory {
    * [period] can be `null` if the keyword 'this' was not provided.  The
    * [parameters] can be `null` if this is not a function-typed field formal
    * parameter.
+   *
+   * Use [fieldFormalParameter2] instead.
    */
+  @deprecated
   FieldFormalParameter fieldFormalParameter(
       Comment comment,
       List<Annotation> metadata,
@@ -583,7 +590,10 @@ abstract class AstFactory {
    * [comment] and [metadata] can be `null` if the parameter does not have the
    * corresponding attribute. The [returnType] can be `null` if no return type
    * was specified.
+   *
+   * Use [functionTypedFormalParameter2] instead.
    */
+  @deprecated
   FunctionTypedFormalParameter functionTypedFormalParameter(
       Comment comment,
       List<Annotation> metadata,
@@ -921,7 +931,10 @@ abstract class AstFactory {
    * [comment] and [metadata] can be `null` if the parameter does not have the
    * corresponding attribute. The [keyword] can be `null` if a type was
    * specified. The [type] must be `null` if the keyword is 'var'.
+   *
+   * Use [simpleFormalParameter2] instead.
    */
+  @deprecated
   SimpleFormalParameter simpleFormalParameter(
       Comment comment,
       List<Annotation> metadata,
