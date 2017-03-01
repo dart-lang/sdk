@@ -623,6 +623,7 @@ setter_declaration_negative_test: Fail
 super_call4_test: RuntimeError
 super_getter_setter_test: RuntimeError
 try_catch_syntax_test/05: MissingCompileTimeError
+vm/lazy_deopt_vm_test: Pass, Slow
 vm/optimized_stacktrace_test: Skip # Issue 28788
 ct_const2_test: Pass, Crash # Flaky
 
