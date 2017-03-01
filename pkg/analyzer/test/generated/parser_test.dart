@@ -4180,11 +4180,11 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseAssignableExpression('x.y', false);
     expect(expression, isNotNull);
     assertNoErrors();
-    var propertyAccess = expression as PropertyAccess;
-    expect(propertyAccess.target, isNotNull);
-    expect(propertyAccess.operator, isNotNull);
-    expect(propertyAccess.operator.type, TokenType.PERIOD);
-    expect(propertyAccess.propertyName, isNotNull);
+    var identifier = expression as PrefixedIdentifier;
+    expect(identifier.prefix.name, 'x');
+    expect(identifier.period, isNotNull);
+    expect(identifier.period.type, TokenType.PERIOD);
+    expect(identifier.identifier.name, 'y');
   }
 
   void test_parseAssignableExpression_identifier_index() {

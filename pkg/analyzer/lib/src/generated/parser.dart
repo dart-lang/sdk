@@ -6357,11 +6357,6 @@ class Parser {
       Expression selectorExpression = parseAssignableSelector(
           expression, isOptional || (expression is PrefixedIdentifier));
       if (identical(selectorExpression, expression)) {
-        if (!isOptional && (expression is PrefixedIdentifier)) {
-          PrefixedIdentifier identifier = expression as PrefixedIdentifier;
-          expression = astFactory.propertyAccess(
-              identifier.prefix, identifier.period, identifier.identifier);
-        }
         return expression;
       }
       expression = selectorExpression;

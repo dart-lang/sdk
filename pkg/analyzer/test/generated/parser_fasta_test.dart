@@ -436,6 +436,12 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
+  void test_parseAssignableExpression_identifier_dot() {
+    super.test_parseAssignableExpression_identifier_dot();
+  }
+
+  @override
+  @failingTest
   void test_parseAssignableExpression_identifier_question_dot() {
     super.test_parseAssignableExpression_identifier_question_dot();
   }
