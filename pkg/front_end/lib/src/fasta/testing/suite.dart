@@ -63,7 +63,7 @@ String shortenAstKindName(AstKind astKind) {
   throw "Unknown AST kind: $astKind";
 }
 
-class FeContext extends TestContext {
+class FastaContext extends TestContext {
   final TranslateUri uriTranslator;
 
   final List<Step> steps;
@@ -73,7 +73,7 @@ class FeContext extends TestContext {
 
   Future<Program> platform;
 
-  FeContext(
+  FastaContext(
       Uri sdk,
       Uri vm,
       Uri packages,
@@ -122,33 +122,36 @@ class FeContext extends TestContext {
     });
   }
 
-  static Future<FeContext> create(
-      Chain suite,
-      Map<String, String> environment,
-      Uri sdk,
-      Uri vm,
-      Uri packages,
-      bool strongMode,
-      DartSdk dartSdk,
-      bool updateExpectations) async {
-    TranslateUri uriTranslator = await TranslateUri.parse(packages);
-    String astKindString = environment[AST_KIND_INDEX];
-    AstKind astKind =
-        astKindString == null ? null : AstKind.values[int.parse(astKindString)];
-    return new FeContext(
-        sdk,
-        vm,
-        packages,
-        strongMode,
-        dartSdk,
-        updateExpectations,
-        uriTranslator,
-        environment.containsKey(ENABLE_FULL_COMPILE),
-        astKind);
+  static Future<FastaContext> create(
+      Chain suite, Map<String, String> environment) async {
+    return TestContext.create(suite, environment, (Chain suite,
+        Map<String, String> environment,
+        Uri sdk,
+        Uri vm,
+        Uri packages,
+        bool strongMode,
+        DartSdk dartSdk,
+        bool updateExpectations) async {
+      TranslateUri uriTranslator = await TranslateUri.parse(packages);
+      String astKindString = environment[AST_KIND_INDEX];
+      AstKind astKind = astKindString == null
+          ? null
+          : AstKind.values[int.parse(astKindString)];
+      return new FastaContext(
+          sdk,
+          vm,
+          packages,
+          strongMode,
+          dartSdk,
+          updateExpectations,
+          uriTranslator,
+          environment.containsKey(ENABLE_FULL_COMPILE),
+          astKind);
+    });
   }
 }
 
-class Outline extends Step<TestDescription, Program, FeContext> {
+class Outline extends Step<TestDescription, Program, FastaContext> {
   final bool fullCompile;
 
   final AstKind astKind;
@@ -162,7 +165,7 @@ class Outline extends Step<TestDescription, Program, FeContext> {
   bool get isCompiler => fullCompile;
 
   Future<Result<Program>> run(
-      TestDescription description, FeContext context) async {
+      TestDescription description, FastaContext context) async {
     Program platform = await context.createPlatform();
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
