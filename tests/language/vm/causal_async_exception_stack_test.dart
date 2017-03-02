@@ -70,7 +70,7 @@ main() async {
     expect(st.toString(), stringContainsInOrder([
            'thrower', '.dart:8',
            '<asynchronous suspension>',
-           'main', '.dart:67',
+           'main', '.dart:68',
            ]));
   }
 }
