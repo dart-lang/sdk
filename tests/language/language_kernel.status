@@ -588,7 +588,6 @@ regress_13494_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22438_test: RuntimeError
 regress_22443_test: RuntimeError  # Deferred Loading Issue 28335
-regress_22445_test: RuntimeError
 regress_23408_test: RuntimeError  # Deferred Loading Issue 28335
 regress_26855_test/0: DartkCrash
 regress_27617_test/1: MissingCompileTimeError
