@@ -8,8 +8,6 @@ import 'dart:async' show Future;
 
 import 'ticker.dart' show Ticker;
 
-import 'ast_kind.dart' show AstKind;
-
 /// A compilation target.
 ///
 /// A target reads source files with [read] and writes out the resulting
@@ -23,7 +21,7 @@ abstract class Target {
   void read(Uri uri);
 
   /// Write the resulting program in the file [uri].
-  Future writeProgram(Uri uri, AstKind astKind);
+  Future writeProgram(Uri uri);
 
   /// Write the resulting outline in the file [uri].
   Future writeOutline(Uri uri);

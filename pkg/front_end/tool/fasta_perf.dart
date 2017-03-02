@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:front_end/src/fasta/analyzer/ast_builder.dart';
-import 'package:front_end/src/fasta/ast_kind.dart' show AstKind;
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -276,7 +275,7 @@ generateKernel(Uri entryUri, {bool compileSdk: true}) async {
   }
   await dillTarget.writeOutline(null);
   var program = await kernelTarget.writeOutline(null);
-  program = await kernelTarget.writeProgram(null, AstKind.Kernel);
+  program = await kernelTarget.writeProgram(null);
   if (kernelTarget.errors.isNotEmpty) {
     throw kernelTarget.errors.first;
   }

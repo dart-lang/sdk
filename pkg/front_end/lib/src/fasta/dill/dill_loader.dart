@@ -37,7 +37,7 @@ class DillLoader extends Loader<Library> {
     builder.library.fields.forEach(builder.addMember);
   }
 
-  Future<Null> buildBody(DillLibraryBuilder builder, _) {
+  Future<Null> buildBody(DillLibraryBuilder builder) {
     return buildOutline(builder);
   }
 

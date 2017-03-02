@@ -28,17 +28,15 @@ import '../ticker.dart' show Ticker;
 
 import '../translate_uri.dart' show TranslateUri;
 
+import '../analyzer/analyzer_target.dart' show AnalyzerTarget;
+
 import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../dill/dill_target.dart' show DillTarget;
 
-import '../ast_kind.dart' show AstKind;
-
 export 'kernel_chain.dart' show TestContext;
 
 export 'package:testing/testing.dart' show Chain, runMe;
-
-export '../ast_kind.dart' show AstKind;
 
 const String ENABLE_FULL_COMPILE = " full compile ";
 
@@ -61,6 +59,11 @@ String shortenAstKindName(AstKind astKind) {
       return "direct";
   }
   throw "Unknown AST kind: $astKind";
+}
+
+enum AstKind {
+  Analyzer,
+  Kernel,
 }
 
 class FastaContext extends TestContext {
@@ -159,7 +162,7 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
   const Outline(this.fullCompile, this.astKind);
 
   String get name {
-    return fullCompile ? "${shortenAstKindName(astKind)} compile" : "outline";
+    return fullCompile ? "${astKind} compile" : "outline";
   }
 
   bool get isCompiler => fullCompile;
@@ -172,15 +175,17 @@ class Outline extends Step<TestDescription, Program, FastaContext> {
     dillTarget.loader
       ..input = Uri.parse("org.dartlang:platform") // Make up a name.
       ..setProgram(platform);
-    KernelTarget sourceTarget =
-        new KernelTarget(dillTarget, context.uriTranslator);
+    KernelTarget sourceTarget = astKind == AstKind.Analyzer
+        ? new AnalyzerTarget(dillTarget, context.uriTranslator)
+        : new KernelTarget(dillTarget, context.uriTranslator);
+
     Program p;
     try {
       sourceTarget.read(description.uri);
       await dillTarget.writeOutline(null);
       p = await sourceTarget.writeOutline(null);
       if (fullCompile) {
-        p = await sourceTarget.writeProgram(null, astKind);
+        p = await sourceTarget.writeProgram(null);
       }
     } on InputError catch (e, s) {
       return fail(null, e.error, s);

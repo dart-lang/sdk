@@ -26,8 +26,6 @@ import '../messages.dart' show warning;
 
 import '../export.dart' show Export;
 
-import '../analyzer/element_store.dart' show ElementStore;
-
 import '../builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
 import 'outline_builder.dart' show OutlineBuilder;
@@ -42,17 +40,12 @@ import 'diet_parser.dart' show DietParser;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-import '../ast_kind.dart' show AstKind;
-
 class SourceLoader<L> extends Loader<L> {
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
 
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
-
-  // Used when building analyzer ASTs.
-  ElementStore elementStore;
 
   SourceLoader(TargetImplementation target) : super(target);
 
@@ -98,15 +91,14 @@ class SourceLoader<L> extends Loader<L> {
     new ClassMemberParser(listener).parseUnit(tokens);
   }
 
-  Future<Null> buildBody(LibraryBuilder library, AstKind astKind) async {
+  Future<Null> buildBody(LibraryBuilder library) async {
     if (library is SourceLibraryBuilder) {
       // We tokenize source files twice to keep memory usage low. This is the
       // second time, and the first time was in [buildOutline] above. So this
       // time we suppress lexical errors.
       Token tokens = await tokenize(library, suppressLexicalErrors: true);
       if (tokens == null) return;
-      DietListener listener = new DietListener(
-          library, elementStore, hierarchy, coreTypes, astKind);
+      DietListener listener = createDietListener(library);
       DietParser parser = new DietParser(listener);
       parser.parseUnit(tokens);
       for (SourceLibraryBuilder part in library.parts) {
@@ -117,6 +109,10 @@ class SourceLoader<L> extends Loader<L> {
         }
       }
     }
+  }
+
+  DietListener createDietListener(LibraryBuilder library) {
+    return new DietListener(library, hierarchy, coreTypes);
   }
 
   void resolveParts() {
@@ -337,11 +333,6 @@ class SourceLoader<L> extends Loader<L> {
       }
     });
     ticker.logMs("Built program");
-  }
-
-  void buildElementStore() {
-    elementStore = new ElementStore(coreLibrary, builders);
-    ticker.logMs("Built analyzer element model.");
   }
 
   void computeHierarchy(Program program) {

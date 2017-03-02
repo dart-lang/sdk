@@ -4,13 +4,11 @@
 
 import 'dart:io' show exit, exitCode;
 
-import '../ast_kind.dart' show AstKind;
-
 import '../compiler_command_line.dart' show CompilerCommandLine;
 
 import '../compiler_context.dart' show CompilerContext;
 
-import '../outline.dart' show doCompile;
+import '../outline.dart' show CompileTask;
 
 import '../errors.dart' show InputError;
 
@@ -29,8 +27,9 @@ main(List<String> arguments) async {
         print("\n");
       }
       try {
-        uri = await doCompile(
-            c, new Ticker(isVerbose: c.options.verbose), AstKind.Kernel);
+        CompileTask task =
+            new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
+        uri = await task.compile();
       } on InputError catch (e) {
         print(e.format());
         exit(1);

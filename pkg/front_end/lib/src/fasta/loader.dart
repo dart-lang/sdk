@@ -8,8 +8,6 @@ import 'dart:async' show Future;
 
 import 'dart:collection' show Queue;
 
-import 'ast_kind.dart' show AstKind;
-
 import 'builder/builder.dart' show Builder, LibraryBuilder;
 
 import 'errors.dart' show InputError, firstSourceUri;
@@ -81,11 +79,11 @@ abstract class Loader<L> {
     }
   }
 
-  Future<Null> buildBodies(AstKind astKind) async {
+  Future<Null> buildBodies() async {
     assert(coreLibrary != null);
     for (LibraryBuilder library in builders.values) {
       currentUriForCrashReporting = library.uri;
-      await buildBody(library, astKind);
+      await buildBody(library);
     }
     currentUriForCrashReporting = null;
     ticker.log((Duration elapsed, Duration sinceStart) {
@@ -126,10 +124,7 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   Future<Null> buildOutline(covariant LibraryBuilder library);
 
   /// Builds all the method bodies found in the given [library].
-  ///
-  /// [astKind] determines whether or not analyzer ASTs are used as an
-  /// intermediate data structure.
-  Future<Null> buildBody(covariant LibraryBuilder library, AstKind astKind);
+  Future<Null> buildBody(covariant LibraryBuilder library);
 
   List<InputError> collectCompileTimeErrors() {
     List<InputError> errors = <InputError>[];

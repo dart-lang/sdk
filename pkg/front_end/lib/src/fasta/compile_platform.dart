@@ -24,8 +24,6 @@ import 'dill/dill_target.dart' show DillTarget;
 
 import 'translate_uri.dart' show TranslateUri;
 
-import 'ast_kind.dart' show AstKind;
-
 Future main(List<String> arguments) async {
   Ticker ticker = new Ticker();
   try {
@@ -60,7 +58,7 @@ Future compilePlatform(CompilerContext c, Ticker ticker) async {
   await kernelTarget.writeOutline(output);
 
   if (exitCode != 0) return null;
-  await kernelTarget.writeProgram(output, AstKind.Kernel);
+  await kernelTarget.writeProgram(output);
   if (c.options.dumpIr) {
     kernelTarget.dumpIr();
   }

@@ -25,10 +25,10 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'package:kernel/ast.dart' show Program;
 
-import 'environment_variable.dart'
+import '../environment_variable.dart'
     show EnvironmentVariableDirectory, fileExists;
 
-import 'errors.dart' show inputError;
+import '../errors.dart' show inputError;
 
 const EnvironmentVariableSdk dartAotSdk = const EnvironmentVariableSdk(
     "DART_AOT_SDK",

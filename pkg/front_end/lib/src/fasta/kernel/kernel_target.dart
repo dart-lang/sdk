@@ -57,8 +57,6 @@ import '../translate_uri.dart' show TranslateUri;
 
 import '../dill/dill_target.dart' show DillTarget;
 
-import '../ast_kind.dart' show AstKind;
-
 import '../errors.dart'
     show InputError, internalError, reportCrash, resetCrashReporting;
 
@@ -99,8 +97,10 @@ class KernelTarget extends TargetImplementation {
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
         super(dillTarget.ticker, uriTranslator) {
     resetCrashReporting();
-    loader = new SourceLoader<Library>(this);
+    loader = createLoader();
   }
+
+  SourceLoader<Library> createLoader() => new SourceLoader<Library>(this);
 
   void addLineStarts(Uri uri, List<int> lineStarts) {
     String fileUri = relativizeUri(uri);
@@ -205,18 +205,14 @@ class KernelTarget extends TargetImplementation {
         : writeLinkedProgram(uri, program, isFullProgram: isFullProgram);
   }
 
-  Future<Program> writeProgram(Uri uri, AstKind astKind) async {
+  Future<Program> writeProgram(Uri uri) async {
     if (loader.first == null) return null;
     if (errors.isNotEmpty) {
       return handleInputError(uri, null, isFullProgram: true);
     }
     try {
-      if (astKind == AstKind.Analyzer) {
-        loader.buildElementStore();
-      } else {
-        loader.computeHierarchy(program);
-      }
-      await loader.buildBodies(astKind);
+      loader.computeHierarchy(program);
+      await loader.buildBodies();
       loader.finishStaticInvocations();
       finishAllConstructors();
       loader.finishNativeMethods();

@@ -18,8 +18,6 @@ import '../ticker.dart' show Ticker;
 
 import '../translate_uri.dart' show TranslateUri;
 
-import '../ast_kind.dart' show AstKind;
-
 import '../kernel/kernel_builder.dart' show ClassBuilder, KernelClassBuilder;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
@@ -45,7 +43,7 @@ class DillTarget extends TargetImplementation {
     }
   }
 
-  Future<Null> writeProgram(Uri uri, AstKind kind) {
+  Future<Null> writeProgram(Uri uri) {
     return internalError("not implemented.");
   }
 

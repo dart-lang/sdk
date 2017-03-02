@@ -34,7 +34,6 @@ import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
-import 'package:front_end/src/fasta/ast_kind.dart' show AstKind;
 import 'package:front_end/src/fasta/errors.dart' show InputError;
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
@@ -122,7 +121,7 @@ Future<CompilationResult> parseScriptImpl(
     kernelTarget.read(fileName);
     await dillTarget.writeOutline(null);
     program = await kernelTarget.writeOutline(null);
-    program = await kernelTarget.writeProgram(null, AstKind.Kernel);
+    program = await kernelTarget.writeProgram(null);
     if (kernelTarget.errors.isNotEmpty) {
       return new CompilationError(kernelTarget.errors
           .map((err) => err.toString())
