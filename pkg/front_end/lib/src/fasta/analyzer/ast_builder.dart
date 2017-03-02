@@ -13,14 +13,12 @@ import 'package:front_end/src/fasta/parser/parser.dart'
     show FormalParameterType;
 import 'package:front_end/src/fasta/scanner/token.dart'
     show BeginGroupToken, Token;
-import 'package:kernel/ast.dart' show AsyncMarker;
 
 import '../errors.dart' show internalError;
 import '../kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, ProcedureBuilder;
 import '../parser/identifier_context.dart' show IdentifierContext;
 import '../quote.dart';
-import '../source/outline_builder.dart' show asyncMarkerFromTokens;
 import '../source/scope_listener.dart'
     show JumpTargetKind, NullValue, Scope, ScopeListener;
 import 'analyzer.dart' show toKernel;
@@ -222,13 +220,22 @@ class AstBuilder extends ScopeListener {
     if (beginToken != null) {
       exitLocalScope();
     }
-    push(ast.block(
-        toAnalyzerToken(beginToken), statements, toAnalyzerToken(endToken)));
+    Block block = ast.block(
+        toAnalyzerToken(beginToken), statements, toAnalyzerToken(endToken));
+    analyzer.Token star = pop();
+    analyzer.Token asyncKeyword = pop();
+    push(ast.blockFunctionBody(asyncKeyword, star, block));
   }
 
-  void finishFunction(formals, asyncModifier, Statement body) {
+  void finishFunction(formals, asyncModifier, FunctionBody body) {
     debugEvent("finishFunction");
-    var kernel = toKernel(body, elementStore, library.library, scope);
+    Statement bodyStatement;
+    if (body is ExpressionFunctionBody) {
+      bodyStatement = ast.returnStatement(null, body.expression, null);
+    } else {
+      bodyStatement = (body as BlockFunctionBody).block;
+    }
+    var kernel = toKernel(bodyStatement, elementStore, library.library, scope);
     if (member is ProcedureBuilder) {
       ProcedureBuilder builder = member;
       builder.body = kernel;
@@ -297,6 +304,16 @@ class AstBuilder extends ScopeListener {
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
     push(ast.integerLiteral(toAnalyzerToken(token), int.parse(token.value)));
+  }
+
+  void endExpressionFunctionBody(Token arrowToken, Token endToken) {
+    debugEvent("ExpressionFunctionBody");
+    Expression expression = pop();
+    analyzer.Token star = pop();
+    analyzer.Token asyncKeyword = pop();
+    assert(star == null);
+    push(ast.expressionFunctionBody(asyncKeyword, toAnalyzerToken(arrowToken),
+        expression, toAnalyzerToken(endToken)));
   }
 
   void endReturnStatement(
@@ -430,7 +447,8 @@ class AstBuilder extends ScopeListener {
 
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
-    push(asyncMarkerFromTokens(asyncToken, starToken));
+    push(toAnalyzerToken(asyncToken) ?? NullValue.FunctionBodyAsyncToken);
+    push(toAnalyzerToken(starToken) ?? NullValue.FunctionBodyStarToken);
   }
 
   void endAwaitExpression(Token beginToken, Token endToken) {
@@ -766,31 +784,11 @@ class AstBuilder extends ScopeListener {
     }
   }
 
-  FunctionBody _endFunctionBody() {
-    AstNode body = pop();
-    // TODO(paulberry): asyncMarker should have a type that allows constructing
-    // the necessary analyzer AST data structures.
-    AsyncMarker asyncMarker = pop();
-    assert(asyncMarker == AsyncMarker.Sync);
-    analyzer.Token asyncKeyword = null;
-    analyzer.Token star = null;
-    if (body is Block) {
-      return ast.blockFunctionBody(asyncKeyword, star, body);
-    } else if (body is ReturnStatement) {
-      assert(star == null);
-      return ast.expressionFunctionBody(
-          asyncKeyword, body.returnKeyword, body.expression, body.semicolon);
-    } else {
-      return internalError(
-          'Unexpected function body type: ${body.runtimeType}');
-    }
-  }
-
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     // TODO(paulberry): set up scopes properly to resolve parameters and type
     // variables.
     debugEvent("TopLevelMethod");
-    FunctionBody body = _endFunctionBody();
+    FunctionBody body = pop();
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
@@ -1115,7 +1113,7 @@ class AstBuilder extends ScopeListener {
     // in constructors, so the logic should be shared with BodyBuilder as much
     // as possible.
     debugEvent("UnnamedFunction");
-    var body = _endFunctionBody();
+    FunctionBody body = pop();
     FormalParameterList parameters = pop();
     TypeParameterList typeParameters = pop();
     push(ast.functionExpression(typeParameters, parameters, body));
@@ -1178,7 +1176,7 @@ class AstBuilder extends ScopeListener {
   @override
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {
     debugEvent("Method");
-    FunctionBody body = _endFunctionBody();
+    FunctionBody body = pop();
     ConstructorName redirectedConstructor = null; // TODO(paulberry)
     List<ConstructorInitializer> initializers = null; // TODO(paulberry)
     Token separator = null; // TODO(paulberry)

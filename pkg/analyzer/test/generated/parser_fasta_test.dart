@@ -58,13 +58,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   }
 
   @override
-  @assertFailingTest
-  void test_parseAwaitExpression_asStatement_inAsync() {
-    // TODO(paulberry): Add support for async
-    super.test_parseAwaitExpression_asStatement_inAsync();
-  }
-
-  @override
   @failingTest
   void test_parseClassMember_constructor_withInitializers() {
     // TODO(paulberry): 'this' can't be used here.
@@ -457,24 +450,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @failingTest
   void test_parseExpression_assign_compound() {
     super.test_parseExpression_assign_compound();
-  }
-
-  @override
-  @failingTest
-  void test_parseExpression_function_async() {
-    super.test_parseExpression_function_async();
-  }
-
-  @override
-  @failingTest
-  void test_parseExpression_function_asyncStar() {
-    super.test_parseExpression_function_asyncStar();
-  }
-
-  @override
-  @failingTest
-  void test_parseExpression_function_syncStar() {
-    super.test_parseExpression_function_syncStar();
   }
 
   @override

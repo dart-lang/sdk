@@ -496,7 +496,8 @@ class DietListener extends StackListener {
       listener.prepareInitializers();
       token = parser.parseInitializersOpt(token);
       token = parser.parseAsyncModifier(token);
-      AsyncMarker asyncModifier = listener.pop();
+      AsyncMarker asyncModifier =
+          astKind == AstKind.Analyzer ? null : listener.pop();
       bool isExpression = false;
       bool allowAbstract = true;
       parser.parseFunctionBody(token, isExpression, allowAbstract);

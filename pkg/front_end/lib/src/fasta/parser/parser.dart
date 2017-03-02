@@ -2016,9 +2016,9 @@ class Parser {
       token = parseExpression(token.next);
       if (!isExpression) {
         expectSemicolon(token);
-        listener.endReturnStatement(true, begin, token);
+        listener.endExpressionFunctionBody(begin, token);
       } else {
-        listener.endReturnStatement(true, begin, null);
+        listener.endExpressionFunctionBody(begin, null);
       }
       return token;
     } else if (optional('=', token)) {
@@ -2028,9 +2028,9 @@ class Parser {
       token = parseExpression(token.next);
       if (!isExpression) {
         expectSemicolon(token);
-        listener.endReturnStatement(true, begin, token);
+        listener.endExpressionFunctionBody(begin, token);
       } else {
-        listener.endReturnStatement(true, begin, null);
+        listener.endExpressionFunctionBody(begin, null);
       }
       return token;
     }

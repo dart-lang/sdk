@@ -551,6 +551,10 @@ class Listener {
 
   void beginReturnStatement(Token token) {}
 
+  void endExpressionFunctionBody(Token arrowToken, Token endToken) {
+    logEvent("ExpressionFunctionBody");
+  }
+
   void endReturnStatement(
       bool hasExpression, Token beginToken, Token endToken) {
     logEvent("ReturnStatement");

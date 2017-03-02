@@ -32,6 +32,8 @@ enum NullValue {
   FieldInitializer,
   FormalParameters,
   FunctionBody,
+  FunctionBodyAsyncToken,
+  FunctionBodyStarToken,
   IdentifierList,
   Initializers,
   Metadata,

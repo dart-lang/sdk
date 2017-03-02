@@ -302,6 +302,10 @@ class NodeListener extends ElementListener {
     pushNode(new RedirectingFactoryBody(beginToken, endToken, popNode()));
   }
 
+  void endExpressionFunctionBody(Token arrowToken, Token endToken) {
+    endReturnStatement(true, arrowToken, endToken);
+  }
+
   @override
   void endReturnStatement(
       bool hasExpression, Token beginToken, Token endToken) {
