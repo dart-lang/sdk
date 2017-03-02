@@ -325,7 +325,7 @@ void CodeSourceMapBuilder::WriteChangePosition(TokenPosition pos) {
     if (inline_id < inline_id_to_function_.length()) {
       const Function* function = inline_id_to_function_[inline_id];
       Script& script = Script::Handle(function->script());
-      line = script.GetTokenLineUsingLineStarts(pos);
+      line = script.GetTokenLineUsingLineStarts(pos.SourcePosition());
     }
     stream_.Write<int32_t>(static_cast<int32_t>(line));
   } else {
