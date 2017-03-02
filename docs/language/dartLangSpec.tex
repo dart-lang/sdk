@@ -394,22 +394,22 @@ Variables are storage locations in memory.
 \begin{grammar}
 {\bf variableDeclaration:}
       declaredIdentifier (`,' identifier)*
-      .
+    .
 
 {\bf declaredIdentifier:}
       metadata finalConstVarOrType identifier
     .
 
 {\bf finalConstVarOrType:}\FINAL{} type?;
-           \CONST{} type?;
-	varOrType
+      \CONST{} type?;
+      varOrType
     .
 
- {\bf varOrType:}\VAR{};
-	type
+{\bf varOrType:}\VAR{};
+      type
     .
 
- {\bf initializedVariableDeclaration:}
+{\bf initializedVariableDeclaration:}
       declaredIdentifier (`=' expression)? (`,' initializedIdentifier)* % could do top level here
     .
 
@@ -420,11 +420,7 @@ Variables are storage locations in memory.
 {\bf initializedIdentifierList:}
       initializedIdentifier (`,' initializedIdentifier)*
     .
-
-
-
-
-  \end{grammar}
+\end{grammar}
 
 \LMHash{}
 A variable that has not been initialized has the initial value \NULL{} (\ref{null}).
@@ -764,19 +760,35 @@ A {\em required formal parameter} may be specified in one of three ways:
 \end{itemize}
 
 \begin{grammar}
-{\bf normalFormalParameter:}functionSignature;
+{\bf normalFormalParameter:}functionFormalParameter;
       fieldFormalParameter;
       simpleFormalParameter
- .
+    .
 
-{\bf simpleFormalParameter:}declaredIdentifier;
-      metadata identifier
+{\bf functionFormalParameter:}
+      metadata \COVARIANT{}? returnType? identifier formalParameterList
+    .
+
+{\bf simpleFormalParameter:}
+      metadata \COVARIANT{}? finalConstVarOrType? identifier;
     .
 
 {\bf fieldFormalParameter:}
    metadata finalConstVarOrType? \THIS{} `{\escapegrammar .}' identifier formalParameterList?
    .
 \end{grammar}
+
+\LMHash{}
+It is possible to include the modifier \COVARIANT{} in some forms of parameter declarations.
+This modifier has no effect.
+
+\rationale{
+The modifier \COVARIANT{} is used in strong mode.
+The modifier is allowed here even though it has no effect, such that source code can be used in both contexts.
+}
+
+\LMHash{}
+It is a compile-time error if the modifier \COVARIANT{} occurs on a parameter of a function which is not an instance method, instance setter, or instance operator.
 
 %\subsubsection{Rest Formals}
 %\LMLabel{restFormals}
@@ -908,14 +920,14 @@ metadata \ABSTRACT{}?  \CLASS{} mixinApplicationClass
       constructorSignature (redirection $|$ initializers)?;
       \EXTERNAL{} constantConstructorSignature;
       \EXTERNAL{} constructorSignature;
-      ((\EXTERNAL{} \STATIC{} ?))? getterSignature;
+      ((\EXTERNAL{} \STATIC{}?))? getterSignature;
       ((\EXTERNAL{} \STATIC{}?))? setterSignature;
       \EXTERNAL{}? operatorSignature;
-       ((\EXTERNAL{} \STATIC{}?))? functionSignature;
+      ((\EXTERNAL{} \STATIC{}?))? functionSignature;
       \STATIC{} (\FINAL{} $|$ \CONST{}) type? staticFinalDeclarationList;
 %      \CONST{} type? staticFinalDeclarationList;
       \FINAL{} type? initializedIdentifierList;
-      \STATIC{}? (\VAR{} $|$ type) initializedIdentifierList
+      (\STATIC{} $|$ \COVARIANT{})? (\VAR{} $|$ type) initializedIdentifierList
     .
 
 {\bf staticFinalDeclarationList:}
@@ -927,6 +939,15 @@ metadata \ABSTRACT{}?  \CLASS{} mixinApplicationClass
     .
 
 \end{grammar}
+
+\LMHash{}
+It is possible to include the modifier \COVARIANT{} in some forms of declarations.
+This modifier has no effect.
+
+\rationale{
+The modifier \COVARIANT{} is used in strong mode.
+The modifier is allowed here even though it has no effect, such that source code can be used in both contexts.
+}
 
 \LMHash{}
 A class has constructors,  instance members and static members. The instance members of a class are its instance methods, getters, setters and instance variables. The static members of a class are its static methods, getters, setters and static variables. The members of a class are its static and instance members.
@@ -5347,11 +5368,10 @@ An {\em identifier expression} consists of a single identifier; it provides acce
 
 \begin{grammar}
 {\bf identifier:}
-     IDENTIFIER
-     .
+      IDENTIFIER
+    .
 
-
- {\bf IDENTIFIER\_NO\_DOLLAR:}
+{\bf IDENTIFIER\_NO\_DOLLAR:}
       IDENTIFIER\_START\_NO\_DOLLAR IDENTIFIER\_PART\_NO\_DOLLAR*
     .
 
@@ -5359,22 +5379,23 @@ An {\em identifier expression} consists of a single identifier; it provides acce
       IDENTIFIER\_START IDENTIFIER\_PART*
     .
 
-{\bf BUILT\_IN\_IDENTIFIER:} \ABSTRACT{};
-     \AS{};
-     \DEFERRED{};
-     \DYNAMIC{};
-     \EXPORT{};
-     \EXTERNAL{};
-     \FACTORY{};
-     \GET{};
-     \IMPLEMENTS{};
-     \IMPORT{};
-     \LIBRARY{};
-     \OPERATOR{};
-     \PART{};
+{\bf BUILT\_IN\_IDENTIFIER:}\ABSTRACT{};
+      \AS{};
+      \COVARIANT{};
+      \DEFERRED{};
+      \DYNAMIC{};
+      \EXPORT{};
+      \EXTERNAL{};
+      \FACTORY{};
+      \GET{};
+      \IMPLEMENTS{};
+      \IMPORT{};
+      \LIBRARY{};
+      \OPERATOR{};
+      \PART{};
       \SET{};
       \STATIC{};
-     \TYPEDEF{}
+      \TYPEDEF{}
     .
 
  {\bf IDENTIFIER\_START:}IDENTIFIER\_START\_NO\_DOLLAR;
@@ -5389,16 +5410,13 @@ An {\em identifier expression} consists of a single identifier; it provides acce
       DIGIT
     .
 
-
 {\bf IDENTIFIER\_PART:}IDENTIFIER\_START;
       DIGIT
     .
 
-
-
 {\bf qualified:}
       identifier (`{\escapegrammar .}' identifier)?
-      .
+    .
 \end{grammar}
 
 \LMHash{}
