@@ -4600,13 +4600,14 @@ class LocalReferenceContributorTest_Driver
 
   test_ArgDefaults_function() async {
     addTestSource('''
-bool hasLength(int expected, bool b) => false;
+bool hasLength(int a, bool b) => false;
 void main() {h^}''');
     await computeSuggestions();
 
     assertSuggestFunction('hasLength', 'bool',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION,
-        defaultArgListString: 'expected, b');
+        defaultArgListString: 'a, b',
+        defaultArgumentListTextRanges: [0, 1, 3, 1]);
   }
 
   test_ArgDefaults_function_none() async {
@@ -4616,7 +4617,9 @@ void main() {h^}''');
     await computeSuggestions();
 
     assertSuggestFunction('hasLength', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION, defaultArgListString: null);
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: null,
+        defaultArgumentListTextRanges: null);
   }
 
   test_ArgDefaults_function_with_optional_positional() async {
@@ -4629,7 +4632,9 @@ void main() {h^}''');
     await computeSuggestions();
 
     assertSuggestFunction('foo', 'bool',
-        relevance: DART_RELEVANCE_LOCAL_FUNCTION, defaultArgListString: 'bar');
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION,
+        defaultArgListString: 'bar',
+        defaultArgumentListTextRanges: [0, 3]);
   }
 
   test_ArgDefaults_function_with_required_named() async {
@@ -4643,7 +4648,8 @@ void main() {h^}''');
 
     assertSuggestFunction('foo', 'bool',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION,
-        defaultArgListString: 'bar, baz: null');
+        defaultArgListString: 'bar, baz: null',
+        defaultArgumentListTextRanges: [0, 3, 10, 4]);
   }
 
   test_ArgDefaults_method_with_required_named() async {
@@ -4661,6 +4667,7 @@ class A {
 
     assertSuggestMethod('foo', 'A', 'bool',
         relevance: DART_RELEVANCE_LOCAL_METHOD,
-        defaultArgListString: 'bar, baz: null');
+        defaultArgListString: 'bar, baz: null',
+        defaultArgumentListTextRanges: [0, 3, 10, 4]);
   }
 }

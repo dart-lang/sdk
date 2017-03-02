@@ -115,7 +115,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       int elemOffset,
       String paramName,
       String paramType,
-      String defaultArgListString}) {
+      String defaultArgListString,
+      List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
@@ -154,6 +155,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     }
     if (defaultArgListString != null) {
       expect(cs.defaultArgumentListString, defaultArgListString);
+    }
+    if (defaultArgumentListTextRanges != null) {
+      expect(cs.defaultArgumentListTextRanges, defaultArgumentListTextRanges);
     }
     return cs;
   }
@@ -204,7 +208,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       int elemOffset,
       String defaultArgListString}) {
     CompletionSuggestion cs = assertSuggest(name,
-        relevance: relevance, importUri: importUri, elemOffset: elemOffset,
+        relevance: relevance,
+        importUri: importUri,
+        elemOffset: elemOffset,
         defaultArgListString: defaultArgListString);
     protocol.Element element = cs.element;
     expect(element, isNotNull);
@@ -262,13 +268,15 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       bool isDeprecated: false,
       int relevance: DART_RELEVANCE_DEFAULT,
       String importUri,
-      String defaultArgListString}) {
+      String defaultArgListString,
+      List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
         isDeprecated: isDeprecated,
-        defaultArgListString: defaultArgListString);
+        defaultArgListString: defaultArgListString,
+        defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     if (returnType != null) {
       expect(cs.returnType, returnType);
     } else if (isNullExpectedReturnTypeConsideredDynamic) {
@@ -356,13 +364,15 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false,
-      String defaultArgListString}) {
+      String defaultArgListString,
+      List<int> defaultArgumentListTextRanges}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
         importUri: importUri,
         isDeprecated: isDeprecated,
-        defaultArgListString: defaultArgListString);
+        defaultArgListString: defaultArgListString,
+        defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     expect(cs.declaringType, equals(declaringType));
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
     protocol.Element element = cs.element;

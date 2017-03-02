@@ -30,18 +30,44 @@ final TypeName NO_RETURN_TYPE = astFactory.typeName(
     null);
 
 /**
- * Build a default argument list based on the given [requiredParams] and
- * [namedParams].
+ * Add default argument list text and ranges based on the given [requiredParams]
+ * and [namedParams].
  */
-String buildDefaultArgList(Iterable<ParameterElement> requiredParams,
+void addDefaultArgDetails(
+    CompletionSuggestion suggestion,
+    Iterable<ParameterElement> requiredParams,
     Iterable<ParameterElement> namedParams) {
-  List<String> args = requiredParams.map((p) => p.name).toList();
-  List<String> requiredArgs = namedParams
-      .where((p) => p.isRequired)
-      .map((p) => '${p.name}: null')
-      .toList();
-  args.addAll(requiredArgs);
-  return args.isEmpty ? null : args.join(', ');
+  StringBuffer sb = new StringBuffer();
+  List<int> ranges = <int>[];
+
+  int offset;
+
+  for (ParameterElement param in requiredParams) {
+    if (sb.isNotEmpty) {
+      sb.write(', ');
+    }
+    offset = sb.length;
+    String name = param.name;
+    sb.write(name);
+    ranges.addAll([offset, name.length]);
+  }
+
+  for (ParameterElement param in namedParams) {
+    if (param.isRequired) {
+      if (sb.isNotEmpty) {
+        sb.write(', ');
+      }
+      String name = param.name;
+      sb.write('$name: ');
+      offset = sb.length;
+      String defaultValue = _getDefaultValue(param);
+      sb.write(defaultValue);
+      ranges.addAll([offset, defaultValue.length]);
+    }
+  }
+
+  suggestion.defaultArgumentListString = sb.isNotEmpty ? sb.toString() : null;
+  suggestion.defaultArgumentListTextRanges = ranges.isNotEmpty ? ranges : null;
 }
 
 /**
@@ -171,3 +197,5 @@ String nameForType(TypeAnnotation type) {
   }
   return DYNAMIC;
 }
+
+String _getDefaultValue(ParameterElement param) => 'null';

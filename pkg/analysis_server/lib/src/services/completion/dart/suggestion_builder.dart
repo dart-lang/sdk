@@ -81,8 +81,7 @@ CompletionSuggestion createSuggestion(Element element,
         (ParameterElement param) => param.parameterKind == ParameterKind.NAMED);
     suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
-    suggestion.defaultArgumentListString =
-        buildDefaultArgList(requiredParameters, namedParameters);
+    addDefaultArgDetails(suggestion, requiredParameters, namedParameters);
   }
   if (importForSource != null) {
     String srcPath = path.dirname(importForSource.fullName);
