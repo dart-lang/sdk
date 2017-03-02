@@ -8,11 +8,11 @@ import 'dart:convert' show LineSplitter, UTF8;
 
 import 'dart:io' show File;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+import '../scanner/token.dart' show Token;
 
-import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
+import '../scanner/io.dart' show readBytesFromFileSync;
 
-import 'package:front_end/src/fasta/scanner.dart' show scan;
+import '../scanner.dart' show scan;
 
 import 'listener.dart' show Listener;
 

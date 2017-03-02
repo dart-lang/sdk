@@ -9,10 +9,8 @@ import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' as analyzer show Token;
 import 'package:analyzer/dart/element/element.dart' show Element;
-import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType;
-import 'package:front_end/src/fasta/scanner/token.dart'
-    show BeginGroupToken, Token;
+import '../parser/parser.dart' show FormalParameterType;
+import '../scanner/token.dart' show BeginGroupToken, Token;
 
 import '../errors.dart' show internalError;
 import '../kernel/kernel_builder.dart'

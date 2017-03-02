@@ -18,7 +18,7 @@ import 'precedence.dart' show PrecedenceInfo;
 /// code.
 Token defaultRecoveryStrategy(
     List<int> bytes, Token tokens, List<int> lineStarts) {
-  // See [Parser.reportErrorToken](package:front_end/src/fasta/parser/src/parser.dart) for how
+  // See [Parser.reportErrorToken](../parser/src/parser.dart) for how
   // it currently handles lexical errors. In addition, notice how the parser
   // calls [handleInvalidExpression], [handleInvalidFunctionBody], and
   // [handleInvalidTypeReference] to allow the listener to recover its internal

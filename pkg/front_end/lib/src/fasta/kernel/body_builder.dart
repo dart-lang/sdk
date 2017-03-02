@@ -4,13 +4,11 @@
 
 library fasta.body_builder;
 
-import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType, optional;
+import '../parser/parser.dart' show FormalParameterType, optional;
 
-import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;
+import '../parser/error_kind.dart' show ErrorKind;
 
-import 'package:front_end/src/fasta/parser/identifier_context.dart'
-    show IdentifierContext;
+import '../parser/identifier_context.dart' show IdentifierContext;
 
 import 'package:kernel/ast.dart';
 
@@ -24,7 +22,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../parser/dart_vm_native.dart' show skipNativeClause;
 
-import 'package:front_end/src/fasta/scanner/token.dart'
+import '../scanner/token.dart'
     show BeginGroupToken, Token, isBinaryOperator, isMinusOperator;
 
 import '../errors.dart' show internalError, printUnexpected;

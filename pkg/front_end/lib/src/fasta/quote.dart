@@ -6,7 +6,7 @@ library fasta.quote;
 
 import 'errors.dart' show inputError, internalError;
 
-import 'package:front_end/src/fasta/scanner/characters.dart'
+import 'scanner/characters.dart'
     show
         $BACKSLASH,
         $BS,

@@ -4,12 +4,11 @@
 
 library fasta.stack_listener;
 
-import 'package:front_end/src/fasta/parser.dart' show ErrorKind, Listener;
+import '../parser.dart' show ErrorKind, Listener;
 
-import 'package:front_end/src/fasta/parser/identifier_context.dart'
-    show IdentifierContext;
+import '../parser/identifier_context.dart' show IdentifierContext;
 
-import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
+import '../scanner.dart' show BeginGroupToken, Token;
 
 import 'package:kernel/ast.dart' show AsyncMarker;
 

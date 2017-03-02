@@ -21,7 +21,6 @@
 library runtime.tools.kernel_service;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -118,8 +117,7 @@ Future<CompilationResult> parseScriptImpl(
   final Ticker ticker = new Ticker(isVerbose: verbose);
   final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
   dillTarget.read(new Uri.directory(sdkPath).resolve('platform.dill'));
-  final KernelTarget kernelTarget =
-      new KernelTarget(dillTarget, uriTranslator);
+  final KernelTarget kernelTarget = new KernelTarget(dillTarget, uriTranslator);
   try {
     kernelTarget.read(fileName);
     await dillTarget.writeOutline(null);

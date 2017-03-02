@@ -2,6 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/parser/main.dart' as dart_parser;
+import '../main.dart' as dart_parser;
 
 main(List<String> arguments) => dart_parser.main(arguments);

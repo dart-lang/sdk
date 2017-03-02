@@ -8,9 +8,9 @@ import '../scanner.dart' show ErrorToken;
 
 import '../scanner/recover.dart' show closeBraceFor, skipToEof;
 
-import 'package:front_end/src/fasta/scanner/keyword.dart' show Keyword;
+import '../scanner/keyword.dart' show Keyword;
 
-import 'package:front_end/src/fasta/scanner/precedence.dart'
+import '../scanner/precedence.dart'
     show
         ASSIGNMENT_PRECEDENCE,
         AS_INFO,
@@ -29,7 +29,7 @@ import 'package:front_end/src/fasta/scanner/precedence.dart'
         QUESTION_PERIOD_INFO,
         RELATIONAL_PRECEDENCE;
 
-import 'package:front_end/src/fasta/scanner/token.dart'
+import '../scanner/token.dart'
     show
         BeginGroupToken,
         KeywordToken,
@@ -37,7 +37,7 @@ import 'package:front_end/src/fasta/scanner/token.dart'
         Token,
         isUserDefinableOperator;
 
-import 'package:front_end/src/fasta/scanner/token_constants.dart'
+import '../scanner/token_constants.dart'
     show
         COMMA_TOKEN,
         DOUBLE_TOKEN,
@@ -61,10 +61,9 @@ import 'package:front_end/src/fasta/scanner/token_constants.dart'
         STRING_INTERPOLATION_TOKEN,
         STRING_TOKEN;
 
-import 'package:front_end/src/fasta/scanner/characters.dart'
-    show $CLOSE_CURLY_BRACKET;
+import '../scanner/characters.dart' show $CLOSE_CURLY_BRACKET;
 
-import 'package:front_end/src/fasta/util/link.dart' show Link;
+import '../util/link.dart' show Link;
 
 import 'listener.dart' show Listener;
 
@@ -344,8 +343,13 @@ class Parser {
     assert(optional('part', token));
     assert(optional('of', token.next));
     Token partKeyword = token;
-    token = parseQualified(token.next.next, IdentifierContext.partName,
-        IdentifierContext.partNameContinuation);
+    token = token.next.next;
+    if (token.isIdentifier()) {
+      token = parseQualified(token, IdentifierContext.partName,
+          IdentifierContext.partNameContinuation);
+    } else {
+      token = parseLiteralStringOrRecoverExpression(token);
+    }
     Token semicolon = token;
     token = expect(';', token);
     listener.endPartOf(partKeyword, semicolon);
@@ -1962,7 +1966,8 @@ class Parser {
       token = parseIdentifier(token.next,
           IdentifierContext.constructorReferenceContinuationAfterTypeArguments);
     } else {
-      listener.handleNoConstructorReferenceContinuationAfterTypeArguments(token);
+      listener
+          .handleNoConstructorReferenceContinuationAfterTypeArguments(token);
     }
     listener.endConstructorReference(start, period, token);
     return token;

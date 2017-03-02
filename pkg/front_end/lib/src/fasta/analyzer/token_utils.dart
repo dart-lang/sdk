@@ -4,20 +4,20 @@
 
 library fasta.analyzer.token_utils;
 
-import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;
+import '../parser/error_kind.dart' show ErrorKind;
 
-import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
+import '../scanner/error_token.dart' show ErrorToken;
 
-import 'package:front_end/src/fasta/scanner/keyword.dart' show Keyword;
+import '../scanner/keyword.dart' show Keyword;
 
-import 'package:front_end/src/fasta/scanner/precedence.dart';
+import '../scanner/precedence.dart';
 
-import 'package:front_end/src/fasta/scanner/token.dart'
+import '../scanner/token.dart'
     show BeginGroupToken, KeywordToken, StringToken, SymbolToken, Token;
 
-import 'package:front_end/src/fasta/scanner/token_constants.dart';
+import '../scanner/token_constants.dart';
 
-import 'package:front_end/src/scanner/token.dart' as analyzer
+import '../../scanner/token.dart' as analyzer
     show
         BeginToken,
         BeginTokenWithComment,
@@ -30,8 +30,7 @@ import 'package:front_end/src/scanner/token.dart' as analyzer
         Token,
         TokenWithComment;
 
-import 'package:front_end/src/scanner/errors.dart' as analyzer
-    show ScannerErrorCode;
+import '../../scanner/errors.dart' as analyzer show ScannerErrorCode;
 
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 

@@ -8,13 +8,11 @@ import 'dart:async' show Future;
 
 import 'dart:io' show FileSystemException;
 
-import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFile;
+import '../scanner/io.dart' show readBytesFromFile;
 
-import 'package:front_end/src/fasta/scanner.dart'
-    show ErrorToken, ScannerResult, Token, scan;
+import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
 
-import 'package:front_end/src/fasta/parser/class_member_parser.dart'
-    show ClassMemberParser;
+import '../parser/class_member_parser.dart' show ClassMemberParser;
 
 import 'package:kernel/ast.dart' show Program;
 

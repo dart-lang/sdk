@@ -4,7 +4,7 @@
 
 library fasta.unhandled_listener;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+import '../scanner/token.dart' show Token;
 
 import 'stack_listener.dart' show NullValue, StackListener;
 

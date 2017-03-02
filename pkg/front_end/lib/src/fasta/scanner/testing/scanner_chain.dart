@@ -6,9 +6,9 @@ library fasta.scanner.testing.scanner_chain;
 
 import 'package:testing/testing.dart';
 
-import 'package:front_end/src/fasta/scanner.dart';
+import '../../scanner.dart';
 
-import 'package:front_end/src/fasta/scanner/io.dart';
+import '../io.dart';
 
 class Read extends Step<TestDescription, List<int>, ChainContext> {
   const Read();

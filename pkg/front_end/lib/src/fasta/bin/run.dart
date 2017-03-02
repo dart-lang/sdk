@@ -4,20 +4,19 @@
 
 import 'dart:io' show exit, exitCode;
 
-import 'package:front_end/src/fasta/ast_kind.dart' show AstKind;
+import '../ast_kind.dart' show AstKind;
 
-import 'package:front_end/src/fasta/compiler_command_line.dart'
-    show CompilerCommandLine;
+import '../compiler_command_line.dart' show CompilerCommandLine;
 
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+import '../compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/outline.dart' show doCompile;
+import '../outline.dart' show doCompile;
 
-import 'package:front_end/src/fasta/errors.dart' show InputError;
+import '../errors.dart' show InputError;
 
-import 'package:front_end/src/fasta/run.dart' show run;
+import '../run.dart' show run;
 
-import 'package:front_end/src/fasta/ticker.dart' show Ticker;
+import '../ticker.dart' show Ticker;
 
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 

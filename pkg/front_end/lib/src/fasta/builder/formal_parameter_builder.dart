@@ -4,8 +4,7 @@
 
 library fasta.formal_parameter_builder;
 
-import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType;
+import '../parser/parser.dart' show FormalParameterType;
 
 import 'builder.dart'
     show LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;

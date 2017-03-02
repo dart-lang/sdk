@@ -19,7 +19,7 @@ import 'characters.dart' show $LF, $STX;
 
 import 'abstract_scanner.dart' show AbstractScanner;
 
-import 'package:front_end/src/fasta/util/link.dart' show Link;
+import '../util/link.dart' show Link;
 
 abstract class ArrayBasedScanner extends AbstractScanner {
   bool hasErrors = false;
