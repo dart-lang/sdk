@@ -3,6 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartk || $compiler == dartkp ]
+vm/causal_async_exception_stack_test: RuntimeError
+deferred_redirecting_factory_test: RuntimeError
+deferred_regression_28678_test: RuntimeError
 abstract_beats_arguments_test: RuntimeError
 abstract_runtime_error_test/01: RuntimeError
 abstract_runtime_error_test/02: RuntimeError
@@ -49,7 +52,6 @@ assignable_expression_test/33: MissingCompileTimeError
 assignable_expression_test/42: MissingCompileTimeError
 assignable_expression_test/43: MissingCompileTimeError
 assignable_expression_test/50: MissingCompileTimeError
-async_await_catch_regression_test: RuntimeError
 async_await_syntax_test/a01b: MissingCompileTimeError
 async_await_syntax_test/a01c: MissingCompileTimeError
 async_await_syntax_test/a05f: MissingCompileTimeError
@@ -76,16 +78,12 @@ async_await_syntax_test/e1: MissingCompileTimeError
 async_await_syntax_test/e2: MissingCompileTimeError
 async_await_syntax_test/e3: MissingCompileTimeError
 async_await_test: Crash
-async_finally_rethrow_test: RuntimeError
 async_return_types_test/return_value_sync_star: MissingCompileTimeError
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_pause_test: Crash
 async_star_test: Crash
 async_test/constructor3: MissingCompileTimeError
 async_test/setter1: MissingCompileTimeError
-asyncstar_throw_in_catch_test: RuntimeError
 await_backwards_compatibility_test/await1: MissingCompileTimeError
-await_exceptions_test: RuntimeError
 await_test: RuntimeError
 bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: Crash
@@ -238,7 +236,6 @@ covariant_test/54: RuntimeError
 covariant_test/56: RuntimeError
 covariant_test/59: MissingCompileTimeError
 covariant_test/none: RuntimeError
-custom_await_stack_trace_test: RuntimeError
 cyclic_class_member_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError
 cyclic_typedef_test/01: MissingCompileTimeError
@@ -481,11 +478,6 @@ regress_13494_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22438_test: RuntimeError
 regress_22445_test: RuntimeError
-regress_22579_test: RuntimeError
-regress_23498_test: RuntimeError
-regress_23500_test/01: RuntimeError
-regress_23500_test/02: RuntimeError
-regress_23500_test/none: RuntimeError
 regress_26855_test/0: DartkCrash
 regress_27617_test/1: MissingCompileTimeError
 regress_27957_test: RuntimeError
@@ -756,7 +748,6 @@ assignable_expression_test/33: MissingCompileTimeError
 assignable_expression_test/42: MissingCompileTimeError
 assignable_expression_test/43: MissingCompileTimeError
 assignable_expression_test/50: MissingCompileTimeError
-async_await_catch_regression_test: RuntimeError
 async_await_syntax_test/a01b: MissingCompileTimeError
 async_await_syntax_test/a01c: MissingCompileTimeError
 async_await_syntax_test/a05f: MissingCompileTimeError
@@ -783,16 +774,12 @@ async_await_syntax_test/e1: MissingCompileTimeError
 async_await_syntax_test/e2: MissingCompileTimeError
 async_await_syntax_test/e3: MissingCompileTimeError
 async_await_test: Crash
-async_finally_rethrow_test: RuntimeError
 async_return_types_test/return_value_sync_star: MissingCompileTimeError
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_pause_test: Crash
 async_star_test: Crash
 async_test/constructor3: MissingCompileTimeError
 async_test/setter1: MissingCompileTimeError
-asyncstar_throw_in_catch_test: RuntimeError
 await_backwards_compatibility_test/await1: MissingCompileTimeError
-await_exceptions_test: RuntimeError
 await_test: RuntimeError
 bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: Crash
@@ -960,7 +947,6 @@ covariant_test/54: RuntimeError
 covariant_test/56: RuntimeError
 covariant_test/59: MissingCompileTimeError
 covariant_test/none: RuntimeError
-custom_await_stack_trace_test: RuntimeError
 cyclic_class_member_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError
 cyclic_type_test/00: RuntimeError
@@ -1276,12 +1262,7 @@ regress_20394_test/01: MissingCompileTimeError
 regress_22438_test: RuntimeError
 regress_22443_test: RuntimeError  # Deferred Loading Issue 28335
 regress_22445_test: RuntimeError
-regress_22579_test: RuntimeError
 regress_23408_test: RuntimeError  # Deferred Loading Issue 28335
-regress_23498_test: RuntimeError
-regress_23500_test/01: RuntimeError
-regress_23500_test/02: RuntimeError
-regress_23500_test/none: RuntimeError
 regress_26855_test/0: DartkCrash
 regress_27957_test: RuntimeError
 regress_28278_test: RuntimeError  # Mirrors Issue
@@ -1585,7 +1566,6 @@ assignable_expression_test/33: MissingCompileTimeError
 assignable_expression_test/42: MissingCompileTimeError
 assignable_expression_test/43: MissingCompileTimeError
 assignable_expression_test/50: MissingCompileTimeError
-async_await_catch_regression_test: RuntimeError
 async_await_syntax_test/a01b: MissingCompileTimeError
 async_await_syntax_test/a01c: MissingCompileTimeError
 async_await_syntax_test/a05f: MissingCompileTimeError
@@ -1612,16 +1592,12 @@ async_await_syntax_test/e1: MissingCompileTimeError
 async_await_syntax_test/e2: MissingCompileTimeError
 async_await_syntax_test/e3: MissingCompileTimeError
 async_await_test: Crash
-async_finally_rethrow_test: RuntimeError
 async_return_types_test/return_value_sync_star: MissingCompileTimeError
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_pause_test: Crash
 async_star_test: Crash
 async_test/constructor3: MissingCompileTimeError
 async_test/setter1: MissingCompileTimeError
-asyncstar_throw_in_catch_test: RuntimeError
 await_backwards_compatibility_test/await1: MissingCompileTimeError
-await_exceptions_test: RuntimeError
 await_test: RuntimeError
 bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: Crash
@@ -1773,7 +1749,6 @@ covariant_test/54: RuntimeError
 covariant_test/56: RuntimeError
 covariant_test/59: MissingCompileTimeError
 covariant_test/none: RuntimeError
-custom_await_stack_trace_test: RuntimeError
 cyclic_class_member_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError
 cyclic_typedef_test/01: MissingCompileTimeError
@@ -1998,11 +1973,6 @@ regress_13494_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22438_test: RuntimeError
 regress_22445_test: RuntimeError
-regress_22579_test: RuntimeError
-regress_23498_test: RuntimeError
-regress_23500_test/01: RuntimeError
-regress_23500_test/02: RuntimeError
-regress_23500_test/none: RuntimeError
 regress_26855_test/0: DartkCrash
 regress_27957_test: RuntimeError
 reify_typevar_static_test/00: MissingCompileTimeError
@@ -2185,7 +2155,6 @@ assignable_expression_test/33: MissingCompileTimeError
 assignable_expression_test/42: MissingCompileTimeError
 assignable_expression_test/43: MissingCompileTimeError
 assignable_expression_test/50: MissingCompileTimeError
-async_await_catch_regression_test: RuntimeError
 async_await_syntax_test/a01b: MissingCompileTimeError
 async_await_syntax_test/a01c: MissingCompileTimeError
 async_await_syntax_test/a05f: MissingCompileTimeError
@@ -2212,16 +2181,12 @@ async_await_syntax_test/e1: MissingCompileTimeError
 async_await_syntax_test/e2: MissingCompileTimeError
 async_await_syntax_test/e3: MissingCompileTimeError
 async_await_test: Crash
-async_finally_rethrow_test: RuntimeError
 async_return_types_test/return_value_sync_star: MissingCompileTimeError
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_pause_test: Crash
 async_star_test: Crash
 async_test/constructor3: MissingCompileTimeError
 async_test/setter1: MissingCompileTimeError
-asyncstar_throw_in_catch_test: RuntimeError
 await_backwards_compatibility_test/await1: MissingCompileTimeError
-await_exceptions_test: RuntimeError
 await_test: RuntimeError
 bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: Crash
@@ -2373,7 +2338,6 @@ covariant_test/54: RuntimeError
 covariant_test/56: RuntimeError
 covariant_test/59: MissingCompileTimeError
 covariant_test/none: RuntimeError
-custom_await_stack_trace_test: RuntimeError
 cyclic_class_member_test/01: MissingCompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError
 cyclic_typedef_test/01: MissingCompileTimeError
@@ -2598,11 +2562,6 @@ regress_13494_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22438_test: RuntimeError
 regress_22445_test: RuntimeError
-regress_22579_test: RuntimeError
-regress_23498_test: RuntimeError
-regress_23500_test/01: RuntimeError
-regress_23500_test/02: RuntimeError
-regress_23500_test/none: RuntimeError
 regress_26855_test/0: DartkCrash
 regress_27957_test: RuntimeError
 reify_typevar_static_test/00: MissingCompileTimeError

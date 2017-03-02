@@ -1257,7 +1257,7 @@ class FunctionNode extends TreeNode {
       this.returnType: const DynamicType(),
       this.inferredReturnValue,
       this.asyncMarker: AsyncMarker.Sync,
-      this.dartAsyncMarker: AsyncMarker.Sync})
+      this.dartAsyncMarker})
       : this.positionalParameters =
             positionalParameters ?? <VariableDeclaration>[],
         this.requiredParameterCount =
@@ -1269,6 +1269,7 @@ class FunctionNode extends TreeNode {
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
     body?.parent = this;
+    dartAsyncMarker ??= asyncMarker;
   }
 
   static DartType _getTypeOfVariable(VariableDeclaration node) => node.type;

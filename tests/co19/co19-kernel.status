@@ -163,8 +163,6 @@ Language/Expressions/Assignment/static_warning_t03/none: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t01: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t02: RuntimeError
 Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
-Language/Expressions/Await_Expressions/evaluation_throws_t06: RuntimeError
-Language/Expressions/Await_Expressions/evaluation_throws_t07: RuntimeError
 Language/Expressions/Await_Expressions/syntax_t06: Crash
 Language/Expressions/Conditional/syntax_t04: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t02: Crash
@@ -502,7 +500,6 @@ Language/Statements/Continue/label_t11: MissingCompileTimeError
 Language/Statements/Continue/label_t14: DartkCrash
 Language/Statements/Continue/label_t17: DartkCrash
 Language/Statements/Do/execution_t04: Crash
-Language/Statements/For/Asynchronous_For_in/execution_t04: RuntimeError
 Language/Statements/For/Asynchronous_For_in/syntax_t02: MissingCompileTimeError
 Language/Statements/For/syntax_t07: RuntimeError
 Language/Statements/For/syntax_t09: MissingCompileTimeError
@@ -631,12 +628,6 @@ Language/Metadata/before_param_t09: RuntimeError  # Issue 28434: Kernel IR misse
 Language/Metadata/before_typedef_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_variable_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_variable_t02: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
-LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t03: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t04: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t05: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t06: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t07: RuntimeError
 
 
 # Override tests marked as failing elsewhere.
@@ -800,8 +791,6 @@ Language/Expressions/Assignment/static_warning_t03/none: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t01: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t02: RuntimeError
 Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
-Language/Expressions/Await_Expressions/evaluation_throws_t06: RuntimeError
-Language/Expressions/Await_Expressions/evaluation_throws_t07: RuntimeError
 Language/Expressions/Await_Expressions/syntax_t06: Crash
 Language/Expressions/Conditional/syntax_t04: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t02: Crash
@@ -1140,7 +1129,6 @@ Language/Statements/Continue/label_t11: MissingCompileTimeError
 Language/Statements/Continue/label_t14: DartkCrash
 Language/Statements/Continue/label_t17: DartkCrash
 Language/Statements/Do/execution_t04: Crash
-Language/Statements/For/Asynchronous_For_in/execution_t04: RuntimeError
 Language/Statements/For/Asynchronous_For_in/syntax_t02: MissingCompileTimeError
 Language/Statements/For/syntax_t07: RuntimeError
 Language/Statements/For/syntax_t09: MissingCompileTimeError
@@ -1251,12 +1239,6 @@ LibTest/core/Invocation/isSetter_A01_t02: RuntimeError
 LibTest/core/Invocation/memberName_A01_t01: RuntimeError
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t03: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t04: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t05: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t06: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t07: RuntimeError
 
 ###############################################################################
 # Dartk Entries
@@ -1423,8 +1405,6 @@ Language/Expressions/Assignment/static_warning_t03/none: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t01: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t02: RuntimeError
 Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
-Language/Expressions/Await_Expressions/evaluation_throws_t06: RuntimeError
-Language/Expressions/Await_Expressions/evaluation_throws_t07: RuntimeError
 Language/Expressions/Await_Expressions/syntax_t06: Crash
 Language/Expressions/Conditional/syntax_t04: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t02: Crash
@@ -1775,7 +1755,6 @@ Language/Statements/Continue/label_t11: MissingCompileTimeError
 Language/Statements/Continue/label_t14: DartkCrash
 Language/Statements/Continue/label_t17: DartkCrash
 Language/Statements/Do/execution_t04: Crash
-Language/Statements/For/Asynchronous_For_in/execution_t04: RuntimeError
 Language/Statements/For/Asynchronous_For_in/syntax_t02: MissingCompileTimeError
 Language/Statements/For/syntax_t07: RuntimeError
 Language/Statements/For/syntax_t09: MissingCompileTimeError
@@ -1893,12 +1872,6 @@ LibTest/core/Invocation/isSetter_A01_t02: RuntimeError
 LibTest/core/Invocation/memberName_A01_t01: RuntimeError
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t03: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t04: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t05: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t06: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t07: RuntimeError
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
@@ -1937,7 +1910,6 @@ Language/Statements/Local_Variable_Declaration/syntax_t05: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t06: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t18: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t19: CompileTimeError
-LibTest/isolate/Isolate/spawnUri_A02_t04: RuntimeError
 
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
@@ -2198,8 +2170,6 @@ Language/Expressions/Assignment/static_warning_t03/none: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t01: RuntimeError
 Language/Expressions/Assignment/super_assignment_failed_t02: RuntimeError
 Language/Expressions/Assignment/super_assignment_value_t02: RuntimeError
-Language/Expressions/Await_Expressions/evaluation_throws_t06: RuntimeError
-Language/Expressions/Await_Expressions/evaluation_throws_t07: RuntimeError
 Language/Expressions/Await_Expressions/syntax_t06: Crash
 Language/Expressions/Conditional/syntax_t04: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t02: Crash
@@ -2545,7 +2515,6 @@ Language/Statements/Continue/label_t11: MissingCompileTimeError
 Language/Statements/Continue/label_t14: DartkCrash
 Language/Statements/Continue/label_t17: DartkCrash
 Language/Statements/Do/execution_t04: Crash
-Language/Statements/For/Asynchronous_For_in/execution_t04: RuntimeError
 Language/Statements/For/Asynchronous_For_in/syntax_t02: MissingCompileTimeError
 Language/Statements/For/syntax_t07: RuntimeError
 Language/Statements/For/syntax_t09: MissingCompileTimeError
@@ -2669,12 +2638,6 @@ LibTest/core/Invocation/isSetter_A01_t02: RuntimeError
 LibTest/core/Invocation/memberName_A01_t01: RuntimeError
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t03: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t04: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t05: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t06: RuntimeError
-LibTest/isolate/Isolate/spawn_A02_t07: RuntimeError
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
@@ -2723,7 +2686,6 @@ Language/Statements/Local_Variable_Declaration/syntax_t05: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t06: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t18: CompileTimeError
 Language/Statements/Local_Variable_Declaration/syntax_t19: CompileTimeError
-LibTest/isolate/Isolate/spawnUri_A02_t04: RuntimeError
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
 Language/Classes/Constructors/Constant_Constructors/syntax_t03: Crash
