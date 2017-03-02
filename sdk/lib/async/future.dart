@@ -553,17 +553,15 @@ abstract class Future<T> {
    *     }
    *
    */
-  // The `Function` below can stand for several types:
-  // - (dynamic) -> T
-  // - (dynamic, StackTrace) -> T
-  // - (dynamic) -> Future<T>
-  // - (dynamic, StackTrace) -> Future<T>
+  // The `Function` below stands for one of two types:
+  // - (dynamic) -> FutureOr<T>
+  // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
   // `isCheck` we should also expect functions that take a specific argument.
   // Note: making `catchError` return a `Future<T>` in non-strong mode could be
   // a breaking change.
   Future<T> catchError(Function onError,
-                           {bool test(Object error)});
+                       {bool test(Object error)});
 
   /**
    * Register a function to be called when this future completes.
@@ -785,7 +783,7 @@ abstract class Completer<T> {
    *
    * All listeners on the future are informed about the value.
    */
-  void complete([value]);
+  void complete([FutureOr<T> value]);
 
   /**
    * Complete [future] with an error.
@@ -827,5 +825,4 @@ void _completeWithErrorCallback(_Future result, error, stackTrace) {
 }
 
 /** Helper function that converts `null` to a [NullThrownError]. */
-Object _nonNullError(Object error) =>
-  (error != null) ? error : new NullThrownError();
+Object _nonNullError(Object error) => error ?? new NullThrownError();
