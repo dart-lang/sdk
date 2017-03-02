@@ -620,8 +620,8 @@ intptr_t ActivationFrame::TryIndex() {
 
 intptr_t ActivationFrame::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
-  if ((line_number_ < 0) && TokenPos().IsReal()) {
-    const TokenPosition token_pos = TokenPos();
+  if ((line_number_ < 0) && TokenPos().IsSourcePosition()) {
+    const TokenPosition token_pos = TokenPos().SourcePosition();
     const Script& script = Script::Handle(SourceScript());
     script.GetTokenLocation(token_pos, &line_number_, NULL);
   }
@@ -631,8 +631,8 @@ intptr_t ActivationFrame::LineNumber() {
 
 intptr_t ActivationFrame::ColumnNumber() {
   // Compute column number lazily since it causes scanning of the script.
-  if ((column_number_ < 0) && TokenPos().IsReal()) {
-    const TokenPosition token_pos = TokenPos();
+  if ((column_number_ < 0) && TokenPos().IsSourcePosition()) {
+    const TokenPosition token_pos = TokenPos().SourcePosition();
     const Script& script = Script::Handle(SourceScript());
     if (script.HasSource()) {
       script.GetTokenLocation(token_pos, &line_number_, &column_number_);
@@ -1319,10 +1319,7 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj, bool full) {
   const Script& script = Script::Handle(SourceScript());
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
-  TokenPosition pos = TokenPos();
-  if (pos.IsSynthetic()) {
-    pos = pos.FromSynthetic();
-  }
+  const TokenPosition pos = TokenPos().SourcePosition();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function(), !full);
   jsobj->AddProperty("code", code());
@@ -1369,10 +1366,7 @@ void ActivationFrame::PrintToJSONObjectAsyncCausal(JSONObject* jsobj,
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   const Script& script = Script::Handle(SourceScript());
-  TokenPosition pos = TokenPos();
-  if (pos.IsSynthetic()) {
-    pos = pos.FromSynthetic();
-  }
+  const TokenPosition pos = TokenPos().SourcePosition();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function(), !full);
   jsobj->AddProperty("code", code());
@@ -3575,10 +3569,12 @@ RawError* Debugger::PauseBreakpoint() {
   }
 
   if (FLAG_verbose_debug) {
-    OS::Print(">>> hit breakpoint at %s:%" Pd " (token %s) (address %#" Px
-              ")\n",
-              String::Handle(cbpt->SourceUrl()).ToCString(), cbpt->LineNumber(),
-              cbpt->token_pos().ToCString(), top_frame->pc());
+    OS::Print(">>> hit breakpoint %" Pd " at %s:%" Pd
+              " (token %s) "
+              "(address %#" Px ")\n",
+              bpt_hit->id(), String::Handle(cbpt->SourceUrl()).ToCString(),
+              cbpt->LineNumber(), cbpt->token_pos().ToCString(),
+              top_frame->pc());
   }
 
   CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace());

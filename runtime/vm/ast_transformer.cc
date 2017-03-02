@@ -221,8 +221,8 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
       new (Z) LoadLocalNode(token_pos, stack_trace_param);
   SequenceNode* error_ne_null_branch =
       new (Z) SequenceNode(token_pos, ChainNewScope(preamble_->scope()));
-  error_ne_null_branch->Add(new (Z) ThrowNode(
-      node->token_pos(), load_error_param, load_stack_trace_param));
+  error_ne_null_branch->Add(
+      new (Z) ThrowNode(token_pos, load_error_param, load_stack_trace_param));
   preamble_->Add(new (Z) IfNode(
       token_pos, new (Z) ComparisonNode(
                      token_pos, Token::kNE, load_error_param,

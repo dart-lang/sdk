@@ -22523,11 +22523,11 @@ static void PrintStackTraceFrame(Zone* zone,
   if (FLAG_precompiled_mode) {
     line = token_pos.value();
   } else {
-    if (!script.IsNull() && token_pos.IsReal()) {
+    if (!script.IsNull() && token_pos.IsSourcePosition()) {
       if (script.HasSource() || script.kind() == RawScript::kKernelTag) {
-        script.GetTokenLocation(token_pos, &line, &column);
+        script.GetTokenLocation(token_pos.SourcePosition(), &line, &column);
       } else {
-        script.GetTokenLocation(token_pos, &line, NULL);
+        script.GetTokenLocation(token_pos.SourcePosition(), &line, NULL);
       }
     }
   }
