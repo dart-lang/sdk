@@ -24,6 +24,26 @@ import 'ticker.dart' show Ticker;
 
 import 'translate_uri.dart' show TranslateUri;
 
+const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
+
+compileEntryPoint(List<String> arguments) async {
+  for (int i = 0; i < iterations; i++) {
+    if (i > 0) {
+      print("\n");
+    }
+    await compile(arguments);
+  }
+}
+
+outlineEntryPoint(List<String> arguments) async {
+  for (int i = 0; i < iterations; i++) {
+    if (i > 0) {
+      print("\n");
+    }
+    await outline(arguments);
+  }
+}
+
 Future<KernelTarget> outline(List<String> arguments) async {
   try {
     return await CompilerCommandLine.withGlobalOptions("outline", arguments,

@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-library fasta.scanner.testing.scanner_chain;
+library fasta.testing.scanner_chain;
 
 import 'package:testing/testing.dart';
 
-import '../../scanner.dart';
+import '../scanner.dart';
 
-import '../io.dart';
+import '../scanner/io.dart';
 
 class Read extends Step<TestDescription, List<int>, ChainContext> {
   const Read();

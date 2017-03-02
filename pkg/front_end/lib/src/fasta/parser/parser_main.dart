@@ -30,7 +30,7 @@ class DebugListener extends Listener {
   }
 }
 
-main(List<String> arguments) async {
+mainEntryPoint(List<String> arguments) async {
   for (String argument in arguments) {
     if (argument.startsWith("@")) {
       Uri uri = Uri.base.resolve(argument.substring(1));

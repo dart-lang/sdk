@@ -24,15 +24,22 @@ import 'dill/dill_target.dart' show DillTarget;
 
 import 'translate_uri.dart' show TranslateUri;
 
-Future main(List<String> arguments) async {
-  Ticker ticker = new Ticker();
-  try {
-    await CompilerCommandLine.withGlobalOptions("compile_platform", arguments,
-        (CompilerContext c) => compilePlatform(c, ticker));
-  } on InputError catch (e) {
-    exitCode = 1;
-    print(e.format());
-    return null;
+const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
+
+Future mainEntryPoint(List<String> arguments) async {
+  for (int i = 0; i < iterations; i++) {
+    if (i > 0) {
+      print("\n");
+    }
+    Ticker ticker = new Ticker();
+    try {
+      await CompilerCommandLine.withGlobalOptions("compile_platform", arguments,
+          (CompilerContext c) => compilePlatform(c, ticker));
+    } on InputError catch (e) {
+      exitCode = 1;
+      print(e.format());
+      return null;
+    }
   }
 }
 

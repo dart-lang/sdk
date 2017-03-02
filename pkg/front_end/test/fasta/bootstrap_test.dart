@@ -23,10 +23,8 @@ import 'package:kernel/text/ast_to_text.dart' show programToString;
 
 Future main() async {
   asyncStart();
-  Uri sourceCompiler = await Isolate.resolvePackageUri(
-      Uri.parse("package:front_end/src/fasta/bin/compile.dart"));
-  Uri outline = await Isolate.resolvePackageUri(
-      Uri.parse("package:front_end/src/fasta/bin/outline.dart"));
+  Uri sourceCompiler = Uri.base.resolve("pkg/front_end/tool/fasta/compile.dart");
+  Uri outline = Uri.base.resolve("pkg/front_end/tool/fasta/outline.dart");
   Uri packages = await Isolate.packageConfig;
   Directory tmp = await Directory.systemTemp.createTemp("fasta_bootstrap");
   Uri compiledOnceOutput = tmp.uri.resolve("fasta1.dill");

@@ -13,7 +13,7 @@ import 'dart:math' as math;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
-import 'package:front_end/src/fasta/bin/compile_platform.dart' as
+import 'package:front_end/src/fasta/compile_platform.dart' as
     compile_platform;
 
 Future main(List<String> argv) async {
@@ -26,8 +26,6 @@ Future main(List<String> argv) async {
 
     final repositoryDir = path.relative(path.dirname(path.dirname(base)));
     final sdkExample = path.relative(path.join(repositoryDir, 'sdk'));
-    final packagesExample = path.relative(
-        path.join(repositoryDir, '.packages'));
     final patchExample = path.relative(
         path.join(repositoryDir, 'out', 'DebugX64', 'obj', 'gen', 'patch'));
     final outExample = path.relative(path.join(repositoryDir, 'out', 'DebugX64',
@@ -52,7 +50,6 @@ Future main(List<String> argv) async {
   // Copy and patch libraries.dart and version
   var libContents = new File(path.join(sdkLibIn, '_internal',
       'sdk_library_metadata', 'lib', 'libraries.dart')).readAsStringSync();
-  var patchedLibContents = libContents;
   if (mode == 'vm') {
     libContents = libContents.replaceAll(
         ' libraries = const {',
@@ -101,7 +98,7 @@ Future main(List<String> argv) async {
     // TODO(jmesserly): analyzer does not handle the default case of
     // "both platforms" correctly, and treats it as being supported on neither.
     // So instead we skip explicitly marked as either VM or dart2js libs.
-    if (mode == 'ddc' ? libary.isVmLibrary : library.isDart2JsLibrary) {
+    if (mode == 'ddc' ? library.isVmLibrary : library.isDart2JsLibrary) {
       continue;
     }
 
@@ -203,7 +200,7 @@ Future main(List<String> argv) async {
   final capturedLines = <String>[];
   try {
     await runZoned(() async {
-      await compile_platform.main(<String>[
+      await compile_platform.mainEntryPoint(<String>[
         '--packages',
         new Uri.file(packagesFile).toString(),
         new Uri.directory(outDir).toString(),

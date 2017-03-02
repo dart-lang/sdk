@@ -53,7 +53,7 @@ class AnalyzerCompileTask extends CompileTask {
   }
 }
 
-main(List<String> arguments) async {
+mainEntryPoint(List<String> arguments) async {
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
       print("\n");

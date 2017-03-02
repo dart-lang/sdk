@@ -60,7 +60,7 @@ class EnvironmentVariableSdk extends EnvironmentVariableDirectory {
   }
 }
 
-main(List<String> arguments) async {
+mainEntryPoint(List<String> arguments) async {
   Uri output = Uri.base.resolveUri(new Uri.file(arguments.single));
   DartOptions options = new DartOptions(
       strongMode: false, sdk: await dartAotSdk.value, packagePath: null);

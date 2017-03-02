@@ -6,13 +6,47 @@ library fasta.run;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show stdout;
+import 'dart:io' show stdout, exit, exitCode;
 
 import 'package:testing/testing.dart' show StdioProcess;
 
 import 'testing/kernel_chain.dart' show computeDartVm, computePatchedSdk;
 
 import 'compiler_context.dart' show CompilerContext;
+
+import 'compiler_command_line.dart' show CompilerCommandLine;
+
+import 'outline.dart' show CompileTask;
+
+import 'errors.dart' show InputError;
+
+import 'ticker.dart' show Ticker;
+
+const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
+
+mainEntryPoint(List<String> arguments) async {
+  Uri uri;
+  for (int i = 0; i < iterations; i++) {
+    await CompilerCommandLine.withGlobalOptions("run", arguments,
+        (CompilerContext c) async {
+      if (i > 0) {
+        print("\n");
+      }
+      try {
+        CompileTask task =
+            new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
+        uri = await task.compile();
+      } on InputError catch (e) {
+        print(e.format());
+        exit(1);
+      }
+      if (exitCode != 0) exit(exitCode);
+      if (i + 1 == iterations) {
+        exit(await run(uri, c));
+      }
+    });
+  }
+}
 
 Future<int> run(Uri uri, CompilerContext c) async {
   Uri sdk = await computePatchedSdk();

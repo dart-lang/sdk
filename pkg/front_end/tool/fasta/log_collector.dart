@@ -8,7 +8,7 @@ import 'dart:isolate' show RawReceivePort;
 
 import 'dart:io';
 
-import '../errors.dart' show defaultServerAddress;
+import 'package:front_end/src/fasta/errors.dart' show defaultServerAddress;
 
 badRequest(HttpRequest request, int status, String message) {
   request.response.statusCode = status;

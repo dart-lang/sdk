@@ -20,7 +20,7 @@ scanAll(Map<Uri, List<int>> files) {
   print("Bytes/ms: ${byteCount/sw.elapsedMilliseconds}");
 }
 
-main(List<String> arguments) {
+mainEntryPoint(List<String> arguments) {
   Map<Uri, List<int>> files = <Uri, List<int>>{};
   Stopwatch sw = new Stopwatch()..start();
   for (String name in arguments) {
