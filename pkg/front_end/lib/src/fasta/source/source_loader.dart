@@ -341,4 +341,6 @@ class SourceLoader<L> extends Loader<L> {
     coreTypes = new CoreTypes(program);
     ticker.logMs("Computed core types");
   }
+
+  List<Uri> getDependencies() => sourceBytes.keys.toList();
 }

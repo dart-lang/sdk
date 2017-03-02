@@ -68,6 +68,8 @@ import '../util/relativize.dart' show relativizeUri;
 
 import '../compiler_context.dart' show CompilerContext;
 
+import '../util/relativize.dart' show relativizeUri;
+
 import 'kernel_builder.dart'
     show
         Builder,
@@ -259,6 +261,20 @@ class KernelTarget extends TargetImplementation {
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
     }
+  }
+
+  Future writeDepsFile(Uri output, Uri depsFile) async {
+    if (loader.first == null) return null;
+    StringBuffer sb = new StringBuffer();
+    Uri base = depsFile.resolve(".");
+    sb.write(Uri.parse(relativizeUri(output, base: base)).toFilePath());
+    sb.write(":");
+    for (Uri dependency in loader.getDependencies()) {
+      sb.write(" ");
+      sb.write(Uri.parse(relativizeUri(dependency, base: base)).toFilePath());
+    }
+    sb.writeln();
+    await new File.fromUri(depsFile).writeAsString("$sb");
   }
 
   Program erroneousProgram(bool isFullProgram) {

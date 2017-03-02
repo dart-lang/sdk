@@ -46,6 +46,7 @@ Future mainEntryPoint(List<String> arguments) async {
 Future compilePlatform(CompilerContext c, Ticker ticker) async {
   ticker.isVerbose = c.options.verbose;
   Uri output = Uri.base.resolveUri(new Uri.file(c.options.arguments[1]));
+  Uri deps = Uri.base.resolveUri(new Uri.file("${c.options.arguments[1]}.d"));
   Uri patchedSdk = Uri.base.resolveUri(new Uri.file(c.options.arguments[0]));
   ticker.logMs("Parsed arguments");
   if (ticker.isVerbose) {
@@ -65,7 +66,6 @@ Future compilePlatform(CompilerContext c, Ticker ticker) async {
   await kernelTarget.writeOutline(output);
 
   if (exitCode != 0) return null;
-  await kernelTarget.writeProgram(output);
   if (c.options.dumpIr) {
     kernelTarget.dumpIr();
   }
@@ -81,4 +81,7 @@ Future compilePlatform(CompilerContext c, Ticker ticker) async {
       }
     }
   }
+  if (exitCode != 0) return null;
+  await kernelTarget.writeProgram(output);
+  await kernelTarget.writeDepsFile(output, deps);
 }
