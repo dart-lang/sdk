@@ -53,7 +53,7 @@ group("runtime_kernel") {
   deps = [
     ":runtime",
 
-    # TODO(rmacnak): Link this into 'dart'
+    # TODO(rmacnak): Link this into 'dart'.
     "utils/kernel-service:kernel-service",
   ]
 }
