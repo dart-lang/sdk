@@ -41,6 +41,10 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
+import 'package:kernel/transformations/erasure.dart' show Erasure;
+
+import 'package:kernel/transformations/continuation.dart' as transformAsync;
+
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     show MixinFullResolution;
 
@@ -219,6 +223,7 @@ class KernelTarget extends TargetImplementation {
       transformMixinApplications();
       // TODO(ahe): Don't call this from two different places.
       setup_builtin_library.transformProgram(program);
+      otherTransformations();
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
       if (errors.isNotEmpty) {
         return handleInputError(uri, null, isFullProgram: true);
@@ -547,6 +552,15 @@ class KernelTarget extends TargetImplementation {
   void transformMixinApplications() {
     new MixinFullResolution().transform(program);
     ticker.logMs("Transformed mixin applications");
+  }
+
+  void otherTransformations() {
+    // TODO(ahe): Don't generate type variables in the first place.
+    program.accept(new Erasure());
+    ticker.logMs("Erased type variables in generic methods");
+    // TODO(kmillikin): Make this run on a per-method basis.
+    transformAsync.transformProgram(program);
+    ticker.logMs("Transformed async methods");
   }
 
   void dumpIr() {

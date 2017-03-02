@@ -6,6 +6,9 @@ library fasta.verifier;
 
 import 'package:kernel/ast.dart'
     show
+        InvalidExpression,
+        InvalidStatement,
+        InvalidInitializer,
         Class,
         ExpressionStatement,
         Field,
@@ -39,6 +42,10 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
 
   @override
   problem(TreeNode node, String details) {
+    // TODO(karlklose): Remove this when underlying problem is fixed.
+    if (details.startsWith("Type parameter 'dart.collection::MapView::")) {
+      return;
+    }
     VerificationError error = new VerificationError(context, node, details);
     printUnexpected(Uri.parse(fileUri), node.fileOffset, "$error");
     errors.add(error);
@@ -53,23 +60,42 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     }
   }
 
+  @override
   visitLibrary(Library node) {
     fileUri = node.fileUri;
     super.visitLibrary(node);
   }
 
+  @override
   visitClass(Class node) {
     fileUri = node.fileUri;
     super.visitClass(node);
   }
 
+  @override
   visitField(Field node) {
     fileUri = node.fileUri;
     super.visitField(node);
   }
 
+  @override
   visitProcedure(Procedure node) {
     fileUri = node.fileUri;
     super.visitProcedure(node);
+  }
+
+  @override
+  visitInvalidExpression(InvalidExpression node) {
+    problem(node, "Invalid expression.");
+  }
+
+  @override
+  visitInvalidStatement(InvalidStatement node) {
+    problem(node, "Invalid statement.");
+  }
+
+  @override
+  visitInvalidInitializer(InvalidInitializer node) {
+    problem(node, "Invalid initializer.");
   }
 }

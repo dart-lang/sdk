@@ -51,7 +51,7 @@ rasta/export: Fail
 rasta/external_factory_redirection: Crash
 rasta/foo: Fail
 rasta/for_loop: Crash
-rasta/generic_factory: Fail
+rasta/generic_factory: VerificationError
 rasta/issue_000001: Crash
 rasta/issue_000002: Crash
 rasta/issue_000004: Crash
@@ -86,7 +86,7 @@ rasta/issue_000070: Crash
 rasta/issue_000080: Crash
 rasta/issue_000081: Crash
 rasta/malformed_const_constructor: Fail
-rasta/malformed_function: Fail
+rasta/malformed_function: VerificationError
 rasta/malformed_function_type: Crash
 rasta/mandatory_parameter_initializer: Fail
 rasta/mixin_library: Crash

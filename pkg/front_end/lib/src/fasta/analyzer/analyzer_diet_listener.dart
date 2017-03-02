@@ -4,6 +4,8 @@
 
 library fasta.analyzer_diet_listener;
 
+import 'package:kernel/ast.dart' show AsyncMarker;
+
 import '../source/stack_listener.dart' show StackListener;
 
 import '../builder/builder.dart';
