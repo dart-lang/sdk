@@ -372,7 +372,7 @@ Note: currently only implemented for dart2js.''',
       new _TestOptionSpecification(
           'write_test_outcome_log',
           'Write the outcome of all tests executed to a '
-          '"${TestUtils.flakyFileName()}" file.',
+          '"${TestUtils.testOutcomeFileName()}" file.',
           ['--write-test-outcome-log'],
           [],
           false,
