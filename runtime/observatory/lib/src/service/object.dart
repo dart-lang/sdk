@@ -3114,7 +3114,6 @@ class Thread extends ServiceObject implements M.Thread {
 
   void _update(Map map, bool mapIsRef) {
     String rawKind = map['kind'];
-    List<Map> zoneList = map['zones'];
 
     switch(rawKind) {
       case "kUnknownTask":
@@ -3146,13 +3145,6 @@ class Thread extends ServiceObject implements M.Thread {
     }
 
     _memoryHighWatermark = int.parse(map['_memoryHighWatermark']);
-
-    zones.clear();
-    zoneList.forEach((zone) {
-      int capacity = zone['capacity'];
-      int used = zone['used'];
-      zones.add(new Zone(capacity, used));
-    });
   }
 }
 

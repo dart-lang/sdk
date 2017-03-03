@@ -325,23 +325,8 @@ TEST_CASE(ManySimpleTasksWithZones) {
   // Confirm all expected entries are in the JSON output.
   for (intptr_t i = 0; i < kTaskCount + 1; i++) {
     Thread* thread = threads[i];
-    Zone* top_zone = thread->zone();
-
     StackZone stack_zone(current_thread);
     Zone* current_zone = current_thread->zone();
-
-    // Check that all zones are present with correct sizes.
-    while (top_zone != NULL) {
-      char* zone_info_buf =
-          OS::SCreate(current_zone,
-                      "\"type\":\"_Zone\","
-                      "\"capacity\":%" Pd
-                      ","
-                      "\"used\":%" Pd "",
-                      top_zone->CapacityInBytes(), top_zone->SizeInBytes());
-      EXPECT_SUBSTRING(zone_info_buf, json);
-      top_zone = top_zone->previous();
-    }
 
     // Check the thread exists and is the correct size.
     char* thread_info_buf =
