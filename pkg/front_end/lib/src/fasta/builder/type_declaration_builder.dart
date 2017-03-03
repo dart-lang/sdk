@@ -5,7 +5,7 @@
 library fasta.type_declaration_builder;
 
 import 'builder.dart'
-    show Builder, MetadataBuilder, ModifierBuilder, TypeBuilder;
+    show Builder, LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;
 
 import '../util/relativize.dart' show relativizeUri;
 
@@ -32,8 +32,10 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   bool get isTypeDeclaration => true;
 
-  R buildType(List<T> arguments);
+  bool get isTypeVariable => false;
+
+  R buildType(LibraryBuilder library, List<T> arguments);
 
   /// [arguments] have already been built.
-  R buildTypesWithBuiltArguments(List<R> arguments);
+  R buildTypesWithBuiltArguments(LibraryBuilder library, List<R> arguments);
 }

@@ -62,7 +62,8 @@ abstract class KernelClassBuilder
   Class get target => cls;
 
   /// [arguments] have already been built.
-  InterfaceType buildTypesWithBuiltArguments(List<DartType> arguments) {
+  InterfaceType buildTypesWithBuiltArguments(
+      LibraryBuilder library, List<DartType> arguments) {
     return arguments == null
         ? cls.rawType
         : new InterfaceType(
@@ -72,27 +73,29 @@ abstract class KernelClassBuilder
             computeDefaultTypeArguments(cls.typeParameters, arguments));
   }
 
-  InterfaceType buildType(List<KernelTypeBuilder> arguments) {
+  InterfaceType buildType(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     List<DartType> typeArguments;
     if (arguments != null) {
       typeArguments = <DartType>[];
       for (KernelTypeBuilder builder in arguments) {
-        DartType type = builder.build();
+        DartType type = builder.build(library);
         if (type == null) {
           internalError("Bad type: ${builder.runtimeType}");
         }
         typeArguments.add(type);
       }
     }
-    return buildTypesWithBuiltArguments(typeArguments);
+    return buildTypesWithBuiltArguments(library, typeArguments);
   }
 
-  Supertype buildSupertype(List<KernelTypeBuilder> arguments) {
+  Supertype buildSupertype(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     List<DartType> typeArguments;
     if (arguments != null) {
       typeArguments = <DartType>[];
       for (KernelTypeBuilder builder in arguments) {
-        DartType type = builder.build();
+        DartType type = builder.build(library);
         if (type == null) {
           internalError("Bad type: ${builder.runtimeType}");
         }

@@ -11,6 +11,7 @@ import 'kernel_builder.dart'
         FormalParameterBuilder,
         KernelLibraryBuilder,
         KernelTypeBuilder,
+        LibraryBuilder,
         MetadataBuilder;
 
 class KernelFormalParameterBuilder
@@ -28,9 +29,9 @@ class KernelFormalParameterBuilder
       : super(metadata, modifiers, type, name, hasThis, compilationUnit,
             charOffset);
 
-  VariableDeclaration build() {
+  VariableDeclaration build(LibraryBuilder library) {
     return declaration ??= new VariableDeclaration(name,
-        type: type?.build() ?? const DynamicType(),
+        type: type?.build(library) ?? const DynamicType(),
         isFinal: isFinal,
         isConst: isConst);
   }

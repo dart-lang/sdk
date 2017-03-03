@@ -27,6 +27,7 @@ redirecting_constructor: Fail
 statements: Crash
 super_rasta_copy: Crash
 top_level_accessors: Crash
+type_variable_as_super: Fail
 typedef: Crash
 
 rasta/abstract_constructor: Fail

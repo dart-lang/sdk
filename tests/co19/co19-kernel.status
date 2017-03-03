@@ -101,19 +101,11 @@ Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeErro
 Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t03: RuntimeError
 Language/Classes/Superclasses/superclass_of_itself_t01: MissingCompileTimeError
 Language/Classes/Superclasses/superclass_of_itself_t02: MissingCompileTimeError
-Language/Classes/Superclasses/wrong_superclass_t01: MissingCompileTimeError
-Language/Classes/Superclasses/wrong_superclass_t02: DartkCrash
-Language/Classes/Superclasses/wrong_superclass_t03: MissingCompileTimeError
-Language/Classes/Superclasses/wrong_superclass_t05: DartkCrash
 Language/Classes/Superclasses/wrong_superclass_t07: Crash
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError
 Language/Classes/Superinterfaces/dynamic_type_t01: MissingCompileTimeError
 Language/Classes/Superinterfaces/dynamic_type_t02: MissingCompileTimeError
 Language/Classes/Superinterfaces/itself_t01: MissingCompileTimeError
-Language/Classes/Superinterfaces/type_variable_as_superinterface_t01: DartkCrash
-Language/Classes/Superinterfaces/wrong_type_t01: MissingCompileTimeError
-Language/Classes/Superinterfaces/wrong_type_t02: DartkCrash
-Language/Classes/Superinterfaces/wrong_type_t03: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t04: MissingCompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
 Language/Classes/declarations_t02: MissingCompileTimeError
@@ -308,7 +300,6 @@ Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: MissingC
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t03: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/syntax_t02: DartkCrash
 Language/Expressions/Method_Invocation/Super_Invocation/syntax_t03: DartkCrash
-Language/Expressions/Numbers/extend_or_implement_double_t06: MissingCompileTimeError
 Language/Expressions/Numbers/syntax_t21: MissingCompileTimeError
 Language/Expressions/Numbers/syntax_t25: MissingCompileTimeError
 Language/Expressions/Numbers/syntax_t26: MissingCompileTimeError
@@ -393,11 +384,9 @@ Language/Libraries_and_Scripts/Imports/namespace_changes_t17: RuntimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t27: CompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t02/01: MissingRuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t05: RuntimeError
-Language/Libraries_and_Scripts/Imports/same_name_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t12/01: MissingRuntimeError
 Language/Libraries_and_Scripts/Imports/same_name_t15/01: MissingRuntimeError
-Language/Libraries_and_Scripts/Imports/same_name_t17: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t19: RuntimeError
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
 Language/Libraries_and_Scripts/Imports/syntax_t32: MissingCompileTimeError
@@ -449,15 +438,11 @@ Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t15: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_mixin_type_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_mixin_type_t02: MissingCompileTimeError
-Language/Mixins/Mixin_Application/wrong_mixin_type_t03: MissingCompileTimeError
-Language/Mixins/Mixin_Application/wrong_mixin_type_t04: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_mixin_type_t05: DartkCrash
 Language/Mixins/Mixin_Application/wrong_mixin_type_t06: DartkCrash
 Language/Mixins/Mixin_Application/wrong_mixin_type_t07: MissingCompileTimeError
-Language/Mixins/Mixin_Application/wrong_mixin_type_t08: Crash
 Language/Mixins/Mixin_Application/wrong_type_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_type_t02: DartkCrash
-Language/Mixins/Mixin_Application/wrong_type_t03: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_type_t04: Crash
 Language/Mixins/Mixin_Application/wrong_type_t05: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_type_t06: Crash

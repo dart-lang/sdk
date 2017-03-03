@@ -68,6 +68,8 @@ class KernelLibraryBuilder
       : library = new Library(uri, fileUri: relativizeUri(fileUri)),
         super(loader, fileUri);
 
+  Library get target => library;
+
   Uri get uri => library.importUri;
 
   KernelTypeBuilder addNamedType(
@@ -280,9 +282,9 @@ class KernelLibraryBuilder
       Class cls = builder.build(this);
       library.addClass(cls);
     } else if (builder is KernelFieldBuilder) {
-      library.addMember(builder.build(library)..isStatic = true);
+      library.addMember(builder.build(this)..isStatic = true);
     } else if (builder is KernelProcedureBuilder) {
-      library.addMember(builder.build(library)..isStatic = true);
+      library.addMember(builder.build(this)..isStatic = true);
     } else if (builder is FunctionTypeAliasBuilder) {
       // Kernel discard typedefs and use their corresponding function types
       // directly.
@@ -394,7 +396,7 @@ class KernelLibraryBuilder
   int finishTypeVariables(ClassBuilder object) {
     int count = boundlessTypeVariables.length;
     for (KernelTypeVariableBuilder builder in boundlessTypeVariables) {
-      builder.finish(object);
+      builder.finish(this, object);
     }
     boundlessTypeVariables.clear();
     return count;

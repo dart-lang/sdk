@@ -85,9 +85,9 @@ class SourceClassBuilder extends KernelClassBuilder {
       if (builder is KernelFieldBuilder) {
         // TODO(ahe): It would be nice to have a common interface for the build
         // method to avoid duplicating these two cases.
-        cls.addMember(builder.build(library.library));
+        cls.addMember(builder.build(library));
       } else if (builder is KernelFunctionBuilder) {
-        cls.addMember(builder.build(library.library));
+        cls.addMember(builder.build(library));
       } else {
         internalError("Unhandled builder: ${builder.runtimeType}");
       }
@@ -99,14 +99,14 @@ class SourceClassBuilder extends KernelClassBuilder {
         builder = builder.next;
       } while (builder != null);
     });
-    cls.supertype = supertype?.buildSupertype();
-    cls.mixedInType = mixedInType?.buildSupertype();
+    cls.supertype = supertype?.buildSupertype(library);
+    cls.mixedInType = mixedInType?.buildSupertype(library);
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
     if (interfaces != null) {
       for (KernelTypeBuilder interface in interfaces) {
-        Supertype supertype = interface.buildSupertype();
+        Supertype supertype = interface.buildSupertype(library);
         if (supertype != null) {
           // TODO(ahe): Report an error if supertype is null.
           cls.implementedTypes.add(supertype);

@@ -4,10 +4,15 @@
 
 library fasta.kernel_field_builder;
 
-import 'package:kernel/ast.dart' show Expression, Field, Library, Name;
+import 'package:kernel/ast.dart' show Expression, Field, Name;
 
 import 'kernel_builder.dart'
-    show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
+    show
+        Builder,
+        FieldBuilder,
+        KernelTypeBuilder,
+        LibraryBuilder,
+        MetadataBuilder;
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
   final Field field;
@@ -24,10 +29,10 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     field.initializer = value..parent = field;
   }
 
-  Field build(Library library) {
-    field.name ??= new Name(name, library);
+  Field build(LibraryBuilder library) {
+    field.name ??= new Name(name, library.target);
     if (type != null) {
-      field.type = type.build();
+      field.type = type.build(library);
     }
     bool isInstanceMember = !isStatic && !isTopLevel;
     return field

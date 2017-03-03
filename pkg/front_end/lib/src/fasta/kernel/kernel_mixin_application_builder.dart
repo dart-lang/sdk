@@ -16,6 +16,7 @@ import 'kernel_builder.dart'
         KernelNamedTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
+        LibraryBuilder,
         MixinApplicationBuilder,
         TypeBuilder,
         TypeVariableBuilder;
@@ -45,15 +46,17 @@ class KernelMixinApplicationBuilder
         relativeFileUri = relativizeUri(fileUri),
         super(supertype, mixins, charOffset, fileUri);
 
-  InterfaceType build() => buildSupertype().asInterfaceType;
+  InterfaceType build(LibraryBuilder library) {
+    return buildSupertype(library)?.asInterfaceType;
+  }
 
-  Supertype buildSupertype() {
+  Supertype buildSupertype(LibraryBuilder library) {
     if (builtType != null) return builtType;
     KernelTypeBuilder s = this.supertype;
     for (KernelTypeBuilder builder in mixins) {
       s = applyMixin(s, builder);
     }
-    builtType = s.buildSupertype();
+    builtType = s.buildSupertype(library);
     return builtType;
   }
 
