@@ -69,7 +69,7 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
     if (formals == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
     for (FormalParameterBuilder formal in formals) {
-      if (!formal.hasThis) {
+      if (!isConstructor || !formal.hasThis) {
         local[formal.name] = formal;
       }
     }

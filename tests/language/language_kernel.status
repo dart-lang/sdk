@@ -532,10 +532,6 @@ not_enough_positional_arguments_test/05: MissingRuntimeError  # Dartk Issue 2830
 number_identifier_test/02: MissingCompileTimeError
 number_identifier_test/04: MissingCompileTimeError
 on_catch_malformed_type_test: RuntimeError
-parameter_initializer1_negative_test: DartkCrash
-parameter_initializer2_negative_test: DartkCrash
-parameter_initializer3_negative_test: DartkCrash
-parameter_initializer4_negative_test: DartkCrash
 parameter_initializer6_negative_test: Fail
 part2_test: RuntimeError
 prefix13_negative_test: Fail
@@ -553,7 +549,6 @@ regress_20394_test/01: MissingCompileTimeError
 regress_22438_test: RuntimeError
 regress_22443_test: RuntimeError  # Deferred Loading Issue 28335
 regress_23408_test: RuntimeError  # Deferred Loading Issue 28335
-regress_26855_test/0: DartkCrash
 regress_27617_test/1: MissingCompileTimeError
 regress_27957_test: RuntimeError
 regress_28217_test/01: MissingCompileTimeError
