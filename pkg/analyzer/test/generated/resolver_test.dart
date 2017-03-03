@@ -15,6 +15,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -3202,9 +3203,9 @@ A v = new A();
     InterfaceType intType = _typeProvider.intType;
     TypeName intTypeName = AstTestFactory.typeName4("int");
     String innerParameterName = "a";
-    SimpleFormalParameter parameter =
+    SimpleFormalParameterImpl parameter =
         AstTestFactory.simpleFormalParameter3(innerParameterName);
-    parameter.identifier.staticElement =
+    parameter.element = parameter.identifier.staticElement =
         ElementFactory.requiredParameter(innerParameterName);
     String outerParameterName = "p";
     FormalParameter node = AstTestFactory.fieldFormalParameter(
@@ -3415,8 +3416,8 @@ A v = new A();
 
   test_visitSimpleFormalParameter_noType() async {
     // p
-    FormalParameter node = AstTestFactory.simpleFormalParameter3("p");
-    node.identifier.staticElement =
+    SimpleFormalParameterImpl node = AstTestFactory.simpleFormalParameter3("p");
+    node.element = node.identifier.staticElement =
         new ParameterElementImpl.forNode(AstTestFactory.identifier3("p"));
     expect(_resolveFormalParameter(node), same(_typeProvider.dynamicType));
     _listener.assertNoErrors();
@@ -3426,11 +3427,11 @@ A v = new A();
     // int p
     InterfaceType intType = _typeProvider.intType;
     ClassElement intElement = intType.element;
-    FormalParameter node = AstTestFactory.simpleFormalParameter4(
+    SimpleFormalParameterImpl node = AstTestFactory.simpleFormalParameter4(
         AstTestFactory.typeName(intElement), "p");
     SimpleIdentifier identifier = node.identifier;
     ParameterElementImpl element = new ParameterElementImpl.forNode(identifier);
-    identifier.staticElement = element;
+    node.element = identifier.staticElement = element;
     expect(_resolveFormalParameter(node, [intElement]), same(intType));
     _listener.assertNoErrors();
   }

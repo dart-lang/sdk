@@ -6428,12 +6428,16 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitSimpleFormalParameter(SimpleFormalParameter node) {
     SimpleFormalParameter toNode = this._toNode as SimpleFormalParameter;
-    return _and(
+    if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
         _isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodes(node.type, toNode.type),
-        _isEqualNodes(node.identifier, toNode.identifier));
+        _isEqualNodes(node.identifier, toNode.identifier))) {
+      (toNode as SimpleFormalParameterImpl).element = node.element;
+      return true;
+    }
+    return false;
   }
 
   @override
