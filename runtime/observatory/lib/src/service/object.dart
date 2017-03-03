@@ -3107,6 +3107,8 @@ class Thread extends ServiceObject implements M.Thread {
   String _kindString;
   int get memoryHighWatermark => _memoryHighWatermark;
   int _memoryHighWatermark;
+
+  // TODO(bkonyi): zones will always be empty. See issue #28885.
   List<Zone> get zones => _zones;
   final List<Zone> _zones = new List<Zone>();
 

@@ -389,6 +389,8 @@ class IsolateViewElement extends HtmlElement implements Renderable {
                     ..children = [
                       new SpanElement()
                         ..children = [
+                          // TODO(bkonyi): zones will always be empty. See
+                          // issue #28885.
                           new SpanElement()
                             ..text = 'zone ${index++} ',
                           new CurlyBlockElement(queue: _r.queue)
