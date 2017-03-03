@@ -436,7 +436,6 @@ library_env_test/has_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 list_literal2_negative_test: Fail
 list_literal4_test: RuntimeError
-list_literal_negative_test: DartkCrash
 main_not_a_function_test/01: Crash
 malformed2_test/00: RuntimeError
 malformed_inheritance_test/01: MissingCompileTimeError
@@ -452,7 +451,6 @@ malformed_test/none: RuntimeError
 map_literal2_negative_test: Fail
 map_literal3_test: RuntimeError
 map_literal6_test: RuntimeError
-map_literal_negative_test: DartkCrash
 metadata_test: CompileTimeError
 method_name_test: CompileTimeError
 method_override_test: RuntimeError
@@ -523,20 +521,11 @@ multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/none: RuntimeError
 named_constructor_test/01: MissingRuntimeError
-named_constructor_test/02: DartkCrash
-named_constructor_test/04: DartkCrash
-named_constructor_test/05: DartkCrash
-named_constructor_test/06: DartkCrash
-named_constructor_test/07: DartkCrash
-named_constructor_test/08: DartkCrash
-named_constructor_test/09: DartkCrash
-named_constructor_test/10: DartkCrash
 named_parameters_aggregated_test/01: MissingCompileTimeError
 named_parameters_aggregated_test/03: MissingCompileTimeError
 named_parameters_aggregated_test/04: MissingCompileTimeError
 named_parameters_default_eq_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
-new_expression1_negative_test: DartkCrash
 no_main_test/01: Crash
 not_enough_positional_arguments_test/02: MissingRuntimeError  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: MissingRuntimeError  # Dartk Issue 28301

@@ -1652,6 +1652,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     List<DartType> typeArguments = pop();
     var type = pop();
 
+    if (arguments == null) {
+      push(buildCompileTimeError("No arguments.", token.charOffset));
+      return;
+    }
+
     if (typeArguments != null) {
       assert(arguments.types.isEmpty);
       arguments.types.addAll(typeArguments);
