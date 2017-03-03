@@ -623,17 +623,6 @@ hooks = [
   {
     'action': [
       'python',
-      'src/third_party/mojo/src/mojo/public/tools/download_shell_binary.py',
-      '--tools-directory=../../../../../../tools'
-    ],
-    'pattern':
-      '',
-    'name':
-      'download_mojo_shell'
-  },
-  {
-    'action': [
-      'python',
       'src/third_party/instrumented_libraries/scripts/download_binaries.py'
     ],
     'pattern':
