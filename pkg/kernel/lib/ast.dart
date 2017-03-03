@@ -1257,7 +1257,7 @@ class FunctionNode extends TreeNode {
       this.returnType: const DynamicType(),
       this.inferredReturnValue,
       this.asyncMarker: AsyncMarker.Sync,
-      this.dartAsyncMarker: AsyncMarker.Sync})
+      this.dartAsyncMarker})
       : this.positionalParameters =
             positionalParameters ?? <VariableDeclaration>[],
         this.requiredParameterCount =
@@ -1269,6 +1269,7 @@ class FunctionNode extends TreeNode {
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
     body?.parent = this;
+    dartAsyncMarker ??= asyncMarker;
   }
 
   static DartType _getTypeOfVariable(VariableDeclaration node) => node.type;
@@ -1406,6 +1407,7 @@ abstract class Expression extends TreeNode {
   }
 
   accept(ExpressionVisitor v);
+  accept1(ExpressionVisitor1 v, arg);
 }
 
 /// An expression containing compile-time errors.
@@ -1415,6 +1417,7 @@ class InvalidExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
   accept(ExpressionVisitor v) => v.visitInvalidExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitInvalidExpression(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -1432,6 +1435,7 @@ class VariableGet extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitVariableGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVariableGet(this, arg);
 
   visitChildren(Visitor v) {
     promotedType?.accept(v);
@@ -1458,6 +1462,7 @@ class VariableSet extends Expression {
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
   accept(ExpressionVisitor v) => v.visitVariableSet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitVariableSet(this, arg);
 
   visitChildren(Visitor v) {
     value?.accept(v);
@@ -1514,6 +1519,7 @@ class PropertyGet extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitPropertyGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitPropertyGet(this, arg);
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
@@ -1560,6 +1566,7 @@ class PropertySet extends Expression {
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
   accept(ExpressionVisitor v) => v.visitPropertySet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitPropertySet(this, arg);
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
@@ -1610,6 +1617,7 @@ class DirectPropertyGet extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitDirectPropertyGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitDirectPropertyGet(this, arg);
 
   DartType getStaticType(TypeEnvironment types) {
     Class superclass = target.enclosingClass;
@@ -1661,6 +1669,7 @@ class DirectPropertySet extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitDirectPropertySet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitDirectPropertySet(this, arg);
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 }
@@ -1707,6 +1716,8 @@ class DirectMethodInvocation extends InvocationExpression {
   }
 
   accept(ExpressionVisitor v) => v.visitDirectMethodInvocation(this);
+  accept1(ExpressionVisitor1 v, arg) =>
+      v.visitDirectMethodInvocation(this, arg);
 
   DartType getStaticType(TypeEnvironment types) {
     if (types.isOverloadedArithmeticOperator(target)) {
@@ -1755,6 +1766,7 @@ class SuperPropertyGet extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitSuperPropertyGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSuperPropertyGet(this, arg);
 
   visitChildren(Visitor v) {
     name?.accept(v);
@@ -1790,6 +1802,7 @@ class SuperPropertySet extends Expression {
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
   accept(ExpressionVisitor v) => v.visitSuperPropertySet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSuperPropertySet(this, arg);
 
   visitChildren(Visitor v) {
     name?.accept(v);
@@ -1822,6 +1835,7 @@ class StaticGet extends Expression {
   DartType getStaticType(TypeEnvironment types) => target.getterType;
 
   accept(ExpressionVisitor v) => v.visitStaticGet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitStaticGet(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -1854,6 +1868,7 @@ class StaticSet extends Expression {
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
   accept(ExpressionVisitor v) => v.visitStaticSet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitStaticSet(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -1998,6 +2013,7 @@ class MethodInvocation extends InvocationExpression {
   }
 
   accept(ExpressionVisitor v) => v.visitMethodInvocation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitMethodInvocation(this, arg);
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
@@ -2055,6 +2071,7 @@ class SuperMethodInvocation extends InvocationExpression {
   }
 
   accept(ExpressionVisitor v) => v.visitSuperMethodInvocation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSuperMethodInvocation(this, arg);
 
   visitChildren(Visitor v) {
     name?.accept(v);
@@ -2104,6 +2121,7 @@ class StaticInvocation extends InvocationExpression {
   }
 
   accept(ExpressionVisitor v) => v.visitStaticInvocation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitStaticInvocation(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -2155,6 +2173,7 @@ class ConstructorInvocation extends InvocationExpression {
   }
 
   accept(ExpressionVisitor v) => v.visitConstructorInvocation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitConstructorInvocation(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -2189,6 +2208,7 @@ class Not extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.boolType;
 
   accept(ExpressionVisitor v) => v.visitNot(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitNot(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -2216,6 +2236,7 @@ class LogicalExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.boolType;
 
   accept(ExpressionVisitor v) => v.visitLogicalExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitLogicalExpression(this, arg);
 
   visitChildren(Visitor v) {
     left?.accept(v);
@@ -2253,6 +2274,7 @@ class ConditionalExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => staticType;
 
   accept(ExpressionVisitor v) => v.visitConditionalExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitConditionalExpression(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -2297,6 +2319,7 @@ class StringConcatenation extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.stringType;
 
   accept(ExpressionVisitor v) => v.visitStringConcatenation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitStringConcatenation(this, arg);
 
   visitChildren(Visitor v) {
     visitList(expressions, v);
@@ -2319,6 +2342,7 @@ class IsExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.boolType;
 
   accept(ExpressionVisitor v) => v.visitIsExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitIsExpression(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -2346,6 +2370,7 @@ class AsExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => type;
 
   accept(ExpressionVisitor v) => v.visitAsExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitAsExpression(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -2377,6 +2402,7 @@ class StringLiteral extends BasicLiteral {
   DartType getStaticType(TypeEnvironment types) => types.stringType;
 
   accept(ExpressionVisitor v) => v.visitStringLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitStringLiteral(this, arg);
 }
 
 class IntLiteral extends BasicLiteral {
@@ -2387,6 +2413,7 @@ class IntLiteral extends BasicLiteral {
   DartType getStaticType(TypeEnvironment types) => types.intType;
 
   accept(ExpressionVisitor v) => v.visitIntLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitIntLiteral(this, arg);
 }
 
 class DoubleLiteral extends BasicLiteral {
@@ -2397,6 +2424,7 @@ class DoubleLiteral extends BasicLiteral {
   DartType getStaticType(TypeEnvironment types) => types.doubleType;
 
   accept(ExpressionVisitor v) => v.visitDoubleLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitDoubleLiteral(this, arg);
 }
 
 class BoolLiteral extends BasicLiteral {
@@ -2407,6 +2435,7 @@ class BoolLiteral extends BasicLiteral {
   DartType getStaticType(TypeEnvironment types) => types.boolType;
 
   accept(ExpressionVisitor v) => v.visitBoolLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitBoolLiteral(this, arg);
 }
 
 class NullLiteral extends BasicLiteral {
@@ -2415,6 +2444,7 @@ class NullLiteral extends BasicLiteral {
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
   accept(ExpressionVisitor v) => v.visitNullLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitNullLiteral(this, arg);
 }
 
 class SymbolLiteral extends Expression {
@@ -2425,6 +2455,7 @@ class SymbolLiteral extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.symbolType;
 
   accept(ExpressionVisitor v) => v.visitSymbolLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSymbolLiteral(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2438,6 +2469,7 @@ class TypeLiteral extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.typeType;
 
   accept(ExpressionVisitor v) => v.visitTypeLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitTypeLiteral(this, arg);
 
   visitChildren(Visitor v) {
     type?.accept(v);
@@ -2452,6 +2484,7 @@ class ThisExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.thisType;
 
   accept(ExpressionVisitor v) => v.visitThisExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitThisExpression(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2461,6 +2494,7 @@ class Rethrow extends Expression {
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
   accept(ExpressionVisitor v) => v.visitRethrow(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitRethrow(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2476,6 +2510,7 @@ class Throw extends Expression {
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
   accept(ExpressionVisitor v) => v.visitThrow(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitThrow(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -2505,6 +2540,7 @@ class ListLiteral extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitListLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitListLiteral(this, arg);
 
   visitChildren(Visitor v) {
     typeArgument?.accept(v);
@@ -2537,6 +2573,7 @@ class MapLiteral extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitMapLiteral(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitMapLiteral(this, arg);
 
   visitChildren(Visitor v) {
     keyType?.accept(v);
@@ -2592,6 +2629,7 @@ class AwaitExpression extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitAwaitExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitAwaitExpression(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -2618,6 +2656,7 @@ class FunctionExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => function.functionType;
 
   accept(ExpressionVisitor v) => v.visitFunctionExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitFunctionExpression(this, arg);
 
   visitChildren(Visitor v) {
     function?.accept(v);
@@ -2644,6 +2683,7 @@ class Let extends Expression {
   DartType getStaticType(TypeEnvironment types) => body.getStaticType(types);
 
   accept(ExpressionVisitor v) => v.visitLet(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitLet(this, arg);
 
   visitChildren(Visitor v) {
     variable?.accept(v);
@@ -2685,6 +2725,7 @@ class LoadLibrary extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitLoadLibrary(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitLoadLibrary(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2702,6 +2743,7 @@ class CheckLibraryIsLoaded extends Expression {
   }
 
   accept(ExpressionVisitor v) => v.visitCheckLibraryIsLoaded(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitCheckLibraryIsLoaded(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}

@@ -127,7 +127,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   final ClassElement objectClass;
   final ClassElement stringClass;
   final ClassElement functionClass;
-  final ClassElement symbolClass;
+  final ClassElement privateSymbolClass;
 
   ConstFieldVisitor _constants;
 
@@ -174,7 +174,8 @@ class CodeGenerator extends GeneralizingAstVisitor
         objectClass = _getLibrary(c, 'dart:core').getType('Object'),
         stringClass = _getLibrary(c, 'dart:core').getType('String'),
         functionClass = _getLibrary(c, 'dart:core').getType('Function'),
-        symbolClass = _getLibrary(c, 'dart:_internal').getType('Symbol'),
+        privateSymbolClass =
+            _getLibrary(c, 'dart:_internal').getType('PrivateSymbol'),
         dartJSLibrary = _getLibrary(c, 'dart:js');
 
   LibraryElement get currentLibrary => _loader.currentElement.library;
@@ -191,7 +192,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       _libraryRoot += separator;
     }
 
-    var module = _emitModule(compilationUnits);
+    var module = _emitModule(compilationUnits, unit.name);
     var dartApiSummary = _summarizeModule(compilationUnits);
 
     return new JSModuleFile(unit.name, errors, options, module, dartApiSummary);
@@ -237,7 +238,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     return bundle.toBuffer();
   }
 
-  JS.Program _emitModule(List<CompilationUnit> compilationUnits) {
+  JS.Program _emitModule(List<CompilationUnit> compilationUnits, String name) {
     if (_moduleItems.isNotEmpty) {
       throw new StateError('Can only call emitModule once.');
     }
@@ -320,11 +321,27 @@ class CodeGenerator extends GeneralizingAstVisitor
     // hoisted definitions.
     items.addAll(_typeTable.discharge());
 
+    // Track the module name for each library in the module.
+    // This data is only required for debugging.
+    _moduleItems.add(js.statement('#.trackLibraries(#, #);',
+        [_runtimeModule, js.string(name), _librariesDebuggerObject()]));
+
     // Add the module's code (produced by visiting compilation units, above)
     _copyAndFlattenBlocks(items, _moduleItems);
 
     // Build the module.
     return new JS.Program(items, name: _buildUnit.name);
+  }
+
+  JS.ObjectInitializer _librariesDebuggerObject() {
+    var properties = <JS.Property>[];
+    _libraries.forEach((library, value) {
+      // TODO(jacobr): we could specify a short library name instead of the
+      // full library uri if we wanted to save space.
+      properties.add(new JS.Property(
+          js.string(jsLibraryDebuggerName(_libraryRoot, library)), value));
+    });
+    return new JS.ObjectInitializer(properties);
   }
 
   List<String> _getJSName(Element e) {
@@ -457,6 +474,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         imports.add(new JS.NameSpecifier(_runtimeModule));
         imports.add(new JS.NameSpecifier(_extensionSymbolsModule));
       }
+
       items.add(new JS.ImportDeclaration(
           namedImports: imports, from: js.string(module, "'")));
     });
@@ -2272,8 +2290,8 @@ class CodeGenerator extends GeneralizingAstVisitor
       // Run constructor field initializers such as `: foo = bar.baz`
       for (var init in ctor.initializers) {
         if (init is ConstructorFieldInitializer) {
-          fields[init.fieldName.staticElement as FieldElement] =
-              _visit(init.expression);
+          var element = init.fieldName.staticElement as FieldElement;
+          fields[element] = _visit(init.expression);
         }
       }
     }
@@ -5367,8 +5385,11 @@ class CodeGenerator extends GeneralizingAstVisitor
       var name = js.string(node.components.join('.'), "'");
       if (last.startsWith('_')) {
         var nativeSymbol = _emitPrivateNameSymbol(currentLibrary, last);
-        return js.call('new #.es6(#, #)',
-            [_emitConstructorAccess(symbolClass.type), name, nativeSymbol]);
+        return js.call('new #(#, #)', [
+          _emitConstructorAccess(privateSymbolClass.type),
+          name,
+          nativeSymbol
+        ]);
       } else {
         return js
             .call('#.new(#)', [_emitConstructorAccess(types.symbolType), name]);
@@ -5830,6 +5851,44 @@ class CodeGenerator extends GeneralizingAstVisitor
 /// This never uses the library's name (the identifier in the `library`
 /// declaration) as it doesn't have any meaningful rules enforced.
 String jsLibraryName(String libraryRoot, LibraryElement library) {
+  var uri = library.source.uri;
+  if (uri.scheme == 'dart') {
+    return uri.path;
+  }
+  // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
+  var separator = '__';
+  String qualifiedPath;
+  if (uri.scheme == 'package') {
+    // Strip the package name.
+    // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
+    // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
+    qualifiedPath = uri.pathSegments.skip(1).join(separator);
+  } else if (uri.toFilePath().startsWith(libraryRoot)) {
+    qualifiedPath =
+        uri.path.substring(libraryRoot.length).replaceAll('/', separator);
+  } else {
+    // We don't have a unique name.
+    throw 'Invalid library root. $libraryRoot does not contain ${uri
+        .toFilePath()}';
+  }
+  return pathToJSIdentifier(qualifiedPath);
+}
+
+/// Debugger friendly name for a Dart Library.
+String jsLibraryDebuggerName(String libraryRoot, LibraryElement library) {
+  var uri = library.source.uri;
+  // For package: and dart: uris show the entire
+  if (uri.scheme == 'dart' || uri.scheme == 'package') return uri.toString();
+
+  if (!uri.toFilePath().startsWith(libraryRoot)) {
+    throw 'Invalid library root. $libraryRoot does not contain ${uri
+        .toFilePath()}';
+  }
+  // Relative path to the library.
+  return uri.path.substring(libraryRoot.length);
+}
+
+String jsDebuggingLibraryName(String libraryRoot, LibraryElement library) {
   var uri = library.source.uri;
   if (uri.scheme == 'dart') {
     return uri.path;

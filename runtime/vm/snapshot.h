@@ -396,7 +396,7 @@ class SnapshotReader : public BaseReader {
   RawObject* ReadScriptSnapshot();
 
   // Read version number of snapshot and verify.
-  RawApiError* VerifyVersionAndFeatures();
+  RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 
   RawObject* NewInteger(int64_t value);
 

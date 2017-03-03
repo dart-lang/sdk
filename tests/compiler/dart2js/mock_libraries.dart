@@ -183,6 +183,9 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
         buildNamedFunctionType(null, null, null);
         buildInterfaceType(null, null);
       }''',
+  'functionTypeTest': r'functionTypeTest(f, t) {}',
+  'functionTypeCast': r'functionTypeCast(f, t) { return f; }',
+  'functionTypeCheck': r'functionTypeCheck(f, t) { return f; }',
   'getFallThroughError': 'getFallThroughError() {}',
   'getIsolateAffinityTag': 'getIsolateAffinityTag(_) {}',
   'getRuntimeTypeArgument':

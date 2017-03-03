@@ -4,11 +4,11 @@
 import 'package:expect/expect.dart';
 
 class Implementation {
-  method(int x) {}
+  dynamic method(int x) {}
 }
 
 abstract class Interface<T> {
-  method(T x);
+  dynamic method(T x);
 }
 
 class Subclass extends Implementation implements Interface<int> {}

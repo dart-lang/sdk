@@ -377,7 +377,8 @@ class _ClassTransformer {
       // function type parameters (in case the function is generic).
       var targetType = cloneParameter.type;
       cloneParameter.type = cloner.visitType(getSafeType(unsafeInputs));
-      return new AsExpression(new VariableGet(cloneParameter), targetType);
+      return new AsExpression(new VariableGet(cloneParameter), targetType)
+          ..fileOffset = parameter.fileOffset;
     }
 
     // TODO: Insert checks for type parameter bounds.
@@ -416,7 +417,8 @@ class _ClassTransformer {
     Expression argument = new VariableGet(parameter);
     if (unsafeTypes != null) {
       var castType = substitute(field.type, ownSubstitution);
-      argument = new AsExpression(argument, castType);
+      argument = new AsExpression(argument, castType)
+          ..fileOffset = field.fileOffset;
       var inputType = substitute(getSafeType(unsafeTypes), ownSubstitution);
       parameter.type = inputType;
     }
@@ -429,7 +431,8 @@ class _ClassTransformer {
     var setter = new Procedure(
         covariantCheckedName(field.name),
         ProcedureKind.Setter,
-        new FunctionNode(body, positionalParameters: [parameter]));
+        new FunctionNode(body, positionalParameters: [parameter]))
+      ..fileUri = field.fileUri;
     host.addMember(setter);
 
     if (field.enclosingClass == host) {

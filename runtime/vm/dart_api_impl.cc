@@ -1192,9 +1192,9 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
 
   return Dart::InitOnce(
       params->vm_snapshot_data, params->vm_snapshot_instructions,
-      params->create, params->shutdown, params->thread_exit, params->file_open,
-      params->file_read, params->file_write, params->file_close,
-      params->entropy_source, params->get_service_assets);
+      params->create, params->shutdown, params->cleanup, params->thread_exit,
+      params->file_open, params->file_read, params->file_write,
+      params->file_close, params->entropy_source, params->get_service_assets);
 }
 
 

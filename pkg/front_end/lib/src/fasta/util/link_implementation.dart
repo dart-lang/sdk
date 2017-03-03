@@ -12,7 +12,7 @@ class LinkIterator<T> implements Iterator<T> {
   T _current;
   Link<T> _link;
 
-  LinkIterator(Link<T> this._link);
+  LinkIterator(this._link);
 
   T get current => _current;
 
@@ -64,7 +64,7 @@ class LinkEntry<T> extends Link<T> {
   final T head;
   Link<T> tail;
 
-  LinkEntry(T this.head, [Link<T> tail])
+  LinkEntry(this.head, [Link<T> tail])
       : this.tail = ((tail == null) ? const Link() : tail);
 
   Link<T> prepend(T element) {

@@ -28,6 +28,7 @@ class Dart : public AllStatic {
                         const uint8_t* vm_snapshot_instructions,
                         Dart_IsolateCreateCallback create,
                         Dart_IsolateShutdownCallback shutdown,
+                        Dart_IsolateCleanupCallback cleanup,
                         Dart_ThreadExitCallback thread_exit,
                         Dart_FileOpenCallback file_open,
                         Dart_FileReadCallback file_read,
@@ -72,7 +73,7 @@ class Dart : public AllStatic {
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);
 
-  static const char* FeaturesString(Snapshot::Kind kind);
+  static const char* FeaturesString(Isolate* isolate, Snapshot::Kind kind);
   static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
 
   static Dart_ThreadExitCallback thread_exit_callback() {

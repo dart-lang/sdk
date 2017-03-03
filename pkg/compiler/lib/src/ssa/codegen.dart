@@ -2893,77 +2893,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           .getCheckedModeHelper(type, typeCast: node.isCastTypeCheck);
     }
 
-    if (helper == null) {
-      assert(type.isFunctionType);
-      assert(node.usesMethodOnType);
-
-      String name = node.isCastTypeCheck ? '_asCheck' : '_assertCheck';
-      HInstruction reifiedType = node.inputs[0];
-      HInstruction checkedInput = node.inputs[1];
-      use(reifiedType);
-      js.Expression receiver = pop();
-      use(checkedInput);
-      Selector selector = new Selector.call(
-          new Name(name, helpers.jsHelperLibrary), CallStructure.ONE_ARG);
-      registry.registerDynamicUse(
-          new DynamicUse(selector, reifiedType.instructionType));
-      js.Name methodLiteral = backend.namer.invocationName(selector);
-      push(js.js('#.#(#)', [receiver, methodLiteral, pop()]));
-    } else {
-      assert(!node.usesMethodOnType);
-      push(helper.generateCall(this, node));
-    }
+    push(helper.generateCall(this, node));
   }
 
   void visitTypeKnown(HTypeKnown node) {
     // [HTypeKnown] instructions are removed before generating code.
     assert(false);
-  }
-
-  void visitFunctionType(HFunctionType node) {
-    FunctionType type = node.dartType;
-    int inputCount = 0;
-    use(node.inputs[inputCount++]);
-    js.Expression returnType = pop();
-
-    List<js.Expression> parameterTypes = <js.Expression>[];
-    for (var _ in type.parameterTypes) {
-      use(node.inputs[inputCount++]);
-      parameterTypes.add(pop());
-    }
-
-    List<js.Expression> optionalParameterTypes = <js.Expression>[];
-    for (var _ in type.optionalParameterTypes) {
-      use(node.inputs[inputCount++]);
-      optionalParameterTypes.add(pop());
-    }
-
-    List<js.Property> namedParameters = <js.Property>[];
-    for (var _ in type.namedParameters) {
-      use(node.inputs[inputCount++]);
-      js.Expression name = pop();
-      use(node.inputs[inputCount++]);
-      namedParameters.add(new js.Property(name, pop()));
-    }
-
-    if (namedParameters.isEmpty) {
-      var arguments = [returnType];
-      if (!parameterTypes.isEmpty || !optionalParameterTypes.isEmpty) {
-        arguments.add(new js.ArrayInitializer(parameterTypes));
-      }
-      if (!optionalParameterTypes.isEmpty) {
-        arguments.add(new js.ArrayInitializer(optionalParameterTypes));
-      }
-      push(js.js('#(#)', [accessHelper(helpers.buildFunctionType), arguments]));
-    } else {
-      var arguments = [
-        returnType,
-        new js.ArrayInitializer(parameterTypes),
-        new js.ObjectInitializer(namedParameters)
-      ];
-      push(js.js(
-          '#(#)', [accessHelper(helpers.buildNamedFunctionType), arguments]));
-    }
   }
 
   void visitTypeInfoReadRaw(HTypeInfoReadRaw node) {
@@ -3046,76 +2981,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return closedWorld.anyStrictSubclassOf(cls, (ClassEntity subclass) {
       return !backend.rti.isTrivialSubstitution(subclass, cls);
     });
-  }
-
-  void visitReadTypeVariable(HReadTypeVariable node) {
-    TypeVariableEntity element = node.dartType.element;
-    FunctionEntity helperElement = helpers.convertRtiToRuntimeType;
-    registry.registerStaticUse(
-        new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
-
-    use(node.inputs[0]);
-    if (node.hasReceiver) {
-      if (backend.interceptorData.isInterceptorClass(element.typeDeclaration)) {
-        int index = element.index;
-        js.Expression receiver = pop();
-        js.Expression helper =
-            backend.emitter.staticFunctionAccess(helperElement);
-        js.Expression rtiFieldName = backend.namer.rtiFieldJsName;
-        push(js.js(r'#(#.# && #.#[#])', [
-          helper,
-          receiver,
-          rtiFieldName,
-          receiver,
-          rtiFieldName,
-          js.js.number(index)
-        ]));
-      } else {
-        backend.emitter.registerReadTypeVariable(element);
-        push(js.js(
-            '#.#()', [pop(), backend.namer.nameForReadTypeVariable(element)]));
-      }
-    } else {
-      push(js.js('#(#)',
-          [backend.emitter.staticFunctionAccess(helperElement), pop()]));
-    }
-  }
-
-  void visitInterfaceType(HInterfaceType node) {
-    List<js.Expression> typeArguments = <js.Expression>[];
-    for (HInstruction type in node.inputs) {
-      use(type);
-      typeArguments.add(pop());
-    }
-    InterfaceType type = node.dartType;
-    ClassEntity cls = type.element;
-    var arguments = [backend.emitter.typeAccess(cls)];
-    if (!typeArguments.isEmpty) {
-      arguments.add(new js.ArrayInitializer(typeArguments));
-    }
-    push(js.js('#(#)', [
-      accessHelper(helpers.buildInterfaceType, arguments.length),
-      arguments
-    ]));
-  }
-
-  void visitVoidType(HVoidType node) {
-    push(js.js('#()', accessHelper(helpers.getVoidRuntimeType)));
-  }
-
-  void visitDynamicType(HDynamicType node) {
-    push(js.js('#()', accessHelper(helpers.getDynamicRuntimeType)));
-  }
-
-  js.PropertyAccess accessHelper(FunctionEntity helper,
-      [int argumentCount = 0]) {
-    if (helper == null) {
-      // For mocked-up tests.
-      return js.js('(void 0).dummy');
-    }
-    registry.registerStaticUse(new StaticUse.staticInvoke(
-        helper, new CallStructure.unnamed(argumentCount)));
-    return backend.emitter.staticFunctionAccess(helper);
   }
 
   @override

@@ -543,6 +543,34 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
       Code::Handle(Code::FinalizeCode(function, assembler, optimized()));
   code.set_is_optimized(optimized());
   code.set_owner(function);
+#if !defined(PRODUCT)
+  if (FLAG_support_debugger) {
+    ZoneGrowableArray<TokenPosition>* await_token_positions =
+        flow_graph->await_token_positions();
+    if (await_token_positions != NULL) {
+      Smi& token_pos_value = Smi::Handle(zone);
+      if (await_token_positions->length() > 0) {
+        const Array& await_to_token_map = Array::Handle(
+            zone, Array::New(await_token_positions->length(), Heap::kOld));
+        ASSERT(!await_to_token_map.IsNull());
+        for (intptr_t i = 0; i < await_token_positions->length(); i++) {
+          TokenPosition token_pos =
+              await_token_positions->At(i).FromSynthetic();
+          if (!token_pos.IsReal()) {
+            // Some async machinary uses sentinel values. Map them to
+            // no source position.
+            token_pos_value = Smi::New(TokenPosition::kNoSourcePos);
+          } else {
+            token_pos_value = Smi::New(token_pos.value());
+          }
+          await_to_token_map.SetAt(i, token_pos_value);
+        }
+        code.SetAwaitTokenPositions(await_to_token_map);
+      }
+    }
+  }
+#endif  // !defined(PRODUCT)
+
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.

@@ -470,11 +470,18 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       // TODO(brianwilkerson) Support function types.
       return 'dynamic';
     }).toList();
-    suggestion.requiredParameterCount = paramList
-        .where((FormalParameter param) => param is! DefaultFormalParameter)
-        .length;
-    suggestion.hasNamedParameters = paramList
-        .any((FormalParameter param) => param.kind == ParameterKind.NAMED);
+
+    Iterable<ParameterElement> requiredParameters = paramList
+        .where((FormalParameter param) => param.kind == ParameterKind.REQUIRED)
+        .map((p) => p.element);
+    suggestion.requiredParameterCount = requiredParameters.length;
+
+    Iterable<ParameterElement> namedParameters = paramList
+        .where((FormalParameter param) => param.kind == ParameterKind.NAMED)
+        .map((p) => p.element);
+    suggestion.hasNamedParameters = namedParameters.isNotEmpty;
+
+    addDefaultArgDetails(suggestion, requiredParameters, namedParameters);
   }
 
   bool _isVoid(TypeAnnotation returnType) {

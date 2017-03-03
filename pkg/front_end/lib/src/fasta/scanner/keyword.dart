@@ -187,7 +187,7 @@ abstract class ArrayKeywordState implements KeywordState {
   final List<KeywordState> table;
   final Keyword keyword;
 
-  ArrayKeywordState(List<KeywordState> this.table, String syntax)
+  ArrayKeywordState(this.table, String syntax)
       : keyword = ((syntax == null) ? null : Keyword.keywords[syntax]);
 
   KeywordState next(int c);

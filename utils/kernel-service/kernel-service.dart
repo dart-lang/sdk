@@ -21,7 +21,6 @@
 library runtime.tools.kernel_service;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -35,7 +34,6 @@ import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
-import 'package:front_end/src/fasta/ast_kind.dart' show AstKind;
 import 'package:front_end/src/fasta/errors.dart' show InputError;
 
 const bool verbose = const bool.fromEnvironment('DFE_VERBOSE');
@@ -118,13 +116,12 @@ Future<CompilationResult> parseScriptImpl(
   final Ticker ticker = new Ticker(isVerbose: verbose);
   final DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
   dillTarget.read(new Uri.directory(sdkPath).resolve('platform.dill'));
-  final KernelTarget kernelTarget =
-      new KernelTarget(dillTarget, uriTranslator);
+  final KernelTarget kernelTarget = new KernelTarget(dillTarget, uriTranslator);
   try {
     kernelTarget.read(fileName);
     await dillTarget.writeOutline(null);
     program = await kernelTarget.writeOutline(null);
-    program = await kernelTarget.writeProgram(null, AstKind.Kernel);
+    program = await kernelTarget.writeProgram(null);
     if (kernelTarget.errors.isNotEmpty) {
       return new CompilationError(kernelTarget.errors
           .map((err) => err.toString())

@@ -53,7 +53,7 @@ group("runtime_kernel") {
   deps = [
     ":runtime",
 
-    # TODO(rmacnak): Link this into 'dart'
+    # TODO(rmacnak): Link this into 'dart'.
     "utils/kernel-service:kernel-service",
   ]
 }
@@ -237,8 +237,20 @@ if (defined(is_fuchsia) && is_fuchsia) {
         "runtime/bin:run_vm_tests",
       ]
 
+      # Compute path to magenta bootdata.bin
+      if (current_cpu == "arm64") {
+        magenta_bootdata =
+            "//out/build-magenta/build-magenta-qemu-arm64/bootdata.bin"
+      } else if (current_cpu == "x64") {
+        magenta_bootdata =
+            "//out/build-magenta/build-magenta-pc-x86-64/bootdata.bin"
+      } else {
+        assert(false, "unable to determine path to magenta's bootdata.bin")
+      }
+
       input = "$target_gen_dir/dart_test_tree.manifest"
       inputs = [
+        magenta_bootdata,
         input,
       ]
 
@@ -256,6 +268,8 @@ if (defined(is_fuchsia) && is_fuchsia) {
         "--build-id-map",
         rebase_path("$target_gen_dir/build_id_map"),
         "--compress",
+        "--pre-binaries",
+        rebase_path(magenta_bootdata),
       ]
     }
   }

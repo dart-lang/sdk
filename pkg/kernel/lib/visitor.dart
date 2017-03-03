@@ -318,3 +318,66 @@ class Transformer extends TreeVisitor<TreeNode> {
     return node;
   }
 }
+
+abstract class ExpressionVisitor1<R> {
+  R defaultExpression(Expression node, arg) => null;
+  R defaultBasicLiteral(BasicLiteral node, arg) => defaultExpression(node, arg);
+  R visitInvalidExpression(InvalidExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitVariableGet(VariableGet node, arg) => defaultExpression(node, arg);
+  R visitVariableSet(VariableSet node, arg) => defaultExpression(node, arg);
+  R visitPropertyGet(PropertyGet node, arg) => defaultExpression(node, arg);
+  R visitPropertySet(PropertySet node, arg) => defaultExpression(node, arg);
+  R visitDirectPropertyGet(DirectPropertyGet node, arg) =>
+      defaultExpression(node, arg);
+  R visitDirectPropertySet(DirectPropertySet node, arg) =>
+      defaultExpression(node, arg);
+  R visitSuperPropertyGet(SuperPropertyGet node, arg) =>
+      defaultExpression(node, arg);
+  R visitSuperPropertySet(SuperPropertySet node, arg) =>
+      defaultExpression(node, arg);
+  R visitStaticGet(StaticGet node, arg) => defaultExpression(node, arg);
+  R visitStaticSet(StaticSet node, arg) => defaultExpression(node, arg);
+  R visitMethodInvocation(MethodInvocation node, arg) =>
+      defaultExpression(node, arg);
+  R visitDirectMethodInvocation(DirectMethodInvocation node, arg) =>
+      defaultExpression(node, arg);
+  R visitSuperMethodInvocation(SuperMethodInvocation node, arg) =>
+      defaultExpression(node, arg);
+  R visitStaticInvocation(StaticInvocation node, arg) =>
+      defaultExpression(node, arg);
+  R visitConstructorInvocation(ConstructorInvocation node, arg) =>
+      defaultExpression(node, arg);
+  R visitNot(Not node, arg) => defaultExpression(node, arg);
+  R visitLogicalExpression(LogicalExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitConditionalExpression(ConditionalExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitStringConcatenation(StringConcatenation node, arg) =>
+      defaultExpression(node, arg);
+  R visitIsExpression(IsExpression node, arg) => defaultExpression(node, arg);
+  R visitAsExpression(AsExpression node, arg) => defaultExpression(node, arg);
+  R visitSymbolLiteral(SymbolLiteral node, arg) => defaultExpression(node, arg);
+  R visitTypeLiteral(TypeLiteral node, arg) => defaultExpression(node, arg);
+  R visitThisExpression(ThisExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitRethrow(Rethrow node, arg) => defaultExpression(node, arg);
+  R visitThrow(Throw node, arg) => defaultExpression(node, arg);
+  R visitListLiteral(ListLiteral node, arg) => defaultExpression(node, arg);
+  R visitMapLiteral(MapLiteral node, arg) => defaultExpression(node, arg);
+  R visitAwaitExpression(AwaitExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitFunctionExpression(FunctionExpression node, arg) =>
+      defaultExpression(node, arg);
+  R visitStringLiteral(StringLiteral node, arg) =>
+      defaultBasicLiteral(node, arg);
+  R visitIntLiteral(IntLiteral node, arg) => defaultBasicLiteral(node, arg);
+  R visitDoubleLiteral(DoubleLiteral node, arg) =>
+      defaultBasicLiteral(node, arg);
+  R visitBoolLiteral(BoolLiteral node, arg) => defaultBasicLiteral(node, arg);
+  R visitNullLiteral(NullLiteral node, arg) => defaultBasicLiteral(node, arg);
+  R visitLet(Let node, arg) => defaultExpression(node, arg);
+  R visitLoadLibrary(LoadLibrary node, arg) => defaultExpression(node, arg);
+  R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, arg) =>
+      defaultExpression(node, arg);
+}

@@ -23,7 +23,7 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
   final String relativeFileUri;
 
   TypeDeclarationBuilder(
-      this.metadata, this.modifiers, this.name, Builder parent, int charOffset,
+      this.metadata, this.modifiers, this.name, this.parent, int charOffset,
       [Uri fileUri])
       : fileUri = fileUri ?? parent?.fileUri,
         relativeFileUri =

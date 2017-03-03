@@ -125,6 +125,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                      const uint8_t* instructions_snapshot,
                      Dart_IsolateCreateCallback create,
                      Dart_IsolateShutdownCallback shutdown,
+                     Dart_IsolateCleanupCallback cleanup,
                      Dart_ThreadExitCallback thread_exit,
                      Dart_FileOpenCallback file_open,
                      Dart_FileReadCallback file_read,
@@ -313,6 +314,7 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Thread::ExitIsolate();  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
   Isolate::SetShutdownCallback(shutdown);
+  Isolate::SetCleanupCallback(cleanup);
 
   if (FLAG_support_service) {
     Service::SetGetServiceAssetsCallback(get_service_assets);
@@ -653,7 +655,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
 }
 
 
-const char* Dart::FeaturesString(Snapshot::Kind kind) {
+const char* Dart::FeaturesString(Isolate* isolate, Snapshot::Kind kind) {
   TextBuffer buffer(64);
 
 // Different fields are included for DEBUG/RELEASE/PRODUCT.
@@ -667,9 +669,15 @@ const char* Dart::FeaturesString(Snapshot::Kind kind) {
 
   if (Snapshot::IncludesCode(kind)) {
     // Checked mode affects deopt ids.
-    buffer.AddString(FLAG_enable_asserts ? " asserts" : " no-asserts");
-    buffer.AddString(FLAG_enable_type_checks ? " type-checks"
-                                             : " no-type-checks");
+    const bool asserts =
+        (isolate != NULL) ? isolate->asserts() : FLAG_enable_asserts;
+    const bool type_checks =
+        (isolate != NULL) ? isolate->type_checks() : FLAG_enable_type_checks;
+    const bool field_guards =
+        (isolate != NULL) ? isolate->use_field_guards() : FLAG_use_field_guards;
+    buffer.AddString(asserts ? " asserts" : " no-asserts");
+    buffer.AddString(type_checks ? " type-checks" : " no-type-checks");
+    buffer.AddString(field_guards ? "field-guards" : "no-field-guards");
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)

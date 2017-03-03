@@ -63,7 +63,6 @@ class ClassEmitter extends CodeEmitterHelper {
     emitClassGettersSettersForCSP(cls, builder);
     emitInstanceMembers(cls, builder);
     emitStubs(cls.callStubs, builder);
-    emitStubs(cls.typeVariableReaderStubs, builder);
     emitRuntimeTypeInformation(cls, builder);
     emitNativeInfo(cls, builder);
 

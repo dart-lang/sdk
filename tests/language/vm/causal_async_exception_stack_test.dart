@@ -27,6 +27,7 @@ main() async {
   // Test async and async*.
   try {
     await foo();
+    fail("Did not throw");
   } catch (e, st) {
     expect(st.toString(), stringContainsInOrder([
         'thrower', '.dart:8',
@@ -69,7 +70,7 @@ main() async {
     expect(st.toString(), stringContainsInOrder([
            'thrower', '.dart:8',
            '<asynchronous suspension>',
-           'main', '.dart:67',
+           'main', '.dart:68',
            ]));
   }
 }

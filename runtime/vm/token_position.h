@@ -134,9 +134,11 @@ class TokenPosition {
   bool IsReal() const { return value_ >= kMinSourcePos; }
 
   // Is |this| a source position?
-  bool IsSourcePosition() const {
-    return IsReal() || IsNoSource() || IsSynthetic();
-  }
+  bool IsSourcePosition() const { return IsReal() || IsSynthetic(); }
+
+  // Convert |this| into a real source position. Sentinel values remain
+  // unchanged.
+  TokenPosition SourcePosition() const { return FromSynthetic(); }
 
   // Is |this| a debug pause source position?
   bool IsDebugPause() const {

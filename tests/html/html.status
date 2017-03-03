@@ -431,6 +431,3 @@ custom/constructor_calls_created_synchronously_test: Fail # mirrors not supporte
 custom/js_custom_test: Fail # mirrors not supported
 custom/mirrors_test: Fail # mirrors not supported
 mirrors_js_typed_interop_test: Fail # mirrors not supported
-
-# These are raw dart:js tests that fail due to bugs in the CPS IR:
-js_test/Dart_functions: RuntimeError # Tree-shaking an escaping closure #25720

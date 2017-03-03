@@ -410,6 +410,10 @@ class ElementListener extends Listener {
   }
 
   @override
+  void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
+  }
+
+  @override
   void handleNoType(Token token) {
     pushNode(null);
   }

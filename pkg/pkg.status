@@ -28,6 +28,7 @@ front_end/test/fasta/rasta/*: SkipByDesign
 front_end/test/fasta/sdk_test: SkipByDesign
 
 front_end/test/fasta/compile_test: Pass, Slow
+front_end/test/fasta/bootstrap_test: Pass, Slow
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
@@ -75,6 +76,7 @@ front_end/tool/perf_test: Slow, Pass
 front_end/test/fasta/compile_test: Skip # Issue 28629
 front_end/test/fasta/kompile_test: Skip # Issue 28629
 front_end/test/fasta/outline_test: Skip # Issue 28629
+front_end/test/fasta/bootstrap_test: Skip # Issue 28629
 
 [ $runtime == vm && $use_sdk == false ]
 front_end/test/incremental_kernel_generator_test: Skip # Issue 28698

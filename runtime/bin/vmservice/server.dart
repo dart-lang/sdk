@@ -4,6 +4,17 @@
 
 part of vmservice_io;
 
+final bool silentObservatory =
+    const bool.fromEnvironment('SILENT_OBSERVATORY');
+
+void serverPrint(String s) {
+  if (silentObservatory) {
+    // We've been requested to be silent.
+    return;
+  }
+  print(s);
+}
+
 class WebSocketClient extends Client {
   static const int PARSE_ERROR_CODE = 4000;
   static const int BINARY_MESSAGE_ERROR_CODE = 4001;
@@ -60,9 +71,9 @@ class WebSocketClient extends Client {
         socket.addUtf8Text(cstring);
       }
     } catch (e, st) {
-      print("Ignoring error posting over WebSocket.");
-      print(e);
-      print(st);
+      serverPrint("Ignoring error posting over WebSocket.");
+      serverPrint(e);
+      serverPrint(st);
     }
   }
 
@@ -292,8 +303,8 @@ class Server {
       var message = new Message.fromUri(client, request.uri);
       client.onMessage(null, message);
     } catch (e) {
-      print('Unexpected error processing HTTP request uri: '
-            '${request.uri}\n$e\n');
+      serverPrint('Unexpected error processing HTTP request uri: '
+                  '${request.uri}\n$e\n');
       rethrow;
     }
   }
@@ -319,13 +330,13 @@ class Server {
       }
       _server = await HttpServer.bind(address, _port);
       _server.listen(_requestHandler, cancelOnError: true);
-      print('Observatory listening on $serverAddress');
+      serverPrint('Observatory listening on $serverAddress');
       // Server is up and running.
       _notifyServerState(serverAddress.toString());
       onServerAddressChange('$serverAddress');
       return this;
     } catch (e, st) {
-      print('Could not start Observatory HTTP server:\n$e\n$st\n');
+      serverPrint('Could not start Observatory HTTP server:\n$e\n$st\n');
       _notifyServerState("");
       onServerAddressChange(null);
       return this;
@@ -348,14 +359,14 @@ class Server {
     // Shutdown HTTP server and subscription.
     Uri oldServerAddress = serverAddress;
     return cleanup(forced).then((_) {
-      print('Observatory no longer listening on $oldServerAddress');
+      serverPrint('Observatory no longer listening on $oldServerAddress');
       _server = null;
       _notifyServerState("");
       onServerAddressChange(null);
       return this;
     }).catchError((e, st) {
       _server = null;
-      print('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
+      serverPrint('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
       _notifyServerState("");
       onServerAddressChange(null);
       return this;

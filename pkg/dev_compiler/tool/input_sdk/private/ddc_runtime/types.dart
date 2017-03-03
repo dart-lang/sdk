@@ -513,6 +513,12 @@ functionType(returnType, args, extra) =>
 definiteFunctionType(returnType, args, extra) =>
     _functionType(true, returnType, args, extra);
 
+bool isType(obj) => JS(
+    '',
+    '''(() => {
+  return $_getRuntimeType($obj) === $Type;
+  })()''');
+
 String typeName(type) => JS(
     '',
     '''(() => {
@@ -698,8 +704,8 @@ _isTop(type) {
   if (JS('bool', '# === #', getGenericClass(type), getGenericClass(FutureOr))) {
     return _isTop(JS('', '#[0]', getGenericArgs(type)));
   }
-  return JS('bool', '# == # || # == # || # == #',
-      type, Object, type, dynamic, type, _void);
+  return JS('bool', '# == # || # == # || # == #', type, Object, type, dynamic,
+      type, _void);
 }
 
 _isSubtype(t1, t2, isCovariant) => JS(

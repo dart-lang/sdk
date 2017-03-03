@@ -1338,15 +1338,13 @@ class Parser {
         VariableDeclaration variable = astFactory.variableDeclaration(
             createSyntheticIdentifier(), null, null);
         List<VariableDeclaration> variables = <VariableDeclaration>[variable];
-        FieldDeclarationImpl field = astFactory.fieldDeclaration(
-            commentAndMetadata.comment,
-            commentAndMetadata.metadata,
-            null,
-            astFactory.variableDeclarationList(
+        return astFactory.fieldDeclaration2(
+            comment: commentAndMetadata.comment,
+            metadata: commentAndMetadata.metadata,
+            covariantKeyword: modifiers.covariantKeyword,
+            fieldList: astFactory.variableDeclarationList(
                 null, null, keyword, null, variables),
-            _expect(TokenType.SEMICOLON));
-        field.covariantKeyword = modifiers.covariantKeyword;
-        return field;
+            semicolon: _expect(TokenType.SEMICOLON));
       }
       _reportErrorForToken(
           ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken);
@@ -3584,14 +3582,13 @@ class Parser {
       TypeAnnotation type) {
     VariableDeclarationList fieldList =
         parseVariableDeclarationListAfterType(null, keyword, type);
-    FieldDeclarationImpl field = astFactory.fieldDeclaration(
-        commentAndMetadata.comment,
-        commentAndMetadata.metadata,
-        staticKeyword,
-        fieldList,
-        _expect(TokenType.SEMICOLON));
-    field.covariantKeyword = covariantKeyword;
-    return field;
+    return astFactory.fieldDeclaration2(
+        comment: commentAndMetadata.comment,
+        metadata: commentAndMetadata.metadata,
+        covariantKeyword: covariantKeyword,
+        staticKeyword: staticKeyword,
+        fieldList: fieldList,
+        semicolon: _expect(TokenType.SEMICOLON));
   }
 
   /**
@@ -6360,11 +6357,6 @@ class Parser {
       Expression selectorExpression = parseAssignableSelector(
           expression, isOptional || (expression is PrefixedIdentifier));
       if (identical(selectorExpression, expression)) {
-        if (!isOptional && (expression is PrefixedIdentifier)) {
-          PrefixedIdentifier identifier = expression as PrefixedIdentifier;
-          expression = astFactory.propertyAccess(
-              identifier.prefix, identifier.period, identifier.identifier);
-        }
         return expression;
       }
       expression = selectorExpression;

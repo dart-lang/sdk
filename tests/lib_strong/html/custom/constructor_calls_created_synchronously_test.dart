@@ -55,7 +55,7 @@ main() {
         extendsTag: 'section');
     var fancy = document.createElement('section', 'fancy-section');
     expect(fancy is FancySection, true, reason: 'fancy-section was registered');
-    expect(fancy.wasCreated, true, reason: 'FancySection ctor was called');
+    expect((fancy as FancySection).wasCreated, true, reason: 'FancySection ctor was called');
   });
 }
 

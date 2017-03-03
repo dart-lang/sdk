@@ -41,6 +41,10 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
+import 'package:kernel/transformations/erasure.dart' show Erasure;
+
+import 'package:kernel/transformations/continuation.dart' as transformAsync;
+
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     show MixinFullResolution;
 
@@ -56,8 +60,6 @@ import '../target_implementation.dart' show TargetImplementation;
 import '../translate_uri.dart' show TranslateUri;
 
 import '../dill/dill_target.dart' show DillTarget;
-
-import '../ast_kind.dart' show AstKind;
 
 import '../errors.dart'
     show InputError, internalError, reportCrash, resetCrashReporting;
@@ -99,8 +101,10 @@ class KernelTarget extends TargetImplementation {
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
         super(dillTarget.ticker, uriTranslator) {
     resetCrashReporting();
-    loader = new SourceLoader<Library>(this);
+    loader = createLoader();
   }
+
+  SourceLoader<Library> createLoader() => new SourceLoader<Library>(this);
 
   void addLineStarts(Uri uri, List<int> lineStarts) {
     String fileUri = relativizeUri(uri);
@@ -205,24 +209,21 @@ class KernelTarget extends TargetImplementation {
         : writeLinkedProgram(uri, program, isFullProgram: isFullProgram);
   }
 
-  Future<Program> writeProgram(Uri uri, AstKind astKind) async {
+  Future<Program> writeProgram(Uri uri) async {
     if (loader.first == null) return null;
     if (errors.isNotEmpty) {
       return handleInputError(uri, null, isFullProgram: true);
     }
     try {
-      if (astKind == AstKind.Analyzer) {
-        loader.buildElementStore();
-      } else {
-        loader.computeHierarchy(program);
-      }
-      await loader.buildBodies(astKind);
+      loader.computeHierarchy(program);
+      await loader.buildBodies();
       loader.finishStaticInvocations();
       finishAllConstructors();
       loader.finishNativeMethods();
       transformMixinApplications();
       // TODO(ahe): Don't call this from two different places.
       setup_builtin_library.transformProgram(program);
+      otherTransformations();
       errors.addAll(loader.collectCompileTimeErrors().map((e) => e.format()));
       if (errors.isNotEmpty) {
         return handleInputError(uri, null, isFullProgram: true);
@@ -260,6 +261,20 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
+  Future writeDepsFile(Uri output, Uri depsFile) async {
+    if (loader.first == null) return null;
+    StringBuffer sb = new StringBuffer();
+    Uri base = depsFile.resolve(".");
+    sb.write(Uri.parse(relativizeUri(output, base: base)).toFilePath());
+    sb.write(":");
+    for (Uri dependency in loader.getDependencies()) {
+      sb.write(" ");
+      sb.write(Uri.parse(relativizeUri(dependency, base: base)).toFilePath());
+    }
+    sb.writeln();
+    await new File.fromUri(depsFile).writeAsString("$sb");
+  }
+
   Program erroneousProgram(bool isFullProgram) {
     Uri uri = loader.first?.uri ?? Uri.parse("error:error");
     Uri fileUri = loader.first?.fileUri ?? uri;
@@ -293,12 +308,8 @@ class KernelTarget extends TargetImplementation {
   /// Creates a program by combining [libraries] with the libraries of
   /// `dillTarget.loader.program`.
   Program link(List<Library> libraries) {
-    Map<String, Source> uriToSource = <String, Source>{};
-
-    // for (Library library in libraries) {
-    //   // TODO(ahe): Compute line starts instead.
-    //   uriToLineStarts[library.fileUri] = <int>[0];
-    // }
+    Map<String, Source> uriToSource =
+        new Map<String, Source>.from(this.uriToSource);
 
     final Program binary = dillTarget.loader.program;
     if (binary != null) {
@@ -551,6 +562,15 @@ class KernelTarget extends TargetImplementation {
   void transformMixinApplications() {
     new MixinFullResolution().transform(program);
     ticker.logMs("Transformed mixin applications");
+  }
+
+  void otherTransformations() {
+    // TODO(ahe): Don't generate type variables in the first place.
+    program.accept(new Erasure());
+    ticker.logMs("Erased type variables in generic methods");
+    // TODO(kmillikin): Make this run on a per-method basis.
+    transformAsync.transformProgram(program);
+    ticker.logMs("Transformed async methods");
   }
 
   void dumpIr() {

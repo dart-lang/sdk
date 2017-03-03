@@ -28,17 +28,15 @@ import '../ticker.dart' show Ticker;
 
 import '../translate_uri.dart' show TranslateUri;
 
+import '../analyzer/analyzer_target.dart' show AnalyzerTarget;
+
 import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../dill/dill_target.dart' show DillTarget;
 
-import '../ast_kind.dart' show AstKind;
-
 export 'kernel_chain.dart' show TestContext;
 
 export 'package:testing/testing.dart' show Chain, runMe;
-
-export '../ast_kind.dart' show AstKind;
 
 const String ENABLE_FULL_COMPILE = " full compile ";
 
@@ -63,7 +61,12 @@ String shortenAstKindName(AstKind astKind) {
   throw "Unknown AST kind: $astKind";
 }
 
-class FeContext extends TestContext {
+enum AstKind {
+  Analyzer,
+  Kernel,
+}
+
+class FastaContext extends TestContext {
   final TranslateUri uriTranslator;
 
   final List<Step> steps;
@@ -73,7 +76,7 @@ class FeContext extends TestContext {
 
   Future<Program> platform;
 
-  FeContext(
+  FastaContext(
       Uri sdk,
       Uri vm,
       Uri packages,
@@ -122,33 +125,36 @@ class FeContext extends TestContext {
     });
   }
 
-  static Future<FeContext> create(
-      Chain suite,
-      Map<String, String> environment,
-      Uri sdk,
-      Uri vm,
-      Uri packages,
-      bool strongMode,
-      DartSdk dartSdk,
-      bool updateExpectations) async {
-    TranslateUri uriTranslator = await TranslateUri.parse(packages);
-    String astKindString = environment[AST_KIND_INDEX];
-    AstKind astKind =
-        astKindString == null ? null : AstKind.values[int.parse(astKindString)];
-    return new FeContext(
-        sdk,
-        vm,
-        packages,
-        strongMode,
-        dartSdk,
-        updateExpectations,
-        uriTranslator,
-        environment.containsKey(ENABLE_FULL_COMPILE),
-        astKind);
+  static Future<FastaContext> create(
+      Chain suite, Map<String, String> environment) async {
+    return TestContext.create(suite, environment, (Chain suite,
+        Map<String, String> environment,
+        Uri sdk,
+        Uri vm,
+        Uri packages,
+        bool strongMode,
+        DartSdk dartSdk,
+        bool updateExpectations) async {
+      TranslateUri uriTranslator = await TranslateUri.parse(packages);
+      String astKindString = environment[AST_KIND_INDEX];
+      AstKind astKind = astKindString == null
+          ? null
+          : AstKind.values[int.parse(astKindString)];
+      return new FastaContext(
+          sdk,
+          vm,
+          packages,
+          strongMode,
+          dartSdk,
+          updateExpectations,
+          uriTranslator,
+          environment.containsKey(ENABLE_FULL_COMPILE),
+          astKind);
+    });
   }
 }
 
-class Outline extends Step<TestDescription, Program, FeContext> {
+class Outline extends Step<TestDescription, Program, FastaContext> {
   final bool fullCompile;
 
   final AstKind astKind;
@@ -156,28 +162,30 @@ class Outline extends Step<TestDescription, Program, FeContext> {
   const Outline(this.fullCompile, this.astKind);
 
   String get name {
-    return fullCompile ? "${shortenAstKindName(astKind)} compile" : "outline";
+    return fullCompile ? "${astKind} compile" : "outline";
   }
 
   bool get isCompiler => fullCompile;
 
   Future<Result<Program>> run(
-      TestDescription description, FeContext context) async {
+      TestDescription description, FastaContext context) async {
     Program platform = await context.createPlatform();
     Ticker ticker = new Ticker();
     DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator);
     dillTarget.loader
       ..input = Uri.parse("org.dartlang:platform") // Make up a name.
       ..setProgram(platform);
-    KernelTarget sourceTarget =
-        new KernelTarget(dillTarget, context.uriTranslator);
+    KernelTarget sourceTarget = astKind == AstKind.Analyzer
+        ? new AnalyzerTarget(dillTarget, context.uriTranslator)
+        : new KernelTarget(dillTarget, context.uriTranslator);
+
     Program p;
     try {
       sourceTarget.read(description.uri);
       await dillTarget.writeOutline(null);
       p = await sourceTarget.writeOutline(null);
       if (fullCompile) {
-        p = await sourceTarget.writeProgram(null, astKind);
+        p = await sourceTarget.writeProgram(null);
       }
     } on InputError catch (e, s) {
       return fail(null, e.error, s);

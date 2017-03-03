@@ -54,9 +54,9 @@ def GuessArchitecture():
 # Try to guess the number of cpus on this machine.
 def GuessCpus():
   if os.path.exists("/proc/cpuinfo"):
-    return int(commands.getoutput("grep -E '^processor' /proc/cpuinfo | wc -l"))
+    return int(commands.getoutput("GREP_OPTIONS= grep -E '^processor' /proc/cpuinfo | wc -l"))
   if os.path.exists("/usr/bin/hostinfo"):
-    return int(commands.getoutput('/usr/bin/hostinfo | grep "processors are logically available." | awk "{ print \$1 }"'))
+    return int(commands.getoutput('/usr/bin/hostinfo | GREP_OPTIONS= grep "processors are logically available." | awk "{ print \$1 }"'))
   win_cpu_count = os.getenv("NUMBER_OF_PROCESSORS")
   if win_cpu_count:
     return int(win_cpu_count)

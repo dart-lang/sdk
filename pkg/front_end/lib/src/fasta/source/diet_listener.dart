@@ -29,11 +29,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../builder/builder.dart';
 
-import '../analyzer/analyzer.dart';
-
 import '../builder/scope.dart' show Scope;
-
-import '../ast_kind.dart' show AstKind;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -42,13 +38,9 @@ import '../kernel/kernel_library_builder.dart' show isConstructorName;
 class DietListener extends StackListener {
   final SourceLibraryBuilder library;
 
-  final ElementStore elementStore;
-
   final ClassHierarchy hierarchy;
 
   final CoreTypes coreTypes;
-
-  final AstKind astKind;
 
   final bool isDartLibrary;
 
@@ -61,8 +53,7 @@ class DietListener extends StackListener {
   @override
   Uri uri;
 
-  DietListener(SourceLibraryBuilder library, this.elementStore, this.hierarchy,
-      this.coreTypes, this.astKind)
+  DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes)
       : library = library,
         uri = library.fileUri,
         memberScope = library.scope,
@@ -105,6 +96,11 @@ class DietListener extends StackListener {
   @override
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
+  }
+
+  @override
+  void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
+    debugEvent("NoConstructorReferenceContinuationAfterTypeArguments");
   }
 
   @override
@@ -178,11 +174,12 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(
+      int count, Token covariantToken, Token beginToken, Token endToken) {
     debugEvent("Fields");
     List<String> names = popList(count);
     Builder builder = lookupBuilder(beginToken, null, names.first);
-    buildFields(beginToken, false, builder.isInstanceMember);
+    buildFields(beginToken, false, builder);
   }
 
   @override
@@ -207,8 +204,9 @@ class DietListener extends StackListener {
   @override
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     debugEvent("TopLevelFields");
-    discard(count);
-    buildFields(beginToken, true, false);
+    List<String> names = popList(count);
+    Builder builder = lookupBuilder(beginToken, null, names.first);
+    buildFields(beginToken, true, builder);
   }
 
   @override
@@ -373,24 +371,8 @@ class DietListener extends StackListener {
   StackListener createListener(
       MemberBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope]) {
-    switch (astKind) {
-      case AstKind.Kernel:
-        return new BodyBuilder(
-            library,
-            builder,
-            memberScope,
-            formalParameterScope,
-            hierarchy,
-            coreTypes,
-            currentClass,
-            isInstanceMember,
-            uri);
-
-      case AstKind.Analyzer:
-        return new AstBuilder(library, builder, elementStore, memberScope, uri);
-    }
-
-    return internalError("Unknown $astKind");
+    return new BodyBuilder(library, builder, memberScope, formalParameterScope,
+        hierarchy, coreTypes, currentClass, isInstanceMember, uri);
   }
 
   void buildFunctionBody(Token token, ProcedureBuilder builder) {
@@ -405,9 +387,9 @@ class DietListener extends StackListener {
         token);
   }
 
-  void buildFields(Token token, bool isTopLevel, bool isInstanceMember) {
-    parseFields(
-        createListener(null, memberScope, isInstanceMember), token, isTopLevel);
+  void buildFields(Token token, bool isTopLevel, MemberBuilder builder) {
+    parseFields(createListener(builder, memberScope, builder.isInstanceMember),
+        token, isTopLevel);
   }
 
   @override
@@ -480,6 +462,8 @@ class DietListener extends StackListener {
     return removeNativeClause(identifiers);
   }
 
+  AsyncMarker getAsyncMarker(StackListener listener) => listener.pop();
+
   void parseFunctionBody(StackListener listener, Token token) {
     try {
       Parser parser = new Parser(listener);
@@ -489,7 +473,7 @@ class DietListener extends StackListener {
       listener.prepareInitializers();
       token = parser.parseInitializersOpt(token);
       token = parser.parseAsyncModifier(token);
-      AsyncMarker asyncModifier = listener.pop();
+      AsyncMarker asyncModifier = getAsyncMarker(listener);
       bool isExpression = false;
       bool allowAbstract = true;
       parser.parseFunctionBody(token, isExpression, allowAbstract);

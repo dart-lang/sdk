@@ -107,6 +107,15 @@ public class CompletionSuggestion {
   private final String defaultArgumentListString;
 
   /**
+   * Pairs of offsets and lengths describing 'defaultArgumentListString' text ranges suitable for use
+   * by clients to set up linked edits of default argument source contents. For example, given an
+   * argument list string 'x, y', the corresponding text range [0, 1, 3, 1], indicates two text
+   * ranges of length 1, starting at offsets 0 and 3. Clients can use these ranges to treat the 'x'
+   * and 'y' values specially for linked edits.
+   */
+  private final int[] defaultArgumentListTextRanges;
+
+  /**
    * Information about the element reference being suggested.
    */
   private final Element element;
@@ -162,7 +171,7 @@ public class CompletionSuggestion {
   /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, int relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType, String importUri) {
+  public CompletionSuggestion(String kind, int relevance, String completion, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, int[] defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType, String importUri) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -174,6 +183,7 @@ public class CompletionSuggestion {
     this.docComplete = docComplete;
     this.declaringType = declaringType;
     this.defaultArgumentListString = defaultArgumentListString;
+    this.defaultArgumentListTextRanges = defaultArgumentListTextRanges;
     this.element = element;
     this.returnType = returnType;
     this.parameterNames = parameterNames;
@@ -201,6 +211,7 @@ public class CompletionSuggestion {
         ObjectUtilities.equals(other.docComplete, docComplete) &&
         ObjectUtilities.equals(other.declaringType, declaringType) &&
         ObjectUtilities.equals(other.defaultArgumentListString, defaultArgumentListString) &&
+        Arrays.equals(other.defaultArgumentListTextRanges, defaultArgumentListTextRanges) &&
         ObjectUtilities.equals(other.element, element) &&
         ObjectUtilities.equals(other.returnType, returnType) &&
         ObjectUtilities.equals(other.parameterNames, parameterNames) &&
@@ -226,6 +237,7 @@ public class CompletionSuggestion {
     String docComplete = jsonObject.get("docComplete") == null ? null : jsonObject.get("docComplete").getAsString();
     String declaringType = jsonObject.get("declaringType") == null ? null : jsonObject.get("declaringType").getAsString();
     String defaultArgumentListString = jsonObject.get("defaultArgumentListString") == null ? null : jsonObject.get("defaultArgumentListString").getAsString();
+    int[] defaultArgumentListTextRanges = jsonObject.get("defaultArgumentListTextRanges") == null ? null : JsonUtilities.decodeIntArray(jsonObject.get("defaultArgumentListTextRanges").getAsJsonArray());
     Element element = jsonObject.get("element") == null ? null : Element.fromJson(jsonObject.get("element").getAsJsonObject());
     String returnType = jsonObject.get("returnType") == null ? null : jsonObject.get("returnType").getAsString();
     List<String> parameterNames = jsonObject.get("parameterNames") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterNames").getAsJsonArray());
@@ -235,7 +247,7 @@ public class CompletionSuggestion {
     String parameterName = jsonObject.get("parameterName") == null ? null : jsonObject.get("parameterName").getAsString();
     String parameterType = jsonObject.get("parameterType") == null ? null : jsonObject.get("parameterType").getAsString();
     String importUri = jsonObject.get("importUri") == null ? null : jsonObject.get("importUri").getAsString();
-    return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType, importUri);
+    return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, defaultArgumentListTextRanges, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType, importUri);
   }
 
   public static List<CompletionSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -272,6 +284,17 @@ public class CompletionSuggestion {
    */
   public String getDefaultArgumentListString() {
     return defaultArgumentListString;
+  }
+
+  /**
+   * Pairs of offsets and lengths describing 'defaultArgumentListString' text ranges suitable for use
+   * by clients to set up linked edits of default argument source contents. For example, given an
+   * argument list string 'x, y', the corresponding text range [0, 1, 3, 1], indicates two text
+   * ranges of length 1, starting at offsets 0 and 3. Clients can use these ranges to treat the 'x'
+   * and 'y' values specially for linked edits.
+   */
+  public int[] getDefaultArgumentListTextRanges() {
+    return defaultArgumentListTextRanges;
   }
 
   /**
@@ -419,6 +442,7 @@ public class CompletionSuggestion {
     builder.append(docComplete);
     builder.append(declaringType);
     builder.append(defaultArgumentListString);
+    builder.append(defaultArgumentListTextRanges);
     builder.append(element);
     builder.append(returnType);
     builder.append(parameterNames);
@@ -451,6 +475,13 @@ public class CompletionSuggestion {
     }
     if (defaultArgumentListString != null) {
       jsonObject.addProperty("defaultArgumentListString", defaultArgumentListString);
+    }
+    if (defaultArgumentListTextRanges != null) {
+      JsonArray jsonArrayDefaultArgumentListTextRanges = new JsonArray();
+      for (int elt : defaultArgumentListTextRanges) {
+        jsonArrayDefaultArgumentListTextRanges.add(new JsonPrimitive(elt));
+      }
+      jsonObject.add("defaultArgumentListTextRanges", jsonArrayDefaultArgumentListTextRanges);
     }
     if (element != null) {
       jsonObject.add("element", element.toJson());
@@ -516,6 +547,8 @@ public class CompletionSuggestion {
     builder.append(declaringType + ", ");
     builder.append("defaultArgumentListString=");
     builder.append(defaultArgumentListString + ", ");
+    builder.append("defaultArgumentListTextRanges=");
+    builder.append(StringUtils.join(defaultArgumentListTextRanges, ", ") + ", ");
     builder.append("element=");
     builder.append(element + ", ");
     builder.append("returnType=");

@@ -432,12 +432,13 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
-      astFactory.fieldDeclaration(
-          cloneNode(node.documentationComment),
-          cloneNodeList(node.metadata),
-          cloneToken(node.staticKeyword),
-          cloneNode(node.fields),
-          cloneToken(node.semicolon));
+      astFactory.fieldDeclaration2(
+          comment: cloneNode(node.documentationComment),
+          metadata: cloneNodeList(node.metadata),
+          covariantKeyword: cloneToken(node.covariantKeyword),
+          staticKeyword: cloneToken(node.staticKeyword),
+          fieldList: cloneNode(node.fields),
+          semicolon: cloneToken(node.semicolon));
 
   @override
   FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) =>
@@ -3171,12 +3172,13 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
-      astFactory.fieldDeclaration(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.staticKeyword),
-          _cloneNode(node.fields),
-          _mapToken(node.semicolon));
+      astFactory.fieldDeclaration2(
+          comment: _cloneNode(node.documentationComment),
+          metadata: _cloneNodeList(node.metadata),
+          covariantKeyword: _mapToken(node.covariantKeyword),
+          staticKeyword: _mapToken(node.staticKeyword),
+          fieldList: _cloneNode(node.fields),
+          semicolon: _mapToken(node.semicolon));
 
   @override
   FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) =>

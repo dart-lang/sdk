@@ -44,13 +44,13 @@ main() {
   test('created gets proxied', () {
     var element = document.createElement(FooElement.tag);
     expect(element is FooElement, isTrue);
-    expect(element.initializedField, 666);
+    expect((element as FooElement).initializedField, 666);
     expect(element.text, 'constructed');
 
     js.context.callMethod('validateIsFoo', [element]);
 
-    expect(element.doSomething(), 'didSomething');
-    expect(element.fooCreated, true);
+    expect((element as FooElement).doSomething(), 'didSomething');
+    expect((element as FooElement).fooCreated, true);
   });
 
   test('dart constructor works', () {
@@ -71,7 +71,7 @@ main() {
 
   test('cannot upgrade interfaces', () {
     expect(() {
-      upgrader.upgrade(new HtmlElementInterface());
+      upgrader.upgrade(new HtmlElementInterface()); /// compile-time error
     }, throws);
   });
 
@@ -115,7 +115,7 @@ main() {
   });
 }
 
-class HtmlElementInterface implements HtmlElement {
+class HtmlElementInterface implements HtmlElement { /// compile-time error
   HtmlElementInterface.created();
 }
 

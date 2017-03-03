@@ -89,6 +89,19 @@ class TypeVariableCheckedModeHelper extends CheckedModeHelper {
   }
 }
 
+class FunctionTypeRepresentationCheckedModeHelper extends CheckedModeHelper {
+  const FunctionTypeRepresentationCheckedModeHelper(String name) : super(name);
+
+  CallStructure get callStructure => CallStructure.TWO_ARGS;
+
+  void generateAdditionalArguments(SsaCodeGenerator codegen,
+      HTypeConversion node, List<jsAst.Expression> arguments) {
+    assert(node.typeExpression.isFunctionType);
+    codegen.use(node.typeRepresentation);
+    arguments.add(codegen.pop());
+  }
+}
+
 class SubtypeCheckedModeHelper extends CheckedModeHelper {
   const SubtypeCheckedModeHelper(String name) : super(name);
 
@@ -96,6 +109,8 @@ class SubtypeCheckedModeHelper extends CheckedModeHelper {
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
       HTypeConversion node, List<jsAst.Expression> arguments) {
+    // TODO(sra): Move these calls into the SSA graph so that the arguments can
+    // be optimized, e,g, GVNed.
     InterfaceType type = node.typeExpression;
     ClassEntity element = type.element;
     jsAst.Name isField = codegen.backend.namer.operatorIs(element);
@@ -149,6 +164,8 @@ class CheckedModeHelpers {
     const TypeVariableCheckedModeHelper('assertSubtypeOfRuntimeType'),
     const PropertyCheckedModeHelper('propertyTypeCast'),
     const PropertyCheckedModeHelper('propertyTypeCheck'),
+    const FunctionTypeRepresentationCheckedModeHelper('functionTypeCast'),
+    const FunctionTypeRepresentationCheckedModeHelper('functionTypeCheck'),
   ];
 
   // Checked mode helpers indexed by name.
@@ -212,7 +229,9 @@ class CheckedModeHelpers {
           : 'assertSubtypeOfRuntimeType';
     }
 
-    if (type.isFunctionType) return null;
+    if (type.isFunctionType) {
+      return typeCast ? 'functionTypeCast' : 'functionTypeCheck';
+    }
 
     assert(invariant(NO_LOCATION_SPANNABLE, type.isInterfaceType,
         message: "Unexpected type: $type"));

@@ -4,12 +4,11 @@
 
 library fasta.stack_listener;
 
-import 'package:front_end/src/fasta/parser.dart' show ErrorKind, Listener;
+import '../parser.dart' show ErrorKind, Listener;
 
-import 'package:front_end/src/fasta/parser/identifier_context.dart'
-    show IdentifierContext;
+import '../parser/identifier_context.dart' show IdentifierContext;
 
-import 'package:front_end/src/fasta/scanner.dart' show BeginGroupToken, Token;
+import '../scanner.dart' show BeginGroupToken, Token;
 
 import 'package:kernel/ast.dart' show AsyncMarker;
 
@@ -26,11 +25,14 @@ enum NullValue {
   CascadeReceiver,
   Combinators,
   ConditionalUris,
+  ConstructorReferenceContinuationAfterTypeArguments,
   ContinueTarget,
   Expression,
   FieldInitializer,
   FormalParameters,
   FunctionBody,
+  FunctionBodyAsyncToken,
+  FunctionBodyStarToken,
   IdentifierList,
   Initializers,
   Metadata,
@@ -154,6 +156,11 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
+    debugEvent("NoConstructorReferenceContinuationAfterTypeArguments");
+  }
+
+  @override
   void handleNoType(Token token) {
     debugEvent("NoType");
     push(NullValue.Type);
@@ -209,6 +216,11 @@ abstract class StackListener extends Listener {
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
     push(popList(literalCount).join(""));
+  }
+
+  @override
+  void handleRecoverExpression(Token token) {
+    debugEvent("RecoverExpression");
   }
 
   @override

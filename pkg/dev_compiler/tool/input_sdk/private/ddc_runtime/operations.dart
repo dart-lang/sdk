@@ -208,7 +208,7 @@ _toDisplayName(name) => JS(
 
 Symbol _dartSymbol(name) {
   return (JS('bool', 'typeof # === "symbol"', name))
-      ? JS('', '#(new #.es6(#, #))', const_, _internal.Symbol,
+      ? JS('', '#(new #(#, #))', const_, _internal.PrivateSymbol,
           _toSymbolName(name), name)
       : JS('', '#(#.new(#))', const_, Symbol, _toDisplayName(name));
 }
@@ -882,6 +882,12 @@ String _toString(obj) {
     return JS('String', '#[dartx.toString]()', obj);
   }
   if (JS('bool', 'typeof # == "function"', obj)) {
+    // If the function is a Type object, we should just display the type name.
+    // Regular Dart code should typically get wrapped type objects instead of
+    // raw type (aka JS constructor) objects however raw type objects can be
+    // exposed to Dart code via JS interop or debugging tools.
+    if (isType(obj)) return typeName(obj);
+
     return JS(
         'String', r'"Closure: " + # + " from: " + #', getReifiedType(obj), obj);
   }

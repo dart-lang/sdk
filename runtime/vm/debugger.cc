@@ -259,7 +259,7 @@ ActivationFrame::ActivationFrame(uword pc,
       ctx_(Context::ZoneHandle()),
       code_(Code::ZoneHandle(code.raw())),
       function_(Function::ZoneHandle(code.function())),
-      live_frame_(kind == kRegular),
+      live_frame_((kind == kRegular) || (kind == kAsyncActivation)),
       token_pos_initialized_(false),
       token_pos_(TokenPosition::kNoSource),
       try_index_(-1),
@@ -296,6 +296,37 @@ ActivationFrame::ActivationFrame(Kind kind)
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {}
+
+
+ActivationFrame::ActivationFrame(const Closure& async_activation)
+    : pc_(0),
+      fp_(0),
+      sp_(0),
+      ctx_(Context::ZoneHandle()),
+      code_(Code::ZoneHandle()),
+      function_(Function::ZoneHandle()),
+      live_frame_(false),
+      token_pos_initialized_(false),
+      token_pos_(TokenPosition::kNoSource),
+      try_index_(-1),
+      line_number_(-1),
+      column_number_(-1),
+      context_level_(-1),
+      deopt_frame_(Array::ZoneHandle()),
+      deopt_frame_offset_(0),
+      kind_(kAsyncActivation),
+      vars_initialized_(false),
+      var_descriptors_(LocalVarDescriptors::ZoneHandle()),
+      desc_indices_(8),
+      pc_desc_(PcDescriptors::ZoneHandle()) {
+  // Extract the function and the code from the asynchronous activation.
+  function_ = async_activation.function();
+  code_ = function_.unoptimized_code();
+  ctx_ = async_activation.context();
+  ASSERT(fp_ == 0);
+  ASSERT(!ctx_.IsNull());
+}
+
 
 bool Debugger::NeedsIsolateEvents() {
   return ((isolate_ != Dart::vm_isolate()) &&
@@ -589,8 +620,8 @@ intptr_t ActivationFrame::TryIndex() {
 
 intptr_t ActivationFrame::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
-  if ((line_number_ < 0) && TokenPos().IsReal()) {
-    const TokenPosition token_pos = TokenPos();
+  if ((line_number_ < 0) && TokenPos().IsSourcePosition()) {
+    const TokenPosition token_pos = TokenPos().SourcePosition();
     const Script& script = Script::Handle(SourceScript());
     script.GetTokenLocation(token_pos, &line_number_, NULL);
   }
@@ -600,8 +631,8 @@ intptr_t ActivationFrame::LineNumber() {
 
 intptr_t ActivationFrame::ColumnNumber() {
   // Compute column number lazily since it causes scanning of the script.
-  if ((column_number_ < 0) && TokenPos().IsReal()) {
-    const TokenPosition token_pos = TokenPos();
+  if ((column_number_ < 0) && TokenPos().IsSourcePosition()) {
+    const TokenPosition token_pos = TokenPos().SourcePosition();
     const Script& script = Script::Handle(SourceScript());
     if (script.HasSource()) {
       script.GetTokenLocation(token_pos, &line_number_, &column_number_);
@@ -680,6 +711,191 @@ intptr_t ActivationFrame::ContextLevel() {
 }
 
 
+RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
+  if (!function_.IsAsyncClosure()) {
+    return Object::null();
+  }
+  GetVarDescriptors();
+  intptr_t var_desc_len = var_descriptors_.Length();
+  for (intptr_t i = 0; i < var_desc_len; i++) {
+    RawLocalVarDescriptors::VarInfo var_info;
+    var_descriptors_.GetInfo(i, &var_info);
+    if (var_descriptors_.GetName(i) == name.raw()) {
+      const int8_t kind = var_info.kind();
+      if (!live_frame_) {
+        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+      }
+      if (kind == RawLocalVarDescriptors::kStackVar) {
+        return GetStackVar(var_info.index());
+      } else {
+        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+        if (!live_frame_) {
+          ASSERT(!ctx_.IsNull());
+          return ctx_.At(var_info.index());
+        }
+        return GetContextVar(var_info.scope_id, var_info.index());
+      }
+    }
+  }
+  return Object::null();
+}
+
+
+RawObject* ActivationFrame::GetAsyncCompleter() {
+  return GetAsyncContextVariable(Symbols::AsyncCompleter());
+}
+
+
+RawObject* ActivationFrame::GetAsyncCompleterAwaiter(const Object& completer) {
+  const Class& sync_completer_cls = Class::Handle(completer.clazz());
+  ASSERT(!sync_completer_cls.IsNull());
+  const Class& completer_cls = Class::Handle(sync_completer_cls.SuperClass());
+  const Field& future_field =
+      Field::Handle(completer_cls.LookupInstanceFieldAllowPrivate(
+          Symbols::CompleterFuture()));
+  ASSERT(!future_field.IsNull());
+  Instance& future = Instance::Handle();
+  future ^= Instance::Cast(completer).GetField(future_field);
+  ASSERT(!future.IsNull());
+  const Class& future_cls = Class::Handle(future.clazz());
+  ASSERT(!future_cls.IsNull());
+  const Field& awaiter_field = Field::Handle(
+      future_cls.LookupInstanceFieldAllowPrivate(Symbols::_Awaiter()));
+  ASSERT(!awaiter_field.IsNull());
+  return future.GetField(awaiter_field);
+}
+
+
+RawObject* ActivationFrame::GetAsyncStreamControllerStream() {
+  return GetAsyncContextVariable(Symbols::ControllerStream());
+}
+
+
+RawObject* ActivationFrame::GetAsyncStreamControllerStreamAwaiter(
+    const Object& stream) {
+  const Class& stream_cls = Class::Handle(stream.clazz());
+  ASSERT(!stream_cls.IsNull());
+  const Class& stream_impl_cls = Class::Handle(stream_cls.SuperClass());
+  const Field& awaiter_field = Field::Handle(
+      stream_impl_cls.LookupInstanceFieldAllowPrivate(Symbols::_Awaiter()));
+  ASSERT(!awaiter_field.IsNull());
+  return Instance::Cast(stream).GetField(awaiter_field);
+}
+
+
+RawObject* ActivationFrame::GetAsyncAwaiter() {
+  const Object& completer = Object::Handle(GetAsyncCompleter());
+  if (!completer.IsNull()) {
+    return GetAsyncCompleterAwaiter(completer);
+  }
+  const Object& async_stream_controller_stream =
+      Object::Handle(GetAsyncStreamControllerStream());
+  if (!async_stream_controller_stream.IsNull()) {
+    return GetAsyncStreamControllerStreamAwaiter(
+        async_stream_controller_stream);
+  }
+  return Object::null();
+}
+
+
+bool ActivationFrame::HandlesException(const Instance& exc_obj) {
+  intptr_t try_index = TryIndex();
+  if (try_index < 0) {
+    return false;
+  }
+  ExceptionHandlers& handlers = ExceptionHandlers::Handle();
+  Array& handled_types = Array::Handle();
+  AbstractType& type = Type::Handle();
+  const TypeArguments& no_instantiator = TypeArguments::Handle();
+  const bool is_async =
+      function().IsAsyncClosure() || function().IsAsyncGenClosure();
+  handlers = code().exception_handlers();
+  ASSERT(!handlers.IsNull());
+  intptr_t num_handlers_checked = 0;
+  while (try_index != CatchClauseNode::kInvalidTryIndex) {
+    // Detect circles in the exception handler data.
+    num_handlers_checked++;
+    ASSERT(num_handlers_checked <= handlers.num_entries());
+    // Only consider user written handlers for async methods.
+    if (!is_async || !handlers.IsGenerated(try_index)) {
+      handled_types = handlers.GetHandledTypes(try_index);
+      const intptr_t num_types = handled_types.Length();
+      for (intptr_t k = 0; k < num_types; k++) {
+        type ^= handled_types.At(k);
+        ASSERT(!type.IsNull());
+        // Uninstantiated types are not added to ExceptionHandlers data.
+        ASSERT(type.IsInstantiated());
+        if (type.IsMalformed()) {
+          continue;
+        }
+        if (type.IsDynamicType()) {
+          return true;
+        }
+        if (exc_obj.IsInstanceOf(type, no_instantiator, NULL)) {
+          return true;
+        }
+      }
+    }
+    try_index = handlers.OuterTryIndex(try_index);
+  }
+  return false;
+}
+
+
+void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
+  // Attempt to determine the token position from the async closure.
+  ASSERT(function_.IsAsyncGenClosure() || function_.IsAsyncClosure());
+  // This should only be called on frames that aren't active on the stack.
+  ASSERT(fp() == 0);
+  const Array& await_to_token_map =
+      Array::Handle(code_.await_token_positions());
+  if (await_to_token_map.IsNull()) {
+    // No mapping.
+    return;
+  }
+  GetVarDescriptors();
+  GetPcDescriptors();
+  intptr_t var_desc_len = var_descriptors_.Length();
+  intptr_t await_jump_var = -1;
+  for (intptr_t i = 0; i < var_desc_len; i++) {
+    RawLocalVarDescriptors::VarInfo var_info;
+    var_descriptors_.GetInfo(i, &var_info);
+    const int8_t kind = var_info.kind();
+    if (var_descriptors_.GetName(i) == Symbols::AwaitJumpVar().raw()) {
+      ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+      ASSERT(!ctx_.IsNull());
+      Object& await_jump_index = Object::Handle(ctx_.At(var_info.index()));
+      ASSERT(await_jump_index.IsSmi());
+      await_jump_var = Smi::Cast(await_jump_index).Value();
+    }
+  }
+  if (await_jump_var < 0) {
+    return;
+  }
+  ASSERT(await_jump_var < await_to_token_map.Length());
+  const Object& token_pos =
+      Object::Handle(await_to_token_map.At(await_jump_var));
+  if (token_pos.IsNull()) {
+    return;
+  }
+  ASSERT(token_pos.IsSmi());
+  token_pos_ = TokenPosition(Smi::Cast(token_pos).Value());
+  token_pos_initialized_ = true;
+  PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
+    if (iter.TokenPos() == token_pos_) {
+      // Match the lowest try index at this token position.
+      // TODO(johnmccutchan): Is this heuristic precise enough?
+      if (iter.TryIndex() != CatchClauseNode::kInvalidTryIndex) {
+        if ((try_index_ == -1) || (iter.TryIndex() < try_index_)) {
+          try_index_ = iter.TryIndex();
+        }
+      }
+    }
+  }
+}
+
+
 // Get the saved current context of this activation.
 const Context& ActivationFrame::GetSavedCurrentContext() {
   if (!ctx_.IsNull()) return ctx_;
@@ -724,35 +940,10 @@ RawObject* ActivationFrame::GetAsyncOperation() {
 
 ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
     const Instance& exc_obj) const {
-  ExceptionHandlers& handlers = ExceptionHandlers::Handle();
-  Array& handled_types = Array::Handle();
-  AbstractType& type = Type::Handle();
-  const TypeArguments& no_instantiator = TypeArguments::Handle();
   for (intptr_t frame_index = 0; frame_index < Length(); frame_index++) {
     ActivationFrame* frame = FrameAt(frame_index);
-    intptr_t try_index = frame->TryIndex();
-    if (try_index < 0) continue;
-    handlers = frame->code().exception_handlers();
-    ASSERT(!handlers.IsNull());
-    intptr_t num_handlers_checked = 0;
-    while (try_index >= 0) {
-      // Detect circles in the exception handler data.
-      num_handlers_checked++;
-      ASSERT(num_handlers_checked <= handlers.num_entries());
-      handled_types = handlers.GetHandledTypes(try_index);
-      const intptr_t num_types = handled_types.Length();
-      for (intptr_t k = 0; k < num_types; k++) {
-        type ^= handled_types.At(k);
-        ASSERT(!type.IsNull());
-        // Uninstantiated types are not added to ExceptionHandlers data.
-        ASSERT(type.IsInstantiated());
-        if (type.IsMalformed()) continue;
-        if (type.IsDynamicType()) return frame;
-        if (exc_obj.IsInstanceOf(type, no_instantiator, NULL)) {
-          return frame;
-        }
-      }
-      try_index = handlers.OuterTryIndex(try_index);
+    if (frame->HandlesException(exc_obj)) {
+      return frame;
     }
   }
   return NULL;
@@ -1128,10 +1319,7 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj, bool full) {
   const Script& script = Script::Handle(SourceScript());
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
-  TokenPosition pos = TokenPos();
-  if (pos.IsSynthetic()) {
-    pos = pos.FromSynthetic();
-  }
+  const TokenPosition pos = TokenPos().SourcePosition();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function(), !full);
   jsobj->AddProperty("code", code());
@@ -1152,7 +1340,10 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj, bool full) {
       TokenPosition visible_end_token_pos;
       VariableAt(v, &var_name, &declaration_token_pos, &visible_start_token_pos,
                  &visible_end_token_pos, &var_value);
-      if (var_name.raw() != Symbols::AsyncOperation().raw()) {
+      if ((var_name.raw() != Symbols::AsyncOperation().raw()) &&
+          (var_name.raw() != Symbols::AsyncCompleter().raw()) &&
+          (var_name.raw() != Symbols::ControllerStream().raw()) &&
+          (var_name.raw() != Symbols::AwaitJumpVar().raw())) {
         JSONObject jsvar(&jsvars);
         jsvar.AddProperty("type", "BoundVariable");
         var_name = String::ScrubName(var_name);
@@ -1175,10 +1366,7 @@ void ActivationFrame::PrintToJSONObjectAsyncCausal(JSONObject* jsobj,
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   const Script& script = Script::Handle(SourceScript());
-  TokenPosition pos = TokenPos();
-  if (pos.IsSynthetic()) {
-    pos = pos.FromSynthetic();
-  }
+  const TokenPosition pos = TokenPos().SourcePosition();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function(), !full);
   jsobj->AddProperty("code", code());
@@ -1548,10 +1736,12 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
                                             StackFrame* frame,
                                             const Code& code,
                                             const Array& deopt_frame,
-                                            intptr_t deopt_frame_offset) {
+                                            intptr_t deopt_frame_offset,
+                                            ActivationFrame::Kind kind) {
   ASSERT(code.ContainsInstructionAt(pc));
-  ActivationFrame* activation = new ActivationFrame(
-      pc, frame->fp(), frame->sp(), code, deopt_frame, deopt_frame_offset);
+  ActivationFrame* activation =
+      new ActivationFrame(pc, frame->fp(), frame->sp(), code, deopt_frame,
+                          deopt_frame_offset, kind);
   if (FLAG_trace_debugger_stacktrace) {
     const Context& ctx = activation->GetSavedCurrentContext();
     OS::PrintErr("\tUsing saved context: %s\n", ctx.ToCString());
@@ -1728,6 +1918,64 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   return stack_trace;
 }
 
+
+DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
+  if (!FLAG_causal_async_stacks) {
+    return NULL;
+  }
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
+
+  StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
+
+  Code& code = Code::Handle(zone);
+  Function& function = Function::Handle(zone);
+  Code& inlined_code = Code::Handle(zone);
+  Closure& async_activation = Closure::Handle(zone);
+  Array& deopt_frame = Array::Handle(zone);
+
+  for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
+       frame = iterator.NextFrame()) {
+    ASSERT(frame->IsValid());
+    if (frame->IsDartFrame()) {
+      code = frame->LookupDartCode();
+      function = code.function();
+      if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+        ActivationFrame* activation = CollectDartFrame(
+            isolate, frame->pc(), frame, code, Object::null_array(), 0,
+            ActivationFrame::kAsyncActivation);
+        ASSERT(activation != NULL);
+        stack_trace->AddActivation(activation);
+        // Grab the awaiter.
+        async_activation ^= activation->GetAsyncAwaiter();
+        break;
+      } else {
+        AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
+                         &inlined_code, &deopt_frame);
+      }
+    }
+  }
+
+  // Return NULL to indicate that there is no useful information in this stack
+  // trace because we never found an awaiter.
+  if (async_activation.IsNull()) {
+    return NULL;
+  }
+
+  // Append the awaiter return call stack.
+  while (!async_activation.IsNull()) {
+    ActivationFrame* activation = new ActivationFrame(async_activation);
+    async_activation ^= activation->GetAsyncAwaiter();
+    activation->ExtractTokenPositionFromAsyncClosure();
+    stack_trace->AddActivation(activation);
+  }
+
+  return stack_trace;
+}
+
+
 ActivationFrame* Debugger::TopDartFrame() const {
   StackFrameIterator iterator(false);
   StackFrame* frame = iterator.NextFrame();
@@ -1828,6 +2076,29 @@ Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() const {
 }
 
 
+bool Debugger::ShouldPauseOnAsyncException(DebuggerStackTrace* stack_trace,
+                                           const Instance& exc) {
+  if (exc_pause_info_ == kNoPauseOnExceptions) {
+    return false;
+  }
+  if (exc_pause_info_ == kPauseOnAllExceptions) {
+    return true;
+  }
+  ASSERT(exc_pause_info_ == kPauseOnUnhandledExceptions);
+  for (intptr_t i = 0; i < stack_trace->Length(); i++) {
+    ActivationFrame* frame = stack_trace->FrameAt(i);
+    if (frame->HandlesException(exc)) {
+      if (FLAG_verbose_debug) {
+        OS::PrintErr("%s is caught by frame %s\n", exc.ToCString(),
+                     frame->ToCString());
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
+
 bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
                                       const Instance& exception) {
   if (exc_pause_info_ == kNoPauseOnExceptions) {
@@ -1859,9 +2130,16 @@ void Debugger::PauseException(const Instance& exc) {
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
   }
+  DebuggerStackTrace* awaiter_stack_trace = CollectAwaiterReturnStackTrace();
   DebuggerStackTrace* stack_trace = CollectStackTrace();
-  if (!ShouldPauseOnException(stack_trace, exc)) {
-    return;
+  if (awaiter_stack_trace != NULL) {
+    if (!ShouldPauseOnAsyncException(awaiter_stack_trace, exc)) {
+      return;
+    }
+  } else {
+    if (!ShouldPauseOnException(stack_trace, exc)) {
+      return;
+    }
   }
   ServiceEvent event(isolate_, ServiceEvent::kPauseException);
   event.set_exception(&exc);
@@ -3291,10 +3569,12 @@ RawError* Debugger::PauseBreakpoint() {
   }
 
   if (FLAG_verbose_debug) {
-    OS::Print(">>> hit breakpoint at %s:%" Pd " (token %s) (address %#" Px
-              ")\n",
-              String::Handle(cbpt->SourceUrl()).ToCString(), cbpt->LineNumber(),
-              cbpt->token_pos().ToCString(), top_frame->pc());
+    OS::Print(">>> hit breakpoint %" Pd " at %s:%" Pd
+              " (token %s) "
+              "(address %#" Px ")\n",
+              bpt_hit->id(), String::Handle(cbpt->SourceUrl()).ToCString(),
+              cbpt->LineNumber(), cbpt->token_pos().ToCString(),
+              top_frame->pc());
   }
 
   CacheStackTraces(stack_trace, CollectAsyncCausalStackTrace());

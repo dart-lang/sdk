@@ -493,11 +493,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitTypeConversion(HTypeConversion node) {
     String checkedInput = temporaryId(node.checkedInput);
     String rest;
-    if (node.usesMethodOnType) {
-      assert(node.inputs.length == 2);
-      assert(identical(node.checkedInput, node.inputs.last));
-      rest = " ${temporaryId(node.inputs.first)}";
-    } else if (node.inputs.length == 2) {
+    if (node.inputs.length == 2) {
       rest = " ${temporaryId(node.inputs.last)}";
     } else {
       assert(node.inputs.length == 1);
@@ -534,28 +530,6 @@ class HInstructionStringifier implements HVisitor<String> {
     var inputs = node.inputs.map(temporaryId).join(', ');
     return "TypeInfoExpression: ${node.kindAsString} ${node.dartType}"
         " ($inputs)";
-  }
-
-  String visitReadTypeVariable(HReadTypeVariable node) {
-    var inputs = node.inputs.map(temporaryId).join(', ');
-    return "ReadTypeVariable: ${node.dartType} ${node.hasReceiver} $inputs";
-  }
-
-  String visitFunctionType(HFunctionType node) {
-    var inputs = node.inputs.map(temporaryId).join(', ');
-    return "FunctionType: ${node.dartType} $inputs";
-  }
-
-  String visitVoidType(HVoidType node) {
-    return "VoidType";
-  }
-
-  String visitInterfaceType(HInterfaceType node) {
-    return "InterfaceType: ${node.dartType}";
-  }
-
-  String visitDynamicType(HDynamicType node) {
-    return "DynamicType";
   }
 
   String visitAwait(HAwait node) {

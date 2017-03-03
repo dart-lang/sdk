@@ -906,14 +906,6 @@ class Namer {
   }
 
   /**
-   * Returns name of the JavaScript property used to store the
-   * `readTypeVariable` function for the given type variable.
-   */
-  jsAst.Name nameForReadTypeVariable(TypeVariableElement element) {
-    return _disambiguateInternalMember(element, () => element.name);
-  }
-
-  /**
    * Returns a JavaScript property name used to store [element] on one
    * of the global objects.
    *

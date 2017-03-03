@@ -223,9 +223,6 @@ class Class implements FieldContainer {
   /// Stub methods for this class that are call stubs for getters.
   final List<StubMethod> callStubs;
 
-  /// Stub methods for this class handling reads to type variables.
-  final List<StubMethod> typeVariableReaderStubs;
-
   /// noSuchMethod stubs in the special case that the class is Object.
   final List<StubMethod> noSuchMethodStubs;
   final List<Field> staticFieldsForReflection;
@@ -258,7 +255,6 @@ class Class implements FieldContainer {
       this.fields,
       this.staticFieldsForReflection,
       this.callStubs,
-      this.typeVariableReaderStubs,
       this.noSuchMethodStubs,
       this.checkedSetters,
       this.isChecks,
@@ -295,7 +291,6 @@ class MixinApplication extends Class {
       List<Field> instanceFields,
       List<Field> staticFieldsForReflection,
       List<StubMethod> callStubs,
-      List<StubMethod> typeVariableReaderStubs,
       List<StubMethod> checkedSetters,
       List<StubMethod> isChecks,
       js.Expression functionTypeIndex,
@@ -310,7 +305,6 @@ class MixinApplication extends Class {
             instanceFields,
             staticFieldsForReflection,
             callStubs,
-            typeVariableReaderStubs,
             const <StubMethod>[],
             checkedSetters,
             isChecks,

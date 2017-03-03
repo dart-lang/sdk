@@ -2765,6 +2765,11 @@ abstract class FieldDeclaration extends ClassMember {
   Token get covariantKeyword;
 
   /**
+   * Set the token for the 'covariant' keyword to the given [token].
+   */
+  void set covariantKeyword(Token token);
+
+  /**
    * Return the fields being declared.
    */
   VariableDeclarationList get fields;

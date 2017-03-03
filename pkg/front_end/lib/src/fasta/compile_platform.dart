@@ -24,23 +24,29 @@ import 'dill/dill_target.dart' show DillTarget;
 
 import 'translate_uri.dart' show TranslateUri;
 
-import 'ast_kind.dart' show AstKind;
+const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
-Future main(List<String> arguments) async {
-  Ticker ticker = new Ticker();
-  try {
-    await CompilerCommandLine.withGlobalOptions("compile_platform", arguments,
-        (CompilerContext c) => compilePlatform(c, ticker));
-  } on InputError catch (e) {
-    exitCode = 1;
-    print(e.format());
-    return null;
+Future mainEntryPoint(List<String> arguments) async {
+  for (int i = 0; i < iterations; i++) {
+    if (i > 0) {
+      print("\n");
+    }
+    Ticker ticker = new Ticker();
+    try {
+      await CompilerCommandLine.withGlobalOptions("compile_platform", arguments,
+          (CompilerContext c) => compilePlatform(c, ticker));
+    } on InputError catch (e) {
+      exitCode = 1;
+      print(e.format());
+      return null;
+    }
   }
 }
 
 Future compilePlatform(CompilerContext c, Ticker ticker) async {
   ticker.isVerbose = c.options.verbose;
   Uri output = Uri.base.resolveUri(new Uri.file(c.options.arguments[1]));
+  Uri deps = Uri.base.resolveUri(new Uri.file("${c.options.arguments[1]}.d"));
   Uri patchedSdk = Uri.base.resolveUri(new Uri.file(c.options.arguments[0]));
   ticker.logMs("Parsed arguments");
   if (ticker.isVerbose) {
@@ -60,7 +66,6 @@ Future compilePlatform(CompilerContext c, Ticker ticker) async {
   await kernelTarget.writeOutline(output);
 
   if (exitCode != 0) return null;
-  await kernelTarget.writeProgram(output, AstKind.Kernel);
   if (c.options.dumpIr) {
     kernelTarget.dumpIr();
   }
@@ -76,4 +81,7 @@ Future compilePlatform(CompilerContext c, Ticker ticker) async {
       }
     }
   }
+  if (exitCode != 0) return null;
+  await kernelTarget.writeProgram(output);
+  await kernelTarget.writeDepsFile(output, deps);
 }

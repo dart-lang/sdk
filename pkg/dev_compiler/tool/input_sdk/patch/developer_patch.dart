@@ -8,7 +8,7 @@ import 'dart:_js_helper' show patch, ForceInline;
 import 'dart:_foreign_helper' show JS;
 
 @patch
-// @ForceInline()
+@ForceInline()
 bool debugger({bool when: true, String message}) {
   if (when) {
     JS('', 'debugger');
@@ -46,7 +46,7 @@ _registerExtension(String method, ServiceExtensionHandler handler) {
 }
 
 @patch
-_postEvent(String eventKind, String eventData) {
+void _postEvent(String eventKind, String eventData) {
   // TODO.
 }
 
@@ -117,11 +117,63 @@ int _getServiceMinorVersion() {
 }
 
 @patch
-void _getServerInfo(SendPort sp) {
-  sp.send(null);
+void _getServerInfo(SendPort sendPort) {
+  sendPort.send(null);
 }
 
 @patch
-void _webServerControl(SendPort sp, bool enable) {
-  sp.send(null);
+void _webServerControl(SendPort sendPort, bool enable) {
+  sendPort.send(null);
 }
+
+@patch
+String _getIsolateIDFromSendPort(SendPort sendPort) {
+  return null;
+}
+
+@patch
+class UserTag {
+  @patch
+  factory UserTag(String label) = _FakeUserTag;
+
+  @patch
+  static UserTag get defaultTag => _FakeUserTag._defaultTag;
+}
+
+class _FakeUserTag implements UserTag {
+  static Map _instances = {};
+
+  _FakeUserTag.real(this.label);
+
+  factory _FakeUserTag(String label) {
+    // Canonicalize by name.
+    var existingTag = _instances[label];
+    if (existingTag != null) {
+      return existingTag;
+    }
+    // Throw an exception if we've reached the maximum number of user tags.
+    if (_instances.length == UserTag.MAX_USER_TAGS) {
+      throw new UnsupportedError(
+          'UserTag instance limit (${UserTag.MAX_USER_TAGS}) reached.');
+    }
+    // Create a new instance and add it to the instance map.
+    var instance = new _FakeUserTag.real(label);
+    _instances[label] = instance;
+    return instance;
+  }
+
+  final String label;
+
+  UserTag makeCurrent() {
+    var old = _currentTag;
+    _currentTag = this;
+    return old;
+  }
+
+  static final UserTag _defaultTag = new _FakeUserTag('Default');
+}
+
+var _currentTag = _FakeUserTag._defaultTag;
+
+@patch
+UserTag getCurrentTag() => _currentTag;

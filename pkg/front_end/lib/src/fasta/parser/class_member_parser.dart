@@ -4,7 +4,7 @@
 
 library fasta.parser.class_member_parser;
 
-import 'package:front_end/src/fasta/scanner/token.dart' show Token;
+import '../scanner/token.dart' show Token;
 
 import 'listener.dart' show Listener;
 
@@ -17,6 +17,13 @@ class ClassMemberParser extends Parser {
       : super(listener, asyncAwaitKeywordsEnabled: asyncAwaitKeywordsEnabled);
 
   Token parseExpression(Token token) => skipExpression(token);
+
+  Token parseRecoverExpression(Token token) {
+    Token begin = token;
+    token = skipExpression(token);
+    listener.handleRecoverExpression(begin);
+    return token;
+  }
 
   // This method is overridden for two reasons:
   // 1. Avoid generating events for arguments.

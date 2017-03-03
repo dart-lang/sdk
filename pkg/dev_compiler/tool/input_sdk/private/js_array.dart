@@ -93,7 +93,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   void insertAll(int index, Iterable<E> iterable) {
     checkGrowable('insertAll');
     RangeError.checkValueInInterval(index, 0, this.length, "index");
-    if (iterable is! EfficientLength) {
+    if (iterable is! EfficientLengthIterable) {
       iterable = iterable.toList();
     }
     int insertionLength = iterable.length;
@@ -411,7 +411,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   void replaceRange(int start, int end, Iterable<E> replacement) {
     checkGrowable('replace range');
     RangeError.checkValidRange(start, end, this.length);
-    if (replacement is! EfficientLength) {
+    if (replacement is! EfficientLengthIterable) {
       replacement = replacement.toList();
     }
     int removeLength = end - start;

@@ -15,7 +15,7 @@ class Foo<T extends core::Object> extends core::Object {
   method withCallback((self::Foo::T) → void callback) → void {
     callback.call(this.{self::Foo::finalField});
   }
-  set /* from null */ mutableField$cc(core::Object mutableField_) → dynamic
+  set mutableField$cc(core::Object mutableField_) → dynamic
     this.{=self::Foo::mutableField} = mutableField_ as self::Foo::T;
   method method$cc(core::Object x) → void
     this.{=self::Foo::method}(x as self::Foo::T);

@@ -4,16 +4,15 @@
 
 library fasta.test.compile_test;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
 import 'package:front_end/src/fasta/testing/suite.dart';
 
-Future<FeContext> createContext(
+Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
   environment[ENABLE_FULL_COMPILE] = "";
   environment[AST_KIND_INDEX] = "${AstKind.Analyzer.index}";
-  return TestContext.create(suite, environment, FeContext.create);
+  return FastaContext.create(suite, environment);
 }
 
 main(List<String> arguments) => runMe(arguments, createContext, "testing.json");

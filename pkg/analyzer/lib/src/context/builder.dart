@@ -366,9 +366,17 @@ class ContextBuilder {
 
   /**
    * Return the analysis options that should be used to analyze code in the
-   * directory with the given [path].
+   * directory with the given [path]. Use [verbosePrint] to echo verbose
+   * information about the analysis options selection process.
    */
-  AnalysisOptions getAnalysisOptions(String path) {
+  AnalysisOptions getAnalysisOptions(String path,
+      {void verbosePrint(String text)}) {
+    void verbose(String text) {
+      if (verbosePrint != null) {
+        verbosePrint(text);
+      }
+    }
+
     // TODO(danrubel) restructure so that we don't create a workspace
     // both here and in createSourceFactory
     Workspace workspace = createWorkspace(path);
@@ -383,8 +391,10 @@ class ContextBuilder {
     if (optionsFile != null) {
       try {
         optionMap = optionsProvider.getOptionsFromFile(optionsFile);
-      } catch (_) {
+        verbose('Loaded analysis options from ${optionsFile.path}');
+      } catch (e) {
         // Ignore exceptions thrown while trying to load the options file.
+        verbose('Exception: $e\n  when loading ${optionsFile.path}');
       }
     } else {
       // Search for the default analysis options
@@ -401,8 +411,10 @@ class ContextBuilder {
       if (source.exists()) {
         try {
           optionMap = optionsProvider.getOptionsFromSource(source);
-        } catch (_) {
+          verbose('Loaded analysis options from ${source.fullName}');
+        } catch (e) {
           // Ignore exceptions thrown while trying to load the options file.
+          verbose('Exception: $e\n  when loading ${source.fullName}');
         }
       }
     }
@@ -410,12 +422,16 @@ class ContextBuilder {
     if (optionMap != null) {
       applyToAnalysisOptions(options, optionMap);
       if (builderOptions.argResults != null) {
-        applyAnalysisOptionFlags(options, builderOptions.argResults);
+        applyAnalysisOptionFlags(options, builderOptions.argResults,
+            verbosePrint: verbosePrint);
         // If lints turned on but none specified, then enable default lints
         if (options.lint && options.lintRules.isEmpty) {
           options.lintRules = Registry.ruleRegistry.defaultRules;
+          verbose('Using default lint rules');
         }
       }
+    } else {
+      verbose('Using default analysis options');
     }
     return options;
   }

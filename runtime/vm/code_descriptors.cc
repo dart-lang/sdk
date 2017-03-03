@@ -102,12 +102,14 @@ RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(
       ASSERT((list_[i].outer_try_index == -1) &&
              (list_[i].pc_offset == ExceptionHandlers::kInvalidPcOffset));
       handlers.SetHandlerInfo(i, list_[i].outer_try_index, list_[i].pc_offset,
-                              list_[i].needs_stacktrace, has_catch_all);
+                              list_[i].needs_stacktrace, has_catch_all,
+                              list_[i].token_pos, list_[i].is_generated);
       handlers.SetHandledTypes(i, Array::empty_array());
     } else {
       const bool has_catch_all = ContainsDynamic(*list_[i].handler_types);
       handlers.SetHandlerInfo(i, list_[i].outer_try_index, list_[i].pc_offset,
-                              list_[i].needs_stacktrace, has_catch_all);
+                              list_[i].needs_stacktrace, has_catch_all,
+                              list_[i].token_pos, list_[i].is_generated);
       handlers.SetHandledTypes(i, *list_[i].handler_types);
     }
   }
@@ -323,7 +325,7 @@ void CodeSourceMapBuilder::WriteChangePosition(TokenPosition pos) {
     if (inline_id < inline_id_to_function_.length()) {
       const Function* function = inline_id_to_function_[inline_id];
       Script& script = Script::Handle(function->script());
-      line = script.GetTokenLineUsingLineStarts(pos);
+      line = script.GetTokenLineUsingLineStarts(pos.SourcePosition());
     }
     stream_.Write<int32_t>(static_cast<int32_t>(line));
   } else {

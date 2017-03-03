@@ -399,6 +399,14 @@ class Isolate : public BaseIsolate {
     return shutdown_callback_;
   }
 
+  static void SetCleanupCallback(Dart_IsolateCleanupCallback cb) {
+    cleanup_callback_ = cb;
+  }
+  static Dart_IsolateCleanupCallback CleanupCallback() {
+    return cleanup_callback_;
+  }
+
+
   void set_object_id_ring(ObjectIdRing* ring) { object_id_ring_ = ring; }
   ObjectIdRing* object_id_ring() { return object_id_ring_; }
 
@@ -630,11 +638,13 @@ class Isolate : public BaseIsolate {
   bool asserts() const { return FLAG_enable_asserts; }
   bool error_on_bad_type() const { return FLAG_error_on_bad_type; }
   bool error_on_bad_override() const { return FLAG_error_on_bad_override; }
+  bool use_field_guards() const { return FLAG_use_field_guards; }
 #else   // defined(PRODUCT)
   bool type_checks() const { return type_checks_; }
   bool asserts() const { return asserts_; }
   bool error_on_bad_type() const { return error_on_bad_type_; }
   bool error_on_bad_override() const { return error_on_bad_override_; }
+  bool use_field_guards() const { return use_field_guards_; }
 #endif  // defined(PRODUCT)
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -764,6 +774,7 @@ class Isolate : public BaseIsolate {
   bool asserts_;
   bool error_on_bad_type_;
   bool error_on_bad_override_;
+  bool use_field_guards_;
 #endif  // !defined(PRODUCT)
 
   // Timestamps of last operation via service.
@@ -851,6 +862,7 @@ class Isolate : public BaseIsolate {
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
+  static Dart_IsolateCleanupCallback cleanup_callback_;
 
   static void WakePauseEventHandler(Dart_Isolate isolate);
 

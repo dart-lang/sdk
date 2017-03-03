@@ -4,13 +4,11 @@
 
 library fasta.body_builder;
 
-import 'package:front_end/src/fasta/parser/parser.dart'
-    show FormalParameterType, optional;
+import '../parser/parser.dart' show FormalParameterType, optional;
 
-import 'package:front_end/src/fasta/parser/error_kind.dart' show ErrorKind;
+import '../parser/error_kind.dart' show ErrorKind;
 
-import 'package:front_end/src/fasta/parser/identifier_context.dart'
-    show IdentifierContext;
+import '../parser/identifier_context.dart' show IdentifierContext;
 
 import 'package:kernel/ast.dart';
 
@@ -24,7 +22,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../parser/dart_vm_native.dart' show skipNativeClause;
 
-import 'package:front_end/src/fasta/scanner/token.dart'
+import '../scanner/token.dart'
     show BeginGroupToken, Token, isBinaryOperator, isMinusOperator;
 
 import '../errors.dart' show internalError, printUnexpected;
@@ -295,7 +293,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(
+      int count, Token covariantKeyword, Token beginToken, Token endToken) {
     debugEvent("Fields");
     doFields(count);
     pop(); // Metadata.
@@ -841,6 +840,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void endExpressionFunctionBody(Token arrowToken, Token endToken) {
+    debugEvent("ExpressionFunctionBody");
+    endReturnStatement(true, arrowToken, endToken);
+  }
+
+  @override
   void endReturnStatement(
       bool hasExpression, Token beginToken, Token endToken) {
     debugEvent("ReturnStatement");
@@ -1316,7 +1321,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     FormalParameterType kind = optional("{", beginToken)
         ? FormalParameterType.NAMED
         : FormalParameterType.POSITIONAL;
-    push(new OptionalFormals(kind, popList(count)));
+    push(new OptionalFormals(kind, popList(count) ?? []));
   }
 
   @override
@@ -1646,6 +1651,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     String name = pop();
     List<DartType> typeArguments = pop();
     var type = pop();
+
+    if (arguments == null) {
+      push(buildCompileTimeError("No arguments.", token.charOffset));
+      return;
+    }
 
     if (typeArguments != null) {
       assert(arguments.types.isEmpty);

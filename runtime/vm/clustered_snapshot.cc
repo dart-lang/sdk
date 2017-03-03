@@ -1093,7 +1093,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         Thread::Current(), Timeline::GetIsolateStream(), "PostLoadField"));
 
     Field& field = Field::Handle(zone);
-    if (!FLAG_use_field_guards) {
+    if (!Isolate::Current()->use_field_guards()) {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
         field.set_guarded_cid(kDynamicCid);
@@ -4648,7 +4648,8 @@ void Serializer::WriteVersionAndFeatures() {
   const intptr_t version_len = strlen(expected_version);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
-  const char* expected_features = Dart::FeaturesString(kind_);
+  const char* expected_features =
+      Dart::FeaturesString(Isolate::Current(), kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
@@ -4986,7 +4987,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
 }
 
 
-RawApiError* Deserializer::VerifyVersionAndFeatures() {
+RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
   // If the version string doesn't match, return an error.
   // Note: New things are allocated only if we're going to return an error.
 
@@ -5023,7 +5024,7 @@ RawApiError* Deserializer::VerifyVersionAndFeatures() {
   }
   Advance(version_len);
 
-  const char* expected_features = Dart::FeaturesString(kind_);
+  const char* expected_features = Dart::FeaturesString(isolate, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t expected_len = strlen(expected_features);
 
@@ -5475,7 +5476,7 @@ RawApiError* FullSnapshotReader::ReadVMSnapshot() {
   Deserializer deserializer(thread_, kind_, buffer_, size_,
                             instructions_buffer_, data_buffer_);
 
-  RawApiError* error = deserializer.VerifyVersionAndFeatures();
+  RawApiError* error = deserializer.VerifyVersionAndFeatures(/*isolate=*/NULL);
   if (error != ApiError::null()) {
     return error;
   }
@@ -5499,7 +5500,8 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
   Deserializer deserializer(thread_, kind_, buffer_, size_,
                             instructions_buffer_, data_buffer_);
 
-  RawApiError* error = deserializer.VerifyVersionAndFeatures();
+  RawApiError* error =
+      deserializer.VerifyVersionAndFeatures(thread_->isolate());
   if (error != ApiError::null()) {
     return error;
   }

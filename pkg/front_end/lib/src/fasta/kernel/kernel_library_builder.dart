@@ -201,6 +201,7 @@ class KernelLibraryBuilder
 
   void addFactoryMethod(
       List<MetadataBuilder> metadata,
+      int modifiers,
       ConstructorReferenceBuilder constructorName,
       List<FormalParameterBuilder> formals,
       AsyncMarker asyncModifier,
@@ -216,7 +217,7 @@ class KernelLibraryBuilder
     assert(constructorName.suffix == null);
     KernelProcedureBuilder procedure = new KernelProcedureBuilder(
         metadata,
-        staticMask,
+        staticMask | modifiers,
         null,
         name,
         <TypeVariableBuilder>[],

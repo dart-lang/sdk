@@ -80,6 +80,7 @@ define(['dart_sdk'], function(dart_sdk) {
     dart.throw(new core.StateError('The spread function cannot be called, ' + 'it should be compiled away.'));
   };
   dart.fn(src__varargs.spread, dynamicTodynamic());
+  dart.trackLibraries("destructuring", {"destructuring.dart": destructuring, "package:js/src/varargs.dart": src__varargs});
   // Exports:
   return {
     destructuring: destructuring,

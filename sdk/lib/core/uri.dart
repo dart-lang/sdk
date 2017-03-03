@@ -697,7 +697,7 @@ abstract class Uri {
    * in [RFC-3986 Section 5](http://tools.ietf.org/html/rfc3986#section-5 "RFC-1123").
    *
    * Updated to handle the case where the base URI is just a relative path -
-   * that is: when it has no scheme or authority and the path does not start
+   * that is: when it has no scheme and no authority and the path does not start
    * with a slash.
    * In that case, the paths are combined without removing leading "..", and
    * an empty path is not converted to "/".

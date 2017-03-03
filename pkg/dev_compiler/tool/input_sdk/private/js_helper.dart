@@ -12,7 +12,7 @@ import 'dart:_foreign_helper' show
 
 import 'dart:_interceptors';
 import 'dart:_internal' show
-    EfficientLength,
+    EfficientLengthIterable,
     MappedIterable,
     IterableElementError;
 
@@ -24,6 +24,8 @@ part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
+
+final _identityHashCode = JS('', 'Symbol("_identityHashCode")');
 
 class _Patch {
   const _Patch();
@@ -57,10 +59,10 @@ class Primitives {
   }
 
   static int objectHashCode(object) {
-    int hash = JS('int|Null', r'#.$identityHash', object);
+    int hash = JS('int|Null', r'#[#]', object, _identityHashCode);
     if (hash == null) {
       hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
-      JS('void', r'#.$identityHash = #', object, hash);
+      JS('void', r'#[#] = #', object, _identityHashCode, hash);
     }
     return JS('int', '#', hash);
   }

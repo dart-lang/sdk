@@ -318,7 +318,7 @@ class ReaderHelper {
 
  private:
   Program* program_;
-  MallocGrowableArray<Ref<CanonicalName> > canonical_names_;
+  MallocGrowableArray<CanonicalName*> canonical_names_;
   BlockStack<VariableDeclaration> scope_;
   BlockStack<TypeParameter> type_parameters_;
   BlockStack<SwitchCase> switch_cases_;

@@ -4,20 +4,18 @@
 
 library fasta.test.compile_test;
 
-import 'dart:async' show
-    Future;
+import 'dart:async' show Future;
 
 import 'package:front_end/src/fasta/testing/suite.dart';
 
-import 'package:front_end/src/fasta/testing/kernel_chain.dart' show
-    MatchExpectation;
+import 'package:front_end/src/fasta/testing/kernel_chain.dart'
+    show MatchExpectation;
 
-Future<FeContext> createContext(
+Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) async {
   environment[ENABLE_FULL_COMPILE] = "";
   environment[AST_KIND_INDEX] = "${AstKind.Kernel.index}";
-  FeContext context =
-      await TestContext.create(suite, environment, FeContext.create);
+  FastaContext context = await FastaContext.create(suite, environment);
   int index;
   for (int i = 0; i < context.steps.length; i++) {
     if (context.steps[i] is MatchExpectation) {

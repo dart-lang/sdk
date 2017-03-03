@@ -121,8 +121,10 @@ class OutlineBuilder extends UnhandledListener {
     Unhandled conditionalUris = pop();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addExport(
-        metadata, uri, conditionalUris, combinators, exportKeyword.charOffset);
+    if (uri != null) {
+      library.addExport(metadata, uri, conditionalUris, combinators,
+          exportKeyword.charOffset);
+    }
     checkEmpty(exportKeyword.charOffset);
   }
 
@@ -135,16 +137,24 @@ class OutlineBuilder extends UnhandledListener {
     Unhandled conditionalUris = pop();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addImport(
-        metadata,
-        uri,
-        conditionalUris,
-        prefix,
-        combinators,
-        deferredKeyword != null,
-        importKeyword.charOffset,
-        asKeyword?.next?.charOffset ?? -1);
+    if (uri != null) {
+      library.addImport(
+          metadata,
+          uri,
+          conditionalUris,
+          prefix,
+          combinators,
+          deferredKeyword != null,
+          importKeyword.charOffset,
+          asKeyword?.next?.charOffset ?? -1);
+    }
     checkEmpty(importKeyword.charOffset);
+  }
+
+  @override
+  void handleRecoverExpression(Token token) {
+    debugEvent("RecoverExpression");
+    push(NullValue.Expression);
   }
 
   @override
@@ -152,7 +162,9 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("Part");
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addPart(metadata, uri);
+    if (uri != null) {
+      library.addPart(metadata, uri);
+    }
     checkEmpty(partKeyword.charOffset);
   }
 
@@ -413,7 +425,11 @@ class OutlineBuilder extends UnhandledListener {
     FormalParameterType kind = optional("{", beginToken)
         ? FormalParameterType.NAMED
         : FormalParameterType.POSITIONAL;
-    List parameters = popList(count);
+    // When recovering from an empty list of optional arguments, count may be
+    // 0. It might be simpler if the parser didn't call this method in that
+    // case, however, then [beginOptionalFormalParameters] wouldn't always be
+    // matched by this method.
+    List parameters = popList(count) ?? [];
     for (FormalParameterBuilder parameter in parameters) {
       parameter.kind = kind;
     }
@@ -491,7 +507,8 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void endFields(int count, Token beginToken, Token endToken) {
+  void endFields(
+      int count, Token covariantToken, Token beginToken, Token endToken) {
     debugEvent("Fields");
     List<String> names = popList(count);
     TypeBuilder type = pop();
@@ -543,8 +560,9 @@ class OutlineBuilder extends UnhandledListener {
     AsyncMarker asyncModifier = pop();
     List<FormalParameterBuilder> formals = pop();
     var name = pop();
+    int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFactoryMethod(metadata, name, formals, asyncModifier,
+    library.addFactoryMethod(metadata, modifiers, name, formals, asyncModifier,
         redirectionTarget, beginToken.charOffset, nativeMethodName);
     nativeMethodName = null;
   }

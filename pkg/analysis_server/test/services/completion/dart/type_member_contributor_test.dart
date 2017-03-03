@@ -4163,4 +4163,59 @@ class C1 extends C2 implements C3 {
 class TypeMemberContributorTest_Driver extends TypeMemberContributorTest {
   @override
   bool get enableNewAnalysisDriver => true;
+
+  test_ArgDefaults_method() async {
+    addTestSource('''
+class A {
+  bool a(int b, bool c) => false;
+}
+
+void main() {new A().a^}''');
+    await computeSuggestions();
+
+    assertSuggestMethod('a', 'A', 'bool', defaultArgListString: 'b, c');
+  }
+
+  test_ArgDefaults_method_none() async {
+    addTestSource('''
+class A {
+  bool a() => false;
+}
+
+void main() {new A().a^}''');
+    await computeSuggestions();
+
+    assertSuggestMethod('a', 'A', 'bool', defaultArgListString: null);
+  }
+
+  test_ArgDefaults_method_with_optional_positional() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  bool foo(int bar, [bool boo, int baz]) => false;
+}
+
+void main() {new A().f^}''');
+    await computeSuggestions();
+
+    assertSuggestMethod('foo', 'A', 'bool', defaultArgListString: 'bar');
+  }
+
+  test_ArgDefaults_method_with_required_named() async {
+    addMetaPackageSource();
+    addTestSource('''
+import 'package:meta/meta.dart';
+
+class A {
+  bool foo(int bar, {bool boo, @required int baz}) => false;
+}
+
+void main() {new A().f^}''');
+    await computeSuggestions();
+
+    assertSuggestMethod('foo', 'A', 'bool',
+        defaultArgListString: 'bar, baz: null');
+  }
 }

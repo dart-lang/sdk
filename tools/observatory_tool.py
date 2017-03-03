@@ -43,7 +43,17 @@ usage = """observatory_tool.py [options]"""
 # True, and return the return code.
 def RunCommand(command, always_silent=False):
   try:
-    subprocess.check_output(command, stderr=subprocess.STDOUT)
+    # Dart IO respects the following environment variables to configure the
+    # HttpClient proxy: https://api.dartlang.org/stable/1.22.1/dart-io/HttpClient/findProxyFromEnvironment.html
+    # We strip these to avoid problems with pub build and transformers.
+    no_http_proxy_env = os.environ.copy()
+    no_http_proxy_env.pop('http_proxy', None)
+    no_http_proxy_env.pop('HTTP_PROXY', None)
+    no_http_proxy_env.pop('https_proxy', None)
+    no_http_proxy_env.pop('HTTPS_PROXY', None)
+    subprocess.check_output(command,
+                            stderr=subprocess.STDOUT,
+                            env=no_http_proxy_env)
     return 0
   except subprocess.CalledProcessError as e:
     if not always_silent:

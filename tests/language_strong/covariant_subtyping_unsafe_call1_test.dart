@@ -4,7 +4,7 @@
 import 'package:expect/expect.dart';
 
 class Foo<T> {
-  method(T x) {}
+  dynamic method(T x) {}
 }
 
 main() {

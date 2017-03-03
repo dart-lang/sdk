@@ -2590,7 +2590,7 @@ const char* ProfileTrieWalker::CurrentToken() {
     return NULL;
   }
   TokenPosition token_pos = pfsp.token_pos();
-  if (!token_pos.IsReal() && !token_pos.IsSynthetic()) {
+  if (!token_pos.IsSourcePosition()) {
     // Not a location in a script.
     return NULL;
   }

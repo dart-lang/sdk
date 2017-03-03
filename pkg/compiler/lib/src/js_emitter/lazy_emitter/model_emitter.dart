@@ -715,14 +715,12 @@ class ModelEmitter {
     Iterable<Method> methods = cls.methods;
     Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> callStubs = cls.callStubs;
-    Iterable<Method> typeVariableReaderStubs = cls.typeVariableReaderStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = _generateGettersSetters(cls);
     Iterable<Method> allMethods = [
       methods,
       isChecks,
       callStubs,
-      typeVariableReaderStubs,
       noSuchMethodStubs,
       gettersSetters
     ].expand((x) => x);

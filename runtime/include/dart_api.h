@@ -611,7 +611,7 @@ DART_EXPORT const char* Dart_VersionString();
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x00000001)
+#define DART_FLAGS_CURRENT_VERSION (0x00000002)
 
 typedef struct {
   int32_t version;
@@ -619,6 +619,7 @@ typedef struct {
   bool enable_asserts;
   bool enable_error_on_bad_type;
   bool enable_error_on_bad_override;
+  bool use_field_guards;
 } Dart_IsolateFlags;
 
 /**
@@ -708,6 +709,22 @@ typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
 typedef void (*Dart_IsolateShutdownCallback)(void* callback_data);
 
 /**
+ * An isolate cleanup callback function.
+ *
+ * This callback, provided by the embedder, is called after the vm
+ * shuts down an isolate. There will be no current isolate and it is *not*
+ * safe to run Dart code.
+ *
+ * This function should be used to dispose of native resources that
+ * are allocated to an isolate in order to avoid leaks.
+ *
+ * \param callback_data The same callback data which was passed to the
+ *   isolate when it was created.
+ *
+ */
+typedef void (*Dart_IsolateCleanupCallback)(void* callback_data);
+
+/**
  * A thread death callback function.
  * This callback, provided by the embedder, is called before a thread in the
  * vm thread pool exits.
@@ -788,6 +805,8 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  *   See Dart_IsolateCreateCallback.
  * \param shutdown A function to be called when an isolate is shutdown.
  *   See Dart_IsolateShutdownCallback.
+ * \param cleanup A function to be called after an isolate is shutdown.
+ *   See Dart_IsolateCleanupCallback.
  * \param get_service_assets A function to be called by the service isolate when
  *    it requires the vmservice assets archive.
  *    See Dart_GetVMServiceAssetsArchive.
@@ -798,6 +817,7 @@ typedef struct {
   const uint8_t* vm_snapshot_instructions;
   Dart_IsolateCreateCallback create;
   Dart_IsolateShutdownCallback shutdown;
+  Dart_IsolateCleanupCallback cleanup;
   Dart_ThreadExitCallback thread_exit;
   Dart_FileOpenCallback file_open;
   Dart_FileReadCallback file_read;

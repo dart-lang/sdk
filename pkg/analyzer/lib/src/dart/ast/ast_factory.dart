@@ -361,7 +361,18 @@ class AstFactoryImpl extends AstFactory {
           VariableDeclarationList fieldList,
           Token semicolon) =>
       new FieldDeclarationImpl(
-          comment, metadata, staticKeyword, fieldList, semicolon);
+          comment, metadata, null, staticKeyword, fieldList, semicolon);
+
+  @override
+  FieldDeclaration fieldDeclaration2(
+          {Comment comment,
+          List<Annotation> metadata,
+          Token covariantKeyword,
+          Token staticKeyword,
+          @required VariableDeclarationList fieldList,
+          @required Token semicolon}) =>
+      new FieldDeclarationImpl(comment, metadata, covariantKeyword,
+          staticKeyword, fieldList, semicolon);
 
   @override
   FieldFormalParameter fieldFormalParameter(
