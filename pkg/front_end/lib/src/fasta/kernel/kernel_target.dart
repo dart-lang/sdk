@@ -308,12 +308,8 @@ class KernelTarget extends TargetImplementation {
   /// Creates a program by combining [libraries] with the libraries of
   /// `dillTarget.loader.program`.
   Program link(List<Library> libraries) {
-    Map<String, Source> uriToSource = <String, Source>{};
-
-    // for (Library library in libraries) {
-    //   // TODO(ahe): Compute line starts instead.
-    //   uriToLineStarts[library.fileUri] = <int>[0];
-    // }
+    Map<String, Source> uriToSource =
+        new Map<String, Source>.from(this.uriToSource);
 
     final Program binary = dillTarget.loader.program;
     if (binary != null) {
