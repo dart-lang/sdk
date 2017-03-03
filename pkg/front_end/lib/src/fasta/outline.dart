@@ -92,7 +92,8 @@ class CompileTask {
   }
 
   Future<KernelTarget> buildOutline([Uri output]) async {
-    TranslateUri uriTranslator = await TranslateUri.parse(c.options.sdk);
+    TranslateUri uriTranslator =
+        await TranslateUri.parse(c.options.sdk, c.options.packages);
     ticker.logMs("Read packages file");
     DillTarget dillTarget = new DillTarget(ticker, uriTranslator);
     KernelTarget kernelTarget = createKernelTarget(dillTarget, uriTranslator);
