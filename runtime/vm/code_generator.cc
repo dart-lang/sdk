@@ -1668,7 +1668,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   }
 
   if ((stack_overflow_flags & Thread::kOsrRequest) != 0) {
-    ASSERT(FLAG_use_osr);
+    ASSERT(isolate->use_osr());
     DartFrameIterator iterator;
     StackFrame* frame = iterator.NextFrame();
     ASSERT(frame != NULL);

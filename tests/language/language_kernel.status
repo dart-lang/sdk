@@ -698,14 +698,13 @@ setter_declaration_negative_test: Fail
 super_call4_test: RuntimeError
 super_getter_setter_test: RuntimeError
 try_catch_syntax_test/05: MissingCompileTimeError
-vm/lazy_deopt_vm_test: Pass, Slow
-vm/lazy_deopt_vm_test: Pass, Timeout
+vm/lazy_deopt_vm_test: Pass, Slow, Timeout
 vm/optimized_stacktrace_test: Skip # Issue 28788
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $mode == debug ]
 constructor_duplicate_initializers_test/03: Crash
-deopt_inlined_function_lazy_test: Timeout
+deopt_inlined_function_lazy_test: Skip
 hello_dart_test: Crash  # error: expected: cls.is_type_finalized()
 not_enough_positional_arguments_test/02: Crash  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
@@ -719,6 +718,7 @@ ref_before_declaration_test/06: Crash
 ref_before_declaration_test/07: Crash
 ref_before_declaration_test/none: Crash
 try_catch_syntax_test/05: Crash
+vm/lazy_deopt_vm_test: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]

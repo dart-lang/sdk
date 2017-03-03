@@ -465,8 +465,9 @@ static void InspectStackTest(bool optimize) {
   int saved_threshold = FLAG_optimization_counter_threshold;
   const int kLowThreshold = 100;
   const int kHighThreshold = 10000;
-  bool saved_osr = FLAG_use_osr;
-  FLAG_use_osr = false;
+  Isolate* isolate = Isolate::Current();
+  const bool saved_use_osr = isolate->use_osr();
+  isolate->set_use_osr(false);
 
   if (optimize) {
     // Warm up the code to make sure it gets optimized.  We ignore any
@@ -511,7 +512,7 @@ static void InspectStackTest(bool optimize) {
   }
 
   FLAG_optimization_counter_threshold = saved_threshold;
-  FLAG_use_osr = saved_osr;
+  isolate->set_use_osr(saved_use_osr);
 }
 
 
