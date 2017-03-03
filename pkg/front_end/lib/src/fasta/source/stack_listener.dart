@@ -219,6 +219,11 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void handleRecoverExpression(Token token) {
+    debugEvent("RecoverExpression");
+  }
+
+  @override
   void endCatchClause(Token token) {
     debugEvent("CatchClause");
   }

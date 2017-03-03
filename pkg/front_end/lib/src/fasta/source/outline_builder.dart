@@ -121,8 +121,10 @@ class OutlineBuilder extends UnhandledListener {
     Unhandled conditionalUris = pop();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addExport(
-        metadata, uri, conditionalUris, combinators, exportKeyword.charOffset);
+    if (uri != null) {
+      library.addExport(metadata, uri, conditionalUris, combinators,
+          exportKeyword.charOffset);
+    }
     checkEmpty(exportKeyword.charOffset);
   }
 
@@ -135,16 +137,24 @@ class OutlineBuilder extends UnhandledListener {
     Unhandled conditionalUris = pop();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addImport(
-        metadata,
-        uri,
-        conditionalUris,
-        prefix,
-        combinators,
-        deferredKeyword != null,
-        importKeyword.charOffset,
-        asKeyword?.next?.charOffset ?? -1);
+    if (uri != null) {
+      library.addImport(
+          metadata,
+          uri,
+          conditionalUris,
+          prefix,
+          combinators,
+          deferredKeyword != null,
+          importKeyword.charOffset,
+          asKeyword?.next?.charOffset ?? -1);
+    }
     checkEmpty(importKeyword.charOffset);
+  }
+
+  @override
+  void handleRecoverExpression(Token token) {
+    debugEvent("RecoverExpression");
+    push(NullValue.Expression);
   }
 
   @override
@@ -152,7 +162,9 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("Part");
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addPart(metadata, uri);
+    if (uri != null) {
+      library.addPart(metadata, uri);
+    }
     checkEmpty(partKeyword.charOffset);
   }
 

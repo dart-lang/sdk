@@ -1454,7 +1454,7 @@ class Parser {
       return parseLiteralString(token);
     } else {
       reportRecoverableError(token, ErrorKind.ExpectedString);
-      return parseExpression(token);
+      return parseRecoverExpression(token);
     }
   }
 
@@ -2422,6 +2422,8 @@ class Parser {
     }
     return token;
   }
+
+  Token parseRecoverExpression(Token token) => parseExpression(token);
 
   int expressionDepth = 0;
   Token parseExpression(Token token) {

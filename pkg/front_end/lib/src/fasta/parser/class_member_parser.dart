@@ -18,6 +18,13 @@ class ClassMemberParser extends Parser {
 
   Token parseExpression(Token token) => skipExpression(token);
 
+  Token parseRecoverExpression(Token token) {
+    Token begin = token;
+    token = skipExpression(token);
+    listener.handleRecoverExpression(begin);
+    return token;
+  }
+
   // This method is overridden for two reasons:
   // 1. Avoid generating events for arguments.
   // 2. Avoid calling skip expression for each argument (which doesn't work).

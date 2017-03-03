@@ -152,6 +152,12 @@ class Listener {
 
   void beginExpressionStatement(Token token) {}
 
+  /// Called by [ClassMemberParser] after skipping an expression as error
+  /// recovery.
+  void handleRecoverExpression(Token token) {
+    logEvent("RecoverExpression");
+  }
+
   void endExpressionStatement(Token token) {
     logEvent("ExpressionStatement");
   }
