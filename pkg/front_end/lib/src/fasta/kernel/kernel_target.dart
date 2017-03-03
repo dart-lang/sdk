@@ -68,8 +68,6 @@ import '../util/relativize.dart' show relativizeUri;
 
 import '../compiler_context.dart' show CompilerContext;
 
-import '../util/relativize.dart' show relativizeUri;
-
 import 'kernel_builder.dart'
     show
         Builder,

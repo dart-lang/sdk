@@ -364,8 +364,6 @@ Language/Functions/Formal_Parameters/declare_as_constant_t03: MissingCompileTime
 Language/Functions/Formal_Parameters/declare_as_constant_t04: MissingCompileTimeError
 Language/Functions/Formal_Parameters/declare_as_constant_t05: MissingCompileTimeError
 Language/Functions/Formal_Parameters/declare_as_constant_t06: MissingCompileTimeError
-Language/Functions/Formal_Parameters/syntax_t06: DartkCrash
-Language/Functions/Formal_Parameters/syntax_t13: DartkCrash
 Language/Functions/Function_Declarations/external_function_t01: MissingCompileTimeError
 Language/Functions/Function_Declarations/external_function_t02: MissingCompileTimeError
 Language/Functions/ctor_modifier_t03: MissingCompileTimeError

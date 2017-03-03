@@ -1321,7 +1321,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     FormalParameterType kind = optional("{", beginToken)
         ? FormalParameterType.NAMED
         : FormalParameterType.POSITIONAL;
-    push(new OptionalFormals(kind, popList(count)));
+    push(new OptionalFormals(kind, popList(count) ?? []));
   }
 
   @override

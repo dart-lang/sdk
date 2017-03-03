@@ -425,7 +425,11 @@ class OutlineBuilder extends UnhandledListener {
     FormalParameterType kind = optional("{", beginToken)
         ? FormalParameterType.NAMED
         : FormalParameterType.POSITIONAL;
-    List parameters = popList(count);
+    // When recovering from an empty list of optional arguments, count may be
+    // 0. It might be simpler if the parser didn't call this method in that
+    // case, however, then [beginOptionalFormalParameters] wouldn't always be
+    // matched by this method.
+    List parameters = popList(count) ?? [];
     for (FormalParameterBuilder parameter in parameters) {
       parameter.kind = kind;
     }
