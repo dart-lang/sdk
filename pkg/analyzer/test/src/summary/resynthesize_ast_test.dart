@@ -29,6 +29,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context/abstract_context.dart';
 import '../task/strong/inferred_type_test.dart';
+import 'element_text.dart';
 import 'resynthesize_common.dart';
 import 'summary_common.dart';
 
@@ -37,12 +38,23 @@ main() {
     defineReflectiveTests(ResynthesizeAstSpecTest);
     defineReflectiveTests(ResynthesizeAstStrongTest);
     defineReflectiveTests(AstInferredTypeTest);
+    defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
+}
+
+@reflectiveTest
+class ApplyCheckElementTextReplacements {
+  test_applyReplacements() {
+    applyCheckElementTextReplacements();
+  }
 }
 
 @reflectiveTest
 class AstInferredTypeTest extends AbstractResynthesizeTest
     with _AstResynthesizeTestMixin, InferredTypeMixin {
+  @override
+  bool get isStrongMode => true;
+
   @override
   bool get mayCheckTypesOfLocals => false;
 
@@ -686,12 +698,14 @@ var v = new C().m(1, b: 'bbb', c: 2.0);
 @reflectiveTest
 class ResynthesizeAstSpecTest extends _ResynthesizeAstTest {
   @override
-  AnalysisOptionsImpl createOptions() =>
-      super.createOptions()..strongMode = false;
+  bool get isStrongMode => false;
 }
 
 @reflectiveTest
 class ResynthesizeAstStrongTest extends _ResynthesizeAstTest {
+  @override
+  bool get isStrongMode => true;
+
   @override
   AnalysisOptionsImpl createOptions() =>
       super.createOptions()..strongMode = true;
@@ -880,6 +894,8 @@ abstract class _AstResynthesizeTestMixinInterface {
 
 abstract class _ResynthesizeAstTest extends ResynthesizeTest
     with _AstResynthesizeTestMixin {
+  bool get isStrongMode;
+
   @override
   LibraryElementImpl checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) {
@@ -905,6 +921,10 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
 
   @override
   DartSdk createDartSdk() => AbstractContextTest.SHARED_MOCK_SDK;
+
+  @override
+  AnalysisOptionsImpl createOptions() =>
+      super.createOptions()..strongMode = isStrongMode;
 
   @override
   TestSummaryResynthesizer encodeDecodeLibrarySource(Source source) {
