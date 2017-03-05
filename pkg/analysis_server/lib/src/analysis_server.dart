@@ -1864,14 +1864,18 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       NotificationManager notificationManager =
           analysisServer.notificationManager;
       String path = result.path;
-      if (notificationManager != null) {
-        notificationManager.recordAnalysisErrors(
-            NotificationManager.serverId,
-            path,
-            server.doAnalysisError_listFromEngine(
-                result.driver.analysisOptions, result.lineInfo, result.errors));
-      } else {
-        new_sendErrorNotification(analysisServer, result);
+      if (analysisServer.shouldSendErrorsNotificationFor(path)) {
+        if (notificationManager != null) {
+          notificationManager.recordAnalysisErrors(
+              NotificationManager.serverId,
+              path,
+              server.doAnalysisError_listFromEngine(
+                  result.driver.analysisOptions,
+                  result.lineInfo,
+                  result.errors));
+        } else {
+          new_sendErrorNotification(analysisServer, result);
+        }
       }
       CompilationUnit unit = result.unit;
       if (unit != null) {
