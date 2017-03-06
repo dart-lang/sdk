@@ -161,13 +161,13 @@ bool FlowGraphCompiler::ShouldInlineSmiStringHashCode(const ICData& ic_data) {
     return false;
   }
   // Precompiled code has no ICData, optimistically inline it.
-  if (ic_data.IsNull() || (ic_data.NumberOfChecks() == 0)) {
+  if (ic_data.IsNull() || ic_data.NumberOfChecksIs(0)) {
     return true;
   }
   // Check if OneByteString is hot enough.
   const ICData& ic_data_sorted =
       ICData::Handle(ic_data.AsUnaryClassChecksSortedByCount());
-  ASSERT(ic_data_sorted.NumberOfChecks() > 0);
+  ASSERT(!ic_data_sorted.NumberOfChecksIs(0));
   if (ic_data_sorted.GetReceiverClassIdAt(0) == kOneByteStringCid) {
     const intptr_t total_count = ic_data_sorted.AggregateCount();
     const intptr_t ratio = (ic_data_sorted.GetCountAt(0) * 100) / total_count;

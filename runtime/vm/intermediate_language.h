@@ -2793,7 +2793,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
         with_checks_(with_checks),
         complete_(complete) {
     ASSERT(instance_call_ != NULL);
-    ASSERT(ic_data.NumberOfChecks() > 0);
+    ASSERT(!ic_data.NumberOfChecksIs(0));
   }
 
   InstanceCallInstr* instance_call() const { return instance_call_; }

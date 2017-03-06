@@ -938,7 +938,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
   const Instance& arg = Instance::CheckedHandle(arguments.ArgAt(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   // IC data for static call is prepopulated with the statically known target.
-  ASSERT(ic_data.NumberOfChecks() == 1);
+  ASSERT(ic_data.NumberOfChecksIs(1));
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   if (!target.HasCode()) {
     const Error& error =
@@ -970,7 +970,7 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
   const Instance& arg1 = Instance::CheckedHandle(arguments.ArgAt(1));
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(2));
   // IC data for static call is prepopulated with the statically known target.
-  ASSERT(ic_data.NumberOfChecks() > 0);
+  ASSERT(!ic_data.NumberOfChecksIs(0));
   const Function& target = Function::Handle(ic_data.GetTargetAt(0));
   if (!target.HasCode()) {
     const Error& error =
@@ -1310,9 +1310,9 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
 
   if (ic_data_or_cache.IsICData()) {
     const ICData& ic_data = ICData::Cast(ic_data_or_cache);
+    const intptr_t number_of_checks = ic_data.NumberOfChecks();
 
-    if ((ic_data.NumberOfChecks() == 0) &&
-        !target_function.HasOptionalParameters() &&
+    if (number_of_checks == 0 && !target_function.HasOptionalParameters() &&
         !Isolate::Current()->compilation_allowed()) {
       // This call site is unlinked: transition to a monomorphic direct call.
       // Note we cannot do this if the target has optional parameters because
@@ -1345,7 +1345,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
                                          expected_cid, target_code);
     } else {
       ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
-      if (ic_data.NumberOfChecks() > FLAG_max_polymorphic_checks) {
+      if (number_of_checks > FLAG_max_polymorphic_checks) {
         // Switch to megamorphic call.
         const MegamorphicCache& cache = MegamorphicCache::Handle(
             zone, MegamorphicCacheTable::Lookup(isolate, name, descriptor));

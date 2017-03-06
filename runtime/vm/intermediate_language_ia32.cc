@@ -5316,7 +5316,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushl(value_obj);
   ASSERT(instance_call()->HasICData());
   const ICData& ic_data = *instance_call()->ic_data();
-  ASSERT((ic_data.NumberOfChecks() == 1));
+  ASSERT(ic_data.NumberOfChecksIs(1));
   const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
 
   const intptr_t kNumberOfArguments = 1;

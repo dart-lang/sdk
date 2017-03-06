@@ -12994,6 +12994,19 @@ intptr_t ICData::NumberOfChecks() const {
 }
 
 
+bool ICData::NumberOfChecksIs(intptr_t n) const {
+  const intptr_t length = Length();
+  for (intptr_t i = 0; i < length; i++) {
+    if (i == n) {
+      return IsSentinelAt(i);
+    } else {
+      if (IsSentinelAt(i)) return false;
+    }
+  }
+  return n == length;
+}
+
+
 // Discounts any checks with usage of zero.
 intptr_t ICData::NumberOfUsedChecks() const {
   intptr_t n = NumberOfChecks();
@@ -13056,9 +13069,8 @@ void ICData::WriteSentinelAt(intptr_t index) const {
 
 
 void ICData::ClearCountAt(intptr_t index) const {
-  const intptr_t len = NumberOfChecks();
   ASSERT(index >= 0);
-  ASSERT(index < len);
+  ASSERT(index < NumberOfChecks());
   SetCountAt(index, 0);
 }
 
@@ -13157,7 +13169,7 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
   Zone* zone = Thread::Current()->zone();
   const Function& smi_op_target =
       Function::Handle(Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
-  if (NumberOfChecks() == 0) {
+  if (NumberOfChecksIs(0)) {
     GrowableArray<intptr_t> class_ids(2);
     class_ids.Add(kSmiCid);
     class_ids.Add(kSmiCid);
@@ -13165,7 +13177,7 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
     // 'AddCheck' sets the initial count to 1.
     SetCountAt(0, 0);
     is_smi_two_args_op = true;
-  } else if (NumberOfChecks() == 1) {
+  } else if (NumberOfChecksIs(1)) {
     GrowableArray<intptr_t> class_ids(2);
     Function& target = Function::Handle();
     GetCheckAt(0, &class_ids, &target);
@@ -13651,7 +13663,7 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
   aggregate.Sort(CidCount::HighestCountFirst);
 
   ICData& result = ICData::Handle(ICData::NewFrom(*this, kNumArgsTested));
-  ASSERT(result.NumberOfChecks() == 0);
+  ASSERT(result.NumberOfChecksIs(0));
   // Room for all entries and the sentinel.
   const intptr_t data_len = result.TestEntryLength() * (aggregate.length() + 1);
   // Allocate the array but do not assign it to result until we have populated
@@ -13668,13 +13680,13 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
   }
   WriteSentinel(data, result.TestEntryLength());
   result.set_ic_data_array(data);
-  ASSERT(result.NumberOfChecks() == aggregate.length());
+  ASSERT(result.NumberOfChecksIs(aggregate.length()));
   return result.raw();
 }
 
 
 bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
-  if (NumberOfChecks() == 0) return false;
+  if (NumberOfChecksIs(0)) return false;
   Class& cls = Class::Handle();
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
@@ -13707,7 +13719,7 @@ bool ICData::HasReceiverClassId(intptr_t class_id) const {
 // Returns true if all targets are the same.
 // TODO(srdjan): if targets are native use their C_function to compare.
 bool ICData::HasOneTarget() const {
-  ASSERT(NumberOfChecks() > 0);
+  ASSERT(!NumberOfChecksIs(0));
   const Function& first_target = Function::Handle(GetTargetAt(0));
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 1; i < len; i++) {

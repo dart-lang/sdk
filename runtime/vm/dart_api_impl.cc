@@ -6573,8 +6573,8 @@ Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
             intptr_t num_args_checked = ic_data_.NumArgsTested();
             js_icdata.AddProperty("argsTested", num_args_checked);
             JSONArray js_entries(&js_icdata, "entries");
-            for (intptr_t check = 0; check < ic_data_.NumberOfChecks();
-                 check++) {
+            const intptr_t number_of_checks = ic_data_.NumberOfChecks();
+            for (intptr_t check = 0; check < number_of_checks; check++) {
               GrowableArray<intptr_t> class_ids(num_args_checked);
               ic_data_.GetClassIdsAt(check, &class_ids);
               for (intptr_t k = 0; k < num_args_checked; k++) {
