@@ -485,44 +485,14 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseListLiteral_empty_oneToken() {
-    super.test_parseListLiteral_empty_oneToken();
-  }
-
-  @override
-  @failingTest
   void test_parseListLiteral_empty_oneToken_withComment() {
     super.test_parseListLiteral_empty_oneToken_withComment();
   }
 
   @override
   @failingTest
-  void test_parseListLiteral_empty_twoTokens() {
-    super.test_parseListLiteral_empty_twoTokens();
-  }
-
-  @override
-  @failingTest
-  void test_parseListOrMapLiteral_list_noType() {
-    super.test_parseListOrMapLiteral_list_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseListOrMapLiteral_list_type() {
-    super.test_parseListOrMapLiteral_list_type();
-  }
-
-  @override
-  @failingTest
   void test_parseListOrMapLiteral_map_noType() {
     super.test_parseListOrMapLiteral_map_noType();
-  }
-
-  @override
-  @failingTest
-  void test_parseListOrMapLiteral_map_type() {
-    super.test_parseListOrMapLiteral_map_type();
   }
 
   @override
@@ -860,7 +830,8 @@ class FastaParserTestCase extends Object
 
   @override
   TypedLiteral parseListOrMapLiteral(analyzer.Token modifier, String code) {
-    return _parseExpression('$modifier $code');
+    String literalCode = modifier != null ? '$modifier $code' : code;
+    return _parseExpression(literalCode);
   }
 
   @override

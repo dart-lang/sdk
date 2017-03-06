@@ -5205,7 +5205,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     ListLiteral literal = parseListLiteral(token, null, '[]');
     expect(literal, isNotNull);
     assertNoErrors();
-    expect(literal.constKeyword, token);
+    expect(literal.constKeyword.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
     expect(literal.elements, hasLength(0));
@@ -5230,7 +5230,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     ListLiteral literal = parseListLiteral(token, null, '[ ]');
     expect(literal, isNotNull);
     assertNoErrors();
-    expect(literal.constKeyword, token);
+    expect(literal.constKeyword.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNull);
     expect(literal.leftBracket, isNotNull);
     expect(literal.elements, hasLength(0));
