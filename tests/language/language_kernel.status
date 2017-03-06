@@ -797,6 +797,7 @@ unsupported_operators_test/01: MissingCompileTimeError
 unsupported_operators_test/02: MissingCompileTimeError
 unsupported_operators_test/03: MissingCompileTimeError
 unsupported_operators_test/04: MissingCompileTimeError
+vm/closure_memory_retention_test: Skip  # Hits OOM
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
