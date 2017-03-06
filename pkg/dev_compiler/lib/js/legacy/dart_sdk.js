@@ -112,6 +112,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let ListOf_IsolateEvent = () => (ListOf_IsolateEvent = dart.constFn(core.List$(_isolate_helper._IsolateEvent)))();
   let QueueOf_IsolateEvent = () => (QueueOf_IsolateEvent = dart.constFn(collection.Queue$(_isolate_helper._IsolateEvent)))();
   let CompleterOfList = () => (CompleterOfList = dart.constFn(async.Completer$(core.List)))();
+  let FutureOrOfList = () => (FutureOrOfList = dart.constFn(async.FutureOr$(core.List)))();
   let dynamicTovoid = () => (dynamicTovoid = dart.constFn(dart.functionType(dart.void, [dart.dynamic])))();
   let StringTovoid = () => (StringTovoid = dart.constFn(dart.functionType(dart.void, [core.String])))();
   let ExpandoOfint = () => (ExpandoOfint = dart.constFn(core.Expando$(core.int)))();
@@ -9840,7 +9841,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       let completer = CompleterOfList().new();
       port.first.then(dart.dynamic)(dart.fn(msg => {
         if (dart.equals(dart.dindex(msg, 0), _isolate_helper._SPAWNED_SIGNAL)) {
-          completer.complete(msg);
+          completer.complete(FutureOrOfList()._check(msg));
         } else {
           dart.assert(dart.equals(dart.dindex(msg, 0), _isolate_helper._SPAWN_FAILED_SIGNAL));
           completer.completeError(dart.dindex(msg, 1));
@@ -18311,12 +18312,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   async._Completer = _Completer();
   const _asyncCompleteError = Symbol('_asyncCompleteError');
   async._AsyncCompleter$ = dart.generic(T => {
+    let FutureOrOfT = () => (FutureOrOfT = dart.constFn(async.FutureOr$(T)))();
     class _AsyncCompleter extends async._Completer$(T) {
       new() {
         super.new();
       }
       complete(value) {
         if (value === void 0) value = null;
+        FutureOrOfT()._check(value);
         if (!dart.test(this.future[_mayComplete])) dart.throw(new core.StateError("Future already completed"));
         this.future[_asyncComplete](value);
       }
@@ -18326,7 +18329,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     dart.setSignature(_AsyncCompleter, {
       methods: () => ({
-        complete: dart.definiteFunctionType(dart.void, [], [dart.dynamic]),
+        complete: dart.definiteFunctionType(dart.void, [], [FutureOrOfT()]),
         [_completeError]: dart.definiteFunctionType(dart.void, [core.Object, core.StackTrace])
       })
     });
@@ -18334,12 +18337,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
   });
   async._AsyncCompleter = _AsyncCompleter();
   async._SyncCompleter$ = dart.generic(T => {
+    let FutureOrOfT = () => (FutureOrOfT = dart.constFn(async.FutureOr$(T)))();
     class _SyncCompleter extends async._Completer$(T) {
       new() {
         super.new();
       }
       complete(value) {
         if (value === void 0) value = null;
+        FutureOrOfT()._check(value);
         if (!dart.test(this.future[_mayComplete])) dart.throw(new core.StateError("Future already completed"));
         this.future[_complete](value);
       }
@@ -18349,7 +18354,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     dart.setSignature(_SyncCompleter, {
       methods: () => ({
-        complete: dart.definiteFunctionType(dart.void, [], [dart.dynamic]),
+        complete: dart.definiteFunctionType(dart.void, [], [FutureOrOfT()]),
         [_completeError]: dart.definiteFunctionType(dart.void, [core.Object, core.StackTrace])
       })
     });

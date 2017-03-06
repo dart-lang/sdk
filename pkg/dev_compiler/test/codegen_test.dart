@@ -398,6 +398,7 @@ final _crashingTests = new Set<String>.from([
   // TODO(vsm): Fix these - they import files from a different directory
   // - this triggers an invalid library root build error.
   'lib/html/custom/attribute_changed_callback_test',
+  'lib/html/custom/constructor_calls_created_synchronously_test',
   'lib/html/custom/entered_left_view_test',
   'lib/html/custom/js_custom_test',
   'lib/html/custom/mirrors_test',
