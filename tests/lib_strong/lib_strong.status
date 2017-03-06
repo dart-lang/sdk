@@ -7,7 +7,7 @@
 *: SkipByDesign
 
 # Skip tests that are not yet strong-mode clean.
-[ $strong == true ]
+[ $strong ]
 convert/chunked_conversion1_test: Skip
 convert/chunked_conversion_json_encode1_test: Skip
 convert/chunked_conversion_utf84_test: Skip
@@ -130,3 +130,42 @@ mirrors/variable_is_const_test: Skip
 typed_data/float32x4_test: Skip
 typed_data/float64x2_functional_test: Skip
 typed_data/int32x4_test: Skip
+
+[ $compiler == dart2analyzer && $strong ]
+convert/ascii_test: StaticWarning # Issue 28969
+convert/chunked_conversion_json_decode1_test: StaticWarning # Issue 28969
+convert/chunked_conversion_utf82_test: StaticWarning # Issue 28969
+convert/chunked_conversion_utf83_test: StaticWarning # Issue 28969
+convert/chunked_conversion_utf85_test: StaticWarning # Issue 28969
+convert/encoding_test: StaticWarning # Issue 28969
+convert/json_utf8_chunk_test: StaticWarning # Issue 28969
+convert/latin1_test: StaticWarning # Issue 28969
+convert/streamed_conversion_json_utf8_decode_test: StaticWarning # Issue 28969
+convert/streamed_conversion_json_utf8_encode_test: StaticWarning # Issue 28969
+convert/streamed_conversion_utf8_decode_test: StaticWarning # Issue 28969
+convert/streamed_conversion_utf8_encode_test: StaticWarning # Issue 28969
+convert/utf8_encode_test: StaticWarning # Issue 28969
+convert/utf8_test: StaticWarning # Issue 28969
+html/canvas_test: StaticWarning # Issue 28969
+html/canvasrenderingcontext2d_test: StaticWarning # Issue 28969
+html/cross_domain_iframe_test: StaticWarning # Issue 28969
+html/cssstyledeclaration_test: StaticWarning # Issue 28969
+html/custom/created_callback_test: CompileTimeError # Issue 28969
+html/custom/document_register_basic_test: CompileTimeError # Issue 28969
+html/custom/document_register_type_extensions_test: CompileTimeError # Issue 28969
+html/custom/element_upgrade_test: CompileTimeError # Issue 28969
+html/debugger_test: CompileTimeError # Issue 28969
+html/element_animate_test: StaticWarning # Issue 28969
+html/form_data_test: StaticWarning # Issue 28969
+html/history_test: StaticWarning # Issue 28969
+html/indexeddb_2_test: StaticWarning # Issue 28969
+html/js_interop_1_test: StaticWarning # Issue 28969
+html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue 28969
+html/native_gc_test: StaticWarning # Issue 28969
+html/request_animation_frame_test: StaticWarning # Issue 28969
+html/transition_event_test: StaticWarning # Issue 28969
+html/url_test: StaticWarning # Issue 28969
+html/wheelevent_test: StaticWarning # Issue 28969
+html/worker_test: StaticWarning # Issue 28969
+html/xhr_test: StaticWarning # Issue 28969
+mirrors/deferred_mirrors_metadata_test: StaticWarning # Issue 28969
