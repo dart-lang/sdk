@@ -6608,8 +6608,13 @@ Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
 
 DART_EXPORT void Dart_SortClasses() {
   DARTSCOPE(Thread::Current());
-  ClassFinalizer::SortClasses();
+  // We don't have mechanisms to change class-ids that are embedded in code and
+  // ICData.
   ClassFinalizer::ClearAllCode();
+  // Make sure that ICData etc. that have been cleared are also removed from
+  // the heap so that they are not found by the heap verifier.
+  Isolate::Current()->heap()->CollectAllGarbage();
+  ClassFinalizer::SortClasses();
 }
 
 DART_EXPORT Dart_Handle
