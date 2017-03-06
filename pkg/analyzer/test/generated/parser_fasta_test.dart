@@ -331,23 +331,23 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void
-      test_parseAssignableExpression_expression_args_dot_typeParameterComments() {
+      test_parseAssignableExpression_expression_args_dot_typeArgumentComments() {
     super
-        .test_parseAssignableExpression_expression_args_dot_typeParameterComments();
+        .test_parseAssignableExpression_expression_args_dot_typeArgumentComments();
   }
 
   @override
   @failingTest
-  void test_parseAssignableExpression_expression_args_dot_typeParameters() {
-    super.test_parseAssignableExpression_expression_args_dot_typeParameters();
+  void test_parseAssignableExpression_expression_args_dot_typeArguments() {
+    super.test_parseAssignableExpression_expression_args_dot_typeArguments();
   }
 
   @override
   @failingTest
   void
-      test_parseAssignableExpression_identifier_args_dot_typeParameterComments() {
+      test_parseAssignableExpression_identifier_args_dot_typeArgumentComments() {
     super
-        .test_parseAssignableExpression_identifier_args_dot_typeParameterComments();
+        .test_parseAssignableExpression_identifier_args_dot_typeArgumentComments();
   }
 
   @override
@@ -463,36 +463,36 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   @override
   @failingTest
   void
-      test_parseInstanceCreationExpression_qualifiedType_named_typeParameterComment() {
+      test_parseInstanceCreationExpression_qualifiedType_named_typeArgumentComments() {
     super
-        .test_parseInstanceCreationExpression_qualifiedType_named_typeParameterComment();
+        .test_parseInstanceCreationExpression_qualifiedType_named_typeArgumentComments();
   }
 
   @override
   @failingTest
   void
-      test_parseInstanceCreationExpression_qualifiedType_typeParameterComment() {
+      test_parseInstanceCreationExpression_qualifiedType_typeArgumentComments() {
     super
-        .test_parseInstanceCreationExpression_qualifiedType_typeParameterComment();
+        .test_parseInstanceCreationExpression_qualifiedType_typeArgumentComments();
   }
 
   @override
   @failingTest
-  void test_parseInstanceCreationExpression_type_named_typeParameterComment() {
+  void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
     super
-        .test_parseInstanceCreationExpression_type_named_typeParameterComment();
+        .test_parseInstanceCreationExpression_type_named_typeArgumentComments();
   }
 
   @override
   @failingTest
-  void test_parseInstanceCreationExpression_type_typeParameterComment() {
-    super.test_parseInstanceCreationExpression_type_typeParameterComment();
+  void test_parseInstanceCreationExpression_type_typeArgumentComments() {
+    super.test_parseInstanceCreationExpression_type_typeArgumentComments();
   }
 
   @override
   @failingTest
-  void test_parseInstanceCreationExpression_type_typeParameters_nullable() {
-    super.test_parseInstanceCreationExpression_type_typeParameters_nullable();
+  void test_parseInstanceCreationExpression_type_typeArguments_nullable() {
+    super.test_parseInstanceCreationExpression_type_typeArguments_nullable();
   }
 
   @override

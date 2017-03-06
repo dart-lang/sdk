@@ -82,8 +82,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   Expression parseAssignableExpression(String code, bool primaryAllowed);
 
-  Expression parseAssignableSelector(
-      String code, bool optional,
+  Expression parseAssignableSelector(String code, bool optional,
       {bool allowConditional: true});
 
   AwaitExpression parseAwaitExpression(String code);
@@ -4057,7 +4056,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void
-      test_parseAssignableExpression_expression_args_dot_typeParameterComments() {
+      test_parseAssignableExpression_expression_args_dot_typeArgumentComments() {
     enableGenericMethodComments = true;
     Expression expression = parseAssignableExpression('(x)/*<F>*/(y).z', false);
     expect(expression, isNotNull);
@@ -4074,7 +4073,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(propertyAccess.propertyName, isNotNull);
   }
 
-  void test_parseAssignableExpression_expression_args_dot_typeParameters() {
+  void test_parseAssignableExpression_expression_args_dot_typeArguments() {
     Expression expression = parseAssignableExpression('(x)<F>(y).z', false);
     expect(expression, isNotNull);
     assertNoErrors();
@@ -4145,7 +4144,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void
-      test_parseAssignableExpression_identifier_args_dot_typeParameterComments() {
+      test_parseAssignableExpression_identifier_args_dot_typeArgumentComments() {
     enableGenericMethodComments = true;
     Expression expression = parseAssignableExpression('x/*<E>*/(y).z', false);
     expect(expression, isNotNull);
@@ -4161,7 +4160,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(propertyAccess.propertyName, isNotNull);
   }
 
-  void test_parseAssignableExpression_identifier_args_dot_typeParameters() {
+  void test_parseAssignableExpression_identifier_args_dot_typeArguments() {
     Expression expression = parseAssignableExpression('x<E>(y).z', false);
     expect(expression, isNotNull);
     assertNoErrors();
@@ -5005,7 +5004,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void
-      test_parseInstanceCreationExpression_qualifiedType_named_typeParameterComment() {
+      test_parseInstanceCreationExpression_qualifiedType_named_typeArgumentComments() {
     enableGenericMethodComments = true;
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
@@ -5024,7 +5023,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void
-      test_parseInstanceCreationExpression_qualifiedType_named_typeParameters() {
+      test_parseInstanceCreationExpression_qualifiedType_named_typeArguments() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
         parseInstanceCreationExpression('A.B<E>.c()', token);
@@ -5042,7 +5041,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void
-      test_parseInstanceCreationExpression_qualifiedType_typeParameterComment() {
+      test_parseInstanceCreationExpression_qualifiedType_typeArgumentComments() {
     enableGenericMethodComments = true;
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
@@ -5060,7 +5059,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(expression.argumentList, isNotNull);
   }
 
-  void test_parseInstanceCreationExpression_qualifiedType_typeParameters() {
+  void test_parseInstanceCreationExpression_qualifiedType_typeArguments() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
         parseInstanceCreationExpression('A.B<E>()', token);
@@ -5111,7 +5110,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(expression.argumentList, isNotNull);
   }
 
-  void test_parseInstanceCreationExpression_type_named_typeParameterComment() {
+  void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
     enableGenericMethodComments = true;
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
@@ -5129,7 +5128,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(expression.argumentList, isNotNull);
   }
 
-  void test_parseInstanceCreationExpression_type_named_typeParameters() {
+  void test_parseInstanceCreationExpression_type_named_typeArguments() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
         parseInstanceCreationExpression('A<B>.c()', token);
@@ -5146,7 +5145,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(expression.argumentList, isNotNull);
   }
 
-  void test_parseInstanceCreationExpression_type_typeParameterComment() {
+  void test_parseInstanceCreationExpression_type_typeArgumentComments() {
     enableGenericMethodComments = true;
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
@@ -5164,7 +5163,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(expression.argumentList, isNotNull);
   }
 
-  void test_parseInstanceCreationExpression_type_typeParameters() {
+  void test_parseInstanceCreationExpression_type_typeArguments() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
         parseInstanceCreationExpression('A<B>()', token);
@@ -5181,7 +5180,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(expression.argumentList, isNotNull);
   }
 
-  void test_parseInstanceCreationExpression_type_typeParameters_nullable() {
+  void test_parseInstanceCreationExpression_type_typeArguments_nullable() {
     enableNnbd = true;
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
@@ -7717,11 +7716,10 @@ class ParserTestCase extends EngineTestCase
   }
 
   @override
-  Expression parseAssignableSelector(
-      String code, bool optional,
+  Expression parseAssignableSelector(String code, bool optional,
       {bool allowConditional: true}) {
-    Expression prefix =
-        astFactory.simpleIdentifier(new StringToken(TokenType.STRING, 'foo', 0));
+    Expression prefix = astFactory
+        .simpleIdentifier(new StringToken(TokenType.STRING, 'foo', 0));
     createParser(code);
     return parser.parseAssignableSelector(prefix, optional,
         allowConditional: allowConditional);
