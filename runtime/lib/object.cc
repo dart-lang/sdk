@@ -82,9 +82,7 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
   dart_arguments.SetAt(3, func_args);
   dart_arguments.SetAt(4, func_named_args);
 
-  if (is_method.value() &&
-      (((invocation_type.Value() >> InvocationMirror::kCallShift) &
-        InvocationMirror::kCallMask) != InvocationMirror::kSuper)) {
+  if (is_method.value()) {
     // Report if a function with same name (but different arguments) has been
     // found.
     Function& function = Function::Handle();
@@ -92,7 +90,12 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
       function = Closure::Cast(instance).function();
     } else {
       Class& instance_class = Class::Handle(instance.clazz());
-      function = instance_class.LookupDynamicFunction(member_name);
+      const bool is_super_call =
+          ((invocation_type.Value() >> InvocationMirror::kCallShift) &
+           InvocationMirror::kCallMask) == InvocationMirror::kSuper;
+      if (!is_super_call) {
+        function = instance_class.LookupDynamicFunction(member_name);
+      }
       while (function.IsNull()) {
         instance_class = instance_class.SuperClass();
         if (instance_class.IsNull()) break;
