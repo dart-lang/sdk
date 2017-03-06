@@ -691,7 +691,7 @@ Language/Statements/Local_Variable_Declaration/syntax_t19: CompileTimeError
 Language/Overview/Scoping/conflicting_names_t43: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Crash
 Language/Overview/Scoping/hiding_declaration_t12: Crash
-LibTest/isolate/Isolate/spawnUri_A01_t04: Timeout
+LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
@@ -735,6 +735,7 @@ Language/Expressions/Equality/syntax_t02: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/prefix_object_invocation_t01: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/evaluation_prefix_t01: MissingCompileTimeError
 Language/Expressions/Identifier_Reference/evaluation_type_parameter_t02: MissingCompileTimeError
+Language/Expressions/Instance_Creation/New/syntax_t02: MissingCompileTimeError
 Language/Expressions/Logical_Boolean_Expressions/syntax_t02: MissingCompileTimeError
 Language/Expressions/Logical_Boolean_Expressions/syntax_t03: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t01: MissingCompileTimeError
@@ -752,6 +753,8 @@ Language/Expressions/This/placement_t05: MissingCompileTimeError
 Language/Expressions/This/placement_t06: MissingCompileTimeError
 Language/Expressions/This/placement_t07: MissingCompileTimeError
 Language/Expressions/This/placement_t08: MissingCompileTimeError
+Language/Libraries_and_Scripts/Imports/namespace_changes_t07: MissingCompileTimeError
+Language/Libraries_and_Scripts/Imports/namespace_changes_t08: MissingCompileTimeError
 Language/Overview/Privacy/private_and_public_t04: RuntimeError
 Language/Overview/Scoping/conflicting_names_t43: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Crash
