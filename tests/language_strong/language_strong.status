@@ -723,3 +723,6 @@ super_setter_test: StaticWarning # Issue 28823
 top_level_non_prefixed_library_test: CompileTimeError # Issue 28823
 try_catch4_test: StaticWarning # Issue 28823
 try_catch5_test: StaticWarning # Issue 28823
+
+[ $compiler == dart2analyzer && $system != windows ]
+bad_raw_string_test/03: MissingCompileTimeError # Issue 28664
