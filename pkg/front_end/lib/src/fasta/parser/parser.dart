@@ -2955,6 +2955,10 @@ class Parser {
       listener.handleOperator(token);
       listener.endLiteralSymbol(hashToken, 1);
       return token.next;
+    } else if (identical(token.stringValue, 'void')) {
+      listener.handleSymbolVoid(token);
+      listener.endLiteralSymbol(hashToken, 1);
+      return token.next;
     } else {
       int count = 1;
       token = parseIdentifier(token, IdentifierContext.literalSymbol);

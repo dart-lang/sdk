@@ -285,6 +285,11 @@ class AstBuilder extends ScopeListener {
     push(toAnalyzerToken(token));
   }
 
+  void handleSymbolVoid(Token token) {
+    debugEvent("SymbolVoid");
+    push(toAnalyzerToken(token));
+  }
+
   void handleBinaryExpression(Token token) {
     debugEvent("BinaryExpression");
     if (identical(".", token.stringValue) ||

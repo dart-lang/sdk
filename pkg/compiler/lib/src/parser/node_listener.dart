@@ -736,6 +736,11 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void handleSymbolVoid(Token token) {
+    logEvent('SymbolVoid');
+  }
+
+  @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     Operator op = new Operator(token);
     pushNode(new Send(new Identifier(operatorKeyword), op, null));

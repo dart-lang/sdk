@@ -2235,6 +2235,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     push(new Operator(token.stringValue)..fileOffset = token.charOffset);
   }
 
+  @override
+  void handleSymbolVoid(Token token) {
+    logEvent("SymbolVoid");
+  }
+
   dynamic addCompileTimeError(int charOffset, String message) {
     return library.addCompileTimeError(charOffset, message, uri);
   }
