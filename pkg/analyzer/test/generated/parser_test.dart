@@ -5347,7 +5347,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     MapLiteral literal = parseMapLiteral(token, '<String, int>', '{}');
     expect(literal, isNotNull);
     assertNoErrors();
-    expect(literal.constKeyword, token);
+    expect(literal.constKeyword.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
     expect(literal.entries, hasLength(0));

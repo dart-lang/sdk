@@ -551,42 +551,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseMapLiteral_empty() {
-    super.test_parseMapLiteral_empty();
-  }
-
-  @override
-  @failingTest
-  void test_parseMapLiteral_multiple() {
-    super.test_parseMapLiteral_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_parseMapLiteral_single() {
-    super.test_parseMapLiteral_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseMapLiteralEntry_complex() {
-    super.test_parseMapLiteralEntry_complex();
-  }
-
-  @override
-  @failingTest
-  void test_parseMapLiteralEntry_int() {
-    super.test_parseMapLiteralEntry_int();
-  }
-
-  @override
-  @failingTest
-  void test_parseMapLiteralEntry_string() {
-    super.test_parseMapLiteralEntry_string();
-  }
-
-  @override
-  @failingTest
   void
       test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments() {
     super
@@ -949,12 +913,12 @@ class FastaParserTestCase extends Object
       sc += typeArgumentsCode;
     }
     sc += code;
-    return _parseExpression(sc);
+    return _parseMapLiteralCode(sc);
   }
 
   @override
   MapLiteralEntry parseMapLiteralEntry(String code) {
-    return (_parseExpression('{$code}') as MapLiteral).entries.single;
+    return _parseMapLiteralCode('{$code}').entries.single;
   }
 
   @override
@@ -1053,6 +1017,12 @@ class FastaParserTestCase extends Object
   Expression _parseExpression(String code) {
     var statement = parseStatement('$code;') as ExpressionStatement;
     return statement.expression;
+  }
+
+  MapLiteral _parseMapLiteralCode(String code) {
+    var statement =
+        parseStatement('var v = $code;') as VariableDeclarationStatement;
+    return statement.variables.variables.single.initializer as MapLiteral;
   }
 
   Object _runParser(
