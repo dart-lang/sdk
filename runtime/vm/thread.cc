@@ -230,15 +230,6 @@ void Thread::PrintJSON(JSONStream* stream) const {
                      OSThread::ThreadIdToIntPtr(os_thread()->trace_id()));
   jsobj.AddProperty("kind", TaskKindToCString(task_kind()));
   jsobj.AddPropertyF("_memoryHighWatermark", "%" Pu "", memory_high_watermark_);
-  Zone* zone = zone_;
-  {
-    JSONArray zone_info_array(&jsobj, "zones");
-    zone = zone_;
-    while (zone != NULL) {
-      zone_info_array.AddValue(zone);
-      zone = zone->previous();
-    }
-  }
 }
 #endif
 

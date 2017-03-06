@@ -175,8 +175,8 @@ BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Iterator::Next() {
   if (array_index_ < map_.array_size_) {
     // If we're not in the middle of a list, find the next array slot.
     if (list_index_ == kNil) {
-      while (KeyValueTrait::ValueOf(map_.array_[array_index_].kv) == kNoValue &&
-             array_index_ < map_.array_size_) {
+      while ((array_index_ < map_.array_size_) &&
+             KeyValueTrait::ValueOf(map_.array_[array_index_].kv) == kNoValue) {
         array_index_++;
       }
       if (array_index_ < map_.array_size_) {

@@ -16,7 +16,6 @@ import 'package:kernel/ast.dart'
         Expression,
         FunctionNode,
         Initializer,
-        Library,
         LocalInitializer,
         Member,
         Name,
@@ -52,6 +51,7 @@ import 'kernel_builder.dart'
         KernelLibraryBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
+        LibraryBuilder,
         MetadataBuilder,
         ProcedureBuilder,
         TypeVariableBuilder,
@@ -93,7 +93,7 @@ abstract class KernelFunctionBuilder
 
   bool get isNative => nativeMethodName != null;
 
-  FunctionNode buildFunction() {
+  FunctionNode buildFunction(LibraryBuilder library) {
     assert(function == null);
     FunctionNode result = new FunctionNode(body, asyncMarker: asyncModifier);
     if (typeVariables != null) {
@@ -104,7 +104,7 @@ abstract class KernelFunctionBuilder
     }
     if (formals != null) {
       for (KernelFormalParameterBuilder formal in formals) {
-        VariableDeclaration parameter = formal.build();
+        VariableDeclaration parameter = formal.build(library);
         if (formal.isNamed) {
           result.namedParameters.add(parameter);
         } else {
@@ -117,7 +117,7 @@ abstract class KernelFunctionBuilder
       }
     }
     if (returnType != null) {
-      result.returnType = returnType.build();
+      result.returnType = returnType.build(library);
     }
     if (!isConstructor && !isInstanceMember && parent is ClassBuilder) {
       List<TypeParameter> typeParameters = parent.target.typeParameters;
@@ -154,7 +154,7 @@ abstract class KernelFunctionBuilder
     return function = result;
   }
 
-  Member build(Library library);
+  Member build(LibraryBuilder library);
 
   void becomeNative(Loader loader) {
     target.isExternal = true;
@@ -220,16 +220,16 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
     }
   }
 
-  Procedure build(Library library) {
+  Procedure build(LibraryBuilder library) {
     // TODO(ahe): I think we may call this twice on parts. Investigate.
     if (procedure.name == null) {
-      procedure.function = buildFunction();
+      procedure.function = buildFunction(library);
       procedure.function.parent = procedure;
       procedure.isAbstract = isAbstract;
       procedure.isStatic = isStatic;
       procedure.isExternal = isExternal;
       procedure.isConst = isConst;
-      procedure.name = new Name(name, library);
+      procedure.name = new Name(name, library.target);
     }
     return procedure;
   }
@@ -268,20 +268,20 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
   ProcedureKind get kind => null;
 
-  Constructor build(Library library) {
+  Constructor build(LibraryBuilder library) {
     if (constructor.name == null) {
-      constructor.function = buildFunction();
+      constructor.function = buildFunction(library);
       constructor.function.parent = constructor;
       constructor.isConst = isConst;
       constructor.isExternal = isExternal;
-      constructor.name = new Name(name, library);
+      constructor.name = new Name(name, library.target);
     }
     return constructor;
   }
 
-  FunctionNode buildFunction() {
+  FunctionNode buildFunction(LibraryBuilder library) {
     // TODO(ahe): Should complain if another type is explicitly set.
-    return super.buildFunction()..returnType = const VoidType();
+    return super.buildFunction(library)..returnType = const VoidType();
   }
 
   Constructor get target => constructor;

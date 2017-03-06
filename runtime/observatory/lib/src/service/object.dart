@@ -3107,6 +3107,8 @@ class Thread extends ServiceObject implements M.Thread {
   String _kindString;
   int get memoryHighWatermark => _memoryHighWatermark;
   int _memoryHighWatermark;
+
+  // TODO(bkonyi): zones will always be empty. See issue #28885.
   List<Zone> get zones => _zones;
   final List<Zone> _zones = new List<Zone>();
 
@@ -3114,7 +3116,6 @@ class Thread extends ServiceObject implements M.Thread {
 
   void _update(Map map, bool mapIsRef) {
     String rawKind = map['kind'];
-    List<Map> zoneList = map['zones'];
 
     switch(rawKind) {
       case "kUnknownTask":
@@ -3146,13 +3147,6 @@ class Thread extends ServiceObject implements M.Thread {
     }
 
     _memoryHighWatermark = int.parse(map['_memoryHighWatermark']);
-
-    zones.clear();
-    zoneList.forEach((zone) {
-      int capacity = zone['capacity'];
-      int used = zone['used'];
-      zones.add(new Zone(capacity, used));
-    });
   }
 }
 

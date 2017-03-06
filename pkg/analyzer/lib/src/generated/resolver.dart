@@ -10076,7 +10076,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     } else {
       declaredType = _typeNameResolver._getType(typeName);
     }
-    Element element = node.identifier.staticElement;
+    Element element = node.element;
     if (element is ParameterElementImpl) {
       element.declaredType = declaredType;
     } else {

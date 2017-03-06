@@ -175,7 +175,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (node is BuilderAccessor) {
       return node.buildSimpleRead();
     } else if (node is TypeVariableBuilder) {
-      TypeParameterType type = node.buildTypesWithBuiltArguments(null);
+      TypeParameterType type = node.buildTypesWithBuiltArguments(library, null);
       if (!isInstanceContext && type.parameter.parent is Class) {
         return buildCompileTimeError(
             "Type variables can only be used in instance methods.");
@@ -183,9 +183,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return new TypeLiteral(type);
       }
     } else if (node is TypeDeclarationBuilder) {
-      return new TypeLiteral(node.buildTypesWithBuiltArguments(null));
+      return new TypeLiteral(node.buildTypesWithBuiltArguments(library, null));
     } else if (node is KernelTypeBuilder) {
-      return new TypeLiteral(node.build());
+      return new TypeLiteral(node.build(library));
     } else if (node is Expression) {
       return node;
     } else if (node is PrefixBuilder) {
@@ -949,8 +949,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression value = popForValue();
     var accessor = pop();
     if (accessor is TypeDeclarationBuilder) {
-      push(wrapInvalid(
-          new TypeLiteral(accessor.buildTypesWithBuiltArguments(null))));
+      push(wrapInvalid(new TypeLiteral(
+          accessor.buildTypesWithBuiltArguments(library, null))));
     } else if (accessor is! BuilderAccessor) {
       push(buildCompileTimeError("Can't assign to this.", token.charOffset));
     } else {
@@ -1148,7 +1148,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (identical(name, "dynamic")) return const DynamicType();
     Builder builder = scope.lookup(name, charOffset, uri);
     if (builder is TypeDeclarationBuilder) {
-      return builder.buildTypesWithBuiltArguments(arguments);
+      return builder.buildTypesWithBuiltArguments(library, arguments);
     }
     if (builder == null) {
       warning("Type not found: '$name'.", charOffset);
@@ -1202,11 +1202,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       warning("'${name.name}' isn't a type.", beginToken.charOffset);
       push(const DynamicType());
     } else if (name is TypeVariableBuilder) {
-      push(name.buildTypesWithBuiltArguments(arguments));
+      push(name.buildTypesWithBuiltArguments(library, arguments));
     } else if (name is TypeDeclarationBuilder) {
-      push(name.buildTypesWithBuiltArguments(arguments));
+      push(name.buildTypesWithBuiltArguments(library, arguments));
     } else if (name is TypeBuilder) {
-      push(name.build());
+      push(name.build(library));
     } else {
       push(toKernelType(name, arguments, beginToken.charOffset));
     }
@@ -1293,7 +1293,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           thisKeyword = null;
         }
       } else if (thisKeyword == null) {
-        variable = builder.build();
+        variable = builder.build(library);
         variable.initializer = name.initializer;
       } else if (builder.isField && builder.parent == classBuilder) {
         FieldBuilder field = builder;

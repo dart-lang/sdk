@@ -129,6 +129,19 @@ class NoReloadScope : public StackResource {
 // Fixed cache for exception handler lookup.
 typedef FixedCache<intptr_t, ExceptionHandlerInfo, 16> HandlerInfoCache;
 
+// List of Isolate flags with corresponding members of Dart_IsolateFlags and
+// corresponding global command line flags.
+//
+//       V(name, Dart_IsolateFlags-member-name, command-line-flag-name)
+//
+#define ISOLATE_FLAG_LIST(V)                                                   \
+  V(type_checks, enable_type_checks, FLAG_enable_type_checks)                  \
+  V(asserts, enable_asserts, FLAG_enable_asserts)                              \
+  V(error_on_bad_type, enable_error_on_bad_type, FLAG_error_on_bad_type)       \
+  V(error_on_bad_override, enable_error_on_bad_override,                       \
+    FLAG_error_on_bad_override)                                                \
+  V(use_field_guards, use_field_guards, FLAG_use_field_guards)                 \
+  V(use_osr, use_osr, FLAG_use_osr)
 
 class Isolate : public BaseIsolate {
  public:
@@ -634,17 +647,17 @@ class Isolate : public BaseIsolate {
   void FlagsCopyFrom(const Dart_IsolateFlags& api_flags);
 
 #if defined(PRODUCT)
-  bool type_checks() const { return FLAG_enable_type_checks; }
-  bool asserts() const { return FLAG_enable_asserts; }
-  bool error_on_bad_type() const { return FLAG_error_on_bad_type; }
-  bool error_on_bad_override() const { return FLAG_error_on_bad_override; }
-  bool use_field_guards() const { return FLAG_use_field_guards; }
+#define DECLARE_GETTER(name, isolate_flag_name, flag_name)                     \
+  bool name() const { return flag_name; }
+  ISOLATE_FLAG_LIST(DECLARE_GETTER)
+#undef DECLARE_GETTER
+  void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
 #else   // defined(PRODUCT)
-  bool type_checks() const { return type_checks_; }
-  bool asserts() const { return asserts_; }
-  bool error_on_bad_type() const { return error_on_bad_type_; }
-  bool error_on_bad_override() const { return error_on_bad_override_; }
-  bool use_field_guards() const { return use_field_guards_; }
+#define DECLARE_GETTER(name, isolate_flag_name, flag_name)                     \
+  bool name() const { return name##_; }
+  ISOLATE_FLAG_LIST(DECLARE_GETTER)
+#undef DECLARE_GETTER
+  void set_use_osr(bool use_osr) { use_osr_ = use_osr; }
 #endif  // defined(PRODUCT)
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -770,11 +783,9 @@ class Isolate : public BaseIsolate {
 
 // Isolate-specific flags.
 #if !defined(PRODUCT)
-  bool type_checks_;
-  bool asserts_;
-  bool error_on_bad_type_;
-  bool error_on_bad_override_;
-  bool use_field_guards_;
+#define DECLARE_FIELD(name, isolate_flag_name, flag_name) bool name##_;
+  ISOLATE_FLAG_LIST(DECLARE_FIELD)
+#undef DECLARE_FIELD
 #endif  // !defined(PRODUCT)
 
   // Timestamps of last operation via service.

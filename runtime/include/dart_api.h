@@ -620,6 +620,7 @@ typedef struct {
   bool enable_error_on_bad_type;
   bool enable_error_on_bad_override;
   bool use_field_guards;
+  bool use_osr;
 } Dart_IsolateFlags;
 
 /**

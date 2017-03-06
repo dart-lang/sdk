@@ -8,21 +8,24 @@ import 'package:kernel/ast.dart' show DartType, DynamicType;
 
 import '../messages.dart' show warning;
 
-import 'kernel_builder.dart' show InvalidTypeBuilder, KernelTypeBuilder;
+import 'kernel_builder.dart'
+    show InvalidTypeBuilder, KernelTypeBuilder, LibraryBuilder;
 
 class KernelInvalidTypeBuilder
     extends InvalidTypeBuilder<KernelTypeBuilder, DartType> {
   KernelInvalidTypeBuilder(String name, int charOffset, Uri fileUri)
       : super(name, null, charOffset, fileUri);
 
-  DartType buildType(List<KernelTypeBuilder> arguments) {
+  DartType buildType(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     // TODO(ahe): Implement error handling.
     warning(fileUri, charOffset, "No type for: '$name'.");
     return const DynamicType();
   }
 
   /// [Arguments] have already been built.
-  DartType buildTypesWithBuiltArguments(List<DartType> arguments) {
+  DartType buildTypesWithBuiltArguments(
+      LibraryBuilder library, List<DartType> arguments) {
     // TODO(ahe): Implement error handling.
     warning(fileUri, charOffset, "No type for: '$name'.");
     return const DynamicType();

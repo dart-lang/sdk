@@ -213,7 +213,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       CommandArtifact artifact) {
     List<String> args = [];
     if (useDFE) {
-      args.add('--dfe=utils/kernel-service/kernel-service.dart');
+      args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
     }
     if (isChecked) {
       args.add('--enable_asserts');

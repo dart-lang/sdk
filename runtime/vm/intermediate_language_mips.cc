@@ -2778,7 +2778,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       : instruction_(instruction) {}
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
+    if (compiler->isolate()->use_osr() && osr_entry_label()->IsLinked()) {
       Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
@@ -2797,7 +2797,8 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
         instruction_->token_pos(), instruction_->deopt_id(),
         kStackOverflowRuntimeEntry, 0, instruction_->locs());
 
-    if (FLAG_use_osr && !compiler->is_optimizing() && instruction_->in_loop()) {
+    if (compiler->isolate()->use_osr() && !compiler->is_optimizing() &&
+        instruction_->in_loop()) {
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
                                      instruction_->deopt_id(),
@@ -2809,7 +2810,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
   }
 
   Label* osr_entry_label() {
-    ASSERT(FLAG_use_osr);
+    ASSERT(Isolate::Current()->use_osr());
     return &osr_entry_label_;
   }
 

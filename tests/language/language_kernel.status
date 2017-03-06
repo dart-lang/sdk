@@ -323,8 +323,6 @@ export_ambiguous_main_negative_test: Crash
 export_double_same_main_test: Crash
 export_main_test: Crash
 export_private_test/01: MissingCompileTimeError
-extend_type_parameter2_negative_test: DartkCrash
-extend_type_parameter_negative_test: DartkCrash
 external_test/11: MissingCompileTimeError
 external_test/12: MissingCompileTimeError
 external_test/13: MissingRuntimeError
@@ -379,7 +377,6 @@ function_type_alias5_test/01: MissingCompileTimeError
 function_type_alias5_test/02: MissingCompileTimeError
 function_type_alias6_test/00: MissingCompileTimeError
 function_type_alias7_test/00: MissingCompileTimeError
-function_type_alias7_test/01: DartkCrash
 function_type_alias7_test/02: MissingCompileTimeError
 function_type_alias9_test/00: MissingCompileTimeError
 function_type_parameter2_negative_test: Crash
@@ -413,7 +410,6 @@ initializing_formal_capture_test: RuntimeError
 initializing_formal_final_test: RuntimeError
 inst_field_initializer1_negative_test: Fail
 instanceof3_test: RuntimeError
-interface2_negative_test: Fail
 interface_cycle_test/01: MissingCompileTimeError
 interface_cycle_test/02: MissingCompileTimeError
 invocation_mirror_test: RuntimeError
@@ -431,22 +427,14 @@ label6_negative_test: DartkCrash
 large_class_declaration_test: SkipSlow  # KernelVM Issue 28312
 library_ambiguous_test/00: MissingRuntimeError
 library_ambiguous_test/04: MissingRuntimeError
-library_ambiguous_test/05: MissingCompileTimeError
 library_env_test/has_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
 list_literal2_negative_test: Fail
 list_literal4_test: RuntimeError
 main_not_a_function_test/01: Crash
 malformed2_test/00: RuntimeError
-malformed_inheritance_test/01: MissingCompileTimeError
-malformed_inheritance_test/03: Crash
-malformed_inheritance_test/05: MissingCompileTimeError
-malformed_inheritance_test/07: DartkCrash
-malformed_inheritance_test/08: DartkCrash
 malformed_inheritance_test/09: MissingCompileTimeError
 malformed_inheritance_test/10: MissingCompileTimeError
-malformed_inheritance_test/11: DartkCrash
-malformed_inheritance_test/12: DartkCrash
 malformed_test/none: RuntimeError
 map_literal2_negative_test: Fail
 map_literal3_test: RuntimeError
@@ -487,11 +475,6 @@ mixin_illegal_cycles_test/06: MissingCompileTimeError
 mixin_illegal_object_test/01: MissingCompileTimeError
 mixin_illegal_object_test/02: MissingCompileTimeError
 mixin_illegal_syntax_test/00: DartkCrash
-mixin_invalid_inheritance1_test/01: Crash
-mixin_invalid_inheritance1_test/02: Crash
-mixin_invalid_inheritance1_test/03: Crash
-mixin_invalid_inheritance2_test/01: MissingCompileTimeError
-mixin_invalid_inheritance2_test/02: MissingCompileTimeError
 mixin_invalid_inheritance2_test/03: DartkCrash
 mixin_issue10216_2_test: RuntimeError
 mixin_mixin2_test: RuntimeError
@@ -534,8 +517,6 @@ number_identifier_test/04: MissingCompileTimeError
 on_catch_malformed_type_test: RuntimeError
 parameter_initializer6_negative_test: Fail
 part2_test: RuntimeError
-prefix13_negative_test: Fail
-prefix15_negative_test: Fail
 private_access_test/05: RuntimeError
 private_access_test/06: RuntimeError
 private_super_constructor_test/01: MissingCompileTimeError
@@ -656,7 +637,6 @@ vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/regress_27201_test: CompileTimeError
 vm/regress_27671_test: RuntimeError
-vm/regress_28325_test: RuntimeError
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test: RuntimeError
 
@@ -718,14 +698,13 @@ setter_declaration_negative_test: Fail
 super_call4_test: RuntimeError
 super_getter_setter_test: RuntimeError
 try_catch_syntax_test/05: MissingCompileTimeError
-vm/lazy_deopt_vm_test: Pass, Slow
-vm/lazy_deopt_vm_test: Pass, Timeout
+vm/lazy_deopt_vm_test: Pass, Slow, Timeout
 vm/optimized_stacktrace_test: Skip # Issue 28788
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $mode == debug ]
 constructor_duplicate_initializers_test/03: Crash
-deopt_inlined_function_lazy_test: Timeout
+deopt_inlined_function_lazy_test: Skip
 hello_dart_test: Crash  # error: expected: cls.is_type_finalized()
 not_enough_positional_arguments_test/02: Crash  # Dartk Issue 28301
 not_enough_positional_arguments_test/05: Crash  # Dartk Issue 28301
@@ -739,6 +718,7 @@ ref_before_declaration_test/06: Crash
 ref_before_declaration_test/07: Crash
 ref_before_declaration_test/none: Crash
 try_catch_syntax_test/05: Crash
+vm/lazy_deopt_vm_test: Crash
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
@@ -774,6 +754,8 @@ illegal_initializer_test/03: MissingCompileTimeError
 illegal_initializer_test/04: MissingCompileTimeError
 illegal_invocation_test/01: MissingCompileTimeError
 label_test: RuntimeError
+named_constructor_test/05: MissingCompileTimeError
+named_constructor_test/08: MissingCompileTimeError
 prefix_assignment_test/01: MissingCompileTimeError
 prefix_assignment_test/02: MissingCompileTimeError
 prefix_identifier_reference_test/01: MissingCompileTimeError

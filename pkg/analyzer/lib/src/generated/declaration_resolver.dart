@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -122,8 +123,12 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+    NormalFormalParameter normalParameter = node.parameter;
     ParameterElement element =
-        _match(node.parameter.identifier, _walker.getParameter());
+        _match(normalParameter.identifier, _walker.getParameter());
+    if (normalParameter is SimpleFormalParameterImpl) {
+      normalParameter.element = node.identifier.staticElement;
+    }
     Expression defaultValue = node.defaultValue;
     if (defaultValue != null) {
       _walk(
@@ -133,7 +138,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       });
     }
     _walk(new ElementWalker.forParameter(element), () {
-      node.parameter.accept(this);
+      normalParameter.accept(this);
     });
     _resolveMetadata(node, node.metadata, element);
     return null;
@@ -365,6 +370,8 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     if (node.parent is! DefaultFormalParameter) {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
+      (node as SimpleFormalParameterImpl).element =
+          node.identifier.staticElement;
       _walk(new ElementWalker.forParameter(element), () {
         super.visitSimpleFormalParameter(node);
       });

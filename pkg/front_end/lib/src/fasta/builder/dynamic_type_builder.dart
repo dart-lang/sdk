@@ -13,7 +13,9 @@ class DynamicTypeBuilder<T extends TypeBuilder, R>
   DynamicTypeBuilder(this.type, LibraryBuilder compilationUnit, int charOffset)
       : super(null, 0, "dynamic", compilationUnit, charOffset);
 
-  R buildType(List<T> arguments) => type;
+  R buildType(LibraryBuilder library, List<T> arguments) => type;
 
-  R buildTypesWithBuiltArguments(List<R> arguments) => type;
+  R buildTypesWithBuiltArguments(LibraryBuilder library, List<R> arguments) {
+    return type;
+  }
 }

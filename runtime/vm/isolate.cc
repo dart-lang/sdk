@@ -722,31 +722,27 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
 
 void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-  api_flags->enable_type_checks = FLAG_enable_type_checks;
-  api_flags->enable_asserts = FLAG_enable_asserts;
-  api_flags->enable_error_on_bad_type = FLAG_error_on_bad_type;
-  api_flags->enable_error_on_bad_override = FLAG_error_on_bad_override;
-  api_flags->use_field_guards = FLAG_use_field_guards;
+#define INIT_FROM_FLAG(name, isolate_flag, flag) api_flags->isolate_flag = flag;
+  ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
+#undef INIT_FROM_FLAG
 }
 
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-  api_flags->enable_type_checks = type_checks();
-  api_flags->enable_asserts = asserts();
-  api_flags->enable_error_on_bad_type = error_on_bad_type();
-  api_flags->enable_error_on_bad_override = error_on_bad_override();
-  api_flags->use_field_guards = use_field_guards();
+#define INIT_FROM_FIELD(name, isolate_flag, flag)                              \
+  api_flags->isolate_flag = name();
+  ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
+#undef INIT_FROM_FIELD
 }
 
 
 #if !defined(PRODUCT)
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
-  type_checks_ = api_flags.enable_type_checks;
-  asserts_ = api_flags.enable_asserts;
-  error_on_bad_type_ = api_flags.enable_error_on_bad_type;
-  error_on_bad_override_ = api_flags.enable_error_on_bad_override;
-  use_field_guards_ = api_flags.use_field_guards;
+#define SET_FROM_FLAG(name, isolate_flag, flag)                                \
+  name##_ = api_flags.isolate_flag;
+  ISOLATE_FLAG_LIST(SET_FROM_FLAG)
+#undef SET_FROM_FLAG
   // Leave others at defaults.
 }
 #endif  // !defined(PRODUCT)

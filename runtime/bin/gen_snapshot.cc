@@ -80,6 +80,7 @@ static const char* isolate_snapshot_instructions_filename = NULL;
 static const char* assembly_filename = NULL;
 static const char* script_snapshot_filename = NULL;
 static bool dependencies_only = false;
+static bool print_dependencies = false;
 static const char* dependencies_filename = NULL;
 
 
@@ -331,6 +332,17 @@ static bool ProcessDependenciesOnlyOption(const char* option) {
   return false;
 }
 
+static bool ProcessPrintDependenciesOption(const char* option) {
+  const char* name = ProcessOption(option, "--print_dependencies");
+  if (name == NULL) {
+    name = ProcessOption(option, "--print-dependencies");
+  }
+  if (name != NULL) {
+    print_dependencies = true;
+    return true;
+  }
+  return false;
+}
 
 static bool ProcessEmbedderEntryPointsManifestOption(const char* option) {
   const char* name = ProcessOption(option, "--embedder_entry_points_manifest=");
@@ -406,6 +418,7 @@ static int ParseArguments(int argc,
         ProcessScriptSnapshotOption(argv[i]) ||
         ProcessDependenciesOption(argv[i]) ||
         ProcessDependenciesOnlyOption(argv[i]) ||
+        ProcessPrintDependenciesOption(argv[i]) ||
         ProcessEmbedderEntryPointsManifestOption(argv[i]) ||
         ProcessURLmappingOption(argv[i]) || ProcessPackageRootOption(argv[i]) ||
         ProcessPackagesOption(argv[i]) || ProcessEnvironmentOption(argv[i])) {
@@ -673,55 +686,72 @@ static void CreateAndWriteDependenciesFile() {
     return;
   }
 
-  ASSERT(dependencies_filename != NULL);
-  File* file = File::Open(dependencies_filename, File::kWriteTruncate);
-  if (file == NULL) {
-    Log::PrintErr("Error: Unable to open dependencies file: %s\n\n",
-                  dependencies_filename);
-    exit(kErrorExitCode);
-  }
+  ASSERT((dependencies_filename != NULL) || print_dependencies);
   bool success = true;
+  File* file = NULL;
+  if (dependencies_filename != NULL) {
+    file = File::Open(dependencies_filename, File::kWriteTruncate);
+    if (file == NULL) {
+      Log::PrintErr("Error: Unable to open dependencies file: %s\n\n",
+                    dependencies_filename);
+      exit(kErrorExitCode);
+    }
 
-  // Targets:
-  switch (snapshot_kind) {
-    case kCore:
-      success &= file->Print("%s ", vm_snapshot_data_filename);
-      success &= file->Print("%s ", isolate_snapshot_data_filename);
-      break;
-    case kScript:
-      success &= file->Print("%s ", script_snapshot_filename);
-      break;
-    case kAppAOTAssembly:
-      success &= file->Print("%s ", assembly_filename);
-      break;
-    case kAppAOTBlobs:
-      success &= file->Print("%s ", vm_snapshot_data_filename);
-      success &= file->Print("%s ", vm_snapshot_instructions_filename);
-      success &= file->Print("%s ", isolate_snapshot_data_filename);
-      success &= file->Print("%s ", isolate_snapshot_instructions_filename);
-      break;
+    // Targets:
+    switch (snapshot_kind) {
+      case kCore:
+        success &= file->Print("%s ", vm_snapshot_data_filename);
+        success &= file->Print("%s ", isolate_snapshot_data_filename);
+        break;
+      case kScript:
+        success &= file->Print("%s ", script_snapshot_filename);
+        break;
+      case kAppAOTAssembly:
+        success &= file->Print("%s ", assembly_filename);
+        break;
+      case kAppAOTBlobs:
+        success &= file->Print("%s ", vm_snapshot_data_filename);
+        success &= file->Print("%s ", vm_snapshot_instructions_filename);
+        success &= file->Print("%s ", isolate_snapshot_data_filename);
+        success &= file->Print("%s ", isolate_snapshot_instructions_filename);
+        break;
+    }
+
+    success &= file->Print(": ");
   }
-
-  success &= file->Print(": ");
 
   // Sources:
   if (snapshot_kind == kScript) {
-    success &= file->Print("%s ", vm_snapshot_data_filename);
-    success &= file->Print("%s ", isolate_snapshot_data_filename);
+    if (dependencies_filename != NULL) {
+      success &= file->Print("%s ", vm_snapshot_data_filename);
+      success &= file->Print("%s ", isolate_snapshot_data_filename);
+    }
+    if (print_dependencies) {
+      Log::Print("%s\n", vm_snapshot_data_filename);
+      Log::Print("%s\n", isolate_snapshot_data_filename);
+    }
   }
   for (intptr_t i = 0; i < dependencies->length(); i++) {
     char* dep = dependencies->At(i);
-    success &= file->Print("%s ", dep);
+    if (dependencies_filename != NULL) {
+      success &= file->Print("%s ", dep);
+    }
+    if (print_dependencies) {
+      Log::Print("%s\n", dep);
+    }
     free(dep);
   }
-  success &= file->Print("\n");
 
-  if (!success) {
-    Log::PrintErr("Error: Unable to write dependencies file: %s\n\n",
-                  dependencies_filename);
-    exit(kErrorExitCode);
+  if (dependencies_filename != NULL) {
+    success &= file->Print("\n");
+
+    if (!success) {
+      Log::PrintErr("Error: Unable to write dependencies file: %s\n\n",
+                    dependencies_filename);
+      exit(kErrorExitCode);
+    }
+    file->Release();
   }
-  file->Release();
   delete dependencies;
   isolate_data->set_dependencies(NULL);
 }
@@ -839,6 +869,7 @@ static void PrintUsage() {
 "   --dependencies=<output-file>  Generates a Makefile with snapshot output  \n"
 "                                 files as targets and all transitive imports\n"
 "                                 as sources.                                \n"
+"   --print_dependencies          Prints all transitive imports to stdout.   \n"
 "   --dependencies_only           Don't create and output the snapshot.      \n"
 "                                                                            \n"
 " To create a core snapshot:                                                 \n"
@@ -1565,7 +1596,7 @@ int main(int argc, char** argv) {
     const bool is_kernel_file =
         TryReadKernel(app_script_name, &kernel, &kernel_length);
 
-    if (dependencies_filename != NULL) {
+    if ((dependencies_filename != NULL) || print_dependencies) {
       isolate_data->set_dependencies(new MallocGrowableArray<char*>());
     }
 

@@ -174,7 +174,8 @@ class KernelEnumBuilder extends SourceClassBuilder
 
   KernelTypeBuilder get mixedInType => null;
 
-  InterfaceType buildType(List<KernelTypeBuilder> arguments) {
+  InterfaceType buildType(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     return cls.rawType;
   }
 
@@ -183,10 +184,10 @@ class KernelEnumBuilder extends SourceClassBuilder
       libraryBuilder.addCompileTimeError(
           -1, "An enum declaration can't be empty.");
     }
-    toStringMap.keyType = intType.build();
-    toStringMap.valueType = stringType.build();
+    toStringMap.keyType = intType.build(libraryBuilder);
+    toStringMap.valueType = stringType.build(libraryBuilder);
     KernelFieldBuilder indexFieldBuilder = members["index"];
-    Field indexField = indexFieldBuilder.build(libraryBuilder.library);
+    Field indexField = indexFieldBuilder.build(libraryBuilder);
     KernelProcedureBuilder toStringBuilder = members["toString"];
     toStringBuilder.body = new ReturnStatement(new MethodInvocation(
         toStringMap,
@@ -197,14 +198,14 @@ class KernelEnumBuilder extends SourceClassBuilder
     List<Expression> values = <Expression>[];
     for (String name in constants) {
       KernelFieldBuilder builder = members[name];
-      values.add(new StaticGet(builder.build(libraryBuilder.library)));
+      values.add(new StaticGet(builder.build(libraryBuilder)));
     }
     KernelFieldBuilder valuesBuilder = members["values"];
-    valuesBuilder.build(libraryBuilder.library);
+    valuesBuilder.build(libraryBuilder);
     valuesBuilder.initializer =
         new ListLiteral(values, typeArgument: cls.rawType, isConst: true);
     KernelConstructorBuilder constructorBuilder = members[""];
-    Constructor constructor = constructorBuilder.build(libraryBuilder.library);
+    Constructor constructor = constructorBuilder.build(libraryBuilder);
     constructor.initializers.insert(
         0,
         new FieldInitializer(indexField,
@@ -213,7 +214,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     int index = 0;
     for (String constant in constants) {
       KernelFieldBuilder field = members[constant];
-      field.build(libraryBuilder.library);
+      field.build(libraryBuilder);
       Arguments arguments =
           new Arguments(<Expression>[new IntLiteral(index++)]);
       field.initializer =

@@ -333,7 +333,7 @@ bool FlowGraphCompiler::CanOptimizeFunction() const {
 
 
 bool FlowGraphCompiler::CanOSRFunction() const {
-  return FLAG_use_osr & CanOptimizeFunction() && !is_optimizing();
+  return isolate()->use_osr() && CanOptimizeFunction() && !is_optimizing();
 }
 
 

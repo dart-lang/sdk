@@ -132,9 +132,6 @@ class KernelTarget extends TargetImplementation {
       Builder builder = type.builder;
       if (builder is ClassBuilder) {
         set.add(builder);
-      } else if (builder is! InvalidTypeBuilder &&
-          builder is! DynamicTypeBuilder) {
-        internalError("Unhandled: ${builder.runtimeType}");
       }
     }
 
@@ -247,7 +244,7 @@ class KernelTarget extends TargetImplementation {
       loader.buildProgram();
       loader.checkSemantics();
       List<SourceClassBuilder> sourceClasses = collectAllSourceClasses();
-      installDefaultSupertypes(sourceClasses);
+      installDefaultSupertypes();
       installDefaultConstructors(sourceClasses);
       loader.resolveConstructors();
       loader.finishTypeVariables(objectClassBuilder);
@@ -353,17 +350,21 @@ class KernelTarget extends TargetImplementation {
     return null;
   }
 
-  void installDefaultSupertypes(List<SourceClassBuilder> builders) {
+  void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
-    for (SourceClassBuilder builder in builders) {
-      Class cls = builder.target;
-      if (cls != objectClass) {
-        cls.supertype ??= objectClass.asRawSupertype;
-      }
-      if (builder.isMixinApplication) {
-        cls.mixedInType = builder.mixedInType.buildSupertype();
-      }
-    }
+    loader.builders.forEach((Uri uri, LibraryBuilder library) {
+      library.members.forEach((String name, Builder builder) {
+        if (builder is SourceClassBuilder) {
+          Class cls = builder.target;
+          if (cls != objectClass) {
+            cls.supertype ??= objectClass.asRawSupertype;
+          }
+          if (builder.isMixinApplication) {
+            cls.mixedInType = builder.mixedInType.buildSupertype(library);
+          }
+        }
+      });
+    });
     ticker.logMs("Installed Object as implicit superclass");
   }
 

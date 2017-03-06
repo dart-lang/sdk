@@ -4,7 +4,8 @@
 
 library fasta.type_builder;
 
-import 'builder.dart' show Builder, TypeDeclarationBuilder, TypeVariableBuilder;
+import 'builder.dart'
+    show Builder, LibraryBuilder, TypeDeclarationBuilder, TypeVariableBuilder;
 
 import 'scope.dart' show Scope;
 
@@ -27,5 +28,5 @@ abstract class TypeBuilder extends Builder {
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) => this;
 
-  build();
+  build(LibraryBuilder library);
 }

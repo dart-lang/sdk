@@ -369,7 +369,6 @@ template("generate_patched_sdk") {
   assert(defined(invoker.libraries), "Need libraries in $target_name")
 
   concatenation_target_names = []
-  concatenation_files = []
 
   # Concatenate vm library patches.
   foreach(library, invoker.libraries) {
@@ -381,7 +380,6 @@ template("generate_patched_sdk") {
       output = target_output
     }
     concatenation_target_names += [ ":concatenate_${name}_patch" ]
-    concatenation_files += [ target_output ]
   }
 
   # Build the patched sdk out of the concatenated patches and the special
@@ -397,57 +395,16 @@ template("generate_patched_sdk") {
 
     script = "../../tools/patch_sdk.py"
 
-    # We list all files which make up the sdk (modulo patches) and get them
-    # back as a GN list object.
-    shared_sdk_sources = exec_script("../../tools/list_dart_files.py",
-                                     [
-                                       "absolute",
-                                       rebase_path("../../sdk/lib"),
-                                     ],
-                                     "list lines")
-
-    front_end_sources = exec_script("../../tools/list_dart_files.py",
-                                    [
-                                      "absolute",
-                                      rebase_path("../../pkg/front_end"),
-                                    ],
-                                    "list lines")
-
-    kernel_sources = exec_script("../../tools/list_dart_files.py",
-                                 [
-                                   "absolute",
-                                   rebase_path("../../pkg/kernel"),
-                                 ],
-                                 "list lines")
-
     # We list the `patch_sdk.dart` tool here because the [script] (which is
     # implicitly an input) will call it.
     inputs = [
       "../../tools/patch_sdk.dart",
     ]
-
-    # Files below are not patches, they will not be in [concatenation_files]
-    # but the `patch_sdk.dart` script will copy them into the patched sdk.
-    inputs += [
-      "../bin/builtin.dart",
-      "../bin/vmservice/vmservice_io.dart",
-      "../bin/vmservice/loader.dart",
-      "../bin/vmservice/server.dart",
-    ]
-
-    # Add all the normal sdk sources.
-    inputs += shared_sdk_sources
-
-    # Add all the concatenated patch files.
-    inputs += concatenation_files
-
-    # Add some front-end dependencies
-    inputs += front_end_sources
-    inputs += kernel_sources
+    depfile = "$root_out_dir/patched_sdk.d"
 
     outputs = [
       # Instead of listing all outputs we list a single well-known one.
-      "${patched_sdk_dir}/lib/core/core.dart",
+      "${patched_sdk_dir}/platform.dill",
     ]
 
     args = [ "--quiet" ]

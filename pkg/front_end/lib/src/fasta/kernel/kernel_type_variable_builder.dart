@@ -15,6 +15,7 @@ import 'kernel_builder.dart'
         KernelLibraryBuilder,
         KernelNamedTypeBuilder,
         KernelTypeBuilder,
+        LibraryBuilder,
         TypeVariableBuilder;
 
 class KernelTypeVariableBuilder
@@ -27,7 +28,8 @@ class KernelTypeVariableBuilder
       : parameter = new TypeParameter(name, null),
         super(name, bound, compilationUnit, charOffset);
 
-  DartType buildType(List<KernelTypeBuilder> arguments) {
+  DartType buildType(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     if (arguments != null) {
       return inputError(null, null,
           "Can't use type arguments with type parameter $parameter");
@@ -36,12 +38,13 @@ class KernelTypeVariableBuilder
     }
   }
 
-  DartType buildTypesWithBuiltArguments(List<DartType> arguments) {
+  DartType buildTypesWithBuiltArguments(
+      LibraryBuilder library, List<DartType> arguments) {
     if (arguments != null) {
       return inputError(null, null,
           "Can't use type arguments with type parameter $parameter");
     } else {
-      return buildType(null);
+      return buildType(library, null);
     }
   }
 
@@ -49,7 +52,7 @@ class KernelTypeVariableBuilder
     return new KernelNamedTypeBuilder(name, null, -1, null)..builder = this;
   }
 
-  void finish(KernelClassBuilder object) {
-    parameter.bound = bound?.build() ?? object.buildType(null);
+  void finish(LibraryBuilder library, KernelClassBuilder object) {
+    parameter.bound = bound?.build(library) ?? object.buildType(library, null);
   }
 }

@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -1405,6 +1406,9 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       parameter.hasImplicitType = true;
     }
     _currentHolder.addParameter(parameter);
+    if (normalParameter is SimpleFormalParameterImpl) {
+      normalParameter.element = parameter;
+    }
     parameterName.staticElement = parameter;
     normalParameter.accept(this);
     return null;
@@ -1441,10 +1445,10 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
+    ParameterElementImpl parameter;
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
-      ParameterElementImpl parameter =
-          new ParameterElementImpl.forNode(parameterName);
+      parameter = new ParameterElementImpl.forNode(parameterName);
       _setCodeRange(parameter, node);
       parameter.isConst = node.isConst;
       parameter.isExplicitlyCovariant = node.covariantKeyword != null;
@@ -1455,11 +1459,12 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
         parameter.hasImplicitType = true;
       }
       _currentHolder.addParameter(parameter);
-      parameterName.staticElement = parameter;
+      (node as SimpleFormalParameterImpl).element = parameter;
+      parameterName?.staticElement = parameter;
     }
     super.visitSimpleFormalParameter(node);
-    (node.element as ElementImpl).metadata =
-        _createElementAnnotations(node.metadata);
+    parameter ??= node.element;
+    parameter?.metadata = _createElementAnnotations(node.metadata);
     return null;
   }
 

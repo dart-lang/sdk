@@ -5831,8 +5831,9 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     ..add(_typeParameters)
     ..add(equals)
     ..add(_functionType);
+
   @override
-  Element get element => null;
+  Element get element => name.staticElement;
 
   @override
   GenericFunctionType get functionType => _functionType;
@@ -5855,7 +5856,6 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     return visitor.visitGenericTypeAlias(this);
   }
 
-  // TODO: implement element
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
@@ -9239,6 +9239,9 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
    */
   TypeAnnotation _type;
 
+  @override
+  ParameterElement element;
+
   /**
    * Initialize a newly created formal parameter. Either or both of the
    * [comment] and [metadata] can be `null` if the parameter does not have the
@@ -9276,7 +9279,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
       super._childEntities..add(keyword)..add(_type)..add(identifier);
 
   @override
-  Token get endToken => identifier.endToken;
+  Token get endToken => identifier?.endToken ?? type?.endToken;
 
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;

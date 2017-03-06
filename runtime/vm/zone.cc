@@ -301,6 +301,7 @@ char* Zone::VPrint(const char* format, va_list args) {
 
 
 #ifndef PRODUCT
+// TODO(bkonyi): Currently dead code. See issue #28885.
 void Zone::PrintJSON(JSONStream* stream) const {
   JSONObject jsobj(stream);
   intptr_t capacity = CapacityInBytes();

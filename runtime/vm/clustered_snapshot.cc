@@ -5033,7 +5033,7 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
   intptr_t buffer_len = OS::StrNLen(features, PendingBytes());
   if ((buffer_len != expected_len) ||
       strncmp(features, expected_features, expected_len)) {
-    const intptr_t kMessageBufferSize = 256;
+    const intptr_t kMessageBufferSize = 1024;
     char message_buffer[kMessageBufferSize];
     char* actual_features =
         OS::StrNDup(features, buffer_len < 128 ? buffer_len : 128);

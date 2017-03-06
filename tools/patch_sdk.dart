@@ -13,8 +13,41 @@ import 'dart:math' as math;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
-import 'package:front_end/src/fasta/compile_platform.dart' as
-    compile_platform;
+import 'package:front_end/src/fasta/compile_platform.dart' as compile_platform;
+
+import 'package:front_end/src/fasta/outline.dart' show CompileTask;
+
+import 'package:front_end/src/fasta/compiler_command_line.dart'
+    show CompilerCommandLine;
+
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
+import 'package:front_end/src/fasta/ticker.dart' show Ticker;
+
+/// Set of input files that were read by this script to generate patched SDK.
+/// We will dump it out into the depfile for ninja to use.
+///
+/// For more information see GN and Ninja references:
+///    https://chromium.googlesource.com/chromium/src/+/56807c6cb383140af0c03da8f6731d77785d7160/tools/gn/docs/reference.md#depfile_string_File-name-for-input-dependencies-for-actions
+///    https://ninja-build.org/manual.html#_depfile
+///
+final deps = new Set<String>();
+
+/// Create [File] object from the given path and register it as a dependency.
+File getInputFile(String path, {canBeMissing: false}) {
+  final file = new File(path);
+  if (!file.existsSync()) {
+    if (!canBeMissing) throw "patch_sdk.dart expects all inputs to exist";
+    return null;
+  }
+  deps.add(file.absolute.path);
+  return file;
+}
+
+/// Read the given file synchronously as a string and register this path as
+/// a dependency.
+String readInputFile(String path, {canBeMissing: false}) =>
+    getInputFile(path, canBeMissing: canBeMissing)?.readAsStringSync();
 
 Future main(List<String> argv) async {
   var base = path.fromUri(Platform.script);
@@ -28,8 +61,8 @@ Future main(List<String> argv) async {
     final sdkExample = path.relative(path.join(repositoryDir, 'sdk'));
     final patchExample = path.relative(
         path.join(repositoryDir, 'out', 'DebugX64', 'obj', 'gen', 'patch'));
-    final outExample = path.relative(path.join(repositoryDir, 'out', 'DebugX64',
-                                               'obj', 'gen', 'patched_sdk'));
+    final outExample = path.relative(path.join(
+        repositoryDir, 'out', 'DebugX64', 'obj', 'gen', 'patched_sdk'));
     print('For example:');
     print('\$ $self vm $sdkExample $patchExample $outExample');
 
@@ -37,6 +70,7 @@ Future main(List<String> argv) async {
   }
 
   var mode = argv[0];
+  assert(mode == "vm");
   var input = argv[1];
   var sdkLibIn = path.join(input, 'lib');
   var patchIn = argv[2];
@@ -48,12 +82,11 @@ Future main(List<String> argv) async {
   var INTERNAL_PATH = '_internal/compiler/js_lib/';
 
   // Copy and patch libraries.dart and version
-  var libContents = new File(path.join(sdkLibIn, '_internal',
-      'sdk_library_metadata', 'lib', 'libraries.dart')).readAsStringSync();
-  if (mode == 'vm') {
-    libContents = libContents.replaceAll(
-        ' libraries = const {',
-        ''' libraries = const {
+  var libContents = readInputFile(path.join(
+      sdkLibIn, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'));
+  libContents = libContents.replaceAll(
+      ' libraries = const {',
+      ''' libraries = const {
 
   "_builtin": const LibraryInfo(
       "_builtin/_builtin.dart",
@@ -80,39 +113,25 @@ Future main(List<String> argv) async {
       platforms: VM_PLATFORM),
 
 ''');
-  }
   _writeSync(
       path.join(
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
       libContents);
-  if (mode == 'ddc') {
-    _writeSync(path.join(sdkOut, '..', 'version'),
-        new File(path.join(sdkLibIn, '..', 'version')).readAsStringSync());
-  }
 
   // Parse libraries.dart
   var sdkLibraries = _getSdkLibraries(libContents);
 
   // Enumerate core libraries and apply patches
   for (SdkLibrary library in sdkLibraries) {
-    // TODO(jmesserly): analyzer does not handle the default case of
-    // "both platforms" correctly, and treats it as being supported on neither.
-    // So instead we skip explicitly marked as either VM or dart2js libs.
-    if (mode == 'ddc' ? library.isVmLibrary : library.isDart2JsLibrary) {
+    if (library.isDart2JsLibrary) {
       continue;
     }
 
     var libraryOut = path.join(sdkLibIn, library.path);
-    var libraryIn;
-    if (mode == 'ddc' && library.path.contains(INTERNAL_PATH)) {
-      libraryIn =
-          path.join(privateIn, library.path.replaceAll(INTERNAL_PATH, ''));
-    } else {
-      libraryIn = libraryOut;
-    }
+    var libraryIn = libraryOut;
 
-    var libraryFile = new File(libraryIn);
-    if (libraryFile.existsSync()) {
+    var libraryFile = getInputFile(libraryIn, canBeMissing: true);
+    if (libraryFile != null) {
       var outPaths = <String>[libraryOut];
       var libraryContents = libraryFile.readAsStringSync();
 
@@ -124,7 +143,8 @@ Future main(List<String> argv) async {
           var partPath = part.uri.stringValue;
           outPaths.add(path.join(path.dirname(libraryOut), partPath));
 
-          var partFile = new File(path.join(path.dirname(libraryIn), partPath));
+          var partFile =
+              getInputFile(path.join(path.dirname(libraryIn), partPath));
           partFiles.add(partFile);
           inputModifyTime = math.max(inputModifyTime,
               partFile.lastModifiedSync().millisecondsSinceEpoch);
@@ -135,9 +155,8 @@ Future main(List<String> argv) async {
       var patchPath = path.join(
           patchIn, path.basenameWithoutExtension(libraryIn) + '_patch.dart');
 
-      var patchFile = new File(patchPath);
-      bool patchExists = patchFile.existsSync();
-      if (patchExists) {
+      var patchFile = getInputFile(patchPath, canBeMissing: true);
+      if (patchFile != null) {
         inputModifyTime = math.max(inputModifyTime,
             patchFile.lastModifiedSync().millisecondsSinceEpoch);
       }
@@ -162,10 +181,9 @@ Future main(List<String> argv) async {
       if (needsUpdate) {
         var contents = <String>[libraryContents];
         contents.addAll(partFiles.map((f) => f.readAsStringSync()));
-        if (patchExists) {
+        if (patchFile != null) {
           var patchContents = patchFile.readAsStringSync();
-          contents = _patchLibrary(
-              patchFile.path, contents, patchContents);
+          contents = _patchLibrary(patchFile.path, contents, patchContents);
         }
 
         for (var i = 0; i < outPaths.length; i++) {
@@ -175,22 +193,22 @@ Future main(List<String> argv) async {
     }
   }
 
-  if (mode == 'vm') {
-    for (var tuple in [['_builtin', 'builtin.dart']]) {
-      var vmLibrary = tuple[0];
-      var dartFile = tuple[1];
+  for (var tuple in [
+    ['_builtin', 'builtin.dart']
+  ]) {
+    var vmLibrary = tuple[0];
+    var dartFile = tuple[1];
 
-      // The "dart:_builtin" library is only available for the DartVM.
-      var builtinLibraryIn  = path.join(dartDir, 'runtime', 'bin', dartFile);
-      var builtinLibraryOut = path.join(sdkOut, vmLibrary, '${vmLibrary}.dart');
-      _writeSync(builtinLibraryOut, new File(builtinLibraryIn).readAsStringSync());
-    }
+    // The "dart:_builtin" library is only available for the DartVM.
+    var builtinLibraryIn = path.join(dartDir, 'runtime', 'bin', dartFile);
+    var builtinLibraryOut = path.join(sdkOut, vmLibrary, '${vmLibrary}.dart');
+    _writeSync(builtinLibraryOut, readInputFile(builtinLibraryIn));
+  }
 
-    for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
-      var libraryIn  = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
-      var libraryOut = path.join(sdkOut, 'vmservice_io', file);
-      _writeSync(libraryOut, new File(libraryIn).readAsStringSync());
-    }
+  for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
+    var libraryIn = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
+    var libraryOut = path.join(sdkOut, 'vmservice_io', file);
+    _writeSync(libraryOut, readInputFile(libraryIn));
   }
 
   // TODO(kustermann): We suppress compiler hints/warnings/errors temporarily
@@ -199,13 +217,49 @@ Future main(List<String> argv) async {
   // been fixed (either in fasta or the dart files in the patched_sdk).
   final capturedLines = <String>[];
   try {
+    final platform = path.join(outDir, 'platform.dill');
+
     await runZoned(() async {
       await compile_platform.mainEntryPoint(<String>[
         '--packages',
         new Uri.file(packagesFile).toString(),
         new Uri.directory(outDir).toString(),
-        path.join(outDir, 'platform.dill')
+        platform,
       ]);
+
+      // platform.dill was generated, now generate platform.dill.d depfile
+      // that captures all dependencies that participated in the generation.
+      // There are two types of dependencies:
+      //   (1) all Dart sources that constitute this tool itself
+      //   (2) Dart SDK and patch sources.
+      // We already collected all inputs from the second category in the deps
+      // set. To collect inputs from the first category we actually use Fasta:
+      // we ask Fasta to outline patch_sdk.dart and generate a depfile which
+      // would list all the sources.
+      final depfile = "${outDir}.d";
+      await CompilerCommandLine.withGlobalOptions("outline", [
+        '--packages',
+        new Uri.file(packagesFile).toString(),
+        '--platform',
+        new Uri.file(platform).toString(), // platform.dill
+        Platform.script.toString() // patch_sdk.dart
+      ], (CompilerContext c) async {
+        CompileTask task =
+            new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
+        final kernelTarget = await task.buildOutline(null);
+        await kernelTarget.writeDepsFile(
+            new Uri.file(platform), new Uri.file(depfile));
+      });
+
+      // Read depfile generated by Fasta and append deps that we have collected
+      // during generation of patched_sdk to it.
+      // Note: we are splitting by ': ' because Windows paths can start with
+      // drive letter followed by a colon.
+      final list = new File(depfile).readAsStringSync().split(': ');
+      assert(list.length == 2);
+      deps.addAll(list[1].split(' ').where((str) => str.isNotEmpty));
+      assert(list[0] == path.join('patched_sdk', 'platform.dill'));
+      new File(depfile).writeAsStringSync("${list[0]}: ${deps.join(' ')}\n");
     }, zoneSpecification: new ZoneSpecification(print: (_, _2, _3, line) {
       capturedLines.add(line);
     }));
@@ -244,9 +298,8 @@ void _writeSync(String filePath, String contents) {
 /// in the Dart language. Since this feature is only for the convenience of
 /// writing the dart:* libraries, and not a tool given to Dart developers, it
 /// seems like a non-ideal situation. Instead we keep the preprocessing simple.
-List<String> _patchLibrary(String name,
-                           List<String> partsContents,
-                           String patchContents) {
+List<String> _patchLibrary(
+    String name, List<String> partsContents, String patchContents) {
   var results = <StringEditBuffer>[];
 
   // Parse the patch first. We'll need to extract bits of this as we go through
@@ -275,8 +328,13 @@ List<String> _patchLibrary(String name,
 }
 
 final String injectedCidFields = [
-  'Array', 'ExternalOneByteString', 'GrowableObjectArray',
-  'ImmutableArray', 'OneByteString', 'TwoByteString', 'Bigint'
+  'Array',
+  'ExternalOneByteString',
+  'GrowableObjectArray',
+  'ImmutableArray',
+  'OneByteString',
+  'TwoByteString',
+  'Bigint'
 ].map((name) => "static final int cid${name} = 0;").join('\n');
 
 /// Merge `@patch` declarations into `external` declarations.
@@ -302,8 +360,7 @@ class PatchApplier extends GeneralizingAstVisitor {
     // make core libraries compile. Kernel reader will actually ignore these
     // fields and instead inject concrete constants into this class.
     if (node is ClassDeclaration && node.name.name == 'ClassID') {
-      code = code.replaceFirst(
-          new RegExp(r'}$'), injectedCidFields + '}');
+      code = code.replaceFirst(new RegExp(r'}$'), injectedCidFields + '}');
     }
     edits.insert(pos, '\n' + code);
   }
@@ -449,7 +506,8 @@ String _qualifiedName(Declaration node) {
 
   var accessor = '';
   if (node is MethodDeclaration) {
-    if (node.isGetter) accessor = 'get:';
+    if (node.isGetter)
+      accessor = 'get:';
     else if (node.isSetter) accessor = 'set:';
   }
   return className + accessor + name;
