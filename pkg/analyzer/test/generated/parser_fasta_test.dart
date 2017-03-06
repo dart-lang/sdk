@@ -376,20 +376,8 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCascadeSection_p_assign_withCascade() {
-    super.test_parseCascadeSection_p_assign_withCascade();
-  }
-
-  @override
-  @failingTest
   void test_parseCascadeSection_p_assign_withCascade_typeArgumentComments() {
     super.test_parseCascadeSection_p_assign_withCascade_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_p_assign_withCascade_typeArguments() {
-    super.test_parseCascadeSection_p_assign_withCascade_typeArguments();
   }
 
   @override
@@ -768,7 +756,7 @@ class FastaParserTestCase extends Object
   @override
   Expression parseCascadeSection(String code) {
     var cascadeExpression = _parseExpression('null$code') as CascadeExpression;
-    return cascadeExpression.cascadeSections.single;
+    return cascadeExpression.cascadeSections.first;
   }
 
   @override
