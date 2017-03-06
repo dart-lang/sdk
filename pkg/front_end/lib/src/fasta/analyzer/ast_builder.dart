@@ -77,12 +77,22 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleNewExpression(Token token) {
-    debugEvent("NewExpression");
+  void handleConstExpression(Token token) {
+    debugEvent("ConstExpression");
+    _handleInstanceCreation(token);
+  }
+
+  void _handleInstanceCreation(Token token) {
     MethodInvocation arguments = pop();
     ConstructorName constructorName = pop();
     push(ast.instanceCreationExpression(
         toAnalyzerToken(token), constructorName, arguments.argumentList));
+  }
+
+  @override
+  void handleNewExpression(Token token) {
+    debugEvent("NewExpression");
+    _handleInstanceCreation(token);
   }
 
   @override

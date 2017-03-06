@@ -418,12 +418,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseConstExpression_instanceCreation() {
-    super.test_parseConstExpression_instanceCreation();
-  }
-
-  @override
-  @failingTest
   void test_parseConstExpression_listLiteral_typed_genericComment() {
     super.test_parseConstExpression_listLiteral_typed_genericComment();
   }
@@ -551,12 +545,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
       test_parsePostfixExpression_none_methodInvocation_typeArgumentComments() {
     super
         .test_parsePostfixExpression_none_methodInvocation_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_parsePrimaryExpression_const() {
-    super.test_parsePrimaryExpression_const();
   }
 
   @override
