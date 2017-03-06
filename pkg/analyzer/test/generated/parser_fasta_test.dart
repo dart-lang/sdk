@@ -669,12 +669,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseSymbolLiteral_operator() {
-    super.test_parseSymbolLiteral_operator();
-  }
-
-  @override
-  @failingTest
   void test_parseSymbolLiteral_void() {
     super.test_parseSymbolLiteral_void();
   }

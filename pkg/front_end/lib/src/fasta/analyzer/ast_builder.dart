@@ -149,8 +149,14 @@ class AstBuilder extends ScopeListener {
 
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
-    String name = token.value;
-    SimpleIdentifier identifier = ast.simpleIdentifier(toAnalyzerToken(token));
+    analyzer.Token analyzerToken = toAnalyzerToken(token);
+
+    if (context.inSymbol) {
+      push(analyzerToken);
+      return;
+    }
+
+    SimpleIdentifier identifier = ast.simpleIdentifier(analyzerToken);
     if (context.inLibraryOrPartOfDeclaration) {
       if (!context.isContinuation) {
         push([identifier]);
@@ -166,6 +172,7 @@ class AstBuilder extends ScopeListener {
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       if (context.isScopeReference) {
+        String name = token.value;
         Builder builder = scope.lookup(name, token.charOffset, uri);
         if (builder != null) {
           Element element = elementStore[builder];
@@ -261,6 +268,11 @@ class AstBuilder extends ScopeListener {
     pop(); // Token.
     receiver.cascadeSections.add(expression);
     push(receiver);
+  }
+
+  void handleOperator(Token token) {
+    debugEvent("Operator");
+    push(toAnalyzerToken(token));
   }
 
   void handleBinaryExpression(Token token) {
@@ -487,13 +499,9 @@ class AstBuilder extends ScopeListener {
     push(ast.mapLiteralEntry(key, toAnalyzerToken(colon), value));
   }
 
-  void endLiteralSymbol(Token hashToken, int identifierCount) {
+  void endLiteralSymbol(Token hashToken, int tokenCount) {
     debugEvent("LiteralSymbol");
-    List<analyzer.Token> components = new List<analyzer.Token>(identifierCount);
-    for (int i = identifierCount - 1; i >= 0; i--) {
-      SimpleIdentifier identifier = pop();
-      components[i] = identifier.token;
-    }
+    List<analyzer.Token> components = popList(tokenCount);
     push(ast.symbolLiteral(toAnalyzerToken(hashToken), components));
   }
 
