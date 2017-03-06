@@ -352,12 +352,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseAwaitExpression() {
-    super.test_parseAwaitExpression();
-  }
-
-  @override
-  @failingTest
   void test_parseCascadeSection_ia_typeArgumentComments() {
     super.test_parseCascadeSection_ia_typeArgumentComments();
   }
@@ -723,7 +717,8 @@ class FastaParserTestCase extends Object
 
   @override
   AwaitExpression parseAwaitExpression(String code) {
-    return _parseExpression(code);
+    var function = _parseExpression('() async => $code') as FunctionExpression;
+    return (function.body as ExpressionFunctionBody).expression;
   }
 
   @override

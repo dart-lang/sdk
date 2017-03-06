@@ -4266,7 +4266,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void test_parseAwaitExpression() {
-    AwaitExpression expression = parseAwaitExpression('await x;');
+    AwaitExpression expression = parseAwaitExpression('await x');
     expect(expression, isNotNull);
     assertNoErrors();
     expect(expression.awaitKeyword, isNotNull);
