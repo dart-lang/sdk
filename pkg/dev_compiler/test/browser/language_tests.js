@@ -343,7 +343,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       // TODO(rnystrom): Times out because it tests a huge number of
       // combinations of URLs (4 * 5 * 5 * 8 * 6 * 6 * 4 = 115200).
       'uri_parse_test': skip_timeout,
-      'uri_test': is.firefox('<=50') ? fail : pass,
+      'uri_test': 'slow',
 
       'list_insert_test': fail,
       'list_removeat_test': fail,
