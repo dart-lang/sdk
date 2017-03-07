@@ -2151,8 +2151,9 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(compiler->zone(),
                                       StubCode::AllocateArray_entry()->code());
   compiler->AddStubCallTarget(stub);
-  compiler->GenerateCall(token_pos(), *StubCode::AllocateArray_entry(),
-                         RawPcDescriptors::kOther, locs());
+  compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
+                                  *StubCode::AllocateArray_entry(),
+                                  RawPcDescriptors::kOther, locs());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
@@ -2829,6 +2830,10 @@ class CheckedSmiSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
+    if (instruction_->env() != NULL) {
+      Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+      compiler->pending_deoptimization_env_ = env;
+    }
     __ pushq(locs->in(0).reg());
     __ pushq(locs->in(1).reg());
     compiler->EmitMegamorphicInstanceCall(
@@ -2839,6 +2844,7 @@ class CheckedSmiSlowPath : public SlowPathCode {
     __ MoveRegister(result, RAX);
     compiler->RestoreLiveRegisters(locs);
     __ jmp(exit_label());
+    compiler->pending_deoptimization_env_ = NULL;
   }
 
  private:
@@ -2989,6 +2995,10 @@ class CheckedSmiComparisonSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
+    if (instruction_->env() != NULL) {
+      Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+      compiler->pending_deoptimization_env_ = env;
+    }
     __ pushq(locs->in(0).reg());
     __ pushq(locs->in(1).reg());
     compiler->EmitMegamorphicInstanceCall(
@@ -2998,6 +3008,7 @@ class CheckedSmiComparisonSlowPath : public SlowPathCode {
         /* slow_path_argument_count = */ 2);
     __ MoveRegister(result, RAX);
     compiler->RestoreLiveRegisters(locs);
+    compiler->pending_deoptimization_env_ = NULL;
     if (merged_) {
       __ CompareObject(result, Bool::True());
       __ j(EQUAL, instruction_->is_negated() ? labels_.false_label
@@ -5907,6 +5918,7 @@ class RangeErrorSlowPath : public SlowPathCode {
     }
     __ Bind(entry_label());
     LocationSummary* locs = instruction_->locs();
+    compiler->SaveLiveRegisters(locs);
     __ pushq(locs->in(0).reg());
     __ pushq(locs->in(1).reg());
     __ CallRuntime(kRangeErrorRuntimeEntry, 2);
@@ -5914,6 +5926,8 @@ class RangeErrorSlowPath : public SlowPathCode {
         RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
         instruction_->deopt_id(), instruction_->token_pos(), try_index_);
     compiler->RecordSafepoint(locs, 2);
+    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
+    compiler->EmitCatchEntryState(env, try_index_);
     __ int3();
   }
 
@@ -5927,7 +5941,6 @@ void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   RangeErrorSlowPath* slow_path =
       new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
   compiler->AddSlowPathCode(slow_path);
-
   Location length_loc = locs()->in(kLengthPos);
   Location index_loc = locs()->in(kIndexPos);
   Register length = length_loc.reg();
@@ -6668,6 +6681,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ xorq(RBX, RBX);
   __ call(RCX);
   compiler->RecordSafepoint(locs());
+  compiler->EmitCatchEntryState();
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());

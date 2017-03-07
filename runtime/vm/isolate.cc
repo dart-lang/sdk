@@ -769,6 +769,12 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 
 #define REUSABLE_HANDLE_INITIALIZERS(object) object##_handle_(NULL),
 
+
+static void FreeCatchEntryState(CatchEntryState* state) {
+  delete state->data;
+}
+
+
 // TODO(srdjan): Some Isolate monitors can be shared. Replace their usage with
 // that shared monitor.
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
@@ -846,7 +852,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       reload_context_(NULL),
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
       should_pause_post_service_request_(false),
-      handler_info_cache_() {
+      handler_info_cache_(),
+      catch_entry_state_cache_(FreeCatchEntryState) {
   NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to

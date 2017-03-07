@@ -345,6 +345,42 @@ void DeoptContext::FillDestFrame() {
 }
 
 
+intptr_t* DeoptContext::CatchEntryState(intptr_t num_vars) {
+  const Code& code = Code::Handle(code_);
+  const TypedData& deopt_info = TypedData::Handle(deopt_info_);
+  GrowableArray<DeoptInstr*> deopt_instructions;
+  const Array& deopt_table = Array::Handle(code.deopt_info_array());
+  ASSERT(!deopt_table.IsNull());
+  DeoptInfo::Unpack(deopt_table, deopt_info, &deopt_instructions);
+
+  intptr_t* state = new intptr_t[2 * num_vars + 1];
+  state[0] = num_vars;
+
+  Function& function = Function::Handle(zone(), code.function());
+  intptr_t params =
+      function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
+  for (intptr_t i = 0; i < num_vars; i++) {
+#if defined(TARGET_ARCH_DBC)
+    const intptr_t len = deopt_instructions.length();
+    intptr_t slot = i < params ? i : i + kParamEndSlotFromFp;
+    DeoptInstr* instr = deopt_instructions[len - 1 - slot];
+    intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
+#else
+    const intptr_t len = deopt_instructions.length();
+    intptr_t slot =
+        i < params ? i : i + kParamEndSlotFromFp - kFirstLocalSlotFromFp;
+    DeoptInstr* instr = deopt_instructions[len - 1 - slot];
+    intptr_t dest_index = i - params;
+#endif
+    CatchEntryStatePair p = instr->ToCatchEntryStatePair(this, dest_index);
+    state[1 + 2 * i] = p.src;
+    state[2 + 2 * i] = p.dest;
+  }
+
+  return state;
+}
+
+
 static void FillDeferredSlots(DeoptContext* deopt_context,
                               DeferredSlot** slot_list) {
   DeferredSlot* slot = *slot_list;
@@ -485,6 +521,11 @@ class DeoptConstantInstr : public DeoptInstr {
     *reinterpret_cast<RawObject**>(dest_addr) = obj.raw();
   }
 
+  CatchEntryStatePair ToCatchEntryStatePair(DeoptContext* deopt_context,
+                                            intptr_t dest_slot) {
+    return CatchEntryStatePair::FromConstant(object_table_index_, dest_slot);
+  }
+
  private:
   const intptr_t object_table_index_;
 
@@ -511,6 +552,12 @@ class DeoptWordInstr : public DeoptInstr {
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     *dest_addr = source_.Value<intptr_t>(deopt_context);
+  }
+
+  CatchEntryStatePair ToCatchEntryStatePair(DeoptContext* deopt_context,
+                                            intptr_t dest_slot) {
+    return CatchEntryStatePair::FromMove(source_.StackSlot(deopt_context),
+                                         dest_slot);
   }
 
  private:
