@@ -184,6 +184,41 @@ class DateTime implements Comparable<DateTime> {
           true);
 
   /**
+   * Constructs a [DateTime] instance that contains the same data as the given instance,
+   * but provides named fields to overwrite fields with different values if necessary.
+   *
+   * For example,
+   * to create a new DateTime object representing April 29, 2014, 6:04am:
+   *
+   *     DateTime annularEclipse = new DateTime(2014, DateTime.APRIL, 29, 6, 4);
+   *
+   * Now you need a second DateTime on another Day, but the rest should stay the same
+   *
+   *     DateTime second = new DateTime.from(annularEclipse, month: DateTime.SEPTEMBER, day: 20);
+   */
+  DateTime.from(
+      DateTime src, {
+      int year : null,
+      int month : null,
+      int day : null,
+      int hour : null,
+      int minute : null,
+      int second : null,
+      int millisecond : null,
+      bool isUtc:null
+      }):this._internal(
+        year == null ? src.year : year,
+        month == null ? src.month : month,
+        day == null ? src.day : day,
+        hour == null ? src.hour : hour,
+        minute == null ? src.minute : minute,
+        second == null ? src.second : second,
+        millisecond == null ? src.millisecond : millisecond,
+        isUtc == null ? src.isUtc :isUtc
+    );
+  }
+
+  /**
    * Constructs a [DateTime] instance with current date and time in the
    * local time zone.
    *
