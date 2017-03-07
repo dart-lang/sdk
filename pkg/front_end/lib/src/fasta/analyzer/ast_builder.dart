@@ -598,6 +598,15 @@ class AstBuilder extends ScopeListener {
     push(new _ParameterDefaultValue(equals, value));
   }
 
+  void handleFunctionType(Token functionToken, Token semicolon) {
+    debugEvent("FunctionType");
+    FormalParameterList parameters = pop();
+    TypeParameterList typeParameters = pop();
+    TypeAnnotation returnType = pop();
+    push(ast.genericFunctionType(returnType, toAnalyzerToken(functionToken),
+        typeParameters, parameters));
+  }
+
   void handleFormalParameterWithoutValue(Token token) {
     debugEvent("FormalParameterWithoutValue");
     push(NullValue.ParameterDefaultValue);

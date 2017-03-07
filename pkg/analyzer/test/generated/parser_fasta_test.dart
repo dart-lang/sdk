@@ -108,13 +108,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseClassMember_operator_functionType() {
-    // TODO(paulberry): InputError: ErrorKind.ExpectedFunctionBody {actual: operator}
-    super.test_parseClassMember_operator_functionType();
-  }
-
-  @override
-  @failingTest
   void test_parseClassMember_redirectingFactory_const() {
     // TODO(paulberry): Unhandled event: ConstructorReference
     super.test_parseClassMember_redirectingFactory_const();
@@ -1338,79 +1331,5 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // TODO(paulberry,ahe): URIs in "part of" declarations are not supported by
     // Fasta.
     super.test_parsePartOfDirective_uri();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_genericFunction_noParameters() {
-    super.test_parseTypeAlias_genericFunction_noParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_genericFunction_noReturnType() {
-    super.test_parseTypeAlias_genericFunction_noReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_genericFunction_parameterizedReturnType() {
-    super.test_parseTypeAlias_genericFunction_parameterizedReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_genericFunction_parameters() {
-    super.test_parseTypeAlias_genericFunction_parameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters() {
-    super.test_parseTypeAlias_genericFunction_typeParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters_noParameters() {
-    super.test_parseTypeAlias_genericFunction_typeParameters_noParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters_noReturnType() {
-    super.test_parseTypeAlias_genericFunction_typeParameters_noReturnType();
-  }
-
-  @override
-  @failingTest
-  void
-      test_parseTypeAlias_genericFunction_typeParameters_parameterizedReturnType() {
-    super
-        .test_parseTypeAlias_genericFunction_typeParameters_parameterizedReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters_parameters() {
-    super.test_parseTypeAlias_genericFunction_typeParameters_parameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters_typeParameters() {
-    super.test_parseTypeAlias_genericFunction_typeParameters_typeParameters();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_genericFunction_typeParameters_voidReturnType() {
-    super.test_parseTypeAlias_genericFunction_typeParameters_voidReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeAlias_genericFunction_voidReturnType() {
-    super.test_parseTypeAlias_genericFunction_voidReturnType();
   }
 }

@@ -548,9 +548,9 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation returnType,
           Token functionKeyword,
           TypeParameterList typeParameters,
-          FormalParameterList _parameters) =>
+          FormalParameterList parameters) =>
       new GenericFunctionTypeImpl(
-          returnType, functionKeyword, typeParameters, _parameters);
+          returnType, functionKeyword, typeParameters, parameters);
 
   @override
   GenericTypeAlias genericTypeAlias(
