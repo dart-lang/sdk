@@ -2381,7 +2381,14 @@ class ExprTypeComputer {
     } else {
       ClassElementForLink classElement =
           unit.resolveConstructorClassRef(ref.reference).asClass;
-      stack.add(classElement?.type ?? DynamicTypeImpl.instance);
+      DartType inferredType;
+      if (classElement != null) {
+        InterfaceType rawType = classElement.type;
+        inferredType = linker.typeSystem.instantiateToBounds(rawType);
+      } else {
+        inferredType = DynamicTypeImpl.instance;
+      }
+      stack.add(inferredType);
     }
   }
 
