@@ -420,7 +420,7 @@ class AstBuilder extends ScopeListener {
   void endVariablesDeclaration(int count, Token endToken) {
     debugEvent("VariablesDeclaration");
     List<VariableDeclaration> variables = popList(count);
-    TypeName type = pop();
+    TypeAnnotation type = pop();
     pop(); // TODO(paulberry): Modifiers.
     push(ast.variableDeclarationStatement(
         ast.variableDeclarationList(null, null, null, type, variables),
@@ -556,7 +556,7 @@ class AstBuilder extends ScopeListener {
 
   void handleIsOperator(Token operator, Token not, Token endToken) {
     debugEvent("IsOperator");
-    TypeName type = pop();
+    TypeAnnotation type = pop();
     Expression expression = pop();
     push(ast.isExpression(
         expression, toAnalyzerToken(operator), toAnalyzerToken(not), type));
@@ -672,7 +672,7 @@ class AstBuilder extends ScopeListener {
     FormalParameterList formalParameters = pop();
     TypeParameterList typeParameters = pop();
     SimpleIdentifier name = pop();
-    TypeName returnType = pop();
+    TypeAnnotation returnType = pop();
 
     {
       _Modifiers modifiers = pop();
@@ -741,7 +741,7 @@ class AstBuilder extends ScopeListener {
     if (catchKeyword != null) {
       exitLocalScope();
     }
-    TypeName type = popIfNotNull(onKeyword);
+    TypeAnnotation type = popIfNotNull(onKeyword);
     SimpleIdentifier exception;
     SimpleIdentifier stackTrace;
     if (catchParameters != null) {
