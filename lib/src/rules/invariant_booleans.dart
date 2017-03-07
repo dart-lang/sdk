@@ -216,15 +216,29 @@ AstNodePredicate _isConditionalStatementWithReturn(
 AstNodePredicate _noFurtherAssignmentInvalidatingCondition(
     Expression node, Iterable<AstNode> nodesInDFS) {
   Set<Identifier> identifiers = _findStatementIdentifiers(node.parent);
-  return (AstNode statement) =>
-      nodesInDFS
-          .skipWhile((n) => n != statement)
-          .takeWhile((n) => n != node)
-          .where((n) =>
-              n is AssignmentExpression &&
-              !identifiers.contains(n.leftHandSide))
-          .length ==
-      0;
+  return (AstNode statement) {
+    bool isMutation(AstNode n) {
+      if (n is AssignmentExpression) {
+        return !identifiers.contains(n.leftHandSide);
+      } else if (n is PostfixExpression) {
+        TokenType type = n.operator.type;
+        return (type == TokenType.PLUS_PLUS || type == TokenType.MINUS_MINUS) &&
+            !identifiers.contains(n.operand);
+      } else if (n is PrefixExpression) {
+        TokenType type = n.operator.type;
+        return (type == TokenType.PLUS_PLUS || type == TokenType.MINUS_MINUS) &&
+            !identifiers.contains(n.operand);
+      }
+
+      return false;
+    }
+
+    return nodesInDFS
+            .skipWhile((n) => n != statement)
+            .takeWhile((n) => n != node)
+            .where(isMutation)
+            .isEmpty;
+  };
 }
 
 List<Expression> _splitConjunctions(Expression expression) {
