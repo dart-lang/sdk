@@ -7,7 +7,6 @@
 
 #include "platform/assert.h"
 #include "vm/atomic.h"
-#include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/snapshot.h"
 #include "vm/token.h"
@@ -1139,10 +1138,6 @@ class RawCode : public RawObject {
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
-  union {
-    RawTypedData* catch_entry_state_maps_;
-    RawSmi* variables_;
-  } catch_entry_;
   RawArray* stackmaps_;
   RawArray* inlined_id_to_function_;
   RawCodeSourceMap* code_source_map_;

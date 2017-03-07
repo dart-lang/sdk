@@ -300,7 +300,6 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
   __ jalr(T2);
   compiler->RecordSafepoint(locs());
-  compiler->EmitCatchEntryState();
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
@@ -2351,9 +2350,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(compiler->zone(),
                                       StubCode::AllocateArray_entry()->code());
   compiler->AddStubCallTarget(stub);
-  compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
-                                  *StubCode::AllocateArray_entry(),
-                                  RawPcDescriptors::kOther, locs());
+  compiler->GenerateCall(token_pos(), *StubCode::AllocateArray_entry(),
+                         RawPcDescriptors::kOther, locs());
   __ Bind(&done);
   ASSERT(locs()->out(0).reg() == kResultReg);
 }
@@ -2965,10 +2963,6 @@ class CheckedSmiSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
-    if (instruction_->env() != NULL) {
-      Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
-      compiler->pending_deoptimization_env_ = env;
-    }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
     compiler->EmitMegamorphicInstanceCall(
@@ -2979,7 +2973,6 @@ class CheckedSmiSlowPath : public SlowPathCode {
     __ mov(result, V0);
     compiler->RestoreLiveRegisters(locs);
     __ b(exit_label());
-    compiler->pending_deoptimization_env_ = NULL;
   }
 
  private:
@@ -3101,10 +3094,6 @@ class CheckedSmiComparisonSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
-    if (instruction_->env() != NULL) {
-      Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
-      compiler->pending_deoptimization_env_ = env;
-    }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
     compiler->EmitMegamorphicInstanceCall(
@@ -3114,7 +3103,6 @@ class CheckedSmiComparisonSlowPath : public SlowPathCode {
         /* slow_path_argument_count = */ 2);
     __ mov(result, V0);
     compiler->RestoreLiveRegisters(locs);
-    compiler->pending_deoptimization_env_ = NULL;
     if (merged_) {
       __ BranchEqual(result, Bool::True(), instruction_->is_negated()
                                                ? labels_.false_label
@@ -5143,15 +5131,12 @@ class RangeErrorSlowPath : public SlowPathCode {
     }
     __ Bind(entry_label());
     LocationSummary* locs = instruction_->locs();
-    compiler->SaveLiveRegisters(locs);
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
     __ CallRuntime(kRangeErrorRuntimeEntry, 2);
     compiler->AddDescriptor(
         RawPcDescriptors::kOther, compiler->assembler()->CodeSize(),
         instruction_->deopt_id(), instruction_->token_pos(), try_index_);
-    Environment* env = compiler->SlowPathEnvironmentFor(instruction_);
-    compiler->EmitCatchEntryState(env, try_index_);
     __ break_(0);
   }
 

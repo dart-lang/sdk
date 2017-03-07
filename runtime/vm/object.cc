@@ -14007,17 +14007,6 @@ void Code::set_stackmaps(const Array& maps) const {
 }
 
 
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
-void Code::set_variables(const Smi& smi) const {
-  StorePointer(&raw_ptr()->catch_entry_.variables_, smi.raw());
-}
-#else
-void Code::set_catch_entry_state_maps(const TypedData& maps) const {
-  StorePointer(&raw_ptr()->catch_entry_.catch_entry_state_maps_, maps.raw());
-}
-#endif
-
-
 void Code::set_deopt_info_array(const Array& array) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();

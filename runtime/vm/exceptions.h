@@ -102,31 +102,6 @@ struct ExceptionHandlerInfo {
   int8_t is_generated;         // True if this is a generated handler.
 };
 
-
-class CatchEntryState {
- public:
-  enum { kCatchEntryStateIsMove = 1, kCatchEntryStateDestShift = 1 };
-
-  CatchEntryState() : data(NULL) {}
-  explicit CatchEntryState(intptr_t* data_) : data(data_) {}
-  // Data has the following format:
-  // 0 - number of pairs in this state
-  // 1-2 - 1st encoded src,dest pair
-  // 3-4 - 2nd pair
-  // ....
-  intptr_t* data;
-
-  intptr_t Pairs() { return data[0]; }
-
-  intptr_t Src(intptr_t i) { return data[1 + 2 * i]; }
-
-  intptr_t Dest(intptr_t i) {
-    return data[2 + 2 * i] >> kCatchEntryStateDestShift;
-  }
-
-  bool isMove(intptr_t i) { return data[2 + 2 * i] & kCatchEntryStateIsMove; }
-};
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_EXCEPTIONS_H_

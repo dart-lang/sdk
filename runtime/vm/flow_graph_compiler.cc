@@ -196,7 +196,6 @@ FlowGraphCompiler::FlowGraphCompiler(
       pc_descriptors_list_(NULL),
       stackmap_table_builder_(NULL),
       code_source_map_builder_(NULL),
-      catch_entry_state_maps_builder_(NULL),
       block_info_(block_order_.length()),
       deopt_infos_(),
       static_calls_target_table_(),
@@ -268,7 +267,6 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 void FlowGraphCompiler::InitCompiler() {
   pc_descriptors_list_ = new (zone()) DescriptorList(64);
   exception_handlers_list_ = new (zone()) ExceptionHandlerList();
-  catch_entry_state_maps_builder_ = new (zone()) CatchEntryStateMapBuilder();
   block_info_.Clear();
   // Conservative detection of leaf routines used to remove the stack check
   // on function entry.
@@ -414,91 +412,6 @@ void FlowGraphCompiler::CompactBlocks() {
 }
 
 
-void FlowGraphCompiler::EmitCatchEntryState(Environment* env,
-                                            intptr_t try_index) {
-#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-  env = env ? env : pending_deoptimization_env_;
-  try_index = try_index != CatchClauseNode::kInvalidTryIndex
-                  ? try_index
-                  : CurrentTryIndex();
-  if (is_optimizing() && env != NULL &&
-      (try_index != CatchClauseNode::kInvalidTryIndex)) {
-    env = env->Outermost();
-    CatchBlockEntryInstr* catch_block =
-        flow_graph().graph_entry()->GetCatchEntry(try_index);
-    const GrowableArray<Definition*>* idefs =
-        catch_block->initial_definitions();
-    catch_entry_state_maps_builder_->NewMapping(assembler()->CodeSize());
-    // Parameters first.
-    intptr_t i = 0;
-    const intptr_t num_non_copied_params = flow_graph().num_non_copied_params();
-    for (; i < num_non_copied_params; ++i) {
-      // Don't sync captured parameters. They are not in the environment.
-      if (flow_graph().captured_parameters()->Contains(i)) continue;
-      if ((*idefs)[i]->IsConstant()) continue;  // Common constants.
-      Location src = env->LocationAt(i);
-      intptr_t dest_index = i - num_non_copied_params;
-      if (!src.IsStackSlot()) {
-        ASSERT(src.IsConstant());
-        // Skip dead locations.
-        if (src.constant().raw() == Symbols::OptimizedOut().raw()) {
-          continue;
-        }
-        intptr_t id =
-            assembler()->object_pool_wrapper().FindObject(src.constant());
-        catch_entry_state_maps_builder_->AppendConstant(id, dest_index);
-        continue;
-      }
-      if (src.stack_index() != dest_index) {
-        catch_entry_state_maps_builder_->AppendMove(src.stack_index(),
-                                                    dest_index);
-      }
-    }
-
-    // Process locals. Skip exception_var and stacktrace_var.
-    intptr_t local_base = kFirstLocalSlotFromFp + num_non_copied_params;
-    intptr_t ex_idx = local_base - catch_block->exception_var().index();
-    intptr_t st_idx = local_base - catch_block->stacktrace_var().index();
-    for (; i < flow_graph().variable_count(); ++i) {
-      // Don't sync captured parameters. They are not in the environment.
-      if (flow_graph().captured_parameters()->Contains(i)) continue;
-      if (i == ex_idx || i == st_idx) continue;
-      if ((*idefs)[i]->IsConstant()) continue;  // Common constants.
-      Location src = env->LocationAt(i);
-      if (src.IsInvalid()) continue;
-      intptr_t dest_index = i - num_non_copied_params;
-      if (!src.IsStackSlot()) {
-        ASSERT(src.IsConstant());
-        // Skip dead locations.
-        if (src.constant().raw() == Symbols::OptimizedOut().raw()) {
-          continue;
-        }
-        intptr_t id =
-            assembler()->object_pool_wrapper().FindObject(src.constant());
-        catch_entry_state_maps_builder_->AppendConstant(id, dest_index);
-        continue;
-      }
-      if (src.stack_index() != dest_index) {
-        catch_entry_state_maps_builder_->AppendMove(src.stack_index(),
-                                                    dest_index);
-      }
-    }
-    catch_entry_state_maps_builder_->EndMapping();
-  }
-#endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-}
-
-
-void FlowGraphCompiler::EmitCallsiteMetaData(TokenPosition token_pos,
-                                             intptr_t deopt_id,
-                                             RawPcDescriptors::Kind kind,
-                                             LocationSummary* locs) {
-  AddCurrentDescriptor(kind, deopt_id, token_pos);
-  RecordSafepoint(locs);
-  EmitCatchEntryState();
-}
-
-
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
     if (instr->CanBecomeDeoptimizationTarget() && !instr->IsGoto()) {
@@ -509,6 +422,10 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
                            instr->token_pos());
     }
     AllocateRegistersLocally(instr);
+  } else if (instr->MayThrow() &&
+             (CurrentTryIndex() != CatchClauseNode::kInvalidTryIndex)) {
+    // Optimized try-block: Sync locals to fixed stack locations.
+    EmitTrySync(instr, CurrentTryIndex());
   }
 }
 
@@ -624,6 +541,69 @@ void FlowGraphCompiler::VisitBlocks() {
 
 void FlowGraphCompiler::Bailout(const char* reason) {
   parsed_function_.Bailout("FlowGraphCompiler", reason);
+}
+
+
+void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
+  ASSERT(is_optimizing());
+  Environment* env = instr->env()->Outermost();
+  CatchBlockEntryInstr* catch_block =
+      flow_graph().graph_entry()->GetCatchEntry(try_index);
+  const GrowableArray<Definition*>* idefs = catch_block->initial_definitions();
+
+  // Construct a ParallelMove instruction for parameters and locals. Skip the
+  // special locals exception_var and stacktrace_var since they will be filled
+  // when an exception is thrown. Constant locations are known to be the same
+  // at all instructions that may throw, and do not need to be materialized.
+
+  // Parameters first.
+  intptr_t i = 0;
+  const intptr_t num_non_copied_params = flow_graph().num_non_copied_params();
+  ParallelMoveInstr* move_instr = new (zone()) ParallelMoveInstr();
+  for (; i < num_non_copied_params; ++i) {
+    // Don't sync captured parameters. They are not in the environment.
+    if (flow_graph().captured_parameters()->Contains(i)) continue;
+    if ((*idefs)[i]->IsConstant()) continue;  // Common constants
+    Location src = env->LocationAt(i);
+#if defined(TARGET_ARCH_DBC)
+    intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
+    Location dest = Location::RegisterLocation(dest_index);
+    // Update safepoint bitmap to indicate that the target location
+    // now contains a pointer. With DBC parameters are copied into
+    // the locals area.
+    instr->locs()->SetStackBit(dest_index);
+#else
+    intptr_t dest_index = i - num_non_copied_params;
+    Location dest = Location::StackSlot(dest_index);
+#endif
+    move_instr->AddMove(dest, src);
+  }
+
+  // Process locals. Skip exception_var and stacktrace_var.
+  intptr_t local_base = kFirstLocalSlotFromFp + num_non_copied_params;
+  intptr_t ex_idx = local_base - catch_block->exception_var().index();
+  intptr_t st_idx = local_base - catch_block->stacktrace_var().index();
+  for (; i < flow_graph().variable_count(); ++i) {
+    // Don't sync captured parameters. They are not in the environment.
+    if (flow_graph().captured_parameters()->Contains(i)) continue;
+    if (i == ex_idx || i == st_idx) continue;
+    if ((*idefs)[i]->IsConstant()) continue;
+    Location src = env->LocationAt(i);
+    ASSERT(!src.IsFpuRegister());
+    ASSERT(!src.IsDoubleStackSlot());
+#if defined(TARGET_ARCH_DBC)
+    intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
+    Location dest = Location::RegisterLocation(dest_index);
+#else
+    intptr_t dest_index = i - num_non_copied_params;
+    Location dest = Location::StackSlot(dest_index);
+#endif
+    move_instr->AddMove(dest, src);
+    // Update safepoint bitmap to indicate that the target location
+    // now contains a pointer.
+    instr->locs()->SetStackBit(dest_index);
+  }
+  parallel_move_resolver()->EmitNativeCode(move_instr);
 }
 
 
@@ -1035,15 +1015,6 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
   code.set_var_descriptors(var_descs);
 }
 
-void FlowGraphCompiler::FinalizeCatchEntryStateMap(const Code& code) {
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-  TypedData& maps = TypedData::Handle(
-      catch_entry_state_maps_builder_->FinalizeCatchEntryStateMap());
-  code.set_catch_entry_state_maps(maps);
-#else
-  code.set_variables(Smi::Handle(Smi::New(flow_graph().variable_count())));
-#endif
-}
 
 void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
   ASSERT(code.static_calls_target_table() == Array::null());
@@ -1069,7 +1040,6 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
   INC_STAT(Thread::Current(), total_code_size,
            targets.Length() * sizeof(uword));
 }
-
 
 
 void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
@@ -1153,23 +1123,6 @@ bool FlowGraphCompiler::TryIntrinsify() {
 // DBC is very different from other architectures in how it performs instance
 // and static calls because it does not use stubs.
 #if !defined(TARGET_ARCH_DBC)
-void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
-                                              intptr_t deopt_id,
-                                              const StubEntry& stub_entry,
-                                              RawPcDescriptors::Kind kind,
-                                              LocationSummary* locs) {
-  GenerateCall(token_pos, stub_entry, kind, locs);
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
-  if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after);
-  } else {
-    // Add deoptimization continuation point after the call and before the
-    // arguments are removed.
-    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
-  }
-}
-
-
 void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
                                              TokenPosition token_pos,
                                              intptr_t argument_count,

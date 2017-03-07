@@ -250,15 +250,13 @@ RawCode* StackFrame::GetCodeObject() const {
 bool StackFrame::FindExceptionHandler(Thread* thread,
                                       uword* handler_pc,
                                       bool* needs_stacktrace,
-                                      bool* has_catch_all,
-                                      bool* is_optimized) const {
+                                      bool* has_catch_all) const {
   REUSABLE_CODE_HANDLESCOPE(thread);
   Code& code = reused_code_handle.Handle();
   code = LookupDartCode();
   if (code.IsNull()) {
     return false;  // Stub frames do not have exception handlers.
   }
-  *is_optimized = code.is_optimized();
   HandlerInfoCache* cache = thread->isolate()->handler_info_cache();
   ExceptionHandlerInfo* info = cache->Lookup(pc());
   if (info != NULL) {

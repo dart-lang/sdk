@@ -7,7 +7,6 @@
 
 #include "vm/ast.h"
 #include "vm/code_generator.h"
-#include "vm/datastream.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
@@ -146,59 +145,6 @@ class ExceptionHandlerList : public ZoneAllocated {
  private:
   GrowableArray<struct HandlerDesc> list_;
   DISALLOW_COPY_AND_ASSIGN(ExceptionHandlerList);
-};
-
-
-// An encoded move from stack/constant to stack performed
-struct CatchEntryStatePair {
-  enum { kCatchEntryStateIsMove = 1, kCatchEntryStateDestShift = 1 };
-
-  intptr_t src, dest;
-
-  static CatchEntryStatePair FromConstant(intptr_t pool_id,
-                                          intptr_t dest_slot) {
-    CatchEntryStatePair pair;
-    pair.src = pool_id;
-    pair.dest = (dest_slot << kCatchEntryStateDestShift);
-    return pair;
-  }
-
-  static CatchEntryStatePair FromMove(intptr_t src_slot, intptr_t dest_slot) {
-    CatchEntryStatePair pair;
-    pair.src = src_slot;
-    pair.dest =
-        (dest_slot << kCatchEntryStateDestShift) | kCatchEntryStateIsMove;
-    return pair;
-  }
-
-  bool operator==(const CatchEntryStatePair& rhs) {
-    return src == rhs.src && dest == rhs.dest;
-  }
-};
-
-
-// Used to construct CatchEntryState metadata for AoT mode of compilation.
-class CatchEntryStateMapBuilder : public ZoneAllocated {
- public:
-  CatchEntryStateMapBuilder();
-
-  void NewMapping(intptr_t pc_offset);
-  void AppendMove(intptr_t src_slot, intptr_t dest_slot);
-  void AppendConstant(intptr_t pool_id, intptr_t dest_slot);
-  void EndMapping();
-  RawTypedData* FinalizeCatchEntryStateMap();
-
- private:
-  class TrieNode;
-
-  Zone* zone_;
-  TrieNode* root_;
-  intptr_t current_pc_offset_;
-  GrowableArray<CatchEntryStatePair> moves_;
-  uint8_t* buffer_;
-  WriteStream stream_;
-
-  DISALLOW_COPY_AND_ASSIGN(CatchEntryStateMapBuilder);
 };
 
 

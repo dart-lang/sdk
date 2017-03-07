@@ -7,7 +7,6 @@
 
 #include "vm/allocation.h"
 #include "vm/assembler.h"
-#include "vm/code_descriptors.h"
 #include "vm/code_generator.h"
 #include "vm/deferred_objects.h"
 #include "vm/flow_graph_compiler.h"
@@ -56,18 +55,6 @@ class DeoptContext {
     index = source_frame_size_ - 1 - index;
 #endif  // !defined(TARGET_ARCH_DBC)
     return &source_frame_[index];
-  }
-
-  // Returns index in stack slot notation where -1 is the first argument
-  // For DBC returns index directly relative to FP.
-  intptr_t GetStackSlot(intptr_t index) const {
-    ASSERT((0 <= index) && (index < source_frame_size_));
-    index -= num_args_;
-#if defined(TARGET_ARCH_DBC)
-    return index < 0 ? index - kDartFrameFixedSize : index;
-#else
-    return index < 0 ? index : index - kDartFrameFixedSize;
-#endif  // defined(TARGET_ARCH_DBC)
   }
 
   intptr_t GetSourceFp() const;
@@ -165,9 +152,6 @@ class DeoptContext {
   // Fills the destination frame but defers materialization of
   // objects.
   void FillDestFrame();
-
-  // Allocate and prepare exceptions metadata for TrySync
-  intptr_t* CatchEntryState(intptr_t num_vars);
 
   // Materializes all deferred objects.  Returns the total number of
   // artificial arguments used during deoptimization.
@@ -287,6 +271,7 @@ class DeoptContext {
   DISALLOW_COPY_AND_ASSIGN(DeoptContext);
 };
 
+
 // Represents one deopt instruction, e.g, setup return address, store object,
 // store register, etc. The target is defined by instruction's position in
 // the deopt-info array.
@@ -333,13 +318,6 @@ class DeoptInstr : public ZoneAllocated {
   }
 
   virtual void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) = 0;
-
-  // Convert DeoptInstr to TrySync metadata entry.
-  virtual CatchEntryStatePair ToCatchEntryStatePair(DeoptContext* deopt_context,
-                                                    intptr_t dest_slot) {
-    UNREACHABLE();
-    return CatchEntryStatePair();
-  }
 
   virtual DeoptInstr::Kind kind() const = 0;
 
@@ -431,14 +409,6 @@ class RegisterSource {
     } else {
       return *reinterpret_cast<T*>(
           context->GetSourceFrameAddressAt(raw_index()));
-    }
-  }
-
-  intptr_t StackSlot(DeoptContext* context) const {
-    if (is_register()) {
-      return raw_index();  // in DBC stack slots are registers.
-    } else {
-      return context->GetStackSlot(raw_index());
     }
   }
 
