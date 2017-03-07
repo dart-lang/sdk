@@ -427,6 +427,47 @@ class ApiElementBuilder extends _BaseElementBuilder {
   }
 
   @override
+  Object visitGenericFunctionType(GenericFunctionType node) {
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+    FunctionElementImpl element =
+        new FunctionElementImpl.forOffset(node.beginToken.offset);
+    _setCodeRange(element, node);
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
+    FunctionType type = new FunctionTypeImpl(element);
+    element.type = type;
+    if (node.returnType == null) {
+      element.hasImplicitReturnType = true;
+    }
+    _currentHolder.addFunction(element);
+    (node as GenericFunctionTypeImpl).type = type;
+    holder.validate();
+    return null;
+  }
+
+  @override
+  Object visitGenericTypeAlias(GenericTypeAlias node) {
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+    SimpleIdentifier aliasName = node.name;
+    List<TypeParameterElement> typeParameters = holder.typeParameters;
+    GenericTypeAliasElementImpl element =
+        new GenericTypeAliasElementImpl.forNode(aliasName);
+    _setCodeRange(element, node);
+    element.metadata = _createElementAnnotations(node.metadata);
+    setElementDocumentationComment(element, node);
+    element.typeParameters = typeParameters;
+    _createTypeParameterTypes(typeParameters);
+    element.type = new FunctionTypeImpl.forTypedef(element);
+    element.function = holder.functions[0];
+    _currentHolder.addTypeAlias(element);
+    aliasName.staticElement = element;
+    holder.validate();
+    return null;
+  }
+
+  @override
   Object visitImportDirective(ImportDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);

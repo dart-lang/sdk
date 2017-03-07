@@ -4875,6 +4875,237 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 }
 
 /**
+ * A function type alias of the form
+ *     `typedef` identifier typeParameters = genericFunctionType;
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class GenericTypeAliasElementImpl extends ElementImpl
+    with TypeParameterizedElementMixin
+    implements FunctionTypeAliasElement {
+  /**
+   * The unlinked representation of the type in the summary.
+   */
+  final UnlinkedTypedef _unlinkedTypedef;
+
+  /**
+   * The element representing the generic function type if this is a generic
+   * function type alias, or `null` if it isn't.
+   */
+  FunctionElement _function;
+
+  /**
+   * The type of function defined by this type alias.
+   */
+  FunctionType _type;
+
+  /**
+   * A list containing all of the type parameters defined for this type.
+   */
+  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
+
+  /**
+   * Initialize a newly created type alias element to have the given [name].
+   */
+  GenericTypeAliasElementImpl.forNode(Identifier name)
+      : _unlinkedTypedef = null,
+        super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  GenericTypeAliasElementImpl.forSerialized(
+      this._unlinkedTypedef, CompilationUnitElementImpl enclosingUnit)
+      : super.forSerialized(enclosingUnit);
+
+  @override
+  int get codeLength {
+    if (_unlinkedTypedef != null) {
+      return _unlinkedTypedef.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (_unlinkedTypedef != null) {
+      return _unlinkedTypedef.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
+  String get displayName => name;
+
+  @override
+  String get documentationComment {
+    if (_unlinkedTypedef != null) {
+      return _unlinkedTypedef?.documentationComment?.text;
+    }
+    return super.documentationComment;
+  }
+
+  @override
+  CompilationUnitElement get enclosingElement =>
+      super.enclosingElement as CompilationUnitElement;
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
+
+  @override
+  CompilationUnitElementImpl get enclosingUnit =>
+      _enclosingElement as CompilationUnitElementImpl;
+
+  /**
+   * Return the function element representing the generic function type on the
+   * right side of the equals.
+   */
+  FunctionElement get function {
+    if (_function == null && _unlinkedTypedef != null) {
+      DartType type = enclosingUnit.resynthesizerContext.resolveTypeRef(
+          _unlinkedTypedef.returnType, this,
+          declaredType: true);
+      if (type is FunctionType) {
+        _function = type.element;
+      }
+    }
+    return _function;
+  }
+
+  /**
+   * Set the function element representing the generic function type on the
+   * right side of the equals to the given [function].
+   */
+  void set function(FunctionElement function) {
+    _assertNotResynthesized(_unlinkedTypedef);
+    if (function != null) {
+      (function as FunctionElementImpl).enclosingElement = this;
+    }
+    _function = function;
+  }
+
+  @override
+  ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
+
+  @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedTypedef != null) {
+      return _metadata ??=
+          _buildAnnotations(enclosingUnit, _unlinkedTypedef.annotations);
+    }
+    return super.metadata;
+  }
+
+  @override
+  String get name {
+    if (_unlinkedTypedef != null) {
+      return _unlinkedTypedef.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedTypedef != null) {
+      return _unlinkedTypedef.nameOffset;
+    }
+    return offset;
+  }
+
+  @override
+  List<ParameterElement> get parameters => function.parameters;
+
+  @override
+  DartType get returnType => function.returnType;
+
+  @override
+  FunctionType get type {
+    if (_unlinkedTypedef != null && _type == null) {
+      _type = new FunctionTypeImpl.forTypedef(this);
+    }
+    return _type;
+  }
+
+  void set type(FunctionType type) {
+    _assertNotResynthesized(_unlinkedTypedef);
+    _type = type;
+  }
+
+  @override
+  TypeParameterizedElementMixin get typeParameterContext => this;
+
+  @override
+  List<TypeParameterElement> get typeParameters {
+    if (_unlinkedTypedef != null) {
+      return super.typeParameters;
+    }
+    return _typeParameters;
+  }
+
+  /**
+   * Set the type parameters defined for this type to the given
+   * [typeParameters].
+   */
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    _assertNotResynthesized(_unlinkedTypedef);
+    for (TypeParameterElement typeParameter in typeParameters) {
+      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    this._typeParameters = typeParameters;
+  }
+
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams =>
+      _unlinkedTypedef.typeParameters;
+
+  @override
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/ > visitor) =>
+      visitor.visitFunctionTypeAliasElement(this);
+
+  @override
+  void appendTo(StringBuffer buffer) {
+    buffer.write("typedef ");
+    buffer.write(displayName);
+    int typeParameterCount = _typeParameters.length;
+    if (typeParameterCount > 0) {
+      buffer.write("<");
+      for (int i = 0; i < typeParameterCount; i++) {
+        if (i > 0) {
+          buffer.write(", ");
+        }
+        (_typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+      }
+      buffer.write(">");
+    }
+    buffer.write(" = ");
+    (function as FunctionElementImpl).appendTo(buffer);
+  }
+
+  @override
+  FunctionTypeAlias computeNode() =>
+      getNodeMatching((node) => node is GenericTypeAlias);
+
+  @override
+  ElementImpl getChild(String identifier) {
+    for (TypeParameterElement typeParameter in _typeParameters) {
+      TypeParameterElementImpl typeParameterImpl = typeParameter;
+      if (typeParameterImpl.identifier == identifier) {
+        return typeParameterImpl;
+      }
+    }
+    return null;
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(typeParameters, visitor);
+    function?.accept(visitor);
+  }
+}
+
+/**
  * A concrete implementation of a [HideElementCombinator].
  */
 class HideElementCombinatorImpl implements HideElementCombinator {

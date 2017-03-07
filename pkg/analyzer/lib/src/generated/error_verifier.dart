@@ -1403,7 +1403,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   void _checkDuplicateDefinitionInParameterList(FormalParameterList node) {
     Map<String, Element> definedNames = new HashMap<String, Element>();
     for (FormalParameter parameter in node.parameters) {
-      _checkDuplicateIdentifier(definedNames, parameter.identifier);
+      SimpleIdentifier identifier = parameter.identifier;
+      if (identifier != null) {
+        // The identifier can be null if this is a parameter list for a generic
+        // function type.
+        _checkDuplicateIdentifier(definedNames, identifier);
+      }
     }
   }
 
