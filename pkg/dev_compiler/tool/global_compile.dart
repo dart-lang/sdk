@@ -60,7 +60,7 @@ void main(List<String> args) {
     '--modules=legacy', // TODO(vsm): Change this to use common format.
     '--single-out-file',
     '--inline-source-map',
-    '-p',
+    '--packages',
     packageRoot
   ];
   if (metadata) {

@@ -10,9 +10,9 @@ Status: Proposal
 Top level inference has two phases:
 
 1. **Method override inference**
-    * If you omit a return type or parameter type from an overridden method,
-    inference will try to fill in the missing type using the signature of the
-    method you are overriding.
+    * If you omit a return type or parameter type from an overridden or
+    implemented method, inference will try to fill in the missing type using the
+    signature of the method you are overriding.
 2. **Static variable and field inference** 
     * If you omit the type of a field, setter, or getter, which overrides a
    corresponding member of a superclass, then inference will try to fill in the
@@ -98,12 +98,12 @@ and it does not override or implement anything from a super type, then the
 omitted types are treated as dynamic.
 
 
-Otherwise, the missing types are filled in with the type from the overridden
-method.  If there are multiple overridden/implemented methods and the type to be
-filled in does not agree, it is an error.  If there is no corresponding
-parameter position in the overridden method to infer from, it is treated as
-dynamic (e.g. overriding a one parameter method with a method that takes a
-second optional parameter).
+Otherwise, the missing types are filled in with the type from the overridden or
+implemented method.  If there are multiple overridden/implemented methods and
+the type to be filled in does not agree, it is an error.  If there is no
+corresponding parameter position in the overridden method to infer from, it is
+treated as dynamic (e.g. overriding a one parameter method with a method that
+takes a second optional parameter).
 
 
 ### Setter return types
@@ -236,6 +236,9 @@ which is not an IE has no inferred type.  For every immediately evident
 expression, we also define the set of variable dependencies upon which its
 inference relies.
 
+The intention is that toplevel inference should always return the same result as
+local inference, or else produce an error.
+
 
 * null, boolean, numeric, string, type, and symbol literals have their
    corresponding type.
@@ -253,8 +256,23 @@ evident expression with type `T` or `Future<T>`.
   two returned sub-expressions.
   * Inference dependencies are the union of the inference dependencies of the
   two returned sub-expressions.
-* Logical boolean expressions have inferred type `boolean`.
+* Logical boolean expressions and equality expressions have inferred type
+  `boolean`.
   * No inference dependencies
+* Relational expressions, bitwise expressions, and shift expressions are treated
+as the appropriate method call as defined in the spec.
+  * Inference dependencies are those of the left hand operand.
+* A multiplicative binary expression is treated as a method call as defined in
+  the spec, with the same exceptions for when the left hand operand is of type `int`.
+  * Inference dependencies are those of the left hand operand.
+* Applications of the prefix operator `!` have type `boolean`
+  * No inference dependencies  
+* Applications of the prefix operators `++` and `--` have the type of the operand.
+  * Inference dependencies are those of the operand.
+* Applications of other prefix operators are treated as method calls.
+  * Inference dependencies are those of the operand.
+* Application of a postfix operator to an expression `e` has the inferred type of `e`.
+  * Inference dependencies are those of the operand.
 * A list literal or a map literal with explicit type arguments has the type
    `List<T>` or `Map<K, V>` respectively, where `<T>` or `<K, V>` are the
    provided type arguments.
@@ -293,9 +311,6 @@ evident expression with type `T` or `Future<T>`.
    * If the function is marked `async`, then the return type of the function is
      inferred as `Future<flatten<T>>` where `T` is the inferred type of the
      return expression and flatten is as described in the spec.
-* An instance creation expression with no omitted type arguments has the
-   obvious type.
-   * No inference dependencies
 * An instance creation expression with no omitted type arguments has the
    obvious type.
    * No inference dependencies
