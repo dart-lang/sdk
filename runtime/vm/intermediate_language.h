@@ -56,7 +56,8 @@ class CompileType : public ZoneAllocated {
       : is_nullable_(is_nullable), cid_(cid), type_(type) {}
 
   CompileType(const CompileType& other)
-      : is_nullable_(other.is_nullable_),
+      : ZoneAllocated(),
+        is_nullable_(other.is_nullable_),
         cid_(other.cid_),
         type_(other.type_) {}
 
