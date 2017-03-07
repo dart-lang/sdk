@@ -224,7 +224,7 @@ enum TypedefStyle : byte {
   functionType,
 
   /**
-   * A typedef that defines a generic function type. The syntax is
+   * A typedef expressed using generic function type syntax. The syntax is
    * ```
    * typeAlias ::=
    *     'typedef' identifier typeParameters? '=' genericFunctionType ';'
