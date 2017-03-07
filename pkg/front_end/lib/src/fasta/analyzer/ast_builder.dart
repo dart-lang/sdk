@@ -26,7 +26,7 @@ import 'element_store.dart'
         AnalyzerParameterElement,
         ElementStore,
         KernelClassElement;
-import 'token_utils.dart' show toAnalyzerToken;
+import 'token_utils.dart' show toAnalyzerToken, toAnalyzerCommentToken;
 
 class AstBuilder extends ScopeListener {
   final AstFactory ast = standard.astFactory;
@@ -182,8 +182,7 @@ class AstBuilder extends ScopeListener {
       // TODO(paulberry): analyzer's ASTs allow for enumerated values to have
       // metadata, but the spec doesn't permit it.
       List<Annotation> metadata;
-      // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-      Comment comment = null;
+      Comment comment = _toAnalyzerComment(token.precedingComments);
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       if (context.isScopeReference) {
@@ -630,8 +629,10 @@ class AstBuilder extends ScopeListener {
       _Modifiers modifiers = pop();
       Token keyword = modifiers?.finalConstOrVarKeyword;
       pop(); // TODO(paulberry): Metadata.
+      Comment comment = pop();
       if (thisKeyword == null) {
         node = ast.simpleFormalParameter2(
+            comment: comment,
             covariantKeyword: toAnalyzerToken(covariantKeyword),
             keyword: toAnalyzerToken(keyword),
             type: type,
@@ -642,6 +643,7 @@ class AstBuilder extends ScopeListener {
             ? thisKeyword.next
             : null;
         node = ast.fieldFormalParameter2(
+            comment: comment,
             covariantKeyword: toAnalyzerToken(covariantKeyword),
             keyword: toAnalyzerToken(keyword),
             type: type,
@@ -683,10 +685,12 @@ class AstBuilder extends ScopeListener {
     }
 
     pop(); // TODO(paulberry): Metadata.
+    Comment comment = pop();
 
     FormalParameter node;
     if (thisKeyword == null) {
       node = ast.functionTypedFormalParameter2(
+          comment: comment,
           covariantKeyword: toAnalyzerToken(covariantKeyword),
           returnType: returnType,
           identifier: name,
@@ -698,6 +702,7 @@ class AstBuilder extends ScopeListener {
           ? thisKeyword.next
           : null;
       node = ast.fieldFormalParameter2(
+          comment: comment,
           covariantKeyword: toAnalyzerToken(covariantKeyword),
           type: returnType,
           thisKeyword: toAnalyzerToken(thisKeyword),
@@ -845,8 +850,7 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token externalKeyword = modifiers?.externalKeyword;
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    Comment comment = pop();
     push(ast.functionDeclaration(
         comment,
         metadata,
@@ -898,9 +902,8 @@ class AstBuilder extends ScopeListener {
     List<Configuration> configurations = pop();
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
-    assert(metadata == null);
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    assert(metadata == null); // TODO(paulberry): fix.
+    Comment comment = pop();
     push(ast.importDirective(
         comment,
         metadata,
@@ -921,8 +924,7 @@ class AstBuilder extends ScopeListener {
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
     assert(metadata == null);
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    Comment comment = pop();
     push(ast.exportDirective(comment, metadata, toAnalyzerToken(exportKeyword),
         uri, configurations, combinators, toAnalyzerToken(semicolon)));
   }
@@ -1038,8 +1040,7 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    Comment comment = pop();
     push(ast.classDeclaration(
         comment,
         metadata,
@@ -1084,8 +1085,7 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    Comment comment = pop();
     push(ast.classTypeAlias(
         comment,
         metadata,
@@ -1106,8 +1106,7 @@ class AstBuilder extends ScopeListener {
     List<SimpleIdentifier> libraryName = pop();
     var name = ast.libraryIdentifier(libraryName);
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    Comment comment = pop();
     push(ast.libraryDirective(comment, metadata,
         toAnalyzerToken(libraryKeyword), name, toAnalyzerToken(semicolon)));
   }
@@ -1135,8 +1134,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("Part");
     StringLiteral uri = pop();
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    Comment comment = pop();
     push(ast.partDirective(comment, metadata, toAnalyzerToken(partKeyword), uri,
         toAnalyzerToken(semicolon)));
   }
@@ -1151,8 +1149,7 @@ class AstBuilder extends ScopeListener {
     // in a reference to the "of" keyword.
     var ofKeyword = partKeyword.next;
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    Comment comment = pop();
     push(ast.partOfDirective(comment, metadata, toAnalyzerToken(partKeyword),
         toAnalyzerToken(ofKeyword), uri, name, toAnalyzerToken(semicolon)));
   }
@@ -1193,8 +1190,7 @@ class AstBuilder extends ScopeListener {
     var variableList = ast.variableDeclarationList(
         null, null, toAnalyzerToken(keyword), type, variables);
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    Comment comment = pop();
     push(ast.topLevelVariableDeclaration(
         comment, metadata, variableList, toAnalyzerToken(endToken)));
   }
@@ -1236,8 +1232,7 @@ class AstBuilder extends ScopeListener {
     TypeAnnotation returnType = pop(); // TODO(paulberry)
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    Comment comment = pop();
     Token period;
     void unnamedConstructor(
         SimpleIdentifier returnType, SimpleIdentifier name) {
@@ -1311,8 +1306,7 @@ class AstBuilder extends ScopeListener {
       SimpleIdentifier name = pop();
       TypeAnnotation returnType = pop();
       List<Annotation> metadata = pop();
-      // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-      Comment comment = null;
+      Comment comment = pop();
       push(ast.functionTypeAlias(
           comment,
           metadata,
@@ -1327,8 +1321,7 @@ class AstBuilder extends ScopeListener {
       TypeParameterList templateParameters = pop();
       SimpleIdentifier name = pop();
       List<Annotation> metadata = pop();
-      // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-      Comment comment = null;
+      Comment comment = pop();
       if (type is! GenericFunctionType) {
         // TODO(paulberry) Generate an error and recover (better than
         // this).
@@ -1357,8 +1350,7 @@ class AstBuilder extends ScopeListener {
     Token closeBrace = openBrace.endGroup;
     SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    Comment comment = pop();
     push(ast.enumDeclaration(
         comment,
         metadata,
@@ -1387,8 +1379,7 @@ class AstBuilder extends ScopeListener {
     var variableList = ast.variableDeclarationList(null, null,
         toAnalyzerToken(modifiers?.finalConstOrVarKeyword), type, variables);
     List<Annotation> metadata = pop();
-    // TODO(paulberry): capture doc comments.  See dartbug.com/28851.
-    Comment comment = null;
+    Comment comment = pop();
     push(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
@@ -1405,6 +1396,16 @@ class AstBuilder extends ScopeListener {
         ast.simpleIdentifier(toAnalyzerToken(token), isDeclaration: true)));
   }
 
+  @override
+  void beginMetadataStar(Token token) {
+    debugEvent("beginMetadataStar");
+    if (token.precedingComments != null) {
+      push(_toAnalyzerComment(token.precedingComments));
+    } else {
+      push(NullValue.Comments);
+    }
+  }
+
   ParameterKind _toAnalyzerParameterKind(FormalParameterType type) {
     if (type == FormalParameterType.POSITIONAL) {
       return ParameterKind.POSITIONAL;
@@ -1413,6 +1414,19 @@ class AstBuilder extends ScopeListener {
     } else {
       return ParameterKind.REQUIRED;
     }
+  }
+
+  Comment _toAnalyzerComment(Token comments) {
+    if (comments == null) return null;
+
+    // This is temporary placeholder code to get tests to pass.
+    // TODO(paulberry): after analyzer and fasta token representations are
+    // unified, refactor the code in analyzer's parser that handles
+    // documentation comments so that it is reusable, and reuse it here.
+    // See Parser.parseCommentAndMetadata
+    var tokens = <analyzer.Token>[toAnalyzerCommentToken(comments)];
+    var references = <CommentReference>[];
+    return ast.documentationComment(tokens, references);
   }
 }
 

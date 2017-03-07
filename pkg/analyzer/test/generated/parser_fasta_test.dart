@@ -133,55 +133,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     // TODO(paulberry): Expected: an object with length of <1>
     super.test_parseConstructorFieldInitializer_unqualified();
   }
-
-  @override
-  @failingTest
-  void test_parseGetter_nonStatic() {
-    // TODO(paulberry): handle doc comments
-    super.test_parseGetter_nonStatic();
-  }
-
-  @override
-  @failingTest
-  void test_parseGetter_static() {
-    // TODO(paulberry): Invalid modifier (static). Report an error.
-    super.test_parseGetter_static();
-  }
-
-  @override
-  @failingTest
-  void test_parseInitializedIdentifierList_type() {
-    // TODO(paulberry): handle doc comments
-    super.test_parseInitializedIdentifierList_type();
-  }
-
-  @override
-  @failingTest
-  void test_parseInitializedIdentifierList_var() {
-    // TODO(paulberry): handle doc comments
-    super.test_parseInitializedIdentifierList_var();
-  }
-
-  @override
-  @failingTest
-  void test_parseOperator() {
-    // TODO(paulberry): handle doc comments
-    super.test_parseOperator();
-  }
-
-  @override
-  @failingTest
-  void test_parseSetter_nonStatic() {
-    // TODO(paulberry): handle doc comments
-    super.test_parseSetter_nonStatic();
-  }
-
-  @override
-  @failingTest
-  void test_parseSetter_static() {
-    // TODO(paulberry): Invalid modifier (static). Report an error.
-    super.test_parseSetter_static();
-  }
 }
 
 /**
@@ -608,7 +559,7 @@ class FastaParserTestCase extends Object
 
   @override
   void createParser(String content) {
-    var scanner = new StringScanner(content);
+    var scanner = new StringScanner(content, includeComments: true);
     _parserProxy = new ParserProxy(scanner.tokenize());
   }
 
@@ -1210,38 +1161,10 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseFunctionDeclaration_function() {
-    // TODO(paulberry): handle doc comments
-    super.test_parseFunctionDeclaration_function();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionDeclaration_functionWithTypeParameters() {
-    // TODO(paulberry): handle doc comments
-    super.test_parseFunctionDeclaration_functionWithTypeParameters();
-  }
-
-  @override
-  @failingTest
   void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
     // TODO(paulberry,ahe): generic method comment syntax is not supported by
     // Fasta.
     super.test_parseFunctionDeclaration_functionWithTypeParameters_comment();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionDeclaration_getter() {
-    // TODO(paulberry): handle doc comments
-    super.test_parseFunctionDeclaration_getter();
-  }
-
-  @override
-  @failingTest
-  void test_parseFunctionDeclaration_setter() {
-    // TODO(paulberry): handle doc comments
-    super.test_parseFunctionDeclaration_setter();
   }
 
   @override

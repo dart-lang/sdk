@@ -110,22 +110,13 @@ class ToAnalyzerTokenStreamConverter {
   /// Translates a sequence of fasta comment tokens to the corresponding
   /// analyzer tokens.
   analyzer.CommentToken translateCommentTokens(Token token) {
-    analyzer.CommentToken translateOneComment(Token token) {
-      // TODO(paulberry,ahe): It would be nice if the scanner gave us an
-      // easier way to distinguish between the two types of comment.
-      var type = token.value.startsWith('/*')
-          ? TokenType.MULTI_LINE_COMMENT
-          : TokenType.SINGLE_LINE_COMMENT;
-      return new analyzer.CommentToken(type, token.value, token.charOffset);
-    }
-
     analyzer.CommentToken head;
     if (token != null) {
-      head = translateOneComment(token);
+      head = toAnalyzerCommentToken(token);
       analyzer.CommentToken tail = head;
       token = token.next;
       while (token != null) {
-        tail = tail.setNext(translateOneComment(token));
+        tail = tail.setNext(toAnalyzerCommentToken(token));
         token = token.next;
       }
     }
@@ -219,6 +210,16 @@ class ToAnalyzerTokenStreamConverter {
         throw new UnimplementedError('$errorCode');
     }
   }
+}
+
+/// Converts a single Fasta comment token to an analyzer comment token.
+analyzer.CommentToken toAnalyzerCommentToken(Token token) {
+  // TODO(paulberry,ahe): It would be nice if the scanner gave us an
+  // easier way to distinguish between the two types of comment.
+  var type = token.value.startsWith('/*')
+      ? TokenType.MULTI_LINE_COMMENT
+      : TokenType.SINGLE_LINE_COMMENT;
+  return new analyzer.CommentToken(type, token.value, token.charOffset);
 }
 
 /// Converts a stream of Analyzer tokens (starting with [token] and continuing

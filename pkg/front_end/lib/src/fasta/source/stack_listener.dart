@@ -24,6 +24,7 @@ enum NullValue {
   BreakTarget,
   CascadeReceiver,
   Combinators,
+  Comments,
   ConditionalUris,
   ConstructorReferenceContinuationAfterTypeArguments,
   ContinueTarget,

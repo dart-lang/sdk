@@ -354,6 +354,12 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
         AwaitExpression, (expression as BinaryExpression).rightOperand);
   }
 
+  void test_parseClassMember_constructor_withDocComment() {
+    createParser('/// Doc\nC();');
+    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
+    expectCommentText(constructor.documentationComment, '/// Doc');
+  }
+
   void test_parseClassMember_constructor_withInitializers() {
     // TODO(brianwilkerson) Test other kinds of class members: fields, getters
     // and setters.
@@ -1231,6 +1237,18 @@ abstract class ClassMemberParserTestMixin implements AbstractParserTestCase {
     expect(method.parameters, isNotNull);
     expect(method.propertyKeyword, isNotNull);
     expect((method.returnType as TypeName).name.name, 'T');
+  }
+
+  void test_simpleFormalParameter_withDocComment() {
+    createParser('''
+int f(
+    /// Doc
+    int x) {}
+''');
+    var function = parseFullCompilationUnitMember() as FunctionDeclaration;
+    var parameter = function.functionExpression.parameters.parameters[0]
+        as NormalFormalParameter;
+    expectCommentText(parameter.documentationComment, '/// Doc');
   }
 }
 
@@ -7250,6 +7268,11 @@ abstract class FormalParameterParserTestMixin
     expect(parameterList.parameters, hasLength(0));
   }
 
+  void test_parseNormalFormalParameter_field_function_withDocComment() {
+    var parameter = parseNormalFormalParameter('/// Doc\nthis.f()');
+    expectCommentText(parameter.documentationComment, '/// Doc');
+  }
+
   void test_parseNormalFormalParameter_field_noType() {
     NormalFormalParameter parameter = parseNormalFormalParameter('this.a');
     expect(parameter, isNotNull);
@@ -7284,6 +7307,11 @@ abstract class FormalParameterParserTestMixin
     expect(fieldParameter.type, isNull);
     expect(fieldParameter.identifier, isNotNull);
     expect(fieldParameter.parameters, isNull);
+  }
+
+  void test_parseNormalFormalParameter_field_withDocComment() {
+    var parameter = parseNormalFormalParameter('/// Doc\nthis.a');
+    expectCommentText(parameter.documentationComment, '/// Doc');
   }
 
   void test_parseNormalFormalParameter_function_named() {
@@ -7522,6 +7550,12 @@ abstract class FormalParameterParserTestMixin
     expect(functionParameter.typeParameters, isNotNull);
     expect(functionParameter.parameters, isNotNull);
     expect(functionParameter.question, isNotNull);
+  }
+
+  void test_parseNormalFormalParameter_function_withDocComment() {
+    var parameter = parseFormalParameter('/// Doc\nf()', ParameterKind.REQUIRED)
+        as FunctionTypedFormalParameter;
+    expectCommentText(parameter.documentationComment, '/// Doc');
   }
 
   void test_parseNormalFormalParameter_simple_const_noType() {
@@ -13048,6 +13082,12 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
         "import 'import1_lib.dart' show hide, show hide ugly;");
   }
 
+  void test_import_withDocComment() {
+    var compilationUnit = parseCompilationUnit('/// Doc\nimport "foo.dart";');
+    var importDirective = compilationUnit.directives[0];
+    expectCommentText(importDirective.documentationComment, '/// Doc');
+  }
+
   void test_parseClassDeclaration_abstract() {
     createParser('abstract class A {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
@@ -13269,6 +13309,18 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(declaration.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNotNull);
     expect(declaration.typeParameters.typeParameters, hasLength(1));
+  }
+
+  void test_parseClassDeclaration_withDocumentationComment() {
+    createParser('/// Doc\nclass C {}');
+    var classDeclaration = parseFullCompilationUnitMember() as ClassDeclaration;
+    expectCommentText(classDeclaration.documentationComment, '/// Doc');
+  }
+
+  void test_parseClassTypeAlias_withDocumentationComment() {
+    createParser('/// Doc\nclass C = D with E;');
+    var classTypeAlias = parseFullCompilationUnitMember() as ClassTypeAlias;
+    expectCommentText(classTypeAlias.documentationComment, '/// Doc');
   }
 
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
@@ -13741,6 +13793,12 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(typeAlias.parameters.parameters, hasLength(0));
   }
 
+  void test_parseCompilationUnitMember_typedef_withDocComment() {
+    createParser('/// Doc\ntypedef F();');
+    var typeAlias = parseFullCompilationUnitMember() as FunctionTypeAlias;
+    expectCommentText(typeAlias.documentationComment, '/// Doc');
+  }
+
   void test_parseCompilationUnitMember_typedVariable() {
     createParser('int x = 0;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
@@ -13764,6 +13822,13 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(declaration.semicolon, isNotNull);
     expect(declaration.variables, isNotNull);
     expect(declaration.variables.keyword.lexeme, 'var');
+  }
+
+  void test_parseCompilationUnitMember_variable_withDocumentationComment() {
+    createParser('/// Doc\nvar x = 0;');
+    var declaration =
+        parseFullCompilationUnitMember() as TopLevelVariableDeclaration;
+    expectCommentText(declaration.documentationComment, '/// Doc');
   }
 
   void test_parseCompilationUnitMember_variableGet() {
@@ -13799,6 +13864,12 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(exportDirective.uri, isNotNull);
     expect(exportDirective.combinators, hasLength(0));
     expect(exportDirective.semicolon, isNotNull);
+  }
+
+  void test_parseDirective_export_withDocComment() {
+    createParser("/// Doc\nexport 'foo.dart';");
+    var directive = parseFullDirective() as ExportDirective;
+    expectCommentText(directive.documentationComment, '/// Doc');
   }
 
   void test_parseDirective_import() {
@@ -13852,6 +13923,12 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(lib.name.components[2].name, 'c');
   }
 
+  void test_parseDirective_library_withDocumentationComment() {
+    createParser('/// Doc\nlibrary l;');
+    var directive = parseFullDirective() as LibraryDirective;
+    expectCommentText(directive.documentationComment, '/// Doc');
+  }
+
   void test_parseDirective_part() {
     createParser("part 'lib/lib.dart';");
     Directive directive = parseFullDirective();
@@ -13886,6 +13963,18 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(partOf.libraryName.components[0].name, 'a');
     expect(partOf.libraryName.components[1].name, 'b');
     expect(partOf.libraryName.components[2].name, 'c');
+  }
+
+  void test_parseDirective_part_of_withDocumentationComment() {
+    createParser('/// Doc\npart of a;');
+    var partOf = parseFullDirective() as PartOfDirective;
+    expectCommentText(partOf.documentationComment, '/// Doc');
+  }
+
+  void test_parseDirective_part_withDocumentationComment() {
+    createParser("/// Doc\npart 'lib.dart';");
+    var directive = parseFullDirective() as PartDirective;
+    expectCommentText(directive.documentationComment, '/// Doc');
   }
 
   void test_parseDirective_partOf() {
@@ -13982,6 +14071,23 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(declaration.name, isNotNull);
     expect(declaration.constants, hasLength(2));
     expect(declaration.rightBracket, isNotNull);
+  }
+
+  void test_parseEnumDeclaration_withDocComment_onEnum() {
+    createParser('/// Doc\nenum E {ONE}');
+    var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
+    expectCommentText(declaration.documentationComment, '/// Doc');
+  }
+
+  void test_parseEnumDeclaration_withDocComment_onValue() {
+    createParser('''
+enum E {
+  /// Doc
+  ONE
+}''');
+    var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
+    var value = declaration.constants[0];
+    expectCommentText(value.documentationComment, '/// Doc');
   }
 
   void test_parseExportDirective_configuration_multiple() {
@@ -14617,5 +14723,11 @@ abstract class TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(functionType.parameters, isNotNull);
     expect(functionType.returnType, isNotNull);
     expect(functionType.typeParameters, isNull);
+  }
+
+  void test_parseTypeAlias_genericFunction_withDocComment() {
+    createParser('/// Doc\ntypedef F = bool Function();');
+    var typeAlias = parseFullCompilationUnitMember() as GenericTypeAlias;
+    expectCommentText(typeAlias.documentationComment, '/// Doc');
   }
 }
