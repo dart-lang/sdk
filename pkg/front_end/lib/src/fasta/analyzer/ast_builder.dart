@@ -566,6 +566,15 @@ class AstBuilder extends ScopeListener {
         thenExpression, toAnalyzerToken(colon), elseExpression));
   }
 
+  @override
+  void endRethrowStatement(Token rethrowToken, Token endToken) {
+    debugEvent("RethrowStatement");
+    RethrowExpression expression =
+        ast.rethrowExpression(toAnalyzerToken(rethrowToken));
+    // TODO(scheglov) According to the specification, 'rethrow' is a statement.
+    push(ast.expressionStatement(expression, toAnalyzerToken(endToken)));
+  }
+
   void endThrowExpression(Token throwToken, Token endToken) {
     debugEvent("ThrowExpression");
     push(ast.throwExpression(toAnalyzerToken(throwToken), pop()));

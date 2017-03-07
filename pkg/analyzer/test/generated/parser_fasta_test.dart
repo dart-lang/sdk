@@ -555,12 +555,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseRethrowExpression() {
-    super.test_parseRethrowExpression();
-  }
-
-  @override
-  @failingTest
   void test_parseSuperConstructorInvocation_named() {
     super.test_parseSuperConstructorInvocation_named();
   }
