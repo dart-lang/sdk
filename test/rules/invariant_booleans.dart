@@ -237,3 +237,56 @@ void bug372(bool foo) {
     // doSomethingElse();
   }
 }
+
+void bug337_1(int offset, int length) {
+  if (offset >= length) {
+    return;
+  }
+
+  offset++;
+  if (offset >= length) { // OK
+  }
+}
+
+void bug337_2(int offset, int length) {
+  if (offset >= length) {
+    return;
+  }
+
+  offset--;
+  if (offset >= length) { // OK
+  }
+}
+
+void bug337_3(int offset, int length) {
+  if (offset >= length) {
+    return;
+  }
+
+  ++offset;
+  if (offset >= length) { // OK
+  }
+}
+
+void bug337_4(int offset, int length) {
+  if (offset >= length) {
+    return;
+  }
+
+  --offset;
+  if (offset >= length) { // OK
+  }
+}
+
+void test337_5() {
+  int b = 2;
+  if (b > 0) {
+    b--;
+    if (b == 0) {
+      return;
+    }
+    if (b > 0) {
+      return;
+    }
+  }
+}
