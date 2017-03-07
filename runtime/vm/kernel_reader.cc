@@ -562,18 +562,30 @@ Script& KernelReader::ScriptAt(intptr_t source_uri_index, String* import_uri) {
 void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                                           const dart::Field& field,
                                           Field* kernel_field) {
-  if (kernel_field->IsStatic() && kernel_field->initializer() != NULL) {
-    // Static fields with initializers either have the static value set to the
-    // initializer value if it is simple enough or else set to an uninitialized
-    // sentinel.
+  if (kernel_field->initializer() != NULL) {
     SimpleExpressionConverter converter(H.thread());
-    if (converter.IsSimple(kernel_field->initializer())) {
-      // We do not need a getter.
-      field.SetStaticValue(converter.SimpleValue(), true);
-      return;
+    const bool has_simple_initializer =
+        converter.IsSimple(kernel_field->initializer());
+    if (kernel_field->IsStatic()) {
+      // Static fields with initializers either have the static value set to the
+      // initializer value if it is simple enough or else set to an
+      // uninitialized sentinel.
+      if (has_simple_initializer) {
+        // We do not need a getter.
+        field.SetStaticValue(converter.SimpleValue(), true);
+        return;
+      }
+      // We do need a getter that evaluates the initializer if necessary.
+      field.SetStaticValue(Object::sentinel(), true);
+    } else if (has_simple_initializer) {
+      // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
+      // heuristics. See JitOptimizer::VisitStoreInstanceField for more details.
+      field.RecordStore(converter.SimpleValue());
+      if (!converter.SimpleValue().IsNull() &&
+          converter.SimpleValue().IsDouble()) {
+        field.set_is_double_initialized(true);
+      }
     }
-    // We do need a getter that evaluates the initializer if necessary.
-    field.SetStaticValue(Object::sentinel(), true);
   }
 
   const dart::String& getter_name = H.DartGetterName(kernel_field->name());
