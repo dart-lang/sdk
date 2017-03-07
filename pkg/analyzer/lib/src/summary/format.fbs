@@ -210,6 +210,34 @@ enum ReferenceKind : byte {
 }
 
 /**
+ * Enum used to indicate the style of a typedef.
+ */
+enum TypedefStyle : byte {
+  /**
+   * A typedef that defines a non-generic function type. The syntax is
+   * ```
+   * 'typedef' returnType? identifier typeParameters? formalParameterList ';'
+   * ```
+   * The typedef can have type parameters associated with it, but the function
+   * type that results from applying type arguments does not.
+   */
+  functionType,
+
+  /**
+   * A typedef that defines a generic function type. The syntax is
+   * ```
+   * typeAlias ::=
+   *     'typedef' identifier typeParameters? '=' genericFunctionType ';'
+   * genericFunctionType ::=
+   *     returnType? 'Function' typeParameters? parameterTypeList
+   * ```
+   * Both the typedef itself and the function type that results from applying
+   * type arguments can have type parameters.
+   */
+  genericFunctionType
+}
+
+/**
  * Enum used to indicate the kind of an constructor initializer.
  */
 enum UnlinkedConstructorInitializerKind : byte {
@@ -494,8 +522,8 @@ enum UnlinkedExprOperation : byte {
   /**
    * Pop the top 2*n values from the stack (where n is obtained from
    * [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
-   * [Map], and push the result back onto the stack.  The two type parameters for
-   * the [Map] are obtained from [UnlinkedExpr.references].
+   * [Map], and push the result back onto the stack.  The two type parameters
+   * for the [Map] are obtained from [UnlinkedExpr.references].
    */
   makeTypedMap,
 
@@ -1086,8 +1114,8 @@ table CodeRange {
 }
 
 /**
- * Summary information about a reference to a an entity such as a type, top
- * level executable, or executable within a class.
+ * Summary information about a reference to an entity such as a type, top level
+ * executable, or executable within a class.
  */
 table EntityRef {
   /**
@@ -1171,6 +1199,12 @@ table EntityRef {
    * type arguments used to instantiate it (if any).
    */
   typeArguments:[EntityRef] (id: 1);
+
+  /**
+   * If this is a function type, the type parameters defined for the function
+   * type (if any).
+   */
+  typeParameters:[UnlinkedTypeParam] (id: 7);
 }
 
 /**
@@ -1495,8 +1529,8 @@ table PackageIndex {
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the identifier of the class member element name, or `null` if the element is
-   * a top-level element.  The list is sorted in ascending order, so that the
+   * the identifier of the class member element name, or `null` if the element
+   * is a top-level element.  The list is sorted in ascending order, so that the
    * client can quickly check whether an element is referenced in this
    * [PackageIndex].
    */
@@ -2317,8 +2351,8 @@ table UnlinkedParam {
   inheritsCovariantSlot:uint (id: 14);
 
   /**
-   * The synthetic initializer function of the parameter.  Absent if the variable
-   * does not have an initializer.
+   * The synthetic initializer function of the parameter.  Absent if the
+   * variable does not have an initializer.
    */
   initializer:UnlinkedExecutable (id: 12);
 
@@ -2333,7 +2367,14 @@ table UnlinkedParam {
   isFinal:bool (id: 16);
 
   /**
-   * Indicates whether this is a function-typed parameter.
+   * Indicates whether this is a function-typed parameter. A parameter is
+   * function-typed if the declaration of the parameter has explicit formal
+   * parameters
+   * ```
+   * int functionTyped(int p)
+   * ```
+   * but is not function-typed if it does not, even if the type of the parameter
+   * is a function type.
    */
   isFunctionTyped:bool (id: 5);
 
@@ -2523,9 +2564,16 @@ table UnlinkedTypedef {
   parameters:[UnlinkedParam] (id: 3);
 
   /**
-   * Return type of the typedef.
+   * If [style] is [TypedefStyle.functionType], the return type of the typedef.
+   * If [style] is [TypedefStyle.genericFunctionType], the function type being
+   * defined.
    */
   returnType:EntityRef (id: 2);
+
+  /**
+   * The style of the typedef.
+   */
+  style:TypedefStyle (id: 8);
 
   /**
    * Type parameters of the typedef, if any.
