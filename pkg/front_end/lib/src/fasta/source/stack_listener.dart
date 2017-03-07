@@ -33,6 +33,7 @@ enum NullValue {
   FunctionBody,
   FunctionBodyAsyncToken,
   FunctionBodyStarToken,
+  Identifier,
   IdentifierList,
   Initializers,
   Metadata,
@@ -110,6 +111,12 @@ abstract class StackListener extends Listener {
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
     push(token.value);
+  }
+
+  @override
+  void handleNoName(Token token) {
+    debugEvent("NoName");
+    push(NullValue.Identifier);
   }
 
   @override

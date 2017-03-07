@@ -34,6 +34,7 @@ import 'kernel_builder.dart'
         KernelFieldBuilder,
         KernelFormalParameterBuilder,
         KernelFunctionTypeAliasBuilder,
+        KernelFunctionTypeBuilder,
         KernelInvalidTypeBuilder,
         KernelMixinApplicationBuilder,
         KernelNamedMixinApplicationBuilder,
@@ -257,6 +258,15 @@ class KernelLibraryBuilder
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration().resolveTypes(typeVariables, this);
     addBuilder(name, typedef, charOffset);
+  }
+
+  KernelFunctionTypeBuilder addFunctionType(
+      KernelTypeBuilder returnType,
+      List<TypeVariableBuilder> typeVariables,
+      List<FormalParameterBuilder> formals,
+      int charOffset) {
+    return new KernelFunctionTypeBuilder(
+        charOffset, fileUri, returnType, typeVariables, formals);
   }
 
   KernelFormalParameterBuilder addFormalParameter(

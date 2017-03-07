@@ -388,8 +388,6 @@ generic_field_mixin3_test: RuntimeError
 generic_field_mixin4_test: RuntimeError
 generic_field_mixin5_test: RuntimeError
 generic_field_mixin_test: RuntimeError
-generic_function_typedef2_test: DartkCrash # Issue 27969
-generic_function_typedef_test: DartkCrash # Issue 27969
 generic_local_functions_test: DartkCrash
 generic_metadata_test/02: MissingCompileTimeError
 generic_metadata_test/03: MissingCompileTimeError
@@ -474,7 +472,6 @@ mixin_illegal_cycles_test/05: MissingCompileTimeError
 mixin_illegal_cycles_test/06: MissingCompileTimeError
 mixin_illegal_object_test/01: MissingCompileTimeError
 mixin_illegal_object_test/02: MissingCompileTimeError
-mixin_illegal_syntax_test/00: DartkCrash
 mixin_invalid_inheritance2_test/03: DartkCrash
 mixin_issue10216_2_test: RuntimeError
 mixin_mixin2_test: RuntimeError

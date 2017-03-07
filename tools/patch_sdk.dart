@@ -78,9 +78,6 @@ Future main(List<String> argv) async {
   var sdkOut = path.join(outDir, 'lib');
   var packagesFile = argv[4];
 
-  var privateIn = path.join(input, 'private');
-  var INTERNAL_PATH = '_internal/compiler/js_lib/';
-
   // Copy and patch libraries.dart and version
   var libContents = readInputFile(path.join(
       sdkLibIn, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'));

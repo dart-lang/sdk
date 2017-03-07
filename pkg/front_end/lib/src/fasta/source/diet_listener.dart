@@ -166,10 +166,21 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleFunctionType(Token functionToken, Token endToken) {
+    debugEvent("FunctionType");
+  }
+
+  @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("FunctionTypeAlias");
-    discard(2); // Name + endToken.
+    if (stack.length == 1) {
+      // TODO(ahe): This happens when recovering from `typedef I = A;`. Find a
+      // different way to track tokens of formal parameters.
+      discard(1); // Name.
+    } else {
+      discard(2); // Name + endToken.
+    }
     checkEmpty(typedefKeyword.charOffset);
   }
 

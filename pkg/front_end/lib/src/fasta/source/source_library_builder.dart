@@ -24,6 +24,7 @@ import '../builder/builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         FormalParameterBuilder,
+        FunctionTypeBuilder,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
@@ -205,6 +206,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<MetadataBuilder> metadata,
       T returnType,
       String name,
+      List<TypeVariableBuilder> typeVariables,
+      List<FormalParameterBuilder> formals,
+      int charOffset);
+
+  FunctionTypeBuilder addFunctionType(
+      T returnType,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset);

@@ -16,7 +16,7 @@ expressions: Crash
 fibonacci: Crash
 for_in_scope: Crash
 function_in_field: Crash
-function_type_recovery: Crash
+function_type_recovery: Fail
 functions: Crash
 implicit_this: Crash
 invocations: Fail

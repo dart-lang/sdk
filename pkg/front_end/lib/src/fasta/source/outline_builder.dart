@@ -482,13 +482,46 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleFunctionType(Token functionToken, Token endToken) {
+    debugEvent("FunctionType");
+    List<FormalParameterBuilder> formals = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
+    TypeBuilder returnType = pop();
+    push(library.addFunctionType(
+        returnType, typeVariables, formals, functionToken.charOffset));
+  }
+
+  @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("endFunctionTypeAlias");
-    List<FormalParameterBuilder> formals = pop();
-    List<TypeVariableBuilder> typeVariables = pop();
-    String name = pop();
-    TypeBuilder returnType = pop();
+    List<FormalParameterBuilder> formals;
+    List<TypeVariableBuilder> typeVariables;
+    String name;
+    TypeBuilder returnType;
+    if (equals == null) {
+      formals = pop();
+      typeVariables = pop();
+      name = pop();
+      returnType = pop();
+    } else {
+      var type = pop();
+      typeVariables = pop();
+      name = pop();
+      if (type is FunctionTypeBuilder) {
+        // TODO(ahe): We need to start a nested declaration when parsing the
+        // formals and return type so we can correctly bind
+        // `type.typeVariables`. A typedef can have type variables, and a new
+        // function type can also have type variables (representing the type of
+        // a generic function).
+        formals = type.formals;
+        returnType = type.returnType;
+      } else {
+        // TODO(ahe): Improve this error message.
+        library.addCompileTimeError(
+            equals.charOffset, "Can't create typedef from non-function type.");
+      }
+    }
     List<MetadataBuilder> metadata = pop();
     library.addFunctionTypeAlias(metadata, returnType, name, typeVariables,
         formals, typedefKeyword.charOffset);

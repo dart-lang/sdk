@@ -72,8 +72,6 @@ import 'kernel_builder.dart'
     show
         Builder,
         ClassBuilder,
-        DynamicTypeBuilder,
-        InvalidTypeBuilder,
         KernelClassBuilder,
         KernelLibraryBuilder,
         KernelNamedTypeBuilder,

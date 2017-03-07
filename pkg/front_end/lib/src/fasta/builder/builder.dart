@@ -54,6 +54,8 @@ export 'scope.dart' show AccessErrorBuilder;
 
 export 'dynamic_type_builder.dart' show DynamicTypeBuilder;
 
+export 'function_type_builder.dart' show FunctionTypeBuilder;
+
 import 'library_builder.dart' show LibraryBuilder;
 
 abstract class Builder {
