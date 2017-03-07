@@ -6834,6 +6834,25 @@ abstract class FormalParameterParserTestMixin
     expect(defaultParameter.kind, kind);
   }
 
+  void test_parseFormalParameter_type_named_noDefault() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter = parseFormalParameter('A a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNull);
+    expect(defaultParameter.defaultValue, isNull);
+    expect(defaultParameter.kind, kind);
+  }
+
   void test_parseFormalParameter_type_normal() {
     ParameterKind kind = ParameterKind.REQUIRED;
     FormalParameter parameter = parseFormalParameter('A a', kind);
@@ -6864,6 +6883,25 @@ abstract class FormalParameterParserTestMixin
     expect(simpleParameter.kind, kind);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.kind, kind);
+  }
+
+  void test_parseFormalParameter_type_positional_noDefault() {
+    ParameterKind kind = ParameterKind.POSITIONAL;
+    FormalParameter parameter = parseFormalParameter('A a', kind);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, new isInstanceOf<DefaultFormalParameter>());
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.kind, kind);
+    expect(defaultParameter.separator, isNull);
+    expect(defaultParameter.defaultValue, isNull);
     expect(defaultParameter.kind, kind);
   }
 

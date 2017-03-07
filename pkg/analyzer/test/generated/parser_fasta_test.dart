@@ -66,13 +66,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseClassMember_getter_functionType() {
-    // TODO(paulberry): InputError: ErrorKind.ExpectedFunctionBody {actual: get}
-    super.test_parseClassMember_getter_functionType();
-  }
-
-  @override
-  @failingTest
   void test_parseClassMember_method_generic_comment_noReturnType() {
     // TODO(paulberry): Fasta doesn't support generic comment syntax
     super.test_parseClassMember_method_generic_comment_noReturnType();
@@ -97,13 +90,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   void test_parseClassMember_method_generic_comment_void() {
     // TODO(paulberry): Fasta doesn't support generic comment syntax
     super.test_parseClassMember_method_generic_comment_void();
-  }
-
-  @override
-  @failingTest
-  void test_parseClassMember_method_returnType_functionType() {
-    // TODO(paulberry): InputError: ErrorKind.ExpectedFunctionBody {actual: m}
-    super.test_parseClassMember_method_returnType_functionType();
   }
 
   @override
@@ -524,18 +510,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseRelationalExpression_as_functionType_noReturnType() {
-    super.test_parseRelationalExpression_as_functionType_noReturnType();
-  }
-
-  @override
-  @failingTest
-  void test_parseRelationalExpression_as_functionType_returnType() {
-    super.test_parseRelationalExpression_as_functionType_returnType();
-  }
-
-  @override
-  @failingTest
   void test_parseRelationalExpression_as_nullable() {
     super.test_parseRelationalExpression_as_nullable();
   }
@@ -768,8 +742,12 @@ class FastaParserTestCase extends Object
       {bool inFunctionType: false,
       List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
     return _runParser(
-            code, (parser) => parser.parseFormalParameters, errorCodes)
-        as FormalParameterList;
+        code,
+        (parser) => (fasta.Token token) {
+              return parser.parseFormalParameters(token,
+                  inFunctionType: inFunctionType);
+            },
+        errorCodes) as FormalParameterList;
   }
 
   @override
@@ -968,27 +946,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     with FormalParameterParserTestMixin {
   @override
   @failingTest
-  void test_parseFormalParameter_covariant_type_function() {
-    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
-    super.test_parseFormalParameter_covariant_type_function();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameter_type_function() {
-    // TODO(scheglov): Unhandled event: FunctionTypedFormalParameter
-    super.test_parseFormalParameter_type_function();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameterList_normal_named_inFunctionType() {
-    // TODO(scheglov): Unhandled event: OptionalFormalParameters
-    super.test_parseFormalParameterList_normal_named_inFunctionType();
-  }
-
-  @override
-  @failingTest
   void test_parseFormalParameterList_prefixedType_partial() {
     // TODO(scheglov): Unimplemented: errors
     super.test_parseFormalParameterList_prefixedType_partial();
@@ -1067,13 +1024,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     // TODO(scheglov): Not implemented: Nnbd
     super
         .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_simple_noName() {
-    // TODO(scheglov): in function type, type instead of parameter name
-    super.test_parseNormalFormalParameter_simple_noName();
   }
 }
 

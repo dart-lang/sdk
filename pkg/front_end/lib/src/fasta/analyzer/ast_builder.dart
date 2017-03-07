@@ -549,7 +549,7 @@ class AstBuilder extends ScopeListener {
 
   void handleAsOperator(Token operator, Token endToken) {
     debugEvent("AsOperator");
-    TypeName type = pop();
+    TypeAnnotation type = pop();
     Expression expression = pop();
     push(ast.asExpression(expression, toAnalyzerToken(operator), type));
   }
@@ -626,7 +626,7 @@ class AstBuilder extends ScopeListener {
       name = nameOrFunctionTypedParameter.identifier;
     } else {
       name = nameOrFunctionTypedParameter;
-      TypeName type = pop();
+      TypeAnnotation type = pop();
       _Modifiers modifiers = pop();
       Token keyword = modifiers?.finalConstOrVarKeyword;
       pop(); // TODO(paulberry): Metadata.
@@ -651,12 +651,16 @@ class AstBuilder extends ScopeListener {
       }
     }
 
-    if (defaultValue != null) {
-      node = ast.defaultFormalParameter(node, _toAnalyzerParameterKind(kind),
-          toAnalyzerToken(defaultValue.separator), defaultValue.value);
+    ParameterKind analyzerKind = _toAnalyzerParameterKind(kind);
+    if (analyzerKind != ParameterKind.REQUIRED) {
+      node = ast.defaultFormalParameter(node, analyzerKind,
+          toAnalyzerToken(defaultValue?.separator), defaultValue?.value);
     }
 
-    scope[name.name] = name.staticElement = new AnalyzerParameterElement(node);
+    if (name != null) {
+      scope[name.name] =
+          name.staticElement = new AnalyzerParameterElement(node);
+    }
     push(node);
   }
 
