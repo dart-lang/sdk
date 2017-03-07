@@ -422,9 +422,10 @@ class Parser {
   Token parseMixinApplication(Token token) {
     listener.beginMixinApplication(token);
     token = parseType(token);
+    Token withKeyword = token;
     token = expect('with', token);
     token = parseTypeList(token);
-    listener.endMixinApplication();
+    listener.endMixinApplication(withKeyword);
     return token;
   }
 

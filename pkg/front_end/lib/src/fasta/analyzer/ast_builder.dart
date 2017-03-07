@@ -1056,12 +1056,9 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endMixinApplication() {
+  void endMixinApplication(Token withKeyword) {
     debugEvent("MixinApplication");
     List<TypeName> mixinTypes = pop();
-    // TODO(paulberry,ahe): the parser doesn't give us enough information to
-    // locate the "with" keyword.
-    Token withKeyword;
     TypeName supertype = pop();
     push(new _MixinApplication(supertype, withKeyword, mixinTypes));
   }

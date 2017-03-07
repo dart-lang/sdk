@@ -120,7 +120,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endMixinApplication() {
+  void endMixinApplication(Token withKeyword) {
     debugEvent("MixinApplication");
   }
 

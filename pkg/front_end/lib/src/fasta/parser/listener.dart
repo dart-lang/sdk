@@ -284,7 +284,7 @@ class Listener {
   /// Substructures:
   /// - supertype
   /// - mixin types (TypeList)
-  void endMixinApplication() {
+  void endMixinApplication(Token withKeyword) {
     logEvent("MixinApplication");
   }
 
