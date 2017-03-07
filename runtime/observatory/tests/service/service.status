@@ -9,6 +9,15 @@ get_retained_size_rpc_test: Pass, RuntimeError # Issue 28193
 pause_on_start_and_exit_test: Pass, RuntimeError # Issue 28624
 pause_on_start_then_step_test: Pass, RuntimeError # Issue 28624
 isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
+field_script_test: Pass, RuntimeError
+next_through_for_each_loop_test: Pass, RuntimeError
+next_through_create_list_and_map_test: Pass, RuntimeError
+next_through_closure_test: Pass, RuntimeError
+next_through_for_loop_with_break_and_continue_test: Pass, RuntimeError
+next_through_simple_async_test: Pass, RuntimeError
+next_through_simple_async_with_returns_test: Pass, RuntimeError
+next_through_catch_test: Pass, RuntimeError
+next_through_simple_linear_2_test: Pass, RuntimeError
 
 [$runtime == vm && $compiler == none && $system == fuchsia]
 *: Skip  # Not yet triaged.
