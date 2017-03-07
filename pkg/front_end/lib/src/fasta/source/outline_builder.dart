@@ -356,6 +356,11 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleScript(Token token) {
+    debugEvent("Script");
+  }
+
+  @override
   void handleType(Token beginToken, Token endToken) {
     debugEvent("Type");
     List<TypeBuilder> arguments = pop();

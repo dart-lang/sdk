@@ -971,6 +971,10 @@ class Listener {
     recoverableErrors
         .add(new ParserError.fromTokens(token, token, kind, arguments));
   }
+
+  void handleScript(Token token) {
+    logEvent("Script");
+  }
 }
 
 class ParserError {

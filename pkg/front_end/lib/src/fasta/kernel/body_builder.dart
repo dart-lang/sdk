@@ -812,6 +812,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
+  void handleScript(Token token) {
+    debugEvent("Script");
+  }
+
+  @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
     List<Expression> parts = popListForValue(literalCount);

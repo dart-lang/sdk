@@ -27,7 +27,8 @@ import '../scanner/precedence.dart'
         PrecedenceInfo,
         QUESTION_INFO,
         QUESTION_PERIOD_INFO,
-        RELATIONAL_PRECEDENCE;
+        RELATIONAL_PRECEDENCE,
+        SCRIPT_INFO;
 
 import '../scanner/token.dart'
     show
@@ -137,6 +138,9 @@ class Parser {
   }
 
   Token _parseTopLevelDeclaration(Token token) {
+    if (identical(token.info, SCRIPT_INFO)) {
+      return parseScript(token);
+    }
     token = parseMetadataStar(token);
     final String value = token.stringValue;
     if ((identical(value, 'abstract') && optional('class', token.next)) ||
@@ -388,6 +392,11 @@ class Parser {
     token = parseArgumentsOpt(token);
     listener.endMetadata(atToken, period, token);
     return token;
+  }
+
+  Token parseScript(Token token) {
+    listener.handleScript(token);
+    return token.next;
   }
 
   Token parseTypedef(Token token) {

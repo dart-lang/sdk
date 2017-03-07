@@ -403,7 +403,7 @@ abstract class AbstractScanner implements Scanner {
     // # or #!.*[\n\r]
     if (scanOffset == 0) {
       if (identical(peek(), $BANG)) {
-        int start = scanOffset + 1;
+        int start = scanOffset;
         bool asciiOnly = true;
         do {
           next = advance();
@@ -412,6 +412,7 @@ abstract class AbstractScanner implements Scanner {
             !identical(next, $CR) &&
             !identical(next, $EOF));
         if (!asciiOnly) handleUnicode(start);
+        appendSubstringToken(SCRIPT_INFO, start, asciiOnly);
         return next;
       }
     }

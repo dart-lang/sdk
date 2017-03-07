@@ -1256,13 +1256,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnit_script() {
-    // TODO(paulberry): No objects placed on stack
-    super.test_parseCompilationUnit_script();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnit_typedefAsPrefix() {
     // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_typedefAsPrefix();
@@ -1285,26 +1278,12 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseDirectives_complete() {
-    // TODO(paulberry,ahe): Fasta doesn't support script tags yet.
-    super.test_parseDirectives_complete();
-  }
-
-  @override
-  @failingTest
   void test_parseDirectives_mixed() {
     // TODO(paulberry,ahe): This test verifies the analyzer parser's ability to
     // stop parsing as soon as the first non-directive is encountered; this is
     // useful for quickly traversing an import graph.  Consider adding a similar
     // ability to Fasta's parser.
     super.test_parseDirectives_mixed();
-  }
-
-  @override
-  @failingTest
-  void test_parseDirectives_script() {
-    // TODO(paulberry): No objects placed on stack
-    super.test_parseDirectives_script();
   }
 
   @override

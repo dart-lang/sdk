@@ -187,13 +187,6 @@ class ScannerTest_Fasta extends ScannerTestBase {
     super.test_mismatched_opener();
   }
 
-  @override
-  @failingTest
-  void test_scriptTag_withArgs() {
-    // TODO(paulberry,ahe): script tags are needed by analyzer.
-    super.test_scriptTag_withArgs();
-  }
-
   void test_next_previous() {
     const source = 'int a; /*1*/ /*2*/ /*3*/ B f(){if (a < 2) {}}';
     fasta.Token token =
@@ -209,20 +202,6 @@ class ScannerTest_Fasta extends ScannerTestBase {
       }
       token = token.next;
     }
-  }
-
-  @override
-  @failingTest
-  void test_scriptTag_withoutSpace() {
-    // TODO(paulberry,ahe): script tags are needed by analyzer.
-    super.test_scriptTag_withoutSpace();
-  }
-
-  @override
-  @failingTest
-  void test_scriptTag_withSpace() {
-    // TODO(paulberry,ahe): script tags are needed by analyzer.
-    super.test_scriptTag_withSpace();
   }
 
   @override

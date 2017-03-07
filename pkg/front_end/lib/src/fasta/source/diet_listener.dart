@@ -262,6 +262,11 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleScript(Token token) {
+    debugEvent("Script");
+  }
+
+  @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
   }

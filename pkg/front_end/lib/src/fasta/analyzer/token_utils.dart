@@ -561,6 +561,9 @@ analyzer.Token toAnalyzerToken(Token token,
       }
       break;
 
+    case SCRIPT_TOKEN:
+      return makeStringToken(TokenType.SCRIPT_TAG);
+
     case STRING_TOKEN:
       return makeStringToken(TokenType.STRING);
 

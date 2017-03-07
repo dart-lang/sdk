@@ -232,6 +232,9 @@ const PrecedenceInfo EOF_INFO = const PrecedenceInfo('EOF', 0, EOF_TOKEN);
 const PrecedenceInfo IDENTIFIER_INFO =
     const PrecedenceInfo('identifier', 0, IDENTIFIER_TOKEN);
 
+const PrecedenceInfo SCRIPT_INFO =
+    const PrecedenceInfo('script', 0, SCRIPT_TOKEN);
+
 const PrecedenceInfo BAD_INPUT_INFO =
     const PrecedenceInfo('malformed input', 0, BAD_INPUT_TOKEN);
 

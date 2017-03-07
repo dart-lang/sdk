@@ -144,6 +144,11 @@ class AstBuilder extends ScopeListener {
     }
   }
 
+  void handleScript(Token token) {
+    debugEvent("Script");
+    push(ast.scriptTag(toAnalyzerToken(token)));
+  }
+
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
     push(ast.adjacentStrings(popList(literalCount)));
@@ -848,14 +853,16 @@ class AstBuilder extends ScopeListener {
   void endCompilationUnit(int count, Token token) {
     debugEvent("CompilationUnit");
     analyzer.Token beginToken = null; // TODO(paulberry)
-    ScriptTag scriptTag = null; // TODO(paulberry)
+    ScriptTag scriptTag = null;
     var directives = <Directive>[];
     var declarations = <CompilationUnitMember>[];
     analyzer.Token endToken = null; // TODO(paulberry)
     List<Object> elements = popList(count);
     if (elements != null) {
       for (AstNode node in elements) {
-        if (node is Directive) {
+        if (node is ScriptTag) {
+          scriptTag = node;
+        } else if (node is Directive) {
           directives.add(node);
         } else if (node is CompilationUnitMember) {
           declarations.add(node);
