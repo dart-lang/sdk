@@ -1242,13 +1242,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCompilationUnit_empty() {
-    // TODO(paulberry): No objects placed on stack
-    super.test_parseCompilationUnit_empty();
-  }
-
-  @override
-  @failingTest
   void test_parseCompilationUnit_exportAsPrefix() {
     // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
     super.test_parseCompilationUnit_exportAsPrefix();
@@ -1295,13 +1288,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseDirectives_complete() {
     // TODO(paulberry,ahe): Fasta doesn't support script tags yet.
     super.test_parseDirectives_complete();
-  }
-
-  @override
-  @failingTest
-  void test_parseDirectives_empty() {
-    // TODO(paulberry): No objects placed on stack
-    super.test_parseDirectives_empty();
   }
 
   @override

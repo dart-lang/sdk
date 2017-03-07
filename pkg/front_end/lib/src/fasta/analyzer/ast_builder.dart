@@ -852,14 +852,17 @@ class AstBuilder extends ScopeListener {
     var directives = <Directive>[];
     var declarations = <CompilationUnitMember>[];
     analyzer.Token endToken = null; // TODO(paulberry)
-    for (AstNode node in popList(count)) {
-      if (node is Directive) {
-        directives.add(node);
-      } else if (node is CompilationUnitMember) {
-        declarations.add(node);
-      } else {
-        internalError(
-            'Unrecognized compilation unit member: ${node.runtimeType}');
+    List<Object> elements = popList(count);
+    if (elements != null) {
+      for (AstNode node in elements) {
+        if (node is Directive) {
+          directives.add(node);
+        } else if (node is CompilationUnitMember) {
+          declarations.add(node);
+        } else {
+          internalError(
+              'Unrecognized compilation unit member: ${node.runtimeType}');
+        }
       }
     }
     push(ast.compilationUnit(
