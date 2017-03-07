@@ -1093,6 +1093,10 @@ Patch release, resolves three issues:
     are affected include `Element.getBoundingClientRect` and
     `TextMetrics.width`.
 
+* `dart:developer`
+  * new `ServiceExtensionResponse`
+  * new `Timeline`
+
 * `dart:io`
   * **Breaking:** Secure networking has changed, replacing the NSS library
     with the BoringSSL library. `SecureSocket`, `SecureServerSocket`,
