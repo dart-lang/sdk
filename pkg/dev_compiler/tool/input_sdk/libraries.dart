@@ -42,18 +42,6 @@ const Map<String, LibraryInfo> libraries = const {
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/async_patch.dart"),
 
-  "_blink": const LibraryInfo(
-      "_blink/dartium/_blink_dartium.dart",
-      categories: "Client",
-      implementation: true,
-      documented: false,
-      platforms: VM_PLATFORM),
-
-  "_chrome": const LibraryInfo(
-      "_chrome/dart2js/chrome_dart2js.dart",
-      categories: "Client",
-      documented: false),
-
   "collection": const LibraryInfo(
       "collection/collection.dart",
       categories: "Client,Server,Embedded",
@@ -133,6 +121,13 @@ const Map<String, LibraryInfo> libraries = const {
       maturity: Maturity.UNSTABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/mirrors_patch.dart"),
 
+  "nativewrappers": const LibraryInfo(
+      "html/dartium/nativewrappers.dart",
+      categories: "Client",
+      implementation: true,
+      documented: false,
+      dart2jsPath: "html/dart2js/nativewrappers.dart"),
+
   "typed_data": const LibraryInfo(
       "typed_data/typed_data.dart",
       categories: "Client,Server,Embedded",
@@ -206,12 +201,6 @@ const Map<String, LibraryInfo> libraries = const {
       documented: false,
       platforms: DART2JS_PLATFORM),
 
-  "_js_names": const LibraryInfo(
-      "_internal/js_runtime/lib/js_names.dart",
-      categories: "",
-      documented: false,
-      platforms: DART2JS_PLATFORM),
-
   "_js_primitives": const LibraryInfo(
       "_internal/js_runtime/lib/js_primitives.dart",
       categories: "",
@@ -220,12 +209,6 @@ const Map<String, LibraryInfo> libraries = const {
 
   "_js_embedded_names": const LibraryInfo(
       "_internal/js_runtime/lib/shared/embedded_names.dart",
-      categories: "",
-      documented: false,
-      platforms: DART2JS_PLATFORM),
-
-  "_async_await_error_codes": const LibraryInfo(
-      "_internal/js_runtime/lib/shared/async_await_error_codes.dart",
       categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),

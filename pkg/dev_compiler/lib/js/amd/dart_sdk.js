@@ -32,6 +32,7 @@ define([], function() {
   const web_audio = Object.create(null);
   const web_gl = Object.create(null);
   const web_sql = Object.create(null);
+  const nativewrappers = Object.create(null);
   let ListOfObject = () => (ListOfObject = dart.constFn(core.List$(core.Object)))();
   let JSArrayOfListOfObject = () => (JSArrayOfListOfObject = dart.constFn(_interceptors.JSArray$(ListOfObject())))();
   let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
@@ -105450,7 +105451,7 @@ define([], function() {
     methods: () => ({[dartx.executeSql]: dart.definiteFunctionType(dart.void, [core.String, ListOfObject()], [web_sql.SqlStatementCallback, web_sql.SqlStatementErrorCallback])})
   });
   dart.registerExtension(dart.global.SQLTransaction, web_sql.SqlTransaction);
-  dart.trackLibraries("dart_sdk", {"dart:_runtime": dart, "dart:_debugger": _debugger, "dart:_foreign_helper": _foreign_helper, "dart:_interceptors": _interceptors, "dart:_internal": _internal, "dart:_isolate_helper": _isolate_helper, "dart:_js_embedded_names": _js_embedded_names, "dart:_js_helper": _js_helper, "dart:_js_mirrors": _js_mirrors, "dart:_js_primitives": _js_primitives, "dart:_metadata": _metadata, "dart:_native_typed_data": _native_typed_data, "dart:async": async, "dart:collection": collection, "dart:convert": convert, "dart:core": core, "dart:developer": developer, "dart:io": io, "dart:isolate": isolate$, "dart:js": js, "dart:js_util": js_util, "dart:math": math, "dart:mirrors": mirrors, "dart:typed_data": typed_data, "dart:indexed_db": indexed_db, "dart:html": html$, "dart:html_common": html_common, "dart:svg": svg$, "dart:web_audio": web_audio, "dart:web_gl": web_gl, "dart:web_sql": web_sql});
+  dart.trackLibraries("dart_sdk", {"dart:_runtime": dart, "dart:_debugger": _debugger, "dart:_foreign_helper": _foreign_helper, "dart:_interceptors": _interceptors, "dart:_internal": _internal, "dart:_isolate_helper": _isolate_helper, "dart:_js_embedded_names": _js_embedded_names, "dart:_js_helper": _js_helper, "dart:_js_mirrors": _js_mirrors, "dart:_js_primitives": _js_primitives, "dart:_metadata": _metadata, "dart:_native_typed_data": _native_typed_data, "dart:async": async, "dart:collection": collection, "dart:convert": convert, "dart:core": core, "dart:developer": developer, "dart:io": io, "dart:isolate": isolate$, "dart:js": js, "dart:js_util": js_util, "dart:math": math, "dart:mirrors": mirrors, "dart:typed_data": typed_data, "dart:indexed_db": indexed_db, "dart:html": html$, "dart:html_common": html_common, "dart:svg": svg$, "dart:web_audio": web_audio, "dart:web_gl": web_gl, "dart:web_sql": web_sql, "dart:nativewrappers": nativewrappers});
   // Exports:
   return {
     dart: dart,
@@ -105484,6 +105485,7 @@ define([], function() {
     svg: svg$,
     web_audio: web_audio,
     web_gl: web_gl,
-    web_sql: web_sql
+    web_sql: web_sql,
+    nativewrappers: nativewrappers
   };
 });
