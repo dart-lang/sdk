@@ -4,6 +4,15 @@
   -- BSD-style license that can be found in the LICENSE file.
   -->
 
+<!--
+  -- Note: if you move this file to a different location, please make sure that
+  -- you also update these references to it:
+  --  * pkg/compiler/lib/src/diagnostics/messages.dart
+  --  * pkg/dart_messages/lib/shared_messages.dart
+  --  * pkg/front_end/lib/src/base/errors.dart
+  --  * https://github.com/dart-lang/linter/
+  -->
+
 # Guide for Writing Diagnostics
 
 ## The Rule of 3
