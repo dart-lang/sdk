@@ -59,6 +59,88 @@ class ScannerTest_Fasta extends ScannerTestBase {
     super.test_bar_bar_eq();
   }
 
+  void test_comments() {
+    const source = '''
+       /// Doc comment before class
+       /// second line
+       /// third
+       class Foo {
+         // Random comment
+         Object someField; // trailing comment
+         dynamic secondField;
+         /// Method doc
+         void someMethod(/* comment before closing paren */) {
+           // body comment
+         }
+         /** Doc comment 2 */
+         Foo2 bar() => new Baz();
+       } // EOF comment
+    ''';
+
+    fasta.Token scanSource({bool includeComments}) {
+      return new fasta.StringScanner(source, includeComments: includeComments)
+          .tokenize();
+    }
+
+    int tokenCount = 0;
+    fasta.Token token = scanSource(includeComments: false);
+    while (!token.isEof) {
+      ++tokenCount;
+      // Assert no comments
+      expect(token.precedingComments, isNull);
+      expect(token.info.kind, isNot(fasta.COMMENT_TOKEN));
+      token = token.next;
+    }
+    expect(token.precedingComments, isNull);
+    expect(tokenCount, 26);
+
+    tokenCount = 0;
+    int previousEnd = 0;
+    int spotCheckCount = 0;
+    int commentTokenCount = 0;
+    token = scanSource(includeComments: true);
+    while (!token.isEof) {
+      ++tokenCount;
+      // Assert valid comments
+      fasta.Token comment = token.precedingComments;
+      while (comment != null) {
+        ++commentTokenCount;
+        expect(comment.info.kind, fasta.COMMENT_TOKEN);
+        expect(comment.charOffset, greaterThanOrEqualTo(previousEnd));
+        previousEnd = comment.charOffset + comment.charCount;
+        comment = comment.next;
+      }
+      expect(token.info.kind, isNot(fasta.COMMENT_TOKEN));
+      expect(token.charOffset, greaterThanOrEqualTo(previousEnd));
+      previousEnd = token.charOffset + token.charCount;
+
+      // Spot check for specific token/comment combinations
+      if (token.value == 'class') {
+        ++spotCheckCount;
+        expect(token.precedingComments?.value, '/// Doc comment before class');
+        expect(token.precedingComments?.next?.value, '/// second line');
+        expect(token.precedingComments?.next?.next?.value, '/// third');
+        expect(token.precedingComments?.next?.next?.next, isNull);
+      } else if (token.value == 'Foo2') {
+        ++spotCheckCount;
+        expect(token.precedingComments?.value, '/** Doc comment 2 */');
+      } else if (token.value == ')') {
+        if (token.precedingComments != null) {
+          ++spotCheckCount;
+          expect(token.precedingComments?.value,
+              '/* comment before closing paren */');
+          expect(token.precedingComments?.next, isNull);
+        }
+      }
+
+      token = token.next;
+    }
+    expect(tokenCount, 26);
+    expect(spotCheckCount, 3);
+    expect(commentTokenCount, 9);
+    expect(token.precedingComments?.value, '// EOF comment');
+  }
+
   @override
   @failingTest
   void test_comment_generic_method_type_assign() {

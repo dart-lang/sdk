@@ -49,6 +49,18 @@ abstract class AbstractScanner implements Scanner {
    */
   Token tail;
 
+  /**
+   * A pointer to the stream of comment tokens created by this scanner
+   * before they are assigned to the [Token] precedingComments field
+   * of a non-comment token. A value of `null` indicates no comment tokens.
+   */
+  Token comments;
+
+  /**
+   * A pointer to the last scanned comment token or `null` if none.
+   */
+  Token commentsTail;
+
   final List<int> lineStarts;
 
   AbstractScanner(this.includeComments, {int numberOfBytesHint})

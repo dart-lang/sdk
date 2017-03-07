@@ -44,12 +44,13 @@ class StringScanner extends ArrayBasedScanner {
   Token firstToken() => tokens.next;
   Token previousToken() => tail;
 
-  void appendSubstringToken(PrecedenceInfo info, int start, bool asciiOnly,
+  @override
+  StringToken createSubstringToken(
+      PrecedenceInfo info, int start, bool asciiOnly,
       [int extraOffset = 0]) {
-    tail.next = new StringToken.fromSubstring(
+    return new StringToken.fromSubstring(
         info, string, start, scanOffset + extraOffset, tokenStart,
         canonicalize: true);
-    tail = tail.next;
   }
 
   bool atEndOfFile() => scanOffset >= string.length - 1;
