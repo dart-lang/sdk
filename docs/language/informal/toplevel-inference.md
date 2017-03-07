@@ -99,11 +99,17 @@ omitted types are treated as dynamic.
 
 
 Otherwise, the missing types are filled in with the type from the overridden or
-implemented method.  If there are multiple overridden/implemented methods and
-the type to be filled in does not agree, it is an error.  If there is no
-corresponding parameter position in the overridden method to infer from, it is
-treated as dynamic (e.g. overriding a one parameter method with a method that
-takes a second optional parameter).
+implemented method.  If there are multiple overridden/implemented methods, and
+any two of them have non-equal types (declared or inferred) for a parameter
+position which is being inferred for the overriding method, it is an error.  If
+there is no corresponding parameter position in the overridden method to infer
+from and the signatures are compatible, it is treated as dynamic
+(e.g. overriding a one parameter method with a method that takes a second
+optional parameter).  Note: if there is no corresponding parameter position in
+the overriden method to infer from and the signatures are incompatible
+(e.g. overriding a one parameter method with a method that takes a second
+non-optional parameter), the inference result is not defined and tools are free
+to either emit an error, or to defer the error to override checking.
 
 
 ### Setter return types
@@ -327,9 +333,10 @@ as the appropriate method call as defined in the spec.
      disallowed here.
    * The inference dependency of the identifier is itself if the identifier is
       a candidate for inference.  Otherwise there are no inference dependencies.
-* A simple identifier denoting a formal parameter which has an annotated type is
-  an immediately evident expression and has the type with which it was
-  annotated.
+* A simple identifier denoting a formal parameter which has an annotated type
+  and is not a promotion candidate is an immediately evident expression and has
+  the type with which it was annotated.
+   * Note: the treatment of promotion candidates is still under discussion.
    * No inference dependencies.
 * A function (or function expression) invocation with no omitted generic
    arguments where the applicand is an IE that has an inferred type with a
