@@ -900,6 +900,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitImportDirective(ImportDirective node) {
     ImportElement importElement = node.element;
+    if (node.prefix != null) {
+      _checkForBuiltInIdentifierAsName(
+          node.prefix, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME);
+    }
     if (importElement != null) {
       _checkForImportDuplicateLibraryName(node, importElement);
       _checkForImportInternalLibrary(node, importElement);

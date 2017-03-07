@@ -26,22 +26,6 @@ Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Function_Invocation/Unqualified_Invocation/invocation_t17: MissingCompileTimeError # Please triage this failure
 Language/Expressions/Function_Invocation/Unqualified_Invocation/invocation_t18: MissingCompileTimeError # Please triage this failure
-Language/Expressions/Identifier_Reference/built_in_identifier_t53: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t54: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t55: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t56: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t57: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t58: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t59: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t60: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t61: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t62: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t63: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t64: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t65: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t66: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t67: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t68: MissingCompileTimeError # Issue 25733
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t17: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t18: MissingCompileTimeError # Please triage this failure.
 Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: MissingCompileTimeError # Please triage this failure.
