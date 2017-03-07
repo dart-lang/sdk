@@ -470,12 +470,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseListOrMapLiteral_map_noType() {
-    super.test_parseListOrMapLiteral_map_noType();
-  }
-
-  @override
-  @failingTest
   void
       test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments() {
     super
@@ -498,14 +492,14 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parsePrimaryExpression_mapLiteral() {
-    super.test_parsePrimaryExpression_mapLiteral();
+  void test_parsePrimaryExpression_mapLiteral_typed_genericComment() {
+    super.test_parsePrimaryExpression_mapLiteral_typed_genericComment();
   }
 
   @override
   @failingTest
-  void test_parsePrimaryExpression_mapLiteral_typed_genericComment() {
-    super.test_parsePrimaryExpression_mapLiteral_typed_genericComment();
+  void test_parsePrimaryExpression_super() {
+    super.test_parsePrimaryExpression_super();
   }
 
   @override
@@ -790,7 +784,7 @@ class FastaParserTestCase extends Object
   @override
   TypedLiteral parseListOrMapLiteral(analyzer.Token modifier, String code) {
     String literalCode = modifier != null ? '$modifier $code' : code;
-    return _parseExpression(literalCode);
+    return parsePrimaryExpression(literalCode) as TypedLiteral;
   }
 
   @override
@@ -814,12 +808,13 @@ class FastaParserTestCase extends Object
       sc += typeArgumentsCode;
     }
     sc += code;
-    return _parseMapLiteralCode(sc);
+    return parsePrimaryExpression(sc) as MapLiteral;
   }
 
   @override
   MapLiteralEntry parseMapLiteralEntry(String code) {
-    return _parseMapLiteralCode('{$code}').entries.single;
+    var mapLiteral = parseMapLiteral(null, null, '{ $code }');
+    return mapLiteral.entries.single;
   }
 
   @override
@@ -853,7 +848,9 @@ class FastaParserTestCase extends Object
 
   @override
   Expression parsePrimaryExpression(String code) {
-    return _parseExpression(code);
+    return _runParser(
+            code, (parser) => parser.parsePrimary, const <ErrorCode>[])
+        as Expression;
   }
 
   @override
@@ -918,12 +915,6 @@ class FastaParserTestCase extends Object
   Expression _parseExpression(String code) {
     var statement = parseStatement('$code;') as ExpressionStatement;
     return statement.expression;
-  }
-
-  MapLiteral _parseMapLiteralCode(String code) {
-    var statement =
-        parseStatement('var v = $code;') as VariableDeclarationStatement;
-    return statement.variables.variables.single.initializer as MapLiteral;
   }
 
   Object _runParser(
@@ -1205,11 +1196,6 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     // parameters.
     super
         .test_parseCompilationUnitMember_function_generic_noReturnType_annotated();
-  }
-
-  void test_parseCompilationUnitMember_typedef() {
-    // TODO(paulberry): Unhandled event: FunctionTypeAlias
-    super.test_parseCompilationUnitMember_typedef();
   }
 
   @override
