@@ -194,6 +194,23 @@ class ScannerTest_Fasta extends ScannerTestBase {
     super.test_scriptTag_withArgs();
   }
 
+  void test_next_previous() {
+    const source = 'int a; /*1*/ /*2*/ /*3*/ B f(){if (a < 2) {}}';
+    fasta.Token token =
+        new fasta.StringScanner(source, includeComments: true).tokenize();
+    while (!token.isEof) {
+      expect(token.next.previousToken, token);
+      fasta.Token commentToken = token.precedingComments;
+      while (commentToken != null) {
+        if (commentToken.next != null) {
+          expect(commentToken.next.previousToken, commentToken);
+        }
+        commentToken = commentToken.next;
+      }
+      token = token.next;
+    }
+  }
+
   @override
   @failingTest
   void test_scriptTag_withoutSpace() {

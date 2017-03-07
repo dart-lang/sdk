@@ -282,6 +282,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     token = token.next;
     while (token != null) {
       tail.next = fromAnalyzerToken(token);
+      tail.next.previousToken = tail;
       tail = tail.next;
       token = token.next;
     }
@@ -293,6 +294,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     token.precedingComments =
         translateComments(analyzerToken.precedingComments);
     tokenTail.next = token;
+    tokenTail.next.previousToken = tokenTail;
     tokenTail = token;
     matchGroups(analyzerToken, token);
     return analyzerToken.next;
@@ -302,6 +304,7 @@ Token fromAnalyzerTokenStream(analyzer.Token analyzerToken) {
     // TODO(paulberry): join up begingroup/endgroup.
     if (analyzerToken.type == TokenType.EOF) {
       tokenTail.next = new SymbolToken(EOF_INFO, analyzerToken.offset);
+      tokenTail.next.previousToken = tokenTail;
       tokenTail.next.precedingComments =
           translateComments(analyzerToken.precedingComments);
       return tokenHead.next;

@@ -40,6 +40,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    */
   void appendToken(Token token) {
     tail.next = token;
+    tail.next.previousToken = tail;
     tail = tail.next;
     if (comments != null) {
       tail.precedingComments = comments;
@@ -225,6 +226,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
       commentsTail = comments;
     } else {
       commentsTail.next = newComment;
+      commentsTail.next.previousToken = commentsTail;
       commentsTail = commentsTail.next;
     }
   }
