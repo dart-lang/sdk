@@ -1071,22 +1071,6 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 }
 
 
-void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
-                                              intptr_t deopt_id,
-                                              const StubEntry& stub_entry,
-                                              RawPcDescriptors::Kind kind,
-                                              LocationSummary* locs) {
-  GenerateCall(token_pos, stub_entry, kind, locs);
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
-  if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after);
-  } else {
-    // Add deoptimization continuation point after the call and before the
-    // arguments are removed.
-    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
-  }
-}
-
 
 void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
   const Array& inlined_id_array =
@@ -1169,6 +1153,23 @@ bool FlowGraphCompiler::TryIntrinsify() {
 // DBC is very different from other architectures in how it performs instance
 // and static calls because it does not use stubs.
 #if !defined(TARGET_ARCH_DBC)
+void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
+                                              intptr_t deopt_id,
+                                              const StubEntry& stub_entry,
+                                              RawPcDescriptors::Kind kind,
+                                              LocationSummary* locs) {
+  GenerateCall(token_pos, stub_entry, kind, locs);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+  }
+}
+
+
 void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
                                              TokenPosition token_pos,
                                              intptr_t argument_count,
