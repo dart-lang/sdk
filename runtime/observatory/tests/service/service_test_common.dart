@@ -397,3 +397,45 @@ Future<Instance> rootLibraryFieldValue(Isolate isolate,
   await value.load();
   return value;
 }
+
+IsolateTest runStepThroughProgramRecordingStops(List<String> recordStops) {
+  return (Isolate isolate) async {
+    Completer completer = new Completer();
+
+    await subscribeToStream(isolate.vm, VM.kDebugStream,
+        (ServiceEvent event) async {
+      if (event.kind == ServiceEvent.kPauseBreakpoint) {
+        await isolate.reload();
+        // We are paused: Step further.
+        Frame frame = isolate.topFrame;
+        recordStops.add(await frame.location.toUserString());
+        if (event.atAsyncSuspension) {
+          isolate.stepOverAsyncSuspension();
+        } else {
+          isolate.stepOver();
+        }
+      } else if (event.kind == ServiceEvent.kPauseExit) {
+        // We are at the exit: The test is done.
+        await cancelStreamSubscription(VM.kDebugStream);
+        completer.complete();
+      }
+    });
+    isolate.resume();
+    return completer.future;
+  };
+}
+
+IsolateTest checkRecordedStops(
+    List<String> recordStops, List<String> expectedStops) {
+  return (Isolate isolate) async {
+    int end = recordStops.length < expectedStops.length
+        ? recordStops.length
+        : expectedStops.length;
+    for (int i = 0; i < end; ++i) {
+      expect(recordStops[i], expectedStops[i]);
+    }
+
+    expect(recordStops.length >= expectedStops.length, true,
+        reason: "Expects at least ${expectedStops.length} breaks.");
+  };
+}

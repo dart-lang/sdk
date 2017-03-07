@@ -1345,7 +1345,6 @@ const Array& TranslationHelper::ArgumentNames(List<NamedExpression>* named) {
   return names;
 }
 
-
 ConstantEvaluator::ConstantEvaluator(FlowGraphBuilder* builder,
                                      Zone* zone,
                                      TranslationHelper* h,
@@ -2084,7 +2083,8 @@ Fragment FlowGraphBuilder::PushContext(int size) {
   LocalVariable* context = MakeTemporary();
   instructions += LoadLocal(context);
   instructions += LoadLocal(parsed_function_->current_context_var());
-  instructions += StoreInstanceField(Context::parent_offset());
+  instructions +=
+      StoreInstanceField(TokenPosition::kNoSource, Context::parent_offset());
   instructions += StoreLocal(TokenPosition::kNoSource,
                              parsed_function_->current_context_var());
   ++context_depth_;
@@ -2434,13 +2434,13 @@ Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
 }
 
 
-Fragment FlowGraphBuilder::RethrowException(int catch_try_index) {
+Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
+                                            int catch_try_index) {
   Fragment instructions;
   instructions += Drop();
   instructions += Drop();
   instructions +=
-      Fragment(new (Z) ReThrowInstr(TokenPosition::kNoSource, catch_try_index))
-          .closed();
+      Fragment(new (Z) ReThrowInstr(position, catch_try_index)).closed();
   // Use it's side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
@@ -2569,10 +2569,8 @@ Fragment FlowGraphBuilder::Return(TokenPosition position) {
   ASSERT(stack_ == NULL);
 
   const Function& function = parsed_function_->function();
-  if (FLAG_support_debugger && position.IsDebugPause() &&
-      !function.is_native()) {
-    instructions <<=
-        new (Z) DebugStepCheckInstr(position, RawPcDescriptors::kRuntimeCall);
+  if (NeedsDebugStepCheck(function, position)) {
+    instructions += DebugStepCheck(position);
   }
 
   if (FLAG_causal_async_stacks &&
@@ -2701,6 +2699,7 @@ Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(
 
 
 Fragment FlowGraphBuilder::StoreInstanceField(
+    TokenPosition position,
     intptr_t offset,
     StoreBarrierType emit_store_barrier) {
   Value* value = Pop();
@@ -2708,7 +2707,7 @@ Fragment FlowGraphBuilder::StoreInstanceField(
     emit_store_barrier = kNoStoreBarrier;
   }
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      offset, Pop(), value, emit_store_barrier, TokenPosition::kNoSource);
+      offset, Pop(), value, emit_store_barrier, position);
   return Fragment(store);
 }
 
@@ -2720,21 +2719,10 @@ Fragment FlowGraphBuilder::StoreLocal(TokenPosition position,
     LocalVariable* value = MakeTemporary();
     instructions += LoadContextAt(variable->owner()->context_level());
     instructions += LoadLocal(value);
-    instructions +=
-        StoreInstanceField(Context::variable_offset(variable->index()));
+    instructions += StoreInstanceField(
+        position, Context::variable_offset(variable->index()));
   } else {
     Value* value = Pop();
-    if (FLAG_support_debugger && position.IsDebugPause() &&
-        !variable->IsInternal()) {
-      if (value->definition()->IsConstant() ||
-          value->definition()->IsAllocateObject() ||
-          (value->definition()->IsLoadLocal() &&
-           !value->definition()->AsLoadLocal()->local().IsInternal())) {
-        instructions <<= new (Z)
-            DebugStepCheckInstr(position, RawPcDescriptors::kRuntimeCall);
-      }
-    }
-
     StoreLocalInstr* store =
         new (Z) StoreLocalInstr(*variable, value, position);
     instructions <<= store;
@@ -2744,9 +2732,10 @@ Fragment FlowGraphBuilder::StoreLocal(TokenPosition position,
 }
 
 
-Fragment FlowGraphBuilder::StoreStaticField(const dart::Field& field) {
-  return Fragment(new (Z) StoreStaticFieldInstr(MayCloneField(Z, field), Pop(),
-                                                TokenPosition::kNoSource));
+Fragment FlowGraphBuilder::StoreStaticField(TokenPosition position,
+                                            const dart::Field& field) {
+  return Fragment(
+      new (Z) StoreStaticFieldInstr(MayCloneField(Z, field), Pop(), position));
 }
 
 
@@ -3117,7 +3106,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
         // eligible for garbage collection.
         body += LoadLocal(context);
         body += LoadLocal(parameter);
-        body += StoreInstanceField(Context::variable_offset(variable->index()));
+        body += StoreInstanceField(TokenPosition::kNoSource,
+                                   Context::variable_offset(variable->index()));
         body += NullConstant();
         body += StoreLocal(TokenPosition::kNoSource, parameter);
         body += Drop();
@@ -3277,7 +3267,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
       // which acts like an anchor, so we need to skip it.
       then->LinkTo(yield_continuations_[i].entry->next());
       then->set_try_index(yield_continuations_[i].try_index);
-
       // False branch will contain the next comparison.
       dispatch = Fragment(dispatch.entry, otherwise);
       block = otherwise;
@@ -3318,8 +3307,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
     context_depth_ = current_context_depth;
   }
 
-  if (FLAG_support_debugger && function->position().IsDebugPause() &&
-      !dart_function.is_native() && dart_function.is_debuggable()) {
+  if (NeedsDebugStepCheck(dart_function, function->position())) {
     // If a switch was added above: Start the switch by injecting a debugable
     // safepoint so stepping over an await works.
     // If not, still start the body with a debugable safepoint to ensure
@@ -3339,9 +3327,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
       check_pos = function->position();
       ASSERT(check_pos.IsDebugPause());
     }
-    Fragment check(
-        new (Z) DebugStepCheckInstr(check_pos, RawPcDescriptors::kRuntimeCall));
-    body = check + body;
+    body = DebugStepCheck(check_pos) + body;
   }
 
   normal_entry->LinkTo(body.entry);
@@ -3446,7 +3432,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(
           LookupVariable(kernel_function->positional_parameters()[0]));
-      body += StoreInstanceField(LinkedHashMap::index_offset());
+      body += StoreInstanceField(TokenPosition::kNoSource,
+                                 LinkedHashMap::index_offset());
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getData:
@@ -3458,7 +3445,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(
           LookupVariable(kernel_function->positional_parameters()[0]));
-      body += StoreInstanceField(LinkedHashMap::data_offset());
+      body += StoreInstanceField(TokenPosition::kNoSource,
+                                 LinkedHashMap::data_offset());
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getHashMask:
@@ -3470,7 +3458,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(
           LookupVariable(kernel_function->positional_parameters()[0]));
-      body += StoreInstanceField(LinkedHashMap::hash_mask_offset(),
+      body += StoreInstanceField(TokenPosition::kNoSource,
+                                 LinkedHashMap::hash_mask_offset(),
                                  kNoStoreBarrier);
       body += NullConstant();
       break;
@@ -3483,7 +3472,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(
           LookupVariable(kernel_function->positional_parameters()[0]));
-      body += StoreInstanceField(LinkedHashMap::used_data_offset(),
+      body += StoreInstanceField(TokenPosition::kNoSource,
+                                 LinkedHashMap::used_data_offset(),
                                  kNoStoreBarrier);
       body += NullConstant();
       break;
@@ -3496,7 +3486,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(
           LookupVariable(kernel_function->positional_parameters()[0]));
-      body += StoreInstanceField(LinkedHashMap::deleted_keys_offset(),
+      body += StoreInstanceField(TokenPosition::kNoSource,
+                                 LinkedHashMap::deleted_keys_offset(),
                                  kNoStoreBarrier);
       body += NullConstant();
       break;
@@ -3537,7 +3528,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       body += StoreInstanceFieldGuarded(field, false);
     } else {
       body += LoadLocal(setter_value);
-      body += StoreStaticField(field);
+      body += StoreStaticField(TokenPosition::kNoSource, field);
     }
     body += NullConstant();
   } else if (is_method) {
@@ -3606,17 +3597,20 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   // Store the function and the context in the closure.
   fragment += LoadLocal(closure);
   fragment += Constant(target);
-  fragment += StoreInstanceField(Closure::function_offset());
+  fragment +=
+      StoreInstanceField(TokenPosition::kNoSource, Closure::function_offset());
 
   fragment += LoadLocal(closure);
   fragment += LoadLocal(context);
-  fragment += StoreInstanceField(Closure::context_offset());
+  fragment +=
+      StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
 
   // The context is on top of the operand stack.  Store `this`.  The context
   // doesn't need a parent pointer because it doesn't close over anything
   // else.
   fragment += LoadLocal(scopes_->this_variable);
-  fragment += StoreInstanceField(Context::variable_offset(0));
+  fragment +=
+      StoreInstanceField(TokenPosition::kNoSource, Context::variable_offset(0));
 
   return fragment;
 }
@@ -3645,6 +3639,31 @@ Fragment FlowGraphBuilder::CheckVariableTypeInCheckedMode(
                                         H.DartSymbol(variable->name()));
   }
   return Fragment();
+}
+
+
+bool FlowGraphBuilder::NeedsDebugStepCheck(const Function& function,
+                                           TokenPosition position) {
+  return FLAG_support_debugger && position.IsDebugPause() &&
+         !function.is_native() && function.is_debuggable();
+}
+
+
+bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
+                                           TokenPosition position) {
+  if (!FLAG_support_debugger || !position.IsDebugPause()) return false;
+  Definition* definition = value->definition();
+  if (definition->IsConstant() || definition->IsLoadStaticField()) return true;
+  if (definition->IsAllocateObject()) {
+    return !definition->AsAllocateObject()->closure_function().IsNull();
+  }
+  return definition->IsLoadLocal() &&
+         !definition->AsLoadLocal()->local().IsInternal();
+}
+
+Fragment FlowGraphBuilder::DebugStepCheck(TokenPosition position) {
+  return Fragment(
+      new (Z) DebugStepCheckInstr(position, RawPcDescriptors::kRuntimeCall));
 }
 
 
@@ -4564,6 +4583,9 @@ void FlowGraphBuilder::VisitVariableGet(VariableGet* node) {
 
 void FlowGraphBuilder::VisitVariableSet(VariableSet* node) {
   Fragment instructions = TranslateExpression(node->expression());
+  if (NeedsDebugStepCheck(stack_, node->position())) {
+    instructions = DebugStepCheck(node->position()) + instructions;
+  }
   instructions += CheckVariableTypeInCheckedMode(node->variable());
   instructions +=
       StoreLocal(node->position(), LookupVariable(node->variable()));
@@ -4616,11 +4638,14 @@ void FlowGraphBuilder::VisitStaticSet(StaticSet* node) {
         dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(kernel_field));
     const AbstractType& dst_type = AbstractType::ZoneHandle(Z, field.type());
     Fragment instructions = TranslateExpression(node->expression());
+    if (NeedsDebugStepCheck(stack_, node->position())) {
+      instructions = DebugStepCheck(node->position()) + instructions;
+    }
     instructions += CheckAssignableInCheckedMode(
         dst_type, dart::String::ZoneHandle(Z, field.name()));
     LocalVariable* variable = MakeTemporary();
     instructions += LoadLocal(variable);
-    fragment_ = instructions + StoreStaticField(field);
+    fragment_ = instructions + StoreStaticField(node->position(), field);
   } else {
     ASSERT(target->IsProcedure());
 
@@ -5046,8 +5071,8 @@ void FlowGraphBuilder::VisitAsExpression(AsExpression* node) {
     instructions += PushArgument();  // Type.
 
     instructions += InstanceCall(
-        TokenPosition::kNoSource,
-        dart::Library::PrivateCoreLibName(Symbols::_as()), Token::kAS, 3);
+        node->position(), dart::Library::PrivateCoreLibName(Symbols::_as()),
+        Token::kAS, 3);
   }
 
   fragment_ = instructions;
@@ -5271,6 +5296,9 @@ void FlowGraphBuilder::VisitThrow(Throw* node) {
   Fragment instructions;
 
   instructions += TranslateExpression(node->expression());
+  if (NeedsDebugStepCheck(stack_, node->position())) {
+    instructions = DebugStepCheck(node->position()) + instructions;
+  }
   instructions += PushArgument();
   instructions += ThrowException(node->position());
   ASSERT(instructions.is_closed());
@@ -5282,11 +5310,13 @@ void FlowGraphBuilder::VisitThrow(Throw* node) {
 void FlowGraphBuilder::VisitRethrow(Rethrow* node) {
   Fragment instructions;
 
+  instructions = DebugStepCheck(node->position()) + instructions;
   instructions += LoadLocal(catch_block_->exception_var());
   instructions += PushArgument();
   instructions += LoadLocal(catch_block_->stack_trace_var());
   instructions += PushArgument();
-  instructions += RethrowException(catch_block_->catch_try_index());
+  instructions +=
+      RethrowException(node->position(), catch_block_->catch_try_index());
 
   fragment_ = instructions;
 }
@@ -5349,13 +5379,17 @@ void FlowGraphBuilder::VisitReturnStatement(ReturnStatement* node) {
   if (instructions.is_open()) {
     if (inside_try_finally) {
       ASSERT(scopes_->finally_return_variable != NULL);
-      instructions += StoreLocal(TokenPosition::kNoSource,
-                                 scopes_->finally_return_variable);
+      const Function& function = parsed_function_->function();
+      if (NeedsDebugStepCheck(function, node->position())) {
+        instructions += DebugStepCheck(node->position());
+      }
+      instructions +=
+          StoreLocal(node->position(), scopes_->finally_return_variable);
       instructions += Drop();
       instructions += TranslateFinallyFinalizers(NULL, -1);
       if (instructions.is_open()) {
         instructions += LoadLocal(scopes_->finally_return_variable);
-        instructions += Return(node->position());
+        instructions += Return(TokenPosition::kNoSource);
       }
     } else {
       instructions += Return(node->position());
@@ -5392,16 +5426,24 @@ void FlowGraphBuilder::VisitVariableDeclaration(VariableDeclaration* node) {
       instructions += CheckVariableTypeInCheckedMode(node);
     }
   }
-  instructions += StoreLocal(variable->token_pos(), variable);
+  // Use position of equal sign if it exists. If the equal sign does not exist
+  // use the position of the identifier.
+  TokenPosition debug_position =
+      Utils::Maximum(node->position(), node->equals_position());
+  if (NeedsDebugStepCheck(stack_, debug_position)) {
+    instructions = DebugStepCheck(debug_position) + instructions;
+  }
+  instructions += StoreLocal(node->position(), variable);
   instructions += Drop();
   fragment_ = instructions;
 }
 
 
 void FlowGraphBuilder::VisitFunctionDeclaration(FunctionDeclaration* node) {
-  Fragment instructions = TranslateFunctionNode(node->function(), node);
+  Fragment instructions = DebugStepCheck(node->position());
+  instructions += TranslateFunctionNode(node->function(), node);
   instructions +=
-      StoreLocal(TokenPosition::kNoSource, LookupVariable(node->variable()));
+      StoreLocal(node->position(), LookupVariable(node->variable()));
   instructions += Drop();
   fragment_ = instructions;
 }
@@ -5640,6 +5682,9 @@ void FlowGraphBuilder::VisitBreakStatement(BreakStatement* node) {
   instructions +=
       TranslateFinallyFinalizers(outer_finally, target_context_depth);
   if (instructions.is_open()) {
+    if (NeedsDebugStepCheck(parsed_function_->function(), node->position())) {
+      instructions += DebugStepCheck(node->position());
+    }
     instructions += Goto(destination);
   }
   fragment_ = instructions;
@@ -5982,7 +6027,8 @@ void FlowGraphBuilder::VisitTryFinally(TryFinally* node) {
     finally_body += PushArgument();
     finally_body += LoadLocal(CurrentStackTrace());
     finally_body += PushArgument();
-    finally_body += RethrowException(try_handler_index);
+    finally_body +=
+        RethrowException(TokenPosition::kNoSource, try_handler_index);
     Drop();
   }
   --catch_depth_;
@@ -6093,7 +6139,7 @@ void FlowGraphBuilder::VisitTryCatch(class TryCatch* node) {
     catch_body += PushArgument();
     catch_body += LoadLocal(CurrentStackTrace());
     catch_body += PushArgument();
-    catch_body += RethrowException(try_handler_index);
+    catch_body += RethrowException(TokenPosition::kNoSource, try_handler_index);
     Drop();
   }
   --catch_depth_;
@@ -6167,7 +6213,8 @@ void FlowGraphBuilder::VisitYieldStatement(YieldStatement* node) {
     rethrow += PushArgument();
     rethrow += LoadLocal(stack_trace_var);
     rethrow += PushArgument();
-    rethrow += RethrowException(CatchClauseNode::kInvalidTryIndex);
+    rethrow +=
+        RethrowException(node->position(), CatchClauseNode::kInvalidTryIndex);
     Drop();
 
 
@@ -6268,11 +6315,13 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
   // Store the function and the context in the closure.
   instructions += LoadLocal(closure);
   instructions += Constant(function);
-  instructions += StoreInstanceField(Closure::function_offset());
+  instructions +=
+      StoreInstanceField(TokenPosition::kNoSource, Closure::function_offset());
 
   instructions += LoadLocal(closure);
   instructions += LoadLocal(parsed_function_->current_context_var());
-  instructions += StoreInstanceField(Closure::context_offset());
+  instructions +=
+      StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
 
   return instructions;
 }

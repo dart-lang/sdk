@@ -850,10 +850,9 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     var expr = node.expression == null
         ? new NullLiteral()
         : expressionRewriter.rewrite(node.expression, statements);
-    statements
-        .add(new ExpressionStatement(new VariableSet(returnVariable, expr)));
-    statements
-        .add(new BreakStatement(labeledBody)..fileOffset = node.fileOffset);
+    statements.add(new ExpressionStatement(
+        new VariableSet(returnVariable, expr)..fileOffset = node.fileOffset));
+    statements.add(new BreakStatement(labeledBody));
     return null;
   }
 }

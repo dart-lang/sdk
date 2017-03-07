@@ -528,7 +528,8 @@ class ExpressionScope extends TypeScope {
         if (bodyHasVoidReturn(body)) {
           return new ast.ExpressionStatement(buildExpression(body.expression));
         } else {
-          return new ast.ReturnStatement(buildExpression(body.expression));
+          return new ast.ReturnStatement(buildExpression(body.expression))
+            ..fileOffset = body.expression.offset;
         }
       } else {
         return internalError('Missing function body');
@@ -578,8 +579,8 @@ class ExpressionScope extends TypeScope {
     }
     int offset = formalParameters?.offset ?? body.offset;
     int endOffset = body.endToken.offset;
-    ast.AsyncMarker asyncMarker = getAsyncMarker(
-        isAsync: body.isAsynchronous, isStar: body.isGenerator);
+    ast.AsyncMarker asyncMarker =
+        getAsyncMarker(isAsync: body.isAsynchronous, isStar: body.isGenerator);
     return new ast.FunctionNode(buildOptionalFunctionBody(body),
         typeParameters: typeParameters,
         positionalParameters: positional,
@@ -670,8 +671,9 @@ class ExpressionScope extends TypeScope {
   }
 
   ast.VariableDeclaration makeVariableDeclaration(LocalElement element,
-      {ast.DartType type, ast.Expression initializer}) {
+      {ast.DartType type, ast.Expression initializer, int equalsOffset}) {
     var declaration = getVariableReference(element);
+    if (equalsOffset != null) declaration.fileEqualsOffset = equalsOffset;
     declaration.type = type ?? getInferredVariableType(element);
     if (initializer != null) {
       declaration.initializer = initializer..parent = declaration;
@@ -967,7 +969,8 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
         LocalElement local = decl.element as dynamic; // Cross cast.
         output.add(scope.makeVariableDeclaration(local,
             type: type,
-            initializer: scope.buildOptionalExpression(decl.initializer)));
+            initializer: scope.buildOptionalExpression(decl.initializer),
+            equalsOffset: decl.equals?.offset));
       }
     } else {
       output.add(build(node));
@@ -1181,7 +1184,8 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
         LocalElement local = variable.element as dynamic; // Cross cast.
         variables.add(scope.makeVariableDeclaration(local,
             initializer: scope.buildOptionalExpression(variable.initializer),
-            type: type));
+            type: type,
+            equalsOffset: variable.equals?.offset));
       }
     } else if (node.initialization != null) {
       initialExpression = scope.buildExpression(node.initialization);
@@ -1370,7 +1374,12 @@ class ExpressionBuilder
     if (result is Accessor) {
       result = result.buildSimpleRead();
     }
-    return result..fileOffset = _getOffset(node);
+    // For some method invocations we have already set a file offset to
+    // override the default behavior of _getOffset.
+    if (node is! MethodInvocation || result.fileOffset < 0) {
+      result.fileOffset = _getOffset(node);
+    }
+    return result;
   }
 
   int _getOffset(AstNode node) {
@@ -1388,10 +1397,14 @@ class ExpressionBuilder
       return node.propertyName.offset;
     } else if (node is IsExpression) {
       return node.isOperator.offset;
+    } else if (node is AsExpression) {
+      return node.asOperator.offset;
     } else if (node is StringLiteral) {
       // Use a catch-all for StringInterpolation and AdjacentStrings:
       // the debugger stops at the end.
       return node.end;
+    } else if (node is IndexExpression) {
+      return node.leftBracket.offset;
     }
     return node.offset;
   }
@@ -1872,8 +1885,11 @@ class ExpressionBuilder
 
   ast.Expression visitIsExpression(IsExpression node) {
     if (node.notOperator != null) {
+      // Put offset on the IsExpression for "is!" cases:
+      // As it is wrapped in a not, it won't get an offset otherwise.
       return new ast.Not(new ast.IsExpression(
-          build(node.expression), scope.buildTypeAnnotation(node.type)));
+          build(node.expression), scope.buildTypeAnnotation(node.type))
+        ..fileOffset = _getOffset(node));
     } else {
       return new ast.IsExpression(
           build(node.expression), scope.buildTypeAnnotation(node.type));
@@ -1922,11 +1938,15 @@ class ExpressionBuilder
           buildArgumentsForInvocation(node),
           scope.resolveConcreteMethod(element));
     } else if (isLocal(element)) {
+      // Set the offset directly: Normally the offset is at the start of the
+      // method, but in this case, because we insert a '.call', we want it at
+      // the end instead.
       return new ast.MethodInvocation(
           new ast.VariableGet(scope.getVariableReference(element)),
           callName,
           buildArgumentsForInvocation(node),
-          scope.resolveInterfaceFunctionCall(element));
+          scope.resolveInterfaceFunctionCall(element))
+        ..fileOffset = node.methodName.end;
     } else if (isStaticMethod(element)) {
       var method = scope.resolveConcreteMethod(element);
       var arguments = buildArgumentsForInvocation(node);
@@ -1943,11 +1963,15 @@ class ExpressionBuilder
             new ast.NullLiteral(), node.methodName.name, new ast.Arguments([]),
             candidateTarget: element);
       }
+      // Set the offset directly: Normally the offset is at the start of the
+      // method, but in this case, because we insert a '.call', we want it at
+      // the end instead.
       return new ast.MethodInvocation(
           new ast.StaticGet(method),
           callName,
           buildArgumentsForInvocation(node),
-          scope.resolveInterfaceFunctionCall(element));
+          scope.resolveInterfaceFunctionCall(element))
+        ..fileOffset = node.methodName.end;
     } else if (target == null && !scope.allowThis ||
         target is Identifier && target.staticElement is ClassElement ||
         target is Identifier && target.staticElement is PrefixElement) {
@@ -2006,7 +2030,7 @@ class ExpressionBuilder
         var leftHand = buildLeftHandValue(node.operand);
         var binaryOperator = new ast.Name(operator[0]);
         return leftHand.buildPostfixIncrement(binaryOperator,
-            offset: node.offset,
+            offset: node.operator.offset,
             voidContext: isInVoidContext(node),
             interfaceTarget: scope.resolveInterfaceMethod(node.staticElement));
 

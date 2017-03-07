@@ -515,6 +515,7 @@ class BinaryPrinter extends Visitor {
 
   visitStaticSet(StaticSet node) {
     writeByte(Tag.StaticSet);
+    writeOffset(node, node.fileOffset);
     writeReference(node.targetReference);
     writeNode(node.value);
   }
@@ -615,6 +616,7 @@ class BinaryPrinter extends Visitor {
 
   visitAsExpression(AsExpression node) {
     writeByte(Tag.AsExpression);
+    writeOffset(node, node.fileOffset);
     writeNode(node.operand);
     writeNode(node.type);
   }
@@ -675,6 +677,7 @@ class BinaryPrinter extends Visitor {
 
   visitRethrow(Rethrow node) {
     writeByte(Tag.Rethrow);
+    writeOffset(node, node.fileOffset);
   }
 
   visitThrow(Throw node) {
@@ -685,6 +688,7 @@ class BinaryPrinter extends Visitor {
 
   visitListLiteral(ListLiteral node) {
     writeByte(node.isConst ? Tag.ConstListLiteral : Tag.ListLiteral);
+    writeOffset(node, node.fileOffset);
     writeNode(node.typeArgument);
     writeNodeList(node.expressions);
   }
@@ -773,6 +777,7 @@ class BinaryPrinter extends Visitor {
 
   visitBreakStatement(BreakStatement node) {
     writeByte(Tag.BreakStatement);
+    writeOffset(node, node.fileOffset);
     writeUInt30(_labelIndexer[node.target]);
   }
 
@@ -876,6 +881,7 @@ class BinaryPrinter extends Visitor {
 
   void writeVariableDeclaration(VariableDeclaration node) {
     writeOffset(node, node.fileOffset);
+    writeOffset(node, node.fileEqualsOffset);
     writeByte(node.flags);
     writeStringReference(node.name ?? '');
     writeNode(node.type);

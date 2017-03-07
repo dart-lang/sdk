@@ -2470,10 +2470,13 @@ class VariableDeclaration : public Statement {
   DartType* type() { return type_; }
   InferredValue* inferred_value() { return inferred_value_; }
   Expression* initializer() { return initializer_; }
+  TokenPosition equals_position() { return equals_position_; }
   TokenPosition end_position() { return end_position_; }
 
  private:
-  VariableDeclaration() : end_position_(TokenPosition::kNoSource) {}
+  VariableDeclaration()
+      : equals_position_(TokenPosition::kNoSourcePos),
+        end_position_(TokenPosition::kNoSource) {}
 
   template <typename T>
   friend class List;
@@ -2483,6 +2486,7 @@ class VariableDeclaration : public Statement {
   Child<DartType> type_;
   Child<InferredValue> inferred_value_;
   Child<Expression> initializer_;
+  TokenPosition equals_position_;
   TokenPosition end_position_;
 
   DISALLOW_COPY_AND_ASSIGN(VariableDeclaration);
