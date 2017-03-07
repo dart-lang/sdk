@@ -182,7 +182,7 @@ void FlowGraphTypePropagator::SetTypeOf(Definition* def, CompileType* type) {
 void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
   CompileType* current = TypeOf(def);
   if (current->IsNone() || (current->ToCid() != cid)) {
-    SetTypeOf(def, ZoneCompileType::Wrap(CompileType::FromCid(cid)));
+    SetTypeOf(def, new CompileType(CompileType::FromCid(cid)));
   }
 }
 
@@ -275,7 +275,7 @@ void FlowGraphTypePropagator::VisitGuardFieldClass(
       (current->is_nullable() && !guard->field().is_nullable())) {
     const bool is_nullable =
         guard->field().is_nullable() && current->is_nullable();
-    SetTypeOf(def, ZoneCompileType::Wrap(CompileType(is_nullable, cid, NULL)));
+    SetTypeOf(def, new CompileType(is_nullable, cid, NULL));
   }
 }
 
@@ -283,7 +283,7 @@ void FlowGraphTypePropagator::VisitGuardFieldClass(
 void FlowGraphTypePropagator::VisitAssertAssignable(
     AssertAssignableInstr* instr) {
   SetTypeOf(instr->value()->definition(),
-            ZoneCompileType::Wrap(instr->ComputeType()));
+            new CompileType(instr->ComputeType()));
 }
 
 
