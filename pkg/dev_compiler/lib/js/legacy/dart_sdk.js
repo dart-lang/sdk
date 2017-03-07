@@ -72301,6 +72301,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       timestamp: dart.definiteFunctionType(core.int, [])
     })
   });
+  dart.defineExtensionMembers(html$._GeopositionWrapper, ['coords', 'timestamp']);
   dart.defineExtensionNames([
     'coords',
     'timestamp'
@@ -89781,6 +89782,21 @@ dart_library.library('dart_sdk', null, /* Imports */[
       stopPropagation: dart.definiteFunctionType(dart.void, [])
     })
   });
+  dart.defineExtensionMembers(html$._WrappedEvent, [
+    'preventDefault',
+    'stopImmediatePropagation',
+    'stopPropagation',
+    'bubbles',
+    'cancelable',
+    'currentTarget',
+    'defaultPrevented',
+    'eventPhase',
+    'target',
+    'timeStamp',
+    'type',
+    'matchingTarget',
+    'path'
+  ]);
   html$._BeforeUnloadEvent = class _BeforeUnloadEvent extends html$._WrappedEvent {
     new(base) {
       this[_returnValue] = null;
@@ -89802,6 +89818,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     getters: () => ({returnValue: dart.definiteFunctionType(core.String, [])}),
     setters: () => ({returnValue: dart.definiteFunctionType(dart.void, [core.String])})
   });
+  dart.defineExtensionMembers(html$._BeforeUnloadEvent, ['returnValue', 'returnValue']);
   const _eventType = Symbol('_eventType');
   html$._BeforeUnloadEventStreamProvider = class _BeforeUnloadEventStreamProvider extends core.Object {
     new(eventType) {
@@ -93104,6 +93121,25 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }),
     names: ['_makeRecord', '_convertToHexString']
   });
+  dart.defineExtensionMembers(html$.KeyEvent, [
+    'getModifierState',
+    'keyCode',
+    'charCode',
+    'altKey',
+    'which',
+    'currentTarget',
+    'code',
+    'ctrlKey',
+    'detail',
+    'key',
+    'keyLocation',
+    'metaKey',
+    'shiftKey',
+    'sourceDevice',
+    'view',
+    'location',
+    'repeat'
+  ]);
   dart.defineLazy(html$.KeyEvent, {
     get _keyboardEventDispatchRecord() {
       return html$.KeyEvent._makeRecord();
@@ -94809,12 +94845,16 @@ dart_library.library('dart_sdk', null, /* Imports */[
   dart.defineExtensionMembers(html$._DOMWindowCrossFrame, [
     'close',
     'postMessage',
+    'addEventListener',
+    'dispatchEvent',
+    'removeEventListener',
     'history',
     'location',
     'closed',
     'opener',
     'parent',
-    'top'
+    'top',
+    'on'
   ]);
   html$._LocationCrossFrame = class _LocationCrossFrame extends core.Object {
     set href(val) {
@@ -95331,12 +95371,33 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.fn(html_common.convertNativeToDart_ContextAttributes, dynamicTodynamic$());
   html_common._TypedImageData = class _TypedImageData extends core.Object {
+    get data() {
+      return this[data$];
+    }
+    set data(value) {
+      super.data = value;
+    }
+    get height() {
+      return this[height$];
+    }
+    set height(value) {
+      super.height = value;
+    }
+    get width() {
+      return this[width$];
+    }
+    set width(value) {
+      super.width = value;
+    }
     new(data, height, width) {
-      this.data = data;
-      this.height = height;
-      this.width = width;
+      this[data$] = data;
+      this[height$] = height;
+      this[width$] = width;
     }
   };
+  const data$ = Symbol("_TypedImageData.data");
+  const height$ = Symbol("_TypedImageData.height");
+  const width$ = Symbol("_TypedImageData.width");
   html_common._TypedImageData[dart.implements] = () => [html$.ImageData];
   dart.setSignature(html_common._TypedImageData, {
     fields: () => ({
@@ -95345,6 +95406,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       width: core.int
     })
   });
+  dart.defineExtensionMembers(html_common._TypedImageData, ['data', 'height', 'width']);
   html_common.convertNativeToDart_ImageData = function(nativeImageData) {
     0;
     if (html$.ImageData.is(nativeImageData)) {
@@ -98625,7 +98687,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Not supported"));
     }
     get height() {
-      return this[height$];
+      return this[height$0];
     }
     set height(value) {
       super.height = value;
@@ -98637,7 +98699,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.result = value;
     }
     get width() {
-      return this[width$];
+      return this[width$0];
     }
     set width(value) {
       super.width = value;
@@ -98655,9 +98717,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
       super.y = value;
     }
   };
-  const height$ = Symbol("FilterPrimitiveStandardAttributes.height");
+  const height$0 = Symbol("FilterPrimitiveStandardAttributes.height");
   const result = Symbol("FilterPrimitiveStandardAttributes.result");
-  const width$ = Symbol("FilterPrimitiveStandardAttributes.width");
+  const width$0 = Symbol("FilterPrimitiveStandardAttributes.width");
   const x = Symbol("FilterPrimitiveStandardAttributes.x");
   const y = Symbol("FilterPrimitiveStandardAttributes.y");
   dart.setSignature(svg$.FilterPrimitiveStandardAttributes, {

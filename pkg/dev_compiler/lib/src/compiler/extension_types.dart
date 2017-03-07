@@ -162,7 +162,7 @@ class ExtensionTypeSet {
   void _collectNativeInterfaces(InterfaceType type, Set<ClassElement> types) {
     if (type.isObject) return;
     var element = type.element;
-    if (_isNativeInterface(element)) types.add(element);
+    if (hasNativeSubtype(type)) types.add(element);
     for (var m in element.mixins.reversed) {
       _collectNativeInterfaces(m, types);
     }
