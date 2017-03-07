@@ -33,6 +33,10 @@ DEFINE_FLAG(bool,
             use_dart_frontend,
             false,
             "Parse scripts with Dart-to-Kernel parser");
+DEFINE_FLAG(bool,
+            show_kernel_isolate,
+            false,
+            "Show Kernel service isolate as normal isolate.");
 
 const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 Dart_IsolateCreateCallback KernelIsolate::create_callback_ = NULL;

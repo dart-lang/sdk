@@ -40,6 +40,7 @@
 #include "vm/type_table.h"
 #include "vm/unicode.h"
 #include "vm/version.h"
+#include "vm/kernel_isolate.h"
 
 namespace dart {
 
@@ -60,6 +61,8 @@ DEFINE_FLAG(bool,
             false,
             "Print a message when an isolate is paused but there is no "
             "debugger attached.");
+
+DECLARE_FLAG(bool, show_kernel_isolate);
 
 #ifndef PRODUCT
 // The name of this of this vm as reported by the VM service protocol.
@@ -3811,7 +3814,12 @@ class ServiceIsolateVisitor : public IsolateVisitor {
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (!IsVMInternalIsolate(isolate)) {
+    bool is_kernel_isolate = false;
+#ifndef DART_PRECOMPILED_RUNTIME
+    is_kernel_isolate =
+        KernelIsolate::IsKernelIsolate(isolate) && !FLAG_show_kernel_isolate;
+#endif
+    if (!IsVMInternalIsolate(isolate) && !is_kernel_isolate) {
       jsarr_->AddValue(isolate);
     }
   }
