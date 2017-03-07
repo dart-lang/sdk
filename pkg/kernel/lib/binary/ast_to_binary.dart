@@ -69,6 +69,11 @@ class BinaryPrinter extends Visitor {
     writeByte(value & 0xFF);
   }
 
+  void writeUtf8Bytes(List<int> utf8Bytes) {
+    writeUInt30(utf8Bytes.length);
+    writeBytes(utf8Bytes);
+  }
+
   void writeStringTableEntry(String string) {
     List<int> utf8Bytes = const Utf8Encoder().convert(string);
     writeUInt30(utf8Bytes.length);
@@ -171,9 +176,9 @@ class BinaryPrinter extends Visitor {
     writeStringTable(_sourceUriIndexer);
     for (int i = 0; i < _sourceUriIndexer.entries.length; i++) {
       String uri = _sourceUriIndexer.entries[i].value;
-      Source source = program.uriToSource[uri] ?? new Source([], '');
-      String sourceCode = source.source;
-      writeStringTableEntry(sourceCode);
+      Source source =
+          program.uriToSource[uri] ?? new Source(<int>[], const <int>[]);
+      writeUtf8Bytes(source.source);
       List<int> lineStarts = source.lineStarts;
       writeUInt30(lineStarts.length);
       int previousLineStart = 0;

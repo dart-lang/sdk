@@ -4027,7 +4027,7 @@ class _ChildReplacer extends Transformer {
 
 class Source {
   final List<int> lineStarts;
-  final String source;
+  final List<int> source;
 
   Source(this.lineStarts, this.source);
 }

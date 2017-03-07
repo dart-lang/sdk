@@ -8,6 +8,8 @@ import 'dart:async' show Future;
 
 import 'dart:io' show FileSystemException;
 
+import 'dart:typed_data' show Uint8List;
+
 import '../scanner/io.dart' show readBytesFromFile;
 
 import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
@@ -40,8 +42,11 @@ import 'diet_parser.dart' show DietParser;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
+import '../compiler_context.dart' show CompilerContext;
+
 class SourceLoader<L> extends Loader<L> {
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
+  final includeSource = CompilerContext.current.options.includeSource;
 
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
@@ -64,7 +69,8 @@ class SourceLoader<L> extends Loader<L> {
       ScannerResult result = scan(bytes);
       Token token = result.tokens;
       if (!suppressLexicalErrors) {
-        target.addLineStarts(library.fileUri, result.lineStarts);
+        List<int> source = getSource(bytes);
+        target.addSourceInformation(library.fileUri, result.lineStarts, source);
       }
       while (token is ErrorToken) {
         if (!suppressLexicalErrors) {
@@ -82,6 +88,17 @@ class SourceLoader<L> extends Loader<L> {
       }
       return inputError(uri, -1, message);
     }
+  }
+
+  List<int> getSource(List<int> bytes) {
+    if (!includeSource) return const <int>[];
+
+    // bytes is 0-terminated. We don't want that included.
+    if (bytes is Uint8List) {
+      return new Uint8List.view(
+          bytes.buffer, bytes.offsetInBytes, bytes.length - 1);
+    }
+    return bytes.sublist(0, bytes.length - 1);
   }
 
   Future<Null> buildOutline(SourceLibraryBuilder library) async {

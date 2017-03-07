@@ -32,6 +32,8 @@ class CompilerCommandLine extends CommandLine {
 
   bool get dumpIr => options.containsKey("--dump-ir");
 
+  bool get includeSource => options.containsKey("--include-source");
+
   bool get help {
     return options.containsKey("--help") ||
         options.containsKey("-h") ||
@@ -166,6 +168,9 @@ Supported options:
 
   --dump-ir
     Print compiled libraries in Kernel source notation.
+
+  --include-source
+    Include source code in the dill file. Used for debugging.
 
   --compile-sdk=<patched_sdk>
     Compile the SDK from scratch instead of reading it from 'platform.dill'.

@@ -65,5 +65,6 @@ abstract class TargetImplementation extends Target {
     }
   }
 
-  void addLineStarts(Uri uri, List<int> lineStarts);
+  void addSourceInformation(
+      Uri uri, List<int> lineStarts, List<int> sourceCode);
 }

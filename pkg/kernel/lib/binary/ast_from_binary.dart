@@ -4,6 +4,7 @@
 library kernel.ast_from_binary;
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import '../ast.dart';
 import '../transformations/flags.dart';
@@ -72,6 +73,13 @@ class BinaryBuilder {
         (readByte() << 16) |
         (readByte() << 8) |
         readByte();
+  }
+
+  List<int> readUtf8Bytes() {
+    List<int> bytes = new Uint8List(readUInt());
+    bytes.setRange(0, bytes.length, _bytes, _byteIndex);
+    _byteIndex += bytes.length;
+    return bytes;
   }
 
   String readStringEntry() {
@@ -271,7 +279,7 @@ class BinaryBuilder {
     Map<String, Source> uriToSource = <String, Source>{};
     for (int i = 0; i < length; ++i) {
       String uri = _sourceUriTable[i];
-      String sourceCode = readStringEntry();
+      List<int> sourceCode = readUtf8Bytes();
       int lineCount = readUInt();
       List<int> lineStarts = new List<int>(lineCount);
       int previousLineStart = 0;

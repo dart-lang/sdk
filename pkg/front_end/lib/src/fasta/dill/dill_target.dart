@@ -31,7 +31,8 @@ class DillTarget extends TargetImplementation {
     loader = new DillLoader(this);
   }
 
-  void addLineStarts(Uri uri, List<int> lineStarts) {
+  void addSourceInformation(
+      Uri uri, List<int> lineStarts, List<int> sourceCode) {
     internalError("Unsupported operation.");
   }
 

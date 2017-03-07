@@ -106,9 +106,10 @@ class KernelTarget extends TargetImplementation {
 
   SourceLoader<Library> createLoader() => new SourceLoader<Library>(this);
 
-  void addLineStarts(Uri uri, List<int> lineStarts) {
+  void addSourceInformation(
+      Uri uri, List<int> lineStarts, List<int> sourceCode) {
     String fileUri = relativizeUri(uri);
-    uriToSource[fileUri] = new Source(lineStarts, fileUri);
+    uriToSource[fileUri] = new Source(lineStarts, sourceCode);
   }
 
   void read(Uri uri) {
@@ -317,7 +318,7 @@ class KernelTarget extends TargetImplementation {
     // TODO(ahe): Remove this line. Kernel seems to generate a default line map
     // that used when there's no fileUri on an element. Instead, ensure all
     // elements have a fileUri.
-    uriToSource[""] = new Source(<int>[0], "");
+    uriToSource[""] = new Source(<int>[0], const <int>[]);
     Program program = new Program(libraries, uriToSource);
     if (loader.first != null) {
       Builder builder = loader.first.members["main"];
