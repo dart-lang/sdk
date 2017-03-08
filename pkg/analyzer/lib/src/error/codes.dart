@@ -4733,7 +4733,7 @@ class StrongModeCode extends ErrorCode {
   static const String _inferredTypeMessage = "'{0}' has inferred type '{1}'.";
 
   static const StrongModeCode DOWN_CAST_COMPOSITE = const StrongModeCode(
-      ErrorType.HINT,
+      ErrorType.STATIC_WARNING,
       'DOWN_CAST_COMPOSITE',
       _implicitCastMessage,
       _implicitCastCorrection);
