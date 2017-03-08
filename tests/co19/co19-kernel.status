@@ -787,6 +787,7 @@ Language/Statements/Return/generative_constructor_t02: MissingCompileTimeError
 Language/Statements/Return/generative_constructor_t03: MissingCompileTimeError
 Language/Statements/Try/syntax_t12: MissingCompileTimeError
 Language/Variables/final_t03: MissingCompileTimeError
+LibTest/isolate/Isolate/spawnUri_A01_t03: Pass, Timeout
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
