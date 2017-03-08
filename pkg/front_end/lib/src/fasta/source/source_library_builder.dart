@@ -196,11 +196,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       AsyncMarker asyncModifier,
       ProcedureKind kind,
       int charOffset,
+      int charEndOffset,
       String nativeMethodName,
       {bool isTopLevel});
 
   void addEnum(List<MetadataBuilder> metadata, String name,
-      List<String> constants, int charOffset);
+      List<String> constants, int charOffset, int charEndOffset);
 
   void addFunctionTypeAlias(
       List<MetadataBuilder> metadata,
@@ -224,6 +225,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       AsyncMarker asyncModifier,
       ConstructorReferenceBuilder redirectionTarget,
       int charOffset,
+      int charEndOffset,
       String nativeMethodName);
 
   FormalParameterBuilder addFormalParameter(List<MetadataBuilder> metadata,

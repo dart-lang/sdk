@@ -261,6 +261,7 @@ class OutlineBuilder extends UnhandledListener {
         asyncModifier,
         computeProcedureKind(getOrSet),
         beginToken.charOffset,
+        endToken.charOffset,
         nativeMethodName,
         isTopLevel: true);
     nativeMethodName = null;
@@ -311,8 +312,18 @@ class OutlineBuilder extends UnhandledListener {
     int modifiers =
         Modifier.validate(pop(), isAbstract: bodyKind == MethodBody.Abstract);
     List<MetadataBuilder> metadata = pop();
-    library.addProcedure(metadata, modifiers, returnType, name, typeVariables,
-        formals, asyncModifier, kind, beginToken.charOffset, nativeMethodName,
+    library.addProcedure(
+        metadata,
+        modifiers,
+        returnType,
+        name,
+        typeVariables,
+        formals,
+        asyncModifier,
+        kind,
+        beginToken.charOffset,
+        endToken.charOffset,
+        nativeMethodName,
         isTopLevel: false);
     nativeMethodName = null;
   }
@@ -477,7 +488,8 @@ class OutlineBuilder extends UnhandledListener {
     List<String> constants = popList(count);
     String name = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addEnum(metadata, name, constants, enumKeyword.charOffset);
+    library.addEnum(
+        metadata, name, constants, enumKeyword.charOffset, endBrace.charOffset);
     checkEmpty(enumKeyword.charOffset);
   }
 
@@ -600,8 +612,16 @@ class OutlineBuilder extends UnhandledListener {
     var name = pop();
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addFactoryMethod(metadata, modifiers, name, formals, asyncModifier,
-        redirectionTarget, beginToken.charOffset, nativeMethodName);
+    library.addFactoryMethod(
+        metadata,
+        modifiers,
+        name,
+        formals,
+        asyncModifier,
+        redirectionTarget,
+        beginToken.charOffset,
+        endToken.charOffset,
+        nativeMethodName);
     nativeMethodName = null;
   }
 

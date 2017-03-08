@@ -75,8 +75,13 @@ class KernelEnumBuilder extends SourceClassBuilder
       : super(metadata, 0, name, null, null, null, members, parent, null,
             charOffset, cls);
 
-  factory KernelEnumBuilder(List<MetadataBuilder> metadata, String name,
-      List<String> constants, KernelLibraryBuilder parent, int charOffset) {
+  factory KernelEnumBuilder(
+      List<MetadataBuilder> metadata,
+      String name,
+      List<String> constants,
+      KernelLibraryBuilder parent,
+      int charOffset,
+      int charEndOffset) {
     constants ??= const <String>[];
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
@@ -114,7 +119,8 @@ class KernelEnumBuilder extends SourceClassBuilder
               null, 0, intType, "index", true, parent, charOffset)
         ],
         parent,
-        charOffset);
+        charOffset,
+        charEndOffset);
     members[""] = constructorBuilder;
     int index = 0;
     List<MapEntry> toStringEntries = <MapEntry>[];
@@ -131,7 +137,8 @@ class KernelEnumBuilder extends SourceClassBuilder
         AsyncMarker.Sync,
         ProcedureKind.Method,
         parent,
-        charOffset);
+        charOffset,
+        charEndOffset);
     members["toString"] = toStringBuilder;
     String className = name;
     for (String name in constants) {
