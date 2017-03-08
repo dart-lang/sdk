@@ -3125,6 +3125,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       UNIMPLEMENTED();
       break;
   }
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
+                                 token_pos());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kIcCall, deopt_id(),
                                  token_pos());
   compiler->RecordAfterCall(this, FlowGraphCompiler::kHasResult);
@@ -3292,6 +3294,8 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                           : Array::Handle(ic_data()->arguments_descriptor());
   const intptr_t argdesc_kidx = __ AddConstant(arguments_descriptor);
 
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id(),
+                                 token_pos());
   if (compiler->is_optimizing()) {
     __ PushConstant(function());
     __ StaticCall(ArgumentCount(), argdesc_kidx);

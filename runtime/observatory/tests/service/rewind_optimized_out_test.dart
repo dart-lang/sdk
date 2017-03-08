@@ -68,9 +68,10 @@ var tests = [
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kCannotResume));
       expect(e.message,
-             'Cannot rewind to frame 1 due to conflicting compiler '
-             'optimizations. Run the vm with --no-prune-dead-locals to '
-             'disallow these optimizations. Next valid rewind frame is 4.');
+             startsWith('Cannot rewind to frame 1 due to conflicting compiler '
+                        'optimizations. Run the vm with --no-prune-dead-locals '
+                        'to disallow these optimizations. Next valid rewind '
+                        'frame is '));
     }
     expect(caughtException, isTrue);
   },

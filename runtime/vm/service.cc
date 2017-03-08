@@ -3044,13 +3044,6 @@ static bool Resume(Thread* thread, JSONStream* js) {
   if (step_param != NULL) {
     step = EnumMapper(step_param, step_enum_names, step_enum_values);
   }
-#if defined(TARGET_ARCH_DBC)
-  if (step == Debugger::kStepRewind) {
-    js->PrintError(kCannotResume,
-                   "Rewind not yet implemented on this architecture");
-    return true;
-  }
-#endif
   intptr_t frame_index = 1;
   const char* frame_index_param = js->LookupParam("frameIndex");
   if (frame_index_param != NULL) {
