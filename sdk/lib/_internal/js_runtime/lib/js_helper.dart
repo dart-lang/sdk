@@ -2456,9 +2456,11 @@ convertDartClosureToJS(closure, int arity) {
   return function;
 }
 
-/**
- * Super class for Dart closures.
- */
+/// Superclass for Dart closures.
+///
+/// All static, tear-off, function declaration and function expression closures
+/// extend this class, but classes that implement Function via a `call` method
+/// do not.
 abstract class Closure implements Function {
   // TODO(ahe): These constants must be in sync with
   // reflection_data_parser.dart.
@@ -2891,6 +2893,8 @@ abstract class Closure implements Function {
 
   String toString() {
     String name = Primitives.objectTypeName(this);
+    // Mirrors puts a space in front of some names, so remove it.
+    name = JS('String', '#.trim()', name);
     return "Closure '$name'";
   }
 }

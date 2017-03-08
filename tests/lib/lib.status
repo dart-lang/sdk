@@ -27,7 +27,6 @@ mirrors/empty_test: RuntimeError # Issue 6490
 mirrors/enum_test: RuntimeError # Issue 6490
 mirrors/fake_function_with_call_test: RuntimeError # Issue 11612
 mirrors/fake_function_without_call_test: RuntimeError # Issue 11612
-mirrors/function_type_mirror_test: RuntimeError # Issue 12166
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError # Issue 12087
 mirrors/generic_function_typedef_test: RuntimeError # Issue 12333
 mirrors/generic_interface_test: RuntimeError # Issue 12087

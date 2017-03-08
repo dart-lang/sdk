@@ -290,10 +290,14 @@ String joinArguments(var types, int startIndex,
  * In minified mode does *not* use unminified identifiers (even when present).
  */
 String getRuntimeTypeString(var object) {
-  // Check for function type first, since non-tearoff closures look like classes
-  // due to closure conversion.
-  var functionRti = extractFunctionTypeObjectFrom(object);
-  if (functionRti != null) return runtimeTypeToString(functionRti);
+  if (object is Closure) {
+    // This excludes classes that implement Function via a `call` method, but
+    // includes classes generated to represent closures in closure conversion.
+    var functionRti = extractFunctionTypeObjectFrom(object);
+    if (functionRti != null) {
+      return runtimeTypeToString(functionRti);
+    }
+  }
   String className = getClassName(object);
   if (object == null) return className;
   String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
