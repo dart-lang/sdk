@@ -86,6 +86,7 @@ env:
   - TEST=package
 matrix:
   allow_failures:
+    - env: ANALYZER=master DDC_BROWSERS=Firefox
     - env: ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
     - env: ANALYZER=master CXX=clang++
 notifications:
