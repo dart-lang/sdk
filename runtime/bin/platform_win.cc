@@ -19,10 +19,14 @@
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 
-// This is not always defined in the header files. See:
+// These are not always defined in the header files. See:
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms686033(v=vs.85).aspx
 #ifndef ENABLE_VIRTUAL_TERMINAL_INPUT
-#define ENABLE_VIRTUAL_TERMINAL_INPUT 0x200
+#define ENABLE_VIRTUAL_TERMINAL_INPUT 0x0200
+#endif
+
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif
 
 namespace dart {
