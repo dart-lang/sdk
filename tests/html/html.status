@@ -321,8 +321,6 @@ indexeddb_1_test/functional: Skip # Times out. Issue 21433
 indexeddb_2_test: RuntimeError # Issue 21433
 indexeddb_4_test: RuntimeError # Issue 21433
 indexeddb_5_test: RuntimeError # Issue 21433
-
-
 indexeddb_3_test: Skip # Times out 1 out of 10.
 
 [  $compiler == dart2js && $runtime == ff ]
@@ -332,6 +330,10 @@ dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTE
 webgl_1_test: Pass, Fail   # Issue 8219
 text_event_test: Fail # Issue 17893
 element_animate_test/timing_dict: RuntimeError # Issue 26730
+messageevent_test: Pass, RuntimeError # Issue 28983
+serialized_script_value_test: Pass, RuntimeError # Issue 28983
+element_types_test/supported_content: Pass, RuntimeError # Issue 28983
+element_types_test/supported_shadow: Pass, RuntimeError # Issue 28983
 
 # Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
