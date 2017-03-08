@@ -445,7 +445,6 @@ void CodeGenTest::Compile() {
   ParsedFunction* parsed_function =
       new ParsedFunction(Thread::Current(), function_);
   parsed_function->SetNodeSequence(node_sequence_);
-  parsed_function->set_instantiator(NULL);
   parsed_function->set_default_parameter_values(default_parameter_values_);
   node_sequence_->scope()->AddVariable(parsed_function->current_context_var());
   parsed_function->EnsureExpressionTemp();

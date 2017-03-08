@@ -5946,10 +5946,11 @@ RawTypeParameter* Function::LookupTypeParameter(
         if (type_param_name.Equals(type_name)) {
           if (parent_level > 0) {
             // Clone type parameter and set parent_level.
-            return TypeParameter::New(
+            type_param = TypeParameter::New(
                 Class::Handle(), function, type_param.index(), parent_level,
                 type_param_name, AbstractType::Handle(type_param.bound()),
                 TokenPosition::kNoSource);
+            type_param.SetIsFinalized();
           }
           return type_param.raw();
         }
@@ -17740,11 +17741,15 @@ bool TypeParameter::IsEquivalent(const Instance& other, TrailPtr trail) const {
     return false;
   }
   const TypeParameter& other_type_param = TypeParameter::Cast(other);
-  if (parameterized_class() != other_type_param.parameterized_class()) {
+  if (parameterized_class_id() != other_type_param.parameterized_class_id()) {
+    return false;
+  }
+  if (parameterized_function() != other_type_param.parameterized_function()) {
     return false;
   }
   if (IsFinalized() == other_type_param.IsFinalized()) {
-    return index() == other_type_param.index();
+    return (index() == other_type_param.index()) &&
+           (parent_level() == other_type_param.parent_level());
   }
   return name() == other_type_param.name();
 }
@@ -17938,7 +17943,13 @@ RawString* TypeParameter::EnumerateURIs() const {
 
 intptr_t TypeParameter::ComputeHash() const {
   ASSERT(IsFinalized());
-  uint32_t result = Class::Handle(parameterized_class()).id();
+  uint32_t result;
+  if (IsClassTypeParameter()) {
+    result = parameterized_class_id();
+  } else {
+    result = Function::Handle(parameterized_function()).Hash();
+    result = CombineHashes(result, parent_level());
+  }
   // No need to include the hash of the bound, since the type parameter is fully
   // identified by its class and index.
   result = CombineHashes(result, index());

@@ -1163,21 +1163,25 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     const TypeParameter& type_parameter = TypeParameter::Cast(type);
     const Class& parameterized_class =
         Class::Handle(zone, type_parameter.parameterized_class());
-    ASSERT(!parameterized_class.IsNull());
-    // The index must reflect the position of this type parameter in the type
-    // arguments vector of its parameterized class. The offset to add is the
-    // number of type arguments in the super type, which is equal to the
-    // difference in number of type arguments and type parameters of the
-    // parameterized class.
-    const intptr_t offset = parameterized_class.NumTypeArguments() -
-                            parameterized_class.NumTypeParameters();
-    // Calling NumTypeParameters() may finalize this type parameter if it
-    // belongs to a mixin application class.
-    if (!type_parameter.IsFinalized()) {
-      type_parameter.set_index(type_parameter.index() + offset);
-      type_parameter.SetIsFinalized();
+    if (!parameterized_class.IsNull()) {
+      // The index must reflect the position of this type parameter in the type
+      // arguments vector of its parameterized class. The offset to add is the
+      // number of type arguments in the super type, which is equal to the
+      // difference in number of type arguments and type parameters of the
+      // parameterized class.
+      const intptr_t offset = parameterized_class.NumTypeArguments() -
+                              parameterized_class.NumTypeParameters();
+      // Calling NumTypeParameters() may finalize this type parameter if it
+      // belongs to a mixin application class.
+      if (!type_parameter.IsFinalized()) {
+        type_parameter.set_index(type_parameter.index() + offset);
+        type_parameter.SetIsFinalized();
+      } else {
+        ASSERT(cls.IsMixinApplication());
+      }
     } else {
-      ASSERT(cls.IsMixinApplication());
+      // A function type parameter is always finalized.
+      ASSERT(type_parameter.IsFinalized());
     }
 
     if (FLAG_trace_type_finalization) {
