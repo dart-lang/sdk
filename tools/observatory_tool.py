@@ -8,6 +8,7 @@ import argparse
 import os
 import platform
 import shutil
+import socket
 import subprocess
 import sys
 import utils
@@ -217,6 +218,13 @@ def ExecuteCommand(options, args):
     return -1;
 
 def main():
+  # Sanity check that localhost can be resolved.
+  try:
+    socket.gethostbyname('localhost')
+  except:
+    print("The hostname 'localhost' could not be resolved. Please fix your"
+          "/etc/hosts file and try again")
+    return -1
   # Parse the options.
   parser = BuildArguments()
   (options, args) = parser.parse_known_args()
