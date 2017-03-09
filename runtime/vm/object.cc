@@ -9225,9 +9225,9 @@ void Script::GetTokenLocation(TokenPosition token_pos,
       // We don't explicitly save this data: Load the source
       // and find it from there.
       const String& source = String::Handle(zone, Source());
-      ASSERT(source.Length() >= offset);
       *token_len = 1;
-      if (Scanner::IsIdentStartChar(source.CharAt(offset))) {
+      if (offset < source.Length() &&
+          Scanner::IsIdentStartChar(source.CharAt(offset))) {
         for (intptr_t i = offset + 1;
              i < source.Length() && Scanner::IsIdentChar(source.CharAt(i));
              ++i) {
