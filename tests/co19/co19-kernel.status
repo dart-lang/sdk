@@ -114,7 +114,6 @@ Language/Classes/declarations_t04: MissingCompileTimeError
 Language/Classes/declarations_t06: MissingCompileTimeError
 Language/Classes/declarations_t08: MissingCompileTimeError
 Language/Classes/declarations_t33: MissingCompileTimeError
-Language/Classes/definition_t23: RuntimeError
 Language/Classes/same_name_member_and_class_t01: MissingCompileTimeError
 Language/Classes/same_name_member_and_class_t03: MissingCompileTimeError
 Language/Classes/same_name_type_variable_t01: MissingCompileTimeError
@@ -438,8 +437,6 @@ Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t15: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_mixin_type_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_mixin_type_t02: MissingCompileTimeError
-Language/Mixins/Mixin_Application/wrong_mixin_type_t05: DartkCrash
-Language/Mixins/Mixin_Application/wrong_mixin_type_t06: DartkCrash
 Language/Mixins/Mixin_Application/wrong_mixin_type_t07: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_type_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/wrong_type_t02: DartkCrash

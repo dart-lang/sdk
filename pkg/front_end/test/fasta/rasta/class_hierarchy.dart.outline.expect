@@ -21,6 +21,8 @@ class D extends core::Object {
     throw "Redirection constructor target not found: Missing";
 }
 abstract class Object&Missing extends core::Object {
+  constructor •() → void
+    ;
 }
 static method main() → void
   ;

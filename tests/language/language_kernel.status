@@ -446,7 +446,7 @@ missing_const_constructor_test/04: Crash
 missing_const_constructor_test/05: MissingCompileTimeError
 missing_const_constructor_test/06: MissingCompileTimeError
 missing_part_of_tag_test/01: MissingCompileTimeError
-mixin_black_listed_test/08: DartkCrash
+mixin_black_listed_test/08: MissingCompileTimeError
 mixin_cyclic_test/01: MissingCompileTimeError
 mixin_cyclic_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
@@ -528,7 +528,6 @@ regress_22438_test: RuntimeError
 regress_22443_test: RuntimeError  # Deferred Loading Issue 28335
 regress_23408_test: RuntimeError  # Deferred Loading Issue 28335
 regress_27617_test/1: MissingCompileTimeError
-regress_27957_test: RuntimeError
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28278_test: RuntimeError  # Mirrors Issue

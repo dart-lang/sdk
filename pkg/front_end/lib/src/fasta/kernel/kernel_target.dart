@@ -394,7 +394,14 @@ class KernelTarget extends TargetImplementation {
 
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
-    if (builder.isMixinApplication || builder.constructors.isNotEmpty) return;
+    if (builder.cls.isMixinApplication) {
+      // We have to test if builder.cls is a mixin application. [builder] may
+      // think it's a mixin application, but if its mixed-in type couldn't be
+      // resolved, the target class won't be a mixin application and we need
+      // to add a default constructor to complete error recovery.
+      return;
+    }
+    if (builder.constructors.isNotEmpty) return;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
@@ -429,9 +436,13 @@ class KernelTarget extends TargetImplementation {
                 builder.getSubstitutionMap(supertype, builder.fileUri,
                     builder.charOffset, dynamicType),
                 builder.parent);
-        for (Constructor constructor in supertype.cls.constructors) {
-          builder.addSyntheticConstructor(makeMixinApplicationConstructor(
-              builder.cls.mixin, constructor, substitutionMap));
+        if (supertype.cls.constructors.isEmpty) {
+          builder.addSyntheticConstructor(makeDefaultConstructor());
+        } else {
+          for (Constructor constructor in supertype.cls.constructors) {
+            builder.addSyntheticConstructor(makeMixinApplicationConstructor(
+                builder.cls.mixin, constructor, substitutionMap));
+          }
         }
       } else {
         internalError("Unhandled: ${supertype.runtimeType}");
