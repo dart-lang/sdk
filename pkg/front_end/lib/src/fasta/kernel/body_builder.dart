@@ -2167,14 +2167,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   void endTypeVariable(Token token, Token extendsOrSuper) {
-    logEvent("TypeVariable");
-    // TODO(ahe): Implement this when enabling generic method syntax.
+    debugEvent("TypeVariable");
+    // TODO(ahe): Do not discard these when enabling generic method syntax.
+    pop(); // Bound.
+    pop(); // Name.
   }
 
   @override
   void endTypeVariables(int count, Token beginToken, Token endToken) {
-    logEvent("TypeVariables");
+    debugEvent("TypeVariables");
     // TODO(ahe): Implement this when enabling generic method syntax.
+    push(NullValue.TypeVariables);
   }
 
   @override

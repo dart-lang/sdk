@@ -388,11 +388,9 @@ generic_field_mixin3_test: RuntimeError
 generic_field_mixin4_test: RuntimeError
 generic_field_mixin5_test: RuntimeError
 generic_field_mixin_test: RuntimeError
-generic_local_functions_test: DartkCrash
 generic_metadata_test/02: MissingCompileTimeError
 generic_metadata_test/03: MissingCompileTimeError
 generic_method_types_test: Pass, RuntimeError
-generic_methods_generic_function_parameter_test: DartkCrash
 getter_closure_execution_order_test: RuntimeError
 getter_parameters_test/01: MissingCompileTimeError
 getter_parameters_test/03: MissingCompileTimeError
