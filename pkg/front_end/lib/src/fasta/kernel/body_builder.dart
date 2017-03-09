@@ -169,6 +169,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Expression toValue(Object node) {
     if (node is UnresolvedIdentifier) {
+      if (isDartLibrary &&
+          node.name.name == "main" &&
+          library.uri.path == "_builtin" &&
+          member?.name == "_getMainClosure") {
+        // TODO(ahe): https://github.com/dart-lang/sdk/issues/28989
+        return new NullLiteral()..fileOffset = node.fileOffset;
+      }
       return throwNoSuchMethodError(
           node.name.name, new Arguments.empty(), node.fileOffset,
           isGetter: true);

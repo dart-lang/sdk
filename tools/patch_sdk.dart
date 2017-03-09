@@ -208,22 +208,22 @@ Future main(List<String> argv) async {
     _writeSync(libraryOut, readInputFile(libraryIn));
   }
 
+  final platform = path.join(outDir, 'platform.dill');
+
+  await compile_platform.mainEntryPoint(<String>[
+    '--packages',
+    new Uri.file(packagesFile).toString(),
+    new Uri.directory(outDir).toString(),
+    platform,
+  ]);
+
   // TODO(kustermann): We suppress compiler hints/warnings/errors temporarily
   // because everyone building the `runtime` target will get these now.
   // We should remove the suppression again once the underlying issues have
   // been fixed (either in fasta or the dart files in the patched_sdk).
   final capturedLines = <String>[];
   try {
-    final platform = path.join(outDir, 'platform.dill');
-
     await runZoned(() async {
-      await compile_platform.mainEntryPoint(<String>[
-        '--packages',
-        new Uri.file(packagesFile).toString(),
-        new Uri.directory(outDir).toString(),
-        platform,
-      ]);
-
       // platform.dill was generated, now generate platform.dill.d depfile
       // that captures all dependencies that participated in the generation.
       // There are two types of dependencies:

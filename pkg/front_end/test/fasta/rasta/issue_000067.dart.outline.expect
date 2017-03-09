@@ -3,18 +3,20 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::A::foo];
   constructor •() → void
     ;
   static factory foo() → self::A
-    invalid-statement;
+    let final dynamic #t1 = self::C::bar in invalid-expression;
   method m() → core::int
     ;
 }
 class C extends self::A {
+  static field dynamic _redirecting# = <dynamic>[self::C::bar];
   constructor •() → void
     ;
   static factory bar() → self::D
-    throw "Missing constructor: D";
+    let final dynamic #t2 = self::D::• in invalid-expression;
   method m() → core::int
     ;
 }

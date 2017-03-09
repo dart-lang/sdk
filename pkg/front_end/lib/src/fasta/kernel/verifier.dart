@@ -42,10 +42,6 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
 
   @override
   problem(TreeNode node, String details) {
-    // TODO(karlklose): Remove this when underlying problem is fixed.
-    if (details.startsWith("Type parameter 'dart.collection::MapView::")) {
-      return;
-    }
     VerificationError error = new VerificationError(context, node, details);
     printUnexpected(Uri.parse(fileUri), node.fileOffset, "$error");
     errors.add(error);

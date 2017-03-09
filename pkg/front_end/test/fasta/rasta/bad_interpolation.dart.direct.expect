@@ -1,5 +1,0 @@
-library;
-import self as self;
-
-static method main() → dynamic
-  throw "pkg/front_end/test/fasta/rasta/bad_interpolation.dart:246: \u0027[31mError: ErrorKind.ExpectedString {actual: EOF}\u0027[0m";

@@ -10,13 +10,17 @@ class B extends core::Object {
   constructor •() → void
     ;
 }
-class C extends core::Object {
+class C extends self::Object&Missing {
   constructor •() → void
+    : super core::Object::•()
     ;
 }
 class D extends core::Object {
-  static factory •() → self::D
-    ;
+  static field dynamic _redirecting# = <dynamic>[self::D::•];
+  static factory •() → dynamic
+    throw "Redirection constructor target not found: Missing";
+}
+abstract class Object&Missing extends core::Object {
 }
 static method main() → void
   ;

@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         AsyncMarker,
         Class,
         Constructor,
+        DartType,
         EmptyStatement,
         Expression,
         ExpressionStatement,
@@ -33,6 +34,7 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         SuperInitializer,
         Throw,
+        TypeParameter,
         VariableDeclaration,
         VariableGet,
         VoidType;
@@ -50,6 +52,8 @@ import 'package:kernel/transformations/mixin_full_resolution.dart'
 
 import 'package:kernel/transformations/setup_builtin_library.dart'
     as setup_builtin_library;
+
+import 'package:kernel/type_algebra.dart' show substitute;
 
 import '../source/source_loader.dart' show SourceLoader;
 
@@ -80,7 +84,8 @@ import 'kernel_builder.dart'
         MixinApplicationBuilder,
         NamedMixinApplicationBuilder,
         NamedTypeBuilder,
-        TypeBuilder;
+        TypeBuilder,
+        TypeVariableBuilder;
 
 class KernelTarget extends TargetImplementation {
   final DillTarget dillTarget;
@@ -92,6 +97,9 @@ class KernelTarget extends TargetImplementation {
   Program program;
 
   final List errors = [];
+
+  final TypeBuilder dynamicType =
+      new KernelNamedTypeBuilder("dynamic", null, -1, null);
 
   KernelTarget(DillTarget dillTarget, TranslateUri uriTranslator,
       [Map<String, Source> uriToSource])
@@ -389,7 +397,8 @@ class KernelTarget extends TargetImplementation {
     if (builder.isMixinApplication || builder.constructors.isNotEmpty) return;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
-    /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
+    /// Edition](
+    /// http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
     if (builder is NamedMixinApplicationBuilder) {
       /// >A mixin application of the form S with M; defines a class C with
       /// >superclass S.
@@ -415,9 +424,14 @@ class KernelTarget extends TargetImplementation {
         }
       }
       if (supertype is KernelClassBuilder) {
+        Map<TypeParameter, DartType> substitutionMap =
+            computeKernelSubstitutionMap(
+                builder.getSubstitutionMap(supertype, builder.fileUri,
+                    builder.charOffset, dynamicType),
+                builder.parent);
         for (Constructor constructor in supertype.cls.constructors) {
-          builder.addSyntheticConstructor(
-              makeMixinApplicationConstructor(builder.cls.mixin, constructor));
+          builder.addSyntheticConstructor(makeMixinApplicationConstructor(
+              builder.cls.mixin, constructor, substitutionMap));
         }
       } else {
         internalError("Unhandled: ${supertype.runtimeType}");
@@ -430,12 +444,26 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
-  Constructor makeMixinApplicationConstructor(
-      Class mixin, Constructor constructor) {
+  Map<TypeParameter, DartType> computeKernelSubstitutionMap(
+      Map<TypeVariableBuilder, TypeBuilder> substitutionMap,
+      LibraryBuilder library) {
+    if (substitutionMap == null) return const <TypeParameter, DartType>{};
+    Map<TypeParameter, DartType> result = <TypeParameter, DartType>{};
+    substitutionMap
+        .forEach((TypeVariableBuilder variable, TypeBuilder argument) {
+      result[variable.target] = argument.build(library);
+    });
+    return result;
+  }
+
+  Constructor makeMixinApplicationConstructor(Class mixin,
+      Constructor constructor, Map<TypeParameter, DartType> substitutionMap) {
     VariableDeclaration copyFormal(VariableDeclaration formal) {
       // TODO(ahe): Handle initializers.
       return new VariableDeclaration(formal.name,
-          type: formal.type, isFinal: formal.isFinal, isConst: formal.isConst);
+          type: substitute(formal.type, substitutionMap),
+          isFinal: formal.isFinal,
+          isConst: formal.isConst);
     }
 
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];

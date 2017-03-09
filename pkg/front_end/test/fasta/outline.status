@@ -5,7 +5,6 @@
 function_type_recovery: Fail
 
 rasta/bad_redirection: Fail
-rasta/class_hierarchy: Fail
 rasta/generic_factory: Fail
 rasta/issue_000002: Fail
 rasta/issue_000032: Fail
