@@ -4200,6 +4200,7 @@ LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: Runtim
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/webgl-large-texture_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: Pass, Timeout # Issue 29010
 LayoutTests/fast/css-generated-content/malformed-url_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-animation-before-onload_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/css-generated-content/pseudo-animation_t01: Pass, RuntimeError # Please triage this failure
