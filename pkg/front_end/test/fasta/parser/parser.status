@@ -2142,3 +2142,10 @@ third_party/pkg/linter/test/rules/cascade_invocations: Fail
 third_party/pkg/resource/test/loader_data_test: Fail
 third_party/pkg/resource/test/loader_file_test: Fail
 third_party/pkg/resource/test/loader_http_test: Fail
+
+issue23520: Fail
+issue28367: Fail
+pkg/front_end/test/fasta/function_type_recovery: Fail
+tests/language/bad_raw_string_test: Fail
+tests/language/generic_function_typedef2_test: Fail
+tests/language_strong/bad_raw_string_test: Fail
