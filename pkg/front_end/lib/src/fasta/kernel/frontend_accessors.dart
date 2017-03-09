@@ -117,18 +117,20 @@ abstract class Accessor {
 
 class VariableAccessor extends Accessor {
   VariableDeclaration variable;
+  int charOffset;
   DartType promotedType;
 
   VariableAccessor(this.variable, [this.promotedType]);
 
-  VariableAccessor.internal(this.variable, this.promotedType);
+  VariableAccessor.internal(this.variable, this.charOffset, this.promotedType);
 
-  _makeRead() => new VariableGet(variable, promotedType);
+  _makeRead() =>
+      new VariableGet(variable, promotedType)..fileOffset = charOffset;
 
   _makeWrite(Expression value, bool voidContext) {
     return variable.isFinal || variable.isConst
         ? makeInvalidWrite(value)
-        : new VariableSet(variable, value);
+        : new VariableSet(variable, value)..fileOffset = charOffset;
   }
 }
 
@@ -137,32 +139,39 @@ class PropertyAccessor extends Accessor {
   Expression receiver;
   Name name;
   Member getter, setter;
+  int charOffset;
 
-  static Accessor make(
-      Expression receiver, Name name, Member getter, Member setter) {
+  static Accessor make(Expression receiver, Name name, Member getter,
+      Member setter, int charOffset) {
     if (receiver is ThisExpression) {
       return new ThisPropertyAccessor(name, getter, setter);
     } else {
-      return new PropertyAccessor.internal(receiver, name, getter, setter);
+      return new PropertyAccessor.internal(
+          receiver, name, getter, setter, charOffset);
     }
   }
 
-  PropertyAccessor.internal(this.receiver, this.name, this.getter, this.setter);
+  PropertyAccessor.internal(
+      this.receiver, this.name, this.getter, this.setter, this.charOffset);
 
-  _makeSimpleRead() => new PropertyGet(receiver, name, getter);
+  _makeSimpleRead() =>
+      new PropertyGet(receiver, name, getter)..fileOffset = charOffset;
   _makeSimpleWrite(Expression value, bool voidContext) {
-    return new PropertySet(receiver, name, value, setter);
+    return new PropertySet(receiver, name, value, setter)
+      ..fileOffset = charOffset;
   }
 
   receiverAccess() {
     _receiverVariable ??= new VariableDeclaration.forValue(receiver);
-    return new VariableGet(_receiverVariable);
+    return new VariableGet(_receiverVariable)..fileOffset = charOffset;
   }
 
-  _makeRead() => new PropertyGet(receiverAccess(), name, getter);
+  _makeRead() =>
+      new PropertyGet(receiverAccess(), name, getter)..fileOffset = charOffset;
 
   _makeWrite(Expression value, bool voidContext) {
-    return new PropertySet(receiverAccess(), name, value, setter);
+    return new PropertySet(receiverAccess(), name, value, setter)
+      ..fileOffset = charOffset;
   }
 
   _finish(Expression body) => makeLet(_receiverVariable, body);

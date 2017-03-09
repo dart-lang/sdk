@@ -488,7 +488,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endSend(Token token) {
+  void endSend(Token beginToken, Token endToken) {
     debugEvent("Send");
     Arguments arguments = pop();
     List<DartType> typeArguments = pop();
@@ -501,14 +501,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     if (receiver is Identifier) {
       Name name = new Name(receiver.name, library.library);
       if (arguments == null) {
-        push(new IncompletePropertyAccessor(this, token.charOffset, name));
+        push(new IncompletePropertyAccessor(this, beginToken.charOffset, name));
       } else {
-        push(new SendAccessor(this, token.charOffset, name, arguments));
+        push(new SendAccessor(this, endToken.charOffset, name, arguments));
       }
     } else if (arguments == null) {
       push(receiver);
     } else {
-      push(finishSend(receiver, arguments, token.charOffset));
+      push(finishSend(receiver, arguments, beginToken.charOffset));
     }
   }
 
@@ -859,7 +859,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       push(buildCompileTimeErrorStatement(
           "Can't return from a constructor.", beginToken.charOffset));
     } else {
-      push(new ReturnStatement(expression));
+      push(new ReturnStatement(expression)..fileOffset = beginToken.charOffset);
     }
   }
 
@@ -877,7 +877,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     assert(assignmentOperator.stringValue == "=");
     Expression initializer = popForValue();
     Identifier identifier = pop();
-    push(new VariableDeclaration(identifier.name, initializer: initializer));
+    push(new VariableDeclaration(identifier.name, initializer: initializer)
+      ..fileEqualsOffset = assignmentOperator.charOffset);
   }
 
   @override
@@ -899,7 +900,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void endInitializedIdentifier() {
+  void endInitializedIdentifier(Token nameToken) {
     // TODO(ahe): Use [InitializedIdentifier] here?
     debugEvent("InitializedIdentifier");
     TreeNode node = pop();
@@ -911,6 +912,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       internalError("unhandled identifier: ${node.runtimeType}");
     }
+    variable.fileOffset = nameToken.charOffset;
     push(variable);
     scope[variable.name] = new KernelVariableBuilder(
         variable, member ?? classBuilder ?? library, uri);
@@ -1237,7 +1239,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("AsOperator");
     DartType type = pop();
     Expression expression = popForValue();
-    push(new AsExpression(expression, type));
+    push(new AsExpression(expression, type)..fileOffset = operator.charOffset);
   }
 
   @override
@@ -1245,7 +1247,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("IsOperator");
     DartType type = pop();
     Expression expression = popForValue();
-    expression = new IsExpression(expression, type);
+    expression = new IsExpression(expression, type)
+      ..fileOffset = operator.charOffset;
     if (not != null) {
       expression = new Not(expression);
     }

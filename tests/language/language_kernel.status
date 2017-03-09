@@ -635,7 +635,6 @@ vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/regress_27201_test: CompileTimeError
 vm/regress_27671_test: RuntimeError
-vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test: RuntimeError
 
 # dartk: JIT & AOT failures (debug)

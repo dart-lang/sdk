@@ -200,14 +200,14 @@ class AstBuilder extends ScopeListener {
     }
   }
 
-  void endSend(Token token) {
+  void endSend(Token beginToken, Token endToken) {
     debugEvent("Send");
     MethodInvocation arguments = pop();
     TypeArgumentList typeArguments = pop();
     if (arguments != null) {
-      doInvocation(token, typeArguments, arguments);
+      doInvocation(endToken, typeArguments, arguments);
     } else {
-      doPropertyGet(token);
+      doPropertyGet(endToken);
     }
   }
 
@@ -396,7 +396,7 @@ class AstBuilder extends ScopeListener {
     debugEvent("NoVariableInitializer");
   }
 
-  void endInitializedIdentifier() {
+  void endInitializedIdentifier(Token nameToken) {
     debugEvent("InitializedIdentifier");
     AstNode node = pop();
     VariableDeclaration variable;

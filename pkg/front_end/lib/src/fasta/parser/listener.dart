@@ -382,7 +382,7 @@ class Listener {
 
   void beginInitializedIdentifier(Token token) {}
 
-  void endInitializedIdentifier() {
+  void endInitializedIdentifier(Token nameToken) {
     logEvent("InitializedIdentifier");
   }
 
@@ -568,7 +568,7 @@ class Listener {
 
   void beginSend(Token token) {}
 
-  void endSend(Token token) {
+  void endSend(Token beginToken, Token endToken) {
     logEvent("Send");
   }
 

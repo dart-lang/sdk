@@ -96,10 +96,10 @@ abstract class BuilderAccessor implements Accessor {
   buildPropertyAccess(IncompleteSend send, bool isNullAware) {
     if (send is SendAccessor) {
       return buildMethodInvocation(
-          buildSimpleRead(), send.name, send.arguments, charOffset,
+          buildSimpleRead(), send.name, send.arguments, send.charOffset,
           isNullAware: isNullAware);
     } else {
-      return PropertyAccessor.make(helper, charOffset, buildSimpleRead(),
+      return PropertyAccessor.make(helper, send.charOffset, buildSimpleRead(),
           send.name, null, null, isNullAware);
     }
   }
@@ -519,11 +519,9 @@ class IndexAccessor extends kernel.IndexAccessor with BuilderAccessor {
 class PropertyAccessor extends kernel.PropertyAccessor with BuilderAccessor {
   final BuilderHelper helper;
 
-  final int charOffset;
-
-  PropertyAccessor.internal(this.helper, this.charOffset, Expression receiver,
+  PropertyAccessor.internal(this.helper, int charOffset, Expression receiver,
       Name name, Member getter, Member setter)
-      : super.internal(receiver, name, getter, setter);
+      : super.internal(receiver, name, getter, setter, charOffset);
 
   String get plainNameForRead => name.name;
 
@@ -699,11 +697,9 @@ class NullAwarePropertyAccessor extends kernel.NullAwarePropertyAccessor
 class VariableAccessor extends kernel.VariableAccessor with BuilderAccessor {
   final BuilderHelper helper;
 
-  final int charOffset;
-
-  VariableAccessor(this.helper, this.charOffset, VariableDeclaration variable,
+  VariableAccessor(this.helper, int charOffset, VariableDeclaration variable,
       [DartType promotedType])
-      : super.internal(variable, promotedType);
+      : super.internal(variable, charOffset, promotedType);
 
   String get plainNameForRead => variable.name;
 

@@ -447,7 +447,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endSend(Token token) {
+  void endSend(Token beginToken, Token endToken) {
     NodeList arguments = popNode();
     NodeList typeArguments = popNode();
     Node selector = popNode();

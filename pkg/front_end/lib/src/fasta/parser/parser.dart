@@ -2603,6 +2603,7 @@ class Parser {
   }
 
   Token parseArgumentOrIndexStar(Token token) {
+    Token beginToken = token;
     while (true) {
       if (optional('[', token)) {
         Token openSquareBracket = token;
@@ -2615,7 +2616,7 @@ class Parser {
       } else if (optional('(', token)) {
         listener.handleNoTypeArguments(token);
         token = parseArguments(token);
-        listener.endSend(token);
+        listener.endSend(beginToken, token);
       } else {
         break;
       }
@@ -2717,25 +2718,27 @@ class Parser {
   }
 
   Token parseThisExpression(Token token) {
+    Token beginToken = token;
     listener.handleThisExpression(token);
     token = token.next;
     if (optional('(', token)) {
       // Constructor forwarding.
       listener.handleNoTypeArguments(token);
       token = parseArguments(token);
-      listener.endSend(token);
+      listener.endSend(beginToken, token);
     }
     return token;
   }
 
   Token parseSuperExpression(Token token) {
+    Token beginToken = token;
     listener.handleSuperExpression(token);
     token = token.next;
     if (optional('(', token)) {
       // Super constructor.
       listener.handleNoTypeArguments(token);
       token = parseArguments(token);
-      listener.endSend(token);
+      listener.endSend(beginToken, token);
     }
     return token;
   }
@@ -3024,6 +3027,7 @@ class Parser {
   }
 
   Token parseSend(Token token, IdentifierContext context) {
+    Token beginToken = token;
     listener.beginSend(token);
     token = parseIdentifier(token, context);
     if (isValidMethodTypeArguments(token)) {
@@ -3032,7 +3036,7 @@ class Parser {
       listener.handleNoTypeArguments(token);
     }
     token = parseArgumentsOpt(token);
-    listener.endSend(token);
+    listener.endSend(beginToken, token);
     return token;
   }
 
@@ -3150,10 +3154,11 @@ class Parser {
   }
 
   Token parseOptionallyInitializedIdentifier(Token token) {
+    Token nameToken = token;
     listener.beginInitializedIdentifier(token);
     token = parseIdentifier(token, IdentifierContext.localVariableDeclaration);
     token = parseVariableInitializerOpt(token);
-    listener.endInitializedIdentifier();
+    listener.endInitializedIdentifier(nameToken);
     return token;
   }
 
