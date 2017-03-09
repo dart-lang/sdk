@@ -54,6 +54,7 @@ async_test/constructor2: DartkCrash
 async_test/constructor3: MissingCompileTimeError
 async_test/setter1: MissingCompileTimeError
 await_backwards_compatibility_test/await1: MissingCompileTimeError
+await_for_test: Crash, Fail
 await_test: RuntimeError
 bad_constructor_test/05: CompileTimeError
 bad_initializer1_negative_test: Crash
