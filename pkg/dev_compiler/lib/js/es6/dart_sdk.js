@@ -4074,6 +4074,13 @@ dart.setSignature(_debugger.TypeFormatter, {
     children: dart.definiteFunctionType(core.List$(_debugger.NameValuePair), [dart.dynamic])
   })
 });
+_debugger.StackTraceMapper = dart.typedef('StackTraceMapper', () => dart.functionType(core.String, [core.String]));
+dart.copyProperties(_debugger, {
+  get stackTraceMapper() {
+    let _util = dart.global.$dartStackTraceUtility;
+    return _debugger.StackTraceMapper._check(_util != null ? _util.mapper : null);
+  }
+});
 _debugger.registerDevtoolsFormatter = function() {
   let formatters = JSArrayOfJsonMLFormatter().of([_debugger._devtoolsFormatter]);
   dart.global.devtoolsFormatters = formatters;
@@ -11943,6 +11950,9 @@ _js_helper._StackTrace = class _StackTrace extends core.Object {
     let trace = null;
     if (this[_exception] !== null && typeof this[_exception] === "object") {
       trace = this[_exception].stack;
+      if (trace != null && _debugger.stackTraceMapper != null) {
+        trace = _debugger.stackTraceMapper(trace);
+      }
     }
     return this[_trace] = trace == null ? '' : trace;
   }
@@ -32107,7 +32117,7 @@ core.Duration = class Duration extends core.Object {
     return new core.Duration._microseconds(this[_duration][dartx.abs]());
   }
   _negate() {
-    return new core.Duration._microseconds(-dart.notNull(this[_duration]));
+    return new core.Duration._microseconds(0 - dart.notNull(this[_duration]));
   }
 };
 dart.defineNamedConstructor(core.Duration, '_microseconds');
