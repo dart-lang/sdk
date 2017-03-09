@@ -2331,10 +2331,9 @@ analyzer:
       AnalysisContext sdkContext = sourceFactory.dartSdk.context;
       expect(analysisOptions.strongMode, isTrue);
       expect(sdkContext.analysisOptions.strongMode, isTrue);
-      // The code is strong-mode clean, but we're using a Mock SDK that isn't
-      // configured correctly for strong mode so we get an error.
+      // The code is strong-mode clean.
       // Verify that TypeSystem was reset.
-      expect(context.computeErrors(testSource), hasLength(1));
+      expect(context.computeErrors(testSource), isEmpty);
     }
   }
 
