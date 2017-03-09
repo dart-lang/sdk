@@ -1569,6 +1569,9 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->ptr()->stackmaps_);
     s->Push(code->ptr()->inlined_id_to_function_);
     s->Push(code->ptr()->code_source_map_);
+    if (s->kind() != Snapshot::kAppAOT) {
+      s->Push(code->ptr()->await_token_positions_);
+    }
 
     if (s->kind() == Snapshot::kAppJIT) {
       s->Push(code->ptr()->deopt_info_array_);
@@ -1623,6 +1626,10 @@ class CodeSerializationCluster : public SerializationCluster {
       s->WriteRef(code->ptr()->stackmaps_);
       s->WriteRef(code->ptr()->inlined_id_to_function_);
       s->WriteRef(code->ptr()->code_source_map_);
+      if (s->kind() != Snapshot::kAppAOT) {
+        s->WriteRef(code->ptr()->await_token_positions_);
+      }
+
 
       if (s->kind() == Snapshot::kAppJIT) {
         s->WriteRef(code->ptr()->deopt_info_array_);
@@ -1697,6 +1704,9 @@ class CodeDeserializationCluster : public DeserializationCluster {
           reinterpret_cast<RawCodeSourceMap*>(d->ReadRef());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+      code->ptr()->await_token_positions_ =
+          reinterpret_cast<RawArray*>(d->ReadRef());
+
       if (d->kind() == Snapshot::kAppJIT) {
         code->ptr()->deopt_info_array_ =
             reinterpret_cast<RawArray*>(d->ReadRef());
